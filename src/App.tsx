@@ -12,6 +12,13 @@ import CreateWorkspace from "./pages/CreateWorkspace";
 import Dashboard from "./pages/Dashboard";
 import Team from "./pages/Team";
 import Settings from "./pages/Settings";
+import Inbox from "./pages/Inbox";
+import Contacts from "./pages/Contacts";
+import PhoneNumbers from "./pages/PhoneNumbers";
+import Templates from "./pages/Templates";
+import Campaigns from "./pages/Campaigns";
+import Automation from "./pages/Automation";
+import Billing from "./pages/Billing";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -30,7 +37,14 @@ const App = () => (
               <Route path="/signup" element={<Signup />} />
               <Route path="/create-workspace" element={<CreateWorkspace />} />
               <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/inbox" element={<Inbox />} />
+              <Route path="/contacts" element={<Contacts />} />
+              <Route path="/phone-numbers" element={<PhoneNumbers />} />
+              <Route path="/templates" element={<Templates />} />
+              <Route path="/campaigns" element={<Campaigns />} />
+              <Route path="/automation" element={<Automation />} />
               <Route path="/team" element={<Team />} />
+              <Route path="/billing" element={<Billing />} />
               <Route path="/settings" element={<Settings />} />
               <Route path="*" element={<NotFound />} />
             </Routes>

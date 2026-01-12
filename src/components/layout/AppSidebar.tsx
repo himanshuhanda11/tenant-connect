@@ -5,10 +5,16 @@ import {
   Users,
   Settings,
   LogOut,
-  Building2,
   ChevronDown,
   Plus,
   MessageSquare,
+  Inbox,
+  Contact,
+  Phone,
+  FileText,
+  Send,
+  Zap,
+  CreditCard,
 } from 'lucide-react';
 import {
   Sidebar,
@@ -16,6 +22,7 @@ import {
   SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
+  SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
@@ -34,9 +41,25 @@ import { NavLink } from '@/components/NavLink';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTenant } from '@/contexts/TenantContext';
 
-const menuItems = [
+const mainMenuItems = [
   { title: 'Dashboard', url: '/dashboard', icon: LayoutDashboard },
+  { title: 'Inbox', url: '/inbox', icon: Inbox, badge: 0 },
+  { title: 'Contacts', url: '/contacts', icon: Contact },
+];
+
+const channelMenuItems = [
+  { title: 'Phone Numbers', url: '/phone-numbers', icon: Phone },
+  { title: 'Templates', url: '/templates', icon: FileText },
+];
+
+const growthMenuItems = [
+  { title: 'Campaigns', url: '/campaigns', icon: Send },
+  { title: 'Automation', url: '/automation', icon: Zap },
+];
+
+const settingsMenuItems = [
   { title: 'Team', url: '/team', icon: Users },
+  { title: 'Billing', url: '/billing', icon: CreditCard },
   { title: 'Settings', url: '/settings', icon: Settings },
 ];
 
@@ -68,6 +91,31 @@ export function AppSidebar() {
     }
     return email.slice(0, 2).toUpperCase();
   };
+
+  const renderMenuItems = (items: typeof mainMenuItems) => (
+    <SidebarMenu>
+      {items.map((item) => (
+        <SidebarMenuItem key={item.title}>
+          <SidebarMenuButton asChild>
+            <NavLink
+              to={item.url}
+              end={item.url === '/dashboard'}
+              className="flex items-center gap-3 px-3 py-2 rounded-lg text-sidebar-foreground/80 hover:text-sidebar-foreground hover:bg-sidebar-accent transition-colors"
+              activeClassName="bg-sidebar-accent text-sidebar-foreground font-medium"
+            >
+              <item.icon className="w-5 h-5" />
+              <span className="flex-1">{item.title}</span>
+              {'badge' in item && item.badge !== undefined && item.badge > 0 && (
+                <Badge variant="default" className="h-5 min-w-[20px] px-1.5 text-xs">
+                  {item.badge}
+                </Badge>
+              )}
+            </NavLink>
+          </SidebarMenuButton>
+        </SidebarMenuItem>
+      ))}
+    </SidebarMenu>
+  );
 
   return (
     <Sidebar className="border-r border-sidebar-border">
@@ -137,25 +185,40 @@ export function AppSidebar() {
           </DropdownMenu>
         </div>
 
+        {/* Main Navigation */}
         <SidebarGroup>
           <SidebarGroupContent>
-            <SidebarMenu>
-              {menuItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild>
-                    <NavLink
-                      to={item.url}
-                      end={item.url === '/dashboard'}
-                      className="flex items-center gap-3 px-3 py-2 rounded-lg text-sidebar-foreground/80 hover:text-sidebar-foreground hover:bg-sidebar-accent transition-colors"
-                      activeClassName="bg-sidebar-accent text-sidebar-foreground font-medium"
-                    >
-                      <item.icon className="w-5 h-5" />
-                      <span>{item.title}</span>
-                    </NavLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
+            {renderMenuItems(mainMenuItems)}
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        {/* Channel Management */}
+        <SidebarGroup className="mt-4">
+          <SidebarGroupLabel className="text-sidebar-foreground/50 text-xs uppercase tracking-wider px-3 mb-1">
+            Channels
+          </SidebarGroupLabel>
+          <SidebarGroupContent>
+            {renderMenuItems(channelMenuItems)}
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        {/* Growth */}
+        <SidebarGroup className="mt-4">
+          <SidebarGroupLabel className="text-sidebar-foreground/50 text-xs uppercase tracking-wider px-3 mb-1">
+            Growth
+          </SidebarGroupLabel>
+          <SidebarGroupContent>
+            {renderMenuItems(growthMenuItems)}
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        {/* Settings */}
+        <SidebarGroup className="mt-4">
+          <SidebarGroupLabel className="text-sidebar-foreground/50 text-xs uppercase tracking-wider px-3 mb-1">
+            Manage
+          </SidebarGroupLabel>
+          <SidebarGroupContent>
+            {renderMenuItems(settingsMenuItems)}
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
