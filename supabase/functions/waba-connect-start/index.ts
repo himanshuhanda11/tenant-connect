@@ -94,10 +94,9 @@ Deno.serve(async (req) => {
     // Get Meta configuration
     const appId = Deno.env.get('META_APP_ID');
     const appSecret = Deno.env.get('META_APP_SECRET');
-    const configId = Deno.env.get('META_CONFIG_ID');
 
-    if (!appId || !appSecret || !configId) {
-      console.error('Missing Meta configuration:', { appId: !!appId, appSecret: !!appSecret, configId: !!configId });
+    if (!appId || !appSecret) {
+      console.error('Missing Meta configuration:', { appId: !!appId, appSecret: !!appSecret });
       return new Response(
         JSON.stringify({ error: 'Meta configuration not available' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -117,14 +116,13 @@ Deno.serve(async (req) => {
     // Build callback URL - use Supabase function URL
     const callbackUrl = `${supabaseUrl}/functions/v1/waba-connect-callback`;
 
-    // Build Meta OAuth URL for WhatsApp Embedded Signup
+    // Build standard Meta OAuth URL (without config_id which requires Embedded Signup setup)
+    // Use standard OAuth flow which is more reliable
     const params = new URLSearchParams({
       client_id: appId,
       redirect_uri: callbackUrl,
       response_type: 'code',
-      config_id: configId,
       state: signedState,
-      // NOTE: WhatsApp Embedded Signup commonly requires business_management in addition to WhatsApp scopes
       scope: 'business_management,whatsapp_business_management,whatsapp_business_messaging',
     });
 
@@ -132,6 +130,7 @@ Deno.serve(async (req) => {
 
     console.log('Generated OAuth URL for tenant:', tenantId);
     console.log('Callback URL:', callbackUrl);
+    console.log('OAuth URL:', oauthUrl);
 
     return new Response(
       JSON.stringify({ url: oauthUrl }),
