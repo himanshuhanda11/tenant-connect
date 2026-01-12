@@ -101,7 +101,7 @@ export default function PrivacyPolicy() {
               If you have any questions about this Privacy Policy, please contact us at:
             </p>
             <p className="text-muted-foreground">
-              <strong>Website:</strong> <a href="https://smeksh.lovable.app" className="text-primary hover:underline">https://smeksh.lovable.app</a>
+              <strong>Website:</strong> <a href="https://smeksh.com" className="text-primary hover:underline">https://smeksh.com</a>
             </p>
           </section>
 
