@@ -9,6 +9,7 @@ import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import CreateWorkspace from "./pages/CreateWorkspace";
+import SelectWorkspace from "./pages/SelectWorkspace";
 import Dashboard from "./pages/Dashboard";
 import Team from "./pages/Team";
 import Settings from "./pages/Settings";
@@ -38,6 +39,7 @@ const App = () => (
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<Signup />} />
               <Route path="/create-workspace" element={<CreateWorkspace />} />
+              <Route path="/select-workspace" element={<SelectWorkspace />} />
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/inbox" element={<Inbox />} />
               <Route path="/contacts" element={<Contacts />} />

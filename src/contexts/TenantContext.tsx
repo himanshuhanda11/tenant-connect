@@ -60,16 +60,22 @@ export function TenantProvider({ children }: { children: React.ReactNode }) {
 
       // Restore last selected tenant from localStorage
       const savedTenantId = localStorage.getItem(CURRENT_TENANT_KEY);
-      if (savedTenantId) {
+      if (savedTenantId && tenantsWithRoles.length > 0) {
         const savedTenant = tenantsWithRoles.find(t => t.id === savedTenantId);
         if (savedTenant) {
           setCurrentTenantState(savedTenant);
-        } else if (tenantsWithRoles.length > 0) {
+        } else {
+          // Saved tenant no longer accessible, use first available
           setCurrentTenantState(tenantsWithRoles[0]);
+          localStorage.setItem(CURRENT_TENANT_KEY, tenantsWithRoles[0].id);
         }
-      } else if (tenantsWithRoles.length > 0) {
+      } else if (tenantsWithRoles.length === 1) {
+        // Auto-select if only one tenant exists
         setCurrentTenantState(tenantsWithRoles[0]);
+        localStorage.setItem(CURRENT_TENANT_KEY, tenantsWithRoles[0].id);
       }
+      // If multiple tenants and no saved selection, don't auto-select
+      // This allows the user to be redirected to select-workspace
     } catch (error) {
       console.error('Error fetching tenants:', error);
     } finally {

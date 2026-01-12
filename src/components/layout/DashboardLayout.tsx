@@ -27,11 +27,14 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     if (!authLoading && !tenantLoading && user && tenants.length === 0) {
       navigate('/create-workspace');
     }
-  }, [user, authLoading, tenantLoading, tenants, navigate]);
+    // If user has tenants but no current tenant is selected, redirect to select workspace
+    if (!authLoading && !tenantLoading && user && tenants.length > 0 && !currentTenant) {
+      navigate('/select-workspace');
+    }
+  }, [user, authLoading, tenantLoading, tenants, currentTenant, navigate]);
 
   // Show loading while auth or tenant data is being fetched
-  // Also show loading if we have tenants but currentTenant isn't set yet
-  if (authLoading || tenantLoading || (tenants.length > 0 && !currentTenant)) {
+  if (authLoading || tenantLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-4">
