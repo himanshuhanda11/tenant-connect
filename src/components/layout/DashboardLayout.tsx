@@ -13,7 +13,7 @@ interface DashboardLayoutProps {
 export function DashboardLayout({ children }: DashboardLayoutProps) {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
-  const { tenants, loading: tenantLoading, currentTenant } = useTenant();
+  const { loading: tenantLoading, currentTenant } = useTenant();
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -22,16 +22,12 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   }, [user, authLoading, navigate]);
 
   useEffect(() => {
-    // Only redirect if loading is complete AND no tenants exist
-    // The tenants state is updated optimistically when creating a workspace
-    if (!authLoading && !tenantLoading && user && tenants.length === 0) {
-      navigate('/create-workspace');
-    }
-    // If user has tenants but no current tenant is selected, redirect to select workspace
-    if (!authLoading && !tenantLoading && user && tenants.length > 0 && !currentTenant) {
+    // After refresh/login we may not have a selected workspace yet.
+    // Always route through the workspace selector instead of forcing creation.
+    if (!authLoading && !tenantLoading && user && !currentTenant) {
       navigate('/select-workspace');
     }
-  }, [user, authLoading, tenantLoading, tenants, currentTenant, navigate]);
+  }, [user, authLoading, tenantLoading, currentTenant, navigate]);
 
   // Show loading while auth or tenant data is being fetched
   if (authLoading || tenantLoading) {

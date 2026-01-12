@@ -42,13 +42,17 @@ export default function PhoneNumbers() {
 
     if (connected === '1') {
       toast.success(`Successfully connected ${phones || ''} phone number(s)!`);
+      // Refresh list after OAuth redirect
+      if (currentTenant) {
+        fetchPhoneNumbers();
+      }
       // Clean up URL params
       setSearchParams({});
     } else if (error) {
       toast.error(`Connection failed: ${error}`);
       setSearchParams({});
     }
-  }, [searchParams, setSearchParams]);
+  }, [searchParams, setSearchParams, currentTenant]);
 
   useEffect(() => {
     if (currentTenant) {
