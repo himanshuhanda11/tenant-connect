@@ -384,7 +384,7 @@ async function processInboundMessage(
     contactId = existingContact.id;
   }
 
-  // Upsert conversation
+  // Upsert conversation (unique on phone_number_id + contact_id)
   const { data: conversation, error: convError } = await supabase
     .from('conversations')
     .upsert({
@@ -395,7 +395,7 @@ async function processInboundMessage(
       last_message_at: new Date().toISOString(),
       last_inbound_at: new Date().toISOString(),
     }, {
-      onConflict: 'tenant_id,phone_number_id,contact_id',
+      onConflict: 'phone_number_id,contact_id',
     })
     .select()
     .single();
@@ -446,7 +446,7 @@ async function processInboundMessage(
     text = ev.raw?.message?.reaction?.emoji || '';
   }
 
-  // Insert message with idempotency on wamid
+  // Insert message with idempotency on wamid (partial unique index)
   const { error: msgError } = await supabase
     .from('messages')
     .upsert({
