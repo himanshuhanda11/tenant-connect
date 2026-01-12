@@ -14,6 +14,228 @@ export type Database = {
   }
   public: {
     Tables: {
+      contacts: {
+        Row: {
+          created_at: string
+          id: string
+          last_seen: string | null
+          name: string | null
+          profile_picture_url: string | null
+          tenant_id: string
+          updated_at: string
+          wa_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          last_seen?: string | null
+          name?: string | null
+          profile_picture_url?: string | null
+          tenant_id: string
+          updated_at?: string
+          wa_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          last_seen?: string | null
+          name?: string | null
+          profile_picture_url?: string | null
+          tenant_id?: string
+          updated_at?: string
+          wa_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contacts_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      conversations: {
+        Row: {
+          contact_id: string
+          created_at: string
+          id: string
+          last_message_at: string | null
+          phone_number_id: string
+          status: Database["public"]["Enums"]["conversation_status"]
+          tenant_id: string
+          unread_count: number
+          updated_at: string
+        }
+        Insert: {
+          contact_id: string
+          created_at?: string
+          id?: string
+          last_message_at?: string | null
+          phone_number_id: string
+          status?: Database["public"]["Enums"]["conversation_status"]
+          tenant_id: string
+          unread_count?: number
+          updated_at?: string
+        }
+        Update: {
+          contact_id?: string
+          created_at?: string
+          id?: string
+          last_message_at?: string | null
+          phone_number_id?: string
+          status?: Database["public"]["Enums"]["conversation_status"]
+          tenant_id?: string
+          unread_count?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "conversations_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conversations_phone_number_id_fkey"
+            columns: ["phone_number_id"]
+            isOneToOne: false
+            referencedRelation: "phone_numbers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conversations_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      messages: {
+        Row: {
+          conversation_id: string
+          created_at: string
+          direction: Database["public"]["Enums"]["message_direction"]
+          error_code: string | null
+          error_message: string | null
+          id: string
+          media_mime_type: string | null
+          media_url: string | null
+          metadata: Json | null
+          status: Database["public"]["Enums"]["message_status"]
+          tenant_id: string
+          text: string | null
+          type: Database["public"]["Enums"]["message_type"]
+          updated_at: string
+          wamid: string | null
+        }
+        Insert: {
+          conversation_id: string
+          created_at?: string
+          direction: Database["public"]["Enums"]["message_direction"]
+          error_code?: string | null
+          error_message?: string | null
+          id?: string
+          media_mime_type?: string | null
+          media_url?: string | null
+          metadata?: Json | null
+          status?: Database["public"]["Enums"]["message_status"]
+          tenant_id: string
+          text?: string | null
+          type?: Database["public"]["Enums"]["message_type"]
+          updated_at?: string
+          wamid?: string | null
+        }
+        Update: {
+          conversation_id?: string
+          created_at?: string
+          direction?: Database["public"]["Enums"]["message_direction"]
+          error_code?: string | null
+          error_message?: string | null
+          id?: string
+          media_mime_type?: string | null
+          media_url?: string | null
+          metadata?: Json | null
+          status?: Database["public"]["Enums"]["message_status"]
+          tenant_id?: string
+          text?: string | null
+          type?: Database["public"]["Enums"]["message_type"]
+          updated_at?: string
+          wamid?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "messages_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      phone_numbers: {
+        Row: {
+          created_at: string
+          display_number: string
+          id: string
+          phone_number_id: string
+          quality_rating: Database["public"]["Enums"]["quality_rating"]
+          status: Database["public"]["Enums"]["phone_status"]
+          tenant_id: string
+          updated_at: string
+          verified_name: string | null
+          waba_account_id: string
+        }
+        Insert: {
+          created_at?: string
+          display_number: string
+          id?: string
+          phone_number_id: string
+          quality_rating?: Database["public"]["Enums"]["quality_rating"]
+          status?: Database["public"]["Enums"]["phone_status"]
+          tenant_id: string
+          updated_at?: string
+          verified_name?: string | null
+          waba_account_id: string
+        }
+        Update: {
+          created_at?: string
+          display_number?: string
+          id?: string
+          phone_number_id?: string
+          quality_rating?: Database["public"]["Enums"]["quality_rating"]
+          status?: Database["public"]["Enums"]["phone_status"]
+          tenant_id?: string
+          updated_at?: string
+          verified_name?: string | null
+          waba_account_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "phone_numbers_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "phone_numbers_waba_account_id_fkey"
+            columns: ["waba_account_id"]
+            isOneToOne: false
+            referencedRelation: "waba_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -100,6 +322,91 @@ export type Database = {
         }
         Relationships: []
       }
+      waba_accounts: {
+        Row: {
+          business_id: string
+          created_at: string
+          encrypted_access_token: string | null
+          id: string
+          name: string | null
+          status: Database["public"]["Enums"]["waba_status"]
+          tenant_id: string
+          updated_at: string
+          waba_id: string
+        }
+        Insert: {
+          business_id: string
+          created_at?: string
+          encrypted_access_token?: string | null
+          id?: string
+          name?: string | null
+          status?: Database["public"]["Enums"]["waba_status"]
+          tenant_id: string
+          updated_at?: string
+          waba_id: string
+        }
+        Update: {
+          business_id?: string
+          created_at?: string
+          encrypted_access_token?: string | null
+          id?: string
+          name?: string | null
+          status?: Database["public"]["Enums"]["waba_status"]
+          tenant_id?: string
+          updated_at?: string
+          waba_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "waba_accounts_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      webhook_events: {
+        Row: {
+          created_at: string
+          error: string | null
+          event_type: string
+          id: string
+          payload: Json
+          processed: boolean
+          processed_at: string | null
+          tenant_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          error?: string | null
+          event_type: string
+          id?: string
+          payload: Json
+          processed?: boolean
+          processed_at?: string | null
+          tenant_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          error?: string | null
+          event_type?: string
+          id?: string
+          payload?: Json
+          processed?: boolean
+          processed_at?: string | null
+          tenant_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "webhook_events_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -135,7 +442,26 @@ export type Database = {
       }
     }
     Enums: {
+      conversation_status: "open" | "closed" | "expired"
+      message_direction: "inbound" | "outbound"
+      message_status: "pending" | "sent" | "delivered" | "read" | "failed"
+      message_type:
+        | "text"
+        | "image"
+        | "video"
+        | "audio"
+        | "document"
+        | "sticker"
+        | "location"
+        | "contact"
+        | "template"
+        | "interactive"
+        | "reaction"
+        | "unknown"
+      phone_status: "pending" | "connected" | "disconnected" | "banned"
+      quality_rating: "GREEN" | "YELLOW" | "RED" | "UNKNOWN"
       tenant_role: "owner" | "admin" | "agent"
+      waba_status: "pending" | "active" | "suspended" | "disconnected"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -263,7 +589,27 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      conversation_status: ["open", "closed", "expired"],
+      message_direction: ["inbound", "outbound"],
+      message_status: ["pending", "sent", "delivered", "read", "failed"],
+      message_type: [
+        "text",
+        "image",
+        "video",
+        "audio",
+        "document",
+        "sticker",
+        "location",
+        "contact",
+        "template",
+        "interactive",
+        "reaction",
+        "unknown",
+      ],
+      phone_status: ["pending", "connected", "disconnected", "banned"],
+      quality_rating: ["GREEN", "YELLOW", "RED", "UNKNOWN"],
       tenant_role: ["owner", "admin", "agent"],
+      waba_status: ["pending", "active", "suspended", "disconnected"],
     },
   },
 } as const
