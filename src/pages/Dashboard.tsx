@@ -1,16 +1,20 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { 
   MessageSquare, 
   Users, 
   TrendingUp, 
   Clock,
   ArrowUpRight,
-  MoreHorizontal
+  MoreHorizontal,
+  Zap
 } from 'lucide-react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useTenant } from '@/contexts/TenantContext';
+import { MetaEmbeddedSignup } from '@/components/meta/MetaEmbeddedSignup';
 
 const stats = [
   {
@@ -44,7 +48,9 @@ const stats = [
 ];
 
 export default function Dashboard() {
+  const navigate = useNavigate();
   const { currentTenant, currentRole } = useTenant();
+  const [embeddedSignupOpen, setEmbeddedSignupOpen] = useState(false);
 
   return (
     <DashboardLayout>
@@ -88,29 +94,63 @@ export default function Dashboard() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-3">
-              <Button variant="outline" className="w-full justify-between h-12">
+              <Button 
+                className="w-full justify-between h-12 bg-green-600 hover:bg-green-700 text-white"
+                onClick={() => setEmbeddedSignupOpen(true)}
+              >
                 <span className="flex items-center gap-2">
-                  <MessageSquare className="w-4 h-4" />
-                  Connect WhatsApp Business
+                  <Zap className="w-4 h-4" />
+                  1-Click Connect WhatsApp
                 </span>
                 <ArrowUpRight className="w-4 h-4" />
               </Button>
-              <Button variant="outline" className="w-full justify-between h-12">
+              <Button 
+                variant="outline" 
+                className="w-full justify-between h-12"
+                onClick={() => navigate('/team')}
+              >
                 <span className="flex items-center gap-2">
                   <Users className="w-4 h-4" />
                   Invite Team Members
                 </span>
                 <ArrowUpRight className="w-4 h-4" />
               </Button>
-              <Button variant="outline" className="w-full justify-between h-12">
+              <Button 
+                variant="outline" 
+                className="w-full justify-between h-12"
+                onClick={() => navigate('/inbox')}
+              >
                 <span className="flex items-center gap-2">
-                  <TrendingUp className="w-4 h-4" />
-                  View Analytics
+                  <MessageSquare className="w-4 h-4" />
+                  Go to Inbox
                 </span>
                 <ArrowUpRight className="w-4 h-4" />
               </Button>
             </CardContent>
           </Card>
+
+          {/* Meta Embedded Signup Dialog */}
+          <Dialog open={embeddedSignupOpen} onOpenChange={setEmbeddedSignupOpen}>
+            <DialogContent className="sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle>Connect WhatsApp Business</DialogTitle>
+                <DialogDescription>
+                  Use Meta's secure signup flow to connect your WhatsApp Business Account in one click.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="py-4">
+                <MetaEmbeddedSignup
+                  onSuccess={(data) => {
+                    setEmbeddedSignupOpen(false);
+                    navigate('/phone-numbers');
+                  }}
+                  onError={(error) => {
+                    console.error('Embedded signup error:', error);
+                  }}
+                />
+              </div>
+            </DialogContent>
+          </Dialog>
 
           {/* Recent Activity */}
           <Card className="shadow-card">

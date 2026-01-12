@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Phone, Plus, Signal, SignalHigh, SignalLow, SignalMedium, RefreshCw, Loader2 } from 'lucide-react';
+import { Phone, Plus, Signal, SignalHigh, SignalLow, SignalMedium, RefreshCw, Loader2, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -11,13 +11,15 @@ import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { supabase } from '@/integrations/supabase/client';
 import { useTenant } from '@/contexts/TenantContext';
 import { toast } from 'sonner';
+import { MetaEmbeddedSignup } from '@/components/meta/MetaEmbeddedSignup';
 import type { PhoneNumber, WabaAccount, PhoneStatus, QualityRating } from '@/types/whatsapp';
 
 export default function PhoneNumbers() {
-  const { currentTenant } = useTenant();
+  const { currentTenant, currentRole } = useTenant();
   const [phoneNumbers, setPhoneNumbers] = useState<(PhoneNumber & { waba_account: WabaAccount })[]>([]);
   const [loading, setLoading] = useState(true);
   const [connectDialogOpen, setConnectDialogOpen] = useState(false);
+  const [embeddedSignupOpen, setEmbeddedSignupOpen] = useState(false);
   const [connectLoading, setConnectLoading] = useState(false);
   const [formData, setFormData] = useState({
     businessId: '',
@@ -26,6 +28,8 @@ export default function PhoneNumbers() {
     displayNumber: '',
     accessToken: '',
   });
+
+  const canManagePhones = currentRole === 'owner' || currentRole === 'admin';
 
   useEffect(() => {
     if (currentTenant) {
@@ -164,85 +168,120 @@ export default function PhoneNumbers() {
             <Button variant="outline" size="icon" onClick={fetchPhoneNumbers} disabled={loading}>
               <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
             </Button>
-            <Dialog open={connectDialogOpen} onOpenChange={setConnectDialogOpen}>
-              <DialogTrigger asChild>
-                <Button>
-                  <Plus className="w-4 h-4 mr-2" />
-                  Connect Number
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-md">
-                <DialogHeader>
-                  <DialogTitle>Connect WhatsApp Number</DialogTitle>
-                  <DialogDescription>
-                    Enter your WhatsApp Business API credentials to connect a phone number.
-                  </DialogDescription>
-                </DialogHeader>
-                <div className="space-y-4 py-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="businessId">Business ID</Label>
-                    <Input
-                      id="businessId"
-                      placeholder="123456789"
-                      value={formData.businessId}
-                      onChange={(e) => setFormData({ ...formData, businessId: e.target.value })}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="wabaId">WABA ID</Label>
-                    <Input
-                      id="wabaId"
-                      placeholder="123456789"
-                      value={formData.wabaId}
-                      onChange={(e) => setFormData({ ...formData, wabaId: e.target.value })}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="phoneNumberId">Phone Number ID</Label>
-                    <Input
-                      id="phoneNumberId"
-                      placeholder="123456789"
-                      value={formData.phoneNumberId}
-                      onChange={(e) => setFormData({ ...formData, phoneNumberId: e.target.value })}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="displayNumber">Display Number</Label>
-                    <Input
-                      id="displayNumber"
-                      placeholder="+1 555 123 4567"
-                      value={formData.displayNumber}
-                      onChange={(e) => setFormData({ ...formData, displayNumber: e.target.value })}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="accessToken">Access Token</Label>
-                    <Input
-                      id="accessToken"
-                      type="password"
-                      placeholder="Your WhatsApp API access token"
-                      value={formData.accessToken}
-                      onChange={(e) => setFormData({ ...formData, accessToken: e.target.value })}
-                    />
-                  </div>
-                </div>
-                <DialogFooter>
-                  <Button variant="outline" onClick={() => setConnectDialogOpen(false)}>
-                    Cancel
-                  </Button>
-                  <Button onClick={handleConnect} disabled={connectLoading || !formData.businessId || !formData.wabaId || !formData.phoneNumberId || !formData.displayNumber || !formData.accessToken}>
-                    {connectLoading ? (
-                      <>
-                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        Connecting...
-                      </>
-                    ) : (
-                      'Connect'
-                    )}
-                  </Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
+            
+            {canManagePhones && (
+              <>
+                {/* 1-Click Meta Embedded Signup */}
+                <Dialog open={embeddedSignupOpen} onOpenChange={setEmbeddedSignupOpen}>
+                  <DialogTrigger asChild>
+                    <Button className="bg-green-600 hover:bg-green-700">
+                      <Zap className="w-4 h-4 mr-2" />
+                      1-Click Connect
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                      <DialogTitle>Connect WhatsApp Business</DialogTitle>
+                      <DialogDescription>
+                        Use Meta's secure signup flow to connect your WhatsApp Business Account in one click.
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="py-4">
+                      <MetaEmbeddedSignup
+                        onSuccess={(data) => {
+                          setEmbeddedSignupOpen(false);
+                          fetchPhoneNumbers();
+                        }}
+                        onError={(error) => {
+                          console.error('Embedded signup error:', error);
+                        }}
+                      />
+                    </div>
+                  </DialogContent>
+                </Dialog>
+
+                {/* Manual Connect */}
+                <Dialog open={connectDialogOpen} onOpenChange={setConnectDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button variant="outline">
+                      <Plus className="w-4 h-4 mr-2" />
+                      Manual Setup
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                      <DialogTitle>Manual Connection</DialogTitle>
+                      <DialogDescription>
+                        Enter your WhatsApp Business API credentials manually.
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4 py-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="businessId">Business ID</Label>
+                        <Input
+                          id="businessId"
+                          placeholder="123456789"
+                          value={formData.businessId}
+                          onChange={(e) => setFormData({ ...formData, businessId: e.target.value })}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="wabaId">WABA ID</Label>
+                        <Input
+                          id="wabaId"
+                          placeholder="123456789"
+                          value={formData.wabaId}
+                          onChange={(e) => setFormData({ ...formData, wabaId: e.target.value })}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="phoneNumberId">Phone Number ID</Label>
+                        <Input
+                          id="phoneNumberId"
+                          placeholder="123456789"
+                          value={formData.phoneNumberId}
+                          onChange={(e) => setFormData({ ...formData, phoneNumberId: e.target.value })}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="displayNumber">Display Number</Label>
+                        <Input
+                          id="displayNumber"
+                          placeholder="+1 555 123 4567"
+                          value={formData.displayNumber}
+                          onChange={(e) => setFormData({ ...formData, displayNumber: e.target.value })}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="accessToken">Access Token</Label>
+                        <Input
+                          id="accessToken"
+                          type="password"
+                          placeholder="Your WhatsApp API access token"
+                          value={formData.accessToken}
+                          onChange={(e) => setFormData({ ...formData, accessToken: e.target.value })}
+                        />
+                      </div>
+                    </div>
+                    <DialogFooter>
+                      <Button variant="outline" onClick={() => setConnectDialogOpen(false)}>
+                        Cancel
+                      </Button>
+                      <Button onClick={handleConnect} disabled={connectLoading || !formData.businessId || !formData.wabaId || !formData.phoneNumberId || !formData.displayNumber || !formData.accessToken}>
+                        {connectLoading ? (
+                          <>
+                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                            Connecting...
+                          </>
+                        ) : (
+                          'Connect'
+                        )}
+                      </Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
+              </>
+            )}
           </div>
         </div>
 
