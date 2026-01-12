@@ -9,7 +9,7 @@ import { useTenant } from '@/contexts/TenantContext';
 export default function SelectWorkspace() {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
-  const { tenants, loading: tenantLoading, currentTenant, setCurrentTenant } = useTenant();
+  const { tenants, loading: tenantLoading, currentTenant, setCurrentTenant, refreshTenants } = useTenant();
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -17,6 +17,12 @@ export default function SelectWorkspace() {
     }
   }, [user, authLoading, navigate]);
 
+  useEffect(() => {
+    // If a tenant is already selected (e.g. restored from localStorage), skip this page.
+    if (!authLoading && !tenantLoading && user && currentTenant) {
+      navigate('/dashboard');
+    }
+  }, [authLoading, tenantLoading, user, currentTenant, navigate]);
 
   const handleSelectWorkspace = (tenantId: string) => {
     const tenant = tenants.find(t => t.id === tenantId);
@@ -70,10 +76,15 @@ export default function SelectWorkspace() {
                 <div className="mx-auto mb-4 w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
                   <Building2 className="w-6 h-6 text-primary" />
                 </div>
-                <p className="font-medium text-foreground">No workspace yet</p>
+                <p className="font-medium text-foreground">No workspace found for this account</p>
                 <p className="text-sm text-muted-foreground mt-1">
-                  Create your first workspace to start using the app.
+                  Signed in as <span className="font-medium">{user.email}</span>
                 </p>
+                <div className="mt-4 flex flex-col gap-2">
+                  <Button variant="outline" onClick={() => refreshTenants()}>
+                    Refresh workspaces
+                  </Button>
+                </div>
               </div>
             ) : (
               tenants.map((tenant) => (
