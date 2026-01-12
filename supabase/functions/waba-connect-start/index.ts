@@ -123,7 +123,9 @@ Deno.serve(async (req) => {
       redirect_uri: callbackUrl,
       response_type: 'code',
       state: signedState,
-      scope: 'business_management,whatsapp_business_management,whatsapp_business_messaging',
+      // NOTE: Some Meta app setups reject `business_management` with "Invalid Scopes".
+      // WhatsApp permissions are sufficient for our callback flow (we read WABA IDs from debug_token.granular_scopes).
+      scope: 'whatsapp_business_management,whatsapp_business_messaging',
     });
 
     if (configId) {
