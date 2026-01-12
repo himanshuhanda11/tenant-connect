@@ -7,6 +7,8 @@ const corsHeaders = {
 
 const WHATSAPP_API_VERSION = 'v21.0';
 const WHATSAPP_API_BASE = `https://graph.facebook.com/${WHATSAPP_API_VERSION}`;
+const RATE_LIMIT_PER_SECOND = 5;
+const RATE_LIMIT_PER_MINUTE = 100;
 
 interface TemplateComponent {
   type: 'header' | 'body' | 'button';
@@ -25,12 +27,87 @@ interface TemplateComponent {
 
 interface SendTemplateRequest {
   tenant_id: string;
-  phone_number_id: string; // Our internal phone_numbers.id
-  to_wa_id: string; // Recipient WhatsApp ID (phone number)
+  phone_number_id: string;
+  to_wa_id: string;
   template_name: string;
   template_language?: string;
   components?: TemplateComponent[];
-  contact_name?: string; // Optional name for new contacts
+  contact_name?: string;
+  conversation_id?: string;
+}
+
+async function checkRateLimit(supabase: any, tenantId: string): Promise<{ allowed: boolean; error?: string }> {
+  const now = new Date();
+  const oneSecondAgo = new Date(now.getTime() - 1000);
+  const oneMinuteAgo = new Date(now.getTime() - 60000);
+
+  const { count: secondCount } = await supabase
+    .from('rate_limit_logs')
+    .select('*', { count: 'exact', head: true })
+    .eq('tenant_id', tenantId)
+    .gte('created_at', oneSecondAgo.toISOString());
+
+  if ((secondCount || 0) >= RATE_LIMIT_PER_SECOND) {
+    return { allowed: false, error: 'Rate limit exceeded (max 5/second)' };
+  }
+
+  const { count: minuteCount } = await supabase
+    .from('rate_limit_logs')
+    .select('*', { count: 'exact', head: true })
+    .eq('tenant_id', tenantId)
+    .gte('created_at', oneMinuteAgo.toISOString());
+
+  if ((minuteCount || 0) >= RATE_LIMIT_PER_MINUTE) {
+    return { allowed: false, error: 'Rate limit exceeded (max 100/minute)' };
+  }
+
+  await supabase.from('rate_limit_logs').insert({ tenant_id: tenantId, action: 'send_template' });
+  return { allowed: true };
+}
+
+async function checkPlanLimits(supabase: any, tenantId: string): Promise<{ allowed: boolean; error?: string; code?: string }> {
+  const { data: subscription } = await supabase
+    .from('subscriptions')
+    .select('status, plan_id')
+    .eq('tenant_id', tenantId)
+    .eq('status', 'active')
+    .maybeSingle();
+
+  let planLimits: any = null;
+  if (subscription?.plan_id) {
+    const { data: plan } = await supabase
+      .from('plans')
+      .select('limits_json')
+      .eq('id', subscription.plan_id)
+      .single();
+    planLimits = plan?.limits_json;
+  }
+
+  if (!planLimits) {
+    const { data: freePlan } = await supabase
+      .from('plans')
+      .select('limits_json')
+      .eq('name', 'Free')
+      .single();
+    planLimits = freePlan?.limits_json || { monthly_messages: 1000 };
+  }
+
+  const currentMonth = new Date().toISOString().slice(0, 7);
+  const { data: usage } = await supabase
+    .from('usage_counters')
+    .select('messages_sent')
+    .eq('tenant_id', tenantId)
+    .eq('year_month', currentMonth)
+    .maybeSingle();
+
+  const messagesSent = usage?.messages_sent || 0;
+  const monthlyLimit = planLimits.monthly_messages || 1000;
+
+  if (monthlyLimit !== -1 && messagesSent >= monthlyLimit) {
+    return { allowed: false, error: 'Monthly message limit exceeded', code: 'LIMIT_EXCEEDED' };
+  }
+
+  return { allowed: true };
 }
 
 Deno.serve(async (req) => {
@@ -46,7 +123,6 @@ Deno.serve(async (req) => {
   }
 
   try {
-    // Verify authentication
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
       return new Response(JSON.stringify({ error: 'Unauthorized' }), {
@@ -59,18 +135,13 @@ Deno.serve(async (req) => {
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
     
-    // Use anon key for user auth verification
     const supabaseAuth = createClient(supabaseUrl, supabaseAnonKey, {
       global: { headers: { Authorization: authHeader } },
     });
-    
-    // Use service role for database operations (bypass RLS for server-side inserts)
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Get user
     const { data: { user }, error: userError } = await supabaseAuth.auth.getUser();
     if (userError || !user) {
-      console.error('Auth error:', userError);
       return new Response(JSON.stringify({ error: 'Unauthorized' }), {
         status: 401,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -78,21 +149,10 @@ Deno.serve(async (req) => {
     }
 
     const body: SendTemplateRequest = await req.json();
-    const { 
-      tenant_id, 
-      phone_number_id, 
-      to_wa_id, 
-      template_name,
-      template_language = 'en',
-      components = [],
-      contact_name 
-    } = body;
+    const { tenant_id, phone_number_id, to_wa_id, template_name, template_language = 'en', components = [], contact_name, conversation_id } = body;
 
-    // Validate required fields
     if (!tenant_id || !phone_number_id || !to_wa_id || !template_name) {
-      return new Response(JSON.stringify({ 
-        error: 'tenant_id, phone_number_id, to_wa_id, and template_name are required' 
-      }), {
+      return new Response(JSON.stringify({ error: 'tenant_id, phone_number_id, to_wa_id, and template_name are required' }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
@@ -100,7 +160,7 @@ Deno.serve(async (req) => {
 
     console.log('Processing send-template-message:', { tenant_id, phone_number_id, to_wa_id, template_name });
 
-    // 1. Verify user belongs to tenant
+    // 1. Verify tenant membership
     const { data: membership, error: memberError } = await supabase
       .from('tenant_members')
       .select('id, role')
@@ -109,77 +169,60 @@ Deno.serve(async (req) => {
       .maybeSingle();
 
     if (memberError || !membership) {
-      console.error('Membership check failed:', memberError);
       return new Response(JSON.stringify({ error: 'Access denied - not a tenant member' }), {
         status: 403,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
-    // 2. Verify phone number belongs to tenant and get WABA details
+    // 2. Check plan limits
+    const planCheck = await checkPlanLimits(supabase, tenant_id);
+    if (!planCheck.allowed) {
+      return new Response(JSON.stringify({ error: planCheck.error, code: planCheck.code }), {
+        status: 429,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    // 3. Check rate limit
+    const rateCheck = await checkRateLimit(supabase, tenant_id);
+    if (!rateCheck.allowed) {
+      return new Response(JSON.stringify({ error: rateCheck.error, code: 'RATE_LIMIT' }), {
+        status: 429,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    // 4. Verify phone number
     const { data: phoneNumber, error: phoneError } = await supabase
       .from('phone_numbers')
-      .select(`
-        id,
-        phone_number_id,
-        tenant_id,
-        waba_account_id
-      `)
+      .select('id, phone_number_id, tenant_id, waba_account_id')
       .eq('id', phone_number_id)
       .eq('tenant_id', tenant_id)
       .single();
 
     if (phoneError || !phoneNumber) {
-      console.error('Phone number not found:', phoneError);
       return new Response(JSON.stringify({ error: 'Phone number not found or access denied' }), {
         status: 404,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
-    // Get WABA account separately
+    // 5. Get WABA account
     const { data: wabaAccount, error: wabaError } = await supabase
       .from('waba_accounts')
       .select('id, encrypted_access_token, status')
       .eq('id', phoneNumber.waba_account_id)
       .single();
 
-    if (wabaError || !wabaAccount) {
-      console.error('WABA account not found:', wabaError);
-      return new Response(JSON.stringify({ error: 'WABA account not found' }), {
-        status: 404,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
-
-    if (!wabaAccount.encrypted_access_token) {
-      return new Response(JSON.stringify({ error: 'WhatsApp access token not configured' }), {
+    if (wabaError || !wabaAccount?.encrypted_access_token || wabaAccount.status !== 'active') {
+      return new Response(JSON.stringify({ error: 'WABA account not available' }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
-    if (wabaAccount.status !== 'active') {
-      return new Response(JSON.stringify({ error: 'WABA account is not active' }), {
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
-
-    // 3. Verify template exists and is approved (optional, for better error messages)
-    const { data: template } = await supabase
-      .from('templates')
-      .select('id, name, status')
-      .eq('tenant_id', tenant_id)
-      .eq('name', template_name)
-      .maybeSingle();
-
-    if (template && template.status !== 'APPROVED') {
-      console.warn(`Template ${template_name} status is ${template.status}`);
-      // Don't block - Meta might have approved it but we haven't synced yet
-    }
-
-    // 4. Upsert contact by tenant_id + wa_id
+    // 6. Upsert contact
     const { data: existingContact } = await supabase
       .from('contacts')
       .select('id, name')
@@ -190,26 +233,17 @@ Deno.serve(async (req) => {
     let contactId: string;
     if (existingContact) {
       contactId = existingContact.id;
-      // Update name if provided and contact has no name
       if (contact_name && !existingContact.name) {
-        await supabase
-          .from('contacts')
-          .update({ name: contact_name, updated_at: new Date().toISOString() })
-          .eq('id', contactId);
+        await supabase.from('contacts').update({ name: contact_name }).eq('id', contactId);
       }
     } else {
       const { data: newContact, error: contactError } = await supabase
         .from('contacts')
-        .insert({
-          tenant_id,
-          wa_id: to_wa_id,
-          name: contact_name || null,
-        })
+        .insert({ tenant_id, wa_id: to_wa_id, name: contact_name || null })
         .select()
         .single();
 
       if (contactError) {
-        console.error('Failed to create contact:', contactError);
         return new Response(JSON.stringify({ error: 'Failed to create contact' }), {
           status: 500,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -218,42 +252,45 @@ Deno.serve(async (req) => {
       contactId = newContact.id;
     }
 
-    // 5. Upsert conversation by tenant_id + phone_id + contact_id
-    const { data: existingConversation } = await supabase
-      .from('conversations')
-      .select('id')
-      .eq('tenant_id', tenant_id)
-      .eq('phone_number_id', phone_number_id)
-      .eq('contact_id', contactId)
-      .maybeSingle();
-
-    let conversationId: string;
-    if (existingConversation) {
-      conversationId = existingConversation.id;
+    // 7. Upsert conversation
+    let conversationIdFinal: string;
+    if (conversation_id) {
+      conversationIdFinal = conversation_id;
     } else {
-      const { data: newConversation, error: convError } = await supabase
+      const { data: existingConversation } = await supabase
         .from('conversations')
-        .insert({
-          tenant_id,
-          phone_number_id: phone_number_id,
-          contact_id: contactId,
-          status: 'open',
-          last_message_at: new Date().toISOString(),
-        })
-        .select()
-        .single();
+        .select('id')
+        .eq('tenant_id', tenant_id)
+        .eq('phone_number_id', phone_number_id)
+        .eq('contact_id', contactId)
+        .maybeSingle();
 
-      if (convError) {
-        console.error('Failed to create conversation:', convError);
-        return new Response(JSON.stringify({ error: 'Failed to create conversation' }), {
-          status: 500,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
+      if (existingConversation) {
+        conversationIdFinal = existingConversation.id;
+      } else {
+        const { data: newConversation, error: convError } = await supabase
+          .from('conversations')
+          .insert({
+            tenant_id,
+            phone_number_id,
+            contact_id: contactId,
+            status: 'open',
+            last_message_at: new Date().toISOString(),
+          })
+          .select()
+          .single();
+
+        if (convError) {
+          return new Response(JSON.stringify({ error: 'Failed to create conversation' }), {
+            status: 500,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+        conversationIdFinal = newConversation.id;
       }
-      conversationId = newConversation.id;
     }
 
-    // 6. Build WhatsApp template API payload
+    // 8. Build template payload (NO 24h window check - templates allowed anytime)
     const templatePayload: any = {
       name: template_name,
       language: { code: template_language },
@@ -271,62 +308,49 @@ Deno.serve(async (req) => {
       template: templatePayload,
     };
 
-    // 7. Create pending message in database
+    // 9. Create pending message
     const { data: message, error: msgError } = await supabase
       .from('messages')
       .insert({
         tenant_id,
-        conversation_id: conversationId,
+        conversation_id: conversationIdFinal,
         direction: 'outbound',
         type: 'template',
         text: `Template: ${template_name}`,
-        metadata: {
-          template_name,
-          template_language,
-          components,
-        },
+        metadata: { template_name, template_language, components },
         status: 'pending',
       })
       .select()
       .single();
 
     if (msgError) {
-      console.error('Failed to create message:', msgError);
       return new Response(JSON.stringify({ error: 'Failed to create message' }), {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
-    // 8. Call Meta Cloud API
+    // 10. Call Meta Cloud API
     try {
-      console.log('Sending template to WhatsApp API:', phoneNumber.phone_number_id);
-      const waResponse = await fetch(
-        `${WHATSAPP_API_BASE}/${phoneNumber.phone_number_id}/messages`,
-        {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${wabaAccount.encrypted_access_token}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(messagePayload),
-        }
-      );
+      const waResponse = await fetch(`${WHATSAPP_API_BASE}/${phoneNumber.phone_number_id}/messages`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${wabaAccount.encrypted_access_token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(messagePayload),
+      });
 
       const waResult = await waResponse.json();
       console.log('WhatsApp API response:', JSON.stringify(waResult));
 
       if (!waResponse.ok) {
-        // Update message as failed
-        await supabase
-          .from('messages')
-          .update({
-            status: 'failed',
-            failed_at: new Date().toISOString(),
-            error_code: waResult.error?.code?.toString(),
-            error_message: waResult.error?.message,
-          })
-          .eq('id', message.id);
+        await supabase.from('messages').update({
+          status: 'failed',
+          failed_at: new Date().toISOString(),
+          error_code: waResult.error?.code?.toString(),
+          error_message: waResult.error?.message,
+        }).eq('id', message.id);
 
         return new Response(JSON.stringify({
           ok: false,
@@ -338,59 +362,45 @@ Deno.serve(async (req) => {
         });
       }
 
-      // 9. Update message with wamid + status=sent + sent_at
+      // 11. Update message
       const wamid = waResult.messages?.[0]?.id;
-      await supabase
-        .from('messages')
-        .update({
-          wamid,
-          status: 'sent',
-          sent_at: new Date().toISOString(),
-        })
-        .eq('id', message.id);
+      await supabase.from('messages').update({
+        wamid,
+        status: 'sent',
+        sent_at: new Date().toISOString(),
+      }).eq('id', message.id);
 
-      // Update conversation last_message_at
-      await supabase
-        .from('conversations')
-        .update({ 
-          last_message_at: new Date().toISOString(),
-          status: 'open'
-        })
-        .eq('id', conversationId);
+      await supabase.from('conversations').update({
+        last_message_at: new Date().toISOString(),
+        status: 'open'
+      }).eq('id', conversationIdFinal);
 
-      // Increment usage counter
-      try {
-        await supabase.rpc('increment_usage', {
-          p_tenant_id: tenant_id,
-          p_counter: 'messages_sent',
-          p_amount: 1
-        });
-      } catch (e) {
-        console.error('Failed to increment usage:', e);
-      }
+      // 12. Increment usage
+      await supabase.rpc('increment_usage', {
+        p_tenant_id: tenant_id,
+        p_counter: 'messages_sent',
+        p_amount: 1
+      });
 
       return new Response(JSON.stringify({
         ok: true,
         wamid,
         message_id: message.id,
-        conversation_id: conversationId,
+        conversation_id: conversationIdFinal,
         contact_id: contactId,
       }), {
         status: 200,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
 
-    } catch (apiError) {
+    } catch (apiError: any) {
       console.error('WhatsApp API error:', apiError);
       
-      await supabase
-        .from('messages')
-        .update({
-          status: 'failed',
-          failed_at: new Date().toISOString(),
-          error_message: 'Failed to connect to WhatsApp API',
-        })
-        .eq('id', message.id);
+      await supabase.from('messages').update({
+        status: 'failed',
+        failed_at: new Date().toISOString(),
+        error_message: 'Failed to connect to WhatsApp API',
+      }).eq('id', message.id);
 
       return new Response(JSON.stringify({
         ok: false,

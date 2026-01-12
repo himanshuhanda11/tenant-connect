@@ -625,6 +625,35 @@ export type Database = {
         }
         Relationships: []
       }
+      rate_limit_logs: {
+        Row: {
+          action: string
+          created_at: string
+          id: string
+          tenant_id: string
+        }
+        Insert: {
+          action?: string
+          created_at?: string
+          id?: string
+          tenant_id: string
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          id?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rate_limit_logs_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       subscriptions: {
         Row: {
           billing_cycle: string | null
@@ -1027,6 +1056,7 @@ export type Database = {
         Args: { p_limit_key: string; p_tenant_id: string }
         Returns: boolean
       }
+      cleanup_rate_limit_logs: { Args: never; Returns: undefined }
       create_tenant_with_owner: {
         Args: { _name: string; _slug: string }
         Returns: {
