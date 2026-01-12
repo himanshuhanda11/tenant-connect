@@ -108,7 +108,14 @@ export function TenantProvider({ children }: { children: React.ReactNode }) {
 
       if (error) throw error;
 
-      await fetchTenants();
+      // Immediately set the new tenant as current to prevent race conditions
+      // where DashboardLayout sees empty tenants and redirects back
+      const newTenantWithRole: TenantWithRole = {
+        ...(tenant as Tenant),
+        role: 'owner' as TenantRole
+      };
+      setTenants(prev => [...prev, newTenantWithRole]);
+      setCurrentTenant(newTenantWithRole);
 
       return { error: null, tenant: tenant as Tenant };
     } catch (error) {
