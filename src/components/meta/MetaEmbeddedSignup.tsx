@@ -23,16 +23,7 @@ export function MetaEmbeddedSignup({ onSuccess, onError }: MetaEmbeddedSignupPro
     setLoading(true);
     
     try {
-      // Call the start endpoint to get the OAuth URL
-      const { data, error } = await supabase.functions.invoke('waba-connect-start', {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: null,
-      });
-
-      // The function expects query params, so we need to call it differently
+      // Get auth token for the request
       const session = await supabase.auth.getSession();
       const token = session.data.session?.access_token;
       
