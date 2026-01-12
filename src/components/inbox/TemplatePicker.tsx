@@ -21,8 +21,8 @@ interface Template {
   components_json: any;
 }
 
-type TemplateStatus = 'APPROVED' | 'PENDING' | 'REJECTED' | 'DISABLED' | 'PAUSED' | 'all';
-type TemplateCategory = 'UTILITY' | 'MARKETING' | 'AUTHENTICATION' | 'all';
+type TemplateStatus = 'APPROVED' | 'PENDING' | 'REJECTED' | 'DISABLED' | 'PAUSED';
+type TemplateCategory = 'UTILITY' | 'MARKETING' | 'AUTHENTICATION';
 
 interface TemplateVariable {
   componentType: 'header' | 'body' | 'button';
@@ -49,8 +49,8 @@ export function TemplatePicker({
   const [templates, setTemplates] = useState<Template[]>([]);
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [categoryFilter, setCategoryFilter] = useState('all');
+  const [statusFilter, setStatusFilter] = useState<TemplateStatus | 'all'>('all');
+  const [categoryFilter, setCategoryFilter] = useState<TemplateCategory | 'all'>('all');
   const [selectedTemplate, setSelectedTemplate] = useState<Template | null>(null);
   const [variableValues, setVariableValues] = useState<Record<string, string>>({});
   const [sending, setSending] = useState(false);
@@ -67,11 +67,11 @@ export function TemplatePicker({
         .order('name');
 
       if (statusFilter !== 'all') {
-        query = query.eq('status', statusFilter);
+        query = query.eq('status', statusFilter as TemplateStatus);
       }
 
       if (categoryFilter !== 'all') {
-        query = query.eq('category', categoryFilter);
+        query = query.eq('category', categoryFilter as TemplateCategory);
       }
 
       const { data, error } = await query;
@@ -267,7 +267,7 @@ export function TemplatePicker({
                   className="pl-9"
                 />
               </div>
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <Select value={statusFilter} onValueChange={(value) => setStatusFilter(value as TemplateStatus | 'all')}>
                 <SelectTrigger className="w-32">
                   <SelectValue placeholder="Status" />
                 </SelectTrigger>
@@ -278,7 +278,7 @@ export function TemplatePicker({
                   <SelectItem value="REJECTED">Rejected</SelectItem>
                 </SelectContent>
               </Select>
-              <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+              <Select value={categoryFilter} onValueChange={(value) => setCategoryFilter(value as TemplateCategory | 'all')}>
                 <SelectTrigger className="w-32">
                   <SelectValue placeholder="Category" />
                 </SelectTrigger>
