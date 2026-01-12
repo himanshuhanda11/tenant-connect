@@ -24,6 +24,11 @@ export function TenantProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   const fetchTenants = async () => {
+    // Important: keep loading=true while we resolve tenant memberships.
+    // This prevents route guards (DashboardLayout) from redirecting based on empty state
+    // during the brief window after auth restores the session.
+    setLoading(true);
+
     if (!user) {
       setTenants([]);
       setCurrentTenantState(null);
@@ -73,6 +78,10 @@ export function TenantProvider({ children }: { children: React.ReactNode }) {
         // Auto-select if only one tenant exists
         setCurrentTenantState(tenantsWithRoles[0]);
         localStorage.setItem(CURRENT_TENANT_KEY, tenantsWithRoles[0].id);
+      } else if (tenantsWithRoles.length === 0) {
+        // Ensure we don't keep a stale selection when user has no memberships
+        setCurrentTenantState(null);
+        localStorage.removeItem(CURRENT_TENANT_KEY);
       }
       // If multiple tenants and no saved selection, don't auto-select
       // This allows the user to be redirected to select-workspace
@@ -84,6 +93,9 @@ export function TenantProvider({ children }: { children: React.ReactNode }) {
   };
 
   useEffect(() => {
+    // When auth state changes, immediately mark tenants as loading
+    // to avoid route guards acting on stale/empty state.
+    setLoading(true);
     fetchTenants();
   }, [user]);
 
