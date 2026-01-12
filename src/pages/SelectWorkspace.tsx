@@ -17,12 +17,6 @@ export default function SelectWorkspace() {
     }
   }, [user, authLoading, navigate]);
 
-  // If no tenants exist, redirect to create workspace
-  useEffect(() => {
-    if (!authLoading && !tenantLoading && user && tenants.length === 0) {
-      navigate('/create-workspace');
-    }
-  }, [user, authLoading, tenantLoading, tenants, navigate]);
 
   const handleSelectWorkspace = (tenantId: string) => {
     const tenant = tenants.find(t => t.id === tenantId);
@@ -71,30 +65,42 @@ export default function SelectWorkspace() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
-            {tenants.map((tenant) => (
-              <button
-                key={tenant.id}
-                onClick={() => handleSelectWorkspace(tenant.id)}
-                className="w-full p-4 rounded-lg border border-border hover:border-primary/50 hover:bg-accent/50 transition-colors text-left flex items-center justify-between group"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                    <Building2 className="w-5 h-5 text-primary" />
-                  </div>
-                  <div>
-                    <p className="font-medium text-foreground">{tenant.name}</p>
-                    <p className="text-sm text-muted-foreground capitalize">{tenant.role}</p>
-                  </div>
+            {tenants.length === 0 ? (
+              <div className="py-8 text-center">
+                <div className="mx-auto mb-4 w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
+                  <Building2 className="w-6 h-6 text-primary" />
                 </div>
-                {currentTenant?.id === tenant.id && (
-                  <Check className="w-5 h-5 text-primary" />
-                )}
-              </button>
-            ))}
+                <p className="font-medium text-foreground">No workspace yet</p>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Create your first workspace to start using the app.
+                </p>
+              </div>
+            ) : (
+              tenants.map((tenant) => (
+                <button
+                  key={tenant.id}
+                  onClick={() => handleSelectWorkspace(tenant.id)}
+                  className="w-full p-4 rounded-lg border border-border hover:border-primary/50 hover:bg-accent/50 transition-colors text-left flex items-center justify-between group"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                      <Building2 className="w-5 h-5 text-primary" />
+                    </div>
+                    <div>
+                      <p className="font-medium text-foreground">{tenant.name}</p>
+                      <p className="text-sm text-muted-foreground capitalize">{tenant.role}</p>
+                    </div>
+                  </div>
+                  {currentTenant?.id === tenant.id && (
+                    <Check className="w-5 h-5 text-primary" />
+                  )}
+                </button>
+              ))
+            )}
 
             <div className="pt-4 border-t border-border">
               <Button
-                variant="outline"
+                variant={tenants.length === 0 ? "default" : "outline"}
                 className="w-full h-11"
                 onClick={() => navigate('/create-workspace')}
               >
