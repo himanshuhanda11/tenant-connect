@@ -26,3 +26,9 @@ verify_jwt = false
 
 [functions.waba-webhook-subscribe]
 verify_jwt = false
+
+[functions.store-waba-credentials]
+verify_jwt = false
+
+[functions.delete-account]
+verify_jwt = false

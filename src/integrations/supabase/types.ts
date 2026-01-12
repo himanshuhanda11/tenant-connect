@@ -551,6 +551,13 @@ export type Database = {
             referencedRelation: "waba_accounts"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "phone_numbers_waba_account_id_fkey"
+            columns: ["waba_account_id"]
+            isOneToOne: false
+            referencedRelation: "waba_accounts_public"
+            referencedColumns: ["id"]
+          },
         ]
       }
       plans: {
@@ -807,6 +814,13 @@ export type Database = {
             referencedRelation: "waba_accounts"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "templates_waba_account_id_fkey"
+            columns: ["waba_account_id"]
+            isOneToOne: false
+            referencedRelation: "waba_accounts_public"
+            referencedColumns: ["id"]
+          },
         ]
       }
       tenant_features: {
@@ -1049,7 +1063,47 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      waba_accounts_public: {
+        Row: {
+          business_id: string | null
+          created_at: string | null
+          id: string | null
+          name: string | null
+          status: Database["public"]["Enums"]["waba_status"] | null
+          tenant_id: string | null
+          updated_at: string | null
+          waba_id: string | null
+        }
+        Insert: {
+          business_id?: string | null
+          created_at?: string | null
+          id?: string | null
+          name?: string | null
+          status?: Database["public"]["Enums"]["waba_status"] | null
+          tenant_id?: string | null
+          updated_at?: string | null
+          waba_id?: string | null
+        }
+        Update: {
+          business_id?: string | null
+          created_at?: string | null
+          id?: string | null
+          name?: string | null
+          status?: Database["public"]["Enums"]["waba_status"] | null
+          tenant_id?: string | null
+          updated_at?: string | null
+          waba_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "waba_accounts_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       check_tenant_limit: {

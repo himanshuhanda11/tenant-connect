@@ -61,17 +61,32 @@ export default function PhoneNumbers() {
     
     setLoading(true);
     try {
-      const { data, error } = await supabase
+      // Query phone_numbers with the safe view that excludes access tokens
+      const { data: phonesData, error: phonesError } = await supabase
         .from('phone_numbers')
-        .select(`
-          *,
-          waba_account:waba_accounts(*)
-        `)
+        .select('*')
         .eq('tenant_id', currentTenant.id)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
-      setPhoneNumbers((data || []) as any);
+      if (phonesError) throw phonesError;
+
+      // Get waba accounts separately using the safe public view
+      const wabaIds = [...new Set((phonesData || []).map(p => p.waba_account_id))];
+      const { data: wabaData, error: wabaError } = await supabase
+        .from('waba_accounts_public')
+        .select('*')
+        .in('id', wabaIds);
+
+      if (wabaError) throw wabaError;
+
+      // Merge the data
+      const wabaMap = new Map((wabaData || []).map(w => [w.id, w]));
+      const merged = (phonesData || []).map(phone => ({
+        ...phone,
+        waba_account: wabaMap.get(phone.waba_account_id) || null,
+      }));
+
+      setPhoneNumbers(merged as any);
     } catch (error) {
       console.error('Error fetching phone numbers:', error);
       toast.error('Failed to fetch phone numbers');
@@ -85,56 +100,25 @@ export default function PhoneNumbers() {
     
     setConnectLoading(true);
     try {
-      // First, create or get WABA account
-      const { data: existingWaba } = await supabase
-        .from('waba_accounts')
-        .select('id')
-        .eq('tenant_id', currentTenant.id)
-        .eq('waba_id', formData.wabaId)
-        .maybeSingle();
+      // Use Edge Function to securely store credentials (tokens never touch client-side storage)
+      const { data, error } = await supabase.functions.invoke('store-waba-credentials', {
+        body: {
+          tenantId: currentTenant.id,
+          businessId: formData.businessId,
+          wabaId: formData.wabaId,
+          phoneNumberId: formData.phoneNumberId,
+          displayNumber: formData.displayNumber,
+          accessToken: formData.accessToken,
+        },
+      });
 
-      let wabaAccountId: string;
+      if (error) throw error;
 
-      if (existingWaba) {
-        wabaAccountId = existingWaba.id;
-        // Update access token
-        await supabase
-          .from('waba_accounts')
-          .update({ encrypted_access_token: formData.accessToken, status: 'active' })
-          .eq('id', wabaAccountId);
-      } else {
-        const { data: newWaba, error: wabaError } = await supabase
-          .from('waba_accounts')
-          .insert({
-            tenant_id: currentTenant.id,
-            business_id: formData.businessId,
-            waba_id: formData.wabaId,
-            encrypted_access_token: formData.accessToken,
-            status: 'active',
-          })
-          .select()
-          .single();
-
-        if (wabaError) throw wabaError;
-        wabaAccountId = newWaba.id;
-      }
-
-      // Create phone number
-      const { error: phoneError } = await supabase
-        .from('phone_numbers')
-        .insert({
-          tenant_id: currentTenant.id,
-          waba_account_id: wabaAccountId,
-          phone_number_id: formData.phoneNumberId,
-          display_number: formData.displayNumber,
-          status: 'connected',
-        });
-
-      if (phoneError) {
-        if (phoneError.message.includes('duplicate')) {
+      if (!data?.success) {
+        if (data?.error?.includes('already connected')) {
           toast.error('This phone number is already connected');
         } else {
-          throw phoneError;
+          throw new Error(data?.error || 'Failed to connect phone number');
         }
         return;
       }
