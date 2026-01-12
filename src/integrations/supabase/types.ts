@@ -299,11 +299,55 @@ export type Database = {
           },
         ]
       }
+      conversation_notes: {
+        Row: {
+          content: string
+          conversation_id: string
+          created_at: string
+          id: string
+          tenant_id: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          conversation_id: string
+          created_at?: string
+          id?: string
+          tenant_id: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          conversation_id?: string
+          created_at?: string
+          id?: string
+          tenant_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "conversation_notes_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conversation_notes_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       conversations: {
         Row: {
+          assigned_to: string | null
           contact_id: string
           created_at: string
           id: string
+          last_inbound_at: string | null
           last_message_at: string | null
           phone_number_id: string
           status: Database["public"]["Enums"]["conversation_status"]
@@ -312,9 +356,11 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          assigned_to?: string | null
           contact_id: string
           created_at?: string
           id?: string
+          last_inbound_at?: string | null
           last_message_at?: string | null
           phone_number_id: string
           status?: Database["public"]["Enums"]["conversation_status"]
@@ -323,9 +369,11 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          assigned_to?: string | null
           contact_id?: string
           created_at?: string
           id?: string
+          last_inbound_at?: string | null
           last_message_at?: string | null
           phone_number_id?: string
           status?: Database["public"]["Enums"]["conversation_status"]
@@ -334,6 +382,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "conversations_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "conversations_contact_id_fkey"
             columns: ["contact_id"]
@@ -359,15 +414,21 @@ export type Database = {
       }
       messages: {
         Row: {
+          context_message_id: string | null
           conversation_id: string
           created_at: string
+          delivered_at: string | null
           direction: Database["public"]["Enums"]["message_direction"]
           error_code: string | null
           error_message: string | null
+          failed_at: string | null
           id: string
           media_mime_type: string | null
           media_url: string | null
           metadata: Json | null
+          raw: Json | null
+          read_at: string | null
+          sent_at: string | null
           status: Database["public"]["Enums"]["message_status"]
           tenant_id: string
           text: string | null
@@ -376,15 +437,21 @@ export type Database = {
           wamid: string | null
         }
         Insert: {
+          context_message_id?: string | null
           conversation_id: string
           created_at?: string
+          delivered_at?: string | null
           direction: Database["public"]["Enums"]["message_direction"]
           error_code?: string | null
           error_message?: string | null
+          failed_at?: string | null
           id?: string
           media_mime_type?: string | null
           media_url?: string | null
           metadata?: Json | null
+          raw?: Json | null
+          read_at?: string | null
+          sent_at?: string | null
           status?: Database["public"]["Enums"]["message_status"]
           tenant_id: string
           text?: string | null
@@ -393,15 +460,21 @@ export type Database = {
           wamid?: string | null
         }
         Update: {
+          context_message_id?: string | null
           conversation_id?: string
           created_at?: string
+          delivered_at?: string | null
           direction?: Database["public"]["Enums"]["message_direction"]
           error_code?: string | null
           error_message?: string | null
+          failed_at?: string | null
           id?: string
           media_mime_type?: string | null
           media_url?: string | null
           metadata?: Json | null
+          raw?: Json | null
+          read_at?: string | null
+          sent_at?: string | null
           status?: Database["public"]["Enums"]["message_status"]
           tenant_id?: string
           text?: string | null
@@ -907,6 +980,7 @@ export type Database = {
           error: string | null
           event_type: string
           id: string
+          id_key: string | null
           payload: Json
           processed: boolean
           processed_at: string | null
@@ -917,6 +991,7 @@ export type Database = {
           error?: string | null
           event_type: string
           id?: string
+          id_key?: string | null
           payload: Json
           processed?: boolean
           processed_at?: string | null
@@ -927,6 +1002,7 @@ export type Database = {
           error?: string | null
           event_type?: string
           id?: string
+          id_key?: string | null
           payload?: Json
           processed?: boolean
           processed_at?: string | null
