@@ -22,12 +22,16 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   }, [user, authLoading, navigate]);
 
   useEffect(() => {
+    // Only redirect if loading is complete AND no tenants exist
+    // The tenants state is updated optimistically when creating a workspace
     if (!authLoading && !tenantLoading && user && tenants.length === 0) {
       navigate('/create-workspace');
     }
   }, [user, authLoading, tenantLoading, tenants, navigate]);
 
-  if (authLoading || tenantLoading) {
+  // Show loading while auth or tenant data is being fetched
+  // Also show loading if we have tenants but currentTenant isn't set yet
+  if (authLoading || tenantLoading || (tenants.length > 0 && !currentTenant)) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-4">
