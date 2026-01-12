@@ -105,6 +105,22 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      create_tenant_with_owner: {
+        Args: { _name: string; _slug: string }
+        Returns: {
+          created_at: string
+          id: string
+          name: string
+          slug: string
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "tenants"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       has_tenant_role: {
         Args: {
           _roles: Database["public"]["Enums"]["tenant_role"][]
