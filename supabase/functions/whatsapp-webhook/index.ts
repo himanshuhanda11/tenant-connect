@@ -207,18 +207,30 @@ Deno.serve(async (req) => {
   // Handle webhook verification (GET)
   if (req.method === 'GET') {
     const url = new URL(req.url);
-    const mode = url.searchParams.get('hub.mode');
-    const token = url.searchParams.get('hub.verify_token');
+    const mode = (url.searchParams.get('hub.mode') || '').trim();
+    const token = (url.searchParams.get('hub.verify_token') || '').trim();
     const challenge = url.searchParams.get('hub.challenge');
 
-    const verifyToken = Deno.env.get('WHATSAPP_VERIFY_TOKEN') || 'whatsapp-isv-verify-token';
+    const rawVerifyToken = Deno.env.get('WHATSAPP_VERIFY_TOKEN');
+    const verifyToken = (rawVerifyToken || 'whatsapp-isv-verify-token').trim();
+
+    if (!rawVerifyToken) {
+      console.log('WHATSAPP_VERIFY_TOKEN env var not set; using fallback');
+    }
 
     if (mode === 'subscribe' && token === verifyToken && challenge) {
       console.log('Webhook verified successfully');
       return new Response(challenge, { status: 200 });
     }
 
-    console.log('Webhook verification failed', { mode, token: token?.substring(0, 5) + '...' });
+    console.log('Webhook verification failed', {
+      mode,
+      token_prefix: token ? token.substring(0, 8) + '...' : null,
+      verify_prefix: verifyToken ? verifyToken.substring(0, 8) + '...' : null,
+      token_len: token?.length || 0,
+      verify_len: verifyToken?.length || 0,
+      has_challenge: Boolean(challenge),
+    });
     return new Response('Verification failed', { status: 403 });
   }
 
