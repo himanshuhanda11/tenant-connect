@@ -128,9 +128,10 @@ Deno.serve(async (req) => {
       scope: 'whatsapp_business_management,whatsapp_business_messaging',
     });
 
-    if (configId) {
-      params.set('config_id', configId);
-    }
+    // TEMPORARILY DISABLED: config_id may be blocking OAuth flow
+    // if (configId) {
+    //   params.set('config_id', configId);
+    // }
 
     const oauthUrl = `https://www.facebook.com/v21.0/dialog/oauth?${params.toString()}`;
 
