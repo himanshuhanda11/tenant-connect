@@ -54,8 +54,9 @@ Deno.serve(async (req) => {
     const errorReason = url.searchParams.get('error_reason');
     const errorDescription = url.searchParams.get('error_description');
 
-    // Get the app URL for redirects
-    const appUrl = Deno.env.get('APP_URL') || 'https://9ee3464f-477f-4b1e-b642-f9597c9a83d5.lovableproject.com';
+    // Get the app URL for redirects (remove trailing slash if present)
+    const rawAppUrl = Deno.env.get('APP_URL') || 'https://9ee3464f-477f-4b1e-b642-f9597c9a83d5.lovableproject.com';
+    const appUrl = rawAppUrl.replace(/\/+$/, '');
     
     // Handle OAuth errors
     if (error) {
