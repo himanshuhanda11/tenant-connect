@@ -124,7 +124,8 @@ Deno.serve(async (req) => {
       response_type: 'code',
       config_id: configId,
       state: signedState,
-      scope: 'whatsapp_business_management,whatsapp_business_messaging',
+      // NOTE: WhatsApp Embedded Signup commonly requires business_management in addition to WhatsApp scopes
+      scope: 'business_management,whatsapp_business_management,whatsapp_business_messaging',
     });
 
     const oauthUrl = `https://www.facebook.com/v21.0/dialog/oauth?${params.toString()}`;
