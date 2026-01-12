@@ -191,13 +191,41 @@ Deno.serve(async (req) => {
     // Extract WABA info from granular_scopes
     const granularScopes = debugData.data?.granular_scopes || [];
     const wabaScope = granularScopes.find((s: any) => s.scope === 'whatsapp_business_management');
-    const wabaIds = wabaScope?.target_ids || [];
+    let wabaIds = wabaScope?.target_ids || [];
 
-    console.log('WABA IDs found:', wabaIds);
+    console.log('WABA IDs from granular_scopes:', wabaIds);
+
+    // Fallback: If no WABAs in granular_scopes, try fetching from user's businesses
+    if (wabaIds.length === 0) {
+      console.log('No WABAs in granular_scopes, trying to fetch from businesses...');
+      
+      // First get user's businesses
+      const businessesResponse = await fetch(
+        `${GRAPH_API_BASE}/me/businesses?fields=id,name&access_token=${accessToken}`
+      );
+      const businessesData = await businessesResponse.json();
+      console.log('Businesses found:', businessesData.data?.length || 0);
+
+      // For each business, try to get owned WABAs
+      for (const business of (businessesData.data || [])) {
+        console.log('Checking business:', business.id, business.name);
+        const wabasResponse = await fetch(
+          `${GRAPH_API_BASE}/${business.id}/owned_whatsapp_business_accounts?access_token=${accessToken}`
+        );
+        const wabasData = await wabasResponse.json();
+        
+        if (wabasData.data && wabasData.data.length > 0) {
+          console.log('Found WABAs in business', business.id, ':', wabasData.data.map((w: any) => w.id));
+          wabaIds = wabaIds.concat(wabasData.data.map((w: any) => w.id));
+        }
+      }
+    }
+
+    console.log('Total WABA IDs found:', wabaIds);
 
     if (wabaIds.length === 0) {
       return Response.redirect(
-        `${appUrl}/phone-numbers?error=${encodeURIComponent('No WhatsApp Business Account found')}`,
+        `${appUrl}/phone-numbers?error=${encodeURIComponent('No WhatsApp Business Account found. Please ensure you have a WABA linked to your Meta Business account, or use the Embedded Signup flow.')}`,
         302
       );
     }
