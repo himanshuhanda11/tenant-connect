@@ -5,157 +5,345 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Webhook verification token (should match what you set in Meta's dashboard)
-const VERIFY_TOKEN = Deno.env.get('WHATSAPP_VERIFY_TOKEN') || 'whatsapp-isv-verify-token';
+// Normalized event types
+type NormalizedEvent =
+  | {
+      kind: 'inbound_message';
+      phone_number_id: string;
+      waba_id?: string;
+      from_wa_id: string;
+      contact_name?: string;
+      wamid?: string;
+      msg_type: string;
+      text?: string;
+      media?: { id?: string; mime_type?: string; sha256?: string };
+      timestamp?: string;
+      context_message_id?: string;
+      raw: any;
+    }
+  | {
+      kind: 'message_status';
+      phone_number_id: string;
+      waba_id?: string;
+      wamid: string;
+      status: 'sent' | 'delivered' | 'read' | 'failed';
+      timestamp?: string;
+      error_code?: string;
+      error_title?: string;
+      raw: any;
+    };
+
+// Verify webhook signature using META_APP_SECRET
+async function verifySignature(rawBody: string, signatureHeader: string | null): Promise<boolean> {
+  const appSecret = Deno.env.get('META_APP_SECRET');
+  
+  // Allow in dev if no secret configured
+  if (!appSecret) {
+    console.log('META_APP_SECRET not configured, skipping signature verification');
+    return true;
+  }
+  
+  if (!signatureHeader) {
+    console.log('No signature header provided');
+    return false;
+  }
+
+  const [algo, theirSig] = signatureHeader.split('=');
+  if (algo !== 'sha256' || !theirSig) {
+    console.log('Invalid signature format');
+    return false;
+  }
+
+  // Use Web Crypto API for HMAC
+  const encoder = new TextEncoder();
+  const key = await crypto.subtle.importKey(
+    'raw',
+    encoder.encode(appSecret),
+    { name: 'HMAC', hash: 'SHA-256' },
+    false,
+    ['sign']
+  );
+  
+  const signature = await crypto.subtle.sign('HMAC', key, encoder.encode(rawBody));
+  const ourSig = Array.from(new Uint8Array(signature))
+    .map(b => b.toString(16).padStart(2, '0'))
+    .join('');
+
+  // Timing-safe comparison
+  if (ourSig.length !== theirSig.length) return false;
+  
+  let result = 0;
+  for (let i = 0; i < ourSig.length; i++) {
+    result |= ourSig.charCodeAt(i) ^ theirSig.charCodeAt(i);
+  }
+  
+  return result === 0;
+}
+
+// Extract normalized events from Meta webhook payload
+function extractNormalizedEvents(payload: any): NormalizedEvent[] {
+  const out: NormalizedEvent[] = [];
+  const entries = payload?.entry ?? [];
+  
+  for (const entry of entries) {
+    const changes = entry?.changes ?? [];
+    
+    for (const change of changes) {
+      const value = change?.value;
+      if (!value) continue;
+
+      const metadata = value?.metadata;
+      const phone_number_id = metadata?.phone_number_id;
+      if (!phone_number_id) continue;
+
+      const waba_id = value?.business_id || value?.waba_id || metadata?.business_id || entry?.id;
+
+      // Process inbound messages
+      const messages = value?.messages ?? [];
+      const contacts = value?.contacts ?? [];
+      const contact0 = contacts?.[0];
+      const contactName = contact0?.profile?.name;
+      const fromWaId = contact0?.wa_id;
+
+      for (const m of messages) {
+        const msgFrom = m?.from || fromWaId;
+        if (!msgFrom) continue;
+
+        const msgType = m?.type || 'unknown';
+        const text = m?.text?.body || m?.[msgType]?.caption;
+
+        // Handle media types: image, document, audio, video, sticker
+        const mediaObj = m?.image || m?.document || m?.audio || m?.video || m?.sticker;
+        const media = mediaObj
+          ? {
+              id: mediaObj?.id,
+              mime_type: mediaObj?.mime_type,
+              sha256: mediaObj?.sha256,
+            }
+          : undefined;
+
+        // Handle reply context
+        const contextMessageId = m?.context?.id;
+
+        out.push({
+          kind: 'inbound_message',
+          phone_number_id,
+          waba_id,
+          from_wa_id: msgFrom,
+          contact_name: contactName,
+          wamid: m?.id,
+          msg_type: msgType,
+          text,
+          media,
+          timestamp: m?.timestamp,
+          context_message_id: contextMessageId,
+          raw: { entry, change, value, message: m },
+        });
+      }
+
+      // Process status updates
+      const statuses = value?.statuses ?? [];
+      for (const s of statuses) {
+        const wamid = s?.id;
+        const status = s?.status;
+        if (!wamid || !status) continue;
+        if (!['sent', 'delivered', 'read', 'failed'].includes(status)) continue;
+
+        // Extract error info for failed messages
+        const errors = s?.errors ?? [];
+        const error = errors[0];
+
+        out.push({
+          kind: 'message_status',
+          phone_number_id,
+          waba_id,
+          wamid,
+          status,
+          timestamp: s?.timestamp,
+          error_code: error?.code?.toString(),
+          error_title: error?.title,
+          raw: { entry, change, value, status: s },
+        });
+      }
+    }
+  }
+  
+  return out;
+}
+
+// Generate idempotency key for an event
+function generateIdKey(ev: NormalizedEvent): string {
+  if (ev.kind === 'inbound_message') {
+    return `msg:${ev.phone_number_id}:${ev.wamid || 'noid'}:${ev.timestamp || ''}`;
+  } else {
+    return `st:${ev.phone_number_id}:${ev.wamid}:${ev.status}:${ev.timestamp || ''}`;
+  }
+}
+
+// Map Meta message type to our enum
+function mapMessageType(metaType: string): string {
+  const typeMap: Record<string, string> = {
+    text: 'text',
+    image: 'image',
+    video: 'video',
+    audio: 'audio',
+    document: 'document',
+    sticker: 'sticker',
+    location: 'location',
+    contacts: 'contact',
+    interactive: 'interactive',
+    button: 'interactive',
+    reaction: 'reaction',
+  };
+  return typeMap[metaType] || 'unknown';
+}
 
 Deno.serve(async (req) => {
-  const url = new URL(req.url);
-  
   // Handle CORS preflight
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
-  // Webhook verification (GET request from Meta)
+  // Handle webhook verification (GET)
   if (req.method === 'GET') {
+    const url = new URL(req.url);
     const mode = url.searchParams.get('hub.mode');
     const token = url.searchParams.get('hub.verify_token');
     const challenge = url.searchParams.get('hub.challenge');
 
-    console.log('Webhook verification request:', { mode, token, challenge });
+    const verifyToken = Deno.env.get('WHATSAPP_VERIFY_TOKEN') || 'whatsapp-isv-verify-token';
 
-    if (mode === 'subscribe' && token === VERIFY_TOKEN) {
+    if (mode === 'subscribe' && token === verifyToken && challenge) {
       console.log('Webhook verified successfully');
-      return new Response(challenge, {
-        status: 200,
-        headers: { ...corsHeaders, 'Content-Type': 'text/plain' },
-      });
+      return new Response(challenge, { status: 200 });
     }
 
-    console.log('Webhook verification failed');
-    return new Response('Forbidden', { status: 403, headers: corsHeaders });
+    console.log('Webhook verification failed', { mode, token: token?.substring(0, 5) + '...' });
+    return new Response('Verification failed', { status: 403 });
   }
 
-  // Process webhook payload (POST request from Meta)
+  // Handle incoming webhooks (POST)
   if (req.method === 'POST') {
-    try {
-      const payload = await req.json();
-      console.log('Received webhook payload:', JSON.stringify(payload).substring(0, 500));
+    const rawBody = await req.text();
+    const signatureHeader = req.headers.get('x-hub-signature-256');
 
-      // Respond immediately with 200 to acknowledge receipt
-      // Process the webhook asynchronously
-      const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-      const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-      const supabase = createClient(supabaseUrl, supabaseServiceKey);
-
-      // Store raw webhook event for later processing
-      const eventType = extractEventType(payload);
-      
-      const { error: insertError } = await supabase
-        .from('webhook_events')
-        .insert({
-          event_type: eventType,
-          payload: payload,
-          processed: false,
-        });
-
-      if (insertError) {
-        console.error('Failed to store webhook event:', insertError);
-      } else {
-        console.log('Webhook event stored for processing');
-      }
-
-      // Process the webhook in the background
-      // Use globalThis to access EdgeRuntime
-      (globalThis as any).EdgeRuntime?.waitUntil?.(processWebhook(supabase, payload)) 
-        || processWebhook(supabase, payload);
-
-      return new Response(JSON.stringify({ success: true }), {
-        status: 200,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    } catch (error) {
-      console.error('Error processing webhook:', error);
-      // Still return 200 to prevent Meta from retrying
-      return new Response(JSON.stringify({ success: true }), {
-        status: 200,
+    // Verify signature
+    const isValid = await verifySignature(rawBody, signatureHeader);
+    if (!isValid) {
+      console.error('Invalid webhook signature');
+      return new Response(JSON.stringify({ error: 'Invalid signature' }), {
+        status: 401,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
+
+    let payload: any;
+    try {
+      payload = JSON.parse(rawBody);
+    } catch (e) {
+      console.error('Invalid JSON payload:', e);
+      return new Response(JSON.stringify({ error: 'Invalid JSON' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+    // Extract normalized events
+    const events = extractNormalizedEvents(payload);
+    console.log(`Extracted ${events.length} events from webhook payload`);
+
+    // Process events in background
+    const processEvents = async () => {
+      for (const ev of events) {
+        const idKey = generateIdKey(ev);
+
+        // Check if already processed (idempotency)
+        const { data: existing } = await supabase
+          .from('webhook_events')
+          .select('id, processed')
+          .eq('id_key', idKey)
+          .single();
+
+        if (existing?.processed) {
+          console.log(`Event ${idKey} already processed, skipping`);
+          continue;
+        }
+
+        // Determine event type for storage
+        const eventType = ev.kind === 'inbound_message'
+          ? `message_${ev.msg_type}`
+          : `status_${ev.status}`;
+
+        // Store raw event
+        const { data: webhookEvent, error: insertError } = await supabase
+          .from('webhook_events')
+          .upsert({
+            id_key: idKey,
+            event_type: eventType,
+            payload: ev.raw,
+            processed: false,
+          }, {
+            onConflict: 'id_key',
+            ignoreDuplicates: true,
+          })
+          .select()
+          .single();
+
+        if (insertError && !insertError.message?.includes('duplicate')) {
+          console.error('Error storing webhook event:', insertError);
+          continue;
+        }
+
+        // Process the event
+        await processEvent(supabase, ev, webhookEvent?.id);
+      }
+    };
+
+    // Use EdgeRuntime.waitUntil for background processing
+    (globalThis as any).EdgeRuntime?.waitUntil?.(processEvents()) || await processEvents();
+
+    // Always respond quickly
+    return new Response(JSON.stringify({ ok: true }), {
+      status: 200,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
   }
 
   return new Response('Method not allowed', { status: 405, headers: corsHeaders });
 });
 
-function extractEventType(payload: any): string {
+// Process a normalized event
+async function processEvent(supabase: any, ev: NormalizedEvent, webhookEventId?: string) {
   try {
-    const entry = payload?.entry?.[0];
-    const changes = entry?.changes?.[0];
-    const value = changes?.value;
-
-    if (value?.messages) return 'message';
-    if (value?.statuses) return 'status';
-    if (value?.contacts) return 'contact';
-    return 'unknown';
-  } catch {
-    return 'unknown';
-  }
-}
-
-async function processWebhook(supabase: any, payload: any) {
-  try {
-    const entry = payload?.entry?.[0];
-    if (!entry) return;
-
-    const changes = entry.changes?.[0];
-    if (!changes) return;
-
-    const value = changes.value;
-    const wabaId = entry.id; // WABA ID from the webhook
-
-    // Find the tenant by WABA ID
-    const { data: wabaAccount, error: wabaError } = await supabase
-      .from('waba_accounts')
-      .select('id, tenant_id')
-      .eq('waba_id', wabaId)
-      .maybeSingle();
-
-    if (wabaError || !wabaAccount) {
-      console.log('WABA account not found for:', wabaId);
-      return;
-    }
-
-    const tenantId = wabaAccount.tenant_id;
-    const phoneNumberId = value?.metadata?.phone_number_id;
-
-    // Find the phone number
+    // Find phone number and tenant
     const { data: phoneNumber, error: phoneError } = await supabase
       .from('phone_numbers')
-      .select('id')
-      .eq('tenant_id', tenantId)
-      .eq('phone_number_id', phoneNumberId)
-      .maybeSingle();
+      .select('id, tenant_id, waba_account_id')
+      .eq('phone_number_id', ev.phone_number_id)
+      .single();
 
     if (phoneError || !phoneNumber) {
-      console.log('Phone number not found:', phoneNumberId);
+      console.log(`Phone number ${ev.phone_number_id} not found, ignoring event`);
+      await markEventProcessed(supabase, webhookEventId, 'ignored - phone not found');
       return;
     }
 
-    // Process messages
-    if (value?.messages) {
-      for (const msg of value.messages) {
-        await processInboundMessage(supabase, tenantId, phoneNumber.id, msg, value.contacts?.[0]);
-      }
+    const tenantId = phoneNumber.tenant_id;
+
+    if (ev.kind === 'inbound_message') {
+      await processInboundMessage(supabase, tenantId, phoneNumber.id, ev);
+    } else if (ev.kind === 'message_status') {
+      await processStatusUpdate(supabase, tenantId, ev);
     }
 
-    // Process status updates
-    if (value?.statuses) {
-      for (const status of value.statuses) {
-        await processStatusUpdate(supabase, status);
-      }
-    }
+    await markEventProcessed(supabase, webhookEventId);
   } catch (error) {
-    console.error('Error in background webhook processing:', error);
+    console.error('Error processing event:', error);
+    await markEventProcessed(supabase, webhookEventId, String(error));
   }
 }
 
@@ -163,142 +351,172 @@ async function processInboundMessage(
   supabase: any,
   tenantId: string,
   phoneNumberId: string,
-  message: any,
-  contactInfo: any
+  ev: NormalizedEvent & { kind: 'inbound_message' }
 ) {
-  try {
-    const waId = message.from;
-    const contactName = contactInfo?.profile?.name || waId;
+  // Upsert contact
+  const { data: contact, error: contactError } = await supabase
+    .from('contacts')
+    .upsert({
+      tenant_id: tenantId,
+      wa_id: ev.from_wa_id,
+      name: ev.contact_name || null,
+      last_seen: new Date().toISOString(),
+    }, {
+      onConflict: 'tenant_id,wa_id',
+    })
+    .select()
+    .single();
 
-    // Upsert contact
-    const { data: contact, error: contactError } = await supabase
+  let contactId = contact?.id;
+  if (contactError || !contactId) {
+    // Try to get existing contact
+    const { data: existingContact } = await supabase
       .from('contacts')
-      .upsert(
-        {
-          tenant_id: tenantId,
-          wa_id: waId,
-          name: contactName,
-          last_seen: new Date().toISOString(),
-        },
-        { onConflict: 'tenant_id,wa_id' }
-      )
-      .select()
+      .select('id')
+      .eq('tenant_id', tenantId)
+      .eq('wa_id', ev.from_wa_id)
       .single();
 
-    if (contactError) {
-      console.error('Error upserting contact:', contactError);
+    if (!existingContact) {
+      console.error('Failed to upsert contact for', ev.from_wa_id, contactError);
       return;
     }
+    contactId = existingContact.id;
+  }
 
-    // Upsert conversation
-    const { data: conversation, error: convError } = await supabase
+  // Upsert conversation
+  const { data: conversation, error: convError } = await supabase
+    .from('conversations')
+    .upsert({
+      tenant_id: tenantId,
+      phone_number_id: phoneNumberId,
+      contact_id: contactId,
+      status: 'open',
+      last_message_at: new Date().toISOString(),
+      last_inbound_at: new Date().toISOString(),
+    }, {
+      onConflict: 'tenant_id,phone_number_id,contact_id',
+    })
+    .select()
+    .single();
+
+  let conversationId = conversation?.id;
+  if (convError || !conversationId) {
+    // Try to get existing conversation
+    const { data: existingConv } = await supabase
       .from('conversations')
-      .upsert(
-        {
-          tenant_id: tenantId,
-          phone_number_id: phoneNumberId,
-          contact_id: contact.id,
-          status: 'open',
-          last_message_at: new Date().toISOString(),
-        },
-        { onConflict: 'phone_number_id,contact_id' }
-      )
-      .select()
+      .select('id')
+      .eq('tenant_id', tenantId)
+      .eq('phone_number_id', phoneNumberId)
+      .eq('contact_id', contactId)
       .single();
 
-    if (convError) {
-      console.error('Error upserting conversation:', convError);
+    if (!existingConv) {
+      console.error('Failed to upsert conversation', convError);
       return;
     }
+    conversationId = existingConv.id;
+  }
 
-    // Increment unread count
-    await supabase
-      .from('conversations')
-      .update({ 
-        unread_count: conversation.unread_count + 1,
-        last_message_at: new Date().toISOString()
-      })
-      .eq('id', conversation.id);
+  // Increment unread count
+  await supabase
+    .from('conversations')
+    .update({ 
+      unread_count: (conversation?.unread_count || 0) + 1,
+      last_message_at: new Date().toISOString(),
+      last_inbound_at: new Date().toISOString(),
+    })
+    .eq('id', conversationId);
 
-    // Extract message content
-    const messageType = message.type || 'unknown';
-    let text = '';
-    let mediaUrl = '';
-    let mediaMimeType = '';
+  // Extract message content
+  let text = ev.text || '';
+  let mediaUrl: string | null = null;
+  let mediaMimeType: string | null = null;
 
-    switch (messageType) {
-      case 'text':
-        text = message.text?.body || '';
-        break;
-      case 'image':
-      case 'video':
-      case 'audio':
-      case 'document':
-      case 'sticker':
-        mediaUrl = message[messageType]?.id || '';
-        mediaMimeType = message[messageType]?.mime_type || '';
-        text = message[messageType]?.caption || '';
-        break;
-      case 'location':
-        text = `Location: ${message.location?.latitude}, ${message.location?.longitude}`;
-        break;
-      case 'reaction':
-        text = message.reaction?.emoji || '';
-        break;
-    }
+  if (ev.media?.id) {
+    mediaUrl = ev.media.id; // Store media ID for later retrieval
+    mediaMimeType = ev.media.mime_type || null;
+  }
 
-    // Insert message
-    const { error: msgError } = await supabase
-      .from('messages')
-      .insert({
-        tenant_id: tenantId,
-        conversation_id: conversation.id,
-        wamid: message.id,
-        direction: 'inbound',
-        type: messageType,
-        text,
-        media_url: mediaUrl || null,
-        media_mime_type: mediaMimeType || null,
-        status: 'delivered',
-        metadata: message,
-      });
+  // Handle special message types
+  if (ev.msg_type === 'location') {
+    const raw = ev.raw?.message;
+    text = `📍 Location: ${raw?.location?.latitude}, ${raw?.location?.longitude}`;
+  } else if (ev.msg_type === 'reaction') {
+    text = ev.raw?.message?.reaction?.emoji || '';
+  }
 
-    if (msgError) {
-      console.error('Error inserting message:', msgError);
-    } else {
-      console.log('Inbound message processed:', message.id);
-    }
-  } catch (error) {
-    console.error('Error processing inbound message:', error);
+  // Insert message with idempotency on wamid
+  const { error: msgError } = await supabase
+    .from('messages')
+    .upsert({
+      tenant_id: tenantId,
+      conversation_id: conversationId,
+      wamid: ev.wamid,
+      direction: 'inbound',
+      type: mapMessageType(ev.msg_type),
+      text,
+      media_url: mediaUrl,
+      media_mime_type: mediaMimeType,
+      status: 'delivered',
+      context_message_id: ev.context_message_id,
+      raw: ev.raw,
+    }, {
+      onConflict: 'tenant_id,wamid',
+      ignoreDuplicates: true,
+    });
+
+  if (msgError) {
+    console.error('Error inserting message:', msgError);
+  } else {
+    console.log(`Processed inbound message ${ev.wamid} from ${ev.from_wa_id}`);
+    
+    // Increment usage counter
+    await supabase.rpc('increment_usage', {
+      p_tenant_id: tenantId,
+      p_counter: 'messages_received',
+    });
   }
 }
 
-async function processStatusUpdate(supabase: any, status: any) {
-  try {
-    const wamid = status.id;
-    const newStatus = mapStatus(status.status);
+async function processStatusUpdate(
+  supabase: any,
+  tenantId: string,
+  ev: NormalizedEvent & { kind: 'message_status' }
+) {
+  const updateData: any = {
+    status: ev.status,
+  };
 
-    const { error } = await supabase
-      .from('messages')
-      .update({ status: newStatus })
-      .eq('wamid', wamid);
+  // Add error info for failed messages
+  if (ev.status === 'failed') {
+    updateData.error_code = ev.error_code;
+    updateData.error_message = ev.error_title;
+  }
 
-    if (error) {
-      console.error('Error updating message status:', error);
-    } else {
-      console.log('Message status updated:', wamid, newStatus);
-    }
-  } catch (error) {
-    console.error('Error processing status update:', error);
+  // Update message status - the trigger will set timestamps
+  const { error } = await supabase
+    .from('messages')
+    .update(updateData)
+    .eq('tenant_id', tenantId)
+    .eq('wamid', ev.wamid);
+
+  if (error) {
+    console.error('Error updating message status:', error);
+  } else {
+    console.log(`Updated message ${ev.wamid} status to ${ev.status}`);
   }
 }
 
-function mapStatus(metaStatus: string): string {
-  switch (metaStatus) {
-    case 'sent': return 'sent';
-    case 'delivered': return 'delivered';
-    case 'read': return 'read';
-    case 'failed': return 'failed';
-    default: return 'pending';
-  }
+async function markEventProcessed(supabase: any, webhookEventId?: string, error?: string) {
+  if (!webhookEventId) return;
+
+  await supabase
+    .from('webhook_events')
+    .update({
+      processed: true,
+      processed_at: new Date().toISOString(),
+      error: error || null,
+    })
+    .eq('id', webhookEventId);
 }
