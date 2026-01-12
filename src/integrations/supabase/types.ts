@@ -1067,10 +1067,11 @@ export type Database = {
         Args: { p_amount?: number; p_counter: string; p_tenant_id: string }
         Returns: undefined
       }
-      is_tenant_member: {
-        Args: { _tenant_id: string; _user_id: string }
-        Returns: boolean
-      }
+      is_tenant_admin: { Args: { _tenant_id: string }; Returns: boolean }
+      is_tenant_member:
+        | { Args: { _tenant_id: string }; Returns: boolean }
+        | { Args: { _tenant_id: string; _user_id: string }; Returns: boolean }
+      is_tenant_owner: { Args: { _tenant_id: string }; Returns: boolean }
     }
     Enums: {
       automation_action:
