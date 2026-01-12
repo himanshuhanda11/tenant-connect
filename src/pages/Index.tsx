@@ -10,7 +10,8 @@ export default function Index() {
 
   useEffect(() => {
     if (!loading && user) {
-      navigate('/dashboard');
+      // Route through workspace selection so refreshes never force "create".
+      navigate('/select-workspace');
     }
   }, [user, loading, navigate]);
 
