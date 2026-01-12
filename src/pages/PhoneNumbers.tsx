@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Phone, Plus, Signal, SignalHigh, SignalLow, SignalMedium, RefreshCw, Loader2, Zap } from 'lucide-react';
+import { Phone, Plus, Signal, SignalHigh, SignalLow, SignalMedium, RefreshCw, Loader2, Zap, CheckCircle2, ShieldCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -12,15 +12,18 @@ import { supabase } from '@/integrations/supabase/client';
 import { useTenant } from '@/contexts/TenantContext';
 import { toast } from 'sonner';
 import { MetaEmbeddedSignup } from '@/components/meta/MetaEmbeddedSignup';
+import { useSearchParams } from 'react-router-dom';
 import type { PhoneNumber, WabaAccount, PhoneStatus, QualityRating } from '@/types/whatsapp';
 
 export default function PhoneNumbers() {
   const { currentTenant, currentRole } = useTenant();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [phoneNumbers, setPhoneNumbers] = useState<(PhoneNumber & { waba_account: WabaAccount })[]>([]);
   const [loading, setLoading] = useState(true);
   const [connectDialogOpen, setConnectDialogOpen] = useState(false);
   const [embeddedSignupOpen, setEmbeddedSignupOpen] = useState(false);
   const [connectLoading, setConnectLoading] = useState(false);
+  const [verifyingId, setVerifyingId] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     businessId: '',
     wabaId: '',
@@ -30,6 +33,22 @@ export default function PhoneNumbers() {
   });
 
   const canManagePhones = currentRole === 'owner' || currentRole === 'admin';
+
+  // Handle OAuth callback results
+  useEffect(() => {
+    const connected = searchParams.get('connected');
+    const phones = searchParams.get('phones');
+    const error = searchParams.get('error');
+
+    if (connected === '1') {
+      toast.success(`Successfully connected ${phones || ''} phone number(s)!`);
+      // Clean up URL params
+      setSearchParams({});
+    } else if (error) {
+      toast.error(`Connection failed: ${error}`);
+      setSearchParams({});
+    }
+  }, [searchParams, setSearchParams]);
 
   useEffect(() => {
     if (currentTenant) {
@@ -129,6 +148,29 @@ export default function PhoneNumbers() {
       toast.error(error.message || 'Failed to connect phone number');
     } finally {
       setConnectLoading(false);
+    }
+  };
+
+  const verifyConnection = async (wabaAccountId: string) => {
+    setVerifyingId(wabaAccountId);
+    try {
+      const { data, error } = await supabase.functions.invoke('waba-webhook-subscribe', {
+        body: { wabaAccountId, action: 'verify' }
+      });
+
+      if (error) throw error;
+
+      if (data?.success) {
+        toast.success(`Connection verified! ${data.phoneCount} phone(s) active.`);
+        fetchPhoneNumbers();
+      } else {
+        toast.error(data?.error || 'Verification failed');
+      }
+    } catch (err: any) {
+      console.error('Verification error:', err);
+      toast.error(err.message || 'Failed to verify connection');
+    } finally {
+      setVerifyingId(null);
     }
   };
 
@@ -304,7 +346,7 @@ export default function PhoneNumbers() {
               <div className="text-center py-8 text-muted-foreground">
                 <Phone className="w-12 h-12 mx-auto mb-4 opacity-50" />
                 <p>No phone numbers connected yet</p>
-                <p className="text-sm">Click "Connect Number" to add your first WhatsApp number</p>
+                <p className="text-sm">Click "1-Click Connect" to add your first WhatsApp number</p>
               </div>
             ) : (
               <Table>
@@ -315,6 +357,7 @@ export default function PhoneNumbers() {
                     <TableHead>Quality</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Connected</TableHead>
+                    {canManagePhones && <TableHead>Actions</TableHead>}
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -339,6 +382,25 @@ export default function PhoneNumbers() {
                       <TableCell className="text-sm text-muted-foreground">
                         {new Date(phone.created_at).toLocaleDateString()}
                       </TableCell>
+                      {canManagePhones && (
+                        <TableCell>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => verifyConnection(phone.waba_account_id)}
+                            disabled={verifyingId === phone.waba_account_id}
+                          >
+                            {verifyingId === phone.waba_account_id ? (
+                              <Loader2 className="w-4 h-4 animate-spin" />
+                            ) : (
+                              <>
+                                <ShieldCheck className="w-4 h-4 mr-1" />
+                                Verify
+                              </>
+                            )}
+                          </Button>
+                        </TableCell>
+                      )}
                     </TableRow>
                   ))}
                 </TableBody>

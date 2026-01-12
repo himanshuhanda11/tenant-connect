@@ -17,3 +17,12 @@ verify_jwt = false
 
 [functions.upload-whatsapp-media]
 verify_jwt = false
+
+[functions.waba-connect-start]
+verify_jwt = false
+
+[functions.waba-connect-callback]
+verify_jwt = false
+
+[functions.waba-webhook-subscribe]
+verify_jwt = false
