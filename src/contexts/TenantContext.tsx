@@ -96,27 +96,18 @@ export function TenantProvider({ children }: { children: React.ReactNode }) {
     }
 
     try {
-      // Create the tenant
-      const { data: tenant, error: tenantError } = await supabase
-        .from('tenants')
-        .insert({ name, slug })
-        .select()
+      // Create tenant + owner membership atomically on the backend.
+      // This avoids RLS issues where INSERT ... RETURNING requires SELECT access
+      // before the user is a tenant member.
+      const { data: tenant, error } = await supabase
+        .rpc('create_tenant_with_owner', {
+          _name: name,
+          _slug: slug,
+        })
         .single();
 
-      if (tenantError) throw tenantError;
+      if (error) throw error;
 
-      // Add the creator as owner
-      const { error: memberError } = await supabase
-        .from('tenant_members')
-        .insert({
-          tenant_id: tenant.id,
-          user_id: user.id,
-          role: 'owner'
-        });
-
-      if (memberError) throw memberError;
-
-      // Refresh tenants list
       await fetchTenants();
 
       return { error: null, tenant: tenant as Tenant };
