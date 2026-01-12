@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -62,7 +62,7 @@ export function AuthForm({ mode }: AuthFormProps) {
         return;
       }
       toast.success('Welcome back!');
-      navigate('/dashboard');
+      navigate('/select-workspace');
     } finally {
       setLoading(false);
     }
@@ -81,7 +81,7 @@ export function AuthForm({ mode }: AuthFormProps) {
         return;
       }
       toast.success('Account created successfully!');
-      navigate('/create-workspace');
+      navigate('/select-workspace');
     } finally {
       setLoading(false);
     }
@@ -134,7 +134,8 @@ export function AuthForm({ mode }: AuthFormProps) {
 
               <div className="mt-6 text-center text-sm">
                 <p className="text-muted-foreground">
-                  Don't have an account? <a href="/signup" className="text-primary font-medium hover:underline">Sign up</a>
+                  Don't have an account?{' '}
+                  <Link to="/signup" className="text-primary font-medium hover:underline">Sign up</Link>
                 </p>
               </div>
             </CardContent>
@@ -206,7 +207,8 @@ export function AuthForm({ mode }: AuthFormProps) {
 
             <div className="mt-6 text-center text-sm">
               <p className="text-muted-foreground">
-                Already have an account? <a href="/login" className="text-primary font-medium hover:underline">Sign in</a>
+                Already have an account?{' '}
+                <Link to="/login" className="text-primary font-medium hover:underline">Sign in</Link>
               </p>
             </div>
           </CardContent>

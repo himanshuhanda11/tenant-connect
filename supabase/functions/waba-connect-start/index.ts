@@ -94,6 +94,7 @@ Deno.serve(async (req) => {
     // Get Meta configuration
     const appId = Deno.env.get('META_APP_ID');
     const appSecret = Deno.env.get('META_APP_SECRET');
+    const configId = Deno.env.get('META_CONFIG_ID');
 
     if (!appId || !appSecret) {
       console.error('Missing Meta configuration:', { appId: !!appId, appSecret: !!appSecret });
@@ -112,12 +113,11 @@ Deno.serve(async (req) => {
     };
 
     const signedState = await signState(statePayload, appSecret);
-    
+
     // Build callback URL - use Supabase function URL
     const callbackUrl = `${supabaseUrl}/functions/v1/waba-connect-callback`;
 
-    // Build standard Meta OAuth URL (without config_id which requires Embedded Signup setup)
-    // Use standard OAuth flow which is more reliable
+    // Prefer Embedded Signup if config_id is configured, otherwise fall back to standard OAuth.
     const params = new URLSearchParams({
       client_id: appId,
       redirect_uri: callbackUrl,
@@ -125,6 +125,10 @@ Deno.serve(async (req) => {
       state: signedState,
       scope: 'business_management,whatsapp_business_management,whatsapp_business_messaging',
     });
+
+    if (configId) {
+      params.set('config_id', configId);
+    }
 
     const oauthUrl = `https://www.facebook.com/v21.0/dialog/oauth?${params.toString()}`;
 

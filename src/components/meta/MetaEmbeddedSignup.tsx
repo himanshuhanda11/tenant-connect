@@ -79,7 +79,7 @@ export function MetaEmbeddedSignup({ onSuccess, onError }: MetaEmbeddedSignupPro
         ) : (
           <>
             <MessageSquare className="w-4 h-4 mr-2" />
-            Connect with Meta
+            Continue with Facebook
             <ExternalLink className="w-3 h-3 ml-2" />
           </>
         )}
