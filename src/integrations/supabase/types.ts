@@ -607,6 +607,225 @@ export type Database = {
           },
         ]
       }
+      guide_categories: {
+        Row: {
+          created_at: string
+          description: string | null
+          icon: string | null
+          id: string
+          name: string
+          slug: string
+          sort_order: number | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          name: string
+          slug: string
+          sort_order?: number | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          name?: string
+          slug?: string
+          sort_order?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      guide_examples: {
+        Row: {
+          code: string | null
+          created_at: string
+          description: string | null
+          guide_id: string
+          id: string
+          is_good_example: boolean | null
+          language: string | null
+          sort_order: number | null
+          title: string
+        }
+        Insert: {
+          code?: string | null
+          created_at?: string
+          description?: string | null
+          guide_id: string
+          id?: string
+          is_good_example?: boolean | null
+          language?: string | null
+          sort_order?: number | null
+          title: string
+        }
+        Update: {
+          code?: string | null
+          created_at?: string
+          description?: string | null
+          guide_id?: string
+          id?: string
+          is_good_example?: boolean | null
+          language?: string | null
+          sort_order?: number | null
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "guide_examples_guide_id_fkey"
+            columns: ["guide_id"]
+            isOneToOne: false
+            referencedRelation: "guides"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      guide_relations: {
+        Row: {
+          created_at: string
+          guide_id: string
+          id: string
+          related_guide_id: string
+          relation_type: string | null
+        }
+        Insert: {
+          created_at?: string
+          guide_id: string
+          id?: string
+          related_guide_id: string
+          relation_type?: string | null
+        }
+        Update: {
+          created_at?: string
+          guide_id?: string
+          id?: string
+          related_guide_id?: string
+          relation_type?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "guide_relations_guide_id_fkey"
+            columns: ["guide_id"]
+            isOneToOne: false
+            referencedRelation: "guides"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "guide_relations_related_guide_id_fkey"
+            columns: ["related_guide_id"]
+            isOneToOne: false
+            referencedRelation: "guides"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      guide_sections: {
+        Row: {
+          content: string
+          created_at: string
+          guide_id: string
+          id: string
+          section_type: string
+          sort_order: number | null
+          title: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          guide_id: string
+          id?: string
+          section_type: string
+          sort_order?: number | null
+          title: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          guide_id?: string
+          id?: string
+          section_type?: string
+          sort_order?: number | null
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "guide_sections_guide_id_fkey"
+            columns: ["guide_id"]
+            isOneToOne: false
+            referencedRelation: "guides"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      guides: {
+        Row: {
+          category_id: string | null
+          content: string
+          created_at: string
+          created_by: string | null
+          difficulty: string | null
+          id: string
+          is_featured: boolean | null
+          is_published: boolean | null
+          meta_description: string | null
+          meta_title: string | null
+          reading_time_minutes: number | null
+          sidebar_key: string | null
+          slug: string
+          summary: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          category_id?: string | null
+          content: string
+          created_at?: string
+          created_by?: string | null
+          difficulty?: string | null
+          id?: string
+          is_featured?: boolean | null
+          is_published?: boolean | null
+          meta_description?: string | null
+          meta_title?: string | null
+          reading_time_minutes?: number | null
+          sidebar_key?: string | null
+          slug: string
+          summary?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          category_id?: string | null
+          content?: string
+          created_at?: string
+          created_by?: string | null
+          difficulty?: string | null
+          id?: string
+          is_featured?: boolean | null
+          is_published?: boolean | null
+          meta_description?: string | null
+          meta_title?: string | null
+          reading_time_minutes?: number | null
+          sidebar_key?: string | null
+          slug?: string
+          summary?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "guides_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "guide_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       messages: {
         Row: {
           context_message_id: string | null
