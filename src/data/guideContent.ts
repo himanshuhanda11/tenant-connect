@@ -25,6 +25,7 @@ export const GUIDE_CATEGORIES = [
   { slug: 'messaging', name: 'Messaging', icon: '💬', description: 'Learn how to manage conversations and contacts' },
   { slug: 'marketing', name: 'Marketing', icon: '📣', description: 'Send campaigns and automate outreach' },
   { slug: 'channels', name: 'Channels', icon: '📱', description: 'Connect and manage phone numbers' },
+  { slug: 'meta-ads', name: 'Meta Ads', icon: '📢', description: 'Click-to-WhatsApp ads and lead tracking' },
   { slug: 'platform', name: 'Platform', icon: '⚙️', description: 'Configure your workspace and team' },
   { slug: 'compliance', name: 'Compliance', icon: '✅', description: 'WhatsApp policies and best practices' },
 ];
@@ -289,6 +290,57 @@ export const STATIC_GUIDES: StaticGuide[] = [
       }
     ],
     relatedSlugs: ['inbox-guide', 'workspace-settings']
+  },
+  {
+    slug: 'meta-ads-guide',
+    title: 'Meta Ads (Click-to-WhatsApp)',
+    category: 'meta-ads',
+    sidebarKey: 'meta-ads',
+    summary: 'Connect Meta Ads, track CTWA leads, set up attribution, and automate responses for Click-to-WhatsApp campaigns.',
+    difficulty: 'intermediate',
+    readingTime: 15,
+    sections: [
+      {
+        type: 'what_is',
+        title: 'What is Meta Ads Integration?',
+        content: 'Click-to-WhatsApp Ads (CTWA) are Meta ads that let users start WhatsApp conversations directly from Facebook or Instagram. SMEKSH captures these leads, tracks attribution to specific ads and campaigns, and can automatically respond and route leads.'
+      },
+      {
+        type: 'when_to_use',
+        title: 'When to Use Meta Ads',
+        content: '• Running Click-to-WhatsApp ad campaigns\n• Tracking which ads generate WhatsApp leads\n• Automating welcome messages for ad leads\n• Routing hot leads to sales teams instantly\n• Measuring ad ROI with conversion tracking\n• Comparing campaign performance'
+      },
+      {
+        type: 'how_it_works',
+        title: 'How It Works',
+        content: '1. **Connect Meta Account** - Authenticate with Facebook and grant read permissions\n2. **Select Ad Account & Page** - Choose which assets to track\n3. **Link WhatsApp Number** - Connect to your SMEKSH number\n4. **Enable Tracking** - Start attributing leads to ads\n5. **Set Up Automations** - Auto-respond and route leads\n6. **Analyze Performance** - View analytics and optimize'
+      },
+      {
+        type: 'common_mistakes',
+        title: 'Common Mistakes',
+        content: '❌ Slow response times - Ad leads expect instant replies\n❌ No automation setup - Leads arrive silently without notification\n❌ Wrong attribution window - Missing leads or over-attributing\n❌ Spammy follow-ups - Hurts WhatsApp quality rating\n❌ Not tracking conversions - Can\'t calculate true ROI'
+      },
+      {
+        type: 'tips',
+        title: 'Tips for Success',
+        content: '✅ Respond to ad leads within seconds using automations\n✅ Personalize welcome messages with campaign name\n✅ Tag leads by campaign for segmentation\n✅ Track conversions to calculate ROI\n✅ A/B test different welcome messages\n✅ Use round-robin routing for fair lead distribution'
+      }
+    ],
+    examples: [
+      {
+        title: 'Welcome Automation',
+        description: 'Auto-respond when ad lead arrives',
+        code: 'Trigger: New Lead from Meta Ad\nActions:\n1. Add tag "Meta Lead"\n2. Add tag "Campaign: {{campaign_name}}"\n3. Assign to Sales Team (round robin)\n4. Send welcome template',
+        isGood: true
+      },
+      {
+        title: 'High-Intent Fast Lane',
+        description: 'Route hot leads to priority queue',
+        code: 'Trigger: First Message (contains "pricing" or "quote")\nActions:\n1. Set priority HIGH\n2. Assign to Sales Manager\n3. Send "pricing inquiry" template',
+        isGood: true
+      }
+    ],
+    relatedSlugs: ['automation-workflows', 'contacts-management', 'templates-guide']
   }
 ];
 

@@ -16,7 +16,8 @@ import {
   ArrowRight,
   BookOpen,
   Lightbulb,
-  HelpCircle
+  HelpCircle,
+  Megaphone
 } from 'lucide-react';
 import { GUIDE_CATEGORIES, STATIC_GUIDES, StaticGuide } from '@/data/guideContent';
 
@@ -24,6 +25,7 @@ const categoryIcons: Record<string, React.ReactNode> = {
   messaging: <MessageSquare className="h-6 w-6" />,
   marketing: <Send className="h-6 w-6" />,
   channels: <Phone className="h-6 w-6" />,
+  'meta-ads': <Megaphone className="h-6 w-6" />,
   platform: <Settings className="h-6 w-6" />,
   compliance: <CheckCircle className="h-6 w-6" />,
 };
@@ -49,8 +51,8 @@ export default function HelpCenter() {
   }, [searchQuery]);
 
   const featuredGuides = STATIC_GUIDES.filter(g => 
-    ['templates-guide', 'inbox-guide', 'campaigns-guide'].includes(g.slug)
-  );
+    ['templates-guide', 'inbox-guide', 'meta-ads-guide', 'campaigns-guide'].includes(g.slug)
+  ).slice(0, 4);
 
   const getGuideCountForCategory = (categorySlug: string) => {
     return STATIC_GUIDES.filter(g => g.category === categorySlug).length;
@@ -125,7 +127,7 @@ export default function HelpCenter() {
       <section className="py-16 bg-background">
         <div className="container mx-auto px-4">
           <h2 className="text-2xl font-bold mb-8 text-center">Browse by Category</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4">
             {GUIDE_CATEGORIES.map(category => (
               <Link 
                 key={category.slug} 
@@ -163,7 +165,7 @@ export default function HelpCenter() {
             </Button>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {featuredGuides.map(guide => (
               <Link key={guide.slug} to={`/help/${guide.slug}`}>
                 <Card className="h-full hover:border-primary/50 hover:shadow-lg transition-all group">
