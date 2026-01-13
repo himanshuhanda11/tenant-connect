@@ -28,9 +28,9 @@ import {
   HeaderType, 
   TemplateButton, 
   TemplateCategory,
-  TemplateVersion 
+  TemplateVersion,
+  LintValidationResult
 } from '@/types/template';
-import { LintValidationResult } from '@/lib/templateLinter';
 import { WhatsAppPreview } from './WhatsAppPreview';
 
 interface TemplateBuilderProps {
