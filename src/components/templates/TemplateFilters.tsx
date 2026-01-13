@@ -45,7 +45,7 @@ export function TemplateFilters({
     language;
 
   const languages = [
-    { code: '', name: 'All Languages' },
+    { code: 'all', name: 'All Languages' },
     { code: 'en', name: 'English' },
     { code: 'ar', name: 'Arabic' },
     { code: 'hi', name: 'Hindi' },
@@ -111,7 +111,7 @@ export function TemplateFilters({
       </Select>
 
       {/* Language */}
-      <Select value={language} onValueChange={onLanguageChange}>
+      <Select value={language || 'all'} onValueChange={(v) => onLanguageChange(v === 'all' ? '' : v)}>
         <SelectTrigger className="w-[130px]">
           <SelectValue placeholder="Language" />
         </SelectTrigger>
