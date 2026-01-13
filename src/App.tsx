@@ -17,6 +17,7 @@ import Settings from "./pages/Settings";
 import Inbox from "./pages/Inbox";
 import Contacts from "./pages/Contacts";
 import Tags from "./pages/Tags";
+import UserAttributes from "./pages/UserAttributes";
 import PhoneNumbers from "./pages/PhoneNumbers";
 import Templates from "./pages/Templates";
 import Campaigns from "./pages/Campaigns";
@@ -76,6 +77,7 @@ const App = () => (
               <Route path="/inbox" element={<Inbox />} />
               <Route path="/contacts" element={<Contacts />} />
               <Route path="/tags" element={<Tags />} />
+              <Route path="/user-attributes" element={<UserAttributes />} />
               <Route path="/phone-numbers" element={<PhoneNumbers />} />
               <Route path="/templates" element={<Templates />} />
               <Route path="/campaigns" element={<Campaigns />} />

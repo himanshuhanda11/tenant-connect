@@ -16,6 +16,7 @@ import {
   Zap,
   CreditCard,
   Tag,
+  ListFilter,
 } from 'lucide-react';
 import {
   Sidebar,
@@ -47,6 +48,7 @@ const mainMenuItems = [
   { title: 'Inbox', url: '/inbox', icon: Inbox, badge: 0 },
   { title: 'Contacts', url: '/contacts', icon: Contact },
   { title: 'Tags', url: '/tags', icon: Tag },
+  { title: 'User Attributes', url: '/user-attributes', icon: ListFilter },
 ];
 
 const channelMenuItems = [
