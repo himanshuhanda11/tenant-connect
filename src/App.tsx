@@ -74,6 +74,13 @@ import TeamRolesFeature from "./pages/features/TeamRolesFeature";
 import AuditLogsFeature from "./pages/features/AuditLogsFeature";
 import Partners from "./pages/Partners";
 import NotFound from "./pages/NotFound";
+import MetaAdsOverview from "./pages/meta-ads/MetaAdsOverview";
+import MetaAdsSetup from "./pages/meta-ads/MetaAdsSetup";
+import MetaAdsManager from "./pages/meta-ads/MetaAdsManager";
+import MetaAdsAnalytics from "./pages/meta-ads/MetaAdsAnalytics";
+import MetaAdsAttribution from "./pages/meta-ads/MetaAdsAttribution";
+import MetaAdsAutomations from "./pages/meta-ads/MetaAdsAutomations";
+import MetaAdsSettings from "./pages/meta-ads/MetaAdsSettings";
 
 const queryClient = new QueryClient();
 
@@ -113,6 +120,13 @@ const App = () => (
               <Route path="/team/routing" element={<TeamRouting />} />
               <Route path="/team/sla" element={<TeamSLA />} />
               <Route path="/team/audit" element={<TeamAudit />} />
+              <Route path="/meta-ads" element={<MetaAdsOverview />} />
+              <Route path="/meta-ads/setup" element={<MetaAdsSetup />} />
+              <Route path="/meta-ads/manager" element={<MetaAdsManager />} />
+              <Route path="/meta-ads/analytics" element={<MetaAdsAnalytics />} />
+              <Route path="/meta-ads/attribution" element={<MetaAdsAttribution />} />
+              <Route path="/meta-ads/automations" element={<MetaAdsAutomations />} />
+              <Route path="/meta-ads/settings" element={<MetaAdsSettings />} />
               <Route path="/billing" element={<Billing />} />
               <Route path="/settings" element={<Settings />} />
               <Route path="/privacy-policy" element={<PrivacyPolicy />} />

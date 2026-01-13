@@ -23,6 +23,12 @@ import {
   Tag,
   ListFilter,
   HelpCircle,
+  Megaphone,
+  BarChart3,
+  Link2,
+  Target,
+  Workflow,
+  Cog,
 } from 'lucide-react';
 import {
   Sidebar,
@@ -79,6 +85,16 @@ const channelMenuItems: MenuItem[] = [
 const growthMenuItems: MenuItem[] = [
   { title: 'Campaigns', url: '/campaigns', icon: Send, key: 'campaigns' },
   { title: 'Automation', url: '/automation', icon: Zap, key: 'automation' },
+];
+
+const metaAdsMenuItems: MenuItem[] = [
+  { title: 'Overview', url: '/meta-ads', icon: Megaphone, key: 'meta-ads-overview' },
+  { title: 'Setup', url: '/meta-ads/setup', icon: Link2, key: 'meta-ads-setup' },
+  { title: 'Ads Manager', url: '/meta-ads/manager', icon: Target, key: 'meta-ads-manager' },
+  { title: 'Lead Analytics', url: '/meta-ads/analytics', icon: BarChart3, key: 'meta-ads-analytics' },
+  { title: 'Attribution Rules', url: '/meta-ads/attribution', icon: Route, key: 'meta-ads-attribution' },
+  { title: 'Automations', url: '/meta-ads/automations', icon: Workflow, key: 'meta-ads-automations' },
+  { title: 'Settings', url: '/meta-ads/settings', icon: Cog, key: 'meta-ads-settings' },
 ];
 
 const teamMenuItems: MenuItem[] = [
@@ -270,6 +286,16 @@ export function AppSidebar() {
           </SidebarGroupLabel>
           <SidebarGroupContent>
             {renderMenuItems(growthMenuItems)}
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        {/* Meta Ads */}
+        <SidebarGroup className="mt-4">
+          <SidebarGroupLabel className="text-sidebar-foreground/50 text-xs uppercase tracking-wider px-3 mb-1">
+            Meta Ads
+          </SidebarGroupLabel>
+          <SidebarGroupContent>
+            {renderMenuItems(metaAdsMenuItems)}
           </SidebarGroupContent>
         </SidebarGroup>
 
