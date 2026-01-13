@@ -15,6 +15,11 @@ import {
   Send,
   Zap,
   CreditCard,
+  Shield,
+  UsersRound,
+  Route,
+  Clock,
+  ScrollText,
   Tag,
   ListFilter,
   HelpCircle,
@@ -76,8 +81,17 @@ const growthMenuItems: MenuItem[] = [
   { title: 'Automation', url: '/automation', icon: Zap, key: 'automation' },
 ];
 
+const teamMenuItems: MenuItem[] = [
+  { title: 'Overview', url: '/team', icon: Users, key: 'team-overview' },
+  { title: 'Members', url: '/team/members', icon: Users, key: 'team-members' },
+  { title: 'Roles & Permissions', url: '/team/roles', icon: Shield, key: 'team-roles' },
+  { title: 'Teams (Groups)', url: '/team/groups', icon: UsersRound, key: 'team-groups' },
+  { title: 'Routing', url: '/team/routing', icon: Route, key: 'team-routing' },
+  { title: 'Working Hours & SLA', url: '/team/sla', icon: Clock, key: 'team-sla' },
+  { title: 'Audit Logs', url: '/team/audit', icon: ScrollText, key: 'team-audit' },
+];
+
 const settingsMenuItems: MenuItem[] = [
-  { title: 'Team', url: '/team', icon: Users, key: 'team' },
   { title: 'Billing', url: '/billing', icon: CreditCard, key: 'billing' },
   { title: 'Settings', url: '/settings', icon: Settings, key: 'settings' },
   { title: 'Help', url: '/help', icon: HelpCircle, key: 'help' },
@@ -259,10 +273,20 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
 
+        {/* Team Management */}
+        <SidebarGroup className="mt-4">
+          <SidebarGroupLabel className="text-sidebar-foreground/50 text-xs uppercase tracking-wider px-3 mb-1">
+            Team
+          </SidebarGroupLabel>
+          <SidebarGroupContent>
+            {renderMenuItems(teamMenuItems)}
+          </SidebarGroupContent>
+        </SidebarGroup>
+
         {/* Settings */}
         <SidebarGroup className="mt-4">
           <SidebarGroupLabel className="text-sidebar-foreground/50 text-xs uppercase tracking-wider px-3 mb-1">
-            Manage
+            Settings
           </SidebarGroupLabel>
           <SidebarGroupContent>
             {renderMenuItems(settingsMenuItems)}

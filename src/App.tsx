@@ -13,6 +13,13 @@ import CreateWorkspace from "./pages/CreateWorkspace";
 import SelectWorkspace from "./pages/SelectWorkspace";
 import Dashboard from "./pages/Dashboard";
 import Team from "./pages/Team";
+import TeamOverview from "./pages/team/TeamOverview";
+import TeamMembers from "./pages/team/TeamMembers";
+import TeamRoles from "./pages/team/TeamRoles";
+import TeamGroups from "./pages/team/TeamGroups";
+import TeamRouting from "./pages/team/TeamRouting";
+import TeamSLA from "./pages/team/TeamSLA";
+import TeamAudit from "./pages/team/TeamAudit";
 import Settings from "./pages/Settings";
 import Inbox from "./pages/Inbox";
 import Contacts from "./pages/Contacts";
@@ -90,7 +97,14 @@ const App = () => (
               <Route path="/templates" element={<Templates />} />
               <Route path="/campaigns" element={<Campaigns />} />
               <Route path="/automation" element={<AutomationWorkflows />} />
-              <Route path="/team" element={<Team />} />
+              <Route path="/team" element={<TeamOverview />} />
+              <Route path="/team/overview" element={<TeamOverview />} />
+              <Route path="/team/members" element={<TeamMembers />} />
+              <Route path="/team/roles" element={<TeamRoles />} />
+              <Route path="/team/groups" element={<TeamGroups />} />
+              <Route path="/team/routing" element={<TeamRouting />} />
+              <Route path="/team/sla" element={<TeamSLA />} />
+              <Route path="/team/audit" element={<TeamAudit />} />
               <Route path="/billing" element={<Billing />} />
               <Route path="/settings" element={<Settings />} />
               <Route path="/privacy-policy" element={<PrivacyPolicy />} />
