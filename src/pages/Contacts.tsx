@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
+import { GuideBanner } from '@/components/help/GuideBanner';
 import { supabase } from '@/integrations/supabase/client';
 import { useTenant } from '@/contexts/TenantContext';
 import { toast } from 'sonner';
@@ -141,15 +142,25 @@ export default function Contacts() {
                 <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
               </div>
             ) : filteredContacts.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">
-                <Users className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                {searchQuery ? (
-                  <p>No contacts matching "{searchQuery}"</p>
-                ) : (
-                  <>
-                    <p>No contacts yet</p>
-                    <p className="text-sm">Contacts will appear here when they message you</p>
-                  </>
+              <div className="py-8">
+                <div className="text-center text-muted-foreground mb-6">
+                  <Users className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                  {searchQuery ? (
+                    <p>No contacts matching "{searchQuery}"</p>
+                  ) : (
+                    <>
+                      <p>No contacts yet</p>
+                      <p className="text-sm">Contacts will appear here when they message you</p>
+                    </>
+                  )}
+                </div>
+                {!searchQuery && (
+                  <GuideBanner
+                    title="Learn about Contacts & Tags"
+                    description="Organize your contacts with tags, track conversation history, and segment your audience for targeted campaigns."
+                    guideUrl="/help/contacts-tags"
+                    variant="compact"
+                  />
                 )}
               </div>
             ) : (

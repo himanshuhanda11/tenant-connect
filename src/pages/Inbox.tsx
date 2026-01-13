@@ -56,6 +56,7 @@ import {
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { InboxTagChips } from '@/components/inbox/InboxTagChips';
 import { InboxTagPicker } from '@/components/inbox/InboxTagPicker';
+import { GuideBanner } from '@/components/help/GuideBanner';
 import { useContactTags } from '@/hooks/useContactTags';
 import { supabase } from '@/integrations/supabase/client';
 import { useTenant } from '@/contexts/TenantContext';
@@ -495,9 +496,16 @@ export default function Inbox() {
                 <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
               </div>
             ) : filteredConversations.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
-                <MessageSquare className="h-10 w-10 mb-2" />
-                <p className="text-sm">No conversations found</p>
+              <div className="flex flex-col items-center justify-center py-12 px-4">
+                <MessageSquare className="h-10 w-10 mb-2 text-muted-foreground" />
+                <p className="text-sm text-muted-foreground mb-4">No conversations found</p>
+                <GuideBanner
+                  title="New to Inbox?"
+                  description="Learn how to manage conversations, respond to customers, and use keyboard shortcuts."
+                  guideUrl="/help/inbox"
+                  variant="compact"
+                  className="w-full"
+                />
               </div>
             ) : (
               <div className="p-2 space-y-1">

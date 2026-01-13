@@ -17,6 +17,7 @@ import {
   CreditCard,
   Tag,
   ListFilter,
+  HelpCircle,
 } from 'lucide-react';
 import {
   Sidebar,
@@ -37,34 +38,49 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { NavLink } from '@/components/NavLink';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTenant } from '@/contexts/TenantContext';
+import { sidebarDescriptions } from '@/data/sidebarDescriptions';
 
-const mainMenuItems = [
-  { title: 'Dashboard', url: '/dashboard', icon: LayoutDashboard },
-  { title: 'Inbox', url: '/inbox', icon: Inbox, badge: 0 },
-  { title: 'Contacts', url: '/contacts', icon: Contact },
-  { title: 'Tags', url: '/tags', icon: Tag },
-  { title: 'User Attributes', url: '/user-attributes', icon: ListFilter },
+interface MenuItem {
+  title: string;
+  url: string;
+  icon: React.ComponentType<{ className?: string }>;
+  badge?: number;
+  key: string;
+}
+
+const mainMenuItems: MenuItem[] = [
+  { title: 'Dashboard', url: '/dashboard', icon: LayoutDashboard, key: 'dashboard' },
+  { title: 'Inbox', url: '/inbox', icon: Inbox, badge: 0, key: 'inbox' },
+  { title: 'Contacts', url: '/contacts', icon: Contact, key: 'contacts' },
+  { title: 'Tags', url: '/tags', icon: Tag, key: 'tags' },
+  { title: 'User Attributes', url: '/user-attributes', icon: ListFilter, key: 'user-attributes' },
 ];
 
-const channelMenuItems = [
-  { title: 'Phone Numbers', url: '/phone-numbers', icon: Phone },
-  { title: 'Templates', url: '/templates', icon: FileText },
+const channelMenuItems: MenuItem[] = [
+  { title: 'Phone Numbers', url: '/phone-numbers', icon: Phone, key: 'phone-numbers' },
+  { title: 'Templates', url: '/templates', icon: FileText, key: 'templates' },
 ];
 
-const growthMenuItems = [
-  { title: 'Campaigns', url: '/campaigns', icon: Send },
-  { title: 'Automation', url: '/automation', icon: Zap },
+const growthMenuItems: MenuItem[] = [
+  { title: 'Campaigns', url: '/campaigns', icon: Send, key: 'campaigns' },
+  { title: 'Automation', url: '/automation', icon: Zap, key: 'automation' },
 ];
 
-const settingsMenuItems = [
-  { title: 'Team', url: '/team', icon: Users },
-  { title: 'Billing', url: '/billing', icon: CreditCard },
-  { title: 'Settings', url: '/settings', icon: Settings },
+const settingsMenuItems: MenuItem[] = [
+  { title: 'Team', url: '/team', icon: Users, key: 'team' },
+  { title: 'Billing', url: '/billing', icon: CreditCard, key: 'billing' },
+  { title: 'Settings', url: '/settings', icon: Settings, key: 'settings' },
+  { title: 'Help', url: '/help', icon: HelpCircle, key: 'help' },
 ];
 
 const roleColors: Record<string, string> = {
@@ -96,28 +112,55 @@ export function AppSidebar() {
     return email.slice(0, 2).toUpperCase();
   };
 
-  const renderMenuItems = (items: typeof mainMenuItems) => (
+  const renderMenuItems = (items: MenuItem[]) => (
     <SidebarMenu>
-      {items.map((item) => (
-        <SidebarMenuItem key={item.title}>
-          <SidebarMenuButton asChild>
-            <NavLink
-              to={item.url}
-              end={item.url === '/dashboard'}
-              className="flex items-center gap-3 px-3 py-2 rounded-lg text-sidebar-foreground/80 hover:text-sidebar-foreground hover:bg-sidebar-accent transition-colors"
-              activeClassName="bg-sidebar-accent text-sidebar-foreground font-medium"
-            >
-              <item.icon className="w-5 h-5" />
-              <span className="flex-1">{item.title}</span>
-              {'badge' in item && item.badge !== undefined && item.badge > 0 && (
-                <Badge variant="default" className="h-5 min-w-[20px] px-1.5 text-xs">
-                  {item.badge}
-                </Badge>
+      {items.map((item) => {
+        const meta = sidebarDescriptions[item.key];
+        return (
+          <SidebarMenuItem key={item.title}>
+            <div className="flex items-center gap-1">
+              <SidebarMenuButton asChild className="flex-1">
+                <NavLink
+                  to={item.url}
+                  end={item.url === '/dashboard'}
+                  className="flex items-center gap-3 px-3 py-2 rounded-lg text-sidebar-foreground/80 hover:text-sidebar-foreground hover:bg-sidebar-accent transition-colors"
+                  activeClassName="bg-sidebar-accent text-sidebar-foreground font-medium"
+                >
+                  <item.icon className="w-5 h-5" />
+                  <span className="flex-1">{item.title}</span>
+                  {item.badge !== undefined && item.badge > 0 && (
+                    <Badge variant="default" className="h-5 min-w-[20px] px-1.5 text-xs">
+                      {item.badge}
+                    </Badge>
+                  )}
+                </NavLink>
+              </SidebarMenuButton>
+              {meta && (
+                <Tooltip delayDuration={300}>
+                  <TooltipTrigger asChild>
+                    <button className="p-1.5 rounded hover:bg-sidebar-accent transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100">
+                      <HelpCircle className="h-3.5 w-3.5 text-sidebar-foreground/40 hover:text-sidebar-foreground/70" />
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent 
+                    side="right" 
+                    align="start"
+                    className="max-w-[280px] p-3"
+                  >
+                    <p className="text-sm mb-2">{meta.description}</p>
+                    <NavLink 
+                      to={`/help/${meta.helpSlug}`}
+                      className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
+                    >
+                      Learn more →
+                    </NavLink>
+                  </TooltipContent>
+                </Tooltip>
               )}
-            </NavLink>
-          </SidebarMenuButton>
-        </SidebarMenuItem>
-      ))}
+            </div>
+          </SidebarMenuItem>
+        );
+      })}
     </SidebarMenu>
   );
 

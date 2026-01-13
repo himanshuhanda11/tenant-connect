@@ -9,6 +9,7 @@ import { TemplatesListView } from '@/components/templates/TemplatesListView';
 import { TemplateBuilder, TemplateBuilderData } from '@/components/templates/TemplateBuilder';
 import { IndustryPacks } from '@/components/templates/IndustryPacks';
 import { InternalReviewModal } from '@/components/templates/InternalReviewModal';
+import { GuideBanner } from '@/components/help/GuideBanner';
 import { Template as TemplateType, TemplateVersion, InternalStatus, MetaStatus, TemplateCategory, HeaderType } from '@/types/template';
 import { toast } from 'sonner';
 import { lintTemplate } from '@/lib/templateLinter';
@@ -230,6 +231,16 @@ export default function Templates() {
             Templates require internal approval before submission to Meta. Only Meta-approved templates can be used for outbound messaging.
           </AlertDescription>
         </Alert>
+
+        {/* Guide Banner */}
+        {templates.length === 0 && !loading && (
+          <GuideBanner
+            title="New to WhatsApp Templates?"
+            description="Learn how to create, submit, and get your templates approved by Meta for outbound messaging."
+            guideUrl="/help/templates"
+            dismissible
+          />
+        )}
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)}>
