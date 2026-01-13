@@ -150,32 +150,31 @@ export default function Index() {
       <Navbar />
 
       {/* Hero Section */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-slate-950 via-green-950/30 to-slate-950">
-        {/* Animated Background */}
+      <section className="relative overflow-hidden bg-background">
+        {/* Subtle Background */}
         <div className="absolute inset-0">
-          <div className="absolute top-0 left-1/4 w-[800px] h-[800px] bg-green-500/10 rounded-full blur-[150px] animate-pulse" />
-          <div className="absolute bottom-0 right-1/4 w-[600px] h-[600px] bg-emerald-500/10 rounded-full blur-[120px]" />
-          <div className="absolute top-1/2 right-0 w-[400px] h-[400px] bg-cyan-500/5 rounded-full blur-[80px]" />
+          <div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-green-500/5 rounded-full blur-[150px]" />
+          <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-emerald-500/5 rounded-full blur-[120px]" />
         </div>
         {/* Grid Pattern */}
-        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:60px_60px]" />
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(0,0,0,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(0,0,0,0.02)_1px,transparent_1px)] bg-[size:60px_60px]" />
         
         <div className="container mx-auto px-4 py-20 md:py-28 lg:py-36 relative z-10">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             {/* Left Content */}
             <div className="text-left">
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-green-500/10 border border-green-500/20 text-green-400 text-sm font-medium mb-6">
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-green-500/10 border border-green-500/20 text-green-600 text-sm font-medium mb-6">
                 <Sparkles className="w-4 h-4" />
                 Official WhatsApp Business API Partner
               </div>
-              <h1 className="text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold text-white leading-tight mb-6">
+              <h1 className="text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold text-foreground leading-tight mb-6">
                 Engage Customers on{' '}
-                <span className="bg-gradient-to-r from-green-400 via-emerald-400 to-cyan-400 bg-clip-text text-transparent">
+                <span className="bg-gradient-to-r from-green-500 via-emerald-500 to-cyan-500 bg-clip-text text-transparent">
                   WhatsApp
                 </span>{' '}
                 at Scale
               </h1>
-              <p className="text-lg md:text-xl text-white/60 max-w-xl mb-8">
+              <p className="text-lg md:text-xl text-muted-foreground max-w-xl mb-8">
                 The all-in-one platform for WhatsApp Business messaging. Send broadcasts, automate conversations, and grow your business.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 mb-8">
@@ -183,22 +182,22 @@ export default function Index() {
                   Start Free Trial
                   <ArrowRight className="w-5 h-5 ml-2" />
                 </Button>
-                <Button variant="outline" size="lg" className="h-14 px-8 text-base border-white/20 text-white hover:bg-white/10" onClick={() => navigate('/contact')}>
+                <Button variant="outline" size="lg" className="h-14 px-8 text-base" onClick={() => navigate('/contact')}>
                   <Play className="w-5 h-5 mr-2" />
                   Watch Demo
                 </Button>
               </div>
-              <div className="flex flex-wrap items-center gap-6 text-sm text-white/50">
+              <div className="flex flex-wrap items-center gap-6 text-sm text-muted-foreground">
                 <div className="flex items-center gap-2">
-                  <CheckCircle2 className="w-5 h-5 text-green-400" />
+                  <CheckCircle2 className="w-5 h-5 text-green-500" />
                   Free 14-day trial
                 </div>
                 <div className="flex items-center gap-2">
-                  <CheckCircle2 className="w-5 h-5 text-green-400" />
+                  <CheckCircle2 className="w-5 h-5 text-green-500" />
                   No credit card required
                 </div>
                 <div className="flex items-center gap-2">
-                  <CheckCircle2 className="w-5 h-5 text-green-400" />
+                  <CheckCircle2 className="w-5 h-5 text-green-500" />
                   Setup in 5 minutes
                 </div>
               </div>
@@ -206,7 +205,7 @@ export default function Index() {
 
             {/* Right Content - Demo Video */}
             <div className="relative hidden lg:block">
-              <div className="relative rounded-2xl overflow-hidden shadow-2xl border border-white/10">
+              <div className="relative rounded-2xl overflow-hidden shadow-2xl border border-border">
                 <video 
                   src={dashboardDemo} 
                   autoPlay 
@@ -215,23 +214,22 @@ export default function Index() {
                   playsInline
                   className="w-full h-auto"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent pointer-events-none" />
               </div>
               {/* Floating elements */}
-              <div className="absolute -bottom-6 -left-6 bg-white/10 backdrop-blur-xl p-4 rounded-xl shadow-xl border border-white/20">
+              <div className="absolute -bottom-6 -left-6 bg-card backdrop-blur-xl p-4 rounded-xl shadow-xl border border-border">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-full bg-green-500 flex items-center justify-center">
                     <CheckCircle2 className="w-5 h-5 text-white" />
                   </div>
                   <div>
-                    <div className="text-sm font-medium text-white">Message Delivered</div>
-                    <div className="text-xs text-white/60">Just now</div>
+                    <div className="text-sm font-medium text-foreground">Message Delivered</div>
+                    <div className="text-xs text-muted-foreground">Just now</div>
                   </div>
                 </div>
               </div>
-              <div className="absolute -top-4 -right-4 bg-white/10 backdrop-blur-xl p-4 rounded-xl shadow-xl border border-white/20">
-                <div className="text-2xl font-bold text-white">98.5%</div>
-                <div className="text-xs text-white/60">Delivery Rate</div>
+              <div className="absolute -top-4 -right-4 bg-card backdrop-blur-xl p-4 rounded-xl shadow-xl border border-border">
+                <div className="text-2xl font-bold text-foreground">98.5%</div>
+                <div className="text-xs text-muted-foreground">Delivery Rate</div>
               </div>
             </div>
           </div>

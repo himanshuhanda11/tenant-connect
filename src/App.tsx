@@ -33,6 +33,14 @@ import Blog from "./pages/Blog";
 import Careers from "./pages/Careers";
 import Integrations from "./pages/Integrations";
 import Security from "./pages/Security";
+import DataDeletion from "./pages/DataDeletion";
+import AcceptableUse from "./pages/AcceptableUse";
+import CookiePolicy from "./pages/CookiePolicy";
+import RefundPolicy from "./pages/RefundPolicy";
+import Compliance from "./pages/Compliance";
+import CaseStudies from "./pages/CaseStudies";
+import TemplateLibrary from "./pages/TemplateLibrary";
+import Documentation from "./pages/Documentation";
 import InboxFeature from "./pages/features/InboxFeature";
 import ContactsFeature from "./pages/features/ContactsFeature";
 import TemplatesFeature from "./pages/features/TemplatesFeature";
@@ -74,6 +82,11 @@ const App = () => (
               <Route path="/settings" element={<Settings />} />
               <Route path="/privacy-policy" element={<PrivacyPolicy />} />
               <Route path="/terms" element={<Terms />} />
+              <Route path="/data-deletion" element={<DataDeletion />} />
+              <Route path="/acceptable-use" element={<AcceptableUse />} />
+              <Route path="/cookie-policy" element={<CookiePolicy />} />
+              <Route path="/refund-policy" element={<RefundPolicy />} />
+              <Route path="/compliance" element={<Compliance />} />
               <Route path="/app-access-instructions" element={<AppAccessInstructions />} />
               <Route path="/products" element={<Products />} />
               <Route path="/pricing" element={<Pricing />} />
@@ -84,14 +97,16 @@ const App = () => (
               <Route path="/careers" element={<Careers />} />
               <Route path="/integrations" element={<Integrations />} />
               <Route path="/security" element={<Security />} />
+              <Route path="/case-studies" element={<CaseStudies />} />
+              <Route path="/template-library" element={<TemplateLibrary />} />
+              <Route path="/documentation" element={<Documentation />} />
+              <Route path="/api-docs" element={<Documentation />} />
               <Route path="/guides" element={<Help />} />
               <Route path="/webinars" element={<Blog />} />
-              <Route path="/case-studies" element={<Blog />} />
-              <Route path="/api-docs" element={<Help />} />
               <Route path="/changelog" element={<Blog />} />
               <Route path="/partners" element={<About />} />
               <Route path="/press" element={<About />} />
-              <Route path="/cookies" element={<PrivacyPolicy />} />
+              <Route path="/cookies" element={<CookiePolicy />} />
               <Route path="/features/inbox" element={<InboxFeature />} />
               <Route path="/features/contacts" element={<ContactsFeature />} />
               <Route path="/features/templates" element={<TemplatesFeature />} />
