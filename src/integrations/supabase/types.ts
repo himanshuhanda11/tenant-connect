@@ -21,8 +21,16 @@ export type Database = {
           id: string
           is_active: boolean
           is_online: boolean
+          languages: string[] | null
+          last_active_at: string | null
+          max_open_chats: number | null
+          notes: string | null
+          presence: string | null
           role: string | null
+          skills: string[] | null
+          status: string | null
           tenant_id: string
+          timezone: string | null
           updated_at: string
           user_id: string
           weight: number
@@ -33,8 +41,16 @@ export type Database = {
           id?: string
           is_active?: boolean
           is_online?: boolean
+          languages?: string[] | null
+          last_active_at?: string | null
+          max_open_chats?: number | null
+          notes?: string | null
+          presence?: string | null
           role?: string | null
+          skills?: string[] | null
+          status?: string | null
           tenant_id: string
+          timezone?: string | null
           updated_at?: string
           user_id: string
           weight?: number
@@ -45,8 +61,16 @@ export type Database = {
           id?: string
           is_active?: boolean
           is_online?: boolean
+          languages?: string[] | null
+          last_active_at?: string | null
+          max_open_chats?: number | null
+          notes?: string | null
+          presence?: string | null
           role?: string | null
+          skills?: string[] | null
+          status?: string | null
           tenant_id?: string
+          timezone?: string | null
           updated_at?: string
           user_id?: string
           weight?: number
@@ -61,6 +85,60 @@ export type Database = {
           },
           {
             foreignKeyName: "agents_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      audit_logs: {
+        Row: {
+          action: string
+          created_at: string
+          details: Json | null
+          id: string
+          ip_address: string | null
+          resource_id: string | null
+          resource_type: string | null
+          tenant_id: string
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          details?: Json | null
+          id?: string
+          ip_address?: string | null
+          resource_id?: string | null
+          resource_type?: string | null
+          tenant_id: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          details?: Json | null
+          id?: string
+          ip_address?: string | null
+          resource_id?: string | null
+          resource_type?: string | null
+          tenant_id?: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "audit_logs_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "audit_logs_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
@@ -1649,6 +1727,133 @@ export type Database = {
           },
         ]
       }
+      member_invites: {
+        Row: {
+          accepted_at: string | null
+          created_at: string
+          email: string
+          expires_at: string
+          id: string
+          invited_by: string | null
+          phone_number_ids: string[] | null
+          role_id: string | null
+          team_ids: string[] | null
+          tenant_id: string
+          token: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          created_at?: string
+          email: string
+          expires_at: string
+          id?: string
+          invited_by?: string | null
+          phone_number_ids?: string[] | null
+          role_id?: string | null
+          team_ids?: string[] | null
+          tenant_id: string
+          token: string
+        }
+        Update: {
+          accepted_at?: string | null
+          created_at?: string
+          email?: string
+          expires_at?: string
+          id?: string
+          invited_by?: string | null
+          phone_number_ids?: string[] | null
+          role_id?: string | null
+          team_ids?: string[] | null
+          tenant_id?: string
+          token?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "member_invites_invited_by_fkey"
+            columns: ["invited_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "member_invites_role_id_fkey"
+            columns: ["role_id"]
+            isOneToOne: false
+            referencedRelation: "roles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "member_invites_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      member_performance: {
+        Row: {
+          assigned_chats: number | null
+          avg_resolution_time_seconds: number | null
+          avg_response_time_seconds: number | null
+          created_at: string
+          csat_score: number | null
+          date: string
+          id: string
+          messages_sent: number | null
+          resolved_chats: number | null
+          sla_breaches: number | null
+          tenant_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          assigned_chats?: number | null
+          avg_resolution_time_seconds?: number | null
+          avg_response_time_seconds?: number | null
+          created_at?: string
+          csat_score?: number | null
+          date: string
+          id?: string
+          messages_sent?: number | null
+          resolved_chats?: number | null
+          sla_breaches?: number | null
+          tenant_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          assigned_chats?: number | null
+          avg_resolution_time_seconds?: number | null
+          avg_response_time_seconds?: number | null
+          created_at?: string
+          csat_score?: number | null
+          date?: string
+          id?: string
+          messages_sent?: number | null
+          resolved_chats?: number | null
+          sla_breaches?: number | null
+          tenant_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "member_performance_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "member_performance_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       messages: {
         Row: {
           context_message_id: string | null
@@ -1735,6 +1940,33 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      permissions: {
+        Row: {
+          category: string
+          description: string | null
+          id: string
+          key: string
+          name: string
+          sort_order: number | null
+        }
+        Insert: {
+          category: string
+          description?: string | null
+          id?: string
+          key: string
+          name: string
+          sort_order?: number | null
+        }
+        Update: {
+          category?: string
+          description?: string | null
+          id?: string
+          key?: string
+          name?: string
+          sort_order?: number | null
+        }
+        Relationships: []
       }
       phone_numbers: {
         Row: {
@@ -1898,6 +2130,86 @@ export type Database = {
           },
         ]
       }
+      role_permissions: {
+        Row: {
+          created_at: string
+          id: string
+          permission_id: string
+          role_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          permission_id: string
+          role_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          permission_id?: string
+          role_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "role_permissions_permission_id_fkey"
+            columns: ["permission_id"]
+            isOneToOne: false
+            referencedRelation: "permissions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "role_permissions_role_id_fkey"
+            columns: ["role_id"]
+            isOneToOne: false
+            referencedRelation: "roles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      roles: {
+        Row: {
+          base_role: string
+          color: string | null
+          created_at: string
+          description: string | null
+          id: string
+          is_system: boolean
+          name: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          base_role?: string
+          color?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_system?: boolean
+          name: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          base_role?: string
+          color?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_system?: boolean
+          name?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "roles_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       round_robin_state: {
         Row: {
           cursor: number
@@ -1927,6 +2239,142 @@ export type Database = {
           },
           {
             foreignKeyName: "round_robin_state_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      routing_rules: {
+        Row: {
+          assign_to_team_id: string | null
+          assign_to_user_id: string | null
+          condition_config: Json
+          condition_type: string
+          created_at: string
+          description: string | null
+          fallback_strategy: string | null
+          id: string
+          is_active: boolean
+          name: string
+          priority: number
+          strategy: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          assign_to_team_id?: string | null
+          assign_to_user_id?: string | null
+          condition_config?: Json
+          condition_type: string
+          created_at?: string
+          description?: string | null
+          fallback_strategy?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          priority?: number
+          strategy?: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          assign_to_team_id?: string | null
+          assign_to_user_id?: string | null
+          condition_config?: Json
+          condition_type?: string
+          created_at?: string
+          description?: string | null
+          fallback_strategy?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          priority?: number
+          strategy?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "routing_rules_assign_to_team_id_fkey"
+            columns: ["assign_to_team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "routing_rules_assign_to_user_id_fkey"
+            columns: ["assign_to_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "routing_rules_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sla_settings: {
+        Row: {
+          after_hours_auto_reply: boolean
+          created_at: string
+          escalate_on_breach: boolean
+          escalate_to_team_lead: boolean
+          first_response_minutes: number
+          follow_up_minutes: number
+          id: string
+          is_active: boolean
+          name: string
+          resolution_hours: number | null
+          team_id: string | null
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          after_hours_auto_reply?: boolean
+          created_at?: string
+          escalate_on_breach?: boolean
+          escalate_to_team_lead?: boolean
+          first_response_minutes?: number
+          follow_up_minutes?: number
+          id?: string
+          is_active?: boolean
+          name: string
+          resolution_hours?: number | null
+          team_id?: string | null
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          after_hours_auto_reply?: boolean
+          created_at?: string
+          escalate_on_breach?: boolean
+          escalate_to_team_lead?: boolean
+          first_response_minutes?: number
+          follow_up_minutes?: number
+          id?: string
+          is_active?: boolean
+          name?: string
+          resolution_hours?: number | null
+          team_id?: string | null
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sla_settings_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sla_settings_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
@@ -2272,24 +2720,49 @@ export type Database = {
       }
       teams: {
         Row: {
+          color: string | null
           created_at: string
+          default_routing_strategy: string | null
+          description: string | null
           id: string
+          is_active: boolean
           name: string
+          team_lead_id: string | null
           tenant_id: string
+          updated_at: string | null
         }
         Insert: {
+          color?: string | null
           created_at?: string
+          default_routing_strategy?: string | null
+          description?: string | null
           id?: string
+          is_active?: boolean
           name: string
+          team_lead_id?: string | null
           tenant_id: string
+          updated_at?: string | null
         }
         Update: {
+          color?: string | null
           created_at?: string
+          default_routing_strategy?: string | null
+          description?: string | null
           id?: string
+          is_active?: boolean
           name?: string
+          team_lead_id?: string | null
           tenant_id?: string
+          updated_at?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "teams_team_lead_id_fkey"
+            columns: ["team_lead_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "teams_tenant_id_fkey"
             columns: ["tenant_id"]
@@ -2883,6 +3356,52 @@ export type Database = {
           },
         ]
       }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role_id: string
+          tenant_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role_id: string
+          tenant_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role_id?: string
+          tenant_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_roles_role_id_fkey"
+            columns: ["role_id"]
+            isOneToOne: false
+            referencedRelation: "roles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_roles_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_roles_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       waba_accounts: {
         Row: {
           business_id: string
@@ -2967,6 +3486,64 @@ export type Database = {
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      working_hours: {
+        Row: {
+          created_at: string
+          day_of_week: number
+          end_time: string
+          id: string
+          is_active: boolean
+          start_time: string
+          team_id: string | null
+          tenant_id: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          day_of_week: number
+          end_time: string
+          id?: string
+          is_active?: boolean
+          start_time: string
+          team_id?: string | null
+          tenant_id: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          day_of_week?: number
+          end_time?: string
+          id?: string
+          is_active?: boolean
+          start_time?: string
+          team_id?: string | null
+          tenant_id?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "working_hours_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "working_hours_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "working_hours_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -3102,6 +3679,14 @@ export type Database = {
           team_members_count: number
         }[]
       }
+      get_user_role_name: {
+        Args: { p_tenant_id: string; p_user_id: string }
+        Returns: string
+      }
+      has_permission: {
+        Args: { p_permission_key: string; p_user_id: string }
+        Returns: boolean
+      }
       has_tenant_role: {
         Args: {
           _roles: Database["public"]["Enums"]["tenant_role"][]
@@ -3191,6 +3776,41 @@ export type Database = {
       }
     }
     Enums: {
+      app_role:
+        | "owner"
+        | "admin"
+        | "manager"
+        | "agent"
+        | "analyst"
+        | "billing"
+        | "custom"
+      audit_action:
+        | "login"
+        | "logout"
+        | "invite_sent"
+        | "invite_accepted"
+        | "role_changed"
+        | "permission_changed"
+        | "member_disabled"
+        | "member_enabled"
+        | "team_created"
+        | "team_updated"
+        | "team_deleted"
+        | "routing_changed"
+        | "sla_changed"
+        | "template_submitted"
+        | "template_approved"
+        | "template_rejected"
+        | "automation_activated"
+        | "automation_paused"
+        | "automation_deleted"
+        | "tag_added"
+        | "tag_removed"
+        | "assignment_changed"
+        | "conversation_closed"
+        | "conversation_reopened"
+        | "waba_connected"
+        | "settings_changed"
       automation_action:
         | "send_template"
         | "add_tag"
@@ -3262,6 +3882,7 @@ export type Database = {
         | "template_delivered"
         | "template_read"
         | "contact_updated"
+      member_status: "active" | "invited" | "suspended" | "disabled"
       message_direction: "inbound" | "outbound"
       message_status: "pending" | "sent" | "delivered" | "read" | "failed"
       message_type:
@@ -3277,7 +3898,19 @@ export type Database = {
         | "interactive"
         | "reaction"
         | "unknown"
+      permission_category:
+        | "messaging"
+        | "contacts"
+        | "templates"
+        | "campaigns"
+        | "automation"
+        | "integrations"
+        | "billing"
+        | "security"
+        | "phone_numbers"
+        | "team"
       phone_status: "pending" | "connected" | "disconnected" | "banned"
+      presence_status: "online" | "offline" | "away" | "busy"
       quality_rating: "GREEN" | "YELLOW" | "RED" | "UNKNOWN"
       rate_limit_scope:
         | "workflow_per_contact"
@@ -3285,6 +3918,13 @@ export type Database = {
         | "action_per_contact"
         | "action_per_workspace"
         | "global_per_contact"
+      routing_strategy:
+        | "round_robin"
+        | "least_busy"
+        | "skill_based"
+        | "vip_routing"
+        | "manual"
+        | "overflow"
       scheduled_job_status:
         | "queued"
         | "running"
@@ -3452,6 +4092,43 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      app_role: [
+        "owner",
+        "admin",
+        "manager",
+        "agent",
+        "analyst",
+        "billing",
+        "custom",
+      ],
+      audit_action: [
+        "login",
+        "logout",
+        "invite_sent",
+        "invite_accepted",
+        "role_changed",
+        "permission_changed",
+        "member_disabled",
+        "member_enabled",
+        "team_created",
+        "team_updated",
+        "team_deleted",
+        "routing_changed",
+        "sla_changed",
+        "template_submitted",
+        "template_approved",
+        "template_rejected",
+        "automation_activated",
+        "automation_paused",
+        "automation_deleted",
+        "tag_added",
+        "tag_removed",
+        "assignment_changed",
+        "conversation_closed",
+        "conversation_reopened",
+        "waba_connected",
+        "settings_changed",
+      ],
       automation_action: [
         "send_template",
         "add_tag",
@@ -3530,6 +4207,7 @@ export const Constants = {
         "template_read",
         "contact_updated",
       ],
+      member_status: ["active", "invited", "suspended", "disabled"],
       message_direction: ["inbound", "outbound"],
       message_status: ["pending", "sent", "delivered", "read", "failed"],
       message_type: [
@@ -3546,7 +4224,20 @@ export const Constants = {
         "reaction",
         "unknown",
       ],
+      permission_category: [
+        "messaging",
+        "contacts",
+        "templates",
+        "campaigns",
+        "automation",
+        "integrations",
+        "billing",
+        "security",
+        "phone_numbers",
+        "team",
+      ],
       phone_status: ["pending", "connected", "disconnected", "banned"],
+      presence_status: ["online", "offline", "away", "busy"],
       quality_rating: ["GREEN", "YELLOW", "RED", "UNKNOWN"],
       rate_limit_scope: [
         "workflow_per_contact",
@@ -3554,6 +4245,14 @@ export const Constants = {
         "action_per_contact",
         "action_per_workspace",
         "global_per_contact",
+      ],
+      routing_strategy: [
+        "round_robin",
+        "least_busy",
+        "skill_based",
+        "vip_routing",
+        "manual",
+        "overflow",
       ],
       scheduled_job_status: [
         "queued",
