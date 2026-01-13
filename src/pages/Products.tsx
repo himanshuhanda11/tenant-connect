@@ -11,16 +11,77 @@ import {
   Zap,
   Globe,
   Shield,
-  Clock
+  Clock,
+  MessageSquare,
+  MousePointer,
+  TrendingUp,
+  Phone,
+  Send,
+  Sparkles
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
+import Breadcrumb from '@/components/layout/Breadcrumb';
 
 export default function Products() {
   const navigate = useNavigate();
+
+  const whatsappProducts = [
+    {
+      id: 'whatsapp-api',
+      icon: MessageSquare,
+      title: 'WhatsApp Business API',
+      subtitle: 'Official API Integration',
+      description: 'Connect to the official WhatsApp Business API with our easy-to-use platform. Send messages, manage conversations, and scale your customer communication.',
+      gradient: 'from-green-500 to-emerald-600',
+      features: [
+        'Official Meta Partnership',
+        'Unlimited messaging capacity',
+        '99.9% uptime guarantee',
+        'Real-time webhooks',
+        'Multi-agent support',
+        'Template message management'
+      ],
+      image: 'api'
+    },
+    {
+      id: 'click-to-whatsapp',
+      icon: MousePointer,
+      title: 'Click to WhatsApp Ads',
+      subtitle: 'Drive conversions from ads',
+      description: 'Turn your Facebook and Instagram ads into WhatsApp conversations. Capture leads directly in WhatsApp and increase your conversion rates.',
+      gradient: 'from-blue-500 to-indigo-600',
+      features: [
+        'Direct ad-to-chat integration',
+        'Lead capture automation',
+        'Instant response triggers',
+        'Campaign tracking',
+        'ROI analytics',
+        'A/B testing support'
+      ],
+      image: 'ctwa'
+    },
+    {
+      id: 'whatsapp-marketing',
+      icon: TrendingUp,
+      title: 'WhatsApp Marketing',
+      subtitle: 'Broadcast & engage at scale',
+      description: 'Run powerful marketing campaigns on WhatsApp. Send promotions, updates, and personalized messages to thousands of customers instantly.',
+      gradient: 'from-purple-500 to-pink-600',
+      features: [
+        'Bulk broadcast campaigns',
+        'Audience segmentation',
+        'Personalized messaging',
+        'Scheduled campaigns',
+        'Delivery & read reports',
+        'Opt-in management'
+      ],
+      image: 'marketing'
+    }
+  ];
 
   const products = [
     {
@@ -29,7 +90,7 @@ export default function Products() {
       title: 'Unified Inbox',
       subtitle: 'All conversations in one place',
       description: 'Manage all your WhatsApp conversations from a single, powerful inbox. Never miss a message again.',
-      gradient: 'from-blue-500 to-cyan-500',
+      gradient: 'from-cyan-500 to-blue-500',
       features: [
         'Real-time message sync',
         'Smart conversation routing',
@@ -63,7 +124,7 @@ export default function Products() {
       title: 'Message Templates',
       subtitle: 'Pre-approved messaging',
       description: 'Create and manage message templates that comply with WhatsApp policies. Get instant approval.',
-      gradient: 'from-purple-500 to-pink-500',
+      gradient: 'from-violet-500 to-purple-500',
       features: [
         'Template builder',
         'Variable personalization',
@@ -80,7 +141,7 @@ export default function Products() {
       title: 'Smart Automation',
       subtitle: 'Work smarter, not harder',
       description: 'Build powerful no-code automation flows that respond to customers 24/7.',
-      gradient: 'from-green-500 to-emerald-500',
+      gradient: 'from-emerald-500 to-teal-500',
       features: [
         'Visual flow builder',
         'Keyword triggers',
@@ -97,7 +158,7 @@ export default function Products() {
       title: 'Rich Analytics',
       subtitle: 'Data-driven decisions',
       description: 'Get deep insights into your messaging performance with comprehensive analytics dashboards.',
-      gradient: 'from-indigo-500 to-purple-500',
+      gradient: 'from-indigo-500 to-blue-500',
       features: [
         'Real-time dashboards',
         'Message metrics',
@@ -139,26 +200,42 @@ export default function Products() {
       <Navbar />
 
       {/* Hero */}
-      <section className="relative py-24 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-blue-900/50 to-slate-900" />
-        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-blue-500/20 rounded-full blur-[100px]" />
-        <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-purple-500/20 rounded-full blur-[100px]" />
+      <section className="relative py-20 md:py-28 overflow-hidden">
+        {/* Animated Background */}
+        <div className="absolute inset-0 bg-gradient-to-br from-slate-950 via-green-950/50 to-slate-950" />
+        <div className="absolute inset-0">
+          <div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-green-500/20 rounded-full blur-[120px] animate-pulse" />
+          <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-emerald-500/15 rounded-full blur-[100px]" />
+          <div className="absolute top-1/2 right-0 w-[400px] h-[400px] bg-cyan-500/10 rounded-full blur-[80px]" />
+        </div>
+        {/* Grid Pattern */}
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:50px_50px]" />
         
         <div className="container mx-auto px-4 relative">
+          <Breadcrumb className="text-white/70 mb-8" />
           <div className="max-w-4xl mx-auto text-center">
-            <h1 className="text-4xl md:text-6xl font-bold text-white mb-6">
-              Powerful Products for{' '}
-              <span className="bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-green-500/10 border border-green-500/20 text-green-400 text-sm font-medium mb-6">
+              <Sparkles className="w-4 h-4" />
+              Complete WhatsApp Business Platform
+            </div>
+            <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold text-white mb-6 leading-tight">
+              Everything for{' '}
+              <span className="bg-gradient-to-r from-green-400 via-emerald-400 to-cyan-400 bg-clip-text text-transparent">
                 WhatsApp Success
               </span>
             </h1>
-            <p className="text-xl text-white/70 max-w-2xl mx-auto mb-10">
-              Everything you need to connect, engage, and grow with your customers on WhatsApp.
+            <p className="text-lg md:text-xl text-white/60 max-w-2xl mx-auto mb-10">
+              From API integration to marketing campaigns, we provide all the tools you need to connect, engage, and grow on WhatsApp.
             </p>
-            <Button size="lg" className="h-14 px-8 bg-gradient-to-r from-green-500 to-emerald-600" onClick={() => navigate('/signup')}>
-              Start Free Trial
-              <ArrowRight className="w-5 h-5 ml-2" />
-            </Button>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+              <Button size="lg" className="h-14 px-8 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 shadow-xl shadow-green-500/25" onClick={() => navigate('/signup')}>
+                Start Free Trial
+                <ArrowRight className="w-5 h-5 ml-2" />
+              </Button>
+              <Button size="lg" variant="outline" className="h-14 px-8 border-white/20 text-white hover:bg-white/10" onClick={() => navigate('/contact')}>
+                Talk to Sales
+              </Button>
+            </div>
           </div>
         </div>
       </section>
@@ -182,9 +259,65 @@ export default function Products() {
         </div>
       </section>
 
-      {/* Products */}
+      {/* WhatsApp Products Section */}
+      <section className="py-24 bg-gradient-to-b from-background to-muted/30">
+        <div className="container mx-auto px-4">
+          <div className="text-center max-w-3xl mx-auto mb-16">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-green-500/10 text-green-600 text-sm font-medium mb-6">
+              <MessageSquare className="w-4 h-4" />
+              Core WhatsApp Solutions
+            </div>
+            <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-4">
+              WhatsApp Business Solutions
+            </h2>
+            <p className="text-lg text-muted-foreground">
+              Comprehensive WhatsApp solutions to transform your customer engagement
+            </p>
+          </div>
+
+          <div className="grid lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
+            {whatsappProducts.map((product) => (
+              <Card key={product.id} className="group relative overflow-hidden border-border/50 hover:border-primary/50 hover:shadow-2xl transition-all duration-300">
+                <div className={`absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r ${product.gradient}`} />
+                <CardContent className="p-8">
+                  <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${product.gradient} flex items-center justify-center mb-6 shadow-xl group-hover:scale-110 transition-transform`}>
+                    <product.icon className="w-8 h-8 text-white" />
+                  </div>
+                  <div className="text-sm text-muted-foreground mb-2">{product.subtitle}</div>
+                  <h3 className="text-2xl font-bold text-foreground mb-3">{product.title}</h3>
+                  <p className="text-muted-foreground mb-6">{product.description}</p>
+                  
+                  <div className="space-y-3 mb-6">
+                    {product.features.slice(0, 4).map((feature, i) => (
+                      <div key={i} className="flex items-center gap-2">
+                        <CheckCircle2 className="w-4 h-4 text-green-500 flex-shrink-0" />
+                        <span className="text-sm text-foreground">{feature}</span>
+                      </div>
+                    ))}
+                  </div>
+
+                  <Button className={`w-full bg-gradient-to-r ${product.gradient}`} onClick={() => navigate('/signup')}>
+                    Get Started <ArrowRight className="w-4 h-4 ml-2" />
+                  </Button>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* All Products */}
       <section className="py-24">
         <div className="container mx-auto px-4">
+          <div className="text-center max-w-3xl mx-auto mb-16">
+            <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
+              Platform Features
+            </h2>
+            <p className="text-lg text-muted-foreground">
+              Powerful tools to manage every aspect of your WhatsApp communication
+            </p>
+          </div>
+
           {products.map((product, index) => (
             <div
               key={product.id}
