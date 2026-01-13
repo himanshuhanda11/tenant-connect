@@ -41,6 +41,7 @@ interface InboxContextPanelProps {
   onAddNote: (body: string, mentions: string[]) => void;
   onAddTag: (tagId: string) => void;
   onRemoveTag: (tagId: string) => void;
+  availableTags?: Array<{ id: string; name: string; color: string }>;
 }
 
 export function InboxContextPanel({
@@ -50,6 +51,7 @@ export function InboxContextPanel({
   onAddNote,
   onAddTag,
   onRemoveTag,
+  availableTags: passedTags,
 }: InboxContextPanelProps) {
   const [activeTab, setActiveTab] = useState('contact');
   const [newNote, setNewNote] = useState('');
@@ -77,8 +79,8 @@ export function InboxContextPanel({
     );
   }
 
-  // Mock available tags
-  const availableTags = [
+  // Use passed tags or default
+  const availableTags = passedTags || [
     { id: 't1', name: 'VIP', color: '#FFD700' },
     { id: 't2', name: 'Pricing', color: '#3B82F6' },
     { id: 't3', name: 'Support', color: '#10B981' },
