@@ -23,6 +23,15 @@ import Billing from "./pages/Billing";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import Terms from "./pages/Terms";
 import AppAccessInstructions from "./pages/AppAccessInstructions";
+import Products from "./pages/Products";
+import Pricing from "./pages/Pricing";
+import Help from "./pages/Help";
+import About from "./pages/About";
+import Contact from "./pages/Contact";
+import Blog from "./pages/Blog";
+import Careers from "./pages/Careers";
+import Integrations from "./pages/Integrations";
+import Security from "./pages/Security";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -54,6 +63,23 @@ const App = () => (
               <Route path="/privacy-policy" element={<PrivacyPolicy />} />
               <Route path="/terms" element={<Terms />} />
               <Route path="/app-access-instructions" element={<AppAccessInstructions />} />
+              <Route path="/products" element={<Products />} />
+              <Route path="/pricing" element={<Pricing />} />
+              <Route path="/help" element={<Help />} />
+              <Route path="/about" element={<About />} />
+              <Route path="/contact" element={<Contact />} />
+              <Route path="/blog" element={<Blog />} />
+              <Route path="/careers" element={<Careers />} />
+              <Route path="/integrations" element={<Integrations />} />
+              <Route path="/security" element={<Security />} />
+              <Route path="/guides" element={<Help />} />
+              <Route path="/webinars" element={<Blog />} />
+              <Route path="/case-studies" element={<Blog />} />
+              <Route path="/api-docs" element={<Help />} />
+              <Route path="/changelog" element={<Blog />} />
+              <Route path="/partners" element={<About />} />
+              <Route path="/press" element={<About />} />
+              <Route path="/cookies" element={<PrivacyPolicy />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </TenantProvider>
