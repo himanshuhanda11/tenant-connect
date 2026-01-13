@@ -92,7 +92,7 @@ export default function CaseStudies() {
       <Navbar />
 
       {/* Hero */}
-      <section className="relative pt-24 pb-16 md:pt-32 md:pb-24 overflow-hidden bg-gradient-to-b from-background to-muted/30">
+      <section className="relative pt-16 pb-10 md:pt-20 md:pb-14 overflow-hidden bg-gradient-to-b from-background to-muted/30">
         <div className="absolute inset-0">
           <div className="absolute top-20 left-1/3 w-[400px] h-[400px] bg-purple-500/5 rounded-full blur-[100px]" />
           <div className="absolute bottom-0 right-1/3 w-[300px] h-[300px] bg-primary/5 rounded-full blur-[80px]" />

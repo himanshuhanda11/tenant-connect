@@ -162,7 +162,7 @@ export default function Index() {
         {/* Grid Pattern */}
         <div className="absolute inset-0 bg-[linear-gradient(rgba(0,0,0,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(0,0,0,0.02)_1px,transparent_1px)] bg-[size:60px_60px]" />
         
-        <div className="container mx-auto px-4 py-12 sm:py-16 md:py-20 lg:py-28 xl:py-36 relative z-10">
+        <div className="container mx-auto px-4 py-8 sm:py-10 md:py-12 lg:py-16 xl:py-20 relative z-10">
           <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
             {/* Left Content */}
             <div className="text-center lg:text-left">

@@ -21,7 +21,7 @@ export default function PhoneNumbersFeature() {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
-      <section className="relative pt-24 pb-16 md:pt-32 md:pb-24 overflow-hidden bg-gradient-to-b from-background to-muted/30">
+      <section className="relative pt-16 pb-10 md:pt-20 md:pb-14 overflow-hidden bg-gradient-to-b from-background to-muted/30">
         <div className="absolute inset-0"><div className="absolute top-20 left-1/4 w-[400px] h-[400px] bg-green-500/5 rounded-full blur-[100px]" /></div>
         <div className="container mx-auto px-4 relative">
           <Breadcrumb className="mb-8" />
