@@ -1,0 +1,287 @@
+import { useState } from 'react';
+import { Link } from 'react-router-dom';
+import { DashboardLayout } from '@/components/layout/DashboardLayout';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import {
+  Megaphone,
+  Search,
+  RefreshCw,
+  MoreHorizontal,
+  Eye,
+  BarChart3,
+  Zap,
+  Play,
+  Pause,
+  ExternalLink,
+  TrendingUp,
+  Users,
+  DollarSign,
+  MousePointerClick,
+  Filter,
+} from 'lucide-react';
+import { MOCK_META_CAMPAIGNS } from '@/types/metaAds';
+import { cn } from '@/lib/utils';
+import { formatDistanceToNow } from 'date-fns';
+
+export default function MetaAdsManager() {
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const campaigns = MOCK_META_CAMPAIGNS;
+
+  const filteredCampaigns = campaigns.filter(campaign =>
+    campaign.campaign_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    campaign.ad_name?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    setIsRefreshing(false);
+  };
+
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'active':
+        return <Badge className="bg-emerald-100 text-emerald-700 hover:bg-emerald-100"><Play className="h-3 w-3 mr-1" />Active</Badge>;
+      case 'paused':
+        return <Badge variant="secondary" className="bg-amber-100 text-amber-700"><Pause className="h-3 w-3 mr-1" />Paused</Badge>;
+      default:
+        return <Badge variant="outline">{status}</Badge>;
+    }
+  };
+
+  // Calculate totals
+  const totals = campaigns.reduce((acc, c) => ({
+    impressions: acc.impressions + c.impressions,
+    clicks: acc.clicks + c.clicks,
+    spend: acc.spend + c.spend_amount,
+    leads: acc.leads + c.leads_count,
+  }), { impressions: 0, clicks: 0, spend: 0, leads: 0 });
+
+  return (
+    <DashboardLayout>
+      <div className="p-6 space-y-6 max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <div className="flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 shadow-lg shadow-blue-500/25">
+              <Megaphone className="h-7 w-7 text-white" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold tracking-tight">Ads Manager</h1>
+              <p className="text-muted-foreground">
+                View your Click-to-WhatsApp campaigns (read-only)
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            <Button
+              variant="outline"
+              onClick={handleRefresh}
+              disabled={isRefreshing}
+              className="gap-2"
+            >
+              <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+              Sync
+            </Button>
+            <Button variant="outline" asChild className="gap-2">
+              <a href="https://adsmanager.facebook.com" target="_blank" rel="noopener noreferrer">
+                Open Meta Ads Manager
+                <ExternalLink className="h-4 w-4" />
+              </a>
+            </Button>
+          </div>
+        </div>
+
+        {/* Summary Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <Card className="border-0 shadow-md">
+            <CardContent className="p-4 flex items-center gap-4">
+              <div className="p-2 rounded-lg bg-blue-100 dark:bg-blue-900/50">
+                <TrendingUp className="h-5 w-5 text-blue-600" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold">{totals.impressions.toLocaleString()}</p>
+                <p className="text-xs text-muted-foreground">Impressions</p>
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="border-0 shadow-md">
+            <CardContent className="p-4 flex items-center gap-4">
+              <div className="p-2 rounded-lg bg-violet-100 dark:bg-violet-900/50">
+                <MousePointerClick className="h-5 w-5 text-violet-600" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold">{totals.clicks.toLocaleString()}</p>
+                <p className="text-xs text-muted-foreground">Clicks</p>
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="border-0 shadow-md">
+            <CardContent className="p-4 flex items-center gap-4">
+              <div className="p-2 rounded-lg bg-emerald-100 dark:bg-emerald-900/50">
+                <Users className="h-5 w-5 text-emerald-600" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold">{totals.leads}</p>
+                <p className="text-xs text-muted-foreground">Total Leads</p>
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="border-0 shadow-md">
+            <CardContent className="p-4 flex items-center gap-4">
+              <div className="p-2 rounded-lg bg-amber-100 dark:bg-amber-900/50">
+                <DollarSign className="h-5 w-5 text-amber-600" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold">${totals.spend.toFixed(2)}</p>
+                <p className="text-xs text-muted-foreground">Total Spend</p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Filters & Search */}
+        <div className="flex items-center gap-3">
+          <div className="relative flex-1 max-w-md">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search campaigns or ads..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+          <Button variant="outline" className="gap-2">
+            <Filter className="h-4 w-4" />
+            Filters
+          </Button>
+        </div>
+
+        {/* Campaigns Table */}
+        <Card className="border-0 shadow-lg">
+          <CardContent className="p-0">
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-muted/50 hover:bg-muted/50">
+                  <TableHead className="w-[300px]">Campaign / Ad</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead className="text-right">Impressions</TableHead>
+                  <TableHead className="text-right">Clicks</TableHead>
+                  <TableHead className="text-right">CTR</TableHead>
+                  <TableHead className="text-right">Leads</TableHead>
+                  <TableHead className="text-right">CPL</TableHead>
+                  <TableHead className="text-right">Spend</TableHead>
+                  <TableHead className="w-[80px]"></TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredCampaigns.map((campaign) => (
+                  <TableRow key={campaign.id} className="hover:bg-muted/30">
+                    <TableCell>
+                      <div>
+                        <p className="font-medium">{campaign.campaign_name}</p>
+                        <p className="text-sm text-muted-foreground">{campaign.ad_name}</p>
+                        {campaign.adset_name && (
+                          <Badge variant="outline" className="text-xs mt-1">
+                            {campaign.adset_name}
+                          </Badge>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell>{getStatusBadge(campaign.status)}</TableCell>
+                    <TableCell className="text-right font-medium">
+                      {campaign.impressions.toLocaleString()}
+                    </TableCell>
+                    <TableCell className="text-right font-medium">
+                      {campaign.clicks.toLocaleString()}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <span className={cn(
+                        "font-medium",
+                        campaign.ctr && campaign.ctr > 3 ? "text-emerald-600" : "text-muted-foreground"
+                      )}>
+                        {campaign.ctr?.toFixed(2)}%
+                      </span>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <span className="font-bold text-primary">{campaign.leads_count}</span>
+                    </TableCell>
+                    <TableCell className="text-right font-medium">
+                      ${campaign.cpl?.toFixed(2)}
+                    </TableCell>
+                    <TableCell className="text-right font-medium">
+                      ${campaign.spend_amount.toFixed(2)}
+                    </TableCell>
+                    <TableCell>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon" className="h-8 w-8">
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem asChild>
+                            <Link to={`/meta-ads/analytics?campaign=${campaign.id}`} className="gap-2 cursor-pointer">
+                              <BarChart3 className="h-4 w-4" />
+                              View Analytics
+                            </Link>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem asChild>
+                            <Link to={`/contacts?source=meta_ads&campaign=${campaign.meta_campaign_id}`} className="gap-2 cursor-pointer">
+                              <Users className="h-4 w-4" />
+                              View Leads
+                            </Link>
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem asChild>
+                            <Link to="/meta-ads/automations" className="gap-2 cursor-pointer">
+                              <Zap className="h-4 w-4" />
+                              Create Automation
+                            </Link>
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+
+        {/* Info Notice */}
+        <p className="text-sm text-muted-foreground text-center">
+          This is a read-only view. To create or edit ads, use{' '}
+          <a 
+            href="https://adsmanager.facebook.com" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="text-primary hover:underline"
+          >
+            Meta Ads Manager
+          </a>
+        </p>
+      </div>
+    </DashboardLayout>
+  );
+}
