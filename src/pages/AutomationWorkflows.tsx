@@ -6,11 +6,21 @@ import {
   LayoutGrid,
   PlayCircle,
   Search,
-  Filter,
   BarChart3,
   Settings,
   Loader2,
-  Sparkles
+  Sparkles,
+  Filter,
+  MessageSquare,
+  Tag,
+  User,
+  Clock,
+  Webhook,
+  Shield,
+  TrendingUp,
+  Activity,
+  Target,
+  RefreshCcw
 } from 'lucide-react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Button } from '@/components/ui/button';
@@ -24,7 +34,7 @@ import { StarterAutomationCard } from '@/components/automation/StarterAutomation
 import { WorkflowBuilder } from '@/components/automation/WorkflowBuilder';
 import { WorkflowTestModal } from '@/components/automation/WorkflowTestModal';
 import { useAutomationWorkflows } from '@/hooks/useAutomationWorkflows';
-import { Workflow, WorkflowWithRelations, StarterAutomation } from '@/types/automation';
+import { Workflow, WorkflowWithRelations, StarterAutomation, TRIGGER_DEFINITIONS, CONDITION_DEFINITIONS, ACTION_DEFINITIONS } from '@/types/automation';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -124,17 +134,13 @@ export default function AutomationWorkflows() {
               Automation Workflows
             </h1>
             <p className="text-muted-foreground">
-              Automate repetitive tasks and create smart messaging workflows
+              Automate repetitive tasks with powerful When → If → Then workflows
             </p>
           </div>
           <div className="flex items-center gap-2">
             <Button variant="outline" onClick={pauseAllWorkflows}>
               <PauseCircle className="h-4 w-4 mr-2" />
               Pause All
-            </Button>
-            <Button variant="outline">
-              <LayoutGrid className="h-4 w-4 mr-2" />
-              Templates Gallery
             </Button>
             <Button onClick={handleCreateWorkflow}>
               <Plus className="h-4 w-4 mr-2" />
@@ -145,14 +151,14 @@ export default function AutomationWorkflows() {
 
         {/* Guide Banner */}
         <GuideBanner
-          title="Getting Started with Automation"
-          description="Learn how to create triggers and actions that automatically respond to customers, apply tags, and assign conversations."
+          title="Build Powerful Automations"
+          description="Create workflows with triggers, conditions, and actions. Support for delays, round-robin assignment, webhooks, and more."
           guideUrl="/help/automation"
           dismissible
         />
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
           <Card>
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
@@ -161,7 +167,7 @@ export default function AutomationWorkflows() {
                 </div>
                 <div>
                   <p className="text-2xl font-bold">{workflows.length}</p>
-                  <p className="text-sm text-muted-foreground">Total Workflows</p>
+                  <p className="text-sm text-muted-foreground">Total</p>
                 </div>
               </div>
             </CardContent>
@@ -205,6 +211,19 @@ export default function AutomationWorkflows() {
               </div>
             </CardContent>
           </Card>
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-blue-100 dark:bg-blue-900/30">
+                  <Activity className="h-5 w-5 text-blue-600" />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold">{Object.keys(TRIGGER_DEFINITIONS).length}</p>
+                  <p className="text-sm text-muted-foreground">Triggers</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
         <Tabs defaultValue="workflows" className="space-y-4">
@@ -215,7 +234,11 @@ export default function AutomationWorkflows() {
             </TabsTrigger>
             <TabsTrigger value="starters">
               <Sparkles className="h-4 w-4 mr-2" />
-              Starter Automations
+              Templates
+            </TabsTrigger>
+            <TabsTrigger value="features">
+              <LayoutGrid className="h-4 w-4 mr-2" />
+              Features
             </TabsTrigger>
             <TabsTrigger value="analytics">
               <BarChart3 className="h-4 w-4 mr-2" />
@@ -322,6 +345,128 @@ export default function AutomationWorkflows() {
                 ))}
               </div>
             </div>
+          </TabsContent>
+
+          <TabsContent value="features" className="space-y-6">
+            {/* Triggers */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Zap className="h-5 w-5 text-primary" />
+                  Available Triggers (WHEN)
+                </CardTitle>
+                <CardDescription>Start your workflow based on these events</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid md:grid-cols-3 lg:grid-cols-4 gap-2">
+                  {Object.entries(TRIGGER_DEFINITIONS).map(([type, def]) => (
+                    <div key={type} className="flex items-center gap-2 p-2 rounded-lg bg-muted/50">
+                      <Zap className="h-4 w-4 text-primary shrink-0" />
+                      <span className="text-sm truncate">{def.label}</span>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Conditions */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Filter className="h-5 w-5 text-amber-500" />
+                  Available Conditions (IF)
+                </CardTitle>
+                <CardDescription>Filter when actions should execute</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid md:grid-cols-3 lg:grid-cols-4 gap-2">
+                  {Object.entries(CONDITION_DEFINITIONS).map(([type, def]) => (
+                    <div key={type} className="flex items-center gap-2 p-2 rounded-lg bg-muted/50">
+                      <Filter className="h-4 w-4 text-amber-500 shrink-0" />
+                      <span className="text-sm truncate">{def.label}</span>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Actions */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <MessageSquare className="h-5 w-5 text-green-500" />
+                  Available Actions (THEN)
+                </CardTitle>
+                <CardDescription>What happens when conditions are met</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid md:grid-cols-3 lg:grid-cols-4 gap-2">
+                  {Object.entries(ACTION_DEFINITIONS).map(([type, def]) => (
+                    <div key={type} className="flex items-center gap-2 p-2 rounded-lg bg-muted/50">
+                      <MessageSquare className="h-4 w-4 text-green-500 shrink-0" />
+                      <span className="text-sm truncate">{def.label}</span>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Safety Features */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Shield className="h-5 w-5 text-blue-500" />
+                  Safety & Guardrails
+                </CardTitle>
+                <CardDescription>Built-in protections to prevent spam and errors</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <div className="p-4 rounded-lg border">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Clock className="h-4 w-4 text-blue-500" />
+                      <span className="font-medium">Rate Limiting</span>
+                    </div>
+                    <p className="text-sm text-muted-foreground">Limit messages per hour/day per contact</p>
+                  </div>
+                  <div className="p-4 rounded-lg border">
+                    <div className="flex items-center gap-2 mb-2">
+                      <RefreshCcw className="h-4 w-4 text-blue-500" />
+                      <span className="font-medium">Cooldowns</span>
+                    </div>
+                    <p className="text-sm text-muted-foreground">Prevent duplicate runs for same contact</p>
+                  </div>
+                  <div className="p-4 rounded-lg border">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Shield className="h-4 w-4 text-blue-500" />
+                      <span className="font-medium">Opt-in Enforcement</span>
+                    </div>
+                    <p className="text-sm text-muted-foreground">Only message opted-in contacts</p>
+                  </div>
+                  <div className="p-4 rounded-lg border">
+                    <div className="flex items-center gap-2 mb-2">
+                      <MessageSquare className="h-4 w-4 text-blue-500" />
+                      <span className="font-medium">Stop on Reply</span>
+                    </div>
+                    <p className="text-sm text-muted-foreground">Cancel pending actions when customer responds</p>
+                  </div>
+                  <div className="p-4 rounded-lg border">
+                    <div className="flex items-center gap-2 mb-2">
+                      <User className="h-4 w-4 text-blue-500" />
+                      <span className="font-medium">Round Robin</span>
+                    </div>
+                    <p className="text-sm text-muted-foreground">Fair agent assignment across team</p>
+                  </div>
+                  <div className="p-4 rounded-lg border">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Webhook className="h-4 w-4 text-blue-500" />
+                      <span className="font-medium">Webhook Actions</span>
+                    </div>
+                    <p className="text-sm text-muted-foreground">Integrate with external systems</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </TabsContent>
 
           <TabsContent value="analytics">
