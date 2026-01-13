@@ -54,6 +54,9 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
+import { InboxTagChips } from '@/components/inbox/InboxTagChips';
+import { InboxTagPicker } from '@/components/inbox/InboxTagPicker';
+import { useContactTags } from '@/hooks/useContactTags';
 import { supabase } from '@/integrations/supabase/client';
 import { useTenant } from '@/contexts/TenantContext';
 import { cn } from '@/lib/utils';
@@ -95,6 +98,19 @@ export default function Inbox() {
   const [showContactPanel, setShowContactPanel] = useState(true);
   const [notes, setNotes] = useState<ConversationNote[]>([]);
   const [newNote, setNewNote] = useState('');
+  
+  // Tag picker state
+  const [tagPickerOpen, setTagPickerOpen] = useState(false);
+  
+  // Contact tags hook
+  const {
+    contactTags,
+    allTags,
+    recentTags,
+    applyTag,
+    removeTag,
+    refetch: refetchTags,
+  } = useContactTags(selectedConversation?.contact?.id);
   
   // Loading states
   const [loading, setLoading] = useState(true);
@@ -172,6 +188,23 @@ export default function Inbox() {
       supabase.removeChannel(channel);
     };
   }, [currentTenant, selectedConversation]);
+
+  // Keyboard shortcut for tag picker
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 't' && !e.ctrlKey && !e.metaKey && !e.altKey) {
+        const target = e.target as HTMLElement;
+        if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') return;
+        if (selectedConversation) {
+          e.preventDefault();
+          setTagPickerOpen(true);
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [selectedConversation]);
 
   // Auto-select conversation from URL
   useEffect(() => {
@@ -519,41 +552,72 @@ export default function Inbox() {
           {selectedConversation ? (
             <>
               {/* Chat header */}
-              <div className="flex items-center justify-between p-4 border-b">
-                <div className="flex items-center gap-3">
-                  <Avatar>
-                    <AvatarImage src={selectedConversation.contact?.profile_picture_url || undefined} />
-                    <AvatarFallback className="bg-primary/10 text-primary">
-                      {getInitials(selectedConversation.contact?.name, selectedConversation.contact?.wa_id)}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <h3 className="font-medium">
-                      {selectedConversation.contact?.name || selectedConversation.contact?.wa_id}
-                    </h3>
-                    <p className="text-xs text-muted-foreground">{selectedConversation.contact?.wa_id}</p>
+              <div className="border-b">
+                <div className="flex items-center justify-between p-4">
+                  <div className="flex items-center gap-3">
+                    <Avatar>
+                      <AvatarImage src={selectedConversation.contact?.profile_picture_url || undefined} />
+                      <AvatarFallback className="bg-primary/10 text-primary">
+                        {getInitials(selectedConversation.contact?.name, selectedConversation.contact?.wa_id)}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <h3 className="font-medium">
+                        {selectedConversation.contact?.name || selectedConversation.contact?.wa_id}
+                      </h3>
+                      <p className="text-xs text-muted-foreground">{selectedConversation.contact?.wa_id}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="outline" size="sm">
+                          <UserPlus className="h-4 w-4 mr-2" />
+                          Assign
+                          <ChevronDown className="h-4 w-4 ml-1" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent>
+                        <DropdownMenuItem>Unassigned</DropdownMenuItem>
+                        <DropdownMenuItem>Assign to me</DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                    <Button variant="ghost" size="icon" onClick={() => setShowContactPanel(!showContactPanel)}>
+                      <User className="h-4 w-4" />
+                    </Button>
+                    <Button variant="ghost" size="icon">
+                      <MoreVertical className="h-4 w-4" />
+                    </Button>
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="outline" size="sm">
-                        <UserPlus className="h-4 w-4 mr-2" />
-                        Assign
-                        <ChevronDown className="h-4 w-4 ml-1" />
+                {/* Tag chips row */}
+                <div className="px-4 pb-3 flex items-center gap-2">
+                  <InboxTagChips
+                    tags={contactTags}
+                    onRemoveTag={removeTag}
+                    onAddClick={() => setTagPickerOpen(true)}
+                    maxVisible={4}
+                    size="sm"
+                  />
+                  <InboxTagPicker
+                    allTags={allTags}
+                    appliedTags={contactTags}
+                    recentTags={recentTags}
+                    onApplyTag={applyTag}
+                    onRemoveTag={removeTag}
+                    trigger={
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className={cn('gap-1', tagPickerOpen && 'bg-accent')}
+                        onClick={() => setTagPickerOpen(true)}
+                      >
+                        <Tag className="h-3.5 w-3.5" />
+                        {contactTags.length === 0 && 'Add tag'}
                       </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent>
-                      <DropdownMenuItem>Unassigned</DropdownMenuItem>
-                      <DropdownMenuItem>Assign to me</DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                  <Button variant="ghost" size="icon" onClick={() => setShowContactPanel(!showContactPanel)}>
-                    <User className="h-4 w-4" />
-                  </Button>
-                  <Button variant="ghost" size="icon">
-                    <MoreVertical className="h-4 w-4" />
-                  </Button>
+                    }
+                    align="start"
+                  />
                 </div>
               </div>
 
@@ -736,14 +800,48 @@ export default function Inbox() {
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
                     <h5 className="font-medium text-sm">Tags</h5>
-                    <Button variant="ghost" size="sm" className="h-7 px-2">
-                      <Tag className="h-3 w-3 mr-1" />
-                      Add
-                    </Button>
+                    <InboxTagPicker
+                      allTags={allTags}
+                      appliedTags={contactTags}
+                      recentTags={recentTags}
+                      onApplyTag={applyTag}
+                      onRemoveTag={removeTag}
+                      trigger={
+                        <Button variant="ghost" size="sm" className="h-7 px-2">
+                          <Tag className="h-3 w-3 mr-1" />
+                          Add
+                        </Button>
+                      }
+                      align="end"
+                    />
                   </div>
-                  <div className="flex flex-wrap gap-1">
-                    <Badge variant="secondary">New Lead</Badge>
-                  </div>
+                  {contactTags.length > 0 ? (
+                    <div className="flex flex-wrap gap-1">
+                      {contactTags.map((tag) => (
+                        <Badge
+                          key={tag.id}
+                          variant="secondary"
+                          className="font-normal group cursor-default"
+                          style={{
+                            backgroundColor: tag.color ? `${tag.color}20` : undefined,
+                            borderColor: tag.color || undefined,
+                            color: tag.color || undefined,
+                          }}
+                        >
+                          {tag.emoji && <span className="mr-0.5">{tag.emoji}</span>}
+                          {tag.name}
+                          <button
+                            onClick={() => removeTag(tag.id)}
+                            className="ml-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                          >
+                            <X className="h-3 w-3" />
+                          </button>
+                        </Badge>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">No tags applied</p>
+                  )}
                 </div>
 
                 <Separator />
