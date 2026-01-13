@@ -22,19 +22,24 @@ export default function Navbar() {
   ];
 
   const platformFeatures = [
-    { name: 'Unified Inbox', href: '/products#inbox', icon: Inbox },
-    { name: 'Campaigns', href: '/products#campaigns', icon: Megaphone },
-    { name: 'Templates', href: '/products#templates', icon: FileText },
-    { name: 'Automation', href: '/products#automation', icon: Bot },
-    { name: 'Analytics', href: '/products#analytics', icon: BarChart3 },
+    { name: 'Unified Inbox', href: '/features/inbox', icon: Inbox },
+    { name: 'Contacts & Segments', href: '/features/contacts', icon: Inbox },
+    { name: 'Message Templates', href: '/features/templates', icon: FileText },
+    { name: 'Campaigns', href: '/features/campaigns', icon: Megaphone },
+    { name: 'Automation', href: '/features/automation', icon: Bot },
+    { name: 'Integrations', href: '/features/integrations', icon: Zap },
+    { name: 'Analytics', href: '/features/analytics', icon: BarChart3 },
+    { name: 'Phone Numbers', href: '/features/phone-numbers', icon: Inbox },
+    { name: 'Team & Roles', href: '/features/team-roles', icon: Inbox },
+    { name: 'Audit Logs', href: '/features/audit-logs', icon: FileText },
   ];
 
   const resourceLinks = [
     { name: 'Help Center', href: '/help' },
     { name: 'Blog', href: '/blog' },
-    { name: 'Guides', href: '/guides' },
-    { name: 'API Documentation', href: '/api-docs' },
-    { name: 'Webinars', href: '/webinars' },
+    { name: 'Documentation', href: '/documentation' },
+    { name: 'Case Studies', href: '/case-studies' },
+    { name: 'Template Library', href: '/template-library' },
   ];
 
   return (
@@ -72,7 +77,7 @@ export default function Navbar() {
                 ))}
                 <DropdownMenuSeparator />
                 <DropdownMenuLabel className="text-xs text-muted-foreground uppercase tracking-wider">Platform Features</DropdownMenuLabel>
-                <div className="grid grid-cols-2 gap-1 p-1">
+                <div className="grid grid-cols-2 gap-1 p-1 max-h-64 overflow-y-auto">
                   {platformFeatures.map((item) => (
                     <DropdownMenuItem key={item.name} asChild className="cursor-pointer">
                       <Link to={item.href} className="flex items-center gap-2 px-2 py-1.5">

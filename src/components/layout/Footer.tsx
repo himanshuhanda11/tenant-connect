@@ -5,32 +5,36 @@ import { MessageSquare, Twitter, Linkedin, Youtube } from 'lucide-react';
 export default function Footer() {
   const footerLinks = {
     product: [
-      { name: 'Features', href: '/products' },
+      { name: 'Unified Inbox', href: '/features/inbox' },
+      { name: 'Contacts', href: '/features/contacts' },
+      { name: 'Templates', href: '/features/templates' },
+      { name: 'Campaigns', href: '/features/campaigns' },
+      { name: 'Automation', href: '/features/automation' },
+      { name: 'Integrations', href: '/features/integrations' },
+      { name: 'Analytics', href: '/features/analytics' },
       { name: 'Pricing', href: '/pricing' },
-      { name: 'Integrations', href: '/integrations' },
-      { name: 'API Documentation', href: '/api-docs' },
-      { name: 'Changelog', href: '/changelog' },
     ],
     resources: [
       { name: 'Help Center', href: '/help' },
+      { name: 'Documentation', href: '/documentation' },
       { name: 'Blog', href: '/blog' },
-      { name: 'Guides', href: '/guides' },
-      { name: 'Webinars', href: '/webinars' },
       { name: 'Case Studies', href: '/case-studies' },
+      { name: 'Template Library', href: '/template-library' },
     ],
     company: [
       { name: 'About Us', href: '/about' },
       { name: 'Careers', href: '/careers' },
       { name: 'Contact', href: '/contact' },
-      { name: 'Partners', href: '/partners' },
-      { name: 'Press', href: '/press' },
+      { name: 'Security', href: '/security' },
+      { name: 'Compliance', href: '/compliance' },
     ],
     legal: [
       { name: 'Privacy Policy', href: '/privacy-policy' },
       { name: 'Terms of Service', href: '/terms' },
-      { name: 'Cookie Policy', href: '/cookies' },
-      { name: 'Security', href: '/security' },
-      { name: 'App Access', href: '/app-access-instructions' },
+      { name: 'Data Deletion', href: '/data-deletion' },
+      { name: 'Acceptable Use', href: '/acceptable-use' },
+      { name: 'Cookie Policy', href: '/cookie-policy' },
+      { name: 'Refund Policy', href: '/refund-policy' },
     ],
   };
 
