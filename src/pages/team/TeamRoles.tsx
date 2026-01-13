@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import DashboardLayout from '@/components/layout/DashboardLayout';
+import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -22,7 +22,7 @@ import {
   Link2, CreditCard, Lock, Phone, UsersRound
 } from 'lucide-react';
 import { useRoles } from '@/hooks/useTeam';
-import type { Permission, Role, PermissionCategory } from '@/types/team';
+import type { Permission, Role, PermissionCategory, AppRole } from '@/types/team';
 
 const CATEGORY_ICONS: Record<PermissionCategory, React.ReactNode> = {
   messaging: <MessageSquare className="h-4 w-4" />,
@@ -55,7 +55,7 @@ const TeamRoles = () => {
   const [selectedRole, setSelectedRole] = useState<Role | null>(null);
   const [rolePermissions, setRolePermissions] = useState<string[]>([]);
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [newRole, setNewRole] = useState({ name: '', description: '', base_role: 'agent', color: '#6366f1' });
+  const [newRole, setNewRole] = useState<{ name: string; description: string; base_role: AppRole; color: string }>({ name: '', description: '', base_role: 'agent', color: '#6366f1' });
   const [newRolePermissions, setNewRolePermissions] = useState<string[]>([]);
   const [viewAsRole, setViewAsRole] = useState<string | null>(null);
 
@@ -94,7 +94,7 @@ const TeamRoles = () => {
   const handleCreateRole = () => {
     createRole(newRole, newRolePermissions);
     setShowCreateModal(false);
-    setNewRole({ name: '', description: '', base_role: 'agent', color: '#6366f1' });
+    setNewRole({ name: '', description: '', base_role: 'agent' as AppRole, color: '#6366f1' });
     setNewRolePermissions([]);
   };
 
@@ -143,7 +143,7 @@ const TeamRoles = () => {
                     <Label>Base Role</Label>
                     <Select 
                       value={newRole.base_role} 
-                      onValueChange={(v) => setNewRole({ ...newRole, base_role: v })}
+                      onValueChange={(v) => setNewRole({ ...newRole, base_role: v as AppRole })}
                     >
                       <SelectTrigger>
                         <SelectValue />

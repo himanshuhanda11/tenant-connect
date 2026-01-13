@@ -152,8 +152,8 @@ export function useTeams() {
     if (!currentTenant?.id) return;
     
     try {
-      const { error } = await supabase
-        .from('teams')
+      const { error } = await (supabase
+        .from('teams') as any)
         .insert({ ...team, tenant_id: currentTenant.id });
       
       if (error) throw error;
@@ -243,8 +243,8 @@ export function useRoles() {
     if (!currentTenant?.id) return;
     
     try {
-      const { data, error } = await supabase
-        .from('roles')
+      const { data, error } = await (supabase
+        .from('roles') as any)
         .insert({ ...role, tenant_id: currentTenant.id })
         .select()
         .single();
@@ -469,8 +469,8 @@ export function useWorkingHoursAndSLA() {
         .is('user_id', null);
 
       // Insert new hours
-      const { error } = await supabase
-        .from('working_hours')
+      const { error } = await (supabase
+        .from('working_hours') as any)
         .insert(hours.map(h => ({ ...h, tenant_id: currentTenant.id })));
 
       if (error) throw error;
@@ -492,8 +492,8 @@ export function useWorkingHoursAndSLA() {
           .eq('id', settings.id);
         if (error) throw error;
       } else {
-        const { error } = await supabase
-          .from('sla_settings')
+        const { error } = await (supabase
+          .from('sla_settings') as any)
           .insert({ ...settings, tenant_id: currentTenant.id });
         if (error) throw error;
       }
@@ -548,8 +548,8 @@ export function useRoutingRules() {
     if (!currentTenant?.id) return;
     
     try {
-      const { error } = await supabase
-        .from('routing_rules')
+      const { error } = await (supabase
+        .from('routing_rules') as any)
         .insert({ ...rule, tenant_id: currentTenant.id });
       
       if (error) throw error;
