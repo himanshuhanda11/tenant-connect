@@ -1,49 +1,30 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useTenant } from '@/contexts/TenantContext';
-import { Workflow, WorkflowStatus, WorkflowRun, StarterAutomation, WorkflowGuardrails, TriggerType, ActionType } from '@/types/automation';
+import { 
+  AutomationWorkflow, 
+  AutomationNode, 
+  AutomationEdge, 
+  AutomationRun,
+  WorkflowWithRelations,
+  WorkflowStatus,
+  StarterAutomation 
+} from '@/types/automation';
 import { STARTER_AUTOMATIONS } from '@/data/starterAutomations';
 import { useToast } from '@/hooks/use-toast';
-import { Database } from '@/integrations/supabase/types';
 
-type DbTriggerType = Database['public']['Enums']['automation_trigger'];
-type DbActionType = Database['public']['Enums']['automation_action'];
-
-const DEFAULT_GUARDRAILS: WorkflowGuardrails = {
+const DEFAULT_GUARDRAILS = {
+  enforce_opt_in_for_marketing: true,
+  max_messages_per_contact_per_day: 50,
+  cooldown_seconds: 900,
+  stop_on_customer_reply: true,
+  stop_on_conversation_closed: true,
   max_messages_per_hour: 10,
-  max_messages_per_day: 50,
-  cooldown_minutes: 15,
-  require_opt_in: false,
-  stop_on_reply: false,
-  safe_mode: false,
-};
-
-// Map extended trigger types to database trigger types
-const mapTriggerToDb = (type: TriggerType): DbTriggerType => {
-  const mapping: Partial<Record<TriggerType, DbTriggerType>> = {
-    keyword_received: 'keyword_received',
-    tag_added: 'tag_added',
-    new_contact: 'new_contact',
-    scheduled_time: 'scheduled',
-    inactivity: 'inactivity',
-  };
-  return mapping[type] || 'keyword_received';
-};
-
-// Map extended action types to database action types
-const mapActionToDb = (type: ActionType): DbActionType => {
-  const mapping: Partial<Record<ActionType, DbActionType>> = {
-    send_template: 'send_template',
-    add_tag: 'add_tag',
-    remove_tag: 'remove_tag',
-    assign_agent: 'assign_agent',
-    call_webhook: 'webhook',
-  };
-  return mapping[type] || 'send_template';
+  max_runs_per_contact_per_day: 5,
 };
 
 export function useAutomationWorkflows() {
-  const [workflows, setWorkflows] = useState<Workflow[]>([]);
+  const [workflows, setWorkflows] = useState<WorkflowWithRelations[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { currentTenant } = useTenant();
@@ -54,38 +35,70 @@ export function useAutomationWorkflows() {
 
     try {
       setLoading(true);
-      const { data, error: fetchError } = await supabase
-        .from('automation_rules')
+      
+      // Fetch workflows
+      const { data: workflowsData, error: workflowsError } = await supabase
+        .from('automation_workflows')
         .select('*')
         .eq('tenant_id', currentTenant.id)
+        .eq('is_deleted', false)
         .order('created_at', { ascending: false });
 
-      if (fetchError) throw fetchError;
+      if (workflowsError) throw workflowsError;
 
-      // Transform database records to Workflow type
-      const transformedWorkflows: Workflow[] = (data || []).map((rule) => ({
-        id: rule.id,
-        tenant_id: rule.tenant_id,
-        name: rule.name,
-        description: rule.description || undefined,
-        status: rule.is_active ? 'active' : 'paused' as WorkflowStatus,
-        trigger: { type: rule.trigger_type as TriggerType, config: rule.trigger_config as Record<string, any> },
-        conditions: [],
-        actions: [{ id: '1', type: rule.action_type as ActionType, config: rule.action_config as Record<string, any>, order: 1 }],
-        guardrails: DEFAULT_GUARDRAILS,
-        stats: {
-          runs_today: 0,
-          runs_7_days: rule.execution_count || 0,
-          success_rate: 95,
-          error_count: 0,
-          messages_sent: 0,
-        },
-        created_at: rule.created_at,
-        updated_at: rule.updated_at,
-        last_run_at: rule.last_executed_at || undefined,
-      }));
+      // Fetch run stats for each workflow
+      const workflowsWithStats: WorkflowWithRelations[] = await Promise.all(
+        (workflowsData || []).map(async (workflow) => {
+          // Get run counts
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+          const sevenDaysAgo = new Date();
+          sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
-      setWorkflows(transformedWorkflows);
+          const { count: runsToday } = await supabase
+            .from('automation_runs')
+            .select('*', { count: 'exact', head: true })
+            .eq('workflow_id', workflow.id)
+            .gte('started_at', today.toISOString());
+
+          const { count: runs7Days } = await supabase
+            .from('automation_runs')
+            .select('*', { count: 'exact', head: true })
+            .eq('workflow_id', workflow.id)
+            .gte('started_at', sevenDaysAgo.toISOString());
+
+          const { count: successCount } = await supabase
+            .from('automation_runs')
+            .select('*', { count: 'exact', head: true })
+            .eq('workflow_id', workflow.id)
+            .eq('status', 'success')
+            .gte('started_at', sevenDaysAgo.toISOString());
+
+          const { count: errorCount } = await supabase
+            .from('automation_runs')
+            .select('*', { count: 'exact', head: true })
+            .eq('workflow_id', workflow.id)
+            .eq('status', 'failed')
+            .gte('started_at', sevenDaysAgo.toISOString());
+
+          const successRate = runs7Days && runs7Days > 0 
+            ? Math.round((successCount || 0) / runs7Days * 100) 
+            : 100;
+
+          return {
+            ...workflow,
+            stats: {
+              runs_today: runsToday || 0,
+              runs_7_days: runs7Days || 0,
+              success_rate: successRate,
+              error_count: errorCount || 0,
+              messages_sent: 0, // Would need aggregation from runs
+            },
+          } as WorkflowWithRelations;
+        })
+      );
+
+      setWorkflows(workflowsWithStats);
       setError(null);
     } catch (err) {
       console.error('Error fetching workflows:', err);
@@ -99,24 +112,28 @@ export function useAutomationWorkflows() {
     fetchWorkflows();
   }, [fetchWorkflows]);
 
-  const createWorkflow = async (workflow: Partial<Workflow>): Promise<Workflow | null> => {
+  const createWorkflow = async (workflow: Partial<AutomationWorkflow>): Promise<WorkflowWithRelations | null> => {
     if (!currentTenant?.id) return null;
 
     try {
-      const triggerType = mapTriggerToDb(workflow.trigger?.type || 'keyword_received');
-      const actionType = mapActionToDb(workflow.actions?.[0]?.type || 'send_template');
-
       const { data, error: insertError } = await supabase
-        .from('automation_rules')
+        .from('automation_workflows')
         .insert({
           tenant_id: currentTenant.id,
           name: workflow.name || 'New Workflow',
           description: workflow.description || null,
-          trigger_type: triggerType,
-          trigger_config: workflow.trigger?.config || {},
-          action_type: actionType,
-          action_config: workflow.actions?.[0]?.config || {},
-          is_active: workflow.status === 'active',
+          status: workflow.status || 'draft',
+          trigger_type: workflow.trigger_type || 'keyword_received',
+          trigger_config: workflow.trigger_config || {},
+          enforce_opt_in_for_marketing: workflow.enforce_opt_in_for_marketing ?? DEFAULT_GUARDRAILS.enforce_opt_in_for_marketing,
+          max_messages_per_contact_per_day: workflow.max_messages_per_contact_per_day ?? DEFAULT_GUARDRAILS.max_messages_per_contact_per_day,
+          cooldown_seconds: workflow.cooldown_seconds ?? DEFAULT_GUARDRAILS.cooldown_seconds,
+          stop_on_customer_reply: workflow.stop_on_customer_reply ?? DEFAULT_GUARDRAILS.stop_on_customer_reply,
+          stop_on_conversation_closed: workflow.stop_on_conversation_closed ?? DEFAULT_GUARDRAILS.stop_on_conversation_closed,
+          max_messages_per_hour: workflow.max_messages_per_hour ?? DEFAULT_GUARDRAILS.max_messages_per_hour,
+          max_runs_per_contact_per_day: workflow.max_runs_per_contact_per_day ?? DEFAULT_GUARDRAILS.max_runs_per_contact_per_day,
+          timezone: workflow.timezone || 'UTC',
+          business_hours_config: workflow.business_hours_config || null,
         })
         .select()
         .single();
@@ -129,22 +146,7 @@ export function useAutomationWorkflows() {
       });
 
       await fetchWorkflows();
-      
-      // Return transformed workflow
-      return {
-        id: data.id,
-        tenant_id: data.tenant_id,
-        name: data.name,
-        description: data.description || undefined,
-        status: data.is_active ? 'active' : 'paused',
-        trigger: { type: data.trigger_type as TriggerType, config: data.trigger_config as Record<string, any> },
-        conditions: [],
-        actions: [{ id: '1', type: data.action_type as ActionType, config: data.action_config as Record<string, any>, order: 1 }],
-        guardrails: DEFAULT_GUARDRAILS,
-        stats: { runs_today: 0, runs_7_days: 0, success_rate: 0, error_count: 0, messages_sent: 0 },
-        created_at: data.created_at,
-        updated_at: data.updated_at,
-      };
+      return data as WorkflowWithRelations;
     } catch (err) {
       console.error('Error creating workflow:', err);
       toast({
@@ -156,23 +158,14 @@ export function useAutomationWorkflows() {
     }
   };
 
-  const updateWorkflow = async (id: string, updates: Partial<Workflow>): Promise<boolean> => {
+  const updateWorkflow = async (id: string, updates: Partial<AutomationWorkflow>): Promise<boolean> => {
     try {
-      const updateData: Record<string, any> = {
-        updated_at: new Date().toISOString(),
-      };
-
-      if (updates.name !== undefined) updateData.name = updates.name;
-      if (updates.description !== undefined) updateData.description = updates.description;
-      if (updates.trigger?.type) updateData.trigger_type = mapTriggerToDb(updates.trigger.type);
-      if (updates.trigger?.config) updateData.trigger_config = updates.trigger.config;
-      if (updates.actions?.[0]?.type) updateData.action_type = mapActionToDb(updates.actions[0].type);
-      if (updates.actions?.[0]?.config) updateData.action_config = updates.actions[0].config;
-      if (updates.status !== undefined) updateData.is_active = updates.status === 'active';
-
       const { error: updateError } = await supabase
-        .from('automation_rules')
-        .update(updateData)
+        .from('automation_workflows')
+        .update({
+          ...updates,
+          updated_at: new Date().toISOString(),
+        })
         .eq('id', id);
 
       if (updateError) throw updateError;
@@ -197,9 +190,10 @@ export function useAutomationWorkflows() {
 
   const deleteWorkflow = async (id: string): Promise<boolean> => {
     try {
+      // Soft delete
       const { error: deleteError } = await supabase
-        .from('automation_rules')
-        .delete()
+        .from('automation_workflows')
+        .update({ is_deleted: true, updated_at: new Date().toISOString() })
         .eq('id', id);
 
       if (deleteError) throw deleteError;
@@ -226,31 +220,81 @@ export function useAutomationWorkflows() {
     const workflow = workflows.find(w => w.id === id);
     if (!workflow) return false;
 
-    const newStatus = workflow.status === 'active' ? 'paused' : 'active';
+    const newStatus: WorkflowStatus = workflow.status === 'active' ? 'paused' : 'active';
     return updateWorkflow(id, { status: newStatus });
   };
 
-  const duplicateWorkflow = async (id: string): Promise<Workflow | null> => {
+  const duplicateWorkflow = async (id: string): Promise<WorkflowWithRelations | null> => {
     const workflow = workflows.find(w => w.id === id);
     if (!workflow) return null;
 
+    const { id: _, created_at, updated_at, stats, nodes, edges, runs, ...rest } = workflow;
     return createWorkflow({
-      ...workflow,
+      ...rest,
       name: `${workflow.name} (Copy)`,
-      status: 'draft',
+      status: 'draft' as WorkflowStatus,
     });
   };
 
-  const installStarterAutomation = async (starter: StarterAutomation): Promise<Workflow | null> => {
-    return createWorkflow({
-      name: starter.name,
-      description: starter.description,
-      status: 'draft',
-      trigger: starter.trigger,
-      conditions: starter.conditions,
-      actions: starter.actions,
-      guardrails: { ...DEFAULT_GUARDRAILS, ...starter.guardrails },
-    });
+  const installStarterAutomation = async (starter: StarterAutomation): Promise<WorkflowWithRelations | null> => {
+    if (!currentTenant?.id) return null;
+
+    try {
+      // Create the workflow
+      const workflow = await createWorkflow({
+        name: starter.name,
+        description: starter.description,
+        status: 'draft',
+        trigger_type: starter.trigger_type,
+        trigger_config: starter.trigger_config,
+        ...starter.guardrails,
+      });
+
+      if (!workflow) return null;
+
+      // Create nodes
+      for (let i = 0; i < starter.nodes.length; i++) {
+        const node = starter.nodes[i];
+        await supabase.from('automation_nodes').insert({
+          workflow_id: workflow.id,
+          type: node.type!,
+          node_key: node.node_key!,
+          config: node.config || {},
+          sort_order: i,
+          position_x: 200,
+          position_y: 100 + (i * 120),
+        });
+      }
+
+      // Create edges (connect nodes sequentially)
+      const { data: createdNodes } = await supabase
+        .from('automation_nodes')
+        .select('*')
+        .eq('workflow_id', workflow.id)
+        .order('sort_order');
+
+      if (createdNodes && createdNodes.length > 1) {
+        for (let i = 0; i < createdNodes.length - 1; i++) {
+          await supabase.from('automation_edges').insert({
+            workflow_id: workflow.id,
+            from_node_id: createdNodes[i].id,
+            to_node_id: createdNodes[i + 1].id,
+            sort_order: i,
+          });
+        }
+      }
+
+      await fetchWorkflows();
+      return workflow;
+    } catch (err) {
+      console.error('Error installing starter automation:', err);
+      toast({
+        title: 'Error',
+        description: 'Failed to install starter automation',
+        variant: 'destructive',
+      });
+      return null;
+    }
   };
 
   const pauseAllWorkflows = async (): Promise<boolean> => {
@@ -258,15 +302,16 @@ export function useAutomationWorkflows() {
 
     try {
       const { error: updateError } = await supabase
-        .from('automation_rules')
-        .update({ is_active: false, updated_at: new Date().toISOString() })
-        .eq('tenant_id', currentTenant.id);
+        .from('automation_workflows')
+        .update({ status: 'paused', updated_at: new Date().toISOString() })
+        .eq('tenant_id', currentTenant.id)
+        .eq('status', 'active');
 
       if (updateError) throw updateError;
 
       toast({
         title: 'All workflows paused',
-        description: 'All automation workflows have been paused.',
+        description: 'All active workflows have been paused.',
       });
 
       await fetchWorkflows();
@@ -298,20 +343,156 @@ export function useAutomationWorkflows() {
   };
 }
 
+// Hook for workflow nodes and edges
+export function useWorkflowBuilder(workflowId?: string) {
+  const [nodes, setNodes] = useState<AutomationNode[]>([]);
+  const [edges, setEdges] = useState<AutomationEdge[]>([]);
+  const [loading, setLoading] = useState(false);
+  const { toast } = useToast();
+
+  const fetchNodesAndEdges = useCallback(async () => {
+    if (!workflowId) return;
+
+    try {
+      setLoading(true);
+
+      const [nodesResult, edgesResult] = await Promise.all([
+        supabase
+          .from('automation_nodes')
+          .select('*')
+          .eq('workflow_id', workflowId)
+          .order('sort_order'),
+        supabase
+          .from('automation_edges')
+          .select('*')
+          .eq('workflow_id', workflowId)
+          .order('sort_order'),
+      ]);
+
+      if (nodesResult.error) throw nodesResult.error;
+      if (edgesResult.error) throw edgesResult.error;
+
+      setNodes((nodesResult.data || []) as unknown as AutomationNode[]);
+      setEdges((edgesResult.data || []) as unknown as AutomationEdge[]);
+    } catch (err) {
+      console.error('Error fetching nodes and edges:', err);
+    } finally {
+      setLoading(false);
+    }
+  }, [workflowId]);
+
+  useEffect(() => {
+    fetchNodesAndEdges();
+  }, [fetchNodesAndEdges]);
+
+  const saveNodesAndEdges = async (
+    newNodes: Partial<AutomationNode>[],
+    newEdges: Partial<AutomationEdge>[]
+  ): Promise<boolean> => {
+    if (!workflowId) return false;
+
+    try {
+      // Delete existing nodes and edges
+      await supabase.from('automation_edges').delete().eq('workflow_id', workflowId);
+      await supabase.from('automation_nodes').delete().eq('workflow_id', workflowId);
+
+      // Insert new nodes
+      const nodesToInsert = newNodes.map((node, i) => ({
+        workflow_id: workflowId,
+        type: node.type!,
+        node_key: node.node_key || `node_${i + 1}`,
+        name: node.name,
+        config: node.config || {},
+        sort_order: i,
+        position_x: node.position_x,
+        position_y: node.position_y,
+      }));
+
+      const { data: insertedNodes, error: nodesError } = await supabase
+        .from('automation_nodes')
+        .insert(nodesToInsert)
+        .select();
+
+      if (nodesError) throw nodesError;
+
+      // Create node key to ID mapping
+      const nodeKeyToId: Record<string, string> = {};
+      insertedNodes?.forEach(node => {
+        nodeKeyToId[node.node_key] = node.id;
+      });
+
+      // Insert edges with resolved IDs
+      const edgesToInsert = newEdges.map((edge, i) => ({
+        workflow_id: workflowId,
+        from_node_id: nodeKeyToId[edge.from_node_id as string] || edge.from_node_id,
+        to_node_id: nodeKeyToId[edge.to_node_id as string] || edge.to_node_id,
+        label: edge.label,
+        condition: edge.condition,
+        sort_order: i,
+      }));
+
+      if (edgesToInsert.length > 0) {
+        const { error: edgesError } = await supabase
+          .from('automation_edges')
+          .insert(edgesToInsert);
+
+        if (edgesError) throw edgesError;
+      }
+
+      await fetchNodesAndEdges();
+      toast({
+        title: 'Workflow saved',
+        description: 'Your workflow has been saved successfully.',
+      });
+      return true;
+    } catch (err) {
+      console.error('Error saving nodes and edges:', err);
+      toast({
+        title: 'Error',
+        description: 'Failed to save workflow',
+        variant: 'destructive',
+      });
+      return false;
+    }
+  };
+
+  return {
+    nodes,
+    edges,
+    loading,
+    saveNodesAndEdges,
+    refetch: fetchNodesAndEdges,
+  };
+}
+
+// Hook for workflow runs (execution logs)
 export function useWorkflowRuns(workflowId?: string) {
-  const [runs, setRuns] = useState<WorkflowRun[]>([]);
+  const [runs, setRuns] = useState<AutomationRun[]>([]);
   const [loading, setLoading] = useState(false);
 
-  // Mock data for now - would connect to actual logs table
   useEffect(() => {
     if (!workflowId) return;
-    
-    setLoading(true);
-    // Simulate loading runs
-    setTimeout(() => {
-      setRuns([]);
-      setLoading(false);
-    }, 500);
+
+    const fetchRuns = async () => {
+      setLoading(true);
+      try {
+        const { data, error } = await supabase
+          .from('automation_runs')
+          .select('*')
+          .eq('workflow_id', workflowId)
+          .order('started_at', { ascending: false })
+          .limit(50);
+
+        if (error) throw error;
+        setRuns((data || []) as unknown as AutomationRun[]);
+      } catch (err) {
+        console.error('Error fetching runs:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchRuns();
   }, [workflowId]);
 
   return { runs, loading };

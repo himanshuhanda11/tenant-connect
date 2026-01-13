@@ -14,6 +14,426 @@ export type Database = {
   }
   public: {
     Tables: {
+      automation_cooldowns: {
+        Row: {
+          action_type:
+            | Database["public"]["Enums"]["extended_action_type"]
+            | null
+          contact_id: string | null
+          conversation_id: string | null
+          cooldown_key: string
+          created_at: string
+          expires_at: string
+          id: string
+          node_id: string | null
+          scope: Database["public"]["Enums"]["cooldown_scope"]
+          tenant_id: string
+          workflow_id: string | null
+        }
+        Insert: {
+          action_type?:
+            | Database["public"]["Enums"]["extended_action_type"]
+            | null
+          contact_id?: string | null
+          conversation_id?: string | null
+          cooldown_key: string
+          created_at?: string
+          expires_at: string
+          id?: string
+          node_id?: string | null
+          scope: Database["public"]["Enums"]["cooldown_scope"]
+          tenant_id: string
+          workflow_id?: string | null
+        }
+        Update: {
+          action_type?:
+            | Database["public"]["Enums"]["extended_action_type"]
+            | null
+          contact_id?: string | null
+          conversation_id?: string | null
+          cooldown_key?: string
+          created_at?: string
+          expires_at?: string
+          id?: string
+          node_id?: string | null
+          scope?: Database["public"]["Enums"]["cooldown_scope"]
+          tenant_id?: string
+          workflow_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "automation_cooldowns_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "automation_cooldowns_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "automation_cooldowns_node_id_fkey"
+            columns: ["node_id"]
+            isOneToOne: false
+            referencedRelation: "automation_nodes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "automation_cooldowns_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "automation_cooldowns_workflow_id_fkey"
+            columns: ["workflow_id"]
+            isOneToOne: false
+            referencedRelation: "automation_workflows"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      automation_deadletters: {
+        Row: {
+          attempts: number
+          created_at: string
+          error: string | null
+          error_details: Json | null
+          error_type: string
+          id: string
+          max_attempts: number
+          next_retry_at: string | null
+          payload: Json
+          resolved_at: string | null
+          run_id: string | null
+          tenant_id: string
+          updated_at: string
+          workflow_id: string | null
+        }
+        Insert: {
+          attempts?: number
+          created_at?: string
+          error?: string | null
+          error_details?: Json | null
+          error_type: string
+          id?: string
+          max_attempts?: number
+          next_retry_at?: string | null
+          payload: Json
+          resolved_at?: string | null
+          run_id?: string | null
+          tenant_id: string
+          updated_at?: string
+          workflow_id?: string | null
+        }
+        Update: {
+          attempts?: number
+          created_at?: string
+          error?: string | null
+          error_details?: Json | null
+          error_type?: string
+          id?: string
+          max_attempts?: number
+          next_retry_at?: string | null
+          payload?: Json
+          resolved_at?: string | null
+          run_id?: string | null
+          tenant_id?: string
+          updated_at?: string
+          workflow_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "automation_deadletters_run_id_fkey"
+            columns: ["run_id"]
+            isOneToOne: false
+            referencedRelation: "automation_runs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "automation_deadletters_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "automation_deadletters_workflow_id_fkey"
+            columns: ["workflow_id"]
+            isOneToOne: false
+            referencedRelation: "automation_workflows"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      automation_edges: {
+        Row: {
+          condition: Json | null
+          created_at: string
+          from_node_id: string
+          id: string
+          label: string | null
+          sort_order: number
+          to_node_id: string
+          workflow_id: string
+        }
+        Insert: {
+          condition?: Json | null
+          created_at?: string
+          from_node_id: string
+          id?: string
+          label?: string | null
+          sort_order?: number
+          to_node_id: string
+          workflow_id: string
+        }
+        Update: {
+          condition?: Json | null
+          created_at?: string
+          from_node_id?: string
+          id?: string
+          label?: string | null
+          sort_order?: number
+          to_node_id?: string
+          workflow_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "automation_edges_from_node_id_fkey"
+            columns: ["from_node_id"]
+            isOneToOne: false
+            referencedRelation: "automation_nodes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "automation_edges_to_node_id_fkey"
+            columns: ["to_node_id"]
+            isOneToOne: false
+            referencedRelation: "automation_nodes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "automation_edges_workflow_id_fkey"
+            columns: ["workflow_id"]
+            isOneToOne: false
+            referencedRelation: "automation_workflows"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      automation_loop_guards: {
+        Row: {
+          chain_depth: number
+          chain_path: string[] | null
+          contact_id: string | null
+          conversation_id: string | null
+          created_at: string
+          expires_at: string
+          id: string
+          source_workflow_id: string | null
+          target_workflow_id: string | null
+          tenant_id: string
+        }
+        Insert: {
+          chain_depth?: number
+          chain_path?: string[] | null
+          contact_id?: string | null
+          conversation_id?: string | null
+          created_at?: string
+          expires_at: string
+          id?: string
+          source_workflow_id?: string | null
+          target_workflow_id?: string | null
+          tenant_id: string
+        }
+        Update: {
+          chain_depth?: number
+          chain_path?: string[] | null
+          contact_id?: string | null
+          conversation_id?: string | null
+          created_at?: string
+          expires_at?: string
+          id?: string
+          source_workflow_id?: string | null
+          target_workflow_id?: string | null
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "automation_loop_guards_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "automation_loop_guards_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "automation_loop_guards_source_workflow_id_fkey"
+            columns: ["source_workflow_id"]
+            isOneToOne: false
+            referencedRelation: "automation_workflows"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "automation_loop_guards_target_workflow_id_fkey"
+            columns: ["target_workflow_id"]
+            isOneToOne: false
+            referencedRelation: "automation_workflows"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "automation_loop_guards_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      automation_nodes: {
+        Row: {
+          config: Json
+          created_at: string
+          id: string
+          name: string | null
+          node_key: string
+          position_x: number | null
+          position_y: number | null
+          sort_order: number
+          type: Database["public"]["Enums"]["automation_node_type"]
+          updated_at: string
+          workflow_id: string
+        }
+        Insert: {
+          config?: Json
+          created_at?: string
+          id?: string
+          name?: string | null
+          node_key: string
+          position_x?: number | null
+          position_y?: number | null
+          sort_order?: number
+          type: Database["public"]["Enums"]["automation_node_type"]
+          updated_at?: string
+          workflow_id: string
+        }
+        Update: {
+          config?: Json
+          created_at?: string
+          id?: string
+          name?: string | null
+          node_key?: string
+          position_x?: number | null
+          position_y?: number | null
+          sort_order?: number
+          type?: Database["public"]["Enums"]["automation_node_type"]
+          updated_at?: string
+          workflow_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "automation_nodes_workflow_id_fkey"
+            columns: ["workflow_id"]
+            isOneToOne: false
+            referencedRelation: "automation_workflows"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      automation_rate_limits: {
+        Row: {
+          action_type:
+            | Database["public"]["Enums"]["extended_action_type"]
+            | null
+          bucket_end: string
+          bucket_start: string
+          contact_id: string | null
+          count: number
+          created_at: string
+          id: string
+          limit_value: number
+          node_id: string | null
+          scope: Database["public"]["Enums"]["rate_limit_scope"]
+          tenant_id: string
+          updated_at: string
+          workflow_id: string | null
+        }
+        Insert: {
+          action_type?:
+            | Database["public"]["Enums"]["extended_action_type"]
+            | null
+          bucket_end: string
+          bucket_start: string
+          contact_id?: string | null
+          count?: number
+          created_at?: string
+          id?: string
+          limit_value?: number
+          node_id?: string | null
+          scope: Database["public"]["Enums"]["rate_limit_scope"]
+          tenant_id: string
+          updated_at?: string
+          workflow_id?: string | null
+        }
+        Update: {
+          action_type?:
+            | Database["public"]["Enums"]["extended_action_type"]
+            | null
+          bucket_end?: string
+          bucket_start?: string
+          contact_id?: string | null
+          count?: number
+          created_at?: string
+          id?: string
+          limit_value?: number
+          node_id?: string | null
+          scope?: Database["public"]["Enums"]["rate_limit_scope"]
+          tenant_id?: string
+          updated_at?: string
+          workflow_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "automation_rate_limits_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "automation_rate_limits_node_id_fkey"
+            columns: ["node_id"]
+            isOneToOne: false
+            referencedRelation: "automation_nodes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "automation_rate_limits_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "automation_rate_limits_workflow_id_fkey"
+            columns: ["workflow_id"]
+            isOneToOne: false
+            referencedRelation: "automation_workflows"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       automation_rules: {
         Row: {
           action_config: Json
@@ -63,6 +483,252 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "automation_rules_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      automation_runs: {
+        Row: {
+          contact_id: string | null
+          conversation_id: string | null
+          error: string | null
+          error_details: Json | null
+          finished_at: string | null
+          id: string
+          idempotency_key: string | null
+          message_id: string | null
+          messages_sent: number | null
+          started_at: string
+          status: Database["public"]["Enums"]["workflow_run_status"]
+          steps_completed: number | null
+          steps_total: number | null
+          tenant_id: string
+          trigger_payload: Json | null
+          trigger_type: Database["public"]["Enums"]["extended_trigger_type"]
+          workflow_id: string
+        }
+        Insert: {
+          contact_id?: string | null
+          conversation_id?: string | null
+          error?: string | null
+          error_details?: Json | null
+          finished_at?: string | null
+          id?: string
+          idempotency_key?: string | null
+          message_id?: string | null
+          messages_sent?: number | null
+          started_at?: string
+          status?: Database["public"]["Enums"]["workflow_run_status"]
+          steps_completed?: number | null
+          steps_total?: number | null
+          tenant_id: string
+          trigger_payload?: Json | null
+          trigger_type: Database["public"]["Enums"]["extended_trigger_type"]
+          workflow_id: string
+        }
+        Update: {
+          contact_id?: string | null
+          conversation_id?: string | null
+          error?: string | null
+          error_details?: Json | null
+          finished_at?: string | null
+          id?: string
+          idempotency_key?: string | null
+          message_id?: string | null
+          messages_sent?: number | null
+          started_at?: string
+          status?: Database["public"]["Enums"]["workflow_run_status"]
+          steps_completed?: number | null
+          steps_total?: number | null
+          tenant_id?: string
+          trigger_payload?: Json | null
+          trigger_type?: Database["public"]["Enums"]["extended_trigger_type"]
+          workflow_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "automation_runs_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "automation_runs_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "automation_runs_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "messages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "automation_runs_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "automation_runs_workflow_id_fkey"
+            columns: ["workflow_id"]
+            isOneToOne: false
+            referencedRelation: "automation_workflows"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      automation_steps: {
+        Row: {
+          duration_ms: number | null
+          error: string | null
+          error_details: Json | null
+          finished_at: string | null
+          id: string
+          input_data: Json | null
+          node_id: string
+          node_name: string | null
+          node_type: Database["public"]["Enums"]["automation_node_type"]
+          output_data: Json | null
+          run_id: string
+          started_at: string
+          status: Database["public"]["Enums"]["workflow_step_status"]
+        }
+        Insert: {
+          duration_ms?: number | null
+          error?: string | null
+          error_details?: Json | null
+          finished_at?: string | null
+          id?: string
+          input_data?: Json | null
+          node_id: string
+          node_name?: string | null
+          node_type: Database["public"]["Enums"]["automation_node_type"]
+          output_data?: Json | null
+          run_id: string
+          started_at?: string
+          status?: Database["public"]["Enums"]["workflow_step_status"]
+        }
+        Update: {
+          duration_ms?: number | null
+          error?: string | null
+          error_details?: Json | null
+          finished_at?: string | null
+          id?: string
+          input_data?: Json | null
+          node_id?: string
+          node_name?: string | null
+          node_type?: Database["public"]["Enums"]["automation_node_type"]
+          output_data?: Json | null
+          run_id?: string
+          started_at?: string
+          status?: Database["public"]["Enums"]["workflow_step_status"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "automation_steps_node_id_fkey"
+            columns: ["node_id"]
+            isOneToOne: false
+            referencedRelation: "automation_nodes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "automation_steps_run_id_fkey"
+            columns: ["run_id"]
+            isOneToOne: false
+            referencedRelation: "automation_runs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      automation_workflows: {
+        Row: {
+          business_hours_config: Json | null
+          cooldown_seconds: number | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          enforce_opt_in_for_marketing: boolean
+          id: string
+          is_deleted: boolean
+          max_messages_per_contact_per_day: number | null
+          max_messages_per_hour: number | null
+          max_runs_per_contact_per_day: number | null
+          name: string
+          status: Database["public"]["Enums"]["workflow_status"]
+          stop_on_conversation_closed: boolean
+          stop_on_customer_reply: boolean
+          tenant_id: string
+          timezone: string | null
+          trigger_config: Json
+          trigger_type: Database["public"]["Enums"]["extended_trigger_type"]
+          updated_at: string
+          version: number
+        }
+        Insert: {
+          business_hours_config?: Json | null
+          cooldown_seconds?: number | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          enforce_opt_in_for_marketing?: boolean
+          id?: string
+          is_deleted?: boolean
+          max_messages_per_contact_per_day?: number | null
+          max_messages_per_hour?: number | null
+          max_runs_per_contact_per_day?: number | null
+          name: string
+          status?: Database["public"]["Enums"]["workflow_status"]
+          stop_on_conversation_closed?: boolean
+          stop_on_customer_reply?: boolean
+          tenant_id: string
+          timezone?: string | null
+          trigger_config?: Json
+          trigger_type: Database["public"]["Enums"]["extended_trigger_type"]
+          updated_at?: string
+          version?: number
+        }
+        Update: {
+          business_hours_config?: Json | null
+          cooldown_seconds?: number | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          enforce_opt_in_for_marketing?: boolean
+          id?: string
+          is_deleted?: boolean
+          max_messages_per_contact_per_day?: number | null
+          max_messages_per_hour?: number | null
+          max_runs_per_contact_per_day?: number | null
+          name?: string
+          status?: Database["public"]["Enums"]["workflow_status"]
+          stop_on_conversation_closed?: boolean
+          stop_on_customer_reply?: boolean
+          tenant_id?: string
+          timezone?: string | null
+          trigger_config?: Json
+          trigger_type?: Database["public"]["Enums"]["extended_trigger_type"]
+          updated_at?: string
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "automation_workflows_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "automation_workflows_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
@@ -2079,10 +2745,34 @@ export type Database = {
       }
     }
     Functions: {
+      check_automation_cooldown: {
+        Args: { p_cooldown_key: string; p_tenant_id: string }
+        Returns: boolean
+      }
+      check_automation_loop: {
+        Args: {
+          p_contact_id: string
+          p_max_depth?: number
+          p_source_workflow_id: string
+          p_target_workflow_id: string
+          p_tenant_id: string
+        }
+        Returns: boolean
+      }
+      check_automation_rate_limit: {
+        Args: {
+          p_contact_id: string
+          p_scope?: Database["public"]["Enums"]["rate_limit_scope"]
+          p_tenant_id: string
+          p_workflow_id: string
+        }
+        Returns: boolean
+      }
       check_tenant_limit: {
         Args: { p_limit_key: string; p_tenant_id: string }
         Returns: boolean
       }
+      cleanup_automation_expired_records: { Args: never; Returns: undefined }
       cleanup_rate_limit_logs: { Args: never; Returns: undefined }
       create_tenant_with_owner: {
         Args: { _name: string; _slug: string }
@@ -2120,6 +2810,16 @@ export type Database = {
         }
         Returns: boolean
       }
+      increment_automation_rate_limit: {
+        Args: {
+          p_contact_id: string
+          p_limit?: number
+          p_scope?: Database["public"]["Enums"]["rate_limit_scope"]
+          p_tenant_id: string
+          p_workflow_id: string
+        }
+        Returns: boolean
+      }
       increment_usage: {
         Args: { p_amount?: number; p_counter: string; p_tenant_id: string }
         Returns: undefined
@@ -2129,6 +2829,17 @@ export type Database = {
         | { Args: { _tenant_id: string }; Returns: boolean }
         | { Args: { _tenant_id: string; _user_id: string }; Returns: boolean }
       is_tenant_owner: { Args: { _tenant_id: string }; Returns: boolean }
+      set_automation_cooldown: {
+        Args: {
+          p_contact_id?: string
+          p_cooldown_key: string
+          p_scope?: Database["public"]["Enums"]["cooldown_scope"]
+          p_seconds: number
+          p_tenant_id: string
+          p_workflow_id?: string
+        }
+        Returns: undefined
+      }
       users_share_tenant: {
         Args: { user_a: string; user_b: string }
         Returns: boolean
@@ -2141,6 +2852,13 @@ export type Database = {
         | "remove_tag"
         | "assign_agent"
         | "webhook"
+      automation_node_type:
+        | "trigger"
+        | "condition"
+        | "action"
+        | "delay"
+        | "branch"
+        | "stop"
       automation_trigger:
         | "new_contact"
         | "tag_added"
@@ -2155,6 +2873,50 @@ export type Database = {
         | "completed"
         | "cancelled"
       conversation_status: "open" | "closed" | "expired"
+      cooldown_scope: "workflow" | "node" | "action"
+      extended_action_type:
+        | "send_template"
+        | "send_interactive"
+        | "add_tag"
+        | "remove_tag"
+        | "assign_agent"
+        | "set_priority"
+        | "set_status"
+        | "update_contact_attr"
+        | "add_internal_note"
+        | "create_task"
+        | "call_webhook"
+        | "stop_workflow"
+      extended_condition_type:
+        | "contact_has_tag"
+        | "contact_not_has_tag"
+        | "contact_attr_eq"
+        | "contact_attr_contains"
+        | "contact_source_in"
+        | "opt_in_required"
+        | "time_window"
+        | "conversation_status_in"
+        | "assigned_agent_exists"
+        | "last_message_direction"
+        | "mau_status"
+        | "regex_match"
+      extended_trigger_type:
+        | "new_contact_created"
+        | "first_inbound_message"
+        | "inbound_message"
+        | "outbound_message"
+        | "keyword_received"
+        | "tag_added"
+        | "tag_removed"
+        | "scheduled_time"
+        | "inactivity_no_reply"
+        | "conversation_opened"
+        | "conversation_closed"
+        | "agent_intervened"
+        | "button_clicked"
+        | "template_delivered"
+        | "template_read"
+        | "contact_updated"
       message_direction: "inbound" | "outbound"
       message_status: "pending" | "sent" | "delivered" | "read" | "failed"
       message_type:
@@ -2172,6 +2934,12 @@ export type Database = {
         | "unknown"
       phone_status: "pending" | "connected" | "disconnected" | "banned"
       quality_rating: "GREEN" | "YELLOW" | "RED" | "UNKNOWN"
+      rate_limit_scope:
+        | "workflow_per_contact"
+        | "workflow_per_workspace"
+        | "action_per_contact"
+        | "action_per_workspace"
+        | "global_per_contact"
       subscription_status:
         | "active"
         | "past_due"
@@ -2198,6 +2966,14 @@ export type Database = {
         | "DISABLED"
       tenant_role: "owner" | "admin" | "agent"
       waba_status: "pending" | "active" | "suspended" | "disconnected"
+      workflow_run_status:
+        | "running"
+        | "success"
+        | "failed"
+        | "skipped"
+        | "cancelled"
+      workflow_status: "draft" | "active" | "paused" | "archived"
+      workflow_step_status: "started" | "success" | "failed" | "skipped"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -2332,6 +3108,14 @@ export const Constants = {
         "assign_agent",
         "webhook",
       ],
+      automation_node_type: [
+        "trigger",
+        "condition",
+        "action",
+        "delay",
+        "branch",
+        "stop",
+      ],
       automation_trigger: [
         "new_contact",
         "tag_added",
@@ -2348,6 +3132,53 @@ export const Constants = {
         "cancelled",
       ],
       conversation_status: ["open", "closed", "expired"],
+      cooldown_scope: ["workflow", "node", "action"],
+      extended_action_type: [
+        "send_template",
+        "send_interactive",
+        "add_tag",
+        "remove_tag",
+        "assign_agent",
+        "set_priority",
+        "set_status",
+        "update_contact_attr",
+        "add_internal_note",
+        "create_task",
+        "call_webhook",
+        "stop_workflow",
+      ],
+      extended_condition_type: [
+        "contact_has_tag",
+        "contact_not_has_tag",
+        "contact_attr_eq",
+        "contact_attr_contains",
+        "contact_source_in",
+        "opt_in_required",
+        "time_window",
+        "conversation_status_in",
+        "assigned_agent_exists",
+        "last_message_direction",
+        "mau_status",
+        "regex_match",
+      ],
+      extended_trigger_type: [
+        "new_contact_created",
+        "first_inbound_message",
+        "inbound_message",
+        "outbound_message",
+        "keyword_received",
+        "tag_added",
+        "tag_removed",
+        "scheduled_time",
+        "inactivity_no_reply",
+        "conversation_opened",
+        "conversation_closed",
+        "agent_intervened",
+        "button_clicked",
+        "template_delivered",
+        "template_read",
+        "contact_updated",
+      ],
       message_direction: ["inbound", "outbound"],
       message_status: ["pending", "sent", "delivered", "read", "failed"],
       message_type: [
@@ -2366,6 +3197,13 @@ export const Constants = {
       ],
       phone_status: ["pending", "connected", "disconnected", "banned"],
       quality_rating: ["GREEN", "YELLOW", "RED", "UNKNOWN"],
+      rate_limit_scope: [
+        "workflow_per_contact",
+        "workflow_per_workspace",
+        "action_per_contact",
+        "action_per_workspace",
+        "global_per_contact",
+      ],
       subscription_status: [
         "active",
         "past_due",
@@ -2395,6 +3233,15 @@ export const Constants = {
       ],
       tenant_role: ["owner", "admin", "agent"],
       waba_status: ["pending", "active", "suspended", "disconnected"],
+      workflow_run_status: [
+        "running",
+        "success",
+        "failed",
+        "skipped",
+        "cancelled",
+      ],
+      workflow_status: ["draft", "active", "paused", "archived"],
+      workflow_step_status: ["started", "success", "failed", "skipped"],
     },
   },
 } as const
