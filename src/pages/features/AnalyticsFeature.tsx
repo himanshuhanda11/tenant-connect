@@ -21,17 +21,15 @@ export default function AnalyticsFeature() {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
-      <section className="relative py-20 md:py-28 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-slate-950 via-cyan-950/30 to-slate-950" />
-        <div className="absolute inset-0"><div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-cyan-500/15 rounded-full blur-[120px]" /></div>
-        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.015)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.015)_1px,transparent_1px)] bg-[size:50px_50px]" />
+      <section className="relative pt-24 pb-16 md:pt-32 md:pb-24 overflow-hidden bg-gradient-to-b from-background to-muted/30">
+        <div className="absolute inset-0"><div className="absolute top-20 left-1/4 w-[400px] h-[400px] bg-cyan-500/5 rounded-full blur-[100px]" /></div>
         <div className="container mx-auto px-4 relative">
-          <Breadcrumb className="text-white/70 mb-8" />
+          <Breadcrumb className="mb-8" />
           <div className="max-w-4xl">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-sm font-medium mb-6"><BarChart3 className="w-4 h-4" />Analytics & Reports</div>
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6 leading-tight">Data-Driven <span className="bg-gradient-to-r from-cyan-400 via-blue-400 to-indigo-400 bg-clip-text text-transparent">Decisions</span></h1>
-            <p className="text-lg md:text-xl text-white/60 max-w-2xl mb-8">Get deep insights into your messaging performance with comprehensive analytics dashboards.</p>
-            <Button size="lg" className="h-14 px-8 bg-gradient-to-r from-cyan-500 to-blue-600" onClick={() => navigate('/signup')}>Start Free Trial<ArrowRight className="w-5 h-5 ml-2" /></Button>
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-600 text-sm font-medium mb-6"><BarChart3 className="w-4 h-4" />Analytics & Reports</div>
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-foreground mb-6 leading-tight">Data-Driven <span className="bg-gradient-to-r from-cyan-500 via-blue-500 to-indigo-500 bg-clip-text text-transparent">Decisions</span></h1>
+            <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mb-8">Get deep insights into your messaging performance with comprehensive analytics dashboards.</p>
+            <Button size="lg" className="h-14 px-8 bg-gradient-to-r from-green-500 to-emerald-600 shadow-lg shadow-green-500/20" onClick={() => navigate('/signup')}>Start Free Trial<ArrowRight className="w-5 h-5 ml-2" /></Button>
           </div>
         </div>
       </section>

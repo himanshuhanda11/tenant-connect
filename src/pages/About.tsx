@@ -61,29 +61,25 @@ export default function About() {
       <Navbar />
 
       {/* Hero */}
-      <section className="relative py-20 md:py-28 overflow-hidden">
-        {/* Professional Gradient Background */}
-        <div className="absolute inset-0 bg-gradient-to-br from-slate-950 via-violet-950/30 to-slate-950" />
+      <section className="relative pt-24 pb-16 md:pt-32 md:pb-24 overflow-hidden bg-gradient-to-b from-background to-muted/30">
         <div className="absolute inset-0">
-          <div className="absolute top-0 left-0 w-[700px] h-[700px] bg-violet-500/15 rounded-full blur-[130px]" />
-          <div className="absolute bottom-0 right-0 w-[600px] h-[600px] bg-blue-500/10 rounded-full blur-[110px]" />
+          <div className="absolute top-20 left-0 w-[400px] h-[400px] bg-violet-500/5 rounded-full blur-[100px]" />
+          <div className="absolute bottom-0 right-0 w-[300px] h-[300px] bg-primary/5 rounded-full blur-[80px]" />
         </div>
-        {/* Subtle Grid */}
-        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.015)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.015)_1px,transparent_1px)] bg-[size:50px_50px]" />
         
         <div className="container mx-auto px-4 relative">
           <div className="max-w-4xl mx-auto text-center">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-violet-500/10 border border-violet-500/20 text-violet-400 text-sm font-medium mb-6">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-violet-500/10 border border-violet-500/20 text-violet-600 text-sm font-medium mb-6">
               <Heart className="w-4 h-4" />
               Our Story
             </div>
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6 leading-tight">
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-foreground mb-6 leading-tight">
               Making Business Messaging{' '}
-              <span className="bg-gradient-to-r from-violet-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-violet-500 via-purple-500 to-pink-500 bg-clip-text text-transparent">
                 Simple
               </span>
             </h1>
-            <p className="text-lg md:text-xl text-white/60 max-w-2xl mx-auto">
+            <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">
               We're on a mission to help businesses connect with their customers on the world's most popular messaging platform.
             </p>
           </div>
