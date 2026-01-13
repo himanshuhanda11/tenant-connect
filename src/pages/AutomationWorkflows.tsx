@@ -24,7 +24,7 @@ import { StarterAutomationCard } from '@/components/automation/StarterAutomation
 import { WorkflowBuilder } from '@/components/automation/WorkflowBuilder';
 import { WorkflowTestModal } from '@/components/automation/WorkflowTestModal';
 import { useAutomationWorkflows } from '@/hooks/useAutomationWorkflows';
-import { WorkflowWithRelations, StarterAutomation } from '@/types/automation';
+import { Workflow, WorkflowWithRelations, StarterAutomation } from '@/types/automation';
 import {
   AlertDialog,
   AlertDialogAction,
