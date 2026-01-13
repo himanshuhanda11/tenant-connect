@@ -53,6 +53,9 @@ export function AuthForm({ mode }: AuthFormProps) {
   const onLoginSubmit = async (data: LoginFormData) => {
     setLoading(true);
     try {
+      // Clear any previous workspace selection to force workspace picker
+      localStorage.removeItem('whatsapp-isv-current-tenant');
+      
       const { error } = await signIn(data.email, data.password);
       if (error) {
         if (error.message.includes('Invalid login credentials')) {
@@ -72,6 +75,9 @@ export function AuthForm({ mode }: AuthFormProps) {
   const onSignupSubmit = async (data: SignupFormData) => {
     setLoading(true);
     try {
+      // Clear any previous workspace selection to force workspace picker
+      localStorage.removeItem('whatsapp-isv-current-tenant');
+      
       const { error } = await signUp(data.email, data.password, data.fullName);
       if (error) {
         if (error.message.includes('already registered')) {

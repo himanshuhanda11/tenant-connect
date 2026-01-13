@@ -63,28 +63,22 @@ export function TenantProvider({ children }: { children: React.ReactNode }) {
 
       setTenants(tenantsWithRoles);
 
-      // Restore last selected tenant from localStorage
+      // Only restore from localStorage if there's a saved selection
+      // Don't auto-select even if there's only one tenant - always let user choose
       const savedTenantId = localStorage.getItem(CURRENT_TENANT_KEY);
       if (savedTenantId && tenantsWithRoles.length > 0) {
         const savedTenant = tenantsWithRoles.find(t => t.id === savedTenantId);
         if (savedTenant) {
           setCurrentTenantState(savedTenant);
         } else {
-          // Saved tenant no longer accessible, use first available
-          setCurrentTenantState(tenantsWithRoles[0]);
-          localStorage.setItem(CURRENT_TENANT_KEY, tenantsWithRoles[0].id);
+          // Saved tenant no longer accessible, clear selection
+          setCurrentTenantState(null);
+          localStorage.removeItem(CURRENT_TENANT_KEY);
         }
-      } else if (tenantsWithRoles.length === 1) {
-        // Auto-select if only one tenant exists
-        setCurrentTenantState(tenantsWithRoles[0]);
-        localStorage.setItem(CURRENT_TENANT_KEY, tenantsWithRoles[0].id);
-      } else if (tenantsWithRoles.length === 0) {
-        // Ensure we don't keep a stale selection when user has no memberships
+      } else {
+        // No saved selection or no tenants - don't auto-select
         setCurrentTenantState(null);
-        localStorage.removeItem(CURRENT_TENANT_KEY);
       }
-      // If multiple tenants and no saved selection, don't auto-select
-      // This allows the user to be redirected to select-workspace
     } catch (error) {
       console.error('Error fetching tenants:', error);
     } finally {

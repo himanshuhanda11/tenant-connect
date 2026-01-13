@@ -1,19 +1,31 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Building2, Plus, Loader2, MessageSquare, ArrowRight, Users, Calendar, RefreshCw } from 'lucide-react';
+import { Building2, Plus, Loader2, MessageSquare, ArrowRight, Users, Calendar, RefreshCw, Phone } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTenant } from '@/contexts/TenantContext';
+import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
+
+interface WorkspaceWithPhone {
+  id: string;
+  name: string;
+  slug: string;
+  role: string;
+  created_at: string;
+  phoneNumber?: string;
+}
 
 export default function SelectWorkspace() {
   const navigate = useNavigate();
   const { user, profile, loading: authLoading, signOut } = useAuth();
-  const { tenants, loading: tenantLoading, currentTenant, setCurrentTenant, refreshTenants, createTenant } = useTenant();
-  const [workspaceName, setWorkspaceName] = React.useState('');
-  const [isCreating, setIsCreating] = React.useState(false);
+  const { tenants, loading: tenantLoading, setCurrentTenant, refreshTenants, createTenant } = useTenant();
+  const [workspaceName, setWorkspaceName] = useState('');
+  const [isCreating, setIsCreating] = useState(false);
+  const [workspacesWithPhones, setWorkspacesWithPhones] = useState<WorkspaceWithPhone[]>([]);
+  const [loadingPhones, setLoadingPhones] = useState(false);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -21,12 +33,53 @@ export default function SelectWorkspace() {
     }
   }, [user, authLoading, navigate]);
 
+  // Fetch phone numbers for each workspace
   useEffect(() => {
-    // If a tenant is already selected (e.g. restored from localStorage), skip this page.
-    if (!authLoading && !tenantLoading && user && currentTenant) {
-      navigate('/dashboard');
-    }
-  }, [authLoading, tenantLoading, user, currentTenant, navigate]);
+    const fetchPhoneNumbers = async () => {
+      if (tenants.length === 0) {
+        setWorkspacesWithPhones([]);
+        return;
+      }
+
+      setLoadingPhones(true);
+      try {
+        const workspaces: WorkspaceWithPhone[] = await Promise.all(
+          tenants.map(async (tenant) => {
+            const { data: phones } = await supabase
+              .from('phone_numbers')
+              .select('display_number')
+              .eq('tenant_id', tenant.id)
+              .eq('status', 'connected')
+              .limit(1);
+            
+            return {
+              id: tenant.id,
+              name: tenant.name,
+              slug: tenant.slug,
+              role: tenant.role,
+              created_at: tenant.created_at,
+              phoneNumber: phones?.[0]?.display_number || undefined,
+            };
+          })
+        );
+        setWorkspacesWithPhones(workspaces);
+      } catch (error) {
+        console.error('Error fetching phone numbers:', error);
+        // Fallback to tenants without phone numbers
+        setWorkspacesWithPhones(tenants.map(t => ({
+          id: t.id,
+          name: t.name,
+          slug: t.slug,
+          role: t.role,
+          created_at: t.created_at,
+        })));
+      } finally {
+        setLoadingPhones(false);
+      }
+    };
+
+    fetchPhoneNumbers();
+  }, [tenants]);
 
   const handleSelectWorkspace = (tenantId: string) => {
     const tenant = tenants.find(t => t.id === tenantId);
@@ -138,7 +191,7 @@ export default function SelectWorkspace() {
         </Card>
 
         {/* Existing Workspaces */}
-        {tenants.length > 0 && (
+        {workspacesWithPhones.length > 0 && (
           <div>
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold text-foreground">Your Workspaces</h2>
@@ -148,11 +201,11 @@ export default function SelectWorkspace() {
               </Button>
             </div>
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {tenants.map((tenant) => (
+              {workspacesWithPhones.map((workspace) => (
                 <Card 
-                  key={tenant.id} 
+                  key={workspace.id} 
                   className="group hover:shadow-lg hover:border-primary/30 transition-all duration-200 cursor-pointer"
-                  onClick={() => handleSelectWorkspace(tenant.id)}
+                  onClick={() => handleSelectWorkspace(workspace.id)}
                 >
                   <CardContent className="p-5">
                     <div className="flex items-start gap-3 mb-4">
@@ -161,7 +214,7 @@ export default function SelectWorkspace() {
                       </div>
                       <div className="flex-1 min-w-0">
                         <h3 className="font-semibold text-foreground truncate group-hover:text-primary transition-colors">
-                          {tenant.name}
+                          {workspace.name}
                         </h3>
                         <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-500/10 text-green-600 mt-1">
                           Active
@@ -175,15 +228,33 @@ export default function SelectWorkspace() {
                           <Users className="w-3.5 h-3.5" />
                           Role
                         </span>
-                        <span className="font-medium text-foreground capitalize">{tenant.role}</span>
+                        <span className="font-medium text-foreground capitalize">{workspace.role}</span>
                       </div>
+                      
+                      {/* Phone Number Display */}
+                      <div className="flex items-center justify-between">
+                        <span className="text-muted-foreground flex items-center gap-1.5">
+                          <Phone className="w-3.5 h-3.5" />
+                          Number
+                        </span>
+                        {loadingPhones ? (
+                          <Loader2 className="w-3.5 h-3.5 animate-spin text-muted-foreground" />
+                        ) : workspace.phoneNumber ? (
+                          <span className="font-medium text-green-600 flex items-center gap-1">
+                            {workspace.phoneNumber}
+                          </span>
+                        ) : (
+                          <span className="text-muted-foreground text-xs">Not connected</span>
+                        )}
+                      </div>
+                      
                       <div className="flex items-center justify-between">
                         <span className="text-muted-foreground flex items-center gap-1.5">
                           <Calendar className="w-3.5 h-3.5" />
                           Created
                         </span>
                         <span className="font-medium text-foreground">
-                          {format(new Date(tenant.created_at), 'MMM d, yyyy')}
+                          {format(new Date(workspace.created_at), 'MMM d, yyyy')}
                         </span>
                       </div>
                     </div>
@@ -193,7 +264,7 @@ export default function SelectWorkspace() {
                       className="w-full mt-4 group-hover:bg-primary group-hover:text-primary-foreground group-hover:border-primary transition-colors"
                       onClick={(e) => {
                         e.stopPropagation();
-                        handleSelectWorkspace(tenant.id);
+                        handleSelectWorkspace(workspace.id);
                       }}
                     >
                       Open Workspace
