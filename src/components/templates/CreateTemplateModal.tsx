@@ -204,11 +204,12 @@ export function CreateTemplateModal({
 
               <div className="space-y-2">
                 <Label>Industry</Label>
-                <Select value={industry} onValueChange={(v) => setIndustry(v as IndustryType)}>
+                <Select value={industry || 'none'} onValueChange={(v) => setIndustry(v === 'none' ? '' : v as IndustryType)}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select industry" />
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="none">Select industry</SelectItem>
                     {INDUSTRIES.map((ind) => (
                       <SelectItem key={ind.id} value={ind.id}>
                         {ind.icon} {ind.name}
