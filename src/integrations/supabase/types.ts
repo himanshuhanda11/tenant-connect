@@ -2875,6 +2875,503 @@ export type Database = {
           },
         ]
       }
+      smeksh_campaign_ab_tests: {
+        Row: {
+          campaign_id: string
+          created_at: string
+          ended_at: string | null
+          id: string
+          split_ratio_a: number
+          split_ratio_b: number
+          started_at: string | null
+          status: Database["public"]["Enums"]["smeksh_ab_status"]
+          template_a_components: Json
+          template_a_language: string
+          template_a_name: string
+          template_b_components: Json
+          template_b_language: string
+          template_b_name: string
+          tenant_id: string
+          updated_at: string
+          variable_map_a: Json
+          variable_map_b: Json
+          winner_metric: Database["public"]["Enums"]["smeksh_winner_metric"]
+          winner_variant: string | null
+        }
+        Insert: {
+          campaign_id: string
+          created_at?: string
+          ended_at?: string | null
+          id?: string
+          split_ratio_a?: number
+          split_ratio_b?: number
+          started_at?: string | null
+          status?: Database["public"]["Enums"]["smeksh_ab_status"]
+          template_a_components?: Json
+          template_a_language?: string
+          template_a_name?: string
+          template_b_components?: Json
+          template_b_language?: string
+          template_b_name?: string
+          tenant_id: string
+          updated_at?: string
+          variable_map_a?: Json
+          variable_map_b?: Json
+          winner_metric?: Database["public"]["Enums"]["smeksh_winner_metric"]
+          winner_variant?: string | null
+        }
+        Update: {
+          campaign_id?: string
+          created_at?: string
+          ended_at?: string | null
+          id?: string
+          split_ratio_a?: number
+          split_ratio_b?: number
+          started_at?: string | null
+          status?: Database["public"]["Enums"]["smeksh_ab_status"]
+          template_a_components?: Json
+          template_a_language?: string
+          template_a_name?: string
+          template_b_components?: Json
+          template_b_language?: string
+          template_b_name?: string
+          tenant_id?: string
+          updated_at?: string
+          variable_map_a?: Json
+          variable_map_b?: Json
+          winner_metric?: Database["public"]["Enums"]["smeksh_winner_metric"]
+          winner_variant?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "smeksh_campaign_ab_tests_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: true
+            referencedRelation: "smeksh_campaigns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "smeksh_campaign_ab_tests_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      smeksh_campaign_audiences: {
+        Row: {
+          campaign_id: string
+          created_at: string
+          csv_storage_path: string | null
+          deduped_count: number
+          estimated_count: number
+          exclude_tags: string[] | null
+          excluded_frequencycap_count: number
+          excluded_optout_count: number
+          filter_tree: Json
+          id: string
+          include_tags: string[] | null
+          invalid_count: number
+          segment_id: string | null
+          source: Database["public"]["Enums"]["smeksh_audience_source"]
+          tenant_id: string
+        }
+        Insert: {
+          campaign_id: string
+          created_at?: string
+          csv_storage_path?: string | null
+          deduped_count?: number
+          estimated_count?: number
+          exclude_tags?: string[] | null
+          excluded_frequencycap_count?: number
+          excluded_optout_count?: number
+          filter_tree?: Json
+          id?: string
+          include_tags?: string[] | null
+          invalid_count?: number
+          segment_id?: string | null
+          source: Database["public"]["Enums"]["smeksh_audience_source"]
+          tenant_id: string
+        }
+        Update: {
+          campaign_id?: string
+          created_at?: string
+          csv_storage_path?: string | null
+          deduped_count?: number
+          estimated_count?: number
+          exclude_tags?: string[] | null
+          excluded_frequencycap_count?: number
+          excluded_optout_count?: number
+          filter_tree?: Json
+          id?: string
+          include_tags?: string[] | null
+          invalid_count?: number
+          segment_id?: string | null
+          source?: Database["public"]["Enums"]["smeksh_audience_source"]
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "smeksh_campaign_audiences_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "smeksh_campaigns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "smeksh_campaign_audiences_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      smeksh_campaign_events: {
+        Row: {
+          campaign_id: string
+          contact_id: string | null
+          created_at: string
+          details: Json
+          event_type: Database["public"]["Enums"]["smeksh_event_type"]
+          id: string
+          job_id: string | null
+          occurred_at: string
+          tenant_id: string
+          wa_message_id: string | null
+        }
+        Insert: {
+          campaign_id: string
+          contact_id?: string | null
+          created_at?: string
+          details?: Json
+          event_type: Database["public"]["Enums"]["smeksh_event_type"]
+          id?: string
+          job_id?: string | null
+          occurred_at?: string
+          tenant_id: string
+          wa_message_id?: string | null
+        }
+        Update: {
+          campaign_id?: string
+          contact_id?: string | null
+          created_at?: string
+          details?: Json
+          event_type?: Database["public"]["Enums"]["smeksh_event_type"]
+          id?: string
+          job_id?: string | null
+          occurred_at?: string
+          tenant_id?: string
+          wa_message_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "smeksh_campaign_events_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "smeksh_campaigns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "smeksh_campaign_events_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "smeksh_campaign_events_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "smeksh_campaign_jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "smeksh_campaign_events_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      smeksh_campaign_jobs: {
+        Row: {
+          ab_variant: string | null
+          attempts: number
+          campaign_id: string
+          contact_id: string | null
+          created_at: string
+          error_code: string | null
+          error_message: string | null
+          execute_at: string
+          id: string
+          locked_at: string | null
+          locked_by: string | null
+          max_attempts: number
+          next_retry_at: string | null
+          phone_e164: string
+          rendered_payload: Json
+          status: Database["public"]["Enums"]["smeksh_job_status"]
+          tenant_id: string
+          updated_at: string
+          wa_message_id: string | null
+        }
+        Insert: {
+          ab_variant?: string | null
+          attempts?: number
+          campaign_id: string
+          contact_id?: string | null
+          created_at?: string
+          error_code?: string | null
+          error_message?: string | null
+          execute_at?: string
+          id?: string
+          locked_at?: string | null
+          locked_by?: string | null
+          max_attempts?: number
+          next_retry_at?: string | null
+          phone_e164: string
+          rendered_payload?: Json
+          status?: Database["public"]["Enums"]["smeksh_job_status"]
+          tenant_id: string
+          updated_at?: string
+          wa_message_id?: string | null
+        }
+        Update: {
+          ab_variant?: string | null
+          attempts?: number
+          campaign_id?: string
+          contact_id?: string | null
+          created_at?: string
+          error_code?: string | null
+          error_message?: string | null
+          execute_at?: string
+          id?: string
+          locked_at?: string | null
+          locked_by?: string | null
+          max_attempts?: number
+          next_retry_at?: string | null
+          phone_e164?: string
+          rendered_payload?: Json
+          status?: Database["public"]["Enums"]["smeksh_job_status"]
+          tenant_id?: string
+          updated_at?: string
+          wa_message_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "smeksh_campaign_jobs_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "smeksh_campaigns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "smeksh_campaign_jobs_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "smeksh_campaign_jobs_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      smeksh_campaign_reports: {
+        Row: {
+          campaign_id: string
+          created_at: string
+          created_by: string | null
+          error: string | null
+          id: string
+          report_type: string
+          status: Database["public"]["Enums"]["smeksh_report_status"]
+          storage_bucket: string
+          storage_path: string | null
+          summary: Json
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          campaign_id: string
+          created_at?: string
+          created_by?: string | null
+          error?: string | null
+          id?: string
+          report_type?: string
+          status?: Database["public"]["Enums"]["smeksh_report_status"]
+          storage_bucket?: string
+          storage_path?: string | null
+          summary?: Json
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          campaign_id?: string
+          created_at?: string
+          created_by?: string | null
+          error?: string | null
+          id?: string
+          report_type?: string
+          status?: Database["public"]["Enums"]["smeksh_report_status"]
+          storage_bucket?: string
+          storage_path?: string | null
+          summary?: Json
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "smeksh_campaign_reports_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "smeksh_campaigns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "smeksh_campaign_reports_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      smeksh_campaigns: {
+        Row: {
+          audience_estimated: number
+          business_hours_only: boolean
+          campaign_type: Database["public"]["Enums"]["smeksh_campaign_type"]
+          cancelled_count: number
+          created_at: string
+          created_by: string | null
+          delivered_count: number
+          description: string | null
+          enforce_opt_in: boolean
+          exclude_recently_messaged_hours: number | null
+          failed_count: number
+          frequency_cap_days: number | null
+          id: string
+          max_per_day: number | null
+          name: string
+          phone_number_id: string | null
+          queued_count: number
+          quiet_hours: Json | null
+          read_count: number
+          replied_count: number
+          require_opt_in_for_marketing: boolean
+          scheduled_at: string | null
+          send_mode: string
+          sent_count: number
+          skipped_count: number
+          status: Database["public"]["Enums"]["smeksh_campaign_status"]
+          template_category: string | null
+          template_components: Json
+          template_language: string
+          template_name: string
+          tenant_id: string
+          throttle_per_hour: number | null
+          throttle_per_minute: number
+          timezone: string | null
+          updated_at: string
+          variable_map: Json
+          waba_id: string | null
+        }
+        Insert: {
+          audience_estimated?: number
+          business_hours_only?: boolean
+          campaign_type?: Database["public"]["Enums"]["smeksh_campaign_type"]
+          cancelled_count?: number
+          created_at?: string
+          created_by?: string | null
+          delivered_count?: number
+          description?: string | null
+          enforce_opt_in?: boolean
+          exclude_recently_messaged_hours?: number | null
+          failed_count?: number
+          frequency_cap_days?: number | null
+          id?: string
+          max_per_day?: number | null
+          name: string
+          phone_number_id?: string | null
+          queued_count?: number
+          quiet_hours?: Json | null
+          read_count?: number
+          replied_count?: number
+          require_opt_in_for_marketing?: boolean
+          scheduled_at?: string | null
+          send_mode?: string
+          sent_count?: number
+          skipped_count?: number
+          status?: Database["public"]["Enums"]["smeksh_campaign_status"]
+          template_category?: string | null
+          template_components?: Json
+          template_language?: string
+          template_name?: string
+          tenant_id: string
+          throttle_per_hour?: number | null
+          throttle_per_minute?: number
+          timezone?: string | null
+          updated_at?: string
+          variable_map?: Json
+          waba_id?: string | null
+        }
+        Update: {
+          audience_estimated?: number
+          business_hours_only?: boolean
+          campaign_type?: Database["public"]["Enums"]["smeksh_campaign_type"]
+          cancelled_count?: number
+          created_at?: string
+          created_by?: string | null
+          delivered_count?: number
+          description?: string | null
+          enforce_opt_in?: boolean
+          exclude_recently_messaged_hours?: number | null
+          failed_count?: number
+          frequency_cap_days?: number | null
+          id?: string
+          max_per_day?: number | null
+          name?: string
+          phone_number_id?: string | null
+          queued_count?: number
+          quiet_hours?: Json | null
+          read_count?: number
+          replied_count?: number
+          require_opt_in_for_marketing?: boolean
+          scheduled_at?: string | null
+          send_mode?: string
+          sent_count?: number
+          skipped_count?: number
+          status?: Database["public"]["Enums"]["smeksh_campaign_status"]
+          template_category?: string | null
+          template_components?: Json
+          template_language?: string
+          template_name?: string
+          tenant_id?: string
+          throttle_per_hour?: number | null
+          throttle_per_minute?: number
+          timezone?: string | null
+          updated_at?: string
+          variable_map?: Json
+          waba_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "smeksh_campaigns_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       smeksh_contact_attributes: {
         Row: {
           contact_id: string
@@ -5782,6 +6279,10 @@ export type Database = {
         }
         Returns: number
       }
+      cancel_smeksh_campaign: {
+        Args: { p_campaign_id: string; p_tenant_id: string }
+        Returns: undefined
+      }
       cancel_workflow_jobs: {
         Args: { p_tenant_id: string; p_workflow_id: string }
         Returns: number
@@ -5839,6 +6340,16 @@ export type Database = {
           p_job_id: string
           p_status: Database["public"]["Enums"]["smeksh_job_status"]
           p_wamid?: string
+        }
+        Returns: undefined
+      }
+      complete_smeksh_campaign_job: {
+        Args: {
+          p_error_code?: string
+          p_error_message?: string
+          p_job_id: string
+          p_status: Database["public"]["Enums"]["smeksh_job_status"]
+          p_wa_message_id?: string
         }
         Returns: undefined
       }
@@ -5984,7 +6495,41 @@ export type Database = {
           isSetofReturn: true
         }
       }
+      lock_smeksh_campaign_jobs: {
+        Args: { p_limit?: number; p_worker_id: string }
+        Returns: {
+          ab_variant: string | null
+          attempts: number
+          campaign_id: string
+          contact_id: string | null
+          created_at: string
+          error_code: string | null
+          error_message: string | null
+          execute_at: string
+          id: string
+          locked_at: string | null
+          locked_by: string | null
+          max_attempts: number
+          next_retry_at: string | null
+          phone_e164: string
+          rendered_payload: Json
+          status: Database["public"]["Enums"]["smeksh_job_status"]
+          tenant_id: string
+          updated_at: string
+          wa_message_id: string | null
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "smeksh_campaign_jobs"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       pause_campaign: { Args: { p_campaign_id: string }; Returns: number }
+      pause_smeksh_campaign: {
+        Args: { p_campaign_id: string; p_tenant_id: string }
+        Returns: undefined
+      }
       pick_agent_round_robin: {
         Args: { p_team_id: string; p_tenant_id: string }
         Returns: string
@@ -6241,6 +6786,12 @@ export type Database = {
         | "done"
         | "failed"
         | "cancelled"
+      smeksh_ab_status:
+        | "draft"
+        | "running"
+        | "completed"
+        | "winner_selected"
+        | "stopped"
       smeksh_ad_status: "active" | "paused" | "deleted" | "archived"
       smeksh_attribute_type:
         | "TEXT"
@@ -6252,6 +6803,7 @@ export type Database = {
         | "MULTISELECT"
         | "JSON"
       smeksh_attribution_window: "1_day" | "7_days" | "28_days"
+      smeksh_audience_source: "segment" | "tags" | "csv" | "manual" | "ctwa"
       smeksh_campaign_goal:
         | "announcement"
         | "promotion"
@@ -6276,6 +6828,15 @@ export type Database = {
       smeksh_contact_status: "ACTIVE" | "ARCHIVED" | "BLOCKED"
       smeksh_conversation_status: "OPEN" | "PENDING" | "CLOSED"
       smeksh_deal_stage: "OPEN" | "WON" | "LOST"
+      smeksh_event_type:
+        | "queued"
+        | "sent"
+        | "delivered"
+        | "read"
+        | "replied"
+        | "failed"
+        | "skipped"
+        | "cancelled"
       smeksh_filter_join: "AND" | "OR"
       smeksh_import_status:
         | "PENDING"
@@ -6314,6 +6875,8 @@ export type Database = {
         | "IMPORT"
         | "API"
         | "OTHER"
+      smeksh_report_status: "generating" | "ready" | "failed"
+      smeksh_winner_metric: "reply_rate" | "read_rate" | "conversion_rate"
       subscription_status:
         | "active"
         | "past_due"
@@ -6644,6 +7207,13 @@ export const Constants = {
         "failed",
         "cancelled",
       ],
+      smeksh_ab_status: [
+        "draft",
+        "running",
+        "completed",
+        "winner_selected",
+        "stopped",
+      ],
       smeksh_ad_status: ["active", "paused", "deleted", "archived"],
       smeksh_attribute_type: [
         "TEXT",
@@ -6656,6 +7226,7 @@ export const Constants = {
         "JSON",
       ],
       smeksh_attribution_window: ["1_day", "7_days", "28_days"],
+      smeksh_audience_source: ["segment", "tags", "csv", "manual", "ctwa"],
       smeksh_campaign_goal: [
         "announcement",
         "promotion",
@@ -6683,6 +7254,16 @@ export const Constants = {
       smeksh_contact_status: ["ACTIVE", "ARCHIVED", "BLOCKED"],
       smeksh_conversation_status: ["OPEN", "PENDING", "CLOSED"],
       smeksh_deal_stage: ["OPEN", "WON", "LOST"],
+      smeksh_event_type: [
+        "queued",
+        "sent",
+        "delivered",
+        "read",
+        "replied",
+        "failed",
+        "skipped",
+        "cancelled",
+      ],
       smeksh_filter_join: ["AND", "OR"],
       smeksh_import_status: [
         "PENDING",
@@ -6726,6 +7307,8 @@ export const Constants = {
         "API",
         "OTHER",
       ],
+      smeksh_report_status: ["generating", "ready", "failed"],
+      smeksh_winner_metric: ["reply_rate", "read_rate", "conversion_rate"],
       subscription_status: [
         "active",
         "past_due",
