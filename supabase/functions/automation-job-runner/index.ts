@@ -34,9 +34,10 @@ serve(async (req) => {
 
     console.log("Automation job runner started");
 
-    // Get pending jobs (atomically mark as running)
-    const { data: jobs, error: jobsError } = await supabase.rpc("get_pending_automation_jobs", {
+    // Get pending jobs (atomically lock and mark as running)
+    const { data: jobs, error: jobsError } = await supabase.rpc("lock_due_automation_jobs", {
       p_limit: 50,
+      p_locked_by: `runner-${Date.now()}`,
     });
 
     if (jobsError) {
