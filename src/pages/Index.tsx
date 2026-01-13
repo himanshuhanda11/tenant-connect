@@ -31,6 +31,9 @@ import teamCollaboration from '@/assets/team-collaboration.png';
 import phoneMockup from '@/assets/phone-mockup.png';
 import heroPattern from '@/assets/hero-pattern.png';
 import dashboardDemo from '@/assets/dashboard-demo.mp4';
+import whatsappWomenIcon from '@/assets/whatsapp-women-icon.jpg';
+import whatsappCouple from '@/assets/whatsapp-couple.jpg';
+import whatsappPhoneTech from '@/assets/whatsapp-phone-tech.jpg';
 
 export default function Index() {
   const navigate = useNavigate();
@@ -159,52 +162,52 @@ export default function Index() {
         {/* Grid Pattern */}
         <div className="absolute inset-0 bg-[linear-gradient(rgba(0,0,0,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(0,0,0,0.02)_1px,transparent_1px)] bg-[size:60px_60px]" />
         
-        <div className="container mx-auto px-4 py-20 md:py-28 lg:py-36 relative z-10">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
+        <div className="container mx-auto px-4 py-12 sm:py-16 md:py-20 lg:py-28 xl:py-36 relative z-10">
+          <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
             {/* Left Content */}
-            <div className="text-left">
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-green-500/10 border border-green-500/20 text-green-600 text-sm font-medium mb-6">
-                <Sparkles className="w-4 h-4" />
+            <div className="text-center lg:text-left">
+              <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-2 rounded-full bg-green-500/10 border border-green-500/20 text-green-600 text-xs sm:text-sm font-medium mb-4 sm:mb-6">
+                <Sparkles className="w-3 h-3 sm:w-4 sm:h-4" />
                 Official WhatsApp Business API Partner
               </div>
-              <h1 className="text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold text-foreground leading-tight mb-6">
+              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold text-foreground leading-tight mb-4 sm:mb-6">
                 Engage Customers on{' '}
                 <span className="bg-gradient-to-r from-green-500 via-emerald-500 to-cyan-500 bg-clip-text text-transparent">
                   WhatsApp
                 </span>{' '}
                 at Scale
               </h1>
-              <p className="text-lg md:text-xl text-muted-foreground max-w-xl mb-8">
+              <p className="text-base sm:text-lg md:text-xl text-muted-foreground max-w-xl mx-auto lg:mx-0 mb-6 sm:mb-8">
                 The all-in-one platform for WhatsApp Business messaging. Send broadcasts, automate conversations, and grow your business.
               </p>
-              <div className="flex flex-col sm:flex-row gap-4 mb-8">
-                <Button size="lg" className="h-14 px-8 text-base bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 shadow-xl shadow-green-500/25" onClick={() => navigate('/signup')}>
+              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-6 sm:mb-8 justify-center lg:justify-start">
+                <Button size="lg" className="h-12 sm:h-14 px-6 sm:px-8 text-sm sm:text-base bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 shadow-xl shadow-green-500/25 w-full sm:w-auto" onClick={() => navigate('/signup')}>
                   Start Free Trial
-                  <ArrowRight className="w-5 h-5 ml-2" />
+                  <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 ml-2" />
                 </Button>
-                <Button variant="outline" size="lg" className="h-14 px-8 text-base" onClick={() => navigate('/contact')}>
-                  <Play className="w-5 h-5 mr-2" />
+                <Button variant="outline" size="lg" className="h-12 sm:h-14 px-6 sm:px-8 text-sm sm:text-base w-full sm:w-auto" onClick={() => navigate('/contact')}>
+                  <Play className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
                   Watch Demo
                 </Button>
               </div>
-              <div className="flex flex-wrap items-center gap-6 text-sm text-muted-foreground">
+              <div className="flex flex-wrap items-center justify-center lg:justify-start gap-3 sm:gap-6 text-xs sm:text-sm text-muted-foreground">
                 <div className="flex items-center gap-2">
-                  <CheckCircle2 className="w-5 h-5 text-green-500" />
+                  <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5 text-green-500" />
                   Free 14-day trial
                 </div>
                 <div className="flex items-center gap-2">
-                  <CheckCircle2 className="w-5 h-5 text-green-500" />
-                  No credit card required
+                  <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5 text-green-500" />
+                  No credit card
                 </div>
                 <div className="flex items-center gap-2">
-                  <CheckCircle2 className="w-5 h-5 text-green-500" />
-                  Setup in 5 minutes
+                  <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5 text-green-500" />
+                  5 min setup
                 </div>
               </div>
             </div>
 
             {/* Right Content - Demo Video */}
-            <div className="relative hidden lg:block">
+            <div className="relative mt-8 lg:mt-0">
               <div className="relative rounded-2xl overflow-hidden shadow-2xl border border-border">
                 <video 
                   src={dashboardDemo} 
@@ -216,19 +219,19 @@ export default function Index() {
                 />
               </div>
               {/* Floating elements */}
-              <div className="absolute -bottom-6 -left-6 bg-card backdrop-blur-xl p-4 rounded-xl shadow-xl border border-border">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-green-500 flex items-center justify-center">
-                    <CheckCircle2 className="w-5 h-5 text-white" />
+              <div className="absolute -bottom-3 -left-3 sm:-bottom-6 sm:-left-6 bg-card backdrop-blur-xl p-2 sm:p-4 rounded-xl shadow-xl border border-border hidden sm:block">
+                <div className="flex items-center gap-2 sm:gap-3">
+                  <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-green-500 flex items-center justify-center">
+                    <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                   </div>
                   <div>
-                    <div className="text-sm font-medium text-foreground">Message Delivered</div>
+                    <div className="text-xs sm:text-sm font-medium text-foreground">Message Delivered</div>
                     <div className="text-xs text-muted-foreground">Just now</div>
                   </div>
                 </div>
               </div>
-              <div className="absolute -top-4 -right-4 bg-card backdrop-blur-xl p-4 rounded-xl shadow-xl border border-border">
-                <div className="text-2xl font-bold text-foreground">98.5%</div>
+              <div className="absolute -top-2 -right-2 sm:-top-4 sm:-right-4 bg-card backdrop-blur-xl p-2 sm:p-4 rounded-xl shadow-xl border border-border hidden sm:block">
+                <div className="text-lg sm:text-2xl font-bold text-foreground">98.5%</div>
                 <div className="text-xs text-muted-foreground">Delivery Rate</div>
               </div>
             </div>
@@ -263,34 +266,34 @@ export default function Index() {
       </section>
 
       {/* Features Section */}
-      <section className="py-20 md:py-28">
+      <section className="py-12 md:py-20 lg:py-28">
         <div className="container mx-auto px-4">
-          <div className="text-center max-w-3xl mx-auto mb-16">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium mb-6">
+          <div className="text-center max-w-3xl mx-auto mb-10 md:mb-16">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium mb-4 md:mb-6">
               <Zap className="w-4 h-4" />
               Powerful Features
             </div>
-            <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-4">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-3 md:mb-4">
               Everything You Need for WhatsApp Business
             </h2>
-            <p className="text-lg text-muted-foreground">
+            <p className="text-base md:text-lg text-muted-foreground">
               Powerful features to connect with customers, automate conversations, and scale your operations.
             </p>
           </div>
           
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 max-w-6xl mx-auto">
             {features.map((feature, index) => (
               <Card key={index} className="group hover:shadow-xl hover:-translate-y-1 transition-all duration-300 border-border/50 bg-card overflow-hidden">
                 <div className={`h-1 bg-gradient-to-r ${feature.gradient}`} />
-                <CardHeader>
-                  <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${feature.gradient} flex items-center justify-center mb-4 shadow-lg`}>
-                    <feature.icon className="w-7 h-7 text-white" />
+                <CardHeader className="p-4 md:p-6">
+                  <div className={`w-12 h-12 md:w-14 md:h-14 rounded-xl md:rounded-2xl bg-gradient-to-br ${feature.gradient} flex items-center justify-center mb-3 md:mb-4 shadow-lg`}>
+                    <feature.icon className="w-6 h-6 md:w-7 md:h-7 text-white" />
                   </div>
-                  <CardTitle className="text-xl">{feature.title}</CardTitle>
+                  <CardTitle className="text-lg md:text-xl">{feature.title}</CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <CardDescription className="text-base">{feature.description}</CardDescription>
-                  <Link to="/products" className="inline-flex items-center gap-1 text-primary text-sm font-medium mt-4 group-hover:gap-2 transition-all">
+                <CardContent className="p-4 md:p-6 pt-0">
+                  <CardDescription className="text-sm md:text-base">{feature.description}</CardDescription>
+                  <Link to="/products" className="inline-flex items-center gap-1 text-primary text-sm font-medium mt-3 md:mt-4 group-hover:gap-2 transition-all">
                     Learn more <ArrowRight className="w-4 h-4" />
                   </Link>
                 </CardContent>
@@ -298,8 +301,8 @@ export default function Index() {
             ))}
           </div>
 
-          <div className="text-center mt-12">
-            <Button size="lg" variant="outline" onClick={() => navigate('/products')}>
+          <div className="text-center mt-8 md:mt-12">
+            <Button size="lg" variant="outline" className="w-full sm:w-auto" onClick={() => navigate('/products')}>
               Explore All Features
               <ArrowRight className="w-4 h-4 ml-2" />
             </Button>
@@ -308,21 +311,21 @@ export default function Index() {
       </section>
 
       {/* Dashboard Preview Section */}
-      <section className="py-20 bg-muted/30">
+      <section className="py-12 md:py-20 bg-muted/30">
         <div className="container mx-auto px-4">
-          <div className="grid lg:grid-cols-2 gap-12 items-center max-w-6xl mx-auto">
-            <div>
+          <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center max-w-6xl mx-auto">
+            <div className="text-center lg:text-left">
               <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-500/10 text-blue-600 text-sm font-medium mb-6">
                 <Globe className="w-4 h-4" />
                 Built for Teams
               </div>
-              <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-6">
+              <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground mb-4 md:mb-6">
                 Collaborate With Your Team in Real-Time
               </h2>
-              <p className="text-lg text-muted-foreground mb-8">
+              <p className="text-base md:text-lg text-muted-foreground mb-6 md:mb-8">
                 Invite team members, assign conversations, and work together to provide the best customer experience.
               </p>
-              <div className="space-y-4">
+              <div className="space-y-3 md:space-y-4 text-left">
                 {[
                   'Role-based access control',
                   'Real-time conversation routing',
@@ -331,65 +334,143 @@ export default function Index() {
                 ].map((item, index) => (
                   <div key={index} className="flex items-center gap-3">
                     <CheckCircle2 className="w-5 h-5 text-green-500 flex-shrink-0" />
-                    <span className="text-foreground">{item}</span>
+                    <span className="text-foreground text-sm md:text-base">{item}</span>
                   </div>
                 ))}
               </div>
-              <Button className="mt-8" size="lg" onClick={() => navigate('/signup')}>
+              <Button className="mt-6 md:mt-8 w-full sm:w-auto" size="lg" onClick={() => navigate('/signup')}>
                 Start Collaborating
                 <ArrowRight className="w-4 h-4 ml-2" />
               </Button>
             </div>
-            <div className="relative">
+            <div className="relative order-first lg:order-last">
               <img 
-                src={teamCollaboration} 
-                alt="Team Collaboration" 
-                className="rounded-2xl shadow-2xl"
+                src={whatsappWomenIcon} 
+                alt="Team Collaboration on WhatsApp" 
+                className="rounded-2xl shadow-2xl w-full h-auto object-cover"
               />
+              {/* Floating badge */}
+              <div className="absolute -bottom-4 -right-4 md:-bottom-6 md:-right-6 bg-card backdrop-blur-xl p-3 md:p-4 rounded-xl shadow-xl border border-border hidden sm:block">
+                <div className="flex items-center gap-2 md:gap-3">
+                  <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-green-500 flex items-center justify-center">
+                    <Users className="w-4 h-4 md:w-5 md:h-5 text-white" />
+                  </div>
+                  <div>
+                    <div className="text-sm md:text-base font-medium text-foreground">5,000+</div>
+                    <div className="text-xs text-muted-foreground">Active Teams</div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Phone Mockup Section */}
-      <section className="py-20">
+      {/* WhatsApp Engagement Section */}
+      <section className="py-12 md:py-20">
         <div className="container mx-auto px-4">
-          <div className="grid lg:grid-cols-2 gap-12 items-center max-w-6xl mx-auto">
+          <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center max-w-6xl mx-auto">
             <div className="order-2 lg:order-1 flex justify-center">
-              <img 
-                src={phoneMockup} 
-                alt="WhatsApp Messaging" 
-                className="w-64 md:w-80 drop-shadow-2xl"
-              />
+              <div className="relative">
+                <img 
+                  src={whatsappCouple} 
+                  alt="WhatsApp Messaging Engagement" 
+                  className="w-full max-w-sm md:max-w-md rounded-2xl shadow-2xl"
+                />
+                {/* Floating stats */}
+                <div className="absolute -top-3 -left-3 md:-top-4 md:-left-4 bg-card backdrop-blur-xl p-2 md:p-3 rounded-xl shadow-xl border border-border">
+                  <div className="text-lg md:text-xl font-bold text-green-600">98%</div>
+                  <div className="text-xs text-muted-foreground">Open Rate</div>
+                </div>
+                <div className="absolute -bottom-3 -right-3 md:-bottom-4 md:-right-4 bg-card backdrop-blur-xl p-2 md:p-3 rounded-xl shadow-xl border border-border">
+                  <div className="text-lg md:text-xl font-bold text-green-600">3B+</div>
+                  <div className="text-xs text-muted-foreground">Users</div>
+                </div>
+              </div>
             </div>
-            <div className="order-1 lg:order-2">
+            <div className="order-1 lg:order-2 text-center lg:text-left">
               <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-green-500/10 text-green-600 text-sm font-medium mb-6">
                 <MessageSquare className="w-4 h-4" />
                 WhatsApp Native
               </div>
-              <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-6">
+              <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground mb-4 md:mb-6">
                 Messages Your Customers Actually Read
               </h2>
-              <p className="text-lg text-muted-foreground mb-8">
+              <p className="text-base md:text-lg text-muted-foreground mb-6 md:mb-8">
                 WhatsApp has 98% open rates compared to just 20% for email. Reach customers where they already are.
               </p>
-              <div className="grid grid-cols-2 gap-6">
-                <div className="p-4 rounded-xl bg-muted/50">
-                  <div className="text-3xl font-bold text-green-600 mb-1">98%</div>
-                  <div className="text-sm text-muted-foreground">Open Rate</div>
+              <div className="grid grid-cols-2 gap-3 md:gap-6">
+                <div className="p-3 md:p-4 rounded-xl bg-muted/50">
+                  <div className="text-2xl md:text-3xl font-bold text-green-600 mb-1">98%</div>
+                  <div className="text-xs md:text-sm text-muted-foreground">Open Rate</div>
                 </div>
-                <div className="p-4 rounded-xl bg-muted/50">
-                  <div className="text-3xl font-bold text-green-600 mb-1">45%</div>
-                  <div className="text-sm text-muted-foreground">Response Rate</div>
+                <div className="p-3 md:p-4 rounded-xl bg-muted/50">
+                  <div className="text-2xl md:text-3xl font-bold text-green-600 mb-1">45%</div>
+                  <div className="text-xs md:text-sm text-muted-foreground">Response Rate</div>
                 </div>
-                <div className="p-4 rounded-xl bg-muted/50">
-                  <div className="text-3xl font-bold text-green-600 mb-1">3B+</div>
-                  <div className="text-sm text-muted-foreground">WhatsApp Users</div>
+                <div className="p-3 md:p-4 rounded-xl bg-muted/50">
+                  <div className="text-2xl md:text-3xl font-bold text-green-600 mb-1">3B+</div>
+                  <div className="text-xs md:text-sm text-muted-foreground">WhatsApp Users</div>
                 </div>
-                <div className="p-4 rounded-xl bg-muted/50">
-                  <div className="text-3xl font-bold text-green-600 mb-1">180+</div>
-                  <div className="text-sm text-muted-foreground">Countries</div>
+                <div className="p-3 md:p-4 rounded-xl bg-muted/50">
+                  <div className="text-2xl md:text-3xl font-bold text-green-600 mb-1">180+</div>
+                  <div className="text-xs md:text-sm text-muted-foreground">Countries</div>
                 </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Technology Section - New */}
+      <section className="py-12 md:py-20 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 relative overflow-hidden">
+        {/* Background effects */}
+        <div className="absolute inset-0">
+          <div className="absolute top-1/4 left-1/4 w-64 md:w-96 h-64 md:h-96 bg-green-500/10 rounded-full blur-[100px]" />
+          <div className="absolute bottom-1/4 right-1/4 w-64 md:w-96 h-64 md:h-96 bg-emerald-500/10 rounded-full blur-[100px]" />
+        </div>
+        
+        <div className="container mx-auto px-4 relative z-10">
+          <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center max-w-6xl mx-auto">
+            <div className="text-center lg:text-left">
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-green-500/20 text-green-400 text-sm font-medium mb-6">
+                <Sparkles className="w-4 h-4" />
+                Advanced Technology
+              </div>
+              <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-4 md:mb-6">
+                Powered by WhatsApp Business API
+              </h2>
+              <p className="text-base md:text-lg text-gray-300 mb-6 md:mb-8">
+                Leverage the official WhatsApp Business API with enterprise-grade reliability, security, and scalability built for growing businesses.
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4 text-left">
+                {[
+                  { icon: Shield, title: 'End-to-End Encryption', desc: 'Messages are secure by default' },
+                  { icon: Zap, title: 'Instant Delivery', desc: 'Messages delivered in milliseconds' },
+                  { icon: Globe, title: 'Global Reach', desc: 'Available in 180+ countries' },
+                  { icon: Bot, title: 'AI-Powered', desc: 'Smart automation & routing' },
+                ].map((item, index) => (
+                  <div key={index} className="flex items-start gap-3 p-3 md:p-4 rounded-xl bg-white/5 border border-white/10">
+                    <div className="w-8 h-8 md:w-10 md:h-10 rounded-lg bg-green-500/20 flex items-center justify-center flex-shrink-0">
+                      <item.icon className="w-4 h-4 md:w-5 md:h-5 text-green-400" />
+                    </div>
+                    <div>
+                      <div className="font-medium text-white text-sm md:text-base">{item.title}</div>
+                      <div className="text-xs md:text-sm text-gray-400">{item.desc}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="flex justify-center order-first lg:order-last">
+              <div className="relative">
+                <img 
+                  src={whatsappPhoneTech} 
+                  alt="WhatsApp Technology" 
+                  className="w-full max-w-xs sm:max-w-sm md:max-w-md rounded-2xl shadow-2xl"
+                />
+                {/* Glowing effect */}
+                <div className="absolute inset-0 rounded-2xl bg-gradient-to-t from-green-500/20 to-transparent pointer-events-none" />
               </div>
             </div>
           </div>
