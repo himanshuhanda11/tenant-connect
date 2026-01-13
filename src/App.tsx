@@ -33,6 +33,16 @@ import Blog from "./pages/Blog";
 import Careers from "./pages/Careers";
 import Integrations from "./pages/Integrations";
 import Security from "./pages/Security";
+import InboxFeature from "./pages/features/InboxFeature";
+import ContactsFeature from "./pages/features/ContactsFeature";
+import TemplatesFeature from "./pages/features/TemplatesFeature";
+import CampaignsFeature from "./pages/features/CampaignsFeature";
+import AutomationFeature from "./pages/features/AutomationFeature";
+import IntegrationsFeature from "./pages/features/IntegrationsFeature";
+import AnalyticsFeature from "./pages/features/AnalyticsFeature";
+import PhoneNumbersFeature from "./pages/features/PhoneNumbersFeature";
+import TeamRolesFeature from "./pages/features/TeamRolesFeature";
+import AuditLogsFeature from "./pages/features/AuditLogsFeature";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -82,6 +92,16 @@ const App = () => (
               <Route path="/partners" element={<About />} />
               <Route path="/press" element={<About />} />
               <Route path="/cookies" element={<PrivacyPolicy />} />
+              <Route path="/features/inbox" element={<InboxFeature />} />
+              <Route path="/features/contacts" element={<ContactsFeature />} />
+              <Route path="/features/templates" element={<TemplatesFeature />} />
+              <Route path="/features/campaigns" element={<CampaignsFeature />} />
+              <Route path="/features/automation" element={<AutomationFeature />} />
+              <Route path="/features/integrations" element={<IntegrationsFeature />} />
+              <Route path="/features/analytics" element={<AnalyticsFeature />} />
+              <Route path="/features/phone-numbers" element={<PhoneNumbersFeature />} />
+              <Route path="/features/team-roles" element={<TeamRolesFeature />} />
+              <Route path="/features/audit-logs" element={<AuditLogsFeature />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </TenantProvider>
