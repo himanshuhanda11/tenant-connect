@@ -1143,17 +1143,312 @@ export type Database = {
           },
         ]
       }
+      template_approvals: {
+        Row: {
+          comments: string | null
+          created_at: string
+          id: string
+          requested_at: string
+          requested_by: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          template_id: string
+          tenant_id: string
+          version_id: string
+        }
+        Insert: {
+          comments?: string | null
+          created_at?: string
+          id?: string
+          requested_at?: string
+          requested_by?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          template_id: string
+          tenant_id: string
+          version_id: string
+        }
+        Update: {
+          comments?: string | null
+          created_at?: string
+          id?: string
+          requested_at?: string
+          requested_by?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          template_id?: string
+          tenant_id?: string
+          version_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "template_approvals_requested_by_fkey"
+            columns: ["requested_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "template_approvals_reviewed_by_fkey"
+            columns: ["reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "template_approvals_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "templates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "template_approvals_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "template_approvals_version_id_fkey"
+            columns: ["version_id"]
+            isOneToOne: false
+            referencedRelation: "template_versions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      template_lint_results: {
+        Row: {
+          created_at: string
+          field: string | null
+          id: string
+          message: string
+          rule_code: string
+          severity: string
+          suggestion: string | null
+          template_id: string
+          tenant_id: string
+          version_id: string
+        }
+        Insert: {
+          created_at?: string
+          field?: string | null
+          id?: string
+          message: string
+          rule_code: string
+          severity: string
+          suggestion?: string | null
+          template_id: string
+          tenant_id: string
+          version_id: string
+        }
+        Update: {
+          created_at?: string
+          field?: string | null
+          id?: string
+          message?: string
+          rule_code?: string
+          severity?: string
+          suggestion?: string | null
+          template_id?: string
+          tenant_id?: string
+          version_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "template_lint_results_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "templates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "template_lint_results_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "template_lint_results_version_id_fkey"
+            columns: ["version_id"]
+            isOneToOne: false
+            referencedRelation: "template_versions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      template_submission_logs: {
+        Row: {
+          created_at: string
+          id: string
+          meta_status: string | null
+          meta_template_id: string | null
+          rejection_reason: string | null
+          request_payload: Json | null
+          response_payload: Json | null
+          submitted_by: string | null
+          template_id: string
+          tenant_id: string
+          updated_at: string
+          version_id: string
+          waba_account_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          meta_status?: string | null
+          meta_template_id?: string | null
+          rejection_reason?: string | null
+          request_payload?: Json | null
+          response_payload?: Json | null
+          submitted_by?: string | null
+          template_id: string
+          tenant_id: string
+          updated_at?: string
+          version_id: string
+          waba_account_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          meta_status?: string | null
+          meta_template_id?: string | null
+          rejection_reason?: string | null
+          request_payload?: Json | null
+          response_payload?: Json | null
+          submitted_by?: string | null
+          template_id?: string
+          tenant_id?: string
+          updated_at?: string
+          version_id?: string
+          waba_account_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "template_submission_logs_submitted_by_fkey"
+            columns: ["submitted_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "template_submission_logs_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "templates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "template_submission_logs_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "template_submission_logs_version_id_fkey"
+            columns: ["version_id"]
+            isOneToOne: false
+            referencedRelation: "template_versions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "template_submission_logs_waba_account_id_fkey"
+            columns: ["waba_account_id"]
+            isOneToOne: false
+            referencedRelation: "waba_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "template_submission_logs_waba_account_id_fkey"
+            columns: ["waba_account_id"]
+            isOneToOne: false
+            referencedRelation: "waba_accounts_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      template_versions: {
+        Row: {
+          body: string
+          buttons: Json | null
+          content_hash: string | null
+          created_at: string
+          created_by: string | null
+          footer: string | null
+          header_content: string | null
+          header_type: string | null
+          id: string
+          template_id: string
+          variable_samples: Json | null
+          version_number: number
+        }
+        Insert: {
+          body: string
+          buttons?: Json | null
+          content_hash?: string | null
+          created_at?: string
+          created_by?: string | null
+          footer?: string | null
+          header_content?: string | null
+          header_type?: string | null
+          id?: string
+          template_id: string
+          variable_samples?: Json | null
+          version_number?: number
+        }
+        Update: {
+          body?: string
+          buttons?: Json | null
+          content_hash?: string | null
+          created_at?: string
+          created_by?: string | null
+          footer?: string | null
+          header_content?: string | null
+          header_type?: string | null
+          id?: string
+          template_id?: string
+          variable_samples?: Json | null
+          version_number?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "template_versions_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "template_versions_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       templates: {
         Row: {
           category: Database["public"]["Enums"]["template_category"]
           components_json: Json
           created_at: string
+          created_by: string | null
+          current_version_id: string | null
           id: string
+          internal_status: string | null
           language: string
           last_synced_at: string | null
           meta_template_id: string
           name: string
+          rejection_reason: string | null
           status: Database["public"]["Enums"]["template_status"]
+          template_score: number | null
           tenant_id: string
           updated_at: string
           waba_account_id: string
@@ -1162,12 +1457,17 @@ export type Database = {
           category?: Database["public"]["Enums"]["template_category"]
           components_json?: Json
           created_at?: string
+          created_by?: string | null
+          current_version_id?: string | null
           id?: string
+          internal_status?: string | null
           language?: string
           last_synced_at?: string | null
           meta_template_id: string
           name: string
+          rejection_reason?: string | null
           status?: Database["public"]["Enums"]["template_status"]
+          template_score?: number | null
           tenant_id: string
           updated_at?: string
           waba_account_id: string
@@ -1176,17 +1476,36 @@ export type Database = {
           category?: Database["public"]["Enums"]["template_category"]
           components_json?: Json
           created_at?: string
+          created_by?: string | null
+          current_version_id?: string | null
           id?: string
+          internal_status?: string | null
           language?: string
           last_synced_at?: string | null
           meta_template_id?: string
           name?: string
+          rejection_reason?: string | null
           status?: Database["public"]["Enums"]["template_status"]
+          template_score?: number | null
           tenant_id?: string
           updated_at?: string
           waba_account_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "templates_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "templates_current_version_id_fkey"
+            columns: ["current_version_id"]
+            isOneToOne: false
+            referencedRelation: "template_versions"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "templates_tenant_id_fkey"
             columns: ["tenant_id"]
