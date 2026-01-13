@@ -3593,6 +3593,23 @@ export type Database = {
       }
     }
     Functions: {
+      assign_conversation: {
+        Args: {
+          p_conversation_id: string
+          p_only_if_unassigned?: boolean
+          p_profile_id: string
+          p_tenant_id: string
+        }
+        Returns: boolean
+      }
+      auto_route_conversation: {
+        Args: {
+          p_conversation_id: string
+          p_only_if_unassigned?: boolean
+          p_tenant_id: string
+        }
+        Returns: Json
+      }
       cancel_conversation_jobs: {
         Args: {
           p_conversation_id: string
@@ -3670,6 +3687,17 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      get_team_workload: {
+        Args: { p_team_id: string; p_tenant_id: string }
+        Returns: {
+          availability_pct: number
+          display_name: string
+          is_online: boolean
+          max_open_chats: number
+          open_count: number
+          profile_id: string
+        }[]
+      }
       get_tenant_usage: {
         Args: { p_tenant_id: string }
         Returns: {
@@ -3744,6 +3772,23 @@ export type Database = {
       }
       pick_agent_round_robin: {
         Args: { p_team_id: string; p_tenant_id: string }
+        Returns: string
+      }
+      pick_profile_least_busy: {
+        Args: {
+          p_max_open?: number
+          p_only_online?: boolean
+          p_team_id: string
+          p_tenant_id: string
+        }
+        Returns: string
+      }
+      pick_profile_round_robin: {
+        Args: {
+          p_only_online?: boolean
+          p_team_id: string
+          p_tenant_id: string
+        }
         Returns: string
       }
       schedule_automation_job: {
