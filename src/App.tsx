@@ -32,6 +32,10 @@ import Help from "./pages/Help";
 import HelpCenter from "./pages/help/HelpCenter";
 import HelpCategory from "./pages/help/HelpCategory";
 import GuideDetail from "./pages/help/GuideDetail";
+import InboxGuide from "./pages/help/InboxGuide";
+import TemplatesGuide from "./pages/help/TemplatesGuide";
+import AutomationGuide from "./pages/help/AutomationGuide";
+import ContactsTagsGuide from "./pages/help/ContactsTagsGuide";
 import About from "./pages/About";
 import Contact from "./pages/Contact";
 import Blog from "./pages/Blog";
@@ -100,6 +104,10 @@ const App = () => (
               <Route path="/pricing" element={<Pricing />} />
               <Route path="/help" element={<HelpCenter />} />
               <Route path="/help/category/:category" element={<HelpCategory />} />
+              <Route path="/help/inbox" element={<InboxGuide />} />
+              <Route path="/help/templates" element={<TemplatesGuide />} />
+              <Route path="/help/automation" element={<AutomationGuide />} />
+              <Route path="/help/contacts-tags" element={<ContactsTagsGuide />} />
               <Route path="/help/:slug" element={<GuideDetail />} />
               <Route path="/help/all" element={<HelpCenter />} />
               <Route path="/about" element={<About />} />
