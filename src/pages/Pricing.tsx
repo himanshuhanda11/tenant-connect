@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { CheckCircle2, ArrowRight, HelpCircle, Zap } from 'lucide-react';
+import { CheckCircle2, ArrowRight, HelpCircle, Zap, AlertCircle, Plus, Users, Phone, Bot, BarChart3 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
@@ -229,6 +229,161 @@ export default function Pricing() {
 
           <p className="text-center text-muted-foreground mt-8">
             All plans include a 14-day free trial. No credit card required.
+          </p>
+
+          {/* Meta Billing Note */}
+          <Card className="mt-12 max-w-3xl mx-auto border-amber-500/30 bg-amber-500/5">
+            <CardContent className="p-6">
+              <div className="flex items-start gap-4">
+                <div className="w-10 h-10 rounded-lg bg-amber-500/10 flex items-center justify-center flex-shrink-0">
+                  <AlertCircle className="w-5 h-5 text-amber-500" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-foreground mb-2">Important: WhatsApp Conversation Charges</h3>
+                  <p className="text-muted-foreground text-sm mb-3">
+                    WhatsApp conversation fees are <strong>billed separately by Meta</strong> and are not included in our platform subscription. 
+                    These charges are based on the type and volume of conversations you have with customers.
+                  </p>
+                  <ul className="text-sm text-muted-foreground space-y-1 mb-3">
+                    <li>• <strong>User-initiated:</strong> When customers message you first (lower cost)</li>
+                    <li>• <strong>Business-initiated:</strong> When you start conversations with templates (higher cost)</li>
+                    <li>• <strong>Free tier:</strong> First 1,000 user-initiated conversations/month are free</li>
+                  </ul>
+                  <a 
+                    href="https://business.whatsapp.com/products/platform-pricing" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-sm text-primary hover:underline inline-flex items-center gap-1"
+                  >
+                    View Meta's official pricing →
+                  </a>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </section>
+
+      {/* Add-ons Section */}
+      <section className="py-16 bg-muted/30">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-12">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-purple-500/10 text-purple-600 text-sm font-medium mb-6">
+              <Plus className="w-4 h-4" />
+              Flexible Add-ons
+            </div>
+            <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
+              Scale As You Grow
+            </h2>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              Need more capacity? Add extra resources to any plan without upgrading.
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-5xl mx-auto">
+            <Card className="border-border/50 hover:shadow-lg transition-shadow">
+              <CardContent className="p-6 text-center">
+                <div className="w-14 h-14 rounded-2xl bg-blue-500/10 flex items-center justify-center mx-auto mb-4">
+                  <Users className="w-7 h-7 text-blue-500" />
+                </div>
+                <h3 className="font-semibold text-foreground mb-2">Extra Team Members</h3>
+                <div className="text-3xl font-bold text-foreground mb-1">$10</div>
+                <p className="text-sm text-muted-foreground mb-4">per user / month</p>
+                <ul className="text-sm text-muted-foreground space-y-2 text-left">
+                  <li className="flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-green-500" />
+                    Full inbox access
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-green-500" />
+                    Role-based permissions
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-green-500" />
+                    Activity tracking
+                  </li>
+                </ul>
+              </CardContent>
+            </Card>
+
+            <Card className="border-border/50 hover:shadow-lg transition-shadow">
+              <CardContent className="p-6 text-center">
+                <div className="w-14 h-14 rounded-2xl bg-green-500/10 flex items-center justify-center mx-auto mb-4">
+                  <Phone className="w-7 h-7 text-green-500" />
+                </div>
+                <h3 className="font-semibold text-foreground mb-2">Extra Phone Numbers</h3>
+                <div className="text-3xl font-bold text-foreground mb-1">$25</div>
+                <p className="text-sm text-muted-foreground mb-4">per number / month</p>
+                <ul className="text-sm text-muted-foreground space-y-2 text-left">
+                  <li className="flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-green-500" />
+                    Dedicated WABA
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-green-500" />
+                    Separate templates
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-green-500" />
+                    Multi-brand support
+                  </li>
+                </ul>
+              </CardContent>
+            </Card>
+
+            <Card className="border-border/50 hover:shadow-lg transition-shadow">
+              <CardContent className="p-6 text-center">
+                <div className="w-14 h-14 rounded-2xl bg-purple-500/10 flex items-center justify-center mx-auto mb-4">
+                  <Bot className="w-7 h-7 text-purple-500" />
+                </div>
+                <h3 className="font-semibold text-foreground mb-2">Advanced Automation</h3>
+                <div className="text-3xl font-bold text-foreground mb-1">$49</div>
+                <p className="text-sm text-muted-foreground mb-4">per month</p>
+                <ul className="text-sm text-muted-foreground space-y-2 text-left">
+                  <li className="flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-green-500" />
+                    Unlimited workflows
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-green-500" />
+                    AI-powered responses
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-green-500" />
+                    Custom triggers
+                  </li>
+                </ul>
+              </CardContent>
+            </Card>
+
+            <Card className="border-border/50 hover:shadow-lg transition-shadow">
+              <CardContent className="p-6 text-center">
+                <div className="w-14 h-14 rounded-2xl bg-orange-500/10 flex items-center justify-center mx-auto mb-4">
+                  <BarChart3 className="w-7 h-7 text-orange-500" />
+                </div>
+                <h3 className="font-semibold text-foreground mb-2">Extra Messages</h3>
+                <div className="text-3xl font-bold text-foreground mb-1">$20</div>
+                <p className="text-sm text-muted-foreground mb-4">per 5,000 messages</p>
+                <ul className="text-sm text-muted-foreground space-y-2 text-left">
+                  <li className="flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-green-500" />
+                    No expiry
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-green-500" />
+                    Rollover unused
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-green-500" />
+                    Volume discounts
+                  </li>
+                </ul>
+              </CardContent>
+            </Card>
+          </div>
+
+          <p className="text-center text-muted-foreground mt-8 text-sm">
+            Add-ons can be added or removed at any time from your account settings.
           </p>
         </div>
       </section>
