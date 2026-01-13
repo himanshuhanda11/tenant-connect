@@ -11,7 +11,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import Breadcrumb from '@/components/layout/Breadcrumb';
-import phoneMockup from '@/assets/phone-mockup.png';
 
 const loginSchema = z.object({
   email: z.string().email('Please enter a valid email'),
@@ -227,15 +226,11 @@ export function AuthForm({ mode }: AuthFormProps) {
 
   return (
     <div className="min-h-screen flex">
-      {/* Left Panel - Marketing */}
+      {/* Left Panel - Marketing (no image) */}
       <div className="hidden lg:flex w-1/2 bg-gradient-to-br from-emerald-600 via-green-600 to-teal-600 p-12 flex-col justify-center relative overflow-hidden">
         <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4xIj48Y2lyY2xlIGN4PSIzMCIgY3k9IjMwIiByPSIyIi8+PC9nPjwvZz48L3N2Zz4=')] opacity-30" />
         
         <div className="relative z-10 max-w-lg">
-          <div className="mb-8">
-            <img src={phoneMockup} alt="WhatsApp Business" className="w-48 h-auto mx-auto drop-shadow-2xl" />
-          </div>
-
           <h2 className="text-4xl font-bold text-white mb-6">
             Start your WhatsApp Business journey today
           </h2>
