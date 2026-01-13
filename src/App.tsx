@@ -21,7 +21,7 @@ import UserAttributes from "./pages/UserAttributes";
 import PhoneNumbers from "./pages/PhoneNumbers";
 import Templates from "./pages/Templates";
 import Campaigns from "./pages/Campaigns";
-import Automation from "./pages/Automation";
+import AutomationWorkflows from "./pages/AutomationWorkflows";
 import Billing from "./pages/Billing";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import Terms from "./pages/Terms";
@@ -89,7 +89,7 @@ const App = () => (
               <Route path="/phone-numbers" element={<PhoneNumbers />} />
               <Route path="/templates" element={<Templates />} />
               <Route path="/campaigns" element={<Campaigns />} />
-              <Route path="/automation" element={<Automation />} />
+              <Route path="/automation" element={<AutomationWorkflows />} />
               <Route path="/team" element={<Team />} />
               <Route path="/billing" element={<Billing />} />
               <Route path="/settings" element={<Settings />} />
