@@ -23,6 +23,10 @@ import TeamAudit from "./pages/team/TeamAudit";
 import Settings from "./pages/Settings";
 import Inbox from "./pages/Inbox";
 import Contacts from "./pages/Contacts";
+import ContactSegments from "./pages/ContactSegments";
+import ContactImports from "./pages/ContactImports";
+import ContactDuplicates from "./pages/ContactDuplicates";
+import ContactDataRequests from "./pages/ContactDataRequests";
 import Tags from "./pages/Tags";
 import UserAttributes from "./pages/UserAttributes";
 import PhoneNumbers from "./pages/PhoneNumbers";
@@ -91,6 +95,10 @@ const App = () => (
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/inbox" element={<Inbox />} />
               <Route path="/contacts" element={<Contacts />} />
+              <Route path="/contacts/segments" element={<ContactSegments />} />
+              <Route path="/contacts/imports" element={<ContactImports />} />
+              <Route path="/contacts/duplicates" element={<ContactDuplicates />} />
+              <Route path="/contacts/data-requests" element={<ContactDataRequests />} />
               <Route path="/tags" element={<Tags />} />
               <Route path="/user-attributes" element={<UserAttributes />} />
               <Route path="/phone-numbers" element={<PhoneNumbers />} />
