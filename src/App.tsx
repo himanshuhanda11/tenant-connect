@@ -22,6 +22,7 @@ import Automation from "./pages/Automation";
 import Billing from "./pages/Billing";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import Terms from "./pages/Terms";
+import AppAccessInstructions from "./pages/AppAccessInstructions";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -52,6 +53,7 @@ const App = () => (
               <Route path="/settings" element={<Settings />} />
               <Route path="/privacy-policy" element={<PrivacyPolicy />} />
               <Route path="/terms" element={<Terms />} />
+              <Route path="/app-access-instructions" element={<AppAccessInstructions />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </TenantProvider>

@@ -103,8 +103,23 @@ export default function Index() {
 
       {/* Footer */}
       <footer className="border-t border-border bg-card/50">
-        <div className="container mx-auto px-4 py-8 text-center text-muted-foreground text-sm">
-          © 2024 WhatsApp ISV Platform. Built with Lovable.
+        <div className="container mx-auto px-4 py-8">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+            <p className="text-muted-foreground text-sm">
+              © 2025 smeksh.com. All rights reserved.
+            </p>
+            <div className="flex items-center gap-6 text-sm">
+              <a href="/privacy-policy" className="text-muted-foreground hover:text-foreground transition-colors">
+                Privacy Policy
+              </a>
+              <a href="/terms" className="text-muted-foreground hover:text-foreground transition-colors">
+                Terms of Service
+              </a>
+              <a href="/app-access-instructions" className="text-muted-foreground hover:text-foreground transition-colors">
+                App Access Instructions
+              </a>
+            </div>
+          </div>
         </div>
       </footer>
     </div>
