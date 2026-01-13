@@ -2976,6 +2976,576 @@ export type Database = {
           },
         ]
       }
+      smeksh_meta_ad_accounts: {
+        Row: {
+          access_token_encrypted: string | null
+          connected_by: string | null
+          created_at: string
+          facebook_page_id: string | null
+          facebook_page_name: string | null
+          id: string
+          is_active: boolean
+          last_synced_at: string | null
+          meta_account_id: string
+          meta_account_name: string | null
+          meta_user_id: string | null
+          meta_user_name: string | null
+          status: Database["public"]["Enums"]["smeksh_meta_connection_status"]
+          sync_error: string | null
+          token_expires_at: string | null
+          updated_at: string
+          whatsapp_display_number: string | null
+          whatsapp_phone_number_id: string | null
+          workspace_id: string
+        }
+        Insert: {
+          access_token_encrypted?: string | null
+          connected_by?: string | null
+          created_at?: string
+          facebook_page_id?: string | null
+          facebook_page_name?: string | null
+          id?: string
+          is_active?: boolean
+          last_synced_at?: string | null
+          meta_account_id: string
+          meta_account_name?: string | null
+          meta_user_id?: string | null
+          meta_user_name?: string | null
+          status?: Database["public"]["Enums"]["smeksh_meta_connection_status"]
+          sync_error?: string | null
+          token_expires_at?: string | null
+          updated_at?: string
+          whatsapp_display_number?: string | null
+          whatsapp_phone_number_id?: string | null
+          workspace_id: string
+        }
+        Update: {
+          access_token_encrypted?: string | null
+          connected_by?: string | null
+          created_at?: string
+          facebook_page_id?: string | null
+          facebook_page_name?: string | null
+          id?: string
+          is_active?: boolean
+          last_synced_at?: string | null
+          meta_account_id?: string
+          meta_account_name?: string | null
+          meta_user_id?: string | null
+          meta_user_name?: string | null
+          status?: Database["public"]["Enums"]["smeksh_meta_connection_status"]
+          sync_error?: string | null
+          token_expires_at?: string | null
+          updated_at?: string
+          whatsapp_display_number?: string | null
+          whatsapp_phone_number_id?: string | null
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "smeksh_meta_ad_accounts_connected_by_fkey"
+            columns: ["connected_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "smeksh_meta_ad_accounts_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      smeksh_meta_ad_automations: {
+        Row: {
+          actions: Json
+          created_at: string
+          created_by: string | null
+          description: string | null
+          executions_count: number | null
+          id: string
+          is_active: boolean
+          last_executed_at: string | null
+          name: string
+          trigger_ad_account_id: string | null
+          trigger_campaign_ids: string[] | null
+          trigger_conditions: Json | null
+          trigger_type: string
+          updated_at: string
+          workspace_id: string
+        }
+        Insert: {
+          actions?: Json
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          executions_count?: number | null
+          id?: string
+          is_active?: boolean
+          last_executed_at?: string | null
+          name: string
+          trigger_ad_account_id?: string | null
+          trigger_campaign_ids?: string[] | null
+          trigger_conditions?: Json | null
+          trigger_type: string
+          updated_at?: string
+          workspace_id: string
+        }
+        Update: {
+          actions?: Json
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          executions_count?: number | null
+          id?: string
+          is_active?: boolean
+          last_executed_at?: string | null
+          name?: string
+          trigger_ad_account_id?: string | null
+          trigger_campaign_ids?: string[] | null
+          trigger_conditions?: Json | null
+          trigger_type?: string
+          updated_at?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "smeksh_meta_ad_automations_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "smeksh_meta_ad_automations_trigger_ad_account_id_fkey"
+            columns: ["trigger_ad_account_id"]
+            isOneToOne: false
+            referencedRelation: "smeksh_meta_ad_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "smeksh_meta_ad_automations_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      smeksh_meta_ad_campaigns: {
+        Row: {
+          ad_account_id: string
+          ad_creative_id: string | null
+          ad_creative_preview_url: string | null
+          ad_name: string | null
+          adset_name: string | null
+          campaign_name: string
+          campaign_objective: string | null
+          clicks: number | null
+          conversations_started: number | null
+          cpc: number | null
+          cpl: number | null
+          created_at: string
+          ctr: number | null
+          end_date: string | null
+          id: string
+          impressions: number | null
+          last_synced_at: string | null
+          leads_count: number | null
+          meta_ad_id: string | null
+          meta_adset_id: string | null
+          meta_campaign_id: string
+          raw_meta_data: Json | null
+          spend_amount: number | null
+          spend_currency: string | null
+          start_date: string | null
+          status: Database["public"]["Enums"]["smeksh_ad_status"]
+          updated_at: string
+          workspace_id: string
+        }
+        Insert: {
+          ad_account_id: string
+          ad_creative_id?: string | null
+          ad_creative_preview_url?: string | null
+          ad_name?: string | null
+          adset_name?: string | null
+          campaign_name: string
+          campaign_objective?: string | null
+          clicks?: number | null
+          conversations_started?: number | null
+          cpc?: number | null
+          cpl?: number | null
+          created_at?: string
+          ctr?: number | null
+          end_date?: string | null
+          id?: string
+          impressions?: number | null
+          last_synced_at?: string | null
+          leads_count?: number | null
+          meta_ad_id?: string | null
+          meta_adset_id?: string | null
+          meta_campaign_id: string
+          raw_meta_data?: Json | null
+          spend_amount?: number | null
+          spend_currency?: string | null
+          start_date?: string | null
+          status?: Database["public"]["Enums"]["smeksh_ad_status"]
+          updated_at?: string
+          workspace_id: string
+        }
+        Update: {
+          ad_account_id?: string
+          ad_creative_id?: string | null
+          ad_creative_preview_url?: string | null
+          ad_name?: string | null
+          adset_name?: string | null
+          campaign_name?: string
+          campaign_objective?: string | null
+          clicks?: number | null
+          conversations_started?: number | null
+          cpc?: number | null
+          cpl?: number | null
+          created_at?: string
+          ctr?: number | null
+          end_date?: string | null
+          id?: string
+          impressions?: number | null
+          last_synced_at?: string | null
+          leads_count?: number | null
+          meta_ad_id?: string | null
+          meta_adset_id?: string | null
+          meta_campaign_id?: string
+          raw_meta_data?: Json | null
+          spend_amount?: number | null
+          spend_currency?: string | null
+          start_date?: string | null
+          status?: Database["public"]["Enums"]["smeksh_ad_status"]
+          updated_at?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "smeksh_meta_ad_campaigns_ad_account_id_fkey"
+            columns: ["ad_account_id"]
+            isOneToOne: false
+            referencedRelation: "smeksh_meta_ad_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "smeksh_meta_ad_campaigns_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      smeksh_meta_ad_leads: {
+        Row: {
+          ad_account_id: string | null
+          ad_clicked_at: string | null
+          attribution_source: string | null
+          attribution_window:
+            | Database["public"]["Enums"]["smeksh_attribution_window"]
+            | null
+          automation_triggered: boolean | null
+          automation_workflow_id: string | null
+          campaign_id: string | null
+          contact_id: string | null
+          conversion_currency: string | null
+          conversion_value: number | null
+          converted_at: string | null
+          created_at: string
+          first_message_at: string | null
+          first_response_at: string | null
+          id: string
+          is_converted: boolean
+          meta_ad_id: string | null
+          meta_ad_name: string | null
+          meta_adset_id: string | null
+          meta_adset_name: string | null
+          meta_campaign_id: string | null
+          meta_campaign_name: string | null
+          meta_lead_id: string | null
+          phone_e164: string | null
+          raw_meta_data: Json | null
+          smeksh_contact_id: string | null
+          time_to_first_message_seconds: number | null
+          time_to_first_response_seconds: number | null
+          updated_at: string
+          wa_id: string | null
+          workspace_id: string
+        }
+        Insert: {
+          ad_account_id?: string | null
+          ad_clicked_at?: string | null
+          attribution_source?: string | null
+          attribution_window?:
+            | Database["public"]["Enums"]["smeksh_attribution_window"]
+            | null
+          automation_triggered?: boolean | null
+          automation_workflow_id?: string | null
+          campaign_id?: string | null
+          contact_id?: string | null
+          conversion_currency?: string | null
+          conversion_value?: number | null
+          converted_at?: string | null
+          created_at?: string
+          first_message_at?: string | null
+          first_response_at?: string | null
+          id?: string
+          is_converted?: boolean
+          meta_ad_id?: string | null
+          meta_ad_name?: string | null
+          meta_adset_id?: string | null
+          meta_adset_name?: string | null
+          meta_campaign_id?: string | null
+          meta_campaign_name?: string | null
+          meta_lead_id?: string | null
+          phone_e164?: string | null
+          raw_meta_data?: Json | null
+          smeksh_contact_id?: string | null
+          time_to_first_message_seconds?: number | null
+          time_to_first_response_seconds?: number | null
+          updated_at?: string
+          wa_id?: string | null
+          workspace_id: string
+        }
+        Update: {
+          ad_account_id?: string | null
+          ad_clicked_at?: string | null
+          attribution_source?: string | null
+          attribution_window?:
+            | Database["public"]["Enums"]["smeksh_attribution_window"]
+            | null
+          automation_triggered?: boolean | null
+          automation_workflow_id?: string | null
+          campaign_id?: string | null
+          contact_id?: string | null
+          conversion_currency?: string | null
+          conversion_value?: number | null
+          converted_at?: string | null
+          created_at?: string
+          first_message_at?: string | null
+          first_response_at?: string | null
+          id?: string
+          is_converted?: boolean
+          meta_ad_id?: string | null
+          meta_ad_name?: string | null
+          meta_adset_id?: string | null
+          meta_adset_name?: string | null
+          meta_campaign_id?: string | null
+          meta_campaign_name?: string | null
+          meta_lead_id?: string | null
+          phone_e164?: string | null
+          raw_meta_data?: Json | null
+          smeksh_contact_id?: string | null
+          time_to_first_message_seconds?: number | null
+          time_to_first_response_seconds?: number | null
+          updated_at?: string
+          wa_id?: string | null
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "smeksh_meta_ad_leads_ad_account_id_fkey"
+            columns: ["ad_account_id"]
+            isOneToOne: false
+            referencedRelation: "smeksh_meta_ad_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "smeksh_meta_ad_leads_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "smeksh_meta_ad_campaigns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "smeksh_meta_ad_leads_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "smeksh_meta_ad_leads_smeksh_contact_id_fkey"
+            columns: ["smeksh_contact_id"]
+            isOneToOne: false
+            referencedRelation: "smeksh_contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "smeksh_meta_ad_leads_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      smeksh_meta_ads_settings: {
+        Row: {
+          attribution_priority: Json | null
+          auto_sync_enabled: boolean
+          created_at: string
+          default_assigned_agent_id: string | null
+          default_assigned_team_id: string | null
+          default_attribution_window:
+            | Database["public"]["Enums"]["smeksh_attribution_window"]
+            | null
+          default_tags: string[] | null
+          enforce_opt_in: boolean
+          id: string
+          last_full_sync_at: string | null
+          marketing_consent_required: boolean
+          sync_interval_minutes: number | null
+          tracking_enabled: boolean
+          updated_at: string
+          workspace_id: string
+        }
+        Insert: {
+          attribution_priority?: Json | null
+          auto_sync_enabled?: boolean
+          created_at?: string
+          default_assigned_agent_id?: string | null
+          default_assigned_team_id?: string | null
+          default_attribution_window?:
+            | Database["public"]["Enums"]["smeksh_attribution_window"]
+            | null
+          default_tags?: string[] | null
+          enforce_opt_in?: boolean
+          id?: string
+          last_full_sync_at?: string | null
+          marketing_consent_required?: boolean
+          sync_interval_minutes?: number | null
+          tracking_enabled?: boolean
+          updated_at?: string
+          workspace_id: string
+        }
+        Update: {
+          attribution_priority?: Json | null
+          auto_sync_enabled?: boolean
+          created_at?: string
+          default_assigned_agent_id?: string | null
+          default_assigned_team_id?: string | null
+          default_attribution_window?:
+            | Database["public"]["Enums"]["smeksh_attribution_window"]
+            | null
+          default_tags?: string[] | null
+          enforce_opt_in?: boolean
+          id?: string
+          last_full_sync_at?: string | null
+          marketing_consent_required?: boolean
+          sync_interval_minutes?: number | null
+          tracking_enabled?: boolean
+          updated_at?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "smeksh_meta_ads_settings_default_assigned_agent_id_fkey"
+            columns: ["default_assigned_agent_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "smeksh_meta_ads_settings_default_assigned_team_id_fkey"
+            columns: ["default_assigned_team_id"]
+            isOneToOne: false
+            referencedRelation: "smeksh_teams"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "smeksh_meta_ads_settings_default_assigned_team_id_fkey"
+            columns: ["default_assigned_team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "smeksh_meta_ads_settings_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: true
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      smeksh_meta_attribution_rules: {
+        Row: {
+          attribution_window: Database["public"]["Enums"]["smeksh_attribution_window"]
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          is_active: boolean
+          match_conditions: Json | null
+          name: string
+          priority: number
+          set_campaign_source: string | null
+          set_priority: string | null
+          set_source: string | null
+          set_tags: string[] | null
+          source_type: string
+          updated_at: string
+          workspace_id: string
+        }
+        Insert: {
+          attribution_window?: Database["public"]["Enums"]["smeksh_attribution_window"]
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          match_conditions?: Json | null
+          name: string
+          priority?: number
+          set_campaign_source?: string | null
+          set_priority?: string | null
+          set_source?: string | null
+          set_tags?: string[] | null
+          source_type: string
+          updated_at?: string
+          workspace_id: string
+        }
+        Update: {
+          attribution_window?: Database["public"]["Enums"]["smeksh_attribution_window"]
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          match_conditions?: Json | null
+          name?: string
+          priority?: number
+          set_campaign_source?: string | null
+          set_priority?: string | null
+          set_source?: string | null
+          set_tags?: string[] | null
+          source_type?: string
+          updated_at?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "smeksh_meta_attribution_rules_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "smeksh_meta_attribution_rules_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       smeksh_segment_filters: {
         Row: {
           created_at: string
@@ -5144,6 +5714,7 @@ export type Database = {
         | "done"
         | "failed"
         | "cancelled"
+      smeksh_ad_status: "active" | "paused" | "deleted" | "archived"
       smeksh_attribute_type:
         | "TEXT"
         | "NUMBER"
@@ -5153,6 +5724,7 @@ export type Database = {
         | "SELECT"
         | "MULTISELECT"
         | "JSON"
+      smeksh_attribution_window: "1_day" | "7_days" | "28_days"
       smeksh_contact_status: "ACTIVE" | "ARCHIVED" | "BLOCKED"
       smeksh_conversation_status: "OPEN" | "PENDING" | "CLOSED"
       smeksh_deal_stage: "OPEN" | "WON" | "LOST"
@@ -5170,6 +5742,11 @@ export type Database = {
         | "CONVERTED"
         | "LOST"
       smeksh_mau_status: "ACTIVE" | "INACTIVE"
+      smeksh_meta_connection_status:
+        | "pending"
+        | "connected"
+        | "disconnected"
+        | "error"
       smeksh_optin_source:
         | "WEBSITE"
         | "FORM"
@@ -5509,6 +6086,7 @@ export const Constants = {
         "failed",
         "cancelled",
       ],
+      smeksh_ad_status: ["active", "paused", "deleted", "archived"],
       smeksh_attribute_type: [
         "TEXT",
         "NUMBER",
@@ -5519,6 +6097,7 @@ export const Constants = {
         "MULTISELECT",
         "JSON",
       ],
+      smeksh_attribution_window: ["1_day", "7_days", "28_days"],
       smeksh_contact_status: ["ACTIVE", "ARCHIVED", "BLOCKED"],
       smeksh_conversation_status: ["OPEN", "PENDING", "CLOSED"],
       smeksh_deal_stage: ["OPEN", "WON", "LOST"],
@@ -5538,6 +6117,12 @@ export const Constants = {
         "LOST",
       ],
       smeksh_mau_status: ["ACTIVE", "INACTIVE"],
+      smeksh_meta_connection_status: [
+        "pending",
+        "connected",
+        "disconnected",
+        "error",
+      ],
       smeksh_optin_source: [
         "WEBSITE",
         "FORM",
