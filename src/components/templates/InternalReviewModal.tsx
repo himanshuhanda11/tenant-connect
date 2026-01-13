@@ -21,8 +21,8 @@ import {
   Clock,
   User
 } from 'lucide-react';
+import { LintValidationResult } from '@/types/template';
 import { TemplateApproval, InternalStatus } from '@/types/template';
-import { LintValidationResult } from '@/lib/templateLinter';
 import { format } from 'date-fns';
 
 interface InternalReviewModalProps {

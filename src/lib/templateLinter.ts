@@ -1,10 +1,13 @@
 import { 
   LintRule, 
-  LintValidationResult, 
+  LintValidationResult,
   Template, 
   TemplateVersion,
   TemplateButton 
 } from '@/types/template';
+
+// Re-export LintValidationResult for external use
+export type { LintValidationResult } from '@/types/template';
 
 // Banned words list (can be extended per tenant)
 const BANNED_WORDS = [
