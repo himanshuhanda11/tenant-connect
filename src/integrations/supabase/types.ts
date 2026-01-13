@@ -919,29 +919,221 @@ export type Database = {
           },
         ]
       }
-      tags: {
+      tag_history: {
         Row: {
-          color: string | null
+          action: string
+          applied_by: string | null
+          applied_by_rule: string | null
+          contact_id: string | null
+          conversation_id: string | null
           created_at: string
           id: string
-          name: string
+          source: string | null
+          tag_id: string
           tenant_id: string
         }
         Insert: {
-          color?: string | null
+          action: string
+          applied_by?: string | null
+          applied_by_rule?: string | null
+          contact_id?: string | null
+          conversation_id?: string | null
           created_at?: string
           id?: string
-          name: string
+          source?: string | null
+          tag_id: string
           tenant_id: string
         }
         Update: {
-          color?: string | null
+          action?: string
+          applied_by?: string | null
+          applied_by_rule?: string | null
+          contact_id?: string | null
+          conversation_id?: string | null
           created_at?: string
           id?: string
-          name?: string
+          source?: string | null
+          tag_id?: string
           tenant_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "tag_history_applied_by_fkey"
+            columns: ["applied_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tag_history_applied_by_rule_fkey"
+            columns: ["applied_by_rule"]
+            isOneToOne: false
+            referencedRelation: "tag_rules"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tag_history_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tag_history_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tag_history_tag_id_fkey"
+            columns: ["tag_id"]
+            isOneToOne: false
+            referencedRelation: "tags"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tag_history_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tag_rules: {
+        Row: {
+          action_config: Json
+          action_type: string
+          created_at: string
+          created_by: string | null
+          description: string | null
+          execution_count: number | null
+          id: string
+          is_active: boolean
+          last_executed_at: string | null
+          name: string
+          priority: number | null
+          tag_id: string
+          tenant_id: string
+          trigger_config: Json
+          trigger_type: string
+          updated_at: string
+        }
+        Insert: {
+          action_config?: Json
+          action_type?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          execution_count?: number | null
+          id?: string
+          is_active?: boolean
+          last_executed_at?: string | null
+          name: string
+          priority?: number | null
+          tag_id: string
+          tenant_id: string
+          trigger_config?: Json
+          trigger_type: string
+          updated_at?: string
+        }
+        Update: {
+          action_config?: Json
+          action_type?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          execution_count?: number | null
+          id?: string
+          is_active?: boolean
+          last_executed_at?: string | null
+          name?: string
+          priority?: number | null
+          tag_id?: string
+          tenant_id?: string
+          trigger_config?: Json
+          trigger_type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tag_rules_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tag_rules_tag_id_fkey"
+            columns: ["tag_id"]
+            isOneToOne: false
+            referencedRelation: "tags"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tag_rules_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tags: {
+        Row: {
+          apply_to: Database["public"]["Enums"]["tag_apply_to"] | null
+          color: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          emoji: string | null
+          id: string
+          name: string
+          status: Database["public"]["Enums"]["tag_status"] | null
+          tag_group: string | null
+          tag_type: Database["public"]["Enums"]["tag_type"] | null
+          tenant_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          apply_to?: Database["public"]["Enums"]["tag_apply_to"] | null
+          color?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          emoji?: string | null
+          id?: string
+          name: string
+          status?: Database["public"]["Enums"]["tag_status"] | null
+          tag_group?: string | null
+          tag_type?: Database["public"]["Enums"]["tag_type"] | null
+          tenant_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          apply_to?: Database["public"]["Enums"]["tag_apply_to"] | null
+          color?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          emoji?: string | null
+          id?: string
+          name?: string
+          status?: Database["public"]["Enums"]["tag_status"] | null
+          tag_group?: string | null
+          tag_type?: Database["public"]["Enums"]["tag_type"] | null
+          tenant_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tags_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "tags_tenant_id_fkey"
             columns: ["tenant_id"]
@@ -1401,6 +1593,16 @@ export type Database = {
         | "incomplete"
         | "trialing"
         | "paused"
+      tag_apply_to: "contacts" | "conversations" | "both"
+      tag_status: "active" | "archived"
+      tag_type:
+        | "first_message"
+        | "lifecycle"
+        | "intent"
+        | "priority"
+        | "automation"
+        | "compliance"
+        | "custom"
       template_category: "MARKETING" | "UTILITY" | "AUTHENTICATION"
       template_status:
         | "PENDING"
@@ -1585,6 +1787,17 @@ export const Constants = {
         "incomplete",
         "trialing",
         "paused",
+      ],
+      tag_apply_to: ["contacts", "conversations", "both"],
+      tag_status: ["active", "archived"],
+      tag_type: [
+        "first_message",
+        "lifecycle",
+        "intent",
+        "priority",
+        "automation",
+        "compliance",
+        "custom",
       ],
       template_category: ["MARKETING", "UTILITY", "AUTHENTICATION"],
       template_status: [
