@@ -1914,10 +1914,20 @@ export type Database = {
           assigned_to: string | null
           contact_id: string
           created_at: string
+          first_response_at: string | null
           id: string
+          intervened_at: string | null
+          intervened_by: string | null
+          is_intervened: boolean | null
           last_inbound_at: string | null
           last_message_at: string | null
+          last_message_id: string | null
+          last_message_preview: string | null
           phone_number_id: string
+          priority: string | null
+          sla_breached: boolean | null
+          sla_first_response_due: string | null
+          source: string | null
           status: Database["public"]["Enums"]["conversation_status"]
           tenant_id: string
           unread_count: number
@@ -1927,10 +1937,20 @@ export type Database = {
           assigned_to?: string | null
           contact_id: string
           created_at?: string
+          first_response_at?: string | null
           id?: string
+          intervened_at?: string | null
+          intervened_by?: string | null
+          is_intervened?: boolean | null
           last_inbound_at?: string | null
           last_message_at?: string | null
+          last_message_id?: string | null
+          last_message_preview?: string | null
           phone_number_id: string
+          priority?: string | null
+          sla_breached?: boolean | null
+          sla_first_response_due?: string | null
+          source?: string | null
           status?: Database["public"]["Enums"]["conversation_status"]
           tenant_id: string
           unread_count?: number
@@ -1940,10 +1960,20 @@ export type Database = {
           assigned_to?: string | null
           contact_id?: string
           created_at?: string
+          first_response_at?: string | null
           id?: string
+          intervened_at?: string | null
+          intervened_by?: string | null
+          is_intervened?: boolean | null
           last_inbound_at?: string | null
           last_message_at?: string | null
+          last_message_id?: string | null
+          last_message_preview?: string | null
           phone_number_id?: string
+          priority?: string | null
+          sla_breached?: boolean | null
+          sla_first_response_due?: string | null
+          source?: string | null
           status?: Database["public"]["Enums"]["conversation_status"]
           tenant_id?: string
           unread_count?: number
@@ -1962,6 +1992,13 @@ export type Database = {
             columns: ["contact_id"]
             isOneToOne: false
             referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conversations_intervened_by_fkey"
+            columns: ["intervened_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
           {
@@ -3731,6 +3768,249 @@ export type Database = {
           },
         ]
       }
+      smeksh_conversation_events: {
+        Row: {
+          actor_profile_id: string | null
+          actor_type: string
+          automation_workflow_id: string | null
+          campaign_id: string | null
+          contact_id: string | null
+          conversation_id: string
+          created_at: string
+          ctwa_lead_id: string | null
+          details: Json
+          event_type: Database["public"]["Enums"]["smeksh_conversation_event_type"]
+          from_assigned_to: string | null
+          id: string
+          message_id: string | null
+          new_value: string | null
+          old_value: string | null
+          tag_id: string | null
+          tag_name: string | null
+          tag_reason: string | null
+          team_id: string | null
+          tenant_id: string
+          to_assigned_to: string | null
+        }
+        Insert: {
+          actor_profile_id?: string | null
+          actor_type?: string
+          automation_workflow_id?: string | null
+          campaign_id?: string | null
+          contact_id?: string | null
+          conversation_id: string
+          created_at?: string
+          ctwa_lead_id?: string | null
+          details?: Json
+          event_type: Database["public"]["Enums"]["smeksh_conversation_event_type"]
+          from_assigned_to?: string | null
+          id?: string
+          message_id?: string | null
+          new_value?: string | null
+          old_value?: string | null
+          tag_id?: string | null
+          tag_name?: string | null
+          tag_reason?: string | null
+          team_id?: string | null
+          tenant_id: string
+          to_assigned_to?: string | null
+        }
+        Update: {
+          actor_profile_id?: string | null
+          actor_type?: string
+          automation_workflow_id?: string | null
+          campaign_id?: string | null
+          contact_id?: string | null
+          conversation_id?: string
+          created_at?: string
+          ctwa_lead_id?: string | null
+          details?: Json
+          event_type?: Database["public"]["Enums"]["smeksh_conversation_event_type"]
+          from_assigned_to?: string | null
+          id?: string
+          message_id?: string | null
+          new_value?: string | null
+          old_value?: string | null
+          tag_id?: string | null
+          tag_name?: string | null
+          tag_reason?: string | null
+          team_id?: string | null
+          tenant_id?: string
+          to_assigned_to?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "smeksh_conversation_events_actor_profile_id_fkey"
+            columns: ["actor_profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "smeksh_conversation_events_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "smeksh_conversation_events_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "smeksh_conversation_events_from_assigned_to_fkey"
+            columns: ["from_assigned_to"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "smeksh_conversation_events_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "smeksh_messages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "smeksh_conversation_events_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "smeksh_conversation_events_to_assigned_to_fkey"
+            columns: ["to_assigned_to"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      smeksh_conversation_reads: {
+        Row: {
+          conversation_id: string
+          last_read_at: string
+          last_read_message_id: string | null
+          profile_id: string
+          tenant_id: string
+        }
+        Insert: {
+          conversation_id: string
+          last_read_at?: string
+          last_read_message_id?: string | null
+          profile_id: string
+          tenant_id: string
+        }
+        Update: {
+          conversation_id?: string
+          last_read_at?: string
+          last_read_message_id?: string | null
+          profile_id?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "smeksh_conversation_reads_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "smeksh_conversation_reads_last_read_message_id_fkey"
+            columns: ["last_read_message_id"]
+            isOneToOne: false
+            referencedRelation: "smeksh_messages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "smeksh_conversation_reads_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "smeksh_conversation_reads_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      smeksh_conversation_snoozes: {
+        Row: {
+          contact_id: string | null
+          conversation_id: string
+          created_at: string
+          id: string
+          reason: string | null
+          snooze_until: string
+          snoozed_by_profile_id: string | null
+          status: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          contact_id?: string | null
+          conversation_id: string
+          created_at?: string
+          id?: string
+          reason?: string | null
+          snooze_until: string
+          snoozed_by_profile_id?: string | null
+          status?: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          contact_id?: string | null
+          conversation_id?: string
+          created_at?: string
+          id?: string
+          reason?: string | null
+          snooze_until?: string
+          snoozed_by_profile_id?: string | null
+          status?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "smeksh_conversation_snoozes_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "smeksh_conversation_snoozes_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "smeksh_conversation_snoozes_snoozed_by_profile_id_fkey"
+            columns: ["snoozed_by_profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "smeksh_conversation_snoozes_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       smeksh_data_requests: {
         Row: {
           contact_id: string | null
@@ -3939,6 +4219,259 @@ export type Database = {
           {
             foreignKeyName: "smeksh_import_jobs_workspace_id_fkey"
             columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      smeksh_internal_notes: {
+        Row: {
+          attachments: Json
+          author_profile_id: string | null
+          body: string
+          contact_id: string | null
+          conversation_id: string
+          created_at: string
+          id: string
+          mentions_profile_ids: string[] | null
+          tenant_id: string
+          updated_at: string
+          visibility: Database["public"]["Enums"]["smeksh_note_visibility"]
+        }
+        Insert: {
+          attachments?: Json
+          author_profile_id?: string | null
+          body: string
+          contact_id?: string | null
+          conversation_id: string
+          created_at?: string
+          id?: string
+          mentions_profile_ids?: string[] | null
+          tenant_id: string
+          updated_at?: string
+          visibility?: Database["public"]["Enums"]["smeksh_note_visibility"]
+        }
+        Update: {
+          attachments?: Json
+          author_profile_id?: string | null
+          body?: string
+          contact_id?: string | null
+          conversation_id?: string
+          created_at?: string
+          id?: string
+          mentions_profile_ids?: string[] | null
+          tenant_id?: string
+          updated_at?: string
+          visibility?: Database["public"]["Enums"]["smeksh_note_visibility"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "smeksh_internal_notes_author_profile_id_fkey"
+            columns: ["author_profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "smeksh_internal_notes_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "smeksh_internal_notes_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "smeksh_internal_notes_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      smeksh_message_status_events: {
+        Row: {
+          created_at: string
+          error_code: string | null
+          error_message: string | null
+          id: string
+          message_id: string | null
+          phone_number_id: string | null
+          raw: Json
+          recipient_wa_id: string | null
+          status: Database["public"]["Enums"]["smeksh_wa_status"]
+          status_at: string
+          tenant_id: string
+          wa_message_id: string | null
+          waba_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          error_code?: string | null
+          error_message?: string | null
+          id?: string
+          message_id?: string | null
+          phone_number_id?: string | null
+          raw?: Json
+          recipient_wa_id?: string | null
+          status: Database["public"]["Enums"]["smeksh_wa_status"]
+          status_at?: string
+          tenant_id: string
+          wa_message_id?: string | null
+          waba_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          error_code?: string | null
+          error_message?: string | null
+          id?: string
+          message_id?: string | null
+          phone_number_id?: string | null
+          raw?: Json
+          recipient_wa_id?: string | null
+          status?: Database["public"]["Enums"]["smeksh_wa_status"]
+          status_at?: string
+          tenant_id?: string
+          wa_message_id?: string | null
+          waba_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "smeksh_message_status_events_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "smeksh_messages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "smeksh_message_status_events_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      smeksh_messages: {
+        Row: {
+          body_text: string | null
+          contact_id: string | null
+          conversation_id: string
+          created_at: string
+          direction: Database["public"]["Enums"]["smeksh_message_direction"]
+          error_code: string | null
+          error_message: string | null
+          id: string
+          is_failed: boolean
+          latest_status: Database["public"]["Enums"]["smeksh_wa_status"] | null
+          latest_status_at: string | null
+          media_bucket: string | null
+          media_mime_type: string | null
+          media_path: string | null
+          media_size_bytes: number | null
+          media_url: string | null
+          message_type: Database["public"]["Enums"]["smeksh_message_type"]
+          payload: Json
+          sent_by_profile_id: string | null
+          template_category: string | null
+          template_language: string | null
+          template_name: string | null
+          template_variables: Json | null
+          tenant_id: string
+          updated_at: string
+          wa_context_id: string | null
+          wa_message_id: string | null
+        }
+        Insert: {
+          body_text?: string | null
+          contact_id?: string | null
+          conversation_id: string
+          created_at?: string
+          direction: Database["public"]["Enums"]["smeksh_message_direction"]
+          error_code?: string | null
+          error_message?: string | null
+          id?: string
+          is_failed?: boolean
+          latest_status?: Database["public"]["Enums"]["smeksh_wa_status"] | null
+          latest_status_at?: string | null
+          media_bucket?: string | null
+          media_mime_type?: string | null
+          media_path?: string | null
+          media_size_bytes?: number | null
+          media_url?: string | null
+          message_type?: Database["public"]["Enums"]["smeksh_message_type"]
+          payload?: Json
+          sent_by_profile_id?: string | null
+          template_category?: string | null
+          template_language?: string | null
+          template_name?: string | null
+          template_variables?: Json | null
+          tenant_id: string
+          updated_at?: string
+          wa_context_id?: string | null
+          wa_message_id?: string | null
+        }
+        Update: {
+          body_text?: string | null
+          contact_id?: string | null
+          conversation_id?: string
+          created_at?: string
+          direction?: Database["public"]["Enums"]["smeksh_message_direction"]
+          error_code?: string | null
+          error_message?: string | null
+          id?: string
+          is_failed?: boolean
+          latest_status?: Database["public"]["Enums"]["smeksh_wa_status"] | null
+          latest_status_at?: string | null
+          media_bucket?: string | null
+          media_mime_type?: string | null
+          media_path?: string | null
+          media_size_bytes?: number | null
+          media_url?: string | null
+          message_type?: Database["public"]["Enums"]["smeksh_message_type"]
+          payload?: Json
+          sent_by_profile_id?: string | null
+          template_category?: string | null
+          template_language?: string | null
+          template_name?: string | null
+          template_variables?: Json | null
+          tenant_id?: string
+          updated_at?: string
+          wa_context_id?: string | null
+          wa_message_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "smeksh_messages_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "smeksh_messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "smeksh_messages_sent_by_profile_id_fkey"
+            columns: ["sent_by_profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "smeksh_messages_tenant_id_fkey"
+            columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
             referencedColumns: ["id"]
@@ -4632,6 +5165,55 @@ export type Database = {
           {
             foreignKeyName: "smeksh_segments_workspace_id_fkey"
             columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      smeksh_typing_state: {
+        Row: {
+          conversation_id: string
+          expires_at: string
+          profile_id: string
+          status: Database["public"]["Enums"]["smeksh_typing_status"]
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          conversation_id: string
+          expires_at: string
+          profile_id: string
+          status?: Database["public"]["Enums"]["smeksh_typing_status"]
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          conversation_id?: string
+          expires_at?: string
+          profile_id?: string
+          status?: Database["public"]["Enums"]["smeksh_typing_status"]
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "smeksh_typing_state_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "smeksh_typing_state_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "smeksh_typing_state_tenant_id_fkey"
+            columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
             referencedColumns: ["id"]
@@ -6315,6 +6897,7 @@ export type Database = {
         Returns: boolean
       }
       cleanup_automation_expired_records: { Args: never; Returns: undefined }
+      cleanup_expired_typing: { Args: never; Returns: undefined }
       cleanup_rate_limit_logs: { Args: never; Returns: undefined }
       complete_automation_job: {
         Args: {
@@ -6525,6 +7108,14 @@ export type Database = {
           isSetofReturn: true
         }
       }
+      mark_conversation_read: {
+        Args: {
+          p_conversation_id: string
+          p_profile_id: string
+          p_tenant_id: string
+        }
+        Returns: undefined
+      }
       pause_campaign: { Args: { p_campaign_id: string }; Returns: number }
       pause_smeksh_campaign: {
         Args: { p_campaign_id: string; p_tenant_id: string }
@@ -6575,6 +7166,15 @@ export type Database = {
         }
         Returns: undefined
       }
+      set_conversation_intervene: {
+        Args: {
+          p_conversation_id: string
+          p_intervene: boolean
+          p_profile_id: string
+          p_tenant_id: string
+        }
+        Returns: undefined
+      }
       smeksh_assign_conversation: {
         Args: {
           p_conversation_id: string
@@ -6618,6 +7218,16 @@ export type Database = {
           p_only_online?: boolean
           p_team_id: string
           p_workspace_id: string
+        }
+        Returns: string
+      }
+      snooze_conversation: {
+        Args: {
+          p_conversation_id: string
+          p_profile_id: string
+          p_reason?: string
+          p_snooze_until: string
+          p_tenant_id: string
         }
         Returns: string
       }
@@ -6826,6 +7436,22 @@ export type Database = {
         | "ctwa_followup"
         | "ab_test"
       smeksh_contact_status: "ACTIVE" | "ARCHIVED" | "BLOCKED"
+      smeksh_conversation_event_type:
+        | "conversation_created"
+        | "status_changed"
+        | "assigned"
+        | "unassigned"
+        | "tag_added"
+        | "tag_removed"
+        | "note_added"
+        | "automation_ran"
+        | "campaign_sent"
+        | "ctwa_attributed"
+        | "snoozed"
+        | "unsnoozed"
+        | "priority_changed"
+        | "intervened"
+        | "bot_resumed"
       smeksh_conversation_status: "OPEN" | "PENDING" | "CLOSED"
       smeksh_deal_stage: "OPEN" | "WON" | "LOST"
       smeksh_event_type:
@@ -6861,11 +7487,25 @@ export type Database = {
         | "CONVERTED"
         | "LOST"
       smeksh_mau_status: "ACTIVE" | "INACTIVE"
+      smeksh_message_direction: "inbound" | "outbound"
+      smeksh_message_type:
+        | "text"
+        | "image"
+        | "video"
+        | "audio"
+        | "document"
+        | "sticker"
+        | "location"
+        | "contact"
+        | "interactive"
+        | "template"
+        | "system"
       smeksh_meta_connection_status:
         | "pending"
         | "connected"
         | "disconnected"
         | "error"
+      smeksh_note_visibility: "internal" | "private"
       smeksh_optin_source:
         | "WEBSITE"
         | "FORM"
@@ -6876,6 +7516,8 @@ export type Database = {
         | "API"
         | "OTHER"
       smeksh_report_status: "generating" | "ready" | "failed"
+      smeksh_typing_status: "typing" | "stopped"
+      smeksh_wa_status: "sent" | "delivered" | "read" | "failed"
       smeksh_winner_metric: "reply_rate" | "read_rate" | "conversion_rate"
       subscription_status:
         | "active"
@@ -7252,6 +7894,23 @@ export const Constants = {
         "ab_test",
       ],
       smeksh_contact_status: ["ACTIVE", "ARCHIVED", "BLOCKED"],
+      smeksh_conversation_event_type: [
+        "conversation_created",
+        "status_changed",
+        "assigned",
+        "unassigned",
+        "tag_added",
+        "tag_removed",
+        "note_added",
+        "automation_ran",
+        "campaign_sent",
+        "ctwa_attributed",
+        "snoozed",
+        "unsnoozed",
+        "priority_changed",
+        "intervened",
+        "bot_resumed",
+      ],
       smeksh_conversation_status: ["OPEN", "PENDING", "CLOSED"],
       smeksh_deal_stage: ["OPEN", "WON", "LOST"],
       smeksh_event_type: [
@@ -7291,12 +7950,27 @@ export const Constants = {
         "LOST",
       ],
       smeksh_mau_status: ["ACTIVE", "INACTIVE"],
+      smeksh_message_direction: ["inbound", "outbound"],
+      smeksh_message_type: [
+        "text",
+        "image",
+        "video",
+        "audio",
+        "document",
+        "sticker",
+        "location",
+        "contact",
+        "interactive",
+        "template",
+        "system",
+      ],
       smeksh_meta_connection_status: [
         "pending",
         "connected",
         "disconnected",
         "error",
       ],
+      smeksh_note_visibility: ["internal", "private"],
       smeksh_optin_source: [
         "WEBSITE",
         "FORM",
@@ -7308,6 +7982,8 @@ export const Constants = {
         "OTHER",
       ],
       smeksh_report_status: ["generating", "ready", "failed"],
+      smeksh_typing_status: ["typing", "stopped"],
+      smeksh_wa_status: ["sent", "delivered", "read", "failed"],
       smeksh_winner_metric: ["reply_rate", "read_rate", "conversion_rate"],
       subscription_status: [
         "active",
