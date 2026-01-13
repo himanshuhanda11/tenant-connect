@@ -16,6 +16,7 @@ import Team from "./pages/Team";
 import Settings from "./pages/Settings";
 import Inbox from "./pages/Inbox";
 import Contacts from "./pages/Contacts";
+import Tags from "./pages/Tags";
 import PhoneNumbers from "./pages/PhoneNumbers";
 import Templates from "./pages/Templates";
 import Campaigns from "./pages/Campaigns";
@@ -74,6 +75,7 @@ const App = () => (
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/inbox" element={<Inbox />} />
               <Route path="/contacts" element={<Contacts />} />
+              <Route path="/tags" element={<Tags />} />
               <Route path="/phone-numbers" element={<PhoneNumbers />} />
               <Route path="/templates" element={<Templates />} />
               <Route path="/campaigns" element={<Campaigns />} />
