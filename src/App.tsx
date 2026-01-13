@@ -31,7 +31,10 @@ import Tags from "./pages/Tags";
 import UserAttributes from "./pages/UserAttributes";
 import PhoneNumbers from "./pages/PhoneNumbers";
 import Templates from "./pages/Templates";
-import Campaigns from "./pages/Campaigns";
+import CampaignsList from "./pages/campaigns/CampaignsList";
+import CreateCampaign from "./pages/campaigns/CreateCampaign";
+import CampaignDetails from "./pages/campaigns/CampaignDetails";
+import CampaignLibrary from "./pages/campaigns/CampaignLibrary";
 import AutomationWorkflows from "./pages/AutomationWorkflows";
 import Billing from "./pages/Billing";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
@@ -111,7 +114,10 @@ const App = () => (
               <Route path="/user-attributes" element={<UserAttributes />} />
               <Route path="/phone-numbers" element={<PhoneNumbers />} />
               <Route path="/templates" element={<Templates />} />
-              <Route path="/campaigns" element={<Campaigns />} />
+              <Route path="/campaigns" element={<CampaignsList />} />
+              <Route path="/campaigns/create" element={<CreateCampaign />} />
+              <Route path="/campaigns/library" element={<CampaignLibrary />} />
+              <Route path="/campaigns/:id" element={<CampaignDetails />} />
               <Route path="/automation" element={<AutomationWorkflows />} />
               <Route path="/team" element={<TeamOverview />} />
               <Route path="/team/overview" element={<TeamOverview />} />
