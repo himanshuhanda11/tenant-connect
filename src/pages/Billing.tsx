@@ -1,104 +1,143 @@
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { BillingOverviewCards } from '@/components/billing/BillingOverviewCards';
+import { BillingQuickActions } from '@/components/billing/BillingQuickActions';
+import { MetaBillingNotice } from '@/components/billing/MetaBillingNotice';
+import { UsageOverview } from '@/components/billing/UsageOverview';
+import { PlanCard } from '@/components/billing/PlanCard';
+import { AddOnsSection } from '@/components/billing/AddOnsSection';
+import { InvoicesTable } from '@/components/billing/InvoicesTable';
+import { PaymentMethodsCard } from '@/components/billing/PaymentMethodsCard';
+import { BillingSettingsForm } from '@/components/billing/BillingSettingsForm';
+import { SubscriptionActions } from '@/components/billing/SubscriptionActions';
+import { BillingFAQ } from '@/components/billing/BillingFAQ';
+import { usePlans, useSubscription } from '@/hooks/useBilling';
+import { useState } from 'react';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { CreditCard, Check } from 'lucide-react';
-
-const plans = [
-  {
-    name: 'Free',
-    price: '$0',
-    description: 'For getting started',
-    features: ['500 contacts', '1,000 messages/month', '1 phone number', '3 team members'],
-    current: true,
-  },
-  {
-    name: 'Pro',
-    price: '$49',
-    description: 'For growing teams',
-    features: ['5,000 contacts', '10,000 messages/month', '3 phone numbers', '10 team members', 'Priority support'],
-    current: false,
-  },
-  {
-    name: 'Business',
-    price: '$149',
-    description: 'For larger organizations',
-    features: ['Unlimited contacts', 'Unlimited messages', '10 phone numbers', 'Unlimited team members', 'API access', 'Custom integrations'],
-    current: false,
-  },
-];
+import { toast } from 'sonner';
+import type { Plan } from '@/types/billing';
 
 export default function Billing() {
+  const [isYearly, setIsYearly] = useState(false);
+  const { data: plans } = usePlans();
+  const { data: subscription } = useSubscription();
+
+  const handlePlanSelect = (plan: Plan) => {
+    if (plan.name === 'Enterprise') {
+      toast.info('Contact sales for Enterprise pricing');
+    } else {
+      toast.info('Stripe integration pending - Upgrade will be available soon');
+    }
+  };
+
   return (
     <DashboardLayout>
       <div className="space-y-6">
         <div>
-          <h1 className="text-2xl font-bold">Billing & Plans</h1>
+          <h1 className="text-2xl font-bold">Billing & Subscription</h1>
           <p className="text-muted-foreground">
-            Manage your subscription and billing
+            Manage your subscription, usage, and payment methods
           </p>
         </div>
 
-        <div className="grid gap-6 md:grid-cols-3">
-          {plans.map((plan) => (
-            <Card key={plan.name} className={plan.current ? 'border-primary' : ''}>
+        <Tabs defaultValue="overview" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-2 md:grid-cols-6 lg:w-auto lg:inline-grid">
+            <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="plans">Plans</TabsTrigger>
+            <TabsTrigger value="usage">Usage</TabsTrigger>
+            <TabsTrigger value="invoices">Invoices</TabsTrigger>
+            <TabsTrigger value="payment">Payment</TabsTrigger>
+            <TabsTrigger value="settings">Settings</TabsTrigger>
+          </TabsList>
+
+          {/* Overview Tab */}
+          <TabsContent value="overview" className="space-y-6">
+            <MetaBillingNotice />
+            <BillingOverviewCards />
+            <BillingQuickActions />
+            <div className="grid gap-6 lg:grid-cols-2">
+              <UsageOverview />
+              <BillingFAQ />
+            </div>
+          </TabsContent>
+
+          {/* Plans Tab */}
+          <TabsContent value="plans" className="space-y-6">
+            <Card>
               <CardHeader>
-                <div className="flex items-center justify-between">
-                  <CardTitle>{plan.name}</CardTitle>
-                  {plan.current && (
-                    <span className="text-xs bg-primary text-primary-foreground px-2 py-1 rounded">
-                      Current
-                    </span>
-                  )}
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                  <div>
+                    <CardTitle>Choose Your Plan</CardTitle>
+                    <CardDescription>
+                      Select the plan that best fits your needs
+                    </CardDescription>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Label htmlFor="billing-toggle" className={!isYearly ? 'font-medium' : 'text-muted-foreground'}>
+                      Monthly
+                    </Label>
+                    <Switch
+                      id="billing-toggle"
+                      checked={isYearly}
+                      onCheckedChange={setIsYearly}
+                    />
+                    <Label htmlFor="billing-toggle" className={isYearly ? 'font-medium' : 'text-muted-foreground'}>
+                      Yearly (Save 17%)
+                    </Label>
+                  </div>
                 </div>
-                <div className="mt-2">
-                  <span className="text-3xl font-bold">{plan.price}</span>
-                  <span className="text-muted-foreground">/month</span>
-                </div>
-                <CardDescription>{plan.description}</CardDescription>
               </CardHeader>
               <CardContent>
-                <ul className="space-y-2">
-                  {plan.features.map((feature) => (
-                    <li key={feature} className="flex items-center gap-2 text-sm">
-                      <Check className="h-4 w-4 text-primary" />
-                      {feature}
-                    </li>
+                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+                  {plans?.map((plan) => (
+                    <PlanCard
+                      key={plan.id}
+                      plan={plan}
+                      isCurrentPlan={subscription?.plan_id === plan.id}
+                      isYearly={isYearly}
+                      isRecommended={plan.name === 'Growth'}
+                      onSelect={handlePlanSelect}
+                    />
                   ))}
-                </ul>
-                <Button
-                  className="w-full mt-6"
-                  variant={plan.current ? 'outline' : 'default'}
-                  disabled={plan.current}
-                >
-                  {plan.current ? 'Current Plan' : 'Upgrade'}
-                </Button>
+                </div>
               </CardContent>
             </Card>
-          ))}
-        </div>
+            <AddOnsSection />
+          </TabsContent>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Usage This Month</CardTitle>
-            <CardDescription>Your current usage against plan limits</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center justify-between">
-              <span className="text-sm">Messages Sent</span>
-              <span className="text-sm text-muted-foreground">0 / 1,000</span>
-            </div>
-            <div className="h-2 bg-muted rounded-full overflow-hidden">
-              <div className="h-full bg-primary" style={{ width: '0%' }} />
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-sm">Contacts</span>
-              <span className="text-sm text-muted-foreground">0 / 500</span>
-            </div>
-            <div className="h-2 bg-muted rounded-full overflow-hidden">
-              <div className="h-full bg-primary" style={{ width: '0%' }} />
-            </div>
-          </CardContent>
-        </Card>
+          {/* Usage Tab */}
+          <TabsContent value="usage" className="space-y-6">
+            <UsageOverview />
+          </TabsContent>
+
+          {/* Invoices Tab */}
+          <TabsContent value="invoices" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Invoices</CardTitle>
+                <CardDescription>
+                  View and download your billing history
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <InvoicesTable />
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Payment Tab */}
+          <TabsContent value="payment" className="space-y-6">
+            <PaymentMethodsCard />
+            <SubscriptionActions />
+          </TabsContent>
+
+          {/* Settings Tab */}
+          <TabsContent value="settings" className="space-y-6">
+            <BillingSettingsForm />
+          </TabsContent>
+        </Tabs>
       </div>
     </DashboardLayout>
   );
