@@ -1,33 +1,21 @@
-import { useState, useEffect, useMemo } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useState, useEffect } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Checkbox } from '@/components/ui/checkbox';
-import { 
-  Users, 
-  Plus, 
-  Upload, 
-  Download, 
-  FolderPlus,
-  RefreshCw,
-} from 'lucide-react';
 import { useContacts } from '@/hooks/useContacts';
 import { useTenant } from '@/contexts/TenantContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Contact } from '@/types/contact';
 import { SmartView, DEFAULT_SMART_VIEWS, Segment, SegmentFilters } from '@/types/segment';
-import { SmartViewsSidebar } from '@/components/contacts/SmartViewsSidebar';
-import { AdvancedFiltersBar } from '@/components/contacts/AdvancedFiltersBar';
-import { ContactListTable } from '@/components/contacts/ContactListTable';
+import { ContactsHeader } from '@/components/contacts/ContactsHeader';
+import { ContactsSmartViewsSidebar } from '@/components/contacts/ContactsSmartViewsSidebar';
+import { ContactsAdvancedFilters } from '@/components/contacts/ContactsAdvancedFilters';
+import { ContactsTable } from '@/components/contacts/ContactsTable';
 import { ContactDetailDrawer } from '@/components/contacts/ContactDetailDrawer';
-import { ContactsBulkActions } from '@/components/contacts/ContactsBulkActions';
+import { ContactsBulkActionsBar } from '@/components/contacts/ContactsBulkActionsBar';
 import { CreateSegmentModal } from '@/components/contacts/CreateSegmentModal';
 import { AddContactModal } from '@/components/contacts/AddContactModal';
 
 export default function Contacts() {
-  const navigate = useNavigate();
   const { currentTenant } = useTenant();
   const {
     contacts,
@@ -57,7 +45,6 @@ export default function Contacts() {
   const [showAddContact, setShowAddContact] = useState(false);
   const [viewCounts, setViewCounts] = useState<Record<string, number>>({});
 
-  // Fetch tags and agents for bulk actions
   useEffect(() => {
     const fetchOptions = async () => {
       if (!currentTenant?.id) return;
@@ -83,7 +70,6 @@ export default function Contacts() {
     fetchOptions();
   }, [currentTenant?.id]);
 
-  // Calculate view counts
   useEffect(() => {
     setViewCounts({ all: totalCount });
   }, [totalCount]);
@@ -130,11 +116,20 @@ export default function Contacts() {
     );
   };
 
+  const handleSelectAll = () => {
+    if (contacts.every(c => selectedContactIds.includes(c.id))) {
+      setSelectedContactIds([]);
+    } else {
+      setSelectedContactIds(contacts.map(c => c.id));
+    }
+  };
+
   const handleBulkAddTag = async (tagId: string) => {
     for (const id of selectedContactIds) {
       await addTag(id, tagId);
     }
     setSelectedContactIds([]);
+    toast.success(`Tag added to ${selectedContactIds.length} contacts`);
   };
 
   const handleBulkRemoveTag = async (tagId: string) => {
@@ -142,6 +137,7 @@ export default function Contacts() {
       await removeTag(id, tagId);
     }
     setSelectedContactIds([]);
+    toast.success(`Tag removed from ${selectedContactIds.length} contacts`);
   };
 
   const handleBulkAssign = async (agentId: string | null) => {
@@ -149,6 +145,7 @@ export default function Contacts() {
       await assignAgent(id, agentId);
     }
     setSelectedContactIds([]);
+    toast.success(agentId ? `Assigned ${selectedContactIds.length} contacts` : `Unassigned ${selectedContactIds.length} contacts`);
   };
 
   const handleExport = () => {
@@ -189,8 +186,8 @@ export default function Contacts() {
   return (
     <DashboardLayout>
       <div className="flex h-[calc(100vh-4rem)]">
-        {/* Left Sidebar - Smart Views */}
-        <SmartViewsSidebar
+        {/* Left Sidebar */}
+        <ContactsSmartViewsSidebar
           activeViewId={activeView.id}
           onViewChange={handleViewChange}
           segments={segments}
@@ -199,60 +196,28 @@ export default function Contacts() {
         />
 
         {/* Main Content */}
-        <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-          {/* Header */}
-          <div className="shrink-0 p-6 border-b bg-background">
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <h1 className="text-2xl font-bold flex items-center gap-2">
-                  <Users className="h-6 w-6" />
-                  Contacts
-                </h1>
-                <p className="text-muted-foreground text-sm">
-                  Organize contacts, tags, segments, and engagement
-                </p>
-              </div>
-              <div className="flex items-center gap-2">
-                <Button variant="outline" size="sm" onClick={fetchContacts} disabled={loading}>
-                  <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
-                  Refresh
-                </Button>
-                <Button variant="outline" size="sm" asChild>
-                  <Link to="/contacts/imports">
-                    <Upload className="h-4 w-4 mr-2" />
-                    Import
-                  </Link>
-                </Button>
-                <Button variant="outline" size="sm" onClick={handleExport}>
-                  <Download className="h-4 w-4 mr-2" />
-                  Export
-                </Button>
-                <Button variant="outline" size="sm" onClick={() => setShowCreateSegment(true)}>
-                  <FolderPlus className="h-4 w-4 mr-2" />
-                  Create Segment
-                </Button>
-                <Button onClick={() => setShowAddContact(true)}>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Contact
-                </Button>
-              </div>
-            </div>
+        <div className="flex-1 flex flex-col min-w-0 overflow-hidden bg-muted/10">
+          <ContactsHeader
+            totalCount={totalCount}
+            loading={loading}
+            onRefresh={fetchContacts}
+            onExport={handleExport}
+            onCreateSegment={() => setShowCreateSegment(true)}
+            onAddContact={() => setShowAddContact(true)}
+          />
 
-            {/* Advanced Filters */}
-            <AdvancedFiltersBar
-              filters={currentFilters}
-              onFiltersChange={handleFiltersChange}
-              onSaveAsSegment={() => setShowCreateSegment(true)}
-              onReset={resetFilters}
-              availableTags={availableTags}
-              sources={['facebook', 'website', 'qr', 'api', 'manual']}
-              countries={[]}
-            />
-          </div>
+          <ContactsAdvancedFilters
+            filters={currentFilters}
+            onFiltersChange={handleFiltersChange}
+            onSaveAsSegment={() => setShowCreateSegment(true)}
+            onReset={resetFilters}
+            availableTags={availableTags}
+            sources={['facebook', 'website', 'qr', 'api', 'manual']}
+            countries={[]}
+          />
 
-          {/* Table */}
-          <div className="flex-1 overflow-auto p-6">
-            <ContactListTable
+          <div className="flex-1 overflow-auto">
+            <ContactsTable
               contacts={contacts}
               loading={loading}
               totalCount={totalCount}
@@ -261,6 +226,9 @@ export default function Contacts() {
               onPageChange={setPage}
               onSelectContact={handleContactSelect}
               selectedContactId={selectedContact?.id}
+              selectedContactIds={selectedContactIds}
+              onToggleSelection={toggleContactSelection}
+              onSelectAll={handleSelectAll}
             />
           </div>
         </div>
@@ -281,7 +249,7 @@ export default function Contacts() {
       </div>
 
       {/* Bulk Actions Bar */}
-      <ContactsBulkActions
+      <ContactsBulkActionsBar
         selectedCount={selectedContactIds.length}
         onClearSelection={() => setSelectedContactIds([])}
         onAddTag={handleBulkAddTag}
