@@ -258,38 +258,233 @@ export type Database = {
           },
         ]
       }
-      contacts: {
+      contact_timeline: {
         Row: {
+          actor_id: string | null
+          actor_type: string | null
+          contact_id: string
           created_at: string
+          event_data: Json | null
+          event_type: string
           id: string
-          last_seen: string | null
-          name: string | null
-          profile_picture_url: string | null
           tenant_id: string
-          updated_at: string
-          wa_id: string
         }
         Insert: {
+          actor_id?: string | null
+          actor_type?: string | null
+          contact_id: string
           created_at?: string
+          event_data?: Json | null
+          event_type: string
           id?: string
-          last_seen?: string | null
-          name?: string | null
-          profile_picture_url?: string | null
           tenant_id: string
-          updated_at?: string
-          wa_id: string
         }
         Update: {
+          actor_id?: string | null
+          actor_type?: string | null
+          contact_id?: string
           created_at?: string
+          event_data?: Json | null
+          event_type?: string
           id?: string
-          last_seen?: string | null
-          name?: string | null
-          profile_picture_url?: string | null
           tenant_id?: string
-          updated_at?: string
-          wa_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "contact_timeline_actor_id_fkey"
+            columns: ["actor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contact_timeline_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contact_timeline_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contacts: {
+        Row: {
+          ai_intent_detected: string | null
+          assigned_agent_id: string | null
+          automation_flow: string | null
+          blocked_by_user: boolean | null
+          bot_handled: boolean | null
+          campaign_source: string | null
+          closed: boolean | null
+          closed_reason: string | null
+          closure_time: string | null
+          country: string | null
+          created_at: string
+          data_deletion_requested: boolean | null
+          deal_stage: string | null
+          entry_point: string | null
+          first_message: string | null
+          first_message_time: string | null
+          first_name: string | null
+          followup_due: string | null
+          id: string
+          intervened: boolean | null
+          intervened_at: string | null
+          intervened_by: string | null
+          language: string | null
+          last_active_date: string | null
+          last_seen: string | null
+          lead_status: string | null
+          mau_status: string | null
+          name: string | null
+          next_best_action: string | null
+          notes: string | null
+          opt_in_source: string | null
+          opt_in_status: boolean | null
+          opt_in_timestamp: string | null
+          opt_out: boolean | null
+          opt_out_timestamp: string | null
+          pricing_category: string | null
+          priority_level: string | null
+          profile_picture_url: string | null
+          referrer_url: string | null
+          request_time: string | null
+          request_type: string | null
+          segment: string | null
+          sentiment_score: number | null
+          sla_timer: string | null
+          source: string | null
+          tenant_id: string
+          timezone: string | null
+          updated_at: string
+          wa_id: string
+          whatsapp_quality_rating: string | null
+        }
+        Insert: {
+          ai_intent_detected?: string | null
+          assigned_agent_id?: string | null
+          automation_flow?: string | null
+          blocked_by_user?: boolean | null
+          bot_handled?: boolean | null
+          campaign_source?: string | null
+          closed?: boolean | null
+          closed_reason?: string | null
+          closure_time?: string | null
+          country?: string | null
+          created_at?: string
+          data_deletion_requested?: boolean | null
+          deal_stage?: string | null
+          entry_point?: string | null
+          first_message?: string | null
+          first_message_time?: string | null
+          first_name?: string | null
+          followup_due?: string | null
+          id?: string
+          intervened?: boolean | null
+          intervened_at?: string | null
+          intervened_by?: string | null
+          language?: string | null
+          last_active_date?: string | null
+          last_seen?: string | null
+          lead_status?: string | null
+          mau_status?: string | null
+          name?: string | null
+          next_best_action?: string | null
+          notes?: string | null
+          opt_in_source?: string | null
+          opt_in_status?: boolean | null
+          opt_in_timestamp?: string | null
+          opt_out?: boolean | null
+          opt_out_timestamp?: string | null
+          pricing_category?: string | null
+          priority_level?: string | null
+          profile_picture_url?: string | null
+          referrer_url?: string | null
+          request_time?: string | null
+          request_type?: string | null
+          segment?: string | null
+          sentiment_score?: number | null
+          sla_timer?: string | null
+          source?: string | null
+          tenant_id: string
+          timezone?: string | null
+          updated_at?: string
+          wa_id: string
+          whatsapp_quality_rating?: string | null
+        }
+        Update: {
+          ai_intent_detected?: string | null
+          assigned_agent_id?: string | null
+          automation_flow?: string | null
+          blocked_by_user?: boolean | null
+          bot_handled?: boolean | null
+          campaign_source?: string | null
+          closed?: boolean | null
+          closed_reason?: string | null
+          closure_time?: string | null
+          country?: string | null
+          created_at?: string
+          data_deletion_requested?: boolean | null
+          deal_stage?: string | null
+          entry_point?: string | null
+          first_message?: string | null
+          first_message_time?: string | null
+          first_name?: string | null
+          followup_due?: string | null
+          id?: string
+          intervened?: boolean | null
+          intervened_at?: string | null
+          intervened_by?: string | null
+          language?: string | null
+          last_active_date?: string | null
+          last_seen?: string | null
+          lead_status?: string | null
+          mau_status?: string | null
+          name?: string | null
+          next_best_action?: string | null
+          notes?: string | null
+          opt_in_source?: string | null
+          opt_in_status?: boolean | null
+          opt_in_timestamp?: string | null
+          opt_out?: boolean | null
+          opt_out_timestamp?: string | null
+          pricing_category?: string | null
+          priority_level?: string | null
+          profile_picture_url?: string | null
+          referrer_url?: string | null
+          request_time?: string | null
+          request_type?: string | null
+          segment?: string | null
+          sentiment_score?: number | null
+          sla_timer?: string | null
+          source?: string | null
+          tenant_id?: string
+          timezone?: string | null
+          updated_at?: string
+          wa_id?: string
+          whatsapp_quality_rating?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contacts_assigned_agent_id_fkey"
+            columns: ["assigned_agent_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contacts_intervened_by_fkey"
+            columns: ["intervened_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "contacts_tenant_id_fkey"
             columns: ["tenant_id"]
