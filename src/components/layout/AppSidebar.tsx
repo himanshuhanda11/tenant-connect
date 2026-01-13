@@ -15,6 +15,7 @@ import {
   Send,
   Zap,
   CreditCard,
+  Tag,
 } from 'lucide-react';
 import {
   Sidebar,
@@ -45,6 +46,7 @@ const mainMenuItems = [
   { title: 'Dashboard', url: '/dashboard', icon: LayoutDashboard },
   { title: 'Inbox', url: '/inbox', icon: Inbox, badge: 0 },
   { title: 'Contacts', url: '/contacts', icon: Contact },
+  { title: 'Tags', url: '/tags', icon: Tag },
 ];
 
 const channelMenuItems = [
