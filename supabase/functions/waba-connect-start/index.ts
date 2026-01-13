@@ -117,21 +117,23 @@ Deno.serve(async (req) => {
     // Build callback URL - use Supabase function URL
     const callbackUrl = `${supabaseUrl}/functions/v1/waba-connect-callback`;
 
-    // Prefer Embedded Signup if config_id is configured, otherwise fall back to standard OAuth.
+    // Build OAuth URL with Embedded Signup config_id for the 4-step Meta flow
     const params = new URLSearchParams({
       client_id: appId,
       redirect_uri: callbackUrl,
       response_type: 'code',
       state: signedState,
-      // NOTE: Some Meta app setups reject `business_management` with "Invalid Scopes".
-      // WhatsApp permissions are sufficient for our callback flow (we read WABA IDs from debug_token.granular_scopes).
       scope: 'whatsapp_business_management,whatsapp_business_messaging',
     });
 
-    // TEMPORARILY DISABLED: config_id may be blocking OAuth flow
-    // if (configId) {
-    //   params.set('config_id', configId);
-    // }
+    // CRITICAL: config_id enables Meta's Embedded Signup 4-step flow
+    // Without it, users can't select/create WABA and phone numbers
+    if (configId) {
+      params.set('config_id', configId);
+      console.log('Using Embedded Signup config_id:', configId);
+    } else {
+      console.warn('META_CONFIG_ID not set - Embedded Signup flow will not work!');
+    }
 
     const oauthUrl = `https://www.facebook.com/v21.0/dialog/oauth?${params.toString()}`;
 
