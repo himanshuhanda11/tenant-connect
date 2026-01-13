@@ -136,14 +136,14 @@ export function useContacts() {
 
       if (error) throw error;
 
-      // Log timeline event
-      await supabase.from('contact_timeline').insert({
+      // Log timeline event (using any cast until types regenerate)
+      await (supabase as any).from('contact_timeline').insert({
         contact_id: contactId,
         tenant_id: currentTenant.id,
         event_type: 'attribute_update',
         event_data: { updates },
         actor_type: 'user',
-      } as Record<string, unknown>);
+      });
 
       toast.success('Contact updated');
       fetchContacts();
@@ -165,14 +165,14 @@ export function useContacts() {
 
       if (error) throw error;
 
-      // Log timeline event
-      await supabase.from('contact_timeline').insert({
+      // Log timeline event (using any cast until types regenerate)
+      await (supabase as any).from('contact_timeline').insert({
         contact_id: contactId,
         tenant_id: currentTenant.id,
         event_type: 'agent_assigned',
         event_data: { agent_id: agentId },
         actor_type: 'user',
-      } as Record<string, unknown>);
+      });
 
       toast.success(agentId ? 'Agent assigned' : 'Agent unassigned');
       fetchContacts();
@@ -192,14 +192,14 @@ export function useContacts() {
 
       if (error) throw error;
 
-      // Log timeline event
-      await supabase.from('contact_timeline').insert({
+      // Log timeline event (using any cast until types regenerate)
+      await (supabase as any).from('contact_timeline').insert({
         contact_id: contactId,
         tenant_id: currentTenant.id,
         event_type: 'tag_added',
         event_data: { tag_id: tagId },
         actor_type: 'user',
-      } as Record<string, unknown>);
+      });
 
       toast.success('Tag added');
       fetchContacts();
@@ -221,14 +221,14 @@ export function useContacts() {
 
       if (error) throw error;
 
-      // Log timeline event
-      await supabase.from('contact_timeline').insert({
+      // Log timeline event (using any cast until types regenerate)
+      await (supabase as any).from('contact_timeline').insert({
         contact_id: contactId,
         tenant_id: currentTenant.id,
         event_type: 'tag_removed',
         event_data: { tag_id: tagId },
         actor_type: 'user',
-      } as Record<string, unknown>);
+      });
 
       toast.success('Tag removed');
       fetchContacts();
@@ -271,7 +271,8 @@ export function useContactTimeline(contactId: string | null) {
 
     setLoading(true);
     try {
-      const { data, error } = await supabase
+      // Using any cast until types regenerate for contact_timeline
+      const { data, error } = await (supabase as any)
         .from('contact_timeline')
         .select(`
           *,
@@ -302,13 +303,14 @@ export function useContactTimeline(contactId: string | null) {
     if (!contactId || !currentTenant?.id) return;
 
     try {
-      await supabase.from('contact_timeline').insert({
+      // Using any cast until types regenerate
+      await (supabase as any).from('contact_timeline').insert({
         contact_id: contactId,
         tenant_id: currentTenant.id,
         event_type: eventType,
         event_data: eventData,
         actor_type: 'user',
-      } as Record<string, unknown>);
+      });
       fetchTimeline();
     } catch (error) {
       console.error('Error adding timeline event:', error);
