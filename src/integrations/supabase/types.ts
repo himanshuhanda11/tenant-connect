@@ -2234,6 +2234,13 @@ export type Database = {
             foreignKeyName: "round_robin_state_team_id_fkey"
             columns: ["team_id"]
             isOneToOne: false
+            referencedRelation: "smeksh_teams"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "round_robin_state_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
             referencedRelation: "teams"
             referencedColumns: ["id"]
           },
@@ -2296,6 +2303,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "routing_rules_assign_to_team_id_fkey"
+            columns: ["assign_to_team_id"]
+            isOneToOne: false
+            referencedRelation: "smeksh_teams"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "routing_rules_assign_to_team_id_fkey"
             columns: ["assign_to_team_id"]
@@ -2366,6 +2380,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "sla_settings_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "smeksh_teams"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "sla_settings_team_id_fkey"
             columns: ["team_id"]
@@ -2700,6 +2721,27 @@ export type Database = {
             columns: ["agent_id"]
             isOneToOne: false
             referencedRelation: "agents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "team_members_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "smeksh_presence"
+            referencedColumns: ["member_id"]
+          },
+          {
+            foreignKeyName: "team_members_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "smeksh_workspace_members"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "team_members_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "smeksh_teams"
             referencedColumns: ["id"]
           },
           {
@@ -3529,6 +3571,13 @@ export type Database = {
             foreignKeyName: "working_hours_team_id_fkey"
             columns: ["team_id"]
             isOneToOne: false
+            referencedRelation: "smeksh_teams"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "working_hours_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
             referencedRelation: "teams"
             referencedColumns: ["id"]
           },
@@ -3550,6 +3599,383 @@ export type Database = {
       }
     }
     Views: {
+      smeksh_audit_logs: {
+        Row: {
+          action: string | null
+          actor_user_id: string | null
+          created_at: string | null
+          details: Json | null
+          id: string | null
+          ip_address: string | null
+          resource_id: string | null
+          resource_type: string | null
+          user_agent: string | null
+          workspace_id: string | null
+        }
+        Insert: {
+          action?: string | null
+          actor_user_id?: string | null
+          created_at?: string | null
+          details?: Json | null
+          id?: string | null
+          ip_address?: string | null
+          resource_id?: string | null
+          resource_type?: string | null
+          user_agent?: string | null
+          workspace_id?: string | null
+        }
+        Update: {
+          action?: string | null
+          actor_user_id?: string | null
+          created_at?: string | null
+          details?: Json | null
+          id?: string | null
+          ip_address?: string | null
+          resource_id?: string | null
+          resource_type?: string | null
+          user_agent?: string | null
+          workspace_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "audit_logs_tenant_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "audit_logs_user_id_fkey"
+            columns: ["actor_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      smeksh_presence: {
+        Row: {
+          last_active_at: string | null
+          member_id: string | null
+          profile_id: string | null
+          status: string | null
+          updated_at: string | null
+          workspace_id: string | null
+        }
+        Insert: {
+          last_active_at?: string | null
+          member_id?: string | null
+          profile_id?: string | null
+          status?: never
+          updated_at?: string | null
+          workspace_id?: string | null
+        }
+        Update: {
+          last_active_at?: string | null
+          member_id?: string | null
+          profile_id?: string | null
+          status?: never
+          updated_at?: string | null
+          workspace_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agents_tenant_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agents_user_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      smeksh_round_robin_state: {
+        Row: {
+          cursor: number | null
+          team_id: string | null
+          updated_at: string | null
+          workspace_id: string | null
+        }
+        Insert: {
+          cursor?: number | null
+          team_id?: string | null
+          updated_at?: string | null
+          workspace_id?: string | null
+        }
+        Update: {
+          cursor?: number | null
+          team_id?: string | null
+          updated_at?: string | null
+          workspace_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "round_robin_state_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "smeksh_teams"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "round_robin_state_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "round_robin_state_tenant_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      smeksh_routing_rules: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          fallback_strategy: string | null
+          id: string | null
+          is_active: boolean | null
+          match_conditions: Json | null
+          name: string | null
+          priority: number | null
+          status: string | null
+          strategy: string | null
+          target_member_id: string | null
+          target_team_id: string | null
+          trigger_event: string | null
+          updated_at: string | null
+          workspace_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          fallback_strategy?: string | null
+          id?: string | null
+          is_active?: boolean | null
+          match_conditions?: Json | null
+          name?: string | null
+          priority?: number | null
+          status?: never
+          strategy?: string | null
+          target_member_id?: string | null
+          target_team_id?: string | null
+          trigger_event?: string | null
+          updated_at?: string | null
+          workspace_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          fallback_strategy?: string | null
+          id?: string | null
+          is_active?: boolean | null
+          match_conditions?: Json | null
+          name?: string | null
+          priority?: number | null
+          status?: never
+          strategy?: string | null
+          target_member_id?: string | null
+          target_team_id?: string | null
+          trigger_event?: string | null
+          updated_at?: string | null
+          workspace_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "routing_rules_assign_to_team_id_fkey"
+            columns: ["target_team_id"]
+            isOneToOne: false
+            referencedRelation: "smeksh_teams"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "routing_rules_assign_to_team_id_fkey"
+            columns: ["target_team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "routing_rules_assign_to_user_id_fkey"
+            columns: ["target_member_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "routing_rules_tenant_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      smeksh_team_members: {
+        Row: {
+          created_at: string | null
+          id: string | null
+          is_active: boolean | null
+          member_id: string | null
+          profile_id: string | null
+          team_id: string | null
+          workspace_id: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agents_user_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "team_members_agent_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "agents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "team_members_agent_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "smeksh_presence"
+            referencedColumns: ["member_id"]
+          },
+          {
+            foreignKeyName: "team_members_agent_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "smeksh_workspace_members"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "team_members_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "smeksh_teams"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "team_members_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "team_members_tenant_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      smeksh_teams: {
+        Row: {
+          color: string | null
+          created_at: string | null
+          default_routing_strategy: string | null
+          description: string | null
+          id: string | null
+          is_active: boolean | null
+          name: string | null
+          team_lead_id: string | null
+          updated_at: string | null
+          workspace_id: string | null
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string | null
+          default_routing_strategy?: string | null
+          description?: string | null
+          id?: string | null
+          is_active?: boolean | null
+          name?: string | null
+          team_lead_id?: string | null
+          updated_at?: string | null
+          workspace_id?: string | null
+        }
+        Update: {
+          color?: string | null
+          created_at?: string | null
+          default_routing_strategy?: string | null
+          description?: string | null
+          id?: string | null
+          is_active?: boolean | null
+          name?: string | null
+          team_lead_id?: string | null
+          updated_at?: string | null
+          workspace_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "teams_team_lead_id_fkey"
+            columns: ["team_lead_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "teams_tenant_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      smeksh_workspace_members: {
+        Row: {
+          created_at: string | null
+          display_name: string | null
+          email: string | null
+          id: string | null
+          is_active: boolean | null
+          is_online: boolean | null
+          languages: string[] | null
+          last_active_at: string | null
+          max_open_chats: number | null
+          notes: string | null
+          presence: string | null
+          profile_id: string | null
+          role: string | null
+          skills: string[] | null
+          status: string | null
+          timezone: string | null
+          updated_at: string | null
+          weight: number | null
+          workspace_id: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agents_tenant_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agents_user_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       waba_accounts_public: {
         Row: {
           business_id: string | null
@@ -3814,6 +4240,52 @@ export type Database = {
           p_workflow_id?: string
         }
         Returns: undefined
+      }
+      smeksh_assign_conversation: {
+        Args: {
+          p_conversation_id: string
+          p_only_if_unassigned?: boolean
+          p_profile_id: string
+          p_workspace_id: string
+        }
+        Returns: boolean
+      }
+      smeksh_auto_route_conversation: {
+        Args: {
+          p_conversation_id: string
+          p_only_if_unassigned?: boolean
+          p_trigger_event?: string
+          p_workspace_id: string
+        }
+        Returns: Json
+      }
+      smeksh_get_team_workload: {
+        Args: { p_team_id: string; p_workspace_id: string }
+        Returns: {
+          availability_pct: number
+          display_name: string
+          is_online: boolean
+          max_open_chats: number
+          open_count: number
+          profile_id: string
+        }[]
+      }
+      smeksh_pick_profile_least_busy: {
+        Args: {
+          p_max_open?: number
+          p_only_online?: boolean
+          p_team_id: string
+          p_workspace_id: string
+        }
+        Returns: string
+      }
+      smeksh_pick_profile_round_robin: {
+        Args: {
+          p_only_online?: boolean
+          p_team_id: string
+          p_workspace_id: string
+        }
+        Returns: string
       }
       users_share_tenant: {
         Args: { user_a: string; user_b: string }
