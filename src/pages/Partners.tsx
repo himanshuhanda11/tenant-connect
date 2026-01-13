@@ -173,7 +173,7 @@ export default function Partners() {
               Partner Program
             </Badge>
             <h1 className="text-4xl md:text-6xl font-bold mb-6">
-              Partner With <span className="text-primary">WazzupCRM</span>
+              Partner With <span className="text-primary">smeksh</span>
             </h1>
             <p className="text-xl text-muted-foreground mb-4">
               Grow Your Business. Earn Recurring Revenue.
@@ -314,7 +314,7 @@ export default function Partners() {
               Partner Benefits
             </Badge>
             <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              Why Partner with WazzupCRM?
+              Why Partner with smeksh?
             </h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
               Get everything you need to succeed — from marketing materials to dedicated support
