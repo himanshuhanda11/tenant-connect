@@ -586,6 +586,103 @@ export type Database = {
           },
         ]
       }
+      automation_scheduled_jobs: {
+        Row: {
+          attempts: number
+          contact_id: string | null
+          conversation_id: string | null
+          created_at: string
+          execute_at: string
+          id: string
+          last_error: string | null
+          max_attempts: number
+          node_id: string | null
+          payload: Json
+          run_id: string | null
+          status: Database["public"]["Enums"]["scheduled_job_status"]
+          tenant_id: string
+          updated_at: string
+          workflow_id: string
+        }
+        Insert: {
+          attempts?: number
+          contact_id?: string | null
+          conversation_id?: string | null
+          created_at?: string
+          execute_at: string
+          id?: string
+          last_error?: string | null
+          max_attempts?: number
+          node_id?: string | null
+          payload?: Json
+          run_id?: string | null
+          status?: Database["public"]["Enums"]["scheduled_job_status"]
+          tenant_id: string
+          updated_at?: string
+          workflow_id: string
+        }
+        Update: {
+          attempts?: number
+          contact_id?: string | null
+          conversation_id?: string | null
+          created_at?: string
+          execute_at?: string
+          id?: string
+          last_error?: string | null
+          max_attempts?: number
+          node_id?: string | null
+          payload?: Json
+          run_id?: string | null
+          status?: Database["public"]["Enums"]["scheduled_job_status"]
+          tenant_id?: string
+          updated_at?: string
+          workflow_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "automation_scheduled_jobs_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "automation_scheduled_jobs_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "automation_scheduled_jobs_node_id_fkey"
+            columns: ["node_id"]
+            isOneToOne: false
+            referencedRelation: "automation_nodes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "automation_scheduled_jobs_run_id_fkey"
+            columns: ["run_id"]
+            isOneToOne: false
+            referencedRelation: "automation_runs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "automation_scheduled_jobs_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "automation_scheduled_jobs_workflow_id_fkey"
+            columns: ["workflow_id"]
+            isOneToOne: false
+            referencedRelation: "automation_workflows"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       automation_steps: {
         Row: {
           duration_ms: number | null
@@ -2774,6 +2871,14 @@ export type Database = {
       }
       cleanup_automation_expired_records: { Args: never; Returns: undefined }
       cleanup_rate_limit_logs: { Args: never; Returns: undefined }
+      complete_automation_job: {
+        Args: {
+          p_error?: string
+          p_job_id: string
+          p_status: Database["public"]["Enums"]["scheduled_job_status"]
+        }
+        Returns: undefined
+      }
       create_tenant_with_owner: {
         Args: { _name: string; _slug: string }
         Returns: {
@@ -2791,6 +2896,32 @@ export type Database = {
           to: "tenants"
           isOneToOne: true
           isSetofReturn: false
+        }
+      }
+      get_pending_automation_jobs: {
+        Args: { p_limit?: number }
+        Returns: {
+          attempts: number
+          contact_id: string | null
+          conversation_id: string | null
+          created_at: string
+          execute_at: string
+          id: string
+          last_error: string | null
+          max_attempts: number
+          node_id: string | null
+          payload: Json
+          run_id: string | null
+          status: Database["public"]["Enums"]["scheduled_job_status"]
+          tenant_id: string
+          updated_at: string
+          workflow_id: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "automation_scheduled_jobs"
+          isOneToOne: false
+          isSetofReturn: true
         }
       }
       get_tenant_usage: {
@@ -2829,6 +2960,19 @@ export type Database = {
         | { Args: { _tenant_id: string }; Returns: boolean }
         | { Args: { _tenant_id: string; _user_id: string }; Returns: boolean }
       is_tenant_owner: { Args: { _tenant_id: string }; Returns: boolean }
+      schedule_automation_job: {
+        Args: {
+          p_contact_id: string
+          p_conversation_id: string
+          p_execute_at: string
+          p_node_id: string
+          p_payload?: Json
+          p_run_id: string
+          p_tenant_id: string
+          p_workflow_id: string
+        }
+        Returns: string
+      }
       set_automation_cooldown: {
         Args: {
           p_contact_id?: string
@@ -2940,6 +3084,12 @@ export type Database = {
         | "action_per_contact"
         | "action_per_workspace"
         | "global_per_contact"
+      scheduled_job_status:
+        | "queued"
+        | "running"
+        | "done"
+        | "failed"
+        | "cancelled"
       subscription_status:
         | "active"
         | "past_due"
@@ -3203,6 +3353,13 @@ export const Constants = {
         "action_per_contact",
         "action_per_workspace",
         "global_per_contact",
+      ],
+      scheduled_job_status: [
+        "queued",
+        "running",
+        "done",
+        "failed",
+        "cancelled",
       ],
       subscription_status: [
         "active",
