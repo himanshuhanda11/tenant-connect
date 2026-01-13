@@ -161,42 +161,38 @@ export default function Partners() {
       <Navbar />
       
       {/* Hero Section */}
-      <section className="relative py-20 md:py-28 overflow-hidden">
-        {/* Professional Gradient Background */}
-        <div className="absolute inset-0 bg-gradient-to-br from-slate-950 via-green-950/40 to-slate-950" />
+      <section className="relative pt-24 pb-16 md:pt-32 md:pb-24 overflow-hidden bg-gradient-to-b from-background to-muted/30">
         <div className="absolute inset-0">
-          <div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-green-500/15 rounded-full blur-[120px]" />
-          <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-emerald-500/10 rounded-full blur-[100px]" />
+          <div className="absolute top-20 left-1/4 w-[400px] h-[400px] bg-green-500/5 rounded-full blur-[100px]" />
+          <div className="absolute bottom-0 right-1/4 w-[300px] h-[300px] bg-primary/5 rounded-full blur-[80px]" />
         </div>
-        {/* Subtle Grid */}
-        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.015)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.015)_1px,transparent_1px)] bg-[size:50px_50px]" />
         
         <div className="container relative z-10 mx-auto px-4">
           <div className="max-w-4xl mx-auto text-center">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-green-500/10 border border-green-500/20 text-green-400 text-sm font-medium mb-6">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-green-500/10 border border-green-500/20 text-green-600 text-sm font-medium mb-6">
               <Handshake className="w-4 h-4" />
               Partner Program
             </div>
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6 leading-tight">
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-foreground mb-6 leading-tight">
               Partner With{' '}
-              <span className="bg-gradient-to-r from-green-400 via-emerald-400 to-cyan-400 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-green-500 via-emerald-500 to-cyan-500 bg-clip-text text-transparent">
                 smeksh
               </span>
             </h1>
-            <p className="text-xl text-white/70 mb-4">
+            <p className="text-xl text-muted-foreground mb-4">
               Grow Your Business. Earn Recurring Revenue.
             </p>
-            <p className="text-lg text-white/60 mb-8 max-w-2xl mx-auto">
+            <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
               Join our partner network and help businesses transform their customer communication 
               with WhatsApp while earning up to 30% recurring commissions.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button size="lg" className="h-14 px-8 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 shadow-xl shadow-green-500/25" asChild>
+              <Button size="lg" className="h-14 px-8 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 shadow-lg shadow-green-500/20" asChild>
                 <a href="#partner-form">
                   Become a Partner <ArrowRight className="w-5 h-5 ml-2" />
                 </a>
               </Button>
-              <Button size="lg" variant="outline" className="h-14 px-8 border-white/20 text-white hover:bg-white/10" asChild>
+              <Button size="lg" variant="outline" className="h-14 px-8" asChild>
                 <a href="#partner-models">
                   Explore Partner Models
                 </a>
@@ -207,9 +203,9 @@ export default function Partners() {
           {/* Stats */}
           <div className="mt-16 grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 max-w-4xl mx-auto">
             {stats.map((stat, index) => (
-              <div key={index} className="text-center p-4 md:p-6 bg-white/5 backdrop-blur-sm rounded-xl border border-white/10">
-                <div className="text-2xl md:text-4xl font-bold bg-gradient-to-r from-green-400 to-emerald-400 bg-clip-text text-transparent mb-1">{stat.value}</div>
-                <div className="text-xs md:text-sm text-white/60">{stat.label}</div>
+              <div key={index} className="text-center p-4 md:p-6 bg-card rounded-xl border shadow-sm">
+                <div className="text-2xl md:text-4xl font-bold bg-gradient-to-r from-green-500 to-emerald-500 bg-clip-text text-transparent mb-1">{stat.value}</div>
+                <div className="text-xs md:text-sm text-muted-foreground">{stat.label}</div>
               </div>
             ))}
           </div>
