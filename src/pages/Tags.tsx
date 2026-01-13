@@ -1,10 +1,12 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { TagsSidebar } from '@/components/tags/TagsSidebar';
 import { TagsListView } from '@/components/tags/TagsListView';
 import { EmptyTagsState } from '@/components/tags/EmptyTagsState';
 import { CreateTagModal } from '@/components/tags/CreateTagModal';
 import { CreateRuleModal } from '@/components/tags/CreateRuleModal';
+import { GuideBanner } from '@/components/help/GuideBanner';
 import { useTags, useTagRules } from '@/hooks/useTags';
 import { Tag, TagType, STARTER_TAGS } from '@/types/tag';
 import { Button } from '@/components/ui/button';
@@ -122,33 +124,13 @@ const Tags = () => {
         {/* Quick Guide Banner */}
         {tags.length > 0 && (
           <div className="shrink-0 mx-6 mt-4">
-            <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 border-0">
-              <CardContent className="py-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-4">
-                    <div className="h-10 w-10 rounded-lg bg-white/80 flex items-center justify-center">
-                      <BookOpen className="h-5 w-5 text-blue-600" />
-                    </div>
-                    <div>
-                      <h3 className="font-medium text-sm">Quick Guide</h3>
-                      <p className="text-xs text-muted-foreground">
-                        Tags help segment your audience for targeted campaigns and automation
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <Button variant="ghost" size="sm" className="text-xs">
-                      <ExternalLink className="h-3 w-3 mr-1" />
-                      Chat Profile & First Message Tag
-                    </Button>
-                    <Button variant="ghost" size="sm" className="text-xs">
-                      <ExternalLink className="h-3 w-3 mr-1" />
-                      How to create & add tags
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+            <GuideBanner
+              title="Quick Guide"
+              description="Tags help segment your audience for targeted campaigns and automation."
+              guideUrl="/help/contacts-tags"
+              variant="compact"
+              dismissible
+            />
           </div>
         )}
 

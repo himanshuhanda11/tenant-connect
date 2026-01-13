@@ -8,62 +8,67 @@ export const sidebarDescriptions: Record<string, SidebarItemMeta> = {
   dashboard: {
     key: 'dashboard',
     description: 'Overview of your messaging performance and key metrics at a glance.',
-    helpSlug: 'getting-started-dashboard'
+    helpSlug: 'inbox-guide'
   },
   inbox: {
     key: 'inbox',
     description: 'Central inbox to reply to all WhatsApp messages from customers in real time.',
-    helpSlug: 'inbox-guide'
+    helpSlug: 'inbox'
   },
   contacts: {
     key: 'contacts',
     description: 'Manage your customer database with detailed profiles and conversation history.',
-    helpSlug: 'contacts-management'
+    helpSlug: 'contacts-tags'
   },
   tags: {
     key: 'tags',
     description: 'Organize contacts and conversations with custom labels for better segmentation.',
-    helpSlug: 'tags-and-segments'
+    helpSlug: 'contacts-tags'
   },
   'user-attributes': {
     key: 'user-attributes',
     description: 'Define custom fields to capture additional customer information.',
-    helpSlug: 'user-attributes'
+    helpSlug: 'contacts-tags'
   },
   'phone-numbers': {
     key: 'phone-numbers',
     description: 'Connect and manage your WhatsApp Business phone numbers.',
-    helpSlug: 'phone-numbers-setup'
+    helpSlug: 'inbox'
   },
   templates: {
     key: 'templates',
     description: 'Create and manage WhatsApp message templates that must be approved by Meta.',
-    helpSlug: 'templates-guide'
+    helpSlug: 'templates'
   },
   campaigns: {
     key: 'campaigns',
     description: 'Send bulk messages to targeted segments using approved templates.',
-    helpSlug: 'campaigns-guide'
+    helpSlug: 'templates'
   },
   automation: {
     key: 'automation',
     description: 'Automatically send messages or apply actions based on user behavior.',
-    helpSlug: 'automation-workflows'
+    helpSlug: 'automation'
   },
   team: {
     key: 'team',
     description: 'Invite team members and manage roles and permissions.',
-    helpSlug: 'team-management'
+    helpSlug: 'inbox'
   },
   billing: {
     key: 'billing',
     description: 'View your subscription, usage, and manage payment methods.',
-    helpSlug: 'billing-and-plans'
+    helpSlug: 'inbox'
   },
   settings: {
     key: 'settings',
     description: 'Configure workspace settings, integrations, and preferences.',
-    helpSlug: 'workspace-settings'
+    helpSlug: 'inbox'
+  },
+  help: {
+    key: 'help',
+    description: 'Browse guides and documentation to get the most out of the platform.',
+    helpSlug: ''
   }
 };
 
