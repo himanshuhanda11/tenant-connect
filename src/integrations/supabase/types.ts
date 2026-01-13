@@ -14,6 +14,60 @@ export type Database = {
   }
   public: {
     Tables: {
+      agents: {
+        Row: {
+          created_at: string
+          display_name: string | null
+          id: string
+          is_active: boolean
+          is_online: boolean
+          role: string | null
+          tenant_id: string
+          updated_at: string
+          user_id: string
+          weight: number
+        }
+        Insert: {
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          is_active?: boolean
+          is_online?: boolean
+          role?: string | null
+          tenant_id: string
+          updated_at?: string
+          user_id: string
+          weight?: number
+        }
+        Update: {
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          is_active?: boolean
+          is_online?: boolean
+          role?: string | null
+          tenant_id?: string
+          updated_at?: string
+          user_id?: string
+          weight?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agents_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agents_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       automation_cooldowns: {
         Row: {
           action_type:
@@ -595,6 +649,8 @@ export type Database = {
           execute_at: string
           id: string
           last_error: string | null
+          locked_at: string | null
+          locked_by: string | null
           max_attempts: number
           node_id: string | null
           payload: Json
@@ -612,6 +668,8 @@ export type Database = {
           execute_at: string
           id?: string
           last_error?: string | null
+          locked_at?: string | null
+          locked_by?: string | null
           max_attempts?: number
           node_id?: string | null
           payload?: Json
@@ -629,6 +687,8 @@ export type Database = {
           execute_at?: string
           id?: string
           last_error?: string | null
+          locked_at?: string | null
+          locked_by?: string | null
           max_attempts?: number
           node_id?: string | null
           payload?: Json
@@ -1838,6 +1898,42 @@ export type Database = {
           },
         ]
       }
+      round_robin_state: {
+        Row: {
+          cursor: number
+          team_id: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          cursor?: number
+          team_id: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          cursor?: number
+          team_id?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "round_robin_state_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "round_robin_state_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       subscriptions: {
         Row: {
           billing_cycle: string | null
@@ -2118,6 +2214,84 @@ export type Database = {
           },
           {
             foreignKeyName: "tags_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      team_members: {
+        Row: {
+          agent_id: string
+          created_at: string
+          id: string
+          is_active: boolean
+          team_id: string
+          tenant_id: string
+        }
+        Insert: {
+          agent_id: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          team_id: string
+          tenant_id: string
+        }
+        Update: {
+          agent_id?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          team_id?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "team_members_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "agents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "team_members_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "team_members_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      teams: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          tenant_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          tenant_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "teams_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
@@ -2842,6 +3016,18 @@ export type Database = {
       }
     }
     Functions: {
+      cancel_conversation_jobs: {
+        Args: {
+          p_conversation_id: string
+          p_only_stop_on_reply?: boolean
+          p_tenant_id: string
+        }
+        Returns: number
+      }
+      cancel_workflow_jobs: {
+        Args: { p_tenant_id: string; p_workflow_id: string }
+        Returns: number
+      }
       check_automation_cooldown: {
         Args: { p_cooldown_key: string; p_tenant_id: string }
         Returns: boolean
@@ -2879,6 +3065,15 @@ export type Database = {
         }
         Returns: undefined
       }
+      complete_automation_job_v2: {
+        Args: {
+          p_error?: string
+          p_job_id: string
+          p_retry_delay_seconds?: number
+          p_status: Database["public"]["Enums"]["scheduled_job_status"]
+        }
+        Returns: undefined
+      }
       create_tenant_with_owner: {
         Args: { _name: string; _slug: string }
         Returns: {
@@ -2896,32 +3091,6 @@ export type Database = {
           to: "tenants"
           isOneToOne: true
           isSetofReturn: false
-        }
-      }
-      get_pending_automation_jobs: {
-        Args: { p_limit?: number }
-        Returns: {
-          attempts: number
-          contact_id: string | null
-          conversation_id: string | null
-          created_at: string
-          execute_at: string
-          id: string
-          last_error: string | null
-          max_attempts: number
-          node_id: string | null
-          payload: Json
-          run_id: string | null
-          status: Database["public"]["Enums"]["scheduled_job_status"]
-          tenant_id: string
-          updated_at: string
-          workflow_id: string
-        }[]
-        SetofOptions: {
-          from: "*"
-          to: "automation_scheduled_jobs"
-          isOneToOne: false
-          isSetofReturn: true
         }
       }
       get_tenant_usage: {
@@ -2960,6 +3129,38 @@ export type Database = {
         | { Args: { _tenant_id: string }; Returns: boolean }
         | { Args: { _tenant_id: string; _user_id: string }; Returns: boolean }
       is_tenant_owner: { Args: { _tenant_id: string }; Returns: boolean }
+      lock_due_automation_jobs: {
+        Args: { p_limit?: number; p_locked_by?: string }
+        Returns: {
+          attempts: number
+          contact_id: string | null
+          conversation_id: string | null
+          created_at: string
+          execute_at: string
+          id: string
+          last_error: string | null
+          locked_at: string | null
+          locked_by: string | null
+          max_attempts: number
+          node_id: string | null
+          payload: Json
+          run_id: string | null
+          status: Database["public"]["Enums"]["scheduled_job_status"]
+          tenant_id: string
+          updated_at: string
+          workflow_id: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "automation_scheduled_jobs"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      pick_agent_round_robin: {
+        Args: { p_team_id: string; p_tenant_id: string }
+        Returns: string
+      }
       schedule_automation_job: {
         Args: {
           p_contact_id: string

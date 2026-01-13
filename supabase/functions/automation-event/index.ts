@@ -68,6 +68,30 @@ serve(async (req) => {
     // Generate idempotency key
     const idempotencyKey = generateIdempotencyKey(event);
 
+    // Cancel queued jobs if customer replies (stop_on_customer_reply)
+    if (event.eventType === "message_received" && event.conversationId) {
+      const { data: cancelledCount } = await supabase.rpc("cancel_conversation_jobs", {
+        p_tenant_id: event.tenantId,
+        p_conversation_id: event.conversationId,
+        p_only_stop_on_reply: true,
+      });
+      if (cancelledCount && cancelledCount > 0) {
+        console.log(`Cancelled ${cancelledCount} queued jobs due to customer reply`);
+      }
+    }
+
+    // Cancel queued jobs if conversation closed
+    if (event.eventType === "conversation_closed" && event.conversationId) {
+      const { data: cancelledCount } = await supabase.rpc("cancel_conversation_jobs", {
+        p_tenant_id: event.tenantId,
+        p_conversation_id: event.conversationId,
+        p_only_stop_on_reply: false,
+      });
+      if (cancelledCount && cancelledCount > 0) {
+        console.log(`Cancelled ${cancelledCount} queued jobs due to conversation close`);
+      }
+    }
+
     // Load active workflows matching this trigger
     const { data: workflows, error: workflowsError } = await supabase
       .from("automation_workflows")
@@ -625,17 +649,52 @@ async function executeAction(
       return { success: true, output: { tagRemoved: tagIdToRemove } };
 
     case "assign_agent":
-      const agentId = config.agentId as string;
-      const strategy = config.strategy as string || "specific";
+      const strategy = config.strategy as string || "SPECIFIC_AGENT";
+      const teamId = config.teamId as string;
+      let selectedAgentId = config.agentId as string;
       
       if (event.conversationId) {
-        // For now, just assign specific agent
-        await supabase
-          .from("conversations")
-          .update({ assigned_to: agentId })
-          .eq("id", event.conversationId);
+        // Round Robin assignment
+        if (strategy === "ROUND_ROBIN" && teamId) {
+          const { data: rrAgent } = await supabase.rpc("pick_agent_round_robin", {
+            p_tenant_id: event.tenantId,
+            p_team_id: teamId,
+          });
+          selectedAgentId = rrAgent || config.fallbackAgentId as string || selectedAgentId;
+        }
+        // Least Busy assignment
+        else if (strategy === "LEAST_BUSY" && teamId) {
+          const { data: agents } = await supabase
+            .from("agents")
+            .select("id, tenant_id")
+            .eq("tenant_id", event.tenantId)
+            .eq("is_active", true);
+          
+          if (agents && agents.length > 0) {
+            // Count open conversations per agent
+            const agentCounts = await Promise.all(
+              agents.map(async (agent: any) => {
+                const { count } = await supabase
+                  .from("conversations")
+                  .select("*", { count: "exact", head: true })
+                  .eq("assigned_to", agent.id)
+                  .eq("status", "open");
+                return { id: agent.id, count: count || 0 };
+              })
+            );
+            agentCounts.sort((a, b) => a.count - b.count);
+            selectedAgentId = agentCounts[0]?.id || selectedAgentId;
+          }
+        }
+        
+        if (selectedAgentId) {
+          await supabase
+            .from("conversations")
+            .update({ assigned_to: selectedAgentId })
+            .eq("id", event.conversationId);
+        }
       }
-      return { success: true, output: { agentAssigned: agentId, strategy } };
+      return { success: true, output: { agentAssigned: selectedAgentId, strategy } };
 
     case "set_status":
       const status = config.status as string;
