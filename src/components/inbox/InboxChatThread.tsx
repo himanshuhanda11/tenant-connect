@@ -39,7 +39,7 @@ import {
   Phone
 } from 'lucide-react';
 import { format, formatDistanceToNow, differenceInHours } from 'date-fns';
-import { InboxConversation, InboxMessage, WAStatus, ConversationEvent, STATUS_CONFIG, PRIORITY_CONFIG } from '@/types/inbox';
+import { InboxConversation, InboxMessage, WAStatus, ConversationEvent, STATUS_CONFIG, PRIORITY_CONFIG, ConversationStatus } from '@/types/inbox';
 import { cn } from '@/lib/utils';
 
 interface InboxChatThreadProps {
@@ -49,10 +49,12 @@ interface InboxChatThreadProps {
   typingUsers: Array<{ profile_id: string; full_name?: string }>;
   onSendMessage: (message: { text?: string; template?: string; media?: File }) => void;
   onAssign: (profileId: string | null) => void;
-  onSetStatus: (status: string) => void;
+  onSetStatus: (status: ConversationStatus) => void;
   onSetIntervene: (intervene: boolean) => void;
   onAddTag: (tagId: string) => void;
   loading?: boolean;
+  availableTags?: Array<{ id: string; name: string; color: string }>;
+  teamMembers?: Array<{ id: string; full_name: string; avatar_url: string | null }>;
 }
 
 const STATUS_ICONS: Record<WAStatus, React.ReactNode> = {
@@ -73,6 +75,8 @@ export function InboxChatThread({
   onSetIntervene,
   onAddTag,
   loading,
+  availableTags = [],
+  teamMembers = [],
 }: InboxChatThreadProps) {
   const [messageText, setMessageText] = useState('');
   const [showTemplates, setShowTemplates] = useState(false);
@@ -166,7 +170,7 @@ export function InboxChatThread({
         </div>
 
         <div className="flex items-center gap-2">
-          {/* Tags */}
+          {/* Tags with dropdown */}
           <div className="flex items-center gap-1">
             {conversation.tags?.slice(0, 3).map(tag => (
               <Badge 
@@ -178,9 +182,38 @@ export function InboxChatThread({
                 {tag.name}
               </Badge>
             ))}
-            <Button variant="ghost" size="sm" className="h-7 px-2" onClick={() => onAddTag('')}>
-              <Tag className="h-3 w-3" />
-            </Button>
+            {/* Tag Picker Dropdown */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="sm" className="h-7 px-2">
+                  <Tag className="h-3 w-3" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                <div className="px-2 py-1.5 text-xs font-medium text-muted-foreground">
+                  Add Tag
+                </div>
+                {availableTags
+                  .filter(tag => !conversation.tags?.some(t => t.id === tag.id))
+                  .map(tag => (
+                    <DropdownMenuItem 
+                      key={tag.id} 
+                      onClick={() => onAddTag(tag.id)}
+                    >
+                      <span 
+                        className="w-2 h-2 rounded-full mr-2" 
+                        style={{ backgroundColor: tag.color }}
+                      />
+                      {tag.name}
+                    </DropdownMenuItem>
+                  ))}
+                {availableTags.filter(tag => !conversation.tags?.some(t => t.id === tag.id)).length === 0 && (
+                  <div className="px-2 py-1.5 text-xs text-muted-foreground">
+                    All tags applied
+                  </div>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
 
           {/* Intervene Toggle */}
@@ -233,20 +266,36 @@ export function InboxChatThread({
             </DropdownMenuContent>
           </DropdownMenu>
 
-          {/* More Actions */}
+          {/* More Actions with Team Assignment */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon" className="h-8 w-8">
                 <MoreVertical className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
+            <DropdownMenuContent align="end" className="w-56">
+              <div className="px-2 py-1.5 text-xs font-medium text-muted-foreground">
+                Assignment
+              </div>
               <DropdownMenuItem onClick={() => onAssign('u1')}>
                 <User className="h-4 w-4 mr-2" />
                 Assign to me
               </DropdownMenuItem>
+              {teamMembers.map(member => (
+                <DropdownMenuItem 
+                  key={member.id} 
+                  onClick={() => onAssign(member.id)}
+                  className={conversation.assigned_to === member.id ? 'bg-muted' : ''}
+                >
+                  <User className="h-4 w-4 mr-2" />
+                  {member.full_name}
+                  {conversation.assigned_to === member.id && (
+                    <Check className="h-3 w-3 ml-auto" />
+                  )}
+                </DropdownMenuItem>
+              ))}
               <DropdownMenuItem onClick={() => onAssign(null)}>
-                <User className="h-4 w-4 mr-2" />
+                <X className="h-4 w-4 mr-2" />
                 Unassign
               </DropdownMenuItem>
               <DropdownMenuSeparator />

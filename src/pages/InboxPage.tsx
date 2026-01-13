@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { InboxConversationList } from '@/components/inbox/InboxConversationList';
@@ -12,7 +12,7 @@ import {
   useTypingState,
   useInboxActions 
 } from '@/hooks/useInbox';
-import { InboxView, InboxFilters, INBOX_VIEW_CONFIG } from '@/types/inbox';
+import { InboxView, InboxFilters, INBOX_VIEW_CONFIG, ConversationStatus } from '@/types/inbox';
 import { TooltipProvider } from '@/components/ui/tooltip';
 
 export default function InboxPage() {
@@ -22,17 +22,44 @@ export default function InboxPage() {
   const [view, setView] = useState<InboxView>('all');
   const [filters, setFilters] = useState<InboxFilters>({});
   const [selectedId, setSelectedId] = useState<string | null>(conversationId || null);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   // Hooks
-  const { conversations, loading: loadingConversations } = useInboxConversations(view, filters);
-  const { messages, loading: loadingMessages } = useInboxMessages(selectedId);
-  const { events } = useConversationEvents(selectedId);
+  const { conversations, loading: loadingConversations, refetch } = useInboxConversations(view, filters);
+  const { messages, loading: loadingMessages, addMessage } = useInboxMessages(selectedId);
+  const { events, addEvent } = useConversationEvents(selectedId);
   const { notes, addNote } = useInternalNotes(selectedId);
   const { typingUsers } = useTypingState(selectedId);
   const actions = useInboxActions();
 
-  // Get selected conversation
+  // Get selected conversation - refresh when conversations update
   const selectedConversation = conversations.find(c => c.id === selectedId) || null;
+
+  // Listen for inbox updates
+  useEffect(() => {
+    const handleUpdate = (e: Event) => {
+      const detail = (e as CustomEvent).detail;
+      if (detail?.conversationId) {
+        setRefreshKey(prev => prev + 1);
+        refetch();
+      }
+    };
+
+    const handleMessage = (e: Event) => {
+      const detail = (e as CustomEvent).detail;
+      if (detail?.conversationId === selectedId && detail?.message) {
+        addMessage(detail.message);
+      }
+    };
+
+    window.addEventListener('inbox-update', handleUpdate);
+    window.addEventListener('inbox-message', handleMessage);
+    
+    return () => {
+      window.removeEventListener('inbox-update', handleUpdate);
+      window.removeEventListener('inbox-message', handleMessage);
+    };
+  }, [selectedId, refetch, addMessage]);
 
   // Handle URL changes
   useEffect(() => {
@@ -54,6 +81,43 @@ export default function InboxPage() {
     setView(newView);
     setFilters(INBOX_VIEW_CONFIG[newView].filter);
   };
+
+  // Action handlers with proper types
+  const handleSetStatus = useCallback((status: ConversationStatus) => {
+    if (selectedId) {
+      actions.setConversationStatus(selectedId, status);
+    }
+  }, [selectedId, actions]);
+
+  const handleAssign = useCallback((profileId: string | null) => {
+    if (selectedId) {
+      actions.assignConversation(selectedId, profileId);
+    }
+  }, [selectedId, actions]);
+
+  const handleSetIntervene = useCallback((intervene: boolean) => {
+    if (selectedId) {
+      actions.setInterveneMode(selectedId, intervene);
+    }
+  }, [selectedId, actions]);
+
+  const handleAddTag = useCallback((tagId: string) => {
+    if (selectedId && tagId) {
+      actions.addTag(selectedId, tagId);
+    }
+  }, [selectedId, actions]);
+
+  const handleRemoveTag = useCallback((tagId: string) => {
+    if (selectedId) {
+      actions.removeTag(selectedId, tagId);
+    }
+  }, [selectedId, actions]);
+
+  const handleSendMessage = useCallback((msg: { text?: string; template?: string; media?: File }) => {
+    if (selectedId) {
+      actions.sendMessage(selectedId, msg);
+    }
+  }, [selectedId, actions]);
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -77,14 +141,10 @@ export default function InboxPage() {
           }
           break;
         case 'e': // Set pending
-          if (selectedId) {
-            actions.setConversationStatus(selectedId, 'pending');
-          }
+          handleSetStatus('pending');
           break;
         case 'c': // Close
-          if (selectedId) {
-            actions.setConversationStatus(selectedId, 'closed');
-          }
+          handleSetStatus('closed');
           break;
         case 't': // Open tag picker
           // Implemented in chat thread
@@ -94,12 +154,12 @@ export default function InboxPage() {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [conversations, selectedId]);
+  }, [conversations, selectedId, handleSetStatus]);
 
   return (
     <DashboardLayout>
       <TooltipProvider>
-        <div className="h-[calc(100vh-4rem)] flex -m-6">
+        <div className="h-[calc(100vh-4rem)] flex -m-6" key={refreshKey}>
           {/* Left: Conversation List */}
           <div className="w-80 flex-shrink-0">
             <InboxConversationList
@@ -120,12 +180,14 @@ export default function InboxPage() {
             messages={messages}
             events={events}
             typingUsers={typingUsers}
-            onSendMessage={(msg) => selectedId && actions.sendMessage(selectedId, msg)}
-            onAssign={(profileId) => selectedId && actions.assignConversation(selectedId, profileId)}
-            onSetStatus={(status) => selectedId && actions.setConversationStatus(selectedId, status)}
-            onSetIntervene={(intervene) => selectedId && actions.setInterveneMode(selectedId, intervene)}
-            onAddTag={(tagId) => selectedId && actions.addTag(selectedId, tagId)}
+            onSendMessage={handleSendMessage}
+            onAssign={handleAssign}
+            onSetStatus={handleSetStatus}
+            onSetIntervene={handleSetIntervene}
+            onAddTag={handleAddTag}
             loading={loadingMessages}
+            availableTags={actions.availableTags}
+            teamMembers={actions.teamMembers}
           />
 
           {/* Right: Context Panel */}
@@ -134,8 +196,9 @@ export default function InboxPage() {
             events={events}
             notes={notes}
             onAddNote={addNote}
-            onAddTag={(tagId) => selectedId && actions.addTag(selectedId, tagId)}
-            onRemoveTag={(tagId) => selectedId && actions.removeTag(selectedId, tagId)}
+            onAddTag={handleAddTag}
+            onRemoveTag={handleRemoveTag}
+            availableTags={actions.availableTags}
           />
         </div>
       </TooltipProvider>
