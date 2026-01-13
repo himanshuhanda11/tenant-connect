@@ -129,33 +129,38 @@ export default function Pricing() {
       <Navbar />
 
       {/* Hero */}
-      <section className="relative py-24 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-purple-900/50 to-slate-900" />
-        <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-green-500/20 rounded-full blur-[100px]" />
-        <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-purple-500/20 rounded-full blur-[100px]" />
+      <section className="relative py-20 md:py-28 overflow-hidden">
+        {/* Professional Gradient Background */}
+        <div className="absolute inset-0 bg-gradient-to-br from-slate-950 via-emerald-950/40 to-slate-950" />
+        <div className="absolute inset-0">
+          <div className="absolute top-0 left-1/3 w-[600px] h-[600px] bg-green-500/15 rounded-full blur-[120px]" />
+          <div className="absolute bottom-0 right-1/3 w-[500px] h-[500px] bg-emerald-500/10 rounded-full blur-[100px]" />
+        </div>
+        {/* Subtle Grid */}
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.015)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.015)_1px,transparent_1px)] bg-[size:50px_50px]" />
         
         <div className="container mx-auto px-4 relative">
           <div className="max-w-4xl mx-auto text-center">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 text-white text-sm font-medium mb-6">
-              <Zap className="w-4 h-4 text-yellow-400" />
-              Simple, transparent pricing
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-green-500/10 border border-green-500/20 text-green-400 text-sm font-medium mb-6">
+              <Zap className="w-4 h-4" />
+              Simple, Transparent Pricing
             </div>
-            <h1 className="text-4xl md:text-6xl font-bold text-white mb-6">
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6 leading-tight">
               Choose Your{' '}
-              <span className="bg-gradient-to-r from-green-400 to-emerald-400 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-green-400 via-emerald-400 to-cyan-400 bg-clip-text text-transparent">
                 Perfect Plan
               </span>
             </h1>
-            <p className="text-xl text-white/70 max-w-2xl mx-auto mb-10">
+            <p className="text-lg md:text-xl text-white/60 max-w-2xl mx-auto mb-10">
               Start free for 14 days. No credit card required. Cancel anytime.
             </p>
 
             {/* Billing Toggle */}
-            <div className="flex items-center justify-center gap-4">
-              <span className={`text-sm ${!isAnnual ? 'text-white' : 'text-white/50'}`}>Monthly</span>
+            <div className="inline-flex items-center gap-4 px-6 py-3 rounded-full bg-white/5 border border-white/10">
+              <span className={`text-sm font-medium ${!isAnnual ? 'text-white' : 'text-white/50'}`}>Monthly</span>
               <Switch checked={isAnnual} onCheckedChange={setIsAnnual} />
-              <span className={`text-sm ${isAnnual ? 'text-white' : 'text-white/50'}`}>
-                Annual <span className="text-green-400 font-medium">(Save 20%)</span>
+              <span className={`text-sm font-medium ${isAnnual ? 'text-white' : 'text-white/50'}`}>
+                Annual <span className="text-green-400 ml-1">(Save 20%)</span>
               </span>
             </div>
           </div>
