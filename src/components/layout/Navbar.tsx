@@ -30,7 +30,7 @@ export default function Navbar() {
   ];
 
   return (
-    <header className="border-b border-border/50 bg-background/80 backdrop-blur-md sticky top-0 z-50">
+    <header className="border-b border-border/50 bg-background/95 backdrop-blur-md sticky top-0 z-50">
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
         <div className="flex items-center gap-8">
           <Link to="/" className="flex items-center gap-3">
@@ -109,14 +109,14 @@ export default function Navbar() {
       {mobileMenuOpen && (
         <div className="lg:hidden border-t border-border bg-background">
           <div className="container mx-auto px-4 py-4 space-y-2">
-            <Link to="/products" className="block px-4 py-2 text-foreground hover:bg-muted rounded-lg" onClick={() => setMobileMenuOpen(false)}>Products</Link>
-            <Link to="/pricing" className="block px-4 py-2 text-foreground hover:bg-muted rounded-lg" onClick={() => setMobileMenuOpen(false)}>Pricing</Link>
-            <Link to="/help" className="block px-4 py-2 text-foreground hover:bg-muted rounded-lg" onClick={() => setMobileMenuOpen(false)}>Help Center</Link>
-            <Link to="/about" className="block px-4 py-2 text-foreground hover:bg-muted rounded-lg" onClick={() => setMobileMenuOpen(false)}>About</Link>
-            <Link to="/contact" className="block px-4 py-2 text-foreground hover:bg-muted rounded-lg" onClick={() => setMobileMenuOpen(false)}>Contact</Link>
-            <div className="pt-4 border-t border-border space-y-2">
-              <Button variant="outline" className="w-full" onClick={() => { navigate('/login'); setMobileMenuOpen(false); }}>Sign in</Button>
-              <Button className="w-full bg-gradient-to-r from-green-500 to-emerald-600" onClick={() => { navigate('/signup'); setMobileMenuOpen(false); }}>Get Started</Button>
+            <Link to="/products" className="block px-4 py-3 text-foreground hover:bg-muted rounded-lg font-medium" onClick={() => setMobileMenuOpen(false)}>Products</Link>
+            <Link to="/pricing" className="block px-4 py-3 text-foreground hover:bg-muted rounded-lg font-medium" onClick={() => setMobileMenuOpen(false)}>Pricing</Link>
+            <Link to="/help" className="block px-4 py-3 text-foreground hover:bg-muted rounded-lg font-medium" onClick={() => setMobileMenuOpen(false)}>Help Center</Link>
+            <Link to="/about" className="block px-4 py-3 text-foreground hover:bg-muted rounded-lg font-medium" onClick={() => setMobileMenuOpen(false)}>About</Link>
+            <Link to="/contact" className="block px-4 py-3 text-foreground hover:bg-muted rounded-lg font-medium" onClick={() => setMobileMenuOpen(false)}>Contact</Link>
+            <div className="pt-4 border-t border-border space-y-3">
+              <Button variant="outline" className="w-full h-12" onClick={() => { navigate('/login'); setMobileMenuOpen(false); }}>Sign in</Button>
+              <Button className="w-full h-12 bg-gradient-to-r from-green-500 to-emerald-600" onClick={() => { navigate('/signup'); setMobileMenuOpen(false); }}>Get Started Free</Button>
             </div>
           </div>
         </div>
