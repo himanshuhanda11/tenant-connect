@@ -120,6 +120,10 @@ export default function Navbar() {
             </Button>
 
             <Button variant="ghost" asChild>
+              <Link to="/partners">Partners</Link>
+            </Button>
+
+            <Button variant="ghost" asChild>
               <Link to="/contact">Contact</Link>
             </Button>
           </nav>

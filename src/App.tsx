@@ -51,6 +51,7 @@ import AnalyticsFeature from "./pages/features/AnalyticsFeature";
 import PhoneNumbersFeature from "./pages/features/PhoneNumbersFeature";
 import TeamRolesFeature from "./pages/features/TeamRolesFeature";
 import AuditLogsFeature from "./pages/features/AuditLogsFeature";
+import Partners from "./pages/Partners";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -104,7 +105,7 @@ const App = () => (
               <Route path="/guides" element={<Help />} />
               <Route path="/webinars" element={<Blog />} />
               <Route path="/changelog" element={<Blog />} />
-              <Route path="/partners" element={<About />} />
+              <Route path="/partners" element={<Partners />} />
               <Route path="/press" element={<About />} />
               <Route path="/cookies" element={<CookiePolicy />} />
               <Route path="/features/inbox" element={<InboxFeature />} />
