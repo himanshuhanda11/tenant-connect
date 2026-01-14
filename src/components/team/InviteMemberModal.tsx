@@ -139,7 +139,7 @@ const InviteMemberModal = ({ open, onOpenChange }: InviteMemberModalProps) => {
                   className="cursor-pointer"
                   onClick={() => togglePhone(phone.id)}
                 >
-                  {phone.display_number}
+                  {phone.display_name || phone.phone_e164}
                   {selectedPhones.includes(phone.id) && (
                     <X className="ml-1 h-3 w-3" />
                   )}
