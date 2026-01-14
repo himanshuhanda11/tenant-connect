@@ -8,6 +8,7 @@ import { Contact } from '@/types/contact';
 import { SmartView, DEFAULT_SMART_VIEWS, Segment, SegmentFilters } from '@/types/segment';
 import { ContactsHeader } from '@/components/contacts/ContactsHeader';
 import { ContactsSmartViewsSidebar } from '@/components/contacts/ContactsSmartViewsSidebar';
+import { QuickGuide, quickGuides } from '@/components/help/QuickGuide';
 import { ContactsAdvancedFilters } from '@/components/contacts/ContactsAdvancedFilters';
 import { ContactsTable } from '@/components/contacts/ContactsTable';
 import { ContactDetailDrawer } from '@/components/contacts/ContactDetailDrawer';
@@ -197,6 +198,11 @@ export default function Contacts() {
 
         {/* Main Content */}
         <div className="flex-1 flex flex-col min-w-0 overflow-hidden bg-muted/10">
+          {/* Quick Guide */}
+          <div className="px-4 pt-4">
+            <QuickGuide {...quickGuides.contacts} />
+          </div>
+
           <ContactsHeader
             totalCount={totalCount}
             loading={loading}

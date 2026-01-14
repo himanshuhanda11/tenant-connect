@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { QuickGuide, quickGuides } from '@/components/help/QuickGuide';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
@@ -128,6 +129,9 @@ export default function MetaAdsAttribution() {
   return (
     <DashboardLayout>
       <div className="p-6 space-y-6 max-w-6xl mx-auto">
+        {/* Quick Guide */}
+        <QuickGuide {...quickGuides.metaAds} />
+
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">

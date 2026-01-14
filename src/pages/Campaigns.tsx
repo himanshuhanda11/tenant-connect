@@ -2,11 +2,15 @@ import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Send, Plus } from 'lucide-react';
+import { QuickGuide, quickGuides } from '@/components/help/QuickGuide';
 
 export default function Campaigns() {
   return (
     <DashboardLayout>
       <div className="space-y-6">
+        {/* Quick Guide */}
+        <QuickGuide {...quickGuides.campaigns} />
+
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold">Campaigns</h1>

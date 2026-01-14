@@ -16,6 +16,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { useTenant } from '@/contexts/TenantContext';
 import { useAuth } from '@/contexts/AuthContext';
+import { QuickGuide, quickGuides } from '@/components/help/QuickGuide';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import type { TenantRole } from '@/types/tenant';
@@ -137,6 +138,9 @@ export default function Team() {
   return (
     <DashboardLayout>
       <div className="space-y-6">
+        {/* Quick Guide */}
+        <QuickGuide {...quickGuides.team} />
+
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <h1 className="text-2xl font-bold text-foreground">Team</h1>

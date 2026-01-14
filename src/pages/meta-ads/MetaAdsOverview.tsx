@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { QuickGuide, quickGuides } from '@/components/help/QuickGuide';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -73,6 +74,9 @@ export default function MetaAdsOverview() {
             </Button>
           </div>
         </div>
+
+        {/* Quick Guide */}
+        <QuickGuide {...quickGuides.metaAds} />
 
         {/* Compliance Notice */}
         <Alert className="border-blue-200 bg-blue-50 dark:bg-blue-950/30">

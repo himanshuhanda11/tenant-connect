@@ -57,6 +57,7 @@ import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { InboxTagChips } from '@/components/inbox/InboxTagChips';
 import { InboxTagPicker } from '@/components/inbox/InboxTagPicker';
 import { GuideBanner } from '@/components/help/GuideBanner';
+import { QuickGuide, quickGuides } from '@/components/help/QuickGuide';
 import { useContactTags } from '@/hooks/useContactTags';
 import { supabase } from '@/integrations/supabase/client';
 import { useTenant } from '@/contexts/TenantContext';
@@ -438,6 +439,10 @@ export default function Inbox() {
       <div className="h-[calc(100vh-5.5rem)] flex -m-6">
         {/* Column 1: Conversation List */}
         <div className="w-80 border-r flex flex-col bg-background">
+          {/* Quick Guide Banner */}
+          <div className="p-2 border-b">
+            <QuickGuide {...quickGuides.inbox} className="text-xs" />
+          </div>
           {/* Header with phone selector */}
           <div className="p-3 border-b space-y-3">
             <Select

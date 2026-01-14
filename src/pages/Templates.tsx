@@ -7,6 +7,7 @@ import { RefreshCw, Plus, BookOpen, ShieldCheck, Loader2, Settings2 } from 'luci
 import { useTemplateBuilder } from '@/hooks/useTemplateBuilder';
 import { TemplatesListView } from '@/components/templates/TemplatesListView';
 import { TemplateBuilder, TemplateBuilderData } from '@/components/templates/TemplateBuilder';
+import { QuickGuide, quickGuides } from '@/components/help/QuickGuide';
 import { IndustryPacks } from '@/components/templates/IndustryPacks';
 import { InternalReviewModal } from '@/components/templates/InternalReviewModal';
 import { GuideBanner } from '@/components/help/GuideBanner';
@@ -204,6 +205,9 @@ export default function Templates() {
   return (
     <DashboardLayout>
       <div className="space-y-6">
+        {/* Quick Guide */}
+        <QuickGuide {...quickGuides.templates} />
+
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
