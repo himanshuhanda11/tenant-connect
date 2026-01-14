@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
-import { Loader2, ArrowLeft, Lock, Eye, EyeOff, Check, X } from 'lucide-react';
+import { Loader2, Lock, Eye, EyeOff, Check, X } from 'lucide-react';
 import aireatroLogo from '@/assets/aireatro-logo.png';
 
 export default function PasswordPage() {
@@ -15,6 +15,7 @@ export default function PasswordPage() {
   const { user, loading: authLoading } = useAuth();
   
   const [isLoading, setIsLoading] = useState(false);
+  const [isCheckingStep, setIsCheckingStep] = useState(true);
   const [error, setError] = useState<string | null>(null);
   
   const [password, setPassword] = useState('');
@@ -33,16 +34,19 @@ export default function PasswordPage() {
   const allRequirementsMet = requirements.every(r => r.met);
   const passwordStrength = requirements.filter(r => r.met).length;
 
+  // Single useEffect for all auth/onboarding checks
   useEffect(() => {
-    if (!authLoading && !user) {
-      navigate('/signup');
-    }
-  }, [user, authLoading, navigate]);
-
-  useEffect(() => {
-    const checkStep = async () => {
-      if (!user) return;
+    const checkAuthAndOnboarding = async () => {
+      // Wait for auth to finish loading
+      if (authLoading) return;
       
+      // No user - redirect to signup
+      if (!user) {
+        navigate('/signup', { replace: true });
+        return;
+      }
+
+      // Check onboarding step
       const { data: profile } = await supabase
         .from('profiles')
         .select('onboarding_step')
@@ -50,14 +54,17 @@ export default function PasswordPage() {
         .maybeSingle();
 
       if (profile?.onboarding_step === 'completed') {
-        navigate('/select-workspace');
+        navigate('/select-workspace', { replace: true });
       } else if (profile?.onboarding_step === 'pending' || profile?.onboarding_step === 'google_done') {
-        navigate('/onboarding/org');
+        navigate('/onboarding/org', { replace: true });
+      } else {
+        // User is at correct step (org_done), show the form
+        setIsCheckingStep(false);
       }
     };
-    
-    if (user) checkStep();
-  }, [user, navigate]);
+
+    checkAuthAndOnboarding();
+  }, [user, authLoading, navigate]);
 
   const handleSetPassword = async () => {
     if (!allRequirementsMet) {
@@ -81,16 +88,17 @@ export default function PasswordPage() {
         .update({ onboarding_step: 'completed' })
         .eq('id', user!.id);
 
-      navigate('/select-workspace');
+      navigate('/select-workspace', { replace: true });
     } catch (err: any) {
+      console.error('Password update error:', err);
       setError(err.message || 'Failed to set password');
-    } finally {
       setIsLoading(false);
     }
   };
 
   const handleSkip = async () => {
     setIsLoading(true);
+    setError(null);
 
     try {
       // Mark onboarding as completed without password
@@ -99,18 +107,22 @@ export default function PasswordPage() {
         .update({ onboarding_step: 'completed' })
         .eq('id', user!.id);
 
-      navigate('/select-workspace');
+      navigate('/select-workspace', { replace: true });
     } catch (err: any) {
+      console.error('Skip error:', err);
       setError(err.message || 'Failed to complete setup');
-    } finally {
       setIsLoading(false);
     }
   };
 
-  if (authLoading) {
+  // Show loading while checking auth or onboarding step
+  if (authLoading || isCheckingStep) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <p className="text-muted-foreground">Almost there...</p>
+        </div>
       </div>
     );
   }
@@ -121,12 +133,6 @@ export default function PasswordPage() {
       <header className="border-b bg-background/80 backdrop-blur-sm">
         <div className="max-w-4xl mx-auto px-6 py-4 flex items-center justify-between">
           <img src={aireatroLogo} alt="AiReatro" className="h-8 w-auto" />
-          <Button variant="ghost" size="sm" asChild>
-            <Link to="/onboarding/org">
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back
-            </Link>
-          </Button>
         </div>
       </header>
 
