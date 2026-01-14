@@ -6,7 +6,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import type { PhoneNumberOption } from '@/hooks/usePhoneNumbers';
+import { PhoneNumberOption } from '@/hooks/usePhoneNumbers';
 
 interface PhoneSelectorProps {
   phoneNumbers: PhoneNumberOption[];
