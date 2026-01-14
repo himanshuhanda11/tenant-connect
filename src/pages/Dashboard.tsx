@@ -8,27 +8,23 @@ import { MetaEmbeddedSignup } from '@/components/meta/MetaEmbeddedSignup';
 import { useDashboardData } from '@/hooks/useDashboardData';
 import type { DashboardFilters } from '@/types/dashboard';
 
-// Dashboard components
-import { DashboardFiltersBar } from '@/components/dashboard/DashboardFiltersBar';
-import { KPICards } from '@/components/dashboard/KPICards';
-import { AlertsPanel } from '@/components/dashboard/AlertsPanel';
-import { InboxHealthPanel } from '@/components/dashboard/InboxHealthPanel';
-import { AgentPerformancePanel } from '@/components/dashboard/AgentPerformancePanel';
-import { AutomationsPanel } from '@/components/dashboard/AutomationsPanel';
-import { CampaignsPanel } from '@/components/dashboard/CampaignsPanel';
-import { MetaAdsPanel } from '@/components/dashboard/MetaAdsPanel';
-import { PhoneHealthPanel } from '@/components/dashboard/PhoneHealthPanel';
-import { ContactsGrowthPanel } from '@/components/dashboard/ContactsGrowthPanel';
-import { BillingPanel } from '@/components/dashboard/BillingPanel';
-import { ConversationHeatmap } from '@/components/dashboard/ConversationHeatmap';
-import { NextBestActionsPanel } from '@/components/dashboard/NextBestActionsPanel';
+// New modern dashboard components
+import { WABAStatusCard } from '@/components/dashboard/WABAStatusCard';
+import { SetupProgressCard } from '@/components/dashboard/SetupProgressCard';
+import { BusinessProfileCard } from '@/components/dashboard/BusinessProfileCard';
+import { QuickStatsGrid } from '@/components/dashboard/QuickStatsGrid';
+import { QuickActionsCard } from '@/components/dashboard/QuickActionsCard';
+import { RecentActivityCard } from '@/components/dashboard/RecentActivityCard';
 
-// New enhanced components
+// Existing enhanced components
+import { DashboardFiltersBar } from '@/components/dashboard/DashboardFiltersBar';
+import { AlertsPanel } from '@/components/dashboard/AlertsPanel';
 import { AIInsightsPanel } from '@/components/dashboard/AIInsightsPanel';
 import { AttentionNeededPanel } from '@/components/dashboard/AttentionNeededPanel';
-import { FunnelVisualization } from '@/components/dashboard/FunnelVisualization';
-import { RoleBasedDashboard } from '@/components/dashboard/RoleBasedDashboard';
-import { QuickActions } from '@/components/dashboard/QuickActions';
+import { InboxHealthPanel } from '@/components/dashboard/InboxHealthPanel';
+import { CampaignsPanel } from '@/components/dashboard/CampaignsPanel';
+import { MetaAdsPanel } from '@/components/dashboard/MetaAdsPanel';
+import { AutomationsPanel } from '@/components/dashboard/AutomationsPanel';
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -55,8 +51,6 @@ export default function Dashboard() {
     contacts,
     billing,
     alerts,
-    heatmap,
-    nextActions,
     isAdmin,
     refetch,
   } = useDashboardData(filters);
@@ -65,15 +59,148 @@ export default function Dashboard() {
   const currentHour = new Date().getHours();
   const greeting = currentHour < 12 ? 'Good morning' : currentHour < 18 ? 'Good afternoon' : 'Good evening';
 
-  // Determine role for role-based dashboard
-  const dashboardRole = useMemo((): 'admin' | 'manager' | 'agent' => {
-    if (currentRole === 'owner' || currentRole === 'admin') return 'admin';
-    // Manager role check - cast to handle potential type mismatch
-    if ((currentRole as string) === 'manager') return 'manager';
-    return 'agent';
-  }, [currentRole]);
+  // Check if connected to WhatsApp
+  const isWABAConnected = phoneHealth.length > 0 && phoneHealth.some(p => p.webhookHealth === 'healthy');
+  const primaryPhone = phoneHealth[0];
 
-  // Prepare AI insights metrics
+  // Setup steps based on actual data
+  const setupSteps = useMemo(() => {
+    const hasPhone = phoneHealth.length > 0;
+    const hasTemplate = true; // We'd need to check templates
+    const hasCampaign = campaigns.length > 0;
+    const hasAutomation = (automations?.totalExecutions || 0) > 0;
+
+    return [
+      {
+        id: 'api-live',
+        title: 'Get API Live',
+        status: hasPhone ? 'completed' : 'current',
+        href: '/phone-numbers/connect',
+      },
+      {
+        id: 'create-template',
+        title: 'Create Template',
+        status: hasPhone && hasTemplate ? 'completed' : hasPhone ? 'current' : 'pending',
+        href: '/templates',
+      },
+      {
+        id: 'send-campaign',
+        title: 'Send Campaign',
+        status: hasCampaign ? 'completed' : hasTemplate ? 'current' : 'pending',
+        href: '/campaigns/create',
+      },
+      {
+        id: 'create-flow',
+        title: 'Create Flow',
+        status: hasAutomation ? 'completed' : 'pending',
+        href: '/flows',
+      },
+    ] as const;
+  }, [phoneHealth, campaigns, automations]);
+
+  const allStepsCompleted = setupSteps.every(s => s.status === 'completed');
+
+  // Quick stats from KPIs
+  const quickStats = useMemo(() => [
+    {
+      id: 'conversations',
+      label: 'Open Chats',
+      value: kpis.find(k => k.id === 'open')?.value || 0,
+      change: 12,
+      changeType: 'positive' as const,
+      icon: 'messages' as const,
+      href: '/inbox',
+      color: 'primary' as const,
+    },
+    {
+      id: 'contacts',
+      label: 'New Contacts',
+      value: contacts?.newContacts7d || 0,
+      change: 8,
+      changeType: 'positive' as const,
+      icon: 'contacts' as const,
+      href: '/contacts',
+      color: 'purple' as const,
+    },
+    {
+      id: 'automations',
+      label: 'Automation Runs',
+      value: automations?.totalExecutions || 0,
+      icon: 'automations' as const,
+      href: '/automation',
+      color: 'orange' as const,
+    },
+    {
+      id: 'campaigns',
+      label: 'Campaigns Sent',
+      value: campaigns.reduce((sum, c) => sum + c.sent, 0),
+      icon: 'campaigns' as const,
+      href: '/campaigns',
+      color: 'blue' as const,
+    },
+    {
+      id: 'response',
+      label: 'Avg Response',
+      value: kpis.find(k => k.id === 'response')?.value || '—',
+      icon: 'response' as const,
+      color: 'cyan' as const,
+    },
+    {
+      id: 'resolved',
+      label: 'Resolved Today',
+      value: kpis.find(k => k.id === 'resolved')?.value || 0,
+      change: 5,
+      changeType: 'positive' as const,
+      icon: 'resolved' as const,
+      color: 'pink' as const,
+    },
+  ], [kpis, contacts, automations, campaigns]);
+
+  // Recent activity (mock for now - would come from audit logs)
+  const recentActivity = useMemo(() => [
+    {
+      id: '1',
+      type: 'message' as const,
+      title: 'New message from VIP customer',
+      description: 'Regarding order #12345',
+      timestamp: new Date(Date.now() - 5 * 60 * 1000).toISOString(),
+      href: '/inbox',
+    },
+    {
+      id: '2',
+      type: 'automation' as const,
+      title: 'Welcome Flow triggered',
+      description: '3 new contacts enrolled',
+      timestamp: new Date(Date.now() - 15 * 60 * 1000).toISOString(),
+      href: '/flows',
+    },
+    {
+      id: '3',
+      type: 'campaign' as const,
+      title: 'Summer Sale campaign completed',
+      description: '2,450 messages delivered',
+      timestamp: new Date(Date.now() - 60 * 60 * 1000).toISOString(),
+      href: '/campaigns',
+    },
+    {
+      id: '4',
+      type: 'contact' as const,
+      title: '12 new contacts added',
+      description: 'Via Meta Ads lead form',
+      timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+      href: '/contacts',
+    },
+    {
+      id: '5',
+      type: 'resolved' as const,
+      title: 'Ticket resolved',
+      description: 'Customer support query handled',
+      timestamp: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString(),
+      href: '/inbox',
+    },
+  ], []);
+
+  // AI metrics for insights panel
   const aiMetrics = useMemo(() => ({
     openConversations: inboxHealth?.openConversations || 0,
     unassigned: kpis.find(k => k.id === 'unassigned')?.value as number || 0,
@@ -85,7 +212,7 @@ export default function Dashboard() {
     automationRuns: automations?.totalExecutions || 0,
   }), [inboxHealth, kpis, metaAds, campaigns, automations]);
 
-  // Prepare attention items
+  // Attention items
   const attentionItems = useMemo(() => {
     const items: Array<{
       id: string;
@@ -123,176 +250,102 @@ export default function Dashboard() {
       });
     }
 
-    // Check for broken flows (mock)
-    if (automations?.recentFailures && automations.recentFailures.length > 0) {
-      items.push({
-        id: 'broken-flows',
-        type: 'broken_flow',
-        title: 'Broken Automations',
-        subtitle: 'Flows with recent errors',
-        count: automations.recentFailures.length,
-        severity: 'warning',
-        href: '/automation',
-      });
-    }
-
-    // Check for low conversion campaigns
-    const lowConvCampaigns = campaigns.filter(c => c.replyRate < 5 && c.sent > 100);
-    if (lowConvCampaigns.length > 0) {
-      items.push({
-        id: 'low-conv',
-        type: 'low_conversion',
-        title: 'Low Conversion Campaigns',
-        subtitle: 'Reply rate below 5%',
-        count: lowConvCampaigns.length,
-        severity: 'warning',
-        href: '/campaigns',
-      });
-    }
-
-    // Check phone health
-    const unhealthyPhones = phoneHealth.filter(p => p.needsAction);
-    if (unhealthyPhones.length > 0) {
-      items.push({
-        id: 'phone-health',
-        type: 'webhook_error',
-        title: 'Phone Number Issues',
-        subtitle: unhealthyPhones[0]?.actionReason || 'Requires attention',
-        count: unhealthyPhones.length,
-        severity: 'warning',
-        href: '/phone-numbers',
-      });
-    }
-
     return items;
-  }, [kpis, automations, campaigns, phoneHealth]);
-
-  // Prepare funnel data
-  const funnelData = useMemo(() => ({
-    metaAds: metaAds?.leads7d || 156,
-    inbox: inboxHealth?.openConversations || 0 + (inboxHealth?.closedConversations || 0),
-    flows: automations?.totalExecutions || 0,
-    agents: agents.reduce((sum, a) => sum + a.resolvedToday, 0),
-    conversions: Math.round((metaAds?.leads7d || 156) * (metaAds?.conversionRate || 34.5) / 100),
-  }), [metaAds, inboxHealth, automations, agents]);
-
-  // Role-based stats
-  const adminStats = useMemo(() => ({
-    monthlyRevenue: 420000,
-    revenueChange: 12,
-    totalConversations: (inboxHealth?.openConversations || 0) + (inboxHealth?.closedConversations || 0),
-    attributionBreakdown: [
-      { source: 'Meta Ads', value: 180000, percentage: 43 },
-      { source: 'Organic', value: 120000, percentage: 29 },
-      { source: 'Campaigns', value: 80000, percentage: 19 },
-      { source: 'Other', value: 40000, percentage: 9 },
-    ],
-    usageCosts: 15000,
-    planUtilization: billing ? Math.round((billing.campaignSends / billing.campaignLimit) * 100) : 45,
-  }), [inboxHealth, billing]);
-
-  const managerStats = useMemo(() => ({
-    teamSize: agents.length || 5,
-    onlineAgents: agents.filter(a => a.isOnline).length || 3,
-    avgTeamResponseTime: '2.8m',
-    slaCompliance: 94,
-    escalations: 2,
-    topPerformer: { name: agents[0]?.name || 'Sarah', score: 98 },
-  }), [agents]);
-
-  const agentStats = useMemo(() => ({
-    openChats: 5,
-    resolvedToday: 12,
-    avgResponseTime: '1.8m',
-    csat: 96,
-    pendingTasks: 3,
-    streak: 7,
-  }), []);
+  }, [kpis]);
 
   return (
     <DashboardLayout>
-      <div className="space-y-6 max-w-[1600px]">
-        {/* Welcome Header */}
+      <div className="space-y-6 max-w-[1600px] animate-fade-in">
+        {/* Welcome Header with Current Plan */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
             <h1 className="text-2xl md:text-3xl font-bold text-foreground">
               {greeting}, {displayName}! 👋
             </h1>
             <p className="text-muted-foreground mt-1">
-              Here's what's happening in <span className="font-medium text-foreground">{currentTenant?.name}</span>
+              Here's what's happening in{' '}
+              <span className="font-medium text-foreground">{currentTenant?.name}</span>
             </p>
           </div>
+          <DashboardFiltersBar
+            filters={filters}
+            onChange={setFilters}
+            onRefresh={refetch}
+            loading={loading}
+          />
         </div>
-
-        {/* Filters Bar */}
-        <DashboardFiltersBar
-          filters={filters}
-          onChange={setFilters}
-          onRefresh={refetch}
-          loading={loading}
-        />
 
         {/* System Alerts */}
         <AlertsPanel alerts={alerts} />
 
-        {/* AI Insights + Attention Needed - Top Priority */}
-        <div className="grid gap-4 lg:grid-cols-2">
-          <AIInsightsPanel metrics={aiMetrics} isPro={true} />
-          <AttentionNeededPanel items={attentionItems} loading={loading} />
-        </div>
-
-        {/* Role-Based Dashboard Section */}
-        <RoleBasedDashboard
-          role={dashboardRole}
-          adminStats={dashboardRole === 'admin' ? adminStats : undefined}
-          managerStats={dashboardRole === 'manager' ? managerStats : undefined}
-          agentStats={dashboardRole === 'agent' ? agentStats : undefined}
+        {/* WABA Status Card - Key Feature from Reference */}
+        <WABAStatusCard
+          isConnected={isWABAConnected}
+          qualityRating={primaryPhone?.qualityRating || 'unknown'}
+          remainingQuota={10000}
+          phoneNumber={primaryPhone?.phoneNumber}
+          businessName={currentTenant?.name}
           loading={loading}
+          onConnect={() => setEmbeddedSignupOpen(true)}
         />
 
-        {/* Quick Actions */}
-        <QuickActions />
+        {/* Setup Progress - Only show if not all completed */}
+        {!allStepsCompleted && (
+          <SetupProgressCard
+            steps={setupSteps.map(s => ({ ...s, status: s.status as 'completed' | 'pending' | 'current' }))}
+            loading={loading}
+            creditsReward={200}
+          />
+        )}
 
-        {/* Top KPIs */}
-        <KPICards kpis={kpis} loading={loading} />
+        {/* Quick Stats Grid */}
+        <QuickStatsGrid stats={quickStats} loading={loading} />
 
-        {/* Funnel Visualization */}
-        <FunnelVisualization data={funnelData} loading={loading} />
+        {/* Main Content Grid */}
+        <div className="grid gap-6 lg:grid-cols-3">
+          {/* Left Column - 2/3 width */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* AI Insights + Attention Needed */}
+            <div className="grid gap-4 md:grid-cols-2">
+              <AIInsightsPanel metrics={aiMetrics} isPro={true} />
+              <AttentionNeededPanel items={attentionItems} loading={loading} />
+            </div>
 
-        {/* Next Best Actions */}
-        <NextBestActionsPanel actions={nextActions} />
+            {/* Inbox Health */}
+            <InboxHealthPanel
+              metrics={inboxHealth}
+              actionQueue={actionQueue}
+              loading={loading}
+            />
 
-        {/* Inbox Health + Action Queue */}
-        <InboxHealthPanel
-          metrics={inboxHealth}
-          actionQueue={actionQueue}
-          loading={loading}
-        />
+            {/* Campaigns, Meta Ads, Automations */}
+            <div className="grid gap-4 md:grid-cols-3">
+              <CampaignsPanel campaigns={campaigns} loading={loading} />
+              <MetaAdsPanel metrics={metaAds} loading={loading} />
+              <AutomationsPanel metrics={automations} loading={loading} />
+            </div>
+          </div>
 
-        {/* Agent Performance (Admin) or My Performance (Agent) */}
-        <AgentPerformancePanel
-          agents={agents}
-          isAdmin={isAdmin}
-          loading={loading}
-        />
+          {/* Right Column - 1/3 width */}
+          <div className="space-y-6">
+            {/* Business Profile Card */}
+            <BusinessProfileCard
+              businessName={currentTenant?.name || 'Your Business'}
+              businessId={currentTenant?.id?.slice(0, 8).toUpperCase()}
+              phoneNumber={primaryPhone?.phoneNumber}
+              freeConversations={{ used: 0, limit: Infinity }}
+              credits={{ balance: 678.69, currency: '₹' }}
+              loading={loading}
+              onViewProfile={() => navigate('/settings')}
+              onEdit={() => navigate('/settings')}
+            />
 
-        {/* 3-column grid: Automations, Campaigns, Meta Ads */}
-        <div className="grid gap-4 lg:grid-cols-3">
-          <AutomationsPanel metrics={automations} loading={loading} />
-          <CampaignsPanel campaigns={campaigns} loading={loading} />
-          <MetaAdsPanel metrics={metaAds} loading={loading} />
-        </div>
+            {/* Quick Actions */}
+            <QuickActionsCard />
 
-        {/* Phone Health + Contacts Growth */}
-        <div className="grid gap-4 lg:grid-cols-2">
-          <PhoneHealthPanel phones={phoneHealth} loading={loading} />
-          <ContactsGrowthPanel data={contacts} loading={loading} />
-        </div>
-
-        {/* Heatmap + Billing (Admin only) */}
-        <div className="grid gap-4 lg:grid-cols-2">
-          <ConversationHeatmap data={heatmap} loading={loading} />
-          {isAdmin && <BillingPanel data={billing} loading={loading} />}
+            {/* Recent Activity */}
+            <RecentActivityCard activities={recentActivity} loading={loading} />
+          </div>
         </div>
       </div>
 

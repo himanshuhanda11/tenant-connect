@@ -1,0 +1,112 @@
+import React from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { useNavigate } from 'react-router-dom';
+import {
+  Send,
+  MessageSquarePlus,
+  Users,
+  Zap,
+  Megaphone,
+  FileText,
+  ArrowRight,
+} from 'lucide-react';
+import { cn } from '@/lib/utils';
+
+interface QuickAction {
+  id: string;
+  label: string;
+  description: string;
+  icon: React.ElementType;
+  href: string;
+  color: string;
+  bgColor: string;
+}
+
+const quickActions: QuickAction[] = [
+  {
+    id: 'send-campaign',
+    label: 'Send Campaign',
+    description: 'Broadcast to contacts',
+    icon: Megaphone,
+    href: '/campaigns/create',
+    color: 'text-primary',
+    bgColor: 'bg-primary/10 hover:bg-primary/20',
+  },
+  {
+    id: 'new-conversation',
+    label: 'New Message',
+    description: 'Start a conversation',
+    icon: MessageSquarePlus,
+    href: '/inbox',
+    color: 'text-blue-600 dark:text-blue-400',
+    bgColor: 'bg-blue-500/10 hover:bg-blue-500/20',
+  },
+  {
+    id: 'add-contact',
+    label: 'Add Contact',
+    description: 'Import or add new',
+    icon: Users,
+    href: '/contacts',
+    color: 'text-purple-600 dark:text-purple-400',
+    bgColor: 'bg-purple-500/10 hover:bg-purple-500/20',
+  },
+  {
+    id: 'create-automation',
+    label: 'Create Flow',
+    description: 'Automate responses',
+    icon: Zap,
+    href: '/flows',
+    color: 'text-orange-600 dark:text-orange-400',
+    bgColor: 'bg-orange-500/10 hover:bg-orange-500/20',
+  },
+  {
+    id: 'create-template',
+    label: 'New Template',
+    description: 'Design messages',
+    icon: FileText,
+    href: '/templates',
+    color: 'text-pink-600 dark:text-pink-400',
+    bgColor: 'bg-pink-500/10 hover:bg-pink-500/20',
+  },
+];
+
+interface QuickActionsCardProps {
+  className?: string;
+}
+
+export function QuickActionsCard({ className }: QuickActionsCardProps) {
+  const navigate = useNavigate();
+
+  return (
+    <Card className={cn("border-0 shadow-soft", className)}>
+      <CardHeader className="pb-3">
+        <CardTitle className="text-base font-semibold">Quick Actions</CardTitle>
+      </CardHeader>
+      <CardContent className="grid gap-2">
+        {quickActions.map((action) => {
+          const Icon = action.icon;
+          return (
+            <button
+              key={action.id}
+              onClick={() => navigate(action.href)}
+              className={cn(
+                "w-full flex items-center gap-3 p-3 rounded-lg transition-all text-left group",
+                action.bgColor
+              )}
+            >
+              <div className={cn("h-9 w-9 rounded-lg flex items-center justify-center bg-background/60")}>
+                <Icon className={cn("h-4 w-4", action.color)} />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-foreground">{action.label}</p>
+                <p className="text-xs text-muted-foreground">{action.description}</p>
+              </div>
+              <ArrowRight className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+            </button>
+          );
+        })}
+      </CardContent>
+    </Card>
+  );
+}
