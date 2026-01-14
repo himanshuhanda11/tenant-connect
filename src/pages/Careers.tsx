@@ -46,7 +46,7 @@ export default function Careers() {
       department: 'Customer Success',
       location: 'Remote (APAC)',
       type: 'Full-time',
-      description: 'Help our enterprise customers get the most value from the aireatro platform.'
+      description: 'Help our enterprise customers get the most value from the AiReatro platform.'
     },
     {
       title: 'DevOps Engineer',
@@ -110,7 +110,7 @@ export default function Careers() {
         <div className="container mx-auto px-4">
           <div className="text-center max-w-3xl mx-auto mb-16">
             <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
-              Why Join aireatro?
+              Why Join AiReatro?
             </h2>
             <p className="text-lg text-muted-foreground">
               We offer competitive compensation and benefits to help you do your best work.

@@ -9,7 +9,7 @@ const testimonials = [
     name: 'Sarah Chen',
     role: 'Head of Customer Success',
     company: 'TechFlow Inc',
-    content: 'aireatro transformed our customer support. We now handle 3x more conversations with the same team size.',
+    content: 'AiReatro transformed our customer support. We now handle 3x more conversations with the same team size.',
     avatar: 'SC',
     rating: 5,
     metric: '3x more conversations',
@@ -50,7 +50,7 @@ export default function TestimonialsSection() {
             Loved by Businesses Worldwide
           </h2>
           <p className="text-lg text-muted-foreground">
-            See what our customers have to say about their experience with aireatro
+            See what our customers have to say about their experience with AiReatro
           </p>
         </div>
 

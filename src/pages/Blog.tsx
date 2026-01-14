@@ -50,7 +50,7 @@ export default function Blog() {
     },
     {
       title: 'Case Study: How TechFlow Increased Sales by 40%',
-      excerpt: 'Learn how TechFlow used aireatro to transform their customer communication.',
+      excerpt: 'Learn how TechFlow used AiReatro to transform their customer communication.',
       category: 'Case Study',
       date: 'Dec 22, 2024',
       readTime: '7 min read'
@@ -84,7 +84,7 @@ export default function Blog() {
               Latest Insights
             </div>
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-foreground mb-6 leading-tight">
-              The aireatro{' '}
+              The AiReatro{' '}
               <span className="bg-gradient-to-r from-orange-500 via-red-500 to-pink-500 bg-clip-text text-transparent">
                 Blog
               </span>

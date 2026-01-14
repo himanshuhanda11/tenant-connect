@@ -88,7 +88,7 @@ export default function AcceptableUse() {
         <div className="container mx-auto px-4">
           <div className="max-w-3xl mx-auto prose prose-neutral dark:prose-invert">
             <p className="text-lg text-muted-foreground leading-relaxed">
-              This Acceptable Use Policy ("AUP") outlines the rules and guidelines for using the aireatro WhatsApp Business 
+              This Acceptable Use Policy ("AUP") outlines the rules and guidelines for using the AiReatro WhatsApp Business 
               Platform. By using our services, you agree to comply with this policy as well as WhatsApp's Business Policy 
               and Meta's Platform Terms.
             </p>

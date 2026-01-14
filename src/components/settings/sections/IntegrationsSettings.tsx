@@ -67,7 +67,7 @@ export function IntegrationsSettings() {
               <div className="space-y-2">
                 <Label>Inbound Webhook URL</Label>
                 <div className="flex gap-2">
-                  <Input value="https://api.aireatro.com/webhooks/xxx" readOnly className="font-mono bg-muted" />
+                  <Input value="https://api.AiReatro.com/webhooks/xxx" readOnly className="font-mono bg-muted" />
                   <Button variant="outline" size="icon"><RefreshCw className="w-4 h-4" /></Button>
                 </div>
                 <p className="text-xs text-muted-foreground">Use this URL in Meta Business Manager</p>

@@ -47,7 +47,7 @@ export default function IntegrationsFeature() {
     {
       icon: RefreshCw,
       title: 'Real-time Sync',
-      description: 'Data flows in real-time between aireatro and your connected applications.'
+      description: 'Data flows in real-time between AiReatro and your connected applications.'
     },
     {
       icon: FileJson,
@@ -110,7 +110,7 @@ export default function IntegrationsFeature() {
               </span>
             </h1>
             <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mb-8">
-              Integrate aireatro with your favorite tools. Native integrations, powerful API, and real-time webhooks.
+              Integrate AiReatro with your favorite tools. Native integrations, powerful API, and real-time webhooks.
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
               <Button size="lg" className="h-14 px-8 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 shadow-lg shadow-green-500/20" onClick={() => navigate('/signup')}>
@@ -224,7 +224,7 @@ export default function IntegrationsFeature() {
             Ready to Connect Your Tools?
           </h2>
           <p className="text-xl text-white/80 mb-10 max-w-2xl mx-auto">
-            Start integrating aireatro with your tech stack today.
+            Start integrating AiReatro with your tech stack today.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <Button size="lg" className="h-14 px-8 bg-white text-indigo-600 hover:bg-white/90" onClick={() => navigate('/signup')}>

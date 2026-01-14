@@ -50,7 +50,7 @@ export default function Navbar() {
             <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br from-green-500 to-emerald-600 shadow-lg shadow-green-500/20">
               <MessageSquare className="w-5 h-5 text-white" />
             </div>
-            <span className="font-bold text-xl text-foreground">aireatro</span>
+            <span className="font-bold text-xl text-foreground">AiReatro</span>
           </Link>
 
           <nav className="hidden lg:flex items-center gap-1">

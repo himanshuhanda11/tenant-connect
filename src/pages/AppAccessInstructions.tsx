@@ -45,7 +45,7 @@ export default function AppAccessInstructions() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <p className="text-sm text-muted-foreground">App Name</p>
-                  <p className="font-medium">aireatro.com</p>
+                  <p className="font-medium">AiReatro.com</p>
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">App URL</p>
@@ -177,7 +177,7 @@ export default function AppAccessInstructions() {
                   <span className="flex-shrink-0 w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center font-semibold">9</span>
                   <div>
                     <p className="font-medium">Redirect & Confirmation</p>
-                    <p className="text-muted-foreground">You will be redirected back to aireatro.com. The WhatsApp status will display <Badge variant="default" className="ml-1">Connected / Live</Badge></p>
+                    <p className="text-muted-foreground">You will be redirected back to AiReatro.com. The WhatsApp status will display <Badge variant="default" className="ml-1">Connected / Live</Badge></p>
                   </div>
                 </li>
               </ol>
@@ -301,7 +301,7 @@ export default function AppAccessInstructions() {
         <div className="container mx-auto px-4 py-6">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <p className="text-sm text-muted-foreground">
-              © 2025 aireatro.com. All rights reserved.
+              © 2025 AiReatro.com. All rights reserved.
             </p>
             <div className="flex items-center gap-4">
               <Link to="/privacy-policy" className="text-sm text-muted-foreground hover:text-foreground">

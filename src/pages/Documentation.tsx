@@ -132,7 +132,7 @@ export default function Documentation() {
               </span>
             </h1>
             <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mb-10">
-              Everything you need to integrate and build with aireatro.
+              Everything you need to integrate and build with AiReatro.
             </p>
 
             {/* Search */}
@@ -233,7 +233,7 @@ const response = await fetch('https://api.aireatro.com/v1/messages', {
   body: JSON.stringify({
     to: '+1234567890',
     type: 'text',
-    text: { body: 'Hello from aireatro!' }
+    text: { body: 'Hello from AiReatro!' }
   })
 });
 
