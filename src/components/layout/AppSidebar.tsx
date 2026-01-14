@@ -170,7 +170,7 @@ const settingsMenuItems: MenuItem[] = [{
   icon: Settings,
   key: 'settings'
 }, {
-  title: 'Help',
+  title: 'Guide',
   url: '/help',
   icon: HelpCircle,
   key: 'help'
