@@ -2017,6 +2017,63 @@ export type Database = {
           },
         ]
       }
+      event_action_mappings: {
+        Row: {
+          action_config: Json
+          action_type: string
+          conditions: Json | null
+          created_at: string | null
+          event_type: string
+          id: string
+          is_active: boolean | null
+          priority: number | null
+          tenant_id: string
+          tenant_integration_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          action_config: Json
+          action_type: string
+          conditions?: Json | null
+          created_at?: string | null
+          event_type: string
+          id?: string
+          is_active?: boolean | null
+          priority?: number | null
+          tenant_id: string
+          tenant_integration_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          action_config?: Json
+          action_type?: string
+          conditions?: Json | null
+          created_at?: string | null
+          event_type?: string
+          id?: string
+          is_active?: boolean | null
+          priority?: number | null
+          tenant_id?: string
+          tenant_integration_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_action_mappings_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_action_mappings_tenant_integration_id_fkey"
+            columns: ["tenant_integration_id"]
+            isOneToOne: false
+            referencedRelation: "tenant_integrations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       flow_diagnostics: {
         Row: {
           code: string
@@ -2780,6 +2837,123 @@ export type Database = {
             columns: ["category_id"]
             isOneToOne: false
             referencedRelation: "guide_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      integration_catalog: {
+        Row: {
+          auth_type: string
+          category: string
+          config_schema: Json | null
+          created_at: string | null
+          description: string | null
+          documentation_url: string | null
+          id: string
+          is_active: boolean | null
+          is_pro_only: boolean | null
+          key: string
+          logo_url: string | null
+          name: string
+          setup_time_minutes: number | null
+          supported_events: Json | null
+          updated_at: string | null
+        }
+        Insert: {
+          auth_type?: string
+          category: string
+          config_schema?: Json | null
+          created_at?: string | null
+          description?: string | null
+          documentation_url?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_pro_only?: boolean | null
+          key: string
+          logo_url?: string | null
+          name: string
+          setup_time_minutes?: number | null
+          supported_events?: Json | null
+          updated_at?: string | null
+        }
+        Update: {
+          auth_type?: string
+          category?: string
+          config_schema?: Json | null
+          created_at?: string | null
+          description?: string | null
+          documentation_url?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_pro_only?: boolean | null
+          key?: string
+          logo_url?: string | null
+          name?: string
+          setup_time_minutes?: number | null
+          supported_events?: Json | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      integration_events: {
+        Row: {
+          created_at: string | null
+          error_message: string | null
+          event_id: string | null
+          event_type: string
+          id: string
+          next_retry_at: string | null
+          payload: Json
+          processed_at: string | null
+          processing_started_at: string | null
+          retry_count: number | null
+          status: string
+          tenant_id: string
+          tenant_integration_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          error_message?: string | null
+          event_id?: string | null
+          event_type: string
+          id?: string
+          next_retry_at?: string | null
+          payload: Json
+          processed_at?: string | null
+          processing_started_at?: string | null
+          retry_count?: number | null
+          status?: string
+          tenant_id: string
+          tenant_integration_id: string
+        }
+        Update: {
+          created_at?: string | null
+          error_message?: string | null
+          event_id?: string | null
+          event_type?: string
+          id?: string
+          next_retry_at?: string | null
+          payload?: Json
+          processed_at?: string | null
+          processing_started_at?: string | null
+          retry_count?: number | null
+          status?: string
+          tenant_id?: string
+          tenant_integration_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "integration_events_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "integration_events_tenant_integration_id_fkey"
+            columns: ["tenant_integration_id"]
+            isOneToOne: false
+            referencedRelation: "tenant_integrations"
             referencedColumns: ["id"]
           },
         ]
@@ -6982,6 +7156,85 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "tenant_features_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tenant_integrations: {
+        Row: {
+          config: Json | null
+          connected_at: string | null
+          connected_by: string | null
+          created_at: string | null
+          credentials: Json | null
+          error_count: number | null
+          health_status: string | null
+          id: string
+          integration_key: string
+          last_error: string | null
+          last_event_at: string | null
+          status: string
+          tenant_id: string
+          updated_at: string | null
+          webhook_secret: string | null
+          webhook_url: string | null
+        }
+        Insert: {
+          config?: Json | null
+          connected_at?: string | null
+          connected_by?: string | null
+          created_at?: string | null
+          credentials?: Json | null
+          error_count?: number | null
+          health_status?: string | null
+          id?: string
+          integration_key: string
+          last_error?: string | null
+          last_event_at?: string | null
+          status?: string
+          tenant_id: string
+          updated_at?: string | null
+          webhook_secret?: string | null
+          webhook_url?: string | null
+        }
+        Update: {
+          config?: Json | null
+          connected_at?: string | null
+          connected_by?: string | null
+          created_at?: string | null
+          credentials?: Json | null
+          error_count?: number | null
+          health_status?: string | null
+          id?: string
+          integration_key?: string
+          last_error?: string | null
+          last_event_at?: string | null
+          status?: string
+          tenant_id?: string
+          updated_at?: string | null
+          webhook_secret?: string | null
+          webhook_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tenant_integrations_connected_by_fkey"
+            columns: ["connected_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tenant_integrations_integration_key_fkey"
+            columns: ["integration_key"]
+            isOneToOne: false
+            referencedRelation: "integration_catalog"
+            referencedColumns: ["key"]
+          },
+          {
+            foreignKeyName: "tenant_integrations_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
