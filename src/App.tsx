@@ -89,6 +89,7 @@ import PhoneNumbersFeature from "./pages/features/PhoneNumbersFeature";
 import TeamRolesFeature from "./pages/features/TeamRolesFeature";
 import AuditLogsFeature from "./pages/features/AuditLogsFeature";
 import Partners from "./pages/Partners";
+import Features from "./pages/Features";
 import NotFound from "./pages/NotFound";
 import MetaAdsOverview from "./pages/meta-ads/MetaAdsOverview";
 import MetaAdsSetup from "./pages/meta-ads/MetaAdsSetup";
@@ -197,6 +198,7 @@ const App = () => (
               <Route path="/partners" element={<Partners />} />
               <Route path="/press" element={<About />} />
               <Route path="/cookies" element={<CookiePolicy />} />
+              <Route path="/features" element={<Features />} />
               <Route path="/features/inbox" element={<InboxFeature />} />
               <Route path="/features/contacts" element={<ContactsFeature />} />
               <Route path="/features/templates" element={<TemplatesFeature />} />
