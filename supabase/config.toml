@@ -35,3 +35,12 @@ verify_jwt = false
 
 [functions.submit-template-to-meta]
 verify_jwt = false
+
+[functions.dashboard-ai-insights]
+verify_jwt = false
+
+[functions.automation-event]
+verify_jwt = false
+
+[functions.automation-job-runner]
+verify_jwt = false
