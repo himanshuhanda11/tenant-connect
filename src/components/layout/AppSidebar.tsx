@@ -264,51 +264,102 @@ export function AppSidebar() {
     const isActive = isRouteActive(item.url);
     const isHelpItem = item.key === 'help';
     if (isCollapsed) {
-      return <SidebarMenuItem key={item.title}>
+      return (
+        <SidebarMenuItem key={item.title} className="relative">
           <Tooltip delayDuration={0}>
             <TooltipTrigger asChild>
               <SidebarMenuButton asChild>
-                <NavLink to={item.url} end={item.url === '/dashboard'} className={cn("flex items-center justify-center p-2 rounded-lg transition-all duration-200 font-medium", isActive ? "bg-primary text-primary-foreground shadow-sm" : isHelpItem ? "bg-primary/10 text-primary hover:bg-primary/15" : "text-foreground/80 hover:text-foreground hover:bg-sidebar-accent")} activeClassName="">
+                <NavLink
+                  to={item.url}
+                  end={item.url === '/dashboard'}
+                  className={cn(
+                    "flex items-center justify-center p-2 rounded-lg transition-all duration-200 font-medium",
+                    isActive
+                      ? "bg-primary text-primary-foreground shadow-sm"
+                      : isHelpItem
+                        ? "bg-primary/10 text-primary hover:bg-primary/15"
+                        : "text-foreground/80 hover:text-foreground hover:bg-sidebar-accent"
+                  )}
+                  activeClassName=""
+                >
                   <item.icon className="w-5 h-5" />
                 </NavLink>
               </SidebarMenuButton>
             </TooltipTrigger>
             <TooltipContent side="right" className="flex items-center gap-2">
               {item.title}
-              {item.badge !== undefined && item.badge > 0 && <Badge variant="default" className="h-5 min-w-[20px] px-1.5 text-xs">
+              {item.badge !== undefined && item.badge > 0 && (
+                <Badge variant="default" className="h-5 min-w-[20px] px-1.5 text-xs">
                   {item.badge}
-                </Badge>}
+                </Badge>
+              )}
             </TooltipContent>
           </Tooltip>
-        </SidebarMenuItem>;
+        </SidebarMenuItem>
+      );
     }
-    return <SidebarMenuItem key={item.title}>
+    return (
+      <SidebarMenuItem key={item.title} className="relative">
         <SidebarMenuButton asChild className="group/item">
-          <NavLink to={item.url} end={item.url === '/dashboard'} className={cn("flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 font-medium", compact ? "py-2" : "py-2.5", isActive ? "bg-primary/10 text-primary font-semibold border-l-2 border-primary -ml-[2px] pl-[14px]" : isHelpItem ? "bg-primary/10 text-primary hover:bg-primary/15" : "text-foreground/80 hover:text-foreground hover:bg-sidebar-accent")} activeClassName="">
-            <item.icon className={cn("w-5 h-5 flex-shrink-0", isActive && "text-primary", isHelpItem && !isActive && "text-primary")} />
+          <NavLink
+            to={item.url}
+            end={item.url === '/dashboard'}
+            className={cn(
+              "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 font-medium",
+              compact ? "py-2" : "py-2.5",
+              isActive
+                ? "bg-primary/10 text-primary font-semibold border-l-2 border-primary -ml-[2px] pl-[14px]"
+                : isHelpItem
+                  ? "bg-primary/10 text-primary hover:bg-primary/15"
+                  : "text-foreground/80 hover:text-foreground hover:bg-sidebar-accent"
+            )}
+            activeClassName=""
+          >
+            <item.icon
+              className={cn(
+                "w-5 h-5 flex-shrink-0",
+                isActive && "text-primary",
+                isHelpItem && !isActive && "text-primary"
+              )}
+            />
             <span className="flex-1 truncate">{item.title}</span>
-            {item.isNew && <Badge className="h-5 px-1.5 text-[10px] bg-gradient-to-r from-violet-500 to-purple-500 text-white border-0">
+            {item.isNew && (
+              <Badge className="h-5 px-1.5 text-[10px] bg-gradient-to-r from-violet-500 to-purple-500 text-white border-0">
                 NEW
-              </Badge>}
-            {item.badge !== undefined && item.badge > 0 && <Badge variant="destructive" className="h-5 min-w-[20px] px-1.5 text-xs animate-pulse">
+              </Badge>
+            )}
+            {item.badge !== undefined && item.badge > 0 && (
+              <Badge variant="destructive" className="h-5 min-w-[20px] px-1.5 text-xs animate-pulse">
                 {item.badge}
-              </Badge>}
+              </Badge>
+            )}
           </NavLink>
         </SidebarMenuButton>
-        {meta && !compact && <Tooltip delayDuration={300}>
+
+        {meta && !compact && (
+          <Tooltip delayDuration={300}>
             <TooltipTrigger asChild>
-              <button className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded opacity-0 group-hover/item:opacity-100 transition-all bg-success-foreground">
+              <button
+                type="button"
+                className="absolute right-2 top-1/2 -translate-y-1/2 z-10 p-1 rounded opacity-0 group-hover/item:opacity-100 transition-all bg-success-foreground"
+                aria-label={`Help for ${item.title}`}
+              >
                 <HelpCircle className="h-3.5 w-3.5 text-secondary-foreground" />
               </button>
             </TooltipTrigger>
             <TooltipContent side="right" align="start" className="max-w-[280px] p-3">
               <p className="text-sm mb-2">{meta.description}</p>
-              <NavLink to={`/help/${meta.helpSlug}`} className="inline-flex items-center gap-1 text-xs text-primary hover:underline">
+              <NavLink
+                to={`/help/${meta.helpSlug}`}
+                className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
+              >
                 Learn more →
               </NavLink>
             </TooltipContent>
-          </Tooltip>}
-      </SidebarMenuItem>;
+          </Tooltip>
+        )}
+      </SidebarMenuItem>
+    );
   };
   const renderCollapsibleGroup = (group: MenuGroup) => {
     const isOpen = expandedGroups[group.label] ?? isGroupActive(group.items);
@@ -484,44 +535,73 @@ export function AppSidebar() {
 
       {/* Footer with User Profile */}
       <SidebarFooter className="p-3 border-t border-sidebar-border">
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <button className={cn("w-full flex items-center gap-3 rounded-xl transition-colors", "hover:bg-sidebar-accent", isCollapsed ? "p-2 justify-center" : "px-3 py-2.5")}>
-              <Avatar className={cn("flex-shrink-0", isCollapsed ? "w-8 h-8" : "w-9 h-9")}>
-                <AvatarFallback className="bg-gradient-to-br from-primary/20 to-emerald-500/20 text-primary text-xs font-semibold">
-                  {getInitials(profile?.full_name ?? null, user?.email ?? '')}
-                </AvatarFallback>
-              </Avatar>
-              {!isCollapsed && <div className="flex-1 min-w-0 text-left">
-                  <p className="text-sm font-medium text-sidebar-foreground truncate">
-                    {profile?.full_name || 'User'}
-                  </p>
-                  <p className="text-xs text-sidebar-foreground/50 truncate">
-                    {user?.email}
-                  </p>
-                </div>}
-            </button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="start" className="w-64 p-2">
-            <div className="px-3 py-2 mb-2 bg-muted/50 rounded-lg">
-              <p className="text-sm font-medium">{profile?.full_name || 'User'}</p>
-              <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
-            </div>
-            <DropdownMenuItem onClick={() => navigate('/settings')} className="gap-3 py-2.5 rounded-lg">
-              <Settings className="w-4 h-4" />
-              Account Settings
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => navigate('/help')} className="gap-3 py-2.5 rounded-lg">
-              <Headphones className="w-4 h-4" />
-              Help & Support
-            </DropdownMenuItem>
-            <DropdownMenuSeparator className="my-2" />
-            <DropdownMenuItem onClick={handleSignOut} className="gap-3 py-2.5 rounded-lg text-destructive focus:text-destructive focus:bg-destructive/10">
-              <LogOut className="w-4 h-4" />
-              Sign out
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <div className={cn("flex items-center gap-2", isCollapsed ? "justify-center" : "")}>
+          {/* Always-visible Guide button */}
+          <Tooltip delayDuration={0}>
+            <TooltipTrigger asChild>
+              <NavLink
+                to="/help"
+                className={cn(
+                  "shrink-0 flex items-center justify-center rounded-lg transition-colors",
+                  "hover:bg-sidebar-accent",
+                  isCollapsed ? "w-10 h-10" : "w-10 h-10"
+                )}
+                aria-label="Guide"
+                activeClassName=""
+              >
+                <HelpCircle className="w-5 h-5 text-foreground" />
+              </NavLink>
+            </TooltipTrigger>
+            <TooltipContent side="top">Guide</TooltipContent>
+          </Tooltip>
+
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button
+                className={cn(
+                  "w-full flex items-center gap-3 rounded-xl transition-colors",
+                  "hover:bg-sidebar-accent",
+                  isCollapsed ? "p-2 justify-center" : "px-3 py-2.5"
+                )}
+              >
+                <Avatar className={cn("flex-shrink-0", isCollapsed ? "w-8 h-8" : "w-9 h-9")}> 
+                  <AvatarFallback className="bg-gradient-to-br from-primary/20 to-emerald-500/20 text-primary text-xs font-semibold">
+                    {getInitials(profile?.full_name ?? null, user?.email ?? '')}
+                  </AvatarFallback>
+                </Avatar>
+                {!isCollapsed && (
+                  <div className="flex-1 min-w-0 text-left">
+                    <p className="text-sm font-medium text-sidebar-foreground truncate">
+                      {profile?.full_name || 'User'}
+                    </p>
+                    <p className="text-xs text-sidebar-foreground/50 truncate">
+                      {user?.email}
+                    </p>
+                  </div>
+                )}
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="w-64 p-2">
+              <div className="px-3 py-2 mb-2 bg-muted/50 rounded-lg">
+                <p className="text-sm font-medium">{profile?.full_name || 'User'}</p>
+                <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
+              </div>
+              <DropdownMenuItem onClick={() => navigate('/settings')} className="gap-3 py-2.5 rounded-lg">
+                <Settings className="w-4 h-4" />
+                Account Settings
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => navigate('/help')} className="gap-3 py-2.5 rounded-lg">
+                <Headphones className="w-4 h-4" />
+                Help & Support
+              </DropdownMenuItem>
+              <DropdownMenuSeparator className="my-2" />
+              <DropdownMenuItem onClick={handleSignOut} className="gap-3 py-2.5 rounded-lg text-destructive focus:text-destructive focus:bg-destructive/10">
+                <LogOut className="w-4 h-4" />
+                Sign out
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </SidebarFooter>
     </Sidebar>;
 }
