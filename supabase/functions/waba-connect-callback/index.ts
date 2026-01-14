@@ -58,47 +58,40 @@ Deno.serve(async (req) => {
     const rawAppUrl = Deno.env.get('APP_URL') || 'https://9ee3464f-477f-4b1e-b642-f9597c9a83d5.lovableproject.com';
     const appUrl = rawAppUrl.replace(/\/+$/, '');
     
-    // Handle OAuth errors (return JSON so we can see exactly what Meta sent)
+    // Handle OAuth errors (redirect back to app so the user sees the error UI)
     if (error) {
-      console.error('OAuth error:', { error, errorReason, errorDescription });
-      return new Response(
-        JSON.stringify({
-          ok: false,
-          error,
-          errorReason,
-          errorDescription,
-          receivedParams: Object.fromEntries(url.searchParams.entries()),
-        }),
-        { status: 400, headers: { 'Content-Type': 'application/json' } }
+      const received = Object.fromEntries(url.searchParams.entries());
+      const metaCode = received.error_code || '';
+      const metaMsg = received.error_message || errorDescription || error;
+      console.error('OAuth error:', { error, errorReason, errorDescription, metaCode });
+
+      const msg = metaCode ? `Meta OAuth error (${metaCode}): ${metaMsg}` : `Meta OAuth error: ${metaMsg}`;
+      return Response.redirect(
+        `${appUrl}/phone-numbers?error=${encodeURIComponent(msg)}`,
+        302
       );
     }
 
     // If Meta fails before completing the flow, it may redirect without ?code=
-    // Return JSON (instead of redirect) so we can inspect the parameters.
     if (!code) {
-      console.error('Missing authorization code');
-      return new Response(
-        JSON.stringify({
-          ok: false,
-          error: 'Missing authorization code',
-          hint:
-            'Meta did not redirect with ?code=. This is usually a Meta app config/permission issue or the user cancelled the flow.',
-          receivedParams: Object.fromEntries(url.searchParams.entries()),
-        }),
-        { status: 400, headers: { 'Content-Type': 'application/json' } }
+      const received = Object.fromEntries(url.searchParams.entries());
+      const metaCode = received.error_code || '';
+      const metaMsg = received.error_message || 'Meta did not return an authorization code.';
+
+      console.error('Missing authorization code', { metaCode, metaMsg, received });
+
+      const msg = metaCode ? `Meta OAuth error (${metaCode}): ${metaMsg}` : metaMsg;
+      return Response.redirect(
+        `${appUrl}/phone-numbers?error=${encodeURIComponent(msg)}`,
+        302
       );
     }
 
     if (!state) {
       console.error('Missing state');
-      return new Response(
-        JSON.stringify({
-          ok: false,
-          error: 'Missing state',
-          hint: 'Meta redirected without ?state=. Check the OAuth URL generation and that the flow was completed.',
-          receivedParams: Object.fromEntries(url.searchParams.entries()),
-        }),
-        { status: 400, headers: { 'Content-Type': 'application/json' } }
+      return Response.redirect(
+        `${appUrl}/phone-numbers?error=${encodeURIComponent('Meta OAuth error: missing state parameter')}`,
+        302
       );
     }
 
