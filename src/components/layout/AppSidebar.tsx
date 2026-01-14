@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Users, Settings, LogOut, ChevronDown, ChevronRight, Plus, Inbox, Contact, Phone, FileText, Send, Zap, CreditCard, Shield, UsersRound, Route, Clock, ScrollText, Tag, ListFilter, HelpCircle, Megaphone, BarChart3, Link2, Target, Workflow, Cog, Building2, Sparkles, TrendingUp, Headphones, Search, Bell, Check, Puzzle } from 'lucide-react';
+import { LayoutDashboard, Users, Settings, LogOut, ChevronDown, ChevronRight, Plus, Inbox, Contact, Phone, FileText, Send, Zap, CreditCard, Shield, UsersRound, Route, Clock, ScrollText, Tag, ListFilter, HelpCircle, Megaphone, BarChart3, Link2, Target, Workflow, Cog, Building2, Sparkles, TrendingUp, Headphones, Check, Puzzle } from 'lucide-react';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from '@/components/ui/sidebar';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
+
 import { NavLink } from '@/components/NavLink';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTenant } from '@/contexts/TenantContext';
@@ -238,7 +238,7 @@ export function AppSidebar() {
     state
   } = useSidebar();
   const isCollapsed = state === 'collapsed';
-  const [searchQuery, setSearchQuery] = useState('');
+  
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({
     'Meta Ads': true,
     'Team': false
@@ -482,39 +482,6 @@ export function AppSidebar() {
           </DropdownMenu>
         </div>
 
-        {/* Guide Shortcut (always visible) */}
-        <div className="mb-4">
-          {isCollapsed ? <SidebarMenu>
-              <SidebarMenuItem>
-                <Tooltip delayDuration={0}>
-                  <TooltipTrigger asChild>
-                    <SidebarMenuButton asChild>
-                      <NavLink to="/help" className={cn("flex items-center justify-center p-2 rounded-lg transition-all duration-200", "bg-primary/10 text-primary hover:bg-primary/15")} activeClassName="">
-                        <HelpCircle className="w-5 h-5" />
-                      </NavLink>
-                    </SidebarMenuButton>
-                  </TooltipTrigger>
-                  <TooltipContent side="right">Guide</TooltipContent>
-                </Tooltip>
-              </SidebarMenuItem>
-            </SidebarMenu> : <NavLink to="/help" className={cn("w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 font-semibold", "bg-primary/10 text-primary hover:bg-primary/15")} activeClassName="">
-              <HelpCircle className="w-5 h-5" />
-              <span className="flex-1">Guide</span>
-              <span className="text-xs font-normal text-primary/80">Quick help</span>
-            </NavLink>}
-        </div>
-
-        {/* Quick Search - Only when expanded */}
-        {!isCollapsed && <div className="mb-4">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input placeholder="Quick search..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="pl-9 h-9 bg-sidebar-accent/50 border-sidebar-border text-sm" />
-              <kbd className="absolute right-2 top-1/2 -translate-y-1/2 px-1.5 py-0.5 text-[10px] font-mono text-muted-foreground bg-background rounded border">
-                ⌘K
-              </kbd>
-            </div>
-          </div>}
-
         {/* Main Navigation */}
         <SidebarGroup>
           <SidebarGroupContent>
@@ -543,27 +510,7 @@ export function AppSidebar() {
 
       {/* Footer with User Profile */}
       <SidebarFooter className="p-3 border-t border-sidebar-border">
-        <div className={cn("flex items-center gap-2", isCollapsed ? "justify-center" : "")}>
-          {/* Always-visible Guide button */}
-          <Tooltip delayDuration={0}>
-            <TooltipTrigger asChild>
-              <NavLink
-                to="/help"
-                className={cn(
-                  "shrink-0 flex items-center justify-center rounded-lg transition-colors",
-                  "hover:bg-sidebar-accent",
-                  isCollapsed ? "w-10 h-10" : "w-10 h-10"
-                )}
-                aria-label="Guide"
-                activeClassName=""
-              >
-                <HelpCircle className="w-5 h-5 text-foreground" />
-              </NavLink>
-            </TooltipTrigger>
-            <TooltipContent side="top">Guide</TooltipContent>
-          </Tooltip>
-
-          <DropdownMenu>
+        <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button
                 className={cn(
@@ -609,7 +556,6 @@ export function AppSidebar() {
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-        </div>
       </SidebarFooter>
     </Sidebar>;
 }
