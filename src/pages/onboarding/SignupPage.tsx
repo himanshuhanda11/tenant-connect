@@ -146,9 +146,16 @@ export default function SignupPage() {
       <div className="flex-1 flex flex-col justify-center px-6 py-12 lg:px-12 xl:px-20">
         <div className="mx-auto w-full max-w-md">
           {/* Logo */}
-          <div className="flex items-center gap-2 mb-8">
+          <div className="flex items-center gap-2 mb-4">
             <img src={aireatroLogo} alt="AiReatro" className="h-10 w-auto" />
           </div>
+
+          {/* Breadcrumb */}
+          <nav className="flex items-center gap-2 text-sm text-muted-foreground mb-6">
+            <Link to="/" className="hover:text-foreground transition-colors">Home</Link>
+            <span>/</span>
+            <span className="text-foreground font-medium">Sign Up</span>
+          </nav>
 
           {/* Progress */}
           <div className="mb-8">
@@ -320,64 +327,74 @@ export default function SignupPage() {
         </div>
       </div>
 
-      {/* Right Panel - Features */}
-      <div className="hidden lg:flex flex-1 bg-gradient-to-br from-primary/5 via-primary/10 to-primary/5 items-center justify-center p-12">
-        <div className="max-w-md space-y-8">
-          <div>
-            <h2 className="text-3xl font-bold text-foreground mb-4">
-              Scale your business with WhatsApp
+      {/* Right Panel - White background with colorful accents */}
+      <div className="hidden lg:flex flex-1 relative overflow-hidden bg-white">
+        {/* Subtle decorative elements */}
+        <div className="absolute top-20 right-20 w-72 h-72 bg-primary/5 rounded-full blur-3xl" />
+        <div className="absolute bottom-20 left-20 w-96 h-96 bg-primary/10 rounded-full blur-3xl" />
+
+        {/* Content */}
+        <div className="relative z-10 flex flex-col justify-center p-12 xl:p-16 w-full">
+          <div className="max-w-lg">
+            {/* Badge */}
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 text-primary text-sm font-medium mb-8">
+              <span className="flex h-2 w-2 rounded-full bg-primary animate-pulse" />
+              Join 2,500+ growing businesses
+            </div>
+
+            {/* Main headline */}
+            <h2 className="text-4xl xl:text-5xl font-bold text-slate-900 mb-6 leading-tight">
+              Scale your business with{' '}
+              <span className="text-primary">
+                WhatsApp
+              </span>
             </h2>
-            <p className="text-lg text-muted-foreground">
-              Join thousands of businesses using AiReatro to automate customer conversations.
+            
+            <p className="text-lg xl:text-xl text-slate-600 mb-10 leading-relaxed">
+              Join thousands of businesses using AiReatro to automate customer conversations and grow faster.
             </p>
-          </div>
 
-          <div className="space-y-6">
-            <div className="flex items-start gap-4">
-              <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                <MessageSquare className="h-5 w-5 text-primary" />
+            {/* Feature highlights */}
+            <div className="space-y-4">
+              <div className="flex items-center gap-3 text-slate-700">
+                <div className="flex-shrink-0 w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center">
+                  <MessageSquare className="h-3.5 w-3.5 text-primary" />
+                </div>
+                <span>Official WhatsApp API with verified business messaging</span>
               </div>
-              <div>
-                <h3 className="font-semibold text-foreground">Official WhatsApp API</h3>
-                <p className="text-muted-foreground text-sm">
-                  Verified business messaging with Meta's official API
-                </p>
+              <div className="flex items-center gap-3 text-slate-700">
+                <div className="flex-shrink-0 w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center">
+                  <Zap className="h-3.5 w-3.5 text-primary" />
+                </div>
+                <span>AI-powered automation that responds 24/7</span>
+              </div>
+              <div className="flex items-center gap-3 text-slate-700">
+                <div className="flex-shrink-0 w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center">
+                  <Users className="h-3.5 w-3.5 text-primary" />
+                </div>
+                <span>Team inbox for seamless collaboration</span>
+              </div>
+              <div className="flex items-center gap-3 text-slate-700">
+                <div className="flex-shrink-0 w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center">
+                  <Shield className="h-3.5 w-3.5 text-primary" />
+                </div>
+                <span>Enterprise-grade security & SOC 2 compliant</span>
               </div>
             </div>
 
-            <div className="flex items-start gap-4">
-              <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                <Zap className="h-5 w-5 text-primary" />
+            {/* Stats row */}
+            <div className="mt-10 grid grid-cols-3 gap-4 p-6 rounded-2xl bg-slate-50 border border-slate-100">
+              <div className="text-center">
+                <div className="text-2xl font-bold text-primary">10M+</div>
+                <div className="text-xs text-slate-500">Messages/mo</div>
               </div>
-              <div>
-                <h3 className="font-semibold text-foreground">AI-Powered Automation</h3>
-                <p className="text-muted-foreground text-sm">
-                  Smart flows that respond 24/7 with human-like accuracy
-                </p>
+              <div className="text-center border-x border-slate-200">
+                <div className="text-2xl font-bold text-primary">98%</div>
+                <div className="text-xs text-slate-500">Uptime</div>
               </div>
-            </div>
-
-            <div className="flex items-start gap-4">
-              <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                <Users className="h-5 w-5 text-primary" />
-              </div>
-              <div>
-                <h3 className="font-semibold text-foreground">Team Inbox</h3>
-                <p className="text-muted-foreground text-sm">
-                  Collaborate with your team on a shared inbox
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-start gap-4">
-              <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                <Shield className="h-5 w-5 text-primary" />
-              </div>
-              <div>
-                <h3 className="font-semibold text-foreground">Enterprise Security</h3>
-                <p className="text-muted-foreground text-sm">
-                  SOC 2 compliant with end-to-end encryption
-                </p>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-primary">24/7</div>
+                <div className="text-xs text-slate-500">Support</div>
               </div>
             </div>
           </div>
