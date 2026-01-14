@@ -305,7 +305,7 @@ export function AppSidebar() {
             to={item.url}
             end={item.url === '/dashboard'}
             className={cn(
-              "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 font-medium",
+              "flex items-center gap-3 px-3 pr-10 rounded-lg transition-all duration-200 font-medium",
               compact ? "py-2" : "py-2.5",
               isActive
                 ? "bg-primary/10 text-primary font-semibold border-l-2 border-primary -ml-[2px] pl-[14px]"
@@ -336,21 +336,25 @@ export function AppSidebar() {
           </NavLink>
         </SidebarMenuButton>
 
-        {meta && !compact && (
+        {meta && (
           <Tooltip delayDuration={300}>
             <TooltipTrigger asChild>
               <button
                 type="button"
-                className="absolute right-2 top-1/2 -translate-y-1/2 z-10 p-1 rounded opacity-0 group-hover/item:opacity-100 transition-all bg-success-foreground"
+                className={cn(
+                  "absolute right-2 top-1/2 -translate-y-1/2 z-10 p-1 rounded",
+                  "bg-sidebar-accent text-sidebar-foreground/60",
+                  "hover:text-sidebar-foreground hover:bg-sidebar-accent/80",
+                )}
                 aria-label={`Help for ${item.title}`}
               >
-                <HelpCircle className="h-3.5 w-3.5 text-secondary-foreground" />
+                <HelpCircle className="h-3.5 w-3.5" />
               </button>
             </TooltipTrigger>
             <TooltipContent side="right" align="start" className="max-w-[280px] p-3">
               <p className="text-sm mb-2">{meta.description}</p>
               <NavLink
-                to={`/help/${meta.helpSlug}`}
+                to={meta.helpSlug ? `/help/${meta.helpSlug}` : "/help"}
                 className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
               >
                 Learn more →
