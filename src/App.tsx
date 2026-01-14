@@ -39,6 +39,8 @@ import CreateCampaign from "./pages/campaigns/CreateCampaign";
 import CampaignDetails from "./pages/campaigns/CampaignDetails";
 import CampaignLibrary from "./pages/campaigns/CampaignLibrary";
 import AutomationWorkflows from "./pages/AutomationWorkflows";
+import FlowsHub from "./pages/flows/FlowsHub";
+import FlowBuilder from "./pages/flows/FlowBuilder";
 import Billing from "./pages/Billing";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import Terms from "./pages/Terms";
@@ -126,6 +128,9 @@ const App = () => (
               <Route path="/campaigns/library" element={<CampaignLibrary />} />
               <Route path="/campaigns/:id" element={<CampaignDetails />} />
               <Route path="/automation" element={<AutomationWorkflows />} />
+              <Route path="/flows" element={<FlowsHub />} />
+              <Route path="/flows/builder" element={<FlowBuilder />} />
+              <Route path="/flows/builder/:id" element={<FlowBuilder />} />
               <Route path="/team" element={<TeamOverview />} />
               <Route path="/team/overview" element={<TeamOverview />} />
               <Route path="/team/members" element={<TeamMembers />} />

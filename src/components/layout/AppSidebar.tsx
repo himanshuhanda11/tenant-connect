@@ -109,6 +109,7 @@ const channelMenuItems: MenuItem[] = [
 const growthMenuItems: MenuItem[] = [
   { title: 'Campaigns', url: '/campaigns', icon: Send, key: 'campaigns' },
   { title: 'Automation', url: '/automation', icon: Zap, key: 'automation' },
+  { title: 'Flows', url: '/flows', icon: Workflow, key: 'flows', isNew: true },
 ];
 
 const metaAdsMenuItems: MenuItem[] = [
