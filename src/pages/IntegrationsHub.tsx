@@ -7,6 +7,7 @@ import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { IntegrationCard } from '@/components/integrations/IntegrationCard';
 import { IntegrationFilters } from '@/components/integrations/IntegrationFilters';
 import { ConnectIntegrationModal } from '@/components/integrations/ConnectIntegrationModal';
+import { RazorpayConnectModal } from '@/components/integrations/RazorpayConnectModal';
 import { QuickGuide, quickGuides } from '@/components/help/QuickGuide';
 import { useIntegrations } from '@/hooks/useIntegrations';
 import { useToast } from '@/hooks/use-toast';
@@ -20,13 +21,15 @@ export default function IntegrationsHub() {
     integrationsWithStatus, 
     isLoading, 
     connect, 
-    isConnecting 
+    isConnecting,
+    refetch
   } = useIntegrations();
 
   const [activeFilter, setActiveFilter] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedIntegration, setSelectedIntegration] = useState<IntegrationCatalog | null>(null);
   const [isConnectModalOpen, setIsConnectModalOpen] = useState(false);
+  const [isRazorpayModalOpen, setIsRazorpayModalOpen] = useState(false);
 
   // Calculate counts for filters
   const counts = useMemo(() => {
@@ -67,6 +70,12 @@ export default function IntegrationsHub() {
   }, [integrationsWithStatus, activeFilter, searchQuery]);
 
   const handleConnect = (integration: IntegrationCatalog) => {
+    // Use specialized modal for Razorpay
+    if (integration.key === 'razorpay') {
+      setIsRazorpayModalOpen(true);
+      return;
+    }
+    
     setSelectedIntegration(integration);
     setIsConnectModalOpen(true);
   };
@@ -219,6 +228,21 @@ export default function IntegrationsHub() {
           }}
           onConnect={handleConnectSubmit}
           isConnecting={isConnecting}
+        />
+
+        {/* Razorpay Connect Modal */}
+        <RazorpayConnectModal
+          isOpen={isRazorpayModalOpen}
+          onClose={() => setIsRazorpayModalOpen(false)}
+          onSuccess={() => {
+            setIsRazorpayModalOpen(false);
+            refetch(); // Refresh integrations list
+            toast({
+              title: 'Razorpay Connected',
+              description: 'You can now create event mappings to send WhatsApp messages.',
+            });
+            navigate('/app/integrations/razorpay');
+          }}
         />
       </div>
     </DashboardLayout>
