@@ -342,41 +342,38 @@ export default function About() {
         </div>
       </section>
 
-      {/* Final CTA */}
-      <section className="py-20 md:py-28 bg-slate-900 relative overflow-hidden">
-        <div className="absolute inset-0">
-          <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary/20 rounded-full blur-3xl" />
-          <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-primary/10 rounded-full blur-3xl" />
-        </div>
-        
-        <div className="container mx-auto px-4 relative text-center">
-          <h2 className="text-3xl md:text-5xl font-bold text-white mb-6">
-            Ready to Transform Your <span className="text-primary">WhatsApp Game?</span>
-          </h2>
-          <p className="text-xl text-slate-300 mb-10 max-w-2xl mx-auto">
-            Join thousands of businesses already using AiReatro to grow faster.
-          </p>
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Button size="lg" className="h-14 px-8 text-base font-medium" asChild>
-              <Link to="/signup">
-                Start Free Trial
-                <ArrowRight className="w-5 h-5 ml-2" />
-              </Link>
-            </Button>
-            <Button 
-              size="lg" 
-              variant="outline" 
-              className="h-14 px-8 text-base font-medium border-slate-600 text-white hover:bg-slate-800" 
-              asChild
-            >
-              <Link to="/pricing">
-                View Pricing
-              </Link>
-            </Button>
+      {/* Final CTA - Classic Design */}
+      <section className="py-20 md:py-28 bg-slate-50 border-t border-slate-100">
+        <div className="container mx-auto px-4">
+          <div className="max-w-3xl mx-auto text-center">
+            <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4">
+              Ready to Get Started?
+            </h2>
+            <p className="text-lg text-slate-600 mb-10 max-w-xl mx-auto">
+              Join thousands of businesses already using AiReatro to grow faster with WhatsApp.
+            </p>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+              <Button size="lg" className="h-12 px-8 text-base font-medium" asChild>
+                <Link to="/signup">
+                  Start Free Trial
+                  <ArrowRight className="w-5 h-5 ml-2" />
+                </Link>
+              </Button>
+              <Button 
+                size="lg" 
+                variant="outline" 
+                className="h-12 px-8 text-base font-medium" 
+                asChild
+              >
+                <Link to="/contact">
+                  Book a Demo
+                </Link>
+              </Button>
+            </div>
+            <p className="text-sm text-slate-500 mt-6">
+              No credit card required • Setup in minutes • Cancel anytime
+            </p>
           </div>
-          <p className="text-sm text-slate-500 mt-6">
-            No credit card required • 14-day free trial • Cancel anytime
-          </p>
         </div>
       </section>
 
