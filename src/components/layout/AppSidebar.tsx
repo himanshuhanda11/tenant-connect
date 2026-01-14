@@ -263,7 +263,6 @@ export function AppSidebar() {
     const meta = sidebarDescriptions[item.key];
     const isActive = isRouteActive(item.url);
     const isHelpItem = item.key === 'help';
-
     if (isCollapsed) {
       return <SidebarMenuItem key={item.title}>
           <Tooltip delayDuration={0}>
@@ -298,7 +297,7 @@ export function AppSidebar() {
         </SidebarMenuButton>
         {meta && !compact && <Tooltip delayDuration={300}>
             <TooltipTrigger asChild>
-              <button className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded opacity-0 group-hover/item:opacity-100 transition-all bg-accent">
+              <button className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded opacity-0 group-hover/item:opacity-100 transition-all bg-success-foreground">
                 <HelpCircle className="h-3.5 w-3.5 text-secondary-foreground" />
               </button>
             </TooltipTrigger>
@@ -426,20 +425,12 @@ export function AppSidebar() {
 
         {/* Guide Shortcut (always visible) */}
         <div className="mb-4">
-          {isCollapsed ? (
-            <SidebarMenu>
+          {isCollapsed ? <SidebarMenu>
               <SidebarMenuItem>
                 <Tooltip delayDuration={0}>
                   <TooltipTrigger asChild>
                     <SidebarMenuButton asChild>
-                      <NavLink
-                        to="/help"
-                        className={cn(
-                          "flex items-center justify-center p-2 rounded-lg transition-all duration-200",
-                          "bg-primary/10 text-primary hover:bg-primary/15",
-                        )}
-                        activeClassName=""
-                      >
+                      <NavLink to="/help" className={cn("flex items-center justify-center p-2 rounded-lg transition-all duration-200", "bg-primary/10 text-primary hover:bg-primary/15")} activeClassName="">
                         <HelpCircle className="w-5 h-5" />
                       </NavLink>
                     </SidebarMenuButton>
@@ -447,21 +438,11 @@ export function AppSidebar() {
                   <TooltipContent side="right">Guide</TooltipContent>
                 </Tooltip>
               </SidebarMenuItem>
-            </SidebarMenu>
-          ) : (
-            <NavLink
-              to="/help"
-              className={cn(
-                "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 font-semibold",
-                "bg-primary/10 text-primary hover:bg-primary/15",
-              )}
-              activeClassName=""
-            >
+            </SidebarMenu> : <NavLink to="/help" className={cn("w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 font-semibold", "bg-primary/10 text-primary hover:bg-primary/15")} activeClassName="">
               <HelpCircle className="w-5 h-5" />
               <span className="flex-1">Guide</span>
               <span className="text-xs font-normal text-primary/80">Quick help</span>
-            </NavLink>
-          )}
+            </NavLink>}
         </div>
 
         {/* Quick Search - Only when expanded */}
