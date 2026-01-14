@@ -1,213 +1,382 @@
 import React from 'react';
 import { 
-  Target, 
-  Heart, 
-  Globe, 
+  MessageSquare, 
   Users, 
-  Award,
-  ArrowRight,
   Zap,
+  Target,
+  BarChart3,
+  Tags,
+  ArrowRight,
+  CheckCircle2,
+  Sparkles,
   Shield,
-  Sparkles
+  Layers,
+  TrendingUp,
+  Clock,
+  Brain,
+  GitBranch,
+  Megaphone,
+  UserCheck,
+  Eye,
+  History,
+  Activity
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 
 export default function About() {
-  const navigate = useNavigate();
+  const whatWeDo = [
+    { icon: MessageSquare, text: 'Shared team inbox for faster responses' },
+    { icon: GitBranch, text: 'Visual automation flows' },
+    { icon: Megaphone, text: 'Meta Ads to WhatsApp integration' },
+    { icon: BarChart3, text: 'Real-time analytics and insights' },
+    { icon: Users, text: 'Built for teams and scale' },
+  ];
 
-  const values = [
+  const differentiators = [
     {
-      icon: Heart,
-      title: 'Customer First',
-      description: 'Every decision we make starts with our customers. Their success is our success.'
+      icon: Activity,
+      title: 'Diagnostics Everywhere',
+      description: 'Flow health, inbox metrics, and ad performance — all with built-in diagnostics.'
     },
     {
-      icon: Zap,
-      title: 'Move Fast',
-      description: 'We ship quickly, iterate constantly, and learn from every interaction.'
+      icon: Brain,
+      title: 'AI Insights, Not Raw Numbers',
+      description: 'Get actionable recommendations instead of overwhelming data dumps.'
     },
     {
-      icon: Shield,
-      title: 'Trust & Security',
-      description: 'We protect customer data like it\'s our own. Security is never an afterthought.'
+      icon: TrendingUp,
+      title: 'Clear Attribution',
+      description: 'Track the complete journey from Ads → Flows → Agents → Conversions.'
+    },
+    {
+      icon: Eye,
+      title: 'Clean, Calm UI',
+      description: 'Designed for daily use without cognitive overload or unnecessary complexity.'
     },
     {
       icon: Sparkles,
-      title: 'Innovation',
-      description: 'We push boundaries and explore new ways to help businesses communicate.'
-    }
+      title: 'Pro Features That Matter',
+      description: 'Unlock real business value with advanced capabilities when you need them.'
+    },
+    {
+      icon: Clock,
+      title: 'Setup in Minutes',
+      description: 'Templates and guided onboarding that get you productive fast.'
+    },
   ];
 
-  const stats = [
-    { value: '2020', label: 'Founded' },
-    { value: '50+', label: 'Team Members' },
-    { value: '5,000+', label: 'Customers' },
-    { value: '150+', label: 'Countries' },
-  ];
-
-  const team = [
-    { name: 'Rahul Sharma', role: 'CEO & Co-founder', avatar: 'RS' },
-    { name: 'Priya Patel', role: 'CTO & Co-founder', avatar: 'PP' },
-    { name: 'Amit Kumar', role: 'Head of Product', avatar: 'AK' },
-    { name: 'Sarah Chen', role: 'Head of Customer Success', avatar: 'SC' },
+  const pillars = [
+    {
+      icon: MessageSquare,
+      title: 'Inbox & Team Collaboration',
+      features: [
+        'Shared inbox with smart assignment',
+        'SLA tracking & response time goals',
+        'AI intent detection (Sales/Support/Urgent)',
+        'Internal notes & @mentions',
+        'Supervisor shadow mode'
+      ],
+      color: 'from-blue-500 to-cyan-500'
+    },
+    {
+      icon: GitBranch,
+      title: 'Flows & Automations',
+      features: [
+        'Drag-and-drop visual builder',
+        'Sales & support templates',
+        'Multi-trigger flows (keyword, QR, ads)',
+        'Flow diagnostics & health score',
+        'Version history (Pro)'
+      ],
+      color: 'from-purple-500 to-pink-500'
+    },
+    {
+      icon: Megaphone,
+      title: 'Meta Ads & Growth',
+      features: [
+        'Meta Ads → WhatsApp integration',
+        'Lead quality scoring with AI',
+        'Ad-to-flow journey preview',
+        'Conversion attribution tracking',
+        'ROI dashboard'
+      ],
+      color: 'from-orange-500 to-red-500'
+    },
+    {
+      icon: Tags,
+      title: 'Contacts & Profiles',
+      features: [
+        '360° customer profiles',
+        'Dynamic tags & segments',
+        'Engagement scoring',
+        'Lifecycle tracking',
+        'Consent & opt-out management'
+      ],
+      color: 'from-green-500 to-emerald-500'
+    },
   ];
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-white">
       <Navbar />
 
-      {/* Hero */}
-      <section className="relative pt-16 pb-10 md:pt-20 md:pb-14 overflow-hidden bg-gradient-to-b from-background to-muted/30">
-        <div className="absolute inset-0">
-          <div className="absolute top-20 left-0 w-[400px] h-[400px] bg-violet-500/5 rounded-full blur-[100px]" />
-          <div className="absolute bottom-0 right-0 w-[300px] h-[300px] bg-primary/5 rounded-full blur-[80px]" />
-        </div>
+      {/* Hero Section - Clean, Minimal, White */}
+      <section className="relative pt-24 pb-20 md:pt-32 md:pb-28 overflow-hidden bg-white">
+        {/* Subtle decorative elements */}
+        <div className="absolute top-20 right-10 w-64 h-64 bg-primary/5 rounded-full blur-3xl" />
+        <div className="absolute bottom-10 left-10 w-80 h-80 bg-primary/3 rounded-full blur-3xl" />
         
         <div className="container mx-auto px-4 relative">
           <div className="max-w-4xl mx-auto text-center">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-violet-500/10 border border-violet-500/20 text-violet-600 text-sm font-medium mb-6">
-              <Heart className="w-4 h-4" />
-              Our Story
-            </div>
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-foreground mb-6 leading-tight">
-              Making Business Messaging{' '}
-              <span className="bg-gradient-to-r from-violet-500 via-purple-500 to-pink-500 bg-clip-text text-transparent">
-                Simple
-              </span>
+            {/* Main Heading */}
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 leading-tight">
+              <span className="text-slate-900">Smarter Conversations.</span>
+              <br />
+              <span className="text-primary">Powered by AI.</span>
             </h1>
-            <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">
-              We're on a mission to help businesses connect with their customers on the world's most popular messaging platform.
+            
+            {/* Subheading */}
+            <p className="text-lg md:text-xl text-slate-600 max-w-3xl mx-auto mb-10 leading-relaxed">
+              AiReatro Communications helps businesses automate WhatsApp conversations, manage teams, 
+              track growth, and convert leads using AI — all from one clean platform.
+            </p>
+            
+            {/* CTAs */}
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-6">
+              <Button size="lg" className="h-14 px-8 text-base font-medium" asChild>
+                <Link to="/signup">
+                  Start Free Trial
+                  <ArrowRight className="w-5 h-5 ml-2" />
+                </Link>
+              </Button>
+              <Button size="lg" variant="outline" className="h-14 px-8 text-base font-medium" asChild>
+                <Link to="/contact">
+                  Book a Demo
+                </Link>
+              </Button>
+            </div>
+            
+            {/* Trust line */}
+            <p className="text-sm text-slate-500">
+              No credit card required • Setup in minutes • Built on WhatsApp Cloud API
             </p>
           </div>
         </div>
       </section>
 
-      {/* Stats */}
-      <section className="py-16 bg-muted/30 border-y border-border/50">
+      {/* Section 1: What We Do */}
+      <section className="py-20 md:py-28 bg-slate-50">
+        <div className="container mx-auto px-4">
+          <div className="max-w-4xl mx-auto">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4">
+                One Platform. <span className="text-primary">Every WhatsApp Workflow.</span>
+              </h2>
+              <p className="text-lg text-slate-600 max-w-2xl mx-auto">
+                AiReatro Communications is built to help businesses turn WhatsApp into a powerful 
+                sales, support, and growth channel — not just a messaging tool.
+              </p>
+            </div>
+
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {whatWeDo.map((item, index) => (
+                <div 
+                  key={index} 
+                  className="flex items-center gap-4 p-5 rounded-xl bg-white border border-slate-100 shadow-sm hover:shadow-md transition-shadow"
+                >
+                  <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                    <item.icon className="w-5 h-5 text-primary" />
+                  </div>
+                  <span className="text-slate-700 font-medium">{item.text}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Section 2: Why AiReatro is Different */}
+      <section className="py-20 md:py-28 bg-white">
+        <div className="container mx-auto px-4">
+          <div className="max-w-5xl mx-auto">
+            <div className="text-center mb-14">
+              <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4">
+                Built Beyond <span className="text-primary">Basic Automation</span>
+              </h2>
+              <p className="text-lg text-slate-600">
+                What makes AiReatro different from everything else out there
+              </p>
+            </div>
+
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {differentiators.map((item, index) => (
+                <Card 
+                  key={index} 
+                  className="border-slate-100 bg-white hover:border-primary/30 hover:shadow-lg transition-all duration-300 group"
+                >
+                  <CardContent className="p-6">
+                    <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
+                      <item.icon className="w-6 h-6 text-primary" />
+                    </div>
+                    <h3 className="font-semibold text-lg text-slate-900 mb-2">{item.title}</h3>
+                    <p className="text-slate-600 text-sm leading-relaxed">{item.description}</p>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Section 3: Product Pillars */}
+      <section className="py-20 md:py-28 bg-slate-50">
+        <div className="container mx-auto px-4">
+          <div className="max-w-6xl mx-auto">
+            <div className="text-center mb-14">
+              <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4">
+                The Four Pillars of <span className="text-primary">AiReatro</span>
+              </h2>
+              <p className="text-lg text-slate-600">
+                Everything you need to turn WhatsApp into your #1 growth channel
+              </p>
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-8">
+              {pillars.map((pillar, index) => (
+                <Card 
+                  key={index} 
+                  className="border-slate-100 bg-white overflow-hidden hover:shadow-xl transition-shadow"
+                >
+                  <CardContent className="p-0">
+                    {/* Header with gradient */}
+                    <div className={`bg-gradient-to-r ${pillar.color} p-6`}>
+                      <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
+                          <pillar.icon className="w-6 h-6 text-white" />
+                        </div>
+                        <h3 className="font-bold text-xl text-white">{pillar.title}</h3>
+                      </div>
+                    </div>
+                    
+                    {/* Features list */}
+                    <div className="p-6">
+                      <ul className="space-y-3">
+                        {pillar.features.map((feature, fIndex) => (
+                          <li key={fIndex} className="flex items-start gap-3">
+                            <CheckCircle2 className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
+                            <span className="text-slate-700">{feature}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Stats Section */}
+      <section className="py-16 bg-white border-y border-slate-100">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 max-w-4xl mx-auto">
-            {stats.map((stat, index) => (
-              <div key={index} className="text-center">
-                <div className="text-4xl md:text-5xl font-bold text-foreground mb-2">{stat.value}</div>
-                <div className="text-muted-foreground">{stat.label}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Mission */}
-      <section className="py-24">
-        <div className="container mx-auto px-4">
-          <div className="grid lg:grid-cols-2 gap-16 items-center max-w-6xl mx-auto">
-            <div>
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium mb-6">
-                <Target className="w-4 h-4" />
-                Our Mission
-              </div>
-              <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-6">
-                Empowering Businesses to Connect at Scale
-              </h2>
-              <p className="text-lg text-muted-foreground mb-6">
-                We believe every business, regardless of size, deserves access to powerful communication tools. Our platform makes it easy to engage customers on WhatsApp, the messaging app billions of people trust.
-              </p>
-              <p className="text-lg text-muted-foreground">
-                From startups to enterprises, we're helping thousands of businesses build better relationships with their customers through meaningful conversations.
-              </p>
+            <div className="text-center">
+              <div className="text-4xl md:text-5xl font-bold text-primary mb-2">10M+</div>
+              <div className="text-slate-600">Messages/Month</div>
             </div>
-            <div className="relative">
-              <div className="aspect-square rounded-3xl bg-gradient-to-br from-green-500/20 to-emerald-500/20 flex items-center justify-center">
-                <Globe className="w-32 h-32 text-green-500" />
-              </div>
-              <div className="absolute -top-4 -right-4 w-24 h-24 rounded-2xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center shadow-xl">
-                <Users className="w-12 h-12 text-white" />
-              </div>
-              <div className="absolute -bottom-4 -left-4 w-20 h-20 rounded-2xl bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center shadow-xl">
-                <Award className="w-10 h-10 text-white" />
-              </div>
+            <div className="text-center">
+              <div className="text-4xl md:text-5xl font-bold text-primary mb-2">2,500+</div>
+              <div className="text-slate-600">Businesses</div>
+            </div>
+            <div className="text-center">
+              <div className="text-4xl md:text-5xl font-bold text-primary mb-2">98%</div>
+              <div className="text-slate-600">Uptime SLA</div>
+            </div>
+            <div className="text-center">
+              <div className="text-4xl md:text-5xl font-bold text-primary mb-2">50+</div>
+              <div className="text-slate-600">Countries</div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Values */}
-      <section className="py-24 bg-gradient-to-b from-muted/50 to-background">
+      {/* Trust & Security */}
+      <section className="py-20 md:py-28 bg-white">
         <div className="container mx-auto px-4">
-          <div className="text-center max-w-3xl mx-auto mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
-              Our Values
+          <div className="max-w-4xl mx-auto text-center">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium mb-6">
+              <Shield className="w-4 h-4" />
+              Enterprise Ready
+            </div>
+            <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-6">
+              Built for Scale. <span className="text-primary">Secured by Design.</span>
             </h2>
-            <p className="text-lg text-muted-foreground">
-              The principles that guide everything we do
+            <p className="text-lg text-slate-600 mb-10 max-w-2xl mx-auto">
+              SOC 2 compliant infrastructure, role-based access control, audit logs, 
+              and end-to-end encryption. Your data is protected at every level.
             </p>
-          </div>
-
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-6xl mx-auto">
-            {values.map((value, index) => (
-              <Card key={index} className="text-center border-border/50 bg-card/50">
-                <CardContent className="pt-8 pb-6">
-                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center mx-auto mb-6">
-                    <value.icon className="w-8 h-8 text-primary" />
-                  </div>
-                  <h3 className="font-semibold text-xl text-foreground mb-3">{value.title}</h3>
-                  <p className="text-muted-foreground">{value.description}</p>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Team */}
-      <section className="py-24">
-        <div className="container mx-auto px-4">
-          <div className="text-center max-w-3xl mx-auto mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
-              Meet Our Leadership
-            </h2>
-            <p className="text-lg text-muted-foreground">
-              The team behind AiReatro
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-5xl mx-auto">
-            {team.map((member, index) => (
-              <div key={index} className="text-center group">
-                <div className="w-32 h-32 rounded-full bg-gradient-to-br from-primary to-purple-600 flex items-center justify-center mx-auto mb-4 text-white text-3xl font-bold shadow-xl group-hover:scale-105 transition-transform">
-                  {member.avatar}
-                </div>
-                <h3 className="font-semibold text-lg text-foreground">{member.name}</h3>
-                <p className="text-muted-foreground">{member.role}</p>
+            <div className="flex flex-wrap items-center justify-center gap-6 text-slate-500">
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="w-5 h-5 text-primary" />
+                <span>SOC 2 Compliant</span>
               </div>
-            ))}
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="w-5 h-5 text-primary" />
+                <span>GDPR Ready</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="w-5 h-5 text-primary" />
+                <span>Meta Verified</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="w-5 h-5 text-primary" />
+                <span>99.9% Uptime</span>
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* CTA */}
-      <section className="py-24 bg-gradient-to-br from-green-600 via-emerald-600 to-cyan-600 relative overflow-hidden">
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4xIj48Y2lyY2xlIGN4PSIzMCIgY3k9IjMwIiByPSIyIi8+PC9nPjwvZz48L3N2Zz4=')] opacity-50" />
+      {/* Final CTA */}
+      <section className="py-20 md:py-28 bg-slate-900 relative overflow-hidden">
+        <div className="absolute inset-0">
+          <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary/20 rounded-full blur-3xl" />
+          <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-primary/10 rounded-full blur-3xl" />
+        </div>
         
         <div className="container mx-auto px-4 relative text-center">
           <h2 className="text-3xl md:text-5xl font-bold text-white mb-6">
-            Join Our Team
+            Ready to Transform Your <span className="text-primary">WhatsApp Game?</span>
           </h2>
-          <p className="text-xl text-white/80 mb-10 max-w-2xl mx-auto">
-            We're always looking for talented people to help us build the future of business messaging.
+          <p className="text-xl text-slate-300 mb-10 max-w-2xl mx-auto">
+            Join thousands of businesses already using AiReatro to grow faster.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Button size="lg" className="h-14 px-8 bg-white text-green-600 hover:bg-white/90" onClick={() => navigate('/careers')}>
-              View Open Positions
-              <ArrowRight className="w-5 h-5 ml-2" />
+            <Button size="lg" className="h-14 px-8 text-base font-medium" asChild>
+              <Link to="/signup">
+                Start Free Trial
+                <ArrowRight className="w-5 h-5 ml-2" />
+              </Link>
             </Button>
-            <Button size="lg" variant="outline" className="h-14 px-8 border-white/30 text-white hover:bg-white/10" onClick={() => navigate('/contact')}>
-              Contact Us
+            <Button 
+              size="lg" 
+              variant="outline" 
+              className="h-14 px-8 text-base font-medium border-slate-600 text-white hover:bg-slate-800" 
+              asChild
+            >
+              <Link to="/pricing">
+                View Pricing
+              </Link>
             </Button>
           </div>
+          <p className="text-sm text-slate-500 mt-6">
+            No credit card required • 14-day free trial • Cancel anytime
+          </p>
         </div>
       </section>
 
