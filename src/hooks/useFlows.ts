@@ -709,6 +709,82 @@ export function useFlowBuilder(flowId: string | undefined) {
     }
   };
 
+  // Trigger management
+  const addTrigger = async (triggerType: string, config: Record<string, any> = {}) => {
+    if (!flowId || !currentTenant?.id) return null;
+
+    // Map trigger type string to enum value
+    const validTriggerTypes = ['keyword', 'regex', 'qr', 'meta_ad', 'api', 'manual', 'fallback'] as const;
+    type TriggerType = typeof validTriggerTypes[number];
+    const typedTriggerType = (validTriggerTypes.includes(triggerType as TriggerType) ? triggerType : 'keyword') as TriggerType;
+
+    try {
+      const { data, error } = await supabase
+        .from('flow_triggers')
+        .insert({
+          tenant_id: currentTenant.id,
+          flow_id: flowId,
+          trigger_type: typedTriggerType,
+          priority: triggers.length + 1,
+          is_enabled: true,
+          config: config as any,
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      setTriggers(prev => [...prev, data as unknown as FlowTrigger]);
+      toast.success('Trigger added');
+      return data;
+    } catch (err: any) {
+      toast.error('Failed to add trigger');
+      return null;
+    }
+  };
+
+  const updateTrigger = async (triggerId: string, updates: { config?: Record<string, any>; is_enabled?: boolean; priority?: number }) => {
+    if (!flowId) return false;
+
+    try {
+      const { error } = await supabase
+        .from('flow_triggers')
+        .update(updates as any)
+        .eq('id', triggerId)
+        .eq('flow_id', flowId);
+
+      if (error) throw error;
+      setTriggers(prev => prev.map(t => t.id === triggerId ? { ...t, ...updates } as FlowTrigger : t));
+      return true;
+    } catch (err) {
+      toast.error('Failed to update trigger');
+      return false;
+    }
+  };
+
+  const deleteTrigger = async (triggerId: string) => {
+    if (!flowId) return false;
+
+    try {
+      const { error } = await supabase
+        .from('flow_triggers')
+        .delete()
+        .eq('id', triggerId)
+        .eq('flow_id', flowId);
+
+      if (error) throw error;
+      setTriggers(prev => prev.filter(t => t.id !== triggerId));
+      toast.success('Trigger removed');
+      return true;
+    } catch (err) {
+      toast.error('Failed to delete trigger');
+      return false;
+    }
+  };
+
+  const toggleTrigger = async (triggerId: string, enabled: boolean) => {
+    return updateTrigger(triggerId, { is_enabled: enabled });
+  };
+
   return {
     flow,
     nodes,
@@ -724,8 +800,13 @@ export function useFlowBuilder(flowId: string | undefined) {
     deleteEdge,
     saveFlow,
     publishFlow,
+    addTrigger,
+    updateTrigger,
+    deleteTrigger,
+    toggleTrigger,
     setNodes,
     setEdges,
+    setTriggers,
     refetch: fetchFlow,
   };
 }
