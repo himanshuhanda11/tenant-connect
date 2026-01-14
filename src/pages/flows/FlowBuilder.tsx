@@ -1,13 +1,15 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
 import {
   Select,
   SelectContent,
@@ -20,20 +22,12 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-  DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from '@/components/ui/sheet';
 import {
   ArrowLeft,
   Save,
@@ -42,6 +36,7 @@ import {
   Upload,
   Settings,
   ChevronDown,
+  ChevronRight,
   MessageSquare,
   List,
   Image,
@@ -63,7 +58,6 @@ import {
   AlertTriangle,
   CheckCircle2,
   XCircle,
-  Link2,
   MoreVertical,
   History,
   ZoomIn,
@@ -81,106 +75,144 @@ import {
   Code,
   MousePointer,
   Layers,
+  Plus,
+  Trash2,
+  GripVertical,
+  Circle,
+  ArrowDown,
+  Loader2,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useFlowBuilder } from '@/hooks/useFlows';
+import { toast } from 'sonner';
 
-// Node categories for the palette
+// Node type configurations
 const nodeCategories = [
   {
-    label: 'Message Types',
+    label: 'Messages',
     icon: MessageSquare,
+    color: 'text-blue-500',
     nodes: [
-      { type: 'text-buttons', label: 'Text + Buttons', icon: MessageSquare },
-      { type: 'list-message', label: 'List Message', icon: List },
-      { type: 'media', label: 'Media', icon: Image },
-      { type: 'document', label: 'Document', icon: FileText },
-      { type: 'template', label: 'Template', icon: Send },
+      { type: 'text-buttons', label: 'Text + Buttons', icon: MessageSquare, description: 'Send text with quick reply buttons' },
+      { type: 'list-message', label: 'List Message', icon: List, description: 'Send a list with selectable options' },
+      { type: 'media', label: 'Media', icon: Image, description: 'Send image, video, or audio' },
+      { type: 'document', label: 'Document', icon: FileText, description: 'Send a document file' },
+      { type: 'template', label: 'Template', icon: Send, description: 'Send an approved template' },
     ],
   },
   {
     label: 'Logic',
     icon: GitBranch,
+    color: 'text-amber-500',
     nodes: [
-      { type: 'condition', label: 'Condition (If/Else)', icon: GitBranch },
-      { type: 'switch', label: 'Switch (Multi-branch)', icon: Shuffle },
-      { type: 'delay', label: 'Delay', icon: Clock },
-      { type: 'timeout', label: 'Timeout', icon: Timer },
-      { type: 'random-split', label: 'A/B Split', icon: Shuffle },
-      { type: 'business-hours', label: 'Business Hours', icon: Calendar },
+      { type: 'condition', label: 'Condition', icon: GitBranch, description: 'Branch based on conditions' },
+      { type: 'switch', label: 'Switch', icon: Shuffle, description: 'Multi-branch routing' },
+      { type: 'delay', label: 'Delay', icon: Clock, description: 'Wait before next step' },
+      { type: 'timeout', label: 'Timeout', icon: Timer, description: 'Handle no response' },
+      { type: 'random-split', label: 'A/B Split', icon: Shuffle, description: 'Random split for testing' },
+      { type: 'business-hours', label: 'Business Hours', icon: Calendar, description: 'Route by time' },
     ],
   },
   {
     label: 'Actions',
     icon: Zap,
+    color: 'text-green-500',
     nodes: [
-      { type: 'set-attribute', label: 'Set Attribute', icon: Edit3 },
-      { type: 'add-tag', label: 'Add/Remove Tag', icon: Tag },
-      { type: 'assign-agent', label: 'Assign Agent', icon: Users },
-      { type: 'create-lead', label: 'Create Lead', icon: Users },
-      { type: 'create-ticket', label: 'Create Ticket', icon: Ticket },
-      { type: 'webhook', label: 'Webhook/API', icon: Webhook },
-      { type: 'notify-team', label: 'Notify Team', icon: Bell },
-      { type: 'add-segment', label: 'Add to Segment', icon: Filter },
+      { type: 'set-attribute', label: 'Set Attribute', icon: Edit3, description: 'Update contact data' },
+      { type: 'add-tag', label: 'Add/Remove Tag', icon: Tag, description: 'Manage contact tags' },
+      { type: 'assign-agent', label: 'Assign Agent', icon: Users, description: 'Hand over to human' },
+      { type: 'create-ticket', label: 'Create Ticket', icon: Ticket, description: 'Create support ticket' },
+      { type: 'webhook', label: 'Webhook/API', icon: Webhook, description: 'Call external API' },
+      { type: 'notify-team', label: 'Notify Team', icon: Bell, description: 'Send internal alert' },
+      { type: 'add-segment', label: 'Add to Segment', icon: Filter, description: 'Add to segment' },
     ],
   },
   {
     label: 'Pro',
     icon: Crown,
+    color: 'text-purple-500',
     nodes: [
-      { type: 'ai-response', label: 'AI Response', icon: Sparkles, pro: true },
-      { type: 'multilang', label: 'Multi-language', icon: MessageSquare, pro: true },
-      { type: 'sla-handover', label: 'SLA Handover', icon: Clock, pro: true },
+      { type: 'ai-response', label: 'AI Response', icon: Sparkles, pro: true, description: 'Generate AI reply' },
+      { type: 'ai-classifier', label: 'AI Classifier', icon: Sparkles, pro: true, description: 'Classify intent with AI' },
+      { type: 'language-router', label: 'Language Router', icon: MessageSquare, pro: true, description: 'Route by language' },
+      { type: 'sla-timer', label: 'SLA Timer', icon: Timer, pro: true, description: 'Escalation rules' },
     ],
   },
 ];
 
-// Smart blocks
-const smartBlocks = [
-  { id: 'lead-qual', label: 'Lead Qualification', description: 'Qualify and score leads' },
-  { id: 'appointment', label: 'Appointment Booking', description: 'Book appointments with calendar' },
-  { id: 'support-triage', label: 'Support Triage', description: 'Route support tickets smartly' },
-];
-
-// Trigger types
+// Trigger configurations
 const triggerTypes = [
-  { type: 'keyword', label: 'Keyword', icon: Keyboard, description: 'When user sends specific keywords' },
+  { type: 'keyword', label: 'Keyword', icon: Keyboard, description: 'Trigger on keyword match' },
   { type: 'regex', label: 'Regex', icon: Code, pro: true, description: 'Advanced pattern matching' },
-  { type: 'qr', label: 'QR Campaign', icon: QrCode, description: 'When user scans a QR code' },
-  { type: 'ad', label: 'Click-to-WhatsApp Ad', icon: Megaphone, description: 'From Meta ad clicks' },
-  { type: 'api', label: 'API/Webhook', icon: Webhook, description: 'Trigger via API call' },
-  { type: 'default', label: 'Default Fallback', icon: MessageSquare, description: 'When no other flow matches' },
+  { type: 'qr', label: 'QR Campaign', icon: QrCode, description: 'Trigger from QR scan' },
+  { type: 'meta_ad', label: 'Click-to-WhatsApp', icon: Megaphone, description: 'From Meta ad clicks' },
+  { type: 'api', label: 'API/Webhook', icon: Webhook, description: 'External API trigger' },
   { type: 'manual', label: 'Manual Start', icon: MousePointer, description: 'Agent triggers from inbox' },
+  { type: 'fallback', label: 'Fallback', icon: MessageSquare, description: 'When no flow matches' },
 ];
 
-// Mock flow nodes for canvas
-const mockCanvasNodes = [
-  { id: 'start', type: 'start', label: 'Flow Start', x: 100, y: 100 },
-  { id: 'msg1', type: 'text-buttons', label: 'Welcome Message', x: 100, y: 220 },
-  { id: 'cond1', type: 'condition', label: 'Check Intent', x: 100, y: 340 },
-  { id: 'msg2', type: 'text-buttons', label: 'Sales Response', x: 0, y: 460 },
-  { id: 'msg3', type: 'text-buttons', label: 'Support Response', x: 200, y: 460 },
-];
+// Node colors by type
+const nodeColors: Record<string, { bg: string; border: string; icon: string }> = {
+  start: { bg: 'bg-green-500/10', border: 'border-green-500', icon: 'text-green-600' },
+  'text-buttons': { bg: 'bg-blue-500/10', border: 'border-blue-500/50', icon: 'text-blue-600' },
+  'list-message': { bg: 'bg-blue-500/10', border: 'border-blue-500/50', icon: 'text-blue-600' },
+  media: { bg: 'bg-blue-500/10', border: 'border-blue-500/50', icon: 'text-blue-600' },
+  document: { bg: 'bg-blue-500/10', border: 'border-blue-500/50', icon: 'text-blue-600' },
+  template: { bg: 'bg-blue-500/10', border: 'border-blue-500/50', icon: 'text-blue-600' },
+  condition: { bg: 'bg-amber-500/10', border: 'border-amber-500/50', icon: 'text-amber-600' },
+  switch: { bg: 'bg-amber-500/10', border: 'border-amber-500/50', icon: 'text-amber-600' },
+  delay: { bg: 'bg-slate-500/10', border: 'border-slate-500/50', icon: 'text-slate-600' },
+  timeout: { bg: 'bg-slate-500/10', border: 'border-slate-500/50', icon: 'text-slate-600' },
+  'random-split': { bg: 'bg-amber-500/10', border: 'border-amber-500/50', icon: 'text-amber-600' },
+  'business-hours': { bg: 'bg-slate-500/10', border: 'border-slate-500/50', icon: 'text-slate-600' },
+  'set-attribute': { bg: 'bg-green-500/10', border: 'border-green-500/50', icon: 'text-green-600' },
+  'add-tag': { bg: 'bg-green-500/10', border: 'border-green-500/50', icon: 'text-green-600' },
+  'assign-agent': { bg: 'bg-green-500/10', border: 'border-green-500/50', icon: 'text-green-600' },
+  'create-ticket': { bg: 'bg-green-500/10', border: 'border-green-500/50', icon: 'text-green-600' },
+  webhook: { bg: 'bg-orange-500/10', border: 'border-orange-500/50', icon: 'text-orange-600' },
+  'notify-team': { bg: 'bg-green-500/10', border: 'border-green-500/50', icon: 'text-green-600' },
+  'add-segment': { bg: 'bg-green-500/10', border: 'border-green-500/50', icon: 'text-green-600' },
+  'ai-response': { bg: 'bg-purple-500/10', border: 'border-purple-500/50', icon: 'text-purple-600' },
+  'ai-classifier': { bg: 'bg-purple-500/10', border: 'border-purple-500/50', icon: 'text-purple-600' },
+  'language-router': { bg: 'bg-purple-500/10', border: 'border-purple-500/50', icon: 'text-purple-600' },
+  'sla-timer': { bg: 'bg-purple-500/10', border: 'border-purple-500/50', icon: 'text-purple-600' },
+};
 
-// Globe icon for multilang
-const Globe = ({ className }: { className?: string }) => (
-  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <circle cx="12" cy="12" r="10" />
-    <line x1="2" x2="22" y1="12" y2="12" />
-    <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
-  </svg>
-);
+const getNodeIcon = (type: string) => {
+  for (const cat of nodeCategories) {
+    const node = cat.nodes.find(n => n.type === type);
+    if (node) return node.icon;
+  }
+  return MessageSquare;
+};
 
 const FlowBuilder = () => {
   const navigate = useNavigate();
   const { id } = useParams();
   const isNew = !id;
+  const canvasRef = useRef<HTMLDivElement>(null);
   
-  const [flowName, setFlowName] = useState(isNew ? 'Untitled Flow' : 'Welcome Message');
-  const [isActive, setIsActive] = useState(false);
-  const [selectedNode, setSelectedNode] = useState<string | null>('msg1');
+  const { 
+    flow, nodes, edges, triggers, diagnostics, loading, saving,
+    addNode, updateNode, deleteNode, addEdge, deleteEdge, saveFlow, publishFlow 
+  } = useFlowBuilder(id);
+  
+  const [flowName, setFlowName] = useState('');
+  const [selectedNodeKey, setSelectedNodeKey] = useState<string | null>(null);
   const [rightPanelTab, setRightPanelTab] = useState('settings');
   const [zoom, setZoom] = useState(100);
-  const [expandedCategories, setExpandedCategories] = useState<string[]>(['Message Types']);
+  const [expandedCategories, setExpandedCategories] = useState<string[]>(['Messages']);
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragNodeType, setDragNodeType] = useState<string | null>(null);
+  const [connecting, setConnecting] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (flow) {
+      setFlowName(flow.name);
+    }
+  }, [flow]);
+
+  const selectedNode = nodes.find(n => n.node_key === selectedNodeKey);
 
   const toggleCategory = (label: string) => {
     setExpandedCategories((prev) =>
@@ -190,45 +222,95 @@ const FlowBuilder = () => {
 
   const handleDragStart = (e: React.DragEvent, nodeType: string) => {
     e.dataTransfer.setData('nodeType', nodeType);
+    setDragNodeType(nodeType);
+    setIsDragging(true);
   };
 
+  const handleDragEnd = () => {
+    setIsDragging(false);
+    setDragNodeType(null);
+  };
+
+  const handleCanvasDrop = async (e: React.DragEvent) => {
+    e.preventDefault();
+    const nodeType = e.dataTransfer.getData('nodeType');
+    if (!nodeType || !canvasRef.current) return;
+
+    const rect = canvasRef.current.getBoundingClientRect();
+    const x = (e.clientX - rect.left) / (zoom / 100);
+    const y = (e.clientY - rect.top) / (zoom / 100);
+
+    await addNode(nodeType, { x, y });
+    setIsDragging(false);
+  };
+
+  const handleCanvasDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+  };
+
+  const handleNodeClick = (nodeKey: string) => {
+    setSelectedNodeKey(nodeKey);
+    setRightPanelTab('settings');
+  };
+
+  const handleAddConnection = async (sourceKey: string) => {
+    if (connecting) {
+      if (connecting !== sourceKey) {
+        await addEdge(connecting, sourceKey);
+      }
+      setConnecting(null);
+    } else {
+      setConnecting(sourceKey);
+    }
+  };
+
+  const handleSave = async () => {
+    if (flowName !== flow?.name) {
+      await saveFlow({ name: flowName });
+    } else {
+      toast.success('Flow saved');
+    }
+  };
+
+  const handlePublish = async () => {
+    await publishFlow();
+  };
+
+  if (loading) {
+    return (
+      <div className="h-screen flex items-center justify-center bg-background">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+          <p className="text-muted-foreground">Loading flow builder...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="h-screen flex flex-col bg-background">
+    <div className="h-screen flex flex-col bg-muted/30">
       {/* Top Bar */}
-      <div className="h-14 border-b flex items-center justify-between px-4 bg-card">
+      <div className="h-14 border-b flex items-center justify-between px-4 bg-card shrink-0">
         <div className="flex items-center gap-3">
           <Button variant="ghost" size="icon" onClick={() => navigate('/flows')}>
             <ArrowLeft className="w-5 h-5" />
           </Button>
           <Separator orientation="vertical" className="h-6" />
           <div className="flex items-center gap-2">
+            <span className="text-xl">{flow?.emoji || '🔄'}</span>
             <Input
               value={flowName}
               onChange={(e) => setFlowName(e.target.value)}
               className="text-lg font-semibold border-0 bg-transparent p-0 h-auto focus-visible:ring-0 w-auto min-w-[200px]"
+              placeholder="Flow name"
             />
-            <Button variant="ghost" size="icon" className="h-7 w-7">
-              <Edit3 className="w-4 h-4" />
-            </Button>
           </div>
-          <Select defaultValue="onboarding">
-            <SelectTrigger className="w-[140px] h-8">
-              <FolderOpen className="w-4 h-4 mr-2" />
-              <SelectValue placeholder="Folder" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="onboarding">Onboarding</SelectItem>
-              <SelectItem value="sales">Sales</SelectItem>
-              <SelectItem value="support">Support</SelectItem>
-            </SelectContent>
-          </Select>
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-muted-foreground">Status:</span>
-            <Switch checked={isActive} onCheckedChange={setIsActive} />
-            <span className={cn('text-sm font-medium', isActive ? 'text-green-600' : 'text-muted-foreground')}>
-              {isActive ? 'Active' : 'Inactive'}
-            </span>
-          </div>
+          <Badge variant="outline" className={cn(
+            'ml-2',
+            flow?.status === 'active' ? 'bg-green-500/10 text-green-600 border-green-500/20' : 'bg-muted'
+          )}>
+            {flow?.status || 'draft'}
+          </Badge>
         </div>
         
         <div className="flex items-center gap-2">
@@ -241,19 +323,16 @@ const FlowBuilder = () => {
             Preview
           </Button>
           <Button variant="outline" size="sm" className="gap-2">
-            <Settings className="w-4 h-4" />
-            Fallbacks
-          </Button>
-          <Button variant="outline" size="sm" className="gap-2">
             <History className="w-4 h-4" />
             History
             <Badge variant="secondary" className="ml-1 text-[10px]">Pro</Badge>
           </Button>
           <Separator orientation="vertical" className="h-6" />
-          <Button variant="outline" size="sm">
-            Save Draft
+          <Button variant="outline" size="sm" onClick={handleSave} disabled={saving}>
+            {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
+            Save
           </Button>
-          <Button size="sm" className="gap-2">
+          <Button size="sm" className="gap-2 shadow-lg shadow-primary/20" onClick={handlePublish}>
             <Upload className="w-4 h-4" />
             Publish
           </Button>
@@ -263,265 +342,382 @@ const FlowBuilder = () => {
       {/* Main Content */}
       <div className="flex-1 flex overflow-hidden">
         {/* Left Sidebar - Node Palette */}
-        <div className="w-64 border-r bg-card flex flex-col">
+        <div className="w-72 border-r bg-card flex flex-col shrink-0">
           <div className="p-3 border-b">
-            <Input placeholder="Search nodes..." className="h-8" />
+            <Input placeholder="Search nodes..." className="h-9" />
           </div>
           <ScrollArea className="flex-1">
-            <div className="p-2">
+            <div className="p-3 space-y-1">
               {nodeCategories.map((category) => (
-                <div key={category.label} className="mb-2">
+                <div key={category.label} className="mb-1">
                   <button
-                    className="w-full flex items-center gap-2 p-2 rounded-lg hover:bg-muted text-sm font-medium"
+                    className="w-full flex items-center gap-2 p-2.5 rounded-lg hover:bg-muted text-sm font-medium transition-colors"
                     onClick={() => toggleCategory(category.label)}
                   >
-                    <category.icon className="w-4 h-4" />
+                    <category.icon className={cn('w-4 h-4', category.color)} />
                     <span className="flex-1 text-left">{category.label}</span>
                     {category.label === 'Pro' && (
-                      <Badge variant="secondary" className="text-[10px]">Pro</Badge>
+                      <Badge variant="secondary" className="text-[10px] bg-purple-500/10 text-purple-600">Pro</Badge>
                     )}
-                    <ChevronDown className={cn(
-                      'w-4 h-4 transition-transform',
-                      expandedCategories.includes(category.label) && 'rotate-180'
+                    <ChevronRight className={cn(
+                      'w-4 h-4 transition-transform text-muted-foreground',
+                      expandedCategories.includes(category.label) && 'rotate-90'
                     )} />
                   </button>
                   {expandedCategories.includes(category.label) && (
-                    <div className="ml-2 mt-1 space-y-1">
+                    <div className="ml-2 mt-1 space-y-1 pl-4 border-l border-border">
                       {category.nodes.map((node) => (
-                        <div
-                          key={node.type}
-                          draggable
-                          onDragStart={(e) => handleDragStart(e, node.type)}
-                          className={cn(
-                            'flex items-center gap-2 p-2 rounded-lg cursor-grab hover:bg-muted text-sm',
-                            node.pro && 'opacity-60'
-                          )}
-                        >
-                          <node.icon className="w-4 h-4 text-muted-foreground" />
-                          <span>{node.label}</span>
-                          {node.pro && <Crown className="w-3 h-3 text-amber-500 ml-auto" />}
-                        </div>
+                        <Tooltip key={node.type} delayDuration={300}>
+                          <TooltipTrigger asChild>
+                            <div
+                              draggable
+                              onDragStart={(e) => handleDragStart(e, node.type)}
+                              onDragEnd={handleDragEnd}
+                              className={cn(
+                                'flex items-center gap-2.5 p-2.5 rounded-lg cursor-grab hover:bg-muted text-sm transition-all',
+                                'active:cursor-grabbing active:scale-95',
+                                node.pro && 'opacity-60'
+                              )}
+                            >
+                              <div className={cn('w-7 h-7 rounded-lg flex items-center justify-center', 
+                                nodeColors[node.type]?.bg || 'bg-muted')}>
+                                <node.icon className={cn('w-4 h-4', nodeColors[node.type]?.icon || 'text-muted-foreground')} />
+                              </div>
+                              <span className="flex-1">{node.label}</span>
+                              {node.pro && <Crown className="w-3.5 h-3.5 text-purple-500" />}
+                            </div>
+                          </TooltipTrigger>
+                          <TooltipContent side="right" className="max-w-[200px]">
+                            <p>{node.description}</p>
+                          </TooltipContent>
+                        </Tooltip>
                       ))}
                     </div>
                   )}
                 </div>
               ))}
-              
-              <Separator className="my-3" />
-              
-              <div className="mb-2">
-                <div className="flex items-center gap-2 p-2 text-sm font-medium text-muted-foreground">
-                  <Layers className="w-4 h-4" />
-                  Smart Blocks
-                </div>
-                <div className="space-y-1">
-                  {smartBlocks.map((block) => (
-                    <div
-                      key={block.id}
-                      draggable
-                      className="flex items-center gap-2 p-2 rounded-lg cursor-grab hover:bg-muted text-sm border border-dashed border-primary/30 bg-primary/5"
-                    >
-                      <Sparkles className="w-4 h-4 text-primary" />
-                      <div className="flex-1">
-                        <p className="font-medium">{block.label}</p>
-                        <p className="text-[10px] text-muted-foreground">{block.description}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
             </div>
           </ScrollArea>
         </div>
 
         {/* Canvas */}
-        <div className="flex-1 relative bg-muted/30 overflow-hidden">
+        <div 
+          ref={canvasRef}
+          className={cn(
+            'flex-1 relative overflow-auto',
+            isDragging && 'bg-primary/5'
+          )}
+          onDrop={handleCanvasDrop}
+          onDragOver={handleCanvasDragOver}
+        >
           {/* Zoom controls */}
-          <div className="absolute top-4 left-4 flex items-center gap-1 bg-card border rounded-lg shadow-sm p-1">
-            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setZoom(Math.max(25, zoom - 10))}>
+          <div className="absolute top-4 left-4 flex items-center gap-1 bg-card border rounded-xl shadow-lg p-1.5 z-10">
+            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setZoom(Math.max(25, zoom - 10))}>
               <ZoomOut className="w-4 h-4" />
             </Button>
-            <span className="text-sm w-12 text-center">{zoom}%</span>
-            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setZoom(Math.min(200, zoom + 10))}>
+            <span className="text-sm w-12 text-center font-medium">{zoom}%</span>
+            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setZoom(Math.min(200, zoom + 10))}>
               <ZoomIn className="w-4 h-4" />
             </Button>
-            <Separator orientation="vertical" className="h-5" />
-            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setZoom(100)}>
+            <Separator orientation="vertical" className="h-5 mx-1" />
+            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setZoom(100)}>
               <Maximize2 className="w-4 h-4" />
             </Button>
-            <Button variant="ghost" size="icon" className="h-7 w-7">
-              <Grid3X3 className="w-4 h-4" />
-            </Button>
-            <Button variant="ghost" size="icon" className="h-7 w-7">
-              <AlignCenter className="w-4 h-4" />
-            </Button>
           </div>
 
-          {/* Mini Map */}
-          <div className="absolute bottom-4 right-4 w-40 h-28 bg-card border rounded-lg shadow-sm overflow-hidden">
-            <div className="w-full h-full bg-muted/50 relative">
-              <div className="absolute inset-4 border-2 border-primary/30 rounded" />
+          {/* Connection indicator */}
+          {connecting && (
+            <div className="absolute top-4 right-4 bg-primary text-primary-foreground px-4 py-2 rounded-lg shadow-lg z-10 animate-pulse">
+              Click on target node to connect
             </div>
-          </div>
+          )}
 
-          {/* Canvas nodes (simplified visualization) */}
+          {/* Canvas content with zoom */}
           <div 
-            className="absolute inset-0 overflow-auto"
+            className="min-h-full min-w-full p-8"
             style={{ transform: `scale(${zoom / 100})`, transformOrigin: 'top left' }}
           >
-            <svg className="absolute inset-0 w-full h-full pointer-events-none">
-              {/* Connection lines */}
-              <line x1="140" y1="140" x2="140" y2="220" stroke="hsl(var(--border))" strokeWidth="2" />
-              <line x1="140" y1="280" x2="140" y2="340" stroke="hsl(var(--border))" strokeWidth="2" />
-              <line x1="140" y1="400" x2="80" y2="460" stroke="hsl(var(--border))" strokeWidth="2" />
-              <line x1="140" y1="400" x2="240" y2="460" stroke="hsl(var(--border))" strokeWidth="2" />
-            </svg>
-            
-            {mockCanvasNodes.map((node) => (
-              <div
-                key={node.id}
-                className={cn(
-                  'absolute w-40 bg-card border-2 rounded-xl p-3 cursor-pointer shadow-sm hover:shadow-md transition-all',
-                  selectedNode === node.id ? 'border-primary ring-2 ring-primary/20' : 'border-border',
-                  node.type === 'start' && 'bg-green-500/10 border-green-500',
-                  node.type === 'condition' && 'bg-amber-500/10 border-amber-500/50'
-                )}
-                style={{ left: node.x, top: node.y }}
-                onClick={() => setSelectedNode(node.id)}
-              >
-                <div className="flex items-center gap-2">
-                  {node.type === 'start' ? (
-                    <Play className="w-4 h-4 text-green-600" />
-                  ) : node.type === 'condition' ? (
-                    <GitBranch className="w-4 h-4 text-amber-600" />
-                  ) : (
-                    <MessageSquare className="w-4 h-4 text-primary" />
-                  )}
-                  <span className="text-sm font-medium truncate">{node.label}</span>
-                </div>
-                {node.type !== 'start' && (
-                  <p className="text-[10px] text-muted-foreground mt-1 truncate">
-                    {node.type === 'condition' ? 'If/Else branch' : 'Click to configure'}
-                  </p>
-                )}
-              </div>
-            ))}
-          </div>
+            {/* Grid pattern */}
+            <div 
+              className="absolute inset-0 pointer-events-none opacity-30"
+              style={{
+                backgroundImage: 'radial-gradient(circle, hsl(var(--border)) 1px, transparent 1px)',
+                backgroundSize: '24px 24px',
+              }}
+            />
 
-          {/* Flow Chapters */}
-          <div className="absolute top-4 right-4 flex items-center gap-2">
-            <Badge variant="outline" className="bg-card">Welcome</Badge>
-            <Badge variant="outline" className="bg-card">Qualification</Badge>
-            <Badge variant="outline" className="bg-card opacity-50">Handover</Badge>
-            <Button variant="ghost" size="sm" className="h-6 px-2 text-xs">
-              + Chapter
-            </Button>
+            {/* SVG for edges */}
+            <svg className="absolute inset-0 w-full h-full pointer-events-none" style={{ minWidth: '2000px', minHeight: '1500px' }}>
+              {edges.map((edge) => {
+                const sourceNode = nodes.find(n => n.node_key === edge.source_node_key);
+                const targetNode = nodes.find(n => n.node_key === edge.target_node_key);
+                if (!sourceNode || !targetNode) return null;
+                
+                const x1 = sourceNode.position_x + 100;
+                const y1 = sourceNode.position_y + 60;
+                const x2 = targetNode.position_x + 100;
+                const y2 = targetNode.position_y;
+                
+                const midY = (y1 + y2) / 2;
+                
+                return (
+                  <g key={edge.edge_key}>
+                    <path
+                      d={`M ${x1} ${y1} C ${x1} ${midY}, ${x2} ${midY}, ${x2} ${y2}`}
+                      stroke="hsl(var(--primary))"
+                      strokeWidth="2"
+                      fill="none"
+                      strokeDasharray={connecting ? "5,5" : "none"}
+                    />
+                    <circle cx={x2} cy={y2} r="4" fill="hsl(var(--primary))" />
+                  </g>
+                );
+              })}
+            </svg>
+
+            {/* Nodes */}
+            {nodes.map((node) => {
+              const NodeIcon = getNodeIcon(node.node_type);
+              const colors = nodeColors[node.node_type] || { bg: 'bg-muted', border: 'border-border', icon: 'text-muted-foreground' };
+              
+              return (
+                <div
+                  key={node.node_key}
+                  className={cn(
+                    'absolute w-[200px] bg-card rounded-xl border-2 shadow-lg cursor-pointer transition-all duration-200',
+                    'hover:shadow-xl hover:scale-[1.02]',
+                    colors.border,
+                    selectedNodeKey === node.node_key && 'ring-2 ring-primary ring-offset-2 ring-offset-background',
+                    connecting === node.node_key && 'ring-2 ring-green-500'
+                  )}
+                  style={{ left: node.position_x, top: node.position_y }}
+                  onClick={() => handleNodeClick(node.node_key)}
+                >
+                  {/* Node header */}
+                  <div className={cn('flex items-center gap-2 px-3 py-2.5 rounded-t-xl', colors.bg)}>
+                    <div className="w-7 h-7 rounded-lg bg-card flex items-center justify-center shadow-sm">
+                      <NodeIcon className={cn('w-4 h-4', colors.icon)} />
+                    </div>
+                    <span className="font-medium text-sm flex-1 truncate">{node.label}</span>
+                  </div>
+                  
+                  {/* Node body */}
+                  <div className="px-3 py-2 text-xs text-muted-foreground">
+                    {node.node_type === 'start' ? (
+                      <span>Configure triggers →</span>
+                    ) : node.config?.message ? (
+                      <span className="line-clamp-2">{node.config.message}</span>
+                    ) : (
+                      <span>Click to configure</span>
+                    )}
+                  </div>
+
+                  {/* Connection points */}
+                  {node.node_type !== 'start' && (
+                    <div className="absolute -top-2 left-1/2 -translate-x-1/2">
+                      <div className="w-4 h-4 rounded-full bg-card border-2 border-primary shadow-sm" />
+                    </div>
+                  )}
+                  <button 
+                    className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-4 h-4 rounded-full bg-primary shadow-lg hover:scale-125 transition-transform"
+                    onClick={(e) => { e.stopPropagation(); handleAddConnection(node.node_key); }}
+                  >
+                    <Plus className="w-3 h-3 text-primary-foreground m-0.5" />
+                  </button>
+
+                  {/* Delete button */}
+                  {node.node_type !== 'start' && selectedNodeKey === node.node_key && (
+                    <button
+                      className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-destructive text-destructive-foreground shadow-lg hover:scale-110 transition-transform"
+                      onClick={(e) => { e.stopPropagation(); deleteNode(node.node_key); setSelectedNodeKey(null); }}
+                    >
+                      <Trash2 className="w-3 h-3 mx-auto" />
+                    </button>
+                  )}
+                </div>
+              );
+            })}
+
+            {/* Empty state */}
+            {nodes.length === 0 && (
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="text-center text-muted-foreground">
+                  <Layers className="w-16 h-16 mx-auto mb-4 opacity-20" />
+                  <h3 className="text-lg font-medium mb-2">Drag nodes here to start building</h3>
+                  <p className="text-sm">Choose nodes from the left panel</p>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
         {/* Right Panel */}
-        <div className="w-80 border-l bg-card flex flex-col">
+        <div className="w-80 border-l bg-card flex flex-col shrink-0">
           <Tabs value={rightPanelTab} onValueChange={setRightPanelTab} className="flex-1 flex flex-col">
-            <TabsList className="w-full rounded-none border-b h-10">
-              <TabsTrigger value="settings" className="flex-1 text-xs">Settings</TabsTrigger>
-              <TabsTrigger value="preview" className="flex-1 text-xs">Preview</TabsTrigger>
-              <TabsTrigger value="diagnostics" className="flex-1 text-xs">
+            <TabsList className="w-full rounded-none border-b h-11 bg-transparent p-0">
+              <TabsTrigger value="settings" className="flex-1 rounded-none border-b-2 border-transparent data-[state=active]:border-primary text-xs">
+                Settings
+              </TabsTrigger>
+              <TabsTrigger value="preview" className="flex-1 rounded-none border-b-2 border-transparent data-[state=active]:border-primary text-xs">
+                Preview
+              </TabsTrigger>
+              <TabsTrigger value="diagnostics" className="flex-1 rounded-none border-b-2 border-transparent data-[state=active]:border-primary text-xs relative">
                 Diagnostics
-                <Badge variant="destructive" className="ml-1 h-4 w-4 p-0 text-[10px]">2</Badge>
+                {diagnostics.length > 0 && (
+                  <Badge variant="destructive" className="absolute -top-1 -right-1 h-4 w-4 p-0 text-[10px]">
+                    {diagnostics.length}
+                  </Badge>
+                )}
               </TabsTrigger>
             </TabsList>
             
             <ScrollArea className="flex-1">
               <TabsContent value="settings" className="p-4 m-0 space-y-4">
-                {selectedNode === 'start' ? (
+                {selectedNode?.node_type === 'start' ? (
                   <div className="space-y-4">
-                    <h3 className="font-semibold text-sm">Flow Triggers</h3>
-                    <p className="text-xs text-muted-foreground">Configure how this flow starts</p>
+                    <div>
+                      <h3 className="font-semibold text-sm mb-1">Flow Triggers</h3>
+                      <p className="text-xs text-muted-foreground">Configure how this flow starts</p>
+                    </div>
                     
                     <div className="space-y-2">
                       {triggerTypes.map((trigger) => (
                         <div
                           key={trigger.type}
                           className={cn(
-                            'flex items-center gap-3 p-3 rounded-lg border cursor-pointer hover:border-primary/50',
+                            'flex items-center gap-3 p-3 rounded-xl border-2 cursor-pointer transition-all',
+                            'hover:border-primary/50 hover:bg-primary/5',
                             trigger.pro && 'opacity-60'
                           )}
                         >
-                          <trigger.icon className="w-5 h-5 text-muted-foreground" />
+                          <div className="w-9 h-9 rounded-lg bg-muted flex items-center justify-center">
+                            <trigger.icon className="w-4 h-4 text-muted-foreground" />
+                          </div>
                           <div className="flex-1">
                             <p className="text-sm font-medium">{trigger.label}</p>
-                            <p className="text-[10px] text-muted-foreground">{trigger.description}</p>
+                            <p className="text-[11px] text-muted-foreground">{trigger.description}</p>
                           </div>
-                          {trigger.pro && <Crown className="w-4 h-4 text-amber-500" />}
+                          {trigger.pro && <Crown className="w-4 h-4 text-purple-500" />}
                         </div>
                       ))}
                     </div>
                   </div>
                 ) : selectedNode ? (
                   <div className="space-y-4">
-                    <h3 className="font-semibold text-sm">Node Settings</h3>
+                    <div>
+                      <h3 className="font-semibold text-sm mb-1">Node Settings</h3>
+                      <p className="text-xs text-muted-foreground capitalize">{selectedNode.node_type.replace(/-/g, ' ')}</p>
+                    </div>
                     
-                    <div className="space-y-3">
-                      <div>
-                        <label className="text-xs font-medium text-muted-foreground">Node Name</label>
-                        <Input defaultValue="Welcome Message" className="mt-1" />
-                      </div>
-                      
-                      <div>
-                        <label className="text-xs font-medium text-muted-foreground">Message Text</label>
-                        <textarea 
-                          className="w-full mt-1 min-h-[100px] rounded-md border bg-background px-3 py-2 text-sm" 
-                          defaultValue="Hello {{first_name}}! Welcome to our service. How can we help you today?"
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <Label className="text-xs">Node Name</Label>
+                        <Input 
+                          value={selectedNode.label || ''} 
+                          onChange={(e) => updateNode(selectedNode.node_key, { label: e.target.value })}
                         />
                       </div>
                       
-                      <div>
-                        <label className="text-xs font-medium text-muted-foreground">Quick Reply Buttons</label>
-                        <div className="space-y-2 mt-1">
-                          <Input defaultValue="I need help with an order" />
-                          <Input defaultValue="Talk to sales" />
-                          <Input defaultValue="Other" />
-                          <Button variant="outline" size="sm" className="w-full">+ Add Button</Button>
+                      {(selectedNode.node_type === 'text-buttons' || selectedNode.node_type === 'template') && (
+                        <div className="space-y-2">
+                          <Label className="text-xs">Message Text</Label>
+                          <Textarea 
+                            className="min-h-[100px] text-sm"
+                            placeholder="Enter your message..."
+                            value={selectedNode.config?.message || ''}
+                            onChange={(e) => updateNode(selectedNode.node_key, { 
+                              config: { ...selectedNode.config, message: e.target.value } 
+                            })}
+                          />
+                          <p className="text-[11px] text-muted-foreground">
+                            Use {'{{first_name}}'} for personalization
+                          </p>
                         </div>
-                      </div>
+                      )}
+
+                      {selectedNode.node_type === 'delay' && (
+                        <div className="grid grid-cols-2 gap-3">
+                          <div className="space-y-2">
+                            <Label className="text-xs">Duration</Label>
+                            <Input 
+                              type="number" 
+                              defaultValue={selectedNode.config?.duration || 5}
+                              onChange={(e) => updateNode(selectedNode.node_key, {
+                                config: { ...selectedNode.config, duration: parseInt(e.target.value) }
+                              })}
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label className="text-xs">Unit</Label>
+                            <Select defaultValue={selectedNode.config?.unit || 'seconds'}>
+                              <SelectTrigger>
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="seconds">Seconds</SelectItem>
+                                <SelectItem value="minutes">Minutes</SelectItem>
+                                <SelectItem value="hours">Hours</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
+                      )}
+
+                      {selectedNode.node_type === 'assign-agent' && (
+                        <div className="space-y-2">
+                          <Label className="text-xs">Assignment Strategy</Label>
+                          <Select defaultValue={selectedNode.config?.strategy || 'round_robin'}>
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="round_robin">Round Robin</SelectItem>
+                              <SelectItem value="least_busy">Least Busy</SelectItem>
+                              <SelectItem value="specific">Specific Agent</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      )}
                     </div>
                   </div>
                 ) : (
-                  <div className="text-center py-8 text-muted-foreground">
+                  <div className="text-center py-12 text-muted-foreground">
                     <MessageSquare className="w-12 h-12 mx-auto mb-4 opacity-20" />
-                    <p className="text-sm">Select a node to configure</p>
+                    <p className="text-sm font-medium">Select a node to configure</p>
+                    <p className="text-xs mt-1">Or drag a node to the canvas</p>
                   </div>
                 )}
               </TabsContent>
               
               <TabsContent value="preview" className="p-4 m-0">
                 <div className="flex flex-col items-center">
-                  <div className="relative w-full max-w-[220px]">
-                    {/* Phone mockup */}
-                    <div className="aspect-[9/16] bg-[#075e54] rounded-3xl p-2 shadow-xl">
-                      <div className="h-full bg-[#ece5dd] rounded-2xl overflow-hidden flex flex-col">
-                        {/* WhatsApp header */}
-                        <div className="bg-[#075e54] text-white px-3 py-2 flex items-center gap-2">
+                  {/* Phone mockup */}
+                  <div className="w-full max-w-[240px]">
+                    <div className="aspect-[9/16] bg-gradient-to-b from-[#128C7E] to-[#075E54] rounded-[2rem] p-2 shadow-2xl">
+                      <div className="h-full bg-[#ECE5DD] rounded-[1.5rem] overflow-hidden flex flex-col">
+                        {/* Header */}
+                        <div className="bg-[#075E54] text-white px-3 py-2.5 flex items-center gap-2">
                           <ArrowLeft className="w-4 h-4" />
-                          <div className="w-8 h-8 rounded-full bg-white/20" />
+                          <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center text-xs">
+                            🏢
+                          </div>
                           <div className="flex-1">
                             <p className="text-xs font-medium">Your Business</p>
                             <p className="text-[10px] opacity-70">online</p>
                           </div>
                         </div>
                         {/* Messages */}
-                        <div className="flex-1 p-2 space-y-2 overflow-auto">
-                          <div className="bg-white rounded-lg p-2 text-[10px] max-w-[80%] shadow-sm">
-                            Hello! Welcome to our service. How can we help you today?
-                          </div>
-                          <div className="flex flex-wrap gap-1">
-                            <div className="bg-white rounded-full px-2 py-1 text-[9px] border border-[#075e54] text-[#075e54]">
-                              Help with order
+                        <div className="flex-1 p-3 space-y-2 overflow-auto">
+                          {nodes.filter(n => n.node_type !== 'start').slice(0, 3).map((node, i) => (
+                            <div key={i} className="bg-white rounded-lg p-2.5 text-[11px] max-w-[85%] shadow-sm">
+                              {node.config?.message || node.label || 'Message content...'}
                             </div>
-                            <div className="bg-white rounded-full px-2 py-1 text-[9px] border border-[#075e54] text-[#075e54]">
-                              Talk to sales
+                          ))}
+                          {nodes.length <= 1 && (
+                            <div className="bg-white rounded-lg p-2.5 text-[11px] max-w-[85%] shadow-sm text-muted-foreground italic">
+                              Add message nodes to see preview
                             </div>
-                          </div>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -533,47 +729,66 @@ const FlowBuilder = () => {
               </TabsContent>
               
               <TabsContent value="diagnostics" className="p-4 m-0 space-y-4">
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2 p-3 rounded-lg bg-red-500/10 border border-red-500/20">
-                    <XCircle className="w-5 h-5 text-red-500" />
-                    <div className="flex-1">
-                      <p className="text-sm font-medium text-red-600">Missing Connection</p>
-                      <p className="text-xs text-muted-foreground">Node "Support Response" has no outgoing connection</p>
-                    </div>
-                    <Button variant="ghost" size="sm" className="h-7 text-xs">Fix</Button>
+                {diagnostics.length > 0 ? (
+                  <div className="space-y-3">
+                    {diagnostics.map((diag) => (
+                      <div 
+                        key={diag.id}
+                        className={cn(
+                          'flex items-start gap-3 p-3 rounded-xl border',
+                          diag.severity === 'error' ? 'bg-red-500/10 border-red-500/20' :
+                          diag.severity === 'warn' ? 'bg-amber-500/10 border-amber-500/20' :
+                          'bg-blue-500/10 border-blue-500/20'
+                        )}
+                      >
+                        {diag.severity === 'error' ? (
+                          <XCircle className="w-5 h-5 text-red-500 shrink-0" />
+                        ) : diag.severity === 'warn' ? (
+                          <AlertTriangle className="w-5 h-5 text-amber-500 shrink-0" />
+                        ) : (
+                          <CheckCircle2 className="w-5 h-5 text-blue-500 shrink-0" />
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <p className={cn(
+                            'text-sm font-medium',
+                            diag.severity === 'error' ? 'text-red-600' : 
+                            diag.severity === 'warn' ? 'text-amber-600' : 'text-blue-600'
+                          )}>
+                            {diag.code.replace(/_/g, ' ')}
+                          </p>
+                          <p className="text-xs text-muted-foreground mt-0.5">{diag.message}</p>
+                        </div>
+                        <Button variant="ghost" size="sm" className="h-7 text-xs shrink-0">Fix</Button>
+                      </div>
+                    ))}
                   </div>
-                  
-                  <div className="flex items-center gap-2 p-3 rounded-lg bg-amber-500/10 border border-amber-500/20">
-                    <AlertTriangle className="w-5 h-5 text-amber-500" />
-                    <div className="flex-1">
-                      <p className="text-sm font-medium text-amber-600">High Drop-off</p>
-                      <p className="text-xs text-muted-foreground">"Welcome Message" has 35% drop-off rate</p>
+                ) : (
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2 p-3 rounded-xl bg-green-500/10 border border-green-500/20">
+                      <CheckCircle2 className="w-5 h-5 text-green-500" />
+                      <span className="text-sm font-medium text-green-600">All checks passed!</span>
                     </div>
-                    <Button variant="ghost" size="sm" className="h-7 text-xs">View</Button>
-                  </div>
-                  
-                  <Separator />
-                  
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2 text-sm">
-                      <CheckCircle2 className="w-4 h-4 text-green-500" />
-                      <span className="text-muted-foreground">All templates approved</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-sm">
-                      <CheckCircle2 className="w-4 h-4 text-green-500" />
-                      <span className="text-muted-foreground">No loops detected</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-sm">
-                      <CheckCircle2 className="w-4 h-4 text-green-500" />
-                      <span className="text-muted-foreground">Valid variable usage</span>
+                    <div className="space-y-2 text-sm text-muted-foreground">
+                      <div className="flex items-center gap-2">
+                        <CheckCircle2 className="w-4 h-4 text-green-500" />
+                        <span>All nodes connected</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <CheckCircle2 className="w-4 h-4 text-green-500" />
+                        <span>No loops detected</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <CheckCircle2 className="w-4 h-4 text-green-500" />
+                        <span>Valid configuration</span>
+                      </div>
                     </div>
                   </div>
-                  
-                  <Button variant="outline" className="w-full gap-2">
-                    <Sparkles className="w-4 h-4" />
-                    Fix All Automatically
-                  </Button>
-                </div>
+                )}
+                
+                <Button variant="outline" className="w-full gap-2 mt-4">
+                  <Sparkles className="w-4 h-4" />
+                  Run Full Diagnostics
+                </Button>
               </TabsContent>
             </ScrollArea>
           </Tabs>
