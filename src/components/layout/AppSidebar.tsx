@@ -503,12 +503,12 @@ export function AppSidebar() {
         {/* Collapsible Groups */}
         {menuGroups.map(group => renderCollapsibleGroup(group))}
 
-        {/* Settings Section */}
+        {/* Platform Section */}
         <SidebarGroup className="mt-4">
           {!isCollapsed && (
             <SidebarGroupLabel className="text-sidebar-foreground/40 text-xs uppercase tracking-wider px-3 mb-1 flex items-center gap-2">
-              <Cog className="w-3.5 h-3.5" />
-              Settings
+              <Sparkles className="w-3.5 h-3.5" />
+              Platform
             </SidebarGroupLabel>
           )}
           <SidebarGroupContent>
