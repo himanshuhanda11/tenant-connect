@@ -1,19 +1,28 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Twitter, Linkedin, Youtube } from 'lucide-react';
+import { Twitter, Linkedin, Youtube, Instagram } from 'lucide-react';
 import aireatroLogo from '@/assets/aireatro-logo.png';
 
 export default function Footer() {
   const footerLinks = {
     product: [
+      { name: 'Features', href: '/features' },
       { name: 'Unified Inbox', href: '/features/inbox' },
       { name: 'Contacts', href: '/features/contacts' },
       { name: 'Templates', href: '/features/templates' },
       { name: 'Campaigns', href: '/features/campaigns' },
       { name: 'Automation', href: '/features/automation' },
-      { name: 'Integrations', href: '/features/integrations' },
       { name: 'Analytics', href: '/features/analytics' },
       { name: 'Pricing', href: '/pricing' },
+    ],
+    integrations: [
+      { name: 'All Integrations', href: '/integrations' },
+      { name: 'Shopify', href: '/integrations#shopify' },
+      { name: 'WooCommerce', href: '/integrations#woocommerce' },
+      { name: 'Razorpay', href: '/integrations#razorpay' },
+      { name: 'Zapier', href: '/integrations#zapier' },
+      { name: 'HubSpot', href: '/integrations#hubspot' },
+      { name: 'Webhooks API', href: '/integrations#webhooks' },
     ],
     resources: [
       { name: 'Help Center', href: '/help' },
@@ -21,6 +30,7 @@ export default function Footer() {
       { name: 'Blog', href: '/blog' },
       { name: 'Case Studies', href: '/case-studies' },
       { name: 'Template Library', href: '/template-library' },
+      { name: 'API Reference', href: '/documentation' },
     ],
     company: [
       { name: 'About Us', href: '/about' },
@@ -43,33 +53,50 @@ export default function Footer() {
   return (
     <footer className="bg-slate-900 text-white">
       <div className="container mx-auto px-4 py-16">
-        <div className="grid grid-cols-2 md:grid-cols-6 gap-8 mb-12">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-7 gap-8 mb-12">
           {/* Brand */}
           <div className="col-span-2">
             <Link to="/" className="flex items-center gap-2 mb-4">
               <img src={aireatroLogo} alt="AiReatro" className="h-10 w-auto" />
             </Link>
-            <p className="text-slate-400 mb-6 max-w-xs">
-              The all-in-one WhatsApp Business API platform for modern businesses.
+            <p className="text-slate-400 mb-6 max-w-xs text-sm">
+              The all-in-one WhatsApp Business API platform for modern businesses. Scale your customer conversations.
             </p>
-            <div className="flex items-center gap-4">
-              <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-lg bg-slate-800 flex items-center justify-center hover:bg-slate-700 transition-colors">
-                <Twitter className="w-5 h-5" />
+            <div className="flex items-center gap-3">
+              <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="w-9 h-9 rounded-lg bg-slate-800 flex items-center justify-center hover:bg-primary transition-colors">
+                <Twitter className="w-4 h-4" />
               </a>
-              <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-lg bg-slate-800 flex items-center justify-center hover:bg-slate-700 transition-colors">
-                <Linkedin className="w-5 h-5" />
+              <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" className="w-9 h-9 rounded-lg bg-slate-800 flex items-center justify-center hover:bg-primary transition-colors">
+                <Linkedin className="w-4 h-4" />
               </a>
-              <a href="https://youtube.com" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-lg bg-slate-800 flex items-center justify-center hover:bg-slate-700 transition-colors">
-                <Youtube className="w-5 h-5" />
+              <a href="https://youtube.com" target="_blank" rel="noopener noreferrer" className="w-9 h-9 rounded-lg bg-slate-800 flex items-center justify-center hover:bg-primary transition-colors">
+                <Youtube className="w-4 h-4" />
+              </a>
+              <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="w-9 h-9 rounded-lg bg-slate-800 flex items-center justify-center hover:bg-primary transition-colors">
+                <Instagram className="w-4 h-4" />
               </a>
             </div>
           </div>
 
           {/* Product */}
           <div>
-            <h4 className="font-semibold mb-4">Product</h4>
-            <ul className="space-y-3">
+            <h4 className="font-semibold mb-4 text-sm">Product</h4>
+            <ul className="space-y-2.5">
               {footerLinks.product.map((link) => (
+                <li key={link.name}>
+                  <Link to={link.href} className="text-slate-400 hover:text-white transition-colors text-sm">
+                    {link.name}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Integrations */}
+          <div>
+            <h4 className="font-semibold mb-4 text-sm">Integrations</h4>
+            <ul className="space-y-2.5">
+              {footerLinks.integrations.map((link) => (
                 <li key={link.name}>
                   <Link to={link.href} className="text-slate-400 hover:text-white transition-colors text-sm">
                     {link.name}
@@ -81,8 +108,8 @@ export default function Footer() {
 
           {/* Resources */}
           <div>
-            <h4 className="font-semibold mb-4">Resources</h4>
-            <ul className="space-y-3">
+            <h4 className="font-semibold mb-4 text-sm">Resources</h4>
+            <ul className="space-y-2.5">
               {footerLinks.resources.map((link) => (
                 <li key={link.name}>
                   <Link to={link.href} className="text-slate-400 hover:text-white transition-colors text-sm">
@@ -95,8 +122,8 @@ export default function Footer() {
 
           {/* Company */}
           <div>
-            <h4 className="font-semibold mb-4">Company</h4>
-            <ul className="space-y-3">
+            <h4 className="font-semibold mb-4 text-sm">Company</h4>
+            <ul className="space-y-2.5">
               {footerLinks.company.map((link) => (
                 <li key={link.name}>
                   <Link to={link.href} className="text-slate-400 hover:text-white transition-colors text-sm">
@@ -109,8 +136,8 @@ export default function Footer() {
 
           {/* Legal */}
           <div>
-            <h4 className="font-semibold mb-4">Legal</h4>
-            <ul className="space-y-3">
+            <h4 className="font-semibold mb-4 text-sm">Legal</h4>
+            <ul className="space-y-2.5">
               {footerLinks.legal.map((link) => (
                 <li key={link.name}>
                   <Link to={link.href} className="text-slate-400 hover:text-white transition-colors text-sm">
@@ -129,7 +156,7 @@ export default function Footer() {
           <div className="flex items-center gap-6 text-sm text-slate-400">
             <span>🇮🇳 Made in India</span>
             <span className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-green-500"></span>
+              <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
               All systems operational
             </span>
           </div>
