@@ -1,18 +1,20 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Check, ArrowRight, Sparkles } from 'lucide-react';
+import { Check, ArrowRight, Sparkles, Globe } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Slider } from '@/components/ui/slider';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useGeoLocation, Region, currencyConfigs } from '@/hooks/useGeoLocation';
 
 const plans = [
   {
     name: 'Starter',
-    monthlyPrice: 49,
-    yearlyPrice: 39,
+    monthlyPriceUSD: 49,
+    yearlyPriceUSD: 39,
     description: 'Perfect for small teams getting started',
     features: [
       '3 team members',
@@ -26,8 +28,8 @@ const plans = [
   },
   {
     name: 'Pro',
-    monthlyPrice: 149,
-    yearlyPrice: 119,
+    monthlyPriceUSD: 149,
+    yearlyPriceUSD: 119,
     description: 'For growing businesses scaling operations',
     features: [
       '10 team members',
@@ -43,8 +45,8 @@ const plans = [
   },
   {
     name: 'Business',
-    monthlyPrice: 399,
-    yearlyPrice: 319,
+    monthlyPriceUSD: 399,
+    yearlyPriceUSD: 319,
     description: 'Enterprise features for large teams',
     features: [
       'Unlimited team members',
@@ -64,6 +66,11 @@ const plans = [
 export default function PricingPreview() {
   const [isYearly, setIsYearly] = useState(true);
   const [messagesPerMonth, setMessagesPerMonth] = useState([10000]);
+  const { region, formatPrice, setRegion, getCurrency } = useGeoLocation();
+
+  const getDisplayPrice = (usdPrice: number) => {
+    return formatPrice(usdPrice);
+  };
 
   const calculateEstimate = () => {
     const basePrice = isYearly ? 119 : 149;
@@ -84,68 +91,93 @@ export default function PricingPreview() {
             Choose the plan that fits your business needs
           </p>
 
-          {/* Toggle */}
-          <div className="flex items-center justify-center gap-3">
-            <span className={`text-sm ${!isYearly ? 'text-foreground font-medium' : 'text-muted-foreground'}`}>
-              Monthly
-            </span>
-            <Switch 
-              checked={isYearly} 
-              onCheckedChange={setIsYearly}
-            />
-            <span className={`text-sm ${isYearly ? 'text-foreground font-medium' : 'text-muted-foreground'}`}>
-              Yearly
-            </span>
-            {isYearly && (
-              <Badge className="bg-green-500/10 text-green-600 border-0">Save 20%</Badge>
-            )}
+          {/* Controls Row */}
+          <div className="flex flex-wrap items-center justify-center gap-4 md:gap-6">
+            {/* Billing Toggle */}
+            <div className="flex items-center gap-3">
+              <span className={`text-sm ${!isYearly ? 'text-foreground font-medium' : 'text-muted-foreground'}`}>
+                Monthly
+              </span>
+              <Switch 
+                checked={isYearly} 
+                onCheckedChange={setIsYearly}
+              />
+              <span className={`text-sm ${isYearly ? 'text-foreground font-medium' : 'text-muted-foreground'}`}>
+                Yearly
+              </span>
+              {isYearly && (
+                <Badge className="bg-green-500/10 text-green-600 border-0">Save 20%</Badge>
+              )}
+            </div>
+
+            {/* Region Selector */}
+            <div className="flex items-center gap-2">
+              <Globe className="w-4 h-4 text-muted-foreground" />
+              <Select value={region} onValueChange={(v) => setRegion(v as Region)}>
+                <SelectTrigger className="w-[140px] h-9">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="IN">🇮🇳 India (INR)</SelectItem>
+                  <SelectItem value="AE">🇦🇪 UAE (AED)</SelectItem>
+                  <SelectItem value="US">🇺🇸 USA (USD)</SelectItem>
+                  <SelectItem value="OTHER">🌍 Global (USD)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </div>
 
         {/* Plans Grid */}
         <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto mb-12">
-          {plans.map((plan, index) => (
-            <Card 
-              key={index}
-              className={`relative ${plan.popular ? 'border-primary shadow-xl scale-105' : 'border-border/50'}`}
-            >
-              {plan.popular && (
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                  <Badge className="bg-primary text-primary-foreground">
-                    <Sparkles className="w-3 h-3 mr-1" />
-                    Most Popular
-                  </Badge>
-                </div>
-              )}
-              <CardHeader className="text-center pb-4">
-                <CardTitle className="text-xl">{plan.name}</CardTitle>
-                <CardDescription>{plan.description}</CardDescription>
-                <div className="pt-4">
-                  <span className="text-4xl font-bold text-foreground">
-                    ${isYearly ? plan.yearlyPrice : plan.monthlyPrice}
-                  </span>
-                  <span className="text-muted-foreground">/month</span>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-3 mb-6">
-                  {plan.features.map((feature, idx) => (
-                    <li key={idx} className="flex items-center gap-2 text-sm">
-                      <Check className="w-4 h-4 text-green-500 flex-shrink-0" />
-                      <span className="text-muted-foreground">{feature}</span>
-                    </li>
-                  ))}
-                </ul>
-                <Button 
-                  className="w-full" 
-                  variant={plan.popular ? 'default' : 'outline'}
-                  asChild
-                >
-                  <Link to="/signup">Get Started</Link>
-                </Button>
-              </CardContent>
-            </Card>
-          ))}
+          {plans.map((plan, index) => {
+            const price = isYearly ? plan.yearlyPriceUSD : plan.monthlyPriceUSD;
+            return (
+              <Card 
+                key={index}
+                className={`relative ${plan.popular ? 'border-primary shadow-xl scale-105' : 'border-border/50'}`}
+              >
+                {plan.popular && (
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                    <Badge className="bg-primary text-primary-foreground">
+                      <Sparkles className="w-3 h-3 mr-1" />
+                      Most Popular
+                    </Badge>
+                  </div>
+                )}
+                <CardHeader className="text-center pb-4">
+                  <CardTitle className="text-xl">{plan.name}</CardTitle>
+                  <CardDescription>{plan.description}</CardDescription>
+                  <div className="pt-4">
+                    <span className="text-4xl font-bold text-foreground">
+                      {getDisplayPrice(price)}
+                    </span>
+                    <span className="text-muted-foreground">/month</span>
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {getCurrency().code} • Billed {isYearly ? 'annually' : 'monthly'}
+                  </p>
+                </CardHeader>
+                <CardContent>
+                  <ul className="space-y-3 mb-6">
+                    {plan.features.map((feature, idx) => (
+                      <li key={idx} className="flex items-center gap-2 text-sm">
+                        <Check className="w-4 h-4 text-green-500 flex-shrink-0" />
+                        <span className="text-muted-foreground">{feature}</span>
+                      </li>
+                    ))}
+                  </ul>
+                  <Button 
+                    className="w-full" 
+                    variant={plan.popular ? 'default' : 'outline'}
+                    asChild
+                  >
+                    <Link to="/signup">Get Started</Link>
+                  </Button>
+                </CardContent>
+              </Card>
+            );
+          })}
         </div>
 
         {/* Cost Estimator */}
@@ -176,8 +208,13 @@ export default function PricingPreview() {
             </div>
             <div className="pt-4 border-t border-border flex items-center justify-between">
               <span className="text-muted-foreground">Estimated monthly cost (Pro plan)</span>
-              <span className="text-2xl font-bold text-foreground">${calculateEstimate()}</span>
+              <span className="text-2xl font-bold text-foreground">
+                {getDisplayPrice(calculateEstimate())}
+              </span>
             </div>
+            <p className="text-xs text-muted-foreground text-center">
+              + Meta conversation fees (billed separately by Meta)
+            </p>
           </div>
         </div>
 
