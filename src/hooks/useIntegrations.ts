@@ -150,6 +150,11 @@ export function useIntegrations() {
     });
   };
 
+  const refetch = () => {
+    queryClient.invalidateQueries({ queryKey: ['tenant-integrations'] });
+    queryClient.invalidateQueries({ queryKey: ['integration-catalog'] });
+  };
+
   return {
     catalog: catalogQuery.data || [],
     tenantIntegrations: tenantIntegrationsQuery.data || [],
@@ -162,5 +167,6 @@ export function useIntegrations() {
     isConnecting: connectMutation.isPending,
     isDisconnecting: disconnectMutation.isPending,
     useIntegrationEvents,
+    refetch,
   };
 }

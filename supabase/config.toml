@@ -50,3 +50,6 @@ verify_jwt = false
 
 [functions.integration-webhook]
 verify_jwt = false
+
+[functions.razorpay-connect]
+verify_jwt = false
