@@ -24,6 +24,7 @@ import {
   ExternalLink
 } from 'lucide-react';
 import { usePhoneNumbers, useWABAs } from '@/hooks/usePhoneNumbers';
+import { MetaEmbeddedSignup } from '@/components/meta/MetaEmbeddedSignup';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 
@@ -108,17 +109,7 @@ export default function ConnectNumber() {
     }
   };
 
-  const handleEmbeddedSignup = () => {
-    // Simulate embedded signup success
-    setState(prev => ({
-      ...prev,
-      wabaId: '123456789012345',
-      wabaName: 'My Business Account',
-      phoneNumberId: '987654321098765',
-      phoneE164: '+971501234567',
-    }));
-    setCurrentStep('select');
-  };
+  // MetaEmbeddedSignup component handles the real OAuth flow
 
   return (
     <DashboardLayout>
@@ -263,13 +254,19 @@ export default function ConnectNumber() {
                     </ol>
                   </div>
 
-                  <Button 
-                    className="w-full bg-blue-600 hover:bg-blue-700"
-                    onClick={handleEmbeddedSignup}
-                  >
-                    <Facebook className="h-4 w-4 mr-2" />
-                    Continue with Meta
-                  </Button>
+                  <MetaEmbeddedSignup 
+                    onSuccess={(data) => {
+                      setState(prev => ({
+                        ...prev,
+                        wabaId: data.wabaId,
+                        phoneNumberId: data.phoneNumberId,
+                      }));
+                      setCurrentStep('select');
+                    }}
+                    onError={(error) => {
+                      toast.error(error.message || 'Failed to connect');
+                    }}
+                  />
                 </div>
               ) : (
                 <div className="space-y-4">
