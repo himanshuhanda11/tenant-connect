@@ -213,7 +213,7 @@ export default function HelpCenter() {
               Help Center
             </h1>
             <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
-              Find guides, tutorials, and quick answers for every feature in SMEKSH. 
+              Find guides, tutorials, and quick answers for every feature in AIREATRO. 
               Learn how to get the most out of your WhatsApp Business platform.
             </p>
 
@@ -276,7 +276,7 @@ export default function HelpCenter() {
                   <div className="flex-1">
                     <h3 className="font-semibold text-lg mb-1">Getting Started</h3>
                     <p className="text-sm text-muted-foreground mb-3">
-                      New to SMEKSH? Learn the basics and set up your workspace.
+                      New to AIREATRO? Learn the basics and set up your workspace.
                     </p>
                     <Button variant="link" className="p-0 h-auto" asChild>
                       <Link to="/help/getting-started">Start Here →</Link>
@@ -333,7 +333,7 @@ export default function HelpCenter() {
           <div className="text-center mb-8">
             <h2 className="text-2xl md:text-3xl font-bold mb-2">Explore All Features</h2>
             <p className="text-muted-foreground max-w-2xl mx-auto">
-              Comprehensive guides for every feature in SMEKSH. Select a category or browse all features below.
+              Comprehensive guides for every feature in AIREATRO. Select a category or browse all features below.
             </p>
           </div>
 

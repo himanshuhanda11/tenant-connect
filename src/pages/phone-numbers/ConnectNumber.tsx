@@ -238,7 +238,7 @@ export default function ConnectNumber() {
               <CardDescription>
                 {state.method === 'embedded' 
                   ? 'Click below to connect your Meta Business account and set up WhatsApp.'
-                  : 'Authorize SMEKSH to access your WhatsApp Business Account.'}
+                  : 'Authorize AIREATRO to access your WhatsApp Business Account.'}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
@@ -250,7 +250,7 @@ export default function ConnectNumber() {
                       <li>Sign in to your Meta Business account</li>
                       <li>Create or select a WhatsApp Business Account</li>
                       <li>Add and verify your phone number</li>
-                      <li>Grant SMEKSH permission to send messages</li>
+                      <li>Grant AIREATRO permission to send messages</li>
                     </ol>
                   </div>
 
@@ -453,7 +453,7 @@ export default function ConnectNumber() {
                 <CheckCircle className="h-6 w-6 text-green-600" />
                 <div>
                   <p className="font-medium text-green-900">Webhooks Configured</p>
-                  <p className="text-sm text-green-700">SMEKSH will receive all WhatsApp events automatically.</p>
+                  <p className="text-sm text-green-700">AIREATRO will receive all WhatsApp events automatically.</p>
                 </div>
               </div>
 
@@ -461,7 +461,7 @@ export default function ConnectNumber() {
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-muted-foreground">Callback URL</span>
                   <code className="text-xs bg-background px-2 py-1 rounded">
-                    https://api.smeksh.app/webhooks/whatsapp
+                    https://api.aireatro.app/webhooks/whatsapp
                   </code>
                 </div>
                 <div className="flex items-center justify-between">

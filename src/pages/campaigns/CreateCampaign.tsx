@@ -338,7 +338,7 @@ export default function CreateCampaign() {
                   <Alert className="bg-blue-50 border-blue-200">
                     <Info className="h-4 w-4 text-blue-600" />
                     <AlertDescription className="text-blue-800">
-                      Marketing templates require opt-in consent. SMEKSH automatically enforces opt-out and compliance rules.
+                      Marketing templates require opt-in consent. AIREATRO automatically enforces opt-out and compliance rules.
                     </AlertDescription>
                   </Alert>
                 </div>

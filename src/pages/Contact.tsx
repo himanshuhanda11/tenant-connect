@@ -27,7 +27,7 @@ export default function Contact() {
     {
       icon: Mail,
       title: 'Email Us',
-      description: 'support@smeksh.com',
+      description: 'support@aireatro.com',
       subtext: 'We reply within 24 hours'
     },
     {

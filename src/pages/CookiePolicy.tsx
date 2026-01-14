@@ -232,7 +232,7 @@ export default function CookiePolicy() {
               If you have any questions about our use of cookies, please contact our privacy team.
             </p>
             <Button asChild>
-              <a href="mailto:privacy@smeksh.com">Contact Privacy Team</a>
+              <a href="mailto:privacy@aireatro.com">Contact Privacy Team</a>
             </Button>
           </div>
         </div>

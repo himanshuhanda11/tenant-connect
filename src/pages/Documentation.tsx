@@ -132,7 +132,7 @@ export default function Documentation() {
               </span>
             </h1>
             <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mb-10">
-              Everything you need to integrate and build with smeksh.
+              Everything you need to integrate and build with aireatro.
             </p>
 
             {/* Search */}
@@ -224,7 +224,7 @@ export default function Documentation() {
               </div>
               <pre className="p-6 bg-slate-900 text-sm overflow-x-auto">
                 <code className="text-slate-300">{`// Send a WhatsApp message
-const response = await fetch('https://api.smeksh.com/v1/messages', {
+const response = await fetch('https://api.aireatro.com/v1/messages', {
   method: 'POST',
   headers: {
     'Authorization': 'Bearer YOUR_API_KEY',
@@ -233,7 +233,7 @@ const response = await fetch('https://api.smeksh.com/v1/messages', {
   body: JSON.stringify({
     to: '+1234567890',
     type: 'text',
-    text: { body: 'Hello from smeksh!' }
+    text: { body: 'Hello from aireatro!' }
   })
 });
 

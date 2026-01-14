@@ -88,7 +88,7 @@ export default function AcceptableUse() {
         <div className="container mx-auto px-4">
           <div className="max-w-3xl mx-auto prose prose-neutral dark:prose-invert">
             <p className="text-lg text-muted-foreground leading-relaxed">
-              This Acceptable Use Policy ("AUP") outlines the rules and guidelines for using the smeksh WhatsApp Business 
+              This Acceptable Use Policy ("AUP") outlines the rules and guidelines for using the aireatro WhatsApp Business 
               Platform. By using our services, you agree to comply with this policy as well as WhatsApp's Business Policy 
               and Meta's Platform Terms.
             </p>
@@ -209,7 +209,7 @@ export default function AcceptableUse() {
               If you believe a user is violating this policy, please report it to our trust and safety team.
             </p>
             <Button asChild>
-              <a href="mailto:abuse@smeksh.com">Report Abuse</a>
+              <a href="mailto:abuse@aireatro.com">Report Abuse</a>
             </Button>
           </div>
         </div>

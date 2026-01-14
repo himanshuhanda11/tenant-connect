@@ -53,7 +53,7 @@ export default function Integrations() {
               </span>
             </h1>
             <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mb-10">
-              Integrate smeksh with the tools you already use. Automate workflows and boost productivity.
+              Integrate aireatro with the tools you already use. Automate workflows and boost productivity.
             </p>
             <Button size="lg" className="h-14 px-8 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 shadow-lg shadow-green-500/20" onClick={() => navigate('/signup')}>
               Start Integrating
@@ -127,7 +127,7 @@ export default function Integrations() {
                 <CardContent className="p-6">
                   <pre className="text-sm text-slate-300 overflow-x-auto">
                     <code>{`// Send a WhatsApp message
-const response = await smeksh.messages.send({
+const response = await aireatro.messages.send({
   to: "+1234567890",
   template: "order_confirmation",
   variables: {

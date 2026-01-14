@@ -170,7 +170,7 @@ export default function About() {
               Meet Our Leadership
             </h2>
             <p className="text-lg text-muted-foreground">
-              The team behind smeksh
+              The team behind aireatro
             </p>
           </div>
 

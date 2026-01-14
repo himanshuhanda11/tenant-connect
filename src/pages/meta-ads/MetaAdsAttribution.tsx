@@ -158,7 +158,7 @@ export default function MetaAdsAttribution() {
             <div>
               <p className="font-medium text-blue-800 dark:text-blue-200">How Attribution Works</p>
               <p className="text-sm text-blue-700 dark:text-blue-300 mt-1">
-                When a new contact messages you, SMEKSH checks attribution rules in priority order. 
+                When a new contact messages you, AIREATRO checks attribution rules in priority order. 
                 The first matching rule determines the contact's source and applies tags automatically.
               </p>
             </div>

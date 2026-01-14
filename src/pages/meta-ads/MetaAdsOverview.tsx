@@ -83,7 +83,7 @@ export default function MetaAdsOverview() {
           <Shield className="h-4 w-4 text-blue-600" />
           <AlertTitle className="text-blue-800 dark:text-blue-200">Meta App Review Compliant</AlertTitle>
           <AlertDescription className="text-blue-700 dark:text-blue-300">
-            SMEKSH only reads ad performance and lead attribution data. Ads are fully created and billed via Meta Ads Manager.
+            AIREATRO only reads ad performance and lead attribution data. Ads are fully created and billed via Meta Ads Manager.
           </AlertDescription>
         </Alert>
 
