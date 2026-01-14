@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useTenant } from '@/contexts/TenantContext';
 import { useAuth } from '@/contexts/AuthContext';
@@ -158,12 +158,72 @@ export function useFlows() {
         node_key: 'start',
         node_type: 'start',
         label: 'Flow Start',
-        position_x: 250,
+        position_x: 400,
         position_y: 50,
         config: {},
       });
 
       toast.success('Flow created successfully');
+      await fetchFlows();
+      return newFlow;
+    } catch (err: any) {
+      toast.error(err.message);
+      return null;
+    }
+  };
+
+  const createFlowFromTemplate = async (template: FlowTemplate) => {
+    if (!currentTenant?.id || !user?.id) {
+      toast.error('Please select a workspace');
+      return null;
+    }
+
+    try {
+      const { data: newFlow, error } = await supabase
+        .from('flows')
+        .insert({
+          tenant_id: currentTenant.id,
+          name: template.title,
+          description: template.subtitle || null,
+          emoji: getTemplateEmoji(template.category),
+          is_pro: template.is_pro,
+          created_by: user.id,
+          status: 'draft',
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      
+      // Create default start node + sample nodes from template
+      const previewData = template.preview_json as any;
+      const templateNodes = previewData?.nodes || [];
+      const templateEdges = previewData?.edges || [];
+      
+      // Always add a start node
+      const startNode = {
+        tenant_id: currentTenant.id,
+        flow_id: newFlow.id,
+        node_key: 'start',
+        node_type: 'start',
+        label: 'Flow Start',
+        position_x: 400,
+        position_y: 50,
+        config: {},
+      };
+      
+      // Create sample nodes based on template category
+      const sampleNodes = getTemplateSampleNodes(template, currentTenant.id, newFlow.id);
+      
+      await supabase.from('flow_nodes').insert([startNode, ...sampleNodes]);
+      
+      // Create edges connecting the nodes
+      const sampleEdges = getTemplateSampleEdges(sampleNodes, currentTenant.id, newFlow.id);
+      if (sampleEdges.length > 0) {
+        await supabase.from('flow_edges').insert(sampleEdges);
+      }
+
+      toast.success('Flow created from template');
       await fetchFlows();
       return newFlow;
     } catch (err: any) {
@@ -300,12 +360,74 @@ export function useFlows() {
     loading,
     error,
     createFlow,
+    createFlowFromTemplate,
     updateFlow,
     deleteFlow,
     duplicateFlow,
     toggleFlowStatus,
     refetch: fetchFlows,
   };
+}
+
+// Helper functions for template creation
+function getTemplateEmoji(category: string): string {
+  const emojiMap: Record<string, string> = {
+    'E-commerce': '🛒',
+    'Real Estate': '🏠',
+    'Healthcare': '🏥',
+    'Education': '📚',
+    'IT': '💻',
+    'Recruitment': '👥',
+    'Travel': '✈️',
+  };
+  return emojiMap[category] || '🔄';
+}
+
+function getTemplateSampleNodes(template: FlowTemplate, tenantId: string, flowId: string) {
+  const categoryNodes: Record<string, any[]> = {
+    'E-commerce': [
+      { node_key: 'welcome_msg', node_type: 'text-buttons', label: 'Welcome Message', position_x: 400, position_y: 180, config: { message: 'Hi {{first_name}}! 👋 Welcome to our store. How can I help you today?', buttons: ['Browse Products', 'Track Order', 'Talk to Agent'] } },
+      { node_key: 'product_menu', node_type: 'list-message', label: 'Product Menu', position_x: 200, position_y: 320, config: { header: 'Our Products', body: 'Choose a category:', sections: [] } },
+      { node_key: 'order_check', node_type: 'webhook', label: 'Check Order Status', position_x: 400, position_y: 320, config: { url: '', method: 'GET' } },
+      { node_key: 'handover', node_type: 'assign-agent', label: 'Assign Agent', position_x: 600, position_y: 320, config: { strategy: 'round_robin' } },
+    ],
+    'Real Estate': [
+      { node_key: 'welcome_msg', node_type: 'text-buttons', label: 'Welcome Message', position_x: 400, position_y: 180, config: { message: 'Hi! 🏠 Welcome to our real estate services. Are you looking to buy, sell, or rent?', buttons: ['Buy Property', 'Sell Property', 'Rent'] } },
+      { node_key: 'qualify', node_type: 'condition', label: 'Qualify Lead', position_x: 400, position_y: 320, config: { conditions: [] } },
+      { node_key: 'set_lead', node_type: 'set-attribute', label: 'Set Lead Status', position_x: 400, position_y: 460, config: { attribute: 'lead_status', value: 'qualified' } },
+    ],
+    'Healthcare': [
+      { node_key: 'welcome_msg', node_type: 'text-buttons', label: 'Welcome Message', position_x: 400, position_y: 180, config: { message: 'Hello! 🏥 Welcome to our clinic. How can we assist you?', buttons: ['Book Appointment', 'Check Results', 'Speak to Staff'] } },
+      { node_key: 'schedule', node_type: 'list-message', label: 'Select Time Slot', position_x: 400, position_y: 320, config: { header: 'Available Slots', body: 'Choose your preferred time:', sections: [] } },
+    ],
+    default: [
+      { node_key: 'welcome_msg', node_type: 'text-buttons', label: 'Welcome Message', position_x: 400, position_y: 180, config: { message: 'Hello! 👋 How can I help you today?', buttons: ['Learn More', 'Get Support', 'Contact Us'] } },
+      { node_key: 'response', node_type: 'text-buttons', label: 'Follow Up', position_x: 400, position_y: 320, config: { message: 'Thanks for your interest! Let me help you further.' } },
+    ],
+  };
+  
+  const nodes = categoryNodes[template.category] || categoryNodes['default'];
+  return nodes.map(node => ({
+    ...node,
+    tenant_id: tenantId,
+    flow_id: flowId,
+  }));
+}
+
+function getTemplateSampleEdges(nodes: any[], tenantId: string, flowId: string) {
+  if (nodes.length < 1) return [];
+  
+  // Connect start to first node
+  const edges = [{
+    tenant_id: tenantId,
+    flow_id: flowId,
+    edge_key: `edge_start_${nodes[0].node_key}`,
+    source_node_key: 'start',
+    target_node_key: nodes[0].node_key,
+    config: {},
+  }];
+  
+  return edges;
 }
 
 export function useFlowBuilder(flowId: string | undefined) {
@@ -413,27 +535,63 @@ export function useFlowBuilder(flowId: string | undefined) {
     }
   };
 
-  const updateNode = async (nodeKey: string, updates: Partial<FlowNode>) => {
+  // Debounce timer for position updates
+  const positionUpdateTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const pendingPositionUpdates = useRef<Map<string, { x: number; y: number }>>(new Map());
+  
+  const updateNode = useCallback((nodeKey: string, updates: Partial<FlowNode>) => {
     if (!flowId) return false;
 
-    try {
-      const { error } = await supabase
-        .from('flow_nodes')
-        .update(updates)
-        .eq('flow_id', flowId)
-        .eq('node_key', nodeKey);
-
-      if (error) throw error;
+    // Update local state immediately for smooth dragging
+    setNodes(prev => prev.map(n => 
+      n.node_key === nodeKey ? { ...n, ...updates } : n
+    ));
+    
+    // If this is a position update, debounce the database save
+    if ('position_x' in updates || 'position_y' in updates) {
+      pendingPositionUpdates.current.set(nodeKey, {
+        x: updates.position_x ?? 0,
+        y: updates.position_y ?? 0,
+      });
       
-      setNodes(prev => prev.map(n => 
-        n.node_key === nodeKey ? { ...n, ...updates } : n
-      ));
+      if (positionUpdateTimerRef.current) {
+        clearTimeout(positionUpdateTimerRef.current);
+      }
+      
+      positionUpdateTimerRef.current = setTimeout(async () => {
+        // Batch save all pending position updates
+        const pendingUpdates = Array.from(pendingPositionUpdates.current.entries());
+        pendingPositionUpdates.current.clear();
+        
+        for (const [key, pos] of pendingUpdates) {
+          await supabase
+            .from('flow_nodes')
+            .update({ position_x: pos.x, position_y: pos.y })
+            .eq('flow_id', flowId)
+            .eq('node_key', key);
+        }
+      }, 500);
+      
       return true;
-    } catch (err) {
-      toast.error('Failed to update node');
-      return false;
     }
-  };
+    
+    // For non-position updates, save immediately
+    (async () => {
+      try {
+        const { error } = await supabase
+          .from('flow_nodes')
+          .update(updates)
+          .eq('flow_id', flowId)
+          .eq('node_key', nodeKey);
+
+        if (error) throw error;
+      } catch (err) {
+        toast.error('Failed to update node');
+      }
+    })();
+    
+    return true;
+  }, [flowId]);
 
   const deleteNode = async (nodeKey: string) => {
     if (!flowId) return false;
