@@ -3,7 +3,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
-import { Tags, FolderOpen, Archive } from 'lucide-react';
+import { Tags, FolderOpen, Archive, Layers, ChevronRight } from 'lucide-react';
 
 interface TagsSidebarProps {
   tags: Tag[];
@@ -39,125 +39,172 @@ export function TagsSidebar({
     return tags.filter(t => t.tag_group === group).length;
   };
 
+  const isAllSelected = selectedType === 'all' && selectedStatus === 'all' && !selectedGroup;
+
   return (
-    <div className="w-64 border-r bg-muted/20 flex flex-col">
-      <div className="p-4 border-b">
-        <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">
-          Tag Groups
-        </h3>
+    <div className="w-64 border-r bg-card/30 flex flex-col">
+      <div className="p-4 border-b bg-muted/30">
+        <div className="flex items-center gap-2">
+          <Layers className="h-4 w-4 text-muted-foreground" />
+          <h3 className="font-semibold text-sm">Filter Tags</h3>
+        </div>
       </div>
       
       <ScrollArea className="flex-1">
         <div className="p-3 space-y-1">
           {/* All Tags */}
-          <Button
-            variant="ghost"
+          <button
             className={cn(
-              'w-full justify-between h-9',
-              selectedType === 'all' && selectedStatus === 'all' && !selectedGroup && 'bg-primary/10 text-primary'
+              'w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium transition-all',
+              isAllSelected 
+                ? 'bg-primary text-primary-foreground shadow-sm' 
+                : 'hover:bg-muted/50 text-foreground'
             )}
             onClick={() => { onSelectType('all'); onSelectStatus('all'); onSelectGroup(''); }}
           >
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2.5">
               <Tags className="h-4 w-4" />
               <span>All Tags</span>
             </div>
-            <Badge variant="secondary" className="text-xs">
+            <Badge 
+              variant="secondary" 
+              className={cn(
+                'text-xs font-medium',
+                isAllSelected && 'bg-primary-foreground/20 text-primary-foreground'
+              )}
+            >
               {getTypeCount('all')}
             </Badge>
-          </Button>
+          </button>
 
-          {/* By Type */}
-          <div className="pt-3 pb-1">
-            <p className="px-3 text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">
+          {/* By Type Section */}
+          <div className="pt-4 pb-2">
+            <p className="px-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
               By Type
             </p>
-            {TAG_TYPE_OPTIONS.map((type) => (
-              <Button
-                key={type.value}
-                variant="ghost"
-                className={cn(
-                  'w-full justify-between h-9',
-                  selectedType === type.value && 'bg-primary/10 text-primary'
-                )}
-                onClick={() => { onSelectType(type.value); onSelectGroup(''); }}
-              >
-                <div className="flex items-center gap-2">
-                  <span>{type.emoji}</span>
-                  <span className="text-sm">{type.label}</span>
-                </div>
-                <Badge variant="secondary" className="text-xs">
-                  {getTypeCount(type.value)}
-                </Badge>
-              </Button>
-            ))}
+            <div className="space-y-0.5">
+              {TAG_TYPE_OPTIONS.map((type) => {
+                const isSelected = selectedType === type.value && !selectedGroup;
+                return (
+                  <button
+                    key={type.value}
+                    className={cn(
+                      'w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-all',
+                      isSelected 
+                        ? 'bg-primary/10 text-primary font-medium' 
+                        : 'hover:bg-muted/50 text-muted-foreground hover:text-foreground'
+                    )}
+                    onClick={() => { onSelectType(type.value); onSelectGroup(''); }}
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <span className="text-base">{type.emoji}</span>
+                      <span>{type.label}</span>
+                    </div>
+                    <Badge 
+                      variant="secondary" 
+                      className={cn(
+                        'text-xs h-5 px-1.5',
+                        isSelected && 'bg-primary/20 text-primary'
+                      )}
+                    >
+                      {getTypeCount(type.value)}
+                    </Badge>
+                  </button>
+                );
+              })}
+            </div>
           </div>
 
-          {/* Custom Groups */}
+          {/* Custom Groups Section */}
           {groups.length > 0 && (
-            <div className="pt-3 pb-1">
-              <p className="px-3 text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">
+            <div className="pt-4 pb-2">
+              <p className="px-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
                 Custom Groups
               </p>
-              {groups.map((group) => (
-                <Button
-                  key={group}
-                  variant="ghost"
-                  className={cn(
-                    'w-full justify-between h-9',
-                    selectedGroup === group && 'bg-primary/10 text-primary'
-                  )}
-                  onClick={() => { onSelectGroup(group); onSelectType('all'); }}
-                >
-                  <div className="flex items-center gap-2">
-                    <FolderOpen className="h-4 w-4" />
-                    <span className="text-sm truncate">{group}</span>
-                  </div>
-                  <Badge variant="secondary" className="text-xs">
-                    {getGroupCount(group)}
-                  </Badge>
-                </Button>
-              ))}
+              <div className="space-y-0.5">
+                {groups.map((group) => {
+                  const isSelected = selectedGroup === group;
+                  return (
+                    <button
+                      key={group}
+                      className={cn(
+                        'w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-all',
+                        isSelected 
+                          ? 'bg-primary/10 text-primary font-medium' 
+                          : 'hover:bg-muted/50 text-muted-foreground hover:text-foreground'
+                      )}
+                      onClick={() => { onSelectGroup(group); onSelectType('all'); }}
+                    >
+                      <div className="flex items-center gap-2.5">
+                        <FolderOpen className="h-4 w-4" />
+                        <span className="truncate max-w-[120px]">{group}</span>
+                      </div>
+                      <Badge 
+                        variant="secondary" 
+                        className={cn(
+                          'text-xs h-5 px-1.5',
+                          isSelected && 'bg-primary/20 text-primary'
+                        )}
+                      >
+                        {getGroupCount(group)}
+                      </Badge>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           )}
 
-          {/* Status */}
-          <div className="pt-3 pb-1">
-            <p className="px-3 text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">
+          {/* Status Section */}
+          <div className="pt-4 pb-2">
+            <p className="px-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
               Status
             </p>
-            <Button
-              variant="ghost"
-              className={cn(
-                'w-full justify-between h-9',
-                selectedStatus === 'active' && 'bg-primary/10 text-primary'
-              )}
-              onClick={() => { onSelectStatus('active'); onSelectType('all'); onSelectGroup(''); }}
-            >
-              <div className="flex items-center gap-2">
-                <div className="h-2 w-2 rounded-full bg-green-500" />
-                <span className="text-sm">Active</span>
-              </div>
-              <Badge variant="secondary" className="text-xs">
-                {getStatusCount('active')}
-              </Badge>
-            </Button>
-            <Button
-              variant="ghost"
-              className={cn(
-                'w-full justify-between h-9',
-                selectedStatus === 'archived' && 'bg-primary/10 text-primary'
-              )}
-              onClick={() => { onSelectStatus('archived'); onSelectType('all'); onSelectGroup(''); }}
-            >
-              <div className="flex items-center gap-2">
-                <Archive className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm">Archived</span>
-              </div>
-              <Badge variant="secondary" className="text-xs">
-                {getStatusCount('archived')}
-              </Badge>
-            </Button>
+            <div className="space-y-0.5">
+              <button
+                className={cn(
+                  'w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-all',
+                  selectedStatus === 'active' && selectedType === 'all' && !selectedGroup
+                    ? 'bg-green-500/10 text-green-600 font-medium' 
+                    : 'hover:bg-muted/50 text-muted-foreground hover:text-foreground'
+                )}
+                onClick={() => { onSelectStatus('active'); onSelectType('all'); onSelectGroup(''); }}
+              >
+                <div className="flex items-center gap-2.5">
+                  <div className="h-2.5 w-2.5 rounded-full bg-green-500 ring-2 ring-green-500/20" />
+                  <span>Active</span>
+                </div>
+                <Badge 
+                  variant="secondary" 
+                  className={cn(
+                    'text-xs h-5 px-1.5',
+                    selectedStatus === 'active' && selectedType === 'all' && !selectedGroup && 'bg-green-500/20 text-green-600'
+                  )}
+                >
+                  {getStatusCount('active')}
+                </Badge>
+              </button>
+              <button
+                className={cn(
+                  'w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-all',
+                  selectedStatus === 'archived' && selectedType === 'all' && !selectedGroup
+                    ? 'bg-muted text-muted-foreground font-medium' 
+                    : 'hover:bg-muted/50 text-muted-foreground hover:text-foreground'
+                )}
+                onClick={() => { onSelectStatus('archived'); onSelectType('all'); onSelectGroup(''); }}
+              >
+                <div className="flex items-center gap-2.5">
+                  <Archive className="h-4 w-4" />
+                  <span>Archived</span>
+                </div>
+                <Badge 
+                  variant="secondary" 
+                  className="text-xs h-5 px-1.5"
+                >
+                  {getStatusCount('archived')}
+                </Badge>
+              </button>
+            </div>
           </div>
         </div>
       </ScrollArea>

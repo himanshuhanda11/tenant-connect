@@ -6,21 +6,24 @@ import { TagsListView } from '@/components/tags/TagsListView';
 import { EmptyTagsState } from '@/components/tags/EmptyTagsState';
 import { CreateTagModal } from '@/components/tags/CreateTagModal';
 import { CreateRuleModal } from '@/components/tags/CreateRuleModal';
-import { GuideBanner } from '@/components/help/GuideBanner';
+import { QuickGuide, quickGuides } from '@/components/help/QuickGuide';
 import { useTags, useTagRules } from '@/hooks/useTags';
 import { Tag, TagType, STARTER_TAGS } from '@/types/tag';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Tags as TagsIcon,
   Plus,
   Zap,
   Search,
-  BookOpen,
-  ExternalLink,
-  Sparkles
+  LayoutGrid,
+  List,
+  Filter,
+  SlidersHorizontal,
+  ArrowUpDown
 } from 'lucide-react';
 
 const Tags = () => {
@@ -42,6 +45,7 @@ const Tags = () => {
   const [createRuleOpen, setCreateRuleOpen] = useState(false);
   const [editingTag, setEditingTag] = useState<Tag | null>(null);
   const [preselectedTagId, setPreselectedTagId] = useState<string>('');
+  const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
 
   const handleCreateTag = async (tagData: Partial<Tag>) => {
     return await createTag(tagData);
@@ -91,69 +95,69 @@ const Tags = () => {
     return true;
   });
 
+  // Stats
+  const activeCount = tags.filter(t => t.status === 'active').length;
+  const archivedCount = tags.filter(t => t.status === 'archived').length;
+  const rulesCount = rules.length;
+
   return (
     <DashboardLayout>
-      <div className="h-full flex flex-col">
-        {/* Header */}
-        <div className="shrink-0 px-6 py-4 border-b bg-background">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center">
-                <TagsIcon className="h-5 w-5 text-primary" />
+      <div className="h-full flex flex-col bg-background">
+        {/* Modern Header */}
+        <div className="shrink-0 border-b bg-card/50 backdrop-blur-sm">
+          <div className="px-6 py-5">
+            <div className="flex items-start justify-between mb-4">
+              <div className="flex items-center gap-4">
+                <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center shadow-sm">
+                  <TagsIcon className="h-6 w-6 text-primary" />
+                </div>
+                <div>
+                  <h1 className="text-2xl font-bold tracking-tight">Tags</h1>
+                  <p className="text-sm text-muted-foreground mt-0.5">
+                    Organize contacts and automate with intelligent tagging
+                  </p>
+                </div>
               </div>
-              <div>
-                <h1 className="text-xl font-semibold">Tags</h1>
-                <p className="text-sm text-muted-foreground">
-                  Organize contacts and automate with intelligent tagging
-                </p>
+              <div className="flex items-center gap-2">
+                <Button variant="outline" size="sm" onClick={() => setCreateRuleOpen(true)} className="gap-2">
+                  <Zap className="h-4 w-4" />
+                  Create Rule
+                </Button>
+                <Button size="sm" onClick={() => { setEditingTag(null); setCreateTagOpen(true); }} className="gap-2">
+                  <Plus className="h-4 w-4" />
+                  Create Tag
+                </Button>
               </div>
             </div>
-            <div className="flex items-center gap-2">
-              <Button variant="outline" onClick={() => setCreateRuleOpen(true)}>
-                <Zap className="h-4 w-4 mr-2" />
-                Create Rule
-              </Button>
-              <Button onClick={() => { setEditingTag(null); setCreateTagOpen(true); }}>
-                <Plus className="h-4 w-4 mr-2" />
-                Create Tag
-              </Button>
+
+            {/* Stats Cards */}
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-muted/50 border">
+                <div className="h-2 w-2 rounded-full bg-green-500" />
+                <span className="text-sm font-medium">{activeCount}</span>
+                <span className="text-sm text-muted-foreground">Active</span>
+              </div>
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-muted/50 border">
+                <div className="h-2 w-2 rounded-full bg-muted-foreground" />
+                <span className="text-sm font-medium">{archivedCount}</span>
+                <span className="text-sm text-muted-foreground">Archived</span>
+              </div>
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-muted/50 border">
+                <Zap className="h-3.5 w-3.5 text-yellow-500" />
+                <span className="text-sm font-medium">{rulesCount}</span>
+                <span className="text-sm text-muted-foreground">Rules</span>
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Quick Guide Banner */}
-        {tags.length > 0 && (
-          <div className="shrink-0 mx-6 mt-4">
-            <GuideBanner
-              title="Quick Guide"
-              description="Tags help segment your audience for targeted campaigns and automation."
-              guideUrl="/help/contacts-tags"
-              variant="compact"
-              dismissible
-            />
-          </div>
-        )}
-
-        {/* Upgrade Banner - if applicable */}
-        {tags.length >= 5 && (
-          <div className="shrink-0 mx-6 mt-4">
-            <Card className="bg-gradient-to-r from-amber-50 to-orange-50 border-amber-200/50">
-              <CardContent className="py-3">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Sparkles className="h-4 w-4 text-amber-600" />
-                    <span className="text-sm">
-                      Take your experience to the next level — unlock 100 tags with Pro! 🚀
-                    </span>
-                  </div>
-                  <Button size="sm" className="bg-amber-600 hover:bg-amber-700">
-                    Upgrade Now
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        )}
+        {/* Quick Guide */}
+        <div className="shrink-0 px-6 pt-4">
+          <QuickGuide
+            description={quickGuides.tags.description}
+            links={quickGuides.tags.links}
+          />
+        </div>
 
         {/* Main Content */}
         <div className="flex-1 flex min-h-0 mt-4">
@@ -170,52 +174,81 @@ const Tags = () => {
           />
 
           {/* Content Area */}
-          <div className="flex-1 flex flex-col p-6">
-            {/* Search & Filters */}
-            <div className="flex items-center gap-4 mb-6">
-              <div className="relative flex-1 max-w-md">
+          <div className="flex-1 flex flex-col px-6 pb-6">
+            {/* Toolbar */}
+            <div className="flex items-center justify-between gap-4 mb-4 pb-4 border-b">
+              <div className="relative flex-1 max-w-sm">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="Search by tag name, type, group..."
+                  placeholder="Search tags..."
                   value={filters.search}
                   onChange={(e) => setFilters({ ...filters, search: e.target.value })}
-                  className="pl-9"
+                  className="pl-9 h-9 bg-muted/30"
                 />
               </div>
-              <div className="text-sm text-muted-foreground">
-                {displayTags.length} tag{displayTags.length !== 1 ? 's' : ''}
+              
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-muted-foreground">
+                  {displayTags.length} tag{displayTags.length !== 1 ? 's' : ''}
+                </span>
+                
+                <div className="h-4 w-px bg-border mx-1" />
+                
+                <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as 'list' | 'grid')} className="h-9">
+                  <TabsList className="h-9 p-1 bg-muted/50">
+                    <TabsTrigger value="list" className="h-7 px-2.5 data-[state=active]:bg-background">
+                      <List className="h-4 w-4" />
+                    </TabsTrigger>
+                    <TabsTrigger value="grid" className="h-7 px-2.5 data-[state=active]:bg-background">
+                      <LayoutGrid className="h-4 w-4" />
+                    </TabsTrigger>
+                  </TabsList>
+                </Tabs>
               </div>
             </div>
 
             {/* Tags List or Empty State */}
-            {!loading && tags.length === 0 ? (
-              <EmptyTagsState
-                onCreateTag={() => setCreateTagOpen(true)}
-                onCreateStarterTags={handleCreateStarterTags}
-              />
-            ) : displayTags.length === 0 ? (
-              <div className="flex-1 flex items-center justify-center">
-                <div className="text-center">
-                  <TagsIcon className="h-12 w-12 text-muted-foreground/50 mx-auto mb-3" />
-                  <h3 className="font-medium mb-1">No tags match your filters</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Try adjusting your search or filter criteria
-                  </p>
+            <div className="flex-1 overflow-auto">
+              {!loading && tags.length === 0 ? (
+                <EmptyTagsState
+                  onCreateTag={() => setCreateTagOpen(true)}
+                  onCreateStarterTags={handleCreateStarterTags}
+                />
+              ) : displayTags.length === 0 ? (
+                <div className="flex-1 flex items-center justify-center py-20">
+                  <div className="text-center">
+                    <div className="h-16 w-16 rounded-2xl bg-muted/50 flex items-center justify-center mx-auto mb-4">
+                      <Search className="h-7 w-7 text-muted-foreground/50" />
+                    </div>
+                    <h3 className="font-semibold text-lg mb-1">No tags found</h3>
+                    <p className="text-sm text-muted-foreground max-w-xs mx-auto">
+                      Try adjusting your search or filter criteria to find what you're looking for
+                    </p>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="mt-4"
+                      onClick={() => setFilters({ search: '', type: 'all', status: 'all', group: '' })}
+                    >
+                      Clear Filters
+                    </Button>
+                  </div>
                 </div>
-              </div>
-            ) : (
-              <TagsListView
-                tags={displayTags}
-                rules={rules}
-                loading={loading}
-                onEditTag={handleEditTag}
-                onDeleteTag={deleteTag}
-                onArchiveTag={archiveTag}
-                onRestoreTag={handleRestoreTag}
-                onCreateRule={handleCreateRule}
-                onToggleRule={toggleRule}
-              />
-            )}
+              ) : (
+                <TagsListView
+                  tags={displayTags}
+                  rules={rules}
+                  loading={loading}
+                  viewMode={viewMode}
+                  onEditTag={handleEditTag}
+                  onDeleteTag={deleteTag}
+                  onArchiveTag={archiveTag}
+                  onRestoreTag={handleRestoreTag}
+                  onCreateRule={handleCreateRule}
+                  onToggleRule={toggleRule}
+                />
+              )}
+            </div>
           </div>
         </div>
 
@@ -231,7 +264,6 @@ const Tags = () => {
           open={createRuleOpen}
           onClose={() => { setCreateRuleOpen(false); setPreselectedTagId(''); }}
           onSubmit={async (ruleData) => {
-            // This would use the useTagRules hook's createRule
             return null;
           }}
           preselectedTagId={preselectedTagId}
