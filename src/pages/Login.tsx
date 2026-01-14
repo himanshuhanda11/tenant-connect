@@ -144,9 +144,16 @@ export default function Login() {
       <div className="flex-1 flex flex-col justify-center px-6 py-12 lg:px-12 xl:px-20">
         <div className="mx-auto w-full max-w-md">
           {/* Logo */}
-          <div className="flex items-center gap-2 mb-8">
+          <div className="flex items-center gap-2 mb-4">
             <img src={aireatroLogo} alt="AiReatro" className="h-10 w-auto" />
           </div>
+
+          {/* Breadcrumb */}
+          <nav className="flex items-center gap-2 text-sm text-muted-foreground mb-8">
+            <Link to="/" className="hover:text-foreground transition-colors">Home</Link>
+            <span>/</span>
+            <span className="text-foreground font-medium">Sign In</span>
+          </nav>
 
           {/* Card */}
           <Card className="border-0 shadow-lg">
@@ -322,94 +329,89 @@ export default function Login() {
         </div>
       </div>
 
-      {/* Right Panel - Attractive Marketing Content */}
-      <div className="hidden lg:flex flex-1 relative overflow-hidden">
-        {/* Background with softer gradient */}
-        <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900" />
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSA2MCAwIEwgMCAwIDAgNjAiIGZpbGw9Im5vbmUiIHN0cm9rZT0icmdiYSgyNTUsMjU1LDI1NSwwLjAzKSIgc3Ryb2tlLXdpZHRoPSIxIi8+PC9wYXR0ZXJuPjwvZGVmcz48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSJ1cmwoI2dyaWQpIi8+PC9zdmc+')] opacity-60" />
-        
+      {/* Right Panel - White background with colorful accents */}
+      <div className="hidden lg:flex flex-1 relative overflow-hidden bg-white">
         {/* Subtle decorative elements */}
-        <div className="absolute top-20 right-20 w-72 h-72 bg-primary/20 rounded-full blur-3xl" />
+        <div className="absolute top-20 right-20 w-72 h-72 bg-primary/5 rounded-full blur-3xl" />
         <div className="absolute bottom-20 left-20 w-96 h-96 bg-primary/10 rounded-full blur-3xl" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary/5 rounded-full blur-3xl" />
 
         {/* Content */}
         <div className="relative z-10 flex flex-col justify-center p-12 xl:p-16 w-full">
           <div className="max-w-lg">
             {/* Badge */}
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 text-white/90 text-sm font-medium mb-8">
-              <span className="flex h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 text-primary text-sm font-medium mb-8">
+              <span className="flex h-2 w-2 rounded-full bg-primary animate-pulse" />
               Trusted by 2,500+ businesses worldwide
             </div>
 
             {/* Main headline */}
-            <h2 className="text-4xl xl:text-5xl font-bold text-white mb-6 leading-tight">
+            <h2 className="text-4xl xl:text-5xl font-bold text-slate-900 mb-6 leading-tight">
               Turn every WhatsApp chat into a{' '}
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-200 to-white">
+              <span className="text-primary">
                 business opportunity
               </span>
             </h2>
             
-            <p className="text-lg xl:text-xl text-white/80 mb-10 leading-relaxed">
+            <p className="text-lg xl:text-xl text-slate-600 mb-10 leading-relaxed">
               Automate responses, nurture leads, and close deals faster with AI-powered conversations.
             </p>
 
             {/* Stats */}
             <div className="grid grid-cols-3 gap-6 mb-10">
               <div className="text-center">
-                <div className="text-3xl xl:text-4xl font-bold text-white mb-1">10M+</div>
-                <div className="text-sm text-white/60">Messages/month</div>
+                <div className="text-3xl xl:text-4xl font-bold text-primary mb-1">10M+</div>
+                <div className="text-sm text-slate-500">Messages/month</div>
               </div>
-              <div className="text-center border-x border-white/20">
-                <div className="text-3xl xl:text-4xl font-bold text-white mb-1">98%</div>
-                <div className="text-sm text-white/60">Uptime SLA</div>
+              <div className="text-center border-x border-slate-200">
+                <div className="text-3xl xl:text-4xl font-bold text-primary mb-1">98%</div>
+                <div className="text-sm text-slate-500">Uptime SLA</div>
               </div>
               <div className="text-center">
-                <div className="text-3xl xl:text-4xl font-bold text-white mb-1">3x</div>
-                <div className="text-sm text-white/60">Faster response</div>
+                <div className="text-3xl xl:text-4xl font-bold text-primary mb-1">3x</div>
+                <div className="text-sm text-slate-500">Faster response</div>
               </div>
             </div>
 
             {/* Feature highlights */}
             <div className="space-y-4">
-              <div className="flex items-center gap-3 text-white/90">
-                <div className="flex-shrink-0 w-6 h-6 rounded-full bg-emerald-400/20 flex items-center justify-center">
-                  <MessageSquare className="h-3.5 w-3.5 text-emerald-300" />
+              <div className="flex items-center gap-3 text-slate-700">
+                <div className="flex-shrink-0 w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center">
+                  <MessageSquare className="h-3.5 w-3.5 text-primary" />
                 </div>
                 <span>Unified inbox for all your WhatsApp conversations</span>
               </div>
-              <div className="flex items-center gap-3 text-white/90">
-                <div className="flex-shrink-0 w-6 h-6 rounded-full bg-emerald-400/20 flex items-center justify-center">
-                  <Zap className="h-3.5 w-3.5 text-emerald-300" />
+              <div className="flex items-center gap-3 text-slate-700">
+                <div className="flex-shrink-0 w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center">
+                  <Zap className="h-3.5 w-3.5 text-primary" />
                 </div>
                 <span>No-code automation builder with AI assistance</span>
               </div>
-              <div className="flex items-center gap-3 text-white/90">
-                <div className="flex-shrink-0 w-6 h-6 rounded-full bg-emerald-400/20 flex items-center justify-center">
-                  <Users className="h-3.5 w-3.5 text-emerald-300" />
+              <div className="flex items-center gap-3 text-slate-700">
+                <div className="flex-shrink-0 w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center">
+                  <Users className="h-3.5 w-3.5 text-primary" />
                 </div>
                 <span>Team collaboration with role-based permissions</span>
               </div>
-              <div className="flex items-center gap-3 text-white/90">
-                <div className="flex-shrink-0 w-6 h-6 rounded-full bg-emerald-400/20 flex items-center justify-center">
-                  <Shield className="h-3.5 w-3.5 text-emerald-300" />
+              <div className="flex items-center gap-3 text-slate-700">
+                <div className="flex-shrink-0 w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center">
+                  <Shield className="h-3.5 w-3.5 text-primary" />
                 </div>
                 <span>Enterprise-grade security & Meta verified</span>
               </div>
             </div>
 
             {/* Testimonial */}
-            <div className="mt-10 p-6 rounded-2xl bg-white/10 backdrop-blur-sm border border-white/20">
-              <p className="text-white/90 italic mb-4">
+            <div className="mt-10 p-6 rounded-2xl bg-slate-50 border border-slate-100">
+              <p className="text-slate-600 italic mb-4">
                 "AiReatro transformed how we handle customer inquiries. Our response time dropped from hours to minutes."
               </p>
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-300 to-emerald-500 flex items-center justify-center text-white font-semibold">
+                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center text-white font-semibold">
                   RP
                 </div>
                 <div>
-                  <div className="text-white font-medium">Rahul Patel</div>
-                  <div className="text-white/60 text-sm">CEO, TechServe Solutions</div>
+                  <div className="text-slate-900 font-medium">Rahul Patel</div>
+                  <div className="text-slate-500 text-sm">CEO, TechServe Solutions</div>
                 </div>
               </div>
             </div>
