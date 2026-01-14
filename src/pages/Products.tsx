@@ -199,40 +199,31 @@ export default function Products() {
     <div className="min-h-screen bg-background">
       <Navbar />
 
-      {/* Hero */}
-      <section className="relative py-20 md:py-28 overflow-hidden">
-        {/* Animated Background */}
-        <div className="absolute inset-0 bg-gradient-to-br from-slate-950 via-green-950/50 to-slate-950" />
-        <div className="absolute inset-0">
-          <div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-green-500/20 rounded-full blur-[120px] animate-pulse" />
-          <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-emerald-500/15 rounded-full blur-[100px]" />
-          <div className="absolute top-1/2 right-0 w-[400px] h-[400px] bg-cyan-500/10 rounded-full blur-[80px]" />
-        </div>
-        {/* Grid Pattern */}
-        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:50px_50px]" />
+      {/* Hero - Classic Design */}
+      <section className="relative pt-16 pb-12 md:pt-20 md:pb-16 bg-white overflow-hidden">
+        <div className="absolute top-10 right-10 w-64 h-64 bg-primary/5 rounded-full blur-3xl" />
+        <div className="absolute bottom-10 left-10 w-80 h-80 bg-primary/3 rounded-full blur-3xl" />
         
         <div className="container mx-auto px-4 relative">
-          <Breadcrumb className="text-white/70 mb-8" />
+          <Breadcrumb className="mb-8" />
           <div className="max-w-4xl mx-auto text-center">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-green-500/10 border border-green-500/20 text-green-400 text-sm font-medium mb-6">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 text-primary text-sm font-medium mb-6">
               <Sparkles className="w-4 h-4" />
               Complete WhatsApp Business Platform
             </div>
-            <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold text-white mb-6 leading-tight">
-              Everything for{' '}
-              <span className="bg-gradient-to-r from-green-400 via-emerald-400 to-cyan-400 bg-clip-text text-transparent">
-                WhatsApp Success
-              </span>
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 leading-tight">
+              <span className="text-slate-900">Everything for</span>{' '}
+              <span className="text-primary">WhatsApp Success</span>
             </h1>
-            <p className="text-lg md:text-xl text-white/60 max-w-2xl mx-auto mb-10">
+            <p className="text-lg md:text-xl text-slate-600 max-w-2xl mx-auto mb-10">
               From API integration to marketing campaigns, we provide all the tools you need to connect, engage, and grow on WhatsApp.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Button size="lg" className="h-14 px-8 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 shadow-xl shadow-green-500/25" onClick={() => navigate('/signup')}>
+              <Button size="lg" className="h-14 px-8" onClick={() => navigate('/signup')}>
                 Start Free Trial
                 <ArrowRight className="w-5 h-5 ml-2" />
               </Button>
-              <Button size="lg" variant="outline" className="h-14 px-8 border-white/20 text-white hover:bg-white/10" onClick={() => navigate('/contact')}>
+              <Button size="lg" variant="outline" className="h-14 px-8" onClick={() => navigate('/contact')}>
                 Talk to Sales
               </Button>
             </div>
