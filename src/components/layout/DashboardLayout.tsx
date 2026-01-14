@@ -47,11 +47,11 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
   return (
     <SidebarProvider>
-      <div className="min-h-screen flex w-full bg-background">
+      <div className="min-h-screen flex w-full bg-muted/30">
         <AppSidebar />
         <main className="flex-1 flex flex-col min-w-0">
-          <header className="h-14 flex items-center gap-4 px-4 border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-10">
-            <SidebarTrigger className="text-muted-foreground hover:text-foreground hover:text-primary transition-colors" />
+          <header className="h-14 flex items-center gap-4 px-4 border-b border-border bg-background/80 backdrop-blur-sm sticky top-0 z-10">
+            <SidebarTrigger className="text-muted-foreground hover:text-foreground" />
             <div className="flex-1" />
           </header>
           <div className="flex-1 p-4 md:p-6 lg:p-8 animate-fade-in">
