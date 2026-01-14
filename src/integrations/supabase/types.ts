@@ -5048,6 +5048,236 @@ export type Database = {
           },
         ]
       }
+      smeksh_phone_number_access: {
+        Row: {
+          created_at: string
+          id: string
+          member_id: string | null
+          phone_number_uuid: string
+          team_id: string | null
+          tenant_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          member_id?: string | null
+          phone_number_uuid: string
+          team_id?: string | null
+          tenant_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          member_id?: string | null
+          phone_number_uuid?: string
+          team_id?: string | null
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "smeksh_phone_number_access_member_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "tenant_members"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "smeksh_phone_number_access_phone_number_uuid_fkey"
+            columns: ["phone_number_uuid"]
+            isOneToOne: false
+            referencedRelation: "smeksh_phone_numbers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "smeksh_phone_number_access_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "smeksh_teams"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "smeksh_phone_number_access_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "smeksh_phone_number_access_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      smeksh_phone_numbers: {
+        Row: {
+          block_marketing_without_optin: boolean
+          business_hours: Json | null
+          certificate: string | null
+          created_at: string
+          default_assignment_strategy: string | null
+          default_team_id: string | null
+          display_name: string | null
+          enforce_opt_in: boolean
+          id: string
+          is_default: boolean
+          last_error: string | null
+          last_message_at: string | null
+          last_webhook_at: string | null
+          max_open_conversations_per_agent: number | null
+          messaging_limit: Database["public"]["Enums"]["smeksh_limit_tier"]
+          only_online: boolean
+          phone_e164: string
+          phone_number_id: string
+          quality_rating: Database["public"]["Enums"]["smeksh_quality_rating"]
+          quiet_hours: Json | null
+          raw: Json
+          status: Database["public"]["Enums"]["smeksh_number_status"]
+          tenant_id: string
+          updated_at: string
+          verified_name: string | null
+          waba_id: string | null
+          waba_uuid: string | null
+          webhook_health: Database["public"]["Enums"]["smeksh_webhook_health"]
+        }
+        Insert: {
+          block_marketing_without_optin?: boolean
+          business_hours?: Json | null
+          certificate?: string | null
+          created_at?: string
+          default_assignment_strategy?: string | null
+          default_team_id?: string | null
+          display_name?: string | null
+          enforce_opt_in?: boolean
+          id?: string
+          is_default?: boolean
+          last_error?: string | null
+          last_message_at?: string | null
+          last_webhook_at?: string | null
+          max_open_conversations_per_agent?: number | null
+          messaging_limit?: Database["public"]["Enums"]["smeksh_limit_tier"]
+          only_online?: boolean
+          phone_e164: string
+          phone_number_id: string
+          quality_rating?: Database["public"]["Enums"]["smeksh_quality_rating"]
+          quiet_hours?: Json | null
+          raw?: Json
+          status?: Database["public"]["Enums"]["smeksh_number_status"]
+          tenant_id: string
+          updated_at?: string
+          verified_name?: string | null
+          waba_id?: string | null
+          waba_uuid?: string | null
+          webhook_health?: Database["public"]["Enums"]["smeksh_webhook_health"]
+        }
+        Update: {
+          block_marketing_without_optin?: boolean
+          business_hours?: Json | null
+          certificate?: string | null
+          created_at?: string
+          default_assignment_strategy?: string | null
+          default_team_id?: string | null
+          display_name?: string | null
+          enforce_opt_in?: boolean
+          id?: string
+          is_default?: boolean
+          last_error?: string | null
+          last_message_at?: string | null
+          last_webhook_at?: string | null
+          max_open_conversations_per_agent?: number | null
+          messaging_limit?: Database["public"]["Enums"]["smeksh_limit_tier"]
+          only_online?: boolean
+          phone_e164?: string
+          phone_number_id?: string
+          quality_rating?: Database["public"]["Enums"]["smeksh_quality_rating"]
+          quiet_hours?: Json | null
+          raw?: Json
+          status?: Database["public"]["Enums"]["smeksh_number_status"]
+          tenant_id?: string
+          updated_at?: string
+          verified_name?: string | null
+          waba_id?: string | null
+          waba_uuid?: string | null
+          webhook_health?: Database["public"]["Enums"]["smeksh_webhook_health"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "smeksh_phone_numbers_default_team_id_fkey"
+            columns: ["default_team_id"]
+            isOneToOne: false
+            referencedRelation: "smeksh_teams"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "smeksh_phone_numbers_default_team_id_fkey"
+            columns: ["default_team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "smeksh_phone_numbers_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "smeksh_phone_numbers_waba_uuid_fkey"
+            columns: ["waba_uuid"]
+            isOneToOne: false
+            referencedRelation: "smeksh_wabas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      smeksh_quality_history: {
+        Row: {
+          id: string
+          messaging_limit: Database["public"]["Enums"]["smeksh_limit_tier"]
+          phone_number_uuid: string
+          quality_rating: Database["public"]["Enums"]["smeksh_quality_rating"]
+          reason: string | null
+          recorded_at: string
+          tenant_id: string
+        }
+        Insert: {
+          id?: string
+          messaging_limit: Database["public"]["Enums"]["smeksh_limit_tier"]
+          phone_number_uuid: string
+          quality_rating: Database["public"]["Enums"]["smeksh_quality_rating"]
+          reason?: string | null
+          recorded_at?: string
+          tenant_id: string
+        }
+        Update: {
+          id?: string
+          messaging_limit?: Database["public"]["Enums"]["smeksh_limit_tier"]
+          phone_number_uuid?: string
+          quality_rating?: Database["public"]["Enums"]["smeksh_quality_rating"]
+          reason?: string | null
+          recorded_at?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "smeksh_quality_history_phone_number_uuid_fkey"
+            columns: ["phone_number_uuid"]
+            isOneToOne: false
+            referencedRelation: "smeksh_phone_numbers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "smeksh_quality_history_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       smeksh_segment_filters: {
         Row: {
           created_at: string
@@ -5213,6 +5443,150 @@ export type Database = {
           },
           {
             foreignKeyName: "smeksh_typing_state_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      smeksh_wabas: {
+        Row: {
+          business_id: string | null
+          business_name: string | null
+          created_at: string
+          id: string
+          is_default: boolean
+          name: string | null
+          tenant_id: string
+          updated_at: string
+          waba_id: string
+        }
+        Insert: {
+          business_id?: string | null
+          business_name?: string | null
+          created_at?: string
+          id?: string
+          is_default?: boolean
+          name?: string | null
+          tenant_id: string
+          updated_at?: string
+          waba_id: string
+        }
+        Update: {
+          business_id?: string | null
+          business_name?: string | null
+          created_at?: string
+          id?: string
+          is_default?: boolean
+          name?: string | null
+          tenant_id?: string
+          updated_at?: string
+          waba_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "smeksh_wabas_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      smeksh_webhook_configs: {
+        Row: {
+          callback_url: string
+          created_at: string
+          id: string
+          is_active: boolean
+          phone_number_id: string
+          secret: string | null
+          subscribed_fields: string[] | null
+          tenant_id: string
+          updated_at: string
+          verify_token: string | null
+        }
+        Insert: {
+          callback_url: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          phone_number_id: string
+          secret?: string | null
+          subscribed_fields?: string[] | null
+          tenant_id: string
+          updated_at?: string
+          verify_token?: string | null
+        }
+        Update: {
+          callback_url?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          phone_number_id?: string
+          secret?: string | null
+          subscribed_fields?: string[] | null
+          tenant_id?: string
+          updated_at?: string
+          verify_token?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "smeksh_webhook_configs_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      smeksh_webhook_delivery_logs: {
+        Row: {
+          direction: string
+          error: string | null
+          event_type: string | null
+          id: string
+          latency_ms: number | null
+          phone_number_id: string | null
+          processed_at: string | null
+          raw: Json
+          received_at: string
+          status_code: number | null
+          success: boolean
+          tenant_id: string
+        }
+        Insert: {
+          direction?: string
+          error?: string | null
+          event_type?: string | null
+          id?: string
+          latency_ms?: number | null
+          phone_number_id?: string | null
+          processed_at?: string | null
+          raw?: Json
+          received_at?: string
+          status_code?: number | null
+          success?: boolean
+          tenant_id: string
+        }
+        Update: {
+          direction?: string
+          error?: string | null
+          event_type?: string | null
+          id?: string
+          latency_ms?: number | null
+          phone_number_id?: string | null
+          processed_at?: string | null
+          raw?: Json
+          received_at?: string
+          status_code?: number | null
+          success?: boolean
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "smeksh_webhook_delivery_logs_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
@@ -7175,6 +7549,10 @@ export type Database = {
         }
         Returns: undefined
       }
+      set_default_phone_number: {
+        Args: { p_number_id: string; p_tenant_id: string }
+        Returns: undefined
+      }
       smeksh_assign_conversation: {
         Args: {
           p_conversation_id: string
@@ -7486,6 +7864,12 @@ export type Database = {
         | "QUALIFIED"
         | "CONVERTED"
         | "LOST"
+      smeksh_limit_tier:
+        | "tier_1k"
+        | "tier_10k"
+        | "tier_100k"
+        | "tier_unlimited"
+        | "unknown"
       smeksh_mau_status: "ACTIVE" | "INACTIVE"
       smeksh_message_direction: "inbound" | "outbound"
       smeksh_message_type:
@@ -7506,6 +7890,13 @@ export type Database = {
         | "disconnected"
         | "error"
       smeksh_note_visibility: "internal" | "private"
+      smeksh_number_status:
+        | "connected"
+        | "pending"
+        | "verification_required"
+        | "disconnected"
+        | "disabled"
+        | "error"
       smeksh_optin_source:
         | "WEBSITE"
         | "FORM"
@@ -7515,9 +7906,11 @@ export type Database = {
         | "IMPORT"
         | "API"
         | "OTHER"
+      smeksh_quality_rating: "green" | "yellow" | "red" | "unknown"
       smeksh_report_status: "generating" | "ready" | "failed"
       smeksh_typing_status: "typing" | "stopped"
       smeksh_wa_status: "sent" | "delivered" | "read" | "failed"
+      smeksh_webhook_health: "healthy" | "degraded" | "down" | "unknown"
       smeksh_winner_metric: "reply_rate" | "read_rate" | "conversion_rate"
       subscription_status:
         | "active"
@@ -7949,6 +8342,13 @@ export const Constants = {
         "CONVERTED",
         "LOST",
       ],
+      smeksh_limit_tier: [
+        "tier_1k",
+        "tier_10k",
+        "tier_100k",
+        "tier_unlimited",
+        "unknown",
+      ],
       smeksh_mau_status: ["ACTIVE", "INACTIVE"],
       smeksh_message_direction: ["inbound", "outbound"],
       smeksh_message_type: [
@@ -7971,6 +8371,14 @@ export const Constants = {
         "error",
       ],
       smeksh_note_visibility: ["internal", "private"],
+      smeksh_number_status: [
+        "connected",
+        "pending",
+        "verification_required",
+        "disconnected",
+        "disabled",
+        "error",
+      ],
       smeksh_optin_source: [
         "WEBSITE",
         "FORM",
@@ -7981,9 +8389,11 @@ export const Constants = {
         "API",
         "OTHER",
       ],
+      smeksh_quality_rating: ["green", "yellow", "red", "unknown"],
       smeksh_report_status: ["generating", "ready", "failed"],
       smeksh_typing_status: ["typing", "stopped"],
       smeksh_wa_status: ["sent", "delivered", "read", "failed"],
+      smeksh_webhook_health: ["healthy", "degraded", "down", "unknown"],
       smeksh_winner_metric: ["reply_rate", "read_rate", "conversion_rate"],
       subscription_status: [
         "active",
