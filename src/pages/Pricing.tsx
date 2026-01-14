@@ -161,35 +161,31 @@ export default function Pricing() {
     <div className="min-h-screen bg-background">
       <Navbar />
 
-      {/* Hero */}
-      <section className="relative pt-16 pb-10 md:pt-20 md:pb-14 overflow-hidden bg-gradient-to-b from-background to-muted/30">
-        <div className="absolute inset-0">
-          <div className="absolute top-20 right-0 w-[400px] h-[400px] bg-green-500/5 rounded-full blur-[100px]" />
-          <div className="absolute bottom-0 left-0 w-[300px] h-[300px] bg-primary/5 rounded-full blur-[80px]" />
-        </div>
+      {/* Hero - Classic Design */}
+      <section className="relative pt-16 pb-12 md:pt-20 md:pb-16 bg-white overflow-hidden">
+        <div className="absolute top-10 right-10 w-64 h-64 bg-primary/5 rounded-full blur-3xl" />
+        <div className="absolute bottom-10 left-10 w-80 h-80 bg-primary/3 rounded-full blur-3xl" />
         
         <div className="container mx-auto px-4 relative">
           <div className="max-w-4xl mx-auto text-center">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-green-500/10 border border-green-500/20 text-green-600 text-sm font-medium mb-6">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 text-primary text-sm font-medium mb-6">
               <Zap className="w-4 h-4" />
               Simple, Transparent Pricing
             </div>
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-foreground mb-6 leading-tight">
-              Choose Your{' '}
-              <span className="bg-gradient-to-r from-green-500 via-emerald-500 to-cyan-500 bg-clip-text text-transparent">
-                Perfect Plan
-              </span>
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 leading-tight">
+              <span className="text-slate-900">Choose Your</span>{' '}
+              <span className="text-primary">Perfect Plan</span>
             </h1>
-            <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mb-10">
+            <p className="text-lg md:text-xl text-slate-600 max-w-2xl mx-auto mb-10">
               Start free for 14 days. No credit card required. Cancel anytime.
             </p>
 
             {/* Billing Toggle */}
-            <div className="inline-flex items-center gap-4 px-6 py-3 rounded-full bg-muted border border-border">
-              <span className={`text-sm font-medium ${!isAnnual ? 'text-foreground' : 'text-muted-foreground'}`}>Monthly</span>
+            <div className="inline-flex items-center gap-4 px-6 py-3 rounded-full bg-slate-100 border border-slate-200">
+              <span className={`text-sm font-medium ${!isAnnual ? 'text-slate-900' : 'text-slate-500'}`}>Monthly</span>
               <Switch checked={isAnnual} onCheckedChange={setIsAnnual} />
-              <span className={`text-sm font-medium ${isAnnual ? 'text-foreground' : 'text-muted-foreground'}`}>
-                Annual <span className="text-green-600 ml-1">(Save 20%)</span>
+              <span className={`text-sm font-medium ${isAnnual ? 'text-slate-900' : 'text-slate-500'}`}>
+                Annual <span className="text-primary ml-1">(Save 20%)</span>
               </span>
             </div>
           </div>

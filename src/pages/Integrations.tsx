@@ -33,29 +33,25 @@ export default function Integrations() {
     <div className="min-h-screen bg-background">
       <Navbar />
 
-      {/* Hero */}
-      <section className="relative pt-16 pb-10 md:pt-20 md:pb-14 overflow-hidden bg-gradient-to-b from-background to-muted/30">
-        <div className="absolute inset-0">
-          <div className="absolute top-20 right-0 w-[400px] h-[400px] bg-indigo-500/5 rounded-full blur-[100px]" />
-          <div className="absolute bottom-0 left-0 w-[300px] h-[300px] bg-primary/5 rounded-full blur-[80px]" />
-        </div>
+      {/* Hero - Classic Design */}
+      <section className="relative pt-16 pb-12 md:pt-20 md:pb-16 bg-white overflow-hidden">
+        <div className="absolute top-10 right-10 w-64 h-64 bg-primary/5 rounded-full blur-3xl" />
+        <div className="absolute bottom-10 left-10 w-80 h-80 bg-primary/3 rounded-full blur-3xl" />
         
         <div className="container mx-auto px-4 relative">
           <div className="max-w-4xl mx-auto text-center">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-600 text-sm font-medium mb-6">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 text-primary text-sm font-medium mb-6">
               <Zap className="w-4 h-4" />
               Powerful Integrations
             </div>
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-foreground mb-6 leading-tight">
-              Connect Your{' '}
-              <span className="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 bg-clip-text text-transparent">
-                Favorite Tools
-              </span>
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 leading-tight">
+              <span className="text-slate-900">Connect Your</span>{' '}
+              <span className="text-primary">Favorite Tools</span>
             </h1>
-            <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mb-10">
+            <p className="text-lg md:text-xl text-slate-600 max-w-2xl mx-auto mb-10">
               Integrate AiReatro with the tools you already use. Automate workflows and boost productivity.
             </p>
-            <Button size="lg" className="h-14 px-8 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 shadow-lg shadow-green-500/20" onClick={() => navigate('/signup')}>
+            <Button size="lg" className="h-14 px-8" onClick={() => navigate('/signup')}>
               Start Integrating
               <ArrowRight className="w-5 h-5 ml-2" />
             </Button>
