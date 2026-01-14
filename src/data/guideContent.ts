@@ -479,6 +479,65 @@ export const STATIC_GUIDES: StaticGuide[] = [
       }
     ],
     relatedSlugs: ['automation-workflows', 'contacts-management', 'templates-guide']
+  },
+
+  // Integrations Guide
+  {
+    slug: 'integrations-guide',
+    title: 'External Integrations',
+    category: 'platform',
+    sidebarKey: 'integrations',
+    summary: 'Connect Shopify, Razorpay, Zapier, and other tools to automate WhatsApp messaging.',
+    difficulty: 'intermediate',
+    readingTime: 10,
+    sections: [
+      {
+        type: 'what_is',
+        title: 'What are Integrations?',
+        content: 'Integrations allow you to connect external systems like e-commerce platforms (Shopify, WooCommerce), payment gateways (Razorpay, PayU), CRMs (LeadSquared), and automation tools (Zapier, Pabbly) to automatically trigger WhatsApp messages based on events in those systems.'
+      },
+      {
+        type: 'when_to_use',
+        title: 'When to Use Integrations',
+        content: '• **Order Updates** - Send order confirmations when a Shopify order is created\n• **Payment Notifications** - Alert customers when Razorpay payment is captured\n• **Lead Nurturing** - Trigger flows when a new lead is added to LeadSquared\n• **Cart Recovery** - Send reminders for abandoned WooCommerce checkouts\n• **Cross-Platform Automation** - Connect any app via Zapier or Pabbly'
+      },
+      {
+        type: 'how_it_works',
+        title: 'How Integrations Work',
+        content: '**1. Connect** - Choose an integration from the Integrations Hub and connect using API keys, OAuth, or webhooks.\n\n**2. Configure Webhook** - Copy the unique webhook URL and paste it into your external system settings.\n\n**3. Map Events to Actions** - For each event type (e.g., `shopify.orders.paid`), configure what action to take:\n   - Send a WhatsApp template\n   - Trigger an automation flow\n   - Assign an agent\n   - Add tags to the contact\n\n**4. Map Variables** - Connect payload fields (like `customer.first_name`) to template variables (like `{{first_name}}`).\n\n**5. Monitor** - Use the Event Debugger to see incoming events, check for errors, and retry failed events.'
+      },
+      {
+        type: 'common_mistakes',
+        title: 'Common Mistakes',
+        content: '❌ Forgetting to add the webhook URL to the external system\n❌ Not testing the connection before going live\n❌ Incorrect variable mapping (wrong payload paths)\n❌ Using wrong phone field in payload\n❌ Not setting up opt-in status before sending marketing messages\n❌ Ignoring failed events in the debugger'
+      },
+      {
+        type: 'tips',
+        title: 'Integration Best Practices',
+        content: '✅ **Test with sandbox first** - Use test orders/payments before going live\n✅ **Monitor the Event Debugger** - Check for failed events regularly\n✅ **Use conditions (Pro)** - Route high-value orders differently\n✅ **Set up fallback flows** - Handle cases where variable mapping fails\n✅ **Enable retry policies** - Automatically retry failed events\n✅ **Verify webhook signatures** - Keep your webhook secret secure'
+      }
+    ],
+    examples: [
+      {
+        title: 'Shopify Order Confirmation',
+        description: 'Send WhatsApp when order is created',
+        code: 'Event: shopify.orders.create\nAction: Send Template "order_confirmation"\n\nVariable Mapping:\n  customer.first_name → {{first_name}}\n  id → {{order_id}}\n  total_price → {{order_total}}\n  order_status_url → {{tracking_link}}',
+        isGood: true
+      },
+      {
+        title: 'Razorpay Payment Success',
+        description: 'Notify on successful payment',
+        code: 'Event: razorpay.payment.captured\nAction: Send Template "payment_success"\n\nVariable Mapping:\n  payload.payment.entity.contact → Phone\n  payload.payment.entity.amount → {{amount}} (÷100)\n  payload.payment.entity.notes.name → {{name}}',
+        isGood: true
+      },
+      {
+        title: 'LeadSquared Lead Nurturing',
+        description: 'Start flow for new leads',
+        code: 'Event: leadsquared.lead.created\nAction: Trigger Flow "new_lead_welcome"\n\nVariable Mapping:\n  Phone → {{phone}}\n  FirstName → {{first_name}}\n  ProspectStage → {{lead_stage}}',
+        isGood: true
+      }
+    ],
+    relatedSlugs: ['automation-workflows', 'templates-guide', 'campaigns-guide']
   }
 ];
 

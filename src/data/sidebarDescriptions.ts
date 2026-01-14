@@ -211,6 +211,14 @@ export const sidebarDescriptions: Record<string, SidebarItemMeta> = {
     icon: '👥',
     category: 'platform'
   },
+  integrations: {
+    key: 'integrations',
+    title: 'Integrations',
+    description: 'Connect external systems like Shopify, Razorpay, Zapier, and LeadSquared to automate WhatsApp messaging based on events.',
+    helpSlug: 'integrations-guide',
+    icon: '🔌',
+    category: 'platform'
+  },
   billing: {
     key: 'billing',
     title: 'Billing & Usage',

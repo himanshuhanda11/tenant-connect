@@ -158,9 +158,8 @@ const App = () => (
               <Route path="/meta-ads/automations" element={<MetaAdsAutomations />} />
               <Route path="/meta-ads/settings" element={<MetaAdsSettings />} />
               <Route path="/billing" element={<Billing />} />
-              <Route path="/integrations-hub" element={<IntegrationsHub />} />
-              <Route path="/integrations-hub/:key" element={<IntegrationDetail />} />
-              <Route path="/integrations/:key" element={<IntegrationDetail />} />
+              <Route path="/app/integrations" element={<IntegrationsHub />} />
+              <Route path="/app/integrations/:key" element={<IntegrationDetail />} />
               <Route path="/settings" element={<Settings />} />
               <Route path="/privacy-policy" element={<PrivacyPolicy />} />
               <Route path="/terms" element={<Terms />} />

@@ -152,4 +152,12 @@ export const quickGuides = {
       { label: 'How to manage your Meta catalogue with Shopify?', url: '/help/shopify-integration' },
     ],
   },
+  integrations: {
+    description: 'Connect Shopify, Razorpay, Zapier, and other tools to automate WhatsApp messaging based on events.',
+    links: [
+      { label: 'How to set up integrations?', url: '/help/integrations-guide' },
+      { label: 'Event-to-action mapping', url: '/help/integrations-guide' },
+      { label: 'Webhook debugging', url: '/help/integrations-guide' },
+    ],
+  },
 };
