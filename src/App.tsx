@@ -30,6 +30,9 @@ import ContactDataRequests from "./pages/ContactDataRequests";
 import Tags from "./pages/Tags";
 import UserAttributes from "./pages/UserAttributes";
 import PhoneNumbers from "./pages/PhoneNumbers";
+import PhoneNumbersList from "./pages/phone-numbers/PhoneNumbersList";
+import ConnectNumber from "./pages/phone-numbers/ConnectNumber";
+import PhoneNumberDetails from "./pages/phone-numbers/PhoneNumberDetails";
 import Templates from "./pages/Templates";
 import CampaignsList from "./pages/campaigns/CampaignsList";
 import CreateCampaign from "./pages/campaigns/CreateCampaign";
@@ -113,7 +116,10 @@ const App = () => (
               <Route path="/contacts/data-requests" element={<ContactDataRequests />} />
               <Route path="/tags" element={<Tags />} />
               <Route path="/user-attributes" element={<UserAttributes />} />
-              <Route path="/phone-numbers" element={<PhoneNumbers />} />
+              <Route path="/phone-numbers" element={<PhoneNumbersList />} />
+              <Route path="/phone-numbers/connect" element={<ConnectNumber />} />
+              <Route path="/phone-numbers/:id" element={<PhoneNumberDetails />} />
+              <Route path="/phone-numbers-legacy" element={<PhoneNumbers />} />
               <Route path="/templates" element={<Templates />} />
               <Route path="/campaigns" element={<CampaignsList />} />
               <Route path="/campaigns/create" element={<CreateCampaign />} />
