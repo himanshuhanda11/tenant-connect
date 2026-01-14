@@ -12,8 +12,16 @@ import { supabase } from '@/integrations/supabase/client';
 import { useTenant } from '@/contexts/TenantContext';
 import { toast } from 'sonner';
 import { MetaEmbeddedSignup } from '@/components/meta/MetaEmbeddedSignup';
+import { MetaAppStatusChecklist } from '@/components/meta/MetaAppStatusChecklist';
 import { useSearchParams } from 'react-router-dom';
 import type { PhoneNumber, WabaAccount, PhoneStatus, QualityRating } from '@/types/whatsapp';
+
+// Parse Meta error code from error message
+function parseMetaErrorCode(errorMsg: string): string | undefined {
+  // Match patterns like "(1349205)" or "error_code=1349205"
+  const match = errorMsg.match(/\((\d{4,})\)|error_code[=:]?\s*(\d{4,})/i);
+  return match?.[1] || match?.[2];
+}
 
 export default function PhoneNumbers() {
   const { currentTenant, currentRole } = useTenant();
@@ -24,6 +32,7 @@ export default function PhoneNumbers() {
   const [embeddedSignupOpen, setEmbeddedSignupOpen] = useState(false);
   const [connectLoading, setConnectLoading] = useState(false);
   const [verifyingId, setVerifyingId] = useState<string | null>(null);
+  const [metaError, setMetaError] = useState<{ code?: string; message?: string } | null>(null);
   const [formData, setFormData] = useState({
     businessId: '',
     wabaId: '',
@@ -42,6 +51,7 @@ export default function PhoneNumbers() {
 
     if (connected === '1') {
       toast.success(`Successfully connected ${phones || ''} phone number(s)!`);
+      setMetaError(null);
       // Refresh list after OAuth redirect
       if (currentTenant) {
         fetchPhoneNumbers();
@@ -49,7 +59,19 @@ export default function PhoneNumbers() {
       // Clean up URL params
       setSearchParams({});
     } else if (error) {
-      toast.error(`Connection failed: ${error}`);
+      // Detect Meta-specific errors and show checklist
+      const errorCode = parseMetaErrorCode(error);
+      const isMetaError = errorCode || 
+        error.toLowerCase().includes('meta') || 
+        error.toLowerCase().includes('oauth') ||
+        error.toLowerCase().includes('facebook') ||
+        error.toLowerCase().includes('feature unavailable');
+
+      if (isMetaError) {
+        setMetaError({ code: errorCode, message: error });
+      } else {
+        toast.error(`Connection failed: ${error}`);
+      }
       setSearchParams({});
     }
   }, [searchParams, setSearchParams, currentTenant]);
@@ -189,6 +211,15 @@ export default function PhoneNumbers() {
   return (
     <DashboardLayout>
       <div className="space-y-6">
+        {/* Meta App Status Checklist (shown on OAuth errors) */}
+        {metaError && (
+          <MetaAppStatusChecklist
+            errorCode={metaError.code}
+            errorMessage={metaError.message}
+            onDismiss={() => setMetaError(null)}
+          />
+        )}
+
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold text-foreground">Phone Numbers</h1>
