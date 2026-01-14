@@ -14,6 +14,7 @@ import { toast } from 'sonner';
 import { MetaEmbeddedSignup } from '@/components/meta/MetaEmbeddedSignup';
 import { MetaAppStatusChecklist } from '@/components/meta/MetaAppStatusChecklist';
 import { useSearchParams } from 'react-router-dom';
+import { QuickGuide, quickGuides } from '@/components/help/QuickGuide';
 import type { PhoneNumber, WabaAccount, PhoneStatus, QualityRating } from '@/types/whatsapp';
 
 // Parse Meta error code from error message
@@ -211,6 +212,9 @@ export default function PhoneNumbers() {
   return (
     <DashboardLayout>
       <div className="space-y-6">
+        {/* Quick Guide */}
+        <QuickGuide {...quickGuides.phoneNumbers} />
+
         {/* Meta App Status Checklist (shown on OAuth errors) */}
         {metaError && (
           <MetaAppStatusChecklist

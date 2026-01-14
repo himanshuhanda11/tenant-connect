@@ -12,6 +12,7 @@ import { BillingSettingsForm } from '@/components/billing/BillingSettingsForm';
 import { SubscriptionActions } from '@/components/billing/SubscriptionActions';
 import { BillingFAQ } from '@/components/billing/BillingFAQ';
 import { usePlans, useSubscription } from '@/hooks/useBilling';
+import { QuickGuide, quickGuides } from '@/components/help/QuickGuide';
 import { useState } from 'react';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
@@ -35,6 +36,9 @@ export default function Billing() {
   return (
     <DashboardLayout>
       <div className="space-y-6">
+        {/* Quick Guide */}
+        <QuickGuide {...quickGuides.billing} />
+
         <div>
           <h1 className="text-2xl font-bold">Billing & Subscription</h1>
           <p className="text-muted-foreground">

@@ -71,6 +71,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useFlows, useFlowTemplates } from '@/hooks/useFlows';
+import { QuickGuide, quickGuides } from '@/components/help/QuickGuide';
 import { usePhoneNumbers } from '@/hooks/usePhoneNumbers';
 
 const quickCreateOptions = [
@@ -177,6 +178,9 @@ const FlowsHub = () => {
   return (
     <DashboardLayout>
       <div className="space-y-6">
+        {/* Quick Guide */}
+        <QuickGuide {...quickGuides.flows} />
+
         {/* Header */}
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
           <div>
