@@ -1,12 +1,13 @@
 import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Puzzle, Plus, Activity, BookOpen, Settings } from 'lucide-react';
+import { Puzzle, Activity, BookOpen, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { IntegrationCard } from '@/components/integrations/IntegrationCard';
 import { IntegrationFilters } from '@/components/integrations/IntegrationFilters';
 import { ConnectIntegrationModal } from '@/components/integrations/ConnectIntegrationModal';
+import { QuickGuide, quickGuides } from '@/components/help/QuickGuide';
 import { useIntegrations } from '@/hooks/useIntegrations';
 import { useToast } from '@/hooks/use-toast';
 import type { IntegrationCatalog, IntegrationCategory } from '@/types/integration';
@@ -98,6 +99,14 @@ export default function IntegrationsHub() {
   return (
     <DashboardLayout>
       <div className="container mx-auto px-4 py-6 max-w-7xl">
+        {/* Quick Guide Banner */}
+        <QuickGuide
+          title="Integrations Guide"
+          description={quickGuides.integrations.description}
+          links={quickGuides.integrations.links}
+          className="mb-6"
+        />
+
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
           <div>
@@ -118,7 +127,7 @@ export default function IntegrationsHub() {
           </div>
 
           <div className="flex items-center gap-2">
-            <Button variant="outline" onClick={() => navigate('/help/integrations')}>
+            <Button variant="outline" onClick={() => navigate('/help/integrations-guide')}>
               <BookOpen className="w-4 h-4 mr-2" />
               Docs
             </Button>
@@ -172,9 +181,9 @@ export default function IntegrationsHub() {
                 key={integration.id}
                 integration={integration}
                 onConnect={() => handleConnect(integration)}
-                onManage={() => navigate(`/integrations/${integration.key}`)}
-                onViewDocs={() => window.open(integration.documentation_url || '/docs', '_blank')}
-                onViewEvents={() => navigate(`/integrations/${integration.key}/events`)}
+                onManage={() => navigate(`/app/integrations/${integration.key}`)}
+                onViewDocs={() => window.open(integration.documentation_url || '/help/integrations-guide', '_blank')}
+                onViewEvents={() => navigate(`/app/integrations/${integration.key}?tab=events`)}
               />
             ))}
           </div>

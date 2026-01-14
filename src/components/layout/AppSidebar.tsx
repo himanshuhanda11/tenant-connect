@@ -162,9 +162,9 @@ const teamMenuItems: MenuItem[] = [{
 }];
 const settingsMenuItems: MenuItem[] = [{
   title: 'Integrations',
-  url: '/integrations-hub',
+  url: '/app/integrations',
   icon: Puzzle,
-  key: 'integrations-hub',
+  key: 'integrations',
   isNew: true
 }, {
   title: 'Billing',

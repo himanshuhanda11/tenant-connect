@@ -159,7 +159,7 @@ export default function IntegrationDetail() {
       <DashboardLayout>
         <div className="container mx-auto px-4 py-12 text-center">
           <h1 className="text-2xl font-bold mb-4">Integration Not Found</h1>
-          <Button onClick={() => navigate('/integrations-hub')}>
+          <Button onClick={() => navigate('/app/integrations')}>
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Integrations
           </Button>
@@ -199,7 +199,7 @@ export default function IntegrationDetail() {
   const handleDisconnect = () => {
     disconnect(key);
     toast({ title: 'Disconnected', description: `${integration.name} has been disconnected.` });
-    navigate('/integrations-hub');
+    navigate('/app/integrations');
   };
 
   const handleTestConnection = async () => {
@@ -229,7 +229,7 @@ export default function IntegrationDetail() {
       <div className="container mx-auto px-4 py-6 max-w-6xl">
         {/* Header */}
         <div className="flex items-center gap-4 mb-6">
-          <Button variant="ghost" size="icon" onClick={() => navigate('/integrations-hub')}>
+          <Button variant="ghost" size="icon" onClick={() => navigate('/app/integrations')}>
             <ArrowLeft className="w-5 h-5" />
           </Button>
           <div className="flex-1">
@@ -274,7 +274,7 @@ export default function IntegrationDetail() {
                 </AlertDialog>
               </>
             ) : (
-              <Button onClick={() => navigate('/integrations-hub')}>
+              <Button onClick={() => navigate('/app/integrations')}>
                 <Power className="w-4 h-4 mr-1" />
                 Connect
               </Button>
