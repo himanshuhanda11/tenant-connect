@@ -263,13 +263,13 @@ export function AppSidebar() {
     const meta = sidebarDescriptions[item.key];
     const isActive = isRouteActive(item.url);
     const isHelpItem = item.key === 'help';
-    
+
     if (isCollapsed) {
       return <SidebarMenuItem key={item.title}>
           <Tooltip delayDuration={0}>
             <TooltipTrigger asChild>
               <SidebarMenuButton asChild>
-                <NavLink to={item.url} end={item.url === '/dashboard'} className={cn("flex items-center justify-center p-2 rounded-lg transition-all duration-200 font-medium", isActive ? "bg-primary text-primary-foreground shadow-sm" : isHelpItem ? "bg-emerald-100 text-emerald-700 hover:bg-emerald-200" : "text-foreground/80 hover:text-foreground hover:bg-sidebar-accent")} activeClassName="">
+                <NavLink to={item.url} end={item.url === '/dashboard'} className={cn("flex items-center justify-center p-2 rounded-lg transition-all duration-200 font-medium", isActive ? "bg-primary text-primary-foreground shadow-sm" : isHelpItem ? "bg-primary/10 text-primary hover:bg-primary/15" : "text-foreground/80 hover:text-foreground hover:bg-sidebar-accent")} activeClassName="">
                   <item.icon className="w-5 h-5" />
                 </NavLink>
               </SidebarMenuButton>
@@ -285,8 +285,8 @@ export function AppSidebar() {
     }
     return <SidebarMenuItem key={item.title}>
         <SidebarMenuButton asChild className="group/item">
-          <NavLink to={item.url} end={item.url === '/dashboard'} className={cn("flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 font-medium", compact ? "py-2" : "py-2.5", isActive ? "bg-primary/10 text-primary font-semibold border-l-2 border-primary -ml-[2px] pl-[14px]" : isHelpItem ? "bg-emerald-100 text-emerald-700 hover:bg-emerald-200" : "text-foreground/80 hover:text-foreground hover:bg-sidebar-accent")} activeClassName="">
-            <item.icon className={cn("w-5 h-5 flex-shrink-0", isActive && "text-primary", isHelpItem && !isActive && "text-emerald-600")} />
+          <NavLink to={item.url} end={item.url === '/dashboard'} className={cn("flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 font-medium", compact ? "py-2" : "py-2.5", isActive ? "bg-primary/10 text-primary font-semibold border-l-2 border-primary -ml-[2px] pl-[14px]" : isHelpItem ? "bg-primary/10 text-primary hover:bg-primary/15" : "text-foreground/80 hover:text-foreground hover:bg-sidebar-accent")} activeClassName="">
+            <item.icon className={cn("w-5 h-5 flex-shrink-0", isActive && "text-primary", isHelpItem && !isActive && "text-primary")} />
             <span className="flex-1 truncate">{item.title}</span>
             {item.isNew && <Badge className="h-5 px-1.5 text-[10px] bg-gradient-to-r from-violet-500 to-purple-500 text-white border-0">
                 NEW
@@ -422,6 +422,46 @@ export function AppSidebar() {
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
+        </div>
+
+        {/* Guide Shortcut (always visible) */}
+        <div className="mb-4">
+          {isCollapsed ? (
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <Tooltip delayDuration={0}>
+                  <TooltipTrigger asChild>
+                    <SidebarMenuButton asChild>
+                      <NavLink
+                        to="/help"
+                        className={cn(
+                          "flex items-center justify-center p-2 rounded-lg transition-all duration-200",
+                          "bg-primary/10 text-primary hover:bg-primary/15",
+                        )}
+                        activeClassName=""
+                      >
+                        <HelpCircle className="w-5 h-5" />
+                      </NavLink>
+                    </SidebarMenuButton>
+                  </TooltipTrigger>
+                  <TooltipContent side="right">Guide</TooltipContent>
+                </Tooltip>
+              </SidebarMenuItem>
+            </SidebarMenu>
+          ) : (
+            <NavLink
+              to="/help"
+              className={cn(
+                "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 font-semibold",
+                "bg-primary/10 text-primary hover:bg-primary/15",
+              )}
+              activeClassName=""
+            >
+              <HelpCircle className="w-5 h-5" />
+              <span className="flex-1">Guide</span>
+              <span className="text-xs font-normal text-primary/80">Quick help</span>
+            </NavLink>
+          )}
         </div>
 
         {/* Quick Search - Only when expanded */}
