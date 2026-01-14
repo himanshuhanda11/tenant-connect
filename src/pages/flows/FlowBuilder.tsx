@@ -195,8 +195,13 @@ const FlowBuilder = () => {
   
   const { 
     flow, nodes, edges, triggers, diagnostics, loading, saving,
-    addNode, updateNode, deleteNode, addEdge, deleteEdge, saveFlow, publishFlow 
+    addNode, updateNode, deleteNode, addEdge, deleteEdge, saveFlow, publishFlow,
+    addTrigger, updateTrigger, deleteTrigger, toggleTrigger
   } = useFlowBuilder(id);
+
+  // Trigger configuration state
+  const [editingTriggerId, setEditingTriggerId] = useState<string | null>(null);
+  const [triggerKeyword, setTriggerKeyword] = useState('');
   
   const [flowName, setFlowName] = useState('');
   const [selectedNodeKey, setSelectedNodeKey] = useState<string | null>(null);
@@ -677,14 +682,167 @@ const FlowBuilder = () => {
                       <p className="text-xs text-muted-foreground">Configure how this flow starts</p>
                     </div>
                     
+                    {/* Active Triggers */}
+                    {triggers.length > 0 && (
+                      <div className="space-y-2">
+                        <Label className="text-xs text-muted-foreground">Active Triggers</Label>
+                        {triggers.map((trigger) => {
+                          const triggerInfo = triggerTypes.find(t => t.type === trigger.trigger_type);
+                          const TriggerIcon = triggerInfo?.icon || Keyboard;
+                          return (
+                            <div
+                              key={trigger.id}
+                              className={cn(
+                                'flex items-center gap-3 p-3 rounded-xl border-2 transition-all',
+                                editingTriggerId === trigger.id 
+                                  ? 'border-primary bg-primary/5' 
+                                  : 'border-border hover:border-primary/50'
+                              )}
+                            >
+                              <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center">
+                                <TriggerIcon className="w-4 h-4 text-primary" />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm font-medium">{triggerInfo?.label || trigger.trigger_type}</p>
+                                <p className="text-[11px] text-muted-foreground truncate">
+                                  {(trigger.config as any)?.keyword || (trigger.config as any)?.pattern || 'Click to configure'}
+                                </p>
+                              </div>
+                              <Switch 
+                                checked={trigger.is_enabled} 
+                                onCheckedChange={(checked) => toggleTrigger(trigger.id, checked)}
+                                data-no-drag
+                              />
+                              <Button 
+                                variant="ghost" 
+                                size="icon" 
+                                className="h-7 w-7 shrink-0"
+                                onClick={() => setEditingTriggerId(editingTriggerId === trigger.id ? null : trigger.id)}
+                              >
+                                <Settings className="w-4 h-4" />
+                              </Button>
+                              <Button 
+                                variant="ghost" 
+                                size="icon" 
+                                className="h-7 w-7 text-destructive shrink-0"
+                                onClick={() => deleteTrigger(trigger.id)}
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </Button>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+
+                    {/* Trigger Configuration Panel */}
+                    {editingTriggerId && (() => {
+                      const trigger = triggers.find(t => t.id === editingTriggerId);
+                      if (!trigger) return null;
+                      return (
+                        <div className="p-3 rounded-xl border bg-muted/50 space-y-3">
+                          <div className="flex items-center justify-between">
+                            <Label className="text-xs font-medium">Configure Trigger</Label>
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              className="h-6 text-xs"
+                              onClick={() => setEditingTriggerId(null)}
+                            >
+                              Done
+                            </Button>
+                          </div>
+                          
+                          {trigger.trigger_type === 'keyword' && (
+                            <div className="space-y-2">
+                              <Label className="text-xs">Keyword(s)</Label>
+                              <Input 
+                                placeholder="e.g., hello, hi, start"
+                                defaultValue={(trigger.config as any)?.keyword || ''}
+                                onChange={(e) => updateTrigger(trigger.id, { 
+                                  config: { ...trigger.config, keyword: e.target.value } 
+                                })}
+                              />
+                              <p className="text-[10px] text-muted-foreground">
+                                Separate multiple keywords with commas
+                              </p>
+                            </div>
+                          )}
+                          
+                          {trigger.trigger_type === 'regex' && (
+                            <div className="space-y-2">
+                              <Label className="text-xs">Regex Pattern</Label>
+                              <Input 
+                                placeholder="e.g., ^order\\s+\\d+"
+                                defaultValue={(trigger.config as any)?.pattern || ''}
+                                onChange={(e) => updateTrigger(trigger.id, { 
+                                  config: { ...trigger.config, pattern: e.target.value } 
+                                })}
+                              />
+                            </div>
+                          )}
+                          
+                          {trigger.trigger_type === 'qr' && (
+                            <div className="space-y-2">
+                              <Label className="text-xs">QR Code Campaign ID</Label>
+                              <Input 
+                                placeholder="campaign-123"
+                                defaultValue={(trigger.config as any)?.campaign_id || ''}
+                                onChange={(e) => updateTrigger(trigger.id, { 
+                                  config: { ...trigger.config, campaign_id: e.target.value } 
+                                })}
+                              />
+                            </div>
+                          )}
+
+                          {trigger.trigger_type === 'meta_ad' && (
+                            <div className="space-y-2">
+                              <Label className="text-xs">Meta Ad Campaign ID</Label>
+                              <Input 
+                                placeholder="ad-123"
+                                defaultValue={(trigger.config as any)?.ad_id || ''}
+                                onChange={(e) => updateTrigger(trigger.id, { 
+                                  config: { ...trigger.config, ad_id: e.target.value } 
+                                })}
+                              />
+                            </div>
+                          )}
+
+                          {trigger.trigger_type === 'api' && (
+                            <div className="space-y-2">
+                              <Label className="text-xs">Webhook Secret (optional)</Label>
+                              <Input 
+                                placeholder="your-secret-key"
+                                defaultValue={(trigger.config as any)?.secret || ''}
+                                onChange={(e) => updateTrigger(trigger.id, { 
+                                  config: { ...trigger.config, secret: e.target.value } 
+                                })}
+                              />
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })()}
+
+                    <Separator />
+                    
+                    {/* Add New Trigger */}
                     <div className="space-y-2">
+                      <Label className="text-xs text-muted-foreground">Add New Trigger</Label>
                       {triggerTypes.map((trigger) => (
-                        <div
+                        <button
                           key={trigger.type}
+                          disabled={trigger.pro}
+                          onClick={() => {
+                            if (!trigger.pro) {
+                              addTrigger(trigger.type, {});
+                            }
+                          }}
                           className={cn(
-                            'flex items-center gap-3 p-3 rounded-xl border-2 cursor-pointer transition-all',
-                            'hover:border-primary/50 hover:bg-primary/5',
-                            trigger.pro && 'opacity-60'
+                            'w-full flex items-center gap-3 p-3 rounded-xl border-2 border-dashed transition-all text-left',
+                            trigger.pro 
+                              ? 'cursor-not-allowed opacity-50 border-border' 
+                              : 'cursor-pointer hover:border-primary hover:bg-primary/5 border-border'
                           )}
                         >
                           <div className="w-9 h-9 rounded-lg bg-muted flex items-center justify-center">
@@ -694,8 +852,12 @@ const FlowBuilder = () => {
                             <p className="text-sm font-medium">{trigger.label}</p>
                             <p className="text-[11px] text-muted-foreground">{trigger.description}</p>
                           </div>
-                          {trigger.pro && <Crown className="w-4 h-4 text-purple-500" />}
-                        </div>
+                          {trigger.pro ? (
+                            <Crown className="w-4 h-4 text-purple-500" />
+                          ) : (
+                            <Plus className="w-4 h-4 text-muted-foreground" />
+                          )}
+                        </button>
                       ))}
                     </div>
                   </div>
