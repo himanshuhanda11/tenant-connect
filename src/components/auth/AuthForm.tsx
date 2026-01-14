@@ -122,7 +122,7 @@ export function AuthForm({ mode }: AuthFormProps) {
                 <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br from-green-500 to-emerald-600 shadow-lg">
                   <MessageSquare className="w-5 h-5 text-white" />
                 </div>
-                <span className="font-bold text-xl text-foreground">aireatro</span>
+                <span className="font-bold text-xl text-foreground">AiReatro</span>
               </Link>
             </div>
             <Breadcrumb className="mt-4" />
@@ -198,7 +198,7 @@ export function AuthForm({ mode }: AuthFormProps) {
               Manage all your WhatsApp conversations in one place
             </h2>
             <p className="text-white/80 text-lg mb-8">
-              Join 5,000+ businesses using aireatro to connect with customers on WhatsApp at scale.
+              Join 5,000+ businesses using AiReatro to connect with customers on WhatsApp at scale.
             </p>
 
             <div className="space-y-4">
@@ -214,7 +214,7 @@ export function AuthForm({ mode }: AuthFormProps) {
 
             <div className="mt-12 p-6 rounded-2xl bg-white/10 backdrop-blur-sm border border-white/20">
               <p className="text-white/90 italic mb-4">
-                "aireatro transformed our customer support. We now handle 3x more conversations with the same team."
+                "AiReatro transformed our customer support. We now handle 3x more conversations with the same team."
               </p>
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center text-white font-bold">SC</div>
@@ -273,7 +273,7 @@ export function AuthForm({ mode }: AuthFormProps) {
               <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br from-green-500 to-emerald-600 shadow-lg">
                 <MessageSquare className="w-5 h-5 text-white" />
               </div>
-              <span className="font-bold text-xl text-foreground">aireatro</span>
+              <span className="font-bold text-xl text-foreground">AiReatro</span>
             </Link>
           </div>
           <Breadcrumb className="mt-4" />

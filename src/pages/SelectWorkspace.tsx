@@ -215,7 +215,7 @@ export default function SelectWorkspace() {
               <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center shadow-lg shadow-green-500/20">
                 <MessageSquare className="w-5 h-5 text-white" />
               </div>
-              <span className="font-bold text-xl text-foreground">aireatro</span>
+              <span className="font-bold text-xl text-foreground">AiReatro</span>
             </div>
             <div className="flex items-center gap-4">
               <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-muted/50">

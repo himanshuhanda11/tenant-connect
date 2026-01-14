@@ -33,7 +33,7 @@ export default function FinalCTASection() {
             </h2>
             
             <p className="text-lg text-muted-foreground mb-8 max-w-lg mx-auto lg:mx-0">
-              Join thousands of businesses using aireatro to connect with customers, automate conversations, and drive growth on WhatsApp.
+              Join thousands of businesses using AiReatro to connect with customers, automate conversations, and drive growth on WhatsApp.
             </p>
 
             {/* CTA Buttons */}

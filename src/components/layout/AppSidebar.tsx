@@ -406,7 +406,7 @@ export function AppSidebar() {
           </div>
           {!isCollapsed && <div className="flex-1 min-w-0">
               <h2 className="font-bold text-sidebar-foreground text-base tracking-tight">
-                aireatro
+                AiReatro
               </h2>
               <p className="text-[10px] text-sidebar-foreground/50 uppercase tracking-widest">
                 WhatsApp Platform

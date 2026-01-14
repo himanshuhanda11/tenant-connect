@@ -176,7 +176,7 @@ export default function Partners() {
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-foreground mb-6 leading-tight">
               Partner With{' '}
               <span className="bg-gradient-to-r from-green-500 via-emerald-500 to-cyan-500 bg-clip-text text-transparent">
-                aireatro
+                AiReatro
               </span>
             </h1>
             <p className="text-xl text-muted-foreground mb-4">
@@ -318,7 +318,7 @@ export default function Partners() {
               Partner Benefits
             </Badge>
             <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              Why Partner with aireatro?
+              Why Partner with AiReatro?
             </h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
               Get everything you need to succeed — from marketing materials to dedicated support
