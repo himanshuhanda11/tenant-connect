@@ -31,6 +31,36 @@ export const GUIDE_CATEGORIES = [
 ];
 
 export const STATIC_GUIDES: StaticGuide[] = [
+  // Dashboard Guide
+  {
+    slug: 'dashboard-guide',
+    title: 'Understanding Your Dashboard',
+    category: 'platform',
+    sidebarKey: 'dashboard',
+    summary: 'Master the dashboard to monitor performance, track KPIs, and identify areas for improvement.',
+    difficulty: 'beginner',
+    readingTime: 5,
+    sections: [
+      {
+        type: 'what_is',
+        title: 'What is the Dashboard?',
+        content: 'The Dashboard is your command center for monitoring all messaging activity. It displays real-time KPIs, team performance metrics, inbox health, automation stats, and alerts that need your attention.'
+      },
+      {
+        type: 'how_it_works',
+        title: 'Key Widgets',
+        content: '**KPI Cards** - Messages sent, delivered, read rates, response times\n\n**Inbox Health** - Open conversations, pending replies, SLA status\n\n**Agent Performance** - Response times and resolution rates per agent\n\n**Automation Stats** - Workflows triggered, messages sent automatically\n\n**Alerts Panel** - Issues requiring immediate attention'
+      },
+      {
+        type: 'tips',
+        title: 'Dashboard Tips',
+        content: '✅ Check the dashboard daily for performance trends\n✅ Use date filters to compare periods\n✅ Set up alerts for critical metrics\n✅ Export reports for team reviews\n✅ Customize widgets based on your role'
+      }
+    ],
+    relatedSlugs: ['inbox-guide', 'team-management', 'automation-workflows']
+  },
+
+  // Templates Guide
   {
     slug: 'templates-guide',
     title: 'WhatsApp Message Templates',
@@ -82,6 +112,8 @@ export const STATIC_GUIDES: StaticGuide[] = [
     ],
     relatedSlugs: ['template-categories', 'why-templates-rejected', 'campaigns-guide']
   },
+
+  // Inbox Guide
   {
     slug: 'inbox-guide',
     title: 'Managing Your Inbox',
@@ -114,6 +146,8 @@ export const STATIC_GUIDES: StaticGuide[] = [
     ],
     relatedSlugs: ['contacts-management', 'tags-and-segments', 'templates-guide']
   },
+
+  // Campaigns Guide
   {
     slug: 'campaigns-guide',
     title: 'Sending Bulk Campaigns',
@@ -151,6 +185,8 @@ export const STATIC_GUIDES: StaticGuide[] = [
     ],
     relatedSlugs: ['templates-guide', 'tags-and-segments', 'automation-workflows']
   },
+
+  // Contacts Guide
   {
     slug: 'contacts-management',
     title: 'Managing Contacts',
@@ -178,6 +214,8 @@ export const STATIC_GUIDES: StaticGuide[] = [
     ],
     relatedSlugs: ['tags-and-segments', 'inbox-guide', 'campaigns-guide']
   },
+
+  // Automation Guide
   {
     slug: 'automation-workflows',
     title: 'Automation Workflows',
@@ -210,6 +248,8 @@ export const STATIC_GUIDES: StaticGuide[] = [
     ],
     relatedSlugs: ['templates-guide', 'tags-and-segments', 'campaigns-guide']
   },
+
+  // Tags Guide
   {
     slug: 'tags-and-segments',
     title: 'Tags and Segmentation',
@@ -237,6 +277,42 @@ export const STATIC_GUIDES: StaticGuide[] = [
     ],
     relatedSlugs: ['contacts-management', 'campaigns-guide', 'automation-workflows']
   },
+
+  // User Attributes Guide
+  {
+    slug: 'user-attributes-guide',
+    title: 'Custom User Attributes',
+    category: 'messaging',
+    sidebarKey: 'user-attributes',
+    summary: 'Define custom fields to capture business-specific customer information.',
+    difficulty: 'intermediate',
+    readingTime: 6,
+    sections: [
+      {
+        type: 'what_is',
+        title: 'What are User Attributes?',
+        content: 'User Attributes are custom fields you define to store additional information about contacts beyond the standard fields. Use them to capture industry-specific data like subscription plans, loyalty points, or preferences.'
+      },
+      {
+        type: 'when_to_use',
+        title: 'When to Use Attributes',
+        content: '• Storing subscription or plan type\n• Tracking loyalty points or tier\n• Recording preferences and interests\n• Capturing lead source details\n• Storing order history summaries\n• Any business-specific data points'
+      },
+      {
+        type: 'how_it_works',
+        title: 'Creating Attributes',
+        content: '1. **Define the attribute** - Name, type (text, number, date, dropdown)\n2. **Set validation** - Required, unique, default values\n3. **Configure visibility** - Which roles can view/edit\n4. **Map to templates** - Use in personalized messages\n5. **Import values** - Bulk update via CSV import'
+      },
+      {
+        type: 'tips',
+        title: 'Best Practices',
+        content: '✅ Plan your attribute schema before creating\n✅ Use clear, descriptive names\n✅ Choose appropriate data types\n✅ Set sensible defaults where possible\n✅ Use dropdowns for limited options\n✅ Document what each attribute means'
+      }
+    ],
+    relatedSlugs: ['contacts-management', 'tags-and-segments', 'campaigns-guide']
+  },
+
+  // Phone Numbers Guide
   {
     slug: 'phone-numbers-setup',
     title: 'Phone Number Setup',
@@ -264,6 +340,8 @@ export const STATIC_GUIDES: StaticGuide[] = [
     ],
     relatedSlugs: ['templates-guide', 'inbox-guide', 'team-management']
   },
+
+  // Team Guide
   {
     slug: 'team-management',
     title: 'Team Management',
@@ -281,16 +359,76 @@ export const STATIC_GUIDES: StaticGuide[] = [
       {
         type: 'how_it_works',
         title: 'Available Roles',
-        content: '**Owner** - Full access, billing, can delete workspace\n\n**Admin** - Full access except billing and workspace deletion\n\n**Agent** - Can handle conversations, view contacts, use templates'
+        content: '**Owner** - Full access, billing, can delete workspace\n\n**Admin** - Full access except billing and workspace deletion\n\n**Manager** - Can manage agents and view reports\n\n**Agent** - Can handle conversations, view contacts, use templates'
       },
       {
         type: 'tips',
         title: 'Best Practices',
-        content: '✅ Follow least-privilege principle\n✅ Regularly audit team access\n✅ Remove access promptly when team members leave\n✅ Use descriptive display names'
+        content: '✅ Follow least-privilege principle\n✅ Regularly audit team access\n✅ Remove access promptly when team members leave\n✅ Use descriptive display names\n✅ Set up teams for better organization'
       }
     ],
-    relatedSlugs: ['inbox-guide', 'workspace-settings']
+    relatedSlugs: ['inbox-guide', 'settings-guide', 'billing-guide']
   },
+
+  // Billing Guide
+  {
+    slug: 'billing-guide',
+    title: 'Billing & Usage',
+    category: 'platform',
+    sidebarKey: 'billing',
+    summary: 'Understand your subscription, track usage, and manage payments.',
+    difficulty: 'beginner',
+    readingTime: 6,
+    sections: [
+      {
+        type: 'what_is',
+        title: 'How Billing Works',
+        content: 'SMEKSH uses a subscription model with usage-based components. Your plan includes a base fee plus additional charges for messages, phone numbers, and team members beyond included limits.'
+      },
+      {
+        type: 'how_it_works',
+        title: 'Understanding Costs',
+        content: '**Platform Fee** - Monthly subscription based on your plan\n\n**Conversation Fees** - Charged by Meta based on conversation type\n\n**Add-ons** - Extra team seats, phone numbers, automation runs\n\n**Overage** - Charges when exceeding plan limits'
+      },
+      {
+        type: 'tips',
+        title: 'Cost Management Tips',
+        content: '✅ Monitor usage regularly in the dashboard\n✅ Set up alerts for usage thresholds\n✅ Choose the right plan for your volume\n✅ Understand Meta conversation pricing\n✅ Download invoices for accounting'
+      }
+    ],
+    relatedSlugs: ['settings-guide', 'team-management']
+  },
+
+  // Settings Guide
+  {
+    slug: 'settings-guide',
+    title: 'Workspace Settings',
+    category: 'platform',
+    sidebarKey: 'settings',
+    summary: 'Configure your workspace, integrations, and preferences.',
+    difficulty: 'beginner',
+    readingTime: 8,
+    sections: [
+      {
+        type: 'what_is',
+        title: 'What are Settings?',
+        content: 'Settings is your configuration hub for everything in your workspace. From messaging defaults to security policies, team permissions to integrations - all customization happens here.'
+      },
+      {
+        type: 'how_it_works',
+        title: 'Settings Sections',
+        content: '**Workspace** - Name, logo, timezone, language\n\n**Messaging** - Default sender, rate limits, opt-in keywords\n\n**Inbox** - Assignment rules, SLA, working hours\n\n**Security** - 2FA, sessions, IP allowlist\n\n**Integrations** - Webhooks, CRM connections\n\n**Notifications** - Alerts and preferences'
+      },
+      {
+        type: 'tips',
+        title: 'Configuration Tips',
+        content: '✅ Set up proper timezone and working hours first\n✅ Configure default sender for consistency\n✅ Enable 2FA for security\n✅ Set up webhooks for integrations\n✅ Review and update settings periodically'
+      }
+    ],
+    relatedSlugs: ['team-management', 'billing-guide', 'automation-workflows']
+  },
+
+  // Meta Ads Guide
   {
     slug: 'meta-ads-guide',
     title: 'Meta Ads (Click-to-WhatsApp)',
