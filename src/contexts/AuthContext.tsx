@@ -28,10 +28,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setSession(session);
         setUser(session?.user ?? null);
         
-        // Defer profile fetch
+        // Defer profile fetch and onboarding step update
         if (session?.user) {
           setTimeout(() => {
-            fetchProfile(session.user.id);
+            fetchProfileAndUpdateOnboarding(session.user.id, event);
           }, 0);
         } else {
           setProfile(null);
@@ -51,6 +51,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     return () => subscription.unsubscribe();
   }, []);
+
+  const fetchProfileAndUpdateOnboarding = async (userId: string, event: string) => {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', userId)
+      .maybeSingle();
+    
+    if (!error && data) {
+      // If this is a new signup via OAuth (SIGNED_IN after OAuth flow), mark as google_done
+      if (event === 'SIGNED_IN' && data.onboarding_step === 'pending') {
+        await supabase
+          .from('profiles')
+          .update({ onboarding_step: 'google_done' })
+          .eq('id', userId);
+        
+        setProfile({ ...data, onboarding_step: 'google_done' } as Profile);
+      } else {
+        setProfile(data as Profile);
+      }
+    }
+  };
 
   const fetchProfile = async (userId: string) => {
     const { data, error } = await supabase

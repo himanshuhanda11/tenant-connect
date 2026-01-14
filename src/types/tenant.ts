@@ -26,11 +26,18 @@ export interface TenantMemberWithProfile extends TenantMember {
   };
 }
 
+export type OnboardingStep = 'pending' | 'google_done' | 'org_done' | 'completed';
+
 export interface Profile {
   id: string;
   email: string;
   full_name: string | null;
   avatar_url: string | null;
+  onboarding_step: OnboardingStep;
+  country: string | null;
+  industry: string | null;
+  team_size: string | null;
+  primary_goal: string | null;
   created_at: string;
   updated_at: string;
 }

@@ -66,6 +66,26 @@ export default function SelectWorkspace() {
     }
   }, [user, authLoading, navigate]);
 
+  // Check onboarding status
+  useEffect(() => {
+    const checkOnboarding = async () => {
+      if (!user || !profile) return;
+      
+      const onboardingStep = profile.onboarding_step;
+      if (onboardingStep !== 'completed') {
+        if (onboardingStep === 'pending' || onboardingStep === 'google_done') {
+          navigate('/onboarding/org');
+        } else if (onboardingStep === 'org_done') {
+          navigate('/onboarding/password');
+        }
+      }
+    };
+    
+    if (!authLoading && user && profile) {
+      checkOnboarding();
+    }
+  }, [user, authLoading, profile, navigate]);
+
   // Fetch enriched workspace data
   useEffect(() => {
     const fetchWorkspaceDetails = async () => {
