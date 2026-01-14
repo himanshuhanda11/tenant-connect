@@ -8,17 +8,20 @@ import {
   Users, 
   BarChart3,
   ArrowRight,
-  X
+  CheckCircle2,
+  Zap
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
+import whatsappFriends from '@/assets/whatsapp-friends.jpg';
+import whatsappCouplePink from '@/assets/whatsapp-couple-pink.jpg';
 
 const features = [
   {
     icon: Inbox,
     title: 'Shared Team Inbox',
-    description: 'Manage all WhatsApp conversations in one place with smart routing, agent assignment, notes, and labels.',
+    description: 'Manage all WhatsApp conversations with smart routing, agent assignment, notes, and labels.',
     gradient: 'from-blue-500 to-cyan-500',
     link: '/features/inbox',
     details: [
@@ -32,7 +35,7 @@ const features = [
   {
     icon: Megaphone,
     title: 'Broadcast Campaigns',
-    description: 'Send bulk messages to thousands of customers with audience segments, scheduling, and analytics.',
+    description: 'Send bulk messages to thousands with audience segments, scheduling, and analytics.',
     gradient: 'from-orange-500 to-red-500',
     link: '/features/campaigns',
     details: [
@@ -64,7 +67,7 @@ const features = [
     gradient: 'from-green-500 to-emerald-500',
     link: '/features/automation',
     details: [
-      'Visual flow builder',
+      'Visual drag-and-drop flow builder',
       'Keyword & tag triggers',
       'Conditional branching',
       'Delay & scheduling',
@@ -74,7 +77,7 @@ const features = [
   {
     icon: Users,
     title: 'Contacts & Segments',
-    description: 'Manage contacts with tags, custom attributes, and dynamic segments for targeted messaging.',
+    description: 'Manage contacts with tags, custom attributes, and dynamic segments for targeting.',
     gradient: 'from-pink-500 to-rose-500',
     link: '/features/contacts',
     details: [
@@ -105,17 +108,51 @@ export default function CoreFeaturesGrid() {
   const [selectedFeature, setSelectedFeature] = useState<typeof features[0] | null>(null);
 
   return (
-    <section className="py-16 md:py-24">
+    <section className="py-16 md:py-24 bg-muted/30">
       <div className="container mx-auto px-4">
-        <div className="text-center max-w-3xl mx-auto mb-12 md:mb-16">
-          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-4">
-            What You Can Do
-          </h2>
-          <p className="text-lg text-muted-foreground">
-            Everything you need to engage customers on WhatsApp at scale
-          </p>
+        {/* Section Header with Image */}
+        <div className="grid lg:grid-cols-2 gap-10 lg:gap-16 items-center max-w-6xl mx-auto mb-16">
+          <div>
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-green-500/10 text-green-600 text-sm font-medium mb-6">
+              <Zap className="w-4 h-4" />
+              Core Platform
+            </div>
+            <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-4">
+              What You Can Do
+            </h2>
+            <p className="text-lg text-muted-foreground mb-6">
+              Everything you need to engage customers on WhatsApp at scale — from a unified inbox to powerful automations.
+            </p>
+            <div className="space-y-3">
+              {['Manage conversations with your team', 'Send targeted broadcast campaigns', 'Automate customer interactions'].map((item, idx) => (
+                <div key={idx} className="flex items-center gap-3">
+                  <CheckCircle2 className="w-5 h-5 text-green-500 flex-shrink-0" />
+                  <span className="text-muted-foreground">{item}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="relative">
+            <img 
+              src={whatsappFriends} 
+              alt="WhatsApp Business Communication" 
+              className="rounded-2xl shadow-2xl w-full h-auto object-cover"
+            />
+            <div className="absolute -bottom-4 -left-4 md:-bottom-6 md:-left-6 bg-card backdrop-blur-xl p-3 md:p-4 rounded-xl shadow-xl border border-border hidden sm:block">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-green-500 flex items-center justify-center">
+                  <Users className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <div className="text-sm font-medium text-foreground">Team Ready</div>
+                  <div className="text-xs text-muted-foreground">Collaborate in real-time</div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
+        {/* Features Grid */}
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-6 max-w-6xl mx-auto">
           {features.map((feature, index) => (
             <Card 
@@ -123,9 +160,9 @@ export default function CoreFeaturesGrid() {
               className="group hover:shadow-xl hover:-translate-y-1 transition-all duration-300 border-border/50 bg-card overflow-hidden cursor-pointer"
               onClick={() => setSelectedFeature(feature)}
             >
-              <div className={`h-1 bg-gradient-to-r ${feature.gradient}`} />
+              <div className={`h-1.5 bg-gradient-to-r ${feature.gradient}`} />
               <CardHeader className="p-5 md:p-6">
-                <div className={`w-12 h-12 md:w-14 md:h-14 rounded-xl md:rounded-2xl bg-gradient-to-br ${feature.gradient} flex items-center justify-center mb-4 shadow-lg`}>
+                <div className={`w-12 h-12 md:w-14 md:h-14 rounded-xl md:rounded-2xl bg-gradient-to-br ${feature.gradient} flex items-center justify-center mb-4 shadow-lg group-hover:scale-110 transition-transform`}>
                   <feature.icon className="w-6 h-6 md:w-7 md:h-7 text-white" />
                 </div>
                 <CardTitle className="text-lg md:text-xl">{feature.title}</CardTitle>
@@ -140,7 +177,7 @@ export default function CoreFeaturesGrid() {
           ))}
         </div>
 
-        <div className="text-center mt-10">
+        <div className="text-center mt-12">
           <Button size="lg" variant="outline" asChild>
             <Link to="/products">
               Explore All Features
