@@ -217,6 +217,14 @@ const FlowBuilder = () => {
     }
   }, [flow]);
 
+  // Ensure dragging always ends even if mouseup happens outside the canvas
+  useEffect(() => {
+    if (!draggingNode) return;
+    const handleUp = () => setDraggingNode(null);
+    window.addEventListener('mouseup', handleUp);
+    return () => window.removeEventListener('mouseup', handleUp);
+  }, [draggingNode]);
+
   const selectedNode = nodes.find(n => n.node_key === selectedNodeKey);
 
   const toggleCategory = (label: string) => {
@@ -259,29 +267,45 @@ const FlowBuilder = () => {
   // Existing node dragging on canvas
   const handleNodeMouseDown = (e: React.MouseEvent, nodeKey: string) => {
     if (e.button !== 0) return; // Only left click
+
+    // Don't start dragging when interacting with controls inside the node
+    const target = e.target as HTMLElement | null;
+    if (target?.closest('button, input, textarea, select, [data-no-drag]')) return;
+
     e.stopPropagation();
-    
+
     const node = nodes.find(n => n.node_key === nodeKey);
-    if (!node) return;
-    
+    if (!node || !canvasContentRef.current) return;
+
+    const rect = canvasContentRef.current.getBoundingClientRect();
+    const scale = zoom / 100;
+
+    // Offset is measured in *canvas coordinates* (pre-scale)
+    const pointerX = (e.clientX - rect.left) / scale;
+    const pointerY = (e.clientY - rect.top) / scale;
+
     setDraggingNode(nodeKey);
     setDragOffset({
-      x: e.clientX - node.position_x * (zoom / 100),
-      y: e.clientY - node.position_y * (zoom / 100),
+      x: pointerX - node.position_x,
+      y: pointerY - node.position_y,
     });
     setSelectedNodeKey(nodeKey);
   };
 
   const handleCanvasMouseMove = useCallback((e: React.MouseEvent) => {
     if (!draggingNode || !canvasContentRef.current) return;
-    
+
     const rect = canvasContentRef.current.getBoundingClientRect();
-    const newX = Math.max(0, (e.clientX - dragOffset.x) / (zoom / 100));
-    const newY = Math.max(0, (e.clientY - dragOffset.y) / (zoom / 100));
-    
-    // Update node position locally for smooth dragging
+    const scale = zoom / 100;
+
+    const pointerX = (e.clientX - rect.left) / scale;
+    const pointerY = (e.clientY - rect.top) / scale;
+
+    const newX = Math.max(0, pointerX - dragOffset.x);
+    const newY = Math.max(0, pointerY - dragOffset.y);
+
     updateNode(draggingNode, { position_x: newX, position_y: newY });
-  }, [draggingNode, dragOffset, zoom, updateNode]);
+  }, [draggingNode, dragOffset.x, dragOffset.y, zoom, updateNode]);
 
   const handleCanvasMouseUp = useCallback(() => {
     setDraggingNode(null);
