@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   ArrowLeft,
@@ -15,6 +15,8 @@ import {
   Edit,
   Power,
   PowerOff,
+  LayoutDashboard,
+  Crown,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -38,12 +40,28 @@ import {
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { EventDebugger } from '@/components/integrations/EventDebugger';
 import { EventActionMappingModal, EventMapping } from '@/components/integrations/EventActionMappingModal';
+import { IntegrationOverview } from '@/components/integrations/IntegrationOverview';
+import { ProFeaturesPanel, ProConfig } from '@/components/integrations/ProFeaturesPanel';
 import { useIntegrations } from '@/hooks/useIntegrations';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 
 // Mock data for demonstration
-const MOCK_EVENTS = [
+const MOCK_EVENTS: Array<{
+  id: string;
+  tenant_id: string;
+  tenant_integration_id: string;
+  event_type: string;
+  event_id: string | null;
+  payload: Record<string, unknown>;
+  status: 'received' | 'processing' | 'processed' | 'failed';
+  error_message: string | null;
+  processing_started_at: string | null;
+  processed_at: string | null;
+  retry_count: number;
+  next_retry_at: string | null;
+  created_at: string;
+}> = [
   {
     id: '1',
     tenant_id: '1',
@@ -51,7 +69,7 @@ const MOCK_EVENTS = [
     event_type: 'shopify.orders.create',
     event_id: 'ord_123456',
     payload: { id: 123456, customer: { phone: '+911234567890', first_name: 'John' }, total_price: '1500.00' },
-    status: 'processed' as const,
+    status: 'processed',
     error_message: null,
     processing_started_at: new Date(Date.now() - 2000).toISOString(),
     processed_at: new Date(Date.now() - 1000).toISOString(),
@@ -66,13 +84,28 @@ const MOCK_EVENTS = [
     event_type: 'shopify.orders.paid',
     event_id: 'pay_789012',
     payload: { id: 789012, financial_status: 'paid', customer: { phone: '+911234567890' } },
-    status: 'failed' as const,
+    status: 'failed',
     error_message: 'Template not found: order_paid_notification',
     processing_started_at: new Date(Date.now() - 60000).toISOString(),
     processed_at: null,
     retry_count: 1,
     next_retry_at: new Date(Date.now() + 60000).toISOString(),
     created_at: new Date(Date.now() - 120000).toISOString(),
+  },
+  {
+    id: '3',
+    tenant_id: '1',
+    tenant_integration_id: '1',
+    event_type: 'shopify.checkouts.update',
+    event_id: 'chk_345678',
+    payload: { id: 345678, abandoned_checkout_url: 'https://shop.example.com/checkout/345678' },
+    status: 'received',
+    error_message: null,
+    processing_started_at: null,
+    processed_at: null,
+    retry_count: 0,
+    next_retry_at: null,
+    created_at: new Date(Date.now() - 10000).toISOString(),
   },
 ];
 
@@ -106,6 +139,18 @@ export default function IntegrationDetail() {
   const [editingMapping, setEditingMapping] = useState<EventMapping | undefined>();
   const [mappings, setMappings] = useState<EventMapping[]>(MOCK_MAPPINGS);
   const [events, setEvents] = useState(MOCK_EVENTS);
+  const [isTestingConnection, setIsTestingConnection] = useState(false);
+  const [proConfig, setProConfig] = useState<ProConfig | undefined>();
+
+  // Calculate event stats
+  const eventStats = useMemo(() => {
+    return {
+      total: events.length,
+      processed: events.filter(e => e.status === 'processed').length,
+      failed: events.filter(e => e.status === 'failed').length,
+      pending: events.filter(e => e.status === 'received' || e.status === 'processing').length,
+    };
+  }, [events]);
 
   const integration = integrationsWithStatus.find(i => i.key === key);
 
@@ -155,6 +200,28 @@ export default function IntegrationDetail() {
     disconnect(key);
     toast({ title: 'Disconnected', description: `${integration.name} has been disconnected.` });
     navigate('/integrations-hub');
+  };
+
+  const handleTestConnection = async () => {
+    setIsTestingConnection(true);
+    // Simulate test
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    setIsTestingConnection(false);
+    toast({ 
+      title: 'Connection Healthy', 
+      description: 'Webhook endpoint is responding correctly.' 
+    });
+  };
+
+  const handleCopyWebhook = () => {
+    const url = tenantIntegration?.webhook_url || '';
+    navigator.clipboard.writeText(url);
+    toast({ title: 'Copied!', description: 'Webhook URL copied to clipboard' });
+  };
+
+  const handleSaveProConfig = (config: ProConfig) => {
+    setProConfig(config);
+    toast({ title: 'Settings Saved', description: 'Pro settings have been updated.' });
   };
 
   return (
@@ -215,21 +282,41 @@ export default function IntegrationDetail() {
           </div>
         </div>
 
-        <Tabs defaultValue="mappings" className="space-y-6">
+        <Tabs defaultValue="overview" className="space-y-6">
           <TabsList>
+            <TabsTrigger value="overview" className="gap-2">
+              <LayoutDashboard className="w-4 h-4" />
+              Overview
+            </TabsTrigger>
             <TabsTrigger value="mappings" className="gap-2">
               <Zap className="w-4 h-4" />
-              Event Mappings
+              Mappings
             </TabsTrigger>
             <TabsTrigger value="events" className="gap-2">
               <Activity className="w-4 h-4" />
-              Event Debugger
+              Events
+            </TabsTrigger>
+            <TabsTrigger value="pro" className="gap-2">
+              <Crown className="w-4 h-4" />
+              Pro
             </TabsTrigger>
             <TabsTrigger value="settings" className="gap-2">
               <Settings className="w-4 h-4" />
               Settings
             </TabsTrigger>
           </TabsList>
+
+          {/* Overview Tab */}
+          <TabsContent value="overview">
+            <IntegrationOverview
+              integration={integration}
+              eventStats={eventStats}
+              mappingsCount={mappings.filter(m => m.is_active).length}
+              onTestConnection={handleTestConnection}
+              onCopyWebhook={handleCopyWebhook}
+              isTestingConnection={isTestingConnection}
+            />
+          </TabsContent>
 
           {/* Event Mappings Tab */}
           <TabsContent value="mappings" className="space-y-6">
@@ -342,6 +429,16 @@ export default function IntegrationDetail() {
               onRefresh={() => {
                 toast({ title: 'Refreshed', description: 'Events list has been updated.' });
               }}
+            />
+          </TabsContent>
+
+          {/* Pro Features Tab */}
+          <TabsContent value="pro">
+            <ProFeaturesPanel
+              integrationKey={integration.key}
+              isPro={false} // Would come from subscription check
+              config={proConfig}
+              onSave={handleSaveProConfig}
             />
           </TabsContent>
 
