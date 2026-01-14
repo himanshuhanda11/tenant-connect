@@ -39,6 +39,9 @@ verify_jwt = false
 [functions.dashboard-ai-insights]
 verify_jwt = false
 
+[functions.inbox-ai-assist]
+verify_jwt = false
+
 [functions.automation-event]
 verify_jwt = false
 

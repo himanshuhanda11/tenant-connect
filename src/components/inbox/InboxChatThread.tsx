@@ -36,11 +36,18 @@ import {
   X,
   ChevronDown,
   Zap,
-  Phone
+  Phone,
+  Eye,
 } from 'lucide-react';
 import { format, formatDistanceToNow, differenceInHours } from 'date-fns';
 import { InboxConversation, InboxMessage, WAStatus, ConversationEvent, STATUS_CONFIG, PRIORITY_CONFIG, ConversationStatus } from '@/types/inbox';
 import { cn } from '@/lib/utils';
+
+// New AI components
+import { AIReplySuggestions } from './AIReplySuggestions';
+import { SLATimer } from './SLATimer';
+import { IntentBadge, SentimentBadge } from './IntentBadge';
+import { ConversationHealthIndicator, HealthDot } from './ConversationHealthIndicator';
 
 interface InboxChatThreadProps {
   conversation: InboxConversation | null;
@@ -55,6 +62,7 @@ interface InboxChatThreadProps {
   loading?: boolean;
   availableTags?: Array<{ id: string; name: string; color: string }>;
   teamMembers?: Array<{ id: string; full_name: string; avatar_url: string | null }>;
+  isSupervisorMode?: boolean;
 }
 
 const STATUS_ICONS: Record<WAStatus, React.ReactNode> = {
@@ -77,11 +85,13 @@ export function InboxChatThread({
   loading,
   availableTags = [],
   teamMembers = [],
+  isSupervisorMode = false,
 }: InboxChatThreadProps) {
   const [messageText, setMessageText] = useState('');
   const [showTemplates, setShowTemplates] = useState(false);
+  const [aiIntent, setAiIntent] = useState<'sales' | 'support' | 'complaint' | 'inquiry' | 'urgent' | 'spam'>('inquiry');
+  const [aiHealth, setAiHealth] = useState<'good' | 'warning' | 'critical'>('good');
   const scrollRef = useRef<HTMLDivElement>(null);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // Scroll to bottom on new messages
   useEffect(() => {
@@ -159,17 +169,35 @@ export function InboxChatThread({
                   Bot Paused
                 </Badge>
               )}
+              {/* AI Intent Badge */}
+              <IntentBadge intent={aiIntent} />
+              {/* Health Indicator */}
+              <HealthDot health={aiHealth} />
             </div>
-            <p className="text-xs text-muted-foreground">
-              +{conversation.contact?.wa_id}
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <span>+{conversation.contact?.wa_id}</span>
               {conversation.assigned_agent && (
                 <> • Assigned to {conversation.assigned_agent.full_name}</>
               )}
-            </p>
+              {/* SLA Timer */}
+              <SLATimer
+                firstResponseDue={conversation.sla_first_response_due}
+                firstResponseAt={conversation.first_response_at}
+                slaBreached={conversation.sla_breached}
+                createdAt={conversation.created_at}
+              />
+            </div>
           </div>
         </div>
 
         <div className="flex items-center gap-2">
+          {/* Supervisor Mode Indicator */}
+          {isSupervisorMode && (
+            <Badge variant="outline" className="text-xs bg-purple-100 text-purple-700 border-0">
+              <Eye className="h-3 w-3 mr-1" />
+              Watching
+            </Badge>
+          )}
           {/* Tags with dropdown */}
           <div className="flex items-center gap-1">
             {conversation.tags?.slice(0, 3).map(tag => (
@@ -438,58 +466,77 @@ export function InboxChatThread({
         </div>
       </ScrollArea>
 
+      {/* AI Reply Suggestions */}
+      {!isSupervisorMode && (
+        <div className="px-4 py-2 border-t bg-muted/30">
+          <AIReplySuggestions
+            messages={messages}
+            onSelectSuggestion={(text) => setMessageText(text)}
+            isPro={true}
+          />
+        </div>
+      )}
+
       {/* Composer */}
       <div className="border-t p-4 bg-card">
         <div className="max-w-3xl mx-auto">
-          <div className="flex items-end gap-2">
-            <div className="flex-1 relative">
-              <Textarea
-                ref={textareaRef}
-                placeholder={isOutside24hWindow ? "Select a template to send..." : "Type a message..."}
-                value={messageText}
-                onChange={(e) => setMessageText(e.target.value)}
-                onKeyDown={handleKeyDown}
-                disabled={isOutside24hWindow}
-                className="min-h-[44px] max-h-32 resize-none pr-20"
-                rows={1}
-              />
-              <div className="absolute right-2 bottom-2 flex items-center gap-1">
-                <Button variant="ghost" size="icon" className="h-7 w-7">
-                  <Smile className="h-4 w-4" />
+          {isSupervisorMode ? (
+            <div className="text-center py-4 text-muted-foreground">
+              <Eye className="w-6 h-6 mx-auto mb-2 opacity-50" />
+              <p className="text-sm">Supervisor mode - viewing only</p>
+            </div>
+          ) : (
+            <>
+              <div className="flex items-end gap-2">
+                <div className="flex-1 relative">
+                  <Textarea
+                    placeholder={isOutside24hWindow ? "Select a template to send..." : "Type a message..."}
+                    value={messageText}
+                    onChange={(e) => setMessageText(e.target.value)}
+                    onKeyDown={handleKeyDown}
+                    disabled={isOutside24hWindow}
+                    className="min-h-[44px] max-h-32 resize-none pr-20"
+                    rows={1}
+                  />
+                  <div className="absolute right-2 bottom-2 flex items-center gap-1">
+                    <Button variant="ghost" size="icon" className="h-7 w-7">
+                      <Smile className="h-4 w-4" />
+                    </Button>
+                    <Button variant="ghost" size="icon" className="h-7 w-7">
+                      <Paperclip className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+
+                <Button variant="outline" size="icon" className="h-11 w-11" onClick={() => setShowTemplates(true)}>
+                  <FileText className="h-4 w-4" />
                 </Button>
-                <Button variant="ghost" size="icon" className="h-7 w-7">
-                  <Paperclip className="h-4 w-4" />
+
+                <Button 
+                  size="icon" 
+                  className="h-11 w-11" 
+                  onClick={handleSend}
+                  disabled={!messageText.trim() && !isOutside24hWindow}
+                >
+                  <Send className="h-4 w-4" />
                 </Button>
               </div>
-            </div>
 
-            <Button variant="outline" size="icon" className="h-11 w-11" onClick={() => setShowTemplates(true)}>
-              <FileText className="h-4 w-4" />
-            </Button>
-
-            <Button 
-              size="icon" 
-              className="h-11 w-11" 
-              onClick={handleSend}
-              disabled={!messageText.trim() && !isOutside24hWindow}
-            >
-              <Send className="h-4 w-4" />
-            </Button>
-          </div>
-
-          {/* Quick Replies */}
-          <div className="flex items-center gap-2 mt-2">
-            <span className="text-xs text-muted-foreground">Quick:</span>
-            <Button variant="outline" size="sm" className="h-6 text-xs" onClick={() => setMessageText("Thank you for reaching out!")}>
-              Thanks
-            </Button>
-            <Button variant="outline" size="sm" className="h-6 text-xs" onClick={() => setMessageText("I'll look into this and get back to you shortly.")}>
-              Looking into it
-            </Button>
-            <Button variant="outline" size="sm" className="h-6 text-xs" onClick={() => setMessageText("Is there anything else I can help you with?")}>
-              Anything else?
-            </Button>
-          </div>
+              {/* Quick Replies */}
+              <div className="flex items-center gap-2 mt-2">
+                <span className="text-xs text-muted-foreground">Quick:</span>
+                <Button variant="outline" size="sm" className="h-6 text-xs" onClick={() => setMessageText("Thank you for reaching out!")}>
+                  Thanks
+                </Button>
+                <Button variant="outline" size="sm" className="h-6 text-xs" onClick={() => setMessageText("I'll look into this and get back to you shortly.")}>
+                  Looking into it
+                </Button>
+                <Button variant="outline" size="sm" className="h-6 text-xs" onClick={() => setMessageText("Is there anything else I can help you with?")}>
+                  Anything else?
+                </Button>
+              </div>
+            </>
+          )}
         </div>
       </div>
     </div>
