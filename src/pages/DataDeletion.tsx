@@ -10,7 +10,7 @@ export default function DataDeletion() {
     {
       step: '01',
       title: 'Log Into Your Account',
-      description: 'Sign in to your smeksh account using your registered email address and password.',
+      description: 'Sign in to your aireatro account using your registered email address and password.',
       icon: CheckCircle2
     },
     {
@@ -94,7 +94,7 @@ export default function DataDeletion() {
         <div className="container mx-auto px-4">
           <div className="max-w-3xl mx-auto prose prose-neutral dark:prose-invert">
             <p className="text-lg text-muted-foreground leading-relaxed">
-              At smeksh, we respect your right to control your personal data. In accordance with GDPR, CCPA, and other 
+              At aireatro, we respect your right to control your personal data. In accordance with GDPR, CCPA, and other 
               data protection regulations, you have the right to request the deletion of your personal data from our systems. 
               This page provides step-by-step instructions on how to request data deletion.
             </p>
@@ -143,7 +143,7 @@ export default function DataDeletion() {
                       data deletion request to our privacy team:
                     </p>
                     <p className="text-foreground font-medium mb-4">
-                      Email: <a href="mailto:privacy@smeksh.com" className="text-primary hover:underline">privacy@smeksh.com</a>
+                      Email: <a href="mailto:privacy@aireatro.com" className="text-primary hover:underline">privacy@aireatro.com</a>
                     </p>
                     <p className="text-muted-foreground text-sm">
                       Please include your registered email address and any relevant account information to help us 

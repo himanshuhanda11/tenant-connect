@@ -22,7 +22,7 @@ export default function CaseStudies() {
         { value: '95%', label: 'Customer Satisfaction' },
         { value: '60%', label: 'Support Cost Reduction' }
       ],
-      quote: 'smeksh helped us connect with customers where they already are. The results exceeded all our expectations.',
+      quote: 'aireatro helped us connect with customers where they already are. The results exceeded all our expectations.',
       author: 'Sarah Chen',
       role: 'Head of Customer Success',
       color: 'from-blue-500 to-cyan-500'
@@ -32,7 +32,7 @@ export default function CaseStudies() {
       industry: 'Marketing Agency',
       logo: '📈',
       title: 'GrowthLabs Achieves 95% Open Rates for Client Campaigns',
-      summary: 'Marketing agency GrowthLabs leveraged smeksh to deliver exceptional WhatsApp marketing campaigns for their clients, far surpassing email performance.',
+      summary: 'Marketing agency GrowthLabs leveraged aireatro to deliver exceptional WhatsApp marketing campaigns for their clients, far surpassing email performance.',
       stats: [
         { value: '95%', label: 'Open Rate' },
         { value: '45%', label: 'Click Rate' },
@@ -111,7 +111,7 @@ export default function CaseStudies() {
               </span>
             </h1>
             <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">
-              See how businesses like yours are transforming customer engagement with smeksh.
+              See how businesses like yours are transforming customer engagement with aireatro.
             </p>
           </div>
         </div>
@@ -218,7 +218,7 @@ export default function CaseStudies() {
             Ready to Write Your Success Story?
           </h2>
           <p className="text-xl text-white/80 mb-10 max-w-2xl mx-auto">
-            Join thousands of businesses transforming customer engagement with smeksh.
+            Join thousands of businesses transforming customer engagement with aireatro.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <Button size="lg" className="h-14 px-8 bg-white text-purple-600 hover:bg-white/90" onClick={() => navigate('/signup')}>

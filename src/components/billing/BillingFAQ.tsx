@@ -8,8 +8,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 const faqs = [
   {
-    question: 'What does SMEKSH charge?',
-    answer: 'SMEKSH charges a monthly or annual subscription fee for access to the platform. This includes team seats, phone number connections, automation workflows, and support. Pricing varies by plan tier.'
+    question: 'What does AIREATRO charge?',
+    answer: 'AIREATRO charges a monthly or annual subscription fee for access to the platform. This includes team seats, phone number connections, automation workflows, and support. Pricing varies by plan tier.'
   },
   {
     question: 'Are WhatsApp message charges included?',

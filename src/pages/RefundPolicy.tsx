@@ -157,7 +157,7 @@ export default function RefundPolicy() {
                     <div>
                       <h3 className="font-semibold text-foreground mb-1">Contact Support</h3>
                       <p className="text-muted-foreground">
-                        Email our billing team at <a href="mailto:billing@smeksh.com" className="text-primary hover:underline">billing@smeksh.com</a> or 
+                        Email our billing team at <a href="mailto:billing@aireatro.com" className="text-primary hover:underline">billing@aireatro.com</a> or 
                         use the in-app support chat.
                       </p>
                     </div>
@@ -250,7 +250,7 @@ export default function RefundPolicy() {
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <Button asChild>
-                <a href="mailto:billing@smeksh.com">Contact Billing</a>
+                <a href="mailto:billing@aireatro.com">Contact Billing</a>
               </Button>
               <Button variant="outline" asChild>
                 <Link to="/help">Visit Help Center</Link>

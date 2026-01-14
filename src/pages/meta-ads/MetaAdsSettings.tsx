@@ -76,7 +76,7 @@ export default function MetaAdsSettings() {
         <Alert className="border-blue-200 bg-blue-50 dark:bg-blue-950/30">
           <Shield className="h-4 w-4 text-blue-600" />
           <AlertDescription className="text-blue-700 dark:text-blue-300">
-            <strong>Compliance Notice:</strong> SMEKSH does not create or modify ads. All advertising actions remain within Meta Ads Manager.
+            <strong>Compliance Notice:</strong> AIREATRO does not create or modify ads. All advertising actions remain within Meta Ads Manager.
             We only read performance data and track leads for attribution.
           </AlertDescription>
         </Alert>
@@ -288,7 +288,7 @@ export default function MetaAdsSettings() {
                   <CheckCircle2 className="h-6 w-6 text-blue-600" />
                 </div>
                 <div>
-                  <p className="font-semibold">SMEKSH Business</p>
+                  <p className="font-semibold">AIREATRO Business</p>
                   <p className="text-sm text-muted-foreground">Ad Account: act_123456789</p>
                 </div>
               </div>

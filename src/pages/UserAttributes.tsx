@@ -232,7 +232,7 @@ export default function UserAttributes() {
               </Button>
               <Button variant="link" className="p-0 h-auto text-primary gap-1.5">
                 <ExternalLink className="w-4 h-4" />
-                Attributes in SMEKSH
+                Attributes in AIREATRO
               </Button>
             </div>
           </CardContent>

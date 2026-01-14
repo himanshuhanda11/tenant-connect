@@ -11,7 +11,7 @@ export function MetaBillingNotice() {
       </AlertTitle>
       <AlertDescription className="text-blue-800 dark:text-blue-200">
         <p className="mb-2">
-          SMEKSH subscription is billed by SMEKSH. WhatsApp conversation and message fees are 
+          AIREATRO subscription is billed by AIREATRO. WhatsApp conversation and message fees are 
           billed separately by Meta based on conversation category (marketing, utility, service, 
           authentication) and destination country.
         </p>

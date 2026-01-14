@@ -47,13 +47,13 @@ const SETUP_STEPS: SetupStep[] = [
 
 // Mock data
 const MOCK_AD_ACCOUNTS = [
-  { id: 'act_123456789', name: 'SMEKSH Business', currency: 'USD' },
+  { id: 'act_123456789', name: 'AIREATRO Business', currency: 'USD' },
   { id: 'act_987654321', name: 'Marketing Team', currency: 'AED' },
 ];
 
 const MOCK_PAGES = [
-  { id: 'page_001', name: 'SMEKSH Official', followers: 12500 },
-  { id: 'page_002', name: 'SMEKSH Support', followers: 3200 },
+  { id: 'page_001', name: 'AIREATRO Official', followers: 12500 },
+  { id: 'page_002', name: 'AIREATRO Support', followers: 3200 },
 ];
 
 const MOCK_PHONE_NUMBERS = [
@@ -202,7 +202,7 @@ export default function MetaAdsSetup() {
                 <Alert className="border-blue-200 bg-blue-50 dark:bg-blue-950/30">
                   <Info className="h-4 w-4 text-blue-600" />
                   <AlertDescription className="text-blue-700 dark:text-blue-300">
-                    SMEKSH will request the following permissions:
+                    AIREATRO will request the following permissions:
                     <ul className="mt-2 space-y-1 list-disc list-inside">
                       <li>Read Ad Accounts (to view campaign data)</li>
                       <li>Read Pages (to link your business page)</li>
@@ -218,7 +218,7 @@ export default function MetaAdsSetup() {
                     </div>
                     <div>
                       <p className="font-medium">Facebook Connected</p>
-                      <p className="text-sm text-muted-foreground">Signed in as SMEKSH Business</p>
+                      <p className="text-sm text-muted-foreground">Signed in as AIREATRO Business</p>
                     </div>
                     <Badge variant="secondary" className="ml-auto bg-emerald-100 text-emerald-700">
                       Connected
@@ -269,7 +269,7 @@ export default function MetaAdsSetup() {
                   <Alert className="border-emerald-200 bg-emerald-50 dark:bg-emerald-950/30">
                     <CheckCircle2 className="h-4 w-4 text-emerald-600" />
                     <AlertDescription className="text-emerald-700 dark:text-emerald-300">
-                      Ad account selected. SMEKSH will only read campaign performance data.
+                      Ad account selected. AIREATRO will only read campaign performance data.
                     </AlertDescription>
                   </Alert>
                 )}
@@ -335,7 +335,7 @@ export default function MetaAdsSetup() {
                 <Alert>
                   <Info className="h-4 w-4" />
                   <AlertDescription>
-                    This number must be connected to SMEKSH and linked to your Meta Business account.
+                    This number must be connected to AIREATRO and linked to your Meta Business account.
                   </AlertDescription>
                 </Alert>
               </div>
@@ -352,7 +352,7 @@ export default function MetaAdsSetup() {
                   <div className="space-y-3 text-sm">
                     <div className="flex items-center justify-between">
                       <span className="text-muted-foreground">Facebook Account</span>
-                      <span className="font-medium">SMEKSH Business</span>
+                      <span className="font-medium">AIREATRO Business</span>
                     </div>
                     <Separator />
                     <div className="flex items-center justify-between">
@@ -381,7 +381,7 @@ export default function MetaAdsSetup() {
                 <Alert className="border-emerald-200 bg-emerald-50 dark:bg-emerald-950/30">
                   <Shield className="h-4 w-4 text-emerald-600" />
                   <AlertDescription className="text-emerald-700 dark:text-emerald-300">
-                    <strong>Privacy Notice:</strong> SMEKSH will only read ad performance data and lead events. 
+                    <strong>Privacy Notice:</strong> AIREATRO will only read ad performance data and lead events. 
                     We do not create, modify, or manage your ads. All advertising remains in Meta Ads Manager.
                   </AlertDescription>
                 </Alert>

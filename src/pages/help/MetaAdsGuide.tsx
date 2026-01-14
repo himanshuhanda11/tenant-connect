@@ -123,7 +123,7 @@ export default function MetaAdsGuide() {
                   </p>
                   <p className="text-muted-foreground mb-6">
                     When someone clicks your ad, they're taken directly to WhatsApp to chat with you. 
-                    SMEKSH captures these leads, tracks attribution, and can automatically respond - turning ad clicks into conversations.
+                    AIREATRO captures these leads, tracks attribution, and can automatically respond - turning ad clicks into conversations.
                   </p>
                   
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -145,13 +145,13 @@ export default function MetaAdsGuide() {
                       <UserPlus className="h-5 w-5 text-purple-600 mt-0.5" />
                       <div>
                         <p className="font-medium text-purple-900">Lead Captured</p>
-                        <p className="text-sm text-purple-700">In SMEKSH with attribution</p>
+                        <p className="text-sm text-purple-700">In AIREATRO with attribution</p>
                       </div>
                     </div>
                   </div>
 
                   <GuideCallout type="info" title="Meta Compliance">
-                    SMEKSH is Meta App Review compliant. We only read ad performance data - all ad creation and billing 
+                    AIREATRO is Meta App Review compliant. We only read ad performance data - all ad creation and billing 
                     happens in Meta Ads Manager.
                   </GuideCallout>
                 </CardContent>
@@ -163,7 +163,7 @@ export default function MetaAdsGuide() {
               <Card>
                 <CardContent className="p-6 space-y-6">
                   <p className="text-muted-foreground mb-4">
-                    Follow these steps to connect your Meta Ad Account with SMEKSH. The entire process takes about 5 minutes.
+                    Follow these steps to connect your Meta Ad Account with AIREATRO. The entire process takes about 5 minutes.
                   </p>
 
                   {/* Step 1 */}
@@ -221,7 +221,7 @@ export default function MetaAdsGuide() {
                       <h4 className="font-semibold text-lg">Link WhatsApp Number</h4>
                     </div>
                     <p className="text-muted-foreground">
-                      Select the WhatsApp Business number already connected in SMEKSH. This links ad leads to your existing WhatsApp setup.
+                      Select the WhatsApp Business number already connected in AIREATRO. This links ad leads to your existing WhatsApp setup.
                     </p>
                   </div>
 
@@ -232,13 +232,13 @@ export default function MetaAdsGuide() {
                       <h4 className="font-semibold text-lg">Enable Tracking</h4>
                     </div>
                     <p className="text-muted-foreground">
-                      Review the summary and click "Enable Click-to-WhatsApp Tracking". SMEKSH will now automatically 
+                      Review the summary and click "Enable Click-to-WhatsApp Tracking". AIREATRO will now automatically 
                       attribute new conversations to your Meta Ads.
                     </p>
                   </div>
 
                   <GuideCallout type="tip" title="Pro Tip">
-                    Create a Click-to-WhatsApp ad in Meta Ads Manager before connecting SMEKSH. 
+                    Create a Click-to-WhatsApp ad in Meta Ads Manager before connecting AIREATRO. 
                     This ensures you have active campaigns ready to track.
                   </GuideCallout>
                 </CardContent>
@@ -315,7 +315,7 @@ export default function MetaAdsGuide() {
               <Card>
                 <CardContent className="p-6 space-y-6">
                   <p className="text-muted-foreground">
-                    Attribution rules determine how SMEKSH identifies which contacts came from Meta Ads. 
+                    Attribution rules determine how AIREATRO identifies which contacts came from Meta Ads. 
                     This ensures accurate reporting and proper automation triggers.
                   </p>
 
@@ -344,7 +344,7 @@ export default function MetaAdsGuide() {
                         <div className="w-6 h-6 rounded-full bg-green-500/10 flex items-center justify-center shrink-0">
                           <CheckCircle className="h-4 w-4 text-green-600" />
                         </div>
-                        <p className="text-sm"><strong>SMEKSH attributes</strong> the contact to the specific ad, campaign, and ad set</p>
+                        <p className="text-sm"><strong>AIREATRO attributes</strong> the contact to the specific ad, campaign, and ad set</p>
                       </div>
                     </div>
                   </div>
@@ -373,7 +373,7 @@ export default function MetaAdsGuide() {
                   <div>
                     <h4 className="font-semibold mb-3">Source Priority</h4>
                     <p className="text-sm text-muted-foreground mb-3">
-                      When a contact has multiple touchpoints, SMEKSH uses this priority:
+                      When a contact has multiple touchpoints, AIREATRO uses this priority:
                     </p>
                     <div className="flex flex-wrap gap-2">
                       <Badge className="bg-blue-500">1. Meta Ads</Badge>
@@ -474,7 +474,7 @@ export default function MetaAdsGuide() {
                   </div>
 
                   <GuideCallout type="warning" title="WhatsApp Compliance">
-                    Marketing messages require opt-in. SMEKSH enforces rate limiting and cooldowns to prevent spam. 
+                    Marketing messages require opt-in. AIREATRO enforces rate limiting and cooldowns to prevent spam. 
                     Automations stop on customer reply to avoid interrupting conversations.
                   </GuideCallout>
                 </CardContent>
@@ -501,7 +501,7 @@ export default function MetaAdsGuide() {
                   </GuideCallout>
 
                   <GuideCallout type="tip" title="Track Conversion Value">
-                    Mark leads as "Converted" in SMEKSH when they make a purchase. 
+                    Mark leads as "Converted" in AIREATRO when they make a purchase. 
                     This feeds back into your analytics for true ROI calculation.
                   </GuideCallout>
 
@@ -550,7 +550,7 @@ export default function MetaAdsGuide() {
               <Card>
                 <CardContent className="p-6 space-y-6">
                   <p className="text-muted-foreground">
-                    SMEKSH is designed to be Meta App Review compliant and secure.
+                    AIREATRO is designed to be Meta App Review compliant and secure.
                   </p>
 
                   <div className="space-y-3">
@@ -558,7 +558,7 @@ export default function MetaAdsGuide() {
                       <CheckCircle className="h-5 w-5 text-green-600 mt-0.5" />
                       <div>
                         <p className="font-medium text-green-900">Read-Only Ad Access</p>
-                        <p className="text-sm text-green-700">SMEKSH only reads ad performance data. Ads are created and managed in Meta Ads Manager.</p>
+                        <p className="text-sm text-green-700">AIREATRO only reads ad performance data. Ads are created and managed in Meta Ads Manager.</p>
                       </div>
                     </div>
                     <div className="flex items-start gap-3 p-3 bg-green-50 rounded-lg border border-green-100">
@@ -592,7 +592,7 @@ export default function MetaAdsGuide() {
                   </div>
 
                   <GuideCallout type="info" title="Compliance Notice">
-                    SMEKSH does not create or modify ads. All advertising actions remain within Meta Ads Manager. 
+                    AIREATRO does not create or modify ads. All advertising actions remain within Meta Ads Manager. 
                     Data is used solely for attribution and automation.
                   </GuideCallout>
                 </CardContent>
