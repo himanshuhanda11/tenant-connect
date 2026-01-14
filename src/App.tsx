@@ -110,13 +110,9 @@ const App = () => (
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/login" element={<Login />} />
-              <Route path="/auth/login" element={<Login />} />
               <Route path="/signup" element={<SignupPage />} />
-              <Route path="/auth/signup" element={<SignupPage />} />
               <Route path="/forgot-password" element={<ForgotPassword />} />
-              <Route path="/auth/forgot-password" element={<ForgotPassword />} />
               <Route path="/reset-password" element={<ResetPassword />} />
-              <Route path="/auth/reset-password" element={<ResetPassword />} />
               <Route path="/onboarding/org" element={<OrganizationPage />} />
               <Route path="/onboarding/password" element={<PasswordPage />} />
               <Route path="/create-workspace" element={<CreateWorkspace />} />
