@@ -38,14 +38,14 @@
 
     --radius: 0.625rem;
 
-    /* Sidebar - dark professional */
-    --sidebar-background: 220 25% 10%;
-    --sidebar-foreground: 220 10% 85%;
+    /* Sidebar - clean white with dark text */
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 220 20% 20%;
     --sidebar-primary: 142 70% 45%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 220 20% 16%;
-    --sidebar-accent-foreground: 220 10% 95%;
-    --sidebar-border: 220 20% 16%;
+    --sidebar-accent: 220 14% 96%;
+    --sidebar-accent-foreground: 220 20% 10%;
+    --sidebar-border: 220 14% 92%;
     --sidebar-ring: 142 70% 45%;
 
     /* Custom tokens */
