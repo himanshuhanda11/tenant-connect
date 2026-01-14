@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Menu, X, ChevronDown, Zap, MousePointer, TrendingUp, Inbox, Megaphone, FileText, Bot, BarChart3 } from 'lucide-react';
+import { Menu, X, ChevronDown, Zap, MousePointer, TrendingUp, Inbox, Megaphone, FileText, Bot, BarChart3, Users, Phone, Shield, ClipboardList, Plug, UserCog } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -22,17 +22,23 @@ export default function Navbar() {
     { name: 'WhatsApp Marketing', href: '/products#whatsapp-marketing', icon: TrendingUp, description: 'Broadcast campaigns' },
   ];
 
-  const platformFeatures = [
-    { name: 'Unified Inbox', href: '/features/inbox', icon: Inbox },
-    { name: 'Contacts & Segments', href: '/features/contacts', icon: Inbox },
-    { name: 'Message Templates', href: '/features/templates', icon: FileText },
-    { name: 'Campaigns', href: '/features/campaigns', icon: Megaphone },
-    { name: 'Automation', href: '/features/automation', icon: Bot },
-    { name: 'Integrations', href: '/features/integrations', icon: Zap },
-    { name: 'Analytics', href: '/features/analytics', icon: BarChart3 },
-    { name: 'Phone Numbers', href: '/features/phone-numbers', icon: Inbox },
-    { name: 'Team & Roles', href: '/features/team-roles', icon: Inbox },
-    { name: 'Audit Logs', href: '/features/audit-logs', icon: FileText },
+  const featuresCore = [
+    { name: 'Unified Inbox', href: '/features/inbox', icon: Inbox, description: 'All conversations in one place' },
+    { name: 'Contacts & Segments', href: '/features/contacts', icon: Users, description: 'Manage your audience' },
+    { name: 'Message Templates', href: '/features/templates', icon: FileText, description: 'Pre-approved messages' },
+    { name: 'Campaigns', href: '/features/campaigns', icon: Megaphone, description: 'Broadcast marketing' },
+  ];
+
+  const featuresAdvanced = [
+    { name: 'Automation', href: '/features/automation', icon: Bot, description: 'Workflows & chatbots' },
+    { name: 'Integrations', href: '/features/integrations', icon: Plug, description: 'Connect your tools' },
+    { name: 'Analytics', href: '/features/analytics', icon: BarChart3, description: 'Insights & reports' },
+    { name: 'Phone Numbers', href: '/features/phone-numbers', icon: Phone, description: 'Multi-number support' },
+  ];
+
+  const featuresEnterprise = [
+    { name: 'Team & Roles', href: '/features/team-roles', icon: UserCog, description: 'Access control' },
+    { name: 'Audit Logs', href: '/features/audit-logs', icon: ClipboardList, description: 'Activity tracking' },
   ];
 
   const resourceLinks = [
@@ -63,8 +69,8 @@ export default function Navbar() {
                 {whatsappProducts.map((item) => (
                   <DropdownMenuItem key={item.name} asChild className="cursor-pointer">
                     <Link to={item.href} className="flex items-start gap-3 p-2">
-                      <div className="w-8 h-8 rounded-lg bg-green-500/10 flex items-center justify-center mt-0.5">
-                        <item.icon className="w-4 h-4 text-green-600" />
+                      <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center mt-0.5">
+                        <item.icon className="w-4 h-4 text-primary" />
                       </div>
                       <div>
                         <div className="font-medium text-foreground">{item.name}</div>
@@ -74,23 +80,82 @@ export default function Navbar() {
                   </DropdownMenuItem>
                 ))}
                 <DropdownMenuSeparator />
-                <DropdownMenuLabel className="text-xs text-muted-foreground uppercase tracking-wider">Platform Features</DropdownMenuLabel>
-                <div className="grid grid-cols-2 gap-1 p-1 max-h-64 overflow-y-auto">
-                  {platformFeatures.map((item) => (
-                    <DropdownMenuItem key={item.name} asChild className="cursor-pointer">
-                      <Link to={item.href} className="flex items-center gap-2 px-2 py-1.5">
-                        <item.icon className="w-4 h-4 text-muted-foreground" />
-                        <span className="text-sm">{item.name}</span>
-                      </Link>
-                    </DropdownMenuItem>
-                  ))}
-                </div>
-                <DropdownMenuSeparator />
                 <DropdownMenuItem asChild className="cursor-pointer">
                   <Link to="/products" className="flex items-center justify-center gap-2 text-primary font-medium">
                     View All Products
                   </Link>
                 </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            {/* Features Dropdown */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="flex items-center gap-1">
+                  Features <ChevronDown className="w-4 h-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="w-[520px] bg-popover border border-border shadow-xl z-50 p-4">
+                <div className="grid grid-cols-2 gap-4">
+                  {/* Core Features */}
+                  <div>
+                    <DropdownMenuLabel className="text-xs text-muted-foreground uppercase tracking-wider px-0 mb-2">Core Features</DropdownMenuLabel>
+                    <div className="space-y-1">
+                      {featuresCore.map((item) => (
+                        <DropdownMenuItem key={item.name} asChild className="cursor-pointer p-0">
+                          <Link to={item.href} className="flex items-start gap-3 p-2 rounded-lg hover:bg-muted">
+                            <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                              <item.icon className="w-4 h-4 text-primary" />
+                            </div>
+                            <div className="min-w-0">
+                              <div className="font-medium text-foreground text-sm">{item.name}</div>
+                              <div className="text-xs text-muted-foreground truncate">{item.description}</div>
+                            </div>
+                          </Link>
+                        </DropdownMenuItem>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Advanced Features */}
+                  <div>
+                    <DropdownMenuLabel className="text-xs text-muted-foreground uppercase tracking-wider px-0 mb-2">Advanced</DropdownMenuLabel>
+                    <div className="space-y-1">
+                      {featuresAdvanced.map((item) => (
+                        <DropdownMenuItem key={item.name} asChild className="cursor-pointer p-0">
+                          <Link to={item.href} className="flex items-start gap-3 p-2 rounded-lg hover:bg-muted">
+                            <div className="w-9 h-9 rounded-lg bg-accent/50 flex items-center justify-center shrink-0">
+                              <item.icon className="w-4 h-4 text-accent-foreground" />
+                            </div>
+                            <div className="min-w-0">
+                              <div className="font-medium text-foreground text-sm">{item.name}</div>
+                              <div className="text-xs text-muted-foreground truncate">{item.description}</div>
+                            </div>
+                          </Link>
+                        </DropdownMenuItem>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Enterprise Row */}
+                <DropdownMenuSeparator className="my-3" />
+                <DropdownMenuLabel className="text-xs text-muted-foreground uppercase tracking-wider px-0 mb-2">Enterprise</DropdownMenuLabel>
+                <div className="grid grid-cols-2 gap-2">
+                  {featuresEnterprise.map((item) => (
+                    <DropdownMenuItem key={item.name} asChild className="cursor-pointer p-0">
+                      <Link to={item.href} className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted">
+                        <div className="w-8 h-8 rounded-lg bg-secondary flex items-center justify-center shrink-0">
+                          <item.icon className="w-4 h-4 text-secondary-foreground" />
+                        </div>
+                        <div className="min-w-0">
+                          <div className="font-medium text-foreground text-sm">{item.name}</div>
+                          <div className="text-xs text-muted-foreground">{item.description}</div>
+                        </div>
+                      </Link>
+                    </DropdownMenuItem>
+                  ))}
+                </div>
               </DropdownMenuContent>
             </DropdownMenu>
 
@@ -104,9 +169,9 @@ export default function Navbar() {
                   Resources <ChevronDown className="w-4 h-4" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" className="w-48">
+              <DropdownMenuContent align="start" className="w-48 bg-popover border border-border shadow-xl z-50">
                 {resourceLinks.map((link) => (
-                  <DropdownMenuItem key={link.name} asChild>
+                  <DropdownMenuItem key={link.name} asChild className="cursor-pointer">
                     <Link to={link.href}>{link.name}</Link>
                   </DropdownMenuItem>
                 ))}
@@ -115,10 +180,6 @@ export default function Navbar() {
 
             <Button variant="ghost" asChild>
               <Link to="/about">About</Link>
-            </Button>
-
-            <Button variant="ghost" asChild>
-              <Link to="/partners">Partners</Link>
             </Button>
 
             <Button variant="ghost" asChild>
@@ -150,21 +211,36 @@ export default function Navbar() {
       {/* Mobile menu */}
       {mobileMenuOpen && (
         <div className="lg:hidden border-t border-border bg-background">
-          <div className="container mx-auto px-4 py-4 space-y-1">
+          <div className="container mx-auto px-4 py-4 space-y-1 max-h-[80vh] overflow-y-auto">
             <div className="text-xs uppercase tracking-wider text-muted-foreground px-4 py-2 font-semibold">WhatsApp Solutions</div>
             <Link to="/products#whatsapp-api" className="flex items-center gap-3 px-4 py-3 text-foreground hover:bg-muted rounded-lg" onClick={() => setMobileMenuOpen(false)}>
-              <Zap className="w-4 h-4 text-green-500" />
+              <Zap className="w-4 h-4 text-primary" />
               WhatsApp Business API
             </Link>
             <Link to="/products#click-to-whatsapp" className="flex items-center gap-3 px-4 py-3 text-foreground hover:bg-muted rounded-lg" onClick={() => setMobileMenuOpen(false)}>
-              <MousePointer className="w-4 h-4 text-blue-500" />
+              <MousePointer className="w-4 h-4 text-primary" />
               Click to WhatsApp Ads
             </Link>
             <Link to="/products#whatsapp-marketing" className="flex items-center gap-3 px-4 py-3 text-foreground hover:bg-muted rounded-lg" onClick={() => setMobileMenuOpen(false)}>
-              <TrendingUp className="w-4 h-4 text-purple-500" />
+              <TrendingUp className="w-4 h-4 text-primary" />
               WhatsApp Marketing
             </Link>
-            <div className="border-t border-border my-2" />
+            
+            <div className="border-t border-border my-3" />
+            <div className="text-xs uppercase tracking-wider text-muted-foreground px-4 py-2 font-semibold">Platform Features</div>
+            {[...featuresCore, ...featuresAdvanced, ...featuresEnterprise].map((item) => (
+              <Link 
+                key={item.name} 
+                to={item.href} 
+                className="flex items-center gap-3 px-4 py-2.5 text-foreground hover:bg-muted rounded-lg" 
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                <item.icon className="w-4 h-4 text-muted-foreground" />
+                <span className="text-sm">{item.name}</span>
+              </Link>
+            ))}
+            
+            <div className="border-t border-border my-3" />
             <Link to="/products" className="block px-4 py-3 text-foreground hover:bg-muted rounded-lg font-medium" onClick={() => setMobileMenuOpen(false)}>All Products</Link>
             <Link to="/pricing" className="block px-4 py-3 text-foreground hover:bg-muted rounded-lg font-medium" onClick={() => setMobileMenuOpen(false)}>Pricing</Link>
             <Link to="/help" className="block px-4 py-3 text-foreground hover:bg-muted rounded-lg font-medium" onClick={() => setMobileMenuOpen(false)}>Help Center</Link>
@@ -172,7 +248,7 @@ export default function Navbar() {
             <Link to="/contact" className="block px-4 py-3 text-foreground hover:bg-muted rounded-lg font-medium" onClick={() => setMobileMenuOpen(false)}>Contact</Link>
             <div className="pt-4 border-t border-border space-y-3">
               <Button variant="outline" className="w-full h-12" onClick={() => { navigate('/login'); setMobileMenuOpen(false); }}>Sign in</Button>
-              <Button className="w-full h-12 bg-gradient-to-r from-green-500 to-emerald-600" onClick={() => { navigate('/signup'); setMobileMenuOpen(false); }}>Get Started Free</Button>
+              <Button className="w-full h-12 bg-gradient-to-r from-primary to-primary/80" onClick={() => { navigate('/signup'); setMobileMenuOpen(false); }}>Get Started Free</Button>
             </div>
           </div>
         </div>
