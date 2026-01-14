@@ -85,6 +85,9 @@ import {
 import { cn } from '@/lib/utils';
 import { useFlowBuilder } from '@/hooks/useFlows';
 import { toast } from 'sonner';
+import { FlowTestModal } from '@/components/flows/FlowTestModal';
+import { FlowPreviewModal } from '@/components/flows/FlowPreviewModal';
+import { FlowHistoryModal } from '@/components/flows/FlowHistoryModal';
 
 // Node type configurations
 const nodeCategories = [
@@ -211,6 +214,11 @@ const FlowBuilder = () => {
   const [isDraggingNew, setIsDraggingNew] = useState(false);
   const [dragNodeType, setDragNodeType] = useState<string | null>(null);
   const [connecting, setConnecting] = useState<string | null>(null);
+  
+  // Modal states
+  const [testModalOpen, setTestModalOpen] = useState(false);
+  const [previewModalOpen, setPreviewModalOpen] = useState(false);
+  const [historyModalOpen, setHistoryModalOpen] = useState(false);
   
   // Node dragging state
   const [draggingNode, setDraggingNode] = useState<string | null>(null);
@@ -384,15 +392,15 @@ const FlowBuilder = () => {
         </div>
         
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" className="gap-2">
+          <Button variant="outline" size="sm" className="gap-2" onClick={() => setTestModalOpen(true)}>
             <Play className="w-4 h-4" />
             Test Flow
           </Button>
-          <Button variant="outline" size="sm" className="gap-2">
+          <Button variant="outline" size="sm" className="gap-2" onClick={() => setPreviewModalOpen(true)}>
             <Eye className="w-4 h-4" />
             Preview
           </Button>
-          <Button variant="outline" size="sm" className="gap-2">
+          <Button variant="outline" size="sm" className="gap-2" onClick={() => setHistoryModalOpen(true)}>
             <History className="w-4 h-4" />
             History
             <Badge variant="secondary" className="ml-1 text-[10px]">Pro</Badge>
