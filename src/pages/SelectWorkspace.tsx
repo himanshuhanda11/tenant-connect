@@ -527,21 +527,30 @@ export default function SelectWorkspace() {
             </div>
           )}
 
-          {/* Empty State */}
+          {/* First-Time User Empty State - Enhanced */}
           {tenants.length === 0 && !tenantLoading && (
-            <div className="text-center py-12">
-              <div className="mx-auto w-16 h-16 rounded-2xl bg-muted flex items-center justify-center mb-4">
-                <Building2 className="w-8 h-8 text-muted-foreground" />
-              </div>
-              <h3 className="text-lg font-semibold text-foreground mb-2">No workspaces yet</h3>
-              <p className="text-muted-foreground mb-4 max-w-md mx-auto">
-                Create your first workspace above to start managing your WhatsApp conversations
-              </p>
-              <Button variant="outline" onClick={handleRefresh} disabled={isRefreshing}>
-                <RefreshCw className={cn("w-4 h-4 mr-2", isRefreshing && "animate-spin")} />
-                Refresh List
-              </Button>
-            </div>
+            <Card className="border-2 border-dashed border-primary/30 bg-gradient-to-br from-primary/5 via-background to-emerald-500/5">
+              <CardContent className="py-12 px-6 text-center">
+                <div className="mx-auto w-20 h-20 rounded-2xl bg-gradient-to-br from-primary/20 to-emerald-500/20 flex items-center justify-center mb-6">
+                  <Building2 className="w-10 h-10 text-primary" />
+                </div>
+                <h3 className="text-2xl font-bold text-foreground mb-3">Welcome! 🎉</h3>
+                <p className="text-muted-foreground mb-6 max-w-md mx-auto text-base">
+                  Create your first workspace above to start managing your WhatsApp Business conversations.
+                </p>
+                <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+                  <Button 
+                    variant="outline" 
+                    onClick={handleRefresh} 
+                    disabled={isRefreshing}
+                    className="w-full sm:w-auto"
+                  >
+                    <RefreshCw className={cn("w-4 h-4 mr-2", isRefreshing && "animate-spin")} />
+                    Refresh List
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
           )}
         </main>
       </div>
