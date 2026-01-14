@@ -57,6 +57,7 @@ import {
   Zap,
   AlertTriangle,
   CheckCircle2,
+  TrendingUp,
   XCircle,
   MoreVertical,
   History,
@@ -88,6 +89,8 @@ import { toast } from 'sonner';
 import { FlowTestModal } from '@/components/flows/FlowTestModal';
 import { FlowPreviewModal } from '@/components/flows/FlowPreviewModal';
 import { FlowHistoryModal } from '@/components/flows/FlowHistoryModal';
+import { AINodeGenerator } from '@/components/flows/AINodeGenerator';
+import { FlowAnalytics } from '@/components/flows/FlowAnalytics';
 
 // Node type configurations
 const nodeCategories = [
@@ -219,6 +222,8 @@ const FlowBuilder = () => {
   const [testModalOpen, setTestModalOpen] = useState(false);
   const [previewModalOpen, setPreviewModalOpen] = useState(false);
   const [historyModalOpen, setHistoryModalOpen] = useState(false);
+  const [analyticsModalOpen, setAnalyticsModalOpen] = useState(false);
+  const [showAIGenerator, setShowAIGenerator] = useState(false);
   
   // Node dragging state
   const [draggingNode, setDraggingNode] = useState<string | null>(null);
@@ -400,11 +405,29 @@ const FlowBuilder = () => {
             <Eye className="w-4 h-4" />
             Preview
           </Button>
-          <Button variant="outline" size="sm" className="gap-2" onClick={() => setHistoryModalOpen(true)}>
-            <History className="w-4 h-4" />
-            History
-            <Badge variant="secondary" className="ml-1 text-[10px]">Pro</Badge>
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm" className="gap-2">
+                <MoreVertical className="w-4 h-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => setHistoryModalOpen(true)}>
+                <History className="w-4 h-4 mr-2" />
+                Version History
+                <Badge variant="secondary" className="ml-2 text-[10px]">Pro</Badge>
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setAnalyticsModalOpen(true)}>
+                <TrendingUp className="w-4 h-4 mr-2" />
+                Analytics
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setShowAIGenerator(true)}>
+                <Sparkles className="w-4 h-4 mr-2" />
+                AI Generator
+                <Badge variant="secondary" className="ml-2 text-[10px]">Pro</Badge>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
           <Separator orientation="vertical" className="h-6" />
           <Button variant="outline" size="sm" onClick={handleSave} disabled={saving}>
             {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
