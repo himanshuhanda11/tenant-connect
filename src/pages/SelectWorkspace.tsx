@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
-  Building2, Plus, Loader2, MessageSquare, ArrowRight, Users, Calendar, 
+  Building2, Plus, Loader2, ArrowRight, Users, Calendar, 
   RefreshCw, Phone, Shield, Crown, UserCog, Eye, Lock, AlertTriangle,
-  CheckCircle, Clock, Inbox
+  CheckCircle, Clock, Inbox, MessageSquare
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -15,6 +15,7 @@ import { useTenant } from '@/contexts/TenantContext';
 import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
+import aireatroLogo from '@/assets/aireatro-logo.png';
 
 interface WorkspaceEnriched {
   id: string;
@@ -211,11 +212,8 @@ export default function SelectWorkspace() {
         {/* Header */}
         <header className="bg-background/80 backdrop-blur-sm border-b border-border sticky top-0 z-50">
           <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center shadow-lg shadow-green-500/20">
-                <MessageSquare className="w-5 h-5 text-white" />
-              </div>
-              <span className="font-bold text-xl text-foreground">AiReatro</span>
+            <div className="flex items-center">
+              <img src={aireatroLogo} alt="AiReatro" className="h-10 w-auto" />
             </div>
             <div className="flex items-center gap-4">
               <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-muted/50">

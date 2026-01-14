@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { MessageSquare, Menu, X, ChevronDown, Zap, MousePointer, TrendingUp, Inbox, Megaphone, FileText, Bot, BarChart3 } from 'lucide-react';
+import { Menu, X, ChevronDown, Zap, MousePointer, TrendingUp, Inbox, Megaphone, FileText, Bot, BarChart3 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -10,6 +10,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuLabel,
 } from '@/components/ui/dropdown-menu';
+import aireatroLogo from '@/assets/aireatro-logo.png';
 
 export default function Navbar() {
   const navigate = useNavigate();
@@ -46,11 +47,8 @@ export default function Navbar() {
     <header className="border-b border-border/50 bg-background/95 backdrop-blur-md sticky top-0 z-50">
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
         <div className="flex items-center gap-8">
-          <Link to="/" className="flex items-center gap-3">
-            <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br from-green-500 to-emerald-600 shadow-lg shadow-green-500/20">
-              <MessageSquare className="w-5 h-5 text-white" />
-            </div>
-            <span className="font-bold text-xl text-foreground">AiReatro</span>
+          <Link to="/" className="flex items-center gap-2">
+            <img src={aireatroLogo} alt="AiReatro" className="h-10 w-auto" />
           </Link>
 
           <nav className="hidden lg:flex items-center gap-1">

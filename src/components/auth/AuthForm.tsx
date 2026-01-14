@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { MessageSquare, Loader2, Eye, EyeOff, CheckCircle2, Inbox, Megaphone, Bot, Shield, Users, Zap } from 'lucide-react';
+import { Loader2, Eye, EyeOff, CheckCircle2, Inbox, Megaphone, Bot, Shield, Users, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -11,6 +11,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import Breadcrumb from '@/components/layout/Breadcrumb';
+import aireatroLogo from '@/assets/aireatro-logo.png';
 
 const loginSchema = z.object({
   email: z.string().email('Please enter a valid email'),
@@ -118,11 +119,8 @@ export function AuthForm({ mode }: AuthFormProps) {
           {/* Header */}
           <header className="p-4 md:p-6">
             <div className="flex items-center justify-between">
-              <Link to="/" className="flex items-center gap-2">
-                <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br from-green-500 to-emerald-600 shadow-lg">
-                  <MessageSquare className="w-5 h-5 text-white" />
-                </div>
-                <span className="font-bold text-xl text-foreground">AiReatro</span>
+              <Link to="/" className="flex items-center">
+                <img src={aireatroLogo} alt="AiReatro" className="h-10 w-auto" />
               </Link>
             </div>
             <Breadcrumb className="mt-4" />
@@ -269,11 +267,8 @@ export function AuthForm({ mode }: AuthFormProps) {
         {/* Header */}
         <header className="p-4 md:p-6">
           <div className="flex items-center justify-between">
-            <Link to="/" className="flex items-center gap-2">
-              <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br from-green-500 to-emerald-600 shadow-lg">
-                <MessageSquare className="w-5 h-5 text-white" />
-              </div>
-              <span className="font-bold text-xl text-foreground">AiReatro</span>
+            <Link to="/" className="flex items-center">
+              <img src={aireatroLogo} alt="AiReatro" className="h-10 w-auto" />
             </Link>
           </div>
           <Breadcrumb className="mt-4" />

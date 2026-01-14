@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Users, Settings, LogOut, ChevronDown, ChevronRight, Plus, MessageSquare, Inbox, Contact, Phone, FileText, Send, Zap, CreditCard, Shield, UsersRound, Route, Clock, ScrollText, Tag, ListFilter, HelpCircle, Megaphone, BarChart3, Link2, Target, Workflow, Cog, Building2, Sparkles, TrendingUp, Headphones, Search, Bell, Check } from 'lucide-react';
+import { LayoutDashboard, Users, Settings, LogOut, ChevronDown, ChevronRight, Plus, Inbox, Contact, Phone, FileText, Send, Zap, CreditCard, Shield, UsersRound, Route, Clock, ScrollText, Tag, ListFilter, HelpCircle, Megaphone, BarChart3, Link2, Target, Workflow, Cog, Building2, Sparkles, TrendingUp, Headphones, Search, Bell, Check } from 'lucide-react';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from '@/components/ui/sidebar';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
@@ -13,6 +13,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useTenant } from '@/contexts/TenantContext';
 import { sidebarDescriptions } from '@/data/sidebarDescriptions';
 import { cn } from '@/lib/utils';
+import aireatroLogo from '@/assets/aireatro-logo.png';
 interface MenuItem {
   title: string;
   url: string;
@@ -400,18 +401,15 @@ export function AppSidebar() {
   return <Sidebar className={cn("border-r border-sidebar-border bg-sidebar transition-all duration-300", isCollapsed ? "w-[68px]" : "w-[260px]")} collapsible="icon">
       {/* Header with Logo */}
       <SidebarHeader className="p-4 border-b border-sidebar-border">
-        <div className="flex items-center gap-3">
-          <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-gradient-to-br from-green-500 to-emerald-600 shadow-lg shadow-green-500/20 flex-shrink-0">
-            <MessageSquare className="w-5 h-5 text-white" />
-          </div>
-          {!isCollapsed && <div className="flex-1 min-w-0">
-              <h2 className="font-bold text-sidebar-foreground text-base tracking-tight">
-                AiReatro
-              </h2>
-              <p className="text-[10px] text-sidebar-foreground/50 uppercase tracking-widest">
-                WhatsApp Platform
-              </p>
-            </div>}
+        <div className="flex items-center justify-center">
+          <img 
+            src={aireatroLogo} 
+            alt="AiReatro" 
+            className={cn(
+              "w-auto transition-all duration-300",
+              isCollapsed ? "h-8" : "h-10"
+            )} 
+          />
         </div>
       </SidebarHeader>
 
