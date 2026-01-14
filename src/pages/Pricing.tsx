@@ -19,17 +19,40 @@ export default function Pricing() {
 
   const plans = [
     {
-      name: 'Starter',
-      description: 'Perfect for small businesses getting started',
-      monthlyPrice: 49,
-      annualPrice: 39,
+      name: 'Free',
+      description: 'Try AiReatro risk-free',
+      monthlyPrice: 0,
+      annualPrice: 0,
       features: [
         '1 Phone Number',
-        '1,000 Messages/month',
+        '500 Messages/month',
+        '1 Team Member',
+        '5 Basic Templates',
+        'Community Support',
+        '3-day Message History',
+      ],
+      notIncluded: [
+        'Automation',
+        'API Access',
+        'Custom Integrations',
+        'Analytics',
+      ],
+      popular: false,
+      gradient: 'from-slate-400 to-slate-500'
+    },
+    {
+      name: 'Basic',
+      description: 'For small businesses getting started',
+      monthlyPrice: 29,
+      annualPrice: 23,
+      features: [
+        '1 Phone Number',
+        '2,000 Messages/month',
         '3 Team Members',
-        'Basic Templates',
+        '10 Templates',
         'Email Support',
         '7-day Message History',
+        'Basic Analytics',
       ],
       notIncluded: [
         'Automation',
@@ -37,22 +60,22 @@ export default function Pricing() {
         'Custom Integrations',
       ],
       popular: false,
-      gradient: 'from-slate-500 to-slate-600'
+      gradient: 'from-blue-500 to-blue-600'
     },
     {
-      name: 'Growth',
+      name: 'Standard',
       description: 'For growing teams with higher volume',
-      monthlyPrice: 149,
-      annualPrice: 119,
+      monthlyPrice: 79,
+      annualPrice: 63,
       features: [
         '3 Phone Numbers',
         '10,000 Messages/month',
         '10 Team Members',
-        'Advanced Templates',
+        'Unlimited Templates',
         'Automation Flows',
         'Priority Support',
         '30-day Message History',
-        'Analytics Dashboard',
+        'Advanced Analytics',
       ],
       notIncluded: [
         'API Access',
@@ -62,10 +85,10 @@ export default function Pricing() {
       gradient: 'from-green-500 to-emerald-600'
     },
     {
-      name: 'Business',
+      name: 'Pro',
       description: 'Enterprise-grade for large organizations',
-      monthlyPrice: 399,
-      annualPrice: 319,
+      monthlyPrice: 199,
+      annualPrice: 159,
       features: [
         'Unlimited Phone Numbers',
         '50,000 Messages/month',
@@ -112,16 +135,16 @@ export default function Pricing() {
   ];
 
   const comparisonFeatures = [
-    { name: 'Phone Numbers', starter: '1', growth: '3', business: 'Unlimited' },
-    { name: 'Monthly Messages', starter: '1,000', growth: '10,000', business: '50,000' },
-    { name: 'Team Members', starter: '3', growth: '10', business: 'Unlimited' },
-    { name: 'Message Templates', starter: 'Basic', growth: 'Advanced', business: 'Custom' },
-    { name: 'Automation', starter: '❌', growth: '✓', business: '✓' },
-    { name: 'API Access', starter: '❌', growth: '❌', business: '✓' },
-    { name: 'Analytics', starter: 'Basic', growth: 'Advanced', business: 'Full' },
-    { name: 'Support', starter: 'Email', growth: 'Priority', business: 'Dedicated' },
-    { name: 'Message History', starter: '7 days', growth: '30 days', business: 'Unlimited' },
-    { name: 'SLA', starter: '❌', growth: '❌', business: '99.9%' },
+    { name: 'Phone Numbers', free: '1', basic: '1', standard: '3', pro: 'Unlimited' },
+    { name: 'Monthly Messages', free: '500', basic: '2,000', standard: '10,000', pro: '50,000' },
+    { name: 'Team Members', free: '1', basic: '3', standard: '10', pro: 'Unlimited' },
+    { name: 'Message Templates', free: '5', basic: '10', standard: 'Unlimited', pro: 'Custom' },
+    { name: 'Automation', free: '❌', basic: '❌', standard: '✓', pro: '✓' },
+    { name: 'API Access', free: '❌', basic: '❌', standard: '❌', pro: '✓' },
+    { name: 'Analytics', free: '❌', basic: 'Basic', standard: 'Advanced', pro: 'Full' },
+    { name: 'Support', free: 'Community', basic: 'Email', standard: 'Priority', pro: 'Dedicated' },
+    { name: 'Message History', free: '3 days', basic: '7 days', standard: '30 days', pro: 'Unlimited' },
+    { name: 'SLA', free: '❌', basic: '❌', standard: '❌', pro: '99.9%' },
   ];
 
   return (
@@ -166,9 +189,9 @@ export default function Pricing() {
       {/* Pricing Cards */}
       <section className="py-16 -mt-8">
         <div className="container mx-auto px-4">
-          <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto">
             {plans.map((plan, index) => (
-              <Card key={index} className={`relative overflow-hidden ${plan.popular ? 'border-green-500 shadow-2xl shadow-green-500/10 scale-105 z-10' : 'border-border/50'}`}>
+              <Card key={index} className={`relative overflow-hidden flex flex-col ${plan.popular ? 'border-green-500 shadow-2xl shadow-green-500/10 lg:scale-105 z-10' : 'border-border/50'}`}>
                 {plan.popular && (
                   <div className={`absolute top-0 left-0 right-0 h-1 bg-gradient-to-r ${plan.gradient}`} />
                 )}
@@ -180,41 +203,47 @@ export default function Pricing() {
                   </div>
                 )}
                 <CardHeader className="text-center pt-8">
-                  <CardTitle className="text-2xl">{plan.name}</CardTitle>
-                  <CardDescription className="text-base">{plan.description}</CardDescription>
-                  <div className="mt-6">
-                    <span className="text-5xl font-bold text-foreground">
-                      ${isAnnual ? plan.annualPrice : plan.monthlyPrice}
-                    </span>
-                    <span className="text-muted-foreground">/month</span>
-                    {isAnnual && (
-                      <div className="text-sm text-green-600 mt-1">
-                        Billed annually (${plan.annualPrice * 12}/year)
+                  <CardTitle className="text-xl">{plan.name}</CardTitle>
+                  <CardDescription className="text-sm">{plan.description}</CardDescription>
+                  <div className="mt-4">
+                    {plan.monthlyPrice === 0 ? (
+                      <span className="text-4xl font-bold text-foreground">Free</span>
+                    ) : (
+                      <>
+                        <span className="text-4xl font-bold text-foreground">
+                          ${isAnnual ? plan.annualPrice : plan.monthlyPrice}
+                        </span>
+                        <span className="text-muted-foreground">/mo</span>
+                      </>
+                    )}
+                    {isAnnual && plan.annualPrice > 0 && (
+                      <div className="text-xs text-green-600 mt-1">
+                        Billed ${plan.annualPrice * 12}/year
                       </div>
                     )}
                   </div>
                 </CardHeader>
-                <CardContent className="pb-8">
+                <CardContent className="pb-6 flex-1 flex flex-col">
                   <Button 
-                    className={`w-full mb-6 h-12 ${plan.popular ? `bg-gradient-to-r ${plan.gradient} shadow-lg` : ''}`}
+                    className={`w-full mb-5 h-11 ${plan.popular ? `bg-gradient-to-r ${plan.gradient} shadow-lg` : ''}`}
                     variant={plan.popular ? 'default' : 'outline'}
                     onClick={() => navigate('/signup')}
                   >
-                    Start Free Trial
+                    {plan.monthlyPrice === 0 ? 'Get Started Free' : 'Start Free Trial'}
                     <ArrowRight className="w-4 h-4 ml-2" />
                   </Button>
 
-                  <div className="space-y-3">
+                  <div className="space-y-2.5 flex-1">
                     {plan.features.map((feature, i) => (
-                      <div key={i} className="flex items-center gap-3">
-                        <CheckCircle2 className="w-5 h-5 text-green-500 flex-shrink-0" />
-                        <span className="text-foreground">{feature}</span>
+                      <div key={i} className="flex items-center gap-2">
+                        <CheckCircle2 className="w-4 h-4 text-green-500 flex-shrink-0" />
+                        <span className="text-sm text-foreground">{feature}</span>
                       </div>
                     ))}
                     {plan.notIncluded.map((feature, i) => (
-                      <div key={i} className="flex items-center gap-3 opacity-40">
-                        <CheckCircle2 className="w-5 h-5 flex-shrink-0" />
-                        <span className="line-through">{feature}</span>
+                      <div key={i} className="flex items-center gap-2 opacity-40">
+                        <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
+                        <span className="text-sm line-through">{feature}</span>
                       </div>
                     ))}
                   </div>
@@ -223,7 +252,7 @@ export default function Pricing() {
             ))}
           </div>
 
-          <p className="text-center text-muted-foreground mt-8">
+          <p className="text-center text-muted-foreground mt-8 text-sm">
             All plans include a 14-day free trial. No credit card required.
           </p>
 
@@ -396,23 +425,25 @@ export default function Pricing() {
             </p>
           </div>
 
-          <div className="max-w-4xl mx-auto overflow-x-auto">
+          <div className="max-w-5xl mx-auto overflow-x-auto">
             <table className="w-full">
               <thead>
                 <tr className="border-b border-border">
                   <th className="text-left py-4 px-4 font-semibold text-foreground">Feature</th>
-                  <th className="text-center py-4 px-4 font-semibold text-foreground">Starter</th>
-                  <th className="text-center py-4 px-4 font-semibold text-foreground bg-green-500/5">Growth</th>
-                  <th className="text-center py-4 px-4 font-semibold text-foreground">Business</th>
+                  <th className="text-center py-4 px-4 font-semibold text-foreground">Free</th>
+                  <th className="text-center py-4 px-4 font-semibold text-foreground">Basic</th>
+                  <th className="text-center py-4 px-4 font-semibold text-foreground bg-green-500/5">Standard</th>
+                  <th className="text-center py-4 px-4 font-semibold text-foreground">Pro</th>
                 </tr>
               </thead>
               <tbody>
                 {comparisonFeatures.map((feature, index) => (
                   <tr key={index} className="border-b border-border/50">
                     <td className="py-4 px-4 text-foreground">{feature.name}</td>
-                    <td className="py-4 px-4 text-center text-muted-foreground">{feature.starter}</td>
-                    <td className="py-4 px-4 text-center text-muted-foreground bg-green-500/5">{feature.growth}</td>
-                    <td className="py-4 px-4 text-center text-muted-foreground">{feature.business}</td>
+                    <td className="py-4 px-4 text-center text-muted-foreground">{feature.free}</td>
+                    <td className="py-4 px-4 text-center text-muted-foreground">{feature.basic}</td>
+                    <td className="py-4 px-4 text-center text-muted-foreground bg-green-500/5">{feature.standard}</td>
+                    <td className="py-4 px-4 text-center text-muted-foreground">{feature.pro}</td>
                   </tr>
                 ))}
               </tbody>
