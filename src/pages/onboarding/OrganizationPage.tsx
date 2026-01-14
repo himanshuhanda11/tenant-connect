@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Loader2, ArrowLeft, Building2 } from 'lucide-react';
+import { Loader2, Building2 } from 'lucide-react';
 import aireatroLogo from '@/assets/aireatro-logo.png';
 
 const countries = [
@@ -67,6 +67,7 @@ export default function OrganizationPage() {
   const { createTenant, refreshTenants } = useTenant();
   
   const [isLoading, setIsLoading] = useState(false);
+  const [isCheckingStep, setIsCheckingStep] = useState(true);
   const [error, setError] = useState<string | null>(null);
   
   // Form state
@@ -76,17 +77,19 @@ export default function OrganizationPage() {
   const [teamSize, setTeamSize] = useState('');
   const [goal, setGoal] = useState('');
 
+  // Single useEffect for all auth/onboarding checks
   useEffect(() => {
-    if (!authLoading && !user) {
-      navigate('/signup');
-    }
-  }, [user, authLoading, navigate]);
-
-  useEffect(() => {
-    // Check if user already completed this step
-    const checkStep = async () => {
-      if (!user) return;
+    const checkAuthAndOnboarding = async () => {
+      // Wait for auth to finish loading
+      if (authLoading) return;
       
+      // No user - redirect to signup
+      if (!user) {
+        navigate('/signup', { replace: true });
+        return;
+      }
+
+      // Check onboarding step
       const { data: profile } = await supabase
         .from('profiles')
         .select('onboarding_step')
@@ -94,14 +97,17 @@ export default function OrganizationPage() {
         .maybeSingle();
 
       if (profile?.onboarding_step === 'completed') {
-        navigate('/select-workspace');
+        navigate('/select-workspace', { replace: true });
       } else if (profile?.onboarding_step === 'org_done') {
-        navigate('/onboarding/password');
+        navigate('/onboarding/password', { replace: true });
+      } else {
+        // User is at correct step, show the form
+        setIsCheckingStep(false);
       }
     };
-    
-    if (user) checkStep();
-  }, [user, navigate]);
+
+    checkAuthAndOnboarding();
+  }, [user, authLoading, navigate]);
 
   const generateSlug = (name: string) => {
     return name
@@ -123,11 +129,10 @@ export default function OrganizationPage() {
     setError(null);
 
     try {
-      const selectedCountry = countries.find(c => c.code === country);
       const slug = generateSlug(orgName);
 
       // Create the workspace/tenant
-      const { error: tenantError, tenant } = await createTenant(orgName, slug);
+      const { error: tenantError } = await createTenant(orgName, slug);
       
       if (tenantError) throw tenantError;
 
@@ -149,18 +154,22 @@ export default function OrganizationPage() {
       await refreshTenants();
 
       // Navigate to password step
-      navigate('/onboarding/password');
+      navigate('/onboarding/password', { replace: true });
     } catch (err: any) {
+      console.error('Organization creation error:', err);
       setError(err.message || 'Failed to create organization');
-    } finally {
       setIsLoading(false);
     }
   };
 
-  if (authLoading) {
+  // Show loading while checking auth or onboarding step
+  if (authLoading || isCheckingStep) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <p className="text-muted-foreground">Setting up...</p>
+        </div>
       </div>
     );
   }
@@ -171,12 +180,6 @@ export default function OrganizationPage() {
       <header className="border-b bg-background/80 backdrop-blur-sm">
         <div className="max-w-4xl mx-auto px-6 py-4 flex items-center justify-between">
           <img src={aireatroLogo} alt="AiReatro" className="h-8 w-auto" />
-          <Button variant="ghost" size="sm" asChild>
-            <Link to="/signup">
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back
-            </Link>
-          </Button>
         </div>
       </header>
 
@@ -233,7 +236,7 @@ export default function OrganizationPage() {
                   <Label htmlFor="country">
                     Country <span className="text-destructive">*</span>
                   </Label>
-                  <Select value={country} onValueChange={setCountry} required>
+                  <Select value={country} onValueChange={setCountry}>
                     <SelectTrigger id="country" className="h-11">
                       <SelectValue placeholder="Select your country" />
                     </SelectTrigger>

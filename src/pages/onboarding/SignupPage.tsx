@@ -15,6 +15,7 @@ export default function SignupPage() {
   const { user, loading: authLoading } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
   const [error, setError] = useState<string | null>(null);
   
   // Email form state
@@ -23,29 +24,35 @@ export default function SignupPage() {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
 
+  // Single useEffect for auth check
   useEffect(() => {
-    if (!authLoading && user) {
-      checkOnboardingStatus();
-    }
-  }, [user, authLoading]);
+    const checkAuthStatus = async () => {
+      if (authLoading) return;
+      
+      if (user) {
+        // User exists, check their onboarding status
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('onboarding_step')
+          .eq('id', user.id)
+          .maybeSingle();
 
-  const checkOnboardingStatus = async () => {
-    if (!user) return;
-    
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('onboarding_step')
-      .eq('id', user.id)
-      .maybeSingle();
+        if (profile?.onboarding_step === 'completed') {
+          navigate('/select-workspace', { replace: true });
+        } else if (profile?.onboarding_step === 'org_done') {
+          navigate('/onboarding/password', { replace: true });
+        } else {
+          // pending or google_done - go to org page
+          navigate('/onboarding/org', { replace: true });
+        }
+      } else {
+        // No user, show signup form
+        setIsCheckingAuth(false);
+      }
+    };
 
-    if (profile?.onboarding_step === 'completed') {
-      navigate('/select-workspace');
-    } else if (profile?.onboarding_step === 'google_done' || profile?.onboarding_step === 'pending') {
-      navigate('/onboarding/org');
-    } else if (profile?.onboarding_step === 'org_done') {
-      navigate('/onboarding/password');
-    }
-  };
+    checkAuthStatus();
+  }, [user, authLoading, navigate]);
 
   const handleGoogleSignup = async () => {
     setIsGoogleLoading(true);
@@ -65,6 +72,7 @@ export default function SignupPage() {
 
       if (error) throw error;
     } catch (err: any) {
+      console.error('Google signup error:', err);
       setError(err.message || 'Failed to sign up with Google');
       setIsGoogleLoading(false);
     }
@@ -104,26 +112,27 @@ export default function SignupPage() {
         } else {
           throw error;
         }
+        setIsLoading(false);
         return;
       }
 
+      // Wait a moment for the profile to be created by trigger
       if (data.user) {
-        // Update profile onboarding step
-        await supabase
-          .from('profiles')
-          .update({ onboarding_step: 'google_done' })
-          .eq('id', data.user.id);
-        
-        navigate('/onboarding/org');
+        // The auth state change will trigger navigation
+        // But we can also manually navigate after a short delay
+        setTimeout(() => {
+          navigate('/onboarding/org', { replace: true });
+        }, 500);
       }
     } catch (err: any) {
+      console.error('Email signup error:', err);
       setError(err.message || 'Failed to create account');
-    } finally {
       setIsLoading(false);
     }
   };
 
-  if (authLoading) {
+  // Show loading while checking auth
+  if (authLoading || isCheckingAuth) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -221,6 +230,7 @@ export default function SignupPage() {
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
                     className="h-11"
+                    disabled={isLoading || isGoogleLoading}
                     required
                   />
                 </div>
@@ -234,6 +244,7 @@ export default function SignupPage() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     className="h-11"
+                    disabled={isLoading || isGoogleLoading}
                     required
                   />
                 </div>
@@ -248,6 +259,7 @@ export default function SignupPage() {
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       className="h-11 pr-10"
+                      disabled={isLoading || isGoogleLoading}
                       required
                       minLength={6}
                     />
@@ -301,7 +313,7 @@ export default function SignupPage() {
               Terms of Service
             </Link>
             <span>•</span>
-            <Link to="/privacy" className="hover:text-foreground transition-colors">
+            <Link to="/privacy-policy" className="hover:text-foreground transition-colors">
               Privacy Policy
             </Link>
           </div>
