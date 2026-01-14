@@ -1,11 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { useTenant } from '@/contexts/TenantContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -64,14 +62,12 @@ const goals = [
 export default function OrganizationPage() {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
-  const { createTenant, refreshTenants } = useTenant();
   
   const [isLoading, setIsLoading] = useState(false);
   const [isCheckingStep, setIsCheckingStep] = useState(true);
   const [error, setError] = useState<string | null>(null);
   
-  // Form state
-  const [orgName, setOrgName] = useState('');
+  // Form state - only collect profile info, no workspace creation
   const [country, setCountry] = useState('');
   const [industry, setIndustry] = useState('');
   const [teamSize, setTeamSize] = useState('');
@@ -109,19 +105,11 @@ export default function OrganizationPage() {
     checkAuthAndOnboarding();
   }, [user, authLoading, navigate]);
 
-  const generateSlug = (name: string) => {
-    return name
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-|-$/g, '')
-      .substring(0, 50);
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!orgName.trim() || !country) {
-      setError('Please fill in all required fields');
+    if (!country) {
+      setError('Please select your country');
       return;
     }
 
@@ -129,14 +117,7 @@ export default function OrganizationPage() {
     setError(null);
 
     try {
-      const slug = generateSlug(orgName);
-
-      // Create the workspace/tenant
-      const { error: tenantError } = await createTenant(orgName, slug);
-      
-      if (tenantError) throw tenantError;
-
-      // Update profile with org details and step
+      // Only update profile with org details - NO workspace creation here
       const { error: profileError } = await supabase
         .from('profiles')
         .update({
@@ -150,14 +131,11 @@ export default function OrganizationPage() {
 
       if (profileError) throw profileError;
 
-      // Refresh tenants to get the new one
-      await refreshTenants();
-
       // Navigate to password step
       navigate('/onboarding/password', { replace: true });
     } catch (err: any) {
-      console.error('Organization creation error:', err);
-      setError(err.message || 'Failed to create organization');
+      console.error('Profile update error:', err);
+      setError(err.message || 'Failed to save details');
       setIsLoading(false);
     }
   };
@@ -215,21 +193,6 @@ export default function OrganizationPage() {
                     {error}
                   </div>
                 )}
-
-                {/* Organization Name - Required */}
-                <div className="space-y-2">
-                  <Label htmlFor="orgName">
-                    Organization name <span className="text-destructive">*</span>
-                  </Label>
-                  <Input
-                    id="orgName"
-                    placeholder="Enter your company name"
-                    value={orgName}
-                    onChange={(e) => setOrgName(e.target.value)}
-                    className="h-11"
-                    required
-                  />
-                </div>
 
                 {/* Country - Required */}
                 <div className="space-y-2">
@@ -304,14 +267,14 @@ export default function OrganizationPage() {
 
                 <Button
                   type="submit"
-                  disabled={isLoading || !orgName.trim() || !country}
+                  disabled={isLoading || !country}
                   size="lg"
                   className="w-full h-12 text-base font-medium"
                 >
                   {isLoading ? (
                     <>
                       <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                      Creating workspace...
+                      Saving...
                     </>
                   ) : (
                     'Continue'
