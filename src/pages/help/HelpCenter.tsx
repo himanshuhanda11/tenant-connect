@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   Search, 
   MessageSquare, 
@@ -17,9 +18,60 @@ import {
   BookOpen,
   Lightbulb,
   HelpCircle,
-  Megaphone
+  Megaphone,
+  LayoutDashboard,
+  Inbox,
+  Users,
+  Tag,
+  FileText,
+  Zap,
+  CreditCard,
+  Shield,
+  ListFilter,
+  Clock,
+  Route,
+  ScrollText,
+  Target,
+  BarChart3,
+  Link2,
+  Workflow,
+  Cog,
+  ExternalLink,
+  TrendingUp
 } from 'lucide-react';
-import { GUIDE_CATEGORIES, STATIC_GUIDES, StaticGuide } from '@/data/guideContent';
+import { GUIDE_CATEGORIES, STATIC_GUIDES, StaticGuide, getStaticGuideBySidebarKey } from '@/data/guideContent';
+import { sidebarDescriptions, SidebarItemMeta, getAllSidebarItems } from '@/data/sidebarDescriptions';
+
+// Icon mapping for sidebar items
+const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
+  dashboard: LayoutDashboard,
+  inbox: Inbox,
+  contacts: Users,
+  tags: Tag,
+  'user-attributes': ListFilter,
+  'phone-numbers': Phone,
+  templates: FileText,
+  campaigns: Send,
+  automation: Zap,
+  'meta-ads-overview': Megaphone,
+  'meta-ads-setup': Link2,
+  'meta-ads-manager': Target,
+  'meta-ads-analytics': BarChart3,
+  'meta-ads-attribution': Route,
+  'meta-ads-automations': Workflow,
+  'meta-ads-settings': Cog,
+  'team-overview': Users,
+  'team-members': Users,
+  'team-roles': Shield,
+  'team-groups': Users,
+  'team-routing': Route,
+  'team-sla': Clock,
+  'team-audit': ScrollText,
+  team: Users,
+  billing: CreditCard,
+  settings: Settings,
+  help: HelpCircle,
+};
 
 const categoryIcons: Record<string, React.ReactNode> = {
   messaging: <MessageSquare className="h-6 w-6" />,
@@ -30,11 +82,80 @@ const categoryIcons: Record<string, React.ReactNode> = {
   compliance: <CheckCircle className="h-6 w-6" />,
 };
 
+const categoryColors: Record<string, { bg: string; text: string; border: string }> = {
+  core: { bg: 'bg-blue-500/10', text: 'text-blue-600', border: 'border-blue-500/20' },
+  channels: { bg: 'bg-purple-500/10', text: 'text-purple-600', border: 'border-purple-500/20' },
+  growth: { bg: 'bg-green-500/10', text: 'text-green-600', border: 'border-green-500/20' },
+  'meta-ads': { bg: 'bg-orange-500/10', text: 'text-orange-600', border: 'border-orange-500/20' },
+  team: { bg: 'bg-indigo-500/10', text: 'text-indigo-600', border: 'border-indigo-500/20' },
+  platform: { bg: 'bg-gray-500/10', text: 'text-gray-600', border: 'border-gray-500/20' },
+};
+
+interface FeatureCardProps {
+  item: SidebarItemMeta;
+  guide?: StaticGuide;
+}
+
+function FeatureCard({ item, guide }: FeatureCardProps) {
+  const Icon = iconMap[item.key] || HelpCircle;
+  const colors = categoryColors[item.category] || categoryColors.platform;
+  
+  return (
+    <Card className="group h-full hover:shadow-lg hover:border-primary/30 transition-all duration-300">
+      <CardHeader className="pb-3">
+        <div className="flex items-start justify-between gap-3">
+          <div className={`w-10 h-10 rounded-xl ${colors.bg} flex items-center justify-center ${colors.text} group-hover:scale-110 transition-transform`}>
+            <Icon className="w-5 h-5" />
+          </div>
+          <Badge variant="outline" className={`text-xs capitalize ${colors.text} ${colors.border}`}>
+            {item.category === 'meta-ads' ? 'Meta Ads' : item.category}
+          </Badge>
+        </div>
+        <CardTitle className="text-lg group-hover:text-primary transition-colors mt-3">
+          {item.title}
+        </CardTitle>
+        <CardDescription className="line-clamp-2 text-sm">
+          {item.description}
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="pt-0">
+        <div className="flex items-center justify-between">
+          {guide ? (
+            <Link 
+              to={`/help/${guide.slug}`}
+              className="inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:underline"
+            >
+              Read guide
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            </Link>
+          ) : item.helpSlug ? (
+            <Link 
+              to={`/help/${item.helpSlug}`}
+              className="inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:underline"
+            >
+              Learn more
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            </Link>
+          ) : (
+            <span className="text-sm text-muted-foreground">Coming soon</span>
+          )}
+          {guide && (
+            <span className="text-xs text-muted-foreground">{guide.readingTime} min read</span>
+          )}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
 export default function HelpCenter() {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<StaticGuide[]>([]);
   const [isSearching, setIsSearching] = useState(false);
+  const [activeTab, setActiveTab] = useState('all');
+
+  const allSidebarItems = getAllSidebarItems();
 
   useEffect(() => {
     if (searchQuery.length > 2) {
@@ -58,23 +179,42 @@ export default function HelpCenter() {
     return STATIC_GUIDES.filter(g => g.category === categorySlug).length;
   };
 
+  // Get items filtered by category
+  const getItemsByCategory = (category: string) => {
+    if (category === 'all') return allSidebarItems;
+    return allSidebarItems.filter(item => item.category === category);
+  };
+
+  // Category tabs configuration
+  const categoryTabs = [
+    { id: 'all', label: 'All Features', icon: LayoutDashboard },
+    { id: 'core', label: 'Core', icon: Inbox },
+    { id: 'channels', label: 'Channels', icon: Phone },
+    { id: 'growth', label: 'Growth', icon: TrendingUp },
+    { id: 'meta-ads', label: 'Meta Ads', icon: Megaphone },
+    { id: 'team', label: 'Team', icon: Users },
+    { id: 'platform', label: 'Platform', icon: Settings },
+  ];
+
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <Navbar />
       
       {/* Hero Section */}
-      <section className="relative py-20 bg-gradient-to-br from-primary/5 via-background to-primary/5">
+      <section className="relative py-16 lg:py-20 bg-gradient-to-br from-primary/5 via-background to-primary/5">
         <div className="container mx-auto px-4">
           <div className="max-w-3xl mx-auto text-center">
             <div className="flex items-center justify-center gap-2 mb-4">
-              <HelpCircle className="h-8 w-8 text-primary" />
-              <Badge variant="outline" className="text-sm">Help Center</Badge>
+              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center shadow-lg shadow-primary/20">
+                <BookOpen className="h-6 w-6 text-primary-foreground" />
+              </div>
             </div>
-            <h1 className="text-4xl md:text-5xl font-bold mb-6">
-              How can we help you?
+            <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-4">
+              Help Center
             </h1>
-            <p className="text-xl text-muted-foreground mb-8">
-              Find guides, tutorials, and answers to get the most out of SMEKSH
+            <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
+              Find guides, tutorials, and quick answers for every feature in SMEKSH. 
+              Learn how to get the most out of your WhatsApp Business platform.
             </p>
 
             {/* Search */}
@@ -82,7 +222,7 @@ export default function HelpCenter() {
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
               <Input
                 type="search"
-                placeholder="Search guides, articles, and tutorials..."
+                placeholder="Search guides, features, and tutorials..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-12 h-14 text-lg rounded-xl border-2 focus:border-primary"
@@ -123,10 +263,123 @@ export default function HelpCenter() {
         </div>
       </section>
 
-      {/* Categories */}
-      <section className="py-16 bg-background">
+      {/* Quick Start Cards */}
+      <section className="py-8 border-b">
         <div className="container mx-auto px-4">
-          <h2 className="text-2xl font-bold mb-8 text-center">Browse by Category</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Card className="border-primary/20 bg-gradient-to-br from-primary/5 to-primary/10 hover:shadow-lg transition-all">
+              <CardContent className="p-6">
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 rounded-xl bg-primary flex items-center justify-center text-primary-foreground shadow-lg">
+                    <Lightbulb className="h-6 w-6" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-lg mb-1">Getting Started</h3>
+                    <p className="text-sm text-muted-foreground mb-3">
+                      New to SMEKSH? Learn the basics and set up your workspace.
+                    </p>
+                    <Button variant="link" className="p-0 h-auto" asChild>
+                      <Link to="/help/getting-started">Start Here →</Link>
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+            
+            <Card className="hover:shadow-lg transition-all">
+              <CardContent className="p-6">
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 rounded-xl bg-muted flex items-center justify-center">
+                    <FileText className="h-6 w-6 text-muted-foreground" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-lg mb-1">Template Approval</h3>
+                    <p className="text-sm text-muted-foreground mb-3">
+                      Learn how to create templates that get approved by Meta.
+                    </p>
+                    <Button variant="link" className="p-0 h-auto" asChild>
+                      <Link to="/help/templates-guide">View Guide →</Link>
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="hover:shadow-lg transition-all">
+              <CardContent className="p-6">
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 rounded-xl bg-muted flex items-center justify-center">
+                    <MessageSquare className="h-6 w-6 text-muted-foreground" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-lg mb-1">Contact Support</h3>
+                    <p className="text-sm text-muted-foreground mb-3">
+                      Can't find what you're looking for? We're here to help.
+                    </p>
+                    <Button variant="link" className="p-0 h-auto" asChild>
+                      <Link to="/contact">Get Support →</Link>
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </section>
+
+      {/* All Features Section */}
+      <section className="py-12 bg-background">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-8">
+            <h2 className="text-2xl md:text-3xl font-bold mb-2">Explore All Features</h2>
+            <p className="text-muted-foreground max-w-2xl mx-auto">
+              Comprehensive guides for every feature in SMEKSH. Select a category or browse all features below.
+            </p>
+          </div>
+
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <div className="flex justify-center mb-8">
+              <TabsList className="flex-wrap h-auto gap-1 p-1 bg-muted/50">
+                {categoryTabs.map(tab => {
+                  const Icon = tab.icon;
+                  return (
+                    <TabsTrigger 
+                      key={tab.id} 
+                      value={tab.id}
+                      className="flex items-center gap-2 px-4 py-2 data-[state=active]:bg-background data-[state=active]:shadow-sm"
+                    >
+                      <Icon className="w-4 h-4" />
+                      <span className="hidden sm:inline">{tab.label}</span>
+                    </TabsTrigger>
+                  );
+                })}
+              </TabsList>
+            </div>
+
+            {categoryTabs.map(tab => (
+              <TabsContent key={tab.id} value={tab.id} className="mt-0">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                  {getItemsByCategory(tab.id).map(item => {
+                    const guide = getStaticGuideBySidebarKey(item.key);
+                    return (
+                      <FeatureCard 
+                        key={item.key} 
+                        item={item} 
+                        guide={guide}
+                      />
+                    );
+                  })}
+                </div>
+              </TabsContent>
+            ))}
+          </Tabs>
+        </div>
+      </section>
+
+      {/* Categories Section */}
+      <section className="py-12 bg-muted/30">
+        <div className="container mx-auto px-4">
+          <h2 className="text-2xl font-bold mb-8 text-center">Browse by Topic</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4">
             {GUIDE_CATEGORIES.map(category => (
               <Link 
@@ -152,8 +405,8 @@ export default function HelpCenter() {
         </div>
       </section>
 
-      {/* Featured Guides */}
-      <section className="py-16 bg-muted/30">
+      {/* Popular Guides */}
+      <section className="py-12 bg-background">
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between mb-8">
             <div>
@@ -190,54 +443,6 @@ export default function HelpCenter() {
                 </Card>
               </Link>
             ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Quick Links */}
-      <section className="py-16 bg-background">
-        <div className="container mx-auto px-4">
-          <div className="max-w-4xl mx-auto">
-            <h2 className="text-2xl font-bold mb-8 text-center">Quick Start</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Card className="border-primary/20 bg-primary/5">
-                <CardContent className="p-6">
-                  <div className="flex items-start gap-4">
-                    <div className="w-10 h-10 rounded-lg bg-primary flex items-center justify-center text-primary-foreground">
-                      <Lightbulb className="h-5 w-5" />
-                    </div>
-                    <div>
-                      <h3 className="font-semibold mb-1">Getting Started</h3>
-                      <p className="text-sm text-muted-foreground mb-3">
-                        New to SMEKSH? Learn the basics in 5 minutes.
-                      </p>
-                      <Button variant="link" className="p-0 h-auto" asChild>
-                        <Link to="/help/getting-started">Start Here →</Link>
-                      </Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-              
-              <Card>
-                <CardContent className="p-6">
-                  <div className="flex items-start gap-4">
-                    <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center">
-                      <MessageSquare className="h-5 w-5" />
-                    </div>
-                    <div>
-                      <h3 className="font-semibold mb-1">Contact Support</h3>
-                      <p className="text-sm text-muted-foreground mb-3">
-                        Can't find what you're looking for? We're here to help.
-                      </p>
-                      <Button variant="link" className="p-0 h-auto" asChild>
-                        <Link to="/contact">Get Support →</Link>
-                      </Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
           </div>
         </div>
       </section>

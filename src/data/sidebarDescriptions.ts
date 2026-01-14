@@ -1,113 +1,253 @@
 export interface SidebarItemMeta {
   key: string;
+  title: string;
   description: string;
   helpSlug: string;
+  icon?: string;
+  category: 'core' | 'channels' | 'growth' | 'meta-ads' | 'team' | 'platform';
 }
 
 export const sidebarDescriptions: Record<string, SidebarItemMeta> = {
+  // Core Features
   dashboard: {
     key: 'dashboard',
-    description: 'Overview of your messaging performance and key metrics at a glance.',
-    helpSlug: 'inbox-guide'
+    title: 'Dashboard',
+    description: 'Get a real-time overview of your messaging performance, team activity, and key business metrics at a glance.',
+    helpSlug: 'dashboard-guide',
+    icon: '📊',
+    category: 'core'
   },
   inbox: {
     key: 'inbox',
-    description: 'Central inbox to reply to all WhatsApp messages from customers in real time.',
-    helpSlug: 'inbox'
+    title: 'Inbox',
+    description: 'Your central hub for managing all WhatsApp conversations. Reply to customers in real-time, assign chats to team members, and track conversation status.',
+    helpSlug: 'inbox-guide',
+    icon: '💬',
+    category: 'core'
   },
   contacts: {
     key: 'contacts',
-    description: 'Manage your customer database with detailed profiles and conversation history.',
-    helpSlug: 'contacts-tags'
+    title: 'Contacts',
+    description: 'Manage your customer database with detailed profiles, conversation history, custom attributes, and powerful segmentation tools.',
+    helpSlug: 'contacts-management',
+    icon: '👥',
+    category: 'core'
   },
   tags: {
     key: 'tags',
-    description: 'Organize contacts and conversations with custom labels for better segmentation.',
-    helpSlug: 'contacts-tags'
+    title: 'Tags',
+    description: 'Create and manage custom labels to organize contacts and conversations. Use tags for segmentation, filtering, and targeted campaigns.',
+    helpSlug: 'tags-and-segments',
+    icon: '🏷️',
+    category: 'core'
   },
   'user-attributes': {
     key: 'user-attributes',
-    description: 'Define custom fields to capture additional customer information.',
-    helpSlug: 'contacts-tags'
+    title: 'User Attributes',
+    description: 'Define custom fields to capture additional customer data like preferences, subscription status, or any business-specific information.',
+    helpSlug: 'user-attributes-guide',
+    icon: '📝',
+    category: 'core'
   },
+
+  // Channels
   'phone-numbers': {
     key: 'phone-numbers',
-    description: 'Connect and manage your WhatsApp Business phone numbers.',
-    helpSlug: 'inbox'
+    title: 'Phone Numbers',
+    description: 'Connect and manage your WhatsApp Business phone numbers. Monitor quality ratings, update business profiles, and handle verification.',
+    helpSlug: 'phone-numbers-setup',
+    icon: '📱',
+    category: 'channels'
   },
   templates: {
     key: 'templates',
-    description: 'Create and manage WhatsApp message templates that must be approved by Meta.',
-    helpSlug: 'templates'
+    title: 'Templates',
+    description: 'Create, submit, and manage WhatsApp message templates for outbound messaging. All templates must be approved by Meta before use.',
+    helpSlug: 'templates-guide',
+    icon: '📄',
+    category: 'channels'
   },
+
+  // Growth
   campaigns: {
     key: 'campaigns',
-    description: 'Send bulk messages to targeted segments using approved templates.',
-    helpSlug: 'templates'
+    title: 'Campaigns',
+    description: 'Send bulk WhatsApp messages to targeted audiences using approved templates. Schedule campaigns, A/B test content, and track performance.',
+    helpSlug: 'campaigns-guide',
+    icon: '📣',
+    category: 'growth'
   },
   automation: {
     key: 'automation',
-    description: 'Automatically send messages or apply actions based on user behavior.',
-    helpSlug: 'automation'
+    title: 'Automation',
+    description: 'Build powerful workflows that automatically send messages, apply tags, assign agents, and more based on triggers and conditions.',
+    helpSlug: 'automation-workflows',
+    icon: '⚡',
+    category: 'growth'
   },
+
+  // Meta Ads
   'meta-ads-overview': {
     key: 'meta-ads-overview',
-    description: 'Overview of your Meta Ads performance and Click-to-WhatsApp leads.',
-    helpSlug: 'meta-ads'
+    title: 'Meta Ads Overview',
+    description: 'See a high-level summary of your Click-to-WhatsApp ad performance, lead volume, and conversion metrics across all campaigns.',
+    helpSlug: 'meta-ads-guide',
+    icon: '📢',
+    category: 'meta-ads'
   },
   'meta-ads-setup': {
     key: 'meta-ads-setup',
-    description: 'Connect your Meta Ad Account to track Click-to-WhatsApp campaigns.',
-    helpSlug: 'meta-ads'
+    title: 'Meta Ads Setup',
+    description: 'Connect your Facebook Business account and Ad Manager to start tracking Click-to-WhatsApp leads and attributing them to campaigns.',
+    helpSlug: 'meta-ads-guide',
+    icon: '🔗',
+    category: 'meta-ads'
   },
   'meta-ads-manager': {
     key: 'meta-ads-manager',
-    description: 'View your Click-to-WhatsApp ads and their performance metrics.',
-    helpSlug: 'meta-ads'
+    title: 'Ads Manager',
+    description: 'View your Click-to-WhatsApp ads synced from Meta. See impressions, clicks, and leads generated by each ad in a read-only dashboard.',
+    helpSlug: 'meta-ads-guide',
+    icon: '🎯',
+    category: 'meta-ads'
   },
   'meta-ads-analytics': {
     key: 'meta-ads-analytics',
-    description: 'Analyze lead performance, conversion rates, and ROI from Meta Ads.',
-    helpSlug: 'meta-ads'
+    title: 'Lead Analytics',
+    description: 'Analyze lead performance, conversion rates, response times, and ROI from Meta Ads. Compare campaigns and identify top performers.',
+    helpSlug: 'meta-ads-guide',
+    icon: '📈',
+    category: 'meta-ads'
   },
   'meta-ads-attribution': {
     key: 'meta-ads-attribution',
-    description: 'Configure how leads are attributed to specific ads and campaigns.',
-    helpSlug: 'meta-ads'
+    title: 'Attribution Rules',
+    description: 'Configure how WhatsApp leads are attributed to specific ads and campaigns. Set attribution windows and handle edge cases.',
+    helpSlug: 'meta-ads-guide',
+    icon: '🔀',
+    category: 'meta-ads'
   },
   'meta-ads-automations': {
     key: 'meta-ads-automations',
-    description: 'Set up automatic responses and routing for Click-to-WhatsApp leads.',
-    helpSlug: 'meta-ads'
+    title: 'Ad Automations',
+    description: 'Set up automatic welcome messages, lead routing, and tagging for contacts arriving from Click-to-WhatsApp ads.',
+    helpSlug: 'meta-ads-guide',
+    icon: '🤖',
+    category: 'meta-ads'
   },
   'meta-ads-settings': {
     key: 'meta-ads-settings',
-    description: 'Configure Meta Ads tracking settings and default behaviors.',
-    helpSlug: 'meta-ads'
+    title: 'Meta Ads Settings',
+    description: 'Configure Meta Ads integration settings including tracking preferences, attribution defaults, and notification rules.',
+    helpSlug: 'meta-ads-guide',
+    icon: '⚙️',
+    category: 'meta-ads'
   },
+
+  // Team
+  'team-overview': {
+    key: 'team-overview',
+    title: 'Team Overview',
+    description: 'Get a quick snapshot of your team structure, member count, pending invites, and overall team health metrics.',
+    helpSlug: 'team-management',
+    icon: '👔',
+    category: 'team'
+  },
+  'team-members': {
+    key: 'team-members',
+    title: 'Team Members',
+    description: 'View and manage all team members. Invite new users, update roles, monitor online status, and track individual performance.',
+    helpSlug: 'team-management',
+    icon: '👥',
+    category: 'team'
+  },
+  'team-roles': {
+    key: 'team-roles',
+    title: 'Roles & Permissions',
+    description: 'Define custom roles with granular permissions. Control who can access conversations, manage contacts, or configure settings.',
+    helpSlug: 'team-management',
+    icon: '🛡️',
+    category: 'team'
+  },
+  'team-groups': {
+    key: 'team-groups',
+    title: 'Teams (Groups)',
+    description: 'Organize team members into groups like Sales, Support, or Marketing. Use groups for routing, reporting, and access control.',
+    helpSlug: 'team-management',
+    icon: '🏢',
+    category: 'team'
+  },
+  'team-routing': {
+    key: 'team-routing',
+    title: 'Routing & Assignment',
+    description: 'Configure how conversations are automatically assigned to agents. Set up round-robin, least-busy, or skill-based routing.',
+    helpSlug: 'team-management',
+    icon: '🔄',
+    category: 'team'
+  },
+  'team-sla': {
+    key: 'team-sla',
+    title: 'Working Hours & SLA',
+    description: 'Define working hours and response time targets. Set up auto-replies for after-hours and track SLA compliance.',
+    helpSlug: 'team-management',
+    icon: '⏰',
+    category: 'team'
+  },
+  'team-audit': {
+    key: 'team-audit',
+    title: 'Audit Logs',
+    description: 'View a complete history of all actions taken in your workspace. Track who did what and when for security and compliance.',
+    helpSlug: 'team-management',
+    icon: '📋',
+    category: 'team'
+  },
+
+  // Platform
   team: {
     key: 'team',
-    description: 'Invite team members and manage roles and permissions.',
-    helpSlug: 'inbox'
+    title: 'Team',
+    description: 'Invite and manage team members with role-based permissions. Monitor activity and ensure secure access to your workspace.',
+    helpSlug: 'team-management',
+    icon: '👥',
+    category: 'platform'
   },
   billing: {
     key: 'billing',
-    description: 'View your subscription, usage, and manage payment methods.',
-    helpSlug: 'inbox'
+    title: 'Billing & Usage',
+    description: 'View your subscription details, track message usage, manage payment methods, and download invoices. Monitor costs and upgrade plans.',
+    helpSlug: 'billing-guide',
+    icon: '💳',
+    category: 'platform'
   },
   settings: {
     key: 'settings',
-    description: 'Configure workspace settings, integrations, and preferences.',
-    helpSlug: 'inbox'
+    title: 'Settings',
+    description: 'Configure workspace settings, integrations, messaging defaults, security options, and notification preferences.',
+    helpSlug: 'settings-guide',
+    icon: '⚙️',
+    category: 'platform'
   },
   help: {
     key: 'help',
-    description: 'Browse guides and documentation to get the most out of the platform.',
-    helpSlug: ''
+    title: 'Help Center',
+    description: 'Browse guides, tutorials, and documentation to get the most out of SMEKSH. Find answers to common questions.',
+    helpSlug: '',
+    icon: '❓',
+    category: 'platform'
   }
 };
 
 export function getDescriptionForRoute(path: string): SidebarItemMeta | undefined {
   const key = path.replace('/', '').split('/')[0];
   return sidebarDescriptions[key];
+}
+
+// Get all sidebar items by category
+export function getSidebarItemsByCategory(category: SidebarItemMeta['category']): SidebarItemMeta[] {
+  return Object.values(sidebarDescriptions).filter(item => item.category === category);
+}
+
+// Get all sidebar items
+export function getAllSidebarItems(): SidebarItemMeta[] {
+  return Object.values(sidebarDescriptions);
 }
