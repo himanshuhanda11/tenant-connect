@@ -209,10 +209,10 @@ export function AppSidebar() {
                   to={item.url}
                   end={item.url === '/dashboard'}
                   className={cn(
-                    "flex items-center justify-center p-2 rounded-lg transition-all duration-200",
+                    "flex items-center justify-center p-2 rounded-lg transition-all duration-200 font-medium",
                     isActive 
                       ? "bg-primary text-primary-foreground shadow-sm" 
-                      : "text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent"
+                      : "text-foreground/80 hover:text-foreground hover:bg-sidebar-accent"
                   )}
                   activeClassName=""
                 >
@@ -240,11 +240,11 @@ export function AppSidebar() {
             to={item.url}
             end={item.url === '/dashboard'}
             className={cn(
-              "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200",
+              "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 font-medium",
               compact ? "py-2" : "py-2.5",
               isActive 
-                ? "bg-primary/10 text-primary font-medium border-l-2 border-primary -ml-[2px] pl-[14px]" 
-                : "text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent"
+                ? "bg-primary/10 text-primary font-semibold border-l-2 border-primary -ml-[2px] pl-[14px]" 
+                : "text-foreground/80 hover:text-foreground hover:bg-sidebar-accent"
             )}
             activeClassName=""
           >
@@ -312,10 +312,10 @@ export function AppSidebar() {
           <CollapsibleTrigger asChild>
             <button
               className={cn(
-                "w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium uppercase tracking-wider transition-colors",
+                "w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold uppercase tracking-wider transition-colors",
                 hasActiveItem 
                   ? "text-primary bg-primary/5" 
-                  : "text-sidebar-foreground/50 hover:text-sidebar-foreground/70 hover:bg-sidebar-accent/50"
+                  : "text-foreground/70 hover:text-foreground hover:bg-sidebar-accent/50"
               )}
             >
               <GroupIcon className="w-4 h-4" />
