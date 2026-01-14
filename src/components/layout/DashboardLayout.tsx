@@ -5,22 +5,26 @@ import { AppSidebar } from './AppSidebar';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTenant } from '@/contexts/TenantContext';
 import { Loader2 } from 'lucide-react';
-
 interface DashboardLayoutProps {
   children: React.ReactNode;
 }
-
-export function DashboardLayout({ children }: DashboardLayoutProps) {
+export function DashboardLayout({
+  children
+}: DashboardLayoutProps) {
   const navigate = useNavigate();
-  const { user, loading: authLoading } = useAuth();
-  const { loading: tenantLoading, currentTenant } = useTenant();
-
+  const {
+    user,
+    loading: authLoading
+  } = useAuth();
+  const {
+    loading: tenantLoading,
+    currentTenant
+  } = useTenant();
   useEffect(() => {
     if (!authLoading && !user) {
       navigate('/login');
     }
   }, [user, authLoading, navigate]);
-
   useEffect(() => {
     // After refresh/login we may not have a selected workspace yet.
     // Always route through the workspace selector instead of forcing creation.
@@ -31,22 +35,17 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
   // Show loading while auth or tenant data is being fetched
   if (authLoading || tenantLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
+    return <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-4">
           <Loader2 className="w-8 h-8 text-primary animate-spin" />
           <p className="text-muted-foreground">Loading...</p>
         </div>
-      </div>
-    );
+      </div>;
   }
-
   if (!user || !currentTenant) {
     return null;
   }
-
-  return (
-    <SidebarProvider>
+  return <SidebarProvider>
       <div className="min-h-screen flex w-full bg-muted/30">
         <AppSidebar />
         <main className="flex-1 flex flex-col min-w-0">
@@ -59,6 +58,5 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           </div>
         </main>
       </div>
-    </SidebarProvider>
-  );
+    </SidebarProvider>;
 }
