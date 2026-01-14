@@ -9,6 +9,9 @@ import ScrollToTop from "@/components/ScrollToTop";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
+import SignupPage from "./pages/onboarding/SignupPage";
+import OrganizationPage from "./pages/onboarding/OrganizationPage";
+import PasswordPage from "./pages/onboarding/PasswordPage";
 import CreateWorkspace from "./pages/CreateWorkspace";
 import SelectWorkspace from "./pages/SelectWorkspace";
 import Dashboard from "./pages/Dashboard";
@@ -105,7 +108,10 @@ const App = () => (
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/login" element={<Login />} />
-              <Route path="/signup" element={<Signup />} />
+              <Route path="/signup" element={<SignupPage />} />
+              <Route path="/auth/signup" element={<SignupPage />} />
+              <Route path="/onboarding/org" element={<OrganizationPage />} />
+              <Route path="/onboarding/password" element={<PasswordPage />} />
               <Route path="/create-workspace" element={<CreateWorkspace />} />
               <Route path="/select-workspace" element={<SelectWorkspace />} />
               <Route path="/dashboard" element={<Dashboard />} />
