@@ -42,37 +42,38 @@ export default function SocialProofBar() {
   const duplicatedCompanies = [...companies, ...companies];
 
   return (
-    <section className="py-8 md:py-12 bg-muted/30 border-y border-border/50 overflow-hidden">
+    <section className="py-6 sm:py-8 md:py-12 bg-muted/30 border-y border-border/50 overflow-hidden">
       <div className="container mx-auto px-4">
-        <p className="text-center text-sm text-muted-foreground mb-6">
-          TRUSTED BY <span className="font-semibold text-foreground">2,000+</span> BUSINESSES WORLDWIDE
+        <p className="text-center text-xs sm:text-sm text-muted-foreground mb-4 sm:mb-6">
+          TRUSTED BY <span className="font-semibold text-foreground">2,000+</span> BUSINESSES
         </p>
         
-        {/* Scrolling Logo Marquee */}
-        <div className="relative mb-8">
+        {/* Scrolling Logo Marquee - Optimized for mobile */}
+        <div className="relative mb-6 sm:mb-8">
           {/* Gradient overlays for fade effect */}
-          <div className="absolute left-0 top-0 bottom-0 w-20 md:w-32 bg-gradient-to-r from-muted/30 to-transparent z-10 pointer-events-none" />
-          <div className="absolute right-0 top-0 bottom-0 w-20 md:w-32 bg-gradient-to-l from-muted/30 to-transparent z-10 pointer-events-none" />
+          <div className="absolute left-0 top-0 bottom-0 w-12 sm:w-20 md:w-32 bg-gradient-to-r from-muted/30 to-transparent z-10 pointer-events-none" />
+          <div className="absolute right-0 top-0 bottom-0 w-12 sm:w-20 md:w-32 bg-gradient-to-l from-muted/30 to-transparent z-10 pointer-events-none" />
           
           {/* Scrolling container */}
           <div className="flex animate-marquee">
             {duplicatedCompanies.map((company, index) => (
               <div 
                 key={`${company.name}-${index}`}
-                className="flex items-center justify-center mx-6 md:mx-10 shrink-0"
+                className="flex items-center justify-center mx-4 sm:mx-6 md:mx-10 shrink-0"
               >
                 <img 
                   src={company.logo}
                   alt={company.name}
-                  className="h-8 md:h-10 w-auto grayscale opacity-60 hover:grayscale-0 hover:opacity-100 transition-all duration-300"
+                  className="h-6 sm:h-8 md:h-10 w-auto grayscale opacity-60 hover:grayscale-0 hover:opacity-100 transition-all duration-300"
+                  loading="lazy"
+                  decoding="async"
                   onError={(e) => {
-                    // Fallback to text if logo fails to load
                     const target = e.target as HTMLImageElement;
                     target.style.display = 'none';
                     target.nextElementSibling?.classList.remove('hidden');
                   }}
                 />
-                <span className="hidden text-lg font-bold text-muted-foreground/50">
+                <span className="hidden text-sm sm:text-lg font-bold text-muted-foreground/50">
                   {company.name}
                 </span>
               </div>
@@ -80,13 +81,13 @@ export default function SocialProofBar() {
           </div>
         </div>
 
-        {/* Metrics row */}
-        <div className="flex flex-wrap justify-center items-center gap-6 md:gap-12">
+        {/* Metrics row - Stack on small mobile */}
+        <div className="flex flex-col xs:flex-row flex-wrap justify-center items-center gap-4 sm:gap-6 md:gap-12">
           {metrics.map((metric, index) => (
             <div key={index} className="flex items-center gap-2 text-center">
-              <metric.icon className={`w-5 h-5 ${metric.color}`} />
-              <span className={`text-lg md:text-xl font-bold ${metric.color}`}>{metric.value}</span>
-              <span className="text-sm text-muted-foreground">{metric.label}</span>
+              <metric.icon className={`w-4 h-4 sm:w-5 sm:h-5 ${metric.color}`} />
+              <span className={`text-base sm:text-lg md:text-xl font-bold ${metric.color}`}>{metric.value}</span>
+              <span className="text-xs sm:text-sm text-muted-foreground">{metric.label}</span>
             </div>
           ))}
         </div>

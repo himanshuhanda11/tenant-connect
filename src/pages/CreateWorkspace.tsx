@@ -80,61 +80,61 @@ export default function CreateWorkspace() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background px-4">
+    <div className="min-h-screen flex items-center justify-center bg-background px-4 py-8">
       <div className="w-full max-w-md animate-fade-in">
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-14 h-14 rounded-xl bg-primary mb-4">
-            <MessageSquare className="w-7 h-7 text-primary-foreground" />
+        <div className="text-center mb-6 sm:mb-8">
+          <div className="inline-flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 rounded-xl bg-primary mb-3 sm:mb-4">
+            <MessageSquare className="w-6 h-6 sm:w-7 sm:h-7 text-primary-foreground" />
           </div>
-          <h1 className="text-2xl font-bold text-foreground">Create Your Workspace</h1>
-          <p className="text-muted-foreground mt-1">
+          <h1 className="text-xl sm:text-2xl font-bold text-foreground">Create Your Workspace</h1>
+          <p className="text-sm sm:text-base text-muted-foreground mt-1">
             Set up a workspace for your team
           </p>
         </div>
 
         <Card className="shadow-soft border-border/50">
-          <CardHeader className="pb-4">
-            <CardTitle className="text-xl flex items-center gap-2">
-              <Building2 className="w-5 h-5" />
+          <CardHeader className="pb-3 sm:pb-4 px-4 sm:px-6">
+            <CardTitle className="text-lg sm:text-xl flex items-center gap-2">
+              <Building2 className="w-4 h-4 sm:w-5 sm:h-5" />
               New Workspace
             </CardTitle>
-            <CardDescription>
+            <CardDescription className="text-xs sm:text-sm">
               A workspace is where your team collaborates. You'll be the owner.
             </CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="px-4 sm:px-6">
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="name">Workspace Name</Label>
+                <Label htmlFor="name" className="text-sm">Workspace Name</Label>
                 <Input
                   id="name"
                   placeholder="Acme Inc"
                   {...form.register('name')}
                   onChange={handleNameChange}
-                  className="h-11"
+                  className="h-11 sm:h-12"
                 />
                 {form.formState.errors.name && (
-                  <p className="text-sm text-destructive">
+                  <p className="text-xs sm:text-sm text-destructive">
                     {form.formState.errors.name.message}
                   </p>
                 )}
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="slug">Workspace URL</Label>
+                <Label htmlFor="slug" className="text-sm">Workspace URL</Label>
                 <div className="flex items-center">
-                  <span className="inline-flex items-center px-3 h-11 rounded-l-md border border-r-0 border-input bg-muted text-muted-foreground text-sm">
+                  <span className="inline-flex items-center px-2 sm:px-3 h-11 sm:h-12 rounded-l-md border border-r-0 border-input bg-muted text-muted-foreground text-xs sm:text-sm">
                     app/
                   </span>
                   <Input
                     id="slug"
                     placeholder="acme-inc"
                     {...form.register('slug')}
-                    className="h-11 rounded-l-none"
+                    className="h-11 sm:h-12 rounded-l-none"
                   />
                 </div>
                 {form.formState.errors.slug && (
-                  <p className="text-sm text-destructive">
+                  <p className="text-xs sm:text-sm text-destructive">
                     {form.formState.errors.slug.message}
                   </p>
                 )}
@@ -142,7 +142,7 @@ export default function CreateWorkspace() {
 
               <Button 
                 type="submit" 
-                className="w-full h-11 font-medium"
+                className="w-full h-11 sm:h-12 font-medium text-sm sm:text-base"
                 disabled={loading}
               >
                 {loading ? (
@@ -160,8 +160,8 @@ export default function CreateWorkspace() {
             </form>
 
             {tenants.length > 0 && (
-              <div className="mt-6 text-center">
-                <Button variant="ghost" onClick={() => navigate('/dashboard')}>
+              <div className="mt-4 sm:mt-6 text-center">
+                <Button variant="ghost" size="sm" onClick={() => navigate('/dashboard')} className="text-sm">
                   Back to Dashboard
                 </Button>
               </div>
