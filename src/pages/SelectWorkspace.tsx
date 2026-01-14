@@ -26,7 +26,6 @@ interface WorkspaceEnriched {
   phoneCount: number;
   memberCount: number;
   status: 'active' | 'suspended' | 'trial_expired';
-  lastActivity?: string;
   messagesThisWeek?: number;
 }
 
@@ -78,13 +77,11 @@ export default function SelectWorkspace() {
       try {
         const enriched: WorkspaceEnriched[] = await Promise.all(
           tenants.map(async (tenant) => {
-            // Fetch phone numbers count
             const { count: phoneCount } = await supabase
               .from('phone_numbers')
               .select('*', { count: 'exact', head: true })
               .eq('tenant_id', tenant.id);
 
-            // Fetch first connected phone number for display
             const { data: phones } = await supabase
               .from('phone_numbers')
               .select('display_number')
@@ -92,13 +89,11 @@ export default function SelectWorkspace() {
               .eq('status', 'connected')
               .limit(1);
 
-            // Fetch member count
             const { count: memberCount } = await supabase
               .from('tenant_members')
               .select('*', { count: 'exact', head: true })
               .eq('tenant_id', tenant.id);
 
-            // Fetch messages this week (optional - for activity indicator)
             const weekAgo = new Date();
             weekAgo.setDate(weekAgo.getDate() - 7);
             const { count: messagesThisWeek } = await supabase
@@ -116,7 +111,7 @@ export default function SelectWorkspace() {
               phoneNumber: phones?.[0]?.display_number || undefined,
               phoneCount: phoneCount || 0,
               memberCount: memberCount || 0,
-              status: 'active' as const, // Default to active, can be extended
+              status: 'active' as const,
               messagesThisWeek: messagesThisWeek || 0,
             };
           })
@@ -124,7 +119,6 @@ export default function SelectWorkspace() {
         setWorkspaces(enriched);
       } catch (error) {
         console.error('Error fetching workspace details:', error);
-        // Fallback
         setWorkspaces(tenants.map(t => ({
           id: t.id,
           name: t.name,
@@ -149,7 +143,6 @@ export default function SelectWorkspace() {
     const tenant = tenants.find(t => t.id === workspace.id);
     if (tenant) {
       setCurrentTenant(tenant);
-      // Role-based redirect
       if (workspace.role === 'agent') {
         navigate('/inbox');
       } else {
@@ -212,8 +205,6 @@ export default function SelectWorkspace() {
     return null;
   }
 
-  const displayName = profile?.full_name || user.email?.split('@')[0] || 'there';
-
   return (
     <TooltipProvider>
       <div className="min-h-screen bg-gradient-to-br from-background via-muted/30 to-background">
@@ -248,6 +239,71 @@ export default function SelectWorkspace() {
               Choose which workspace you want to continue with
             </p>
           </div>
+
+          {/* Create New Workspace Card - Always First */}
+          <Card className="mb-8 overflow-hidden border-dashed border-2 border-primary/20 bg-gradient-to-br from-primary/5 via-background to-emerald-500/5 hover:border-primary/40 transition-colors">
+            <CardContent className="p-5 md:p-8">
+              <div className="flex flex-col md:flex-row md:items-center gap-4 md:gap-6">
+                {/* Mobile header */}
+                <div className="flex items-center gap-3 md:hidden">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary/20 to-emerald-500/20 flex items-center justify-center flex-shrink-0">
+                    <Plus className="w-5 h-5 text-primary" />
+                  </div>
+                  <div>
+                    <h2 className="text-lg font-semibold text-foreground">Create New Workspace</h2>
+                    <p className="text-xs text-muted-foreground">One workspace per WhatsApp number</p>
+                  </div>
+                </div>
+                
+                <div className="flex-1">
+                  {/* Desktop header */}
+                  <div className="hidden md:flex items-center gap-3 mb-3">
+                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary/20 to-emerald-500/20 flex items-center justify-center">
+                      <Plus className="w-6 h-6 text-primary" />
+                    </div>
+                    <div>
+                      <h2 className="text-xl font-semibold text-foreground">Create New Workspace</h2>
+                      <p className="text-sm text-muted-foreground">
+                        Each workspace is associated with one WhatsApp Business API number
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <form onSubmit={handleCreateWorkspace} className="flex flex-col sm:flex-row gap-3 mt-4 md:mt-0">
+                    <Input
+                      placeholder="Enter workspace name..."
+                      value={workspaceName}
+                      onChange={(e) => setWorkspaceName(e.target.value)}
+                      className="flex-1 sm:max-w-md bg-background border-muted-foreground/20 focus:border-primary"
+                    />
+                    <Button 
+                      type="submit" 
+                      disabled={!workspaceName.trim() || isCreating}
+                      className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 shadow-lg shadow-green-500/20"
+                    >
+                      {isCreating ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          Creating...
+                        </>
+                      ) : (
+                        <>
+                          Create
+                          <ArrowRight className="w-4 h-4 ml-2" />
+                        </>
+                      )}
+                    </Button>
+                  </form>
+                </div>
+                
+                <div className="hidden lg:block">
+                  <div className="w-28 h-28 rounded-2xl bg-gradient-to-br from-primary/10 to-emerald-500/10 flex items-center justify-center border border-primary/10">
+                    <Building2 className="w-14 h-14 text-primary/40" />
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
 
           {/* Existing Workspaces */}
           {workspaces.length > 0 && (
@@ -303,7 +359,6 @@ export default function SelectWorkspace() {
                       <CardContent className="p-6">
                         {/* Header row */}
                         <div className="flex items-start gap-4 mb-4">
-                          {/* Logo/Avatar */}
                           <div className={cn(
                             "w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0 transition-transform group-hover:scale-105",
                             "bg-gradient-to-br from-primary/10 to-emerald-500/10 border border-primary/10"
@@ -316,8 +371,7 @@ export default function SelectWorkspace() {
                               {workspace.name}
                             </h3>
                             
-                            {/* Role badge */}
-                            <div className="flex items-center gap-2 mt-1.5">
+                            <div className="flex items-center gap-2 mt-1.5 flex-wrap">
                               <Badge 
                                 variant="outline" 
                                 className={cn("text-xs font-medium border", roleColors[workspace.role])}
@@ -326,7 +380,6 @@ export default function SelectWorkspace() {
                                 {workspace.role.charAt(0).toUpperCase() + workspace.role.slice(1)}
                               </Badge>
                               
-                              {/* Status badge */}
                               <Badge 
                                 variant="outline" 
                                 className={cn("text-xs", statusInfo.color)}
@@ -392,7 +445,7 @@ export default function SelectWorkspace() {
                               </Button>
                             </TooltipTrigger>
                             <TooltipContent>
-                              <p>This workspace has been suspended. Contact support for assistance.</p>
+                              <p>This workspace has been suspended. Contact support.</p>
                             </TooltipContent>
                           </Tooltip>
                         ) : isExpired ? (
@@ -431,82 +484,12 @@ export default function SelectWorkspace() {
             </div>
           )}
 
-          {/* Create New Workspace Card */}
-          <Card className="overflow-hidden border-dashed border-2 border-primary/20 bg-gradient-to-br from-primary/5 via-background to-emerald-500/5 hover:border-primary/40 transition-colors">
-            <CardContent className="p-6 md:p-8">
-              <div className="flex flex-col md:flex-row md:items-center gap-6">
-                <div className="flex-1">
-                  <div className="flex items-center gap-3 mb-3">
-                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary/20 to-emerald-500/20 flex items-center justify-center">
-                      <Plus className="w-6 h-6 text-primary" />
-                    </div>
-                    <div>
-                      <h2 className="text-xl font-semibold text-foreground">Create New Workspace</h2>
-                      <p className="text-sm text-muted-foreground">
-                        Each workspace is associated with one WhatsApp Business API number
-                      </p>
-                    </div>
-                  </div>
-                  
-                  <form onSubmit={handleCreateWorkspace} className="flex gap-3 mt-4">
-                    <Input
-                      placeholder="Enter workspace name..."
-                      value={workspaceName}
-                      onChange={(e) => setWorkspaceName(e.target.value)}
-                      className="max-w-md bg-background border-muted-foreground/20 focus:border-primary"
-                    />
-                    <Button 
-                      type="submit" 
-                      disabled={!workspaceName.trim() || isCreating}
-                      className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 shadow-lg shadow-green-500/20"
-                    >
-                      {isCreating ? (
-                        <>
-                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                          Creating...
-                        </>
-                      ) : (
-                        <>
-                          Create
-                          <ArrowRight className="w-4 h-4 ml-2" />
-                        </>
-                      )}
-                    </Button>
-                  </form>
-                </div>
-                
-                <div className="hidden lg:block">
-                  <div className="w-32 h-32 rounded-2xl bg-gradient-to-br from-primary/10 to-emerald-500/10 flex items-center justify-center border border-primary/10">
-                    <Building2 className="w-16 h-16 text-primary/40" />
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Empty State */}
-          {tenants.length === 0 && !tenantLoading && (
-            <div className="text-center py-16 mt-8">
-              <div className="mx-auto w-20 h-20 rounded-2xl bg-muted flex items-center justify-center mb-6">
-                <Building2 className="w-10 h-10 text-muted-foreground" />
-              </div>
-              <h3 className="text-xl font-semibold text-foreground mb-2">No workspaces yet</h3>
-              <p className="text-muted-foreground mb-6 max-w-md mx-auto">
-                Create your first workspace above to start managing your WhatsApp Business conversations
-              </p>
-              <Button variant="outline" onClick={handleRefresh} disabled={isRefreshing}>
-                <RefreshCw className={cn("w-4 h-4 mr-2", isRefreshing && "animate-spin")} />
-                Refresh List
-              </Button>
-            </div>
-          )}
-
-          {/* Loading details overlay */}
+          {/* Loading Skeleton */}
           {loadingDetails && workspaces.length === 0 && tenants.length > 0 && (
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 mb-8">
               {tenants.map((t) => (
                 <Card key={t.id} className="overflow-hidden">
-                  <div className="absolute top-0 left-0 right-0 h-1 bg-muted animate-pulse" />
+                  <div className="h-1 bg-muted animate-pulse" />
                   <CardContent className="p-6">
                     <div className="flex items-start gap-4 mb-4">
                       <div className="w-14 h-14 rounded-2xl bg-muted animate-pulse" />
@@ -523,6 +506,23 @@ export default function SelectWorkspace() {
                   </CardContent>
                 </Card>
               ))}
+            </div>
+          )}
+
+          {/* Empty State */}
+          {tenants.length === 0 && !tenantLoading && (
+            <div className="text-center py-12">
+              <div className="mx-auto w-16 h-16 rounded-2xl bg-muted flex items-center justify-center mb-4">
+                <Building2 className="w-8 h-8 text-muted-foreground" />
+              </div>
+              <h3 className="text-lg font-semibold text-foreground mb-2">No workspaces yet</h3>
+              <p className="text-muted-foreground mb-4 max-w-md mx-auto">
+                Create your first workspace above to start managing your WhatsApp conversations
+              </p>
+              <Button variant="outline" onClick={handleRefresh} disabled={isRefreshing}>
+                <RefreshCw className={cn("w-4 h-4 mr-2", isRefreshing && "animate-spin")} />
+                Refresh List
+              </Button>
             </div>
           )}
         </main>
