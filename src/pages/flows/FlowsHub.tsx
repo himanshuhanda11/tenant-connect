@@ -85,7 +85,7 @@ const categoryFilters = ['All', 'E-commerce', 'Real Estate', 'Healthcare', 'Educ
 
 const FlowsHub = () => {
   const navigate = useNavigate();
-  const { flows, loading, createFlow, deleteFlow, duplicateFlow, toggleFlowStatus } = useFlows();
+  const { flows, loading, createFlow, createFlowFromTemplate, deleteFlow, duplicateFlow, toggleFlowStatus } = useFlows();
   const { templates, loading: templatesLoading } = useFlowTemplates();
   const { phoneNumbers } = usePhoneNumbers();
   
@@ -132,6 +132,13 @@ const FlowsHub = () => {
       emoji: option.emoji,
       description: option.description 
     });
+    if (flow) {
+      navigate(`/flows/builder/${flow.id}`);
+    }
+  };
+
+  const handleUseTemplate = async (template: any) => {
+    const flow = await createFlowFromTemplate(template);
     if (flow) {
       navigate(`/flows/builder/${flow.id}`);
     }
@@ -686,7 +693,11 @@ const FlowsHub = () => {
                           <Eye className="w-4 h-4 mr-2" />
                           Preview
                         </Button>
-                        <Button size="sm" className="flex-1">
+                        <Button 
+                          size="sm" 
+                          className="flex-1"
+                          onClick={() => handleUseTemplate(template)}
+                        >
                           Use Template
                         </Button>
                       </div>

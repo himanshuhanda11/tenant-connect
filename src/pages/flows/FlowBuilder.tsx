@@ -191,6 +191,7 @@ const FlowBuilder = () => {
   const { id } = useParams();
   const isNew = !id;
   const canvasRef = useRef<HTMLDivElement>(null);
+  const canvasContentRef = useRef<HTMLDivElement>(null);
   
   const { 
     flow, nodes, edges, triggers, diagnostics, loading, saving,
@@ -202,9 +203,13 @@ const FlowBuilder = () => {
   const [rightPanelTab, setRightPanelTab] = useState('settings');
   const [zoom, setZoom] = useState(100);
   const [expandedCategories, setExpandedCategories] = useState<string[]>(['Messages']);
-  const [isDragging, setIsDragging] = useState(false);
+  const [isDraggingNew, setIsDraggingNew] = useState(false);
   const [dragNodeType, setDragNodeType] = useState<string | null>(null);
   const [connecting, setConnecting] = useState<string | null>(null);
+  
+  // Node dragging state
+  const [draggingNode, setDraggingNode] = useState<string | null>(null);
+  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
 
   useEffect(() => {
     if (flow) {
@@ -220,37 +225,73 @@ const FlowBuilder = () => {
     );
   };
 
-  const handleDragStart = (e: React.DragEvent, nodeType: string) => {
+  // New node drag from palette
+  const handlePaletteDragStart = (e: React.DragEvent, nodeType: string) => {
     e.dataTransfer.setData('nodeType', nodeType);
+    e.dataTransfer.effectAllowed = 'copy';
     setDragNodeType(nodeType);
-    setIsDragging(true);
+    setIsDraggingNew(true);
   };
 
-  const handleDragEnd = () => {
-    setIsDragging(false);
+  const handlePaletteDragEnd = () => {
+    setIsDraggingNew(false);
     setDragNodeType(null);
   };
 
   const handleCanvasDrop = async (e: React.DragEvent) => {
     e.preventDefault();
     const nodeType = e.dataTransfer.getData('nodeType');
-    if (!nodeType || !canvasRef.current) return;
+    if (!nodeType || !canvasContentRef.current) return;
 
-    const rect = canvasRef.current.getBoundingClientRect();
-    const x = (e.clientX - rect.left) / (zoom / 100);
-    const y = (e.clientY - rect.top) / (zoom / 100);
+    const rect = canvasContentRef.current.getBoundingClientRect();
+    const x = Math.max(0, (e.clientX - rect.left) / (zoom / 100));
+    const y = Math.max(0, (e.clientY - rect.top) / (zoom / 100));
 
     await addNode(nodeType, { x, y });
-    setIsDragging(false);
+    setIsDraggingNew(false);
   };
 
   const handleCanvasDragOver = (e: React.DragEvent) => {
     e.preventDefault();
+    e.dataTransfer.dropEffect = 'copy';
   };
 
-  const handleNodeClick = (nodeKey: string) => {
+  // Existing node dragging on canvas
+  const handleNodeMouseDown = (e: React.MouseEvent, nodeKey: string) => {
+    if (e.button !== 0) return; // Only left click
+    e.stopPropagation();
+    
+    const node = nodes.find(n => n.node_key === nodeKey);
+    if (!node) return;
+    
+    setDraggingNode(nodeKey);
+    setDragOffset({
+      x: e.clientX - node.position_x * (zoom / 100),
+      y: e.clientY - node.position_y * (zoom / 100),
+    });
     setSelectedNodeKey(nodeKey);
-    setRightPanelTab('settings');
+  };
+
+  const handleCanvasMouseMove = useCallback((e: React.MouseEvent) => {
+    if (!draggingNode || !canvasContentRef.current) return;
+    
+    const rect = canvasContentRef.current.getBoundingClientRect();
+    const newX = Math.max(0, (e.clientX - dragOffset.x) / (zoom / 100));
+    const newY = Math.max(0, (e.clientY - dragOffset.y) / (zoom / 100));
+    
+    // Update node position locally for smooth dragging
+    updateNode(draggingNode, { position_x: newX, position_y: newY });
+  }, [draggingNode, dragOffset, zoom, updateNode]);
+
+  const handleCanvasMouseUp = useCallback(() => {
+    setDraggingNode(null);
+  }, []);
+
+  const handleNodeClick = (nodeKey: string) => {
+    if (!draggingNode) {
+      setSelectedNodeKey(nodeKey);
+      setRightPanelTab('settings');
+    }
   };
 
   const handleAddConnection = async (sourceKey: string) => {
@@ -364,19 +405,18 @@ const FlowBuilder = () => {
                       expandedCategories.includes(category.label) && 'rotate-90'
                     )} />
                   </button>
-                  {expandedCategories.includes(category.label) && (
+                    {expandedCategories.includes(category.label) && (
                     <div className="ml-2 mt-1 space-y-1 pl-4 border-l border-border">
                       {category.nodes.map((node) => (
                         <Tooltip key={node.type} delayDuration={300}>
                           <TooltipTrigger asChild>
                             <div
-                              draggable
-                              onDragStart={(e) => handleDragStart(e, node.type)}
-                              onDragEnd={handleDragEnd}
+                              draggable={!node.pro}
+                              onDragStart={(e) => handlePaletteDragStart(e, node.type)}
+                              onDragEnd={handlePaletteDragEnd}
                               className={cn(
-                                'flex items-center gap-2.5 p-2.5 rounded-lg cursor-grab hover:bg-muted text-sm transition-all',
-                                'active:cursor-grabbing active:scale-95',
-                                node.pro && 'opacity-60'
+                                'flex items-center gap-2.5 p-2.5 rounded-lg text-sm transition-all select-none',
+                                node.pro ? 'cursor-not-allowed opacity-50' : 'cursor-grab hover:bg-muted active:cursor-grabbing active:scale-95 active:bg-primary/10'
                               )}
                             >
                               <div className={cn('w-7 h-7 rounded-lg flex items-center justify-center', 
@@ -389,6 +429,7 @@ const FlowBuilder = () => {
                           </TooltipTrigger>
                           <TooltipContent side="right" className="max-w-[200px]">
                             <p>{node.description}</p>
+                            {node.pro && <p className="text-amber-500 mt-1">Upgrade to Pro to unlock</p>}
                           </TooltipContent>
                         </Tooltip>
                       ))}
@@ -405,10 +446,14 @@ const FlowBuilder = () => {
           ref={canvasRef}
           className={cn(
             'flex-1 relative overflow-auto',
-            isDragging && 'bg-primary/5'
+            isDraggingNew && 'bg-primary/5',
+            draggingNode && 'cursor-grabbing'
           )}
           onDrop={handleCanvasDrop}
           onDragOver={handleCanvasDragOver}
+          onMouseMove={handleCanvasMouseMove}
+          onMouseUp={handleCanvasMouseUp}
+          onMouseLeave={handleCanvasMouseUp}
         >
           {/* Zoom controls */}
           <div className="absolute top-4 left-4 flex items-center gap-1 bg-card border rounded-xl shadow-lg p-1.5 z-10">
@@ -434,11 +479,12 @@ const FlowBuilder = () => {
 
           {/* Canvas content with zoom */}
           <div 
-            className="min-h-full min-w-full p-8"
-            style={{ transform: `scale(${zoom / 100})`, transformOrigin: 'top left' }}
+            ref={canvasContentRef}
+            className="min-h-full min-w-full p-8 relative"
+            style={{ transform: `scale(${zoom / 100})`, transformOrigin: 'top left', minWidth: '2000px', minHeight: '1500px' }}
           >
             {/* Grid pattern */}
-            <div 
+            <div
               className="absolute inset-0 pointer-events-none opacity-30"
               style={{
                 backgroundImage: 'radial-gradient(circle, hsl(var(--border)) 1px, transparent 1px)',
@@ -484,17 +530,30 @@ const FlowBuilder = () => {
                 <div
                   key={node.node_key}
                   className={cn(
-                    'absolute w-[200px] bg-card rounded-xl border-2 shadow-lg cursor-pointer transition-all duration-200',
-                    'hover:shadow-xl hover:scale-[1.02]',
+                    'absolute w-[200px] bg-card rounded-xl border-2 shadow-lg select-none transition-shadow',
+                    draggingNode === node.node_key ? 'cursor-grabbing shadow-2xl z-50 scale-105' : 'cursor-grab hover:shadow-xl',
                     colors.border,
                     selectedNodeKey === node.node_key && 'ring-2 ring-primary ring-offset-2 ring-offset-background',
-                    connecting === node.node_key && 'ring-2 ring-green-500'
+                    connecting === node.node_key && 'ring-2 ring-green-500 animate-pulse',
+                    connecting && connecting !== node.node_key && 'ring-2 ring-blue-400/50 hover:ring-blue-500'
                   )}
-                  style={{ left: node.position_x, top: node.position_y }}
+                  style={{ 
+                    left: node.position_x, 
+                    top: node.position_y,
+                    transition: draggingNode === node.node_key ? 'none' : 'box-shadow 0.2s, transform 0.1s'
+                  }}
+                  onMouseDown={(e) => handleNodeMouseDown(e, node.node_key)}
                   onClick={() => handleNodeClick(node.node_key)}
                 >
+                  {/* Drag handle indicator */}
+                  <div className="absolute top-1 left-1/2 -translate-x-1/2 flex gap-0.5 opacity-40">
+                    <div className="w-1 h-1 rounded-full bg-current" />
+                    <div className="w-1 h-1 rounded-full bg-current" />
+                    <div className="w-1 h-1 rounded-full bg-current" />
+                  </div>
+                  
                   {/* Node header */}
-                  <div className={cn('flex items-center gap-2 px-3 py-2.5 rounded-t-xl', colors.bg)}>
+                  <div className={cn('flex items-center gap-2 px-3 py-2.5 pt-3 rounded-t-xl', colors.bg)}>
                     <div className="w-7 h-7 rounded-lg bg-card flex items-center justify-center shadow-sm">
                       <NodeIcon className={cn('w-4 h-4', colors.icon)} />
                     </div>
@@ -502,33 +561,47 @@ const FlowBuilder = () => {
                   </div>
                   
                   {/* Node body */}
-                  <div className="px-3 py-2 text-xs text-muted-foreground">
+                  <div className="px-3 py-2.5 text-xs text-muted-foreground">
                     {node.node_type === 'start' ? (
-                      <span>Configure triggers →</span>
+                      <span className="flex items-center gap-1">
+                        <Play className="w-3 h-3" />
+                        Configure triggers →
+                      </span>
                     ) : node.config?.message ? (
                       <span className="line-clamp-2">{node.config.message}</span>
                     ) : (
-                      <span>Click to configure</span>
+                      <span className="italic opacity-70">Click to configure</span>
                     )}
                   </div>
 
-                  {/* Connection points */}
+                  {/* Input connection point (top) */}
                   {node.node_type !== 'start' && (
-                    <div className="absolute -top-2 left-1/2 -translate-x-1/2">
-                      <div className="w-4 h-4 rounded-full bg-card border-2 border-primary shadow-sm" />
-                    </div>
+                    <button 
+                      className={cn(
+                        "absolute -top-3 left-1/2 -translate-x-1/2 w-5 h-5 rounded-full border-2 shadow-md transition-all",
+                        connecting ? 'bg-blue-500 border-blue-400 scale-125 animate-pulse' : 'bg-card border-primary hover:scale-125'
+                      )}
+                      onClick={(e) => { e.stopPropagation(); handleAddConnection(node.node_key); }}
+                    >
+                      {connecting && <ArrowDown className="w-3 h-3 mx-auto text-white" />}
+                    </button>
                   )}
+                  
+                  {/* Output connection point (bottom) */}
                   <button 
-                    className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-4 h-4 rounded-full bg-primary shadow-lg hover:scale-125 transition-transform"
+                    className={cn(
+                      "absolute -bottom-3 left-1/2 -translate-x-1/2 w-5 h-5 rounded-full shadow-lg transition-all flex items-center justify-center",
+                      connecting === node.node_key ? 'bg-green-500 scale-125' : 'bg-primary hover:scale-125 hover:bg-primary/90'
+                    )}
                     onClick={(e) => { e.stopPropagation(); handleAddConnection(node.node_key); }}
                   >
-                    <Plus className="w-3 h-3 text-primary-foreground m-0.5" />
+                    <Plus className="w-3 h-3 text-primary-foreground" />
                   </button>
 
                   {/* Delete button */}
                   {node.node_type !== 'start' && selectedNodeKey === node.node_key && (
                     <button
-                      className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-destructive text-destructive-foreground shadow-lg hover:scale-110 transition-transform"
+                      className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-destructive text-destructive-foreground shadow-lg hover:scale-110 transition-transform z-10"
                       onClick={(e) => { e.stopPropagation(); deleteNode(node.node_key); setSelectedNodeKey(null); }}
                     >
                       <Trash2 className="w-3 h-3 mx-auto" />
