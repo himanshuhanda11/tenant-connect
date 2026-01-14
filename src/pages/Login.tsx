@@ -322,64 +322,95 @@ export default function Login() {
         </div>
       </div>
 
-      {/* Right Panel - Features */}
-      <div className="hidden lg:flex flex-1 bg-gradient-to-br from-primary/5 via-primary/10 to-primary/5 items-center justify-center p-12">
-        <div className="max-w-md space-y-8">
-          <div>
-            <h2 className="text-3xl font-bold text-foreground mb-4">
-              Your WhatsApp Business Hub
+      {/* Right Panel - Attractive Marketing Content */}
+      <div className="hidden lg:flex flex-1 relative overflow-hidden">
+        {/* Background with gradient overlay */}
+        <div className="absolute inset-0 bg-gradient-to-br from-primary via-primary/90 to-emerald-600" />
+        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSA2MCAwIEwgMCAwIDAgNjAiIGZpbGw9Im5vbmUiIHN0cm9rZT0icmdiYSgyNTUsMjU1LDI1NSwwLjA1KSIgc3Ryb2tlLXdpZHRoPSIxIi8+PC9wYXR0ZXJuPjwvZGVmcz48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSJ1cmwoI2dyaWQpIi8+PC9zdmc+')] opacity-40" />
+        
+        {/* Floating decorative elements */}
+        <div className="absolute top-20 right-20 w-72 h-72 bg-white/10 rounded-full blur-3xl animate-pulse" />
+        <div className="absolute bottom-20 left-20 w-96 h-96 bg-emerald-400/20 rounded-full blur-3xl" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-white/5 rounded-full blur-3xl" />
+
+        {/* Content */}
+        <div className="relative z-10 flex flex-col justify-center p-12 xl:p-16 w-full">
+          <div className="max-w-lg">
+            {/* Badge */}
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 text-white/90 text-sm font-medium mb-8">
+              <span className="flex h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+              Trusted by 2,500+ businesses worldwide
+            </div>
+
+            {/* Main headline */}
+            <h2 className="text-4xl xl:text-5xl font-bold text-white mb-6 leading-tight">
+              Turn every WhatsApp chat into a{' '}
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-200 to-white">
+                business opportunity
+              </span>
             </h2>
-            <p className="text-lg text-muted-foreground">
-              Manage conversations, automate flows, and track performance—all in one place.
+            
+            <p className="text-lg xl:text-xl text-white/80 mb-10 leading-relaxed">
+              Automate responses, nurture leads, and close deals faster with AI-powered conversations.
             </p>
-          </div>
 
-          <div className="space-y-6">
-            <div className="flex items-start gap-4">
-              <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                <MessageSquare className="h-5 w-5 text-primary" />
+            {/* Stats */}
+            <div className="grid grid-cols-3 gap-6 mb-10">
+              <div className="text-center">
+                <div className="text-3xl xl:text-4xl font-bold text-white mb-1">10M+</div>
+                <div className="text-sm text-white/60">Messages/month</div>
               </div>
-              <div>
-                <h3 className="font-semibold text-foreground">Unified Inbox</h3>
-                <p className="text-muted-foreground text-sm">
-                  All your WhatsApp conversations in one shared inbox
-                </p>
+              <div className="text-center border-x border-white/20">
+                <div className="text-3xl xl:text-4xl font-bold text-white mb-1">98%</div>
+                <div className="text-sm text-white/60">Uptime SLA</div>
+              </div>
+              <div className="text-center">
+                <div className="text-3xl xl:text-4xl font-bold text-white mb-1">3x</div>
+                <div className="text-sm text-white/60">Faster response</div>
               </div>
             </div>
 
-            <div className="flex items-start gap-4">
-              <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                <Zap className="h-5 w-5 text-primary" />
+            {/* Feature highlights */}
+            <div className="space-y-4">
+              <div className="flex items-center gap-3 text-white/90">
+                <div className="flex-shrink-0 w-6 h-6 rounded-full bg-emerald-400/20 flex items-center justify-center">
+                  <MessageSquare className="h-3.5 w-3.5 text-emerald-300" />
+                </div>
+                <span>Unified inbox for all your WhatsApp conversations</span>
               </div>
-              <div>
-                <h3 className="font-semibold text-foreground">Smart Automation</h3>
-                <p className="text-muted-foreground text-sm">
-                  Build flows that respond instantly, 24/7
-                </p>
+              <div className="flex items-center gap-3 text-white/90">
+                <div className="flex-shrink-0 w-6 h-6 rounded-full bg-emerald-400/20 flex items-center justify-center">
+                  <Zap className="h-3.5 w-3.5 text-emerald-300" />
+                </div>
+                <span>No-code automation builder with AI assistance</span>
+              </div>
+              <div className="flex items-center gap-3 text-white/90">
+                <div className="flex-shrink-0 w-6 h-6 rounded-full bg-emerald-400/20 flex items-center justify-center">
+                  <Users className="h-3.5 w-3.5 text-emerald-300" />
+                </div>
+                <span>Team collaboration with role-based permissions</span>
+              </div>
+              <div className="flex items-center gap-3 text-white/90">
+                <div className="flex-shrink-0 w-6 h-6 rounded-full bg-emerald-400/20 flex items-center justify-center">
+                  <Shield className="h-3.5 w-3.5 text-emerald-300" />
+                </div>
+                <span>Enterprise-grade security & Meta verified</span>
               </div>
             </div>
 
-            <div className="flex items-start gap-4">
-              <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                <Users className="h-5 w-5 text-primary" />
-              </div>
-              <div>
-                <h3 className="font-semibold text-foreground">Team Collaboration</h3>
-                <p className="text-muted-foreground text-sm">
-                  Assign chats, track SLAs, and work together
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-start gap-4">
-              <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                <Shield className="h-5 w-5 text-primary" />
-              </div>
-              <div>
-                <h3 className="font-semibold text-foreground">Enterprise Ready</h3>
-                <p className="text-muted-foreground text-sm">
-                  SOC 2 compliant with role-based access
-                </p>
+            {/* Testimonial */}
+            <div className="mt-10 p-6 rounded-2xl bg-white/10 backdrop-blur-sm border border-white/20">
+              <p className="text-white/90 italic mb-4">
+                "AiReatro transformed how we handle customer inquiries. Our response time dropped from hours to minutes."
+              </p>
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-300 to-emerald-500 flex items-center justify-center text-white font-semibold">
+                  RP
+                </div>
+                <div>
+                  <div className="text-white font-medium">Rahul Patel</div>
+                  <div className="text-white/60 text-sm">CEO, TechServe Solutions</div>
+                </div>
               </div>
             </div>
           </div>
