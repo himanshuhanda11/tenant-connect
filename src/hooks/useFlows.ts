@@ -48,17 +48,7 @@ export interface FlowEdge {
   source_handle: string | null;
   target_handle: string | null;
   label: string | null;
-  config: any;
-}
-  tenant_id: string;
-  flow_id: string;
-  edge_key: string;
-  source_node_key: string;
-  target_node_key: string;
-  source_handle: string | null;
-  target_handle: string | null;
-  label: string | null;
-  config: Record<string, any>;
+  config: Record<string, unknown>;
 }
 
 export interface FlowTrigger {
@@ -69,7 +59,7 @@ export interface FlowTrigger {
   trigger_type: string;
   priority: number;
   is_enabled: boolean;
-  config: any;
+  config: Record<string, unknown>;
 }
 
 export interface FlowTemplate {
@@ -82,9 +72,7 @@ export interface FlowTemplate {
   goal: string | null;
   expected_uplift: string | null;
   is_pro: boolean;
-  preview_json: any;
-}
-  preview_json: Record<string, any>;
+  preview_json: Record<string, unknown>;
 }
 
 export interface FlowDiagnostic {
@@ -92,8 +80,6 @@ export interface FlowDiagnostic {
   severity: string;
   code: string;
   message: string;
-  node_key: string | null;
-}
   node_key: string | null;
 }
 
@@ -366,7 +352,7 @@ export function useFlowBuilder(flowId: string | undefined) {
         .select('*')
         .eq('flow_id', flowId);
 
-      setEdges(edgesData || []);
+      setEdges((edgesData || []) as unknown as FlowEdge[]);
 
       // Fetch triggers
       const { data: triggersData } = await supabase
@@ -374,7 +360,7 @@ export function useFlowBuilder(flowId: string | undefined) {
         .select('*')
         .eq('flow_id', flowId);
 
-      setTriggers(triggersData || []);
+      setTriggers((triggersData || []) as unknown as FlowTrigger[]);
 
       // Fetch diagnostics
       const { data: diagData } = await supabase
@@ -384,7 +370,7 @@ export function useFlowBuilder(flowId: string | undefined) {
         .order('created_at', { ascending: false })
         .limit(20);
 
-      setDiagnostics(diagData || []);
+      setDiagnostics((diagData || []) as unknown as FlowDiagnostic[]);
     } catch (err: any) {
       console.error('Error fetching flow:', err);
       toast.error('Failed to load flow');
@@ -500,7 +486,7 @@ export function useFlowBuilder(flowId: string | undefined) {
         .single();
 
       if (error) throw error;
-      setEdges(prev => [...prev, data]);
+      setEdges(prev => [...prev, data as unknown as FlowEdge]);
       return data;
     } catch (err: any) {
       toast.error('Failed to add connection');
@@ -599,7 +585,7 @@ export function useFlowTemplates() {
           .order('category');
 
         if (error) throw error;
-        setTemplates(data || []);
+        setTemplates((data || []) as unknown as FlowTemplate[]);
       } catch (err) {
         console.error('Error fetching templates:', err);
       } finally {

@@ -190,7 +190,7 @@ const FlowsHub = () => {
               <SelectContent>
                 <SelectItem value="all">All Numbers</SelectItem>
                 {phoneNumbers.map(p => (
-                  <SelectItem key={p.id} value={p.id}>{p.phone_number || p.id}</SelectItem>
+                  <SelectItem key={p.id} value={p.id}>{p.phone_e164 || p.display_name || p.id}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
