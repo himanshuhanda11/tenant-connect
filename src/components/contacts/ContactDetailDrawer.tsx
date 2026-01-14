@@ -42,10 +42,19 @@ import {
   CheckCircle2,
   XCircle,
   AlertCircle,
-  RefreshCw
+  RefreshCw,
+  Zap,
+  Sparkles,
+  Brain,
+  GitBranch
 } from 'lucide-react';
 import { formatDistanceToNow, format } from 'date-fns';
 import { ContactTimeline } from './ContactTimeline';
+import { EngagementScoreCard } from './EngagementScoreCard';
+import { LifecycleTracker } from './LifecycleTracker';
+import { ContactEnrichmentCard } from './ContactEnrichmentCard';
+import { AINextBestAction } from './AINextBestAction';
+import { UnifiedProfileCard } from './UnifiedProfileCard';
 
 interface ContactDetailDrawerProps {
   contact: Contact | null;
@@ -224,18 +233,26 @@ export function ContactDetailDrawer({
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col min-h-0">
-          <TabsList className="mx-6 mt-4 shrink-0">
-            <TabsTrigger value="overview" className="flex items-center gap-1">
-              <User className="h-4 w-4" />
+          <TabsList className="mx-6 mt-4 shrink-0 grid grid-cols-5 w-auto">
+            <TabsTrigger value="overview" className="flex items-center gap-1 text-xs px-2">
+              <User className="h-3.5 w-3.5" />
               Overview
             </TabsTrigger>
-            <TabsTrigger value="details" className="flex items-center gap-1">
-              <Settings className="h-4 w-4" />
+            <TabsTrigger value="insights" className="flex items-center gap-1 text-xs px-2">
+              <Sparkles className="h-3.5 w-3.5" />
+              Insights
+            </TabsTrigger>
+            <TabsTrigger value="lifecycle" className="flex items-center gap-1 text-xs px-2">
+              <GitBranch className="h-3.5 w-3.5" />
+              Lifecycle
+            </TabsTrigger>
+            <TabsTrigger value="details" className="flex items-center gap-1 text-xs px-2">
+              <Settings className="h-3.5 w-3.5" />
               Details
             </TabsTrigger>
-            <TabsTrigger value="timeline" className="flex items-center gap-1">
-              <History className="h-4 w-4" />
-              Timeline
+            <TabsTrigger value="timeline" className="flex items-center gap-1 text-xs px-2">
+              <History className="h-3.5 w-3.5" />
+              Activity
             </TabsTrigger>
           </TabsList>
 
@@ -431,6 +448,101 @@ export function ContactDetailDrawer({
                     <Calendar className="h-4 w-4 text-muted-foreground" />
                     <span>Created: {format(new Date(contact.created_at), 'PPP')}</span>
                   </div>
+                </div>
+              </div>
+            </TabsContent>
+
+            {/* AI Insights Tab */}
+            <TabsContent value="insights" className="mt-0 space-y-6">
+              {/* Engagement Score */}
+              <div className="p-4 rounded-xl border bg-gradient-to-br from-muted/30 to-background">
+                <div className="flex items-center gap-2 mb-4">
+                  <Zap className="h-4 w-4 text-primary" />
+                  <h4 className="font-semibold text-sm">Engagement Score</h4>
+                </div>
+                <EngagementScoreCard contact={contact} showDetails />
+              </div>
+
+              <Separator />
+
+              {/* AI Next Best Actions */}
+              <AINextBestAction 
+                contact={contact}
+                onAction={(action, data) => {
+                  toast.info(`Action triggered: ${action}`);
+                  // Handle different action types
+                  if (action === 'assign' && !contact.assigned_agent_id) {
+                    setActiveTab('overview');
+                  }
+                }}
+              />
+
+              <Separator />
+
+              {/* AI Enrichment */}
+              <ContactEnrichmentCard 
+                contact={contact}
+                onEnrich={(enrichedData) => {
+                  onUpdate(contact.id, enrichedData);
+                }}
+              />
+            </TabsContent>
+
+            {/* Lifecycle Tab */}
+            <TabsContent value="lifecycle" className="mt-0 space-y-6">
+              <div className="p-4 rounded-xl border bg-gradient-to-br from-muted/30 to-background">
+                <LifecycleTracker 
+                  contact={contact}
+                  onStageChange={(stage) => {
+                    onUpdate(contact.id, { lead_status: stage });
+                  }}
+                />
+              </div>
+
+              <Separator />
+
+              {/* Unified Profile Summary */}
+              <UnifiedProfileCard 
+                contact={contact}
+                onOpenChat={() => {
+                  toast.info('Opening chat...');
+                }}
+              />
+
+              <Separator />
+
+              {/* Key Dates */}
+              <div className="space-y-3">
+                <h4 className="text-sm font-semibold text-muted-foreground">Key Dates</h4>
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-muted-foreground">Created</span>
+                    <span>{format(new Date(contact.created_at), 'PPP')}</span>
+                  </div>
+                  {contact.first_message_time && (
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-muted-foreground">First Message</span>
+                      <span>{format(new Date(contact.first_message_time), 'PPP')}</span>
+                    </div>
+                  )}
+                  {contact.last_seen && (
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-muted-foreground">Last Active</span>
+                      <span>{format(new Date(contact.last_seen), 'PPP')}</span>
+                    </div>
+                  )}
+                  {contact.opt_in_timestamp && (
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-muted-foreground">Opted In</span>
+                      <span>{format(new Date(contact.opt_in_timestamp), 'PPP')}</span>
+                    </div>
+                  )}
+                  {contact.closure_time && (
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-muted-foreground">Closed</span>
+                      <span>{format(new Date(contact.closure_time), 'PPP')}</span>
+                    </div>
+                  )}
                 </div>
               </div>
             </TabsContent>
