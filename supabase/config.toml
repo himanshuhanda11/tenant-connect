@@ -47,3 +47,6 @@ verify_jwt = false
 
 [functions.automation-job-runner]
 verify_jwt = false
+
+[functions.integration-webhook]
+verify_jwt = false
