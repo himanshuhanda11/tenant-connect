@@ -133,7 +133,6 @@ const teamMenuItems: MenuItem[] = [
 
 const settingsMenuItems: MenuItem[] = [
   { title: 'Billing', url: '/billing', icon: CreditCard, key: 'billing' },
-  { title: 'Settings', url: '/settings', icon: Settings, key: 'settings' },
   { title: 'Help', url: '/help', icon: HelpCircle, key: 'help' },
 ];
 
