@@ -255,14 +255,14 @@ export default function Dashboard() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-6 max-w-[1600px] animate-fade-in">
-        {/* Welcome Header with Current Plan */}
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <div className="space-y-4 sm:space-y-6 max-w-[1600px] animate-fade-in">
+        {/* Welcome Header with Current Plan - Mobile optimized */}
+        <div className="flex flex-col gap-3 sm:gap-4">
           <div>
-            <h1 className="text-2xl md:text-3xl font-bold text-foreground">
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground">
               {greeting}, {displayName}! 👋
             </h1>
-            <p className="text-muted-foreground mt-1">
+            <p className="text-sm sm:text-base text-muted-foreground mt-1">
               Here's what's happening in{' '}
               <span className="font-medium text-foreground">{currentTenant?.name}</span>
             </p>
@@ -301,11 +301,11 @@ export default function Dashboard() {
         {/* Quick Stats Grid */}
         <QuickStatsGrid stats={quickStats} loading={loading} />
 
-        {/* Main Content Grid */}
-        <div className="grid gap-6 lg:grid-cols-3">
-          {/* Left Column - 2/3 width */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* AI Insights + Attention Needed */}
+        {/* Main Content Grid - Responsive */}
+        <div className="grid gap-4 sm:gap-6 lg:grid-cols-3">
+          {/* Left Column - Full width on mobile, 2/3 on large */}
+          <div className="lg:col-span-2 space-y-4 sm:space-y-6">
+            {/* AI Insights + Attention Needed - Stack on mobile */}
             <div className="grid gap-4 md:grid-cols-2">
               <AIInsightsPanel metrics={aiMetrics} isPro={true} />
               <AttentionNeededPanel items={attentionItems} loading={loading} />
@@ -318,16 +318,16 @@ export default function Dashboard() {
               loading={loading}
             />
 
-            {/* Campaigns, Meta Ads, Automations */}
-            <div className="grid gap-4 md:grid-cols-3">
+            {/* Campaigns, Meta Ads, Automations - Stack on smaller screens */}
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               <CampaignsPanel campaigns={campaigns} loading={loading} />
               <MetaAdsPanel metrics={metaAds} loading={loading} />
               <AutomationsPanel metrics={automations} loading={loading} />
             </div>
           </div>
 
-          {/* Right Column - 1/3 width */}
-          <div className="space-y-6">
+          {/* Right Column - 1/3 width on large */}
+          <div className="space-y-4 sm:space-y-6">
             {/* Business Profile Card */}
             <BusinessProfileCard
               businessName={currentTenant?.name || 'Your Business'}
