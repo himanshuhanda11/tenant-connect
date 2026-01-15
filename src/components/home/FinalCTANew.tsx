@@ -10,7 +10,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { OptimizedImage } from '@/components/ui/optimized-media';
-import whatsappFriends from '@/assets/whatsapp-friends.jpg';
+import whatsappFriends from '@/assets/whatsapp-friends-new.jpg';
 
 const benefits = [
   { icon: Zap, text: 'Setup in 5 minutes' },
