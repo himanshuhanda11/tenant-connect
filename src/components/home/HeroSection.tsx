@@ -1,17 +1,32 @@
-import React from 'react';
+import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   ArrowRight, 
   Sparkles,
   CheckCircle,
-  Users
+  Users,
+  Play,
+  Pause
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import dashboardPreview from '@/assets/dashboard-preview.png';
+import dashboardVideo from '@/assets/dashboard-demo.mp4';
 
 export default function HeroSection() {
   const navigate = useNavigate();
+  const [isPlaying, setIsPlaying] = useState(true);
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  const togglePlay = () => {
+    if (videoRef.current) {
+      if (isPlaying) {
+        videoRef.current.pause();
+      } else {
+        videoRef.current.play();
+      }
+      setIsPlaying(!isPlaying);
+    }
+  };
 
   return (
     <section className="relative bg-white overflow-hidden py-4 sm:py-6">
@@ -25,7 +40,7 @@ export default function HeroSection() {
       <div className="container mx-auto px-4 py-2 sm:py-3 relative z-10">
         <div className="max-w-6xl mx-auto">
           {/* Text Content - Centered */}
-          <div className="text-center max-w-4xl mx-auto mb-8 sm:mb-10 lg:mb-12">
+          <div className="text-center max-w-4xl mx-auto mb-6 sm:mb-8">
             <Badge className="mb-4 sm:mb-5 bg-green-50 text-green-700 border-green-200 hover:bg-green-100 px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm">
               <Sparkles className="w-3 sm:w-3.5 h-3 sm:h-3.5 mr-1.5 sm:mr-2" />
               AI-Powered WhatsApp Platform
@@ -82,14 +97,29 @@ export default function HeroSection() {
             </div>
           </div>
 
-          {/* Dashboard Preview Image */}
+          {/* Dashboard Video Preview */}
           <div className="relative max-w-5xl mx-auto">
-            <div className="relative rounded-xl sm:rounded-2xl overflow-hidden shadow-2xl border border-slate-200 bg-white">
-              <img
-                src={dashboardPreview}
-                alt="AiReatro Dashboard Preview"
+            <div className="relative rounded-xl sm:rounded-2xl overflow-hidden shadow-2xl border border-slate-200 bg-slate-900">
+              <video
+                ref={videoRef}
+                src={dashboardVideo}
+                autoPlay
+                loop
+                muted
+                playsInline
                 className="w-full h-auto"
               />
+              {/* Play/Pause overlay button */}
+              <button
+                onClick={togglePlay}
+                className="absolute bottom-3 right-3 sm:bottom-4 sm:right-4 w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white/90 backdrop-blur-sm shadow-lg flex items-center justify-center hover:bg-white transition-colors"
+              >
+                {isPlaying ? (
+                  <Pause className="w-4 h-4 sm:w-5 sm:h-5 text-slate-700" />
+                ) : (
+                  <Play className="w-4 h-4 sm:w-5 sm:h-5 text-slate-700 ml-0.5" />
+                )}
+              </button>
             </div>
 
             {/* Floating Stats */}
