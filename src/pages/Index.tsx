@@ -20,7 +20,7 @@ const FinalCTANew = lazy(() => import('@/components/home/FinalCTANew'));
 // Section loading skeleton
 function SectionSkeleton() {
   return (
-    <div className="py-10 md:py-12">
+    <div className="py-6 md:py-8">
       <div className="container mx-auto px-4">
         <Skeleton className="h-8 w-48 mx-auto mb-4" />
         <Skeleton className="h-4 w-72 mx-auto mb-6" />

@@ -14,7 +14,7 @@ export default function HeroSection() {
   const navigate = useNavigate();
 
   return (
-    <section className="relative min-h-[80vh] lg:min-h-[85vh] flex items-center bg-white overflow-hidden">
+    <section className="relative bg-white overflow-hidden py-4 sm:py-6">
       {/* Subtle background */}
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute top-10 sm:top-20 right-[5%] sm:right-[10%] w-[200px] sm:w-[350px] lg:w-[450px] h-[200px] sm:h-[350px] lg:h-[450px] bg-gradient-to-br from-green-100/50 via-emerald-50/30 to-transparent rounded-full blur-3xl" />
@@ -22,7 +22,7 @@ export default function HeroSection() {
         <div className="absolute inset-0 bg-[linear-gradient(rgba(0,0,0,0.01)_1px,transparent_1px),linear-gradient(90deg,rgba(0,0,0,0.01)_1px,transparent_1px)] bg-[size:50px_50px] lg:bg-[size:70px_70px]" />
       </div>
 
-      <div className="container mx-auto px-4 py-8 sm:py-12 lg:py-16 relative z-10">
+      <div className="container mx-auto px-4 py-2 sm:py-3 relative z-10">
         <div className="max-w-6xl mx-auto">
           {/* Text Content - Centered */}
           <div className="text-center max-w-4xl mx-auto mb-8 sm:mb-10 lg:mb-12">
