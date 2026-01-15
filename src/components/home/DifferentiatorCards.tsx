@@ -100,21 +100,21 @@ const colorClasses = {
 
 export default function DifferentiatorCards() {
   return (
-    <section className="py-20 md:py-28 bg-white">
+    <section className="py-12 sm:py-16 md:py-20 lg:py-28 bg-white">
       <div className="container mx-auto px-4">
-        <div className="text-center max-w-3xl mx-auto mb-14">
-          <Badge className="mb-4 bg-slate-100 text-slate-700 border-0">
+        <div className="text-center max-w-3xl mx-auto mb-8 sm:mb-10 md:mb-14">
+          <Badge className="mb-3 sm:mb-4 bg-slate-100 text-slate-700 border-0 text-xs sm:text-sm">
             Why AiReatro
           </Badge>
-          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-slate-900 mb-4">
+          <h2 className="text-2xl xs:text-3xl md:text-4xl lg:text-5xl font-bold text-slate-900 mb-3 sm:mb-4">
             Built Different, By Design
           </h2>
-          <p className="text-lg text-slate-600">
+          <p className="text-sm sm:text-base lg:text-lg text-slate-600 px-4">
             What makes AiReatro stand out from every other WhatsApp platform
           </p>
         </div>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
+        <div className="grid grid-cols-1 xs:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 max-w-6xl mx-auto">
           {differentiators.map((item, index) => {
             const colors = colorClasses[item.color as keyof typeof colorClasses];
             return (
@@ -122,25 +122,25 @@ export default function DifferentiatorCards() {
                 <Card 
                   className={`group h-full border-2 ${colors.border} ${colors.bg} hover:shadow-lg hover:-translate-y-1 transition-all duration-300 cursor-pointer`}
                 >
-                  <CardContent className="p-6">
-                    <div className="flex items-start justify-between mb-4">
-                      <div className={`w-12 h-12 rounded-xl ${colors.icon} flex items-center justify-center shadow-lg`}>
-                        <item.icon className="w-6 h-6 text-white" />
+                  <CardContent className="p-4 sm:p-6">
+                    <div className="flex items-start justify-between mb-3 sm:mb-4">
+                      <div className={`w-10 sm:w-12 h-10 sm:h-12 rounded-lg sm:rounded-xl ${colors.icon} flex items-center justify-center shadow-lg`}>
+                        <item.icon className="w-5 sm:w-6 h-5 sm:h-6 text-white" />
                       </div>
                       {item.badge && (
-                        <Badge className={`${colors.badge} border-0 text-xs font-semibold`}>
+                        <Badge className={`${colors.badge} border-0 text-[10px] sm:text-xs font-semibold`}>
                           {item.badge}
                         </Badge>
                       )}
                     </div>
-                    <h3 className="text-lg font-bold text-slate-900 mb-2 group-hover:text-green-600 transition-colors">
+                    <h3 className="text-base sm:text-lg font-bold text-slate-900 mb-1.5 sm:mb-2 group-hover:text-green-600 transition-colors">
                       {item.title}
                     </h3>
-                    <p className="text-slate-600 text-sm leading-relaxed mb-4">
+                    <p className="text-slate-600 text-xs sm:text-sm leading-relaxed mb-3 sm:mb-4">
                       {item.description}
                     </p>
-                    <span className="inline-flex items-center gap-1 text-sm font-medium text-green-600 group-hover:gap-2 transition-all">
-                      Learn more <ArrowRight className="w-4 h-4" />
+                    <span className="inline-flex items-center gap-1 text-xs sm:text-sm font-medium text-green-600 group-hover:gap-2 transition-all">
+                      Learn more <ArrowRight className="w-3.5 sm:w-4 h-3.5 sm:h-4" />
                     </span>
                   </CardContent>
                 </Card>

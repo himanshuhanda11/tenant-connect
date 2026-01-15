@@ -81,32 +81,32 @@ export default function PricingPreview() {
   };
 
   return (
-    <section className="py-16 md:py-24">
+    <section className="py-10 sm:py-14 md:py-20 lg:py-24">
       <div className="container mx-auto px-4">
-        <div className="text-center max-w-3xl mx-auto mb-10 md:mb-14">
-          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-4">
+        <div className="text-center max-w-3xl mx-auto mb-8 sm:mb-10 md:mb-14">
+          <h2 className="text-2xl xs:text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-3 sm:mb-4">
             Simple, Transparent Pricing
           </h2>
-          <p className="text-lg text-muted-foreground mb-6">
+          <p className="text-sm sm:text-base lg:text-lg text-muted-foreground mb-4 sm:mb-6 px-4">
             Choose the plan that fits your business needs
           </p>
 
           {/* Controls Row */}
-          <div className="flex flex-wrap items-center justify-center gap-4 md:gap-6">
+          <div className="flex flex-col xs:flex-row flex-wrap items-center justify-center gap-3 sm:gap-4 md:gap-6">
             {/* Billing Toggle */}
-            <div className="flex items-center gap-3">
-              <span className={`text-sm ${!isYearly ? 'text-foreground font-medium' : 'text-muted-foreground'}`}>
+            <div className="flex items-center gap-2 sm:gap-3">
+              <span className={`text-xs sm:text-sm ${!isYearly ? 'text-foreground font-medium' : 'text-muted-foreground'}`}>
                 Monthly
               </span>
               <Switch 
                 checked={isYearly} 
                 onCheckedChange={setIsYearly}
               />
-              <span className={`text-sm ${isYearly ? 'text-foreground font-medium' : 'text-muted-foreground'}`}>
+              <span className={`text-xs sm:text-sm ${isYearly ? 'text-foreground font-medium' : 'text-muted-foreground'}`}>
                 Yearly
               </span>
               {isYearly && (
-                <Badge className="bg-green-500/10 text-green-600 border-0">Save 20%</Badge>
+                <Badge className="bg-green-500/10 text-green-600 border-0 text-[10px] sm:text-xs">Save 20%</Badge>
               )}
             </div>
 
@@ -114,7 +114,7 @@ export default function PricingPreview() {
             <div className="flex items-center gap-2">
               <Globe className="w-4 h-4 text-muted-foreground" />
               <Select value={region} onValueChange={(v) => setRegion(v as Region)}>
-                <SelectTrigger className="w-[140px] h-9">
+                <SelectTrigger className="w-[120px] sm:w-[140px] h-8 sm:h-9 text-xs sm:text-sm">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -129,46 +129,46 @@ export default function PricingPreview() {
         </div>
 
         {/* Plans Grid */}
-        <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto mb-12">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 max-w-5xl mx-auto mb-8 sm:mb-12">
           {plans.map((plan, index) => {
             const price = isYearly ? plan.yearlyPriceUSD : plan.monthlyPriceUSD;
             return (
               <Card 
                 key={index}
-                className={`relative ${plan.popular ? 'border-primary shadow-xl scale-105' : 'border-border/50'}`}
+                className={`relative ${plan.popular ? 'border-primary shadow-xl sm:scale-105' : 'border-border/50'}`}
               >
                 {plan.popular && (
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                    <Badge className="bg-primary text-primary-foreground">
-                      <Sparkles className="w-3 h-3 mr-1" />
+                  <div className="absolute -top-2.5 sm:-top-3 left-1/2 -translate-x-1/2">
+                    <Badge className="bg-primary text-primary-foreground text-[10px] sm:text-xs">
+                      <Sparkles className="w-2.5 sm:w-3 h-2.5 sm:h-3 mr-0.5 sm:mr-1" />
                       Most Popular
                     </Badge>
                   </div>
                 )}
-                <CardHeader className="text-center pb-4">
-                  <CardTitle className="text-xl">{plan.name}</CardTitle>
-                  <CardDescription>{plan.description}</CardDescription>
-                  <div className="pt-4">
-                    <span className="text-4xl font-bold text-foreground">
+                <CardHeader className="text-center pb-3 sm:pb-4 p-4 sm:p-6">
+                  <CardTitle className="text-lg sm:text-xl">{plan.name}</CardTitle>
+                  <CardDescription className="text-xs sm:text-sm">{plan.description}</CardDescription>
+                  <div className="pt-3 sm:pt-4">
+                    <span className="text-3xl sm:text-4xl font-bold text-foreground">
                       {getDisplayPrice(price)}
                     </span>
-                    <span className="text-muted-foreground">/month</span>
+                    <span className="text-muted-foreground text-sm">/month</span>
                   </div>
-                  <p className="text-xs text-muted-foreground mt-1">
+                  <p className="text-[10px] sm:text-xs text-muted-foreground mt-1">
                     {getCurrency().code} • Billed {isYearly ? 'annually' : 'monthly'}
                   </p>
                 </CardHeader>
-                <CardContent>
-                  <ul className="space-y-3 mb-6">
+                <CardContent className="p-4 sm:p-6 pt-0">
+                  <ul className="space-y-2 sm:space-y-3 mb-4 sm:mb-6">
                     {plan.features.map((feature, idx) => (
-                      <li key={idx} className="flex items-center gap-2 text-sm">
-                        <Check className="w-4 h-4 text-green-500 flex-shrink-0" />
+                      <li key={idx} className="flex items-center gap-2 text-xs sm:text-sm">
+                        <Check className="w-3.5 sm:w-4 h-3.5 sm:h-4 text-green-500 flex-shrink-0" />
                         <span className="text-muted-foreground">{feature}</span>
                       </li>
                     ))}
                   </ul>
                   <Button 
-                    className="w-full" 
+                    className="w-full h-10 sm:h-11 text-sm" 
                     variant={plan.popular ? 'default' : 'outline'}
                     asChild
                   >
