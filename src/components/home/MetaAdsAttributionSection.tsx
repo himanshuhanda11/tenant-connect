@@ -14,7 +14,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Link } from 'react-router-dom';
 import { OptimizedImage } from '@/components/ui/optimized-media';
-import whatsappCouple from '@/assets/whatsapp-couple-pink.jpg';
+import whatsappCouple from '@/assets/whatsapp-couple-upload.jpg';
 
 const journeySteps = [
   { 
@@ -70,11 +70,11 @@ export default function MetaAdsAttributionSection() {
               Full-funnel attribution for Click-to-WhatsApp ads with AI-powered lead scoring
             </p>
           </div>
-          <div className="hidden lg:block">
+          <div className="mt-6 lg:mt-0">
             <OptimizedImage
               src={whatsappCouple}
-              alt="Meta Ads Attribution"
-              className="w-full h-auto rounded-2xl shadow-xl"
+              alt="People using WhatsApp after clicking an ad"
+              className="w-full max-w-xl mx-auto lg:max-w-none h-auto rounded-2xl shadow-xl"
             />
           </div>
         </div>

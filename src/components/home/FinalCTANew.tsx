@@ -10,7 +10,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { OptimizedImage } from '@/components/ui/optimized-media';
-import whatsappFriends from '@/assets/whatsapp-friends-new.jpg';
+import whatsappFriends from '@/assets/whatsapp-friends-upload.jpg';
 
 const benefits = [
   { icon: Zap, text: 'Setup in 5 minutes' },
@@ -82,11 +82,11 @@ export default function FinalCTANew() {
           </div>
 
           {/* Image */}
-          <div className="hidden lg:block">
+          <div className="mt-6 lg:mt-0">
             <OptimizedImage
               src={whatsappFriends}
-              alt="Happy customers using AiReatro"
-              className="w-full h-auto rounded-2xl shadow-2xl"
+              alt="People chatting on WhatsApp"
+              className="w-full max-w-xl mx-auto lg:max-w-none h-auto rounded-2xl shadow-2xl"
             />
           </div>
         </div>
