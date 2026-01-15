@@ -15,9 +15,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
-import { OptimizedImage } from '@/components/ui/optimized-media';
-import dashboardPreview from '@/assets/dashboard-preview.png';
-import phoneMockup from '@/assets/phone-mockup.png';
 
 const flowNodes = [
   { id: 1, label: 'Cart Abandoned', type: 'trigger', icon: Zap },
@@ -135,22 +132,10 @@ export default function HeroSection() {
               </div>
             </div>
 
-            {/* Right - Interactive AI Demo with Phone Mockup */}
+            {/* Right - Interactive AI Demo */}
             <div className="relative order-1 lg:order-2">
-              {/* Phone Mockup Image - visible on mobile */}
-              <div className="lg:hidden mb-6 flex justify-center">
-                <div className="relative w-48 xs:w-56 sm:w-64">
-                  <OptimizedImage
-                    src={phoneMockup}
-                    alt="AiReatro WhatsApp Platform"
-                    className="w-full h-auto rounded-3xl shadow-2xl"
-                    priority
-                  />
-                </div>
-              </div>
-
-              {/* Desktop AI Demo Card */}
-              <div className="hidden lg:block bg-white rounded-2xl border border-slate-200 shadow-2xl shadow-slate-200/50 p-6 md:p-8">
+              {/* AI Demo Card */}
+              <div className="bg-white rounded-2xl border border-slate-200 shadow-2xl shadow-slate-200/50 p-4 sm:p-6 md:p-8">
                 <div className="flex items-center gap-2 mb-6">
                   <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-green-500 to-emerald-500 flex items-center justify-center">
                     <Bot className="w-5 h-5 text-white" />
