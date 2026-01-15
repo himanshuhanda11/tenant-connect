@@ -1,32 +1,17 @@
-import React, { useState, useRef } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   ArrowRight, 
-  Play,
   Sparkles,
   CheckCircle,
-  Users,
-  Pause
+  Users
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import dashboardVideo from '@/assets/dashboard-demo.mp4';
+import dashboardPreview from '@/assets/dashboard-preview.png';
 
 export default function HeroSection() {
   const navigate = useNavigate();
-  const [isPlaying, setIsPlaying] = useState(true);
-  const videoRef = useRef<HTMLVideoElement>(null);
-
-  const togglePlay = () => {
-    if (videoRef.current) {
-      if (isPlaying) {
-        videoRef.current.pause();
-      } else {
-        videoRef.current.play();
-      }
-      setIsPlaying(!isPlaying);
-    }
-  };
 
   return (
     <section className="relative min-h-[80vh] lg:min-h-[85vh] flex items-center bg-white overflow-hidden">
@@ -97,29 +82,14 @@ export default function HeroSection() {
             </div>
           </div>
 
-          {/* Dashboard Video Preview */}
+          {/* Dashboard Preview Image */}
           <div className="relative max-w-5xl mx-auto">
-            <div className="relative rounded-xl sm:rounded-2xl overflow-hidden shadow-2xl border border-slate-200 bg-slate-900">
-              <video
-                ref={videoRef}
-                src={dashboardVideo}
-                autoPlay
-                loop
-                muted
-                playsInline
+            <div className="relative rounded-xl sm:rounded-2xl overflow-hidden shadow-2xl border border-slate-200 bg-white">
+              <img
+                src={dashboardPreview}
+                alt="AiReatro Dashboard Preview"
                 className="w-full h-auto"
               />
-              {/* Play/Pause overlay button */}
-              <button
-                onClick={togglePlay}
-                className="absolute bottom-3 right-3 sm:bottom-4 sm:right-4 w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white/90 backdrop-blur-sm shadow-lg flex items-center justify-center hover:bg-white transition-colors"
-              >
-                {isPlaying ? (
-                  <Pause className="w-4 h-4 sm:w-5 sm:h-5 text-slate-700" />
-                ) : (
-                  <Play className="w-4 h-4 sm:w-5 sm:h-5 text-slate-700 ml-0.5" />
-                )}
-              </button>
             </div>
 
             {/* Floating Stats */}
