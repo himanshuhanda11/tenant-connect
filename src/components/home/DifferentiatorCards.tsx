@@ -100,7 +100,7 @@ const colorClasses = {
 
 export default function DifferentiatorCards() {
   return (
-    <section className="py-12 sm:py-16 md:py-20 lg:py-28 bg-white">
+    <section className="py-10 sm:py-12 md:py-16 lg:py-20 bg-white">
       <div className="container mx-auto px-4">
         <div className="text-center max-w-3xl mx-auto mb-8 sm:mb-10 md:mb-14">
           <Badge className="mb-3 sm:mb-4 bg-slate-100 text-slate-700 border-0 text-xs sm:text-sm">

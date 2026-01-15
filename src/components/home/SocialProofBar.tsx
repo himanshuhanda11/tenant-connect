@@ -42,7 +42,7 @@ export default function SocialProofBar() {
   const duplicatedCompanies = [...companies, ...companies];
 
   return (
-    <section className="py-6 sm:py-8 md:py-12 bg-muted/30 border-y border-border/50 overflow-hidden">
+    <section className="py-5 sm:py-6 md:py-8 bg-muted/30 border-y border-border/50 overflow-hidden">
       <div className="container mx-auto px-4">
         <p className="text-center text-xs sm:text-sm text-muted-foreground mb-4 sm:mb-6">
           TRUSTED BY <span className="font-semibold text-foreground">2,000+</span> BUSINESSES

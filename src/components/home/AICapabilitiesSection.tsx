@@ -62,7 +62,7 @@ export default function AICapabilitiesSection() {
   const [selectedDemo, setSelectedDemo] = useState<typeof aiCapabilities[0] | null>(null);
 
   return (
-    <section className="py-12 sm:py-16 md:py-20 lg:py-28 bg-gradient-to-b from-slate-50 to-white">
+    <section className="py-10 sm:py-12 md:py-16 lg:py-20 bg-gradient-to-b from-slate-50 to-white">
       <div className="container mx-auto px-4">
         {/* Header with Image */}
         <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center max-w-6xl mx-auto mb-10 sm:mb-14">

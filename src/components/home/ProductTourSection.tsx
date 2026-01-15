@@ -125,7 +125,7 @@ export default function ProductTourSection() {
   const currentTab = tourTabs.find(t => t.id === activeTab) || tourTabs[0];
 
   return (
-    <section className="py-10 sm:py-14 md:py-20 lg:py-24 bg-muted/30">
+    <section className="py-10 sm:py-12 md:py-16 lg:py-20 bg-muted/30">
       <div className="container mx-auto px-4">
         <div className="text-center max-w-3xl mx-auto mb-8 sm:mb-10 md:mb-14">
           <h2 className="text-2xl xs:text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-3 sm:mb-4">
