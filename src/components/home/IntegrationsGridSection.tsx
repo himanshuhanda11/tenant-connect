@@ -94,25 +94,25 @@ const statusConfig = {
 
 export default function IntegrationsGridSection() {
   return (
-    <section className="py-20 md:py-28 bg-slate-50">
+    <section className="py-12 sm:py-16 md:py-20 lg:py-28 bg-slate-50">
       <div className="container mx-auto px-4">
-        <div className="text-center max-w-3xl mx-auto mb-14">
-          <Badge className="mb-4 bg-slate-200 text-slate-700 border-0">
-            <Plug className="w-3.5 h-3.5 mr-1.5" />
+        <div className="text-center max-w-3xl mx-auto mb-8 sm:mb-10 md:mb-14">
+          <Badge className="mb-3 sm:mb-4 bg-slate-200 text-slate-700 border-0 text-xs sm:text-sm">
+            <Plug className="w-3 sm:w-3.5 h-3 sm:h-3.5 mr-1 sm:mr-1.5" />
             Integrations
           </Badge>
-          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-slate-900 mb-4">
+          <h2 className="text-2xl xs:text-3xl md:text-4xl lg:text-5xl font-bold text-slate-900 mb-3 sm:mb-4">
             Connect Your{' '}
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-slate-700 to-slate-500">
               Tech Stack
             </span>
           </h2>
-          <p className="text-lg text-slate-600">
+          <p className="text-sm sm:text-base lg:text-lg text-slate-600 px-4">
             Real-time sync with status monitoring and error alerts
           </p>
         </div>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4 max-w-6xl mx-auto mb-10">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 max-w-6xl mx-auto mb-8 sm:mb-10">
           {integrations.map((integration, index) => {
             const status = statusConfig[integration.status as keyof typeof statusConfig];
             const StatusIcon = status.icon;
@@ -124,33 +124,33 @@ export default function IntegrationsGridSection() {
                   integration.status === 'error' ? 'border-red-200' : 'border-slate-200'
                 }`}
               >
-                <CardContent className="p-5">
-                  <div className="flex items-start gap-3 mb-3">
+                <CardContent className="p-3 sm:p-5">
+                  <div className="flex items-start gap-2 sm:gap-3 mb-2 sm:mb-3">
                     <img 
                       src={integration.logo} 
                       alt={integration.name}
-                      className="w-10 h-10 rounded-lg object-contain bg-white p-1 border border-slate-100"
+                      className="w-8 sm:w-10 h-8 sm:h-10 rounded-lg object-contain bg-white p-0.5 sm:p-1 border border-slate-100"
                       onError={(e) => {
                         const target = e.target as HTMLImageElement;
                         target.src = 'https://via.placeholder.com/40?text=' + integration.name[0];
                       }}
                     />
                     <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold text-slate-900 truncate">{integration.name}</h3>
-                      <p className="text-xs text-slate-500">{integration.category}</p>
+                      <h3 className="font-semibold text-slate-900 truncate text-xs sm:text-sm">{integration.name}</h3>
+                      <p className="text-[10px] sm:text-xs text-slate-500 hidden xs:block">{integration.category}</p>
                     </div>
                   </div>
                   
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-1.5">
-                      <div className={`w-5 h-5 rounded-full ${status.bg} flex items-center justify-center`}>
-                        <StatusIcon className={`w-3 h-3 ${status.color}`} />
+                    <div className="flex items-center gap-1 sm:gap-1.5">
+                      <div className={`w-4 sm:w-5 h-4 sm:h-5 rounded-full ${status.bg} flex items-center justify-center`}>
+                        <StatusIcon className={`w-2.5 sm:w-3 h-2.5 sm:h-3 ${status.color}`} />
                       </div>
-                      <span className={`text-xs font-medium ${status.color}`}>
+                      <span className={`text-[10px] sm:text-xs font-medium ${status.color}`}>
                         {status.label}
                       </span>
                     </div>
-                    <span className="text-xs text-slate-400">{integration.lastEvent}</span>
+                    <span className="text-[10px] sm:text-xs text-slate-400 hidden sm:block">{integration.lastEvent}</span>
                   </div>
                 </CardContent>
               </Card>
@@ -158,17 +158,17 @@ export default function IntegrationsGridSection() {
           })}
         </div>
 
-        <div className="text-center flex flex-col sm:flex-row gap-4 justify-center">
-          <Button size="lg" variant="outline" asChild>
+        <div className="text-center flex flex-col xs:flex-row gap-3 sm:gap-4 justify-center">
+          <Button size="lg" variant="outline" asChild className="h-11 sm:h-12 px-5 sm:px-6 text-sm">
             <Link to="/integrations">
               View All 50+ Integrations
               <ArrowRight className="w-4 h-4 ml-2" />
             </Link>
           </Button>
-          <Button size="lg" variant="ghost" asChild>
+          <Button size="lg" variant="ghost" asChild className="h-11 sm:h-12 px-5 sm:px-6 text-sm">
             <Link to="/documentation">
               <ExternalLink className="w-4 h-4 mr-2" />
-              API Documentation
+              API Docs
             </Link>
           </Button>
         </div>

@@ -16,6 +16,8 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Link } from 'react-router-dom';
+import { OptimizedImage } from '@/components/ui/optimized-media';
+import teamCollaboration from '@/assets/team-collaboration.png';
 
 const flowHealth = {
   score: 92,
@@ -44,55 +46,64 @@ export default function FlowsDiagnosticsSection() {
   const [view, setView] = useState<'before' | 'after'>('after');
 
   return (
-    <section className="py-20 md:py-28 bg-white">
+    <section className="py-12 sm:py-16 md:py-20 lg:py-28 bg-white">
       <div className="container mx-auto px-4">
-        <div className="text-center max-w-3xl mx-auto mb-14">
-          <Badge className="mb-4 bg-green-100 text-green-700 border-0">
-            <Activity className="w-3.5 h-3.5 mr-1.5" />
+        <div className="text-center max-w-3xl mx-auto mb-8 sm:mb-10 md:mb-14">
+          <Badge className="mb-3 sm:mb-4 bg-green-100 text-green-700 border-0 text-xs sm:text-sm">
+            <Activity className="w-3 sm:w-3.5 h-3 sm:h-3.5 mr-1 sm:mr-1.5" />
             Flow Diagnostics
           </Badge>
-          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-slate-900 mb-4">
+          <h2 className="text-2xl xs:text-3xl md:text-4xl lg:text-5xl font-bold text-slate-900 mb-3 sm:mb-4">
             Flows That{' '}
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-green-600 to-emerald-500">
               Heal Themselves
             </span>
           </h2>
-          <p className="text-lg text-slate-600">
+          <p className="text-sm sm:text-base lg:text-lg text-slate-600 px-4">
             Health scores, version history, and heatmaps to optimize every automation
           </p>
         </div>
 
         <div className="max-w-6xl mx-auto">
-          <div className="grid lg:grid-cols-3 gap-6 mb-8">
+          {/* Feature Image for mobile */}
+          <div className="lg:hidden mb-6">
+            <OptimizedImage
+              src={teamCollaboration}
+              alt="Team collaboration on flows"
+              className="w-full h-auto rounded-xl shadow-lg"
+            />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
             {/* Health Score Card */}
             <Card className="border-2 border-green-200 bg-green-50/50">
               <CardHeader className="pb-2">
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <Activity className="w-5 h-5 text-green-600" />
+                <CardTitle className="text-base sm:text-lg flex items-center gap-2">
+                  <Activity className="w-4 sm:w-5 h-4 sm:h-5 text-green-600" />
                   Health Score
                 </CardTitle>
               </CardHeader>
-              <CardContent>
-                <div className="flex items-end gap-3 mb-4">
-                  <span className="text-5xl font-bold text-green-600">{flowHealth.score}</span>
-                  <span className="text-slate-500 mb-1">/100</span>
+              <CardContent className="p-4 sm:p-6 pt-0 sm:pt-0">
+                <div className="flex items-end gap-2 sm:gap-3 mb-3 sm:mb-4">
+                  <span className="text-4xl sm:text-5xl font-bold text-green-600">{flowHealth.score}</span>
+                  <span className="text-slate-500 mb-1 text-sm">/100</span>
                 </div>
-                <Badge className="bg-green-500 text-white border-0 mb-4">
+                <Badge className="bg-green-500 text-white border-0 mb-3 sm:mb-4 text-xs">
                   <CheckCircle className="w-3 h-3 mr-1" />
                   {flowHealth.status}
                 </Badge>
                 
-                <div className="space-y-3">
+                <div className="space-y-2 sm:space-y-3">
                   {flowHealth.issues.map((issue, idx) => (
-                    <div key={idx} className="flex items-start gap-2 text-sm">
+                    <div key={idx} className="flex items-start gap-2 text-xs sm:text-sm">
                       {issue.type === 'warning' ? (
-                        <AlertTriangle className="w-4 h-4 text-amber-500 mt-0.5 flex-shrink-0" />
+                        <AlertTriangle className="w-3.5 sm:w-4 h-3.5 sm:h-4 text-amber-500 mt-0.5 flex-shrink-0" />
                       ) : (
-                        <CheckCircle className="w-4 h-4 text-blue-500 mt-0.5 flex-shrink-0" />
+                        <CheckCircle className="w-3.5 sm:w-4 h-3.5 sm:h-4 text-blue-500 mt-0.5 flex-shrink-0" />
                       )}
                       <div>
                         <p className="text-slate-700">{issue.message}</p>
-                        <button className="text-green-600 hover:underline text-xs">
+                        <button className="text-green-600 hover:underline text-[10px] sm:text-xs">
                           {issue.fix} →
                         </button>
                       </div>
