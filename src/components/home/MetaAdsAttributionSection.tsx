@@ -52,7 +52,7 @@ const metrics = [
 
 export default function MetaAdsAttributionSection() {
   return (
-    <section className="py-12 sm:py-16 md:py-20 lg:py-28 bg-gradient-to-b from-blue-50 to-white">
+    <section className="py-10 sm:py-12 md:py-16 lg:py-20 bg-gradient-to-b from-blue-50 to-white">
       <div className="container mx-auto px-4">
         <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center max-w-6xl mx-auto mb-8 sm:mb-14">
           <div className="text-center lg:text-left">
