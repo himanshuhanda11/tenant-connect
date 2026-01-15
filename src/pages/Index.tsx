@@ -9,6 +9,7 @@ import Navbar from '@/components/layout/Navbar';
 const HeroSection = lazy(() => import('@/components/home/HeroSection'));
 const SocialProofBar = lazy(() => import('@/components/home/SocialProofBar'));
 const DifferentiatorCards = lazy(() => import('@/components/home/DifferentiatorCards'));
+const AIFlowBuilderSection = lazy(() => import('@/components/home/AIFlowBuilderSection'));
 const ProductTourSection = lazy(() => import('@/components/home/ProductTourSection'));
 const AICapabilitiesSection = lazy(() => import('@/components/home/AICapabilitiesSection'));
 const MetaAdsAttributionSection = lazy(() => import('@/components/home/MetaAdsAttributionSection'));
@@ -64,6 +65,11 @@ export default function Index() {
       {/* Differentiator Cards */}
       <Suspense fallback={<SectionSkeleton />}>
         <DifferentiatorCards />
+      </Suspense>
+
+      {/* AI Flow Builder - Center Feature */}
+      <Suspense fallback={<SectionSkeleton />}>
+        <AIFlowBuilderSection />
       </Suspense>
 
       {/* Product Tour */}
