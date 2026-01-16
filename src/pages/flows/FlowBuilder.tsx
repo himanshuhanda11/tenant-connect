@@ -91,6 +91,7 @@ import { FlowPreviewModal } from '@/components/flows/FlowPreviewModal';
 import { FlowHistoryModal } from '@/components/flows/FlowHistoryModal';
 import { AINodeGenerator } from '@/components/flows/AINodeGenerator';
 import { FlowAnalytics } from '@/components/flows/FlowAnalytics';
+import { FlowStartPanel } from '@/components/flows/FlowStartPanel';
 
 // Node type configurations
 const nodeCategories = [
@@ -586,6 +587,46 @@ const FlowBuilder = () => {
               const NodeIcon = getNodeIcon(node.node_type);
               const colors = nodeColors[node.node_type] || { bg: 'bg-muted', border: 'border-border', icon: 'text-muted-foreground' };
               
+              // Render FlowStartPanel for start node
+              if (node.node_type === 'start') {
+                return (
+                  <div
+                    key={node.node_key}
+                    className={cn(
+                      'absolute select-none transition-shadow',
+                      draggingNode === node.node_key ? 'cursor-grabbing shadow-2xl z-50' : 'cursor-grab hover:shadow-xl',
+                      selectedNodeKey === node.node_key && 'ring-2 ring-primary ring-offset-2 ring-offset-background rounded-2xl',
+                    )}
+                    style={{ 
+                      left: node.position_x, 
+                      top: node.position_y,
+                      transition: draggingNode === node.node_key ? 'none' : 'box-shadow 0.2s, transform 0.1s'
+                    }}
+                    onMouseDown={(e) => handleNodeMouseDown(e, node.node_key)}
+                    onClick={() => handleNodeClick(node.node_key)}
+                  >
+                    <FlowStartPanel
+                      triggers={triggers}
+                      onAddTrigger={addTrigger}
+                      onUpdateTrigger={updateTrigger}
+                      onDeleteTrigger={deleteTrigger}
+                      onToggleTrigger={toggleTrigger}
+                    />
+                    {/* Output connection point (bottom) */}
+                    <button 
+                      className={cn(
+                        "absolute -bottom-3 left-1/2 -translate-x-1/2 w-5 h-5 rounded-full shadow-lg transition-all flex items-center justify-center",
+                        connecting === node.node_key ? 'bg-green-500 scale-125' : 'bg-primary hover:scale-125 hover:bg-primary/90'
+                      )}
+                      onClick={(e) => { e.stopPropagation(); handleAddConnection(node.node_key); }}
+                    >
+                      <Plus className="w-3 h-3 text-primary-foreground" />
+                    </button>
+                  </div>
+                );
+              }
+
+              // Regular nodes
               return (
                 <div
                   key={node.node_key}
@@ -622,12 +663,7 @@ const FlowBuilder = () => {
                   
                   {/* Node body */}
                   <div className="px-3 py-2.5 text-xs text-muted-foreground">
-                    {node.node_type === 'start' ? (
-                      <span className="flex items-center gap-1">
-                        <Play className="w-3 h-3" />
-                        Configure triggers →
-                      </span>
-                    ) : node.config?.message ? (
+                    {node.config?.message ? (
                       <span className="line-clamp-2">{node.config.message}</span>
                     ) : (
                       <span className="italic opacity-70">Click to configure</span>
@@ -635,17 +671,15 @@ const FlowBuilder = () => {
                   </div>
 
                   {/* Input connection point (top) */}
-                  {node.node_type !== 'start' && (
-                    <button 
-                      className={cn(
-                        "absolute -top-3 left-1/2 -translate-x-1/2 w-5 h-5 rounded-full border-2 shadow-md transition-all",
-                        connecting ? 'bg-blue-500 border-blue-400 scale-125 animate-pulse' : 'bg-card border-primary hover:scale-125'
-                      )}
-                      onClick={(e) => { e.stopPropagation(); handleAddConnection(node.node_key); }}
-                    >
-                      {connecting && <ArrowDown className="w-3 h-3 mx-auto text-white" />}
-                    </button>
-                  )}
+                  <button 
+                    className={cn(
+                      "absolute -top-3 left-1/2 -translate-x-1/2 w-5 h-5 rounded-full border-2 shadow-md transition-all",
+                      connecting ? 'bg-blue-500 border-blue-400 scale-125 animate-pulse' : 'bg-card border-primary hover:scale-125'
+                    )}
+                    onClick={(e) => { e.stopPropagation(); handleAddConnection(node.node_key); }}
+                  >
+                    {connecting && <ArrowDown className="w-3 h-3 mx-auto text-white" />}
+                  </button>
                   
                   {/* Output connection point (bottom) */}
                   <button 
@@ -659,7 +693,7 @@ const FlowBuilder = () => {
                   </button>
 
                   {/* Delete button */}
-                  {node.node_type !== 'start' && selectedNodeKey === node.node_key && (
+                  {selectedNodeKey === node.node_key && (
                     <button
                       className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-destructive text-destructive-foreground shadow-lg hover:scale-110 transition-transform z-10"
                       onClick={(e) => { e.stopPropagation(); deleteNode(node.node_key); setSelectedNodeKey(null); }}
