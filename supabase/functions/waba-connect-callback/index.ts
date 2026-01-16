@@ -160,8 +160,27 @@ Deno.serve(async (req) => {
       );
     }
 
-    const accessToken = tokenData.access_token;
-    console.log('Access token obtained successfully');
+    let accessToken = tokenData.access_token;
+    console.log('Short-lived access token obtained, exchanging for long-lived token...');
+
+    // Exchange short-lived token for long-lived token (60 days validity)
+    const longLivedUrl = `${GRAPH_API_BASE}/oauth/access_token?` + new URLSearchParams({
+      grant_type: 'fb_exchange_token',
+      client_id: appId!,
+      client_secret: appSecret,
+      fb_exchange_token: accessToken
+    });
+
+    const longLivedResponse = await fetch(longLivedUrl);
+    const longLivedData = await longLivedResponse.json();
+
+    if (longLivedData.access_token) {
+      accessToken = longLivedData.access_token;
+      console.log('Long-lived access token obtained successfully (valid for ~60 days)');
+    } else {
+      console.warn('Could not get long-lived token, using short-lived token:', longLivedData.error?.message);
+      // Continue with short-lived token as fallback
+    }
 
     // Debug token to get shared WABA ID and phone numbers
     // IMPORTANT: debug_token requires an app access token (app_id|app_secret), not user token
