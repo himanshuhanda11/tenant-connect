@@ -22,7 +22,19 @@ export default function AuthCallback() {
         return;
       }
 
+      const next = searchParams.get('next') || '/select-workspace';
+
       try {
+        // If AuthProvider already finished exchanging the code, we may already have a session.
+        const {
+          data: { session: existingSession },
+        } = await supabase.auth.getSession();
+
+        if (existingSession) {
+          navigate(next, { replace: true });
+          return;
+        }
+
         // 1) If PKCE code is present, exchange it.
         const code = searchParams.get('code');
         if (code) {
@@ -36,10 +48,30 @@ export default function AuthCallback() {
           if (error) throw error;
         }
 
-        const next = searchParams.get('next') || '/select-workspace';
+        // Confirm we now have a session (prevents redirect-to-login race conditions).
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
+
+        if (!session) {
+          throw new Error('Sign-in completed but no session was created.');
+        }
+
         navigate(next, { replace: true });
       } catch (e: any) {
         console.error('OAuth callback error:', e);
+
+        // Sometimes the exchange is performed by another part of the app and this call races.
+        // If a session exists anyway, proceed.
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
+
+        if (session) {
+          navigate(next, { replace: true });
+          return;
+        }
+
         setError(e?.message || 'Authentication failed.');
       }
     };
