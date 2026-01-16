@@ -44,6 +44,33 @@ export function usePhoneNumbers() {
 
       if (error) throw error;
 
+      // Helper to map quality rating from DB (uppercase) to frontend (lowercase)
+      const mapQualityRating = (rating?: string): 'green' | 'yellow' | 'red' | 'unknown' => {
+        if (!rating) return 'unknown';
+        const r = rating.toLowerCase();
+        if (r === 'green' || r === 'yellow' || r === 'red') return r;
+        return 'unknown';
+      };
+
+      // Helper to map messaging limit from DB to frontend
+      const mapMessagingLimit = (limit?: string): 'tier_1k' | 'tier_10k' | 'tier_100k' | 'tier_unlimited' | 'unknown' => {
+        if (!limit) return 'unknown';
+        const l = limit.toLowerCase();
+        if (l.includes('1k') && !l.includes('10k') && !l.includes('100k')) return 'tier_1k';
+        if (l.includes('10k') && !l.includes('100k')) return 'tier_10k';
+        if (l.includes('100k')) return 'tier_100k';
+        if (l.includes('unlimited')) return 'tier_unlimited';
+        return 'unknown';
+      };
+
+      // Helper to map webhook health
+      const mapWebhookHealth = (health?: string): 'healthy' | 'degraded' | 'down' | 'unknown' => {
+        if (!health) return 'unknown';
+        const h = health.toLowerCase();
+        if (h === 'healthy' || h === 'degraded' || h === 'down') return h;
+        return 'unknown';
+      };
+
       // Map database fields to PhoneNumber type
       const mappedNumbers: PhoneNumber[] = (data || []).map((n: any) => ({
         id: n.id,
@@ -56,8 +83,8 @@ export function usePhoneNumbers() {
         verified_name: n.verified_name,
         certificate: n.certificate,
         status: (n.status || 'pending').toLowerCase() as any,
-        quality_rating: (n.quality_rating || 'unknown').toLowerCase() as any,
-        messaging_limit: (n.messaging_limit || 'unknown').toLowerCase() as any,
+        quality_rating: mapQualityRating(n.quality_rating),
+        messaging_limit: mapMessagingLimit(n.messaging_limit),
         default_team_id: n.default_team_id,
         default_assignment_strategy: n.default_assignment_strategy || 'round_robin',
         only_online: n.only_online || false,
@@ -66,7 +93,7 @@ export function usePhoneNumbers() {
         block_marketing_without_optin: n.block_marketing_without_optin ?? true,
         quiet_hours: n.quiet_hours,
         business_hours: n.business_hours,
-        webhook_health: (n.webhook_health || 'unknown').toLowerCase() as any,
+        webhook_health: mapWebhookHealth(n.webhook_health),
         last_webhook_at: n.last_webhook_at,
         last_message_at: n.last_message_at,
         raw: n.raw || {},
