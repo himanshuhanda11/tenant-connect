@@ -14,6 +14,7 @@ import ResetPassword from "./pages/ResetPassword";
 import SignupPage from "./pages/onboarding/SignupPage";
 import OrganizationPage from "./pages/onboarding/OrganizationPage";
 import PasswordPage from "./pages/onboarding/PasswordPage";
+import AuthCallback from "./pages/AuthCallback";
 import CreateWorkspace from "./pages/CreateWorkspace";
 import SelectWorkspace from "./pages/SelectWorkspace";
 import Dashboard from "./pages/Dashboard";
@@ -112,6 +113,7 @@ const App = () => (
             <ScrollToTop />
             <Routes>
               <Route path="/" element={<Index />} />
+              <Route path="/auth/callback" element={<AuthCallback />} />
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<SignupPage />} />
               <Route path="/forgot-password" element={<ForgotPassword />} />

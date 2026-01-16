@@ -63,7 +63,7 @@ export default function SignupPage() {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/select-workspace`,
+          redirectTo: `${window.location.origin}/auth/callback?next=/select-workspace`,
           queryParams: {
             access_type: 'offline',
             prompt: 'consent',
