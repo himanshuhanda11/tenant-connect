@@ -25,6 +25,9 @@ import {
   AlertCircle,
   Clock,
   TrendingUp,
+  Radio,
+  Zap,
+  Globe,
   TrendingDown,
   Minus,
   RefreshCw,
@@ -74,6 +77,68 @@ export default function PhoneNumberDetails() {
 
   // Webhook subscription state
   const [isSubscribing, setIsSubscribing] = useState(false);
+
+  // Provisioning status state
+  const [provisioningStatus, setProvisioningStatus] = useState<{
+    loading: boolean;
+    data: {
+      code_verification_status?: string;
+      platform_type?: string;
+      throughput_level?: string;
+      last_onboarded_time?: string;
+      is_ready?: boolean;
+      webhook_configured?: boolean;
+      name_status?: string;
+    } | null;
+    error?: string;
+  }>({ loading: false, data: null });
+
+  const fetchProvisioningStatus = async () => {
+    if (!number.waba_uuid || !number.phone_number_id) return;
+
+    setProvisioningStatus(prev => ({ ...prev, loading: true, error: undefined }));
+    
+    try {
+      const { data, error } = await supabase.functions.invoke('verify-waba-status', {
+        body: {
+          waba_account_id: number.waba_uuid,
+          phone_number_id: number.phone_number_id
+        }
+      });
+
+      if (error) throw error;
+
+      const phoneData = data?.api_tests?.phone_number?.data;
+      const isReady = phoneData?.platform_type !== 'NOT_APPLICABLE' && 
+                      phoneData?.throughput?.level !== 'NOT_APPLICABLE';
+      
+      setProvisioningStatus({
+        loading: false,
+        data: {
+          code_verification_status: phoneData?.code_verification_status,
+          platform_type: phoneData?.platform_type,
+          throughput_level: phoneData?.throughput?.level,
+          last_onboarded_time: phoneData?.last_onboarded_time,
+          is_ready: isReady,
+          webhook_configured: !!phoneData?.webhook_configuration?.application,
+          name_status: phoneData?.name_status
+        }
+      });
+    } catch (error: any) {
+      console.error('Failed to fetch provisioning status:', error);
+      setProvisioningStatus({
+        loading: false,
+        data: null,
+        error: error.message || 'Failed to check status'
+      });
+    }
+  };
+
+  useEffect(() => {
+    if (number.waba_uuid && number.phone_number_id) {
+      fetchProvisioningStatus();
+    }
+  }, [number.waba_uuid, number.phone_number_id]);
 
   useEffect(() => {
     if (searchParams.get('tab')) {
@@ -285,6 +350,134 @@ export default function PhoneNumberDetails() {
 
           {/* Overview Tab */}
           <TabsContent value="overview" className="space-y-6">
+            {/* Provisioning Status Card */}
+            <Card className={cn(
+              "border-2",
+              provisioningStatus.data?.is_ready ? "border-green-500/50 bg-green-500/5" : "border-amber-500/50 bg-amber-500/5"
+            )}>
+              <CardHeader className="pb-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    {provisioningStatus.loading ? (
+                      <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+                    ) : provisioningStatus.data?.is_ready ? (
+                      <div className="h-10 w-10 rounded-full bg-green-500/20 flex items-center justify-center">
+                        <Zap className="h-5 w-5 text-green-600" />
+                      </div>
+                    ) : (
+                      <div className="h-10 w-10 rounded-full bg-amber-500/20 flex items-center justify-center">
+                        <Radio className="h-5 w-5 text-amber-600 animate-pulse" />
+                      </div>
+                    )}
+                    <div>
+                      <CardTitle className="text-lg">
+                        {provisioningStatus.loading 
+                          ? 'Checking Status...' 
+                          : provisioningStatus.data?.is_ready 
+                            ? 'Number Ready for Messaging' 
+                            : 'Number Provisioning in Progress'}
+                      </CardTitle>
+                      <CardDescription>
+                        {provisioningStatus.loading 
+                          ? 'Fetching real-time status from Meta...'
+                          : provisioningStatus.data?.is_ready
+                            ? 'Your number is active on WhatsApp and ready to send/receive messages'
+                            : 'Meta is registering your number on the WhatsApp network. This usually takes 10-30 minutes.'}
+                      </CardDescription>
+                    </div>
+                  </div>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={fetchProvisioningStatus}
+                    disabled={provisioningStatus.loading}
+                  >
+                    <RefreshCw className={cn("h-4 w-4 mr-2", provisioningStatus.loading && "animate-spin")} />
+                    Refresh
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                {provisioningStatus.error ? (
+                  <div className="flex items-center gap-2 text-destructive">
+                    <AlertCircle className="h-4 w-4" />
+                    <span className="text-sm">{provisioningStatus.error}</span>
+                  </div>
+                ) : provisioningStatus.data ? (
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div className="space-y-1">
+                      <span className="text-xs text-muted-foreground">Verification</span>
+                      <div className="flex items-center gap-2">
+                        {provisioningStatus.data.code_verification_status === 'VERIFIED' ? (
+                          <CheckCircle className="h-4 w-4 text-green-600" />
+                        ) : (
+                          <Clock className="h-4 w-4 text-amber-600" />
+                        )}
+                        <span className="text-sm font-medium">
+                          {provisioningStatus.data.code_verification_status || 'Unknown'}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="space-y-1">
+                      <span className="text-xs text-muted-foreground">Network Status</span>
+                      <div className="flex items-center gap-2">
+                        {provisioningStatus.data.platform_type !== 'NOT_APPLICABLE' ? (
+                          <Globe className="h-4 w-4 text-green-600" />
+                        ) : (
+                          <Radio className="h-4 w-4 text-amber-600 animate-pulse" />
+                        )}
+                        <span className="text-sm font-medium">
+                          {provisioningStatus.data.platform_type === 'NOT_APPLICABLE' 
+                            ? 'Provisioning...' 
+                            : provisioningStatus.data.platform_type || 'Active'}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="space-y-1">
+                      <span className="text-xs text-muted-foreground">Throughput</span>
+                      <div className="flex items-center gap-2">
+                        {provisioningStatus.data.throughput_level !== 'NOT_APPLICABLE' ? (
+                          <Zap className="h-4 w-4 text-green-600" />
+                        ) : (
+                          <Clock className="h-4 w-4 text-amber-600" />
+                        )}
+                        <span className="text-sm font-medium">
+                          {provisioningStatus.data.throughput_level === 'NOT_APPLICABLE' 
+                            ? 'Pending...' 
+                            : provisioningStatus.data.throughput_level || 'Standard'}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="space-y-1">
+                      <span className="text-xs text-muted-foreground">Webhook</span>
+                      <div className="flex items-center gap-2">
+                        {provisioningStatus.data.webhook_configured ? (
+                          <CheckCircle className="h-4 w-4 text-green-600" />
+                        ) : (
+                          <AlertCircle className="h-4 w-4 text-red-600" />
+                        )}
+                        <span className="text-sm font-medium">
+                          {provisioningStatus.data.webhook_configured ? 'Configured' : 'Not Set'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <span className="text-sm">Loading provisioning status...</span>
+                  </div>
+                )}
+                {provisioningStatus.data?.last_onboarded_time && (
+                  <div className="mt-4 pt-4 border-t">
+                    <span className="text-xs text-muted-foreground">
+                      Onboarded: {format(new Date(provisioningStatus.data.last_onboarded_time), 'MMM d, yyyy HH:mm')}
+                    </span>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Details */}
               <Card>
