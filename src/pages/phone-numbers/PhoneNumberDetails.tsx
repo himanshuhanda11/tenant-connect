@@ -36,7 +36,13 @@ import {
   ExternalLink,
   Loader2,
   TestTube,
-  Phone as PhoneIcon
+  Phone as PhoneIcon,
+  User,
+  Image,
+  Mail,
+  Link as LinkIcon,
+  Building2,
+  Save
 } from 'lucide-react';
 import { formatDistanceToNow, format } from 'date-fns';
 import { usePhoneNumbers, useWebhookLogs, useQualityHistory } from '@/hooks/usePhoneNumbers';
@@ -134,9 +140,94 @@ export default function PhoneNumberDetails() {
     }
   };
 
+  // WhatsApp Business Profile state
+  const [businessProfile, setBusinessProfile] = useState<{
+    loading: boolean;
+    saving: boolean;
+    data: {
+      about?: string;
+      address?: string;
+      description?: string;
+      email?: string;
+      profile_picture_url?: string;
+      websites?: string[];
+      vertical?: string;
+    };
+    error?: string;
+  }>({ loading: false, saving: false, data: {} });
+
+  const fetchBusinessProfile = async () => {
+    if (!number.waba_uuid || !number.phone_number_id) return;
+
+    setBusinessProfile(prev => ({ ...prev, loading: true, error: undefined }));
+    
+    try {
+      const { data, error } = await supabase.functions.invoke('whatsapp-profile', {
+        body: {
+          action: 'get',
+          phone_number_id: number.phone_number_id,
+          waba_account_id: number.waba_uuid
+        }
+      });
+
+      if (error) throw error;
+
+      setBusinessProfile({
+        loading: false,
+        saving: false,
+        data: data?.profile || {}
+      });
+    } catch (error: any) {
+      console.error('Failed to fetch business profile:', error);
+      setBusinessProfile(prev => ({
+        ...prev,
+        loading: false,
+        error: error.message || 'Failed to fetch profile'
+      }));
+    }
+  };
+
+  const saveBusinessProfile = async () => {
+    if (!number.waba_uuid || !number.phone_number_id) return;
+
+    setBusinessProfile(prev => ({ ...prev, saving: true, error: undefined }));
+    
+    try {
+      const { data, error } = await supabase.functions.invoke('whatsapp-profile', {
+        body: {
+          action: 'update',
+          phone_number_id: number.phone_number_id,
+          waba_account_id: number.waba_uuid,
+          profile_data: businessProfile.data
+        }
+      });
+
+      if (error) throw error;
+
+      toast.success('Business profile updated successfully');
+      setBusinessProfile(prev => ({ ...prev, saving: false }));
+    } catch (error: any) {
+      console.error('Failed to save business profile:', error);
+      toast.error(error.message || 'Failed to update profile');
+      setBusinessProfile(prev => ({
+        ...prev,
+        saving: false,
+        error: error.message || 'Failed to update profile'
+      }));
+    }
+  };
+
+  const updateProfileField = (field: string, value: any) => {
+    setBusinessProfile(prev => ({
+      ...prev,
+      data: { ...prev.data, [field]: value }
+    }));
+  };
+
   useEffect(() => {
     if (number.waba_uuid && number.phone_number_id) {
       fetchProvisioningStatus();
+      fetchBusinessProfile();
     }
   }, [number.waba_uuid, number.phone_number_id]);
 
@@ -325,10 +416,14 @@ export default function PhoneNumberDetails() {
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-5 lg:w-auto lg:grid-cols-none lg:flex">
+          <TabsList className="grid w-full grid-cols-6 lg:w-auto lg:grid-cols-none lg:flex">
             <TabsTrigger value="overview" className="gap-2">
               <Activity className="h-4 w-4" />
               <span className="hidden sm:inline">Overview</span>
+            </TabsTrigger>
+            <TabsTrigger value="profile" className="gap-2">
+              <User className="h-4 w-4" />
+              <span className="hidden sm:inline">Profile</span>
             </TabsTrigger>
             <TabsTrigger value="routing" className="gap-2">
               <Users className="h-4 w-4" />
@@ -591,6 +686,251 @@ export default function PhoneNumberDetails() {
                 </CardContent>
               </Card>
             </div>
+          </TabsContent>
+
+          {/* Profile Tab */}
+          <TabsContent value="profile" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="flex items-center gap-2">
+                      <User className="h-5 w-5" />
+                      WhatsApp Business Profile
+                    </CardTitle>
+                    <CardDescription>
+                      Customize how your business appears to customers in WhatsApp
+                    </CardDescription>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={fetchBusinessProfile}
+                      disabled={businessProfile.loading}
+                    >
+                      <RefreshCw className={cn("h-4 w-4 mr-2", businessProfile.loading && "animate-spin")} />
+                      Refresh
+                    </Button>
+                    <Button 
+                      onClick={saveBusinessProfile}
+                      disabled={businessProfile.saving || businessProfile.loading}
+                    >
+                      {businessProfile.saving ? (
+                        <>
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          Saving...
+                        </>
+                      ) : (
+                        <>
+                          <Save className="h-4 w-4 mr-2" />
+                          Save Profile
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {businessProfile.loading ? (
+                  <div className="flex items-center justify-center py-8">
+                    <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                  </div>
+                ) : businessProfile.error ? (
+                  <div className="flex items-center gap-2 text-destructive py-4">
+                    <AlertCircle className="h-5 w-5" />
+                    <span>{businessProfile.error}</span>
+                    <Button variant="outline" size="sm" onClick={fetchBusinessProfile} className="ml-auto">
+                      Retry
+                    </Button>
+                  </div>
+                ) : (
+                  <>
+                    {/* Profile Picture Preview */}
+                    {businessProfile.data.profile_picture_url && (
+                      <div className="flex items-center gap-4 p-4 bg-muted/50 rounded-lg">
+                        <img 
+                          src={businessProfile.data.profile_picture_url} 
+                          alt="Business Profile" 
+                          className="w-16 h-16 rounded-full object-cover"
+                        />
+                        <div>
+                          <p className="font-medium">{number.verified_name || 'Your Business'}</p>
+                          <p className="text-sm text-muted-foreground">Current profile picture</p>
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      {/* About */}
+                      <div className="space-y-2">
+                        <Label htmlFor="about" className="flex items-center gap-2">
+                          <User className="h-4 w-4" />
+                          About
+                        </Label>
+                        <Textarea
+                          id="about"
+                          placeholder="Brief description of your business (max 139 characters)"
+                          maxLength={139}
+                          value={businessProfile.data.about || ''}
+                          onChange={(e) => updateProfileField('about', e.target.value)}
+                          className="resize-none"
+                          rows={3}
+                        />
+                        <p className="text-xs text-muted-foreground">
+                          {(businessProfile.data.about?.length || 0)}/139 characters
+                        </p>
+                      </div>
+
+                      {/* Description */}
+                      <div className="space-y-2">
+                        <Label htmlFor="description" className="flex items-center gap-2">
+                          <Building2 className="h-4 w-4" />
+                          Description
+                        </Label>
+                        <Textarea
+                          id="description"
+                          placeholder="Detailed description of your business (max 512 characters)"
+                          maxLength={512}
+                          value={businessProfile.data.description || ''}
+                          onChange={(e) => updateProfileField('description', e.target.value)}
+                          className="resize-none"
+                          rows={3}
+                        />
+                        <p className="text-xs text-muted-foreground">
+                          {(businessProfile.data.description?.length || 0)}/512 characters
+                        </p>
+                      </div>
+
+                      {/* Address */}
+                      <div className="space-y-2">
+                        <Label htmlFor="address" className="flex items-center gap-2">
+                          <Building2 className="h-4 w-4" />
+                          Address
+                        </Label>
+                        <Textarea
+                          id="address"
+                          placeholder="Your business address (max 256 characters)"
+                          maxLength={256}
+                          value={businessProfile.data.address || ''}
+                          onChange={(e) => updateProfileField('address', e.target.value)}
+                          className="resize-none"
+                          rows={2}
+                        />
+                      </div>
+
+                      {/* Email */}
+                      <div className="space-y-2">
+                        <Label htmlFor="email" className="flex items-center gap-2">
+                          <Mail className="h-4 w-4" />
+                          Email
+                        </Label>
+                        <Input
+                          id="email"
+                          type="email"
+                          placeholder="contact@yourbusiness.com"
+                          value={businessProfile.data.email || ''}
+                          onChange={(e) => updateProfileField('email', e.target.value)}
+                        />
+                      </div>
+
+                      {/* Website 1 */}
+                      <div className="space-y-2">
+                        <Label htmlFor="website1" className="flex items-center gap-2">
+                          <LinkIcon className="h-4 w-4" />
+                          Website 1
+                        </Label>
+                        <Input
+                          id="website1"
+                          type="url"
+                          placeholder="https://yourbusiness.com"
+                          value={businessProfile.data.websites?.[0] || ''}
+                          onChange={(e) => {
+                            const websites = [...(businessProfile.data.websites || [])];
+                            websites[0] = e.target.value;
+                            updateProfileField('websites', websites);
+                          }}
+                        />
+                      </div>
+
+                      {/* Website 2 */}
+                      <div className="space-y-2">
+                        <Label htmlFor="website2" className="flex items-center gap-2">
+                          <LinkIcon className="h-4 w-4" />
+                          Website 2
+                        </Label>
+                        <Input
+                          id="website2"
+                          type="url"
+                          placeholder="https://shop.yourbusiness.com"
+                          value={businessProfile.data.websites?.[1] || ''}
+                          onChange={(e) => {
+                            const websites = [...(businessProfile.data.websites || [])];
+                            websites[1] = e.target.value;
+                            updateProfileField('websites', websites);
+                          }}
+                        />
+                      </div>
+
+                      {/* Industry/Vertical */}
+                      <div className="space-y-2 md:col-span-2">
+                        <Label htmlFor="vertical" className="flex items-center gap-2">
+                          <Building2 className="h-4 w-4" />
+                          Industry
+                        </Label>
+                        <Select
+                          value={businessProfile.data.vertical || ''}
+                          onValueChange={(value) => updateProfileField('vertical', value)}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select your industry" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="UNDEFINED">Not Specified</SelectItem>
+                            <SelectItem value="OTHER">Other</SelectItem>
+                            <SelectItem value="AUTO">Automotive</SelectItem>
+                            <SelectItem value="BEAUTY">Beauty & Spa</SelectItem>
+                            <SelectItem value="APPAREL">Apparel & Clothing</SelectItem>
+                            <SelectItem value="EDU">Education</SelectItem>
+                            <SelectItem value="ENTERTAIN">Entertainment</SelectItem>
+                            <SelectItem value="EVENT_PLAN">Event Planning</SelectItem>
+                            <SelectItem value="FINANCE">Finance</SelectItem>
+                            <SelectItem value="GROCERY">Grocery</SelectItem>
+                            <SelectItem value="GOVT">Government</SelectItem>
+                            <SelectItem value="HOTEL">Hotel & Lodging</SelectItem>
+                            <SelectItem value="HEALTH">Health</SelectItem>
+                            <SelectItem value="NONPROFIT">Non-Profit</SelectItem>
+                            <SelectItem value="PROF_SERVICES">Professional Services</SelectItem>
+                            <SelectItem value="RETAIL">Retail</SelectItem>
+                            <SelectItem value="TRAVEL">Travel</SelectItem>
+                            <SelectItem value="RESTAURANT">Restaurant</SelectItem>
+                            <SelectItem value="NOT_A_BIZ">Not a Business</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                  </>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Profile Tips */}
+            <Card className="bg-blue-500/5 border-blue-500/20">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <Image className="h-4 w-4 text-blue-600" />
+                  Profile Photo Tips
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ul className="text-sm text-muted-foreground space-y-1">
+                  <li>• Profile photo can only be changed via Meta Business Suite</li>
+                  <li>• Go to <strong>business.facebook.com</strong> → WhatsApp Accounts → Phone Number → Profile</li>
+                  <li>• Use a square image (640x640 recommended) for best results</li>
+                  <li>• Changes may take a few minutes to appear on WhatsApp</li>
+                </ul>
+              </CardContent>
+            </Card>
           </TabsContent>
 
           {/* Routing Tab */}
