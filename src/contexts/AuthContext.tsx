@@ -24,31 +24,56 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     // Set up auth state listener FIRST
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
-        
-        // Defer profile fetch and onboarding step update
-        if (session?.user) {
-          setTimeout(() => {
-            fetchProfileAndUpdateOnboarding(session.user.id, event);
-          }, 0);
-        } else {
-          setProfile(null);
-        }
-      }
-    );
-
-    // THEN check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
       setSession(session);
       setUser(session?.user ?? null);
+
+      // Defer profile fetch and onboarding step update
       if (session?.user) {
-        fetchProfile(session.user.id);
+        setTimeout(() => {
+          fetchProfileAndUpdateOnboarding(session.user.id, event);
+        }, 0);
+      } else {
+        setProfile(null);
       }
-      setLoading(false);
     });
+
+    const init = async () => {
+      try {
+        // If we returned from an OAuth PKCE flow, exchange the auth code for a session first.
+        // This prevents a race where getSession() runs before the exchange completes,
+        // causing route guards to redirect to /login.
+        const url = new URL(window.location.href);
+        const code = url.searchParams.get('code');
+
+        if (code) {
+          const { error } = await supabase.auth.exchangeCodeForSession(code);
+          if (!error) {
+            url.searchParams.delete('code');
+            url.searchParams.delete('state');
+            window.history.replaceState({}, document.title, url.pathname + url.search + url.hash);
+          }
+        }
+
+        // THEN check for existing session
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
+
+        setSession(session);
+        setUser(session?.user ?? null);
+
+        if (session?.user) {
+          fetchProfile(session.user.id);
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    init();
 
     return () => subscription.unsubscribe();
   }, []);
