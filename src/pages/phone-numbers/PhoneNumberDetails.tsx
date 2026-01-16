@@ -100,7 +100,7 @@ export default function PhoneNumberDetails() {
   }>({ loading: false, data: null });
 
   const fetchProvisioningStatus = async () => {
-    if (!number.waba_uuid || !number.phone_number_id) return;
+    if (!number?.waba_uuid || !number?.phone_number_id) return;
 
     setProvisioningStatus(prev => ({ ...prev, loading: true, error: undefined }));
     
@@ -157,7 +157,7 @@ export default function PhoneNumberDetails() {
   }>({ loading: false, saving: false, data: {} });
 
   const fetchBusinessProfile = async () => {
-    if (!number.waba_uuid || !number.phone_number_id) return;
+    if (!number?.waba_uuid || !number?.phone_number_id) return;
 
     setBusinessProfile(prev => ({ ...prev, loading: true, error: undefined }));
     
@@ -188,7 +188,7 @@ export default function PhoneNumberDetails() {
   };
 
   const saveBusinessProfile = async () => {
-    if (!number.waba_uuid || !number.phone_number_id) return;
+    if (!number?.waba_uuid || !number?.phone_number_id) return;
 
     setBusinessProfile(prev => ({ ...prev, saving: true, error: undefined }));
     
@@ -225,11 +225,11 @@ export default function PhoneNumberDetails() {
   };
 
   useEffect(() => {
-    if (number.waba_uuid && number.phone_number_id) {
+    if (number?.waba_uuid && number?.phone_number_id) {
       fetchProvisioningStatus();
       fetchBusinessProfile();
     }
-  }, [number.waba_uuid, number.phone_number_id]);
+  }, [number?.waba_uuid, number?.phone_number_id]);
 
   useEffect(() => {
     if (searchParams.get('tab')) {
