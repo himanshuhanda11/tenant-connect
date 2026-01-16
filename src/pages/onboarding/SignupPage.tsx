@@ -59,10 +59,11 @@ export default function SignupPage() {
     setError(null);
 
     try {
+      // Google users bypass onboarding and go directly to workspace selection
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/onboarding/org`,
+          redirectTo: `${window.location.origin}/select-workspace`,
           queryParams: {
             access_type: 'offline',
             prompt: 'consent',
