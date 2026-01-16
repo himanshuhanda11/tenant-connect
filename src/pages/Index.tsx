@@ -12,6 +12,7 @@ const DifferentiatorCards = lazy(() => import('@/components/home/DifferentiatorC
 const AIFlowBuilderSection = lazy(() => import('@/components/home/AIFlowBuilderSection'));
 const ProductTourSection = lazy(() => import('@/components/home/ProductTourSection'));
 const AICapabilitiesSection = lazy(() => import('@/components/home/AICapabilitiesSection'));
+const PowerfulUSPsSection = lazy(() => import('@/components/home/PowerfulUSPsSection'));
 const MetaAdsAttributionSection = lazy(() => import('@/components/home/MetaAdsAttributionSection'));
 const PricingPreview = lazy(() => import('@/components/home/PricingPreview'));
 const TestimonialsCarousel = lazy(() => import('@/components/home/TestimonialsCarousel'));
@@ -80,6 +81,11 @@ export default function Index() {
       {/* AI Capabilities */}
       <Suspense fallback={<SectionSkeleton />}>
         <AICapabilitiesSection />
+      </Suspense>
+
+      {/* 10 Powerful USPs */}
+      <Suspense fallback={<SectionSkeleton />}>
+        <PowerfulUSPsSection />
       </Suspense>
 
       {/* Meta Ads Attribution */}
