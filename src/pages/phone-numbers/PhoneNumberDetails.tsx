@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -71,6 +72,9 @@ export default function PhoneNumberDetails() {
     error?: string;
   } | null>(null);
 
+  // Webhook subscription state
+  const [isSubscribing, setIsSubscribing] = useState(false);
+
   useEffect(() => {
     if (searchParams.get('tab')) {
       setActiveTab(searchParams.get('tab') || 'overview');
@@ -96,6 +100,37 @@ export default function PhoneNumberDetails() {
   const handleCopy = (text: string, label: string) => {
     navigator.clipboard.writeText(text);
     toast.success(`${label} copied to clipboard`);
+  };
+
+  const handleSubscribeWebhooks = async () => {
+    if (!number.waba_uuid) {
+      toast.error('WABA account not linked to this phone number');
+      return;
+    }
+
+    setIsSubscribing(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('waba-webhook-subscribe', {
+        body: {
+          wabaAccountId: number.waba_uuid,
+          action: 'subscribe'
+        }
+      });
+
+      if (error) throw error;
+      
+      if (data?.success) {
+        toast.success('Webhook subscription activated successfully');
+        refetch();
+      } else {
+        throw new Error(data?.error || 'Subscription failed');
+      }
+    } catch (error: any) {
+      console.error('Webhook subscription error:', error);
+      toast.error(error.message || 'Failed to subscribe to webhooks');
+    } finally {
+      setIsSubscribing(false);
+    }
   };
 
   const handleSendTestMessage = async () => {
@@ -484,6 +519,43 @@ export default function PhoneNumberDetails() {
 
           {/* Webhooks Tab */}
           <TabsContent value="webhooks" className="space-y-6">
+            {/* Webhook Subscription Card */}
+            <Card className="border-primary/20 bg-primary/5">
+              <CardHeader className="pb-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="text-lg">Webhook Subscription</CardTitle>
+                    <CardDescription>
+                      Subscribe to receive inbound messages and delivery status updates from Meta
+                    </CardDescription>
+                  </div>
+                  <Button 
+                    onClick={handleSubscribeWebhooks}
+                    disabled={isSubscribing || !number.waba_uuid}
+                  >
+                    {isSubscribing ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Subscribing...
+                      </>
+                    ) : (
+                      <>
+                        <Webhook className="h-4 w-4 mr-2" />
+                        Subscribe Webhooks
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="text-sm text-muted-foreground space-y-1">
+                  <p>• Click to register this WABA with your webhook endpoint</p>
+                  <p>• Required to receive messages and status updates in your Inbox</p>
+                  <p>• Re-run if you're not receiving webhooks after connecting</p>
+                </div>
+              </CardContent>
+            </Card>
+
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <Card>
                 <CardHeader>
