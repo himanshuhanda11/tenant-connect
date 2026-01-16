@@ -61,14 +61,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       .maybeSingle();
     
     if (!error && data) {
-      // If this is a new signup via OAuth (SIGNED_IN after OAuth flow), mark as google_done
+      // If this is a new signup via OAuth (SIGNED_IN after OAuth flow), mark as completed to skip onboarding
       if (event === 'SIGNED_IN' && data.onboarding_step === 'pending') {
         await supabase
           .from('profiles')
-          .update({ onboarding_step: 'google_done' })
+          .update({ onboarding_step: 'completed' })
           .eq('id', userId);
         
-        setProfile({ ...data, onboarding_step: 'google_done' } as Profile);
+        setProfile({ ...data, onboarding_step: 'completed' } as Profile);
       } else {
         setProfile(data as Profile);
       }
