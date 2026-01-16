@@ -164,10 +164,12 @@ Deno.serve(async (req) => {
     console.log('Access token obtained successfully');
 
     // Debug token to get shared WABA ID and phone numbers
+    // IMPORTANT: debug_token requires an app access token (app_id|app_secret), not user token
     console.log('Debugging token to get WABA info...');
+    const appAccessToken = `${appId}|${appSecret}`;
     const debugUrl = `${GRAPH_API_BASE}/debug_token?` + new URLSearchParams({
       input_token: accessToken,
-      access_token: accessToken
+      access_token: appAccessToken
     });
 
     const debugResponse = await fetch(debugUrl);
@@ -175,10 +177,8 @@ Deno.serve(async (req) => {
 
     if (debugData.error) {
       console.error('Debug token error:', debugData.error);
-      return Response.redirect(
-        `${appUrl}/phone-numbers?error=${encodeURIComponent('Failed to verify token')}`,
-        302
-      );
+      // Don't fail here, try alternative methods to find WABAs
+      console.log('Will try alternative methods to find WABAs...');
     }
 
     // Extract WABA info from granular_scopes
