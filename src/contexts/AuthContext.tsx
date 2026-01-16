@@ -87,12 +87,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     
     if (!error && data) {
       // If this is a new signup via OAuth (SIGNED_IN after OAuth flow), mark as completed to skip onboarding
-      if (event === 'SIGNED_IN' && data.onboarding_step === 'pending') {
+      if (
+        event === 'SIGNED_IN' &&
+        (data.onboarding_step === 'pending' || data.onboarding_step === 'google_done')
+      ) {
         await supabase
           .from('profiles')
           .update({ onboarding_step: 'completed' })
           .eq('id', userId);
-        
+
         setProfile({ ...data, onboarding_step: 'completed' } as Profile);
       } else {
         setProfile(data as Profile);
@@ -139,15 +142,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const signInWithGoogle = async () => {
-    const redirectUrl = `${window.location.origin}/select-workspace`;
-    
+    const redirectUrl = `${window.location.origin}/auth/callback?next=/select-workspace`;
+
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: redirectUrl
-      }
+        redirectTo: redirectUrl,
+      },
     });
-    
+
     return { error: error as Error | null };
   };
 
