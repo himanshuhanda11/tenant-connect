@@ -14,6 +14,14 @@ export default function AuthCallback() {
 
   useEffect(() => {
     const run = async () => {
+      // If provider returned an OAuth error, surface it.
+      const oauthError = searchParams.get('error');
+      const oauthErrorDescription = searchParams.get('error_description');
+      if (oauthError) {
+        setError(oauthErrorDescription || oauthError);
+        return;
+      }
+
       try {
         // 1) If PKCE code is present, exchange it.
         const code = searchParams.get('code');
@@ -31,8 +39,8 @@ export default function AuthCallback() {
         const next = searchParams.get('next') || '/select-workspace';
         navigate(next, { replace: true });
       } catch (e: any) {
+        console.error('OAuth callback error:', e);
         setError(e?.message || 'Authentication failed.');
-        navigate('/login', { replace: true });
       }
     };
 
