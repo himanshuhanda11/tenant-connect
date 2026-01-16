@@ -3204,6 +3204,9 @@ export type Database = {
           created_at: string
           display_number: string
           id: string
+          is_default: boolean | null
+          last_webhook_at: string | null
+          messaging_limit: string | null
           phone_number_id: string
           quality_rating: Database["public"]["Enums"]["quality_rating"]
           status: Database["public"]["Enums"]["phone_status"]
@@ -3211,11 +3214,15 @@ export type Database = {
           updated_at: string
           verified_name: string | null
           waba_account_id: string
+          webhook_health: string | null
         }
         Insert: {
           created_at?: string
           display_number: string
           id?: string
+          is_default?: boolean | null
+          last_webhook_at?: string | null
+          messaging_limit?: string | null
           phone_number_id: string
           quality_rating?: Database["public"]["Enums"]["quality_rating"]
           status?: Database["public"]["Enums"]["phone_status"]
@@ -3223,11 +3230,15 @@ export type Database = {
           updated_at?: string
           verified_name?: string | null
           waba_account_id: string
+          webhook_health?: string | null
         }
         Update: {
           created_at?: string
           display_number?: string
           id?: string
+          is_default?: boolean | null
+          last_webhook_at?: string | null
+          messaging_limit?: string | null
           phone_number_id?: string
           quality_rating?: Database["public"]["Enums"]["quality_rating"]
           status?: Database["public"]["Enums"]["phone_status"]
@@ -3235,6 +3246,7 @@ export type Database = {
           updated_at?: string
           verified_name?: string | null
           waba_account_id?: string
+          webhook_health?: string | null
         }
         Relationships: [
           {

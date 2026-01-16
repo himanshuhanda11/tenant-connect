@@ -287,9 +287,9 @@ Deno.serve(async (req) => {
         console.log('Created WABA account:', wabaAccountId);
       }
 
-      // Get and store phone numbers
+      // Get and store phone numbers with all relevant fields
       const phonesResponse = await fetch(
-        `${GRAPH_API_BASE}/${wabaId}/phone_numbers?fields=id,display_phone_number,verified_name,quality_rating,code_verification_status`,
+        `${GRAPH_API_BASE}/${wabaId}/phone_numbers?fields=id,display_phone_number,verified_name,quality_rating,messaging_limit_tier,code_verification_status,status,name_status,is_official_business_account`,
         { headers: { Authorization: `Bearer ${accessToken}` } }
       );
       const phonesData = await phonesResponse.json();
@@ -298,6 +298,33 @@ Deno.serve(async (req) => {
       console.log('Found', phoneNumbers.length, 'phone numbers for WABA', wabaId);
 
       for (const phone of phoneNumbers) {
+        // Map Meta's messaging_limit_tier to our format (stored as text)
+        // Meta returns: TIER_1K, TIER_10K, TIER_100K, TIER_UNLIMITED or undefined
+        const mapMessagingLimit = (tier?: string): string => {
+          if (!tier) return 'TIER_1K'; // Default to 1K for new numbers
+          // Normalize to uppercase
+          const t = tier.toUpperCase();
+          if (t.includes('1K')) return 'TIER_1K';
+          if (t.includes('10K')) return 'TIER_10K';
+          if (t.includes('100K')) return 'TIER_100K';
+          if (t.includes('UNLIMITED')) return 'TIER_UNLIMITED';
+          return 'TIER_1K';
+        };
+
+        // Map quality rating to uppercase to match enum
+        const mapQuality = (rating?: string): string => {
+          if (!rating) return 'UNKNOWN';
+          const r = rating.toUpperCase();
+          if (['GREEN', 'YELLOW', 'RED'].includes(r)) return r;
+          return 'UNKNOWN';
+        };
+
+        const qualityRating = mapQuality(phone.quality_rating);
+        const messagingLimit = mapMessagingLimit(phone.messaging_limit_tier);
+        
+        console.log('Phone', phone.id, '- Quality:', phone.quality_rating, '->', qualityRating, 
+                   ', Limit:', phone.messaging_limit_tier, '->', messagingLimit);
+
         const { data: existingPhone } = await supabase
           .from('phone_numbers')
           .select('id')
@@ -311,7 +338,8 @@ Deno.serve(async (req) => {
             .update({
               display_number: phone.display_phone_number,
               verified_name: phone.verified_name,
-              quality_rating: phone.quality_rating || 'UNKNOWN',
+              quality_rating: qualityRating,
+              messaging_limit: messagingLimit,
               status: 'connected',
               waba_account_id: wabaAccountId,
               updated_at: new Date().toISOString()
@@ -326,7 +354,8 @@ Deno.serve(async (req) => {
               phone_number_id: phone.id,
               display_number: phone.display_phone_number,
               verified_name: phone.verified_name,
-              quality_rating: phone.quality_rating || 'UNKNOWN',
+              quality_rating: qualityRating,
+              messaging_limit: messagingLimit,
               status: 'connected'
             });
         }
