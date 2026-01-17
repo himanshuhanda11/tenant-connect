@@ -330,7 +330,7 @@ const WhatsAppBusinessApi = () => {
               <div className="flex flex-col sm:flex-row gap-4 mb-8">
                 <Button 
                   size="lg" 
-                  className="bg-primary hover:bg-primary/90 text-white h-14 px-8 text-base shadow-lg shadow-primary/30"
+                  className="bg-primary hover:bg-primary/90 text-primary-foreground h-14 px-8 text-base shadow-lg shadow-primary/30"
                   onClick={() => navigate('/signup')}
                 >
                   Start Free Trial
@@ -339,7 +339,7 @@ const WhatsAppBusinessApi = () => {
                 <Button 
                   size="lg" 
                   variant="outline" 
-                  className="h-14 px-8 text-base border-2 border-white/30 text-white hover:bg-white/10 hover:text-white"
+                  className="h-14 px-8 text-base border-2 border-white/40 bg-white/10 text-white hover:bg-white/20 hover:border-white/60"
                   onClick={() => navigate('/contact')}
                 >
                   Talk to Sales
@@ -794,7 +794,7 @@ const WhatsAppBusinessApi = () => {
             <div className="flex flex-col sm:flex-row gap-4 justify-center mb-6">
               <Button 
                 size="lg" 
-                className="bg-gradient-to-r from-primary to-emerald-600 hover:from-primary/90 hover:to-emerald-600/90 shadow-lg shadow-primary/25 h-12 px-8 text-base"
+                className="bg-gradient-to-r from-primary to-emerald-600 hover:from-primary/90 hover:to-emerald-600/90 text-primary-foreground shadow-lg shadow-primary/25 h-12 px-8 text-base"
                 onClick={() => navigate('/signup')}
               >
                 Start Free
@@ -803,7 +803,7 @@ const WhatsAppBusinessApi = () => {
               <Button 
                 size="lg" 
                 variant="outline" 
-                className="h-12 px-8 text-base border-2"
+                className="h-12 px-8 text-base border-2 border-border text-foreground hover:bg-muted"
                 onClick={() => navigate('/contact')}
               >
                 Talk to Sales

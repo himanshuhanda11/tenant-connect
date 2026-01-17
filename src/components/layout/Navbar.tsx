@@ -18,7 +18,7 @@ export default function Navbar() {
 
   const whatsappProducts = [
     { name: 'WhatsApp Business API', href: '/whatsapp-business-api', icon: Zap, description: 'Official API integration' },
-    { name: 'Click to WhatsApp Ads', href: '/products#click-to-whatsapp', icon: MousePointer, description: 'Convert ads to chats' },
+    { name: 'Click to WhatsApp App', href: '/click-to-whatsapp', icon: MousePointer, description: 'Convert ads to chats' },
     { name: 'WhatsApp Marketing', href: '/products#whatsapp-marketing', icon: TrendingUp, description: 'Broadcast campaigns' },
     { name: 'WhatsApp Forms', href: '/whatsapp-forms', icon: FileText, description: 'Native in-chat data collection' },
   ];
@@ -218,9 +218,9 @@ export default function Navbar() {
               <Zap className="w-4 h-4 text-primary" />
               WhatsApp Business API
             </Link>
-            <Link to="/products#click-to-whatsapp" className="flex items-center gap-3 px-4 py-3 text-foreground hover:bg-muted rounded-lg" onClick={() => setMobileMenuOpen(false)}>
+            <Link to="/click-to-whatsapp" className="flex items-center gap-3 px-4 py-3 text-foreground hover:bg-muted rounded-lg" onClick={() => setMobileMenuOpen(false)}>
               <MousePointer className="w-4 h-4 text-primary" />
-              Click to WhatsApp Ads
+              Click to WhatsApp App
             </Link>
             <Link to="/products#whatsapp-marketing" className="flex items-center gap-3 px-4 py-3 text-foreground hover:bg-muted rounded-lg" onClick={() => setMobileMenuOpen(false)}>
               <TrendingUp className="w-4 h-4 text-primary" />
