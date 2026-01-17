@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   MessageCircle, 
@@ -28,7 +28,8 @@ import {
   HeartPulse,
   RefreshCw,
   ChevronRight,
-  Play
+  Play,
+  Pause
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -44,9 +45,24 @@ import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import SEO from '@/components/seo/SEO';
 import { JsonLd, organizationSchema, softwareApplicationSchema } from '@/components/seo/JsonLd';
+import dashboardVideo from '@/assets/dashboard-demo.mp4';
+import dashboardPreview from '@/assets/dashboard-preview.png';
 
 const WhatsAppBusinessApi = () => {
   const navigate = useNavigate();
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+
+  const toggleVideo = () => {
+    if (videoRef.current) {
+      if (isPlaying) {
+        videoRef.current.pause();
+      } else {
+        videoRef.current.play();
+      }
+      setIsPlaying(!isPlaying);
+    }
+  };
 
   const differentiators = [
     {
@@ -353,25 +369,45 @@ const WhatsAppBusinessApi = () => {
             </div>
           </div>
           
-          {/* Hero Image Placeholder */}
+          {/* Hero Video/Image Preview */}
           <div className="mt-16 max-w-5xl mx-auto">
-            <div className="relative rounded-2xl border border-border/50 bg-gradient-to-b from-card to-muted/30 shadow-2xl shadow-primary/5 overflow-hidden aspect-[16/9]">
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="text-center p-8">
-                  <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
-                    <Play className="w-10 h-10 text-primary" />
+            <div className="relative rounded-2xl border border-border/50 bg-gradient-to-b from-card to-muted/30 shadow-2xl shadow-primary/5 overflow-hidden">
+              {/* Video with poster */}
+              <video
+                ref={videoRef}
+                className="w-full aspect-[16/9] object-cover"
+                poster={dashboardPreview}
+                loop
+                muted
+                playsInline
+                onPlay={() => setIsPlaying(true)}
+                onPause={() => setIsPlaying(false)}
+              >
+                <source src={dashboardVideo} type="video/mp4" />
+                Your browser does not support the video tag.
+              </video>
+              
+              {/* Play/Pause overlay */}
+              <button
+                onClick={toggleVideo}
+                className="absolute inset-0 flex items-center justify-center bg-black/20 hover:bg-black/30 transition-colors group cursor-pointer"
+                aria-label={isPlaying ? 'Pause video' : 'Play video'}
+              >
+                {!isPlaying && (
+                  <div className="w-20 h-20 rounded-full bg-white/90 flex items-center justify-center shadow-xl group-hover:scale-110 transition-transform">
+                    <Play className="w-10 h-10 text-primary ml-1" />
                   </div>
-                  <p className="text-muted-foreground">WhatsApp + AI Dashboard Preview</p>
-                </div>
-              </div>
+                )}
+              </button>
+              
               {/* Floating UI elements */}
-              <div className="absolute top-4 left-4 bg-card/90 backdrop-blur-sm rounded-lg p-3 shadow-lg border border-border/50">
+              <div className="absolute top-4 left-4 bg-card/90 backdrop-blur-sm rounded-lg p-3 shadow-lg border border-border/50 pointer-events-none">
                 <div className="flex items-center gap-2">
                   <MessageCircle className="w-5 h-5 text-primary" />
                   <span className="text-sm font-medium">Live Inbox</span>
                 </div>
               </div>
-              <div className="absolute bottom-4 right-4 bg-card/90 backdrop-blur-sm rounded-lg p-3 shadow-lg border border-border/50">
+              <div className="absolute bottom-4 right-4 bg-card/90 backdrop-blur-sm rounded-lg p-3 shadow-lg border border-border/50 pointer-events-none">
                 <div className="flex items-center gap-2">
                   <BarChart3 className="w-5 h-5 text-primary" />
                   <span className="text-sm font-medium">AI Insights</span>
