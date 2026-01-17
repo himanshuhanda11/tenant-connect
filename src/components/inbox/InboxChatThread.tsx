@@ -194,12 +194,12 @@ export function InboxChatThread({
 
   return (
     <div className="flex-1 flex flex-col bg-background">
-      {/* Header - Clean WhatsApp Style with Two Rows */}
-      <div className="border-b bg-primary text-primary-foreground">
+      {/* Header - Modern Clean White Design */}
+      <div className="border-b bg-white shadow-sm">
         {/* Row 1: Contact Info */}
         <div className={cn(
           "flex items-center justify-between",
-          isMobile ? "h-14 px-2" : "h-14 px-4"
+          isMobile ? "h-16 px-3" : "h-16 px-5"
         )}>
           <div className="flex items-center gap-3 min-w-0 flex-1">
             {/* Back button for mobile */}
@@ -208,46 +208,83 @@ export function InboxChatThread({
                 variant="ghost" 
                 size="icon" 
                 onClick={onBack}
-                className="h-9 w-9 text-primary-foreground hover:bg-white/10 flex-shrink-0"
+                className="h-9 w-9 text-gray-600 hover:bg-gray-100 flex-shrink-0"
               >
                 <ArrowLeft className="h-5 w-5" />
               </Button>
             )}
             
-            <Avatar className={cn(
-              "border-2 border-white/20 flex-shrink-0",
-              isMobile ? "h-9 w-9" : "h-10 w-10"
-            )}>
-              <AvatarImage src={conversation.contact?.profile_picture_url || undefined} />
-              <AvatarFallback className="bg-white/20 text-primary-foreground">
-                {getInitials(conversation.contact?.name)}
-              </AvatarFallback>
-            </Avatar>
+            {/* Avatar with online indicator */}
+            <div className="relative flex-shrink-0">
+              <Avatar className={cn(
+                "border-2 border-primary/20 ring-2 ring-primary/10",
+                isMobile ? "h-10 w-10" : "h-11 w-11"
+              )}>
+                <AvatarImage src={conversation.contact?.profile_picture_url || undefined} />
+                <AvatarFallback className="bg-gradient-to-br from-primary/80 to-primary text-white font-semibold">
+                  {getInitials(conversation.contact?.name)}
+                </AvatarFallback>
+              </Avatar>
+              {/* Online indicator */}
+              <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full" />
+            </div>
             
             <div className="min-w-0 flex-1">
-              <h3 className={cn(
-                "font-semibold truncate",
-                isMobile ? "text-sm" : "text-base"
-              )}>
-                {conversation.contact?.name || conversation.contact?.wa_id}
-              </h3>
-              <p className="text-xs text-primary-foreground/70 truncate">
-                +{conversation.contact?.wa_id}
-                {!isMobile && conversation.assigned_agent && (
-                  <span> • {conversation.assigned_agent.full_name}</span>
+              <div className="flex items-center gap-2">
+                <h3 className={cn(
+                  "font-semibold text-gray-900 truncate",
+                  isMobile ? "text-base" : "text-lg"
+                )}>
+                  {conversation.contact?.name || conversation.contact?.wa_id}
+                </h3>
+                {!isMobile && (
+                  <Badge 
+                    variant="outline" 
+                    className={cn(
+                      "text-xs font-medium",
+                      conversation.status === 'open' && "bg-green-50 text-green-700 border-green-200",
+                      conversation.status === 'pending' && "bg-amber-50 text-amber-700 border-amber-200",
+                      conversation.status === 'closed' && "bg-gray-50 text-gray-600 border-gray-200"
+                    )}
+                  >
+                    {STATUS_CONFIG[conversation.status].label}
+                  </Badge>
                 )}
-              </p>
+              </div>
+              <div className="flex items-center gap-2 text-sm text-gray-500">
+                <Phone className="h-3 w-3" />
+                <span className="truncate">+{conversation.contact?.wa_id}</span>
+                {!isMobile && conversation.assigned_agent && (
+                  <>
+                    <span className="text-gray-300">•</span>
+                    <User className="h-3 w-3" />
+                    <span>{conversation.assigned_agent.full_name}</span>
+                  </>
+                )}
+              </div>
             </div>
           </div>
 
           {/* Right side actions */}
           <div className="flex items-center gap-1 flex-shrink-0">
+            {/* Call button */}
+            {!isMobile && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant="ghost" size="icon" className="h-9 w-9 text-gray-500 hover:text-primary hover:bg-primary/5">
+                    <Phone className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Call contact</TooltipContent>
+              </Tooltip>
+            )}
+            
             {isMobile && onShowInfo && (
               <Button 
                 variant="ghost" 
                 size="icon"
                 onClick={onShowInfo}
-                className="h-9 w-9 text-primary-foreground hover:bg-white/10"
+                className="h-9 w-9 text-gray-500 hover:bg-gray-100"
               >
                 <Info className="h-5 w-5" />
               </Button>
@@ -259,7 +296,7 @@ export function InboxChatThread({
                   <Button 
                     variant="ghost" 
                     size="icon" 
-                    className="h-9 w-9 text-primary-foreground hover:bg-white/10"
+                    className="h-9 w-9 text-gray-500 hover:bg-gray-100"
                   >
                     <MoreVertical className="h-5 w-5" />
                   </Button>
@@ -295,33 +332,52 @@ export function InboxChatThread({
             )}
 
             {!isMobile && (
-              <Button variant="ghost" size="icon" className="h-8 w-8 text-primary-foreground hover:bg-white/10">
-                <MoreVertical className="h-4 w-4" />
-              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon" className="h-9 w-9 text-gray-500 hover:bg-gray-100">
+                    <MoreVertical className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  <div className="px-2 py-1.5 text-xs font-medium text-muted-foreground">Assignment</div>
+                  <DropdownMenuItem onClick={() => onAssign('u1')}>
+                    <User className="h-4 w-4 mr-2" /> Assign to me
+                  </DropdownMenuItem>
+                  {teamMembers.map(member => (
+                    <DropdownMenuItem 
+                      key={member.id} 
+                      onClick={() => onAssign(member.id)}
+                      className={conversation.assigned_to === member.id ? 'bg-muted' : ''}
+                    >
+                      <User className="h-4 w-4 mr-2" />
+                      {member.full_name}
+                      {conversation.assigned_to === member.id && <Check className="h-3 w-3 ml-auto" />}
+                    </DropdownMenuItem>
+                  ))}
+                  <DropdownMenuItem onClick={() => onAssign(null)}>
+                    <X className="h-4 w-4 mr-2" /> Unassign
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem><Clock className="h-4 w-4 mr-2" /> Snooze</DropdownMenuItem>
+                  <DropdownMenuItem><Zap className="h-4 w-4 mr-2" /> Run automation</DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             )}
           </div>
         </div>
 
-        {/* Row 2: Status Bar (Desktop only) */}
+        {/* Row 2: Status Bar with badges and actions (Desktop only) */}
         {!isMobile && (
-          <div className="h-10 px-4 flex items-center gap-2 bg-primary/90 border-t border-white/10 overflow-x-auto">
-            {/* Status Badge */}
-            <Badge 
-              variant="outline" 
-              className="text-xs border-0 bg-white/20 text-primary-foreground flex-shrink-0"
-            >
-              {STATUS_CONFIG[conversation.status].label}
-            </Badge>
-            
-            {/* Intent Badge */}
-            <IntentBadge intent={aiIntent} />
-            
-            {/* Health Dot */}
-            <HealthDot health={aiHealth} />
+          <div className="h-11 px-5 flex items-center gap-3 bg-gray-50/80 border-t border-gray-100 overflow-x-auto">
+            {/* AI Intent & Health */}
+            <div className="flex items-center gap-2 pr-3 border-r border-gray-200">
+              <IntentBadge intent={aiIntent} />
+              <HealthDot health={aiHealth} />
+            </div>
             
             {/* Bot Paused Badge */}
             {conversation.is_intervened && (
-              <Badge variant="outline" className="text-xs bg-amber-400 text-amber-900 border-0 flex-shrink-0">
+              <Badge className="bg-amber-100 text-amber-700 border-amber-200 hover:bg-amber-100">
                 <Hand className="h-3 w-3 mr-1" />
                 Bot Paused
               </Badge>
@@ -329,7 +385,7 @@ export function InboxChatThread({
             
             {/* Supervisor Badge */}
             {isSupervisorMode && (
-              <Badge variant="outline" className="text-xs bg-purple-200 text-purple-700 border-0 flex-shrink-0">
+              <Badge className="bg-purple-100 text-purple-700 border-purple-200 hover:bg-purple-100">
                 <Eye className="h-3 w-3 mr-1" />
                 Watching
               </Badge>
@@ -346,21 +402,21 @@ export function InboxChatThread({
             <div className="flex-1" />
             
             {/* Tags */}
-            <div className="flex items-center gap-1">
-              {conversation.tags?.slice(0, 2).map(tag => (
+            <div className="flex items-center gap-1.5">
+              {conversation.tags?.slice(0, 3).map(tag => (
                 <Badge 
                   key={tag.id}
-                  variant="secondary"
-                  className="text-xs"
-                  style={{ backgroundColor: `${tag.color}30`, color: 'white' }}
+                  variant="outline"
+                  className="text-xs font-medium"
+                  style={{ backgroundColor: `${tag.color}15`, color: tag.color, borderColor: `${tag.color}30` }}
                 >
                   {tag.name}
                 </Badge>
               ))}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="sm" className="h-6 px-2 text-primary-foreground hover:bg-white/10">
-                    <Tag className="h-3 w-3" />
+                  <Button variant="ghost" size="sm" className="h-7 px-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100">
+                    <Tag className="h-3.5 w-3.5" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-48">
@@ -377,28 +433,32 @@ export function InboxChatThread({
               </DropdownMenu>
             </div>
             
+            <div className="h-5 w-px bg-gray-200" />
+            
             {/* Intervene Toggle */}
             <Button 
-              variant="ghost" 
+              variant={conversation.is_intervened ? "secondary" : "ghost"}
               size="sm"
               className={cn(
-                "h-6 text-xs text-primary-foreground hover:bg-white/10",
-                conversation.is_intervened && "bg-white/20"
+                "h-7 text-xs gap-1",
+                conversation.is_intervened 
+                  ? "bg-amber-100 text-amber-700 hover:bg-amber-200" 
+                  : "text-gray-600 hover:bg-gray-100"
               )}
               onClick={() => onSetIntervene(!conversation.is_intervened)}
             >
               {conversation.is_intervened ? (
-                <><Bot className="h-3 w-3 mr-1" /> Resume</>
+                <><Bot className="h-3.5 w-3.5" /> Resume Bot</>
               ) : (
-                <><Hand className="h-3 w-3 mr-1" /> Take Over</>
+                <><Hand className="h-3.5 w-3.5" /> Take Over</>
               )}
             </Button>
             
             {/* Status Dropdown */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm" className="h-6 text-xs text-primary-foreground hover:bg-white/10">
-                  Status <ChevronDown className="h-3 w-3 ml-1" />
+                <Button variant="outline" size="sm" className="h-7 text-xs gap-1 border-gray-200">
+                  Status <ChevronDown className="h-3 w-3" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
@@ -411,38 +471,6 @@ export function InboxChatThread({
                 <DropdownMenuItem onClick={() => onSetStatus('closed')}>
                   <span className="w-2 h-2 rounded-full bg-gray-400 mr-2" /> Close
                 </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-            
-            {/* More Actions */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm" className="h-6 px-2 text-primary-foreground hover:bg-white/10">
-                  <MoreVertical className="h-3 w-3" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
-                <div className="px-2 py-1.5 text-xs font-medium text-muted-foreground">Assignment</div>
-                <DropdownMenuItem onClick={() => onAssign('u1')}>
-                  <User className="h-4 w-4 mr-2" /> Assign to me
-                </DropdownMenuItem>
-                {teamMembers.map(member => (
-                  <DropdownMenuItem 
-                    key={member.id} 
-                    onClick={() => onAssign(member.id)}
-                    className={conversation.assigned_to === member.id ? 'bg-muted' : ''}
-                  >
-                    <User className="h-4 w-4 mr-2" />
-                    {member.full_name}
-                    {conversation.assigned_to === member.id && <Check className="h-3 w-3 ml-auto" />}
-                  </DropdownMenuItem>
-                ))}
-                <DropdownMenuItem onClick={() => onAssign(null)}>
-                  <X className="h-4 w-4 mr-2" /> Unassign
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem><Clock className="h-4 w-4 mr-2" /> Snooze</DropdownMenuItem>
-                <DropdownMenuItem><Zap className="h-4 w-4 mr-2" /> Run automation</DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
