@@ -10,7 +10,7 @@ import {
   Rocket
 } from 'lucide-react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
@@ -35,6 +35,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { cn } from '@/lib/utils';
 
 interface UserAttribute {
   id: string;
@@ -60,6 +62,7 @@ export default function UserAttributes() {
   const { currentTenant } = useTenant();
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const isMobile = useIsMobile();
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [newAttributes, setNewAttributes] = useState<NewAttribute[]>([]);
@@ -204,14 +207,14 @@ export default function UserAttributes() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-6">
+      <div className="space-y-4 sm:space-y-6 p-3 sm:p-0">
         {/* Page Header */}
         <div>
-          <h1 className="text-2xl font-bold text-foreground">User Attributes</h1>
+          <h1 className="text-xl sm:text-2xl font-bold text-foreground">User Attributes</h1>
         </div>
 
-        {/* Quick Guide Card */}
-        <Card className="border-border/50 bg-card">
+        {/* Quick Guide Card - Hidden on mobile */}
+        <Card className="border-border/50 bg-card hidden sm:block">
           <CardHeader className="pb-3">
             <CardTitle className="text-lg flex items-center gap-2">
               <BookOpen className="w-5 h-5 text-primary" />
@@ -240,16 +243,15 @@ export default function UserAttributes() {
 
         {/* Upgrade Banner */}
         <Card className="border-primary/20 bg-primary/5">
-          <CardContent className="py-4">
-            <div className="flex items-center justify-between">
+          <CardContent className="py-3 sm:py-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div className="flex items-center gap-3">
-                <Lightbulb className="w-5 h-5 text-primary" />
-                <span className="text-sm">
-                  Take your experience to the next level — unlock 20 attributes with Pro! 
-                  <Rocket className="w-4 h-4 inline ml-1" />
+                <Lightbulb className="w-5 h-5 text-primary shrink-0" />
+                <span className="text-xs sm:text-sm">
+                  Unlock 20 attributes with Pro! <Rocket className="w-4 h-4 inline ml-1" />
                 </span>
               </div>
-              <Button className="bg-emerald-500 hover:bg-emerald-600 text-white">
+              <Button className="bg-emerald-500 hover:bg-emerald-600 text-white w-full sm:w-auto" size="sm">
                 Upgrade Now
               </Button>
             </div>
@@ -257,83 +259,83 @@ export default function UserAttributes() {
         </Card>
 
         {/* Search and Actions */}
-        <div className="flex items-center gap-4">
-          <div className="relative flex-1 max-w-md">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4">
+          <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
-              placeholder="Search by attributes name"
+              placeholder="Search by name"
               className="pl-10"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-32">
-              <SelectValue placeholder="All" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All</SelectItem>
-              <SelectItem value="active">Active</SelectItem>
-              <SelectItem value="inactive">Inactive</SelectItem>
-            </SelectContent>
-          </Select>
-          <Button 
-            variant="outline" 
-            onClick={handleAddAttribute}
-            disabled={!canAddMore}
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Add attribute
-          </Button>
-          <Button 
-            onClick={handleSaveAll}
-            disabled={!hasChanges}
-            className="bg-primary hover:bg-primary/90"
-          >
-            <Save className="w-4 h-4 mr-2" />
-            Save Attributes
-          </Button>
+          <div className="flex items-center gap-2">
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-28 sm:w-32">
+                <SelectValue placeholder="All" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All</SelectItem>
+                <SelectItem value="active">Active</SelectItem>
+                <SelectItem value="inactive">Inactive</SelectItem>
+              </SelectContent>
+            </Select>
+            <Button 
+              variant="outline" 
+              onClick={handleAddAttribute}
+              disabled={!canAddMore}
+              size="sm"
+              className="gap-1.5"
+            >
+              <Plus className="w-4 h-4" />
+              <span className="hidden sm:inline">Add</span>
+            </Button>
+            <Button 
+              onClick={handleSaveAll}
+              disabled={!hasChanges}
+              size="sm"
+              className="bg-primary hover:bg-primary/90 gap-1.5"
+            >
+              <Save className="w-4 h-4" />
+              <span className="hidden sm:inline">Save</span>
+            </Button>
+          </div>
         </div>
 
-        {/* Attributes Table */}
-        <Card>
-          <CardContent className="p-0">
-            <Table>
-              <TableHeader>
-                <TableRow className="bg-muted/50">
-                  <TableHead className="w-[35%]">Name*</TableHead>
-                  <TableHead className="w-[35%]">Action(optional)</TableHead>
-                  <TableHead className="w-[15%] text-center">Status</TableHead>
-                  <TableHead className="w-[15%] text-center">Action</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {/* Existing Attributes */}
-                {filteredAttributes.map((attr) => (
-                  <TableRow key={attr.id}>
-                    <TableCell>
+        {/* Attributes - Mobile Cards or Desktop Table */}
+        {isMobile ? (
+          <div className="space-y-3">
+            {/* Existing Attributes */}
+            {filteredAttributes.map((attr) => (
+              <Card key={attr.id} className="p-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex-1 space-y-3">
+                    <div>
+                      <label className="text-xs text-muted-foreground">Name*</label>
                       <Input
                         value={editedAttributes[attr.id]?.name ?? attr.name}
                         onChange={(e) => handleExistingAttributeChange(attr.id, 'name', e.target.value)}
-                        placeholder="Enter attribute name"
-                        className="border-muted"
+                        placeholder="Attribute name"
+                        className="mt-1"
                       />
-                    </TableCell>
-                    <TableCell>
+                    </div>
+                    <div>
+                      <label className="text-xs text-muted-foreground">Action (optional)</label>
                       <Input
                         value={editedAttributes[attr.id]?.action_name ?? attr.action_name ?? ''}
                         onChange={(e) => handleExistingAttributeChange(attr.id, 'action_name', e.target.value)}
-                        placeholder="Enter action name"
-                        className="border-muted"
+                        placeholder="Action name"
+                        className="mt-1"
                       />
-                    </TableCell>
-                    <TableCell className="text-center">
-                      <Switch
-                        checked={editedAttributes[attr.id]?.is_active ?? attr.is_active}
-                        onCheckedChange={(checked) => handleExistingAttributeChange(attr.id, 'is_active', checked)}
-                      />
-                    </TableCell>
-                    <TableCell className="text-center">
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Switch
+                          checked={editedAttributes[attr.id]?.is_active ?? attr.is_active}
+                          onCheckedChange={(checked) => handleExistingAttributeChange(attr.id, 'is_active', checked)}
+                        />
+                        <span className="text-sm text-muted-foreground">Active</span>
+                      </div>
                       <Button
                         variant="ghost"
                         size="icon"
@@ -343,83 +345,203 @@ export default function UserAttributes() {
                       >
                         <Trash2 className="w-4 h-4" />
                       </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
+                    </div>
+                  </div>
+                </div>
+              </Card>
+            ))}
 
-                {/* New Attributes */}
-                {newAttributes.map((attr, index) => (
-                  <TableRow key={`new-${index}`} className="bg-primary/5">
-                    <TableCell>
-                      <Input
-                        value={attr.name}
-                        onChange={(e) => handleNewAttributeChange(index, 'name', e.target.value)}
-                        placeholder="Enter attribute name"
-                        className="border-muted"
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <Input
-                        value={attr.action_name}
-                        onChange={(e) => handleNewAttributeChange(index, 'action_name', e.target.value)}
-                        placeholder="Enter action name"
-                        className="border-muted"
-                      />
-                    </TableCell>
-                    <TableCell className="text-center">
+            {/* New Attributes */}
+            {newAttributes.map((attr, index) => (
+              <Card key={`new-${index}`} className="p-4 border-primary/30 bg-primary/5">
+                <div className="flex-1 space-y-3">
+                  <div>
+                    <label className="text-xs text-muted-foreground">Name*</label>
+                    <Input
+                      value={attr.name}
+                      onChange={(e) => handleNewAttributeChange(index, 'name', e.target.value)}
+                      placeholder="Attribute name"
+                      className="mt-1"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs text-muted-foreground">Action (optional)</label>
+                    <Input
+                      value={attr.action_name}
+                      onChange={(e) => handleNewAttributeChange(index, 'action_name', e.target.value)}
+                      placeholder="Action name"
+                      className="mt-1"
+                    />
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
                       <Switch
                         checked={attr.is_active}
                         onCheckedChange={(checked) => handleNewAttributeChange(index, 'is_active', checked)}
                       />
-                    </TableCell>
-                    <TableCell className="text-center">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleRemoveNewAttribute(index)}
-                        className="text-muted-foreground hover:text-destructive"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
+                      <span className="text-sm text-muted-foreground">Active</span>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => handleRemoveNewAttribute(index)}
+                      className="text-muted-foreground hover:text-destructive"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+              </Card>
+            ))}
 
-                {/* Empty State */}
-                {filteredAttributes.length === 0 && newAttributes.length === 0 && !isLoading && (
-                  <TableRow>
-                    <TableCell colSpan={4} className="text-center py-12">
-                      <div className="flex flex-col items-center gap-3">
-                        <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center">
-                          <Plus className="w-6 h-6 text-muted-foreground" />
-                        </div>
-                        <div>
-                          <p className="font-medium text-foreground">No attributes yet</p>
-                          <p className="text-sm text-muted-foreground">
-                            Create your first custom attribute to personalize your contacts
-                          </p>
-                        </div>
-                        <Button onClick={handleAddAttribute}>
-                          <Plus className="w-4 h-4 mr-2" />
-                          Add attribute
-                        </Button>
-                      </div>
-                    </TableCell>
+            {/* Empty State */}
+            {filteredAttributes.length === 0 && newAttributes.length === 0 && !isLoading && (
+              <Card className="p-8">
+                <div className="flex flex-col items-center gap-3 text-center">
+                  <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center">
+                    <Plus className="w-6 h-6 text-muted-foreground" />
+                  </div>
+                  <div>
+                    <p className="font-medium text-foreground">No attributes yet</p>
+                    <p className="text-sm text-muted-foreground">
+                      Create your first custom attribute
+                    </p>
+                  </div>
+                  <Button onClick={handleAddAttribute} size="sm">
+                    <Plus className="w-4 h-4 mr-2" />
+                    Add attribute
+                  </Button>
+                </div>
+              </Card>
+            )}
+          </div>
+        ) : (
+          // Desktop Table View
+          <Card>
+            <CardContent className="p-0">
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-muted/50">
+                    <TableHead className="w-[35%]">Name*</TableHead>
+                    <TableHead className="w-[35%]">Action(optional)</TableHead>
+                    <TableHead className="w-[15%] text-center">Status</TableHead>
+                    <TableHead className="w-[15%] text-center">Action</TableHead>
                   </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
+                </TableHeader>
+                <TableBody>
+                  {/* Existing Attributes */}
+                  {filteredAttributes.map((attr) => (
+                    <TableRow key={attr.id}>
+                      <TableCell>
+                        <Input
+                          value={editedAttributes[attr.id]?.name ?? attr.name}
+                          onChange={(e) => handleExistingAttributeChange(attr.id, 'name', e.target.value)}
+                          placeholder="Enter attribute name"
+                          className="border-muted"
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Input
+                          value={editedAttributes[attr.id]?.action_name ?? attr.action_name ?? ''}
+                          onChange={(e) => handleExistingAttributeChange(attr.id, 'action_name', e.target.value)}
+                          placeholder="Enter action name"
+                          className="border-muted"
+                        />
+                      </TableCell>
+                      <TableCell className="text-center">
+                        <Switch
+                          checked={editedAttributes[attr.id]?.is_active ?? attr.is_active}
+                          onCheckedChange={(checked) => handleExistingAttributeChange(attr.id, 'is_active', checked)}
+                        />
+                      </TableCell>
+                      <TableCell className="text-center">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => deleteMutation.mutate(attr.id)}
+                          disabled={deleteMutation.isPending}
+                          className="text-muted-foreground hover:text-destructive"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+
+                  {/* New Attributes */}
+                  {newAttributes.map((attr, index) => (
+                    <TableRow key={`new-${index}`} className="bg-primary/5">
+                      <TableCell>
+                        <Input
+                          value={attr.name}
+                          onChange={(e) => handleNewAttributeChange(index, 'name', e.target.value)}
+                          placeholder="Enter attribute name"
+                          className="border-muted"
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Input
+                          value={attr.action_name}
+                          onChange={(e) => handleNewAttributeChange(index, 'action_name', e.target.value)}
+                          placeholder="Enter action name"
+                          className="border-muted"
+                        />
+                      </TableCell>
+                      <TableCell className="text-center">
+                        <Switch
+                          checked={attr.is_active}
+                          onCheckedChange={(checked) => handleNewAttributeChange(index, 'is_active', checked)}
+                        />
+                      </TableCell>
+                      <TableCell className="text-center">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleRemoveNewAttribute(index)}
+                          className="text-muted-foreground hover:text-destructive"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+
+                  {/* Empty State */}
+                  {filteredAttributes.length === 0 && newAttributes.length === 0 && !isLoading && (
+                    <TableRow>
+                      <TableCell colSpan={4} className="text-center py-12">
+                        <div className="flex flex-col items-center gap-3">
+                          <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center">
+                            <Plus className="w-6 h-6 text-muted-foreground" />
+                          </div>
+                          <div>
+                            <p className="font-medium text-foreground">No attributes yet</p>
+                            <p className="text-sm text-muted-foreground">
+                              Create your first custom attribute to personalize your contacts
+                            </p>
+                          </div>
+                          <Button onClick={handleAddAttribute}>
+                            <Plus className="w-4 h-4 mr-2" />
+                            Add attribute
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Attribute Limit Info */}
-        <div className="flex items-center justify-between text-sm text-muted-foreground">
+        <div className="flex items-center justify-between text-xs sm:text-sm text-muted-foreground px-1">
           <p>
             {attributes.length + newAttributes.length} / {maxAttributes} attributes used
           </p>
           {!canAddMore && (
-            <Badge variant="outline" className="text-amber-600 border-amber-300">
-              Limit reached - Upgrade for more
+            <Badge variant="outline" className="text-amber-600 border-amber-300 text-xs">
+              Limit reached
             </Badge>
           )}
         </div>

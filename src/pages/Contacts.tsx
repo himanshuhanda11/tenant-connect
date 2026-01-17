@@ -15,9 +15,15 @@ import { ContactDetailDrawer } from '@/components/contacts/ContactDetailDrawer';
 import { ContactsBulkActionsBar } from '@/components/contacts/ContactsBulkActionsBar';
 import { CreateSegmentModal } from '@/components/contacts/CreateSegmentModal';
 import { AddContactModal } from '@/components/contacts/AddContactModal';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { Button } from '@/components/ui/button';
+import { Filter, Menu } from 'lucide-react';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 export default function Contacts() {
   const { currentTenant } = useTenant();
+  const isMobile = useIsMobile();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const {
     contacts,
     loading,
@@ -89,6 +95,7 @@ export default function Contacts() {
       intervened: view.filters.intervened || 'all',
     });
     setPage(1);
+    setSidebarOpen(false);
   };
 
   const handleFiltersChange = (newFilters: SegmentFilters) => {
@@ -184,22 +191,55 @@ export default function Contacts() {
     intervened: filters.intervened,
   };
 
+  const SidebarContent = (
+    <ContactsSmartViewsSidebar
+      activeViewId={activeView.id}
+      onViewChange={handleViewChange}
+      segments={segments}
+      viewCounts={viewCounts}
+      onCreateSegment={() => setShowCreateSegment(true)}
+    />
+  );
+
   return (
     <DashboardLayout>
       <div className="flex h-[calc(100vh-4rem)]">
-        {/* Left Sidebar */}
-        <ContactsSmartViewsSidebar
-          activeViewId={activeView.id}
-          onViewChange={handleViewChange}
-          segments={segments}
-          viewCounts={viewCounts}
-          onCreateSegment={() => setShowCreateSegment(true)}
-        />
+        {/* Desktop Sidebar */}
+        <div className="hidden lg:block">
+          {SidebarContent}
+        </div>
+
+        {/* Mobile Sidebar Sheet */}
+        {isMobile && (
+          <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
+            <SheetContent side="left" className="p-0 w-80">
+              {SidebarContent}
+            </SheetContent>
+          </Sheet>
+        )}
 
         {/* Main Content */}
         <div className="flex-1 flex flex-col min-w-0 overflow-hidden bg-muted/10">
-          {/* Quick Guide */}
-          <div className="px-4 pt-4">
+          {/* Mobile Filter Toggle */}
+          {isMobile && (
+            <div className="flex items-center gap-2 p-3 border-b lg:hidden">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setSidebarOpen(true)}
+                className="gap-2"
+              >
+                <Menu className="h-4 w-4" />
+                Views
+              </Button>
+              <span className="text-sm text-muted-foreground">
+                {activeView.name}
+              </span>
+            </div>
+          )}
+
+          {/* Quick Guide - Hidden on mobile */}
+          <div className="hidden md:block px-4 pt-4">
             <QuickGuide {...quickGuides.contacts} />
           </div>
 
