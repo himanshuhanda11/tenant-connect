@@ -1,8 +1,7 @@
 import React from 'react';
 import { 
-  Building2, ArrowRight, Users, Phone, MessageSquare, 
-  CheckCircle, AlertTriangle, Clock, MoreHorizontal,
-  Crown, UserCog, Shield, Eye, Inbox, Settings, Pencil, Archive
+  ArrowRight, Users, Phone, Clock, MoreHorizontal,
+  CheckCircle, Sparkles, AlertTriangle, Settings, Pencil, Archive
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -26,6 +25,7 @@ interface WorkspaceCardProps {
     role: string;
     created_at: string;
     phoneCount: number;
+    phoneNumber?: string;
     memberCount: number;
     status: 'connected' | 'setup' | 'attention';
     messagesThisWeek?: number;
@@ -38,35 +38,46 @@ interface WorkspaceCardProps {
   onArchive?: () => void;
 }
 
-const roleConfig: Record<string, { icon: React.ElementType; color: string; label: string }> = {
-  owner: { icon: Crown, color: 'text-amber-600 bg-amber-500/10 border-amber-500/20', label: 'Owner' },
-  admin: { icon: UserCog, color: 'text-blue-600 bg-blue-500/10 border-blue-500/20', label: 'Admin' },
-  agent: { icon: Shield, color: 'text-green-600 bg-green-500/10 border-green-500/20', label: 'Agent' },
-  viewer: { icon: Eye, color: 'text-gray-600 bg-gray-500/10 border-gray-500/20', label: 'Viewer' },
-};
-
-const statusConfig: Record<string, { icon: React.ElementType; color: string; bgColor: string; label: string; tooltip: string }> = {
+const statusConfig: Record<string, { icon: React.ElementType; bgColor: string; textColor: string; label: string }> = {
   connected: { 
     icon: CheckCircle, 
-    color: 'text-green-600', 
-    bgColor: 'bg-green-500',
+    bgColor: 'bg-green-50',
+    textColor: 'text-green-600',
     label: 'WhatsApp connected',
-    tooltip: 'Your WhatsApp Business API is connected and active'
   },
   setup: { 
-    icon: Clock, 
-    color: 'text-amber-600', 
-    bgColor: 'bg-amber-500',
+    icon: Sparkles, 
+    bgColor: 'bg-amber-50',
+    textColor: 'text-amber-600',
     label: 'Finish setup',
-    tooltip: 'Complete your WhatsApp setup to start messaging'
   },
   attention: { 
     icon: AlertTriangle, 
-    color: 'text-red-600', 
-    bgColor: 'bg-red-500',
+    bgColor: 'bg-red-50',
+    textColor: 'text-red-600',
     label: 'Needs attention',
-    tooltip: 'There are issues that need your attention'
   },
+};
+
+// Generate consistent color from workspace name
+const getAvatarColor = (name: string): string => {
+  const colors = [
+    'bg-green-500',
+    'bg-emerald-500', 
+    'bg-teal-500',
+    'bg-cyan-500',
+    'bg-blue-500',
+    'bg-indigo-500',
+    'bg-violet-500',
+    'bg-purple-500',
+    'bg-pink-500',
+    'bg-rose-500',
+  ];
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) {
+    hash = name.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  return colors[Math.abs(hash) % colors.length];
 };
 
 export default function WorkspaceCard({
@@ -77,62 +88,44 @@ export default function WorkspaceCard({
   onSettings,
   onArchive,
 }: WorkspaceCardProps) {
-  const role = roleConfig[workspace.role] || roleConfig.agent;
   const status = statusConfig[workspace.status] || statusConfig.setup;
-  const RoleIcon = role.icon;
   const StatusIcon = status.icon;
+  const avatarColor = getAvatarColor(workspace.name);
 
-  const getInitials = (name: string) => {
-    return name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
+  const getInitial = (name: string) => {
+    return name.charAt(0).toUpperCase();
   };
-
-  const getCTALabel = () => {
-    if (workspace.role === 'agent') return 'Go to Inbox';
-    if (workspace.role === 'viewer') return 'View Only';
-    return 'Open workspace';
-  };
-
-  const getCTAIcon = () => {
-    if (workspace.role === 'agent') return Inbox;
-    return ArrowRight;
-  };
-
-  const CTAIcon = getCTAIcon();
 
   return (
-    <Card className={cn(
-      "group relative overflow-hidden transition-all duration-300",
-      "hover:shadow-xl hover:shadow-primary/5 hover:border-primary/30",
-      "hover:-translate-y-1 cursor-pointer"
-    )}>
-      {/* Status indicator bar */}
-      <div className={cn("absolute top-0 left-0 right-0 h-1", status.bgColor)} />
-
+    <Card className="group relative overflow-hidden bg-white border border-gray-100 shadow-sm hover:shadow-lg hover:border-primary/20 transition-all duration-300">
       <CardContent className="p-5">
         {/* Header row */}
-        <div className="flex items-start gap-3 mb-4">
+        <div className="flex items-start gap-3 mb-3">
           {/* Avatar */}
-          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary/20 to-emerald-500/20 flex items-center justify-center flex-shrink-0 border border-primary/10">
-            <span className="text-sm font-bold text-primary">{getInitials(workspace.name)}</span>
+          <div className={cn(
+            "w-11 h-11 rounded-full flex items-center justify-center flex-shrink-0 text-white font-bold text-lg",
+            avatarColor
+          )}>
+            {getInitial(workspace.name)}
           </div>
           
           <div className="flex-1 min-w-0">
-            <h3 className="font-semibold text-foreground truncate group-hover:text-primary transition-colors">
+            <h3 className="font-semibold text-gray-900 truncate text-base">
               {workspace.name}
             </h3>
             
-            {/* Status pill */}
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <div className={cn("inline-flex items-center gap-1.5 mt-1.5 text-xs font-medium", status.color)}>
-                  <StatusIcon className="w-3.5 h-3.5" />
-                  {status.label}
-                </div>
-              </TooltipTrigger>
-              <TooltipContent side="bottom">
-                <p>{status.tooltip}</p>
-              </TooltipContent>
-            </Tooltip>
+            {/* Status badge */}
+            <Badge 
+              variant="secondary" 
+              className={cn(
+                "mt-1.5 text-xs font-medium border-0 gap-1",
+                status.bgColor,
+                status.textColor
+              )}
+            >
+              <StatusIcon className="w-3 h-3" />
+              {status.label}
+            </Badge>
           </div>
 
           {/* Actions menu */}
@@ -141,7 +134,7 @@ export default function WorkspaceCard({
               <Button 
                 variant="ghost" 
                 size="icon" 
-                className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
+                className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity text-gray-400 hover:text-gray-600"
                 onClick={(e) => e.stopPropagation()}
               >
                 <MoreHorizontal className="w-4 h-4" />
@@ -180,45 +173,48 @@ export default function WorkspaceCard({
         </div>
 
         {/* Metadata row */}
-        <div className="flex items-center gap-4 text-xs text-muted-foreground mb-4">
+        <div className="flex items-center gap-4 text-sm text-gray-500 mb-3">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div className="flex items-center gap-1.5">
+                <Phone className="w-4 h-4 text-gray-400" />
+                <span>Phone numbers</span>
+              </div>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>{workspace.phoneCount} phone number{workspace.phoneCount !== 1 ? 's' : ''} connected</p>
+            </TooltipContent>
+          </Tooltip>
+          
           <div className="flex items-center gap-1.5">
-            <Phone className="w-3.5 h-3.5" />
-            <span>{workspace.phoneCount} {workspace.phoneCount === 1 ? 'number' : 'numbers'}</span>
+            <Users className="w-4 h-4 text-gray-400" />
+            <span>{workspace.memberCount} member{workspace.memberCount !== 1 ? 's' : ''}</span>
           </div>
-          <div className="flex items-center gap-1.5">
-            <Users className="w-3.5 h-3.5" />
-            <span>{workspace.memberCount} {workspace.memberCount === 1 ? 'member' : 'members'}</span>
-          </div>
-          {workspace.lastActive && (
-            <div className="flex items-center gap-1.5">
-              <Clock className="w-3.5 h-3.5" />
-              <span>{formatDistanceToNow(new Date(workspace.lastActive), { addSuffix: true })}</span>
-            </div>
-          )}
         </div>
 
-        {/* Role badge */}
-        <div className="flex items-center justify-between">
-          <Badge variant="outline" className={cn("text-xs font-medium border", role.color)}>
-            <RoleIcon className="w-3 h-3 mr-1" />
-            {role.label}
-          </Badge>
+        {/* Phone number display */}
+        {workspace.phoneNumber && (
+          <div className="flex items-center gap-1.5 text-sm text-green-600 mb-3">
+            <CheckCircle className="w-4 h-4" />
+            <span className="font-medium">{workspace.phoneNumber}</span>
+          </div>
+        )}
 
-          {workspace.messagesThisWeek !== undefined && workspace.messagesThisWeek > 0 && (
-            <div className="flex items-center gap-1 text-xs text-muted-foreground">
-              <MessageSquare className="w-3.5 h-3.5" />
-              <span>{workspace.messagesThisWeek} this week</span>
-            </div>
-          )}
-        </div>
+        {/* Last active */}
+        {workspace.lastActive && (
+          <div className="flex items-center gap-1.5 text-xs text-gray-400 mb-4">
+            <Clock className="w-3.5 h-3.5" />
+            <span>Active {formatDistanceToNow(new Date(workspace.lastActive), { addSuffix: false })} ago</span>
+          </div>
+        )}
 
         {/* Primary action button */}
         <Button
           onClick={onSelect}
-          className="w-full mt-4 bg-gradient-to-r from-primary to-emerald-600 hover:from-primary/90 hover:to-emerald-700 shadow-sm group-hover:shadow-md transition-shadow"
+          className="w-full bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-medium shadow-sm"
         >
-          {getCTALabel()}
-          <CTAIcon className="w-4 h-4 ml-2" />
+          Open workspace
+          <ArrowRight className="w-4 h-4 ml-2" />
         </Button>
       </CardContent>
     </Card>
