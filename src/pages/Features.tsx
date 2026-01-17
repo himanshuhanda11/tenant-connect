@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import PageHero from '@/components/layout/PageHero';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
+import { SEO } from '@/components/seo';
 import { 
   Inbox, 
   Users, 
@@ -161,6 +162,12 @@ function FeatureCard({ feature, variant = 'default' }: { feature: typeof coreFea
 export default function Features() {
   return (
     <div className="min-h-screen bg-background">
+      <SEO
+        title="Features — Complete WhatsApp Business Platform | AiReatro"
+        description="Explore all AiReatro features: Unified Inbox, AI automation, message templates, campaigns, analytics, integrations, and enterprise-grade team management."
+        canonical="/features"
+        keywords={['whatsapp business features', 'whatsapp inbox', 'whatsapp automation', 'message templates', 'whatsapp campaigns', 'team collaboration']}
+      />
       <Navbar />
       
       <PageHero

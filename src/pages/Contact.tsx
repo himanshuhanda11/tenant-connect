@@ -29,6 +29,7 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
+import { SEO } from '@/components/seo';
 import PageHero from '@/components/layout/PageHero';
 
 const contactSchema = z.object({
@@ -160,6 +161,12 @@ export default function Contact() {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEO
+        title="Contact Us — Get in Touch with AiReatro Team"
+        description="Have questions about WhatsApp Business API? Contact our team for sales inquiries, demos, technical support, or partnership opportunities. We respond within 24 hours."
+        canonical="/contact"
+        keywords={['contact aireatro', 'whatsapp api support', 'request demo', 'sales inquiry', 'technical support']}
+      />
       <Navbar />
 
       <PageHero
