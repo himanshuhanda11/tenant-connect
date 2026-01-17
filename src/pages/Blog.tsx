@@ -228,7 +228,10 @@ export default function Blog() {
       {/* Featured Post */}
       <section className="py-12 bg-slate-50">
         <div className="container mx-auto px-4">
-          <Card className="max-w-5xl mx-auto overflow-hidden border-0 shadow-xl hover:shadow-2xl transition-shadow cursor-pointer group">
+          <Card 
+            className="max-w-5xl mx-auto overflow-hidden border-0 shadow-xl hover:shadow-2xl transition-shadow cursor-pointer group"
+            onClick={() => navigate(`/blog/${featuredPost.slug}`)}
+          >
             <div className="grid md:grid-cols-2">
               <div className="aspect-[4/3] md:aspect-auto overflow-hidden">
                 <img 
@@ -289,7 +292,11 @@ export default function Blog() {
         <div className="container mx-auto px-4">
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
             {filteredPosts.map((post, index) => (
-              <Card key={index} className="overflow-hidden border-0 shadow-md hover:shadow-xl transition-all duration-300 cursor-pointer group bg-white">
+              <Card 
+                key={index} 
+                className="overflow-hidden border-0 shadow-md hover:shadow-xl transition-all duration-300 cursor-pointer group bg-white"
+                onClick={() => navigate(`/blog/${post.slug}`)}
+              >
                 <div className="aspect-video overflow-hidden">
                   <img 
                     src={post.image} 
