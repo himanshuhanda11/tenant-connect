@@ -38,6 +38,9 @@ import {
   Zap,
   Phone,
   Eye,
+  ArrowLeft,
+  Info,
+  Camera,
 } from 'lucide-react';
 import { format, formatDistanceToNow, differenceInHours } from 'date-fns';
 import { InboxConversation, InboxMessage, WAStatus, ConversationEvent, STATUS_CONFIG, PRIORITY_CONFIG, ConversationStatus } from '@/types/inbox';
@@ -63,6 +66,9 @@ interface InboxChatThreadProps {
   availableTags?: Array<{ id: string; name: string; color: string }>;
   teamMembers?: Array<{ id: string; full_name: string; avatar_url: string | null }>;
   isSupervisorMode?: boolean;
+  isMobile?: boolean;
+  onBack?: () => void;
+  onShowInfo?: () => void;
 }
 
 const STATUS_ICONS: Record<WAStatus, React.ReactNode> = {
@@ -86,6 +92,9 @@ export function InboxChatThread({
   availableTags = [],
   teamMembers = [],
   isSupervisorMode = false,
+  isMobile = false,
+  onBack,
+  onShowInfo,
 }: InboxChatThreadProps) {
   const [messageText, setMessageText] = useState('');
   const [showTemplates, setShowTemplates] = useState(false);
@@ -131,7 +140,10 @@ export function InboxChatThread({
 
   if (!conversation) {
     return (
-      <div className="flex-1 flex items-center justify-center bg-muted/30">
+      <div className={cn(
+        "flex-1 flex items-center justify-center",
+        isMobile ? "bg-background" : "bg-muted/30"
+      )}>
         <div className="text-center text-muted-foreground">
           <Phone className="h-16 w-16 mx-auto mb-4 opacity-30" />
           <p className="text-lg font-medium">Select a conversation</p>
@@ -143,55 +155,102 @@ export function InboxChatThread({
 
   return (
     <div className="flex-1 flex flex-col bg-background">
-      {/* Header */}
-      <div className="h-16 border-b px-4 flex items-center justify-between bg-card">
-        <div className="flex items-center gap-3">
-          <Avatar className="h-10 w-10">
+      {/* Header - WhatsApp Style */}
+      <div className={cn(
+        "border-b flex items-center justify-between bg-primary text-primary-foreground",
+        isMobile ? "h-14 px-2" : "h-16 px-4"
+      )}>
+        <div className="flex items-center gap-2">
+          {/* Back button for mobile */}
+          {isMobile && onBack && (
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              onClick={onBack}
+              className="h-9 w-9 text-primary-foreground hover:bg-white/10"
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+          )}
+          
+          <Avatar className={cn(
+            "border-2 border-white/20",
+            isMobile ? "h-9 w-9" : "h-10 w-10"
+          )}>
             <AvatarImage src={conversation.contact?.profile_picture_url || undefined} />
-            <AvatarFallback className="bg-primary/10 text-primary">
+            <AvatarFallback className="bg-white/20 text-primary-foreground">
               {getInitials(conversation.contact?.name)}
             </AvatarFallback>
           </Avatar>
-          <div>
+          
+          <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2">
-              <h3 className="font-semibold">
+              <h3 className={cn(
+                "font-semibold truncate",
+                isMobile ? "text-sm max-w-[120px]" : ""
+              )}>
                 {conversation.contact?.name || conversation.contact?.wa_id}
               </h3>
-              <Badge 
-                variant="outline" 
-                className={cn("text-xs", STATUS_CONFIG[conversation.status].bgColor, STATUS_CONFIG[conversation.status].color, "border-0")}
-              >
-                {STATUS_CONFIG[conversation.status].label}
-              </Badge>
-              {conversation.is_intervened && (
-                <Badge variant="outline" className="text-xs bg-amber-100 text-amber-700 border-0">
-                  <Hand className="h-3 w-3 mr-1" />
-                  Bot Paused
-                </Badge>
+              {!isMobile && (
+                <>
+                  <Badge 
+                    variant="outline" 
+                    className={cn("text-xs border-0 bg-white/20 text-primary-foreground")}
+                  >
+                    {STATUS_CONFIG[conversation.status].label}
+                  </Badge>
+                  {conversation.is_intervened && (
+                    <Badge variant="outline" className="text-xs bg-amber-400 text-amber-900 border-0">
+                      <Hand className="h-3 w-3 mr-1" />
+                      Bot Paused
+                    </Badge>
+                  )}
+                  <IntentBadge intent={aiIntent} />
+                  <HealthDot health={aiHealth} />
+                </>
               )}
-              {/* AI Intent Badge */}
-              <IntentBadge intent={aiIntent} />
-              {/* Health Indicator */}
-              <HealthDot health={aiHealth} />
             </div>
-            <div className="flex items-center gap-2 text-xs text-muted-foreground">
-              <span>+{conversation.contact?.wa_id}</span>
-              {conversation.assigned_agent && (
-                <> • Assigned to {conversation.assigned_agent.full_name}</>
+            <div className={cn(
+              "text-xs text-primary-foreground/70",
+              isMobile ? "text-[10px]" : "flex items-center gap-2"
+            )}>
+              {isMobile ? (
+                <span>tap for contact info</span>
+              ) : (
+                <>
+                  <span>+{conversation.contact?.wa_id}</span>
+                  {conversation.assigned_agent && (
+                    <> • Assigned to {conversation.assigned_agent.full_name}</>
+                  )}
+                  <SLATimer
+                    firstResponseDue={conversation.sla_first_response_due}
+                    firstResponseAt={conversation.first_response_at}
+                    slaBreached={conversation.sla_breached}
+                    createdAt={conversation.created_at}
+                  />
+                </>
               )}
-              {/* SLA Timer */}
-              <SLATimer
-                firstResponseDue={conversation.sla_first_response_due}
-                firstResponseAt={conversation.first_response_at}
-                slaBreached={conversation.sla_breached}
-                createdAt={conversation.created_at}
-              />
             </div>
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
-          {/* Supervisor Mode Indicator */}
+        <div className="flex items-center gap-1">
+          {/* Mobile: Info button */}
+          {isMobile && onShowInfo && (
+            <Button 
+              variant="ghost" 
+              size="icon"
+              onClick={onShowInfo}
+              className="h-9 w-9 text-primary-foreground hover:bg-white/10"
+            >
+              <Info className="h-5 w-5" />
+            </Button>
+          )}
+          
+          {/* Desktop controls */}
+          {!isMobile && (
+            <>
+              {/* Supervisor Mode Indicator */}
           {isSupervisorMode && (
             <Badge variant="outline" className="text-xs bg-purple-100 text-purple-700 border-0">
               <Eye className="h-3 w-3 mr-1" />
@@ -337,23 +396,77 @@ export function InboxChatThread({
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
+            </>
+          )}
+          
+          {/* Mobile: More menu */}
+          {isMobile && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="h-9 w-9 text-primary-foreground hover:bg-white/10"
+                >
+                  <MoreVertical className="h-5 w-5" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => onSetStatus('open')}>
+                  <span className="w-2 h-2 rounded-full bg-green-500 mr-2" />
+                  Mark as Open
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => onSetStatus('pending')}>
+                  <span className="w-2 h-2 rounded-full bg-amber-500 mr-2" />
+                  Mark as Pending
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => onSetStatus('closed')}>
+                  <span className="w-2 h-2 rounded-full bg-gray-400 mr-2" />
+                  Close
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => onSetIntervene(!conversation.is_intervened)}>
+                  {conversation.is_intervened ? (
+                    <><Bot className="h-4 w-4 mr-2" /> Resume Bot</>
+                  ) : (
+                    <><Hand className="h-4 w-4 mr-2" /> Take Over</>
+                  )}
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
         </div>
       </div>
 
       {/* 24h Window Warning */}
       {isOutside24hWindow && (
-        <div className="px-4 py-2 bg-amber-50 border-b border-amber-200 flex items-center gap-2 text-sm text-amber-800">
-          <AlertCircle className="h-4 w-4" />
-          <span>Outside 24-hour window. Only approved templates can be sent.</span>
+        <div className={cn(
+          "bg-amber-50 border-b border-amber-200 flex items-center gap-2 text-amber-800",
+          isMobile ? "px-3 py-2 text-xs" : "px-4 py-2 text-sm"
+        )}>
+          <AlertCircle className="h-4 w-4 flex-shrink-0" />
+          <span className="flex-1">{isMobile ? "24h window closed. Use template." : "Outside 24-hour window. Only approved templates can be sent."}</span>
           <Button variant="link" size="sm" className="text-amber-800 p-0 h-auto" onClick={() => setShowTemplates(true)}>
-            Use template
+            Template
           </Button>
         </div>
       )}
 
-      {/* Messages Area */}
-      <ScrollArea className="flex-1 p-4" ref={scrollRef}>
-        <div className="space-y-4 max-w-3xl mx-auto">
+      {/* Messages Area - WhatsApp style background */}
+      <ScrollArea 
+        className={cn(
+          "flex-1 bg-[#e5ddd5]",
+          isMobile ? "p-2" : "p-4"
+        )} 
+        ref={scrollRef}
+        style={{
+          backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\'60\' height=\'60\' viewBox=\'0 0 60 60\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cg fill=\'none\' fill-rule=\'evenodd\'%3E%3Cg fill=\'%23c8bfb6\' fill-opacity=\'0.2\'%3E%3Cpath d=\'M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z\'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")'
+        }}
+      >
+        <div className={cn(
+          "space-y-3",
+          isMobile ? "max-w-full" : "max-w-3xl mx-auto space-y-4"
+        )}>
           {timelineItems.map((item, index) => {
             if (item.type === 'event') {
               const event = item.data as ConversationEvent;
@@ -466,8 +579,8 @@ export function InboxChatThread({
         </div>
       </ScrollArea>
 
-      {/* AI Reply Suggestions */}
-      {!isSupervisorMode && (
+      {/* AI Reply Suggestions - hide on mobile for cleaner look */}
+      {!isSupervisorMode && !isMobile && (
         <div className="px-4 py-2 border-t bg-muted/30">
           <AIReplySuggestions
             messages={messages}
@@ -477,9 +590,14 @@ export function InboxChatThread({
         </div>
       )}
 
-      {/* Composer */}
-      <div className="border-t p-4 bg-card">
-        <div className="max-w-3xl mx-auto">
+      {/* Composer - WhatsApp style */}
+      <div className={cn(
+        "border-t bg-card",
+        isMobile ? "p-2" : "p-4"
+      )}>
+        <div className={cn(
+          isMobile ? "" : "max-w-3xl mx-auto"
+        )}>
           {isSupervisorMode ? (
             <div className="text-center py-4 text-muted-foreground">
               <Eye className="w-6 h-6 mx-auto mb-2 opacity-50" />
@@ -488,53 +606,84 @@ export function InboxChatThread({
           ) : (
             <>
               <div className="flex items-end gap-2">
+                {/* Mobile: Attachment button */}
+                {isMobile && (
+                  <Button variant="ghost" size="icon" className="h-10 w-10 flex-shrink-0">
+                    <Paperclip className="h-5 w-5 text-muted-foreground" />
+                  </Button>
+                )}
+                
                 <div className="flex-1 relative">
                   <Textarea
-                    placeholder={isOutside24hWindow ? "Select a template to send..." : "Type a message..."}
+                    placeholder={isOutside24hWindow ? "Select template..." : "Type a message"}
                     value={messageText}
                     onChange={(e) => setMessageText(e.target.value)}
                     onKeyDown={handleKeyDown}
                     disabled={isOutside24hWindow}
-                    className="min-h-[44px] max-h-32 resize-none pr-20"
+                    className={cn(
+                      "resize-none",
+                      isMobile 
+                        ? "min-h-[40px] max-h-24 pr-12 rounded-full py-2 px-4" 
+                        : "min-h-[44px] max-h-32 pr-20"
+                    )}
                     rows={1}
                   />
-                  <div className="absolute right-2 bottom-2 flex items-center gap-1">
-                    <Button variant="ghost" size="icon" className="h-7 w-7">
-                      <Smile className="h-4 w-4" />
+                  <div className={cn(
+                    "absolute bottom-1 flex items-center gap-1",
+                    isMobile ? "right-1" : "right-2 bottom-2"
+                  )}>
+                    <Button variant="ghost" size="icon" className={cn(isMobile ? "h-8 w-8" : "h-7 w-7")}>
+                      <Smile className={cn(isMobile ? "h-5 w-5" : "h-4 w-4")} />
                     </Button>
-                    <Button variant="ghost" size="icon" className="h-7 w-7">
-                      <Paperclip className="h-4 w-4" />
-                    </Button>
+                    {!isMobile && (
+                      <Button variant="ghost" size="icon" className="h-7 w-7">
+                        <Paperclip className="h-4 w-4" />
+                      </Button>
+                    )}
                   </div>
                 </div>
 
-                <Button variant="outline" size="icon" className="h-11 w-11" onClick={() => setShowTemplates(true)}>
-                  <FileText className="h-4 w-4" />
-                </Button>
+                {/* Template button */}
+                {!isMobile && (
+                  <Button variant="outline" size="icon" className="h-11 w-11" onClick={() => setShowTemplates(true)}>
+                    <FileText className="h-4 w-4" />
+                  </Button>
+                )}
 
+                {/* Send button - WhatsApp green circle on mobile */}
                 <Button 
                   size="icon" 
-                  className="h-11 w-11" 
+                  className={cn(
+                    isMobile 
+                      ? "h-10 w-10 rounded-full bg-primary hover:bg-primary/90" 
+                      : "h-11 w-11"
+                  )}
                   onClick={handleSend}
                   disabled={!messageText.trim() && !isOutside24hWindow}
                 >
-                  <Send className="h-4 w-4" />
+                  {messageText.trim() ? (
+                    <Send className={cn(isMobile ? "h-5 w-5" : "h-4 w-4")} />
+                  ) : (
+                    <Mic className={cn(isMobile ? "h-5 w-5" : "h-4 w-4")} />
+                  )}
                 </Button>
               </div>
 
-              {/* Quick Replies */}
-              <div className="flex items-center gap-2 mt-2">
-                <span className="text-xs text-muted-foreground">Quick:</span>
-                <Button variant="outline" size="sm" className="h-6 text-xs" onClick={() => setMessageText("Thank you for reaching out!")}>
-                  Thanks
-                </Button>
-                <Button variant="outline" size="sm" className="h-6 text-xs" onClick={() => setMessageText("I'll look into this and get back to you shortly.")}>
-                  Looking into it
-                </Button>
-                <Button variant="outline" size="sm" className="h-6 text-xs" onClick={() => setMessageText("Is there anything else I can help you with?")}>
-                  Anything else?
-                </Button>
-              </div>
+              {/* Quick Replies - desktop only */}
+              {!isMobile && (
+                <div className="flex items-center gap-2 mt-2">
+                  <span className="text-xs text-muted-foreground">Quick:</span>
+                  <Button variant="outline" size="sm" className="h-6 text-xs" onClick={() => setMessageText("Thank you for reaching out!")}>
+                    Thanks
+                  </Button>
+                  <Button variant="outline" size="sm" className="h-6 text-xs" onClick={() => setMessageText("I'll look into this and get back to you shortly.")}>
+                    Looking into it
+                  </Button>
+                  <Button variant="outline" size="sm" className="h-6 text-xs" onClick={() => setMessageText("Is there anything else I can help you with?")}>
+                    Anything else?
+                  </Button>
+                </div>
+              )}
             </>
           )}
         </div>

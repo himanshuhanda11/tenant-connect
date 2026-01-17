@@ -14,15 +14,21 @@ import {
 } from '@/hooks/useInbox';
 import { InboxView, InboxFilters, INBOX_VIEW_CONFIG, ConversationStatus } from '@/types/inbox';
 import { TooltipProvider } from '@/components/ui/tooltip';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { ArrowLeft, Info } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 
 export default function InboxPage() {
   const { id: conversationId } = useParams<{ id?: string }>();
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
   
   const [view, setView] = useState<InboxView>('all');
   const [filters, setFilters] = useState<InboxFilters>({});
   const [selectedId, setSelectedId] = useState<string | null>(conversationId || null);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [showContextPanel, setShowContextPanel] = useState(false);
 
   // Hooks
   const { conversations, loading: loadingConversations, refetch } = useInboxConversations(view, filters);
@@ -76,6 +82,13 @@ export default function InboxPage() {
     actions.markAsRead(id);
   };
 
+  // Handle back navigation on mobile
+  const handleBack = () => {
+    setSelectedId(null);
+    navigate('/inbox', { replace: true });
+    setShowContextPanel(false);
+  };
+
   // Handle view change
   const handleViewChange = (newView: InboxView) => {
     setView(newView);
@@ -119,8 +132,15 @@ export default function InboxPage() {
     }
   }, [selectedId, actions]);
 
-  // Keyboard shortcuts
+  // Toggle context panel on mobile
+  const toggleContextPanel = () => {
+    setShowContextPanel(!showContextPanel);
+  };
+
+  // Keyboard shortcuts (desktop only)
   useEffect(() => {
+    if (isMobile) return;
+
     const handleKeyDown = (e: KeyboardEvent) => {
       // Don't trigger if typing in input
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
@@ -154,8 +174,76 @@ export default function InboxPage() {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [conversations, selectedId, handleSetStatus]);
+  }, [conversations, selectedId, handleSetStatus, isMobile]);
 
+  // Mobile: Show only conversation list or chat thread
+  if (isMobile) {
+    return (
+      <DashboardLayout>
+        <TooltipProvider>
+          <div className="h-[calc(100vh-4rem)] flex flex-col -mx-4 -my-4 sm:-m-6" key={refreshKey}>
+            {/* Mobile: Show list when no conversation selected */}
+            {!selectedId ? (
+              <InboxConversationList
+                conversations={conversations}
+                selectedId={selectedId}
+                onSelect={handleSelect}
+                view={view}
+                onViewChange={handleViewChange}
+                filters={filters}
+                onFiltersChange={setFilters}
+                loading={loadingConversations}
+                isMobile={true}
+              />
+            ) : showContextPanel ? (
+              /* Mobile: Show context panel */
+              <div className="flex flex-col h-full bg-background">
+                <div className="h-14 border-b flex items-center gap-2 px-4 bg-card">
+                  <Button variant="ghost" size="icon" onClick={toggleContextPanel}>
+                    <ArrowLeft className="h-5 w-5" />
+                  </Button>
+                  <span className="font-semibold">Contact Details</span>
+                </div>
+                <div className="flex-1 overflow-hidden">
+                  <InboxContextPanel
+                    conversation={selectedConversation}
+                    events={events}
+                    notes={notes}
+                    onAddNote={addNote}
+                    onAddTag={handleAddTag}
+                    onRemoveTag={handleRemoveTag}
+                    availableTags={actions.availableTags}
+                    isMobile={true}
+                  />
+                </div>
+              </div>
+            ) : (
+              /* Mobile: Show chat thread with back button */
+              <InboxChatThread
+                conversation={selectedConversation}
+                messages={messages}
+                events={events}
+                typingUsers={typingUsers}
+                onSendMessage={handleSendMessage}
+                onAssign={handleAssign}
+                onSetStatus={handleSetStatus}
+                onSetIntervene={handleSetIntervene}
+                onAddTag={handleAddTag}
+                loading={loadingMessages}
+                availableTags={actions.availableTags}
+                teamMembers={actions.teamMembers}
+                isMobile={true}
+                onBack={handleBack}
+                onShowInfo={toggleContextPanel}
+              />
+            )}
+          </div>
+        </TooltipProvider>
+      </DashboardLayout>
+    );
+  }
+
+  // Desktop view
   return (
     <DashboardLayout>
       <TooltipProvider>
