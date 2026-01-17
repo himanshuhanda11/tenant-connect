@@ -16,6 +16,11 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
 import { 
   Send, 
   Paperclip, 
@@ -41,10 +46,14 @@ import {
   ArrowLeft,
   Info,
   Camera,
+  Sparkles,
+  File,
 } from 'lucide-react';
 import { format, formatDistanceToNow, differenceInHours } from 'date-fns';
 import { InboxConversation, InboxMessage, WAStatus, ConversationEvent, STATUS_CONFIG, PRIORITY_CONFIG, ConversationStatus } from '@/types/inbox';
 import { cn } from '@/lib/utils';
+import EmojiPicker, { EmojiClickData } from 'emoji-picker-react';
+import { toast } from 'sonner';
 
 // New AI components
 import { AIReplySuggestions } from './AIReplySuggestions';
@@ -98,9 +107,12 @@ export function InboxChatThread({
 }: InboxChatThreadProps) {
   const [messageText, setMessageText] = useState('');
   const [showTemplates, setShowTemplates] = useState(false);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [showAISuggestions, setShowAISuggestions] = useState(false);
   const [aiIntent, setAiIntent] = useState<'sales' | 'support' | 'complaint' | 'inquiry' | 'urgent' | 'spam'>('inquiry');
   const [aiHealth, setAiHealth] = useState<'good' | 'warning' | 'critical'>('good');
   const scrollRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Scroll to bottom on new messages
   useEffect(() => {
@@ -125,6 +137,32 @@ export function InboxChatThread({
       e.preventDefault();
       handleSend();
     }
+  };
+
+  const handleEmojiClick = (emojiData: EmojiClickData) => {
+    setMessageText(prev => prev + emojiData.emoji);
+    setShowEmojiPicker(false);
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Check file size (max 16MB for WhatsApp)
+      if (file.size > 16 * 1024 * 1024) {
+        toast.error('File too large. Maximum size is 16MB.');
+        return;
+      }
+      onSendMessage({ media: file });
+      toast.success(`Sending ${file.name}...`);
+    }
+    // Reset input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const handleAttachmentClick = () => {
+    fileInputRef.current?.click();
   };
 
   const getInitials = (name?: string) => {
@@ -579,12 +617,24 @@ export function InboxChatThread({
         </div>
       </ScrollArea>
 
-      {/* AI Reply Suggestions - hide on mobile for cleaner look */}
-      {!isSupervisorMode && !isMobile && (
-        <div className="px-4 py-2 border-t bg-muted/30">
+      {/* Hidden file input for attachments */}
+      <input
+        type="file"
+        ref={fileInputRef}
+        onChange={handleFileSelect}
+        className="hidden"
+        accept="image/*,video/*,audio/*,.pdf,.doc,.docx,.xls,.xlsx"
+      />
+
+      {/* AI Reply Suggestions Panel - Collapsible */}
+      {!isSupervisorMode && showAISuggestions && (
+        <div className="px-4 py-2 border-t bg-gradient-to-r from-violet-50 to-purple-50">
           <AIReplySuggestions
             messages={messages}
-            onSelectSuggestion={(text) => setMessageText(text)}
+            onSelectSuggestion={(text) => {
+              setMessageText(text);
+              setShowAISuggestions(false);
+            }}
             isPro={true}
           />
         </div>
@@ -606,12 +656,63 @@ export function InboxChatThread({
           ) : (
             <>
               <div className="flex items-end gap-2">
-                {/* Mobile: Attachment button */}
-                {isMobile && (
-                  <Button variant="ghost" size="icon" className="h-10 w-10 flex-shrink-0">
-                    <Paperclip className="h-5 w-5 text-muted-foreground" />
-                  </Button>
-                )}
+                {/* AI Assistant Button */}
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button 
+                      variant={showAISuggestions ? "default" : "ghost"} 
+                      size="icon" 
+                      className={cn(
+                        "flex-shrink-0 relative",
+                        isMobile ? "h-10 w-10" : "h-11 w-11",
+                        showAISuggestions && "bg-gradient-to-r from-violet-500 to-purple-500 hover:from-violet-600 hover:to-purple-600"
+                      )}
+                      onClick={() => setShowAISuggestions(!showAISuggestions)}
+                    >
+                      <Sparkles className={cn(isMobile ? "h-5 w-5" : "h-4 w-4")} />
+                      <Paperclip className={cn(
+                        "absolute -bottom-0.5 -right-0.5 bg-background rounded-full p-0.5",
+                        isMobile ? "h-4 w-4" : "h-3.5 w-3.5"
+                      )} />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>AI Assistant & Quick Actions</TooltipContent>
+                </Tooltip>
+
+                {/* Attachment Button - Dropdown with options */}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className={cn(
+                        "flex-shrink-0",
+                        isMobile ? "h-10 w-10" : "h-11 w-11"
+                      )}
+                    >
+                      <Paperclip className={cn(isMobile ? "h-5 w-5" : "h-4 w-4", "text-muted-foreground")} />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="start" className="w-48">
+                    <DropdownMenuItem onClick={handleAttachmentClick}>
+                      <ImageIcon className="h-4 w-4 mr-2 text-blue-500" />
+                      Image
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={handleAttachmentClick}>
+                      <Video className="h-4 w-4 mr-2 text-red-500" />
+                      Video
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={handleAttachmentClick}>
+                      <File className="h-4 w-4 mr-2 text-amber-500" />
+                      Document
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={handleAttachmentClick}>
+                      <Camera className="h-4 w-4 mr-2 text-green-500" />
+                      Camera
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
                 
                 <div className="flex-1 relative">
                   <Textarea
@@ -632,22 +733,42 @@ export function InboxChatThread({
                     "absolute bottom-1 flex items-center gap-1",
                     isMobile ? "right-1" : "right-2 bottom-2"
                   )}>
-                    <Button variant="ghost" size="icon" className={cn(isMobile ? "h-8 w-8" : "h-7 w-7")}>
-                      <Smile className={cn(isMobile ? "h-5 w-5" : "h-4 w-4")} />
-                    </Button>
-                    {!isMobile && (
-                      <Button variant="ghost" size="icon" className="h-7 w-7">
-                        <Paperclip className="h-4 w-4" />
-                      </Button>
-                    )}
+                    {/* Emoji Picker */}
+                    <Popover open={showEmojiPicker} onOpenChange={setShowEmojiPicker}>
+                      <PopoverTrigger asChild>
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className={cn(isMobile ? "h-8 w-8" : "h-7 w-7")}
+                        >
+                          <Smile className={cn(isMobile ? "h-5 w-5" : "h-4 w-4", "text-muted-foreground hover:text-foreground")} />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent 
+                        side="top" 
+                        align="end" 
+                        className="w-auto p-0 border-0"
+                      >
+                        <EmojiPicker 
+                          onEmojiClick={handleEmojiClick}
+                          width={isMobile ? 280 : 350}
+                          height={400}
+                        />
+                      </PopoverContent>
+                    </Popover>
                   </div>
                 </div>
 
                 {/* Template button */}
                 {!isMobile && (
-                  <Button variant="outline" size="icon" className="h-11 w-11" onClick={() => setShowTemplates(true)}>
-                    <FileText className="h-4 w-4" />
-                  </Button>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button variant="outline" size="icon" className="h-11 w-11" onClick={() => setShowTemplates(true)}>
+                        <FileText className="h-4 w-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Send Template</TooltipContent>
+                  </Tooltip>
                 )}
 
                 {/* Send button - WhatsApp green circle on mobile */}

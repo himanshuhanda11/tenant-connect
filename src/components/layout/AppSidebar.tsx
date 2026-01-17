@@ -445,16 +445,36 @@ export function AppSidebar() {
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu className="space-y-1">
-              {mainMenuItems.map(item => renderMenuItem(item))}
+              {mainMenuItems.map((item, index) => (
+                <div key={item.title}>
+                  {renderMenuItem(item)}
+                  {index < mainMenuItems.length - 1 && !isCollapsed && (
+                    <div className="mx-3 my-1 border-b border-sidebar-border/50" />
+                  )}
+                </div>
+              ))}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
 
+        {/* Separator after main navigation */}
+        {!isCollapsed && <div className="mx-3 my-3 border-b border-sidebar-border" />}
+
         {/* Collapsible Groups */}
-        {menuGroups.map(group => renderCollapsibleGroup(group))}
+        {menuGroups.map((group, groupIndex) => (
+          <div key={group.label}>
+            {renderCollapsibleGroup(group)}
+            {groupIndex < menuGroups.length - 1 && !isCollapsed && (
+              <div className="mx-3 my-2 border-b border-sidebar-border/50" />
+            )}
+          </div>
+        ))}
+
+        {/* Separator before platform section */}
+        {!isCollapsed && <div className="mx-3 my-3 border-b border-sidebar-border" />}
 
         {/* Platform Section */}
-        <SidebarGroup className="mt-4">
+        <SidebarGroup className="mt-2">
           {!isCollapsed && (
             <SidebarGroupLabel className="text-sidebar-foreground/40 text-xs uppercase tracking-wider px-3 mb-1 flex items-center gap-2">
               <Sparkles className="w-3.5 h-3.5" />
@@ -463,7 +483,14 @@ export function AppSidebar() {
           )}
           <SidebarGroupContent>
             <SidebarMenu className="space-y-1">
-              {settingsMenuItems.map(item => renderMenuItem(item))}
+              {settingsMenuItems.map((item, index) => (
+                <div key={item.title}>
+                  {renderMenuItem(item)}
+                  {index < settingsMenuItems.length - 1 && !isCollapsed && (
+                    <div className="mx-3 my-1 border-b border-sidebar-border/50" />
+                  )}
+                </div>
+              ))}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
