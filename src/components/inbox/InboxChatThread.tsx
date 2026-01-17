@@ -58,6 +58,7 @@ import { toast } from 'sonner';
 // New AI components
 import { AIReplySuggestions } from './AIReplySuggestions';
 import { SLATimer } from './SLATimer';
+import { TemplatePicker } from './TemplatePicker';
 import { IntentBadge, SentimentBadge } from './IntentBadge';
 import { ConversationHealthIndicator, HealthDot } from './ConversationHealthIndicator';
 
@@ -193,288 +194,261 @@ export function InboxChatThread({
 
   return (
     <div className="flex-1 flex flex-col bg-background">
-      {/* Header - WhatsApp Style */}
-      <div className={cn(
-        "border-b flex items-center justify-between bg-primary text-primary-foreground",
-        isMobile ? "h-14 px-2" : "h-16 px-4"
-      )}>
-        <div className="flex items-center gap-2">
-          {/* Back button for mobile */}
-          {isMobile && onBack && (
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              onClick={onBack}
-              className="h-9 w-9 text-primary-foreground hover:bg-white/10"
-            >
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
-          )}
-          
-          <Avatar className={cn(
-            "border-2 border-white/20",
-            isMobile ? "h-9 w-9" : "h-10 w-10"
-          )}>
-            <AvatarImage src={conversation.contact?.profile_picture_url || undefined} />
-            <AvatarFallback className="bg-white/20 text-primary-foreground">
-              {getInitials(conversation.contact?.name)}
-            </AvatarFallback>
-          </Avatar>
-          
-          <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-2">
+      {/* Header - Clean WhatsApp Style with Two Rows */}
+      <div className="border-b bg-primary text-primary-foreground">
+        {/* Row 1: Contact Info */}
+        <div className={cn(
+          "flex items-center justify-between",
+          isMobile ? "h-14 px-2" : "h-14 px-4"
+        )}>
+          <div className="flex items-center gap-3 min-w-0 flex-1">
+            {/* Back button for mobile */}
+            {isMobile && onBack && (
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                onClick={onBack}
+                className="h-9 w-9 text-primary-foreground hover:bg-white/10 flex-shrink-0"
+              >
+                <ArrowLeft className="h-5 w-5" />
+              </Button>
+            )}
+            
+            <Avatar className={cn(
+              "border-2 border-white/20 flex-shrink-0",
+              isMobile ? "h-9 w-9" : "h-10 w-10"
+            )}>
+              <AvatarImage src={conversation.contact?.profile_picture_url || undefined} />
+              <AvatarFallback className="bg-white/20 text-primary-foreground">
+                {getInitials(conversation.contact?.name)}
+              </AvatarFallback>
+            </Avatar>
+            
+            <div className="min-w-0 flex-1">
               <h3 className={cn(
                 "font-semibold truncate",
-                isMobile ? "text-sm max-w-[120px]" : ""
+                isMobile ? "text-sm" : "text-base"
               )}>
                 {conversation.contact?.name || conversation.contact?.wa_id}
               </h3>
-              {!isMobile && (
-                <>
-                  <Badge 
-                    variant="outline" 
-                    className={cn("text-xs border-0 bg-white/20 text-primary-foreground")}
+              <p className="text-xs text-primary-foreground/70 truncate">
+                +{conversation.contact?.wa_id}
+                {!isMobile && conversation.assigned_agent && (
+                  <span> • {conversation.assigned_agent.full_name}</span>
+                )}
+              </p>
+            </div>
+          </div>
+
+          {/* Right side actions */}
+          <div className="flex items-center gap-1 flex-shrink-0">
+            {isMobile && onShowInfo && (
+              <Button 
+                variant="ghost" 
+                size="icon"
+                onClick={onShowInfo}
+                className="h-9 w-9 text-primary-foreground hover:bg-white/10"
+              >
+                <Info className="h-5 w-5" />
+              </Button>
+            )}
+            
+            {isMobile && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className="h-9 w-9 text-primary-foreground hover:bg-white/10"
                   >
-                    {STATUS_CONFIG[conversation.status].label}
-                  </Badge>
-                  {conversation.is_intervened && (
-                    <Badge variant="outline" className="text-xs bg-amber-400 text-amber-900 border-0">
-                      <Hand className="h-3 w-3 mr-1" />
-                      Bot Paused
-                    </Badge>
-                  )}
-                  <IntentBadge intent={aiIntent} />
-                  <HealthDot health={aiHealth} />
-                </>
-              )}
-            </div>
-            <div className={cn(
-              "text-xs text-primary-foreground/70",
-              isMobile ? "text-[10px]" : "flex items-center gap-2"
-            )}>
-              {isMobile ? (
-                <span>tap for contact info</span>
-              ) : (
-                <>
-                  <span>+{conversation.contact?.wa_id}</span>
-                  {conversation.assigned_agent && (
-                    <> • Assigned to {conversation.assigned_agent.full_name}</>
-                  )}
-                  <SLATimer
-                    firstResponseDue={conversation.sla_first_response_due}
-                    firstResponseAt={conversation.first_response_at}
-                    slaBreached={conversation.sla_breached}
-                    createdAt={conversation.created_at}
-                  />
-                </>
-              )}
-            </div>
+                    <MoreVertical className="h-5 w-5" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => onSetStatus('open')}>
+                    <span className="w-2 h-2 rounded-full bg-green-500 mr-2" />
+                    Mark as Open
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => onSetStatus('pending')}>
+                    <span className="w-2 h-2 rounded-full bg-amber-500 mr-2" />
+                    Mark as Pending
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => onSetStatus('closed')}>
+                    <span className="w-2 h-2 rounded-full bg-gray-400 mr-2" />
+                    Close
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => onSetIntervene(!conversation.is_intervened)}>
+                    {conversation.is_intervened ? (
+                      <><Bot className="h-4 w-4 mr-2" /> Resume Bot</>
+                    ) : (
+                      <><Hand className="h-4 w-4 mr-2" /> Take Over</>
+                    )}
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => setShowTemplates(true)}>
+                    <FileText className="h-4 w-4 mr-2" />
+                    Send Template
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
+
+            {!isMobile && (
+              <Button variant="ghost" size="icon" className="h-8 w-8 text-primary-foreground hover:bg-white/10">
+                <MoreVertical className="h-4 w-4" />
+              </Button>
+            )}
           </div>
         </div>
 
-        <div className="flex items-center gap-1">
-          {/* Mobile: Info button */}
-          {isMobile && onShowInfo && (
+        {/* Row 2: Status Bar (Desktop only) */}
+        {!isMobile && (
+          <div className="h-10 px-4 flex items-center gap-2 bg-primary/90 border-t border-white/10 overflow-x-auto">
+            {/* Status Badge */}
+            <Badge 
+              variant="outline" 
+              className="text-xs border-0 bg-white/20 text-primary-foreground flex-shrink-0"
+            >
+              {STATUS_CONFIG[conversation.status].label}
+            </Badge>
+            
+            {/* Intent Badge */}
+            <IntentBadge intent={aiIntent} />
+            
+            {/* Health Dot */}
+            <HealthDot health={aiHealth} />
+            
+            {/* Bot Paused Badge */}
+            {conversation.is_intervened && (
+              <Badge variant="outline" className="text-xs bg-amber-400 text-amber-900 border-0 flex-shrink-0">
+                <Hand className="h-3 w-3 mr-1" />
+                Bot Paused
+              </Badge>
+            )}
+            
+            {/* Supervisor Badge */}
+            {isSupervisorMode && (
+              <Badge variant="outline" className="text-xs bg-purple-200 text-purple-700 border-0 flex-shrink-0">
+                <Eye className="h-3 w-3 mr-1" />
+                Watching
+              </Badge>
+            )}
+            
+            {/* SLA Timer */}
+            <SLATimer
+              firstResponseDue={conversation.sla_first_response_due}
+              firstResponseAt={conversation.first_response_at}
+              slaBreached={conversation.sla_breached}
+              createdAt={conversation.created_at}
+            />
+            
+            <div className="flex-1" />
+            
+            {/* Tags */}
+            <div className="flex items-center gap-1">
+              {conversation.tags?.slice(0, 2).map(tag => (
+                <Badge 
+                  key={tag.id}
+                  variant="secondary"
+                  className="text-xs"
+                  style={{ backgroundColor: `${tag.color}30`, color: 'white' }}
+                >
+                  {tag.name}
+                </Badge>
+              ))}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="sm" className="h-6 px-2 text-primary-foreground hover:bg-white/10">
+                    <Tag className="h-3 w-3" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48">
+                  <div className="px-2 py-1.5 text-xs font-medium text-muted-foreground">Add Tag</div>
+                  {availableTags
+                    .filter(tag => !conversation.tags?.some(t => t.id === tag.id))
+                    .map(tag => (
+                      <DropdownMenuItem key={tag.id} onClick={() => onAddTag(tag.id)}>
+                        <span className="w-2 h-2 rounded-full mr-2" style={{ backgroundColor: tag.color }} />
+                        {tag.name}
+                      </DropdownMenuItem>
+                    ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+            
+            {/* Intervene Toggle */}
             <Button 
               variant="ghost" 
-              size="icon"
-              onClick={onShowInfo}
-              className="h-9 w-9 text-primary-foreground hover:bg-white/10"
+              size="sm"
+              className={cn(
+                "h-6 text-xs text-primary-foreground hover:bg-white/10",
+                conversation.is_intervened && "bg-white/20"
+              )}
+              onClick={() => onSetIntervene(!conversation.is_intervened)}
             >
-              <Info className="h-5 w-5" />
+              {conversation.is_intervened ? (
+                <><Bot className="h-3 w-3 mr-1" /> Resume</>
+              ) : (
+                <><Hand className="h-3 w-3 mr-1" /> Take Over</>
+              )}
             </Button>
-          )}
-          
-          {/* Desktop controls */}
-          {!isMobile && (
-            <>
-              {/* Supervisor Mode Indicator */}
-          {isSupervisorMode && (
-            <Badge variant="outline" className="text-xs bg-purple-100 text-purple-700 border-0">
-              <Eye className="h-3 w-3 mr-1" />
-              Watching
-            </Badge>
-          )}
-          {/* Tags with dropdown */}
-          <div className="flex items-center gap-1">
-            {conversation.tags?.slice(0, 3).map(tag => (
-              <Badge 
-                key={tag.id}
-                variant="secondary"
-                className="text-xs"
-                style={{ backgroundColor: `${tag.color}20`, color: tag.color }}
-              >
-                {tag.name}
-              </Badge>
-            ))}
-            {/* Tag Picker Dropdown */}
+            
+            {/* Status Dropdown */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm" className="h-7 px-2">
-                  <Tag className="h-3 w-3" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48">
-                <div className="px-2 py-1.5 text-xs font-medium text-muted-foreground">
-                  Add Tag
-                </div>
-                {availableTags
-                  .filter(tag => !conversation.tags?.some(t => t.id === tag.id))
-                  .map(tag => (
-                    <DropdownMenuItem 
-                      key={tag.id} 
-                      onClick={() => onAddTag(tag.id)}
-                    >
-                      <span 
-                        className="w-2 h-2 rounded-full mr-2" 
-                        style={{ backgroundColor: tag.color }}
-                      />
-                      {tag.name}
-                    </DropdownMenuItem>
-                  ))}
-                {availableTags.filter(tag => !conversation.tags?.some(t => t.id === tag.id)).length === 0 && (
-                  <div className="px-2 py-1.5 text-xs text-muted-foreground">
-                    All tags applied
-                  </div>
-                )}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-
-          {/* Intervene Toggle */}
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button 
-                variant={conversation.is_intervened ? "secondary" : "ghost"} 
-                size="sm"
-                onClick={() => onSetIntervene(!conversation.is_intervened)}
-              >
-                {conversation.is_intervened ? (
-                  <>
-                    <Bot className="h-4 w-4 mr-1" />
-                    Resume Bot
-                  </>
-                ) : (
-                  <>
-                    <Hand className="h-4 w-4 mr-1" />
-                    Take Over
-                  </>
-                )}
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              {conversation.is_intervened ? 'Resume automation' : 'Pause automation and take over'}
-            </TooltipContent>
-          </Tooltip>
-
-          {/* Status Dropdown */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm">
-                {STATUS_CONFIG[conversation.status].label}
-                <ChevronDown className="h-3 w-3 ml-1" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => onSetStatus('open')}>
-                <span className="w-2 h-2 rounded-full bg-green-500 mr-2" />
-                Open
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => onSetStatus('pending')}>
-                <span className="w-2 h-2 rounded-full bg-amber-500 mr-2" />
-                Pending
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => onSetStatus('closed')}>
-                <span className="w-2 h-2 rounded-full bg-gray-400 mr-2" />
-                Close
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-
-          {/* More Actions with Team Assignment */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-8 w-8">
-                <MoreVertical className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
-              <div className="px-2 py-1.5 text-xs font-medium text-muted-foreground">
-                Assignment
-              </div>
-              <DropdownMenuItem onClick={() => onAssign('u1')}>
-                <User className="h-4 w-4 mr-2" />
-                Assign to me
-              </DropdownMenuItem>
-              {teamMembers.map(member => (
-                <DropdownMenuItem 
-                  key={member.id} 
-                  onClick={() => onAssign(member.id)}
-                  className={conversation.assigned_to === member.id ? 'bg-muted' : ''}
-                >
-                  <User className="h-4 w-4 mr-2" />
-                  {member.full_name}
-                  {conversation.assigned_to === member.id && (
-                    <Check className="h-3 w-3 ml-auto" />
-                  )}
-                </DropdownMenuItem>
-              ))}
-              <DropdownMenuItem onClick={() => onAssign(null)}>
-                <X className="h-4 w-4 mr-2" />
-                Unassign
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem>
-                <Clock className="h-4 w-4 mr-2" />
-                Snooze
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <Zap className="h-4 w-4 mr-2" />
-                Run automation
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-            </>
-          )}
-          
-          {/* Mobile: More menu */}
-          {isMobile && (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
-                  className="h-9 w-9 text-primary-foreground hover:bg-white/10"
-                >
-                  <MoreVertical className="h-5 w-5" />
+                <Button variant="ghost" size="sm" className="h-6 text-xs text-primary-foreground hover:bg-white/10">
+                  Status <ChevronDown className="h-3 w-3 ml-1" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuItem onClick={() => onSetStatus('open')}>
-                  <span className="w-2 h-2 rounded-full bg-green-500 mr-2" />
-                  Mark as Open
+                  <span className="w-2 h-2 rounded-full bg-green-500 mr-2" /> Open
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => onSetStatus('pending')}>
-                  <span className="w-2 h-2 rounded-full bg-amber-500 mr-2" />
-                  Mark as Pending
+                  <span className="w-2 h-2 rounded-full bg-amber-500 mr-2" /> Pending
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => onSetStatus('closed')}>
-                  <span className="w-2 h-2 rounded-full bg-gray-400 mr-2" />
-                  Close
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => onSetIntervene(!conversation.is_intervened)}>
-                  {conversation.is_intervened ? (
-                    <><Bot className="h-4 w-4 mr-2" /> Resume Bot</>
-                  ) : (
-                    <><Hand className="h-4 w-4 mr-2" /> Take Over</>
-                  )}
+                  <span className="w-2 h-2 rounded-full bg-gray-400 mr-2" /> Close
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-          )}
-        </div>
+            
+            {/* More Actions */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="sm" className="h-6 px-2 text-primary-foreground hover:bg-white/10">
+                  <MoreVertical className="h-3 w-3" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <div className="px-2 py-1.5 text-xs font-medium text-muted-foreground">Assignment</div>
+                <DropdownMenuItem onClick={() => onAssign('u1')}>
+                  <User className="h-4 w-4 mr-2" /> Assign to me
+                </DropdownMenuItem>
+                {teamMembers.map(member => (
+                  <DropdownMenuItem 
+                    key={member.id} 
+                    onClick={() => onAssign(member.id)}
+                    className={conversation.assigned_to === member.id ? 'bg-muted' : ''}
+                  >
+                    <User className="h-4 w-4 mr-2" />
+                    {member.full_name}
+                    {conversation.assigned_to === member.id && <Check className="h-3 w-3 ml-auto" />}
+                  </DropdownMenuItem>
+                ))}
+                <DropdownMenuItem onClick={() => onAssign(null)}>
+                  <X className="h-4 w-4 mr-2" /> Unassign
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem><Clock className="h-4 w-4 mr-2" /> Snooze</DropdownMenuItem>
+                <DropdownMenuItem><Zap className="h-4 w-4 mr-2" /> Run automation</DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        )}
       </div>
+
 
       {/* 24h Window Warning */}
       {isOutside24hWindow && (
@@ -809,6 +783,18 @@ export function InboxChatThread({
           )}
         </div>
       </div>
+
+      {/* Template Picker Modal */}
+      <TemplatePicker
+        open={showTemplates}
+        onClose={() => setShowTemplates(false)}
+        onSend={async (templateName, language, components) => {
+          onSendMessage({ template: templateName });
+          toast.success(`Sending template: ${templateName}`);
+        }}
+        contactName={conversation.contact?.name}
+        contactWaId={conversation.contact?.wa_id}
+      />
     </div>
   );
 }
