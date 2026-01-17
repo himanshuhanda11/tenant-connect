@@ -20,6 +20,7 @@ export default function Navbar() {
     { name: 'WhatsApp Business API', href: '/products#whatsapp-api', icon: Zap, description: 'Official API integration' },
     { name: 'Click to WhatsApp Ads', href: '/products#click-to-whatsapp', icon: MousePointer, description: 'Convert ads to chats' },
     { name: 'WhatsApp Marketing', href: '/products#whatsapp-marketing', icon: TrendingUp, description: 'Broadcast campaigns' },
+    { name: 'WhatsApp Forms', href: '/whatsapp-forms', icon: FileText, description: 'Native in-chat data collection' },
   ];
 
   const featuresCore = [
