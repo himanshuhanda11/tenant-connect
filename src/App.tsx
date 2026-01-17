@@ -91,6 +91,7 @@ import TeamRolesFeature from "./pages/features/TeamRolesFeature";
 import AuditLogsFeature from "./pages/features/AuditLogsFeature";
 import Partners from "./pages/Partners";
 import Features from "./pages/Features";
+import WhatsAppForms from "./pages/WhatsAppForms";
 import NotFound from "./pages/NotFound";
 import MetaAdsOverview from "./pages/meta-ads/MetaAdsOverview";
 import MetaAdsSetup from "./pages/meta-ads/MetaAdsSetup";
@@ -211,6 +212,7 @@ const App = () => (
               <Route path="/features/phone-numbers" element={<PhoneNumbersFeature />} />
               <Route path="/features/team-roles" element={<TeamRolesFeature />} />
               <Route path="/features/audit-logs" element={<AuditLogsFeature />} />
+              <Route path="/whatsapp-forms" element={<WhatsAppForms />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </TenantProvider>
