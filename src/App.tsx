@@ -79,6 +79,7 @@ import CookiePolicy from "./pages/CookiePolicy";
 import RefundPolicy from "./pages/RefundPolicy";
 import Compliance from "./pages/Compliance";
 import CaseStudies from "./pages/CaseStudies";
+import CaseStudyDetail from "./pages/CaseStudyDetail";
 import TemplateLibrary from "./pages/TemplateLibrary";
 import Documentation from "./pages/Documentation";
 import InboxFeature from "./pages/features/InboxFeature";
@@ -196,6 +197,7 @@ const App = () => (
               <Route path="/integrations" element={<Integrations />} />
               <Route path="/security" element={<Security />} />
               <Route path="/case-studies" element={<CaseStudies />} />
+              <Route path="/case-studies/:slug" element={<CaseStudyDetail />} />
               <Route path="/template-library" element={<TemplateLibrary />} />
               <Route path="/documentation" element={<Documentation />} />
               <Route path="/api-docs" element={<Documentation />} />

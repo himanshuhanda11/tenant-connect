@@ -165,6 +165,7 @@ const detailedCaseStudies = [
 // Additional case study cards for the grid
 const caseStudyCards = [
   {
+    slug: 'homefind-realty',
     company: 'HomeFind Realty',
     industry: 'Real Estate',
     useCase: 'Property Inquiry Automation',
@@ -173,6 +174,7 @@ const caseStudyCards = [
     color: 'from-orange-500 to-red-500'
   },
   {
+    slug: 'quickserve-restaurants',
     company: 'QuickServe Restaurants',
     industry: 'Services',
     useCase: 'Order & Reservation Flow',
@@ -181,6 +183,7 @@ const caseStudyCards = [
     color: 'from-amber-500 to-orange-500'
   },
   {
+    slug: 'healthfirst-clinic',
     company: 'HealthFirst Clinic',
     industry: 'Healthcare',
     useCase: 'Appointment Scheduling',
@@ -189,6 +192,7 @@ const caseStudyCards = [
     color: 'from-teal-500 to-cyan-500'
   },
   {
+    slug: 'travelease-agency',
     company: 'TravelEase Agency',
     industry: 'Travel',
     useCase: 'Trip Inquiry & Booking',
@@ -197,6 +201,7 @@ const caseStudyCards = [
     color: 'from-indigo-500 to-purple-500'
   },
   {
+    slug: 'insuresafe',
     company: 'InsureSafe',
     industry: 'Insurance',
     useCase: 'Policy Renewal Automation',
@@ -205,6 +210,7 @@ const caseStudyCards = [
     color: 'from-slate-600 to-slate-800'
   },
   {
+    slug: 'automart-dealers',
     company: 'AutoMart Dealers',
     industry: 'Automotive',
     useCase: 'Test Drive Scheduling',
@@ -562,7 +568,11 @@ export default function CaseStudies() {
           
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
             {filteredCards.map((card, index) => (
-              <Card key={index} className="group border-0 shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden cursor-pointer hover:-translate-y-1">
+              <Card 
+                key={index} 
+                className="group border-0 shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden cursor-pointer hover:-translate-y-1"
+                onClick={() => navigate(`/case-studies/${card.slug}`)}
+              >
                 <div className={`h-2 bg-gradient-to-r ${card.color}`} />
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between mb-4">
