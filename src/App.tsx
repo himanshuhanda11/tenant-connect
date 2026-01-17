@@ -63,6 +63,7 @@ import TemplatesGuide from "./pages/help/TemplatesGuide";
 import AutomationGuide from "./pages/help/AutomationGuide";
 import ContactsTagsGuide from "./pages/help/ContactsTagsGuide";
 import MetaAdsGuide from "./pages/help/MetaAdsGuide";
+import WorkspacesGuide from "./pages/help/WorkspacesGuide";
 import { GuideManager } from "./components/admin/GuideManager";
 import About from "./pages/About";
 import Contact from "./pages/Contact";
@@ -189,6 +190,7 @@ const App = () => (
               <Route path="/help/automation" element={<AutomationGuide />} />
               <Route path="/help/contacts-tags" element={<ContactsTagsGuide />} />
               <Route path="/help/meta-ads" element={<MetaAdsGuide />} />
+              <Route path="/help/workspaces" element={<WorkspacesGuide />} />
               <Route path="/help/:slug" element={<GuideDetail />} />
               <Route path="/admin/guides" element={<GuideManager />} />
               <Route path="/help/all" element={<HelpCenter />} />

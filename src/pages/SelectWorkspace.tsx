@@ -1,8 +1,8 @@
 import React, { useEffect, useState, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { 
   Building2, Plus, Loader2, RefreshCw, Search, 
-  ChevronDown, ArrowRight, ExternalLink, Lightbulb, Filter
+  ChevronDown, ArrowRight, Lightbulb, Filter
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -335,9 +335,12 @@ export default function SelectWorkspace() {
                       <Button 
                         variant="ghost" 
                         className="text-gray-500 hover:text-gray-700"
+                        asChild
                       >
-                        Learn how workspaces work
-                        <ArrowRight className="w-4 h-4 ml-1" />
+                        <Link to="/help/workspaces">
+                          Learn how workspaces work
+                          <ArrowRight className="w-4 h-4 ml-1" />
+                        </Link>
                       </Button>
                     </div>
                   </div>
