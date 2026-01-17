@@ -15,6 +15,9 @@ import { BusinessProfileCard } from '@/components/dashboard/BusinessProfileCard'
 import { QuickStatsGrid } from '@/components/dashboard/QuickStatsGrid';
 import { QuickActionsCard } from '@/components/dashboard/QuickActionsCard';
 import { RecentActivityCard } from '@/components/dashboard/RecentActivityCard';
+import { AIInsightsSummary } from '@/components/dashboard/AIInsightsSummary';
+import { VIPQuickActions } from '@/components/dashboard/VIPQuickActions';
+import { WorkspaceTip } from '@/components/dashboard/WorkspaceTip';
 
 // Existing enhanced components
 import { DashboardFiltersBar } from '@/components/dashboard/DashboardFiltersBar';
@@ -318,11 +321,16 @@ export default function Dashboard() {
               loading={loading}
             />
 
-            {/* Campaigns, Meta Ads, Automations - Stack on smaller screens */}
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {/* Campaigns, Meta Ads - Side by side */}
+            <div className="grid gap-4 sm:grid-cols-2">
               <CampaignsPanel campaigns={campaigns} loading={loading} />
               <MetaAdsPanel metrics={metaAds} loading={loading} />
-              <AutomationsPanel metrics={automations} loading={loading} />
+            </div>
+
+            {/* AI Insights Summary + VIP Quick Actions */}
+            <div className="grid gap-4 md:grid-cols-2">
+              <AIInsightsSummary loading={loading} />
+              <VIPQuickActions />
             </div>
           </div>
 
@@ -347,6 +355,9 @@ export default function Dashboard() {
             <RecentActivityCard activities={recentActivity} loading={loading} />
           </div>
         </div>
+
+        {/* Bottom Tip */}
+        <WorkspaceTip />
       </div>
 
       {/* Embedded Signup Dialog */}

@@ -12,7 +12,9 @@ import {
   Zap, 
   TrendingDown,
   ChevronRight,
-  Bell
+  Bell,
+  CheckCircle2,
+  RefreshCw
 } from 'lucide-react';
 import type { ActionQueueItem } from '@/types/dashboard';
 
@@ -79,9 +81,9 @@ export function AttentionNeededPanel({ items, loading }: AttentionNeededPanelPro
 
   if (loading) {
     return (
-      <Card>
+      <Card className="border-0 shadow-soft">
         <CardHeader className="pb-3">
-          <CardTitle className="text-lg font-semibold flex items-center gap-2">
+          <CardTitle className="text-base font-semibold flex items-center gap-2">
             <Bell className="w-5 h-5" />
             Attention Needed
           </CardTitle>
@@ -101,43 +103,41 @@ export function AttentionNeededPanel({ items, loading }: AttentionNeededPanelPro
   const warningCount = items.filter(i => i.severity === 'warning').length;
 
   return (
-    <Card className={criticalCount > 0 ? 'border-destructive/30' : ''}>
+    <Card className={`border-0 shadow-soft ${criticalCount > 0 ? 'border-destructive/30' : ''}`}>
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className={`p-2 rounded-lg ${criticalCount > 0 ? 'bg-destructive/10' : 'bg-muted'}`}>
-              <Bell className={`w-5 h-5 ${criticalCount > 0 ? 'text-destructive' : 'text-muted-foreground'}`} />
+            <div className={`p-2 rounded-lg ${criticalCount > 0 ? 'bg-amber-500/10' : 'bg-emerald-500/10'}`}>
+              {criticalCount > 0 ? (
+                <Bell className="w-5 h-5 text-amber-500" />
+              ) : (
+                <CheckCircle2 className="w-5 h-5 text-emerald-500" />
+              )}
             </div>
             <div>
-              <CardTitle className="text-lg font-semibold">Attention Needed</CardTitle>
+              <CardTitle className="text-base font-semibold">Attention Needed</CardTitle>
               <p className="text-xs text-muted-foreground">
-                {items.length} items require your attention
+                {items.length > 0 
+                  ? `Fleet to reminder your d happening.`
+                  : 'No issues need your attention'
+                }
               </p>
             </div>
           </div>
-          <div className="flex gap-2">
-            {criticalCount > 0 && (
-              <Badge variant="destructive" className="text-xs">
-                {criticalCount} critical
-              </Badge>
-            )}
-            {warningCount > 0 && (
-              <Badge variant="secondary" className="text-xs bg-amber-500/10 text-amber-600">
-                {warningCount} warning
-              </Badge>
-            )}
-          </div>
+          <Button variant="ghost" size="icon" className="h-8 w-8">
+            <RefreshCw className="w-4 h-4" />
+          </Button>
         </div>
       </CardHeader>
       <CardContent>
         {items.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-8 text-center">
-            <div className="p-3 rounded-full bg-emerald-500/10 mb-3">
-              <AlertCircle className="w-6 h-6 text-emerald-500" />
+          <div className="flex flex-col items-center justify-center py-10 text-center">
+            <div className="p-4 rounded-full bg-emerald-500/10 mb-4">
+              <CheckCircle2 className="w-10 h-10 text-emerald-500" strokeWidth={1.5} />
             </div>
-            <h4 className="font-medium text-emerald-600">All clear!</h4>
+            <h4 className="font-semibold text-lg text-emerald-600 dark:text-emerald-400 mb-1">All clear!</h4>
             <p className="text-sm text-muted-foreground">
-              No issues need your attention right now
+              No issues need your attention right now.
             </p>
           </div>
         ) : (
@@ -152,7 +152,7 @@ export function AttentionNeededPanel({ items, loading }: AttentionNeededPanelPro
                   <button
                     key={item.id}
                     onClick={() => navigate(item.href)}
-                    className="w-full flex items-center gap-3 p-3 rounded-lg border hover:bg-muted/50 transition-colors text-left group"
+                    className="w-full flex items-center gap-3 p-3 rounded-xl border hover:bg-muted/50 transition-colors text-left group"
                   >
                     <div className={`p-2 rounded-lg ${config.bg}`}>
                       <Icon className={`w-4 h-4 ${config.color}`} />
