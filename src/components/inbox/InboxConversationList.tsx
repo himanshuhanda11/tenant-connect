@@ -25,7 +25,9 @@ import {
   Megaphone,
   Globe,
   QrCode,
-  MessageSquare
+  MessageSquare,
+  CheckCheck,
+  Check
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { InboxConversation, InboxView, InboxFilters, PRIORITY_CONFIG } from '@/types/inbox';
@@ -40,6 +42,7 @@ interface InboxConversationListProps {
   filters: InboxFilters;
   onFiltersChange: (filters: InboxFilters) => void;
   loading?: boolean;
+  isMobile?: boolean;
 }
 
 const VIEW_ICONS: Record<InboxView, React.ReactNode> = {
@@ -68,6 +71,7 @@ export function InboxConversationList({
   filters,
   onFiltersChange,
   loading,
+  isMobile = false,
 }: InboxConversationListProps) {
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -99,14 +103,32 @@ export function InboxConversationList({
   const counts = getStatusCounts();
 
   return (
-    <div className="flex flex-col h-full border-r bg-card">
-      {/* Header */}
-      <div className="p-4 border-b space-y-3">
-        <div className="flex items-center justify-between">
-          <h2 className="font-semibold text-lg">Inbox</h2>
+    <div className={cn(
+      "flex flex-col h-full border-r bg-card",
+      isMobile && "border-r-0"
+    )}>
+      {/* Header - WhatsApp style */}
+      <div className={cn(
+        "bg-primary text-primary-foreground",
+        isMobile ? "px-4 py-3" : "p-4 border-b"
+      )}>
+        <div className="flex items-center justify-between mb-3">
+          <h2 className={cn(
+            "font-bold",
+            isMobile ? "text-xl" : "text-lg"
+          )}>
+            Chats
+          </h2>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm">
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className={cn(
+                  "hover:bg-white/10",
+                  isMobile ? "text-primary-foreground" : ""
+                )}
+              >
                 <Filter className="h-4 w-4 mr-1" />
                 <ChevronDown className="h-3 w-3" />
               </Button>
@@ -122,20 +144,34 @@ export function InboxConversationList({
           </DropdownMenu>
         </div>
 
-        {/* Search */}
+        {/* Search - WhatsApp style */}
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Search className={cn(
+            "absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4",
+            isMobile ? "text-primary-foreground/70" : "text-muted-foreground"
+          )} />
           <Input
-            placeholder="Search conversations..."
+            placeholder="Search or start new chat"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-9"
+            className={cn(
+              "pl-9",
+              isMobile && "bg-white/10 border-0 text-primary-foreground placeholder:text-primary-foreground/70 focus-visible:ring-white/20"
+            )}
           />
         </div>
+      </div>
 
-        {/* View Tabs */}
+      {/* View Tabs */}
+      <div className={cn(
+        "px-2 py-2 border-b bg-muted/30",
+        isMobile && "px-3"
+      )}>
         <Tabs value={view} onValueChange={(v) => onViewChange(v as InboxView)}>
-          <TabsList className="w-full grid grid-cols-4 h-8">
+          <TabsList className={cn(
+            "w-full grid h-9",
+            isMobile ? "grid-cols-4 gap-1" : "grid-cols-4"
+          )}>
             <TabsTrigger value="all" className="text-xs px-2">
               All ({counts.all})
             </TabsTrigger>
@@ -171,22 +207,28 @@ export function InboxConversationList({
                 key={conversation.id}
                 onClick={() => onSelect(conversation.id)}
                 className={cn(
-                  "p-3 cursor-pointer hover:bg-muted/50 transition-colors",
-                  selectedId === conversation.id && "bg-muted",
+                  "px-4 py-3 cursor-pointer hover:bg-muted/50 transition-colors active:bg-muted",
+                  selectedId === conversation.id && !isMobile && "bg-muted",
                   conversation.unread_count > 0 && "bg-primary/5"
                 )}
               >
                 <div className="flex gap-3">
-                  {/* Avatar */}
-                  <div className="relative">
-                    <Avatar className="h-10 w-10">
+                  {/* Avatar - WhatsApp style */}
+                  <div className="relative flex-shrink-0">
+                    <Avatar className={cn(
+                      "border-2 border-background shadow-sm",
+                      isMobile ? "h-12 w-12" : "h-10 w-10"
+                    )}>
                       <AvatarImage src={conversation.contact?.profile_picture_url || undefined} />
-                      <AvatarFallback className="text-xs bg-primary/10 text-primary">
+                      <AvatarFallback className="text-xs bg-gradient-to-br from-primary/20 to-primary/40 text-primary font-semibold">
                         {getInitials(conversation.contact?.name)}
                       </AvatarFallback>
                     </Avatar>
                     {conversation.unread_count > 0 && (
-                      <span className="absolute -top-1 -right-1 h-5 w-5 bg-primary text-primary-foreground text-xs font-bold rounded-full flex items-center justify-center">
+                      <span className={cn(
+                        "absolute -bottom-0.5 -right-0.5 bg-green-500 text-white text-xs font-bold rounded-full flex items-center justify-center shadow-sm",
+                        isMobile ? "h-5 w-5 text-[10px]" : "h-4 w-4 text-[9px]"
+                      )}>
                         {conversation.unread_count > 9 ? '9+' : conversation.unread_count}
                       </span>
                     )}
@@ -198,7 +240,8 @@ export function InboxConversationList({
                       <div className="flex items-center gap-2 min-w-0">
                         <span className={cn(
                           "font-medium truncate",
-                          conversation.unread_count > 0 && "font-semibold"
+                          conversation.unread_count > 0 && "font-semibold",
+                          isMobile && "text-base"
                         )}>
                           {conversation.contact?.name || conversation.contact?.wa_id}
                         </span>
@@ -211,14 +254,23 @@ export function InboxConversationList({
                           </Badge>
                         )}
                       </div>
-                      <span className="text-xs text-muted-foreground flex-shrink-0">
-                        {conversation.last_message_at && formatDistanceToNow(new Date(conversation.last_message_at), { addSuffix: false })}
-                      </span>
+                      <div className="flex items-center gap-1 flex-shrink-0">
+                        {/* Message status icon - WhatsApp style */}
+                        {conversation.unread_count === 0 && (
+                          <CheckCheck className="h-4 w-4 text-blue-500" />
+                        )}
+                        <span className={cn(
+                          "text-xs",
+                          conversation.unread_count > 0 ? "text-green-600 font-medium" : "text-muted-foreground"
+                        )}>
+                          {conversation.last_message_at && formatDistanceToNow(new Date(conversation.last_message_at), { addSuffix: false })}
+                        </span>
+                      </div>
                     </div>
 
                     <p className={cn(
                       "text-sm text-muted-foreground truncate mt-0.5",
-                      conversation.unread_count > 0 && "text-foreground"
+                      conversation.unread_count > 0 && "text-foreground font-medium"
                     )}>
                       {conversation.last_message_preview || 'No messages yet'}
                     </p>
@@ -257,7 +309,7 @@ export function InboxConversationList({
                       )}
 
                       {/* Assignment */}
-                      {conversation.assigned_agent && (
+                      {conversation.assigned_agent && !isMobile && (
                         <span className="text-[10px] text-muted-foreground ml-auto flex items-center gap-1">
                           <User className="h-3 w-3" />
                           {conversation.assigned_agent.full_name?.split(' ')[0]}

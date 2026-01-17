@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate, Link } from 'react-router-dom';
 import { LayoutDashboard, Users, Settings, LogOut, ChevronDown, ChevronRight, Plus, Inbox, Contact, Phone, FileText, Send, Zap, CreditCard, Shield, UsersRound, Route, Clock, ScrollText, Tag, ListFilter, HelpCircle, Megaphone, BarChart3, Link2, Target, Workflow, Cog, Building2, Sparkles, TrendingUp, Headphones, Check, Puzzle, PanelLeftClose, PanelLeft, User, ChevronUp } from 'lucide-react';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from '@/components/ui/sidebar';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
@@ -299,11 +299,13 @@ export function AppSidebar() {
       {/* Header with Logo and Toggle */}
       <SidebarHeader className="p-3 border-b border-sidebar-border">
         <div className="flex items-center justify-between">
-          <img
-            src={aireatroLogo}
-            alt="AiReatro"
-            className={cn("w-auto transition-all duration-300", isCollapsed ? "h-8" : "h-12")}
-          />
+          <Link to="/" className="hover:opacity-80 transition-opacity">
+            <img
+              src={aireatroLogo}
+              alt="AiReatro"
+              className={cn("w-auto transition-all duration-300", isCollapsed ? "h-8" : "h-12")}
+            />
+          </Link>
           {!isCollapsed && (
             <Tooltip>
               <TooltipTrigger asChild>

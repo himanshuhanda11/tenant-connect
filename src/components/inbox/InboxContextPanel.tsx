@@ -42,6 +42,7 @@ interface InboxContextPanelProps {
   onAddTag: (tagId: string) => void;
   onRemoveTag: (tagId: string) => void;
   availableTags?: Array<{ id: string; name: string; color: string }>;
+  isMobile?: boolean;
 }
 
 export function InboxContextPanel({
@@ -52,6 +53,7 @@ export function InboxContextPanel({
   onAddTag,
   onRemoveTag,
   availableTags: passedTags,
+  isMobile = false,
 }: InboxContextPanelProps) {
   const [activeTab, setActiveTab] = useState('contact');
   const [newNote, setNewNote] = useState('');
@@ -70,7 +72,10 @@ export function InboxContextPanel({
 
   if (!conversation) {
     return (
-      <div className="w-80 border-l bg-card flex items-center justify-center">
+      <div className={cn(
+        "border-l bg-card flex items-center justify-center",
+        isMobile ? "w-full h-full" : "w-80"
+      )}>
         <div className="text-center text-muted-foreground p-4">
           <User className="h-12 w-12 mx-auto mb-3 opacity-30" />
           <p className="text-sm">Select a conversation to view details</p>
@@ -94,7 +99,10 @@ export function InboxContextPanel({
   );
 
   return (
-    <div className="w-80 border-l bg-card flex flex-col">
+    <div className={cn(
+      "border-l bg-card flex flex-col",
+      isMobile ? "w-full h-full border-l-0" : "w-80"
+    )}>
       {/* Contact Header */}
       <div className="p-4 border-b">
         <div className="flex items-center gap-3">
