@@ -302,7 +302,7 @@ export function AppSidebar() {
           <img
             src={aireatroLogo}
             alt="AiReatro"
-            className={cn("w-auto transition-all duration-300", isCollapsed ? "h-7" : "h-9")}
+            className={cn("w-auto transition-all duration-300", isCollapsed ? "h-8" : "h-12")}
           />
           {!isCollapsed && (
             <Tooltip>
