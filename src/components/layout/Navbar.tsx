@@ -17,7 +17,7 @@ export default function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const whatsappProducts = [
-    { name: 'WhatsApp Business API', href: '/products#whatsapp-api', icon: Zap, description: 'Official API integration' },
+    { name: 'WhatsApp Business API', href: '/whatsapp-business-api', icon: Zap, description: 'Official API integration' },
     { name: 'Click to WhatsApp Ads', href: '/products#click-to-whatsapp', icon: MousePointer, description: 'Convert ads to chats' },
     { name: 'WhatsApp Marketing', href: '/products#whatsapp-marketing', icon: TrendingUp, description: 'Broadcast campaigns' },
     { name: 'WhatsApp Forms', href: '/whatsapp-forms', icon: FileText, description: 'Native in-chat data collection' },
