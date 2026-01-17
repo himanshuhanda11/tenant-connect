@@ -1,3 +1,14 @@
+# AiReatro Communications robots.txt
+User-agent: *
+Allow: /
+Disallow: /app/
+Disallow: /login
+Disallow: /signup
+Disallow: /auth/
+Disallow: /select-workspace
+Disallow: /create-workspace
+
+# Specific crawlers
 User-agent: Googlebot
 Allow: /
 
@@ -10,5 +21,5 @@ Allow: /
 User-agent: facebookexternalhit
 Allow: /
 
-User-agent: *
-Allow: /
+# Sitemap
+Sitemap: https://aireatro.com/sitemap.xml
