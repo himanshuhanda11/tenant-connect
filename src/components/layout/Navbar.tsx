@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Menu, X, ChevronDown, Zap, MousePointer, TrendingUp, Inbox, Megaphone, FileText, Bot, BarChart3, Users, Phone, Shield, ClipboardList, Plug, UserCog } from 'lucide-react';
+import { Menu, X, ChevronDown, ChevronRight, Zap, MousePointer, TrendingUp, Inbox, Megaphone, FileText, Bot, BarChart3, Users, Phone, Shield, ClipboardList, Plug, UserCog } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -10,11 +10,15 @@ import {
   DropdownMenuSeparator,
   DropdownMenuLabel,
 } from '@/components/ui/dropdown-menu';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { cn } from '@/lib/utils';
 import aireatroLogo from '@/assets/aireatro-logo.png';
 
 export default function Navbar() {
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [whatsappOpen, setWhatsappOpen] = useState(false);
+  const [featuresOpen, setFeaturesOpen] = useState(false);
 
   const whatsappProducts = [
     { name: 'WhatsApp Business API', href: '/whatsapp-business-api', icon: Zap, description: 'Official API integration' },
@@ -55,7 +59,7 @@ export default function Navbar() {
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
         <div className="flex items-center gap-8">
           <Link to="/" className="flex items-center gap-2">
-            <img src={aireatroLogo} alt="AiReatro" className="h-10 w-auto" />
+            <img src={aireatroLogo} alt="AiReatro" className="h-12 w-auto" />
           </Link>
 
           <nav className="hidden lg:flex items-center gap-1">
@@ -213,33 +217,81 @@ export default function Navbar() {
       {mobileMenuOpen && (
         <div className="lg:hidden border-t border-border bg-background">
           <div className="container mx-auto px-4 py-4 space-y-1 max-h-[80vh] overflow-y-auto">
-            <div className="text-xs uppercase tracking-wider text-muted-foreground px-4 py-2 font-semibold">WhatsApp Solutions</div>
-            <Link to="/products#whatsapp-api" className="flex items-center gap-3 px-4 py-3 text-foreground hover:bg-muted rounded-lg" onClick={() => setMobileMenuOpen(false)}>
-              <Zap className="w-4 h-4 text-primary" />
-              WhatsApp Business API
-            </Link>
-            <Link to="/click-to-whatsapp" className="flex items-center gap-3 px-4 py-3 text-foreground hover:bg-muted rounded-lg" onClick={() => setMobileMenuOpen(false)}>
-              <MousePointer className="w-4 h-4 text-primary" />
-              Click to WhatsApp App
-            </Link>
-            <Link to="/why-whatsapp-marketing" className="flex items-center gap-3 px-4 py-3 text-foreground hover:bg-muted rounded-lg" onClick={() => setMobileMenuOpen(false)}>
-              <TrendingUp className="w-4 h-4 text-primary" />
-              Why WhatsApp Marketing
-            </Link>
+            {/* WhatsApp Solutions - Collapsible */}
+            <Collapsible open={whatsappOpen} onOpenChange={setWhatsappOpen}>
+              <CollapsibleTrigger className="flex items-center justify-between w-full px-4 py-3 text-foreground hover:bg-muted rounded-lg font-semibold">
+                <span className="flex items-center gap-2">
+                  <Zap className="w-5 h-5 text-primary" />
+                  WhatsApp Solutions
+                </span>
+                <ChevronDown className={cn("w-5 h-5 text-muted-foreground transition-transform", whatsappOpen && "rotate-180")} />
+              </CollapsibleTrigger>
+              <CollapsibleContent className="pl-4 space-y-1 mt-1">
+                {whatsappProducts.map((item) => (
+                  <Link 
+                    key={item.name} 
+                    to={item.href} 
+                    className="flex items-center gap-3 px-4 py-2.5 text-foreground hover:bg-muted rounded-lg" 
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    <item.icon className="w-4 h-4 text-primary" />
+                    <div>
+                      <span className="text-sm font-medium">{item.name}</span>
+                      <p className="text-xs text-muted-foreground">{item.description}</p>
+                    </div>
+                  </Link>
+                ))}
+              </CollapsibleContent>
+            </Collapsible>
             
-            <div className="border-t border-border my-3" />
-            <div className="text-xs uppercase tracking-wider text-muted-foreground px-4 py-2 font-semibold">Platform Features</div>
-            {[...featuresCore, ...featuresAdvanced, ...featuresEnterprise].map((item) => (
-              <Link 
-                key={item.name} 
-                to={item.href} 
-                className="flex items-center gap-3 px-4 py-2.5 text-foreground hover:bg-muted rounded-lg" 
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                <item.icon className="w-4 h-4 text-muted-foreground" />
-                <span className="text-sm">{item.name}</span>
-              </Link>
-            ))}
+            {/* Platform Features - Collapsible */}
+            <Collapsible open={featuresOpen} onOpenChange={setFeaturesOpen}>
+              <CollapsibleTrigger className="flex items-center justify-between w-full px-4 py-3 text-foreground hover:bg-muted rounded-lg font-semibold">
+                <span className="flex items-center gap-2">
+                  <Bot className="w-5 h-5 text-primary" />
+                  Platform Features
+                </span>
+                <ChevronDown className={cn("w-5 h-5 text-muted-foreground transition-transform", featuresOpen && "rotate-180")} />
+              </CollapsibleTrigger>
+              <CollapsibleContent className="pl-4 space-y-1 mt-1">
+                <div className="text-xs uppercase tracking-wider text-muted-foreground px-4 py-2 font-medium">Core</div>
+                {featuresCore.map((item) => (
+                  <Link 
+                    key={item.name} 
+                    to={item.href} 
+                    className="flex items-center gap-3 px-4 py-2 text-foreground hover:bg-muted rounded-lg" 
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    <item.icon className="w-4 h-4 text-muted-foreground" />
+                    <span className="text-sm">{item.name}</span>
+                  </Link>
+                ))}
+                <div className="text-xs uppercase tracking-wider text-muted-foreground px-4 py-2 font-medium mt-2">Advanced</div>
+                {featuresAdvanced.map((item) => (
+                  <Link 
+                    key={item.name} 
+                    to={item.href} 
+                    className="flex items-center gap-3 px-4 py-2 text-foreground hover:bg-muted rounded-lg" 
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    <item.icon className="w-4 h-4 text-muted-foreground" />
+                    <span className="text-sm">{item.name}</span>
+                  </Link>
+                ))}
+                <div className="text-xs uppercase tracking-wider text-muted-foreground px-4 py-2 font-medium mt-2">Enterprise</div>
+                {featuresEnterprise.map((item) => (
+                  <Link 
+                    key={item.name} 
+                    to={item.href} 
+                    className="flex items-center gap-3 px-4 py-2 text-foreground hover:bg-muted rounded-lg" 
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    <item.icon className="w-4 h-4 text-muted-foreground" />
+                    <span className="text-sm">{item.name}</span>
+                  </Link>
+                ))}
+              </CollapsibleContent>
+            </Collapsible>
             
             <div className="border-t border-border my-3" />
             <Link to="/products" className="block px-4 py-3 text-foreground hover:bg-muted rounded-lg font-medium" onClick={() => setMobileMenuOpen(false)}>All Products</Link>
