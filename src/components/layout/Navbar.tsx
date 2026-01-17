@@ -18,9 +18,9 @@ export default function Navbar() {
 
   const whatsappProducts = [
     { name: 'WhatsApp Business API', href: '/whatsapp-business-api', icon: Zap, description: 'Official API integration' },
-    { name: 'Click to WhatsApp App', href: '/click-to-whatsapp', icon: MousePointer, description: 'Convert ads to chats' },
-    { name: 'WhatsApp Marketing', href: '/products#whatsapp-marketing', icon: TrendingUp, description: 'Broadcast campaigns' },
-    { name: 'WhatsApp Forms', href: '/whatsapp-forms', icon: FileText, description: 'Native in-chat data collection' },
+    { name: 'Click to WhatsApp App', href: '/click-to-whatsapp', icon: MousePointer, description: 'Convert clicks to chats' },
+    { name: 'Why WhatsApp Marketing', href: '/why-whatsapp-marketing', icon: TrendingUp, description: 'ROI & conversions' },
+    { name: 'WhatsApp Forms', href: '/whatsapp-forms', icon: FileText, description: 'In-chat data collection' },
   ];
 
   const featuresCore = [
@@ -222,9 +222,9 @@ export default function Navbar() {
               <MousePointer className="w-4 h-4 text-primary" />
               Click to WhatsApp App
             </Link>
-            <Link to="/products#whatsapp-marketing" className="flex items-center gap-3 px-4 py-3 text-foreground hover:bg-muted rounded-lg" onClick={() => setMobileMenuOpen(false)}>
+            <Link to="/why-whatsapp-marketing" className="flex items-center gap-3 px-4 py-3 text-foreground hover:bg-muted rounded-lg" onClick={() => setMobileMenuOpen(false)}>
               <TrendingUp className="w-4 h-4 text-primary" />
-              WhatsApp Marketing
+              Why WhatsApp Marketing
             </Link>
             
             <div className="border-t border-border my-3" />

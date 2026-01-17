@@ -1,229 +1,188 @@
 import React from 'react';
+import { useNavigate, Link } from 'react-router-dom';
 import { 
-  Inbox, 
-  FileText, 
-  Megaphone, 
-  Bot, 
-  BarChart3, 
+  Zap, 
+  MousePointer, 
+  TrendingUp, 
+  FileText,
+  Inbox,
   Users,
+  Megaphone,
+  Bot,
+  BarChart3,
+  Plug,
+  Phone,
+  ClipboardList,
   ArrowRight,
   CheckCircle2,
-  Zap,
-  Globe,
+  Sparkles,
   Shield,
-  Clock,
-  MessageSquare,
-  MousePointer,
-  TrendingUp,
-  Phone,
-  Send,
-  Sparkles
+  Globe,
+  Clock
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { useNavigate } from 'react-router-dom';
+import { Badge } from '@/components/ui/badge';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import Breadcrumb from '@/components/layout/Breadcrumb';
+import SEO from '@/components/seo/SEO';
+import { JsonLd, organizationSchema, softwareApplicationSchema } from '@/components/seo/JsonLd';
 
 export default function Products() {
   const navigate = useNavigate();
 
-  const whatsappProducts = [
+  const whatsappSolutions = [
     {
-      id: 'whatsapp-api',
-      icon: MessageSquare,
+      icon: Zap,
       title: 'WhatsApp Business API',
-      subtitle: 'Official API Integration',
-      description: 'Connect to the official WhatsApp Business API with our easy-to-use platform. Send messages, manage conversations, and scale your customer communication.',
+      description: 'Connect to the official WhatsApp Cloud API. No middleman, no markup.',
+      href: '/whatsapp-business-api',
       gradient: 'from-green-500 to-emerald-600',
-      features: [
-        'Official Meta Partnership',
-        'Unlimited messaging capacity',
-        '99.9% uptime guarantee',
-        'Real-time webhooks',
-        'Multi-agent support',
-        'Template message management'
-      ],
-      image: 'api'
+      features: ['Official Meta Partnership', 'Unlimited messaging', '99.9% uptime']
     },
     {
-      id: 'click-to-whatsapp',
       icon: MousePointer,
-      title: 'Click to WhatsApp Ads',
-      subtitle: 'Drive conversions from ads',
-      description: 'Turn your Facebook and Instagram ads into WhatsApp conversations. Capture leads directly in WhatsApp and increase your conversion rates.',
+      title: 'Click to WhatsApp App',
+      description: 'Turn ads, links, and QR codes into instant WhatsApp conversations.',
+      href: '/click-to-whatsapp',
       gradient: 'from-blue-500 to-indigo-600',
-      features: [
-        'Direct ad-to-chat integration',
-        'Lead capture automation',
-        'Instant response triggers',
-        'Campaign tracking',
-        'ROI analytics',
-        'A/B testing support'
-      ],
-      image: 'ctwa'
+      features: ['Full attribution', 'AI intent detection', 'Smart routing']
     },
     {
-      id: 'whatsapp-marketing',
       icon: TrendingUp,
-      title: 'WhatsApp Marketing',
-      subtitle: 'Broadcast & engage at scale',
-      description: 'Run powerful marketing campaigns on WhatsApp. Send promotions, updates, and personalized messages to thousands of customers instantly.',
+      title: 'Why WhatsApp Marketing',
+      description: 'Understand why WhatsApp converts 3× better than email and SMS.',
+      href: '/why-whatsapp-marketing',
       gradient: 'from-purple-500 to-pink-600',
-      features: [
-        'Bulk broadcast campaigns',
-        'Audience segmentation',
-        'Personalized messaging',
-        'Scheduled campaigns',
-        'Delivery & read reports',
-        'Opt-in management'
-      ],
-      image: 'marketing'
+      features: ['90%+ open rates', 'Two-way conversations', 'No spam risk']
+    },
+    {
+      icon: FileText,
+      title: 'WhatsApp Forms',
+      description: 'Capture leads directly in WhatsApp without external links.',
+      href: '/whatsapp-forms',
+      gradient: 'from-orange-500 to-red-500',
+      features: ['Native in-chat forms', 'Conditional logic', 'Auto-qualification']
     }
   ];
 
-  const products = [
+  const platformFeatures = [
     {
-      id: 'inbox',
       icon: Inbox,
       title: 'Unified Inbox',
-      subtitle: 'All conversations in one place',
-      description: 'Manage all your WhatsApp conversations from a single, powerful inbox. Never miss a message again.',
-      gradient: 'from-cyan-500 to-blue-500',
-      features: [
-        'Real-time message sync',
-        'Smart conversation routing',
-        'Team collaboration tools',
-        'Quick reply templates',
-        'Contact management',
-        'Conversation tagging'
-      ],
-      image: 'inbox'
+      description: 'All conversations in one place with AI-powered suggestions.',
+      href: '/features/inbox'
     },
     {
-      id: 'campaigns',
-      icon: Megaphone,
-      title: 'Broadcast Campaigns',
-      subtitle: 'Reach thousands instantly',
-      description: 'Send targeted bulk messages to segmented audiences. Track delivery and engagement in real-time.',
-      gradient: 'from-orange-500 to-red-500',
-      features: [
-        'Bulk message sending',
-        'Audience segmentation',
-        'Scheduled campaigns',
-        'A/B testing',
-        'Delivery tracking',
-        'Performance analytics'
-      ],
-      image: 'campaigns'
+      icon: Users,
+      title: 'Contacts & Segments',
+      description: 'Mini CDP with lifecycle tracking and smart segmentation.',
+      href: '/features/contacts'
     },
     {
-      id: 'templates',
       icon: FileText,
       title: 'Message Templates',
-      subtitle: 'Pre-approved messaging',
-      description: 'Create and manage message templates that comply with WhatsApp policies. Get instant approval.',
-      gradient: 'from-violet-500 to-purple-500',
-      features: [
-        'Template builder',
-        'Variable personalization',
-        'Multi-language support',
-        'Category management',
-        'Approval tracking',
-        'Template analytics'
-      ],
-      image: 'templates'
+      description: 'Pre-approved templates with variable personalization.',
+      href: '/features/templates'
     },
     {
-      id: 'automation',
+      icon: Megaphone,
+      title: 'Campaigns',
+      description: 'Broadcast marketing with A/B testing and analytics.',
+      href: '/features/campaigns'
+    },
+    {
       icon: Bot,
-      title: 'Smart Automation',
-      subtitle: 'Work smarter, not harder',
-      description: 'Build powerful no-code automation flows that respond to customers 24/7.',
-      gradient: 'from-emerald-500 to-teal-500',
-      features: [
-        'Visual flow builder',
-        'Keyword triggers',
-        'Auto-responses',
-        'Conditional logic',
-        'API webhooks',
-        'Chatbot integration'
-      ],
-      image: 'automation'
+      title: 'Automation',
+      description: 'Visual flow builder with AI-generated nodes.',
+      href: '/features/automation'
     },
     {
-      id: 'analytics',
+      icon: Plug,
+      title: 'Integrations',
+      description: 'Connect Razorpay, Shopify, HubSpot, and more.',
+      href: '/features/integrations'
+    },
+    {
       icon: BarChart3,
-      title: 'Rich Analytics',
-      subtitle: 'Data-driven decisions',
-      description: 'Get deep insights into your messaging performance with comprehensive analytics dashboards.',
-      gradient: 'from-indigo-500 to-blue-500',
-      features: [
-        'Real-time dashboards',
-        'Message metrics',
-        'Agent performance',
-        'Campaign ROI',
-        'Custom reports',
-        'Export capabilities'
-      ],
-      image: 'analytics'
+      title: 'Analytics',
+      description: 'Real-time dashboards with ROI attribution.',
+      href: '/features/analytics'
     },
     {
-      id: 'team',
+      icon: Phone,
+      title: 'Phone Numbers',
+      description: 'Multi-number support with quality monitoring.',
+      href: '/features/phone-numbers'
+    },
+    {
       icon: Users,
-      title: 'Team Collaboration',
-      subtitle: 'Scale your support',
-      description: 'Invite team members with granular permissions. Collaborate effectively on customer conversations.',
-      gradient: 'from-pink-500 to-rose-500',
-      features: [
-        'Role-based access',
-        'Team assignments',
-        'Internal notes',
-        'Collision detection',
-        'Performance tracking',
-        'Workload balancing'
-      ],
-      image: 'team'
+      title: 'Team & Roles',
+      description: 'Role-based access with agent performance tracking.',
+      href: '/features/team-roles'
+    },
+    {
+      icon: ClipboardList,
+      title: 'Audit Logs',
+      description: 'Complete activity tracking for compliance.',
+      href: '/features/audit-logs'
     }
   ];
 
   const benefits = [
-    { icon: Zap, title: 'Lightning Fast', description: 'Messages delivered in milliseconds' },
-    { icon: Globe, title: 'Global Reach', description: 'Connect with customers worldwide' },
-    { icon: Shield, title: 'Enterprise Security', description: 'Bank-grade encryption & compliance' },
-    { icon: Clock, title: '24/7 Uptime', description: '99.9% availability guaranteed' },
+    { icon: Zap, title: 'Lightning Fast', description: 'Messages in milliseconds' },
+    { icon: Globe, title: 'Global Reach', description: 'Connect worldwide' },
+    { icon: Shield, title: 'Enterprise Security', description: 'Bank-grade encryption' },
+    { icon: Clock, title: '99.9% Uptime', description: 'Always available' }
   ];
+
+  const webPageSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'WebPage',
+    name: 'Products | AiReatro',
+    description: 'Explore AiReatro\'s complete WhatsApp Business platform — API integration, marketing tools, automation, and enterprise features.',
+    url: 'https://aireatro.com/products'
+  };
 
   return (
     <div className="min-h-screen bg-background">
+      <SEO
+        title="Products — Complete WhatsApp Business Platform"
+        description="Explore AiReatro's complete WhatsApp Business platform — API integration, marketing tools, automation, and enterprise features."
+        keywords={['WhatsApp Business API', 'WhatsApp marketing', 'WhatsApp automation', 'business messaging platform']}
+        canonical="/products"
+        ogType="website"
+      />
+      <JsonLd data={[organizationSchema, softwareApplicationSchema, webPageSchema]} />
+
       <Navbar />
 
-      {/* Hero - Classic Design */}
-      <section className="relative pt-16 pb-12 md:pt-20 md:pb-16 bg-white overflow-hidden">
-        <div className="absolute top-10 right-10 w-64 h-64 bg-primary/5 rounded-full blur-3xl" />
-        <div className="absolute bottom-10 left-10 w-80 h-80 bg-primary/3 rounded-full blur-3xl" />
+      {/* Hero */}
+      <section className="relative pt-16 pb-12 md:pt-20 md:pb-16 bg-gradient-to-br from-background via-muted/30 to-primary/5 overflow-hidden">
+        <div className="absolute top-10 right-10 w-64 h-64 bg-primary/10 rounded-full blur-3xl" />
+        <div className="absolute bottom-10 left-10 w-80 h-80 bg-primary/5 rounded-full blur-3xl" />
         
         <div className="container mx-auto px-4 relative">
           <Breadcrumb className="mb-8" />
           <div className="max-w-4xl mx-auto text-center">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 text-primary text-sm font-medium mb-6">
-              <Sparkles className="w-4 h-4" />
+            <Badge className="mb-6 px-4 py-2 bg-primary/10 text-primary border-primary/20">
+              <Sparkles className="w-4 h-4 mr-2" />
               Complete WhatsApp Business Platform
-            </div>
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 leading-tight">
-              <span className="text-slate-900">Everything for</span>{' '}
+            </Badge>
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 leading-tight text-foreground">
+              Everything for{' '}
               <span className="text-primary">WhatsApp Success</span>
             </h1>
-            <p className="text-lg md:text-xl text-slate-600 max-w-2xl mx-auto mb-10">
-              From API integration to marketing campaigns, we provide all the tools you need to connect, engage, and grow on WhatsApp.
+            <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mb-10">
+              From API integration to AI-powered marketing — all the tools you need to connect, engage, and grow on WhatsApp.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Button size="lg" className="h-14 px-8" onClick={() => navigate('/signup')}>
+              <Button size="lg" className="h-14 px-8 text-primary-foreground" onClick={() => navigate('/signup')}>
                 Start Free Trial
                 <ArrowRight className="w-5 h-5 ml-2" />
               </Button>
-              <Button size="lg" variant="outline" className="h-14 px-8" onClick={() => navigate('/contact')}>
+              <Button size="lg" variant="outline" className="h-14 px-8 border-border text-foreground hover:bg-muted" onClick={() => navigate('/contact')}>
                 Talk to Sales
               </Button>
             </div>
@@ -232,17 +191,17 @@ export default function Products() {
       </section>
 
       {/* Benefits Bar */}
-      <section className="py-8 bg-muted/30 border-y border-border/50">
+      <section className="py-8 bg-muted/50 border-y border-border/50">
         <div className="container mx-auto px-4">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
             {benefits.map((benefit, index) => (
               <div key={index} className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
                   <benefit.icon className="w-5 h-5 text-primary" />
                 </div>
                 <div>
-                  <div className="font-semibold text-foreground">{benefit.title}</div>
-                  <div className="text-sm text-muted-foreground">{benefit.description}</div>
+                  <div className="font-semibold text-foreground text-sm">{benefit.title}</div>
+                  <div className="text-xs text-muted-foreground">{benefit.description}</div>
                 </div>
               </div>
             ))}
@@ -250,128 +209,114 @@ export default function Products() {
         </div>
       </section>
 
-      {/* WhatsApp Products Section */}
-      <section className="py-24 bg-gradient-to-b from-background to-muted/30">
+      {/* WhatsApp Solutions */}
+      <section className="py-20">
         <div className="container mx-auto px-4">
-          <div className="text-center max-w-3xl mx-auto mb-16">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-green-500/10 text-green-600 text-sm font-medium mb-6">
-              <MessageSquare className="w-4 h-4" />
-              Core WhatsApp Solutions
-            </div>
-            <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-4">
+          <div className="text-center max-w-3xl mx-auto mb-12">
+            <Badge className="mb-4 px-4 py-2 bg-primary/10 text-primary border-primary/20">
+              Core Solutions
+            </Badge>
+            <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
               WhatsApp Business Solutions
             </h2>
             <p className="text-lg text-muted-foreground">
-              Comprehensive WhatsApp solutions to transform your customer engagement
+              Comprehensive WhatsApp solutions to transform your customer engagement.
             </p>
           </div>
 
-          <div className="grid lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
-            {whatsappProducts.map((product) => (
-              <Card key={product.id} className="group relative overflow-hidden border-border/50 hover:border-primary/50 hover:shadow-2xl transition-all duration-300">
-                <div className={`absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r ${product.gradient}`} />
-                <CardContent className="p-8">
-                  <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${product.gradient} flex items-center justify-center mb-6 shadow-xl group-hover:scale-110 transition-transform`}>
-                    <product.icon className="w-8 h-8 text-white" />
-                  </div>
-                  <div className="text-sm text-muted-foreground mb-2">{product.subtitle}</div>
-                  <h3 className="text-2xl font-bold text-foreground mb-3">{product.title}</h3>
-                  <p className="text-muted-foreground mb-6">{product.description}</p>
-                  
-                  <div className="space-y-3 mb-6">
-                    {product.features.slice(0, 4).map((feature, i) => (
-                      <div key={i} className="flex items-center gap-2">
-                        <CheckCircle2 className="w-4 h-4 text-green-500 flex-shrink-0" />
-                        <span className="text-sm text-foreground">{feature}</span>
+          <div className="grid md:grid-cols-2 gap-6 max-w-5xl mx-auto">
+            {whatsappSolutions.map((product, index) => (
+              <Link key={index} to={product.href} className="block group">
+                <Card className="h-full border-border/50 hover:border-primary/50 hover:shadow-xl transition-all duration-300 overflow-hidden">
+                  <div className={`h-1.5 bg-gradient-to-r ${product.gradient}`} />
+                  <CardContent className="p-6">
+                    <div className="flex items-start gap-4">
+                      <div className={`w-14 h-14 rounded-xl bg-gradient-to-br ${product.gradient} flex items-center justify-center shrink-0 shadow-lg group-hover:scale-110 transition-transform`}>
+                        <product.icon className="w-7 h-7 text-white" />
                       </div>
-                    ))}
-                  </div>
-
-                  <Button className={`w-full bg-gradient-to-r ${product.gradient}`} onClick={() => navigate('/signup')}>
-                    Get Started <ArrowRight className="w-4 h-4 ml-2" />
-                  </Button>
-                </CardContent>
-              </Card>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="text-xl font-bold text-foreground mb-2 group-hover:text-primary transition-colors">
+                          {product.title}
+                        </h3>
+                        <p className="text-muted-foreground text-sm mb-4">{product.description}</p>
+                        <div className="flex flex-wrap gap-2">
+                          {product.features.map((feature, i) => (
+                            <span key={i} className="inline-flex items-center gap-1 text-xs px-2 py-1 bg-muted rounded-full text-muted-foreground">
+                              <CheckCircle2 className="w-3 h-3 text-primary" />
+                              {feature}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                      <ArrowRight className="w-5 h-5 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all shrink-0" />
+                    </div>
+                  </CardContent>
+                </Card>
+              </Link>
             ))}
           </div>
         </div>
       </section>
 
-      {/* All Products */}
-      <section className="py-24">
+      {/* Platform Features */}
+      <section className="py-20 bg-muted/30">
         <div className="container mx-auto px-4">
-          <div className="text-center max-w-3xl mx-auto mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
+          <div className="text-center max-w-3xl mx-auto mb-12">
+            <Badge className="mb-4 px-4 py-2 bg-secondary text-secondary-foreground">
               Platform Features
+            </Badge>
+            <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
+              Powerful Tools for Every Need
             </h2>
             <p className="text-lg text-muted-foreground">
-              Powerful tools to manage every aspect of your WhatsApp communication
+              Manage every aspect of your WhatsApp communication with our feature-rich platform.
             </p>
           </div>
 
-          {products.map((product, index) => (
-            <div
-              key={product.id}
-              id={product.id}
-              className={`flex flex-col lg:flex-row items-center gap-12 py-16 ${
-                index !== products.length - 1 ? 'border-b border-border/50' : ''
-              } ${index % 2 === 1 ? 'lg:flex-row-reverse' : ''}`}
-            >
-              {/* Content */}
-              <div className="flex-1">
-                <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r ${product.gradient} text-white text-sm font-medium mb-6`}>
-                  <product.icon className="w-4 h-4" />
-                  {product.subtitle}
-                </div>
-                <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">{product.title}</h2>
-                <p className="text-lg text-muted-foreground mb-8">{product.description}</p>
-                
-                <div className="grid grid-cols-2 gap-4 mb-8">
-                  {product.features.map((feature, i) => (
-                    <div key={i} className="flex items-center gap-2">
-                      <CheckCircle2 className="w-5 h-5 text-green-500 flex-shrink-0" />
-                      <span className="text-foreground">{feature}</span>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 max-w-6xl mx-auto">
+            {platformFeatures.map((feature, index) => (
+              <Link key={index} to={feature.href} className="block group">
+                <Card className="h-full border-border/50 hover:border-primary/50 hover:shadow-lg transition-all duration-300">
+                  <CardContent className="p-4">
+                    <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center mb-3 group-hover:bg-primary/20 transition-colors">
+                      <feature.icon className="w-5 h-5 text-primary" />
                     </div>
-                  ))}
-                </div>
-
-                <Button onClick={() => navigate('/signup')}>
-                  Get Started <ArrowRight className="w-4 h-4 ml-2" />
-                </Button>
-              </div>
-
-              {/* Visual */}
-              <div className="flex-1">
-                <Card className={`overflow-hidden border-0 shadow-2xl bg-gradient-to-br ${product.gradient}`}>
-                  <CardContent className="p-8">
-                    <div className="aspect-[4/3] rounded-xl bg-white/10 backdrop-blur-sm flex items-center justify-center">
-                      <product.icon className="w-24 h-24 text-white/80" />
-                    </div>
+                    <h3 className="font-semibold text-foreground text-sm mb-1 group-hover:text-primary transition-colors">
+                      {feature.title}
+                    </h3>
+                    <p className="text-xs text-muted-foreground line-clamp-2">{feature.description}</p>
                   </CardContent>
                 </Card>
-              </div>
-            </div>
-          ))}
+              </Link>
+            ))}
+          </div>
+
+          <div className="text-center mt-8">
+            <Button variant="outline" onClick={() => navigate('/features')} className="border-border text-foreground hover:bg-muted">
+              View All Features
+              <ArrowRight className="w-4 h-4 ml-2" />
+            </Button>
+          </div>
         </div>
       </section>
 
       {/* CTA */}
-      <section className="py-24 bg-gradient-to-br from-green-600 via-emerald-600 to-cyan-600 relative overflow-hidden">
+      <section className="py-20 bg-gradient-to-br from-primary via-primary/90 to-emerald-600 relative overflow-hidden">
         <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4xIj48Y2lyY2xlIGN4PSIzMCIgY3k9IjMwIiByPSIyIi8+PC9nPjwvZz48L3N2Zz4=')] opacity-50" />
         
         <div className="container mx-auto px-4 relative text-center">
-          <h2 className="text-3xl md:text-5xl font-bold text-white mb-6">
+          <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
             Ready to Get Started?
           </h2>
-          <p className="text-xl text-white/80 mb-10 max-w-2xl mx-auto">
+          <p className="text-lg text-white/80 mb-8 max-w-2xl mx-auto">
             Start your free 14-day trial today. No credit card required.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Button size="lg" className="h-14 px-8 bg-white text-green-600 hover:bg-white/90" onClick={() => navigate('/signup')}>
+            <Button size="lg" className="h-12 px-8 bg-white text-primary hover:bg-white/90" onClick={() => navigate('/signup')}>
               Start Free Trial
               <ArrowRight className="w-5 h-5 ml-2" />
             </Button>
-            <Button size="lg" variant="outline" className="h-14 px-8 border-white/30 text-white hover:bg-white/10" onClick={() => navigate('/contact')}>
+            <Button size="lg" variant="outline" className="h-12 px-8 border-white/30 bg-white/10 text-white hover:bg-white/20" onClick={() => navigate('/contact')}>
               Contact Sales
             </Button>
           </div>
