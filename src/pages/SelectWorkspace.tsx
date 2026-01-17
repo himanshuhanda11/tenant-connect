@@ -272,7 +272,7 @@ export default function SelectWorkspace() {
         <header className="bg-white/80 backdrop-blur-sm border-b border-gray-100 sticky top-0 z-50">
           <div className="container mx-auto px-4 h-16 flex items-center justify-between">
             <Link to="/">
-              <img src={aireatroLogo} alt="AiReatro" className="h-9 w-auto hover:opacity-80 transition-opacity" />
+              <img src={aireatroLogo} alt="AiReatro" className="h-11 w-auto hover:opacity-80 transition-opacity" />
             </Link>
             <div className="flex items-center gap-3">
               <div className="hidden sm:flex items-center gap-2 text-sm text-gray-600">
