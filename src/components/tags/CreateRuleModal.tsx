@@ -128,33 +128,36 @@ export function CreateRuleModal({ open, onClose, onSubmit, editRule, preselected
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Zap className="h-5 w-5 text-primary" />
+      <DialogContent className="w-[95vw] max-w-2xl max-h-[90vh] overflow-y-auto p-4 sm:p-6">
+        <DialogHeader className="pb-2">
+          <DialogTitle className="flex items-center gap-2 text-lg sm:text-xl">
+            <div className="h-8 w-8 sm:h-9 sm:w-9 rounded-lg bg-primary/10 flex items-center justify-center">
+              <Zap className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
+            </div>
             {editRule ? 'Edit Rule' : 'Create Auto-Tag Rule'}
           </DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-6 py-4">
+        <div className="space-y-4 sm:space-y-6 py-2 sm:py-4">
           {/* Basic Info */}
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
             <div className="space-y-2">
-              <Label htmlFor="name">Rule Name *</Label>
+              <Label htmlFor="name" className="text-sm">Rule Name *</Label>
               <Input
                 id="name"
                 placeholder="e.g., Tag pricing inquiries"
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                className="h-10"
               />
             </div>
             <div className="space-y-2">
-              <Label>Tag to Apply *</Label>
+              <Label className="text-sm">Tag to Apply *</Label>
               <Select
                 value={formData.tag_id}
                 onValueChange={(value) => setFormData({ ...formData, tag_id: value })}
               >
-                <SelectTrigger>
+                <SelectTrigger className="h-10">
                   <SelectValue placeholder="Select tag" />
                 </SelectTrigger>
                 <SelectContent>
@@ -177,67 +180,69 @@ export function CreateRuleModal({ open, onClose, onSubmit, editRule, preselected
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="description">Description</Label>
+            <Label htmlFor="description" className="text-sm">Description</Label>
             <Textarea
               id="description"
               placeholder="Describe what this rule does..."
               value={formData.description || ''}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               rows={2}
+              className="resize-none"
             />
           </div>
 
           <Separator />
 
           {/* Trigger Configuration */}
-          <div className="space-y-4">
+          <div className="space-y-3 sm:space-y-4">
             <div className="flex items-center gap-2">
-              <div className="h-6 w-6 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-xs font-bold">1</div>
-              <Label className="text-base font-medium">When this happens...</Label>
+              <div className="h-5 w-5 sm:h-6 sm:w-6 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-xs font-bold shrink-0">1</div>
+              <Label className="text-sm sm:text-base font-medium">When this happens...</Label>
             </div>
 
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
               {TRIGGER_TYPE_OPTIONS.map((trigger) => (
                 <button
                   key={trigger.value}
                   type="button"
                   onClick={() => setFormData({ ...formData, trigger_type: trigger.value as TagRule['trigger_type'], trigger_config: {} })}
-                  className={`p-3 rounded-lg border text-left transition-all ${
+                  className={`p-2 sm:p-3 rounded-lg border text-left transition-all ${
                     formData.trigger_type === trigger.value
                       ? 'border-primary bg-primary/5 ring-2 ring-primary/20'
                       : 'hover:border-primary/50 hover:bg-muted/50'
                   }`}
                 >
-                  <div className="flex items-center gap-2 mb-1">
+                  <div className="flex items-center gap-1.5 sm:gap-2 mb-0.5 sm:mb-1">
                     {TRIGGER_ICONS[trigger.value]}
-                    <span className="text-sm font-medium">{trigger.label}</span>
+                    <span className="text-xs sm:text-sm font-medium truncate">{trigger.label}</span>
                   </div>
-                  <p className="text-xs text-muted-foreground">{trigger.description}</p>
+                  <p className="text-[10px] sm:text-xs text-muted-foreground line-clamp-2">{trigger.description}</p>
                 </button>
               ))}
             </div>
 
             {/* Trigger-specific config */}
             <Card className="bg-muted/30">
-              <CardContent className="pt-4 space-y-4">
+              <CardContent className="pt-3 sm:pt-4 space-y-3 sm:space-y-4">
                 {formData.trigger_type === 'keyword' && (
                   <>
                     <div className="space-y-2">
-                      <Label>Keywords (comma-separated)</Label>
+                      <Label className="text-sm">Keywords (comma-separated)</Label>
                       <Textarea
                         placeholder="pricing, cost, how much, price list"
                         value={keywords}
                         onChange={(e) => setKeywords(e.target.value)}
                         rows={2}
+                        className="resize-none text-sm"
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label>Match Type</Label>
+                      <Label className="text-sm">Match Type</Label>
                       <Select
                         value={(formData.trigger_config as TriggerConfig)?.match_type || 'contains'}
                         onValueChange={(value) => updateTriggerConfig({ match_type: value as TriggerConfig['match_type'] })}
                       >
-                        <SelectTrigger>
+                        <SelectTrigger className="h-10">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -253,8 +258,8 @@ export function CreateRuleModal({ open, onClose, onSubmit, editRule, preselected
 
                 {formData.trigger_type === 'source' && (
                   <div className="space-y-2">
-                    <Label>Traffic Sources</Label>
-                    <div className="flex flex-wrap gap-2">
+                    <Label className="text-sm">Traffic Sources</Label>
+                    <div className="flex flex-wrap gap-1.5 sm:gap-2">
                       {SOURCE_OPTIONS.map((source) => {
                         const sources = (formData.trigger_config as TriggerConfig)?.sources || [];
                         const isSelected = sources.includes(source);
@@ -262,7 +267,7 @@ export function CreateRuleModal({ open, onClose, onSubmit, editRule, preselected
                           <Badge
                             key={source}
                             variant={isSelected ? 'default' : 'outline'}
-                            className="cursor-pointer"
+                            className="cursor-pointer text-xs sm:text-sm py-1 px-2 sm:px-3"
                             onClick={() => {
                               const newSources = isSelected
                                 ? sources.filter(s => s !== source)
@@ -280,31 +285,48 @@ export function CreateRuleModal({ open, onClose, onSubmit, editRule, preselected
 
                 {formData.trigger_type === 'no_reply' && (
                   <div className="space-y-2">
-                    <Label>No reply within (hours)</Label>
+                    <Label className="text-sm">No reply within (hours)</Label>
                     <Input
                       type="number"
                       min={1}
                       max={168}
                       value={(formData.trigger_config as TriggerConfig)?.no_reply_hours || 24}
                       onChange={(e) => updateTriggerConfig({ no_reply_hours: parseInt(e.target.value) })}
+                      className="h-10"
                     />
                   </div>
                 )}
 
                 {formData.trigger_type === 'intervention' && (
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-xs sm:text-sm text-muted-foreground">
                     This rule will trigger when a human agent takes over from bot.
                   </p>
                 )}
 
                 {formData.trigger_type === 'button_click' && (
                   <div className="space-y-2">
-                    <Label>Button IDs (comma-separated)</Label>
+                    <Label className="text-sm">Button IDs (comma-separated)</Label>
                     <Input
                       placeholder="btn_pricing, btn_demo"
                       value={(formData.trigger_config as TriggerConfig)?.button_ids?.join(', ') || ''}
                       onChange={(e) => updateTriggerConfig({ button_ids: e.target.value.split(',').map(s => s.trim()).filter(Boolean) })}
+                      className="h-10 text-sm"
                     />
+                  </div>
+                )}
+
+                {formData.trigger_type === 'scheduled' && (
+                  <div className="space-y-2">
+                    <Label className="text-sm">Schedule (Cron Expression)</Label>
+                    <Input
+                      placeholder="0 9 * * 1-5"
+                      value={(formData.trigger_config as TriggerConfig)?.schedule_cron || ''}
+                      onChange={(e) => updateTriggerConfig({ schedule_cron: e.target.value })}
+                      className="h-10 text-sm font-mono"
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      e.g., "0 9 * * 1-5" runs at 9 AM on weekdays
+                    </p>
                   </div>
                 )}
               </CardContent>
@@ -314,24 +336,24 @@ export function CreateRuleModal({ open, onClose, onSubmit, editRule, preselected
           <Separator />
 
           {/* Action Configuration */}
-          <div className="space-y-4">
+          <div className="space-y-3 sm:space-y-4">
             <div className="flex items-center gap-2">
-              <div className="h-6 w-6 rounded-full bg-green-100 text-green-600 flex items-center justify-center text-xs font-bold">2</div>
-              <Label className="text-base font-medium">Then do this...</Label>
+              <div className="h-5 w-5 sm:h-6 sm:w-6 rounded-full bg-green-100 text-green-600 flex items-center justify-center text-xs font-bold shrink-0">2</div>
+              <Label className="text-sm sm:text-base font-medium">Then do this...</Label>
             </div>
 
             <Select
               value={formData.action_type}
               onValueChange={(value: TagRule['action_type']) => setFormData({ ...formData, action_type: value })}
             >
-              <SelectTrigger>
+              <SelectTrigger className="h-10">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
                 {ACTION_TYPE_OPTIONS.map((action) => (
                   <SelectItem key={action.value} value={action.value}>
                     <div>
-                      <div className="font-medium">{action.label}</div>
+                      <div className="font-medium text-sm">{action.label}</div>
                       <div className="text-xs text-muted-foreground">{action.description}</div>
                     </div>
                   </SelectItem>
@@ -342,19 +364,19 @@ export function CreateRuleModal({ open, onClose, onSubmit, editRule, preselected
 
           {/* Rule Preview */}
           {selectedTag && (
-            <Card className="bg-gradient-to-r from-blue-50 to-green-50 border-0">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">Rule Preview</CardTitle>
+            <Card className="bg-gradient-to-r from-blue-50 to-green-50 dark:from-blue-950/30 dark:to-green-950/30 border-0">
+              <CardHeader className="pb-2 px-3 sm:px-6 pt-3 sm:pt-4">
+                <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground">Rule Preview</CardTitle>
               </CardHeader>
-              <CardContent>
-                <div className="flex items-center gap-3">
-                  <div className="flex items-center gap-2 p-2 bg-background rounded-lg">
+              <CardContent className="px-3 sm:px-6 pb-3 sm:pb-4">
+                <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+                  <div className="flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 bg-background rounded-lg shadow-sm">
                     {TRIGGER_ICONS[formData.trigger_type || 'keyword']}
-                    <span className="text-sm">{TRIGGER_TYPE_OPTIONS.find(t => t.value === formData.trigger_type)?.label}</span>
+                    <span className="text-xs sm:text-sm">{TRIGGER_TYPE_OPTIONS.find(t => t.value === formData.trigger_type)?.label}</span>
                   </div>
-                  <ArrowRight className="h-4 w-4 text-muted-foreground" />
-                  <div className="flex items-center gap-2 p-2 bg-background rounded-lg">
-                    <Badge style={{ backgroundColor: selectedTag.color || undefined }}>
+                  <ArrowRight className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground shrink-0" />
+                  <div className="flex items-center gap-2 px-2 sm:px-3 py-1.5 sm:py-2 bg-background rounded-lg shadow-sm">
+                    <Badge style={{ backgroundColor: selectedTag.color || undefined }} className="text-xs sm:text-sm">
                       {selectedTag.emoji} {selectedTag.name}
                     </Badge>
                   </div>
@@ -364,31 +386,34 @@ export function CreateRuleModal({ open, onClose, onSubmit, editRule, preselected
           )}
 
           {/* Test Rule */}
-          {formData.trigger_type === 'keyword' && (
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium flex items-center gap-2">
-                  <TestTube className="h-4 w-4" />
+          {formData.trigger_type === 'keyword' && keywords.trim() && (
+            <Card className="border-dashed">
+              <CardHeader className="pb-2 px-3 sm:px-6 pt-3 sm:pt-4">
+                <CardTitle className="text-xs sm:text-sm font-medium flex items-center gap-2">
+                  <TestTube className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                   Test Your Rule
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="flex gap-2">
+              <CardContent className="space-y-2 sm:space-y-3 px-3 sm:px-6 pb-3 sm:pb-4">
+                <div className="flex flex-col sm:flex-row gap-2">
                   <Input
                     placeholder="Enter a sample message to test..."
                     value={testMessage}
                     onChange={(e) => { setTestMessage(e.target.value); setTestResult(null); }}
+                    className="h-10 text-sm flex-1"
                   />
-                  <Button variant="outline" onClick={handleTestRule}>Test</Button>
+                  <Button variant="outline" onClick={handleTestRule} size="sm" className="h-10 sm:w-auto w-full">
+                    Test
+                  </Button>
                 </div>
                 {testResult && (
-                  <div className={`flex items-center gap-2 p-2 rounded-lg ${
-                    testResult === 'pass' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'
+                  <div className={`flex items-center gap-2 p-2 sm:p-3 rounded-lg text-xs sm:text-sm ${
+                    testResult === 'pass' ? 'bg-green-50 text-green-700 dark:bg-green-950/50 dark:text-green-400' : 'bg-red-50 text-red-700 dark:bg-red-950/50 dark:text-red-400'
                   }`}>
                     {testResult === 'pass' ? (
                       <>✅ Rule would match! Tag will be applied.</>
                     ) : (
-                      <><AlertCircle className="h-4 w-4" /> Rule would not match.</>
+                      <><AlertCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" /> Rule would not match.</>
                     )}
                   </div>
                 )}
@@ -397,7 +422,7 @@ export function CreateRuleModal({ open, onClose, onSubmit, editRule, preselected
           )}
 
           {/* Active Toggle */}
-          <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
+          <div className="flex items-center justify-between p-3 sm:p-4 bg-muted/50 rounded-lg">
             <div>
               <Label className="text-sm font-medium">Rule Active</Label>
               <p className="text-xs text-muted-foreground">Enable or disable this rule</p>
@@ -409,9 +434,13 @@ export function CreateRuleModal({ open, onClose, onSubmit, editRule, preselected
           </div>
         </div>
 
-        <DialogFooter>
-          <Button variant="outline" onClick={onClose}>Cancel</Button>
-          <Button onClick={handleSubmit} disabled={!formData.name?.trim() || !formData.tag_id || submitting}>
+        <DialogFooter className="flex-col sm:flex-row gap-2 sm:gap-0 pt-2">
+          <Button variant="outline" onClick={onClose} className="w-full sm:w-auto">Cancel</Button>
+          <Button 
+            onClick={handleSubmit} 
+            disabled={!formData.name?.trim() || !formData.tag_id || submitting}
+            className="w-full sm:w-auto"
+          >
             {submitting ? 'Saving...' : editRule ? 'Save Changes' : 'Create Rule'}
           </Button>
         </DialogFooter>

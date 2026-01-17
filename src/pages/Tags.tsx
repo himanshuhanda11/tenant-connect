@@ -39,7 +39,7 @@ const Tags = () => {
     getTagGroups,
   } = useTags();
 
-  const { rules, toggleRule } = useTagRules();
+  const { rules, createRule, toggleRule } = useTagRules();
 
   const [createTagOpen, setCreateTagOpen] = useState(false);
   const [createRuleOpen, setCreateRuleOpen] = useState(false);
@@ -297,7 +297,8 @@ const Tags = () => {
           open={createRuleOpen}
           onClose={() => { setCreateRuleOpen(false); setPreselectedTagId(''); }}
           onSubmit={async (ruleData) => {
-            return null;
+            const result = await createRule(ruleData);
+            return result;
           }}
           preselectedTagId={preselectedTagId}
         />
