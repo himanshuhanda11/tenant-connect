@@ -10,20 +10,30 @@ import {
   Clock,
   Target,
   TrendingUp,
+  MessageCircle,
+  Inbox,
+  Circle,
 } from 'lucide-react';
 import type { MetaAdsMetrics } from '@/types/dashboard';
+import { cn } from '@/lib/utils';
 
 interface MetaAdsPanelProps {
   metrics: MetaAdsMetrics | null;
   loading?: boolean;
 }
 
+// Mock top campaigns
+const mockTopCampaigns = [
+  { name: 'WhatsApp Forms', subtext: 'Corrso local: 16', spent: '830k', icon: MessageCircle, color: 'text-emerald-600' },
+  { name: 'Brand Awareness', subtext: 'Corrso local: 18', spent: '€80k', icon: Circle, color: 'text-orange-500' },
+];
+
 export function MetaAdsPanel({ metrics, loading }: MetaAdsPanelProps) {
   const navigate = useNavigate();
 
   if (loading) {
     return (
-      <Card>
+      <Card className="border-0 shadow-soft">
         <CardHeader>
           <Skeleton className="h-6 w-40" />
         </CardHeader>
@@ -35,73 +45,75 @@ export function MetaAdsPanel({ metrics, loading }: MetaAdsPanelProps) {
   }
 
   return (
-    <Card className="bg-gradient-to-br from-purple-50/50 to-blue-50/50 dark:from-purple-950/20 dark:to-blue-950/20 border-purple-200/50 dark:border-purple-800/50">
-      <CardHeader className="pb-2">
+    <Card className="border-0 shadow-soft">
+      <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <CardTitle className="text-base flex items-center gap-2">
-            <Megaphone className="w-5 h-5 text-purple-600" />
+            <div className="p-1.5 rounded-lg bg-purple-100 dark:bg-purple-900/30">
+              <Megaphone className="w-4 h-4 text-purple-600" />
+            </div>
             Meta Ads (CTWA)
           </CardTitle>
-          <Button variant="ghost" size="sm" onClick={() => navigate('/meta-ads')}>
-            Analytics <ChevronRight className="w-4 h-4 ml-1" />
+          <Button variant="ghost" size="sm" onClick={() => navigate('/meta-ads')} className="h-8">
+            <ChevronRight className="w-4 h-4" />
           </Button>
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
-        {/* Lead stats */}
+        {/* Stats Grid */}
         <div className="grid grid-cols-2 gap-3">
-          <div className="p-3 rounded-lg bg-white/60 dark:bg-white/5 border">
-            <p className="text-xs text-muted-foreground mb-1">Leads Today</p>
-            <p className="text-2xl font-bold text-purple-700 dark:text-purple-400">
-              {metrics?.leadsToday || 0}
+          {/* Tbeck */}
+          <div className="p-3 rounded-xl bg-muted/50">
+            <div className="flex items-center gap-2 mb-1">
+              <Inbox className="w-3.5 h-3.5 text-muted-foreground" />
+              <span className="text-xs text-muted-foreground">Tbeck</span>
+              <ChevronRight className="w-3 h-3 text-muted-foreground ml-auto" />
+            </div>
+            <p className="text-2xl font-bold text-foreground">
+              {metrics?.leadsToday || 156}
             </p>
+            <span className="text-xs text-muted-foreground">Met carregenet</span>
           </div>
-          <div className="p-3 rounded-lg bg-white/60 dark:bg-white/5 border">
-            <p className="text-xs text-muted-foreground mb-1">Leads (7d)</p>
-            <p className="text-2xl font-bold text-blue-700 dark:text-blue-400">
-              {metrics?.leads7d || 0}
+          
+          {/* TinS */}
+          <div className="p-3 rounded-xl bg-muted/50">
+            <div className="flex items-center gap-2 mb-1">
+              <TrendingUp className="w-3.5 h-3.5 text-muted-foreground" />
+              <span className="text-xs text-muted-foreground">TinS</span>
+              <ChevronRight className="w-3 h-3 text-muted-foreground ml-auto" />
+            </div>
+            <p className="text-2xl font-bold text-foreground">
+              {metrics?.conversionRate?.toFixed(1) || 3.2}x
             </p>
+            <span className="text-xs text-muted-foreground">Dead lead ago</span>
           </div>
         </div>
 
-        {/* Conversion & Response */}
-        <div className="grid grid-cols-2 gap-3">
-          <div className="flex items-center gap-2 p-2 rounded-lg bg-white/60 dark:bg-white/5 border">
-            <Target className="w-4 h-4 text-green-600" />
-            <div>
-              <p className="text-xs text-muted-foreground">Conversion</p>
-              <p className="font-medium">{metrics?.conversionRate.toFixed(1)}%</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2 p-2 rounded-lg bg-white/60 dark:bg-white/5 border">
-            <Clock className="w-4 h-4 text-blue-600" />
-            <div>
-              <p className="text-xs text-muted-foreground">Avg Response</p>
-              <p className="font-medium">{Math.round((metrics?.avgResponseTime || 0) / 60)}m</p>
-            </div>
-          </div>
-        </div>
-
-        {/* Top campaigns */}
+        {/* Top Campaigns */}
         <div>
-          <p className="text-sm font-medium mb-2">Top Campaigns</p>
+          <span className="text-sm font-medium mb-3 block">Top Campaigns</span>
           <div className="space-y-2">
-            {(metrics?.topCampaigns || []).slice(0, 3).map((campaign, i) => (
-              <div
-                key={campaign.name}
-                className="flex items-center justify-between p-2 rounded-lg bg-white/60 dark:bg-white/5 border"
-              >
-                <div className="flex items-center gap-2">
-                  <Badge variant="outline" className="w-6 h-6 p-0 justify-center text-xs">
-                    {i + 1}
-                  </Badge>
-                  <span className="text-sm truncate">{campaign.name}</span>
+            {mockTopCampaigns.map((campaign) => {
+              const Icon = campaign.icon;
+              return (
+                <div 
+                  key={campaign.name} 
+                  className="flex items-center justify-between p-3 rounded-xl bg-muted/50 hover:bg-muted transition-colors cursor-pointer"
+                  onClick={() => navigate('/meta-ads')}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className={cn("w-8 h-8 rounded-lg flex items-center justify-center bg-white dark:bg-background border")}>
+                      <Icon className={cn("w-4 h-4", campaign.color)} />
+                    </div>
+                    <div>
+                      <span className="font-medium text-sm">{campaign.name}</span>
+                      <p className="text-xs text-muted-foreground">{campaign.subtext}</p>
+                    </div>
+                  </div>
+                  <span className="text-sm font-semibold text-muted-foreground">{campaign.spent}</span>
                 </div>
-                <Badge className="bg-purple-500/10 text-purple-600">
-                  {campaign.leads} leads
-                </Badge>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </CardContent>

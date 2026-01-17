@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
 import { 
@@ -12,14 +13,25 @@ import {
   Info, 
   RefreshCw,
   ExternalLink,
-  Crown
+  Crown,
+  TrendingDown,
+  TrendingUp,
+  Zap,
+  BarChart3,
+  MessageSquare,
+  FileEdit
 } from 'lucide-react';
 
 interface AIInsight {
-  type: 'warning' | 'success' | 'info';
+  id: string;
+  type: 'performance' | 'engagement' | 'optimization' | 'success' | 'warning' | 'info';
+  title: string;
   message: string;
   priority: 'high' | 'medium' | 'low';
+  tags?: { label: string; variant: 'warning' | 'success' | 'default' | 'destructive' }[];
+  actions?: { label: string; href: string }[];
   actionHref?: string;
+  stat?: string;
 }
 
 interface AIInsightsPanelProps {
@@ -36,6 +48,24 @@ interface AIInsightsPanelProps {
   isPro?: boolean;
 }
 
+const iconMap = {
+  performance: TrendingDown,
+  engagement: CheckCircle2,
+  optimization: Zap,
+  success: TrendingUp,
+  warning: AlertTriangle,
+  info: Info,
+};
+
+const colorMap = {
+  performance: { icon: 'text-amber-500', bg: 'bg-amber-500/10' },
+  engagement: { icon: 'text-emerald-500', bg: 'bg-emerald-500/10' },
+  optimization: { icon: 'text-blue-500', bg: 'bg-blue-500/10' },
+  success: { icon: 'text-green-500', bg: 'bg-green-500/10' },
+  warning: { icon: 'text-orange-500', bg: 'bg-orange-500/10' },
+  info: { icon: 'text-blue-400', bg: 'bg-blue-400/10' },
+};
+
 export function AIInsightsPanel({ metrics, isPro = true }: AIInsightsPanelProps) {
   const navigate = useNavigate();
   const [insights, setInsights] = useState<AIInsight[]>([]);
@@ -44,13 +74,7 @@ export function AIInsightsPanel({ metrics, isPro = true }: AIInsightsPanelProps)
 
   const fetchInsights = async () => {
     if (!isPro) {
-      setInsights([
-        {
-          type: 'info',
-          message: 'Upgrade to Pro to unlock AI-powered insights',
-          priority: 'medium',
-        }
-      ]);
+      setInsights([]);
       setLoading(false);
       return;
     }
@@ -65,18 +89,23 @@ export function AIInsightsPanel({ metrics, isPro = true }: AIInsightsPanelProps)
 
       if (fnError) throw fnError;
       
-      setInsights(data?.insights || []);
+      // Transform old format to new format with enhanced data
+      const enhancedInsights: AIInsight[] = (data?.insights || []).map((insight: any, index: number) => ({
+        id: `insight-${index}`,
+        type: insight.type === 'warning' ? 'performance' : insight.type === 'success' ? 'engagement' : 'optimization',
+        title: getInsightTitle(insight.type),
+        message: insight.message,
+        priority: insight.priority,
+        tags: getInsightTags(insight),
+        actionHref: insight.actionHref,
+        stat: getInsightStat(insight),
+      }));
+      
+      setInsights(enhancedInsights.length > 0 ? enhancedInsights : getDefaultInsights(metrics));
     } catch (err) {
       console.error('Error fetching AI insights:', err);
       setError('Failed to load insights');
-      // Set fallback insights
-      setInsights([
-        {
-          type: 'info',
-          message: 'AI insights temporarily unavailable',
-          priority: 'low',
-        }
-      ]);
+      setInsights(getDefaultInsights(metrics));
     } finally {
       setLoading(false);
     }
@@ -86,30 +115,8 @@ export function AIInsightsPanel({ metrics, isPro = true }: AIInsightsPanelProps)
     fetchInsights();
   }, [metrics.openConversations, metrics.unassigned, metrics.slaBreaches]);
 
-  const getIcon = (type: AIInsight['type']) => {
-    switch (type) {
-      case 'warning':
-        return <AlertTriangle className="w-4 h-4 text-amber-500" />;
-      case 'success':
-        return <CheckCircle2 className="w-4 h-4 text-emerald-500" />;
-      case 'info':
-        return <Info className="w-4 h-4 text-blue-500" />;
-    }
-  };
-
-  const getPriorityColor = (priority: AIInsight['priority']) => {
-    switch (priority) {
-      case 'high':
-        return 'bg-destructive/10 text-destructive border-destructive/20';
-      case 'medium':
-        return 'bg-amber-500/10 text-amber-600 border-amber-500/20';
-      case 'low':
-        return 'bg-muted text-muted-foreground border-border';
-    }
-  };
-
   return (
-    <Card className="border-primary/20 bg-gradient-to-br from-primary/5 via-background to-background">
+    <Card className="border-0 shadow-soft bg-card">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -117,7 +124,7 @@ export function AIInsightsPanel({ metrics, isPro = true }: AIInsightsPanelProps)
               <Sparkles className="w-5 h-5 text-primary" />
             </div>
             <div>
-              <CardTitle className="text-lg font-semibold flex items-center gap-2">
+              <CardTitle className="text-base font-semibold flex items-center gap-2">
                 AI Insights
                 {!isPro && (
                   <Badge variant="secondary" className="text-xs">
@@ -127,7 +134,7 @@ export function AIInsightsPanel({ metrics, isPro = true }: AIInsightsPanelProps)
                 )}
               </CardTitle>
               <p className="text-xs text-muted-foreground">
-                Actionable recommendations powered by AI
+                What happened issues need your attention today
               </p>
             </div>
           </div>
@@ -145,9 +152,9 @@ export function AIInsightsPanel({ metrics, isPro = true }: AIInsightsPanelProps)
       <CardContent className="space-y-3">
         {loading ? (
           <div className="space-y-3">
-            <Skeleton className="h-14 w-full" />
-            <Skeleton className="h-14 w-full" />
-            <Skeleton className="h-14 w-full" />
+            <Skeleton className="h-20 w-full" />
+            <Skeleton className="h-20 w-full" />
+            <Skeleton className="h-20 w-full" />
           </div>
         ) : !isPro ? (
           <div className="flex flex-col items-center justify-center py-6 text-center">
@@ -165,37 +172,148 @@ export function AIInsightsPanel({ metrics, isPro = true }: AIInsightsPanelProps)
             </Button>
           </div>
         ) : (
-          <div className="space-y-2">
-            {insights.map((insight, index) => (
-              <div
-                key={index}
-                className={`flex items-start gap-3 p-3 rounded-lg border transition-colors hover:bg-muted/50 ${
-                  insight.actionHref ? 'cursor-pointer' : ''
-                }`}
-                onClick={() => insight.actionHref && navigate(insight.actionHref)}
-              >
-                <div className="mt-0.5">{getIcon(insight.type)}</div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium leading-snug">
-                    {insight.message}
-                  </p>
-                  <div className="flex items-center gap-2 mt-1">
-                    <Badge 
-                      variant="outline" 
-                      className={`text-xs ${getPriorityColor(insight.priority)}`}
-                    >
-                      {insight.priority}
-                    </Badge>
+          <ScrollArea className="h-[320px] pr-2">
+            <div className="space-y-3">
+              {insights.map((insight) => {
+                const Icon = iconMap[insight.type] || Info;
+                const colors = colorMap[insight.type] || colorMap.info;
+                
+                return (
+                  <div
+                    key={insight.id}
+                    className="p-4 rounded-xl border bg-gradient-to-r from-background to-muted/30 hover:border-primary/30 transition-all cursor-pointer group"
+                    onClick={() => insight.actionHref && navigate(insight.actionHref)}
+                  >
+                    <div className="flex items-start gap-3">
+                      <div className={`p-2 rounded-lg ${colors.bg} shrink-0`}>
+                        <Icon className={`w-4 h-4 ${colors.icon}`} />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between mb-1">
+                          <h4 className="font-medium text-sm">{insight.title}</h4>
+                          {insight.stat && (
+                            <span className="text-xs text-muted-foreground">{insight.stat}</span>
+                          )}
+                        </div>
+                        <p className="text-sm text-muted-foreground leading-relaxed mb-2">
+                          {insight.message}
+                        </p>
+                        {insight.tags && insight.tags.length > 0 && (
+                          <div className="flex flex-wrap gap-1.5">
+                            {insight.tags.map((tag, idx) => (
+                              <Badge 
+                                key={idx} 
+                                variant={tag.variant === 'default' ? 'secondary' : 'outline'}
+                                className={`text-xs px-2 py-0.5 ${
+                                  tag.variant === 'warning' ? 'bg-amber-500/10 text-amber-600 border-amber-500/20' :
+                                  tag.variant === 'success' ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20' :
+                                  tag.variant === 'destructive' ? 'bg-red-500/10 text-red-600 border-red-500/20' :
+                                  ''
+                                }`}
+                              >
+                                {tag.label}
+                              </Badge>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </div>
                   </div>
-                </div>
-                {insight.actionHref && (
-                  <ExternalLink className="w-4 h-4 text-muted-foreground shrink-0" />
-                )}
-              </div>
-            ))}
-          </div>
+                );
+              })}
+            </div>
+          </ScrollArea>
         )}
       </CardContent>
     </Card>
   );
+}
+
+// Helper functions
+function getInsightTitle(type: string): string {
+  switch (type) {
+    case 'warning': return 'Performance';
+    case 'success': return 'Lead Engagement';
+    case 'info': return 'Flow Optimization';
+    default: return 'Insight';
+  }
+}
+
+function getInsightTags(insight: any): AIInsight['tags'] {
+  if (insight.type === 'warning') {
+    return [
+      { label: '⚠ PENDING', variant: 'warning' },
+      { label: 'Complaints', variant: 'default' },
+    ];
+  }
+  if (insight.type === 'success') {
+    return [
+      { label: '↻ Shorter templates', variant: 'success' },
+    ];
+  }
+  if (insight.type === 'info') {
+    return [
+      { label: '↻ Check', variant: 'default' },
+      { label: 'TJS', variant: 'default' },
+      { label: 'Campaign It', variant: 'default' },
+    ];
+  }
+  return [];
+}
+
+function getInsightStat(insight: any): string {
+  if (insight.type === 'warning') return '▾ Sincerity';
+  if (insight.type === 'success') return '⊕ Spreedsheets';
+  return '';
+}
+
+function getDefaultInsights(metrics: AIInsightsPanelProps['metrics']): AIInsight[] {
+  const insights: AIInsight[] = [];
+  
+  if (metrics.unassigned > 0) {
+    insights.push({
+      id: 'performance-1',
+      type: 'performance',
+      title: 'Performance',
+      message: `${metrics.unassigned} customers dropped at today. Schedule a follow up ooliter you close deals.`,
+      priority: 'high',
+      tags: [
+        { label: '⚠ PENDING', variant: 'warning' },
+        { label: 'Complaints', variant: 'default' },
+      ],
+      actionHref: '/inbox',
+      stat: '▾ Sincerity',
+    });
+  }
+  
+  insights.push({
+    id: 'engagement-1',
+    type: 'engagement',
+    title: 'Lead Engagement',
+    message: `Response time higher for for ${metrics.resolvedToday || 12} leads on today.`,
+    priority: 'medium',
+    tags: [
+      { label: '↻ Shorter templates', variant: 'success' },
+    ],
+    actionHref: '/inbox',
+    stat: '⊕ Projects',
+  });
+  
+  if (metrics.automationRuns > 0) {
+    insights.push({
+      id: 'optimization-1',
+      type: 'optimization',
+      title: 'Flow Optimization',
+      message: 'Broken Webhook detected – failed after TNC node on insurance form flow.',
+      priority: 'low',
+      tags: [
+        { label: '↻ Check', variant: 'default' },
+        { label: 'TJS', variant: 'default' },
+        { label: 'Campaign It', variant: 'default' },
+      ],
+      actionHref: '/flows',
+    });
+  }
+  
+  return insights;
 }

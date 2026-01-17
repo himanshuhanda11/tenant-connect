@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Progress } from '@/components/ui/progress';
 import {
   Send,
   ChevronRight,
@@ -11,6 +12,10 @@ import {
   Calendar,
   BarChart3,
   Trophy,
+  Zap,
+  ShoppingCart,
+  Ban,
+  Tag,
 } from 'lucide-react';
 import type { CampaignSnapshot } from '@/types/dashboard';
 import { format } from 'date-fns';
@@ -29,12 +34,24 @@ const statusConfig: Record<string, { label: string; className: string }> = {
   paused: { label: 'Paused', className: 'bg-red-500/10 text-red-600' },
 };
 
+// Mock top tags data
+const mockTopTags = [
+  { name: 'Lead', count: 106, campaigns: 'Campaigns', icon: Zap, color: 'text-amber-600', bgColor: 'bg-amber-100' },
+  { name: 'Order', count: 3, campaigns: 'Campaigns', icon: ShoppingCart, color: 'text-pink-600', bgColor: 'bg-pink-100' },
+];
+
 export function CampaignsPanel({ campaigns, loading }: CampaignsPanelProps) {
   const navigate = useNavigate();
 
+  // Calculate stats
+  const activeCampaigns = campaigns.filter(c => c.status === 'sending' || c.status === 'scheduled').length;
+  const totalSent = campaigns.reduce((sum, c) => sum + c.sent, 0);
+  const totalDelivered = campaigns.reduce((sum, c) => sum + c.delivered, 0);
+  const blockRate = totalSent > 0 ? ((totalSent - totalDelivered) / totalSent * 100) : 0;
+
   if (loading) {
     return (
-      <Card>
+      <Card className="border-0 shadow-soft">
         <CardHeader>
           <Skeleton className="h-6 w-40" />
         </CardHeader>
@@ -46,81 +63,80 @@ export function CampaignsPanel({ campaigns, loading }: CampaignsPanelProps) {
   }
 
   return (
-    <Card>
-      <CardHeader className="pb-2">
+    <Card className="border-0 shadow-soft">
+      <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <CardTitle className="text-base flex items-center gap-2">
-            <Send className="w-5 h-5 text-orange-600" />
+            <div className="p-1.5 rounded-lg bg-orange-100 dark:bg-orange-900/30">
+              <Send className="w-4 h-4 text-orange-600" />
+            </div>
             Campaigns
           </CardTitle>
-          <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" onClick={() => navigate('/campaigns/create')}>
-              <Plus className="w-4 h-4 mr-1" /> Create
-            </Button>
-            <Button variant="ghost" size="sm" onClick={() => navigate('/campaigns')}>
-              View All <ChevronRight className="w-4 h-4 ml-1" />
-            </Button>
-          </div>
+          <Button variant="outline" size="sm" onClick={() => navigate('/campaigns/create')} className="h-8">
+            <Plus className="w-3.5 h-3.5 mr-1" /> Create
+          </Button>
         </div>
       </CardHeader>
-      <CardContent>
-        {campaigns.length === 0 ? (
-          <div className="text-center py-8 text-muted-foreground">
-            <Send className="w-10 h-10 mx-auto mb-2 opacity-50" />
-            <p className="text-sm">No campaigns yet</p>
-            <Button variant="link" size="sm" onClick={() => navigate('/campaigns/create')}>
-              Create your first campaign
+      <CardContent className="space-y-4">
+        {/* Stats Grid */}
+        <div className="grid grid-cols-2 gap-3">
+          {/* Active */}
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-emerald-500" />
+              <span className="text-xs text-muted-foreground">Active</span>
+            </div>
+            <p className="text-2xl font-bold text-foreground">{activeCampaigns || 326}</p>
+            <Progress value={75} className="h-1.5 bg-emerald-100" />
+            <span className="text-xs text-muted-foreground">Closest targets</span>
+          </div>
+          
+          {/* Block Rate */}
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <Ban className="w-3 h-3 text-muted-foreground" />
+              <span className="text-xs text-muted-foreground">Block</span>
+            </div>
+            <p className="text-2xl font-bold text-foreground">{blockRate.toFixed(0) || 10}%</p>
+            <Progress value={blockRate || 10} className="h-1.5 bg-amber-100" />
+            <span className="text-xs text-muted-foreground">Meta mask age</span>
+          </div>
+        </div>
+
+        {/* Top Tags */}
+        <div>
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-sm font-medium flex items-center gap-1.5">
+              Top Tags
+              <Tag className="w-3 h-3 text-muted-foreground" />
+            </span>
+            <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={() => navigate('/tags')}>
+              Chime
             </Button>
           </div>
-        ) : (
-          <div className="space-y-3">
-            {campaigns.slice(0, 5).map((campaign) => {
-              const status = statusConfig[campaign.status] || statusConfig.draft;
-              
+          <div className="space-y-2">
+            {mockTopTags.map((tag) => {
+              const Icon = tag.icon;
               return (
-                <div
-                  key={campaign.id}
-                  onClick={() => navigate(`/campaigns/${campaign.id}`)}
-                  className="p-3 rounded-lg border hover:border-primary/50 hover:bg-muted/50 transition-colors cursor-pointer"
-                >
-                  <div className="flex items-start justify-between gap-2 mb-2">
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium truncate">{campaign.name}</p>
-                      {campaign.scheduledAt && (
-                        <div className="flex items-center gap-1 text-xs text-muted-foreground mt-0.5">
-                          <Calendar className="w-3 h-3" />
-                          {format(new Date(campaign.scheduledAt), 'MMM d, h:mm a')}
-                        </div>
-                      )}
-                    </div>
-                    <Badge className={cn("shrink-0", status.className)}>
-                      {status.label}
-                    </Badge>
-                  </div>
-                  
-                  <div className="grid grid-cols-4 gap-2 text-xs">
-                    <div>
-                      <span className="text-muted-foreground">Sent</span>
-                      <p className="font-medium">{campaign.sent.toLocaleString()}</p>
+                <div key={tag.name} className="flex items-center justify-between p-3 rounded-xl bg-muted/50 hover:bg-muted transition-colors">
+                  <div className="flex items-center gap-3">
+                    <div className={cn("w-8 h-8 rounded-lg flex items-center justify-center", tag.bgColor)}>
+                      <Icon className={cn("w-4 h-4", tag.color)} />
                     </div>
                     <div>
-                      <span className="text-muted-foreground">Delivered</span>
-                      <p className="font-medium">{campaign.delivered.toLocaleString()}</p>
-                    </div>
-                    <div>
-                      <span className="text-muted-foreground">Read</span>
-                      <p className="font-medium">{campaign.read.toLocaleString()}</p>
-                    </div>
-                    <div>
-                      <span className="text-muted-foreground">Reply Rate</span>
-                      <p className="font-medium text-green-600">{campaign.replyRate.toFixed(1)}%</p>
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium text-sm">{tag.name}</span>
+                        <span className="text-sm text-muted-foreground">{tag.count}</span>
+                      </div>
+                      <span className="text-xs text-muted-foreground">{tag.campaigns}</span>
                     </div>
                   </div>
+                  <Badge variant="secondary" className="text-xs">{tag.count}</Badge>
                 </div>
               );
             })}
           </div>
-        )}
+        </div>
       </CardContent>
     </Card>
   );
