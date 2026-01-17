@@ -271,7 +271,9 @@ export default function SelectWorkspace() {
         {/* Sticky Header */}
         <header className="bg-white/80 backdrop-blur-sm border-b border-gray-100 sticky top-0 z-50">
           <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-            <img src={aireatroLogo} alt="AiReatro" className="h-9 w-auto" />
+            <Link to="/">
+              <img src={aireatroLogo} alt="AiReatro" className="h-9 w-auto hover:opacity-80 transition-opacity" />
+            </Link>
             <div className="flex items-center gap-3">
               <div className="hidden sm:flex items-center gap-2 text-sm text-gray-600">
                 <div className="w-2 h-2 rounded-full bg-green-500" />
