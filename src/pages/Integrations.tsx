@@ -9,6 +9,7 @@ import { useNavigate } from 'react-router-dom';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import PageHero from '@/components/layout/PageHero';
+import { SEO } from '@/components/seo';
 
 interface Integration {
   id: string;
@@ -561,6 +562,12 @@ export default function Integrations() {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEO
+        title="Integrations — Connect Shopify, Razorpay, Zapier & More | AiReatro"
+        description="Integrate AiReatro with Shopify, WooCommerce, Razorpay, HubSpot, Zapier, and more. Automate WhatsApp workflows with your favorite tools."
+        canonical="/integrations"
+        keywords={['whatsapp integrations', 'shopify whatsapp', 'razorpay whatsapp', 'zapier whatsapp', 'crm integration', 'ecommerce whatsapp']}
+      />
       <Navbar />
 
       <PageHero
