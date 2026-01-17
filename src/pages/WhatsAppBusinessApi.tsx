@@ -1,10 +1,9 @@
-import React, { useState, useRef } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   MessageCircle, 
   Zap, 
   BarChart3, 
-  Bot, 
   Shield, 
   Users, 
   ArrowRight, 
@@ -28,8 +27,8 @@ import {
   HeartPulse,
   RefreshCw,
   ChevronRight,
-  Play,
-  Pause
+  Send,
+  TrendingUp
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -45,24 +44,10 @@ import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import SEO from '@/components/seo/SEO';
 import { JsonLd, organizationSchema, softwareApplicationSchema } from '@/components/seo/JsonLd';
-import dashboardVideo from '@/assets/dashboard-demo.mp4';
 import dashboardPreview from '@/assets/dashboard-preview.png';
 
 const WhatsAppBusinessApi = () => {
   const navigate = useNavigate();
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const [isPlaying, setIsPlaying] = useState(false);
-
-  const toggleVideo = () => {
-    if (videoRef.current) {
-      if (isPlaying) {
-        videoRef.current.pause();
-      } else {
-        videoRef.current.play();
-      }
-      setIsPlaying(!isPlaying);
-    }
-  };
 
   const differentiators = [
     {
@@ -311,109 +296,130 @@ const WhatsAppBusinessApi = () => {
       
       <Navbar />
 
-      {/* Hero Section */}
-      <section className="relative pt-16 pb-20 md:pt-24 md:pb-28 bg-gradient-to-b from-white via-primary/5 to-white overflow-hidden">
-        {/* Background decorations */}
-        <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-gradient-to-bl from-primary/10 to-transparent rounded-full blur-3xl -translate-y-1/2 translate-x-1/4" />
-        <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-gradient-to-tr from-primary/5 to-transparent rounded-full blur-3xl translate-y-1/2 -translate-x-1/4" />
+      {/* Hero Section - Unique dark API-focused design */}
+      <section className="relative pt-12 pb-16 md:pt-16 md:pb-24 overflow-hidden">
+        {/* Unique gradient background */}
+        <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-primary/30" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-primary/20 via-transparent to-transparent" />
+        
+        {/* Grid pattern overlay */}
+        <div className="absolute inset-0 opacity-10" style={{
+          backgroundImage: 'linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)',
+          backgroundSize: '50px 50px'
+        }} />
         
         <div className="container mx-auto px-4 relative">
-          <div className="max-w-4xl mx-auto text-center">
-            <Badge variant="outline" className="mb-6 px-4 py-2 border-primary/30 bg-primary/5 text-primary">
-              <MessageCircle className="w-4 h-4 mr-2" />
-              Official WhatsApp Cloud API Partner
-            </Badge>
-            
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 leading-tight">
-              <span className="text-foreground">WhatsApp Business API for</span>{' '}
-              <span className="text-primary">Growth</span>
-              <span className="text-foreground"> — Powered by AI</span>
-            </h1>
-            
-            <p className="text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto mb-8">
-              Send verified WhatsApp messages, automate flows, manage team inbox, and measure ROI with end-to-end attribution.
-            </p>
-            
-            <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
-              <Button 
-                size="lg" 
-                className="bg-gradient-to-r from-primary to-emerald-600 hover:from-primary/90 hover:to-emerald-600/90 shadow-lg shadow-primary/25 h-12 px-8 text-base"
-                onClick={() => navigate('/signup')}
-              >
-                Start for Free
-                <ArrowRight className="w-5 h-5 ml-2" />
-              </Button>
-              <Button 
-                size="lg" 
-                variant="outline" 
-                className="h-12 px-8 text-base border-2"
-                onClick={() => navigate('/contact')}
-              >
-                Talk to Sales
-              </Button>
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+            {/* Left content */}
+            <div className="text-left">
+              <Badge className="mb-6 px-4 py-2 bg-primary/20 text-primary border-primary/30 hover:bg-primary/30">
+                <Zap className="w-4 h-4 mr-2" />
+                Official WhatsApp Cloud API
+              </Badge>
+              
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 leading-tight text-white">
+                Scale Your Business with{' '}
+                <span className="text-primary">WhatsApp API</span>
+              </h1>
+              
+              <p className="text-lg md:text-xl text-slate-300 mb-8 max-w-xl">
+                Connect directly to Meta&apos;s WhatsApp Cloud API. No middleman, no markup. 
+                Send templates, automate conversations, and track every conversion.
+              </p>
+              
+              <div className="flex flex-col sm:flex-row gap-4 mb-8">
+                <Button 
+                  size="lg" 
+                  className="bg-primary hover:bg-primary/90 text-white h-14 px-8 text-base shadow-lg shadow-primary/30"
+                  onClick={() => navigate('/signup')}
+                >
+                  Start Free Trial
+                  <ArrowRight className="w-5 h-5 ml-2" />
+                </Button>
+                <Button 
+                  size="lg" 
+                  variant="outline" 
+                  className="h-14 px-8 text-base border-2 border-white/30 text-white hover:bg-white/10 hover:text-white"
+                  onClick={() => navigate('/contact')}
+                >
+                  Talk to Sales
+                </Button>
+              </div>
+              
+              {/* Stats row */}
+              <div className="grid grid-cols-3 gap-6 pt-8 border-t border-white/10">
+                <div>
+                  <div className="text-3xl font-bold text-white">99.9%</div>
+                  <div className="text-sm text-slate-400">Uptime SLA</div>
+                </div>
+                <div>
+                  <div className="text-3xl font-bold text-white">15 min</div>
+                  <div className="text-sm text-slate-400">Setup Time</div>
+                </div>
+                <div>
+                  <div className="text-3xl font-bold text-white">0%</div>
+                  <div className="text-sm text-slate-400">Markup on API</div>
+                </div>
+              </div>
             </div>
             
-            <div className="flex flex-wrap items-center justify-center gap-4 md:gap-6 text-sm text-muted-foreground">
-              <span className="flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-primary" />
-                Built on Official WhatsApp Cloud API
-              </span>
-              <span className="flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-primary" />
-                Fast onboarding
-              </span>
-              <span className="flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-primary" />
-                Secure & compliant
-              </span>
+            {/* Right - Dashboard Screenshot */}
+            <div className="relative">
+              <div className="relative rounded-2xl overflow-hidden shadow-2xl border border-white/10">
+                <img 
+                  src={dashboardPreview} 
+                  alt="AiReatro WhatsApp Dashboard - Inbox, Analytics, and Automation" 
+                  className="w-full h-auto"
+                />
+                {/* Gradient overlay for polish */}
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-900/20 to-transparent pointer-events-none" />
+              </div>
+              
+              {/* Floating stat cards */}
+              <div className="absolute -left-4 top-1/4 bg-white rounded-xl p-4 shadow-xl hidden md:block">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                    <Send className="w-5 h-5 text-primary" />
+                  </div>
+                  <div>
+                    <div className="text-sm text-muted-foreground">Messages Sent</div>
+                    <div className="text-xl font-bold text-foreground">2.4M+</div>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="absolute -right-4 bottom-1/4 bg-white rounded-xl p-4 shadow-xl hidden md:block">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-emerald-500/10 flex items-center justify-center">
+                    <TrendingUp className="w-5 h-5 text-emerald-500" />
+                  </div>
+                  <div>
+                    <div className="text-sm text-muted-foreground">Conversion Rate</div>
+                    <div className="text-xl font-bold text-foreground">32%</div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
           
-          {/* Hero Video/Image Preview */}
-          <div className="mt-16 max-w-5xl mx-auto">
-            <div className="relative rounded-2xl border border-border/50 bg-gradient-to-b from-card to-muted/30 shadow-2xl shadow-primary/5 overflow-hidden">
-              {/* Video with poster */}
-              <video
-                ref={videoRef}
-                className="w-full aspect-[16/9] object-cover"
-                poster={dashboardPreview}
-                loop
-                muted
-                playsInline
-                onPlay={() => setIsPlaying(true)}
-                onPause={() => setIsPlaying(false)}
-              >
-                <source src={dashboardVideo} type="video/mp4" />
-                Your browser does not support the video tag.
-              </video>
-              
-              {/* Play/Pause overlay */}
-              <button
-                onClick={toggleVideo}
-                className="absolute inset-0 flex items-center justify-center bg-black/20 hover:bg-black/30 transition-colors group cursor-pointer"
-                aria-label={isPlaying ? 'Pause video' : 'Play video'}
-              >
-                {!isPlaying && (
-                  <div className="w-20 h-20 rounded-full bg-white/90 flex items-center justify-center shadow-xl group-hover:scale-110 transition-transform">
-                    <Play className="w-10 h-10 text-primary ml-1" />
-                  </div>
-                )}
-              </button>
-              
-              {/* Floating UI elements */}
-              <div className="absolute top-4 left-4 bg-card/90 backdrop-blur-sm rounded-lg p-3 shadow-lg border border-border/50 pointer-events-none">
-                <div className="flex items-center gap-2">
-                  <MessageCircle className="w-5 h-5 text-primary" />
-                  <span className="text-sm font-medium">Live Inbox</span>
-                </div>
-              </div>
-              <div className="absolute bottom-4 right-4 bg-card/90 backdrop-blur-sm rounded-lg p-3 shadow-lg border border-border/50 pointer-events-none">
-                <div className="flex items-center gap-2">
-                  <BarChart3 className="w-5 h-5 text-primary" />
-                  <span className="text-sm font-medium">AI Insights</span>
-                </div>
-              </div>
-            </div>
+          {/* Trust badges */}
+          <div className="mt-12 flex flex-wrap items-center justify-center gap-6 text-sm text-slate-400">
+            <span className="flex items-center gap-2">
+              <CheckCircle2 className="w-4 h-4 text-primary" />
+              Meta Business Partner
+            </span>
+            <span className="flex items-center gap-2">
+              <CheckCircle2 className="w-4 h-4 text-primary" />
+              Direct Cloud API Access
+            </span>
+            <span className="flex items-center gap-2">
+              <CheckCircle2 className="w-4 h-4 text-primary" />
+              No BSP Middleman
+            </span>
+            <span className="flex items-center gap-2">
+              <CheckCircle2 className="w-4 h-4 text-primary" />
+              Enterprise Security
+            </span>
           </div>
         </div>
       </section>
