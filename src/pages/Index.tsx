@@ -4,6 +4,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useAuth } from '@/contexts/AuthContext';
 import Footer from '@/components/layout/Footer';
 import Navbar from '@/components/layout/Navbar';
+import { SEO, JsonLd, organizationSchema, websiteSchema, softwareApplicationSchema } from '@/components/seo';
 
 // Lazy load home page sections
 const HeroSection = lazy(() => import('@/components/home/HeroSection'));
@@ -51,6 +52,13 @@ export default function Index() {
 
   return (
     <div className="min-h-screen bg-white">
+      <SEO
+        title="AI WhatsApp Automation, Inbox & Flow Diagnostics"
+        description="Run WhatsApp like a growth machine. AI insights, flow diagnostics, and Meta Ads attribution built on WhatsApp Cloud API."
+        canonical="/"
+        keywords={['WhatsApp automation', 'AI chatbot', 'team inbox', 'Meta Ads attribution']}
+      />
+      <JsonLd data={[organizationSchema, websiteSchema, softwareApplicationSchema]} />
       <Navbar />
 
       {/* Hero Section */}
