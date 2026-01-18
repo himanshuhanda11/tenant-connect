@@ -128,84 +128,84 @@ export default function CampaignsList() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-6">
+      <div className="space-y-4 sm:space-y-6">
         {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="flex flex-col gap-4">
           <div>
-            <h1 className="text-2xl font-bold flex items-center gap-2">
-              <Megaphone className="h-6 w-6 text-primary" />
+            <h1 className="text-xl sm:text-2xl font-bold flex items-center gap-2">
+              <Megaphone className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
               Campaigns
             </h1>
-            <p className="text-muted-foreground">
+            <p className="text-sm text-muted-foreground">
               Create and manage WhatsApp broadcast campaigns
             </p>
           </div>
-          <div className="flex items-center gap-2">
-            <Button variant="outline" onClick={() => navigate('/campaigns/library')}>
-              <FileText className="h-4 w-4 mr-2" />
+          <div className="flex flex-wrap items-center gap-2">
+            <Button variant="outline" size="sm" onClick={() => navigate('/campaigns/library')} className="text-xs sm:text-sm">
+              <FileText className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1.5" />
               Library
             </Button>
-            <Button variant="outline">
-              <Upload className="h-4 w-4 mr-2" />
-              Import Audience
+            <Button variant="outline" size="sm" className="text-xs sm:text-sm">
+              <Upload className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1.5" />
+              <span className="hidden xs:inline">Import</span>
             </Button>
-            <Button onClick={() => navigate('/campaigns/create')}>
-              <Plus className="h-4 w-4 mr-2" />
-              Create Campaign
+            <Button size="sm" onClick={() => navigate('/campaigns/create')} className="ml-auto text-xs sm:text-sm">
+              <Plus className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1.5" />
+              <span className="hidden xs:inline">Create </span>Campaign
             </Button>
           </div>
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4">
           <Card>
-            <CardContent className="pt-4">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center">
-                  <Send className="h-5 w-5 text-blue-600" />
+            <CardContent className="p-3 sm:pt-4 sm:p-4">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-blue-100 flex items-center justify-center flex-shrink-0">
+                  <Send className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600" />
                 </div>
-                <div>
-                  <p className="text-2xl font-bold">{stats.total}</p>
-                  <p className="text-xs text-muted-foreground">Total Campaigns</p>
+                <div className="min-w-0">
+                  <p className="text-lg sm:text-2xl font-bold">{stats.total}</p>
+                  <p className="text-[10px] sm:text-xs text-muted-foreground truncate">Total Campaigns</p>
                 </div>
               </div>
             </CardContent>
           </Card>
           <Card>
-            <CardContent className="pt-4">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-lg bg-amber-100 flex items-center justify-center">
-                  <Loader2 className="h-5 w-5 text-amber-600" />
+            <CardContent className="p-3 sm:pt-4 sm:p-4">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-amber-100 flex items-center justify-center flex-shrink-0">
+                  <Loader2 className="h-4 w-4 sm:h-5 sm:w-5 text-amber-600" />
                 </div>
-                <div>
-                  <p className="text-2xl font-bold">{stats.active}</p>
-                  <p className="text-xs text-muted-foreground">Active Now</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="pt-4">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-lg bg-green-100 flex items-center justify-center">
-                  <TrendingUp className="h-5 w-5 text-green-600" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold">{stats.totalSent.toLocaleString()}</p>
-                  <p className="text-xs text-muted-foreground">Messages Sent</p>
+                <div className="min-w-0">
+                  <p className="text-lg sm:text-2xl font-bold">{stats.active}</p>
+                  <p className="text-[10px] sm:text-xs text-muted-foreground truncate">Active Now</p>
                 </div>
               </div>
             </CardContent>
           </Card>
           <Card>
-            <CardContent className="pt-4">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-lg bg-purple-100 flex items-center justify-center">
-                  <Eye className="h-5 w-5 text-purple-600" />
+            <CardContent className="p-3 sm:pt-4 sm:p-4">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-green-100 flex items-center justify-center flex-shrink-0">
+                  <TrendingUp className="h-4 w-4 sm:h-5 sm:w-5 text-green-600" />
                 </div>
-                <div>
-                  <p className="text-2xl font-bold">{stats.avgReadRate}%</p>
-                  <p className="text-xs text-muted-foreground">Avg. Read Rate</p>
+                <div className="min-w-0">
+                  <p className="text-lg sm:text-2xl font-bold">{stats.totalSent.toLocaleString()}</p>
+                  <p className="text-[10px] sm:text-xs text-muted-foreground truncate">Messages Sent</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-3 sm:pt-4 sm:p-4">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-purple-100 flex items-center justify-center flex-shrink-0">
+                  <Eye className="h-4 w-4 sm:h-5 sm:w-5 text-purple-600" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-lg sm:text-2xl font-bold">{stats.avgReadRate}%</p>
+                  <p className="text-[10px] sm:text-xs text-muted-foreground truncate">Avg. Read Rate</p>
                 </div>
               </div>
             </CardContent>
@@ -214,52 +214,56 @@ export default function CampaignsList() {
 
         {/* Filters & Search */}
         <Card>
-          <CardContent className="pt-4">
-            <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
-              <div className="flex items-center gap-3 w-full md:w-auto">
-                <div className="relative flex-1 md:w-80">
+          <CardContent className="p-3 sm:pt-4 sm:p-4">
+            <div className="flex flex-col gap-3">
+              <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 items-stretch sm:items-center">
+                <div className="relative flex-1">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
                     placeholder="Search campaigns..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-9"
+                    className="pl-9 h-9 text-sm"
                   />
                 </div>
-                <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger className="w-40">
-                    <SelectValue placeholder="All Status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Status</SelectItem>
-                    <SelectItem value="draft">Draft</SelectItem>
-                    <SelectItem value="scheduled">Scheduled</SelectItem>
-                    <SelectItem value="sending">Sending</SelectItem>
-                    <SelectItem value="completed">Completed</SelectItem>
-                    <SelectItem value="paused">Paused</SelectItem>
-                    <SelectItem value="failed">Failed</SelectItem>
-                  </SelectContent>
-                </Select>
+                <div className="flex items-center gap-2">
+                  <Select value={statusFilter} onValueChange={setStatusFilter}>
+                    <SelectTrigger className="w-full sm:w-32 h-9 text-xs sm:text-sm">
+                      <SelectValue placeholder="Status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Status</SelectItem>
+                      <SelectItem value="draft">Draft</SelectItem>
+                      <SelectItem value="scheduled">Scheduled</SelectItem>
+                      <SelectItem value="sending">Sending</SelectItem>
+                      <SelectItem value="completed">Completed</SelectItem>
+                      <SelectItem value="paused">Paused</SelectItem>
+                      <SelectItem value="failed">Failed</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as 'table' | 'cards')}>
+                    <TabsList className="h-9">
+                      <TabsTrigger value="table" className="px-2 sm:px-3">
+                        <List className="h-4 w-4" />
+                      </TabsTrigger>
+                      <TabsTrigger value="cards" className="px-2 sm:px-3">
+                        <LayoutGrid className="h-4 w-4" />
+                      </TabsTrigger>
+                    </TabsList>
+                  </Tabs>
+                </div>
               </div>
-              <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as 'table' | 'cards')}>
-                <TabsList>
-                  <TabsTrigger value="table">
-                    <List className="h-4 w-4" />
-                  </TabsTrigger>
-                  <TabsTrigger value="cards">
-                    <LayoutGrid className="h-4 w-4" />
-                  </TabsTrigger>
-                </TabsList>
-              </Tabs>
             </div>
           </CardContent>
         </Card>
 
         {/* Campaigns List */}
         {viewMode === 'table' ? (
-          <Card>
-            <CardContent className="p-0">
-              <Table>
+          <>
+            {/* Desktop Table */}
+            <Card className="hidden md:block">
+              <CardContent className="p-0">
+                <Table>
                 <TableHeader>
                   <TableRow>
                     <TableHead>Campaign</TableHead>
@@ -387,8 +391,58 @@ export default function CampaignsList() {
               </Table>
             </CardContent>
           </Card>
+          
+          {/* Mobile Card View for Table Mode */}
+          <div className="md:hidden space-y-3">
+            {filteredCampaigns.length === 0 ? (
+              <Card>
+                <CardContent className="text-center py-12">
+                  <Send className="h-10 w-10 text-muted-foreground mx-auto mb-3" />
+                  <p className="font-medium text-sm">No campaigns found</p>
+                  <Button className="mt-4" size="sm" onClick={() => navigate('/campaigns/create')}>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Create Campaign
+                  </Button>
+                </CardContent>
+              </Card>
+            ) : (
+              filteredCampaigns.map((campaign) => (
+                <Card 
+                  key={campaign.id} 
+                  className="cursor-pointer active:scale-[0.99] transition-transform"
+                  onClick={() => navigate(`/campaigns/${campaign.id}`)}
+                >
+                  <CardContent className="p-4">
+                    <div className="flex items-start justify-between gap-3 mb-3">
+                      <div className="min-w-0 flex-1">
+                        <p className="font-medium text-sm truncate">{campaign.name}</p>
+                        <p className="text-xs text-muted-foreground truncate">{campaign.template_name}</p>
+                      </div>
+                      {renderStatusBadge(campaign.status)}
+                    </div>
+                    
+                    {campaign.status === 'sending' && (
+                      <div className="mb-3">
+                        <Progress value={getProgressPercentage(campaign)} className="h-1.5" />
+                        <span className="text-[10px] text-muted-foreground">{getProgressPercentage(campaign)}%</span>
+                      </div>
+                    )}
+                    
+                    <div className="flex items-center justify-between text-xs text-muted-foreground">
+                      <span className="flex items-center gap-1">
+                        <Users className="h-3 w-3" />
+                        {(campaign.total_recipients || 0).toLocaleString()}
+                      </span>
+                      <span>{campaign.phone_display}</span>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))
+            )}
+          </div>
+          </>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
             {filteredCampaigns.map((campaign) => (
               <Card 
                 key={campaign.id} 

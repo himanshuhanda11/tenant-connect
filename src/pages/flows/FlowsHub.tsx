@@ -177,25 +177,25 @@ const FlowsHub = () => {
 
   return (
     <DashboardLayout>
-      <div className="space-y-6">
+      <div className="space-y-4 sm:space-y-6">
         {/* Quick Guide */}
         <QuickGuide {...quickGuides.flows} />
 
         {/* Header */}
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+        <div className="flex flex-col gap-3 sm:gap-4">
           <div>
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text">
+            <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text">
               Flows
             </h1>
-            <p className="text-muted-foreground mt-1">
+            <p className="text-sm text-muted-foreground mt-1">
               Build interactive conversation flows with our visual builder
             </p>
           </div>
           
-          <div className="flex flex-wrap items-center gap-3">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3">
             <Select defaultValue="all">
-              <SelectTrigger className="w-[160px] bg-card">
-                <Phone className="w-4 h-4 mr-2 text-muted-foreground" />
+              <SelectTrigger className="w-[140px] sm:w-[160px] bg-card h-9 text-xs sm:text-sm">
+                <Phone className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1.5 sm:mr-2 text-muted-foreground" />
                 <SelectValue placeholder="All Numbers" />
               </SelectTrigger>
               <SelectContent>
@@ -206,29 +206,29 @@ const FlowsHub = () => {
               </SelectContent>
             </Select>
             
-            <Badge variant="outline" className="bg-green-500/10 text-green-600 border-green-500/20 px-3 py-1">
-              <div className="w-2 h-2 rounded-full bg-green-500 mr-2 animate-pulse" />
+            <Badge variant="outline" className="bg-green-500/10 text-green-600 border-green-500/20 px-2 sm:px-3 py-1 text-xs">
+              <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-green-500 mr-1.5 sm:mr-2 animate-pulse" />
               Live
             </Badge>
           </div>
         </div>
 
         {/* Action Buttons */}
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
           <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button className="gap-2 shadow-lg shadow-primary/20">
-                  <Plus className="w-4 h-4" />
+                <Button className="gap-1.5 sm:gap-2 shadow-lg shadow-primary/20 text-xs sm:text-sm h-9">
+                  <Plus className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                   Create Flow
-                  <ChevronDown className="w-4 h-4" />
+                  <ChevronDown className="w-3 h-3 sm:w-4 sm:h-4" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" className="w-80">
+              <DropdownMenuContent align="start" className="w-72 sm:w-80">
                 <DropdownMenuItem onClick={() => setCreateDialogOpen(true)} className="py-3">
                   <Plus className="w-4 h-4 mr-3" />
                   <div>
-                    <p className="font-medium">Blank Flow</p>
+                    <p className="font-medium text-sm">Blank Flow</p>
                     <p className="text-xs text-muted-foreground">Start from scratch</p>
                   </div>
                 </DropdownMenuItem>
@@ -240,11 +240,11 @@ const FlowsHub = () => {
                   <DropdownMenuItem 
                     key={opt.label} 
                     onClick={() => handleQuickCreate(opt)}
-                    className="py-3"
+                    className="py-2 sm:py-3"
                   >
-                    <span className="text-xl mr-3">{opt.emoji}</span>
+                    <span className="text-lg sm:text-xl mr-2 sm:mr-3">{opt.emoji}</span>
                     <div>
-                      <p className="font-medium">{opt.label}</p>
+                      <p className="font-medium text-sm">{opt.label}</p>
                       <p className="text-xs text-muted-foreground">{opt.description}</p>
                     </div>
                   </DropdownMenuItem>
@@ -252,7 +252,7 @@ const FlowsHub = () => {
               </DropdownMenuContent>
             </DropdownMenu>
             
-            <DialogContent>
+            <DialogContent className="mx-4 sm:mx-auto max-w-md">
               <DialogHeader>
                 <DialogTitle>Create New Flow</DialogTitle>
                 <DialogDescription>
@@ -264,7 +264,7 @@ const FlowsHub = () => {
                   <div className="space-y-2">
                     <Label>Emoji</Label>
                     <Select value={newFlowEmoji} onValueChange={setNewFlowEmoji}>
-                      <SelectTrigger className="w-20">
+                      <SelectTrigger className="w-16 sm:w-20">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -285,7 +285,7 @@ const FlowsHub = () => {
                   </div>
                 </div>
               </div>
-              <DialogFooter>
+              <DialogFooter className="flex-col sm:flex-row gap-2">
                 <Button variant="outline" onClick={() => setCreateDialogOpen(false)}>Cancel</Button>
                 <Button onClick={handleCreateFlow} disabled={!newFlowName.trim()}>
                   Create Flow
@@ -294,90 +294,90 @@ const FlowsHub = () => {
             </DialogContent>
           </Dialog>
           
-          <Button variant="outline" className="gap-2">
-            <Upload className="w-4 h-4" />
-            Import
+          <Button variant="outline" className="gap-1.5 sm:gap-2 text-xs sm:text-sm h-9">
+            <Upload className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+            <span className="hidden xs:inline">Import</span>
           </Button>
           
-          <Button variant="outline" className="gap-2 ml-auto border-amber-500/30 text-amber-600 hover:bg-amber-500/10">
-            <Crown className="w-4 h-4" />
-            Upgrade to Pro
+          <Button variant="outline" className="gap-1.5 sm:gap-2 ml-auto border-amber-500/30 text-amber-600 hover:bg-amber-500/10 text-xs sm:text-sm h-9">
+            <Crown className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+            <span className="hidden sm:inline">Upgrade to </span>Pro
           </Button>
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-4">
           <Card className="bg-gradient-to-br from-card to-card/50 border-border/50">
-            <CardContent className="p-4">
+            <CardContent className="p-3 sm:p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-xs text-muted-foreground font-medium">Total Flows</p>
-                  <p className="text-2xl font-bold mt-1">{flows.length} <span className="text-sm text-muted-foreground font-normal">/ 10</span></p>
+                  <p className="text-[10px] sm:text-xs text-muted-foreground font-medium">Total Flows</p>
+                  <p className="text-lg sm:text-2xl font-bold mt-0.5 sm:mt-1">{flows.length} <span className="text-xs sm:text-sm text-muted-foreground font-normal">/ 10</span></p>
                 </div>
-                <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-                  <Workflow className="w-5 h-5 text-primary" />
+                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                  <Workflow className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
                 </div>
               </div>
             </CardContent>
           </Card>
           
           <Card className="bg-gradient-to-br from-green-500/5 to-card border-green-500/20">
-            <CardContent className="p-4">
+            <CardContent className="p-3 sm:p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-xs text-muted-foreground font-medium">Active</p>
-                  <p className="text-2xl font-bold text-green-600 mt-1">{activeFlows}</p>
+                  <p className="text-[10px] sm:text-xs text-muted-foreground font-medium">Active</p>
+                  <p className="text-lg sm:text-2xl font-bold text-green-600 mt-0.5 sm:mt-1">{activeFlows}</p>
                 </div>
-                <div className="w-10 h-10 rounded-xl bg-green-500/10 flex items-center justify-center">
-                  <Play className="w-5 h-5 text-green-500" />
+                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-green-500/10 flex items-center justify-center">
+                  <Play className="w-4 h-4 sm:w-5 sm:h-5 text-green-500" />
                 </div>
               </div>
             </CardContent>
           </Card>
           
           <Card>
-            <CardContent className="p-4">
+            <CardContent className="p-3 sm:p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-xs text-muted-foreground font-medium">Triggered Today</p>
-                  <p className="text-2xl font-bold mt-1">{totalTriggeredToday}</p>
+                  <p className="text-[10px] sm:text-xs text-muted-foreground font-medium">Triggered Today</p>
+                  <p className="text-lg sm:text-2xl font-bold mt-0.5 sm:mt-1">{totalTriggeredToday}</p>
                 </div>
-                <div className="w-10 h-10 rounded-xl bg-amber-500/10 flex items-center justify-center">
-                  <Zap className="w-5 h-5 text-amber-500" />
+                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-amber-500/10 flex items-center justify-center">
+                  <Zap className="w-4 h-4 sm:w-5 sm:h-5 text-amber-500" />
                 </div>
               </div>
             </CardContent>
           </Card>
           
           <Card className={cn(errorFlows > 0 && 'bg-gradient-to-br from-red-500/5 to-card border-red-500/20')}>
-            <CardContent className="p-4">
+            <CardContent className="p-3 sm:p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-xs text-muted-foreground font-medium">Issues</p>
-                  <p className={cn('text-2xl font-bold mt-1', errorFlows > 0 ? 'text-red-600' : 'text-green-600')}>
+                  <p className="text-[10px] sm:text-xs text-muted-foreground font-medium">Issues</p>
+                  <p className={cn('text-lg sm:text-2xl font-bold mt-0.5 sm:mt-1', errorFlows > 0 ? 'text-red-600' : 'text-green-600')}>
                     {errorFlows}
                   </p>
                 </div>
-                <div className={cn('w-10 h-10 rounded-xl flex items-center justify-center', 
+                <div className={cn('w-8 h-8 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center', 
                   errorFlows > 0 ? 'bg-red-500/10' : 'bg-green-500/10')}>
                   {errorFlows > 0 
-                    ? <AlertTriangle className="w-5 h-5 text-red-500" />
-                    : <CheckCircle2 className="w-5 h-5 text-green-500" />
+                    ? <AlertTriangle className="w-4 h-4 sm:w-5 sm:h-5 text-red-500" />
+                    : <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5 text-green-500" />
                   }
                 </div>
               </div>
             </CardContent>
           </Card>
           
-          <Card>
-            <CardContent className="p-4">
+          <Card className="hidden sm:block">
+            <CardContent className="p-3 sm:p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-xs text-muted-foreground font-medium">Avg Completion</p>
-                  <p className="text-2xl font-bold text-blue-600 mt-1">{avgCompletion}%</p>
+                  <p className="text-[10px] sm:text-xs text-muted-foreground font-medium">Avg Completion</p>
+                  <p className="text-lg sm:text-2xl font-bold text-blue-600 mt-0.5 sm:mt-1">{avgCompletion}%</p>
                 </div>
-                <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center">
-                  <TrendingUp className="w-5 h-5 text-blue-500" />
+                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-blue-500/10 flex items-center justify-center">
+                  <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5 text-blue-500" />
                 </div>
               </div>
             </CardContent>
@@ -385,19 +385,19 @@ const FlowsHub = () => {
         </div>
 
         {/* Search & Filters */}
-        <div className="flex flex-col md:flex-row gap-3">
+        <div className="flex flex-col gap-2 sm:gap-3">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
-              placeholder="Search flows by name, tag, or trigger..."
+              placeholder="Search flows..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 bg-card"
+              className="pl-10 bg-card h-9 text-sm"
             />
           </div>
           <div className="flex gap-2 flex-wrap">
             <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-[130px] bg-card">
+              <SelectTrigger className="w-[110px] sm:w-[130px] bg-card h-9 text-xs sm:text-sm">
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
               <SelectContent>
@@ -409,17 +409,17 @@ const FlowsHub = () => {
               </SelectContent>
             </Select>
             
-            <Button variant="outline" className="gap-2">
-              <Filter className="w-4 h-4" />
-              More Filters
+            <Button variant="outline" className="gap-1.5 h-9 text-xs sm:text-sm">
+              <Filter className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              <span className="hidden xs:inline">More </span>Filters
             </Button>
             
-            <div className="flex border rounded-lg overflow-hidden bg-card">
+            <div className="flex border rounded-lg overflow-hidden bg-card ml-auto">
               <Button
                 variant={viewMode === 'grid' ? 'secondary' : 'ghost'}
                 size="icon"
                 onClick={() => setViewMode('grid')}
-                className="rounded-none"
+                className="rounded-none h-9 w-9"
               >
                 <LayoutGrid className="w-4 h-4" />
               </Button>
@@ -427,7 +427,7 @@ const FlowsHub = () => {
                 variant={viewMode === 'list' ? 'secondary' : 'ghost'}
                 size="icon"
                 onClick={() => setViewMode('list')}
-                className="rounded-none"
+                className="rounded-none h-9 w-9"
               >
                 <List className="w-4 h-4" />
               </Button>
@@ -436,21 +436,23 @@ const FlowsHub = () => {
         </div>
 
         {/* Tabs */}
-        <Tabs defaultValue="your-flows" className="space-y-6">
-          <TabsList className="bg-card border">
-            <TabsTrigger value="your-flows" className="gap-2">
-              <Workflow className="w-4 h-4" />
-              Your Flows
-            </TabsTrigger>
-            <TabsTrigger value="templates" className="gap-2">
-              <Sparkles className="w-4 h-4" />
-              Templates
-            </TabsTrigger>
-          </TabsList>
+        <Tabs defaultValue="your-flows" className="space-y-4 sm:space-y-6">
+          <div className="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0">
+            <TabsList className="bg-card border inline-flex min-w-max">
+              <TabsTrigger value="your-flows" className="gap-1.5 text-xs sm:text-sm px-2.5 sm:px-4">
+                <Workflow className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                <span className="hidden xs:inline">Your </span>Flows
+              </TabsTrigger>
+              <TabsTrigger value="templates" className="gap-1.5 text-xs sm:text-sm px-2.5 sm:px-4">
+                <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                Templates
+              </TabsTrigger>
+            </TabsList>
+          </div>
 
           <TabsContent value="your-flows" className="space-y-4">
             {loading ? (
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                 {[1, 2, 3].map(i => (
                   <Card key={i}>
                     <CardContent className="p-4 space-y-3">
@@ -479,7 +481,7 @@ const FlowsHub = () => {
                 </CardContent>
               </Card>
             ) : viewMode === 'grid' ? (
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                 {filteredFlows.map((flow) => (
                   <Card 
                     key={flow.id} 
