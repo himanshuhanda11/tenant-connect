@@ -53,7 +53,8 @@ export function InvoicesTable() {
 
   return (
     <>
-      <div className="border rounded-lg">
+      {/* Desktop Table */}
+      <div className="hidden sm:block border rounded-lg overflow-hidden">
         <Table>
           <TableHeader>
             <TableRow>
@@ -117,6 +118,65 @@ export function InvoicesTable() {
             )}
           </TableBody>
         </Table>
+      </div>
+
+      {/* Mobile Card View */}
+      <div className="sm:hidden space-y-3">
+        {invoices && invoices.length > 0 ? (
+          invoices.map((invoice) => (
+            <div 
+              key={invoice.id}
+              className="border rounded-lg p-4 bg-card"
+            >
+              <div className="flex items-start justify-between gap-3 mb-3">
+                <div className="flex items-center gap-2 min-w-0">
+                  <FileText className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                  <span className="font-medium text-sm truncate">{invoice.invoice_number}</span>
+                </div>
+                <Badge 
+                  variant="outline" 
+                  className={`${statusColors[invoice.status] || ''} text-xs flex-shrink-0`}
+                >
+                  {invoice.status.charAt(0).toUpperCase() + invoice.status.slice(1)}
+                </Badge>
+              </div>
+              
+              <div className="flex items-center justify-between text-sm mb-3">
+                <span className="text-muted-foreground">
+                  {format(new Date(invoice.created_at), 'MMM d, yyyy')}
+                </span>
+                <span className="font-semibold">
+                  {formatCurrency(invoice.amount_due, invoice.currency)}
+                </span>
+              </div>
+              
+              <div className="flex items-center gap-2 pt-2 border-t">
+                <Button 
+                  size="sm" 
+                  variant="outline"
+                  className="flex-1 h-8 text-xs"
+                  onClick={() => setSelectedInvoice(invoice)}
+                >
+                  <Eye className="h-3.5 w-3.5 mr-1.5" />
+                  View
+                </Button>
+                <Button 
+                  size="sm" 
+                  variant="outline"
+                  className="flex-1 h-8 text-xs"
+                  onClick={() => window.open(invoice.invoice_pdf_url || '#', '_blank')}
+                >
+                  <Download className="h-3.5 w-3.5 mr-1.5" />
+                  Download
+                </Button>
+              </div>
+            </div>
+          ))
+        ) : (
+          <div className="text-center py-8 text-muted-foreground border rounded-lg">
+            No invoices yet
+          </div>
+        )}
       </div>
 
       {/* Invoice Detail Sheet */}

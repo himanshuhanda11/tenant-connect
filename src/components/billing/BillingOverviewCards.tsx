@@ -27,7 +27,7 @@ export function BillingOverviewCards() {
 
   if (isLoading) {
     return (
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-3 sm:gap-4 grid-cols-1 xs:grid-cols-2 lg:grid-cols-4">
         {[...Array(4)].map((_, i) => (
           <Card key={i}>
             <CardHeader className="pb-2">
@@ -56,7 +56,7 @@ export function BillingOverviewCards() {
   const phonePercent = phoneUsage ? Math.round((phoneUsage.used / phoneUsage.limit) * 100) : 0;
 
   return (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+    <div className="grid gap-3 sm:gap-4 grid-cols-1 xs:grid-cols-2 lg:grid-cols-4">
       {/* Current Plan */}
       <Card className="relative overflow-hidden">
         <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-bl-full" />

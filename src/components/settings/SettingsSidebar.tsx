@@ -88,31 +88,43 @@ export function SettingsSidebar({ activeSection, onSectionChange }: SettingsSide
 }
 
 export function SettingsMobileNav({ activeSection, onSectionChange }: SettingsSidebarProps) {
+  const currentSection = settingsSections.find(s => s.id === activeSection);
+  const Icon = currentSection?.icon || Settings2;
+  
   return (
-    <div className="lg:hidden overflow-x-auto border-b border-border bg-card">
-      <div className="flex gap-1 p-2 min-w-max">
-        {settingsSections.map((section) => {
-          const Icon = section.icon;
-          const isActive = activeSection === section.id;
-          
-          return (
-            <button
-              key={section.id}
-              onClick={() => !section.disabled && onSectionChange(section.id)}
-              disabled={section.disabled}
-              className={cn(
-                "flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all",
-                isActive 
-                  ? "bg-primary text-primary-foreground" 
-                  : "text-muted-foreground hover:bg-muted hover:text-foreground",
-                section.disabled && "opacity-50 cursor-not-allowed"
-              )}
-            >
-              <Icon className="w-4 h-4" />
-              <span>{section.label}</span>
-            </button>
-          );
-        })}
+    <div className="lg:hidden border-b border-border bg-card sticky top-0 z-10">
+      {/* Current section header */}
+      <div className="flex items-center gap-2 px-4 py-3 border-b border-border/50">
+        <Icon className="w-4 h-4 text-primary" />
+        <span className="font-medium text-sm">{currentSection?.label || 'Settings'}</span>
+      </div>
+      
+      {/* Scrollable navigation */}
+      <div className="overflow-x-auto scrollbar-hide">
+        <div className="flex gap-1 p-2 min-w-max">
+          {settingsSections.map((section) => {
+            const SectionIcon = section.icon;
+            const isActive = activeSection === section.id;
+            
+            return (
+              <button
+                key={section.id}
+                onClick={() => !section.disabled && onSectionChange(section.id)}
+                disabled={section.disabled}
+                className={cn(
+                  "flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium whitespace-nowrap transition-all touch-manipulation",
+                  isActive 
+                    ? "bg-primary text-primary-foreground" 
+                    : "text-muted-foreground hover:bg-muted hover:text-foreground active:bg-muted/80",
+                  section.disabled && "opacity-50 cursor-not-allowed"
+                )}
+              >
+                <SectionIcon className="w-3.5 h-3.5" />
+                <span className="hidden xs:inline">{section.label}</span>
+              </button>
+            );
+          })}
+        </div>
       </div>
     </div>
   );

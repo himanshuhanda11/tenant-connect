@@ -58,53 +58,54 @@ export function PaymentMethodsCard() {
   return (
     <>
       <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
+        <CardHeader className="px-4 sm:px-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
-              <CardTitle>Payment Methods</CardTitle>
-              <CardDescription>Manage your payment methods</CardDescription>
+              <CardTitle className="text-lg sm:text-xl">Payment Methods</CardTitle>
+              <CardDescription className="text-xs sm:text-sm">Manage your payment methods</CardDescription>
             </div>
-            <Button onClick={handleAddCard}>
+            <Button onClick={handleAddCard} size="sm" className="w-full sm:w-auto">
               <Plus className="h-4 w-4 mr-2" />
               Add Card
             </Button>
           </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="px-4 sm:px-6">
           {paymentMethods && paymentMethods.length > 0 ? (
             <div className="space-y-3">
               {paymentMethods.map((method) => (
                 <div 
                   key={method.id}
-                  className="flex items-center justify-between p-4 border rounded-lg"
+                  className="flex flex-col sm:flex-row sm:items-center justify-between p-3 sm:p-4 border rounded-lg gap-3"
                 >
-                  <div className="flex items-center gap-4">
-                    <div className="p-2 bg-muted rounded-lg">
-                      <CreditCard className="h-5 w-5" />
+                  <div className="flex items-center gap-3 sm:gap-4">
+                    <div className="p-1.5 sm:p-2 bg-muted rounded-lg flex-shrink-0">
+                      <CreditCard className="h-4 w-4 sm:h-5 sm:w-5" />
                     </div>
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium capitalize">
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="font-medium capitalize text-sm sm:text-base">
                           {method.card_brand} •••• {method.card_last4}
                         </span>
                         {method.is_default && (
-                          <Badge variant="secondary" className="text-xs">
-                            <Star className="h-3 w-3 mr-1 fill-current" />
+                          <Badge variant="secondary" className="text-[10px] sm:text-xs">
+                            <Star className="h-2.5 w-2.5 sm:h-3 sm:w-3 mr-0.5 sm:mr-1 fill-current" />
                             Default
                           </Badge>
                         )}
                       </div>
-                      <p className="text-sm text-muted-foreground">
+                      <p className="text-xs sm:text-sm text-muted-foreground">
                         Expires {method.card_exp_month?.toString().padStart(2, '0')}/{method.card_exp_year}
                       </p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 ml-auto sm:ml-0">
                     {!method.is_default && (
                       <Button 
                         size="sm" 
                         variant="ghost"
                         onClick={() => handleSetDefault(method.id)}
+                        className="text-xs sm:text-sm h-8"
                       >
                         Set Default
                       </Button>
@@ -112,7 +113,7 @@ export function PaymentMethodsCard() {
                     <Button 
                       size="sm" 
                       variant="ghost"
-                      className="text-destructive hover:text-destructive"
+                      className="text-destructive hover:text-destructive h-8"
                       onClick={() => setDeleteId(method.id)}
                     >
                       <Trash2 className="h-4 w-4" />
