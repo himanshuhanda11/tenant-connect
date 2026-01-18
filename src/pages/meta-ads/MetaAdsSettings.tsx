@@ -48,21 +48,21 @@ export default function MetaAdsSettings() {
 
   return (
     <DashboardLayout>
-      <div className="p-6 space-y-6 max-w-4xl mx-auto">
+      <div className="p-4 sm:p-6 space-y-4 sm:space-y-6 max-w-4xl mx-auto">
         {/* Header */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <div className="flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-slate-500 to-slate-600 shadow-lg shadow-slate-500/25">
-              <Settings className="h-7 w-7 text-white" />
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
+          <div className="flex items-center gap-3 sm:gap-4">
+            <div className="flex items-center justify-center w-10 h-10 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl bg-gradient-to-br from-slate-500 to-slate-600 shadow-lg shadow-slate-500/25">
+              <Settings className="h-5 w-5 sm:h-7 sm:w-7 text-white" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold tracking-tight">Meta Ads Settings</h1>
-              <p className="text-muted-foreground">
+              <h1 className="text-xl sm:text-2xl font-bold tracking-tight">Meta Ads Settings</h1>
+              <p className="text-sm text-muted-foreground">
                 Configure tracking, defaults, and compliance options
               </p>
             </div>
           </div>
-          <Button onClick={handleSave} disabled={isSaving} className="gap-2 shadow-lg shadow-primary/25">
+          <Button onClick={handleSave} disabled={isSaving} className="gap-2 shadow-lg shadow-primary/25 w-full sm:w-auto text-sm">
             {isSaving ? (
               <RefreshCw className="h-4 w-4 animate-spin" />
             ) : (
@@ -75,7 +75,7 @@ export default function MetaAdsSettings() {
         {/* Compliance Notice */}
         <Alert className="border-blue-200 bg-blue-50 dark:bg-blue-950/30">
           <Shield className="h-4 w-4 text-blue-600" />
-          <AlertDescription className="text-blue-700 dark:text-blue-300">
+          <AlertDescription className="text-xs sm:text-sm text-blue-700 dark:text-blue-300">
             <strong>Compliance Notice:</strong> AIREATRO does not create or modify ads. All advertising actions remain within Meta Ads Manager.
             We only read performance data and track leads for attribution.
           </AlertDescription>
@@ -83,18 +83,18 @@ export default function MetaAdsSettings() {
 
         {/* Tracking Settings */}
         <Card className="border-0 shadow-lg">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <RefreshCw className="h-5 w-5 text-primary" />
+          <CardHeader className="px-4 sm:px-6">
+            <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+              <RefreshCw className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
               Tracking & Sync
             </CardTitle>
-            <CardDescription>Control how Meta Ads data is synced</CardDescription>
+            <CardDescription className="text-xs sm:text-sm">Control how Meta Ads data is synced</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <Label className="text-base">Enable Meta Ads Tracking</Label>
-                <p className="text-sm text-muted-foreground">
+          <CardContent className="px-4 sm:px-6 space-y-4 sm:space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-4">
+              <div className="flex-1">
+                <Label className="text-sm sm:text-base">Enable Meta Ads Tracking</Label>
+                <p className="text-xs sm:text-sm text-muted-foreground">
                   Track leads and attribute contacts from Meta Ads
                 </p>
               </div>
@@ -106,10 +106,10 @@ export default function MetaAdsSettings() {
 
             <Separator />
 
-            <div className="flex items-center justify-between">
-              <div>
-                <Label className="text-base">Auto-Sync Enabled</Label>
-                <p className="text-sm text-muted-foreground">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-4">
+              <div className="flex-1">
+                <Label className="text-sm sm:text-base">Auto-Sync Enabled</Label>
+                <p className="text-xs sm:text-sm text-muted-foreground">
                   Automatically sync campaign data from Meta
                 </p>
               </div>
@@ -120,13 +120,13 @@ export default function MetaAdsSettings() {
             </div>
 
             {settings.autoSyncEnabled && (
-              <div className="space-y-2 pl-6 border-l-2">
-                <Label>Sync Interval</Label>
+              <div className="space-y-2 pl-4 sm:pl-6 border-l-2">
+                <Label className="text-sm">Sync Interval</Label>
                 <Select
                   value={settings.syncInterval.toString()}
                   onValueChange={(value) => setSettings({ ...settings, syncInterval: parseInt(value) })}
                 >
-                  <SelectTrigger className="w-48">
+                  <SelectTrigger className="w-full sm:w-48 h-10">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -143,19 +143,19 @@ export default function MetaAdsSettings() {
 
         {/* Default Lead Handling */}
         <Card className="border-0 shadow-lg">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Tag className="h-5 w-5 text-primary" />
+          <CardHeader className="px-4 sm:px-6">
+            <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+              <Tag className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
               Default Lead Handling
             </CardTitle>
-            <CardDescription>Set defaults for new ad leads</CardDescription>
+            <CardDescription className="text-xs sm:text-sm">Set defaults for new ad leads</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-6">
+          <CardContent className="px-4 sm:px-6 space-y-4 sm:space-y-6">
             <div className="space-y-2">
-              <Label>Default Tags for Ad Leads</Label>
-              <div className="flex flex-wrap gap-2 p-3 border rounded-lg bg-muted/30">
+              <Label className="text-sm">Default Tags for Ad Leads</Label>
+              <div className="flex flex-wrap gap-2 p-2.5 sm:p-3 border rounded-lg bg-muted/30">
                 {settings.defaultTags.map((tag, idx) => (
-                  <Badge key={idx} variant="secondary" className="gap-1 pr-1">
+                  <Badge key={idx} variant="secondary" className="gap-1 pr-1 text-xs sm:text-sm">
                     {tag}
                     <Button
                       variant="ghost"
@@ -172,7 +172,7 @@ export default function MetaAdsSettings() {
                 ))}
                 <Input
                   placeholder="Add tag..."
-                  className="w-32 h-7 text-sm"
+                  className="w-24 sm:w-32 h-7 text-xs sm:text-sm"
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' && e.currentTarget.value) {
                       setSettings({
@@ -186,14 +186,14 @@ export default function MetaAdsSettings() {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>Default Team Assignment</Label>
+                <Label className="text-sm">Default Team Assignment</Label>
                 <Select
                   value={settings.defaultTeam}
                   onValueChange={(value) => setSettings({ ...settings, defaultTeam: value })}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="h-10">
                     <SelectValue placeholder="Select team" />
                   </SelectTrigger>
                   <SelectContent>
@@ -205,12 +205,12 @@ export default function MetaAdsSettings() {
               </div>
 
               <div className="space-y-2">
-                <Label>Default Attribution Window</Label>
+                <Label className="text-sm">Default Attribution Window</Label>
                 <Select
                   value={settings.attributionWindow}
                   onValueChange={(value) => setSettings({ ...settings, attributionWindow: value })}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="h-10">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -226,18 +226,18 @@ export default function MetaAdsSettings() {
 
         {/* Compliance Settings */}
         <Card className="border-0 shadow-lg">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Shield className="h-5 w-5 text-primary" />
+          <CardHeader className="px-4 sm:px-6">
+            <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+              <Shield className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
               Compliance & Consent
             </CardTitle>
-            <CardDescription>Ensure GDPR and marketing compliance</CardDescription>
+            <CardDescription className="text-xs sm:text-sm">Ensure GDPR and marketing compliance</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <Label className="text-base">Enforce Opt-In</Label>
-                <p className="text-sm text-muted-foreground">
+          <CardContent className="px-4 sm:px-6 space-y-4 sm:space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-4">
+              <div className="flex-1">
+                <Label className="text-sm sm:text-base">Enforce Opt-In</Label>
+                <p className="text-xs sm:text-sm text-muted-foreground">
                   Require opt-in before sending marketing messages to ad leads
                 </p>
               </div>
@@ -249,10 +249,10 @@ export default function MetaAdsSettings() {
 
             <Separator />
 
-            <div className="flex items-center justify-between">
-              <div>
-                <Label className="text-base">Marketing Consent Required</Label>
-                <p className="text-sm text-muted-foreground">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-4">
+              <div className="flex-1">
+                <Label className="text-sm sm:text-base">Marketing Consent Required</Label>
+                <p className="text-xs sm:text-sm text-muted-foreground">
                   Collect explicit consent before adding to marketing campaigns
                 </p>
               </div>
@@ -264,7 +264,7 @@ export default function MetaAdsSettings() {
 
             <Alert>
               <Info className="h-4 w-4" />
-              <AlertDescription>
+              <AlertDescription className="text-xs sm:text-sm">
                 These settings help ensure compliance with GDPR, CCPA, and WhatsApp policies.
                 Ad leads will be marked for consent collection automatically.
               </AlertDescription>
@@ -274,28 +274,28 @@ export default function MetaAdsSettings() {
 
         {/* Connected Account */}
         <Card className="border-0 shadow-lg">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Users className="h-5 w-5 text-primary" />
+          <CardHeader className="px-4 sm:px-6">
+            <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+              <Users className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
               Connected Account
             </CardTitle>
-            <CardDescription>Your linked Meta Ads account</CardDescription>
+            <CardDescription className="text-xs sm:text-sm">Your linked Meta Ads account</CardDescription>
           </CardHeader>
-          <CardContent>
-            <div className="flex items-center justify-between p-4 rounded-xl bg-muted/50 border">
-              <div className="flex items-center gap-4">
-                <div className="flex items-center justify-center w-12 h-12 rounded-full bg-blue-100 dark:bg-blue-900/50">
-                  <CheckCircle2 className="h-6 w-6 text-blue-600" />
+          <CardContent className="px-4 sm:px-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between p-3 sm:p-4 rounded-xl bg-muted/50 border gap-3 sm:gap-4">
+              <div className="flex items-center gap-3 sm:gap-4">
+                <div className="flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-blue-100 dark:bg-blue-900/50 flex-shrink-0">
+                  <CheckCircle2 className="h-5 w-5 sm:h-6 sm:w-6 text-blue-600" />
                 </div>
-                <div>
-                  <p className="font-semibold">AIREATRO Business</p>
-                  <p className="text-sm text-muted-foreground">Ad Account: act_123456789</p>
+                <div className="min-w-0">
+                  <p className="font-semibold text-sm sm:text-base">AIREATRO Business</p>
+                  <p className="text-xs sm:text-sm text-muted-foreground truncate">Ad Account: act_123456789</p>
                 </div>
               </div>
-              <div className="flex items-center gap-2">
-                <Badge className="bg-emerald-100 text-emerald-700">Connected</Badge>
-                <Button variant="outline" size="sm" asChild>
-                  <a href="https://business.facebook.com/settings" target="_blank" rel="noopener noreferrer" className="gap-2">
+              <div className="flex items-center gap-2 ml-auto sm:ml-0">
+                <Badge className="bg-emerald-100 text-emerald-700 text-xs">Connected</Badge>
+                <Button variant="outline" size="sm" asChild className="text-xs sm:text-sm h-8">
+                  <a href="https://business.facebook.com/settings" target="_blank" rel="noopener noreferrer" className="gap-1.5 sm:gap-2">
                     Manage
                     <ExternalLink className="h-3 w-3" />
                   </a>
@@ -303,7 +303,7 @@ export default function MetaAdsSettings() {
               </div>
             </div>
 
-            <Button variant="destructive" className="mt-4 gap-2">
+            <Button variant="destructive" className="mt-4 gap-2 w-full sm:w-auto text-sm">
               <Trash2 className="h-4 w-4" />
               Disconnect Meta Account
             </Button>

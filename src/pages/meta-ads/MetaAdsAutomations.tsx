@@ -170,60 +170,60 @@ export default function MetaAdsAutomations() {
 
   return (
     <DashboardLayout>
-      <div className="p-6 space-y-6 max-w-6xl mx-auto">
+      <div className="p-4 sm:p-6 space-y-4 sm:space-y-6 max-w-6xl mx-auto">
         {/* Header */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <div className="flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-violet-500 to-purple-600 shadow-lg shadow-violet-500/25">
-              <Zap className="h-7 w-7 text-white" />
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
+          <div className="flex items-center gap-3 sm:gap-4">
+            <div className="flex items-center justify-center w-10 h-10 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl bg-gradient-to-br from-violet-500 to-purple-600 shadow-lg shadow-violet-500/25">
+              <Zap className="h-5 w-5 sm:h-7 sm:w-7 text-white" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold tracking-tight">Ad Automations</h1>
-              <p className="text-muted-foreground">
+              <h1 className="text-xl sm:text-2xl font-bold tracking-tight">Ad Automations</h1>
+              <p className="text-sm text-muted-foreground">
                 Automate responses and actions for Meta Ad leads
               </p>
             </div>
           </div>
-          <Button onClick={() => setShowCreateDialog(true)} className="gap-2 shadow-lg shadow-primary/25">
+          <Button onClick={() => setShowCreateDialog(true)} className="gap-2 shadow-lg shadow-primary/25 w-full sm:w-auto text-sm">
             <Plus className="h-4 w-4" />
             Create Automation
           </Button>
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
           <Card className="border-0 shadow-md">
-            <CardContent className="p-5 flex items-center gap-4">
-              <div className="p-2 rounded-lg bg-emerald-100 dark:bg-emerald-900/50">
-                <Play className="h-5 w-5 text-emerald-600" />
+            <CardContent className="p-4 sm:p-5 flex items-center gap-3 sm:gap-4">
+              <div className="p-1.5 sm:p-2 rounded-lg bg-emerald-100 dark:bg-emerald-900/50 flex-shrink-0">
+                <Play className="h-4 w-4 sm:h-5 sm:w-5 text-emerald-600" />
               </div>
               <div>
-                <p className="text-2xl font-bold">{automations.filter(a => a.is_active).length}</p>
-                <p className="text-sm text-muted-foreground">Active Automations</p>
+                <p className="text-xl sm:text-2xl font-bold">{automations.filter(a => a.is_active).length}</p>
+                <p className="text-xs sm:text-sm text-muted-foreground">Active Automations</p>
               </div>
             </CardContent>
           </Card>
           <Card className="border-0 shadow-md">
-            <CardContent className="p-5 flex items-center gap-4">
-              <div className="p-2 rounded-lg bg-blue-100 dark:bg-blue-900/50">
-                <Zap className="h-5 w-5 text-blue-600" />
+            <CardContent className="p-4 sm:p-5 flex items-center gap-3 sm:gap-4">
+              <div className="p-1.5 sm:p-2 rounded-lg bg-blue-100 dark:bg-blue-900/50 flex-shrink-0">
+                <Zap className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600" />
               </div>
               <div>
-                <p className="text-2xl font-bold">
+                <p className="text-xl sm:text-2xl font-bold">
                   {automations.reduce((sum, a) => sum + a.executions_count, 0)}
                 </p>
-                <p className="text-sm text-muted-foreground">Total Executions</p>
+                <p className="text-xs sm:text-sm text-muted-foreground">Total Executions</p>
               </div>
             </CardContent>
           </Card>
           <Card className="border-0 shadow-md">
-            <CardContent className="p-5 flex items-center gap-4">
-              <div className="p-2 rounded-lg bg-violet-100 dark:bg-violet-900/50">
-                <Clock className="h-5 w-5 text-violet-600" />
+            <CardContent className="p-4 sm:p-5 flex items-center gap-3 sm:gap-4">
+              <div className="p-1.5 sm:p-2 rounded-lg bg-violet-100 dark:bg-violet-900/50 flex-shrink-0">
+                <Clock className="h-4 w-4 sm:h-5 sm:w-5 text-violet-600" />
               </div>
               <div>
-                <p className="text-2xl font-bold">2.3 sec</p>
-                <p className="text-sm text-muted-foreground">Avg Response Time</p>
+                <p className="text-xl sm:text-2xl font-bold">2.3 sec</p>
+                <p className="text-xs sm:text-sm text-muted-foreground">Avg Response Time</p>
               </div>
             </CardContent>
           </Card>
@@ -231,78 +231,85 @@ export default function MetaAdsAutomations() {
 
         {/* Active Automations */}
         <Card className="border-0 shadow-lg">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <GitBranch className="h-5 w-5 text-primary" />
+          <CardHeader className="px-4 sm:px-6">
+            <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+              <GitBranch className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
               Your Automations
             </CardTitle>
-            <CardDescription>Automations that run when ad leads arrive</CardDescription>
+            <CardDescription className="text-xs sm:text-sm">Automations that run when ad leads arrive</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="px-4 sm:px-6 space-y-3 sm:space-y-4">
             {automations.map((automation) => {
               const TriggerIcon = TRIGGER_LABELS[automation.trigger_type]?.icon || Zap;
               
               return (
                 <div
                   key={automation.id}
-                  className="flex items-center gap-4 p-4 rounded-xl border bg-card hover:bg-muted/30 transition-colors"
+                  className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 p-3 sm:p-4 rounded-xl border bg-card hover:bg-muted/30 transition-colors touch-manipulation"
                 >
-                  <div className={`p-3 rounded-xl ${automation.is_active ? 'bg-primary/10' : 'bg-muted'}`}>
-                    <TriggerIcon className={`h-5 w-5 ${automation.is_active ? 'text-primary' : 'text-muted-foreground'}`} />
+                  <div className={`p-2 sm:p-3 rounded-xl ${automation.is_active ? 'bg-primary/10' : 'bg-muted'} flex-shrink-0`}>
+                    <TriggerIcon className={`h-4 w-4 sm:h-5 sm:w-5 ${automation.is_active ? 'text-primary' : 'text-muted-foreground'}`} />
                   </div>
                   
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <h4 className="font-semibold">{automation.name}</h4>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <h4 className="font-semibold text-sm sm:text-base">{automation.name}</h4>
                       {automation.is_active ? (
-                        <Badge className="bg-emerald-100 text-emerald-700">Active</Badge>
+                        <Badge className="bg-emerald-100 text-emerald-700 text-xs">Active</Badge>
                       ) : (
-                        <Badge variant="secondary">Paused</Badge>
+                        <Badge variant="secondary" className="text-xs">Paused</Badge>
                       )}
                     </div>
-                    <p className="text-sm text-muted-foreground mt-0.5">{automation.description}</p>
+                    <p className="text-xs sm:text-sm text-muted-foreground mt-0.5 line-clamp-1">{automation.description}</p>
                     
-                    <div className="flex items-center gap-4 mt-2">
+                    <div className="flex flex-wrap items-center gap-2 sm:gap-4 mt-2">
                       <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                         <TriggerIcon className="h-3 w-3" />
-                        {TRIGGER_LABELS[automation.trigger_type]?.label}
+                        <span className="truncate">{TRIGGER_LABELS[automation.trigger_type]?.label}</span>
                       </div>
-                      <ArrowRight className="h-3 w-3 text-muted-foreground" />
-                      <div className="flex items-center gap-1.5">
-                        {automation.actions.map((action, idx) => {
+                      <ArrowRight className="h-3 w-3 text-muted-foreground hidden xs:block" />
+                      <div className="flex items-center gap-1 flex-wrap">
+                        {automation.actions.slice(0, 2).map((action, idx) => {
                           const ActionIcon = ACTION_ICONS[action.type] || Zap;
                           return (
-                            <Badge key={idx} variant="outline" className="text-xs gap-1">
-                              <ActionIcon className="h-3 w-3" />
-                              {action.label}
+                            <Badge key={idx} variant="outline" className="text-[10px] sm:text-xs gap-0.5 sm:gap-1">
+                              <ActionIcon className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
+                              <span className="truncate max-w-[80px] sm:max-w-none">{action.label}</span>
                             </Badge>
                           );
                         })}
+                        {automation.actions.length > 2 && (
+                          <Badge variant="outline" className="text-[10px] sm:text-xs">
+                            +{automation.actions.length - 2}
+                          </Badge>
+                        )}
                       </div>
                     </div>
                   </div>
                   
-                  <div className="text-right">
-                    <p className="text-lg font-bold">{automation.executions_count}</p>
-                    <p className="text-xs text-muted-foreground">executions</p>
-                  </div>
-                  
-                  <div className="flex items-center gap-2">
-                    <Switch
-                      checked={automation.is_active}
-                      onCheckedChange={() => handleToggle(automation.id)}
-                    />
-                    <Button variant="ghost" size="icon" className="h-8 w-8">
-                      <Pencil className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 text-destructive hover:text-destructive"
-                      onClick={() => handleDelete(automation.id)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+                  <div className="flex items-center justify-between sm:justify-end gap-3 sm:gap-4 mt-2 sm:mt-0 pt-2 sm:pt-0 border-t sm:border-0">
+                    <div className="text-left sm:text-right">
+                      <p className="text-base sm:text-lg font-bold">{automation.executions_count}</p>
+                      <p className="text-xs text-muted-foreground">executions</p>
+                    </div>
+                    
+                    <div className="flex items-center gap-2">
+                      <Switch
+                        checked={automation.is_active}
+                        onCheckedChange={() => handleToggle(automation.id)}
+                      />
+                      <Button variant="ghost" size="icon" className="h-8 w-8">
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-destructive hover:text-destructive"
+                        onClick={() => handleDelete(automation.id)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </div>
                 </div>
               );
@@ -312,43 +319,43 @@ export default function MetaAdsAutomations() {
 
         {/* Templates */}
         <Card className="border-0 shadow-lg">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Sparkles className="h-5 w-5 text-amber-500" />
+          <CardHeader className="px-4 sm:px-6">
+            <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+              <Sparkles className="h-4 w-4 sm:h-5 sm:w-5 text-amber-500" />
               Ready-Made Templates
             </CardTitle>
-            <CardDescription>Start with a pre-built automation</CardDescription>
+            <CardDescription className="text-xs sm:text-sm">Start with a pre-built automation</CardDescription>
           </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <CardContent className="px-4 sm:px-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
               {TEMPLATE_AUTOMATIONS.map((template) => {
                 const TriggerIcon = TRIGGER_LABELS[template.trigger_type]?.icon || Zap;
                 
                 return (
                   <div
                     key={template.id}
-                    className="p-4 rounded-xl border-2 border-dashed hover:border-primary/50 hover:bg-primary/5 transition-all cursor-pointer"
+                    className="p-3 sm:p-4 rounded-xl border-2 border-dashed hover:border-primary/50 hover:bg-primary/5 transition-all cursor-pointer touch-manipulation"
                     onClick={() => handleUseTemplate(template)}
                   >
-                    <div className="flex items-center gap-3 mb-3">
-                      <div className="p-2 rounded-lg bg-amber-100 dark:bg-amber-900/50">
-                        <TriggerIcon className="h-4 w-4 text-amber-600" />
+                    <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
+                      <div className="p-1.5 sm:p-2 rounded-lg bg-amber-100 dark:bg-amber-900/50 flex-shrink-0">
+                        <TriggerIcon className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-amber-600" />
                       </div>
-                      <h4 className="font-semibold text-sm">{template.name}</h4>
+                      <h4 className="font-semibold text-xs sm:text-sm line-clamp-1">{template.name}</h4>
                     </div>
-                    <p className="text-xs text-muted-foreground mb-3">{template.description}</p>
-                    <div className="flex items-center gap-2">
+                    <p className="text-xs text-muted-foreground mb-2 sm:mb-3 line-clamp-2">{template.description}</p>
+                    <div className="flex items-center gap-1 sm:gap-2 flex-wrap">
                       {template.actions.map((action, idx) => {
                         const ActionIcon = ACTION_ICONS[action.type] || Zap;
                         return (
-                          <Badge key={idx} variant="secondary" className="text-xs">
-                            <ActionIcon className="h-3 w-3 mr-1" />
-                            {action.label}
+                          <Badge key={idx} variant="secondary" className="text-[10px] sm:text-xs">
+                            <ActionIcon className="h-2.5 w-2.5 sm:h-3 sm:w-3 mr-0.5 sm:mr-1" />
+                            <span className="truncate max-w-[60px] sm:max-w-none">{action.label}</span>
                           </Badge>
                         );
                       })}
                     </div>
-                    <Button variant="outline" size="sm" className="w-full mt-4 gap-2">
+                    <Button variant="outline" size="sm" className="w-full mt-3 sm:mt-4 gap-1.5 sm:gap-2 h-8 text-xs sm:text-sm">
                       <Copy className="h-3 w-3" />
                       Use Template
                     </Button>
@@ -362,26 +369,26 @@ export default function MetaAdsAutomations() {
 
       {/* Create Dialog */}
       <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
-        <DialogContent className="sm:max-w-lg">
+        <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto mx-4">
           <DialogHeader>
-            <DialogTitle>Create Automation</DialogTitle>
-            <DialogDescription>
+            <DialogTitle className="text-base sm:text-lg">Create Automation</DialogTitle>
+            <DialogDescription className="text-xs sm:text-sm">
               Set up automated actions for your Meta Ad leads
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label>Automation Name</Label>
-              <Input placeholder="e.g., Welcome New Ad Leads" />
+              <Label className="text-sm">Automation Name</Label>
+              <Input placeholder="e.g., Welcome New Ad Leads" className="h-10" />
             </div>
             <div className="space-y-2">
-              <Label>Description</Label>
+              <Label className="text-sm">Description</Label>
               <Textarea placeholder="What does this automation do?" rows={2} />
             </div>
             <div className="space-y-2">
-              <Label>Trigger</Label>
+              <Label className="text-sm">Trigger</Label>
               <Select defaultValue="new_lead">
-                <SelectTrigger>
+                <SelectTrigger className="h-10">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -392,17 +399,17 @@ export default function MetaAdsAutomations() {
               </Select>
             </div>
             <div className="space-y-2">
-              <Label>Actions</Label>
+              <Label className="text-sm">Actions</Label>
               <div className="space-y-2">
                 {[
                   { id: 'template', label: 'Send Welcome Template', icon: MessageSquare },
                   { id: 'tag', label: 'Add "Meta Lead" Tag', icon: Tag },
                   { id: 'assign', label: 'Assign to Sales Team', icon: Users },
                 ].map((action) => (
-                  <div key={action.id} className="flex items-center space-x-3 p-3 rounded-lg border">
+                  <div key={action.id} className="flex items-center space-x-3 p-2.5 sm:p-3 rounded-lg border touch-manipulation">
                     <Checkbox id={action.id} defaultChecked={action.id === 'template'} />
-                    <Label htmlFor={action.id} className="flex items-center gap-2 cursor-pointer">
-                      <action.icon className="h-4 w-4 text-muted-foreground" />
+                    <Label htmlFor={action.id} className="flex items-center gap-2 cursor-pointer text-xs sm:text-sm">
+                      <action.icon className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground" />
                       {action.label}
                     </Label>
                   </div>
@@ -410,12 +417,12 @@ export default function MetaAdsAutomations() {
               </div>
             </div>
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowCreateDialog(false)}>Cancel</Button>
+          <DialogFooter className="flex-col sm:flex-row gap-2 sm:gap-0">
+            <Button variant="outline" onClick={() => setShowCreateDialog(false)} className="w-full sm:w-auto">Cancel</Button>
             <Button onClick={() => {
               setShowCreateDialog(false);
               toast.success('Automation created');
-            }} className="gap-2">
+            }} className="gap-2 w-full sm:w-auto">
               <CheckCircle2 className="h-4 w-4" />
               Create Automation
             </Button>

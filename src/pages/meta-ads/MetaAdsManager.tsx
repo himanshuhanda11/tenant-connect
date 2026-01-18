@@ -79,99 +79,100 @@ export default function MetaAdsManager() {
 
   return (
     <DashboardLayout>
-      <div className="p-6 space-y-6 max-w-7xl mx-auto">
+      <div className="p-4 sm:p-6 space-y-4 sm:space-y-6 max-w-7xl mx-auto">
         {/* Header */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <div className="flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 shadow-lg shadow-blue-500/25">
-              <Megaphone className="h-7 w-7 text-white" />
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
+          <div className="flex items-center gap-3 sm:gap-4">
+            <div className="flex items-center justify-center w-10 h-10 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 shadow-lg shadow-blue-500/25">
+              <Megaphone className="h-5 w-5 sm:h-7 sm:w-7 text-white" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold tracking-tight">Ads Manager</h1>
-              <p className="text-muted-foreground">
+              <h1 className="text-xl sm:text-2xl font-bold tracking-tight">Ads Manager</h1>
+              <p className="text-sm text-muted-foreground">
                 View your Click-to-WhatsApp campaigns (read-only)
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             <Button
               variant="outline"
+              size="sm"
               onClick={handleRefresh}
               disabled={isRefreshing}
-              className="gap-2"
+              className="gap-1.5 text-xs sm:text-sm"
             >
-              <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+              <RefreshCw className={`h-3.5 w-3.5 sm:h-4 sm:w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
               Sync
             </Button>
-            <Button variant="outline" asChild className="gap-2">
+            <Button variant="outline" size="sm" asChild className="gap-1.5 text-xs sm:text-sm">
               <a href="https://adsmanager.facebook.com" target="_blank" rel="noopener noreferrer">
-                Open Meta Ads Manager
-                <ExternalLink className="h-4 w-4" />
+                <span className="hidden xs:inline">Open</span> Meta Ads
+                <ExternalLink className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
               </a>
             </Button>
           </div>
         </div>
 
         {/* Summary Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4">
           <Card className="border-0 shadow-md">
-            <CardContent className="p-4 flex items-center gap-4">
-              <div className="p-2 rounded-lg bg-blue-100 dark:bg-blue-900/50">
-                <TrendingUp className="h-5 w-5 text-blue-600" />
+            <CardContent className="p-3 sm:p-4 flex items-center gap-2 sm:gap-4">
+              <div className="p-1.5 sm:p-2 rounded-lg bg-blue-100 dark:bg-blue-900/50 flex-shrink-0">
+                <TrendingUp className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600" />
               </div>
-              <div>
-                <p className="text-2xl font-bold">{totals.impressions.toLocaleString()}</p>
-                <p className="text-xs text-muted-foreground">Impressions</p>
+              <div className="min-w-0">
+                <p className="text-lg sm:text-2xl font-bold">{totals.impressions.toLocaleString()}</p>
+                <p className="text-[10px] sm:text-xs text-muted-foreground">Impressions</p>
               </div>
             </CardContent>
           </Card>
           <Card className="border-0 shadow-md">
-            <CardContent className="p-4 flex items-center gap-4">
-              <div className="p-2 rounded-lg bg-violet-100 dark:bg-violet-900/50">
-                <MousePointerClick className="h-5 w-5 text-violet-600" />
+            <CardContent className="p-3 sm:p-4 flex items-center gap-2 sm:gap-4">
+              <div className="p-1.5 sm:p-2 rounded-lg bg-violet-100 dark:bg-violet-900/50 flex-shrink-0">
+                <MousePointerClick className="h-4 w-4 sm:h-5 sm:w-5 text-violet-600" />
               </div>
-              <div>
-                <p className="text-2xl font-bold">{totals.clicks.toLocaleString()}</p>
-                <p className="text-xs text-muted-foreground">Clicks</p>
-              </div>
-            </CardContent>
-          </Card>
-          <Card className="border-0 shadow-md">
-            <CardContent className="p-4 flex items-center gap-4">
-              <div className="p-2 rounded-lg bg-emerald-100 dark:bg-emerald-900/50">
-                <Users className="h-5 w-5 text-emerald-600" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold">{totals.leads}</p>
-                <p className="text-xs text-muted-foreground">Total Leads</p>
+              <div className="min-w-0">
+                <p className="text-lg sm:text-2xl font-bold">{totals.clicks.toLocaleString()}</p>
+                <p className="text-[10px] sm:text-xs text-muted-foreground">Clicks</p>
               </div>
             </CardContent>
           </Card>
           <Card className="border-0 shadow-md">
-            <CardContent className="p-4 flex items-center gap-4">
-              <div className="p-2 rounded-lg bg-amber-100 dark:bg-amber-900/50">
-                <DollarSign className="h-5 w-5 text-amber-600" />
+            <CardContent className="p-3 sm:p-4 flex items-center gap-2 sm:gap-4">
+              <div className="p-1.5 sm:p-2 rounded-lg bg-emerald-100 dark:bg-emerald-900/50 flex-shrink-0">
+                <Users className="h-4 w-4 sm:h-5 sm:w-5 text-emerald-600" />
               </div>
-              <div>
-                <p className="text-2xl font-bold">${totals.spend.toFixed(2)}</p>
-                <p className="text-xs text-muted-foreground">Total Spend</p>
+              <div className="min-w-0">
+                <p className="text-lg sm:text-2xl font-bold">{totals.leads}</p>
+                <p className="text-[10px] sm:text-xs text-muted-foreground">Total Leads</p>
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="border-0 shadow-md">
+            <CardContent className="p-3 sm:p-4 flex items-center gap-2 sm:gap-4">
+              <div className="p-1.5 sm:p-2 rounded-lg bg-amber-100 dark:bg-amber-900/50 flex-shrink-0">
+                <DollarSign className="h-4 w-4 sm:h-5 sm:w-5 text-amber-600" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-lg sm:text-2xl font-bold">${totals.spend.toFixed(2)}</p>
+                <p className="text-[10px] sm:text-xs text-muted-foreground">Total Spend</p>
               </div>
             </CardContent>
           </Card>
         </div>
 
         {/* Filters & Search */}
-        <div className="flex items-center gap-3">
-          <div className="relative flex-1 max-w-md">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
+          <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search campaigns or ads..."
+              placeholder="Search campaigns..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10"
+              className="pl-10 h-10"
             />
           </div>
-          <Button variant="outline" className="gap-2">
+          <Button variant="outline" className="gap-2 h-10 text-sm">
             <Filter className="h-4 w-4" />
             Filters
           </Button>

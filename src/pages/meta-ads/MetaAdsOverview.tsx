@@ -90,27 +90,27 @@ export default function MetaAdsOverview() {
 
         {/* Connection Status */}
         <Card className="border-0 shadow-lg bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-950/20 dark:to-teal-950/20">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-emerald-100 dark:bg-emerald-900/50">
-                  <CheckCircle2 className="h-6 w-6 text-emerald-600" />
+          <CardContent className="p-4 sm:p-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="flex items-center gap-3 sm:gap-4">
+                <div className="flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-emerald-100 dark:bg-emerald-900/50 flex-shrink-0">
+                  <CheckCircle2 className="h-5 w-5 sm:h-6 sm:w-6 text-emerald-600" />
                 </div>
-                <div>
-                  <h3 className="font-semibold text-lg">{data.accountName}</h3>
-                  <p className="text-sm text-muted-foreground">
+                <div className="min-w-0">
+                  <h3 className="font-semibold text-base sm:text-lg truncate">{data.accountName}</h3>
+                  <p className="text-xs sm:text-sm text-muted-foreground">
                     Connected • Last synced {formatDistanceToNow(new Date(data.lastSyncedAt), { addSuffix: true })}
                   </p>
                 </div>
               </div>
-              <div className="flex items-center gap-3">
-                <Badge variant="secondary" className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300">
+              <div className="flex items-center gap-2 sm:gap-3 ml-auto sm:ml-0">
+                <Badge variant="secondary" className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300 text-xs">
                   <CheckCircle2 className="h-3 w-3 mr-1" />
                   Connected
                 </Badge>
-                <Button variant="outline" size="sm" asChild>
-                  <a href="https://adsmanager.facebook.com" target="_blank" rel="noopener noreferrer" className="gap-2">
-                    Open Ads Manager
+                <Button variant="outline" size="sm" asChild className="text-xs sm:text-sm h-8 sm:h-9">
+                  <a href="https://adsmanager.facebook.com" target="_blank" rel="noopener noreferrer" className="gap-1.5 sm:gap-2">
+                    <span className="hidden xs:inline">Open</span> Ads Manager
                     <ExternalLink className="h-3 w-3" />
                   </a>
                 </Button>
@@ -122,63 +122,63 @@ export default function MetaAdsOverview() {
         {/* Stats Grid */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4">
           <Card className="border-0 shadow-md hover:shadow-lg transition-shadow">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between mb-3">
-                <div className="p-2 rounded-lg bg-blue-100 dark:bg-blue-900/50">
-                  <Play className="h-5 w-5 text-blue-600" />
+            <CardContent className="p-3 sm:p-6">
+              <div className="flex items-center justify-between mb-2 sm:mb-3">
+                <div className="p-1.5 sm:p-2 rounded-lg bg-blue-100 dark:bg-blue-900/50">
+                  <Play className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600" />
                 </div>
-                <Badge variant="secondary" className="text-xs">Active</Badge>
+                <Badge variant="secondary" className="text-[10px] sm:text-xs">Active</Badge>
               </div>
-              <div className="text-3xl font-bold">{data.activeAdsCount}</div>
-              <p className="text-sm text-muted-foreground mt-1">Active Ads</p>
+              <div className="text-xl sm:text-3xl font-bold">{data.activeAdsCount}</div>
+              <p className="text-xs sm:text-sm text-muted-foreground mt-1">Active Ads</p>
             </CardContent>
           </Card>
 
           <Card className="border-0 shadow-md hover:shadow-lg transition-shadow">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between mb-3">
-                <div className="p-2 rounded-lg bg-emerald-100 dark:bg-emerald-900/50">
-                  <Users className="h-5 w-5 text-emerald-600" />
+            <CardContent className="p-3 sm:p-6">
+              <div className="flex items-center justify-between mb-2 sm:mb-3">
+                <div className="p-1.5 sm:p-2 rounded-lg bg-emerald-100 dark:bg-emerald-900/50">
+                  <Users className="h-4 w-4 sm:h-5 sm:w-5 text-emerald-600" />
                 </div>
-                <div className="flex items-center text-emerald-600 text-xs font-medium">
+                <div className="flex items-center text-emerald-600 text-[10px] sm:text-xs font-medium">
                   <ArrowUpRight className="h-3 w-3" />
                   +12%
                 </div>
               </div>
-              <div className="text-3xl font-bold">{data.leadsToday}</div>
-              <p className="text-sm text-muted-foreground mt-1">Leads Today</p>
+              <div className="text-xl sm:text-3xl font-bold">{data.leadsToday}</div>
+              <p className="text-xs sm:text-sm text-muted-foreground mt-1">Leads Today</p>
             </CardContent>
           </Card>
 
           <Card className="border-0 shadow-md hover:shadow-lg transition-shadow">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between mb-3">
-                <div className="p-2 rounded-lg bg-violet-100 dark:bg-violet-900/50">
-                  <Target className="h-5 w-5 text-violet-600" />
+            <CardContent className="p-3 sm:p-6">
+              <div className="flex items-center justify-between mb-2 sm:mb-3">
+                <div className="p-1.5 sm:p-2 rounded-lg bg-violet-100 dark:bg-violet-900/50">
+                  <Target className="h-4 w-4 sm:h-5 sm:w-5 text-violet-600" />
                 </div>
-                <div className="flex items-center text-emerald-600 text-xs font-medium">
+                <div className="flex items-center text-emerald-600 text-[10px] sm:text-xs font-medium">
                   <ArrowUpRight className="h-3 w-3" />
                   +5%
                 </div>
               </div>
-              <div className="text-3xl font-bold">{data.leadsThisMonth}</div>
-              <p className="text-sm text-muted-foreground mt-1">Leads This Month</p>
+              <div className="text-xl sm:text-3xl font-bold">{data.leadsThisMonth}</div>
+              <p className="text-xs sm:text-sm text-muted-foreground mt-1">Leads This Month</p>
             </CardContent>
           </Card>
 
           <Card className="border-0 shadow-md hover:shadow-lg transition-shadow">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between mb-3">
-                <div className="p-2 rounded-lg bg-amber-100 dark:bg-amber-900/50">
-                  <DollarSign className="h-5 w-5 text-amber-600" />
+            <CardContent className="p-3 sm:p-6">
+              <div className="flex items-center justify-between mb-2 sm:mb-3">
+                <div className="p-1.5 sm:p-2 rounded-lg bg-amber-100 dark:bg-amber-900/50">
+                  <DollarSign className="h-4 w-4 sm:h-5 sm:w-5 text-amber-600" />
                 </div>
-                <div className="flex items-center text-rose-600 text-xs font-medium">
+                <div className="flex items-center text-rose-600 text-[10px] sm:text-xs font-medium">
                   <ArrowDownRight className="h-3 w-3" />
                   -8%
                 </div>
               </div>
-              <div className="text-3xl font-bold">${data.costPerLead.toFixed(2)}</div>
-              <p className="text-sm text-muted-foreground mt-1">Cost per Lead</p>
+              <div className="text-xl sm:text-3xl font-bold">${data.costPerLead.toFixed(2)}</div>
+              <p className="text-xs sm:text-sm text-muted-foreground mt-1">Cost per Lead</p>
             </CardContent>
           </Card>
         </div>
@@ -186,14 +186,14 @@ export default function MetaAdsOverview() {
         {/* Secondary Stats */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
           <Card className="border-0 shadow-md">
-            <CardContent className="p-6">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="p-2 rounded-lg bg-primary/10">
-                  <MousePointerClick className="h-5 w-5 text-primary" />
+            <CardContent className="p-4 sm:p-6">
+              <div className="flex items-center gap-3 mb-3 sm:mb-4">
+                <div className="p-1.5 sm:p-2 rounded-lg bg-primary/10 flex-shrink-0">
+                  <MousePointerClick className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
                 </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Conversion Rate</p>
-                  <p className="text-2xl font-bold">{data.conversionRate}%</p>
+                <div className="min-w-0">
+                  <p className="text-xs sm:text-sm text-muted-foreground">Conversion Rate</p>
+                  <p className="text-xl sm:text-2xl font-bold">{data.conversionRate}%</p>
                 </div>
               </div>
               <Progress value={data.conversionRate} className="h-2" />
@@ -204,31 +204,31 @@ export default function MetaAdsOverview() {
           </Card>
 
           <Card className="border-0 shadow-md">
-            <CardContent className="p-6">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="p-2 rounded-lg bg-primary/10">
-                  <MessageSquare className="h-5 w-5 text-primary" />
+            <CardContent className="p-4 sm:p-6">
+              <div className="flex items-center gap-3 mb-3 sm:mb-4">
+                <div className="p-1.5 sm:p-2 rounded-lg bg-primary/10 flex-shrink-0">
+                  <MessageSquare className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
                 </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Avg Response Time</p>
-                  <p className="text-2xl font-bold">2.4 min</p>
+                <div className="min-w-0">
+                  <p className="text-xs sm:text-sm text-muted-foreground">Avg Response Time</p>
+                  <p className="text-xl sm:text-2xl font-bold">2.4 min</p>
                 </div>
               </div>
-              <p className="text-sm text-emerald-600 font-medium">
+              <p className="text-xs sm:text-sm text-emerald-600 font-medium">
                 ✓ Within SLA target
               </p>
             </CardContent>
           </Card>
 
           <Card className="border-0 shadow-md">
-            <CardContent className="p-6">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="p-2 rounded-lg bg-primary/10">
-                  <DollarSign className="h-5 w-5 text-primary" />
+            <CardContent className="p-4 sm:p-6">
+              <div className="flex items-center gap-3 mb-3 sm:mb-4">
+                <div className="p-1.5 sm:p-2 rounded-lg bg-primary/10 flex-shrink-0">
+                  <DollarSign className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
                 </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Total Spend</p>
-                  <p className="text-2xl font-bold">${data.totalSpend.toFixed(2)}</p>
+                <div className="min-w-0">
+                  <p className="text-xs sm:text-sm text-muted-foreground">Total Spend</p>
+                  <p className="text-xl sm:text-2xl font-bold">${data.totalSpend.toFixed(2)}</p>
                 </div>
               </div>
               <p className="text-xs text-muted-foreground">
@@ -240,43 +240,43 @@ export default function MetaAdsOverview() {
 
         {/* Quick Actions */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
-          <Card className="border-0 shadow-md hover:shadow-lg transition-all cursor-pointer group">
-            <CardContent className="p-6">
-              <Link to="/meta-ads/analytics" className="flex items-center gap-4">
-                <div className="p-3 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 group-hover:scale-110 transition-transform">
-                  <BarChart3 className="h-6 w-6 text-white" />
+          <Card className="border-0 shadow-md hover:shadow-lg transition-all cursor-pointer group touch-manipulation">
+            <CardContent className="p-4 sm:p-6">
+              <Link to="/meta-ads/analytics" className="flex items-center gap-3 sm:gap-4">
+                <div className="p-2 sm:p-3 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 group-hover:scale-110 transition-transform flex-shrink-0">
+                  <BarChart3 className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
                 </div>
-                <div>
-                  <h3 className="font-semibold group-hover:text-primary transition-colors">View Analytics</h3>
-                  <p className="text-sm text-muted-foreground">Detailed lead & campaign insights</p>
-                </div>
-              </Link>
-            </CardContent>
-          </Card>
-
-          <Card className="border-0 shadow-md hover:shadow-lg transition-all cursor-pointer group">
-            <CardContent className="p-6">
-              <Link to="/meta-ads/automations" className="flex items-center gap-4">
-                <div className="p-3 rounded-xl bg-gradient-to-br from-violet-500 to-violet-600 group-hover:scale-110 transition-transform">
-                  <Zap className="h-6 w-6 text-white" />
-                </div>
-                <div>
-                  <h3 className="font-semibold group-hover:text-primary transition-colors">Setup Automations</h3>
-                  <p className="text-sm text-muted-foreground">Auto-respond to ad leads</p>
+                <div className="min-w-0">
+                  <h3 className="font-semibold text-sm sm:text-base group-hover:text-primary transition-colors">View Analytics</h3>
+                  <p className="text-xs sm:text-sm text-muted-foreground truncate">Detailed lead & campaign insights</p>
                 </div>
               </Link>
             </CardContent>
           </Card>
 
-          <Card className="border-0 shadow-md hover:shadow-lg transition-all cursor-pointer group">
-            <CardContent className="p-6">
-              <Link to="/meta-ads/ads" className="flex items-center gap-4">
-                <div className="p-3 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-600 group-hover:scale-110 transition-transform">
-                  <Megaphone className="h-6 w-6 text-white" />
+          <Card className="border-0 shadow-md hover:shadow-lg transition-all cursor-pointer group touch-manipulation">
+            <CardContent className="p-4 sm:p-6">
+              <Link to="/meta-ads/automations" className="flex items-center gap-3 sm:gap-4">
+                <div className="p-2 sm:p-3 rounded-xl bg-gradient-to-br from-violet-500 to-violet-600 group-hover:scale-110 transition-transform flex-shrink-0">
+                  <Zap className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
                 </div>
-                <div>
-                  <h3 className="font-semibold group-hover:text-primary transition-colors">View Ads</h3>
-                  <p className="text-sm text-muted-foreground">See all Click-to-WhatsApp ads</p>
+                <div className="min-w-0">
+                  <h3 className="font-semibold text-sm sm:text-base group-hover:text-primary transition-colors">Setup Automations</h3>
+                  <p className="text-xs sm:text-sm text-muted-foreground truncate">Auto-respond to ad leads</p>
+                </div>
+              </Link>
+            </CardContent>
+          </Card>
+
+          <Card className="border-0 shadow-md hover:shadow-lg transition-all cursor-pointer group touch-manipulation">
+            <CardContent className="p-4 sm:p-6">
+              <Link to="/meta-ads/ads" className="flex items-center gap-3 sm:gap-4">
+                <div className="p-2 sm:p-3 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-600 group-hover:scale-110 transition-transform flex-shrink-0">
+                  <Megaphone className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
+                </div>
+                <div className="min-w-0">
+                  <h3 className="font-semibold text-sm sm:text-base group-hover:text-primary transition-colors">View Ads</h3>
+                  <p className="text-xs sm:text-sm text-muted-foreground truncate">See all Click-to-WhatsApp ads</p>
                 </div>
               </Link>
             </CardContent>
