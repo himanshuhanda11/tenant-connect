@@ -53,10 +53,10 @@ export default function Index() {
   return (
     <div className="min-h-screen bg-white">
       <SEO
-        title="Free WhatsApp API | AI Automation, Inbox & Flow Diagnostics"
-        description="Get started with Free WhatsApp API. Run WhatsApp like a growth machine with AI insights, flow diagnostics, and Meta Ads attribution built on WhatsApp Cloud API."
+        title="Free WhatsApp API Lifetime | No Monthly Fees, Official Cloud API"
+        description="Get Free WhatsApp API Lifetime access with AiReatro. No setup fees, no monthly platform charges. Only pay Meta's conversation fees. Official WhatsApp Cloud API partner."
         canonical="/"
-        keywords={['free whatsapp api', 'WhatsApp automation', 'AI chatbot', 'team inbox', 'Meta Ads attribution', 'whatsapp business api free']}
+        keywords={['free whatsapp api lifetime', 'free whatsapp api', 'whatsapp cloud api free', 'whatsapp business api free', 'free whatsapp automation', 'no monthly fee whatsapp api']}
       />
       <JsonLd data={[organizationSchema, websiteSchema, softwareApplicationSchema]} />
       <Navbar />

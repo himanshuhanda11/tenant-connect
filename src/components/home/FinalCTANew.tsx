@@ -13,9 +13,9 @@ import { OptimizedImage } from '@/components/ui/optimized-media';
 import whatsappFriends from '@/assets/whatsapp-friends-upload.jpg';
 
 const benefits = [
-  { icon: Zap, text: 'Setup in 5 minutes' },
-  { icon: Shield, text: 'No credit card required' },
-  { icon: HeadphonesIcon, text: 'Free migration support' },
+  { icon: Zap, text: 'Free API Lifetime' },
+  { icon: Shield, text: 'No Monthly Fees' },
+  { icon: HeadphonesIcon, text: 'Official Cloud API' },
 ];
 
 export default function FinalCTANew() {
@@ -39,15 +39,15 @@ export default function FinalCTANew() {
             </div>
             
             <h2 className="text-2xl xs:text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-4 sm:mb-6 leading-tight">
-              Ready to Turn WhatsApp Into Your{' '}
+              Get{' '}
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-emerald-400">
-                #1 Revenue Channel
+                Free WhatsApp API Lifetime
               </span>
-              ?
+              {' '}Access Today
             </h2>
             
             <p className="text-sm sm:text-base lg:text-xl text-slate-400 mb-6 sm:mb-8 lg:mb-10 max-w-2xl mx-auto lg:mx-0">
-              Join 2,000+ teams using AiReatro to automate conversations, close more deals, and delight customers.
+              No monthly platform fees. No hidden charges. Just pay Meta's conversation fees. Join 2,000+ teams using AiReatro.
             </p>
 
             {/* CTA Buttons */}
