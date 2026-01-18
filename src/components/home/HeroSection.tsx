@@ -43,19 +43,18 @@ export default function HeroSection() {
           <div className="text-center max-w-4xl mx-auto mb-6 sm:mb-8">
             <Badge className="mb-4 sm:mb-5 bg-green-50 text-green-700 border-green-200 hover:bg-green-100 px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm">
               <Sparkles className="w-3 sm:w-3.5 h-3 sm:h-3.5 mr-1.5 sm:mr-2" />
-              AI-Powered WhatsApp Platform
+              Official WhatsApp Cloud API Partner
             </Badge>
             
             <h1 className="text-3xl xs:text-4xl sm:text-5xl lg:text-6xl font-bold leading-tight mb-4 sm:mb-5 text-slate-900">
-              Run WhatsApp Like a{' '}
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-green-600 to-emerald-500">
-                Growth Machine
+                Free WhatsApp API Lifetime
               </span>
-              {' '}— Powered by AI.
+              {' '}— No Monthly Fees, Ever.
             </h1>
             
             <p className="text-base sm:text-lg lg:text-xl text-slate-600 mb-6 sm:mb-8 max-w-2xl mx-auto">
-              AI-driven WhatsApp automation, team inbox, Meta Ads attribution, and flow diagnostics — all in one platform.
+              Get lifetime free access to WhatsApp Cloud API. Only pay Meta's conversation fees — zero platform charges. AI automation, team inbox & flow diagnostics included.
             </p>
 
             {/* CTA Buttons */}
@@ -82,17 +81,17 @@ export default function HeroSection() {
             <div className="text-xs sm:text-sm text-slate-500 flex items-center gap-2 justify-center flex-wrap">
               <span className="flex items-center gap-1">
                 <CheckCircle className="w-3.5 sm:w-4 h-3.5 sm:h-4 text-green-500" />
-                No credit card
+                Free Forever
               </span>
               <span className="text-slate-300">•</span>
               <span className="flex items-center gap-1">
                 <CheckCircle className="w-3.5 sm:w-4 h-3.5 sm:h-4 text-green-500" />
-                Setup in minutes
+                No Monthly Fees
               </span>
               <span className="hidden xs:inline text-slate-300">•</span>
               <span className="hidden xs:flex items-center gap-1">
                 <CheckCircle className="w-3.5 sm:w-4 h-3.5 sm:h-4 text-green-500" />
-                WhatsApp Cloud API
+                Official Cloud API
               </span>
             </div>
           </div>
