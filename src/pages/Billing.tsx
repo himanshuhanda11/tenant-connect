@@ -35,33 +35,36 @@ export default function Billing() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-6">
+      <div className="space-y-4 sm:space-y-6">
         {/* Quick Guide */}
         <QuickGuide {...quickGuides.billing} />
 
         <div>
-          <h1 className="text-2xl font-bold">Billing & Subscription</h1>
-          <p className="text-muted-foreground">
+          <h1 className="text-xl sm:text-2xl font-bold">Billing & Subscription</h1>
+          <p className="text-sm sm:text-base text-muted-foreground">
             Manage your subscription, usage, and payment methods
           </p>
         </div>
 
-        <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2 md:grid-cols-6 lg:w-auto lg:inline-grid">
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="plans">Plans</TabsTrigger>
-            <TabsTrigger value="usage">Usage</TabsTrigger>
-            <TabsTrigger value="invoices">Invoices</TabsTrigger>
-            <TabsTrigger value="payment">Payment</TabsTrigger>
-            <TabsTrigger value="settings">Settings</TabsTrigger>
-          </TabsList>
+        <Tabs defaultValue="overview" className="space-y-4 sm:space-y-6">
+          {/* Mobile: horizontal scrollable tabs */}
+          <div className="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0">
+            <TabsList className="inline-flex w-auto min-w-max sm:grid sm:w-full sm:grid-cols-3 lg:grid-cols-6 gap-1">
+              <TabsTrigger value="overview" className="text-xs sm:text-sm px-3 sm:px-4">Overview</TabsTrigger>
+              <TabsTrigger value="plans" className="text-xs sm:text-sm px-3 sm:px-4">Plans</TabsTrigger>
+              <TabsTrigger value="usage" className="text-xs sm:text-sm px-3 sm:px-4">Usage</TabsTrigger>
+              <TabsTrigger value="invoices" className="text-xs sm:text-sm px-3 sm:px-4">Invoices</TabsTrigger>
+              <TabsTrigger value="payment" className="text-xs sm:text-sm px-3 sm:px-4">Payment</TabsTrigger>
+              <TabsTrigger value="settings" className="text-xs sm:text-sm px-3 sm:px-4">Settings</TabsTrigger>
+            </TabsList>
+          </div>
 
           {/* Overview Tab */}
           <TabsContent value="overview" className="space-y-6">
             <MetaBillingNotice />
             <BillingOverviewCards />
             <BillingQuickActions />
-            <div className="grid gap-6 lg:grid-cols-2">
+            <div className="grid gap-4 sm:gap-6 lg:grid-cols-2">
               <UsageOverview />
               <BillingFAQ />
             </div>
@@ -94,7 +97,7 @@ export default function Billing() {
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+                <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
                   {plans?.map((plan) => (
                     <PlanCard
                       key={plan.id}

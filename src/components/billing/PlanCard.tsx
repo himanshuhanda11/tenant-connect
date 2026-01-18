@@ -63,23 +63,23 @@ export function PlanCard({ plan, isCurrentPlan, isYearly, isRecommended, onSelec
         </div>
       )}
       
-      <CardHeader className="text-center pb-2">
-        <CardTitle className="text-xl">{plan.name}</CardTitle>
-        <CardDescription>{plan.description}</CardDescription>
+      <CardHeader className="text-center pb-2 px-3 sm:px-6">
+        <CardTitle className="text-lg sm:text-xl">{plan.name}</CardTitle>
+        <CardDescription className="text-xs sm:text-sm">{plan.description}</CardDescription>
       </CardHeader>
       
-      <CardContent className="flex-1 flex flex-col">
-        <div className="text-center mb-6">
+      <CardContent className="flex-1 flex flex-col px-3 sm:px-6">
+        <div className="text-center mb-4 sm:mb-6">
           {isEnterprise ? (
-            <div className="text-3xl font-bold">Custom</div>
+            <div className="text-2xl sm:text-3xl font-bold">Custom</div>
           ) : (
             <>
               <div className="flex items-baseline justify-center gap-1">
-                <span className="text-4xl font-bold">${monthlyEquivalent}</span>
-                <span className="text-muted-foreground">/mo</span>
+                <span className="text-3xl sm:text-4xl font-bold">${monthlyEquivalent}</span>
+                <span className="text-muted-foreground text-sm">/mo</span>
               </div>
               {isYearly && savings > 0 && (
-                <Badge variant="secondary" className="mt-2">
+                <Badge variant="secondary" className="mt-2 text-xs">
                   Save {savings}% yearly
                 </Badge>
               )}
@@ -87,25 +87,25 @@ export function PlanCard({ plan, isCurrentPlan, isYearly, isRecommended, onSelec
           )}
         </div>
         
-        <div className="space-y-3 flex-1">
+        <div className="space-y-2 sm:space-y-3 flex-1">
           {features.map((feature, idx) => (
-            <div key={idx} className="flex items-center justify-between text-sm">
-              <span className="text-muted-foreground">{feature.label}</span>
+            <div key={idx} className="flex items-center justify-between text-xs sm:text-sm gap-2">
+              <span className="text-muted-foreground truncate">{feature.label}</span>
               {feature.isBool !== undefined ? (
                 feature.value ? (
-                  <Check className="h-4 w-4 text-green-600" />
+                  <Check className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-green-600 flex-shrink-0" />
                 ) : (
-                  <X className="h-4 w-4 text-muted-foreground" />
+                  <X className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground flex-shrink-0" />
                 )
               ) : (
-                <span className="font-medium">{feature.value}</span>
+                <span className="font-medium flex-shrink-0">{feature.value}</span>
               )}
             </div>
           ))}
         </div>
         
         <Button 
-          className="w-full mt-6"
+          className="w-full mt-4 sm:mt-6 text-sm"
           variant={isCurrentPlan ? 'outline' : isRecommended ? 'default' : 'secondary'}
           disabled={isCurrentPlan}
           onClick={() => onSelect(plan)}

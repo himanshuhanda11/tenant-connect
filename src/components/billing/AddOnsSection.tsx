@@ -49,33 +49,33 @@ export function AddOnsSection() {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2">
           {addOns.map((addon) => (
             <div 
               key={addon.id}
-              className="flex items-start gap-4 p-4 border rounded-lg hover:bg-muted/50 transition-colors"
+              className="flex items-start gap-3 sm:gap-4 p-3 sm:p-4 border rounded-lg hover:bg-muted/50 transition-colors touch-manipulation"
             >
-              <div className="p-2 rounded-lg bg-primary/10">
-                <addon.icon className="h-5 w-5 text-primary" />
+              <div className="p-1.5 sm:p-2 rounded-lg bg-primary/10 flex-shrink-0">
+                <addon.icon className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
               </div>
               <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2">
-                  <h4 className="font-medium">{addon.name}</h4>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h4 className="font-medium text-sm sm:text-base">{addon.name}</h4>
                   {addon.badge && (
-                    <Badge variant="secondary" className="text-xs">
+                    <Badge variant="secondary" className="text-[10px] sm:text-xs">
                       {addon.badge}
                     </Badge>
                   )}
                 </div>
-                <p className="text-sm text-muted-foreground mt-1">
+                <p className="text-xs sm:text-sm text-muted-foreground mt-1 line-clamp-2">
                   {addon.description}
                 </p>
-                <div className="flex items-center justify-between mt-3">
-                  <span className="text-sm">
+                <div className="flex items-center justify-between mt-2 sm:mt-3 gap-2">
+                  <span className="text-xs sm:text-sm">
                     <span className="font-semibold">${addon.price}</span>
                     <span className="text-muted-foreground"> {addon.unit}</span>
                   </span>
-                  <Button size="sm" variant="outline">
+                  <Button size="sm" variant="outline" className="h-7 sm:h-8 text-xs sm:text-sm px-2 sm:px-3">
                     Add
                   </Button>
                 </div>
