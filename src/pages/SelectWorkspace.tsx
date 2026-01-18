@@ -292,56 +292,56 @@ export default function SelectWorkspace() {
           </div>
         </header>
 
-        <main className="container mx-auto px-4 py-8 max-w-5xl">
+        <main className="container mx-auto px-3 xs:px-4 py-4 xs:py-6 sm:py-8 max-w-5xl pb-24 md:pb-8">
           {/* Page Header */}
-          <div className="mb-8">
-            <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
+          <div className="mb-4 xs:mb-6 sm:mb-8">
+            <h1 className="text-xl xs:text-2xl md:text-3xl font-bold text-gray-900 mb-1 xs:mb-2">
               Select a workspace
             </h1>
-            <p className="text-gray-500">
+            <p className="text-sm xs:text-base text-gray-500">
               Continue where you left off, or create a new workspace for a new WhatsApp number.
             </p>
           </div>
 
-          {/* Create Workspace Card */}
-          <Card className="mb-10 overflow-hidden bg-gradient-to-br from-green-50 via-white to-emerald-50/50 border border-green-100 shadow-sm">
-            <CardContent className="p-6 md:p-8 relative">
+          {/* Create Workspace Card - Hidden on mobile (use sticky CTA instead) */}
+          <Card className="mb-6 xs:mb-8 sm:mb-10 overflow-hidden bg-gradient-to-br from-green-50 via-white to-emerald-50/50 border border-green-100 shadow-sm hidden sm:block">
+            <CardContent className="p-4 xs:p-5 sm:p-6 md:p-8 relative">
               {/* Recommended badge */}
-              <Badge className="absolute top-4 left-4 bg-green-500 text-white hover:bg-green-500 border-0 text-xs font-medium">
+              <Badge className="absolute top-3 xs:top-4 left-3 xs:left-4 bg-green-500 text-white hover:bg-green-500 border-0 text-[10px] xs:text-xs font-medium">
                 Recommended
               </Badge>
               
-              <div className="flex flex-col md:flex-row md:items-center gap-6 mt-4">
-                <div className="flex items-start gap-4 flex-1">
+              <div className="flex flex-col md:flex-row md:items-center gap-4 xs:gap-5 sm:gap-6 mt-5 xs:mt-4">
+                <div className="flex items-start gap-3 xs:gap-4 flex-1">
                   {/* Icon */}
-                  <div className="w-12 h-12 rounded-xl bg-green-100 flex items-center justify-center flex-shrink-0">
-                    <Building2 className="w-6 h-6 text-green-600" />
+                  <div className="w-10 h-10 xs:w-11 xs:h-11 sm:w-12 sm:h-12 rounded-xl bg-green-100 flex items-center justify-center flex-shrink-0">
+                    <Building2 className="w-5 h-5 xs:w-5.5 xs:h-5.5 sm:w-6 sm:h-6 text-green-600" />
                   </div>
                   
-                  <div className="flex-1">
-                    <h2 className="text-xl font-semibold text-gray-900 mb-1">
+                  <div className="flex-1 min-w-0">
+                    <h2 className="text-base xs:text-lg sm:text-xl font-semibold text-gray-900 mb-0.5 xs:mb-1">
                       Create a new workspace
                     </h2>
-                    <p className="text-gray-500 mb-4">
+                    <p className="text-xs xs:text-sm text-gray-500 mb-3 xs:mb-4">
                       Perfect for a new brand, client, or WhatsApp number.
                     </p>
 
-                    <div className="flex flex-col sm:flex-row gap-3">
+                    <div className="flex flex-col xs:flex-row gap-2 xs:gap-3">
                       <Button 
                         onClick={() => setModalOpen(true)}
-                        className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white shadow-sm"
+                        className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white shadow-sm text-sm h-9 xs:h-10"
                       >
                         Create workspace
-                        <ArrowRight className="w-4 h-4 ml-2" />
+                        <ArrowRight className="w-3.5 h-3.5 xs:w-4 xs:h-4 ml-2" />
                       </Button>
                       <Button 
                         variant="ghost" 
-                        className="text-gray-500 hover:text-gray-700"
+                        className="text-gray-500 hover:text-gray-700 text-xs xs:text-sm h-9 xs:h-10"
                         asChild
                       >
                         <Link to="/help/workspaces">
                           Learn how workspaces work
-                          <ArrowRight className="w-4 h-4 ml-1" />
+                          <ArrowRight className="w-3 h-3 xs:w-4 xs:h-4 ml-1" />
                         </Link>
                       </Button>
                     </div>
@@ -371,28 +371,28 @@ export default function SelectWorkspace() {
 
           {/* Workspaces Content */}
           {loadingDetails ? (
-            <div className="space-y-8">
-              <div className="flex items-center justify-between">
-                <Skeleton className="h-7 w-48" />
-                <Skeleton className="h-9 w-64" />
+            <div className="space-y-4 xs:space-y-6 sm:space-y-8">
+              <div className="flex flex-col xs:flex-row xs:items-center justify-between gap-3">
+                <Skeleton className="h-6 xs:h-7 w-32 xs:w-48" />
+                <Skeleton className="h-8 xs:h-9 w-full xs:w-64" />
               </div>
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              <div className="grid gap-3 xs:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
                 {[1, 2, 3].map((i) => (
                   <Card key={i} className="overflow-hidden bg-white">
-                    <CardContent className="p-5">
-                      <div className="flex items-start gap-3 mb-4">
-                        <Skeleton className="w-11 h-11 rounded-full" />
-                        <div className="flex-1">
-                          <Skeleton className="h-5 w-32 mb-2" />
-                          <Skeleton className="h-5 w-28" />
+                    <CardContent className="p-3 xs:p-4 sm:p-5">
+                      <div className="flex items-start gap-2.5 xs:gap-3 mb-3 xs:mb-4">
+                        <Skeleton className="w-9 h-9 xs:w-11 xs:h-11 rounded-full flex-shrink-0" />
+                        <div className="flex-1 min-w-0">
+                          <Skeleton className="h-4 xs:h-5 w-24 xs:w-32 mb-1.5 xs:mb-2" />
+                          <Skeleton className="h-4 xs:h-5 w-20 xs:w-28" />
                         </div>
                       </div>
-                      <div className="flex gap-4 mb-3">
-                        <Skeleton className="h-4 w-24" />
-                        <Skeleton className="h-4 w-20" />
+                      <div className="flex gap-3 xs:gap-4 mb-2.5 xs:mb-3">
+                        <Skeleton className="h-3.5 xs:h-4 w-20 xs:w-24" />
+                        <Skeleton className="h-3.5 xs:h-4 w-16 xs:w-20" />
                       </div>
-                      <Skeleton className="h-4 w-28 mb-4" />
-                      <Skeleton className="h-10 w-full" />
+                      <Skeleton className="h-3.5 xs:h-4 w-24 xs:w-28 mb-3 xs:mb-4" />
+                      <Skeleton className="h-9 xs:h-10 w-full" />
                     </CardContent>
                   </Card>
                 ))}
@@ -401,100 +401,109 @@ export default function SelectWorkspace() {
           ) : workspaces.length === 0 ? (
             <WorkspaceEmptyState />
           ) : (
-            <div className="space-y-10">
+            <div className="space-y-6 xs:space-y-8 sm:space-y-10">
               {/* Recent Workspaces */}
               {recentWorkspaces.length > 0 && (
                 <section>
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5">
-                    <div className="flex items-center gap-2">
-                      <h2 className="text-lg font-semibold text-gray-900">Recent workspaces</h2>
-                      <Badge variant="secondary" className="bg-gray-100 text-gray-600 font-medium">
-                        {workspaces.length}
-                      </Badge>
-                    </div>
-                    
-                    <div className="flex items-center gap-2">
-                      {/* Search */}
-                      <div className="relative">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                        <Input
-                          placeholder="Search workspaces..."
-                          value={searchQuery}
-                          onChange={(e) => setSearchQuery(e.target.value)}
-                          className="pl-9 w-48 bg-white border-gray-200"
-                        />
+                  {/* Mobile: Stacked layout */}
+                  <div className="flex flex-col gap-3 xs:gap-4 mb-4 xs:mb-5">
+                    {/* Title row */}
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <h2 className="text-base xs:text-lg font-semibold text-gray-900">Recent workspaces</h2>
+                        <Badge variant="secondary" className="bg-gray-100 text-gray-600 font-medium text-xs">
+                          {workspaces.length}
+                        </Badge>
                       </div>
-
-                      {/* Filter */}
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="outline" size="sm" className="gap-2 bg-white border-gray-200 text-gray-600">
-                            <Filter className="w-4 h-4" />
-                            Filter
-                            <ChevronDown className="w-3 h-3" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => setFilterBy('all')}>
-                            All {filterBy === 'all' && '✓'}
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => setFilterBy('connected')}>
-                            Connected {filterBy === 'connected' && '✓'}
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => setFilterBy('setup')}>
-                            Needs setup {filterBy === 'setup' && '✓'}
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-
-                      {/* Sort */}
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="outline" size="sm" className="gap-2 bg-white border-gray-200 text-gray-600">
-                            {sortLabels[sortBy]}
-                            <ChevronDown className="w-3 h-3" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => setSortBy('recent')}>
-                            Recently opened {sortBy === 'recent' && '✓'}
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => setSortBy('newest')}>
-                            Newest first {sortBy === 'newest' && '✓'}
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => setSortBy('alphabetical')}>
-                            Alphabetical {sortBy === 'alphabetical' && '✓'}
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-
-                      {/* Refresh */}
+                      
+                      {/* Refresh button - always visible */}
                       <Button 
                         variant="outline" 
                         size="icon"
                         onClick={handleRefresh}
                         disabled={isRefreshing}
-                        className="bg-white border-gray-200 text-gray-600"
+                        className="bg-white border-gray-200 text-gray-600 h-8 w-8 xs:h-9 xs:w-9 flex-shrink-0"
                       >
-                        <RefreshCw className={cn("w-4 h-4", isRefreshing && "animate-spin")} />
+                        <RefreshCw className={cn("w-3.5 h-3.5 xs:w-4 xs:h-4", isRefreshing && "animate-spin")} />
                       </Button>
+                    </div>
+                    
+                    {/* Search and filters row */}
+                    <div className="flex flex-col xs:flex-row gap-2 xs:gap-2">
+                      {/* Search - Full width on mobile */}
+                      <div className="relative flex-1 xs:max-w-[200px]">
+                        <Search className="absolute left-2.5 xs:left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 xs:w-4 xs:h-4 text-gray-400" />
+                        <Input
+                          placeholder="Search..."
+                          value={searchQuery}
+                          onChange={(e) => setSearchQuery(e.target.value)}
+                          className="pl-8 xs:pl-9 h-8 xs:h-9 text-sm bg-white border-gray-200"
+                        />
+                      </div>
+
+                      {/* Filter and Sort buttons */}
+                      <div className="flex gap-2">
+                        {/* Filter */}
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="outline" size="sm" className="gap-1.5 xs:gap-2 bg-white border-gray-200 text-gray-600 h-8 xs:h-9 text-xs xs:text-sm flex-1 xs:flex-none">
+                              <Filter className="w-3.5 h-3.5 xs:w-4 xs:h-4" />
+                              <span className="hidden xs:inline">Filter</span>
+                              <ChevronDown className="w-3 h-3" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => setFilterBy('all')}>
+                              All {filterBy === 'all' && '✓'}
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => setFilterBy('connected')}>
+                              Connected {filterBy === 'connected' && '✓'}
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => setFilterBy('setup')}>
+                              Needs setup {filterBy === 'setup' && '✓'}
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+
+                        {/* Sort */}
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="outline" size="sm" className="gap-1.5 xs:gap-2 bg-white border-gray-200 text-gray-600 h-8 xs:h-9 text-xs xs:text-sm flex-1 xs:flex-none">
+                              <span className="hidden xs:inline">{sortLabels[sortBy]}</span>
+                              <span className="xs:hidden">Sort</span>
+                              <ChevronDown className="w-3 h-3" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => setSortBy('recent')}>
+                              Recently opened {sortBy === 'recent' && '✓'}
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => setSortBy('newest')}>
+                              Newest first {sortBy === 'newest' && '✓'}
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => setSortBy('alphabetical')}>
+                              Alphabetical {sortBy === 'alphabetical' && '✓'}
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
                     </div>
                   </div>
 
                   {/* Workspace Grid */}
                   {filteredWorkspaces.length === 0 ? (
-                    <div className="text-center py-12 bg-white rounded-xl border border-gray-100">
-                      <p className="text-gray-500">No workspaces match your filters.</p>
+                    <div className="text-center py-8 xs:py-10 sm:py-12 bg-white rounded-lg xs:rounded-xl border border-gray-100">
+                      <p className="text-sm xs:text-base text-gray-500">No workspaces match your filters.</p>
                       <Button 
                         variant="link" 
                         onClick={() => { setSearchQuery(''); setFilterBy('all'); }}
-                        className="mt-2 text-green-600"
+                        className="mt-2 text-green-600 text-sm"
                       >
                         Clear filters
                       </Button>
                     </div>
                   ) : (
-                    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                    <div className="grid gap-3 xs:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
                       {filteredWorkspaces.map((workspace) => (
                         <WorkspaceCard
                           key={workspace.id}
@@ -510,16 +519,16 @@ export default function SelectWorkspace() {
               {/* All Workspaces - show if more than 3 */}
               {workspaces.length > 3 && (
                 <section>
-                  <div className="flex items-center justify-between mb-5">
+                  <div className="flex items-center justify-between mb-4 xs:mb-5">
                     <div className="flex items-center gap-2">
-                      <h2 className="text-lg font-semibold text-gray-900">All workspaces</h2>
-                      <Badge variant="secondary" className="bg-gray-100 text-gray-600 font-medium">
+                      <h2 className="text-base xs:text-lg font-semibold text-gray-900">All workspaces</h2>
+                      <Badge variant="secondary" className="bg-gray-100 text-gray-600 font-medium text-xs">
                         {workspaces.length}
                       </Badge>
                     </div>
                   </div>
 
-                  <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                  <div className="grid gap-3 xs:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
                     {filteredWorkspaces.map((workspace) => (
                       <WorkspaceCard
                         key={workspace.id}
@@ -533,20 +542,20 @@ export default function SelectWorkspace() {
             </div>
           )}
 
-          {/* Footer note */}
+          {/* Footer note - hidden on very small screens */}
           {workspaces.length > 0 && (
-            <div className="flex items-center justify-center gap-2 mt-12 text-sm text-gray-400">
-              <Lightbulb className="w-4 h-4" />
-              <span>Each workspace is associated with one WhatsApp Business API number.</span>
+            <div className="hidden xs:flex items-center justify-center gap-2 mt-8 xs:mt-10 sm:mt-12 text-xs xs:text-sm text-gray-400 text-center px-4">
+              <Lightbulb className="w-3.5 h-3.5 xs:w-4 xs:h-4 flex-shrink-0" />
+              <span>Each workspace is linked to one WhatsApp Business API number.</span>
             </div>
           )}
         </main>
 
         {/* Mobile sticky CTA */}
-        <div className="fixed bottom-0 left-0 right-0 p-4 bg-white/95 backdrop-blur-sm border-t border-gray-100 md:hidden">
+        <div className="fixed bottom-0 left-0 right-0 p-3 xs:p-4 bg-white/95 backdrop-blur-sm border-t border-gray-100 sm:hidden z-40">
           <Button 
             onClick={() => setModalOpen(true)}
-            className="w-full bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white shadow-lg"
+            className="w-full h-10 xs:h-11 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white shadow-lg text-sm xs:text-base"
           >
             <Plus className="w-4 h-4 mr-2" />
             Create workspace
