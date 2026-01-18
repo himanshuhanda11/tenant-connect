@@ -62,23 +62,25 @@ export function BillingSettingsForm() {
             This information will appear on your invoices
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid gap-4 md:grid-cols-2">
+        <CardContent className="space-y-4 px-4 sm:px-6">
+          <div className="grid gap-4 grid-cols-1 sm:grid-cols-2">
             <div className="space-y-2">
-              <Label htmlFor="business_name">Business Name</Label>
+              <Label htmlFor="business_name" className="text-sm">Business Name</Label>
               <Input 
                 id="business_name" 
                 defaultValue={settings?.business_name || ''} 
                 placeholder="Your company name"
+                className="h-10"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="billing_email">Billing Email</Label>
+              <Label htmlFor="billing_email" className="text-sm">Billing Email</Label>
               <Input 
                 id="billing_email" 
                 type="email"
                 defaultValue={settings?.billing_email || ''} 
                 placeholder="billing@company.com"
+                className="h-10"
               />
             </div>
           </div>
@@ -101,26 +103,29 @@ export function BillingSettingsForm() {
             />
           </div>
           
-          <div className="grid gap-4 md:grid-cols-3">
+          <div className="grid gap-4 grid-cols-1 sm:grid-cols-3">
             <div className="space-y-2">
-              <Label htmlFor="city">City</Label>
+              <Label htmlFor="city" className="text-sm">City</Label>
               <Input 
                 id="city" 
                 defaultValue={settings?.city || ''} 
+                className="h-10"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="state">State/Province</Label>
+              <Label htmlFor="state" className="text-sm">State/Province</Label>
               <Input 
                 id="state" 
                 defaultValue={settings?.state || ''} 
+                className="h-10"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="postal_code">Postal Code</Label>
+              <Label htmlFor="postal_code" className="text-sm">Postal Code</Label>
               <Input 
                 id="postal_code" 
                 defaultValue={settings?.postal_code || ''} 
+                className="h-10"
               />
             </div>
           </div>
