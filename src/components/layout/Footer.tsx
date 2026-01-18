@@ -30,7 +30,7 @@ export default function Footer() {
       { name: 'Blog', href: '/blog' },
       { name: 'Case Studies', href: '/case-studies' },
       { name: 'Template Library', href: '/template-library' },
-      { name: 'API Reference', href: '/documentation' },
+      { name: 'Free WhatsApp API', href: '/free-whatsapp-api-lifetime' },
     ],
     company: [
       { name: 'About Us', href: '/about' },
