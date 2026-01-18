@@ -97,20 +97,20 @@ export default function WorkspaceCard({
   };
 
   return (
-    <Card className="group relative overflow-hidden bg-white border border-gray-100 shadow-sm hover:shadow-lg hover:border-primary/20 transition-all duration-300">
-      <CardContent className="p-5">
+    <Card className="group relative overflow-hidden bg-white border border-gray-100 shadow-sm hover:shadow-lg hover:border-primary/20 transition-all duration-300 touch-manipulation">
+      <CardContent className="p-3.5 xs:p-4 sm:p-5">
         {/* Header row */}
-        <div className="flex items-start gap-3 mb-3">
+        <div className="flex items-start gap-2.5 xs:gap-3 mb-2.5 xs:mb-3">
           {/* Avatar */}
           <div className={cn(
-            "w-11 h-11 rounded-full flex items-center justify-center flex-shrink-0 text-white font-bold text-lg",
+            "w-9 h-9 xs:w-10 xs:h-10 sm:w-11 sm:h-11 rounded-full flex items-center justify-center flex-shrink-0 text-white font-bold text-sm xs:text-base sm:text-lg",
             avatarColor
           )}>
             {getInitial(workspace.name)}
           </div>
           
           <div className="flex-1 min-w-0">
-            <h3 className="font-semibold text-gray-900 truncate text-base">
+            <h3 className="font-semibold text-gray-900 truncate text-sm xs:text-base">
               {workspace.name}
             </h3>
             
@@ -118,26 +118,26 @@ export default function WorkspaceCard({
             <Badge 
               variant="secondary" 
               className={cn(
-                "mt-1.5 text-xs font-medium border-0 gap-1",
+                "mt-1 xs:mt-1.5 text-[10px] xs:text-xs font-medium border-0 gap-1",
                 status.bgColor,
                 status.textColor
               )}
             >
-              <StatusIcon className="w-3 h-3" />
+              <StatusIcon className="w-2.5 h-2.5 xs:w-3 xs:h-3" />
               {status.label}
             </Badge>
           </div>
 
-          {/* Actions menu */}
+          {/* Actions menu - always visible on mobile for better UX */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button 
                 variant="ghost" 
                 size="icon" 
-                className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity text-gray-400 hover:text-gray-600"
+                className="h-7 w-7 xs:h-8 xs:w-8 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity text-gray-400 hover:text-gray-600"
                 onClick={(e) => e.stopPropagation()}
               >
-                <MoreHorizontal className="w-4 h-4" />
+                <MoreHorizontal className="w-3.5 h-3.5 xs:w-4 xs:h-4" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
@@ -173,12 +173,12 @@ export default function WorkspaceCard({
         </div>
 
         {/* Metadata row */}
-        <div className="flex items-center gap-4 text-sm text-gray-500 mb-3">
+        <div className="flex items-center gap-3 xs:gap-4 text-xs xs:text-sm text-gray-500 mb-2.5 xs:mb-3">
           <Tooltip>
             <TooltipTrigger asChild>
-              <div className="flex items-center gap-1.5">
-                <Phone className="w-4 h-4 text-gray-400" />
-                <span>Phone numbers</span>
+              <div className="flex items-center gap-1 xs:gap-1.5">
+                <Phone className="w-3.5 h-3.5 xs:w-4 xs:h-4 text-gray-400" />
+                <span>{workspace.phoneCount} phone{workspace.phoneCount !== 1 ? 's' : ''}</span>
               </div>
             </TooltipTrigger>
             <TooltipContent>
@@ -186,24 +186,24 @@ export default function WorkspaceCard({
             </TooltipContent>
           </Tooltip>
           
-          <div className="flex items-center gap-1.5">
-            <Users className="w-4 h-4 text-gray-400" />
+          <div className="flex items-center gap-1 xs:gap-1.5">
+            <Users className="w-3.5 h-3.5 xs:w-4 xs:h-4 text-gray-400" />
             <span>{workspace.memberCount} member{workspace.memberCount !== 1 ? 's' : ''}</span>
           </div>
         </div>
 
         {/* Phone number display */}
         {workspace.phoneNumber && (
-          <div className="flex items-center gap-1.5 text-sm text-green-600 mb-3">
-            <CheckCircle className="w-4 h-4" />
-            <span className="font-medium">{workspace.phoneNumber}</span>
+          <div className="flex items-center gap-1 xs:gap-1.5 text-xs xs:text-sm text-green-600 mb-2.5 xs:mb-3">
+            <CheckCircle className="w-3.5 h-3.5 xs:w-4 xs:h-4" />
+            <span className="font-medium truncate">{workspace.phoneNumber}</span>
           </div>
         )}
 
         {/* Last active */}
         {workspace.lastActive && (
-          <div className="flex items-center gap-1.5 text-xs text-gray-400 mb-4">
-            <Clock className="w-3.5 h-3.5" />
+          <div className="flex items-center gap-1 xs:gap-1.5 text-[10px] xs:text-xs text-gray-400 mb-3 xs:mb-4">
+            <Clock className="w-3 h-3 xs:w-3.5 xs:h-3.5" />
             <span>Active {formatDistanceToNow(new Date(workspace.lastActive), { addSuffix: false })} ago</span>
           </div>
         )}
@@ -211,10 +211,10 @@ export default function WorkspaceCard({
         {/* Primary action button */}
         <Button
           onClick={onSelect}
-          className="w-full bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-medium shadow-sm"
+          className="w-full h-9 xs:h-10 text-sm bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-medium shadow-sm"
         >
           Open workspace
-          <ArrowRight className="w-4 h-4 ml-2" />
+          <ArrowRight className="w-3.5 h-3.5 xs:w-4 xs:h-4 ml-2" />
         </Button>
       </CardContent>
     </Card>
