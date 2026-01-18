@@ -43,27 +43,27 @@ export default function MetaAdsAnalytics() {
 
   return (
     <DashboardLayout>
-      <div className="p-6 space-y-6 max-w-7xl mx-auto">
+      <div className="p-4 sm:p-6 space-y-4 sm:space-y-6 max-w-7xl mx-auto">
         {/* Quick Guide */}
         <QuickGuide {...quickGuides.metaAds} />
 
         {/* Header */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <div className="flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-violet-500 to-violet-600 shadow-lg shadow-violet-500/25">
-              <BarChart3 className="h-7 w-7 text-white" />
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
+          <div className="flex items-center gap-3 sm:gap-4">
+            <div className="flex items-center justify-center w-10 h-10 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl bg-gradient-to-br from-violet-500 to-violet-600 shadow-lg shadow-violet-500/25">
+              <BarChart3 className="h-5 w-5 sm:h-7 sm:w-7 text-white" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold tracking-tight">Lead Analytics</h1>
-              <p className="text-muted-foreground">
-                Track ad performance and lead quality metrics
+              <h1 className="text-xl sm:text-2xl font-bold tracking-tight">Lead Analytics</h1>
+              <p className="text-sm text-muted-foreground">
+                Track ad performance and lead quality
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3">
             <Select value={dateRange} onValueChange={setDateRange}>
-              <SelectTrigger className="w-40">
-                <Calendar className="h-4 w-4 mr-2" />
+              <SelectTrigger className="w-32 sm:w-40 h-9 text-xs sm:text-sm">
+                <Calendar className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1.5 sm:mr-2" />
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -75,22 +75,23 @@ export default function MetaAdsAnalytics() {
             </Select>
             <Button
               variant="outline"
+              size="sm"
               onClick={handleRefresh}
               disabled={isRefreshing}
-              className="gap-2"
+              className="gap-1.5 text-xs sm:text-sm"
             >
-              <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-              Refresh
+              <RefreshCw className={`h-3.5 w-3.5 sm:h-4 sm:w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+              <span className="hidden xs:inline">Refresh</span>
             </Button>
-            <Button variant="outline" onClick={handleExport} className="gap-2">
-              <Download className="h-4 w-4" />
-              Export CSV
+            <Button variant="outline" size="sm" onClick={handleExport} className="gap-1.5 text-xs sm:text-sm">
+              <Download className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+              <span className="hidden xs:inline">Export</span>
             </Button>
           </div>
         </div>
 
         {/* KPI Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-4">
           <Card className="border-0 shadow-md">
             <CardContent className="p-5">
               <div className="flex items-center justify-between mb-3">
@@ -165,7 +166,7 @@ export default function MetaAdsAnalytics() {
         </div>
 
         {/* Charts */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
           {/* Leads Over Time */}
           <Card className="lg:col-span-2 border-0 shadow-lg">
             <CardHeader>
@@ -279,7 +280,7 @@ export default function MetaAdsAnalytics() {
         </Card>
 
         {/* Time-based Metrics */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
           <Card className="border-0 shadow-md">
             <CardContent className="p-6">
               <div className="flex items-center gap-4">

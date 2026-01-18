@@ -42,33 +42,34 @@ export default function MetaAdsOverview() {
 
   return (
     <DashboardLayout>
-      <div className="p-6 space-y-6 max-w-7xl mx-auto">
+      <div className="p-4 sm:p-6 space-y-4 sm:space-y-6 max-w-7xl mx-auto">
         {/* Header */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <div className="flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 shadow-lg shadow-blue-500/25">
-              <Megaphone className="h-7 w-7 text-white" />
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
+          <div className="flex items-center gap-3 sm:gap-4">
+            <div className="flex items-center justify-center w-10 h-10 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 shadow-lg shadow-blue-500/25">
+              <Megaphone className="h-5 w-5 sm:h-7 sm:w-7 text-white" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold tracking-tight">Meta Ads</h1>
-              <p className="text-muted-foreground">
-                Click-to-WhatsApp ad performance & lead tracking
+              <h1 className="text-xl sm:text-2xl font-bold tracking-tight">Meta Ads</h1>
+              <p className="text-sm text-muted-foreground">
+                Click-to-WhatsApp ad performance
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             <Button
               variant="outline"
+              size="sm"
               onClick={handleRefresh}
               disabled={isRefreshing}
-              className="gap-2"
+              className="gap-1.5 text-xs sm:text-sm"
             >
-              <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-              Sync Data
+              <RefreshCw className={`h-3.5 w-3.5 sm:h-4 sm:w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+              <span className="hidden xs:inline">Sync </span>Data
             </Button>
-            <Button asChild className="gap-2 shadow-lg shadow-primary/25">
+            <Button asChild size="sm" className="gap-1.5 shadow-lg shadow-primary/25 text-xs sm:text-sm">
               <Link to="/meta-ads/setup">
-                <Settings className="h-4 w-4" />
+                <Settings className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                 Setup
               </Link>
             </Button>
@@ -119,7 +120,7 @@ export default function MetaAdsOverview() {
         </Card>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4">
           <Card className="border-0 shadow-md hover:shadow-lg transition-shadow">
             <CardContent className="p-6">
               <div className="flex items-center justify-between mb-3">
@@ -183,7 +184,7 @@ export default function MetaAdsOverview() {
         </div>
 
         {/* Secondary Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
           <Card className="border-0 shadow-md">
             <CardContent className="p-6">
               <div className="flex items-center gap-3 mb-4">
@@ -238,7 +239,7 @@ export default function MetaAdsOverview() {
         </div>
 
         {/* Quick Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
           <Card className="border-0 shadow-md hover:shadow-lg transition-all cursor-pointer group">
             <CardContent className="p-6">
               <Link to="/meta-ads/analytics" className="flex items-center gap-4">

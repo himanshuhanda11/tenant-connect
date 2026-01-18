@@ -125,26 +125,26 @@ export default function AutomationWorkflows() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-6">
+      <div className="space-y-4 sm:space-y-6">
         {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="flex flex-col gap-3 sm:gap-4">
           <div>
-            <h1 className="text-2xl font-bold flex items-center gap-2">
-              <Zap className="h-6 w-6 text-primary" />
+            <h1 className="text-xl sm:text-2xl font-bold flex items-center gap-2">
+              <Zap className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
               Automation Workflows
             </h1>
-            <p className="text-muted-foreground">
+            <p className="text-sm text-muted-foreground">
               Automate repetitive tasks with powerful When → If → Then workflows
             </p>
           </div>
           <div className="flex items-center gap-2">
-            <Button variant="outline" onClick={pauseAllWorkflows}>
-              <PauseCircle className="h-4 w-4 mr-2" />
-              Pause All
+            <Button variant="outline" size="sm" onClick={pauseAllWorkflows} className="text-xs sm:text-sm">
+              <PauseCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1.5" />
+              <span className="hidden xs:inline">Pause </span>All
             </Button>
-            <Button onClick={handleCreateWorkflow}>
-              <Plus className="h-4 w-4 mr-2" />
-              Create Workflow
+            <Button size="sm" onClick={handleCreateWorkflow} className="text-xs sm:text-sm">
+              <Plus className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1.5" />
+              Create<span className="hidden xs:inline"> Workflow</span>
             </Button>
           </div>
         </div>
@@ -158,7 +158,7 @@ export default function AutomationWorkflows() {
         />
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-4">
           <Card>
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
