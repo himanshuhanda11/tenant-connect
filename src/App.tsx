@@ -99,6 +99,7 @@ import WhatsAppForms from "./pages/WhatsAppForms";
 import WhatsAppBusinessApi from "./pages/WhatsAppBusinessApi";
 import ClickToWhatsApp from "./pages/ClickToWhatsApp";
 import WhyWhatsAppMarketing from "./pages/WhyWhatsAppMarketing";
+import FreeWhatsAppApiLifetime from "./pages/FreeWhatsAppApiLifetime";
 import NotFound from "./pages/NotFound";
 import MetaAdsOverview from "./pages/meta-ads/MetaAdsOverview";
 import MetaAdsSetup from "./pages/meta-ads/MetaAdsSetup";
@@ -227,6 +228,7 @@ const App = () => (
               <Route path="/whatsapp-business-api" element={<WhatsAppBusinessApi />} />
               <Route path="/click-to-whatsapp" element={<ClickToWhatsApp />} />
               <Route path="/why-whatsapp-marketing" element={<WhyWhatsAppMarketing />} />
+              <Route path="/free-whatsapp-api-lifetime" element={<FreeWhatsAppApiLifetime />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </TenantProvider>
