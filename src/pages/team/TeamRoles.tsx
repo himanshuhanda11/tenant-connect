@@ -22,6 +22,7 @@ import {
   Link2, CreditCard, Lock, Phone, UsersRound
 } from 'lucide-react';
 import { useRoles } from '@/hooks/useTeam';
+import { TeamBreadcrumb } from '@/components/team/TeamBreadcrumb';
 import type { Permission, Role, PermissionCategory, AppRole } from '@/types/team';
 
 const CATEGORY_ICONS: Record<PermissionCategory, React.ReactNode> = {
@@ -126,6 +127,7 @@ const TeamRoles = () => {
   return (
     <DashboardLayout>
       <div className="space-y-6">
+        <TeamBreadcrumb currentPage="Roles & Permissions" />
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>

@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import { useTeamStats, useTeams, useTeamMembers, useRoles } from '@/hooks/useTeam';
 import { TeamGuideCard } from '@/components/team/TeamGuideCard';
+import { TeamBreadcrumb } from '@/components/team/TeamBreadcrumb';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
 const TeamOverview = () => {
@@ -97,6 +98,7 @@ const TeamOverview = () => {
   return (
     <DashboardLayout>
       <div className="space-y-6 max-w-7xl">
+        <TeamBreadcrumb currentPage="Overview" />
         {/* Header */}
         <div className="flex items-start justify-between">
           <div>
