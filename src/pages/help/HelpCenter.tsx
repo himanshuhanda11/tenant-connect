@@ -37,7 +37,8 @@ import {
   Workflow,
   Cog,
   ExternalLink,
-  TrendingUp
+  TrendingUp,
+  Sparkles
 } from 'lucide-react';
 import { GUIDE_CATEGORIES, STATIC_GUIDES, StaticGuide, getStaticGuideBySidebarKey } from '@/data/guideContent';
 import { sidebarDescriptions, SidebarItemMeta, getAllSidebarItems } from '@/data/sidebarDescriptions';
@@ -172,8 +173,8 @@ export default function HelpCenter() {
   }, [searchQuery]);
 
   const featuredGuides = STATIC_GUIDES.filter(g => 
-    ['templates-guide', 'inbox-guide', 'meta-ads-guide', 'campaigns-guide'].includes(g.slug)
-  ).slice(0, 4);
+    ['templates-guide', 'auto-form-rules-guide', 'template-management-advanced', 'inbox-guide', 'meta-ads-guide', 'campaigns-guide'].includes(g.slug)
+  ).slice(0, 6);
 
   const getGuideCountForCategory = (categorySlug: string) => {
     return STATIC_GUIDES.filter(g => g.category === categorySlug).length;
@@ -286,38 +287,44 @@ export default function HelpCenter() {
               </CardContent>
             </Card>
             
-            <Card className="hover:shadow-lg transition-all">
+            <Card className="border-violet-500/20 bg-gradient-to-br from-violet-500/5 to-purple-500/10 hover:shadow-lg transition-all">
               <CardContent className="p-6">
                 <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 rounded-xl bg-muted flex items-center justify-center">
-                    <FileText className="h-6 w-6 text-muted-foreground" />
+                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-violet-500 to-purple-500 flex items-center justify-center text-white shadow-lg">
+                    <FileText className="h-6 w-6" />
                   </div>
                   <div className="flex-1">
-                    <h3 className="font-semibold text-lg mb-1">Template Approval</h3>
+                    <div className="flex items-center gap-2 mb-1">
+                      <h3 className="font-semibold text-lg">Auto-Form Rules</h3>
+                      <Badge className="bg-violet-500 text-white text-xs">NEW</Badge>
+                    </div>
                     <p className="text-sm text-muted-foreground mb-3">
-                      Learn how to create templates that get approved by Meta.
+                      Automatically send WhatsApp forms based on intent.
                     </p>
-                    <Button variant="link" className="p-0 h-auto" asChild>
-                      <Link to="/help/templates-guide">View Guide →</Link>
+                    <Button variant="link" className="p-0 h-auto text-violet-600" asChild>
+                      <Link to="/help/auto-form-rules-guide">Learn More →</Link>
                     </Button>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="hover:shadow-lg transition-all">
+            <Card className="border-green-500/20 bg-gradient-to-br from-green-500/5 to-emerald-500/10 hover:shadow-lg transition-all">
               <CardContent className="p-6">
                 <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 rounded-xl bg-muted flex items-center justify-center">
-                    <MessageSquare className="h-6 w-6 text-muted-foreground" />
+                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-green-500 to-emerald-500 flex items-center justify-center text-white shadow-lg">
+                    <Sparkles className="h-6 w-6" />
                   </div>
                   <div className="flex-1">
-                    <h3 className="font-semibold text-lg mb-1">Contact Support</h3>
+                    <div className="flex items-center gap-2 mb-1">
+                      <h3 className="font-semibold text-lg">AI Template Validation</h3>
+                      <Badge className="bg-green-500 text-white text-xs">NEW</Badge>
+                    </div>
                     <p className="text-sm text-muted-foreground mb-3">
-                      Can't find what you're looking for? We're here to help.
+                      Get AI-powered suggestions for Meta approval.
                     </p>
-                    <Button variant="link" className="p-0 h-auto" asChild>
-                      <Link to="/contact">Get Support →</Link>
+                    <Button variant="link" className="p-0 h-auto text-green-600" asChild>
+                      <Link to="/help/template-management-advanced">View Guide →</Link>
                     </Button>
                   </div>
                 </div>

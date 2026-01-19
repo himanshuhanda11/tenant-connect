@@ -18,6 +18,7 @@ import { RecentActivityCard } from '@/components/dashboard/RecentActivityCard';
 import { AIInsightsSummary } from '@/components/dashboard/AIInsightsSummary';
 import { VIPQuickActions } from '@/components/dashboard/VIPQuickActions';
 import { WorkspaceTip } from '@/components/dashboard/WorkspaceTip';
+import { WhatsNewPanel } from '@/components/dashboard/WhatsNewPanel';
 
 // Existing enhanced components
 import { DashboardFiltersBar } from '@/components/dashboard/DashboardFiltersBar';
@@ -34,6 +35,7 @@ export default function Dashboard() {
   const { currentTenant, currentRole } = useTenant();
   const { profile } = useAuth();
   const [embeddedSignupOpen, setEmbeddedSignupOpen] = useState(false);
+  const [showWhatsNew, setShowWhatsNew] = useState(true);
   const [filters, setFilters] = useState<DashboardFilters>({
     dateRange: '7d',
     phoneNumberId: null,
@@ -280,6 +282,11 @@ export default function Dashboard() {
 
         {/* System Alerts */}
         <AlertsPanel alerts={alerts} />
+
+        {/* What's New Panel - New Features */}
+        {showWhatsNew && (
+          <WhatsNewPanel onDismiss={() => setShowWhatsNew(false)} />
+        )}
 
         {/* WABA Status Card - Key Feature from Reference */}
         <WABAStatusCard

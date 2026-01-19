@@ -538,6 +538,118 @@ export const STATIC_GUIDES: StaticGuide[] = [
       }
     ],
     relatedSlugs: ['automation-workflows', 'templates-guide', 'campaigns-guide']
+  },
+
+  // Auto-Form Rules Guide
+  {
+    slug: 'auto-form-rules-guide',
+    title: 'Auto-Form Rules',
+    category: 'marketing',
+    sidebarKey: 'form-rules',
+    summary: 'Automatically send WhatsApp Forms based on user intent, keywords, ad clicks, or entry source without any coding.',
+    difficulty: 'intermediate',
+    readingTime: 8,
+    sections: [
+      {
+        type: 'what_is',
+        title: 'What are Auto-Form Rules?',
+        content: 'Auto-Form Rules let you automatically send WhatsApp Forms (interactive flows) to contacts based on triggers like first message, keywords, ad clicks, QR scans, or AI-detected intent. Unlike workflow automation, this is a simplified no-code interface specifically designed for form delivery.'
+      },
+      {
+        type: 'when_to_use',
+        title: 'When to Use Auto-Form Rules',
+        content: '• **Lead Qualification** - Auto-send a qualification form when someone messages you first\n• **Ad Lead Capture** - Instantly send a data collection form when leads click your WhatsApp ads\n• **Keyword Triggers** - Send booking forms when users type "book", "appointment", or "schedule"\n• **QR Code Flows** - Trigger different forms based on QR code source (store, event, print ad)\n• **AI Intent Detection** - Let AI identify intent and send the appropriate form automatically'
+      },
+      {
+        type: 'how_it_works',
+        title: 'How Auto-Form Rules Work',
+        content: '**1. Choose a Trigger (WHEN)**\n- First incoming message\n- Keyword detected\n- Click-to-WhatsApp ad click\n- QR code scan\n- Specific entry source\n- Tag added\n- Scheduled time\n- AI intent detected (Pro)\n\n**2. Set Conditions (IF)** - Optional filters\n- Message contains specific keywords\n- Source is from specific ad/link/QR\n- User is new or returning\n- Form not already filled\n- Business hours only\n\n**3. Configure Action (THEN)**\n- Select WhatsApp Form (Flow) to send\n- Add optional intro message\n- Set delay before sending (0-10 seconds)\n\n**4. Safety Controls**\n- Send once per user (prevent spam)\n- Stop if agent replies (human takeover)\n- Stop if user types free text\n- Cooldown period between sends\n- Fallback message if form fails'
+      },
+      {
+        type: 'common_mistakes',
+        title: 'Common Mistakes',
+        content: '❌ No safety controls - sending forms multiple times to same user\n❌ Ignoring agent override - forms keep sending even when agent is chatting\n❌ No fallback message - user gets confused if form delivery fails\n❌ Too short cooldown - annoying users with repeated forms\n❌ Vague keyword triggers - matching unintended messages\n❌ Not testing the flow before activating'
+      },
+      {
+        type: 'tips',
+        title: 'Best Practices',
+        content: '✅ Always enable "Send once per user" for initial qualification forms\n✅ Set up agent override so human reps can take over smoothly\n✅ Use specific keywords (not single letters or common words)\n✅ Add a brief intro message explaining the form\n✅ Set appropriate cooldown (24-48 hours minimum)\n✅ Test your form delivery before going live\n✅ Monitor completion rates and optimize'
+      }
+    ],
+    examples: [
+      {
+        title: 'Lead Qualification on First Message',
+        description: 'Send a qualification form to new contacts',
+        code: 'Trigger: First incoming message\nConditions: User is new, Form not filled\nAction: Send "Lead Qualification" form\nDelay: 2 seconds\nSafety: Send once per user, Stop on agent reply',
+        isGood: true
+      },
+      {
+        title: 'Ad Click → Booking Form',
+        description: 'Capture leads from Click-to-WhatsApp ads',
+        code: 'Trigger: Click-to-WhatsApp ad click\nConditions: Source = Meta Ads\nAction: Send "Appointment Booking" form\nIntro: "Hi! 👋 Let me help you book an appointment."\nSafety: Send once, Stop on free text',
+        isGood: true
+      },
+      {
+        title: 'Keyword Trigger',
+        description: 'Send demo form when user shows intent',
+        code: 'Trigger: Keyword detected ("demo", "trial", "pricing")\nConditions: Business hours only\nAction: Send "Demo Request" form\nDelay: 1 second\nSafety: Cooldown 24 hours',
+        isGood: true
+      }
+    ],
+    relatedSlugs: ['automation-workflows', 'templates-guide', 'contacts-management']
+  },
+
+  // Advanced Template Management Guide
+  {
+    slug: 'template-management-advanced',
+    title: 'Advanced Template Management',
+    category: 'marketing',
+    sidebarKey: 'templates',
+    summary: 'Master template approval with AI validation, category detection, and Meta best practices.',
+    difficulty: 'advanced',
+    readingTime: 12,
+    sections: [
+      {
+        type: 'what_is',
+        title: 'What is Advanced Template Management?',
+        content: 'Beyond basic template creation, AIREATRO provides AI-powered validation, automatic category detection, approval readiness scoring, and guided fix flows to maximize your Meta approval rates and minimize rejections.'
+      },
+      {
+        type: 'when_to_use',
+        title: 'Key Features',
+        content: '• **AI Template Validator** - Scan templates for issues before submission\n• **Category Detection** - AI detects if your content matches the selected category\n• **Approval Score** - See your template\'s approval likelihood (0-100)\n• **Issue Checklist** - Grouped validation across 5 categories\n• **Fix with AI** - Get AI-suggested rewrites and example values\n• **Status Timeline** - Track your template through the approval process\n• **Fix & Resubmit** - Guided flow to fix rejected templates'
+      },
+      {
+        type: 'how_it_works',
+        title: 'Validation Checklist Categories',
+        content: '**1. Category & Intent**\n- Does content match selected category (Utility/Marketing/Authentication)?\n- Is UTILITY template free of promotional language?\n- Does AUTHENTICATION include OTP variable {{1}}?\n\n**2. Variables & Examples**\n- Are all variables ({{1}}, {{2}}, etc.) properly formatted?\n- Does each variable have a realistic example value?\n- Are examples clear and contextual?\n\n**3. Links & Buttons**\n- Do URLs use HTTPS?\n- No URL shorteners (bit.ly, tinyurl)?\n- Button text clear and concise?\n\n**4. Language & Formatting**\n- No ALL CAPS text?\n- No excessive punctuation (!!!)?\n- No spammy language?\n\n**5. Compliance & Risk**\n- No banned words (free money, guaranteed)?\n- No misleading claims?\n- Appropriate opt-out instructions for marketing?'
+      },
+      {
+        type: 'common_mistakes',
+        title: 'Why Templates Get Rejected',
+        content: '❌ **Category Mismatch** - Most common! Content is promotional but category is Utility\n❌ **Vague Variables** - Using {{1}} without clear context or examples\n❌ **Missing Examples** - Meta requires sample values for all variables\n❌ **URL Issues** - Using shorteners, redirects, or non-HTTPS links\n❌ **Promotional Utility** - Adding "buy now", "discount" to utility templates\n❌ **Policy Violations** - Job scams, visa promises, gambling content'
+      },
+      {
+        type: 'tips',
+        title: 'Maximizing Approval Rates',
+        content: '✅ **Always validate before submitting** - Use the AI validator\n✅ **Match category to content** - When in doubt, choose Marketing\n✅ **Provide clear examples** - Make variable usage obvious\n✅ **Keep it simple** - Avoid complex formatting in early templates\n✅ **Use direct links** - No redirects or shorteners\n✅ **Build trust first** - Start with simple utility templates before marketing\n✅ **Fix and resubmit** - Don\'t give up after rejection; use the fix flow'
+      }
+    ],
+    examples: [
+      {
+        title: 'Good Utility Template',
+        description: 'Clear, transactional, no promotional content',
+        code: 'Category: UTILITY\n\nHi {{1}},\n\nYour order #{{2}} has been shipped! 📦\n\nEstimated delivery: {{3}}\nTrack here: {{4}}\n\nNeed help? Reply to this message.\n\nExamples:\n{{1}} = Rahul\n{{2}} = ORD-12345\n{{3}} = Tomorrow, 2-6 PM\n{{4}} = https://track.store.com/ORD-12345',
+        isGood: true
+      },
+      {
+        title: 'Bad Category Choice',
+        description: 'Promotional content marked as Utility - will be rejected',
+        code: 'Category: UTILITY ❌\n\nHi {{1}}!\n\n🎉 SPECIAL OFFER! Get 30% OFF today only!\n\nUse code: SAVE30\nShop now: {{2}}\n\n❌ This should be MARKETING, not UTILITY',
+        isGood: false
+      }
+    ],
+    relatedSlugs: ['templates-guide', 'campaigns-guide', 'automation-workflows']
   }
 ];
 
