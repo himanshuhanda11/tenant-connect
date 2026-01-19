@@ -123,8 +123,10 @@ export function AppSidebar() {
   });
 
   const handleSignOut = async () => {
+    // Clear tenant immediately so route guards don't bounce the user back.
+    setCurrentTenant(null);
     await signOut();
-    navigate('/login');
+    navigate('/login', { replace: true });
   };
 
   const getInitials = (name: string | null, email: string) => {
