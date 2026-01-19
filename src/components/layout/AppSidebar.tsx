@@ -48,7 +48,8 @@ const channelMenuItems: MenuItem[] = [
 const growthMenuItems: MenuItem[] = [
   { title: 'Campaigns', url: '/campaigns', icon: Send, key: 'campaigns' },
   { title: 'Automation', url: '/automation', icon: Zap, key: 'automation' },
-  { title: 'Flows', url: '/flows', icon: Workflow, key: 'flows', isNew: true }
+  { title: 'Auto-Form Rules', url: '/automation/form-rules', icon: FileText, key: 'form-rules', isNew: true },
+  { title: 'Flows', url: '/flows', icon: Workflow, key: 'flows' }
 ];
 
 const metaAdsMenuItems: MenuItem[] = [

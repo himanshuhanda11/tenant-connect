@@ -7,7 +7,8 @@ export type FormRuleTriggerType =
   | 'qr_scan' 
   | 'source' 
   | 'tag_added' 
-  | 'scheduled';
+  | 'scheduled'
+  | 'ai_intent';
 
 export type FormRuleLogStatus = 'triggered' | 'sent' | 'delivered' | 'failed' | 'skipped';
 

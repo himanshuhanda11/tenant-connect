@@ -85,6 +85,14 @@ export const sidebarDescriptions: Record<string, SidebarItemMeta> = {
     icon: '⚡',
     category: 'growth'
   },
+  'form-rules': {
+    key: 'form-rules',
+    title: 'Auto-Form Rules',
+    description: 'Automatically send WhatsApp forms based on user intent, keywords, ad clicks, or entry source. No-code form automation.',
+    helpSlug: 'automation-workflows',
+    icon: '📋',
+    category: 'growth'
+  },
 
   // Meta Ads
   'meta-ads-overview': {
