@@ -631,14 +631,14 @@ const TeamRouting = () => {
                   <div className="space-y-2">
                     <Label className="text-xs text-muted-foreground">Assign to Team</Label>
                     <Select 
-                      value={formData.assign_to_team_id} 
-                      onValueChange={(v) => setFormData({ ...formData, assign_to_team_id: v, assign_to_user_id: '' })}
+                      value={formData.assign_to_team_id || '__none__'} 
+                      onValueChange={(v) => setFormData({ ...formData, assign_to_team_id: v === '__none__' ? '' : v, assign_to_user_id: '' })}
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Any available team" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">Any available team</SelectItem>
+                        <SelectItem value="__none__">Any available team</SelectItem>
                         {teams.map(t => (
                           <SelectItem key={t.id} value={t.id}>
                             <div className="flex items-center gap-2">
@@ -653,14 +653,14 @@ const TeamRouting = () => {
                   <div className="space-y-2">
                     <Label className="text-xs text-muted-foreground">Or Specific Agent</Label>
                     <Select 
-                      value={formData.assign_to_user_id} 
-                      onValueChange={(v) => setFormData({ ...formData, assign_to_user_id: v, assign_to_team_id: '' })}
+                      value={formData.assign_to_user_id || '__none__'} 
+                      onValueChange={(v) => setFormData({ ...formData, assign_to_user_id: v === '__none__' ? '' : v, assign_to_team_id: '' })}
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Use strategy" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">Use strategy</SelectItem>
+                        <SelectItem value="__none__">Use strategy</SelectItem>
                         {members.filter(m => m.is_active).map(m => (
                           <SelectItem key={m.id} value={m.user_id}>
                             {m.display_name || m.profile?.full_name || m.profile?.email}
