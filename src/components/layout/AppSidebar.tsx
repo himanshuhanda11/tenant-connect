@@ -42,7 +42,7 @@ const mainMenuItems: MenuItem[] = [
 
 const channelMenuItems: MenuItem[] = [
   { title: 'Phone Numbers', url: '/phone-numbers', icon: Phone, key: 'phone-numbers' },
-  { title: 'Templates', url: '/templates', icon: FileText, key: 'templates' }
+  { title: 'Templates', url: '/templates', icon: FileText, key: 'templates', isNew: true }
 ];
 
 const growthMenuItems: MenuItem[] = [

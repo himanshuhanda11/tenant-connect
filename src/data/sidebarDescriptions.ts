@@ -62,7 +62,7 @@ export const sidebarDescriptions: Record<string, SidebarItemMeta> = {
   templates: {
     key: 'templates',
     title: 'Templates',
-    description: 'Create, submit, and manage WhatsApp message templates for outbound messaging. All templates must be approved by Meta before use.',
+    description: 'Create, submit, and manage WhatsApp message templates with AI validation, approval scoring, and guided fix flows. Maximize Meta approval rates.',
     helpSlug: 'templates-guide',
     icon: '📄',
     category: 'channels'
@@ -88,9 +88,17 @@ export const sidebarDescriptions: Record<string, SidebarItemMeta> = {
   'form-rules': {
     key: 'form-rules',
     title: 'Auto-Form Rules',
-    description: 'Automatically send WhatsApp forms based on user intent, keywords, ad clicks, or entry source. No-code form automation.',
-    helpSlug: 'automation-workflows',
+    description: 'Automatically send WhatsApp forms based on user intent, keywords, ad clicks, or entry source. No-code form automation with AI intent detection.',
+    helpSlug: 'auto-form-rules-guide',
     icon: '📋',
+    category: 'growth'
+  },
+  flows: {
+    key: 'flows',
+    title: 'Flows',
+    description: 'Build interactive WhatsApp Flows with drag-and-drop designer. Create surveys, booking forms, and multi-step experiences.',
+    helpSlug: 'automation-workflows',
+    icon: '🔀',
     category: 'growth'
   },
 
