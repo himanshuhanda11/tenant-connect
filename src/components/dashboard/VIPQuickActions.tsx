@@ -10,6 +10,7 @@ import {
   Layout,
   ChevronRight,
   MoreHorizontal,
+  Library,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -25,27 +26,27 @@ interface VIPAction {
 
 const vipActions: VIPAction[] = [
   {
+    id: 'template-library',
+    label: 'Template Library',
+    description: '50+ pre-approved WhatsApp templates',
+    icon: Library,
+    href: '/template-library',
+    color: 'text-emerald-600',
+    bgColor: 'bg-emerald-100 dark:bg-emerald-900/30',
+  },
+  {
     id: 'vip-message',
-    label: 'New message from VIP customer',
-    description: '10 regarding order data at 12345',
+    label: 'View Inbox',
+    description: 'Manage customer conversations',
     icon: MessageSquare,
     href: '/inbox',
     color: 'text-red-600',
     bgColor: 'bg-red-100 dark:bg-red-900/30',
   },
   {
-    id: 'follow-up',
-    label: 'Follow up to close attieduled',
-    description: 'Agina with about contacts contacts',
-    icon: PhoneCall,
-    href: '/inbox',
-    color: 'text-blue-600',
-    bgColor: 'bg-blue-100 dark:bg-blue-900/30',
-  },
-  {
     id: 'create-flow',
     label: 'Create Flow',
-    description: 'Montitanti esugees reserge',
+    description: 'Build automation workflows',
     icon: Zap,
     href: '/flows',
     color: 'text-amber-600',
@@ -53,17 +54,17 @@ const vipActions: VIPAction[] = [
   },
   {
     id: 'create-form',
-    label: 'Create Form',
-    description: 'New menancts ocation',
+    label: 'Auto-Form Rules',
+    description: 'Automate form responses',
     icon: FileText,
-    href: '/templates',
+    href: '/automation/form-rules',
     color: 'text-purple-600',
     bgColor: 'bg-purple-100 dark:bg-purple-900/30',
   },
   {
     id: 'new-template',
-    label: 'New Template',
-    description: 'Areriasnitinscleis contacts',
+    label: 'Create Template',
+    description: 'Design custom message templates',
     icon: Layout,
     href: '/templates',
     color: 'text-pink-600',
