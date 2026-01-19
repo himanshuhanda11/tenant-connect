@@ -155,8 +155,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const signOut = async () => {
-    await supabase.auth.signOut();
-    setProfile(null);
+    // Clear any persisted workspace selection to avoid redirect loops after logout.
+    try {
+      localStorage.removeItem('whatsapp-isv-current-tenant');
+    } catch {
+      // ignore
+    }
+
+    try {
+      await supabase.auth.signOut();
+    } catch (err) {
+      // Don't block UI navigation on sign-out errors.
+      console.error('Sign out error:', err);
+    } finally {
+      setProfile(null);
+      setSession(null);
+      setUser(null);
+    }
   };
 
   return (
