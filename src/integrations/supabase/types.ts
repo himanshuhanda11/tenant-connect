@@ -2622,6 +2622,174 @@ export type Database = {
           },
         ]
       }
+      form_rule_logs: {
+        Row: {
+          contact_id: string | null
+          conversation_id: string | null
+          created_at: string
+          error_message: string | null
+          id: string
+          message_id: string | null
+          rule_id: string
+          skip_reason: string | null
+          status: string
+          tenant_id: string
+          trigger_data: Json | null
+        }
+        Insert: {
+          contact_id?: string | null
+          conversation_id?: string | null
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          message_id?: string | null
+          rule_id: string
+          skip_reason?: string | null
+          status: string
+          tenant_id: string
+          trigger_data?: Json | null
+        }
+        Update: {
+          contact_id?: string | null
+          conversation_id?: string | null
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          message_id?: string | null
+          rule_id?: string
+          skip_reason?: string | null
+          status?: string
+          tenant_id?: string
+          trigger_data?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "form_rule_logs_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "form_rule_logs_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "form_rule_logs_rule_id_fkey"
+            columns: ["rule_id"]
+            isOneToOne: false
+            referencedRelation: "form_rules"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "form_rule_logs_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      form_rules: {
+        Row: {
+          business_hours_only: boolean | null
+          conditions: Json | null
+          cooldown_minutes: number | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          execution_count: number | null
+          form_id: string | null
+          form_language: string | null
+          form_template_name: string | null
+          form_variables: Json | null
+          id: string
+          is_active: boolean | null
+          last_executed_at: string | null
+          max_sends_per_contact_per_day: number | null
+          name: string
+          priority: number | null
+          require_opt_in: boolean | null
+          tenant_id: string
+          trigger_config: Json
+          trigger_type: string
+          updated_at: string
+        }
+        Insert: {
+          business_hours_only?: boolean | null
+          conditions?: Json | null
+          cooldown_minutes?: number | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          execution_count?: number | null
+          form_id?: string | null
+          form_language?: string | null
+          form_template_name?: string | null
+          form_variables?: Json | null
+          id?: string
+          is_active?: boolean | null
+          last_executed_at?: string | null
+          max_sends_per_contact_per_day?: number | null
+          name: string
+          priority?: number | null
+          require_opt_in?: boolean | null
+          tenant_id: string
+          trigger_config?: Json
+          trigger_type: string
+          updated_at?: string
+        }
+        Update: {
+          business_hours_only?: boolean | null
+          conditions?: Json | null
+          cooldown_minutes?: number | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          execution_count?: number | null
+          form_id?: string | null
+          form_language?: string | null
+          form_template_name?: string | null
+          form_variables?: Json | null
+          id?: string
+          is_active?: boolean | null
+          last_executed_at?: string | null
+          max_sends_per_contact_per_day?: number | null
+          name?: string
+          priority?: number | null
+          require_opt_in?: boolean | null
+          tenant_id?: string
+          trigger_config?: Json
+          trigger_type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "form_rules_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "form_rules_form_id_fkey"
+            columns: ["form_id"]
+            isOneToOne: false
+            referencedRelation: "templates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "form_rules_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       guide_categories: {
         Row: {
           created_at: string

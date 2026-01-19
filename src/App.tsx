@@ -46,6 +46,7 @@ import CreateCampaign from "./pages/campaigns/CreateCampaign";
 import CampaignDetails from "./pages/campaigns/CampaignDetails";
 import CampaignLibrary from "./pages/campaigns/CampaignLibrary";
 import AutomationWorkflows from "./pages/AutomationWorkflows";
+import AutoFormRules from "./pages/AutoFormRules";
 import FlowsHub from "./pages/flows/FlowsHub";
 import FlowBuilder from "./pages/flows/FlowBuilder";
 import Billing from "./pages/Billing";
@@ -152,6 +153,7 @@ const App = () => (
               <Route path="/campaigns/library" element={<CampaignLibrary />} />
               <Route path="/campaigns/:id" element={<CampaignDetails />} />
               <Route path="/automation" element={<AutomationWorkflows />} />
+              <Route path="/automation/form-rules" element={<AutoFormRules />} />
               <Route path="/flows" element={<FlowsHub />} />
               <Route path="/flows/builder" element={<FlowBuilder />} />
               <Route path="/flows/builder/:id" element={<FlowBuilder />} />
