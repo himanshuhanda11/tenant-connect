@@ -22,6 +22,7 @@ import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
 import { useTeams, useTeamMembers } from '@/hooks/useTeam';
+import { TeamBreadcrumb } from '@/components/team/TeamBreadcrumb';
 import { ROUTING_STRATEGY_LABELS } from '@/types/team';
 import type { Team, RoutingStrategy } from '@/types/team';
 
@@ -99,6 +100,7 @@ const TeamGroups = () => {
   return (
     <DashboardLayout>
       <div className="space-y-6">
+        <TeamBreadcrumb currentPage="Teams (Groups)" />
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>

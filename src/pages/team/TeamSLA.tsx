@@ -14,6 +14,7 @@ import {
   Clock, AlertTriangle, Plus, Save, Trash2, Edit
 } from 'lucide-react';
 import { useWorkingHoursAndSLA, useTeams } from '@/hooks/useTeam';
+import { TeamBreadcrumb } from '@/components/team/TeamBreadcrumb';
 import { DAYS_OF_WEEK } from '@/types/team';
 import type { WorkingHours, SLASettings } from '@/types/team';
 
@@ -74,6 +75,7 @@ const TeamSLA = () => {
   return (
     <DashboardLayout>
       <div className="space-y-6">
+        <TeamBreadcrumb currentPage="Working Hours & SLA" />
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>

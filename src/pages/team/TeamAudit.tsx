@@ -16,6 +16,7 @@ import {
   LogIn, LogOut, UserPlus, Shield, Zap, Tag, Users
 } from 'lucide-react';
 import { useAuditLogs, useTeamMembers } from '@/hooks/useTeam';
+import { TeamBreadcrumb } from '@/components/team/TeamBreadcrumb';
 import { format } from 'date-fns';
 import type { AuditAction } from '@/types/team';
 
@@ -100,6 +101,7 @@ const TeamAudit = () => {
   return (
     <DashboardLayout>
       <div className="space-y-6">
+        <TeamBreadcrumb currentPage="Audit Logs" />
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>

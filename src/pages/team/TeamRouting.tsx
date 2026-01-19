@@ -23,6 +23,7 @@ import {
   Activity, Shield, Clock, AlertTriangle, CheckCircle2
 } from 'lucide-react';
 import { useRoutingRules, useTeams, useTeamMembers } from '@/hooks/useTeam';
+import { TeamBreadcrumb } from '@/components/team/TeamBreadcrumb';
 import { ROUTING_STRATEGY_LABELS } from '@/types/team';
 import type { RoutingRule, RoutingStrategy } from '@/types/team';
 import { TeamGuideCard } from '@/components/team/TeamGuideCard';
@@ -150,6 +151,7 @@ const TeamRouting = () => {
   return (
     <DashboardLayout>
       <div className="space-y-6 max-w-7xl">
+        <TeamBreadcrumb currentPage="Routing & Assignment" />
         {/* Header */}
         <div className="flex items-start justify-between">
           <div>
