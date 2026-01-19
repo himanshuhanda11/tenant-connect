@@ -22,7 +22,8 @@ import {
   Type,
   Link,
   Phone,
-  MessageSquare
+  MessageSquare,
+  Sparkles
 } from 'lucide-react';
 import { 
   HeaderType, 
@@ -32,6 +33,8 @@ import {
   LintValidationResult
 } from '@/types/template';
 import { WhatsAppPreview } from './WhatsAppPreview';
+import { AIValidationDrawer } from './AIValidationDrawer';
+import { useTenant } from '@/contexts/TenantContext';
 
 interface TemplateBuilderProps {
   initialData?: Partial<TemplateVersion> & { name?: string; category?: TemplateCategory; language?: string };
@@ -73,6 +76,9 @@ export function TemplateBuilder({
   saving = false,
   mode = 'create'
 }: TemplateBuilderProps) {
+  const { currentTenant } = useTenant();
+  const [aiValidationOpen, setAiValidationOpen] = useState(false);
+
   const [name, setName] = useState(initialData?.name || '');
   const [language, setLanguage] = useState(initialData?.language || 'en');
   const [category, setCategory] = useState<TemplateCategory>(initialData?.category || 'UTILITY');
@@ -447,8 +453,17 @@ export function TemplateBuilder({
           </CardContent>
         </Card>
 
-        {/* Save Button */}
-        <div className="flex justify-end gap-3">
+        {/* Action Buttons */}
+        <div className="flex flex-wrap justify-end gap-3">
+          <Button
+            variant="outline"
+            onClick={() => setAiValidationOpen(true)}
+            disabled={!body}
+            className="gap-2"
+          >
+            <Sparkles className="h-4 w-4" />
+            AI Validate
+          </Button>
           <Button
             onClick={handleSave}
             disabled={saving || !name || !body || errors.length > 0}
@@ -569,6 +584,36 @@ export function TemplateBuilder({
           </CardContent>
         </Card>
       </div>
+
+      {/* AI Validation Drawer */}
+      <AIValidationDrawer
+        open={aiValidationOpen}
+        onOpenChange={setAiValidationOpen}
+        templateData={{
+          workspaceId: currentTenant?.id || '',
+          selectedCategory: category,
+          language,
+          body,
+          header: headerType !== 'none' ? { type: headerType, text: headerContent } : undefined,
+          footer: footer || undefined,
+          buttons: buttons.map(b => ({
+            type: b.type,
+            text: b.text,
+            url: b.url,
+            phone_number: b.phone_number,
+          })),
+          exampleValues: variableSamples,
+        }}
+        onApplyFix={(fixType, data) => {
+          if (fixType === 'rewrite' && data?.suggestedRewrite) {
+            setBody(data.suggestedRewrite);
+          } else if (fixType === 'examples' && data?.suggestedExamples) {
+            setVariableSamples({ ...variableSamples, ...data.suggestedExamples });
+          } else if (fixType === 'category' && data?.predictedCategory) {
+            setCategory(data.predictedCategory);
+          }
+        }}
+      />
     </div>
   );
 }
