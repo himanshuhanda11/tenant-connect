@@ -52,6 +52,7 @@ const TeamRouting = () => {
   const { members } = useTeamMembers();
   const [showModal, setShowModal] = useState(false);
   const [editingRule, setEditingRule] = useState<RoutingRule | null>(null);
+  const [submitting, setSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -103,31 +104,45 @@ const TeamRouting = () => {
     setShowModal(true);
   };
 
-  const handleSubmit = () => {
-    const data = {
-      ...formData,
-      assign_to_team_id: formData.assign_to_team_id || null,
-      assign_to_user_id: formData.assign_to_user_id || null,
-    };
+  const handleSubmit = async () => {
+    if (!formData.name.trim()) return;
+    
+    setSubmitting(true);
+    try {
+      const data = {
+        name: formData.name.trim(),
+        description: formData.description.trim() || null,
+        priority: formData.priority,
+        is_active: formData.is_active,
+        condition_type: formData.condition_type,
+        condition_config: formData.condition_config,
+        assign_to_team_id: formData.assign_to_team_id || null,
+        assign_to_user_id: formData.assign_to_user_id || null,
+        strategy: formData.strategy,
+        fallback_strategy: formData.fallback_strategy,
+      };
 
-    if (editingRule) {
-      updateRule(editingRule.id, data);
-    } else {
-      createRule(data);
+      if (editingRule) {
+        await updateRule(editingRule.id, data);
+      } else {
+        await createRule(data);
+      }
+      setShowModal(false);
+      resetForm();
+      setEditingRule(null);
+    } finally {
+      setSubmitting(false);
     }
-    setShowModal(false);
-    resetForm();
-    setEditingRule(null);
   };
 
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: string) => {
     if (confirm('Are you sure you want to delete this routing rule?')) {
-      deleteRule(id);
+      await deleteRule(id);
     }
   };
 
-  const handleToggleActive = (rule: RoutingRule) => {
-    updateRule(rule.id, { is_active: !rule.is_active });
+  const handleToggleActive = async (rule: RoutingRule) => {
+    await updateRule(rule.id, { is_active: !rule.is_active });
   };
 
   const activeRules = rules.filter(r => r.is_active).length;
@@ -656,11 +671,11 @@ const TeamRouting = () => {
               </div>
             </div>
             <DialogFooter>
-              <Button variant="outline" onClick={() => setShowModal(false)}>
+              <Button variant="outline" onClick={() => setShowModal(false)} disabled={submitting}>
                 Cancel
               </Button>
-              <Button onClick={handleSubmit} disabled={!formData.name}>
-                {editingRule ? 'Save Changes' : 'Create Rule'}
+              <Button onClick={handleSubmit} disabled={!formData.name.trim() || submitting}>
+                {submitting ? 'Saving...' : editingRule ? 'Save Changes' : 'Create Rule'}
               </Button>
             </DialogFooter>
           </DialogContent>

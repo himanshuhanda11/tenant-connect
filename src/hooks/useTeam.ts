@@ -544,45 +544,80 @@ export function useRoutingRules() {
     fetchRules();
   }, [fetchRules]);
 
-  const createRule = async (rule: Partial<RoutingRule>) => {
-    if (!currentTenant?.id) return;
+  const createRule = async (rule: Partial<RoutingRule>): Promise<boolean> => {
+    if (!currentTenant?.id) {
+      toast.error('No workspace selected');
+      return false;
+    }
     
     try {
-      const { error } = await (supabase
-        .from('routing_rules') as any)
-        .insert({ ...rule, tenant_id: currentTenant.id });
+      const { data, error } = await supabase
+        .from('routing_rules')
+        .insert({ 
+          name: rule.name,
+          description: rule.description,
+          priority: rule.priority ?? 0,
+          is_active: rule.is_active ?? true,
+          condition_type: rule.condition_type,
+          condition_config: rule.condition_config ?? {},
+          assign_to_team_id: rule.assign_to_team_id,
+          assign_to_user_id: rule.assign_to_user_id,
+          strategy: rule.strategy ?? 'round_robin',
+          fallback_strategy: rule.fallback_strategy ?? 'least_busy',
+          tenant_id: currentTenant.id 
+        })
+        .select()
+        .single();
       
-      if (error) throw error;
+      if (error) {
+        console.error('Create rule error:', error);
+        throw error;
+      }
       toast.success('Routing rule created');
-      fetchRules();
+      await fetchRules();
+      return true;
     } catch (err: any) {
-      toast.error(err.message);
+      console.error('Create rule exception:', err);
+      toast.error(err.message || 'Failed to create routing rule');
+      return false;
     }
   };
 
-  const updateRule = async (id: string, updates: Partial<RoutingRule>) => {
+  const updateRule = async (id: string, updates: Partial<RoutingRule>): Promise<boolean> => {
     try {
       const { error } = await supabase
         .from('routing_rules')
         .update(updates)
         .eq('id', id);
       
-      if (error) throw error;
+      if (error) {
+        console.error('Update rule error:', error);
+        throw error;
+      }
       toast.success('Routing rule updated');
-      fetchRules();
+      await fetchRules();
+      return true;
     } catch (err: any) {
-      toast.error(err.message);
+      console.error('Update rule exception:', err);
+      toast.error(err.message || 'Failed to update routing rule');
+      return false;
     }
   };
 
-  const deleteRule = async (id: string) => {
+  const deleteRule = async (id: string): Promise<boolean> => {
     try {
       const { error } = await supabase.from('routing_rules').delete().eq('id', id);
-      if (error) throw error;
+      if (error) {
+        console.error('Delete rule error:', error);
+        throw error;
+      }
       toast.success('Routing rule deleted');
-      fetchRules();
+      await fetchRules();
+      return true;
     } catch (err: any) {
-      toast.error(err.message);
+      console.error('Delete rule exception:', err);
+      toast.error(err.message || 'Failed to delete routing rule');
+      return false;
     }
   };
 
