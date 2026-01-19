@@ -148,49 +148,78 @@ export function useTeams() {
     fetchTeams();
   }, [fetchTeams]);
 
-  const createTeam = async (team: Partial<Team>) => {
-    if (!currentTenant?.id) return;
+  const createTeam = async (team: Partial<Team>): Promise<boolean> => {
+    if (!currentTenant?.id) {
+      toast.error('No workspace selected');
+      return false;
+    }
     
     try {
-      const { error } = await (supabase
-        .from('teams') as any)
-        .insert({ ...team, tenant_id: currentTenant.id });
+      const { error } = await supabase
+        .from('teams')
+        .insert({
+          name: team.name,
+          description: team.description || null,
+          color: team.color || '#6366f1',
+          team_lead_id: team.team_lead_id || null,
+          default_routing_strategy: team.default_routing_strategy || 'round_robin',
+          is_active: true,
+          tenant_id: currentTenant.id
+        });
       
-      if (error) throw error;
+      if (error) {
+        console.error('Create team error:', error);
+        throw error;
+      }
       toast.success('Team created');
-      fetchTeams();
+      await fetchTeams();
+      return true;
     } catch (err: any) {
-      toast.error(err.message);
+      console.error('Create team exception:', err);
+      toast.error(err.message || 'Failed to create team');
+      return false;
     }
   };
 
-  const updateTeam = async (id: string, updates: Partial<Team>) => {
+  const updateTeam = async (id: string, updates: Partial<Team>): Promise<boolean> => {
     try {
       const { error } = await supabase
         .from('teams')
         .update(updates)
         .eq('id', id);
       
-      if (error) throw error;
+      if (error) {
+        console.error('Update team error:', error);
+        throw error;
+      }
       toast.success('Team updated');
-      fetchTeams();
+      await fetchTeams();
+      return true;
     } catch (err: any) {
-      toast.error(err.message);
+      console.error('Update team exception:', err);
+      toast.error(err.message || 'Failed to update team');
+      return false;
     }
   };
 
-  const deleteTeam = async (id: string) => {
+  const deleteTeam = async (id: string): Promise<boolean> => {
     try {
       const { error } = await supabase
         .from('teams')
         .delete()
         .eq('id', id);
       
-      if (error) throw error;
+      if (error) {
+        console.error('Delete team error:', error);
+        throw error;
+      }
       toast.success('Team deleted');
-      fetchTeams();
+      await fetchTeams();
+      return true;
     } catch (err: any) {
-      toast.error(err.message);
+      console.error('Delete team exception:', err);
+      toast.error(err.message || 'Failed to delete team');
+      return false;
     }
   };
 
@@ -239,17 +268,30 @@ export function useRoles() {
     fetchRoles();
   }, [fetchRoles]);
 
-  const createRole = async (role: Partial<Role>, permissionIds: string[]) => {
-    if (!currentTenant?.id) return;
+  const createRole = async (role: Partial<Role>, permissionIds: string[]): Promise<boolean> => {
+    if (!currentTenant?.id) {
+      toast.error('No workspace selected');
+      return false;
+    }
     
     try {
-      const { data, error } = await (supabase
-        .from('roles') as any)
-        .insert({ ...role, tenant_id: currentTenant.id })
+      const { data, error } = await supabase
+        .from('roles')
+        .insert({
+          name: role.name,
+          description: role.description || null,
+          base_role: role.base_role || 'agent',
+          color: role.color || '#6366f1',
+          is_system: false,
+          tenant_id: currentTenant.id
+        })
         .select()
         .single();
       
-      if (error) throw error;
+      if (error) {
+        console.error('Create role error:', error);
+        throw error;
+      }
 
       // Add permissions
       if (permissionIds.length > 0) {
@@ -257,24 +299,33 @@ export function useRoles() {
           .from('role_permissions')
           .insert(permissionIds.map(pid => ({ role_id: data.id, permission_id: pid })));
         
-        if (permError) throw permError;
+        if (permError) {
+          console.error('Add permissions error:', permError);
+          throw permError;
+        }
       }
 
       toast.success('Role created');
-      fetchRoles();
+      await fetchRoles();
+      return true;
     } catch (err: any) {
-      toast.error(err.message);
+      console.error('Create role exception:', err);
+      toast.error(err.message || 'Failed to create role');
+      return false;
     }
   };
 
-  const updateRole = async (id: string, updates: Partial<Role>, permissionIds?: string[]) => {
+  const updateRole = async (id: string, updates: Partial<Role>, permissionIds?: string[]): Promise<boolean> => {
     try {
       const { error } = await supabase
         .from('roles')
         .update(updates)
         .eq('id', id);
       
-      if (error) throw error;
+      if (error) {
+        console.error('Update role error:', error);
+        throw error;
+      }
 
       if (permissionIds !== undefined) {
         // Clear existing permissions
@@ -289,20 +340,29 @@ export function useRoles() {
       }
 
       toast.success('Role updated');
-      fetchRoles();
+      await fetchRoles();
+      return true;
     } catch (err: any) {
-      toast.error(err.message);
+      console.error('Update role exception:', err);
+      toast.error(err.message || 'Failed to update role');
+      return false;
     }
   };
 
-  const deleteRole = async (id: string) => {
+  const deleteRole = async (id: string): Promise<boolean> => {
     try {
       const { error } = await supabase.from('roles').delete().eq('id', id);
-      if (error) throw error;
+      if (error) {
+        console.error('Delete role error:', error);
+        throw error;
+      }
       toast.success('Role deleted');
-      fetchRoles();
+      await fetchRoles();
+      return true;
     } catch (err: any) {
-      toast.error(err.message);
+      console.error('Delete role exception:', err);
+      toast.error(err.message || 'Failed to delete role');
+      return false;
     }
   };
 
@@ -354,8 +414,11 @@ export function useMemberInvites() {
     fetchInvites();
   }, [fetchInvites]);
 
-  const sendInvite = async (email: string, roleId: string, teamIds: string[] = [], phoneNumberIds: string[] = []) => {
-    if (!currentTenant?.id) return;
+  const sendInvite = async (email: string, roleId: string, teamIds: string[] = [], phoneNumberIds: string[] = []): Promise<boolean> => {
+    if (!currentTenant?.id) {
+      toast.error('No workspace selected');
+      return false;
+    }
     
     try {
       const token = crypto.randomUUID();
@@ -373,15 +436,21 @@ export function useMemberInvites() {
           expires_at: expiresAt,
         });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Send invite error:', error);
+        throw error;
+      }
       toast.success('Invite sent');
-      fetchInvites();
+      await fetchInvites();
+      return true;
     } catch (err: any) {
-      toast.error(err.message);
+      console.error('Send invite exception:', err);
+      toast.error(err.message || 'Failed to send invite');
+      return false;
     }
   };
 
-  const resendInvite = async (id: string) => {
+  const resendInvite = async (id: string): Promise<boolean> => {
     try {
       const newToken = crypto.randomUUID();
       const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
@@ -391,22 +460,34 @@ export function useMemberInvites() {
         .update({ token: newToken, expires_at: expiresAt })
         .eq('id', id);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Resend invite error:', error);
+        throw error;
+      }
       toast.success('Invite resent');
-      fetchInvites();
+      await fetchInvites();
+      return true;
     } catch (err: any) {
-      toast.error(err.message);
+      console.error('Resend invite exception:', err);
+      toast.error(err.message || 'Failed to resend invite');
+      return false;
     }
   };
 
-  const cancelInvite = async (id: string) => {
+  const cancelInvite = async (id: string): Promise<boolean> => {
     try {
       const { error } = await supabase.from('member_invites').delete().eq('id', id);
-      if (error) throw error;
+      if (error) {
+        console.error('Cancel invite error:', error);
+        throw error;
+      }
       toast.success('Invite cancelled');
-      fetchInvites();
+      await fetchInvites();
+      return true;
     } catch (err: any) {
-      toast.error(err.message);
+      console.error('Cancel invite exception:', err);
+      toast.error(err.message || 'Failed to cancel invite');
+      return false;
     }
   };
 
@@ -456,8 +537,11 @@ export function useWorkingHoursAndSLA() {
     fetchData();
   }, [fetchData]);
 
-  const saveWorkingHours = async (hours: Partial<WorkingHours>[]) => {
-    if (!currentTenant?.id) return;
+  const saveWorkingHours = async (hours: Partial<WorkingHours>[]): Promise<boolean> => {
+    if (!currentTenant?.id) {
+      toast.error('No workspace selected');
+      return false;
+    }
     
     try {
       // Delete existing workspace-level hours
@@ -469,20 +553,35 @@ export function useWorkingHoursAndSLA() {
         .is('user_id', null);
 
       // Insert new hours
-      const { error } = await (supabase
-        .from('working_hours') as any)
-        .insert(hours.map(h => ({ ...h, tenant_id: currentTenant.id })));
+      const { error } = await supabase
+        .from('working_hours')
+        .insert(hours.map(h => ({
+          day_of_week: h.day_of_week,
+          start_time: h.start_time,
+          end_time: h.end_time,
+          is_active: h.is_active ?? true,
+          tenant_id: currentTenant.id
+        })));
 
-      if (error) throw error;
+      if (error) {
+        console.error('Save working hours error:', error);
+        throw error;
+      }
       toast.success('Working hours saved');
-      fetchData();
+      await fetchData();
+      return true;
     } catch (err: any) {
-      toast.error(err.message);
+      console.error('Save working hours exception:', err);
+      toast.error(err.message || 'Failed to save working hours');
+      return false;
     }
   };
 
-  const saveSLASettings = async (settings: Partial<SLASettings>) => {
-    if (!currentTenant?.id) return;
+  const saveSLASettings = async (settings: Partial<SLASettings>): Promise<boolean> => {
+    if (!currentTenant?.id) {
+      toast.error('No workspace selected');
+      return false;
+    }
     
     try {
       if (settings.id) {
@@ -490,18 +589,38 @@ export function useWorkingHoursAndSLA() {
           .from('sla_settings')
           .update(settings)
           .eq('id', settings.id);
-        if (error) throw error;
+        if (error) {
+          console.error('Update SLA settings error:', error);
+          throw error;
+        }
       } else {
-        const { error } = await (supabase
-          .from('sla_settings') as any)
-          .insert({ ...settings, tenant_id: currentTenant.id });
-        if (error) throw error;
+        const { error } = await supabase
+          .from('sla_settings')
+          .insert({
+            name: settings.name,
+            first_response_minutes: settings.first_response_minutes ?? 15,
+            follow_up_minutes: settings.follow_up_minutes ?? 60,
+            resolution_hours: settings.resolution_hours ?? 24,
+            escalate_on_breach: settings.escalate_on_breach ?? false,
+            escalate_to_team_lead: settings.escalate_to_team_lead ?? false,
+            after_hours_auto_reply: settings.after_hours_auto_reply ?? false,
+            is_active: settings.is_active ?? true,
+            team_id: settings.team_id || null,
+            tenant_id: currentTenant.id
+          });
+        if (error) {
+          console.error('Create SLA settings error:', error);
+          throw error;
+        }
       }
       
       toast.success('SLA settings saved');
-      fetchData();
+      await fetchData();
+      return true;
     } catch (err: any) {
-      toast.error(err.message);
+      console.error('Save SLA settings exception:', err);
+      toast.error(err.message || 'Failed to save SLA settings');
+      return false;
     }
   };
 
