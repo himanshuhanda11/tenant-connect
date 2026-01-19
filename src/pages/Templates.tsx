@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -30,7 +30,15 @@ interface TemplateFilters {
   language: string;
 }
 
+interface LibraryTemplateState {
+  name: string;
+  category: TemplateCategory;
+  body: string;
+  variables?: string[];
+}
+
 export default function Templates() {
+  const location = useLocation();
   const {
     templates,
     loading,
@@ -55,6 +63,7 @@ export default function Templates() {
   const [reviewModalTemplate, setReviewModalTemplate] = useState<TemplateType | null>(null);
   const [isCreating, setIsCreating] = useState(false);
   const [currentLintResults, setCurrentLintResults] = useState<any[]>([]);
+  const [libraryTemplateData, setLibraryTemplateData] = useState<LibraryTemplateState | null>(null);
   
   // Local filters state
   const [filters, setFilters] = useState<TemplateFilters>({
@@ -69,6 +78,20 @@ export default function Templates() {
   useEffect(() => {
     fetchTemplates(filters);
   }, [fetchTemplates, filters]);
+
+  // Handle library template navigation state
+  useEffect(() => {
+    const state = location.state as { useLibraryTemplate?: LibraryTemplateState } | null;
+    if (state?.useLibraryTemplate) {
+      setLibraryTemplateData(state.useLibraryTemplate);
+      setEditingTemplate(null);
+      setEditingVersion(null);
+      setIsCreating(true);
+      setActiveTab('builder');
+      // Clear the location state to prevent re-triggering
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state]);
 
   // Template list handlers
   const handleView = (template: TemplateType) => {
@@ -151,6 +174,7 @@ export default function Templates() {
     setEditingTemplate(null);
     setEditingVersion(null);
     setIsCreating(false);
+    setLibraryTemplateData(null);
     setActiveTab('list');
     fetchTemplates(filters);
   };
@@ -159,6 +183,7 @@ export default function Templates() {
     setEditingTemplate(null);
     setEditingVersion(null);
     setIsCreating(false);
+    setLibraryTemplateData(null);
     setActiveTab('list');
   };
 
@@ -296,6 +321,11 @@ export default function Templates() {
                 category: editingTemplate.category,
                 language: editingTemplate.language,
                 ...editingVersion
+              } : libraryTemplateData ? {
+                name: libraryTemplateData.name,
+                category: libraryTemplateData.category,
+                language: 'en',
+                body: libraryTemplateData.body,
               } : undefined}
               lintResults={currentLintResults}
               onValidate={handleBuilderValidate}

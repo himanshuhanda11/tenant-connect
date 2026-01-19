@@ -19,6 +19,7 @@ import Footer from '@/components/layout/Footer';
 import { SEO } from '@/components/seo';
 import { PRE_APPROVED_TEMPLATES, TEMPLATE_CATEGORIES, PreApprovedTemplate } from '@/data/preApprovedTemplates';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useAuth } from '@/contexts/AuthContext';
 
 // Icon mapping for dynamic rendering
 const ICON_MAP: Record<string, any> = {
@@ -31,6 +32,7 @@ const ICON_MAP: Record<string, any> = {
 
 export default function TemplateLibrary() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [selectedMetaCategory, setSelectedMetaCategory] = useState<'ALL' | 'UTILITY' | 'MARKETING' | 'AUTHENTICATION'>('ALL');
@@ -50,6 +52,26 @@ export default function TemplateLibrary() {
   const copyTemplate = (template: PreApprovedTemplate) => {
     navigator.clipboard.writeText(template.body);
     toast.success(`Template "${template.name}" copied to clipboard!`);
+  };
+
+  const useTemplate = (template: PreApprovedTemplate) => {
+    if (user) {
+      // Navigate to templates page with template data pre-filled
+      navigate('/templates', {
+        state: {
+          useLibraryTemplate: {
+            name: template.name.toLowerCase().replace(/\s+/g, '_'),
+            category: template.metaCategory,
+            body: template.body,
+            variables: template.variables,
+          }
+        }
+      });
+      toast.success(`Opening template builder with "${template.name}"`);
+    } else {
+      // Redirect to signup for non-authenticated users
+      navigate('/signup');
+    }
   };
 
   const getIcon = (iconName: string) => {
@@ -370,7 +392,7 @@ export default function TemplateLibrary() {
                       <Button 
                         size="sm" 
                         className="flex-1 gap-2 h-10 bg-primary hover:bg-primary/90" 
-                        onClick={() => navigate('/signup')}
+                        onClick={() => useTemplate(template)}
                       >
                         Use Template
                         <ArrowRight className="w-4 h-4" />
