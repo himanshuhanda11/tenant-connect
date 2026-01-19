@@ -30,6 +30,7 @@ const TeamGroups = () => {
   const { members } = useTeamMembers();
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [editingTeam, setEditingTeam] = useState<Team | null>(null);
+  const [submitting, setSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -66,20 +67,27 @@ const TeamGroups = () => {
     setShowCreateModal(true);
   };
 
-  const handleSubmit = () => {
-    if (editingTeam) {
-      updateTeam(editingTeam.id, formData);
-    } else {
-      createTeam(formData);
+  const handleSubmit = async () => {
+    if (!formData.name.trim()) return;
+    
+    setSubmitting(true);
+    try {
+      if (editingTeam) {
+        await updateTeam(editingTeam.id, formData);
+      } else {
+        await createTeam(formData);
+      }
+      setShowCreateModal(false);
+      resetForm();
+      setEditingTeam(null);
+    } finally {
+      setSubmitting(false);
     }
-    setShowCreateModal(false);
-    resetForm();
-    setEditingTeam(null);
   };
 
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: string) => {
     if (confirm('Are you sure you want to delete this team?')) {
-      deleteTeam(id);
+      await deleteTeam(id);
     }
   };
 
@@ -292,11 +300,11 @@ const TeamGroups = () => {
               </div>
             </div>
             <DialogFooter>
-              <Button variant="outline" onClick={() => setShowCreateModal(false)}>
+              <Button variant="outline" onClick={() => setShowCreateModal(false)} disabled={submitting}>
                 Cancel
               </Button>
-              <Button onClick={handleSubmit} disabled={!formData.name}>
-                {editingTeam ? 'Save Changes' : 'Create Team'}
+              <Button onClick={handleSubmit} disabled={!formData.name.trim() || submitting}>
+                {submitting ? 'Saving...' : editingTeam ? 'Save Changes' : 'Create Team'}
               </Button>
             </DialogFooter>
           </DialogContent>
