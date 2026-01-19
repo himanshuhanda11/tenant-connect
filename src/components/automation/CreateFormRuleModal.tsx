@@ -276,26 +276,26 @@ export function CreateFormRuleModal({ open, onOpenChange, editingRule }: CreateF
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] p-0 overflow-hidden">
+      <DialogContent className="max-w-2xl max-h-[90vh] sm:max-h-[85vh] p-0 overflow-hidden w-[95vw] sm:w-full">
         {/* Header */}
-        <DialogHeader className="px-4 sm:px-6 pt-4 sm:pt-6 pb-3 border-b bg-gradient-to-r from-primary/5 to-transparent">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-              <FileText className="w-5 h-5 text-primary" />
+        <DialogHeader className="px-3 sm:px-6 pt-3 sm:pt-6 pb-2 sm:pb-3 border-b bg-gradient-to-r from-primary/5 to-transparent">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+              <FileText className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
             </div>
-            <div className="flex-1">
-              <DialogTitle className="text-lg">
+            <div className="flex-1 min-w-0">
+              <DialogTitle className="text-base sm:text-lg truncate">
                 {editingRule ? 'Edit Auto-Form Rule' : 'Create Auto-Form Rule'}
               </DialogTitle>
-              <DialogDescription className="text-xs mt-0.5">
+              <DialogDescription className="text-[10px] sm:text-xs mt-0.5 truncate">
                 Automatically send WhatsApp Forms based on user intent
               </DialogDescription>
             </div>
           </div>
           
           {/* Step Indicator */}
-          <div className="mt-4">
-            <div className="flex items-center justify-between mb-2">
+          <div className="mt-3 sm:mt-4">
+            <div className="flex items-center justify-between mb-2 px-1">
               {STEPS.map((step, idx) => {
                 const StepIcon = step.icon;
                 const isActive = currentStep === step.id;
@@ -306,21 +306,21 @@ export function CreateFormRuleModal({ open, onOpenChange, editingRule }: CreateF
                     onClick={() => step.id <= currentStep && setCurrentStep(step.id)}
                     disabled={step.id > currentStep}
                     className={cn(
-                      "flex flex-col items-center gap-1 transition-all",
+                      "flex flex-col items-center gap-0.5 sm:gap-1 transition-all touch-manipulation",
                       isActive && "scale-105",
                       step.id > currentStep && "opacity-40"
                     )}
                   >
                     <div className={cn(
-                      "w-8 h-8 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center transition-all",
+                      "w-7 h-7 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl flex items-center justify-center transition-all",
                       isComplete ? "bg-green-500 text-white" :
                       isActive ? "bg-primary text-primary-foreground shadow-lg" :
                       "bg-muted text-muted-foreground"
                     )}>
-                      {isComplete ? <Check className="w-4 h-4" /> : <StepIcon className="w-4 h-4" />}
+                      {isComplete ? <Check className="w-3 h-3 sm:w-4 sm:h-4" /> : <StepIcon className="w-3 h-3 sm:w-4 sm:h-4" />}
                     </div>
                     <span className={cn(
-                      "text-[9px] sm:text-[10px] font-semibold uppercase tracking-wide",
+                      "text-[8px] sm:text-[10px] font-semibold uppercase tracking-wide",
                       isActive ? "text-primary" : "text-muted-foreground"
                     )}>
                       {step.subtitle}
@@ -333,18 +333,18 @@ export function CreateFormRuleModal({ open, onOpenChange, editingRule }: CreateF
           </div>
         </DialogHeader>
 
-        <ScrollArea className="max-h-[calc(90vh-280px)]">
-          <div className="px-4 sm:px-6 py-5">
+        <ScrollArea className="flex-1 max-h-[calc(90vh-240px)] sm:max-h-[calc(85vh-280px)]">
+          <div className="px-3 sm:px-6 py-4 sm:py-5">
             
             {/* Step 1: Trigger Selection */}
             {currentStep === 1 && (
-              <div className="space-y-4">
-                <div className="text-center mb-6">
-                  <h3 className="text-lg font-semibold">Choose a Trigger</h3>
-                  <p className="text-sm text-muted-foreground">When should this form be sent?</p>
+              <div className="space-y-3 sm:space-y-4">
+                <div className="text-center mb-4 sm:mb-6">
+                  <h3 className="text-base sm:text-lg font-semibold">Choose a Trigger</h3>
+                  <p className="text-xs sm:text-sm text-muted-foreground">When should this form be sent?</p>
                 </div>
                 
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-2 gap-2 sm:gap-3">
                   {EXTENDED_TRIGGER_OPTIONS.map(option => {
                     const Icon = triggerIconMap[option.value];
                     const isSelected = triggerType === option.value;
@@ -360,31 +360,31 @@ export function CreateFormRuleModal({ open, onOpenChange, editingRule }: CreateF
                           setTriggerConfig({});
                         }}
                         className={cn(
-                          "relative flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all text-center group",
+                          "relative flex flex-col items-center gap-1.5 sm:gap-2 p-2.5 sm:p-4 rounded-lg sm:rounded-xl border-2 transition-all text-center group touch-manipulation",
                           isSelected 
                             ? `${colors.bg} ${colors.border} shadow-md` 
                             : "border-border hover:border-primary/30 hover:bg-muted/50"
                         )}
                       >
                         {isPro && (
-                          <Badge className="absolute -top-2 -right-2 text-[9px] px-1.5 bg-gradient-to-r from-violet-500 to-purple-500 text-white border-0">
+                          <Badge className="absolute -top-1.5 -right-1.5 sm:-top-2 sm:-right-2 text-[8px] sm:text-[9px] px-1 sm:px-1.5 bg-gradient-to-r from-violet-500 to-purple-500 text-white border-0">
                             PRO
                           </Badge>
                         )}
                         <div className={cn(
-                          "w-12 h-12 rounded-xl flex items-center justify-center transition-transform group-hover:scale-110",
+                          "w-9 h-9 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl flex items-center justify-center transition-transform group-hover:scale-110",
                           isSelected ? colors.bg : "bg-muted"
                         )}>
-                          <Icon className={cn("w-6 h-6", isSelected ? colors.text : "text-muted-foreground")} />
+                          <Icon className={cn("w-4 h-4 sm:w-6 sm:h-6", isSelected ? colors.text : "text-muted-foreground")} />
                         </div>
                         <div>
                           <span className={cn(
-                            "text-sm font-semibold block",
+                            "text-xs sm:text-sm font-semibold block",
                             isSelected ? colors.text : "text-foreground"
                           )}>
                             {option.label}
                           </span>
-                          <span className="text-[10px] text-muted-foreground line-clamp-2">
+                          <span className="text-[9px] sm:text-[10px] text-muted-foreground line-clamp-2 hidden xs:block">
                             {option.description}
                           </span>
                         </div>
@@ -474,10 +474,10 @@ export function CreateFormRuleModal({ open, onOpenChange, editingRule }: CreateF
 
             {/* Step 2: Conditions */}
             {currentStep === 2 && (
-              <div className="space-y-4">
-                <div className="text-center mb-6">
-                  <h3 className="text-lg font-semibold">Add Conditions (Optional)</h3>
-                  <p className="text-sm text-muted-foreground">Filter when this rule should apply</p>
+              <div className="space-y-3 sm:space-y-4">
+                <div className="text-center mb-4 sm:mb-6">
+                  <h3 className="text-base sm:text-lg font-semibold">Add Conditions (Optional)</h3>
+                  <p className="text-xs sm:text-sm text-muted-foreground">Filter when this rule should apply</p>
                 </div>
 
                 <div className="space-y-3">
@@ -575,10 +575,10 @@ export function CreateFormRuleModal({ open, onOpenChange, editingRule }: CreateF
 
             {/* Step 3: Form Selection */}
             {currentStep === 3 && (
-              <div className="space-y-4">
-                <div className="text-center mb-6">
-                  <h3 className="text-lg font-semibold">Select Form to Send</h3>
-                  <p className="text-sm text-muted-foreground">Choose which WhatsApp form to deliver</p>
+              <div className="space-y-3 sm:space-y-4">
+                <div className="text-center mb-4 sm:mb-6">
+                  <h3 className="text-base sm:text-lg font-semibold">Select Form to Send</h3>
+                  <p className="text-xs sm:text-sm text-muted-foreground">Choose which WhatsApp form to deliver</p>
                 </div>
 
                 <div className="space-y-3">
@@ -653,66 +653,66 @@ export function CreateFormRuleModal({ open, onOpenChange, editingRule }: CreateF
 
             {/* Step 4: Safety Controls */}
             {currentStep === 4 && (
-              <div className="space-y-4">
-                <div className="text-center mb-6">
-                  <h3 className="text-lg font-semibold">Safety Controls</h3>
-                  <p className="text-sm text-muted-foreground">Prevent spam and ensure great UX</p>
+              <div className="space-y-3 sm:space-y-4">
+                <div className="text-center mb-4 sm:mb-6">
+                  <h3 className="text-base sm:text-lg font-semibold">Safety Controls</h3>
+                  <p className="text-xs sm:text-sm text-muted-foreground">Prevent spam and ensure great UX</p>
                 </div>
 
                 <div className="space-y-3">
                   {/* Send Once Per User */}
-                  <div className="flex items-center justify-between p-4 rounded-xl border-2 transition-all hover:border-primary/30">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center">
-                        <User className="w-5 h-5 text-blue-600" />
+                  <div className="flex items-center justify-between p-3 sm:p-4 rounded-xl border-2 transition-all hover:border-primary/30 touch-manipulation">
+                    <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+                      <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-blue-100 flex items-center justify-center shrink-0">
+                        <User className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
                       </div>
-                      <div>
-                        <p className="font-medium">Send only once per user</p>
-                        <p className="text-xs text-muted-foreground">Don't repeat to same contact</p>
+                      <div className="min-w-0">
+                        <p className="font-medium text-sm sm:text-base truncate">Send only once per user</p>
+                        <p className="text-[10px] sm:text-xs text-muted-foreground">Don't repeat to same contact</p>
                       </div>
                     </div>
-                    <Switch checked={sendOncePerUser} onCheckedChange={setSendOncePerUser} />
+                    <Switch checked={sendOncePerUser} onCheckedChange={setSendOncePerUser} className="shrink-0" />
                   </div>
 
                   {/* Stop if Agent Replies */}
-                  <div className="flex items-center justify-between p-4 rounded-xl border-2 transition-all hover:border-primary/30">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-lg bg-green-100 flex items-center justify-center">
-                        <Send className="w-5 h-5 text-green-600" />
+                  <div className="flex items-center justify-between p-3 sm:p-4 rounded-xl border-2 transition-all hover:border-primary/30 touch-manipulation">
+                    <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+                      <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-green-100 flex items-center justify-center shrink-0">
+                        <Send className="w-4 h-4 sm:w-5 sm:h-5 text-green-600" />
                       </div>
-                      <div>
-                        <p className="font-medium">Stop if agent replies</p>
-                        <p className="text-xs text-muted-foreground">Cancel if human takes over</p>
+                      <div className="min-w-0">
+                        <p className="font-medium text-sm sm:text-base truncate">Stop if agent replies</p>
+                        <p className="text-[10px] sm:text-xs text-muted-foreground">Cancel if human takes over</p>
                       </div>
                     </div>
-                    <Switch checked={stopOnAgentReply} onCheckedChange={setStopOnAgentReply} />
+                    <Switch checked={stopOnAgentReply} onCheckedChange={setStopOnAgentReply} className="shrink-0" />
                   </div>
 
                   {/* Stop on Free Text */}
-                  <div className="flex items-center justify-between p-4 rounded-xl border-2 transition-all hover:border-primary/30">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-lg bg-amber-100 flex items-center justify-center">
-                        <MessageSquare className="w-5 h-5 text-amber-600" />
+                  <div className="flex items-center justify-between p-3 sm:p-4 rounded-xl border-2 transition-all hover:border-primary/30 touch-manipulation">
+                    <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+                      <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-amber-100 flex items-center justify-center shrink-0">
+                        <MessageSquare className="w-4 h-4 sm:w-5 sm:h-5 text-amber-600" />
                       </div>
-                      <div>
-                        <p className="font-medium">Stop if user types free text</p>
-                        <p className="text-xs text-muted-foreground">Cancel if user sends a message</p>
+                      <div className="min-w-0">
+                        <p className="font-medium text-sm sm:text-base truncate">Stop if user types free text</p>
+                        <p className="text-[10px] sm:text-xs text-muted-foreground">Cancel if user sends a message</p>
                       </div>
                     </div>
-                    <Switch checked={stopOnFreeText} onCheckedChange={setStopOnFreeText} />
+                    <Switch checked={stopOnFreeText} onCheckedChange={setStopOnFreeText} className="shrink-0" />
                   </div>
 
                   {/* Cooldown Period */}
-                  <div className="p-4 rounded-xl border-2">
-                    <div className="flex items-center gap-3 mb-3">
-                      <div className="w-10 h-10 rounded-lg bg-purple-100 flex items-center justify-center">
-                        <RefreshCcw className="w-5 h-5 text-purple-600" />
+                  <div className="p-3 sm:p-4 rounded-xl border-2">
+                    <div className="flex items-center gap-2 sm:gap-3 mb-3">
+                      <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-purple-100 flex items-center justify-center shrink-0">
+                        <RefreshCcw className="w-4 h-4 sm:w-5 sm:h-5 text-purple-600" />
                       </div>
-                      <div className="flex-1">
-                        <p className="font-medium">Cooldown period</p>
-                        <p className="text-xs text-muted-foreground">Minimum time between sends</p>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-sm sm:text-base">Cooldown period</p>
+                        <p className="text-[10px] sm:text-xs text-muted-foreground">Minimum time between sends</p>
                       </div>
-                      <span className="text-sm font-semibold text-primary">{cooldownMinutes} min</span>
+                      <span className="text-xs sm:text-sm font-semibold text-primary shrink-0">{cooldownMinutes} min</span>
                     </div>
                     <Slider
                       value={[cooldownMinutes]}
@@ -724,14 +724,14 @@ export function CreateFormRuleModal({ open, onOpenChange, editingRule }: CreateF
                   </div>
 
                   {/* Fallback Message */}
-                  <div className="p-4 rounded-xl border-2">
-                    <div className="flex items-center gap-3 mb-3">
-                      <div className="w-10 h-10 rounded-lg bg-red-100 flex items-center justify-center">
-                        <AlertCircle className="w-5 h-5 text-red-600" />
+                  <div className="p-3 sm:p-4 rounded-xl border-2">
+                    <div className="flex items-center gap-2 sm:gap-3 mb-3">
+                      <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-red-100 flex items-center justify-center shrink-0">
+                        <AlertCircle className="w-4 h-4 sm:w-5 sm:h-5 text-red-600" />
                       </div>
-                      <div>
-                        <p className="font-medium">Fallback message</p>
-                        <p className="text-xs text-muted-foreground">Sent if form fails to deliver</p>
+                      <div className="min-w-0">
+                        <p className="font-medium text-sm sm:text-base">Fallback message</p>
+                        <p className="text-[10px] sm:text-xs text-muted-foreground">Sent if form fails to deliver</p>
                       </div>
                     </div>
                     <Textarea
@@ -747,10 +747,10 @@ export function CreateFormRuleModal({ open, onOpenChange, editingRule }: CreateF
 
             {/* Step 5: Review */}
             {currentStep === 5 && (
-              <div className="space-y-4">
-                <div className="text-center mb-6">
-                  <h3 className="text-lg font-semibold">Review & Save</h3>
-                  <p className="text-sm text-muted-foreground">Confirm your auto-form rule settings</p>
+              <div className="space-y-3 sm:space-y-4">
+                <div className="text-center mb-4 sm:mb-6">
+                  <h3 className="text-base sm:text-lg font-semibold">Review & Save</h3>
+                  <p className="text-xs sm:text-sm text-muted-foreground">Confirm your auto-form rule settings</p>
                 </div>
 
                 <div className="space-y-3">
@@ -775,10 +775,10 @@ export function CreateFormRuleModal({ open, onOpenChange, editingRule }: CreateF
                 </div>
 
                 {/* Summary Card */}
-                <div className="p-4 rounded-xl bg-gradient-to-br from-primary/5 to-primary/10 border border-primary/20 space-y-3">
-                  <h4 className="font-semibold text-sm">Rule Summary</h4>
+                <div className="p-3 sm:p-4 rounded-xl bg-gradient-to-br from-primary/5 to-primary/10 border border-primary/20 space-y-3">
+                  <h4 className="font-semibold text-xs sm:text-sm">Rule Summary</h4>
                   
-                  <div className="grid grid-cols-2 gap-3 text-sm">
+                  <div className="grid grid-cols-2 gap-2 sm:gap-3 text-xs sm:text-sm">
                     <div className="flex items-center gap-2">
                       <div className={cn("w-6 h-6 rounded-md flex items-center justify-center", triggerColorMap[triggerType]?.bg || 'bg-muted')}>
                         <TriggerIcon className="w-3.5 h-3.5" />
@@ -818,15 +818,15 @@ export function CreateFormRuleModal({ open, onOpenChange, editingRule }: CreateF
                 </div>
 
                 {/* Activate Toggle */}
-                <div className="flex items-center justify-between p-4 rounded-xl bg-primary/5 border-2 border-primary/20">
-                  <div className="flex items-center gap-3">
-                    <Sparkles className="w-5 h-5 text-primary" />
-                    <div>
-                      <p className="font-semibold">Activate Rule</p>
-                      <p className="text-xs text-muted-foreground">Start sending forms immediately</p>
+                <div className="flex items-center justify-between p-3 sm:p-4 rounded-xl bg-primary/5 border-2 border-primary/20 touch-manipulation">
+                  <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+                    <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-primary shrink-0" />
+                    <div className="min-w-0">
+                      <p className="font-semibold text-sm sm:text-base">Activate Rule</p>
+                      <p className="text-[10px] sm:text-xs text-muted-foreground">Start sending forms immediately</p>
                     </div>
                   </div>
-                  <Switch checked={isActive} onCheckedChange={setIsActive} />
+                  <Switch checked={isActive} onCheckedChange={setIsActive} className="shrink-0" />
                 </div>
               </div>
             )}
@@ -834,40 +834,45 @@ export function CreateFormRuleModal({ open, onOpenChange, editingRule }: CreateF
         </ScrollArea>
 
         {/* Footer with Navigation */}
-        <div className="px-4 sm:px-6 py-4 border-t bg-muted/30 flex items-center justify-between">
-          <div>
+        <div className="px-3 sm:px-6 py-3 sm:py-4 border-t bg-muted/30 flex items-center justify-between gap-2">
+          <div className="shrink-0">
             {currentStep > 1 && (
               <Button 
                 variant="outline" 
+                size="sm"
                 onClick={() => setCurrentStep(prev => prev - 1)}
                 disabled={saving}
+                className="h-9"
               >
-                <ChevronLeft className="w-4 h-4 mr-1" />
-                Back
+                <ChevronLeft className="w-4 h-4 sm:mr-1" />
+                <span className="hidden sm:inline">Back</span>
               </Button>
             )}
           </div>
           
-          <div className="flex items-center gap-2">
-            <Button variant="ghost" onClick={() => onOpenChange(false)} disabled={saving}>
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            <Button variant="ghost" size="sm" onClick={() => onOpenChange(false)} disabled={saving} className="h-9 px-2 sm:px-4">
               Cancel
             </Button>
             
             {currentStep < STEPS.length ? (
               <Button 
+                size="sm"
                 onClick={() => setCurrentStep(prev => prev + 1)}
                 disabled={!canProceed()}
+                className="h-9"
               >
                 Next
                 <ChevronRight className="w-4 h-4 ml-1" />
               </Button>
             ) : (
               <Button 
+                size="sm"
                 onClick={handleSubmit} 
                 disabled={saving || !name.trim() || !formId}
-                className="bg-gradient-to-r from-primary to-primary/80"
+                className="h-9 bg-gradient-to-r from-primary to-primary/80"
               >
-                {saving ? 'Saving...' : editingRule ? 'Update Rule' : 'Create Rule'}
+                {saving ? 'Saving...' : editingRule ? 'Update' : 'Create'}
               </Button>
             )}
           </div>
