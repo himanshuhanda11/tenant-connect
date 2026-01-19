@@ -161,10 +161,10 @@ export function CreateTemplateModal({
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] p-0">
-        <DialogHeader className="p-6 pb-4">
-          <DialogTitle>Create New Template</DialogTitle>
-          <DialogDescription>
+      <DialogContent className="max-w-2xl max-h-[90vh] p-0 w-[95vw] sm:w-full">
+        <DialogHeader className="p-4 sm:p-6 pb-3 sm:pb-4">
+          <DialogTitle className="text-base sm:text-lg">Create New Template</DialogTitle>
+          <DialogDescription className="text-xs sm:text-sm">
             Create a WhatsApp message template. Templates require Meta approval before use.
           </DialogDescription>
         </DialogHeader>
@@ -172,9 +172,9 @@ export function CreateTemplateModal({
         <Separator />
 
         <ScrollArea className="max-h-[60vh]">
-          <div className="p-6 space-y-6">
+          <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
             {/* Basic Info */}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
               <div className="space-y-2">
                 <Label htmlFor="name">Template Name *</Label>
                 <Input
@@ -250,11 +250,12 @@ export function CreateTemplateModal({
             {/* Header */}
             <div className="space-y-3">
               <Label>Header (Optional)</Label>
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2">
                 <Button
                   type="button"
                   variant={headerType === 'none' ? 'default' : 'outline'}
                   size="sm"
+                  className="touch-manipulation"
                   onClick={() => setHeaderType('none')}
                 >
                   None
@@ -263,6 +264,7 @@ export function CreateTemplateModal({
                   type="button"
                   variant={headerType === 'text' ? 'default' : 'outline'}
                   size="sm"
+                  className="touch-manipulation"
                   onClick={() => setHeaderType('text')}
                 >
                   <FileText className="h-4 w-4 mr-1" />
@@ -272,6 +274,7 @@ export function CreateTemplateModal({
                   type="button"
                   variant={headerType === 'image' ? 'default' : 'outline'}
                   size="sm"
+                  className="touch-manipulation"
                   onClick={() => setHeaderType('image')}
                 >
                   <Image className="h-4 w-4 mr-1" />
@@ -281,6 +284,7 @@ export function CreateTemplateModal({
                   type="button"
                   variant={headerType === 'video' ? 'default' : 'outline'}
                   size="sm"
+                  className="touch-manipulation"
                   onClick={() => setHeaderType('video')}
                 >
                   <Video className="h-4 w-4 mr-1" />
@@ -304,16 +308,16 @@ export function CreateTemplateModal({
 
             {/* Body */}
             <div className="space-y-3">
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                 <Label>Message Body *</Label>
-                <div className="flex gap-1">
+                <div className="flex flex-wrap gap-1">
                   {[1, 2, 3, 4, 5].map((num) => (
                     <Button
                       key={num}
                       type="button"
                       variant="outline"
                       size="sm"
-                      className="h-7 px-2 text-xs"
+                      className="h-7 px-2 text-xs touch-manipulation"
                       onClick={() => insertVariable(num)}
                     >
                       {`{{${num}}}`}
@@ -394,29 +398,32 @@ export function CreateTemplateModal({
               ))}
 
               {buttons.length < 3 && (
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-2">
                   <Button
                     type="button"
                     variant="outline"
                     size="sm"
+                    className="touch-manipulation"
                     onClick={() => addButton('URL')}
                   >
                     <Plus className="h-4 w-4 mr-1" />
-                    URL Button
+                    URL
                   </Button>
                   <Button
                     type="button"
                     variant="outline"
                     size="sm"
+                    className="touch-manipulation"
                     onClick={() => addButton('PHONE_NUMBER')}
                   >
                     <Plus className="h-4 w-4 mr-1" />
-                    Phone Button
+                    Phone
                   </Button>
                   <Button
                     type="button"
                     variant="outline"
                     size="sm"
+                    className="touch-manipulation"
                     onClick={() => addButton('QUICK_REPLY')}
                   >
                     <Plus className="h-4 w-4 mr-1" />
@@ -444,11 +451,11 @@ export function CreateTemplateModal({
 
         <Separator />
 
-        <div className="p-4 flex justify-end gap-3">
-          <Button variant="outline" onClick={onClose}>
+        <div className="p-3 sm:p-4 flex flex-col-reverse sm:flex-row sm:justify-end gap-2 sm:gap-3">
+          <Button variant="outline" onClick={onClose} className="touch-manipulation">
             Cancel
           </Button>
-          <Button onClick={handleSubmit} disabled={submitting}>
+          <Button onClick={handleSubmit} disabled={submitting} className="touch-manipulation">
             {submitting ? 'Creating...' : 'Create Template'}
           </Button>
         </div>

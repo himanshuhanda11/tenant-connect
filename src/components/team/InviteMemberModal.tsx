@@ -64,14 +64,14 @@ const InviteMemberModal = ({ open, onOpenChange }: InviteMemberModalProps) => {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
+      <DialogContent className="w-[95vw] sm:w-full sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>Invite Team Member</DialogTitle>
-          <DialogDescription>
+          <DialogTitle className="text-base sm:text-lg">Invite Team Member</DialogTitle>
+          <DialogDescription className="text-xs sm:text-sm">
             Send an invite to add a new member to your team
           </DialogDescription>
         </DialogHeader>
-        <div className="space-y-4 py-4">
+        <div className="space-y-3 sm:space-y-4 py-3 sm:py-4 max-h-[60vh] overflow-y-auto -mx-4 sm:-mx-6 px-4 sm:px-6">
           <div className="space-y-2">
             <Label>Email Address</Label>
             <Input
@@ -83,9 +83,9 @@ const InviteMemberModal = ({ open, onOpenChange }: InviteMemberModalProps) => {
           </div>
           
           <div className="space-y-2">
-            <Label>Role</Label>
+            <Label className="text-sm">Role</Label>
             <Select value={roleId} onValueChange={setRoleId}>
-              <SelectTrigger>
+              <SelectTrigger className="touch-manipulation">
                 <SelectValue placeholder="Select a role" />
               </SelectTrigger>
               <SelectContent>
@@ -105,13 +105,13 @@ const InviteMemberModal = ({ open, onOpenChange }: InviteMemberModalProps) => {
           </div>
 
           <div className="space-y-2">
-            <Label>Team Groups (Optional)</Label>
+            <Label className="text-sm">Team Groups (Optional)</Label>
             <div className="flex flex-wrap gap-2 p-3 border rounded-lg min-h-[60px]">
               {teams.map(team => (
                 <Badge
                   key={team.id}
                   variant={selectedTeams.includes(team.id) ? 'default' : 'outline'}
-                  className="cursor-pointer"
+                  className="cursor-pointer touch-manipulation py-1.5"
                   onClick={() => toggleTeam(team.id)}
                 >
                   {team.name}
@@ -121,14 +121,14 @@ const InviteMemberModal = ({ open, onOpenChange }: InviteMemberModalProps) => {
                 </Badge>
               ))}
               {teams.length === 0 && (
-                <span className="text-sm text-muted-foreground">No teams created yet</span>
+                <span className="text-xs sm:text-sm text-muted-foreground">No teams created yet</span>
               )}
             </div>
           </div>
 
           <div className="space-y-2">
-            <Label>Phone Number Access (Optional)</Label>
-            <p className="text-xs text-muted-foreground mb-2">
+            <Label className="text-sm">Phone Number Access (Optional)</Label>
+            <p className="text-[10px] sm:text-xs text-muted-foreground mb-2">
               Restrict to specific phone numbers, or leave empty for all access
             </p>
             <div className="flex flex-wrap gap-2 p-3 border rounded-lg min-h-[60px]">
@@ -136,7 +136,7 @@ const InviteMemberModal = ({ open, onOpenChange }: InviteMemberModalProps) => {
                 <Badge
                   key={phone.id}
                   variant={selectedPhones.includes(phone.id) ? 'default' : 'outline'}
-                  className="cursor-pointer"
+                  className="cursor-pointer touch-manipulation py-1.5"
                   onClick={() => togglePhone(phone.id)}
                 >
                   {phone.display_name || phone.phone_e164}
@@ -146,18 +146,19 @@ const InviteMemberModal = ({ open, onOpenChange }: InviteMemberModalProps) => {
                 </Badge>
               ))}
               {phoneNumbers.length === 0 && (
-                <span className="text-sm text-muted-foreground">No phone numbers connected</span>
+                <span className="text-xs sm:text-sm text-muted-foreground">No phone numbers connected</span>
               )}
             </div>
           </div>
         </div>
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
+        <DialogFooter className="flex-col-reverse sm:flex-row gap-2 sm:gap-0">
+          <Button variant="outline" onClick={() => onOpenChange(false)} className="touch-manipulation w-full sm:w-auto">
             Cancel
           </Button>
           <Button 
             onClick={handleSubmit} 
             disabled={!email || !roleId || sending}
+            className="touch-manipulation w-full sm:w-auto"
           >
             {sending ? 'Sending...' : 'Send Invite'}
           </Button>
