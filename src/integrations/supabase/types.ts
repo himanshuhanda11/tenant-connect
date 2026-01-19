@@ -7631,6 +7631,377 @@ export type Database = {
           },
         ]
       }
+      wa_template_events: {
+        Row: {
+          created_at: string
+          id: string
+          kind: Database["public"]["Enums"]["wa_event_kind"]
+          message: string | null
+          payload: Json
+          status: Database["public"]["Enums"]["wa_template_status"] | null
+          template_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          kind: Database["public"]["Enums"]["wa_event_kind"]
+          message?: string | null
+          payload?: Json
+          status?: Database["public"]["Enums"]["wa_template_status"] | null
+          template_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          kind?: Database["public"]["Enums"]["wa_event_kind"]
+          message?: string | null
+          payload?: Json
+          status?: Database["public"]["Enums"]["wa_template_status"] | null
+          template_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wa_template_events_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "wa_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      wa_template_fallback_policies: {
+        Row: {
+          backup_template_id: string | null
+          fallback_message: string | null
+          id: string
+          updated_at: string
+          updated_by: string | null
+          use_session_message: boolean
+          workspace_id: string
+        }
+        Insert: {
+          backup_template_id?: string | null
+          fallback_message?: string | null
+          id?: string
+          updated_at?: string
+          updated_by?: string | null
+          use_session_message?: boolean
+          workspace_id: string
+        }
+        Update: {
+          backup_template_id?: string | null
+          fallback_message?: string | null
+          id?: string
+          updated_at?: string
+          updated_by?: string | null
+          use_session_message?: boolean
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wa_template_fallback_policies_backup_template_id_fkey"
+            columns: ["backup_template_id"]
+            isOneToOne: false
+            referencedRelation: "wa_templates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "wa_template_fallback_policies_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "wa_template_fallback_policies_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: true
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      wa_template_submissions: {
+        Row: {
+          id: string
+          last_polled_at: string | null
+          meta_phone_number_id: string | null
+          meta_rejection_reason: string | null
+          meta_request_id: string | null
+          meta_response: Json | null
+          meta_status: Database["public"]["Enums"]["wa_template_status"]
+          meta_waba_id: string
+          next_poll_at: string | null
+          poll_attempts: number
+          submitted_at: string
+          template_version_id: string
+          workspace_id: string
+        }
+        Insert: {
+          id?: string
+          last_polled_at?: string | null
+          meta_phone_number_id?: string | null
+          meta_rejection_reason?: string | null
+          meta_request_id?: string | null
+          meta_response?: Json | null
+          meta_status?: Database["public"]["Enums"]["wa_template_status"]
+          meta_waba_id: string
+          next_poll_at?: string | null
+          poll_attempts?: number
+          submitted_at?: string
+          template_version_id: string
+          workspace_id: string
+        }
+        Update: {
+          id?: string
+          last_polled_at?: string | null
+          meta_phone_number_id?: string | null
+          meta_rejection_reason?: string | null
+          meta_request_id?: string | null
+          meta_response?: Json | null
+          meta_status?: Database["public"]["Enums"]["wa_template_status"]
+          meta_waba_id?: string
+          next_poll_at?: string | null
+          poll_attempts?: number
+          submitted_at?: string
+          template_version_id?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wa_template_submissions_template_version_id_fkey"
+            columns: ["template_version_id"]
+            isOneToOne: false
+            referencedRelation: "wa_template_versions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "wa_template_submissions_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      wa_template_validation_logs: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          issues: Json
+          model_info: Json
+          predicted_category:
+            | Database["public"]["Enums"]["wa_template_category"]
+            | null
+          risk: Database["public"]["Enums"]["wa_validation_risk"]
+          score: number
+          selected_category:
+            | Database["public"]["Enums"]["wa_template_category"]
+            | null
+          suggestions: Json
+          template_version_id: string | null
+          workspace_id: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          issues?: Json
+          model_info?: Json
+          predicted_category?:
+            | Database["public"]["Enums"]["wa_template_category"]
+            | null
+          risk: Database["public"]["Enums"]["wa_validation_risk"]
+          score: number
+          selected_category?:
+            | Database["public"]["Enums"]["wa_template_category"]
+            | null
+          suggestions?: Json
+          template_version_id?: string | null
+          workspace_id: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          issues?: Json
+          model_info?: Json
+          predicted_category?:
+            | Database["public"]["Enums"]["wa_template_category"]
+            | null
+          risk?: Database["public"]["Enums"]["wa_validation_risk"]
+          score?: number
+          selected_category?:
+            | Database["public"]["Enums"]["wa_template_category"]
+            | null
+          suggestions?: Json
+          template_version_id?: string | null
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wa_template_validation_logs_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "wa_template_validation_logs_template_version_id_fkey"
+            columns: ["template_version_id"]
+            isOneToOne: false
+            referencedRelation: "wa_template_versions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "wa_template_validation_logs_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      wa_template_versions: {
+        Row: {
+          body: string
+          buttons: Json
+          content_hash: string
+          created_at: string
+          created_by: string | null
+          example_values: Json
+          footer: string | null
+          header: Json
+          id: string
+          template_id: string
+          variables: Json
+          version: number
+        }
+        Insert: {
+          body: string
+          buttons?: Json
+          content_hash: string
+          created_at?: string
+          created_by?: string | null
+          example_values?: Json
+          footer?: string | null
+          header?: Json
+          id?: string
+          template_id: string
+          variables?: Json
+          version: number
+        }
+        Update: {
+          body?: string
+          buttons?: Json
+          content_hash?: string
+          created_at?: string
+          created_by?: string | null
+          example_values?: Json
+          footer?: string | null
+          header?: Json
+          id?: string
+          template_id?: string
+          variables?: Json
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wa_template_versions_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "wa_template_versions_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "wa_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      wa_templates: {
+        Row: {
+          category: Database["public"]["Enums"]["wa_template_category"]
+          created_at: string
+          created_by: string | null
+          id: string
+          is_archived: boolean
+          is_backup: boolean
+          language: string
+          meta_last_status_at: string | null
+          meta_template_id: string | null
+          meta_template_name: string | null
+          meta_waba_id: string | null
+          name: string
+          status: Database["public"]["Enums"]["wa_template_status"]
+          updated_at: string
+          updated_by: string | null
+          workspace_id: string
+        }
+        Insert: {
+          category: Database["public"]["Enums"]["wa_template_category"]
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_archived?: boolean
+          is_backup?: boolean
+          language?: string
+          meta_last_status_at?: string | null
+          meta_template_id?: string | null
+          meta_template_name?: string | null
+          meta_waba_id?: string | null
+          name: string
+          status?: Database["public"]["Enums"]["wa_template_status"]
+          updated_at?: string
+          updated_by?: string | null
+          workspace_id: string
+        }
+        Update: {
+          category?: Database["public"]["Enums"]["wa_template_category"]
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_archived?: boolean
+          is_backup?: boolean
+          language?: string
+          meta_last_status_at?: string | null
+          meta_template_id?: string | null
+          meta_template_name?: string | null
+          meta_waba_id?: string | null
+          name?: string
+          status?: Database["public"]["Enums"]["wa_template_status"]
+          updated_at?: string
+          updated_by?: string | null
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wa_templates_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "wa_templates_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "wa_templates_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       waba_accounts: {
         Row: {
           business_id: string
@@ -8943,6 +9314,22 @@ export type Database = {
         | "PAUSED"
         | "DISABLED"
       tenant_role: "owner" | "admin" | "agent"
+      wa_event_kind:
+        | "STATUS_CHANGE"
+        | "SUBMITTED"
+        | "APPROVED"
+        | "REJECTED"
+        | "ERROR"
+        | "NOTE"
+      wa_template_category: "UTILITY" | "MARKETING" | "AUTHENTICATION"
+      wa_template_status:
+        | "DRAFT"
+        | "SUBMITTED"
+        | "UNDER_REVIEW"
+        | "APPROVED"
+        | "REJECTED"
+        | "PAUSED"
+      wa_validation_risk: "LOW" | "MEDIUM" | "HIGH"
       waba_status: "pending" | "active" | "suspended" | "disconnected"
       workflow_run_status:
         | "running"
@@ -9440,6 +9827,24 @@ export const Constants = {
         "DISABLED",
       ],
       tenant_role: ["owner", "admin", "agent"],
+      wa_event_kind: [
+        "STATUS_CHANGE",
+        "SUBMITTED",
+        "APPROVED",
+        "REJECTED",
+        "ERROR",
+        "NOTE",
+      ],
+      wa_template_category: ["UTILITY", "MARKETING", "AUTHENTICATION"],
+      wa_template_status: [
+        "DRAFT",
+        "SUBMITTED",
+        "UNDER_REVIEW",
+        "APPROVED",
+        "REJECTED",
+        "PAUSED",
+      ],
+      wa_validation_risk: ["LOW", "MEDIUM", "HIGH"],
       waba_status: ["pending", "active", "suspended", "disconnected"],
       workflow_run_status: [
         "running",
