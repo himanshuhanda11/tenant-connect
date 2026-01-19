@@ -1,10 +1,34 @@
-import React, { useEffect, Suspense, lazy } from 'react';
+import React, { useEffect, Suspense, lazy, Component, ReactNode, ErrorInfo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useAuth } from '@/contexts/AuthContext';
 import Footer from '@/components/layout/Footer';
 import Navbar from '@/components/layout/Navbar';
 import { SEO, JsonLd, organizationSchema, websiteSchema, softwareApplicationSchema } from '@/components/seo';
+
+// Error boundary for lazy loaded components
+interface ErrorBoundaryState {
+  hasError: boolean;
+}
+
+class SectionErrorBoundary extends Component<{ children: ReactNode }, ErrorBoundaryState> {
+  state: ErrorBoundaryState = { hasError: false };
+
+  static getDerivedStateFromError(): ErrorBoundaryState {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error: Error, info: ErrorInfo) {
+    console.error('Section loading error:', error, info);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return <div className="py-8 text-center text-muted-foreground">Section failed to load</div>;
+    }
+    return this.props.children;
+  }
+}
 
 // Lazy load home page sections
 const HeroSection = lazy(() => import('@/components/home/HeroSection'));
@@ -62,59 +86,81 @@ export default function Index() {
       <Navbar />
 
       {/* Hero Section */}
-      <Suspense fallback={<SectionSkeleton />}>
-        <HeroSection />
-      </Suspense>
+      <SectionErrorBoundary>
+        <Suspense fallback={<SectionSkeleton />}>
+          <HeroSection />
+        </Suspense>
+      </SectionErrorBoundary>
 
       {/* Social Proof */}
-      <Suspense fallback={<SectionSkeleton />}>
-        <SocialProofBar />
-      </Suspense>
+      <SectionErrorBoundary>
+        <Suspense fallback={<SectionSkeleton />}>
+          <SocialProofBar />
+        </Suspense>
+      </SectionErrorBoundary>
 
       {/* Differentiator Cards */}
-      <Suspense fallback={<SectionSkeleton />}>
-        <DifferentiatorCards />
-      </Suspense>
+      <SectionErrorBoundary>
+        <Suspense fallback={<SectionSkeleton />}>
+          <DifferentiatorCards />
+        </Suspense>
+      </SectionErrorBoundary>
 
       {/* AI Flow Builder - Center Feature */}
-      <Suspense fallback={<SectionSkeleton />}>
-        <AIFlowBuilderSection />
-      </Suspense>
+      <SectionErrorBoundary>
+        <Suspense fallback={<SectionSkeleton />}>
+          <AIFlowBuilderSection />
+        </Suspense>
+      </SectionErrorBoundary>
 
       {/* Product Tour */}
-      <Suspense fallback={<SectionSkeleton />}>
-        <ProductTourSection />
-      </Suspense>
+      <SectionErrorBoundary>
+        <Suspense fallback={<SectionSkeleton />}>
+          <ProductTourSection />
+        </Suspense>
+      </SectionErrorBoundary>
 
       {/* AI Capabilities */}
-      <Suspense fallback={<SectionSkeleton />}>
-        <AICapabilitiesSection />
-      </Suspense>
+      <SectionErrorBoundary>
+        <Suspense fallback={<SectionSkeleton />}>
+          <AICapabilitiesSection />
+        </Suspense>
+      </SectionErrorBoundary>
 
       {/* 10 Powerful USPs */}
-      <Suspense fallback={<SectionSkeleton />}>
-        <PowerfulUSPsSection />
-      </Suspense>
+      <SectionErrorBoundary>
+        <Suspense fallback={<SectionSkeleton />}>
+          <PowerfulUSPsSection />
+        </Suspense>
+      </SectionErrorBoundary>
 
       {/* Meta Ads Attribution */}
-      <Suspense fallback={<SectionSkeleton />}>
-        <MetaAdsAttributionSection />
-      </Suspense>
+      <SectionErrorBoundary>
+        <Suspense fallback={<SectionSkeleton />}>
+          <MetaAdsAttributionSection />
+        </Suspense>
+      </SectionErrorBoundary>
 
       {/* Pricing Preview */}
-      <Suspense fallback={<SectionSkeleton />}>
-        <PricingPreview />
-      </Suspense>
+      <SectionErrorBoundary>
+        <Suspense fallback={<SectionSkeleton />}>
+          <PricingPreview />
+        </Suspense>
+      </SectionErrorBoundary>
 
       {/* Testimonials */}
-      <Suspense fallback={<SectionSkeleton />}>
-        <TestimonialsCarousel />
-      </Suspense>
+      <SectionErrorBoundary>
+        <Suspense fallback={<SectionSkeleton />}>
+          <TestimonialsCarousel />
+        </Suspense>
+      </SectionErrorBoundary>
 
       {/* Final CTA */}
-      <Suspense fallback={<SectionSkeleton />}>
-        <FinalCTANew />
-      </Suspense>
+      <SectionErrorBoundary>
+        <Suspense fallback={<SectionSkeleton />}>
+          <FinalCTANew />
+        </Suspense>
+      </SectionErrorBoundary>
 
       <Footer />
     </div>
