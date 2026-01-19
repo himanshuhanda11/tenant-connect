@@ -85,8 +85,10 @@ export default function SelectWorkspace() {
     }
   }, [user, authLoading, profile, navigate]);
 
-  // Fetch enriched workspace data
+  // Fetch enriched workspace data (optimized for mobile performance)
   useEffect(() => {
+    let isCancelled = false;
+
     const fetchWorkspaceDetails = async () => {
       if (tenants.length === 0) {
         setWorkspaces([]);
@@ -94,39 +96,47 @@ export default function SelectWorkspace() {
       }
 
       setLoadingDetails(true);
+
+      // Compute once (instead of per-tenant)
+      const weekAgoIso = (() => {
+        const weekAgo = new Date();
+        weekAgo.setDate(weekAgo.getDate() - 7);
+        return weekAgo.toISOString();
+      })();
+
       try {
         const enriched: WorkspaceEnriched[] = await Promise.all(
           tenants.map(async (tenant) => {
-            const { count: phoneCount } = await supabase
-              .from('phone_numbers')
-              .select('*', { count: 'exact', head: true })
-              .eq('tenant_id', tenant.id);
+            const [phoneCountRes, phonesRes, memberCountRes, messagesThisWeekRes] = await Promise.all([
+              supabase
+                .from('phone_numbers')
+                .select('*', { count: 'exact', head: true })
+                .eq('tenant_id', tenant.id),
+              supabase
+                .from('phone_numbers')
+                .select('status, display_number')
+                .eq('tenant_id', tenant.id)
+                .eq('status', 'connected')
+                .limit(1),
+              supabase
+                .from('tenant_members')
+                .select('*', { count: 'exact', head: true })
+                .eq('tenant_id', tenant.id),
+              supabase
+                .from('messages')
+                .select('*', { count: 'exact', head: true })
+                .eq('tenant_id', tenant.id)
+                .gte('created_at', weekAgoIso),
+            ]);
 
-            const { data: phones } = await supabase
-              .from('phone_numbers')
-              .select('status, display_number')
-              .eq('tenant_id', tenant.id)
-              .eq('status', 'connected')
-              .limit(1);
-
-            const { count: memberCount } = await supabase
-              .from('tenant_members')
-              .select('*', { count: 'exact', head: true })
-              .eq('tenant_id', tenant.id);
-
-            const weekAgo = new Date();
-            weekAgo.setDate(weekAgo.getDate() - 7);
-            const { count: messagesThisWeek } = await supabase
-              .from('messages')
-              .select('*', { count: 'exact', head: true })
-              .eq('tenant_id', tenant.id)
-              .gte('created_at', weekAgo.toISOString());
+            const phoneCount = phoneCountRes.count ?? 0;
+            const phones = phonesRes.data ?? [];
+            const memberCount = memberCountRes.count ?? 0;
+            const messagesThisWeek = messagesThisWeekRes.count ?? 0;
 
             // Determine status based on phone connection
             let status: 'connected' | 'setup' | 'attention' = 'setup';
-            if (phones && phones.length > 0) {
-              status = 'connected';
-            }
+            if (phones.length > 0) status = 'connected';
 
             return {
               id: tenant.id,
@@ -134,34 +144,42 @@ export default function SelectWorkspace() {
               slug: tenant.slug,
               role: tenant.role,
               created_at: tenant.created_at,
-              phoneCount: phoneCount || 0,
+              phoneCount,
               phoneNumber: phones?.[0]?.display_number,
-              memberCount: memberCount || 0,
+              memberCount,
               status,
-              messagesThisWeek: messagesThisWeek || 0,
+              messagesThisWeek,
               lastActive: tenant.updated_at || tenant.created_at,
             };
           })
         );
-        setWorkspaces(enriched);
+
+        if (!isCancelled) setWorkspaces(enriched);
       } catch (error) {
         console.error('Error fetching workspace details:', error);
-        setWorkspaces(tenants.map(t => ({
-          id: t.id,
-          name: t.name,
-          slug: t.slug,
-          role: t.role,
-          created_at: t.created_at,
-          phoneCount: 0,
-          memberCount: 0,
-          status: 'setup' as const,
-        })));
+        if (!isCancelled) {
+          setWorkspaces(
+            tenants.map((t) => ({
+              id: t.id,
+              name: t.name,
+              slug: t.slug,
+              role: t.role,
+              created_at: t.created_at,
+              phoneCount: 0,
+              memberCount: 0,
+              status: 'setup' as const,
+            }))
+          );
+        }
       } finally {
-        setLoadingDetails(false);
+        if (!isCancelled) setLoadingDetails(false);
       }
     };
 
     fetchWorkspaceDetails();
+    return () => {
+      isCancelled = true;
+    };
   }, [tenants]);
 
   // Filtered and sorted workspaces
@@ -229,7 +247,7 @@ export default function SelectWorkspace() {
     setIsCreating(true);
     const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
     const { error, tenant } = await createTenant(name, slug);
-    
+
     if (!error && tenant) {
       setModalOpen(false);
       if (connectNow) {
@@ -239,6 +257,13 @@ export default function SelectWorkspace() {
       }
     }
     setIsCreating(false);
+  };
+
+  const handleSignOut = async () => {
+    // Clear workspace selection so route guards don't bounce back.
+    setCurrentTenant(null);
+    await signOut();
+    navigate('/login', { replace: true });
   };
 
   const sortLabels: Record<SortOption, string> = {
@@ -283,8 +308,8 @@ export default function SelectWorkspace() {
               <Button 
                 variant="ghost" 
                 size="sm" 
-                onClick={() => signOut()} 
-                className="text-gray-500 hover:text-gray-700"
+                onClick={handleSignOut}
+                className="text-gray-500 hover:text-gray-700 h-10 px-3 touch-manipulation"
               >
                 Sign out
               </Button>
