@@ -589,7 +589,7 @@ export function CreateFormRuleModal({ open, onOpenChange, editingRule }: CreateF
                     </SelectTrigger>
                     <SelectContent>
                       {templates.length === 0 ? (
-                        <SelectItem value="" disabled>No templates available</SelectItem>
+                        <div className="py-2 px-3 text-sm text-muted-foreground">No templates available</div>
                       ) : (
                         templates.map(template => (
                           <SelectItem key={template.id} value={template.id}>
