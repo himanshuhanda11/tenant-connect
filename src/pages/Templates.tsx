@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { RefreshCw, Plus, BookOpen, ShieldCheck, Loader2, Settings2 } from 'lucide-react';
+import { RefreshCw, Plus, BookOpen, ShieldCheck, Loader2, Settings2, Library } from 'lucide-react';
 import { useTemplateBuilder } from '@/hooks/useTemplateBuilder';
 import { TemplatesListView } from '@/components/templates/TemplatesListView';
 import { TemplateBuilder, TemplateBuilderData } from '@/components/templates/TemplateBuilder';
@@ -216,10 +217,16 @@ export default function Templates() {
               Create, manage, and submit WhatsApp templates for approval.
             </p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <Button variant="outline" onClick={() => fetchTemplates(filters)} disabled={loading}>
               {loading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <RefreshCw className="h-4 w-4 mr-2" />}
               Refresh
+            </Button>
+            <Button variant="outline" asChild>
+              <Link to="/template-library">
+                <Library className="h-4 w-4 mr-2" />
+                Use from Library
+              </Link>
             </Button>
             <Button onClick={handleCreateNew}>
               <Plus className="h-4 w-4 mr-2" />
