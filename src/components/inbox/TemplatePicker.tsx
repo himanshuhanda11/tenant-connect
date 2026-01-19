@@ -247,17 +247,17 @@ export function TemplatePicker({
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-3xl max-h-[85vh] flex flex-col">
-        <DialogHeader>
-          <DialogTitle>
+      <DialogContent className="w-[95vw] sm:w-full sm:max-w-3xl max-h-[85vh] flex flex-col p-0">
+        <DialogHeader className="p-4 sm:p-6 pb-2 sm:pb-4 border-b">
+          <DialogTitle className="text-base sm:text-lg">
             {selectedTemplate ? 'Configure Template' : 'Select Template'}
           </DialogTitle>
         </DialogHeader>
 
         {!selectedTemplate ? (
-          <>
+          <div className="flex flex-col flex-1 overflow-hidden p-4 sm:p-6 pt-3 sm:pt-4">
             {/* Search and Filters */}
-            <div className="flex gap-2 mb-4">
+            <div className="flex flex-col sm:flex-row gap-2 mb-4">
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
@@ -267,28 +267,30 @@ export function TemplatePicker({
                   className="pl-9"
                 />
               </div>
-              <Select value={statusFilter} onValueChange={(value) => setStatusFilter(value as TemplateStatus | 'all')}>
-                <SelectTrigger className="w-32">
-                  <SelectValue placeholder="Status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Status</SelectItem>
-                  <SelectItem value="APPROVED">Approved</SelectItem>
-                  <SelectItem value="PENDING">Pending</SelectItem>
-                  <SelectItem value="REJECTED">Rejected</SelectItem>
-                </SelectContent>
-              </Select>
-              <Select value={categoryFilter} onValueChange={(value) => setCategoryFilter(value as TemplateCategory | 'all')}>
-                <SelectTrigger className="w-32">
-                  <SelectValue placeholder="Category" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Categories</SelectItem>
-                  <SelectItem value="UTILITY">Utility</SelectItem>
-                  <SelectItem value="MARKETING">Marketing</SelectItem>
-                  <SelectItem value="AUTHENTICATION">Authentication</SelectItem>
-                </SelectContent>
-              </Select>
+              <div className="flex gap-2">
+                <Select value={statusFilter} onValueChange={(value) => setStatusFilter(value as TemplateStatus | 'all')}>
+                  <SelectTrigger className="w-full sm:w-28 touch-manipulation">
+                    <SelectValue placeholder="Status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Status</SelectItem>
+                    <SelectItem value="APPROVED">Approved</SelectItem>
+                    <SelectItem value="PENDING">Pending</SelectItem>
+                    <SelectItem value="REJECTED">Rejected</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Select value={categoryFilter} onValueChange={(value) => setCategoryFilter(value as TemplateCategory | 'all')}>
+                  <SelectTrigger className="w-full sm:w-28 touch-manipulation">
+                    <SelectValue placeholder="Category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All</SelectItem>
+                    <SelectItem value="UTILITY">Utility</SelectItem>
+                    <SelectItem value="MARKETING">Marketing</SelectItem>
+                    <SelectItem value="AUTHENTICATION">Auth</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
 
             {/* Template List */}
@@ -348,9 +350,9 @@ export function TemplatePicker({
                 </div>
               )}
             </ScrollArea>
-          </>
+          </div>
         ) : (
-          <>
+          <div className="flex flex-col flex-1 overflow-hidden p-4 sm:p-6 pt-3 sm:pt-4">
             {/* Back button */}
             <Button
               variant="ghost"
@@ -486,7 +488,7 @@ export function TemplatePicker({
                 )}
               </Button>
             </div>
-          </>
+          </div>
         )}
       </DialogContent>
     </Dialog>

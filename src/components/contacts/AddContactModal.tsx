@@ -110,15 +110,15 @@ export function AddContactModal({ open, onClose, onSuccess }: AddContactModalPro
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="sm:max-w-lg w-[95vw] sm:w-full">
         <DialogHeader>
-          <DialogTitle>Add New Contact</DialogTitle>
-          <DialogDescription>
+          <DialogTitle className="text-base sm:text-lg">Add New Contact</DialogTitle>
+          <DialogDescription className="text-xs sm:text-sm">
             Add a new contact to your workspace. Phone number is required.
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4 py-4 max-h-[60vh] overflow-y-auto">
+        <div className="space-y-3 sm:space-y-4 py-3 sm:py-4 max-h-[60vh] overflow-y-auto -mx-4 sm:-mx-6 px-4 sm:px-6">
           {/* Phone Number */}
           <div className="space-y-2">
             <Label htmlFor="wa_id">
@@ -136,7 +136,7 @@ export function AddContactModal({ open, onClose, onSuccess }: AddContactModalPro
           </div>
 
           {/* Name */}
-          <div className="grid gap-4 md:grid-cols-2">
+          <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="first_name">First Name</Label>
               <Input
@@ -158,7 +158,7 @@ export function AddContactModal({ open, onClose, onSuccess }: AddContactModalPro
           </div>
 
           {/* Location */}
-          <div className="grid gap-4 md:grid-cols-2">
+          <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="country">Country</Label>
               <Input
@@ -180,14 +180,14 @@ export function AddContactModal({ open, onClose, onSuccess }: AddContactModalPro
           </div>
 
           {/* Status */}
-          <div className="grid gap-4 md:grid-cols-2">
+          <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2">
             <div className="space-y-2">
               <Label>Lead Status</Label>
               <Select
                 value={formData.lead_status}
                 onValueChange={(v) => setFormData({ ...formData, lead_status: v })}
               >
-                <SelectTrigger>
+                <SelectTrigger className="touch-manipulation">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -205,7 +205,7 @@ export function AddContactModal({ open, onClose, onSuccess }: AddContactModalPro
                 value={formData.priority_level}
                 onValueChange={(v) => setFormData({ ...formData, priority_level: v })}
               >
-                <SelectTrigger>
+                <SelectTrigger className="touch-manipulation">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -267,11 +267,11 @@ export function AddContactModal({ open, onClose, onSuccess }: AddContactModalPro
           </div>
         </div>
 
-        <DialogFooter>
-          <Button variant="outline" onClick={onClose}>
+        <DialogFooter className="flex-col-reverse sm:flex-row gap-2 sm:gap-0">
+          <Button variant="outline" onClick={onClose} className="touch-manipulation w-full sm:w-auto">
             Cancel
           </Button>
-          <Button onClick={handleSubmit} disabled={saving}>
+          <Button onClick={handleSubmit} disabled={saving} className="touch-manipulation w-full sm:w-auto">
             {saving ? 'Adding...' : 'Add Contact'}
           </Button>
         </DialogFooter>
