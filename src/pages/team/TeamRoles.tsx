@@ -55,7 +55,14 @@ const TeamRoles = () => {
   const [selectedRole, setSelectedRole] = useState<Role | null>(null);
   const [rolePermissions, setRolePermissions] = useState<string[]>([]);
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [newRole, setNewRole] = useState<{ name: string; description: string; base_role: AppRole; color: string }>({ name: '', description: '', base_role: 'agent', color: '#6366f1' });
+  const [submitting, setSubmitting] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [newRole, setNewRole] = useState<{ name: string; description: string; base_role: AppRole; color: string }>({ 
+    name: '', 
+    description: '', 
+    base_role: 'agent', 
+    color: '#6366f1' 
+  });
   const [newRolePermissions, setNewRolePermissions] = useState<string[]>([]);
   const [viewAsRole, setViewAsRole] = useState<string | null>(null);
 
@@ -85,17 +92,29 @@ const TeamRoles = () => {
     setRolePermissions(newPerms);
   };
 
-  const handleSavePermissions = () => {
+  const handleSavePermissions = async () => {
     if (selectedRole) {
-      updateRole(selectedRole.id, {}, rolePermissions);
+      setSaving(true);
+      try {
+        await updateRole(selectedRole.id, {}, rolePermissions);
+      } finally {
+        setSaving(false);
+      }
     }
   };
 
-  const handleCreateRole = () => {
-    createRole(newRole, newRolePermissions);
-    setShowCreateModal(false);
-    setNewRole({ name: '', description: '', base_role: 'agent' as AppRole, color: '#6366f1' });
-    setNewRolePermissions([]);
+  const handleCreateRole = async () => {
+    if (!newRole.name.trim()) return;
+    
+    setSubmitting(true);
+    try {
+      await createRole(newRole, newRolePermissions);
+      setShowCreateModal(false);
+      setNewRole({ name: '', description: '', base_role: 'agent' as AppRole, color: '#6366f1' });
+      setNewRolePermissions([]);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const handleToggleNewRolePermission = (permId: string) => {
@@ -210,11 +229,11 @@ const TeamRoles = () => {
                 </div>
               </div>
               <DialogFooter>
-                <Button variant="outline" onClick={() => setShowCreateModal(false)}>
+                <Button variant="outline" onClick={() => setShowCreateModal(false)} disabled={submitting}>
                   Cancel
                 </Button>
-                <Button onClick={handleCreateRole} disabled={!newRole.name}>
-                  Create Role
+                <Button onClick={handleCreateRole} disabled={!newRole.name.trim() || submitting}>
+                  {submitting ? 'Creating...' : 'Create Role'}
                 </Button>
               </DialogFooter>
             </DialogContent>
@@ -298,7 +317,8 @@ const TeamRoles = () => {
                       <Eye className="mr-2 h-4 w-4" />
                       View as Role
                     </Button>
-                    <Button size="sm" onClick={handleSavePermissions}>
+                    <Button size="sm" onClick={handleSavePermissions} disabled={saving}>
+                      {saving ? 'Saving...' : 'Save Changes'}
                       Save Changes
                     </Button>
                   </div>
