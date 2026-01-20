@@ -15,7 +15,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
-import { SEO } from '@/components/seo';
+import SeoMeta from '@/components/seo/SeoMeta';
 
 export default function Careers() {
   const perks = [
@@ -74,12 +74,7 @@ export default function Careers() {
 
   return (
     <div className="min-h-screen bg-background">
-      <SEO
-        title="Careers at AiReatro — Join Our Remote-First Team"
-        description="Join AiReatro and help build the future of business messaging. Remote-first culture, competitive benefits, and meaningful work. View open positions."
-        canonical="/careers"
-        keywords={['aireatro careers', 'whatsapp jobs', 'remote jobs', 'saas careers', 'tech jobs india', 'startup jobs']}
-      />
+      <SeoMeta route="/careers" fallbackTitle="Careers" fallbackDescription="Join our remote-first team" />
       <Navbar />
 
       {/* Hero - Classic Design */}

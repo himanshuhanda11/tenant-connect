@@ -10,7 +10,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
-import { SEO } from '@/components/seo';
+import SeoMeta from '@/components/seo/SeoMeta';
 
 // Full case study data
 const caseStudiesData: Record<string, {
@@ -448,12 +448,7 @@ export default function CaseStudyDetail() {
 
   return (
     <div className="min-h-screen bg-background">
-      <SEO
-        title={`${study.company} Case Study | ${study.useCase}`}
-        description={`See how ${study.company} achieved ${study.results.metrics[0].value} ${study.results.metrics[0].label.toLowerCase()} using AiReatro's AI-powered WhatsApp automation.`}
-        canonical={`/case-studies/${slug}`}
-        keywords={[study.industry, study.useCase, 'WhatsApp case study', 'customer success']}
-      />
+      <SeoMeta route={`/case-studies/${slug}`} fallbackTitle={`${study.company} Case Study`} fallbackDescription={study.results.metrics[0].value} />
       
       <Helmet>
         <script type="application/ld+json">

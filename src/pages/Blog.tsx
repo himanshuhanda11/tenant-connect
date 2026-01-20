@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
-import { SEO } from '@/components/seo';
+import SeoMeta from '@/components/seo/SeoMeta';
 
 // Blog post images - using gradient backgrounds with icons for visual appeal
 const blogImages = {
@@ -184,12 +184,7 @@ export default function Blog() {
 
   return (
     <div className="min-h-screen bg-background">
-      <SEO
-        title="Blog | WhatsApp Business Tips & Guides | AiReatro"
-        description="Learn how to master WhatsApp Business API with tutorials on automation, templates, campaigns, analytics, and more. Practical guides for every feature."
-        canonical="https://aireatro.com/blog"
-        keywords={["WhatsApp Business API blog", "WhatsApp automation tutorials", "WhatsApp marketing guides", "chatbot guides", "messaging best practices"]}
-      />
+      <SeoMeta route="/blog" fallbackTitle="Blog" fallbackDescription="WhatsApp Business tips & guides" />
       <Navbar />
 
       {/* Hero - White Background */}

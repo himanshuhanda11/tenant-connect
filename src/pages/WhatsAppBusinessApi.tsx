@@ -42,7 +42,7 @@ import {
 } from '@/components/ui/accordion';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
-import SEO from '@/components/seo/SEO';
+import SeoMeta from '@/components/seo/SeoMeta';
 import { JsonLd, organizationSchema, softwareApplicationSchema } from '@/components/seo/JsonLd';
 import dashboardPreview from '@/assets/dashboard-preview.png';
 
@@ -285,13 +285,7 @@ const WhatsAppBusinessApi = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <SEO
-        title="WhatsApp Business API for Growth — Powered by AI"
-        description="Connect to Official WhatsApp Cloud API. Send verified messages, automate flows, manage team inbox, and measure ROI with end-to-end attribution. Start free today."
-        keywords={['WhatsApp Business API', 'WhatsApp Cloud API', 'WhatsApp automation', 'WhatsApp marketing', 'business messaging platform', 'WhatsApp CRM', 'Meta API']}
-        canonical="/whatsapp-business-api"
-        ogType="website"
-      />
+      <SeoMeta route="/whatsapp-business-api" fallbackTitle="WhatsApp Business API" fallbackDescription="Connect to Official WhatsApp Cloud API" />
       <JsonLd data={[organizationSchema, softwareApplicationSchema, webPageSchema]} />
       
       <Navbar />

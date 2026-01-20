@@ -31,7 +31,7 @@ import { Badge } from '@/components/ui/badge';
 import { Link } from 'react-router-dom';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
-import { SEO } from '@/components/seo';
+import SeoMeta from '@/components/seo/SeoMeta';
 
 export default function About() {
   const problemBefore = [
@@ -133,12 +133,7 @@ export default function About() {
 
   return (
     <div className="min-h-screen bg-white">
-      <SEO
-        title="About AiReatro | AI-Powered WhatsApp Cloud API Platform"
-        description="AiReatro is an AI-powered WhatsApp Cloud API platform designed to help businesses understand what's working, fix what's broken, and grow conversations into revenue."
-        canonical="/about"
-        keywords={['about AiReatro', 'WhatsApp API platform', 'AI WhatsApp automation', 'WhatsApp business platform']}
-      />
+      <SeoMeta route="/about" fallbackTitle="About AiReatro" fallbackDescription="AI-powered WhatsApp Cloud API platform" />
       <Navbar />
 
       {/* Hero Section */}

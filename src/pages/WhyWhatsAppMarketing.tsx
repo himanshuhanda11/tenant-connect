@@ -40,7 +40,7 @@ import {
 } from '@/components/ui/table';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
-import SEO from '@/components/seo/SEO';
+import SeoMeta from '@/components/seo/SeoMeta';
 import { JsonLd, organizationSchema, softwareApplicationSchema } from '@/components/seo/JsonLd';
 
 const WhyWhatsAppMarketing = () => {
@@ -170,13 +170,7 @@ const WhyWhatsAppMarketing = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <SEO
-        title="Why WhatsApp Marketing Works — And Why It Wins Every Time"
-        description="Reach customers where they already are. Deliver instant, personal conversations that convert up to 3× more than email and SMS — safely and at scale."
-        keywords={['WhatsApp marketing', 'WhatsApp business', 'WhatsApp campaigns', 'business messaging', 'customer engagement', 'WhatsApp ROI']}
-        canonical="/why-whatsapp-marketing"
-        ogType="website"
-      />
+      <SeoMeta route="/why-whatsapp-marketing" fallbackTitle="Why WhatsApp Marketing" fallbackDescription="Reach customers where they already are" />
       <JsonLd data={[organizationSchema, softwareApplicationSchema, webPageSchema]} />
       
       <Navbar />

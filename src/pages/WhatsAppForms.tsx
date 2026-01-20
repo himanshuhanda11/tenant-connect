@@ -28,7 +28,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
-import { SEO, JsonLd, organizationSchema, softwareApplicationSchema } from '@/components/seo';
+import SeoMeta from '@/components/seo/SeoMeta';
+import { JsonLd, organizationSchema, softwareApplicationSchema } from '@/components/seo';
 
 // Import images
 import heroImage from '@/assets/whatsapp-forms-hero.png';
@@ -174,12 +175,7 @@ export default function WhatsAppForms() {
 
   return (
     <div className="min-h-screen bg-white">
-      <SEO
-        title="WhatsApp Forms — AI-Powered Form Builder"
-        description="Collect data seamlessly with WhatsApp Forms powered by AI. Engage users with forms that open directly inside WhatsApp—no external browser needed."
-        canonical="/whatsapp-forms"
-        keywords={['WhatsApp forms', 'WhatsApp lead capture', 'conversational forms', 'AI form builder', 'WhatsApp surveys']}
-      />
+      <SeoMeta route="/whatsapp-forms" fallbackTitle="WhatsApp Forms" fallbackDescription="AI-Powered Form Builder for WhatsApp" />
       <JsonLd data={[organizationSchema, softwareApplicationSchema, formsPageSchema]} />
       
       <Navbar />

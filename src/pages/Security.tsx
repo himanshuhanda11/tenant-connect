@@ -14,7 +14,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
-import { SEO } from '@/components/seo';
+import SeoMeta from '@/components/seo/SeoMeta';
 
 export default function Security() {
   const navigate = useNavigate();
@@ -63,12 +63,7 @@ export default function Security() {
 
   return (
     <div className="min-h-screen bg-background">
-      <SEO
-        title="Security & Compliance — Enterprise-Grade Data Protection | AiReatro"
-        description="Your data is safe with AiReatro. SOC 2 Type II compliant, GDPR ready, ISO 27001 certified, end-to-end encryption, and 99.9% uptime SLA."
-        canonical="/security"
-        keywords={['whatsapp security', 'data protection', 'GDPR compliance', 'SOC 2', 'enterprise security', 'encryption']}
-      />
+      <SeoMeta route="/security" fallbackTitle="Security" fallbackDescription="Enterprise-Grade Data Protection" />
       <Navbar />
 
       {/* Hero - Classic Design */}

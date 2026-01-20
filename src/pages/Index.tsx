@@ -4,7 +4,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useAuth } from '@/contexts/AuthContext';
 import Footer from '@/components/layout/Footer';
 import Navbar from '@/components/layout/Navbar';
-import { SEO, JsonLd, organizationSchema, websiteSchema, softwareApplicationSchema } from '@/components/seo';
+import { JsonLd, organizationSchema, websiteSchema, softwareApplicationSchema } from '@/components/seo';
+import SeoMeta from '@/components/seo/SeoMeta';
 
 // Error boundary for lazy loaded components
 interface ErrorBoundaryState {
@@ -76,12 +77,7 @@ export default function Index() {
 
   return (
     <div className="min-h-screen bg-white">
-      <SEO
-        title="Free WhatsApp API Lifetime | No Monthly Fees, Official Cloud API"
-        description="Get Free WhatsApp API Lifetime access with AiReatro. No setup fees, no monthly platform charges. Only pay Meta's conversation fees. Official WhatsApp Cloud API partner."
-        canonical="/"
-        keywords={['free whatsapp api lifetime', 'free whatsapp api', 'whatsapp cloud api free', 'whatsapp business api free', 'free whatsapp automation', 'no monthly fee whatsapp api']}
-      />
+      <SeoMeta route="/" fallbackTitle="Free WhatsApp API Lifetime" fallbackDescription="Get Free WhatsApp API Lifetime access with AiReatro." />
       <JsonLd data={[organizationSchema, websiteSchema, softwareApplicationSchema]} />
       <Navbar />
 
