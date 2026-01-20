@@ -110,6 +110,7 @@ import MetaAdsAttribution from "./pages/meta-ads/MetaAdsAttribution";
 import MetaAdsAutomations from "./pages/meta-ads/MetaAdsAutomations";
 import MetaAdsSettings from "./pages/meta-ads/MetaAdsSettings";
 import Install from "./pages/Install";
+import SeoDashboard from "./pages/developer/SeoDashboard";
 
 const queryClient = new QueryClient();
 
@@ -233,6 +234,7 @@ const App = () => (
               <Route path="/why-whatsapp-marketing" element={<WhyWhatsAppMarketing />} />
               <Route path="/free-whatsapp-api-lifetime" element={<FreeWhatsAppApiLifetime />} />
               <Route path="/install" element={<Install />} />
+              <Route path="/developer/seo" element={<SeoDashboard />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </TenantProvider>
