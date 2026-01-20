@@ -3759,6 +3759,119 @@ export type Database = {
           },
         ]
       }
+      seo_meta: {
+        Row: {
+          canonical_url: string | null
+          created_at: string
+          description: string | null
+          id: string
+          is_published: boolean
+          keywords: string | null
+          locale: string
+          og_description: string | null
+          og_image: string | null
+          og_title: string | null
+          og_type: string
+          page_id: string
+          robots: string
+          schema_jsonld: Json | null
+          title: string
+          twitter_card: string
+          twitter_description: string | null
+          twitter_image: string | null
+          twitter_title: string | null
+          updated_at: string
+          updated_by: string | null
+          version: number
+        }
+        Insert: {
+          canonical_url?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_published?: boolean
+          keywords?: string | null
+          locale?: string
+          og_description?: string | null
+          og_image?: string | null
+          og_title?: string | null
+          og_type?: string
+          page_id: string
+          robots?: string
+          schema_jsonld?: Json | null
+          title: string
+          twitter_card?: string
+          twitter_description?: string | null
+          twitter_image?: string | null
+          twitter_title?: string | null
+          updated_at?: string
+          updated_by?: string | null
+          version?: number
+        }
+        Update: {
+          canonical_url?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_published?: boolean
+          keywords?: string | null
+          locale?: string
+          og_description?: string | null
+          og_image?: string | null
+          og_title?: string | null
+          og_type?: string
+          page_id?: string
+          robots?: string
+          schema_jsonld?: Json | null
+          title?: string
+          twitter_card?: string
+          twitter_description?: string | null
+          twitter_image?: string | null
+          twitter_title?: string | null
+          updated_at?: string
+          updated_by?: string | null
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "seo_meta_page_id_fkey"
+            columns: ["page_id"]
+            isOneToOne: false
+            referencedRelation: "seo_pages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      seo_pages: {
+        Row: {
+          created_at: string
+          id: string
+          is_public: boolean
+          page_key: string
+          page_name: string
+          route_path: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_public?: boolean
+          page_key: string
+          page_name: string
+          route_path: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_public?: boolean
+          page_key?: string
+          page_name?: string
+          route_path?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       sla_settings: {
         Row: {
           after_hours_auto_reply: boolean
