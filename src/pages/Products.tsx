@@ -26,7 +26,7 @@ import { Badge } from '@/components/ui/badge';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import Breadcrumb from '@/components/layout/Breadcrumb';
-import SEO from '@/components/seo/SEO';
+import SeoMeta from '@/components/seo/SeoMeta';
 import { JsonLd, organizationSchema, softwareApplicationSchema } from '@/components/seo/JsonLd';
 
 export default function Products() {
@@ -147,13 +147,7 @@ export default function Products() {
 
   return (
     <div className="min-h-screen bg-background">
-      <SEO
-        title="Products — Complete WhatsApp Business Platform"
-        description="Explore AiReatro's complete WhatsApp Business platform — API integration, marketing tools, automation, and enterprise features."
-        keywords={['WhatsApp Business API', 'WhatsApp marketing', 'WhatsApp automation', 'business messaging platform']}
-        canonical="/products"
-        ogType="website"
-      />
+      <SeoMeta route="/products" fallbackTitle="Products" fallbackDescription="Complete WhatsApp Business Platform" />
       <JsonLd data={[organizationSchema, softwareApplicationSchema, webPageSchema]} />
 
       <Navbar />

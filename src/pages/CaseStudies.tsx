@@ -12,7 +12,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
-import { SEO } from '@/components/seo';
+import SeoMeta from '@/components/seo/SeoMeta';
 
 // Detailed case studies data
 const detailedCaseStudies = [
@@ -306,12 +306,7 @@ export default function CaseStudies() {
 
   return (
     <div className="min-h-screen bg-background">
-      <SEO
-        title="Customer Case Studies | Real Results with AI WhatsApp"
-        description="Explore real customer success stories showing how AiReatro helps businesses grow with AI-powered WhatsApp automation, diagnostics, and attribution."
-        canonical="/case-studies"
-        keywords={['WhatsApp case studies', 'WhatsApp business results', 'WhatsApp ROI', 'customer success stories', 'AI WhatsApp automation']}
-      />
+      <SeoMeta route="/case-studies" fallbackTitle="Customer Case Studies" fallbackDescription="Real customer success stories with AI WhatsApp automation" />
       
       {/* JSON-LD Schema */}
       <Helmet>

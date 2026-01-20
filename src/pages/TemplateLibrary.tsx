@@ -16,7 +16,7 @@ import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
-import { SEO } from '@/components/seo';
+import SeoMeta from '@/components/seo/SeoMeta';
 import { PRE_APPROVED_TEMPLATES, TEMPLATE_CATEGORIES, PreApprovedTemplate } from '@/data/preApprovedTemplates';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/contexts/AuthContext';
@@ -107,12 +107,7 @@ export default function TemplateLibrary() {
 
   return (
     <div className="min-h-screen bg-background">
-      <SEO
-        title="50+ Pre-Approved WhatsApp Templates | Business Message Library | AiReatro"
-        description="Browse 50+ pre-approved WhatsApp message templates for marketing, e-commerce, appointments, support, authentication and more. Copy & use instantly."
-        canonical="https://aireatro.com/template-library"
-        keywords={["WhatsApp templates", "message templates", "pre-approved templates", "WhatsApp Business templates", "marketing templates", "utility templates"]}
-      />
+      <SeoMeta route="/template-library" fallbackTitle="WhatsApp Templates" fallbackDescription="50+ pre-approved message templates" />
       <Navbar />
 
       {/* Hero - White Background */}

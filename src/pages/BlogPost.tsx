@@ -5,7 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
-import { SEO } from '@/components/seo';
+import SeoMeta from '@/components/seo/SeoMeta';
 import { getBlogPost, getRelatedPosts, blogPosts } from '@/data/blogPosts';
 
 export default function BlogPost() {
@@ -38,12 +38,7 @@ export default function BlogPost() {
 
   return (
     <div className="min-h-screen bg-background">
-      <SEO
-        title={`${post.title} | AiReatro Blog`}
-        description={post.excerpt}
-        canonical={`https://aireatro.com/blog/${post.slug}`}
-        keywords={[post.category, 'WhatsApp Business', 'AiReatro', 'tutorial', 'guide']}
-      />
+      <SeoMeta route={`/blog/${post.slug}`} fallbackTitle={post.title} fallbackDescription={post.excerpt} />
       <Navbar />
 
       {/* Hero */}

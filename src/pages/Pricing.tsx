@@ -6,7 +6,7 @@ import { Switch } from '@/components/ui/switch';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
-import { SEO } from '@/components/seo';
+import SeoMeta from '@/components/seo/SeoMeta';
 import {
   Accordion,
   AccordionContent,
@@ -160,12 +160,7 @@ export default function Pricing() {
 
   return (
     <div className="min-h-screen bg-background">
-      <SEO
-        title="Pricing Plans — WhatsApp Business API | AiReatro"
-        description="Simple, transparent pricing for WhatsApp Business API. Start free with 500 messages/month. No hidden fees. Plans from $0 to $199/month with AI automation and team inbox."
-        canonical="/pricing"
-        keywords={['whatsapp api pricing', 'whatsapp business pricing', 'whatsapp automation cost', 'team inbox pricing', 'whatsapp chatbot pricing']}
-      />
+      <SeoMeta route="/pricing" fallbackTitle="Pricing Plans" fallbackDescription="Simple, transparent pricing for WhatsApp Business API" />
       <Navbar />
 
       {/* Hero - Classic Design */}

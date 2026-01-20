@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
-import { SEO } from '@/components/seo';
+import SeoMeta from '@/components/seo/SeoMeta';
 import { 
   Search, 
   Book, 
@@ -205,12 +205,7 @@ export default function Documentation() {
 
   return (
     <div className="min-h-screen bg-background">
-      <SEO
-        title="API Documentation — Developer Docs & SDKs | AiReatro"
-        description="Complete developer documentation for AiReatro WhatsApp Business API. SDKs for JavaScript, Python, PHP. Code examples, webhooks, rate limits, and more."
-        canonical="/documentation"
-        keywords={['whatsapp api documentation', 'whatsapp sdk', 'developer docs', 'api reference', 'webhooks', 'code examples']}
-      />
+      <SeoMeta route="/documentation" fallbackTitle="API Documentation" fallbackDescription="Developer docs & SDKs" />
 
       <Navbar />
 

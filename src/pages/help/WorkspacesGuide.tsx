@@ -10,7 +10,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
-import { SEO } from '@/components/seo';
+import SeoMeta from '@/components/seo/SeoMeta';
 
 const benefits = [
   {
@@ -71,10 +71,7 @@ const useCases = [
 export default function WorkspacesGuide() {
   return (
     <>
-      <SEO 
-        title="How Workspaces Work | AiReatro Help"
-        description="Learn how to organize your WhatsApp Business messaging with workspaces. Manage multiple brands, clients, or departments efficiently."
-      />
+      <SeoMeta route="/help/workspaces" fallbackTitle="How Workspaces Work" fallbackDescription="Organize your WhatsApp Business messaging" />
       <Navbar />
       
       <main className="min-h-screen bg-gradient-to-b from-green-50/50 via-white to-white">

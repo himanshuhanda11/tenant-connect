@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { SEO } from "@/components/seo";
+import SeoMeta from '@/components/seo/SeoMeta';
 import { 
   Users, 
   DollarSign, 
@@ -159,12 +159,7 @@ export default function Partners() {
 
   return (
     <div className="min-h-screen bg-background">
-      <SEO
-        title="Partner Program — Earn Up to 30% Recurring Commission | AiReatro"
-        description="Join AiReatro's partner program and earn up to 30% recurring commissions. Perfect for agencies, consultants, and influencers. Marketing resources and dedicated support."
-        canonical="/partners"
-        keywords={['whatsapp partner program', 'affiliate program', 'agency partnership', 'recurring commissions', 'referral program']}
-      />
+      <SeoMeta route="/partners" fallbackTitle="Partner Program" fallbackDescription="Earn up to 30% recurring commission" />
       <Navbar />
       
       {/* Hero - Classic Design */}

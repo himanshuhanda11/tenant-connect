@@ -32,7 +32,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
-import SEO from '@/components/seo/SEO';
+import SeoMeta from '@/components/seo/SeoMeta';
 import { JsonLd, organizationSchema, softwareApplicationSchema } from '@/components/seo/JsonLd';
 
 const ClickToWhatsApp = () => {
@@ -164,13 +164,7 @@ const ClickToWhatsApp = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <SEO
-        title="Click to WhatsApp. Convert Faster. Powered by AI."
-        description="Turn ads, links, QR codes, and buttons into instant WhatsApp conversations — with full attribution, AI insights, and automation built in."
-        keywords={['Click to WhatsApp', 'WhatsApp ads', 'WhatsApp marketing', 'WhatsApp link generator', 'WhatsApp QR code', 'Meta ads WhatsApp', 'CTWA']}
-        canonical="/click-to-whatsapp"
-        ogType="website"
-      />
+      <SeoMeta route="/click-to-whatsapp" fallbackTitle="Click to WhatsApp" fallbackDescription="Turn ads and links into instant WhatsApp conversations" />
       <JsonLd data={[organizationSchema, softwareApplicationSchema, webPageSchema]} />
       
       <Navbar />

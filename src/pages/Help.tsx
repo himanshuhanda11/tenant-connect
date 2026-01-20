@@ -20,7 +20,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { useNavigate } from 'react-router-dom';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
-import { SEO } from '@/components/seo';
+import SeoMeta from '@/components/seo/SeoMeta';
 
 export default function Help() {
   const navigate = useNavigate();
@@ -117,12 +117,7 @@ export default function Help() {
 
   return (
     <div className="min-h-screen bg-background">
-      <SEO
-        title="Help Center — Guides, Tutorials & Support | AiReatro"
-        description="Get help with AiReatro WhatsApp Business API. Browse tutorials, guides, and FAQs for inbox, campaigns, automation, templates, and more."
-        canonical="/help"
-        keywords={['whatsapp api help', 'support center', 'tutorials', 'guides', 'faq', 'getting started']}
-      />
+      <SeoMeta route="/help" fallbackTitle="Help Center" fallbackDescription="Guides, tutorials & support" />
       <Navbar />
 
       {/* Hero - Classic Design */}
