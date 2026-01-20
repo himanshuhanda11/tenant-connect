@@ -1,9 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { useSeoPages, SeoPageWithMeta } from '@/hooks/useSeoPages';
 import { useAuth } from '@/contexts/AuthContext';
-import { useTenant } from '@/contexts/TenantContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -36,17 +34,20 @@ import {
   CheckCircle,
   XCircle,
   ExternalLink,
-  RefreshCw 
+  RefreshCw,
+  ArrowLeft,
+  Loader2
 } from 'lucide-react';
 import { format } from 'date-fns';
 import SeoEditDrawer from './SeoEditDrawer';
 import { clearSeoCache } from '@/components/seo/SeoMeta';
+import { supabase } from '@/integrations/supabase/client';
 
 export default function SeoDashboard() {
   const navigate = useNavigate();
-  const { user } = useAuth();
-  const { currentTenant } = useTenant();
+  const { user, loading: authLoading } = useAuth();
   const { pages, loading, fetchPages, createPage, deletePage } = useSeoPages();
+  const [isAuthorized, setIsAuthorized] = useState<boolean | null>(null);
   
   const [search, setSearch] = useState('');
   const [showPublicOnly, setShowPublicOnly] = useState(false);
@@ -60,6 +61,29 @@ export default function SeoDashboard() {
   });
   const [creating, setCreating] = useState(false);
   const [deleting, setDeleting] = useState<string | null>(null);
+
+  // Check if user is admin/owner
+  useEffect(() => {
+    const checkAuth = async () => {
+      if (!user) {
+        setIsAuthorized(false);
+        return;
+      }
+
+      // Check if user has admin/owner role in any tenant
+      const { data: members } = await supabase
+        .from('tenant_members')
+        .select('role')
+        .eq('user_id', user.id)
+        .in('role', ['owner', 'admin']);
+
+      setIsAuthorized(members && members.length > 0);
+    };
+
+    if (!authLoading) {
+      checkAuth();
+    }
+  }, [user, authLoading]);
 
   // Filter pages
   const filteredPages = pages.filter(page => {
@@ -95,9 +119,53 @@ export default function SeoDashboard() {
     fetchPages();
   };
 
+  // Loading state
+  if (authLoading || isAuthorized === null) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="w-8 h-8 text-primary animate-spin" />
+          <p className="text-muted-foreground">Checking access...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Unauthorized
+  if (!isAuthorized) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Card className="max-w-md w-full mx-4">
+          <CardContent className="pt-6 text-center space-y-4">
+            <Lock className="h-12 w-12 mx-auto text-muted-foreground" />
+            <h2 className="text-xl font-semibold">Access Denied</h2>
+            <p className="text-muted-foreground">
+              This page is only accessible to administrators and owners.
+            </p>
+            <Button onClick={() => navigate('/')}>
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Go Home
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   return (
-    <DashboardLayout>
-      <div className="space-y-6 max-w-7xl">
+    <div className="min-h-screen bg-background">
+      <header className="border-b border-border bg-background/80 backdrop-blur-sm sticky top-0 z-10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center gap-4">
+          <Button variant="ghost" size="sm" onClick={() => navigate('/')}>
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back
+          </Button>
+          <div className="h-4 w-px bg-border" />
+          <span className="font-semibold text-foreground">Developer Tools</span>
+        </div>
+      </header>
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+        <div className="space-y-6">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
@@ -322,7 +390,8 @@ export default function SeoDashboard() {
             onClose={() => setEditingPage(null)}
           />
         )}
-      </div>
-    </DashboardLayout>
+        </div>
+      </main>
+    </div>
   );
 }
