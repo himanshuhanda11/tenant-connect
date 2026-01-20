@@ -62,7 +62,7 @@ export default function SeoDashboard() {
   const [creating, setCreating] = useState(false);
   const [deleting, setDeleting] = useState<string | null>(null);
 
-  // Check if user is admin/owner
+  // Check if user is a platform admin (not tenant admin - completely separate)
   useEffect(() => {
     const checkAuth = async () => {
       if (!user) {
@@ -70,14 +70,14 @@ export default function SeoDashboard() {
         return;
       }
 
-      // Check if user has admin/owner role in any tenant
-      const { data: members } = await supabase
-        .from('tenant_members')
-        .select('role')
+      // Check platform_admins table - only actual platform developers
+      const { data: platformAdmin } = await supabase
+        .from('platform_admins')
+        .select('id')
         .eq('user_id', user.id)
-        .in('role', ['owner', 'admin']);
+        .maybeSingle();
 
-      setIsAuthorized(members && members.length > 0);
+      setIsAuthorized(!!platformAdmin);
     };
 
     if (!authLoading) {
