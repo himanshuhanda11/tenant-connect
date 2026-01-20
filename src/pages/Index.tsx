@@ -7,6 +7,9 @@ import Navbar from '@/components/layout/Navbar';
 import { JsonLd, organizationSchema, websiteSchema, softwareApplicationSchema } from '@/components/seo';
 import SeoMeta from '@/components/seo/SeoMeta';
 
+// Import HeroSection eagerly - it's above the fold and critical for FCP
+import HeroSection from '@/components/home/HeroSection';
+
 // Error boundary for lazy loaded components
 interface ErrorBoundaryState {
   hasError: boolean;
@@ -31,8 +34,7 @@ class SectionErrorBoundary extends Component<{ children: ReactNode }, ErrorBound
   }
 }
 
-// Lazy load home page sections
-const HeroSection = lazy(() => import('@/components/home/HeroSection'));
+// Lazy load below-the-fold sections
 const SocialProofBar = lazy(() => import('@/components/home/SocialProofBar'));
 const DifferentiatorCards = lazy(() => import('@/components/home/DifferentiatorCards'));
 const AIFlowBuilderSection = lazy(() => import('@/components/home/AIFlowBuilderSection'));
@@ -81,12 +83,8 @@ export default function Index() {
       <JsonLd data={[organizationSchema, websiteSchema, softwareApplicationSchema]} />
       <Navbar />
 
-      {/* Hero Section */}
-      <SectionErrorBoundary>
-        <Suspense fallback={<SectionSkeleton />}>
-          <HeroSection />
-        </Suspense>
-      </SectionErrorBoundary>
+      {/* Hero Section - loaded eagerly for fast FCP */}
+      <HeroSection />
 
       {/* Social Proof */}
       <SectionErrorBoundary>

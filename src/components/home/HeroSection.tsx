@@ -11,6 +11,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import dashboardVideo from '@/assets/dashboard-demo.mp4';
+import dashboardPoster from '@/assets/dashboard-preview.png';
 
 export default function HeroSection() {
   const navigate = useNavigate();
@@ -102,6 +103,8 @@ export default function HeroSection() {
               <video
                 ref={videoRef}
                 src={dashboardVideo}
+                poster={dashboardPoster}
+                preload="metadata"
                 autoPlay
                 loop
                 muted
