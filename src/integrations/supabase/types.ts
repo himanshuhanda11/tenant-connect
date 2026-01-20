@@ -3485,6 +3485,30 @@ export type Database = {
         }
         Relationships: []
       }
+      platform_admins: {
+        Row: {
+          granted_at: string
+          granted_by: string | null
+          id: string
+          notes: string | null
+          user_id: string
+        }
+        Insert: {
+          granted_at?: string
+          granted_by?: string | null
+          id?: string
+          notes?: string | null
+          user_id: string
+        }
+        Update: {
+          granted_at?: string
+          granted_by?: string | null
+          id?: string
+          notes?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -8859,6 +8883,7 @@ export type Database = {
         Args: { p_amount?: number; p_counter: string; p_tenant_id: string }
         Returns: undefined
       }
+      is_platform_admin: { Args: { _user_id: string }; Returns: boolean }
       is_tenant_admin: { Args: { _tenant_id: string }; Returns: boolean }
       is_tenant_member:
         | { Args: { _tenant_id: string }; Returns: boolean }
