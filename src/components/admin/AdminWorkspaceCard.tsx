@@ -3,6 +3,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { AdminStatusBadge, AdminPlanBadge } from './AdminStatusBadge';
+import { HealthBadge, computeWorkspaceHealth } from './HealthBadge';
 import { Eye, Pause, Play, Ban, MoreHorizontal, Users, Phone, Copy } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 
@@ -75,10 +76,11 @@ export function AdminWorkspaceCard({ workspace: w, isSuperAdmin, onView, onPause
           </DropdownMenu>
         </div>
 
-        <div className="flex items-center gap-2 mb-3">
+        <div className="flex items-center gap-2 flex-wrap mb-3">
           <AdminPlanBadge plan={w.plan_name || w.plan} />
           <AdminStatusBadge status={w.is_suspended ? 'suspended' : 'active'} />
           {w.sending_paused && <AdminStatusBadge status="paused" />}
+          <HealthBadge score={computeWorkspaceHealth(w)} />
         </div>
 
         <div className="flex items-center gap-4 text-xs text-muted-foreground">

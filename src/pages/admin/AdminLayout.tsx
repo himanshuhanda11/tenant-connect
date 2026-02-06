@@ -10,6 +10,7 @@ import { AdminSidebar } from '@/components/admin/AdminSidebar';
 import { AdminTopBar } from '@/components/admin/AdminTopBar';
 import { AdminMobileNav } from '@/components/admin/AdminMobileNav';
 import { AdminCommandPalette } from '@/components/admin/AdminCommandPalette';
+import { ImpersonationProvider, ImpersonationBanner } from '@/components/admin/ImpersonationBanner';
 
 export default function AdminLayout() {
   const { user, loading: authLoading, signOut } = useAuth();
@@ -129,35 +130,40 @@ export default function AdminLayout() {
   const isReadOnly = supportReadOnly && role === 'support';
 
   return (
-    <div className="min-h-screen flex bg-muted/30">
-      <AdminSidebar
-        role={role || ''}
-        collapsed={sidebarCollapsed}
-        onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
-      />
+    <ImpersonationProvider>
+      <div className="min-h-screen flex bg-muted/30">
+        <AdminSidebar
+          role={role || ''}
+          collapsed={sidebarCollapsed}
+          onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
+        />
 
-      <div className="flex-1 flex flex-col min-w-0">
-        <AdminTopBar role={role || ''} onSearchOpen={() => setCmdOpen(true)} readOnly={isReadOnly} />
+        <div className="flex-1 flex flex-col min-w-0">
+          <AdminTopBar role={role || ''} onSearchOpen={() => setCmdOpen(true)} readOnly={isReadOnly} />
 
-        {/* Read-only banner */}
-        {isReadOnly && (
-          <div className="bg-destructive/10 border-b border-destructive/20 px-4 py-2 flex items-center justify-center gap-2">
-            <Lock className="h-3.5 w-3.5 text-destructive" />
-            <span className="text-xs font-medium text-destructive">
-              Support is currently in read-only mode. Mutations are disabled during incident response.
-            </span>
-          </div>
-        )}
+          {/* Impersonation banner */}
+          <ImpersonationBanner />
 
-        <main className="flex-1 overflow-auto pb-20 md:pb-0">
-          <div className="max-w-7xl mx-auto px-4 md:px-6 py-6">
-            <Outlet context={{ role, readOnly: isReadOnly }} />
-          </div>
-        </main>
+          {/* Read-only banner */}
+          {isReadOnly && (
+            <div className="bg-destructive/10 border-b border-destructive/20 px-4 py-2 flex items-center justify-center gap-2">
+              <Lock className="h-3.5 w-3.5 text-destructive" />
+              <span className="text-xs font-medium text-destructive">
+                Support is currently in read-only mode. Mutations are disabled during incident response.
+              </span>
+            </div>
+          )}
+
+          <main className="flex-1 overflow-auto pb-20 md:pb-0">
+            <div className="max-w-7xl mx-auto px-4 md:px-6 py-6">
+              <Outlet context={{ role, readOnly: isReadOnly }} />
+            </div>
+          </main>
+        </div>
+
+        <AdminMobileNav />
+        <AdminCommandPalette open={cmdOpen} onOpenChange={setCmdOpen} role={role || ''} />
       </div>
-
-      <AdminMobileNav />
-      <AdminCommandPalette open={cmdOpen} onOpenChange={setCmdOpen} role={role || ''} />
-    </div>
+    </ImpersonationProvider>
   );
 }

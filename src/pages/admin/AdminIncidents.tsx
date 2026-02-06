@@ -21,6 +21,7 @@ import {
   Loader2, RefreshCw, ChevronRight, Siren,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { IncidentAiSummary } from '@/components/admin/IncidentAiSummary';
 
 interface Incident {
   id: string;
@@ -367,6 +368,11 @@ export default function AdminIncidents() {
                     <p className="text-sm mt-0.5">{detailIncident.actions_taken}</p>
                   </div>
                 )}
+
+                <Separator />
+
+                {/* AI Summary */}
+                <IncidentAiSummary incidentId={detailIncident.id} />
 
                 <Separator />
 
