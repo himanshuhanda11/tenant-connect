@@ -111,6 +111,10 @@ import MetaAdsAutomations from "./pages/meta-ads/MetaAdsAutomations";
 import MetaAdsSettings from "./pages/meta-ads/MetaAdsSettings";
 import Install from "./pages/Install";
 import SeoDashboard from "./pages/developer/SeoDashboard";
+import AdminLayout from "./pages/admin/AdminLayout";
+import AdminOverview from "./pages/admin/AdminOverview";
+import AdminWorkspaces from "./pages/admin/AdminWorkspaces";
+import AdminAuditLogs from "./pages/admin/AdminAuditLogs";
 
 const queryClient = new QueryClient();
 
@@ -235,6 +239,11 @@ const App = () => (
               <Route path="/free-whatsapp-api-lifetime" element={<FreeWhatsAppApiLifetime />} />
               <Route path="/install" element={<Install />} />
               <Route path="/developer/seo" element={<SeoDashboard />} />
+              <Route path="/admin" element={<AdminLayout />}>
+                <Route index element={<AdminOverview />} />
+                <Route path="workspaces" element={<AdminWorkspaces />} />
+                <Route path="audit-logs" element={<AdminAuditLogs />} />
+              </Route>
               <Route path="*" element={<NotFound />} />
             </Routes>
           </TenantProvider>

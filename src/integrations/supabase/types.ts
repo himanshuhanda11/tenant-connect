@@ -14,6 +14,54 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_audit_logs: {
+        Row: {
+          action: string
+          actor_role: string
+          actor_user_id: string
+          after_data: Json | null
+          before_data: Json | null
+          created_at: string
+          id: string
+          ip: string | null
+          note: string | null
+          target_id: string | null
+          target_table: string | null
+          user_agent: string | null
+          workspace_id: string | null
+        }
+        Insert: {
+          action: string
+          actor_role: string
+          actor_user_id: string
+          after_data?: Json | null
+          before_data?: Json | null
+          created_at?: string
+          id?: string
+          ip?: string | null
+          note?: string | null
+          target_id?: string | null
+          target_table?: string | null
+          user_agent?: string | null
+          workspace_id?: string | null
+        }
+        Update: {
+          action?: string
+          actor_role?: string
+          actor_user_id?: string
+          after_data?: Json | null
+          before_data?: Json | null
+          created_at?: string
+          id?: string
+          ip?: string | null
+          note?: string | null
+          target_id?: string | null
+          target_table?: string | null
+          user_agent?: string | null
+          workspace_id?: string | null
+        }
+        Relationships: []
+      }
       agents: {
         Row: {
           created_at: string
@@ -80,6 +128,13 @@ export type Database = {
             foreignKeyName: "agents_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
+            referencedRelation: "admin_workspace_directory"
+            referencedColumns: ["workspace_id"]
+          },
+          {
+            foreignKeyName: "agents_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
             referencedRelation: "tenants"
             referencedColumns: ["id"]
           },
@@ -130,6 +185,13 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "audit_logs_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "admin_workspace_directory"
+            referencedColumns: ["workspace_id"]
+          },
           {
             foreignKeyName: "audit_logs_tenant_id_fkey"
             columns: ["tenant_id"]
@@ -218,6 +280,13 @@ export type Database = {
             foreignKeyName: "automation_cooldowns_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
+            referencedRelation: "admin_workspace_directory"
+            referencedColumns: ["workspace_id"]
+          },
+          {
+            foreignKeyName: "automation_cooldowns_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
             referencedRelation: "tenants"
             referencedColumns: ["id"]
           },
@@ -286,6 +355,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "automation_runs"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "automation_deadletters_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "admin_workspace_directory"
+            referencedColumns: ["workspace_id"]
           },
           {
             foreignKeyName: "automation_deadletters_tenant_id_fkey"
@@ -428,6 +504,13 @@ export type Database = {
             foreignKeyName: "automation_loop_guards_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
+            referencedRelation: "admin_workspace_directory"
+            referencedColumns: ["workspace_id"]
+          },
+          {
+            foreignKeyName: "automation_loop_guards_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
             referencedRelation: "tenants"
             referencedColumns: ["id"]
           },
@@ -554,6 +637,13 @@ export type Database = {
             foreignKeyName: "automation_rate_limits_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
+            referencedRelation: "admin_workspace_directory"
+            referencedColumns: ["workspace_id"]
+          },
+          {
+            foreignKeyName: "automation_rate_limits_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
             referencedRelation: "tenants"
             referencedColumns: ["id"]
           },
@@ -613,6 +703,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "automation_rules_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "admin_workspace_directory"
+            referencedColumns: ["workspace_id"]
+          },
           {
             foreignKeyName: "automation_rules_tenant_id_fkey"
             columns: ["tenant_id"]
@@ -701,6 +798,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "messages"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "automation_runs_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "admin_workspace_directory"
+            referencedColumns: ["workspace_id"]
           },
           {
             foreignKeyName: "automation_runs_tenant_id_fkey"
@@ -804,6 +908,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "automation_runs"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "automation_scheduled_jobs_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "admin_workspace_directory"
+            referencedColumns: ["workspace_id"]
           },
           {
             foreignKeyName: "automation_scheduled_jobs_tenant_id_fkey"
@@ -966,6 +1077,13 @@ export type Database = {
             foreignKeyName: "automation_workflows_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
+            referencedRelation: "admin_workspace_directory"
+            referencedColumns: ["workspace_id"]
+          },
+          {
+            foreignKeyName: "automation_workflows_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
             referencedRelation: "tenants"
             referencedColumns: ["id"]
           },
@@ -1041,6 +1159,13 @@ export type Database = {
             foreignKeyName: "campaign_analytics_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
+            referencedRelation: "admin_workspace_directory"
+            referencedColumns: ["workspace_id"]
+          },
+          {
+            foreignKeyName: "campaign_analytics_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
             referencedRelation: "tenants"
             referencedColumns: ["id"]
           },
@@ -1108,6 +1233,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "campaigns"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "campaign_audiences_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "admin_workspace_directory"
+            referencedColumns: ["workspace_id"]
           },
           {
             foreignKeyName: "campaign_audiences_tenant_id_fkey"
@@ -1233,6 +1365,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "phone_numbers"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "campaign_jobs_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "admin_workspace_directory"
+            referencedColumns: ["workspace_id"]
           },
           {
             foreignKeyName: "campaign_jobs_tenant_id_fkey"
@@ -1378,6 +1517,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "templates"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "campaign_templates_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "admin_workspace_directory"
+            referencedColumns: ["workspace_id"]
           },
           {
             foreignKeyName: "campaign_templates_tenant_id_fkey"
@@ -1590,6 +1736,13 @@ export type Database = {
             foreignKeyName: "campaigns_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
+            referencedRelation: "admin_workspace_directory"
+            referencedColumns: ["workspace_id"]
+          },
+          {
+            foreignKeyName: "campaigns_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
             referencedRelation: "tenants"
             referencedColumns: ["id"]
           },
@@ -1676,6 +1829,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "contacts"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contact_timeline_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "admin_workspace_directory"
+            referencedColumns: ["workspace_id"]
           },
           {
             foreignKeyName: "contact_timeline_tenant_id_fkey"
@@ -1862,6 +2022,13 @@ export type Database = {
             foreignKeyName: "contacts_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
+            referencedRelation: "admin_workspace_directory"
+            referencedColumns: ["workspace_id"]
+          },
+          {
+            foreignKeyName: "contacts_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
             referencedRelation: "tenants"
             referencedColumns: ["id"]
           },
@@ -1899,6 +2066,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "conversations"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conversation_notes_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "admin_workspace_directory"
+            referencedColumns: ["workspace_id"]
           },
           {
             foreignKeyName: "conversation_notes_tenant_id_fkey"
@@ -2012,6 +2186,13 @@ export type Database = {
             foreignKeyName: "conversations_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
+            referencedRelation: "admin_workspace_directory"
+            referencedColumns: ["workspace_id"]
+          },
+          {
+            foreignKeyName: "conversations_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
             referencedRelation: "tenants"
             referencedColumns: ["id"]
           },
@@ -2058,6 +2239,13 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "event_action_mappings_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "admin_workspace_directory"
+            referencedColumns: ["workspace_id"]
+          },
           {
             foreignKeyName: "event_action_mappings_tenant_id_fkey"
             columns: ["tenant_id"]
@@ -2120,6 +2308,13 @@ export type Database = {
             foreignKeyName: "flow_diagnostics_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
+            referencedRelation: "admin_workspace_directory"
+            referencedColumns: ["workspace_id"]
+          },
+          {
+            foreignKeyName: "flow_diagnostics_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
             referencedRelation: "tenants"
             referencedColumns: ["id"]
           },
@@ -2172,6 +2367,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "flows"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "flow_edges_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "admin_workspace_directory"
+            referencedColumns: ["workspace_id"]
           },
           {
             foreignKeyName: "flow_edges_tenant_id_fkey"
@@ -2232,6 +2434,13 @@ export type Database = {
             foreignKeyName: "flow_events_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
+            referencedRelation: "admin_workspace_directory"
+            referencedColumns: ["workspace_id"]
+          },
+          {
+            foreignKeyName: "flow_events_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
             referencedRelation: "tenants"
             referencedColumns: ["id"]
           },
@@ -2287,6 +2496,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "flows"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "flow_nodes_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "admin_workspace_directory"
+            referencedColumns: ["workspace_id"]
           },
           {
             foreignKeyName: "flow_nodes_tenant_id_fkey"
@@ -2368,6 +2584,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "phone_numbers"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "flow_sessions_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "admin_workspace_directory"
+            referencedColumns: ["workspace_id"]
           },
           {
             foreignKeyName: "flow_sessions_tenant_id_fkey"
@@ -2473,6 +2696,13 @@ export type Database = {
             foreignKeyName: "flow_triggers_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
+            referencedRelation: "admin_workspace_directory"
+            referencedColumns: ["workspace_id"]
+          },
+          {
+            foreignKeyName: "flow_triggers_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
             referencedRelation: "tenants"
             referencedColumns: ["id"]
           },
@@ -2532,6 +2762,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "flows"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "flow_versions_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "admin_workspace_directory"
+            referencedColumns: ["workspace_id"]
           },
           {
             foreignKeyName: "flow_versions_tenant_id_fkey"
@@ -2610,6 +2847,13 @@ export type Database = {
             foreignKeyName: "flows_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
+            referencedRelation: "admin_workspace_directory"
+            referencedColumns: ["workspace_id"]
+          },
+          {
+            foreignKeyName: "flows_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
             referencedRelation: "tenants"
             referencedColumns: ["id"]
           },
@@ -2683,6 +2927,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "form_rules"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "form_rule_logs_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "admin_workspace_directory"
+            referencedColumns: ["workspace_id"]
           },
           {
             foreignKeyName: "form_rule_logs_tenant_id_fkey"
@@ -2780,6 +3031,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "templates"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "form_rules_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "admin_workspace_directory"
+            referencedColumns: ["workspace_id"]
           },
           {
             foreignKeyName: "form_rules_tenant_id_fkey"
@@ -3114,6 +3372,13 @@ export type Database = {
             foreignKeyName: "integration_events_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
+            referencedRelation: "admin_workspace_directory"
+            referencedColumns: ["workspace_id"]
+          },
+          {
+            foreignKeyName: "integration_events_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
             referencedRelation: "tenants"
             referencedColumns: ["id"]
           },
@@ -3185,6 +3450,13 @@ export type Database = {
             foreignKeyName: "member_invites_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
+            referencedRelation: "admin_workspace_directory"
+            referencedColumns: ["workspace_id"]
+          },
+          {
+            foreignKeyName: "member_invites_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
             referencedRelation: "tenants"
             referencedColumns: ["id"]
           },
@@ -3237,6 +3509,13 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "member_performance_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "admin_workspace_directory"
+            referencedColumns: ["workspace_id"]
+          },
           {
             foreignKeyName: "member_performance_tenant_id_fkey"
             columns: ["tenant_id"]
@@ -3335,6 +3614,13 @@ export type Database = {
             foreignKeyName: "messages_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
+            referencedRelation: "admin_workspace_directory"
+            referencedColumns: ["workspace_id"]
+          },
+          {
+            foreignKeyName: "messages_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
             referencedRelation: "tenants"
             referencedColumns: ["id"]
           },
@@ -3421,6 +3707,13 @@ export type Database = {
             foreignKeyName: "phone_numbers_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
+            referencedRelation: "admin_workspace_directory"
+            referencedColumns: ["workspace_id"]
+          },
+          {
+            foreignKeyName: "phone_numbers_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
             referencedRelation: "tenants"
             referencedColumns: ["id"]
           },
@@ -3490,21 +3783,27 @@ export type Database = {
           granted_at: string
           granted_by: string | null
           id: string
+          is_active: boolean
           notes: string | null
+          role: Database["public"]["Enums"]["platform_role"]
           user_id: string
         }
         Insert: {
           granted_at?: string
           granted_by?: string | null
           id?: string
+          is_active?: boolean
           notes?: string | null
+          role?: Database["public"]["Enums"]["platform_role"]
           user_id: string
         }
         Update: {
           granted_at?: string
           granted_by?: string | null
           id?: string
+          is_active?: boolean
           notes?: string | null
+          role?: Database["public"]["Enums"]["platform_role"]
           user_id?: string
         }
         Relationships: []
@@ -3571,6 +3870,13 @@ export type Database = {
           tenant_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "rate_limit_logs_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "admin_workspace_directory"
+            referencedColumns: ["workspace_id"]
+          },
           {
             foreignKeyName: "rate_limit_logs_tenant_id_fkey"
             columns: ["tenant_id"]
@@ -3655,6 +3961,13 @@ export type Database = {
             foreignKeyName: "roles_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
+            referencedRelation: "admin_workspace_directory"
+            referencedColumns: ["workspace_id"]
+          },
+          {
+            foreignKeyName: "roles_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
             referencedRelation: "tenants"
             referencedColumns: ["id"]
           },
@@ -3693,6 +4006,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "teams"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "round_robin_state_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "admin_workspace_directory"
+            referencedColumns: ["workspace_id"]
           },
           {
             foreignKeyName: "round_robin_state_tenant_id_fkey"
@@ -3773,6 +4093,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "routing_rules_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "admin_workspace_directory"
+            referencedColumns: ["workspace_id"]
           },
           {
             foreignKeyName: "routing_rules_tenant_id_fkey"
@@ -3961,6 +4288,13 @@ export type Database = {
             foreignKeyName: "sla_settings_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
+            referencedRelation: "admin_workspace_directory"
+            referencedColumns: ["workspace_id"]
+          },
+          {
+            foreignKeyName: "sla_settings_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
             referencedRelation: "tenants"
             referencedColumns: ["id"]
           },
@@ -4045,6 +4379,13 @@ export type Database = {
             foreignKeyName: "smeksh_campaign_ab_tests_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
+            referencedRelation: "admin_workspace_directory"
+            referencedColumns: ["workspace_id"]
+          },
+          {
+            foreignKeyName: "smeksh_campaign_ab_tests_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
             referencedRelation: "tenants"
             referencedColumns: ["id"]
           },
@@ -4114,6 +4455,13 @@ export type Database = {
             foreignKeyName: "smeksh_campaign_audiences_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
+            referencedRelation: "admin_workspace_directory"
+            referencedColumns: ["workspace_id"]
+          },
+          {
+            foreignKeyName: "smeksh_campaign_audiences_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
             referencedRelation: "tenants"
             referencedColumns: ["id"]
           },
@@ -4177,6 +4525,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "smeksh_campaign_jobs"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "smeksh_campaign_events_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "admin_workspace_directory"
+            referencedColumns: ["workspace_id"]
           },
           {
             foreignKeyName: "smeksh_campaign_events_tenant_id_fkey"
@@ -4270,6 +4625,13 @@ export type Database = {
             foreignKeyName: "smeksh_campaign_jobs_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
+            referencedRelation: "admin_workspace_directory"
+            referencedColumns: ["workspace_id"]
+          },
+          {
+            foreignKeyName: "smeksh_campaign_jobs_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
             referencedRelation: "tenants"
             referencedColumns: ["id"]
           },
@@ -4325,6 +4687,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "smeksh_campaigns"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "smeksh_campaign_reports_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "admin_workspace_directory"
+            referencedColumns: ["workspace_id"]
           },
           {
             foreignKeyName: "smeksh_campaign_reports_tenant_id_fkey"
@@ -4458,6 +4827,13 @@ export type Database = {
             foreignKeyName: "smeksh_campaigns_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
+            referencedRelation: "admin_workspace_directory"
+            referencedColumns: ["workspace_id"]
+          },
+          {
+            foreignKeyName: "smeksh_campaigns_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
             referencedRelation: "tenants"
             referencedColumns: ["id"]
           },
@@ -4530,6 +4906,13 @@ export type Database = {
             foreignKeyName: "smeksh_contact_attributes_workspace_id_fkey"
             columns: ["workspace_id"]
             isOneToOne: false
+            referencedRelation: "admin_workspace_directory"
+            referencedColumns: ["workspace_id"]
+          },
+          {
+            foreignKeyName: "smeksh_contact_attributes_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
             referencedRelation: "tenants"
             referencedColumns: ["id"]
           },
@@ -4584,6 +4967,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "tags"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "smeksh_contact_tags_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "admin_workspace_directory"
+            referencedColumns: ["workspace_id"]
           },
           {
             foreignKeyName: "smeksh_contact_tags_workspace_id_fkey"
@@ -4817,6 +5207,13 @@ export type Database = {
             foreignKeyName: "smeksh_contacts_workspace_id_fkey"
             columns: ["workspace_id"]
             isOneToOne: false
+            referencedRelation: "admin_workspace_directory"
+            referencedColumns: ["workspace_id"]
+          },
+          {
+            foreignKeyName: "smeksh_contacts_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
             referencedRelation: "tenants"
             referencedColumns: ["id"]
           },
@@ -4932,6 +5329,13 @@ export type Database = {
             foreignKeyName: "smeksh_conversation_events_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
+            referencedRelation: "admin_workspace_directory"
+            referencedColumns: ["workspace_id"]
+          },
+          {
+            foreignKeyName: "smeksh_conversation_events_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
             referencedRelation: "tenants"
             referencedColumns: ["id"]
           },
@@ -4987,6 +5391,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "smeksh_conversation_reads_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "admin_workspace_directory"
+            referencedColumns: ["workspace_id"]
           },
           {
             foreignKeyName: "smeksh_conversation_reads_tenant_id_fkey"
@@ -5055,6 +5466,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "smeksh_conversation_snoozes_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "admin_workspace_directory"
+            referencedColumns: ["workspace_id"]
           },
           {
             foreignKeyName: "smeksh_conversation_snoozes_tenant_id_fkey"
@@ -5130,6 +5548,13 @@ export type Database = {
             foreignKeyName: "smeksh_data_requests_workspace_id_fkey"
             columns: ["workspace_id"]
             isOneToOne: false
+            referencedRelation: "admin_workspace_directory"
+            referencedColumns: ["workspace_id"]
+          },
+          {
+            foreignKeyName: "smeksh_data_requests_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
             referencedRelation: "tenants"
             referencedColumns: ["id"]
           },
@@ -5170,6 +5595,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "smeksh_import_jobs"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "smeksh_import_job_errors_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "admin_workspace_directory"
+            referencedColumns: ["workspace_id"]
           },
           {
             foreignKeyName: "smeksh_import_job_errors_workspace_id_fkey"
@@ -5274,6 +5706,13 @@ export type Database = {
             foreignKeyName: "smeksh_import_jobs_workspace_id_fkey"
             columns: ["workspace_id"]
             isOneToOne: false
+            referencedRelation: "admin_workspace_directory"
+            referencedColumns: ["workspace_id"]
+          },
+          {
+            foreignKeyName: "smeksh_import_jobs_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
             referencedRelation: "tenants"
             referencedColumns: ["id"]
           },
@@ -5345,6 +5784,13 @@ export type Database = {
             foreignKeyName: "smeksh_internal_notes_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
+            referencedRelation: "admin_workspace_directory"
+            referencedColumns: ["workspace_id"]
+          },
+          {
+            foreignKeyName: "smeksh_internal_notes_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
             referencedRelation: "tenants"
             referencedColumns: ["id"]
           },
@@ -5403,6 +5849,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "smeksh_messages"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "smeksh_message_status_events_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "admin_workspace_directory"
+            referencedColumns: ["workspace_id"]
           },
           {
             foreignKeyName: "smeksh_message_status_events_tenant_id_fkey"
@@ -5527,6 +5980,13 @@ export type Database = {
             foreignKeyName: "smeksh_messages_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
+            referencedRelation: "admin_workspace_directory"
+            referencedColumns: ["workspace_id"]
+          },
+          {
+            foreignKeyName: "smeksh_messages_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
             referencedRelation: "tenants"
             referencedColumns: ["id"]
           },
@@ -5608,6 +6068,13 @@ export type Database = {
             foreignKeyName: "smeksh_meta_ad_accounts_workspace_id_fkey"
             columns: ["workspace_id"]
             isOneToOne: false
+            referencedRelation: "admin_workspace_directory"
+            referencedColumns: ["workspace_id"]
+          },
+          {
+            foreignKeyName: "smeksh_meta_ad_accounts_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
             referencedRelation: "tenants"
             referencedColumns: ["id"]
           },
@@ -5679,6 +6146,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "smeksh_meta_ad_accounts"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "smeksh_meta_ad_automations_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "admin_workspace_directory"
+            referencedColumns: ["workspace_id"]
           },
           {
             foreignKeyName: "smeksh_meta_ad_automations_workspace_id_fkey"
@@ -5787,6 +6261,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "smeksh_meta_ad_accounts"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "smeksh_meta_ad_campaigns_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "admin_workspace_directory"
+            referencedColumns: ["workspace_id"]
           },
           {
             foreignKeyName: "smeksh_meta_ad_campaigns_workspace_id_fkey"
@@ -5936,6 +6417,13 @@ export type Database = {
             foreignKeyName: "smeksh_meta_ad_leads_workspace_id_fkey"
             columns: ["workspace_id"]
             isOneToOne: false
+            referencedRelation: "admin_workspace_directory"
+            referencedColumns: ["workspace_id"]
+          },
+          {
+            foreignKeyName: "smeksh_meta_ad_leads_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
             referencedRelation: "tenants"
             referencedColumns: ["id"]
           },
@@ -6025,6 +6513,13 @@ export type Database = {
             foreignKeyName: "smeksh_meta_ads_settings_workspace_id_fkey"
             columns: ["workspace_id"]
             isOneToOne: true
+            referencedRelation: "admin_workspace_directory"
+            referencedColumns: ["workspace_id"]
+          },
+          {
+            foreignKeyName: "smeksh_meta_ads_settings_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: true
             referencedRelation: "tenants"
             referencedColumns: ["id"]
           },
@@ -6097,6 +6592,13 @@ export type Database = {
             foreignKeyName: "smeksh_meta_attribution_rules_workspace_id_fkey"
             columns: ["workspace_id"]
             isOneToOne: false
+            referencedRelation: "admin_workspace_directory"
+            referencedColumns: ["workspace_id"]
+          },
+          {
+            foreignKeyName: "smeksh_meta_attribution_rules_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
             referencedRelation: "tenants"
             referencedColumns: ["id"]
           },
@@ -6155,6 +6657,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "teams"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "smeksh_phone_number_access_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "admin_workspace_directory"
+            referencedColumns: ["workspace_id"]
           },
           {
             foreignKeyName: "smeksh_phone_number_access_tenant_id_fkey"
@@ -6275,6 +6784,13 @@ export type Database = {
             foreignKeyName: "smeksh_phone_numbers_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
+            referencedRelation: "admin_workspace_directory"
+            referencedColumns: ["workspace_id"]
+          },
+          {
+            foreignKeyName: "smeksh_phone_numbers_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
             referencedRelation: "tenants"
             referencedColumns: ["id"]
           },
@@ -6322,6 +6838,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "smeksh_phone_numbers"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "smeksh_quality_history_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "admin_workspace_directory"
+            referencedColumns: ["workspace_id"]
           },
           {
             foreignKeyName: "smeksh_quality_history_tenant_id_fkey"
@@ -6382,6 +6905,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "smeksh_segments"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "smeksh_segment_filters_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "admin_workspace_directory"
+            referencedColumns: ["workspace_id"]
           },
           {
             foreignKeyName: "smeksh_segment_filters_workspace_id_fkey"
@@ -6450,6 +6980,13 @@ export type Database = {
             foreignKeyName: "smeksh_segments_workspace_id_fkey"
             columns: ["workspace_id"]
             isOneToOne: false
+            referencedRelation: "admin_workspace_directory"
+            referencedColumns: ["workspace_id"]
+          },
+          {
+            foreignKeyName: "smeksh_segments_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
             referencedRelation: "tenants"
             referencedColumns: ["id"]
           },
@@ -6499,6 +7036,13 @@ export type Database = {
             foreignKeyName: "smeksh_typing_state_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
+            referencedRelation: "admin_workspace_directory"
+            referencedColumns: ["workspace_id"]
+          },
+          {
+            foreignKeyName: "smeksh_typing_state_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
             referencedRelation: "tenants"
             referencedColumns: ["id"]
           },
@@ -6539,6 +7083,13 @@ export type Database = {
           waba_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "smeksh_wabas_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "admin_workspace_directory"
+            referencedColumns: ["workspace_id"]
+          },
           {
             foreignKeyName: "smeksh_wabas_tenant_id_fkey"
             columns: ["tenant_id"]
@@ -6586,6 +7137,13 @@ export type Database = {
           verify_token?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "smeksh_webhook_configs_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "admin_workspace_directory"
+            referencedColumns: ["workspace_id"]
+          },
           {
             foreignKeyName: "smeksh_webhook_configs_tenant_id_fkey"
             columns: ["tenant_id"]
@@ -6639,6 +7197,13 @@ export type Database = {
           tenant_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "smeksh_webhook_delivery_logs_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "admin_workspace_directory"
+            referencedColumns: ["workspace_id"]
+          },
           {
             foreignKeyName: "smeksh_webhook_delivery_logs_tenant_id_fkey"
             columns: ["tenant_id"]
@@ -6701,6 +7266,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "plans"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "subscriptions_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: true
+            referencedRelation: "admin_workspace_directory"
+            referencedColumns: ["workspace_id"]
           },
           {
             foreignKeyName: "subscriptions_tenant_id_fkey"
@@ -6788,6 +7360,13 @@ export type Database = {
             foreignKeyName: "tag_history_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
+            referencedRelation: "admin_workspace_directory"
+            referencedColumns: ["workspace_id"]
+          },
+          {
+            foreignKeyName: "tag_history_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
             referencedRelation: "tenants"
             referencedColumns: ["id"]
           },
@@ -6867,6 +7446,13 @@ export type Database = {
             foreignKeyName: "tag_rules_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
+            referencedRelation: "admin_workspace_directory"
+            referencedColumns: ["workspace_id"]
+          },
+          {
+            foreignKeyName: "tag_rules_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
             referencedRelation: "tenants"
             referencedColumns: ["id"]
           },
@@ -6925,6 +7511,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tags_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "admin_workspace_directory"
+            referencedColumns: ["workspace_id"]
           },
           {
             foreignKeyName: "tags_tenant_id_fkey"
@@ -7000,6 +7593,13 @@ export type Database = {
             foreignKeyName: "team_members_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
+            referencedRelation: "admin_workspace_directory"
+            referencedColumns: ["workspace_id"]
+          },
+          {
+            foreignKeyName: "team_members_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
             referencedRelation: "tenants"
             referencedColumns: ["id"]
           },
@@ -7049,6 +7649,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "teams_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "admin_workspace_directory"
+            referencedColumns: ["workspace_id"]
           },
           {
             foreignKeyName: "teams_tenant_id_fkey"
@@ -7125,6 +7732,13 @@ export type Database = {
             foreignKeyName: "template_approvals_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
+            referencedRelation: "admin_workspace_directory"
+            referencedColumns: ["workspace_id"]
+          },
+          {
+            foreignKeyName: "template_approvals_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
             referencedRelation: "tenants"
             referencedColumns: ["id"]
           },
@@ -7181,6 +7795,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "templates"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "template_lint_results_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "admin_workspace_directory"
+            referencedColumns: ["workspace_id"]
           },
           {
             foreignKeyName: "template_lint_results_tenant_id_fkey"
@@ -7258,6 +7879,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "templates"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "template_submission_logs_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "admin_workspace_directory"
+            referencedColumns: ["workspace_id"]
           },
           {
             foreignKeyName: "template_submission_logs_tenant_id_fkey"
@@ -7426,6 +8054,13 @@ export type Database = {
             foreignKeyName: "templates_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
+            referencedRelation: "admin_workspace_directory"
+            referencedColumns: ["workspace_id"]
+          },
+          {
+            foreignKeyName: "templates_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
             referencedRelation: "tenants"
             referencedColumns: ["id"]
           },
@@ -7471,6 +8106,13 @@ export type Database = {
           tenant_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "tenant_features_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "admin_workspace_directory"
+            referencedColumns: ["workspace_id"]
+          },
           {
             foreignKeyName: "tenant_features_tenant_id_fkey"
             columns: ["tenant_id"]
@@ -7554,6 +8196,13 @@ export type Database = {
             foreignKeyName: "tenant_integrations_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
+            referencedRelation: "admin_workspace_directory"
+            referencedColumns: ["workspace_id"]
+          },
+          {
+            foreignKeyName: "tenant_integrations_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
             referencedRelation: "tenants"
             referencedColumns: ["id"]
           },
@@ -7585,6 +8234,13 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "tenant_members_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "admin_workspace_directory"
+            referencedColumns: ["workspace_id"]
+          },
           {
             foreignKeyName: "tenant_members_tenant_id_fkey"
             columns: ["tenant_id"]
@@ -7669,6 +8325,13 @@ export type Database = {
             foreignKeyName: "usage_counters_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
+            referencedRelation: "admin_workspace_directory"
+            referencedColumns: ["workspace_id"]
+          },
+          {
+            foreignKeyName: "usage_counters_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
             referencedRelation: "tenants"
             referencedColumns: ["id"]
           },
@@ -7717,6 +8380,13 @@ export type Database = {
             foreignKeyName: "user_attributes_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
+            referencedRelation: "admin_workspace_directory"
+            referencedColumns: ["workspace_id"]
+          },
+          {
+            foreignKeyName: "user_attributes_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
             referencedRelation: "tenants"
             referencedColumns: ["id"]
           },
@@ -7751,6 +8421,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "roles"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_roles_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "admin_workspace_directory"
+            referencedColumns: ["workspace_id"]
           },
           {
             foreignKeyName: "user_roles_tenant_id_fkey"
@@ -7853,6 +8530,13 @@ export type Database = {
             foreignKeyName: "wa_template_fallback_policies_workspace_id_fkey"
             columns: ["workspace_id"]
             isOneToOne: true
+            referencedRelation: "admin_workspace_directory"
+            referencedColumns: ["workspace_id"]
+          },
+          {
+            foreignKeyName: "wa_template_fallback_policies_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: true
             referencedRelation: "tenants"
             referencedColumns: ["id"]
           },
@@ -7911,6 +8595,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "wa_template_versions"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "wa_template_submissions_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "admin_workspace_directory"
+            referencedColumns: ["workspace_id"]
           },
           {
             foreignKeyName: "wa_template_submissions_workspace_id_fkey"
@@ -7990,6 +8681,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "wa_template_versions"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "wa_template_validation_logs_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "admin_workspace_directory"
+            referencedColumns: ["workspace_id"]
           },
           {
             foreignKeyName: "wa_template_validation_logs_workspace_id_fkey"
@@ -8134,6 +8832,13 @@ export type Database = {
             foreignKeyName: "wa_templates_workspace_id_fkey"
             columns: ["workspace_id"]
             isOneToOne: false
+            referencedRelation: "admin_workspace_directory"
+            referencedColumns: ["workspace_id"]
+          },
+          {
+            foreignKeyName: "wa_templates_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
             referencedRelation: "tenants"
             referencedColumns: ["id"]
           },
@@ -8178,6 +8883,13 @@ export type Database = {
             foreignKeyName: "waba_accounts_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
+            referencedRelation: "admin_workspace_directory"
+            referencedColumns: ["workspace_id"]
+          },
+          {
+            foreignKeyName: "waba_accounts_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
             referencedRelation: "tenants"
             referencedColumns: ["id"]
           },
@@ -8218,6 +8930,13 @@ export type Database = {
           tenant_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "webhook_events_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "admin_workspace_directory"
+            referencedColumns: ["workspace_id"]
+          },
           {
             foreignKeyName: "webhook_events_tenant_id_fkey"
             columns: ["tenant_id"]
@@ -8280,6 +8999,13 @@ export type Database = {
             foreignKeyName: "working_hours_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
+            referencedRelation: "admin_workspace_directory"
+            referencedColumns: ["workspace_id"]
+          },
+          {
+            foreignKeyName: "working_hours_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
             referencedRelation: "tenants"
             referencedColumns: ["id"]
           },
@@ -8292,8 +9018,112 @@ export type Database = {
           },
         ]
       }
+      workspace_entitlements: {
+        Row: {
+          enable_ads: boolean
+          enable_ai: boolean
+          enable_autoforms: boolean
+          enable_integrations: boolean
+          id: string
+          monthly_broadcast_limit: number | null
+          monthly_conversation_limit: number | null
+          monthly_flow_limit: number | null
+          monthly_template_limit: number | null
+          plan: string
+          sending_paused: boolean
+          status: string
+          updated_at: string
+          updated_by: string | null
+          workspace_id: string
+        }
+        Insert: {
+          enable_ads?: boolean
+          enable_ai?: boolean
+          enable_autoforms?: boolean
+          enable_integrations?: boolean
+          id?: string
+          monthly_broadcast_limit?: number | null
+          monthly_conversation_limit?: number | null
+          monthly_flow_limit?: number | null
+          monthly_template_limit?: number | null
+          plan?: string
+          sending_paused?: boolean
+          status?: string
+          updated_at?: string
+          updated_by?: string | null
+          workspace_id: string
+        }
+        Update: {
+          enable_ads?: boolean
+          enable_ai?: boolean
+          enable_autoforms?: boolean
+          enable_integrations?: boolean
+          id?: string
+          monthly_broadcast_limit?: number | null
+          monthly_conversation_limit?: number | null
+          monthly_flow_limit?: number | null
+          monthly_template_limit?: number | null
+          plan?: string
+          sending_paused?: boolean
+          status?: string
+          updated_at?: string
+          updated_by?: string | null
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workspace_entitlements_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: true
+            referencedRelation: "admin_workspace_directory"
+            referencedColumns: ["workspace_id"]
+          },
+          {
+            foreignKeyName: "workspace_entitlements_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: true
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
+      admin_kpi_overview: {
+        Row: {
+          active_workspaces: number | null
+          connected_phone_numbers: number | null
+          suspended_workspaces: number | null
+          total_contacts: number | null
+          total_conversations: number | null
+          total_phone_numbers: number | null
+          total_users: number | null
+          total_workspaces: number | null
+        }
+        Relationships: []
+      }
+      admin_workspace_directory: {
+        Row: {
+          contacts_count: number | null
+          conversations_count: number | null
+          created_at: string | null
+          entitlement_status: string | null
+          is_suspended: boolean | null
+          members_count: number | null
+          phone_numbers_count: number | null
+          plan: string | null
+          plan_name: string | null
+          sending_paused: boolean | null
+          slug: string | null
+          subscription_status:
+            | Database["public"]["Enums"]["subscription_status"]
+            | null
+          suspended_reason: string | null
+          workspace_id: string | null
+          workspace_name: string | null
+        }
+        Relationships: []
+      }
       smeksh_audit_logs: {
         Row: {
           action: string | null
@@ -8336,6 +9166,13 @@ export type Database = {
             foreignKeyName: "audit_logs_tenant_id_fkey"
             columns: ["workspace_id"]
             isOneToOne: false
+            referencedRelation: "admin_workspace_directory"
+            referencedColumns: ["workspace_id"]
+          },
+          {
+            foreignKeyName: "audit_logs_tenant_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
             referencedRelation: "tenants"
             referencedColumns: ["id"]
           },
@@ -8374,6 +9211,13 @@ export type Database = {
           workspace_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "agents_tenant_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "admin_workspace_directory"
+            referencedColumns: ["workspace_id"]
+          },
           {
             foreignKeyName: "agents_tenant_id_fkey"
             columns: ["workspace_id"]
@@ -8423,6 +9267,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "teams"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "round_robin_state_tenant_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "admin_workspace_directory"
+            referencedColumns: ["workspace_id"]
           },
           {
             foreignKeyName: "round_robin_state_tenant_id_fkey"
@@ -8511,6 +9362,13 @@ export type Database = {
             foreignKeyName: "routing_rules_tenant_id_fkey"
             columns: ["workspace_id"]
             isOneToOne: false
+            referencedRelation: "admin_workspace_directory"
+            referencedColumns: ["workspace_id"]
+          },
+          {
+            foreignKeyName: "routing_rules_tenant_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
             referencedRelation: "tenants"
             referencedColumns: ["id"]
           },
@@ -8573,6 +9431,13 @@ export type Database = {
             foreignKeyName: "team_members_tenant_id_fkey"
             columns: ["workspace_id"]
             isOneToOne: false
+            referencedRelation: "admin_workspace_directory"
+            referencedColumns: ["workspace_id"]
+          },
+          {
+            foreignKeyName: "team_members_tenant_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
             referencedRelation: "tenants"
             referencedColumns: ["id"]
           },
@@ -8627,6 +9492,13 @@ export type Database = {
             foreignKeyName: "teams_tenant_id_fkey"
             columns: ["workspace_id"]
             isOneToOne: false
+            referencedRelation: "admin_workspace_directory"
+            referencedColumns: ["workspace_id"]
+          },
+          {
+            foreignKeyName: "teams_tenant_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
             referencedRelation: "tenants"
             referencedColumns: ["id"]
           },
@@ -8655,6 +9527,13 @@ export type Database = {
           workspace_id: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "agents_tenant_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "admin_workspace_directory"
+            referencedColumns: ["workspace_id"]
+          },
           {
             foreignKeyName: "agents_tenant_id_fkey"
             columns: ["workspace_id"]
@@ -8703,6 +9582,13 @@ export type Database = {
           waba_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "waba_accounts_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "admin_workspace_directory"
+            referencedColumns: ["workspace_id"]
+          },
           {
             foreignKeyName: "waba_accounts_tenant_id_fkey"
             columns: ["tenant_id"]
@@ -8833,6 +9719,7 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      get_platform_role: { Args: { _user_id: string }; Returns: string }
       get_team_workload: {
         Args: { p_team_id: string; p_tenant_id: string }
         Returns: {
@@ -9268,6 +10155,7 @@ export type Database = {
         | "phone_numbers"
         | "team"
       phone_status: "pending" | "connected" | "disconnected" | "banned"
+      platform_role: "super_admin" | "support"
       presence_status: "online" | "offline" | "away" | "busy"
       quality_rating: "GREEN" | "YELLOW" | "RED" | "UNKNOWN"
       rate_limit_scope:
@@ -9760,6 +10648,7 @@ export const Constants = {
         "team",
       ],
       phone_status: ["pending", "connected", "disconnected", "banned"],
+      platform_role: ["super_admin", "support"],
       presence_status: ["online", "offline", "away", "busy"],
       quality_rating: ["GREEN", "YELLOW", "RED", "UNKNOWN"],
       rate_limit_scope: [
