@@ -1,9 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Search, Bell, ShieldCheck, Headset, ChevronLeft } from 'lucide-react';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Search, Bell, ShieldCheck, Headset, ChevronLeft, User, LogOut, Settings } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
 import { cn } from '@/lib/utils';
 
 interface AdminTopBarProps {
@@ -13,6 +15,7 @@ interface AdminTopBarProps {
 
 export function AdminTopBar({ role, onSearchOpen }: AdminTopBarProps) {
   const navigate = useNavigate();
+  const { user, signOut } = useAuth();
   const isSuperAdmin = role === 'super_admin';
 
   return (
@@ -62,7 +65,30 @@ export function AdminTopBar({ role, onSearchOpen }: AdminTopBarProps) {
         {/* Notifications */}
         <Button variant="ghost" size="sm" className="h-8 w-8 p-0 relative">
           <Bell className="h-4 w-4" />
+          <span className="absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full bg-destructive" />
         </Button>
+
+        {/* Profile dropdown */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="sm" className="h-8 w-8 p-0 rounded-full bg-muted">
+              <User className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="rounded-xl w-48">
+            <div className="px-3 py-2 border-b border-border/50">
+              <p className="text-xs font-medium truncate">{user?.email}</p>
+              <p className="text-[10px] text-muted-foreground capitalize">{role?.replace('_', ' ')}</p>
+            </div>
+            <DropdownMenuItem onClick={() => navigate('/admin/settings')} className="text-sm">
+              <Settings className="h-3.5 w-3.5 mr-2" /> Settings
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => signOut()} className="text-sm text-destructive">
+              <LogOut className="h-3.5 w-3.5 mr-2" /> Sign Out
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </header>
   );
