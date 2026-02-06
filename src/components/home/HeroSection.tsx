@@ -7,7 +7,8 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import HeroSlideshow from '@/components/home/HeroSlideshow';
+import heroVideo from '@/assets/hero-demo.mp4';
+import dashboardPreview from '@/assets/dashboard-preview.png';
 
 export default function HeroSection() {
   const navigate = useNavigate();
@@ -80,8 +81,21 @@ export default function HeroSection() {
             </div>
           </div>
 
-          {/* Dashboard Slideshow */}
-          <HeroSlideshow />
+          {/* Dashboard Video */}
+          <div className="relative max-w-5xl mx-auto">
+            <div className="relative rounded-xl sm:rounded-2xl overflow-hidden shadow-2xl border border-slate-200 bg-slate-900">
+              <video
+                src={heroVideo}
+                poster={dashboardPreview}
+                autoPlay
+                loop
+                muted
+                playsInline
+                preload="metadata"
+                className="w-full h-auto"
+              />
+            </div>
+          </div>
         </div>
       </div>
     </section>
