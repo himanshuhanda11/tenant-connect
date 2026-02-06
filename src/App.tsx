@@ -116,6 +116,7 @@ import AdminOverview from "./pages/admin/AdminOverview";
 import AdminWorkspaces from "./pages/admin/AdminWorkspaces";
 import AdminAuditLogs from "./pages/admin/AdminAuditLogs";
 import AdminWorkspaceDetail from "./pages/admin/AdminWorkspaceDetail";
+import AdminTeam from "./pages/admin/AdminTeam";
 
 const queryClient = new QueryClient();
 
@@ -245,6 +246,7 @@ const App = () => (
                 <Route path="workspaces" element={<AdminWorkspaces />} />
                 <Route path="workspaces/:id" element={<AdminWorkspaceDetail />} />
                 <Route path="audit-logs" element={<AdminAuditLogs />} />
+                <Route path="team" element={<AdminTeam />} />
               </Route>
               <Route path="*" element={<NotFound />} />
             </Routes>

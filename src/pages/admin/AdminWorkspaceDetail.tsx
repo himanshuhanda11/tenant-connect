@@ -13,6 +13,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from '@/hooks/use-toast';
 import { ArrowLeft, Loader2, Phone, Users, Shield, ScrollText, Settings, Ban } from 'lucide-react';
+import UserManagementActions from '@/components/admin/UserManagementActions';
 
 export default function AdminWorkspaceDetail() {
   const { id } = useParams();
@@ -232,6 +233,7 @@ export default function AdminWorkspaceDetail() {
                     <TableHead>Email</TableHead>
                     <TableHead>Role</TableHead>
                     <TableHead>Joined</TableHead>
+                    {isSuperAdmin && <TableHead>Manage</TableHead>}
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -241,10 +243,15 @@ export default function AdminWorkspaceDetail() {
                       <TableCell className="text-sm">{m.profiles?.email}</TableCell>
                       <TableCell><Badge variant="outline">{m.role}</Badge></TableCell>
                       <TableCell className="text-xs text-muted-foreground">{new Date(m.created_at).toLocaleDateString()}</TableCell>
+                      {isSuperAdmin && (
+                        <TableCell>
+                          <UserManagementActions member={m} isSuperAdmin={isSuperAdmin} />
+                        </TableCell>
+                      )}
                     </TableRow>
                   ))}
                   {members.length === 0 && (
-                    <TableRow><TableCell colSpan={4} className="text-center py-6 text-muted-foreground">No members</TableCell></TableRow>
+                    <TableRow><TableCell colSpan={isSuperAdmin ? 5 : 4} className="text-center py-6 text-muted-foreground">No members</TableCell></TableRow>
                   )}
                 </TableBody>
               </Table>

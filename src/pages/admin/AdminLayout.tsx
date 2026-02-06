@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate, Outlet, NavLink } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAdminApi } from '@/hooks/useAdminApi';
-import { Shield, LayoutDashboard, Building2, ScrollText, Loader2, AlertTriangle } from 'lucide-react';
+import { Shield, LayoutDashboard, Building2, ScrollText, Loader2, AlertTriangle, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
@@ -64,6 +64,7 @@ export default function AdminLayout() {
   const navItems = [
     { to: '/admin', icon: LayoutDashboard, label: 'Overview', end: true },
     { to: '/admin/workspaces', icon: Building2, label: 'Workspaces' },
+    { to: '/admin/team', icon: Users, label: 'Support Team' },
     { to: '/admin/audit-logs', icon: ScrollText, label: 'Audit Logs' },
   ];
 

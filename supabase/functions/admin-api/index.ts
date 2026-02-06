@@ -250,6 +250,151 @@ Deno.serve(async (req: Request) => {
       });
     }
 
+    // GET /team - list platform admins (super_admin only)
+    if (req.method === "GET" && path === "team") {
+      const actor = await requirePlatformRole(req, ["super_admin"]);
+      const sb = adminClient();
+      const { data } = await sb.from("platform_admins").select("*").order("created_at", { ascending: false });
+
+      // Enrich with emails
+      const enriched = [];
+      for (const pa of (data || [])) {
+        const { data: { user } } = await sb.auth.admin.getUserById(pa.user_id);
+        enriched.push({ ...pa, email: user?.email || "unknown" });
+      }
+
+      return new Response(JSON.stringify({ team: enriched }), {
+        headers: { ...corsHeaders, "content-type": "application/json" },
+      });
+    }
+
+    // POST /team/add - add support team member
+    if (req.method === "POST" && path === "team/add") {
+      const actor = await requirePlatformRole(req, ["super_admin"]);
+      const sb = adminClient();
+      const body = await req.json();
+      const email = body.email?.trim().toLowerCase();
+      const role = body.role || "support";
+      if (!email) throw new Error("Email required");
+      if (!["super_admin", "support"].includes(role)) throw new Error("Invalid role");
+
+      // Find user by email
+      const { data: { users }, error: listErr } = await sb.auth.admin.listUsers();
+      const targetUser = (users || []).find((u: any) => u.email?.toLowerCase() === email);
+      if (!targetUser) throw new Error(`No user found with email: ${email}`);
+
+      const { error } = await sb.from("platform_admins").upsert({
+        user_id: targetUser.id,
+        role,
+        is_active: true,
+      }, { onConflict: "user_id" });
+      if (error) throw new Error(error.message);
+
+      await logAction(sb, actor, "TEAM_MEMBER_ADDED", { note: `Added ${email} as ${role}` });
+
+      return new Response(JSON.stringify({ success: true }), {
+        headers: { ...corsHeaders, "content-type": "application/json" },
+      });
+    }
+
+    // POST /team/remove - remove/deactivate support team member
+    if (req.method === "POST" && path === "team/remove") {
+      const actor = await requirePlatformRole(req, ["super_admin"]);
+      const sb = adminClient();
+      const body = await req.json();
+      if (!body.user_id) throw new Error("user_id required");
+
+      // Prevent self-removal
+      if (body.user_id === actor.user.id) throw new Error("Cannot remove yourself");
+
+      const { error } = await sb.from("platform_admins").update({ is_active: false }).eq("user_id", body.user_id);
+      if (error) throw new Error(error.message);
+
+      await logAction(sb, actor, "TEAM_MEMBER_REMOVED", { note: `Deactivated ${body.user_id}` });
+
+      return new Response(JSON.stringify({ success: true }), {
+        headers: { ...corsHeaders, "content-type": "application/json" },
+      });
+    }
+
+    // POST /users/:id/reset-password - send password reset email
+    if (req.method === "POST" && path.match(/^users\/[^/]+\/reset-password$/)) {
+      const userId = path.split("/")[1];
+      const actor = await requirePlatformRole(req, ["super_admin"]);
+      const sb = adminClient();
+
+      const { data: { user } } = await sb.auth.admin.getUserById(userId);
+      if (!user?.email) throw new Error("User not found or no email");
+
+      // Generate password reset link
+      const { data, error } = await sb.auth.admin.generateLink({
+        type: "recovery",
+        email: user.email,
+      });
+      if (error) throw new Error(error.message);
+
+      await logAction(sb, actor, "PASSWORD_RESET_INITIATED", {
+        target_table: "auth.users",
+        target_id: userId,
+        note: `Password reset for ${user.email}`,
+      });
+
+      return new Response(JSON.stringify({ success: true, email: user.email, reset_link: data?.properties?.action_link }), {
+        headers: { ...corsHeaders, "content-type": "application/json" },
+      });
+    }
+
+    // POST /users/:id/update-email
+    if (req.method === "POST" && path.match(/^users\/[^/]+\/update-email$/)) {
+      const userId = path.split("/")[1];
+      const actor = await requirePlatformRole(req, ["super_admin"]);
+      const sb = adminClient();
+      const body = await req.json();
+      if (!body.email) throw new Error("New email required");
+
+      const { data: { user: before } } = await sb.auth.admin.getUserById(userId);
+      const { data: { user }, error } = await sb.auth.admin.updateUserById(userId, { email: body.email });
+      if (error) throw new Error(error.message);
+
+      await logAction(sb, actor, "USER_EMAIL_UPDATED", {
+        target_table: "auth.users",
+        target_id: userId,
+        before: { email: before?.email },
+        after: { email: body.email },
+      });
+
+      return new Response(JSON.stringify({ success: true, email: user?.email }), {
+        headers: { ...corsHeaders, "content-type": "application/json" },
+      });
+    }
+
+    // POST /users/:id/update-phone
+    if (req.method === "POST" && path.match(/^users\/[^/]+\/update-phone$/)) {
+      const userId = path.split("/")[1];
+      const actor = await requirePlatformRole(req, ["super_admin"]);
+      const sb = adminClient();
+      const body = await req.json();
+      if (!body.phone) throw new Error("New phone required");
+
+      const { data: { user: before } } = await sb.auth.admin.getUserById(userId);
+      const { data: { user }, error } = await sb.auth.admin.updateUserById(userId, { phone: body.phone });
+      if (error) throw new Error(error.message);
+
+      // Also update profile if exists
+      await sb.from("profiles").update({ phone: body.phone }).eq("id", userId);
+
+      await logAction(sb, actor, "USER_PHONE_UPDATED", {
+        target_table: "auth.users",
+        target_id: userId,
+        before: { phone: before?.phone },
+        after: { phone: body.phone },
+      });
+
+      return new Response(JSON.stringify({ success: true, phone: user?.phone }), {
+        headers: { ...corsHeaders, "content-type": "application/json" },
+      });
+    }
+
     return new Response(JSON.stringify({ error: "Not found" }), {
       status: 404,
       headers: { ...corsHeaders, "content-type": "application/json" },
