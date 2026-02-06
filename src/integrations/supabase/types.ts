@@ -3808,6 +3808,89 @@ export type Database = {
         }
         Relationships: []
       }
+      platform_incident_events: {
+        Row: {
+          actor_user_id: string | null
+          created_at: string
+          description: string
+          event_type: string
+          id: string
+          incident_id: string
+        }
+        Insert: {
+          actor_user_id?: string | null
+          created_at?: string
+          description: string
+          event_type: string
+          id?: string
+          incident_id: string
+        }
+        Update: {
+          actor_user_id?: string | null
+          created_at?: string
+          description?: string
+          event_type?: string
+          id?: string
+          incident_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "platform_incident_events_incident_id_fkey"
+            columns: ["incident_id"]
+            isOneToOne: false
+            referencedRelation: "platform_incidents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      platform_incidents: {
+        Row: {
+          actions_taken: string | null
+          affected_systems: string[] | null
+          created_at: string
+          declared_by: string | null
+          description: string | null
+          id: string
+          resolved_at: string | null
+          resolved_by: string | null
+          root_cause: string | null
+          severity: string
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          actions_taken?: string | null
+          affected_systems?: string[] | null
+          created_at?: string
+          declared_by?: string | null
+          description?: string | null
+          id?: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+          root_cause?: string | null
+          severity?: string
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          actions_taken?: string | null
+          affected_systems?: string[] | null
+          created_at?: string
+          declared_by?: string | null
+          description?: string | null
+          id?: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+          root_cause?: string | null
+          severity?: string
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       platform_settings: {
         Row: {
           key: string

@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import {
   Shield, LayoutDashboard, Building2, ScrollText, Users, CreditCard,
-  ChevronLeft, ChevronRight, ArrowLeft, Settings
+  ChevronLeft, ChevronRight, ArrowLeft, Settings, Siren
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -18,6 +18,7 @@ const navItems = [
   { to: '/control', icon: LayoutDashboard, label: 'Overview', end: true },
   { to: '/control/workspaces', icon: Building2, label: 'Workspaces' },
   { to: '/control/billing', icon: CreditCard, label: 'Billing' },
+  { to: '/control/incidents', icon: Siren, label: 'Incidents' },
   { to: '/control/team', icon: Users, label: 'Platform Team', superOnly: true },
   { to: '/control/audit-logs', icon: ScrollText, label: 'Audit Logs' },
   { to: '/control/settings', icon: Settings, label: 'Settings', superOnly: true },
