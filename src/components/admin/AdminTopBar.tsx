@@ -1,12 +1,21 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Search, Bell, ShieldCheck, Headset, ChevronLeft, User, LogOut, Settings } from 'lucide-react';
+import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem,
+  DropdownMenuSeparator, DropdownMenuTrigger
+} from '@/components/ui/dropdown-menu';
+import {
+  Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger
+} from '@/components/ui/sheet';
+import {
+  Search, Bell, ShieldCheck, Headset, User, LogOut, Settings, Menu, Command
+} from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { cn } from '@/lib/utils';
+import { AdminSidebar } from './AdminSidebar';
 
 interface AdminTopBarProps {
   role: string;
@@ -20,36 +29,29 @@ export function AdminTopBar({ role, onSearchOpen, readOnly }: AdminTopBarProps) 
   const isSuperAdmin = role === 'super_admin';
 
   return (
-    <header className="sticky top-0 z-30 h-14 bg-card/80 backdrop-blur-sm border-b border-border/50 flex items-center px-4 md:px-6 gap-3">
-      {/* Back to app (mobile) */}
-      <Button
-        variant="ghost"
-        size="sm"
-        className="md:hidden h-8 w-8 p-0"
-        onClick={() => navigate('/dashboard')}
-      >
-        <ChevronLeft className="h-4 w-4" />
-      </Button>
-
-      {/* Search */}
-      <div className="relative flex-1 max-w-md hidden md:block">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
-        <Input
-          placeholder="Search workspaces, users..."
-          className="pl-9 h-9 bg-muted/50 border-transparent focus:border-border text-sm rounded-xl"
-          onClick={onSearchOpen}
-          readOnly
-        />
-        <kbd className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-muted-foreground bg-muted px-1.5 py-0.5 rounded font-mono">
-          ⌘K
-        </kbd>
+    <header className="sticky top-0 z-30 h-14 bg-background/75 backdrop-blur border-b border-border/50 flex items-center px-4 md:px-6 gap-3">
+      {/* Mobile menu drawer */}
+      <div className="md:hidden">
+        <Sheet>
+          <SheetTrigger asChild>
+            <Button size="icon" variant="ghost" aria-label="Open menu" className="h-8 w-8">
+              <Menu className="h-5 w-5" />
+            </Button>
+          </SheetTrigger>
+          <SheetContent side="left" className="p-0 w-[320px]">
+            <SheetHeader className="px-5 pt-5 pb-3">
+              <SheetTitle>Control Center</SheetTitle>
+            </SheetHeader>
+            <div className="border-t">
+              <AdminSidebar role={role} collapsed={false} onToggle={() => {}} />
+            </div>
+          </SheetContent>
+        </Sheet>
       </div>
 
-      <div className="flex-1 md:hidden" />
-
-      {/* Right section */}
-      <div className="flex items-center gap-2">
-        {/* Role badge */}
+      {/* Desktop title + role */}
+      <div className="hidden md:flex items-center gap-2">
+        <div className="text-sm font-semibold">Control Center</div>
         <Badge
           variant="outline"
           className={cn(
@@ -62,9 +64,47 @@ export function AdminTopBar({ role, onSearchOpen, readOnly }: AdminTopBarProps) 
           {isSuperAdmin ? <ShieldCheck className="h-3 w-3" /> : <Headset className="h-3 w-3" />}
           {isSuperAdmin ? 'Super Admin' : 'Support'}
         </Badge>
+      </div>
 
+      {/* Search */}
+      <div className="flex-1 flex items-center gap-2">
+        <div className="relative w-full max-w-xl hidden md:block">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+          <Input
+            placeholder="Search workspaces, users..."
+            className="pl-9 h-9 bg-muted/50 border-transparent focus:border-border text-sm rounded-xl cursor-pointer"
+            onClick={onSearchOpen}
+            readOnly
+          />
+          <kbd className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-muted-foreground bg-muted px-1.5 py-0.5 rounded font-mono">
+            ⌘K
+          </kbd>
+        </div>
+
+        {/* Mobile ⌘K button */}
+        <Button
+          variant="ghost"
+          size="sm"
+          className="md:hidden h-8 w-8 p-0"
+          onClick={onSearchOpen}
+        >
+          <Search className="h-4 w-4" />
+        </Button>
+
+        <Button
+          variant="outline"
+          className="hidden lg:flex rounded-xl h-9 text-xs"
+          onClick={onSearchOpen}
+        >
+          <Command className="mr-1.5 h-3.5 w-3.5" />
+          ⌘K
+        </Button>
+      </div>
+
+      {/* Right section */}
+      <div className="flex items-center gap-2">
         {/* Notifications */}
-        <Button variant="ghost" size="sm" className="h-8 w-8 p-0 relative">
+        <Button variant="ghost" size="sm" className="h-8 w-8 p-0 relative rounded-xl">
           <Bell className="h-4 w-4" />
           <span className="absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full bg-destructive" />
         </Button>
