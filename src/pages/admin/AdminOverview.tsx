@@ -98,9 +98,9 @@ export default function AdminOverview() {
       {/* Hero Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Admin Command Center</h1>
+          <h1 className="text-2xl font-bold tracking-tight">Platform Control Center</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Monitor clients, numbers, billing and risk in real-time.
+            Internal platform operations for AiReatro — restricted to platform team.
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -122,7 +122,7 @@ export default function AdminOverview() {
           iconColor="text-blue-600"
           trend={12}
           trendLabel="vs last 30d"
-          onViewDetails={() => navigate('/admin/workspaces')}
+          onViewDetails={() => navigate('/control/workspaces')}
         />
         <AdminKPICard
           label="Phone Numbers"
@@ -153,7 +153,7 @@ export default function AdminOverview() {
           iconColor="text-pink-600"
           trend={-3}
           trendLabel="vs last 30d"
-          onViewDetails={() => navigate('/admin/workspaces')}
+          onViewDetails={() => navigate('/control/workspaces')}
         />
       </div>
 

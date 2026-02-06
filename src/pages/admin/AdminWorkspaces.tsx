@@ -134,7 +134,7 @@ export default function AdminWorkspaces() {
               key={w.workspace_id}
               workspace={w}
               isSuperAdmin={isSuperAdmin}
-              onView={() => navigate(`/admin/workspaces/${w.workspace_id}`)}
+              onView={() => navigate(`/control/workspaces/${w.workspace_id}`)}
               onPauseSending={() => handlePauseSending(w.workspace_id, !w.sending_paused)}
               onSuspend={() => setSuspendDialog({ id: w.workspace_id, name: w.workspace_name, suspend: !w.is_suspended })}
             />
@@ -196,7 +196,7 @@ export default function AdminWorkspaces() {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => navigate(`/admin/workspaces/${w.workspace_id}`)}>
+                          <DropdownMenuItem onClick={() => navigate(`/control/workspaces/${w.workspace_id}`)}>
                             <Eye className="h-3.5 w-3.5 mr-2" /> View workspace
                           </DropdownMenuItem>
                           <DropdownMenuItem onClick={() => handlePauseSending(w.workspace_id, !w.sending_paused)}>

@@ -32,18 +32,18 @@ interface WorkspaceResult {
 }
 
 const navigationItems = [
-  { label: 'Overview', icon: LayoutDashboard, to: '/admin', keywords: 'home dashboard overview kpi' },
-  { label: 'Workspaces', icon: Building2, to: '/admin/workspaces', keywords: 'clients tenants workspaces' },
-  { label: 'Billing', icon: CreditCard, to: '/admin/billing', keywords: 'billing invoices payments revenue' },
-  { label: 'Audit Logs', icon: ScrollText, to: '/admin/audit-logs', keywords: 'audit logs history timeline' },
-  { label: 'Support Team', icon: Users, to: '/admin/team', keywords: 'team agents support members', superOnly: true },
+  { label: 'Overview', icon: LayoutDashboard, to: '/control', keywords: 'home dashboard overview kpi' },
+  { label: 'Workspaces', icon: Building2, to: '/control/workspaces', keywords: 'clients tenants workspaces' },
+  { label: 'Billing', icon: CreditCard, to: '/control/billing', keywords: 'billing invoices payments revenue' },
+  { label: 'Audit Logs', icon: ScrollText, to: '/control/audit-logs', keywords: 'audit logs history timeline' },
+  { label: 'Platform Team', icon: Users, to: '/control/team', keywords: 'team agents support members', superOnly: true },
 ];
 
 const savedViews = [
-  { label: 'Suspended Workspaces', icon: ShieldAlert, to: '/admin/workspaces?view=suspended', keywords: 'suspended blocked' },
-  { label: 'Pending Numbers', icon: AlertTriangle, to: '/admin/workspaces?view=pending-numbers', keywords: 'pending phone numbers' },
-  { label: 'Pro Plan Clients', icon: BarChart3, to: '/admin/workspaces?view=pro', keywords: 'pro plan premium' },
-  { label: 'High Revenue Clients', icon: CreditCard, to: '/admin/workspaces?view=high-revenue', keywords: 'revenue high value' },
+  { label: 'Suspended Workspaces', icon: ShieldAlert, to: '/control/workspaces?view=suspended', keywords: 'suspended blocked' },
+  { label: 'Pending Numbers', icon: AlertTriangle, to: '/control/workspaces?view=pending-numbers', keywords: 'pending phone numbers' },
+  { label: 'Pro Plan Clients', icon: BarChart3, to: '/control/workspaces?view=pro', keywords: 'pro plan premium' },
+  { label: 'High Revenue Clients', icon: CreditCard, to: '/control/workspaces?view=high-revenue', keywords: 'revenue high value' },
 ];
 
 export function AdminCommandPalette({ open, onOpenChange, role }: AdminCommandPaletteProps) {
@@ -106,7 +106,7 @@ export function AdminCommandPalette({ open, onOpenChange, role }: AdminCommandPa
               <CommandItem
                 key={w.workspace_id}
                 value={`ws-${w.workspace_name}-${w.slug}`}
-                onSelect={() => runAction(`/admin/workspaces/${w.workspace_id}`)}
+                onSelect={() => runAction(`/control/workspaces/${w.workspace_id}`)}
                 className="flex items-center justify-between"
               >
                 <div className="flex items-center gap-2">
@@ -164,7 +164,7 @@ export function AdminCommandPalette({ open, onOpenChange, role }: AdminCommandPa
             <CommandGroup heading="Quick Actions">
               <CommandItem
                 value="action-pause-all-sending"
-                onSelect={() => runAction('/admin/workspaces?action=pause-all')}
+                onSelect={() => runAction('/control/workspaces?action=pause-all')}
               >
                 <Pause className="h-4 w-4 mr-2 text-amber-500" />
                 Pause All Sending

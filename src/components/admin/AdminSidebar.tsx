@@ -15,12 +15,12 @@ interface AdminSidebarProps {
 }
 
 const navItems = [
-  { to: '/admin', icon: LayoutDashboard, label: 'Overview', end: true },
-  { to: '/admin/workspaces', icon: Building2, label: 'Workspaces' },
-  { to: '/admin/billing', icon: CreditCard, label: 'Billing' },
-  { to: '/admin/team', icon: Users, label: 'Support Team', superOnly: true },
-  { to: '/admin/audit-logs', icon: ScrollText, label: 'Audit Logs' },
-  { to: '/admin/settings', icon: Settings, label: 'Settings', superOnly: true },
+  { to: '/control', icon: LayoutDashboard, label: 'Overview', end: true },
+  { to: '/control/workspaces', icon: Building2, label: 'Workspaces' },
+  { to: '/control/billing', icon: CreditCard, label: 'Billing' },
+  { to: '/control/team', icon: Users, label: 'Platform Team', superOnly: true },
+  { to: '/control/audit-logs', icon: ScrollText, label: 'Audit Logs' },
+  { to: '/control/settings', icon: Settings, label: 'Settings', superOnly: true },
 ];
 
 export function AdminSidebar({ role, collapsed, onToggle }: AdminSidebarProps) {
@@ -86,8 +86,8 @@ export function AdminSidebar({ role, collapsed, onToggle }: AdminSidebarProps) {
         </div>
         {!collapsed && (
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-bold truncate">Admin Console</p>
-            <p className="text-[10px] text-muted-foreground uppercase tracking-wider">AiReatro</p>
+            <p className="text-sm font-bold truncate">Control Center</p>
+            <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Internal Operations</p>
           </div>
         )}
       </div>

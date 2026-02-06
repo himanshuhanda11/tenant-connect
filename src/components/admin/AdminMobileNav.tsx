@@ -4,10 +4,10 @@ import { LayoutDashboard, Building2, CreditCard, ScrollText } from 'lucide-react
 import { cn } from '@/lib/utils';
 
 const tabs = [
-  { to: '/admin', icon: LayoutDashboard, label: 'Overview', end: true },
-  { to: '/admin/workspaces', icon: Building2, label: 'Workspaces' },
-  { to: '/admin/billing', icon: CreditCard, label: 'Billing' },
-  { to: '/admin/audit-logs', icon: ScrollText, label: 'Audit' },
+  { to: '/control', icon: LayoutDashboard, label: 'Overview', end: true },
+  { to: '/control/workspaces', icon: Building2, label: 'Workspaces' },
+  { to: '/control/billing', icon: CreditCard, label: 'Billing' },
+  { to: '/control/audit-logs', icon: ScrollText, label: 'Audit' },
 ];
 
 export function AdminMobileNav() {

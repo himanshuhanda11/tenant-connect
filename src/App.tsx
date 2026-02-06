@@ -204,7 +204,7 @@ const App = () => (
               <Route path="/help/meta-ads" element={<MetaAdsGuide />} />
               <Route path="/help/workspaces" element={<WorkspacesGuide />} />
               <Route path="/help/:slug" element={<GuideDetail />} />
-              <Route path="/admin/guides" element={<GuideManager />} />
+              <Route path="/control/guides" element={<GuideManager />} />
               <Route path="/help/all" element={<HelpCenter />} />
               <Route path="/about" element={<About />} />
               <Route path="/contact" element={<Contact />} />
@@ -242,7 +242,7 @@ const App = () => (
               <Route path="/free-whatsapp-api-lifetime" element={<FreeWhatsAppApiLifetime />} />
               <Route path="/install" element={<Install />} />
               <Route path="/developer/seo" element={<SeoDashboard />} />
-              <Route path="/admin" element={<AdminLayout />}>
+              <Route path="/control" element={<AdminLayout />}>
                 <Route index element={<AdminOverview />} />
                 <Route path="workspaces" element={<AdminWorkspaces />} />
                 <Route path="workspaces/:id" element={<AdminWorkspaceDetail />} />

@@ -54,7 +54,7 @@ export default function AdminLayout() {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-muted/30 gap-3">
         <Loader2 className="w-8 h-8 text-primary animate-spin" />
-        <p className="text-sm text-muted-foreground">Verifying admin access...</p>
+        <p className="text-sm text-muted-foreground">Verifying platform access...</p>
       </div>
     );
   }
@@ -66,10 +66,10 @@ export default function AdminLayout() {
           <div className="h-12 w-12 rounded-2xl bg-red-50 flex items-center justify-center mx-auto">
             <AlertTriangle className="h-6 w-6 text-red-500" />
           </div>
-          <h1 className="text-xl font-bold">Access Denied</h1>
+          <h1 className="text-xl font-bold">Access Restricted</h1>
           <p className="text-muted-foreground text-sm">{error}</p>
           <p className="text-muted-foreground text-xs">
-            Make sure your account has been added to the platform admins table with an active role.
+            This area is restricted to the AiReatro internal platform team only.
           </p>
           <div className="flex gap-2 justify-center">
             <Button variant="outline" onClick={() => navigate('/dashboard')}>Back to App</Button>

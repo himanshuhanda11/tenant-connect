@@ -71,7 +71,7 @@ export default function AdminTeam() {
   if (!isSuperAdmin) {
     return (
       <div className="text-center py-20 text-muted-foreground">
-        Only Super Admins can manage the support team.
+        Only Super Admins can manage the platform team.
       </div>
     );
   }
@@ -79,7 +79,7 @@ export default function AdminTeam() {
   return (
     <div className="space-y-4 animate-fade-in">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold tracking-tight">Support Team</h1>
+        <h1 className="text-2xl font-bold tracking-tight">Platform Team</h1>
         <Button onClick={() => setAddDialog(true)} className="rounded-xl">
           <UserPlus className="h-4 w-4 mr-1" /> Add Member
         </Button>
@@ -147,7 +147,7 @@ export default function AdminTeam() {
       <Dialog open={addDialog} onOpenChange={setAddDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Add Support Team Member</DialogTitle>
+            <DialogTitle>Add Platform Team Member</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div>
