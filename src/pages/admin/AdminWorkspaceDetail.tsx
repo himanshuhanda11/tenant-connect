@@ -16,13 +16,15 @@ import { TemplatesTab } from '@/components/admin/workspace-detail/TemplatesTab';
 import { CampaignsTab } from '@/components/admin/workspace-detail/CampaignsTab';
 import { IntegrationsTab } from '@/components/admin/workspace-detail/IntegrationsTab';
 import {
-  Loader2, LayoutDashboard, Users, Phone, MessageSquare, Zap, Plug, ScrollText
+  Loader2, LayoutDashboard, Users, Phone, MessageSquare, Zap, Plug, ScrollText, Eye
 } from 'lucide-react';
+import { useImpersonation } from '@/components/admin/ImpersonationBanner';
 
 export default function AdminWorkspaceDetail() {
   const { id } = useParams();
   const { role } = useOutletContext<{ role: string }>();
   const { get, post, loading } = useAdminApi();
+  const { start: startImpersonation } = useImpersonation();
   const isSuperAdmin = role === 'super_admin';
 
   const [workspace, setWorkspace] = useState<any>(null);
@@ -106,6 +108,7 @@ export default function AdminWorkspaceDetail() {
         isSuperAdmin={isSuperAdmin}
         onPauseSending={handlePauseSending}
         onSuspendClick={() => setSuspendDialog(true)}
+        onImpersonate={() => startImpersonation(workspace.id, workspace.name)}
       />
 
       <Tabs defaultValue="overview">

@@ -497,6 +497,46 @@ Deno.serve(async (req: Request) => {
       });
     }
 
+    // POST /incidents/:id/ai-summary
+    if (req.method === "POST" && path.match(/^incidents\/[^/]+\/ai-summary$/)) {
+      const incidentId = path.split("/")[1];
+      const actor = await requirePlatformRole(req, ["super_admin", "support"]);
+      const sb = adminClient();
+      
+      const [incidentRes, eventsRes, auditRes] = await Promise.all([
+        sb.from("platform_incidents").select("*").eq("id", incidentId).single(),
+        sb.from("platform_incident_events").select("*").eq("incident_id", incidentId).order("created_at", { ascending: true }),
+        sb.from("platform_audit_logs").select("action,created_at,note").order("created_at", { ascending: false }).limit(20),
+      ]);
+
+      const incident = incidentRes.data;
+      const events = eventsRes.data || [];
+
+      const summaryParts = [
+        `Incident: ${incident?.title || 'Unknown'}`,
+        `Severity: ${incident?.severity || 'unknown'}`,
+        `Status: ${incident?.status || 'unknown'}`,
+        `Declared: ${incident?.created_at || 'N/A'}`,
+        incident?.resolved_at ? `Resolved: ${incident.resolved_at}` : 'Still active',
+        '',
+        `Affected systems: ${(incident?.affected_systems || []).join(', ') || 'None specified'}`,
+        '',
+        'Timeline:',
+        ...events.map((e: any) => `  • [${new Date(e.created_at).toLocaleString()}] ${e.event_type}: ${e.description}`),
+        '',
+        incident?.root_cause ? `Root Cause: ${incident.root_cause}` : '',
+        incident?.actions_taken ? `Actions Taken: ${incident.actions_taken}` : '',
+      ].filter(Boolean).join('\n');
+
+      await logAction(sb, actor, "PLATFORM_AI_SUMMARY_GENERATED", {
+        target_table: "platform_incidents", target_id: incidentId,
+      });
+
+      return new Response(JSON.stringify({ success: true, summary: summaryParts }), {
+        headers: { ...corsHeaders, "content-type": "application/json" },
+      });
+    }
+
     return new Response(JSON.stringify({ error: "Not found" }), {
       status: 404, headers: { ...corsHeaders, "content-type": "application/json" },
     });

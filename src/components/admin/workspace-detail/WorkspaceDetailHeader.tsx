@@ -2,8 +2,9 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { AdminStatusBadge, AdminPlanBadge } from '@/components/admin/AdminStatusBadge';
-import { ArrowLeft, Copy, Pause, Play, Ban, ExternalLink } from 'lucide-react';
+import { ArrowLeft, Copy, Pause, Play, Ban, ExternalLink, Eye } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
+import { HealthBadge, computeWorkspaceHealth } from '@/components/admin/HealthBadge';
 
 interface WorkspaceDetailHeaderProps {
   workspace: any;
@@ -11,10 +12,11 @@ interface WorkspaceDetailHeaderProps {
   isSuperAdmin: boolean;
   onPauseSending: (paused: boolean) => void;
   onSuspendClick: () => void;
+  onImpersonate?: () => void;
 }
 
 export function WorkspaceDetailHeader({
-  workspace, entitlements, isSuperAdmin, onPauseSending, onSuspendClick
+  workspace, entitlements, isSuperAdmin, onPauseSending, onSuspendClick, onImpersonate
 }: WorkspaceDetailHeaderProps) {
   const navigate = useNavigate();
 
@@ -43,6 +45,7 @@ export function WorkspaceDetailHeader({
           <AdminPlanBadge plan={entitlements?.plan || 'free'} />
           <AdminStatusBadge status={workspace.is_suspended ? 'suspended' : 'active'} />
           {entitlements?.sending_paused && <AdminStatusBadge status="paused" />}
+          <HealthBadge score={computeWorkspaceHealth(workspace)} />
         </div>
       </div>
 
@@ -63,6 +66,11 @@ export function WorkspaceDetailHeader({
           >
             <Ban className="h-3.5 w-3.5 mr-1" />
             {workspace.is_suspended ? 'Unsuspend' : 'Suspend'}
+          </Button>
+        )}
+        {onImpersonate && (
+          <Button variant="outline" size="sm" className="rounded-xl text-xs" onClick={onImpersonate}>
+            <Eye className="h-3.5 w-3.5 mr-1" /> Impersonate (Read-only)
           </Button>
         )}
         <Button variant="outline" size="sm" className="rounded-xl text-xs" asChild>
