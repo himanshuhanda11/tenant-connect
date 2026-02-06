@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate, Outlet, NavLink } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAdminApi } from '@/hooks/useAdminApi';
-import { Shield, LayoutDashboard, Building2, ScrollText, Loader2 } from 'lucide-react';
+import { Shield, LayoutDashboard, Building2, ScrollText, Loader2, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
@@ -12,23 +12,51 @@ export default function AdminLayout() {
   const navigate = useNavigate();
   const [role, setRole] = useState<string | null>(null);
   const [checking, setChecking] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const checkAccess = async () => {
+    setChecking(true);
+    setError(null);
+    try {
+      const data = await get('me');
+      setRole(data.role);
+    } catch (e: any) {
+      setError(e.message || 'Failed to verify admin access');
+    } finally {
+      setChecking(false);
+    }
+  };
 
   useEffect(() => {
     if (authLoading) return;
     if (!user) { navigate('/login'); return; }
-
-    get('me').then(data => {
-      setRole(data.role);
-      setChecking(false);
-    }).catch(() => {
-      navigate('/dashboard');
-    });
+    checkAccess();
   }, [user, authLoading]);
 
   if (authLoading || checking) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
+      <div className="min-h-screen flex flex-col items-center justify-center bg-background gap-3">
         <Loader2 className="w-8 h-8 text-primary animate-spin" />
+        <p className="text-sm text-muted-foreground">Verifying admin access...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="text-center space-y-4 max-w-md">
+          <AlertTriangle className="h-12 w-12 text-destructive mx-auto" />
+          <h1 className="text-xl font-bold">Access Denied</h1>
+          <p className="text-muted-foreground text-sm">{error}</p>
+          <p className="text-muted-foreground text-xs">
+            Make sure your account has been added to the platform admins table with an active role.
+          </p>
+          <div className="flex gap-2 justify-center">
+            <Button variant="outline" onClick={() => navigate('/dashboard')}>Back to App</Button>
+            <Button onClick={checkAccess}>Retry</Button>
+          </div>
+        </div>
       </div>
     );
   }
