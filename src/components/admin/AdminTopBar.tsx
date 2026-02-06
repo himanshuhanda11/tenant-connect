@@ -11,9 +11,10 @@ import { cn } from '@/lib/utils';
 interface AdminTopBarProps {
   role: string;
   onSearchOpen?: () => void;
+  readOnly?: boolean;
 }
 
-export function AdminTopBar({ role, onSearchOpen }: AdminTopBarProps) {
+export function AdminTopBar({ role, onSearchOpen, readOnly }: AdminTopBarProps) {
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
   const isSuperAdmin = role === 'super_admin';
