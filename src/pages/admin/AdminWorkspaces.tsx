@@ -12,6 +12,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import { toast } from '@/hooks/use-toast';
 import { AdminStatusBadge, AdminPlanBadge } from '@/components/admin/AdminStatusBadge';
 import { AdminWorkspaceCard } from '@/components/admin/AdminWorkspaceCard';
+import { AdminSavedViews, defaultViews, type SavedView } from '@/components/admin/AdminSavedViews';
 import { useIsMobile } from '@/hooks/use-mobile';
 import {
   Search, Loader2, Ban, Play, Pause, ChevronLeft, ChevronRight,
@@ -45,6 +46,7 @@ export default function AdminWorkspaces() {
   const [suspendDialog, setSuspendDialog] = useState<{ id: string; name: string; suspend: boolean } | null>(null);
   const [suspendReason, setSuspendReason] = useState('');
   const [confirmText, setConfirmText] = useState('');
+  const [activeView, setActiveView] = useState('all');
 
   const isSuperAdmin = role === 'super_admin';
 
@@ -102,6 +104,12 @@ export default function AdminWorkspaces() {
         <h1 className="text-2xl font-bold tracking-tight">Workspaces</h1>
         <Badge variant="outline" className="text-xs">{total} total</Badge>
       </div>
+
+      {/* Saved Views */}
+      <AdminSavedViews
+        activeView={activeView}
+        onViewChange={(view) => { setActiveView(view.id); setPage(1); }}
+      />
 
       {/* Search & Filters */}
       <div className="flex gap-2">

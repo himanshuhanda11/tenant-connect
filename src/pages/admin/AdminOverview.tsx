@@ -7,6 +7,7 @@ import { Building2, Phone, Users, MessageSquare, Loader2, AlertTriangle, Refresh
 import { AdminKPICard } from '@/components/admin/AdminKPICard';
 import { AdminHealthChips } from '@/components/admin/AdminHealthChips';
 import { AdminAttentionPanel, buildAttentionItems } from '@/components/admin/AdminAttentionPanel';
+import { AdminRiskPanel } from '@/components/admin/AdminRiskPanel';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 
 interface KPI {
@@ -252,6 +253,9 @@ export default function AdminOverview() {
 
       {/* Attention Panel */}
       <AdminAttentionPanel items={attentionItems} />
+
+      {/* Risk & Compliance */}
+      <AdminRiskPanel />
     </div>
   );
 }
