@@ -96,7 +96,7 @@ export function buildAttentionItems(kpi: any, navigate: (path: string) => void):
       title: `${kpi.suspended_workspaces} suspended workspace${kpi.suspended_workspaces > 1 ? 's' : ''}`,
       description: 'Require review or unsuspension',
       cta: 'View',
-      onAction: () => navigate('/admin/workspaces'),
+      onAction: () => navigate('/control/workspaces'),
     });
   }
 
@@ -109,7 +109,7 @@ export function buildAttentionItems(kpi: any, navigate: (path: string) => void):
       title: `${pendingPhones} pending phone connection${pendingPhones > 1 ? 's' : ''}`,
       description: 'Numbers awaiting verification',
       cta: 'Review',
-      onAction: () => navigate('/admin/workspaces'),
+      onAction: () => navigate('/control/workspaces'),
     });
   }
 

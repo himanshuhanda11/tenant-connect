@@ -27,8 +27,8 @@ export function WorkspaceDetailHeader({
     <div className="space-y-4">
       {/* Back + Title */}
       <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-        <Button variant="ghost" size="sm" onClick={() => navigate('/admin/workspaces')} className="w-fit rounded-xl">
-          <ArrowLeft className="h-4 w-4 mr-1" /> Back
+        <Button variant="ghost" size="sm" onClick={() => navigate('/control/workspaces')} className="w-fit rounded-xl">
+          <ArrowLeft className="h-4 w-4 mr-1" /> Back to Workspaces
         </Button>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">

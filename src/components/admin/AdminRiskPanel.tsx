@@ -21,7 +21,7 @@ const mockRiskItems: RiskItem[] = [
     description: '3 workspaces saw quality rating drop to RED in the last 7 days.',
     severity: 'critical',
     metric: '3 workspaces',
-    action: { label: 'Review', href: '/admin/workspaces?view=quality-risk' },
+    action: { label: 'Review', href: '/control/workspaces?view=quality-risk' },
   },
   {
     id: 'template-rejection',
@@ -29,7 +29,7 @@ const mockRiskItems: RiskItem[] = [
     description: 'Template rejection rate jumped to 28% this week (vs 12% baseline).',
     severity: 'warning',
     metric: '28% rejection',
-    action: { label: 'View Templates', href: '/admin/workspaces' },
+    action: { label: 'View Templates', href: '/control/workspaces' },
   },
   {
     id: 'failed-messages',
@@ -37,7 +37,7 @@ const mockRiskItems: RiskItem[] = [
     description: '1.2K failed messages in last 24 hours, 3x above normal.',
     severity: 'warning',
     metric: '1.2K failed',
-    action: { label: 'Investigate', href: '/admin/audit-logs' },
+    action: { label: 'Investigate', href: '/control/audit-logs' },
   },
 ];
 

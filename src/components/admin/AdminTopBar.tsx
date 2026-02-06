@@ -80,8 +80,8 @@ export function AdminTopBar({ role, onSearchOpen }: AdminTopBarProps) {
               <p className="text-xs font-medium truncate">{user?.email}</p>
               <p className="text-[10px] text-muted-foreground capitalize">{role?.replace('_', ' ')}</p>
             </div>
-            <DropdownMenuItem onClick={() => navigate('/admin/settings')} className="text-sm">
-              <Settings className="h-3.5 w-3.5 mr-2" /> Settings
+            <DropdownMenuItem onClick={() => navigate('/control/settings')} className="text-sm">
+              <Settings className="h-3.5 w-3.5 mr-2" /> Platform Settings
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={() => signOut()} className="text-sm text-destructive">
