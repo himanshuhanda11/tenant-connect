@@ -1,11 +1,12 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, Building2, CreditCard, ScrollText } from 'lucide-react';
+import { LayoutDashboard, Building2, CreditCard, ScrollText, Siren } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const tabs = [
   { to: '/control', icon: LayoutDashboard, label: 'Overview', end: true },
   { to: '/control/workspaces', icon: Building2, label: 'Workspaces' },
+  { to: '/control/incidents', icon: Siren, label: 'Incidents' },
   { to: '/control/billing', icon: CreditCard, label: 'Billing' },
   { to: '/control/audit-logs', icon: ScrollText, label: 'Audit' },
 ];

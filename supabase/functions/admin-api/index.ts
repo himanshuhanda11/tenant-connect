@@ -74,9 +74,7 @@ Deno.serve(async (req: Request) => {
     if (req.method === "GET" && path === "overview") {
       const actor = await requirePlatformRole(req, ["super_admin", "support"]);
       const sb = adminClient();
-
       const { data: kpi } = await sb.from("platform_kpi_overview").select("*").single();
-
       return new Response(JSON.stringify({ kpi }), {
         headers: { ...corsHeaders, "content-type": "application/json" },
       });
@@ -86,22 +84,15 @@ Deno.serve(async (req: Request) => {
     if (req.method === "GET" && path === "workspaces") {
       const actor = await requirePlatformRole(req, ["super_admin", "support"]);
       const sb = adminClient();
-
       const search = url.searchParams.get("search") || "";
       const page = parseInt(url.searchParams.get("page") || "1");
       const limit = 25;
       const offset = (page - 1) * limit;
-
       let query = sb.from("platform_workspace_directory").select("*", { count: "exact" });
-
       if (search) {
         query = query.or(`workspace_name.ilike.%${search}%,slug.ilike.%${search}%`);
       }
-
-      const { data, count } = await query
-        .order("created_at", { ascending: false })
-        .range(offset, offset + limit - 1);
-
+      const { data, count } = await query.order("created_at", { ascending: false }).range(offset, offset + limit - 1);
       return new Response(JSON.stringify({ workspaces: data, total: count, page, limit }), {
         headers: { ...corsHeaders, "content-type": "application/json" },
       });
@@ -112,22 +103,16 @@ Deno.serve(async (req: Request) => {
       const actor = await requirePlatformRole(req, ["super_admin", "support"]);
       const sb = adminClient();
       const workspaceId = path.replace("workspaces/", "");
-
       const [workspace, entitlements, members, phones] = await Promise.all([
         sb.from("tenants").select("*").eq("id", workspaceId).single(),
         sb.from("workspace_entitlements").select("*").eq("workspace_id", workspaceId).maybeSingle(),
         sb.from("tenant_members").select("*, profiles(email, full_name)").eq("tenant_id", workspaceId),
         sb.from("smeksh_phone_numbers").select("id,display_name,phone_e164,status,quality_rating").eq("tenant_id", workspaceId),
       ]);
-
       return new Response(JSON.stringify({
-        workspace: workspace.data,
-        entitlements: entitlements.data,
-        members: members.data,
-        phones: phones.data,
-      }), {
-        headers: { ...corsHeaders, "content-type": "application/json" },
-      });
+        workspace: workspace.data, entitlements: entitlements.data,
+        members: members.data, phones: phones.data,
+      }), { headers: { ...corsHeaders, "content-type": "application/json" } });
     }
 
     // POST /workspaces/:id/update
@@ -136,43 +121,27 @@ Deno.serve(async (req: Request) => {
       const body = await req.json();
       const actor = await requirePlatformRole(req, ["super_admin", "support"]);
       const sb = adminClient();
-
-      const SUPPORT_ALLOWED = new Set([
-        "sending_paused", "enable_ai", "enable_ads", "enable_integrations", "enable_autoforms"
-      ]);
-
+      const SUPPORT_ALLOWED = new Set(["sending_paused", "enable_ai", "enable_ads", "enable_integrations", "enable_autoforms"]);
       const safeUpdates: Record<string, unknown> = {};
       for (const [k, v] of Object.entries(body.updates || body)) {
         if (k === 'note' || k === 'updates') continue;
         if (actor.role === "super_admin") safeUpdates[k] = v;
         else if (SUPPORT_ALLOWED.has(k)) safeUpdates[k] = v;
       }
-
       if (Object.keys(safeUpdates).length === 0) {
         return new Response(JSON.stringify({ error: "No permitted fields to update" }), {
           status: 403, headers: { ...corsHeaders, "content-type": "application/json" },
         });
       }
-
       const { data: before } = await sb.from("workspace_entitlements").select("*").eq("workspace_id", workspaceId).maybeSingle();
-
       const { data: after, error } = await sb.from("workspace_entitlements").upsert({
-        workspace_id: workspaceId,
-        ...safeUpdates,
-        updated_by: actor.user.id,
-        updated_at: new Date().toISOString(),
+        workspace_id: workspaceId, ...safeUpdates,
+        updated_by: actor.user.id, updated_at: new Date().toISOString(),
       }, { onConflict: "workspace_id" }).select().single();
-
       if (error) throw new Error(error.message);
-
       await logAction(sb, actor, "PLATFORM_WORKSPACE_UPDATE", {
-        workspace_id: workspaceId,
-        target_table: "workspace_entitlements",
-        before,
-        after,
-        note: body.note || null,
+        workspace_id: workspaceId, target_table: "workspace_entitlements", before, after, note: body.note || null,
       });
-
       return new Response(JSON.stringify({ success: true, data: after }), {
         headers: { ...corsHeaders, "content-type": "application/json" },
       });
@@ -184,20 +153,15 @@ Deno.serve(async (req: Request) => {
       const body = await req.json();
       const actor = await requirePlatformRole(req, ["super_admin"]);
       const sb = adminClient();
-
       const { error } = await sb.from("tenants").update({
         is_suspended: body.suspend ?? true,
         suspended_reason: body.reason || null,
         suspended_at: body.suspend ? new Date().toISOString() : null,
       }).eq("id", workspaceId);
-
       if (error) throw new Error(error.message);
-
       await logAction(sb, actor, body.suspend ? "PLATFORM_WORKSPACE_SUSPEND" : "PLATFORM_WORKSPACE_UNSUSPEND", {
-        workspace_id: workspaceId,
-        note: body.reason,
+        workspace_id: workspaceId, note: body.reason,
       });
-
       return new Response(JSON.stringify({ success: true }), {
         headers: { ...corsHeaders, "content-type": "application/json" },
       });
@@ -209,20 +173,14 @@ Deno.serve(async (req: Request) => {
       const body = await req.json();
       const actor = await requirePlatformRole(req, ["super_admin", "support"]);
       const sb = adminClient();
-
       const { error } = await sb.from("workspace_entitlements").upsert({
-        workspace_id: workspaceId,
-        sending_paused: body.paused ?? true,
-        updated_by: actor.user.id,
-        updated_at: new Date().toISOString(),
+        workspace_id: workspaceId, sending_paused: body.paused ?? true,
+        updated_by: actor.user.id, updated_at: new Date().toISOString(),
       }, { onConflict: "workspace_id" });
-
       if (error) throw new Error(error.message);
-
       await logAction(sb, actor, body.paused ? "PLATFORM_SENDING_PAUSED" : "PLATFORM_SENDING_RESUMED", {
         workspace_id: workspaceId,
       });
-
       return new Response(JSON.stringify({ success: true }), {
         headers: { ...corsHeaders, "content-type": "application/json" },
       });
@@ -232,25 +190,69 @@ Deno.serve(async (req: Request) => {
     if (req.method === "GET" && path === "audit-logs") {
       const actor = await requirePlatformRole(req, ["super_admin", "support"]);
       const sb = adminClient();
-
       const page = parseInt(url.searchParams.get("page") || "1");
-      const limit = 50;
+      const limit = parseInt(url.searchParams.get("limit") || "50");
       const offset = (page - 1) * limit;
-
       let query = sb.from("platform_audit_logs").select("*", { count: "exact" });
-
       const workspaceFilter = url.searchParams.get("workspace_id");
       if (workspaceFilter) query = query.eq("workspace_id", workspaceFilter);
+      const actionFilter = url.searchParams.get("action");
+      if (actionFilter) query = query.eq("action", actionFilter);
+      const { data, count } = await query.order("created_at", { ascending: false }).range(offset, offset + limit - 1);
+      return new Response(JSON.stringify({ logs: data, total: count, page, limit }), {
+        headers: { ...corsHeaders, "content-type": "application/json" },
+      });
+    }
 
+    // GET /audit-logs/export
+    if (req.method === "GET" && path === "audit-logs/export") {
+      const actor = await requirePlatformRole(req, ["super_admin"]);
+      const sb = adminClient();
+      const format = url.searchParams.get("format") || "json";
+
+      let query = sb.from("platform_audit_logs").select("*");
+      const workspaceFilter = url.searchParams.get("workspace_id");
+      if (workspaceFilter) query = query.eq("workspace_id", workspaceFilter);
       const actionFilter = url.searchParams.get("action");
       if (actionFilter) query = query.eq("action", actionFilter);
 
-      const { data, count } = await query
-        .order("created_at", { ascending: false })
-        .range(offset, offset + limit - 1);
+      const { data } = await query.order("created_at", { ascending: false }).limit(1000);
 
-      return new Response(JSON.stringify({ logs: data, total: count, page, limit }), {
-        headers: { ...corsHeaders, "content-type": "application/json" },
+      await logAction(sb, actor, "PLATFORM_AUDIT_EXPORT", {
+        note: `Exported ${data?.length || 0} audit logs as ${format}`,
+      });
+
+      if (format === "csv") {
+        const headers = ["created_at", "actor_user_id", "actor_role", "action", "workspace_id", "target_table", "target_id", "note"];
+        const csv = [
+          headers.join(","),
+          ...(data || []).map(row =>
+            headers.map(h => `"${String((row as any)[h] ?? '').replace(/"/g, '""')}"`).join(",")
+          ),
+        ].join("\n");
+
+        return new Response(csv, {
+          headers: {
+            ...corsHeaders,
+            "content-type": "text/csv",
+            "content-disposition": `attachment; filename="audit-export-${new Date().toISOString().slice(0,10)}.csv"`,
+          },
+        });
+      }
+
+      const exportData = {
+        generated_at: new Date().toISOString(),
+        generated_by: actor.user.email,
+        total_events: data?.length || 0,
+        events: data,
+      };
+
+      return new Response(JSON.stringify(exportData, null, 2), {
+        headers: {
+          ...corsHeaders,
+          "content-type": "application/json",
+          "content-disposition": `attachment; filename="audit-export-${new Date().toISOString().slice(0,10)}.json"`,
+        },
       });
     }
 
@@ -258,61 +260,128 @@ Deno.serve(async (req: Request) => {
     if (req.method === "GET" && path === "me") {
       const actor = await requirePlatformRole(req, ["super_admin", "support"]);
       const sb = adminClient();
-
-      // Also return read-only status
-      const { data: roSetting } = await sb
-        .from("platform_settings")
-        .select("value")
-        .eq("key", "support_read_only")
-        .single();
-
+      const { data: roSetting } = await sb.from("platform_settings").select("value").eq("key", "support_read_only").single();
       return new Response(JSON.stringify({
-        role: actor.role,
-        user_id: actor.user.id,
-        email: actor.user.email,
+        role: actor.role, user_id: actor.user.id, email: actor.user.email,
         support_read_only: roSetting?.value === true,
-      }), {
-        headers: { ...corsHeaders, "content-type": "application/json" },
-      });
+      }), { headers: { ...corsHeaders, "content-type": "application/json" } });
     }
 
     // GET /settings
     if (req.method === "GET" && path === "settings") {
       const actor = await requirePlatformRole(req, ["super_admin", "support"]);
       const sb = adminClient();
-
       const { data } = await sb.from("platform_settings").select("*");
-
       return new Response(JSON.stringify({ settings: data }), {
         headers: { ...corsHeaders, "content-type": "application/json" },
       });
     }
 
-    // POST /settings - update a platform setting (super_admin only)
+    // POST /settings
     if (req.method === "POST" && path === "settings") {
       const actor = await requirePlatformRole(req, ["super_admin"]);
       const sb = adminClient();
       const body = await req.json();
-
       if (!body.key) throw new Error("Setting key required");
-
-      const { data: before } = await sb.from("platform_settings").select("*").eq("key", body.key).single();
-
+      const { data: before } = await sb.from("platform_settings").select("*").eq("key", body.key).maybeSingle();
       const { error } = await sb.from("platform_settings").upsert({
-        key: body.key,
-        value: body.value,
-        updated_at: new Date().toISOString(),
-        updated_by: actor.user.id,
+        key: body.key, value: body.value,
+        updated_at: new Date().toISOString(), updated_by: actor.user.id,
       }, { onConflict: "key" });
+      if (error) throw new Error(error.message);
+      await logAction(sb, actor, "PLATFORM_SETTINGS_UPDATE", {
+        target_table: "platform_settings", target_id: body.key,
+        before: before ? { value: before.value } : null,
+        after: { value: body.value }, note: body.note || `Updated ${body.key}`,
+      });
+      return new Response(JSON.stringify({ success: true }), {
+        headers: { ...corsHeaders, "content-type": "application/json" },
+      });
+    }
 
+    // GET /incidents
+    if (req.method === "GET" && path === "incidents") {
+      const actor = await requirePlatformRole(req, ["super_admin", "support"]);
+      const sb = adminClient();
+      const { data } = await sb.from("platform_incidents").select("*").order("created_at", { ascending: false });
+      return new Response(JSON.stringify({ incidents: data }), {
+        headers: { ...corsHeaders, "content-type": "application/json" },
+      });
+    }
+
+    // GET /incidents/:id/events
+    if (req.method === "GET" && path.match(/^incidents\/[^/]+\/events$/)) {
+      const incidentId = path.split("/")[1];
+      const actor = await requirePlatformRole(req, ["super_admin", "support"]);
+      const sb = adminClient();
+      const { data } = await sb.from("platform_incident_events")
+        .select("*")
+        .eq("incident_id", incidentId)
+        .order("created_at", { ascending: true });
+      return new Response(JSON.stringify({ events: data }), {
+        headers: { ...corsHeaders, "content-type": "application/json" },
+      });
+    }
+
+    // POST /incidents - declare new incident
+    if (req.method === "POST" && path === "incidents") {
+      const actor = await requirePlatformRole(req, ["super_admin"]);
+      const sb = adminClient();
+      const body = await req.json();
+      const { data: incident, error } = await sb.from("platform_incidents").insert({
+        title: body.title,
+        description: body.description || null,
+        severity: body.severity || 'medium',
+        affected_systems: body.affected_systems || [],
+        declared_by: actor.user.id,
+      }).select().single();
       if (error) throw new Error(error.message);
 
-      await logAction(sb, actor, "PLATFORM_SETTINGS_UPDATE", {
-        target_table: "platform_settings",
-        target_id: body.key,
-        before: before ? { value: before.value } : null,
-        after: { value: body.value },
-        note: body.note || `Updated ${body.key}`,
+      // Add initial event
+      await sb.from("platform_incident_events").insert({
+        incident_id: incident.id,
+        event_type: 'declared',
+        description: `Incident declared: ${body.title}`,
+        actor_user_id: actor.user.id,
+      });
+
+      await logAction(sb, actor, "PLATFORM_INCIDENT_DECLARED", {
+        target_table: "platform_incidents", target_id: incident.id,
+        note: body.title,
+      });
+
+      return new Response(JSON.stringify({ success: true, incident }), {
+        headers: { ...corsHeaders, "content-type": "application/json" },
+      });
+    }
+
+    // POST /incidents/:id/resolve
+    if (req.method === "POST" && path.match(/^incidents\/[^/]+\/resolve$/)) {
+      const incidentId = path.split("/")[1];
+      const actor = await requirePlatformRole(req, ["super_admin"]);
+      const sb = adminClient();
+      const body = await req.json();
+
+      const { error } = await sb.from("platform_incidents").update({
+        status: 'resolved',
+        root_cause: body.root_cause || null,
+        actions_taken: body.actions_taken || null,
+        resolved_by: actor.user.id,
+        resolved_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      }).eq("id", incidentId);
+      if (error) throw new Error(error.message);
+
+      await sb.from("platform_incident_events").insert({
+        incident_id: incidentId,
+        event_type: 'resolved',
+        description: `Incident resolved. Root cause: ${body.root_cause || 'N/A'}`,
+        actor_user_id: actor.user.id,
+      });
+
+      await logAction(sb, actor, "PLATFORM_INCIDENT_RESOLVED", {
+        target_table: "platform_incidents", target_id: incidentId,
+        note: body.root_cause || 'Resolved',
       });
 
       return new Response(JSON.stringify({ success: true }), {
@@ -325,13 +394,11 @@ Deno.serve(async (req: Request) => {
       const actor = await requirePlatformRole(req, ["super_admin"]);
       const sb = adminClient();
       const { data } = await sb.from("platform_admins").select("*").order("created_at", { ascending: false });
-
       const enriched = [];
       for (const pa of (data || [])) {
         const { data: { user } } = await sb.auth.admin.getUserById(pa.user_id);
         enriched.push({ ...pa, email: user?.email || "unknown" });
       }
-
       return new Response(JSON.stringify({ team: enriched }), {
         headers: { ...corsHeaders, "content-type": "application/json" },
       });
@@ -346,20 +413,14 @@ Deno.serve(async (req: Request) => {
       const role = body.role || "support";
       if (!email) throw new Error("Email required");
       if (!["super_admin", "support"].includes(role)) throw new Error("Invalid role");
-
-      const { data: { users }, error: listErr } = await sb.auth.admin.listUsers();
+      const { data: { users } } = await sb.auth.admin.listUsers();
       const targetUser = (users || []).find((u: any) => u.email?.toLowerCase() === email);
       if (!targetUser) throw new Error(`No user found with email: ${email}`);
-
       const { error } = await sb.from("platform_admins").upsert({
-        user_id: targetUser.id,
-        role,
-        is_active: true,
+        user_id: targetUser.id, role, is_active: true,
       }, { onConflict: "user_id" });
       if (error) throw new Error(error.message);
-
       await logAction(sb, actor, "PLATFORM_TEAM_MEMBER_ADDED", { note: `Added ${email} as ${role}` });
-
       return new Response(JSON.stringify({ success: true }), {
         headers: { ...corsHeaders, "content-type": "application/json" },
       });
@@ -372,12 +433,9 @@ Deno.serve(async (req: Request) => {
       const body = await req.json();
       if (!body.user_id) throw new Error("user_id required");
       if (body.user_id === actor.user.id) throw new Error("Cannot remove yourself");
-
       const { error } = await sb.from("platform_admins").update({ is_active: false }).eq("user_id", body.user_id);
       if (error) throw new Error(error.message);
-
       await logAction(sb, actor, "PLATFORM_TEAM_MEMBER_REMOVED", { note: `Deactivated ${body.user_id}` });
-
       return new Response(JSON.stringify({ success: true }), {
         headers: { ...corsHeaders, "content-type": "application/json" },
       });
@@ -388,22 +446,13 @@ Deno.serve(async (req: Request) => {
       const userId = path.split("/")[1];
       const actor = await requirePlatformRole(req, ["super_admin"]);
       const sb = adminClient();
-
       const { data: { user } } = await sb.auth.admin.getUserById(userId);
       if (!user?.email) throw new Error("User not found or no email");
-
-      const { data, error } = await sb.auth.admin.generateLink({
-        type: "recovery",
-        email: user.email,
-      });
+      const { data, error } = await sb.auth.admin.generateLink({ type: "recovery", email: user.email });
       if (error) throw new Error(error.message);
-
       await logAction(sb, actor, "PLATFORM_PASSWORD_RESET", {
-        target_table: "auth.users",
-        target_id: userId,
-        note: `Password reset for ${user.email}`,
+        target_table: "auth.users", target_id: userId, note: `Password reset for ${user.email}`,
       });
-
       return new Response(JSON.stringify({ success: true, email: user.email, reset_link: data?.properties?.action_link }), {
         headers: { ...corsHeaders, "content-type": "application/json" },
       });
@@ -416,18 +465,13 @@ Deno.serve(async (req: Request) => {
       const sb = adminClient();
       const body = await req.json();
       if (!body.email) throw new Error("New email required");
-
       const { data: { user: before } } = await sb.auth.admin.getUserById(userId);
       const { data: { user }, error } = await sb.auth.admin.updateUserById(userId, { email: body.email });
       if (error) throw new Error(error.message);
-
       await logAction(sb, actor, "PLATFORM_USER_EMAIL_UPDATED", {
-        target_table: "auth.users",
-        target_id: userId,
-        before: { email: before?.email },
-        after: { email: body.email },
+        target_table: "auth.users", target_id: userId,
+        before: { email: before?.email }, after: { email: body.email },
       });
-
       return new Response(JSON.stringify({ success: true, email: user?.email }), {
         headers: { ...corsHeaders, "content-type": "application/json" },
       });
@@ -440,28 +484,21 @@ Deno.serve(async (req: Request) => {
       const sb = adminClient();
       const body = await req.json();
       if (!body.phone) throw new Error("New phone required");
-
       const { data: { user: before } } = await sb.auth.admin.getUserById(userId);
       const { data: { user }, error } = await sb.auth.admin.updateUserById(userId, { phone: body.phone });
       if (error) throw new Error(error.message);
-
       await sb.from("profiles").update({ phone: body.phone }).eq("id", userId);
-
       await logAction(sb, actor, "PLATFORM_USER_PHONE_UPDATED", {
-        target_table: "auth.users",
-        target_id: userId,
-        before: { phone: before?.phone },
-        after: { phone: body.phone },
+        target_table: "auth.users", target_id: userId,
+        before: { phone: before?.phone }, after: { phone: body.phone },
       });
-
       return new Response(JSON.stringify({ success: true, phone: user?.phone }), {
         headers: { ...corsHeaders, "content-type": "application/json" },
       });
     }
 
     return new Response(JSON.stringify({ error: "Not found" }), {
-      status: 404,
-      headers: { ...corsHeaders, "content-type": "application/json" },
+      status: 404, headers: { ...corsHeaders, "content-type": "application/json" },
     });
   } catch (e: any) {
     const msg = e.message || "";
@@ -469,8 +506,7 @@ Deno.serve(async (req: Request) => {
       : msg.includes("auth") || msg.includes("Access") || msg.includes("Read-only") ? 401
       : 500;
     return new Response(JSON.stringify({ error: e.message }), {
-      status,
-      headers: { ...corsHeaders, "content-type": "application/json" },
+      status, headers: { ...corsHeaders, "content-type": "application/json" },
     });
   }
 });
