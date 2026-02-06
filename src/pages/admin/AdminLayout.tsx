@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate, Outlet } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAdminApi } from '@/hooks/useAdminApi';
@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { AdminSidebar } from '@/components/admin/AdminSidebar';
 import { AdminTopBar } from '@/components/admin/AdminTopBar';
 import { AdminMobileNav } from '@/components/admin/AdminMobileNav';
+import { AdminCommandPalette } from '@/components/admin/AdminCommandPalette';
 
 export default function AdminLayout() {
   const { user, loading: authLoading } = useAuth();
@@ -16,6 +17,19 @@ export default function AdminLayout() {
   const [checking, setChecking] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [cmdOpen, setCmdOpen] = useState(false);
+
+  // Global ⌘K / Ctrl+K shortcut
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        setCmdOpen(o => !o);
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, []);
 
   const checkAccess = async () => {
     setChecking(true);
@@ -75,7 +89,7 @@ export default function AdminLayout() {
       />
 
       <div className="flex-1 flex flex-col min-w-0">
-        <AdminTopBar role={role || ''} />
+        <AdminTopBar role={role || ''} onSearchOpen={() => setCmdOpen(true)} />
         <main className="flex-1 overflow-auto pb-20 md:pb-0">
           <div className="max-w-7xl mx-auto px-4 md:px-6 py-6">
             <Outlet context={{ role }} />
@@ -84,6 +98,7 @@ export default function AdminLayout() {
       </div>
 
       <AdminMobileNav />
+      <AdminCommandPalette open={cmdOpen} onOpenChange={setCmdOpen} role={role || ''} />
     </div>
   );
 }
