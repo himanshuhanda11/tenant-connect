@@ -59,8 +59,11 @@ export default function Footer() {
             <Link to="/" className="flex items-center gap-2 mb-4">
               <img src={aireatroLogo} alt="AiReatro" className="h-10 w-auto" />
             </Link>
-            <p className="text-slate-400 mb-6 max-w-xs text-sm">
+            <p className="text-slate-400 mb-4 max-w-xs text-sm">
               The all-in-one WhatsApp Business API platform for modern businesses. Scale your customer conversations.
+            </p>
+            <p className="text-slate-400 mb-6 max-w-xs text-xs leading-relaxed">
+              📍 R/O RZ-D-1/12 A, 2nd Floor, Jeewan Park, Pankha Road, Uttam Nagar, New Delhi 110059
             </p>
             <div className="flex items-center gap-3">
               <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="w-9 h-9 rounded-lg bg-slate-800 flex items-center justify-center hover:bg-primary transition-colors">

@@ -84,9 +84,9 @@ export default function Contact() {
     {
       icon: MapPin,
       title: 'Visit Us',
-      description: 'Bangalore, India',
-      subtext: 'By appointment only',
-      action: '#'
+      description: 'RZ-D-1/12 A, 2nd Floor, Jeewan Park, Pankha Road, Uttam Nagar',
+      subtext: 'New Delhi, 110059',
+      action: 'https://maps.google.com/?q=Uttam+Nagar+New+Delhi+110059'
     }
   ];
 
