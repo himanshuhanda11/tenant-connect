@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { useAdminApi } from '@/hooks/useAdminApi';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Label } from '@/components/ui/label';
 import { toast } from '@/hooks/use-toast';
 import { Loader2, UserPlus, UserMinus, ShieldCheck, Headset } from 'lucide-react';
+import { AdminStatusBadge } from '@/components/admin/AdminStatusBadge';
 
 interface PlatformAdmin {
   user_id: string;
@@ -76,15 +77,15 @@ export default function AdminTeam() {
   }
 
   return (
-    <div>
-      <div className="flex items-center justify-between mb-4">
-        <h1 className="text-2xl font-bold">Support Team</h1>
-        <Button onClick={() => setAddDialog(true)}>
+    <div className="space-y-4 animate-fade-in">
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold tracking-tight">Support Team</h1>
+        <Button onClick={() => setAddDialog(true)} className="rounded-xl">
           <UserPlus className="h-4 w-4 mr-1" /> Add Member
         </Button>
       </div>
 
-      <Card>
+      <Card className="rounded-2xl shadow-sm border-border/50">
         <CardContent className="p-0">
           {loading && team.length === 0 ? (
             <div className="flex justify-center py-10"><Loader2 className="h-6 w-6 animate-spin" /></div>
@@ -96,25 +97,21 @@ export default function AdminTeam() {
                   <TableHead>Role</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Added</TableHead>
-                  <TableHead>Actions</TableHead>
+                  <TableHead className="w-10"></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {team.map(m => (
                   <TableRow key={m.user_id}>
-                    <TableCell className="font-medium">{m.email}</TableCell>
+                    <TableCell className="font-medium text-sm">{m.email}</TableCell>
                     <TableCell>
-                      <Badge variant={m.role === 'super_admin' ? 'default' : 'secondary'} className="gap-1">
+                      <Badge variant={m.role === 'super_admin' ? 'default' : 'secondary'} className="gap-1 text-[11px]">
                         {m.role === 'super_admin' ? <ShieldCheck className="h-3 w-3" /> : <Headset className="h-3 w-3" />}
                         {m.role === 'super_admin' ? 'Super Admin' : 'Support'}
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      {m.is_active ? (
-                        <Badge className="bg-green-100 text-green-700">Active</Badge>
-                      ) : (
-                        <Badge variant="outline" className="text-muted-foreground">Inactive</Badge>
-                      )}
+                      <AdminStatusBadge status={m.is_active ? 'active' : 'disconnected'} />
                     </TableCell>
                     <TableCell className="text-xs text-muted-foreground">
                       {new Date(m.created_at).toLocaleDateString()}
@@ -124,7 +121,7 @@ export default function AdminTeam() {
                         <Button
                           size="sm"
                           variant="ghost"
-                          className="text-destructive"
+                          className="text-destructive h-7 w-7 p-0"
                           onClick={() => handleRemove(m.user_id)}
                           title="Deactivate"
                         >
@@ -136,7 +133,7 @@ export default function AdminTeam() {
                 ))}
                 {team.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                    <TableCell colSpan={5} className="text-center py-8 text-muted-foreground text-sm">
                       No team members yet
                     </TableCell>
                   </TableRow>
@@ -159,12 +156,13 @@ export default function AdminTeam() {
                 placeholder="user@example.com"
                 value={newEmail}
                 onChange={e => setNewEmail(e.target.value)}
+                className="rounded-xl"
               />
             </div>
             <div>
               <Label>Role</Label>
               <Select value={newRole} onValueChange={setNewRole}>
-                <SelectTrigger>
+                <SelectTrigger className="rounded-xl">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>

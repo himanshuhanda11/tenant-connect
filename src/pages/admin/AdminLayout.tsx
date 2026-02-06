@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate, Outlet, NavLink } from 'react-router-dom';
+import { useNavigate, Outlet } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAdminApi } from '@/hooks/useAdminApi';
-import { Shield, LayoutDashboard, Building2, ScrollText, Loader2, AlertTriangle, Users } from 'lucide-react';
+import { Loader2, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
+import { AdminSidebar } from '@/components/admin/AdminSidebar';
+import { AdminTopBar } from '@/components/admin/AdminTopBar';
+import { AdminMobileNav } from '@/components/admin/AdminMobileNav';
 
 export default function AdminLayout() {
   const { user, loading: authLoading } = useAuth();
@@ -13,6 +15,7 @@ export default function AdminLayout() {
   const [role, setRole] = useState<string | null>(null);
   const [checking, setChecking] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   const checkAccess = async () => {
     setChecking(true);
@@ -35,7 +38,7 @@ export default function AdminLayout() {
 
   if (authLoading || checking) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-background gap-3">
+      <div className="min-h-screen flex flex-col items-center justify-center bg-muted/30 gap-3">
         <Loader2 className="w-8 h-8 text-primary animate-spin" />
         <p className="text-sm text-muted-foreground">Verifying admin access...</p>
       </div>
@@ -44,9 +47,11 @@ export default function AdminLayout() {
 
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
+      <div className="min-h-screen flex items-center justify-center bg-muted/30">
         <div className="text-center space-y-4 max-w-md">
-          <AlertTriangle className="h-12 w-12 text-destructive mx-auto" />
+          <div className="h-12 w-12 rounded-2xl bg-red-50 flex items-center justify-center mx-auto">
+            <AlertTriangle className="h-6 w-6 text-red-500" />
+          </div>
           <h1 className="text-xl font-bold">Access Denied</h1>
           <p className="text-muted-foreground text-sm">{error}</p>
           <p className="text-muted-foreground text-xs">
@@ -61,48 +66,24 @@ export default function AdminLayout() {
     );
   }
 
-  const navItems = [
-    { to: '/admin', icon: LayoutDashboard, label: 'Overview', end: true },
-    { to: '/admin/workspaces', icon: Building2, label: 'Workspaces' },
-    { to: '/admin/team', icon: Users, label: 'Support Team' },
-    { to: '/admin/audit-logs', icon: ScrollText, label: 'Audit Logs' },
-  ];
-
   return (
     <div className="min-h-screen flex bg-muted/30">
-      <aside className="w-60 border-r border-border bg-background flex flex-col">
-        <div className="p-4 border-b border-border flex items-center gap-2">
-          <Shield className="h-5 w-5 text-primary" />
-          <span className="font-bold text-sm">Admin Console</span>
-          <span className="ml-auto text-[10px] bg-primary/10 text-primary px-1.5 py-0.5 rounded-full font-medium uppercase">
-            {role}
-          </span>
-        </div>
-        <nav className="flex-1 p-2 space-y-1">
-          {navItems.map(item => (
-            <NavLink
-              key={item.to}
-              to={item.to}
-              end={item.end}
-              className={({ isActive }) => cn(
-                "flex items-center gap-2 px-3 py-2 rounded-md text-sm transition-colors",
-                isActive ? "bg-primary/10 text-primary font-medium" : "text-muted-foreground hover:bg-muted"
-              )}
-            >
-              <item.icon className="h-4 w-4" />
-              {item.label}
-            </NavLink>
-          ))}
-        </nav>
-        <div className="p-3 border-t border-border">
-          <Button variant="outline" size="sm" className="w-full" onClick={() => navigate('/dashboard')}>
-            ← Back to App
-          </Button>
-        </div>
-      </aside>
-      <main className="flex-1 p-6 overflow-auto">
-        <Outlet context={{ role }} />
-      </main>
+      <AdminSidebar
+        role={role || ''}
+        collapsed={sidebarCollapsed}
+        onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
+      />
+
+      <div className="flex-1 flex flex-col min-w-0">
+        <AdminTopBar role={role || ''} />
+        <main className="flex-1 overflow-auto pb-20 md:pb-0">
+          <div className="max-w-7xl mx-auto px-4 md:px-6 py-6">
+            <Outlet context={{ role }} />
+          </div>
+        </main>
+      </div>
+
+      <AdminMobileNav />
     </div>
   );
 }
