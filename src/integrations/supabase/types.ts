@@ -9771,6 +9771,9 @@ export type Database = {
         Returns: undefined
       }
       is_platform_admin: { Args: { _user_id: string }; Returns: boolean }
+      is_platform_user: { Args: { allowed_roles: string[] }; Returns: boolean }
+      is_super_admin: { Args: never; Returns: boolean }
+      is_support_or_admin: { Args: never; Returns: boolean }
       is_tenant_admin: { Args: { _tenant_id: string }; Returns: boolean }
       is_tenant_member:
         | { Args: { _tenant_id: string }; Returns: boolean }
