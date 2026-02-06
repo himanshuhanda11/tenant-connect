@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { AdminAuditTimeline } from '@/components/admin/AdminAuditTimeline';
-import { Loader2, ChevronLeft, ChevronRight, Search, Filter } from 'lucide-react';
+import { Loader2, ChevronLeft, ChevronRight, Search, Filter, CalendarDays } from 'lucide-react';
 
 interface AuditLog {
   id: string;
@@ -26,24 +26,33 @@ export default function AdminAuditLogs() {
   const [logs, setLogs] = useState<AuditLog[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
+  const [search, setSearch] = useState('');
   const [actionFilter, setActionFilter] = useState('all');
   const [roleFilter, setRoleFilter] = useState('all');
+  const [dateRange, setDateRange] = useState('30');
 
   const load = useCallback(async () => {
     const params = new URLSearchParams({ page: page.toString() });
+    if (search) params.set('search', search);
     const data = await get(`audit-logs?${params}`);
     setLogs(data.logs || []);
     setTotal(data.total || 0);
-  }, [page]);
+  }, [page, search]);
 
   useEffect(() => { load().catch(() => {}); }, [load]);
 
   const totalPages = Math.ceil(total / 50);
 
-  // Client-side filters for now
+  // Client-side filters
   const filteredLogs = logs.filter(log => {
     if (actionFilter !== 'all' && !log.action.includes(actionFilter)) return false;
     if (roleFilter !== 'all' && log.actor_role !== roleFilter) return false;
+    if (dateRange !== 'all') {
+      const days = parseInt(dateRange);
+      const cutoff = new Date();
+      cutoff.setDate(cutoff.getDate() - days);
+      if (new Date(log.created_at) < cutoff) return false;
+    }
     return true;
   });
 
@@ -56,8 +65,17 @@ export default function AdminAuditLogs() {
 
       {/* Filters */}
       <div className="flex flex-wrap gap-2">
+        <div className="relative flex-1 max-w-xs">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+          <Input
+            placeholder="Search workspace or ID..."
+            className="pl-9 h-9 rounded-xl bg-card text-sm"
+            value={search}
+            onChange={e => { setSearch(e.target.value); setPage(1); }}
+          />
+        </div>
         <Select value={actionFilter} onValueChange={setActionFilter}>
-          <SelectTrigger className="w-40 h-9 rounded-xl text-sm">
+          <SelectTrigger className="w-36 h-9 rounded-xl text-sm">
             <Filter className="h-3.5 w-3.5 mr-1 text-muted-foreground" />
             <SelectValue placeholder="Action" />
           </SelectTrigger>
@@ -70,13 +88,25 @@ export default function AdminAuditLogs() {
           </SelectContent>
         </Select>
         <Select value={roleFilter} onValueChange={setRoleFilter}>
-          <SelectTrigger className="w-40 h-9 rounded-xl text-sm">
+          <SelectTrigger className="w-36 h-9 rounded-xl text-sm">
             <SelectValue placeholder="Role" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Roles</SelectItem>
             <SelectItem value="super_admin">Super Admin</SelectItem>
             <SelectItem value="support">Support</SelectItem>
+          </SelectContent>
+        </Select>
+        <Select value={dateRange} onValueChange={setDateRange}>
+          <SelectTrigger className="w-36 h-9 rounded-xl text-sm">
+            <CalendarDays className="h-3.5 w-3.5 mr-1 text-muted-foreground" />
+            <SelectValue placeholder="Date range" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="7">Last 7 days</SelectItem>
+            <SelectItem value="30">Last 30 days</SelectItem>
+            <SelectItem value="90">Last 90 days</SelectItem>
+            <SelectItem value="all">All time</SelectItem>
           </SelectContent>
         </Select>
       </div>

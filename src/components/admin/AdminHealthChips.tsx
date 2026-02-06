@@ -13,8 +13,8 @@ interface AdminHealthChipsProps {
 
 const statusDot = {
   success: 'bg-emerald-500',
-  warning: 'bg-amber-500',
-  error: 'bg-red-500',
+  warning: 'bg-amber-500 animate-pulse',
+  error: 'bg-red-500 animate-pulse',
   neutral: 'bg-muted-foreground',
 };
 
@@ -24,11 +24,11 @@ export function AdminHealthChips({ chips }: AdminHealthChipsProps) {
       {chips.map(chip => (
         <div
           key={chip.label}
-          className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-card border border-border/50 shadow-sm text-xs"
+          className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-card border border-border/50 shadow-sm text-xs hover:shadow-md transition-shadow"
         >
           <span className={cn('h-1.5 w-1.5 rounded-full', statusDot[chip.status])} />
           <span className="text-muted-foreground">{chip.label}</span>
-          <span className="font-semibold">{chip.value}</span>
+          <span className="font-semibold tabular-nums">{chip.value}</span>
         </div>
       ))}
     </div>

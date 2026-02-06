@@ -1,6 +1,7 @@
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { TrendingUp, TrendingDown, Minus, ArrowRight } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 
 interface AdminKPICardProps {
@@ -31,12 +32,19 @@ export function AdminKPICard({
   const trendNeutral = trend !== undefined && trend === 0;
 
   return (
-    <Card className="rounded-2xl shadow-sm hover:shadow-md transition-shadow duration-200 border-border/50">
+    <Card className="rounded-2xl shadow-sm hover:shadow-md transition-all duration-200 border-border/50 group">
       <CardContent className="p-5">
         <div className="flex items-start justify-between mb-4">
-          <div className={cn('h-10 w-10 rounded-xl flex items-center justify-center', iconBg)}>
-            <Icon className={cn('h-5 w-5', iconColor)} />
-          </div>
+          <TooltipProvider delayDuration={200}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className={cn('h-10 w-10 rounded-xl flex items-center justify-center transition-transform group-hover:scale-105', iconBg)}>
+                  <Icon className={cn('h-5 w-5', iconColor)} />
+                </div>
+              </TooltipTrigger>
+              <TooltipContent side="top" className="text-xs">{label}</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
           {trend !== undefined && (
             <div className={cn(
               'flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-full',
@@ -52,13 +60,13 @@ export function AdminKPICard({
           )}
         </div>
         <p className="text-sm font-medium text-muted-foreground mb-1">{label}</p>
-        <p className="text-2xl font-bold tracking-tight">{value}</p>
+        <p className="text-2xl font-bold tracking-tight tabular-nums">{value}</p>
         {subtitle && <p className="text-xs text-muted-foreground mt-1">{subtitle}</p>}
         {trendLabel && <p className="text-[11px] text-muted-foreground mt-0.5">{trendLabel}</p>}
         {onViewDetails && (
           <button
             onClick={onViewDetails}
-            className="flex items-center gap-1 text-xs font-medium text-primary hover:text-primary/80 mt-3 transition-colors"
+            className="flex items-center gap-1 text-xs font-medium text-primary hover:text-primary/80 mt-3 transition-colors opacity-0 group-hover:opacity-100"
           >
             View details <ArrowRight className="h-3 w-3" />
           </button>
