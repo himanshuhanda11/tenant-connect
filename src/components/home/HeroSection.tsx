@@ -4,11 +4,10 @@ import {
   ArrowRight, 
   Sparkles,
   CheckCircle,
-  Users
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import dashboardPreview from '@/assets/dashboard-preview.png';
+import HeroSlideshow from '@/components/home/HeroSlideshow';
 
 export default function HeroSection() {
   const navigate = useNavigate();
@@ -81,35 +80,8 @@ export default function HeroSection() {
             </div>
           </div>
 
-          {/* Dashboard Preview */}
-          <div className="relative max-w-5xl mx-auto">
-            <div className="relative rounded-xl sm:rounded-2xl overflow-hidden shadow-2xl border border-slate-200 bg-slate-900">
-              <img
-                src={dashboardPreview}
-                alt="AiReatro Dashboard - WhatsApp API Management Platform showing inbox, contacts, campaigns, automation and analytics features"
-                className="w-full h-auto"
-                loading="eager"
-              />
-            </div>
-
-            {/* Floating Stats */}
-            <div className="absolute -bottom-3 sm:-bottom-5 -left-2 sm:-left-6 bg-white rounded-lg sm:rounded-xl border border-slate-200 shadow-xl p-2.5 sm:p-4 hidden sm:block">
-              <div className="flex items-center gap-2 sm:gap-3">
-                <div className="w-8 sm:w-10 h-8 sm:h-10 rounded-full bg-green-100 flex items-center justify-center">
-                  <Users className="w-4 sm:w-5 h-4 sm:h-5 text-green-600" />
-                </div>
-                <div>
-                  <div className="text-sm sm:text-lg font-bold text-slate-900">2,000+</div>
-                  <div className="text-[10px] sm:text-xs text-slate-500">Active Teams</div>
-                </div>
-              </div>
-            </div>
-            
-            <div className="absolute -top-3 sm:-top-5 -right-2 sm:-right-6 bg-white rounded-lg sm:rounded-xl border border-slate-200 shadow-xl p-2.5 sm:p-4 hidden sm:block">
-              <div className="text-lg sm:text-2xl font-bold text-green-600">98.5%</div>
-              <div className="text-[10px] sm:text-xs text-slate-500">Delivery Rate</div>
-            </div>
-          </div>
+          {/* Dashboard Slideshow */}
+          <HeroSlideshow />
         </div>
       </div>
     </section>
