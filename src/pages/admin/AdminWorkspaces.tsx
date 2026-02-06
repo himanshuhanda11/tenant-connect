@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { useOutletContext } from 'react-router-dom';
+import { useOutletContext, useNavigate } from 'react-router-dom';
 import { useAdminApi } from '@/hooks/useAdminApi';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -9,7 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from '@/hooks/use-toast';
-import { Search, Loader2, Ban, Play, Pause, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Search, Loader2, Ban, Play, Pause, ChevronLeft, ChevronRight, Eye } from 'lucide-react';
 
 interface Workspace {
   workspace_id: string;
@@ -29,6 +29,7 @@ interface Workspace {
 export default function AdminWorkspaces() {
   const { role } = useOutletContext<{ role: string }>();
   const { get, post, loading } = useAdminApi();
+  const navigate = useNavigate();
   const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
@@ -141,6 +142,9 @@ export default function AdminWorkspaces() {
                     </TableCell>
                     <TableCell>
                       <div className="flex gap-1">
+                        <Button size="sm" variant="ghost" onClick={() => navigate(`/admin/workspaces/${w.workspace_id}`)} title="View details">
+                          <Eye className="h-3.5 w-3.5" />
+                        </Button>
                         <Button
                           size="sm"
                           variant="ghost"

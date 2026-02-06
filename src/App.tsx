@@ -115,6 +115,7 @@ import AdminLayout from "./pages/admin/AdminLayout";
 import AdminOverview from "./pages/admin/AdminOverview";
 import AdminWorkspaces from "./pages/admin/AdminWorkspaces";
 import AdminAuditLogs from "./pages/admin/AdminAuditLogs";
+import AdminWorkspaceDetail from "./pages/admin/AdminWorkspaceDetail";
 
 const queryClient = new QueryClient();
 
@@ -242,6 +243,7 @@ const App = () => (
               <Route path="/admin" element={<AdminLayout />}>
                 <Route index element={<AdminOverview />} />
                 <Route path="workspaces" element={<AdminWorkspaces />} />
+                <Route path="workspaces/:id" element={<AdminWorkspaceDetail />} />
                 <Route path="audit-logs" element={<AdminAuditLogs />} />
               </Route>
               <Route path="*" element={<NotFound />} />

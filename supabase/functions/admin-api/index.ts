@@ -117,20 +117,36 @@ Deno.serve(async (req: Request) => {
       });
     }
 
-    // POST /workspaces/:id/update
+    // POST /workspaces/:id/update (support: limited fields; super_admin: all)
     if (req.method === "POST" && path.match(/^workspaces\/[^/]+\/update$/)) {
       const workspaceId = path.split("/")[1];
       const body = await req.json();
-      const actor = await requirePlatformRole(req, ["super_admin"]);
+      const actor = await requirePlatformRole(req, ["super_admin", "support"]);
       const sb = adminClient();
 
-      // Get before state
+      const SUPPORT_ALLOWED = new Set([
+        "sending_paused", "enable_ai", "enable_ads", "enable_integrations", "enable_autoforms"
+      ]);
+
+      // Field-level permission enforcement
+      const safeUpdates: Record<string, unknown> = {};
+      for (const [k, v] of Object.entries(body.updates || body)) {
+        if (k === 'note' || k === 'updates') continue;
+        if (actor.role === "super_admin") safeUpdates[k] = v;
+        else if (SUPPORT_ALLOWED.has(k)) safeUpdates[k] = v;
+      }
+
+      if (Object.keys(safeUpdates).length === 0) {
+        return new Response(JSON.stringify({ error: "No permitted fields to update" }), {
+          status: 403, headers: { ...corsHeaders, "content-type": "application/json" },
+        });
+      }
+
       const { data: before } = await sb.from("workspace_entitlements").select("*").eq("workspace_id", workspaceId).maybeSingle();
 
-      // Upsert entitlements
       const { data: after, error } = await sb.from("workspace_entitlements").upsert({
         workspace_id: workspaceId,
-        ...body,
+        ...safeUpdates,
         updated_by: actor.user.id,
         updated_at: new Date().toISOString(),
       }, { onConflict: "workspace_id" }).select().single();
@@ -142,6 +158,7 @@ Deno.serve(async (req: Request) => {
         target_table: "workspace_entitlements",
         before,
         after,
+        note: body.note || null,
       });
 
       return new Response(JSON.stringify({ success: true, data: after }), {
