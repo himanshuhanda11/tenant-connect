@@ -1,8 +1,11 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAdminApi } from '@/hooks/useAdminApi';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Building2, Phone, Users, MessageSquare, Globe, Loader2, AlertTriangle, RefreshCw } from 'lucide-react';
+import { Building2, Phone, Users, Globe, MessageSquare, Loader2, AlertTriangle, RefreshCw, DollarSign } from 'lucide-react';
+import { AdminKPICard } from '@/components/admin/AdminKPICard';
+import { AdminHealthChips } from '@/components/admin/AdminHealthChips';
+import { AdminAttentionPanel, buildAttentionItems } from '@/components/admin/AdminAttentionPanel';
 
 interface KPI {
   total_workspaces: number;
@@ -17,6 +20,7 @@ interface KPI {
 
 export default function AdminOverview() {
   const { get } = useAdminApi();
+  const navigate = useNavigate();
   const [kpi, setKpi] = useState<KPI | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -43,7 +47,9 @@ export default function AdminOverview() {
   if (error || !kpi) {
     return (
       <div className="flex flex-col items-center justify-center py-20 gap-4">
-        <AlertTriangle className="h-10 w-10 text-destructive" />
+        <div className="h-12 w-12 rounded-2xl bg-red-50 flex items-center justify-center">
+          <AlertTriangle className="h-6 w-6 text-red-500" />
+        </div>
         <p className="text-muted-foreground">{error || 'No data available'}</p>
         <Button onClick={loadData} variant="outline" size="sm">
           <RefreshCw className="h-4 w-4 mr-1" /> Retry
@@ -52,36 +58,73 @@ export default function AdminOverview() {
     );
   }
 
-  const cards = [
-    { label: 'Total Workspaces', value: kpi.total_workspaces, sub: `${kpi.active_workspaces} active, ${kpi.suspended_workspaces} suspended`, icon: Building2, color: 'text-blue-600' },
-    { label: 'Phone Numbers', value: kpi.total_phone_numbers, sub: `${kpi.connected_phone_numbers} connected`, icon: Phone, color: 'text-green-600' },
-    { label: 'Total Users', value: kpi.total_users, sub: 'Unique registered', icon: Users, color: 'text-purple-600' },
-    { label: 'Total Contacts', value: kpi.total_contacts.toLocaleString(), sub: 'Across all workspaces', icon: Globe, color: 'text-orange-600' },
-    { label: 'Conversations', value: kpi.total_conversations.toLocaleString(), sub: 'All time', icon: MessageSquare, color: 'text-pink-600' },
+  const pendingPhones = kpi.total_phone_numbers - kpi.connected_phone_numbers;
+  const healthChips = [
+    { label: 'Active Workspaces', value: kpi.active_workspaces, status: 'success' as const },
+    { label: 'Pending Numbers', value: pendingPhones, status: pendingPhones > 0 ? 'warning' as const : 'success' as const },
+    { label: 'Suspended', value: kpi.suspended_workspaces, status: kpi.suspended_workspaces > 0 ? 'error' as const : 'success' as const },
   ];
 
+  const attentionItems = buildAttentionItems(kpi, navigate);
+
   return (
-    <div>
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold">Admin Overview</h1>
-        <Button variant="ghost" size="sm" onClick={loadData}>
-          <RefreshCw className="h-4 w-4" />
-        </Button>
+    <div className="space-y-6 animate-fade-in">
+      {/* Hero Header */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Admin Command Center</h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            Monitor clients, numbers, billing and risk in real-time.
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <AdminHealthChips chips={healthChips} />
+          <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={loadData}>
+            <RefreshCw className="h-4 w-4" />
+          </Button>
+        </div>
       </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
-        {cards.map(c => (
-          <Card key={c.label}>
-            <CardHeader className="pb-2 flex flex-row items-center justify-between">
-              <CardTitle className="text-sm font-medium text-muted-foreground">{c.label}</CardTitle>
-              <c.icon className={`h-4 w-4 ${c.color}`} />
-            </CardHeader>
-            <CardContent>
-              <p className="text-2xl font-bold">{c.value}</p>
-              <p className="text-xs text-muted-foreground mt-1">{c.sub}</p>
-            </CardContent>
-          </Card>
-        ))}
+
+      {/* KPI Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <AdminKPICard
+          label="Workspaces"
+          value={kpi.total_workspaces}
+          subtitle={`${kpi.active_workspaces} active · ${kpi.suspended_workspaces} suspended`}
+          icon={Building2}
+          iconBg="bg-blue-50"
+          iconColor="text-blue-600"
+          onViewDetails={() => navigate('/admin/workspaces')}
+        />
+        <AdminKPICard
+          label="Phone Numbers"
+          value={kpi.total_phone_numbers}
+          subtitle={`${kpi.connected_phone_numbers} connected · ${pendingPhones} pending`}
+          icon={Phone}
+          iconBg="bg-emerald-50"
+          iconColor="text-emerald-600"
+        />
+        <AdminKPICard
+          label="Total Users"
+          value={kpi.total_users}
+          subtitle="Unique registered accounts"
+          icon={Users}
+          iconBg="bg-purple-50"
+          iconColor="text-purple-600"
+        />
+        <AdminKPICard
+          label="Conversations"
+          value={kpi.total_conversations.toLocaleString()}
+          subtitle={`${kpi.total_contacts.toLocaleString()} contacts across workspaces`}
+          icon={MessageSquare}
+          iconBg="bg-pink-50"
+          iconColor="text-pink-600"
+          onViewDetails={() => navigate('/admin/workspaces')}
+        />
       </div>
+
+      {/* Attention Panel */}
+      <AdminAttentionPanel items={attentionItems} />
     </div>
   );
 }

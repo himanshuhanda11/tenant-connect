@@ -9,11 +9,18 @@ import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
+import { Progress } from '@/components/ui/progress';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { toast } from '@/hooks/use-toast';
-import { ArrowLeft, Loader2, Phone, Users, Shield, ScrollText, Settings, Ban } from 'lucide-react';
+import { AdminStatusBadge, AdminPlanBadge } from '@/components/admin/AdminStatusBadge';
+import { AdminAuditTimeline } from '@/components/admin/AdminAuditTimeline';
 import UserManagementActions from '@/components/admin/UserManagementActions';
+import {
+  ArrowLeft, Loader2, Phone, Users, Shield, ScrollText, Settings,
+  Ban, Pause, Play, Copy, LayoutDashboard, MessageSquare, Zap, Plug
+} from 'lucide-react';
 
 export default function AdminWorkspaceDetail() {
   const { id } = useParams();
@@ -89,6 +96,11 @@ export default function AdminWorkspaceDetail() {
     }
   };
 
+  const copyId = () => {
+    navigator.clipboard.writeText(id || '');
+    toast({ title: 'ID copied' });
+  };
+
   if (loading && !workspace) {
     return <div className="flex justify-center py-20"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
   }
@@ -96,55 +108,101 @@ export default function AdminWorkspaceDetail() {
   if (!workspace) return <div className="text-center py-20 text-muted-foreground">Workspace not found</div>;
 
   return (
-    <div>
-      <div className="flex items-center gap-3 mb-6">
-        <Button variant="ghost" size="sm" onClick={() => navigate('/admin/workspaces')}>
-          <ArrowLeft className="h-4 w-4" />
+    <div className="space-y-6 animate-fade-in">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+        <Button variant="ghost" size="sm" onClick={() => navigate('/admin/workspaces')} className="w-fit rounded-xl">
+          <ArrowLeft className="h-4 w-4 mr-1" /> Back
         </Button>
-        <div>
-          <h1 className="text-2xl font-bold">{workspace.name}</h1>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 flex-wrap">
+            <h1 className="text-xl font-bold truncate">{workspace.name}</h1>
+            <button onClick={copyId} className="text-muted-foreground hover:text-foreground">
+              <Copy className="h-3.5 w-3.5" />
+            </button>
+          </div>
           <p className="text-sm text-muted-foreground">/{workspace.slug} · Created {new Date(workspace.created_at).toLocaleDateString()}</p>
         </div>
-        <div className="ml-auto flex gap-2">
-          {workspace.is_suspended ? (
-            <Badge variant="destructive">Suspended</Badge>
-          ) : (
-            <Badge className="bg-green-100 text-green-700">Active</Badge>
-          )}
-          {entitlements?.sending_paused && <Badge variant="outline" className="text-orange-600">Sending Paused</Badge>}
+        <div className="flex items-center gap-2 flex-wrap">
+          <AdminPlanBadge plan={entitlements?.plan || 'free'} />
+          <AdminStatusBadge status={workspace.is_suspended ? 'suspended' : 'active'} />
+          {entitlements?.sending_paused && <AdminStatusBadge status="paused" />}
         </div>
       </div>
 
-      <Tabs defaultValue="overview">
-        <TabsList>
-          <TabsTrigger value="overview"><Settings className="h-3.5 w-3.5 mr-1" />Overview</TabsTrigger>
-          <TabsTrigger value="phones"><Phone className="h-3.5 w-3.5 mr-1" />WhatsApp</TabsTrigger>
-          <TabsTrigger value="team"><Users className="h-3.5 w-3.5 mr-1" />Team</TabsTrigger>
-          <TabsTrigger value="audit"><ScrollText className="h-3.5 w-3.5 mr-1" />Audit</TabsTrigger>
-        </TabsList>
+      {/* Quick Actions */}
+      <div className="flex flex-wrap gap-2">
+        <Button
+          variant="outline"
+          size="sm"
+          className="rounded-xl text-xs"
+          onClick={() => handlePauseSending(!entitlements?.sending_paused)}
+        >
+          {entitlements?.sending_paused ? <Play className="h-3.5 w-3.5 mr-1" /> : <Pause className="h-3.5 w-3.5 mr-1" />}
+          {entitlements?.sending_paused ? 'Resume Sending' : 'Pause Sending'}
+        </Button>
+        {isSuperAdmin && (
+          <Button
+            variant={workspace.is_suspended ? 'outline' : 'destructive'}
+            size="sm"
+            className="rounded-xl text-xs"
+            onClick={() => setSuspendDialog(true)}
+          >
+            <Ban className="h-3.5 w-3.5 mr-1" />
+            {workspace.is_suspended ? 'Unsuspend' : 'Suspend'}
+          </Button>
+        )}
+      </div>
 
+      {/* Tabs */}
+      <Tabs defaultValue="overview">
+        <ScrollArea className="w-full">
+          <TabsList className="rounded-xl w-full sm:w-auto flex-nowrap">
+            <TabsTrigger value="overview" className="rounded-lg text-xs gap-1"><LayoutDashboard className="h-3.5 w-3.5" />Overview</TabsTrigger>
+            <TabsTrigger value="team" className="rounded-lg text-xs gap-1"><Users className="h-3.5 w-3.5" />Team</TabsTrigger>
+            <TabsTrigger value="whatsapp" className="rounded-lg text-xs gap-1"><Phone className="h-3.5 w-3.5" />WhatsApp</TabsTrigger>
+            <TabsTrigger value="templates" className="rounded-lg text-xs gap-1"><MessageSquare className="h-3.5 w-3.5" />Templates</TabsTrigger>
+            <TabsTrigger value="campaigns" className="rounded-lg text-xs gap-1"><Zap className="h-3.5 w-3.5" />Campaigns</TabsTrigger>
+            <TabsTrigger value="integrations" className="rounded-lg text-xs gap-1"><Plug className="h-3.5 w-3.5" />Integrations</TabsTrigger>
+            <TabsTrigger value="audit" className="rounded-lg text-xs gap-1"><ScrollText className="h-3.5 w-3.5" />Audit</TabsTrigger>
+          </TabsList>
+        </ScrollArea>
+
+        {/* Overview Tab */}
         <TabsContent value="overview" className="space-y-4 mt-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Sending & Feature Flags */}
-            <Card>
-              <CardHeader><CardTitle className="text-sm">Controls</CardTitle></CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <Label>Sending Paused</Label>
+            <Card className="rounded-2xl shadow-sm border-border/50">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                  <div className="h-6 w-6 rounded-lg bg-primary/10 flex items-center justify-center">
+                    <Settings className="h-3.5 w-3.5 text-primary" />
+                  </div>
+                  Controls
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="flex items-center justify-between py-1">
+                  <Label className="text-sm">Sending Paused</Label>
                   <Switch checked={entitlements?.sending_paused || false} onCheckedChange={v => handlePauseSending(v)} />
                 </div>
                 {['enable_ai', 'enable_ads', 'enable_integrations', 'enable_autoforms'].map(f => (
-                  <div key={f} className="flex items-center justify-between">
-                    <Label className="capitalize">{f.replace(/_/g, ' ')}</Label>
+                  <div key={f} className="flex items-center justify-between py-1">
+                    <Label className="text-sm capitalize">{f.replace(/enable_/g, '').replace(/_/g, ' ')}</Label>
                     <Switch checked={entitlements?.[f] ?? true} onCheckedChange={v => handleToggle(f, v)} />
                   </div>
                 ))}
               </CardContent>
             </Card>
 
-            {/* Limits (super_admin only) */}
-            <Card>
-              <CardHeader><CardTitle className="text-sm">Limits {!isSuperAdmin && <span className="text-xs text-muted-foreground">(read-only)</span>}</CardTitle></CardHeader>
+            <Card className="rounded-2xl shadow-sm border-border/50">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                  <div className="h-6 w-6 rounded-lg bg-purple-50 flex items-center justify-center">
+                    <Shield className="h-3.5 w-3.5 text-purple-600" />
+                  </div>
+                  Limits {!isSuperAdmin && <span className="text-xs text-muted-foreground font-normal">(read-only)</span>}
+                </CardTitle>
+              </CardHeader>
               <CardContent className="space-y-3">
                 {[
                   { key: 'monthly_conversation_limit', label: 'Conversations/mo' },
@@ -156,7 +214,7 @@ export default function AdminWorkspaceDetail() {
                     <Label className="text-sm">{l.label}</Label>
                     <Input
                       type="number"
-                      className="w-24 text-right"
+                      className="w-24 text-right rounded-xl h-8 text-sm"
                       value={entitlements?.[l.key] ?? ''}
                       disabled={!isSuperAdmin}
                       onBlur={e => isSuperAdmin && handleLimitChange(l.key, e.target.value)}
@@ -164,33 +222,49 @@ export default function AdminWorkspaceDetail() {
                     />
                   </div>
                 ))}
-                <div className="flex items-center justify-between">
-                  <Label>Plan</Label>
-                  <Badge variant="secondary">{entitlements?.plan || 'free'}</Badge>
-                </div>
               </CardContent>
             </Card>
           </div>
-
-          {/* Danger Zone */}
-          {isSuperAdmin && (
-            <Card className="border-destructive/30">
-              <CardHeader><CardTitle className="text-sm text-destructive flex items-center gap-1"><Shield className="h-4 w-4" />Danger Zone</CardTitle></CardHeader>
-              <CardContent>
-                <Button
-                  variant={workspace.is_suspended ? 'default' : 'destructive'}
-                  onClick={() => setSuspendDialog(true)}
-                >
-                  <Ban className="h-4 w-4 mr-1" />
-                  {workspace.is_suspended ? 'Unsuspend Workspace' : 'Suspend Workspace'}
-                </Button>
-              </CardContent>
-            </Card>
-          )}
         </TabsContent>
 
-        <TabsContent value="phones" className="mt-4">
-          <Card>
+        {/* Team Tab */}
+        <TabsContent value="team" className="mt-4">
+          <Card className="rounded-2xl shadow-sm border-border/50">
+            <CardContent className="p-0">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Email</TableHead>
+                    <TableHead>Role</TableHead>
+                    <TableHead>Joined</TableHead>
+                    {isSuperAdmin && <TableHead className="w-10"></TableHead>}
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {members.map((m: any) => (
+                    <TableRow key={m.id}>
+                      <TableCell className="font-medium text-sm">{m.profiles?.full_name || '—'}</TableCell>
+                      <TableCell className="text-sm text-muted-foreground">{m.profiles?.email}</TableCell>
+                      <TableCell><Badge variant="outline" className="text-[11px]">{m.role}</Badge></TableCell>
+                      <TableCell className="text-xs text-muted-foreground">{new Date(m.created_at).toLocaleDateString()}</TableCell>
+                      {isSuperAdmin && (
+                        <TableCell><UserManagementActions member={m} isSuperAdmin={isSuperAdmin} /></TableCell>
+                      )}
+                    </TableRow>
+                  ))}
+                  {members.length === 0 && (
+                    <TableRow><TableCell colSpan={isSuperAdmin ? 5 : 4} className="text-center py-8 text-muted-foreground text-sm">No members</TableCell></TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* WhatsApp Tab */}
+        <TabsContent value="whatsapp" className="mt-4">
+          <Card className="rounded-2xl shadow-sm border-border/50">
             <CardContent className="p-0">
               <Table>
                 <TableHeader>
@@ -204,18 +278,18 @@ export default function AdminWorkspaceDetail() {
                 <TableBody>
                   {phones.map((p: any) => (
                     <TableRow key={p.id}>
-                      <TableCell className="font-medium">{p.display_name || '—'}</TableCell>
+                      <TableCell className="font-medium text-sm">{p.display_name || '—'}</TableCell>
                       <TableCell className="font-mono text-sm">{p.phone_e164}</TableCell>
+                      <TableCell><AdminStatusBadge status={p.status === 'connected' ? 'connected' : 'pending'} /></TableCell>
                       <TableCell>
-                        <Badge variant={p.status === 'connected' ? 'default' : 'outline'}>
-                          {p.status}
-                        </Badge>
+                        {p.quality_rating ? (
+                          <Badge variant="outline" className="text-[11px]">{p.quality_rating}</Badge>
+                        ) : '—'}
                       </TableCell>
-                      <TableCell>{p.quality_rating || '—'}</TableCell>
                     </TableRow>
                   ))}
                   {phones.length === 0 && (
-                    <TableRow><TableCell colSpan={4} className="text-center py-6 text-muted-foreground">No phone numbers</TableCell></TableRow>
+                    <TableRow><TableCell colSpan={4} className="text-center py-8 text-muted-foreground text-sm">No phone numbers</TableCell></TableRow>
                   )}
                 </TableBody>
               </Table>
@@ -223,73 +297,49 @@ export default function AdminWorkspaceDetail() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="team" className="mt-4">
-          <Card>
-            <CardContent className="p-0">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Email</TableHead>
-                    <TableHead>Role</TableHead>
-                    <TableHead>Joined</TableHead>
-                    {isSuperAdmin && <TableHead>Manage</TableHead>}
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {members.map((m: any) => (
-                    <TableRow key={m.id}>
-                      <TableCell className="font-medium">{m.profiles?.full_name || '—'}</TableCell>
-                      <TableCell className="text-sm">{m.profiles?.email}</TableCell>
-                      <TableCell><Badge variant="outline">{m.role}</Badge></TableCell>
-                      <TableCell className="text-xs text-muted-foreground">{new Date(m.created_at).toLocaleDateString()}</TableCell>
-                      {isSuperAdmin && (
-                        <TableCell>
-                          <UserManagementActions member={m} isSuperAdmin={isSuperAdmin} />
-                        </TableCell>
-                      )}
-                    </TableRow>
-                  ))}
-                  {members.length === 0 && (
-                    <TableRow><TableCell colSpan={isSuperAdmin ? 5 : 4} className="text-center py-6 text-muted-foreground">No members</TableCell></TableRow>
-                  )}
-                </TableBody>
-              </Table>
+        {/* Templates Tab */}
+        <TabsContent value="templates" className="mt-4">
+          <Card className="rounded-2xl shadow-sm border-border/50">
+            <CardContent className="py-12 text-center">
+              <div className="h-10 w-10 rounded-xl bg-muted flex items-center justify-center mx-auto mb-3">
+                <MessageSquare className="h-5 w-5 text-muted-foreground" />
+              </div>
+              <p className="text-sm text-muted-foreground">Template status overview coming soon.</p>
             </CardContent>
           </Card>
         </TabsContent>
 
+        {/* Campaigns Tab */}
+        <TabsContent value="campaigns" className="mt-4">
+          <Card className="rounded-2xl shadow-sm border-border/50">
+            <CardContent className="py-12 text-center">
+              <div className="h-10 w-10 rounded-xl bg-muted flex items-center justify-center mx-auto mb-3">
+                <Zap className="h-5 w-5 text-muted-foreground" />
+              </div>
+              <p className="text-sm text-muted-foreground">Campaign management coming soon.</p>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Integrations Tab */}
+        <TabsContent value="integrations" className="mt-4">
+          <Card className="rounded-2xl shadow-sm border-border/50">
+            <CardContent className="py-12 text-center">
+              <div className="h-10 w-10 rounded-xl bg-muted flex items-center justify-center mx-auto mb-3">
+                <Plug className="h-5 w-5 text-muted-foreground" />
+              </div>
+              <p className="text-sm text-muted-foreground">Integration health overview coming soon.</p>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Audit Tab */}
         <TabsContent value="audit" className="mt-4">
-          <Card>
-            <CardContent className="p-0">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Time</TableHead>
-                    <TableHead>Actor</TableHead>
-                    <TableHead>Action</TableHead>
-                    <TableHead>Note</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {auditLogs.map((log: any) => (
-                    <TableRow key={log.id}>
-                      <TableCell className="text-xs whitespace-nowrap">{new Date(log.created_at).toLocaleString()}</TableCell>
-                      <TableCell><Badge variant="outline" className="text-xs">{log.actor_role}</Badge></TableCell>
-                      <TableCell><Badge variant="secondary">{log.action}</Badge></TableCell>
-                      <TableCell className="text-xs text-muted-foreground max-w-[200px] truncate">{log.note || '—'}</TableCell>
-                    </TableRow>
-                  ))}
-                  {auditLogs.length === 0 && (
-                    <TableRow><TableCell colSpan={4} className="text-center py-6 text-muted-foreground">No audit logs for this workspace</TableCell></TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
+          <AdminAuditTimeline logs={auditLogs} />
         </TabsContent>
       </Tabs>
 
+      {/* Suspend Dialog */}
       <Dialog open={suspendDialog} onOpenChange={setSuspendDialog}>
         <DialogContent>
           <DialogHeader>
