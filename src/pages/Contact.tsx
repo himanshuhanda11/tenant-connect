@@ -72,14 +72,14 @@ export default function Contact() {
       title: 'WhatsApp',
       description: 'Chat on WhatsApp',
       subtext: 'Available 24/7',
-      action: 'https://wa.me/919876543210'
+      action: 'https://wa.me/919319711126'
     },
     {
       icon: Phone,
       title: 'Call Us',
-      description: '+91 98765 43210',
+      description: '+91 93197 11126 / +91 81307 21450',
       subtext: 'Mon-Sat, 10am-7pm IST',
-      action: 'tel:+919876543210'
+      action: 'tel:+919319711126'
     },
     {
       icon: MapPin,
