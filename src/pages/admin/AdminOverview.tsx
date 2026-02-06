@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useAdminApi } from '@/hooks/useAdminApi';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Building2, Phone, Users, MessageSquare, Globe, Loader2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Building2, Phone, Users, MessageSquare, Globe, Loader2, AlertTriangle, RefreshCw } from 'lucide-react';
 
 interface KPI {
   total_workspaces: number;
@@ -15,18 +16,41 @@ interface KPI {
 }
 
 export default function AdminOverview() {
-  const { get, loading } = useAdminApi();
+  const { get } = useAdminApi();
   const [kpi, setKpi] = useState<KPI | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    get('overview').then(data => setKpi(data.kpi)).catch(() => {});
-  }, []);
+  const loadData = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await get('overview');
+      setKpi(data.kpi);
+    } catch (e: any) {
+      setError(e.message || 'Failed to load overview data');
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  if (loading && !kpi) {
+  useEffect(() => { loadData(); }, []);
+
+  if (loading) {
     return <div className="flex justify-center py-20"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
   }
 
-  if (!kpi) return null;
+  if (error || !kpi) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20 gap-4">
+        <AlertTriangle className="h-10 w-10 text-destructive" />
+        <p className="text-muted-foreground">{error || 'No data available'}</p>
+        <Button onClick={loadData} variant="outline" size="sm">
+          <RefreshCw className="h-4 w-4 mr-1" /> Retry
+        </Button>
+      </div>
+    );
+  }
 
   const cards = [
     { label: 'Total Workspaces', value: kpi.total_workspaces, sub: `${kpi.active_workspaces} active, ${kpi.suspended_workspaces} suspended`, icon: Building2, color: 'text-blue-600' },
@@ -38,7 +62,12 @@ export default function AdminOverview() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold mb-6">Admin Overview</h1>
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-2xl font-bold">Admin Overview</h1>
+        <Button variant="ghost" size="sm" onClick={loadData}>
+          <RefreshCw className="h-4 w-4" />
+        </Button>
+      </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
         {cards.map(c => (
           <Card key={c.label}>
