@@ -43,6 +43,7 @@ import {
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import SeoMeta from '@/components/seo/SeoMeta';
+import Breadcrumb from '@/components/layout/Breadcrumb';
 import { JsonLd, organizationSchema, softwareApplicationSchema } from '@/components/seo/JsonLd';
 import dashboardPreview from '@/assets/dashboard-preview.png';
 
@@ -303,6 +304,7 @@ const WhatsAppBusinessApi = () => {
         }} />
         
         <div className="container mx-auto px-4 relative">
+          <Breadcrumb className="mb-6 [&_a]:text-white/70 [&_a:hover]:text-white [&_span]:text-white [&_svg]:text-white/50" />
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             {/* Left content */}
             <div className="text-left">

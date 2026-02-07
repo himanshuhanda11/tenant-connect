@@ -1,32 +1,25 @@
 import { Link } from 'react-router-dom';
-import { ArrowLeft, CheckCircle, ExternalLink, MessageSquare, Phone, Shield, Users } from 'lucide-react';
+import { CheckCircle, ExternalLink, MessageSquare, Phone, Shield, Users } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import Navbar from '@/components/layout/Navbar';
+import Breadcrumb from '@/components/layout/Breadcrumb';
 
 export default function AppAccessInstructions() {
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="border-b bg-card">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <Link to="/" className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">
-              <ArrowLeft className="h-4 w-4" />
-              <span>Back to Home</span>
-            </Link>
-            <Badge variant="outline" className="text-xs">
-              For Meta Reviewers
-            </Badge>
-          </div>
-        </div>
-      </header>
+      <Navbar />
 
       {/* Main Content */}
       <main className="container mx-auto px-4 py-12 max-w-4xl">
+        <Breadcrumb className="mb-6" />
         <div className="space-y-8">
           {/* Title Section */}
           <div className="text-center space-y-4">
+            <Badge variant="outline" className="text-xs">
+              For Meta Reviewers
+            </Badge>
             <h1 className="text-4xl font-bold tracking-tight">App Access Instructions</h1>
             <p className="text-xl text-muted-foreground">
               Instructions for Meta App Review Team
