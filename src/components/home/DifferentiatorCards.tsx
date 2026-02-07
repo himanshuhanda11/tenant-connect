@@ -66,12 +66,12 @@ export default function DifferentiatorCards() {
 
         {/* Image Left + Cards Right Layout */}
         <div className="flex flex-col lg:flex-row gap-6 lg:gap-8 max-w-6xl mx-auto items-center">
-          {/* Left - Square Illustration */}
-          <div className="w-full max-w-sm mx-auto lg:mx-0 lg:w-[42%] shrink-0">
+          {/* Left - Illustration matching cards height */}
+          <div className="w-full max-w-sm mx-auto lg:mx-0 lg:w-[42%] shrink-0 lg:self-stretch">
             <img 
               src={homeDifferentiators} 
               alt="Platform features overview" 
-              className="w-full aspect-square object-cover rounded-2xl shadow-lg" 
+              className="w-full h-full object-cover rounded-2xl shadow-lg" 
               loading="lazy" 
             />
           </div>
