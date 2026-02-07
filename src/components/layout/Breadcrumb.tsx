@@ -34,6 +34,18 @@ const routeNames: Record<string, string> = {
   'whatsapp-forms': 'WhatsApp Forms',
   'free-whatsapp-api-lifetime': 'Free WhatsApp API',
   'data-deletion': 'Data Deletion',
+  'click-to-whatsapp': 'Click to WhatsApp',
+  'why-whatsapp-marketing': 'Why WhatsApp Marketing',
+  'inbox': 'Inbox',
+  'contacts': 'Contacts',
+  'templates': 'Templates',
+  'campaigns': 'Campaigns',
+  'automation': 'Automation',
+  'analytics': 'Analytics',
+  'team-roles': 'Team & Roles',
+  'audit-logs': 'Audit Logs',
+  'phone-numbers': 'Phone Numbers',
+  'install': 'Install',
 };
 
 interface BreadcrumbProps {

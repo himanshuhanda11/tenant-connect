@@ -29,6 +29,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import SeoMeta from '@/components/seo/SeoMeta';
+import Breadcrumb from '@/components/layout/Breadcrumb';
 import { JsonLd, organizationSchema, softwareApplicationSchema } from '@/components/seo';
 
 // Import images
@@ -190,6 +191,7 @@ export default function WhatsAppForms() {
         </div>
 
         <div className="container mx-auto px-4 relative">
+          <Breadcrumb className="mb-6" />
           <div className="max-w-6xl mx-auto">
             <div className="grid lg:grid-cols-2 gap-12 items-center">
               {/* Left: Content */}

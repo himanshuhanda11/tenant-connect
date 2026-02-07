@@ -30,6 +30,7 @@ import {
 } from '@/components/ui/accordion';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
+import Breadcrumb from '@/components/layout/Breadcrumb';
 
 const faqSchema = {
   "@context": "https://schema.org",
@@ -216,6 +217,7 @@ export default function FreeWhatsAppApiLifetime() {
           </div>
 
           <div className="container mx-auto px-4 relative z-10">
+            <Breadcrumb className="mb-6" />
             <div className="max-w-4xl mx-auto text-center">
               {/* Trust Badge */}
               <div className="inline-flex items-center gap-2 px-4 py-2 bg-green-100 text-green-700 rounded-full text-sm font-medium mb-6">

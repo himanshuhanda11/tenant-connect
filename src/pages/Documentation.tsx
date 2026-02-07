@@ -29,6 +29,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
+import Breadcrumb from '@/components/layout/Breadcrumb';
 import { DocsSidebar } from '@/components/docs/DocsSidebar';
 import { CodeBlock } from '@/components/docs/CodeBlock';
 import { ApiStatusBadge, ApiStatusCard } from '@/components/docs/ApiStatusBadge';
@@ -217,6 +218,7 @@ export default function Documentation() {
         </div>
         
         <div className="container mx-auto px-4 relative">
+          <Breadcrumb className="mb-6" />
           <div className="max-w-4xl mx-auto text-center">
             <div className="flex items-center justify-center gap-3 mb-6">
               <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-600 text-sm font-medium">
