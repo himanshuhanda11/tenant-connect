@@ -64,39 +64,48 @@ export default function DifferentiatorCards() {
           </p>
         </div>
 
-        {/* Illustration */}
-        <div className="max-w-3xl mx-auto mb-8 sm:mb-12">
-          <img src={homeDifferentiators} alt="Platform features overview" className="w-full rounded-2xl" loading="lazy" />
-        </div>
+        {/* Image Left + Cards Right Layout */}
+        <div className="flex flex-col lg:flex-row gap-6 lg:gap-10 max-w-6xl mx-auto items-center">
+          {/* Left - Illustration */}
+          <div className="w-full lg:w-[45%] shrink-0">
+            <img 
+              src={homeDifferentiators} 
+              alt="Platform features overview" 
+              className="w-full rounded-2xl shadow-lg" 
+              loading="lazy" 
+            />
+          </div>
 
-        <div className="grid grid-cols-1 xs:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 max-w-6xl mx-auto">
-          {differentiators.map((item, index) => (
-            <Link to={item.link} key={index}>
-              <Card className="group h-full border border-border bg-card hover:shadow-lg hover:-translate-y-1 transition-all duration-300 cursor-pointer hover:border-primary/30">
-                <CardContent className="p-4 sm:p-6">
-                  <div className="flex items-start justify-between mb-3 sm:mb-4">
-                    <div className="w-10 sm:w-12 h-10 sm:h-12 rounded-lg sm:rounded-xl bg-primary/10 flex items-center justify-center shadow-sm">
-                      <item.icon className="w-5 sm:w-6 h-5 sm:h-6 text-primary" />
+          {/* Right - 2x3 Grid */}
+          <div className="w-full lg:w-[55%] grid grid-cols-1 xs:grid-cols-2 gap-4">
+            {differentiators.map((item, index) => (
+              <Link to={item.link} key={index}>
+                <Card className="group h-full border border-border bg-card hover:shadow-lg hover:-translate-y-1 transition-all duration-300 cursor-pointer hover:border-primary/30">
+                  <CardContent className="p-4">
+                    <div className="flex items-start justify-between mb-2.5">
+                      <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center shadow-sm">
+                        <item.icon className="w-4.5 h-4.5 text-primary" />
+                      </div>
+                      {item.badge && (
+                        <Badge className="bg-accent text-accent-foreground border-0 text-[10px] font-semibold">
+                          {item.badge}
+                        </Badge>
+                      )}
                     </div>
-                    {item.badge && (
-                      <Badge className="bg-accent text-accent-foreground border-0 text-[10px] sm:text-xs font-semibold">
-                        {item.badge}
-                      </Badge>
-                    )}
-                  </div>
-                  <h3 className="text-base sm:text-lg font-bold text-foreground mb-1.5 sm:mb-2 group-hover:text-primary transition-colors">
-                    {item.title}
-                  </h3>
-                  <p className="text-muted-foreground text-xs sm:text-sm leading-relaxed mb-3 sm:mb-4">
-                    {item.description}
-                  </p>
-                  <span className="inline-flex items-center gap-1 text-xs sm:text-sm font-medium text-primary group-hover:gap-2 transition-all">
-                    Learn more <ArrowRight className="w-3.5 sm:w-4 h-3.5 sm:h-4" />
-                  </span>
-                </CardContent>
-              </Card>
-            </Link>
-          ))}
+                    <h3 className="text-sm sm:text-base font-bold text-foreground mb-1 group-hover:text-primary transition-colors">
+                      {item.title}
+                    </h3>
+                    <p className="text-muted-foreground text-xs leading-relaxed mb-2.5">
+                      {item.description}
+                    </p>
+                    <span className="inline-flex items-center gap-1 text-xs font-medium text-primary group-hover:gap-2 transition-all">
+                      Learn more <ArrowRight className="w-3 h-3" />
+                    </span>
+                  </CardContent>
+                </Card>
+              </Link>
+            ))}
+          </div>
         </div>
       </div>
     </section>

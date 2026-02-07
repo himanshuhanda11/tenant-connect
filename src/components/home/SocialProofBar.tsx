@@ -46,7 +46,7 @@ export default function SocialProofBar() {
                 <img 
                   src={company.logo}
                   alt={company.name}
-                  className="h-7 sm:h-9 md:h-11 w-auto grayscale opacity-60 hover:grayscale-0 hover:opacity-100 transition-all duration-300 object-contain"
+                  className="h-7 sm:h-9 md:h-11 w-auto opacity-80 hover:opacity-100 transition-all duration-300 object-contain"
                   loading="lazy"
                   decoding="async"
                   onError={(e) => {
