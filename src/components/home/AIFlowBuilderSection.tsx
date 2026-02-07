@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
-import homeFlowBuilder from '@/assets/home-flow-builder.png';
+
 
 const flowTemplates = [
   { label: 'Recover abandoned carts', icon: Zap },
@@ -79,10 +79,6 @@ export default function AIFlowBuilderSection() {
           </p>
         </div>
 
-        {/* Illustration */}
-        <div className="max-w-2xl mx-auto mb-8">
-          <img src={homeFlowBuilder} alt="Visual flow builder" className="w-full rounded-2xl" loading="lazy" />
-        </div>
 
         <div className="max-w-5xl mx-auto">
           <div className="bg-card rounded-2xl border border-border shadow-xl p-4 sm:p-6 md:p-8">
