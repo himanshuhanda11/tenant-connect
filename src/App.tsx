@@ -118,6 +118,7 @@ import AdminAuditLogs from "./pages/admin/AdminAuditLogs";
 import AdminWorkspaceDetail from "./pages/admin/AdminWorkspaceDetail";
 import AdminTeam from "./pages/admin/AdminTeam";
 import AdminBilling from "./pages/admin/AdminBilling";
+import AdminPhoneNumbers from "./pages/admin/AdminPhoneNumbers";
 import AdminSettings from "./pages/admin/AdminSettings";
 import AdminIncidents from "./pages/admin/AdminIncidents";
 
@@ -249,6 +250,7 @@ const App = () => (
                 <Route path="workspaces" element={<AdminWorkspaces />} />
                 <Route path="workspaces/:id" element={<AdminWorkspaceDetail />} />
                 <Route path="billing" element={<AdminBilling />} />
+                <Route path="phone-numbers" element={<AdminPhoneNumbers />} />
                 <Route path="audit-logs" element={<AdminAuditLogs />} />
                 <Route path="team" element={<AdminTeam />} />
                 <Route path="settings" element={<AdminSettings />} />
