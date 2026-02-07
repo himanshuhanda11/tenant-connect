@@ -3891,6 +3891,60 @@ export type Database = {
         }
         Relationships: []
       }
+      platform_plans: {
+        Row: {
+          addons: Json
+          badge: string | null
+          created_at: string | null
+          features: Json
+          highlight: boolean | null
+          id: string
+          is_active: boolean | null
+          is_custom: boolean | null
+          limits: Json
+          name: string
+          price_monthly: number
+          price_yearly: number | null
+          restrictions: Json | null
+          sort_order: number | null
+          tagline: string | null
+        }
+        Insert: {
+          addons?: Json
+          badge?: string | null
+          created_at?: string | null
+          features?: Json
+          highlight?: boolean | null
+          id: string
+          is_active?: boolean | null
+          is_custom?: boolean | null
+          limits?: Json
+          name: string
+          price_monthly?: number
+          price_yearly?: number | null
+          restrictions?: Json | null
+          sort_order?: number | null
+          tagline?: string | null
+        }
+        Update: {
+          addons?: Json
+          badge?: string | null
+          created_at?: string | null
+          features?: Json
+          highlight?: boolean | null
+          id?: string
+          is_active?: boolean | null
+          is_custom?: boolean | null
+          limits?: Json
+          name?: string
+          price_monthly?: number
+          price_yearly?: number | null
+          restrictions?: Json | null
+          sort_order?: number | null
+          tagline?: string | null
+        }
+        Relationships: []
+      }
       platform_settings: {
         Row: {
           key: string
@@ -9122,6 +9176,51 @@ export type Database = {
           },
         ]
       }
+      workspace_addons: {
+        Row: {
+          addon_key: string
+          created_at: string | null
+          id: string
+          price_per_unit: number
+          quantity: number
+          status: string
+          workspace_id: string
+        }
+        Insert: {
+          addon_key: string
+          created_at?: string | null
+          id?: string
+          price_per_unit?: number
+          quantity?: number
+          status?: string
+          workspace_id: string
+        }
+        Update: {
+          addon_key?: string
+          created_at?: string | null
+          id?: string
+          price_per_unit?: number
+          quantity?: number
+          status?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workspace_addons_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "platform_workspace_directory"
+            referencedColumns: ["workspace_id"]
+          },
+          {
+            foreignKeyName: "workspace_addons_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       workspace_entitlements: {
         Row: {
           enable_ads: boolean
@@ -9802,6 +9901,10 @@ export type Database = {
           p_status: Database["public"]["Enums"]["smeksh_job_status"]
           p_wa_message_id?: string
         }
+        Returns: undefined
+      }
+      compute_workspace_entitlements: {
+        Args: { p_workspace_id: string }
         Returns: undefined
       }
       create_tenant_with_owner: {

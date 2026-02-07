@@ -196,9 +196,9 @@ export function UsagePrediction() {
             <div className="mt-6 p-4 rounded-xl bg-gradient-to-r from-primary/10 to-primary/5 border border-primary/20">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="font-semibold">Upgrade to Growth Plan</p>
+                  <p className="font-semibold">Upgrade to Pro Plan</p>
                   <p className="text-sm text-muted-foreground">
-                    Get 25,000 messages, 10 team members, and priority support
+                    Get 50,000 messages, 10 team members, and priority support — ₹3,499/mo
                   </p>
                 </div>
                 <Button className="gap-2 shadow-lg shadow-primary/25">

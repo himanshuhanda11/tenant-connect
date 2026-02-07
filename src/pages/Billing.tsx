@@ -11,6 +11,7 @@ import { PaymentMethodsCard } from '@/components/billing/PaymentMethodsCard';
 import { BillingSettingsForm } from '@/components/billing/BillingSettingsForm';
 import { SubscriptionActions } from '@/components/billing/SubscriptionActions';
 import { BillingFAQ } from '@/components/billing/BillingFAQ';
+import { WorkspacePlanCard } from '@/components/billing/WorkspacePlanCard';
 import { usePlans, useSubscription } from '@/hooks/useBilling';
 import { QuickGuide, quickGuides } from '@/components/help/QuickGuide';
 import { useState } from 'react';
@@ -61,6 +62,7 @@ export default function Billing() {
 
           {/* Overview Tab */}
           <TabsContent value="overview" className="space-y-6">
+            <WorkspacePlanCard />
             <MetaBillingNotice />
             <BillingOverviewCards />
             <BillingQuickActions />
