@@ -120,7 +120,7 @@ export default function PricingComparison({ isAnnual }: PricingComparisonProps) 
                     <th className="text-center py-5 px-3 w-[140px] relative">
                       <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary to-emerald-500" />
                       <div className="absolute -top-0.5 left-1/2 -translate-x-1/2 -translate-y-full">
-                        <Badge className="bg-gradient-to-r from-primary to-emerald-500 text-primary-foreground text-[10px] px-2.5 py-0.5 rounded-full shadow-lg gap-1">
+                        <Badge className="bg-gradient-to-r from-primary to-emerald-500 text-white text-[10px] px-2.5 py-0.5 rounded-full shadow-lg gap-1">
                           <Sparkles className="w-2.5 h-2.5" />
                           Popular
                         </Badge>
@@ -148,7 +148,7 @@ export default function PricingComparison({ isAnnual }: PricingComparisonProps) 
                   {comparisonGroups.map((group, gi) => (
                     <React.Fragment key={group.category}>
                       <tr>
-                        <td colSpan={5} className={cn('px-6 pt-5 pb-2', gi > 0 && 'border-t border-border/50')}>
+                        <td colSpan={5} className={cn('px-6 pt-5 pb-2', gi > 0 && 'border-t-2 border-border')}>
                           <div className="flex items-center gap-2">
                             <div className="w-6 h-6 rounded-md bg-primary/10 flex items-center justify-center">
                               <Zap className="w-3 h-3 text-primary" />
@@ -160,7 +160,7 @@ export default function PricingComparison({ isAnnual }: PricingComparisonProps) 
                         </td>
                       </tr>
                       {group.features.map((feature, idx) => (
-                        <tr key={idx} className="border-b border-border/15 last:border-b-0 hover:bg-muted/20 transition-colors">
+                        <tr key={idx} className="border-b border-border last:border-b-0 hover:bg-muted/20 transition-colors">
                           <td className="py-3 px-6 text-sm text-foreground font-medium">{feature.name}</td>
                           <td className="py-3 px-3 text-center">{renderCellDesktop(feature.free, false)}</td>
                           <td className="py-3 px-3 text-center">{renderCellDesktop(feature.basic, false)}</td>
@@ -170,7 +170,7 @@ export default function PricingComparison({ isAnnual }: PricingComparisonProps) 
                       ))}
                     </React.Fragment>
                   ))}
-                  <tr className="border-t border-border/50">
+                  <tr className="border-t-2 border-border">
                     <td className="py-4 px-6" />
                     <td className="py-4 px-3 text-center">
                       <Button size="sm" variant="outline" className="text-xs h-8 px-4 rounded-lg" onClick={() => navigate('/signup')}>Start Free</Button>

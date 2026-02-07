@@ -71,7 +71,7 @@ export default function PricingCards({ isAnnual }: PricingCardsProps) {
                 )}
                 {plan.badge && (
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-20">
-                    <Badge className="px-3 py-1 bg-gradient-to-r from-primary to-emerald-500 text-primary-foreground text-[11px] font-semibold rounded-full shadow-lg gap-1.5">
+                    <Badge className="px-3 py-1 bg-gradient-to-r from-primary to-emerald-500 text-white text-[11px] font-semibold rounded-full shadow-lg gap-1.5">
                       <Sparkles className="w-3 h-3" />
                       {plan.badge}
                     </Badge>
