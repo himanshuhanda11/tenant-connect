@@ -46,6 +46,7 @@ import SeoMeta from '@/components/seo/SeoMeta';
 import Breadcrumb from '@/components/layout/Breadcrumb';
 import { JsonLd, organizationSchema, softwareApplicationSchema } from '@/components/seo/JsonLd';
 import dashboardPreview from '@/assets/dashboard-preview.png';
+import whatsappApiHero from '@/assets/whatsapp-api-hero.png';
 
 const WhatsAppBusinessApi = () => {
   const navigate = useNavigate();
@@ -359,12 +360,12 @@ const WhatsAppBusinessApi = () => {
               </div>
             </div>
             
-            {/* Right - Dashboard Screenshot */}
+            {/* Right - Hero Illustration */}
             <div className="relative">
               <div className="relative rounded-2xl overflow-hidden shadow-2xl border border-white/10">
                 <img 
-                  src={dashboardPreview} 
-                  alt="AiReatro WhatsApp Dashboard - Inbox, Analytics, and Automation" 
+                  src={whatsappApiHero} 
+                  alt="WhatsApp Business API Integration - Server and Cloud Connection" 
                   className="w-full h-auto"
                 />
                 {/* Gradient overlay for polish */}

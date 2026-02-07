@@ -19,6 +19,7 @@ import { useNavigate } from 'react-router-dom';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import Breadcrumb from '@/components/layout/Breadcrumb';
+import featureCampaigns from '@/assets/feature-campaigns.png';
 
 export default function CampaignsFeature() {
   const navigate = useNavigate();
@@ -98,35 +99,21 @@ export default function CampaignsFeature() {
 
       {/* Hero */}
       <section className="relative pt-16 pb-10 md:pt-20 md:pb-14 overflow-hidden bg-gradient-to-b from-background to-muted/30">
-        <div className="absolute inset-0">
-          <div className="absolute top-20 left-1/4 w-[400px] h-[400px] bg-orange-500/5 rounded-full blur-[100px]" />
-          <div className="absolute bottom-0 right-1/4 w-[300px] h-[300px] bg-primary/5 rounded-full blur-[80px]" />
-        </div>
-        
+        <div className="absolute inset-0"><div className="absolute top-20 left-1/4 w-[400px] h-[400px] bg-orange-500/5 rounded-full blur-[100px]" /></div>
         <div className="container mx-auto px-4 relative">
           <Breadcrumb className="mb-8" />
-          <div className="max-w-4xl">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-orange-500/10 border border-orange-500/20 text-orange-600 text-sm font-medium mb-6">
-              <Megaphone className="w-4 h-4" />
-              Campaigns & Broadcasts
+          <div className="flex flex-col lg:flex-row items-center gap-8 lg:gap-12">
+            <div className="flex-1">
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-orange-500/10 border border-orange-500/20 text-orange-600 text-sm font-medium mb-6"><Megaphone className="w-4 h-4" />Campaigns & Broadcasts</div>
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-foreground mb-6 leading-tight">Reach Thousands{' '}<span className="bg-gradient-to-r from-orange-500 via-red-500 to-pink-500 bg-clip-text text-transparent">in Seconds</span></h1>
+              <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mb-8">Send targeted broadcast campaigns to your customers on WhatsApp. Get 98% open rates and drive real engagement.</p>
+              <div className="flex flex-col sm:flex-row gap-4">
+                <Button size="lg" className="h-14 px-8 bg-gradient-to-r from-green-500 to-emerald-600 shadow-lg shadow-green-500/20" onClick={() => navigate('/signup')}>Start Free Trial<ArrowRight className="w-5 h-5 ml-2" /></Button>
+                <Button size="lg" variant="outline" className="h-14 px-8" onClick={() => navigate('/contact')}>Book a Demo</Button>
+              </div>
             </div>
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-foreground mb-6 leading-tight">
-              Reach Thousands{' '}
-              <span className="bg-gradient-to-r from-orange-500 via-red-500 to-pink-500 bg-clip-text text-transparent">
-                in Seconds
-              </span>
-            </h1>
-            <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mb-8">
-              Send targeted broadcast campaigns to your customers on WhatsApp. Get 98% open rates and drive real engagement.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4">
-              <Button size="lg" className="h-14 px-8 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 shadow-lg shadow-green-500/20" onClick={() => navigate('/signup')}>
-                Start Free Trial
-                <ArrowRight className="w-5 h-5 ml-2" />
-              </Button>
-              <Button size="lg" variant="outline" className="h-14 px-8" onClick={() => navigate('/contact')}>
-                Book a Demo
-              </Button>
+            <div className="w-full max-w-sm lg:max-w-md shrink-0">
+              <img src={featureCampaigns} alt="WhatsApp Campaign Broadcasting" className="w-full h-auto rounded-2xl" loading="lazy" />
             </div>
           </div>
         </div>
