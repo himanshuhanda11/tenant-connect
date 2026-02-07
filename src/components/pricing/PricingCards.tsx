@@ -61,7 +61,7 @@ export default function PricingCards({ isAnnual }: PricingCardsProps) {
 
             return (
               <Card key={plan.id} className={cn(
-                'relative overflow-hidden flex flex-col transition-all duration-300 rounded-2xl',
+                'relative flex flex-col transition-all duration-300 rounded-2xl',
                 isPro
                   ? 'border-primary shadow-2xl shadow-primary/10 lg:scale-[1.03] z-10 ring-1 ring-primary/20'
                   : 'border-border hover:shadow-lg hover:border-primary/20',
