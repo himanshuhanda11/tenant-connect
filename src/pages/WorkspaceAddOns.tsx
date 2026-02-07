@@ -4,6 +4,7 @@ import { Sparkles, Lock } from 'lucide-react';
 import { addOns, addOnCategories, type AddOnCategory, type AddOn } from '@/data/addOns';
 import { AddOnCard } from '@/components/billing/AddOnCard';
 import { useEntitlements } from '@/hooks/useEntitlements';
+import { DashboardBreadcrumb } from '@/components/layout/DashboardBreadcrumb';
 import { cn } from '@/lib/utils';
 
 const categoryOrder: AddOnCategory[] = ['team', 'automation', 'ai_power', 'growth', 'safety'];
@@ -25,6 +26,7 @@ export default function WorkspaceAddOns() {
   return (
     <DashboardLayout>
       <div className="space-y-6">
+        <DashboardBreadcrumb items={[{ label: 'Add-Ons' }]} className="mb-2" />
         <div>
           <h1 className="text-xl sm:text-2xl font-bold flex items-center gap-2">
             <Sparkles className="w-5 h-5 text-primary" />

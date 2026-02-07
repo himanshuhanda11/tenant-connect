@@ -21,6 +21,7 @@ const routeNames: Record<string, string> = {
   'guides': 'Guides',
   'webinars': 'Webinars',
   'api-docs': 'API Docs',
+  'add-ons': 'Add-Ons',
 };
 
 interface BreadcrumbProps {
