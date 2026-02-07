@@ -45,10 +45,13 @@ export function InvoicesTable() {
   }
 
   const formatCurrency = (amount: number, currency: string) => {
+    if (currency.toLowerCase() === 'inr') {
+      return `₹${amount.toLocaleString('en-IN')}`;
+    }
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: currency.toUpperCase(),
-    }).format(amount / 100);
+    }).format(amount);
   };
 
   return (

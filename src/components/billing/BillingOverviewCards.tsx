@@ -74,7 +74,7 @@ export function BillingOverviewCards() {
             </Badge>
           </div>
           <p className="text-xs text-muted-foreground mt-1">
-            ${plan?.price_monthly || 0}/month • {subscription?.billing_cycle || 'monthly'}
+            ₹{(plan?.price_monthly || 0).toLocaleString('en-IN')}/month • {subscription?.billing_cycle || 'monthly'}
           </p>
           <Button variant="link" className="px-0 mt-2 h-auto" asChild>
             <Link to="/billing/plans">
@@ -94,7 +94,7 @@ export function BillingOverviewCards() {
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold">
-            ${((plan?.price_monthly || 0)).toFixed(2)}
+            ₹{(plan?.price_monthly || 0).toLocaleString('en-IN')}
           </div>
           <p className="text-xs text-muted-foreground mt-1">
             {subscription?.current_period_end 
