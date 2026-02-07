@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Check, ArrowRight, Sparkles, X, Users, Workflow, Bot, Brain, Gift, Rocket, Crown, Building2 } from 'lucide-react';
+import { Check, ArrowRight, Sparkles, X, Users, Workflow, Bot, Brain, Gift, Rocket, Crown, Building2, Plus, TrendingUp } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
