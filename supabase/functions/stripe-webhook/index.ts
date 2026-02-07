@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { callFunction } from "../_shared/http.ts";
 
 Deno.serve(async (req) => {
   if (req.method !== 'POST') {
@@ -123,6 +124,16 @@ Deno.serve(async (req) => {
 
       // Recompute entitlements
       await supabase.rpc('compute_workspace_entitlements', { p_workspace_id: workspaceId });
+
+      // Also call billing-apply-plan for consistency
+      await callFunction("billing-apply-plan", {
+        workspaceId,
+        planId,
+        billingCycle: billingCycle || "monthly",
+        provider: "stripe",
+        providerSubscriptionId: session.subscription,
+        providerCustomerId: session.customer,
+      }, { "x-platform-secret": Deno.env.get("PLATFORM_WEBHOOK_SECRET") || "" }).catch(() => null);
 
       // Audit log
       await supabase.from('audit_logs').insert({

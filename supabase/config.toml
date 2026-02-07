@@ -74,3 +74,12 @@ verify_jwt = false
 
 [functions.billing-apply-plan]
 verify_jwt = false
+
+[functions.platform-revenue-overview]
+verify_jwt = false
+
+[functions.invoice-download-url]
+verify_jwt = false
+
+[functions.razorpay-billing-webhook]
+verify_jwt = false
