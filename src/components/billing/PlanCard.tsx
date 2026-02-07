@@ -16,10 +16,13 @@ interface PlanCardProps {
 export function PlanCard({ plan, isCurrentPlan, isYearly, isRecommended, onSelect }: PlanCardProps) {
   const price = isYearly ? (plan.price_yearly || plan.price_monthly * 12) : plan.price_monthly;
   const monthlyEquivalent = isYearly ? Math.round(price / 12) : price;
-  const isEnterprise = plan.name === 'Enterprise';
+  const isBusiness = plan.name === 'Business';
+  const isCustomPrice = isBusiness && plan.price_monthly === 0;
   const savings = isYearly && plan.price_yearly 
     ? Math.round((1 - plan.price_yearly / (plan.price_monthly * 12)) * 100)
     : 0;
+
+  const formatINR = (val: number) => `₹${val.toLocaleString('en-IN')}`;
 
   const limits = plan.limits_json;
 
@@ -70,12 +73,14 @@ export function PlanCard({ plan, isCurrentPlan, isYearly, isRecommended, onSelec
       
       <CardContent className="flex-1 flex flex-col px-3 sm:px-6">
         <div className="text-center mb-4 sm:mb-6">
-          {isEnterprise ? (
+          {isCustomPrice ? (
             <div className="text-2xl sm:text-3xl font-bold">Custom</div>
+          ) : price === 0 ? (
+            <div className="text-3xl sm:text-4xl font-bold">Free</div>
           ) : (
             <>
               <div className="flex items-baseline justify-center gap-1">
-                <span className="text-3xl sm:text-4xl font-bold">${monthlyEquivalent}</span>
+                <span className="text-3xl sm:text-4xl font-bold">{formatINR(monthlyEquivalent)}</span>
                 <span className="text-muted-foreground text-sm">/mo</span>
               </div>
               {isYearly && savings > 0 && (
@@ -110,7 +115,7 @@ export function PlanCard({ plan, isCurrentPlan, isYearly, isRecommended, onSelec
           disabled={isCurrentPlan}
           onClick={() => onSelect(plan)}
         >
-          {isCurrentPlan ? 'Current Plan' : isEnterprise ? 'Contact Sales' : 'Upgrade'}
+          {isCurrentPlan ? 'Current Plan' : isCustomPrice ? 'Talk to Sales' : 'Upgrade'}
         </Button>
       </CardContent>
     </Card>
