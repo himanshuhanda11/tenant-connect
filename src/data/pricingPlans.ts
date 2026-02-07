@@ -87,7 +87,7 @@ export const pricingPlans: PricingPlan[] = [
       'Basic AI replies & template validation',
       'Campaign scheduling',
     ],
-    addons: ['extra_team_members', 'extra_tags', 'extra_flows', 'extra_autoforms'],
+    addons: ['extra_agents', 'extra_flows', 'extra_autoforms', 'ai_credits', 'campaign_boost'],
   },
   {
     id: 'pro',
@@ -119,7 +119,7 @@ export const pricingPlans: PricingPlan[] = [
       'Meta Ads (CTWA) attribution',
       'Shopify, WooCommerce, Razorpay integrations',
     ],
-    addons: ['extra_team_members', 'extra_phone_numbers', 'extra_flows', 'extra_ai_credits'],
+    addons: ['extra_agents', 'extra_flows', 'extra_autoforms', 'ai_credits', 'campaign_boost', 'anti_ban_guard', 'advanced_integrations'],
   },
   {
     id: 'business',
@@ -150,7 +150,7 @@ export const pricingPlans: PricingPlan[] = [
       'Dedicated success manager',
       'Priority SLA support',
     ],
-    addons: ['custom_team_members', 'custom_ai_credits', 'dedicated_infrastructure'],
+    addons: ['extra_agents', 'extra_flows', 'extra_autoforms', 'ai_credits', 'campaign_boost', 'anti_ban_guard', 'advanced_integrations'],
   },
 ];
 

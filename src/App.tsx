@@ -50,6 +50,7 @@ import AutoFormRules from "./pages/AutoFormRules";
 import FlowsHub from "./pages/flows/FlowsHub";
 import FlowBuilder from "./pages/flows/FlowBuilder";
 import Billing from "./pages/Billing";
+import WorkspaceAddOns from "./pages/WorkspaceAddOns";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import Terms from "./pages/Terms";
 import AppAccessInstructions from "./pages/AppAccessInstructions";
@@ -185,6 +186,7 @@ const App = () => (
               <Route path="/meta-ads/automations" element={<MetaAdsAutomations />} />
               <Route path="/meta-ads/settings" element={<MetaAdsSettings />} />
               <Route path="/billing" element={<Billing />} />
+              <Route path="/add-ons" element={<WorkspaceAddOns />} />
               <Route path="/app/integrations" element={<IntegrationsHub />} />
               <Route path="/app/integrations/:key" element={<IntegrationDetail />} />
               <Route path="/settings" element={<Settings />} />

@@ -3,8 +3,9 @@ import {
   CheckCircle2, ArrowRight, HelpCircle, Zap, AlertCircle, X, Shield, Sparkles,
   Users, Phone, Contact, Tag, Bot, Workflow, Brain, MessageSquare,
   Rocket, Crown, Building2, Gift, Star, TrendingUp, Lock, HeadphonesIcon,
-  ChevronRight, Globe, BarChart3, Check
+  ChevronRight, Globe, BarChart3, Check, Plus
 } from 'lucide-react';
+import { addOns, addOnCategories, formatINR as formatAddOnINR, type AddOnCategory } from '@/data/addOns';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -505,6 +506,61 @@ export default function Pricing() {
                 </table>
               </div>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Add-Ons Showcase */}
+      <section className="py-16 md:py-20">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-10">
+            <Badge className="bg-primary/10 text-primary border-primary/20 mb-4">
+              <Plus className="w-3.5 h-3.5 mr-1.5" />
+              Add-Ons
+            </Badge>
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground mb-3">
+              Scale When You Grow
+            </h2>
+            <p className="text-muted-foreground max-w-lg mx-auto">
+              Extend any paid plan with add-ons — no plan change required.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 max-w-6xl mx-auto">
+            {addOns.map((addon) => {
+              const Icon = addon.icon;
+              return (
+                <div
+                  key={addon.id}
+                  className="group relative rounded-xl border border-border bg-card p-5 transition-all hover:shadow-lg hover:border-primary/30"
+                >
+                  {addon.badge && (
+                    <Badge variant="secondary" className="absolute -top-2 right-3 text-[10px]">
+                      {addon.badge}
+                    </Badge>
+                  )}
+                  <div className="flex items-start gap-3 mb-3">
+                    <div className="p-2 rounded-lg bg-primary/10 flex-shrink-0">
+                      <Icon className="h-5 w-5 text-primary" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-foreground">{addon.name}</h3>
+                      <p className="text-xs text-muted-foreground mt-0.5">{addon.benefit}</p>
+                    </div>
+                  </div>
+                  <p className="text-xs text-muted-foreground mb-3 line-clamp-2">{addon.description}</p>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm">
+                      <span className="font-bold text-foreground">Starting at {formatAddOnINR(addon.price)}</span>
+                      <span className="text-muted-foreground text-xs block">{addon.unit}</span>
+                    </span>
+                  </div>
+                  <div className="mt-2 text-[10px] text-muted-foreground">
+                    Available on: {addon.availableOn.map(p => p.charAt(0).toUpperCase() + p.slice(1)).join(', ')}
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
       </section>

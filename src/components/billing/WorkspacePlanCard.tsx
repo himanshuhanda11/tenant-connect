@@ -1,9 +1,10 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Crown, Rocket, Gift, Building2, ArrowRight, Users, Phone, Bot, Workflow, MessageSquare, Contact } from 'lucide-react';
+import { Crown, Rocket, Gift, Building2, ArrowRight, Users, Phone, Bot, Workflow, MessageSquare, Contact, Plus, AlertTriangle } from 'lucide-react';
 import { useEntitlements } from '@/hooks/useEntitlements';
 import { useSubscription, useUsage, useTeamUsage, usePhoneUsage, useContactsUsage } from '@/hooks/useBilling';
 import { UpgradePlanDialog } from './UpgradePlanDialog';
@@ -16,11 +17,21 @@ const planMeta: Record<string, { icon: React.ReactNode; color: string; label: st
   business: { icon: <Building2 className="w-4 h-4" />, color: 'bg-amber-100 text-amber-600', label: 'Business' },
 };
 
-function UsageBar({ icon, label, used, limit }: { icon: React.ReactNode; label: string; used: number; limit: number | string }) {
+interface UsageBarProps {
+  icon: React.ReactNode;
+  label: string;
+  used: number;
+  limit: number | string;
+  addOnHint?: string;
+  onAddOn?: () => void;
+}
+
+function UsageBar({ icon, label, used, limit, addOnHint, onAddOn }: UsageBarProps) {
   const isUnlimited = limit === 'unlimited' || limit === -1;
   const numLimit = typeof limit === 'number' ? limit : 0;
-  const pct = isUnlimited ? 0 : Math.min(Math.round((used / numLimit) * 100), 100);
+  const pct = isUnlimited ? 0 : numLimit > 0 ? Math.min(Math.round((used / numLimit) * 100), 100) : 0;
   const isWarning = pct >= 80;
+  const isAtLimit = pct >= 100;
 
   return (
     <div className="space-y-1.5">
@@ -33,8 +44,25 @@ function UsageBar({ icon, label, used, limit }: { icon: React.ReactNode; label: 
       {!isUnlimited && (
         <Progress
           value={pct}
-          className={cn('h-1.5', isWarning && '[&>div]:bg-amber-500')}
+          className={cn('h-1.5', isAtLimit && '[&>div]:bg-destructive', isWarning && !isAtLimit && '[&>div]:bg-amber-500')}
         />
+      )}
+      {isAtLimit && addOnHint && (
+        <div className="flex items-center justify-between pt-1">
+          <span className="flex items-center gap-1 text-xs text-amber-600">
+            <AlertTriangle className="w-3 h-3" />
+            Limit reached
+          </span>
+          {onAddOn && (
+            <button
+              onClick={onAddOn}
+              className="flex items-center gap-1 text-xs text-primary hover:underline font-medium"
+            >
+              <Plus className="w-3 h-3" />
+              {addOnHint}
+            </button>
+          )}
+        </div>
       )}
     </div>
   );
@@ -42,6 +70,7 @@ function UsageBar({ icon, label, used, limit }: { icon: React.ReactNode; label: 
 
 export function WorkspacePlanCard() {
   const [upgradeOpen, setUpgradeOpen] = useState(false);
+  const navigate = useNavigate();
   const { data: entitlements } = useEntitlements();
   const { data: subscription } = useSubscription();
   const { data: usage } = useUsage();
@@ -53,11 +82,13 @@ export function WorkspacePlanCard() {
   const meta = planMeta[planId] ?? planMeta.free;
   const limits = entitlements?.limits ?? subscription?.plan?.limits_json;
 
+  const goAddOns = () => navigate('/add-ons');
+
   return (
     <>
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between flex-wrap gap-3">
             <div>
               <CardTitle className="flex items-center gap-2">
                 Workspace Plan
@@ -70,9 +101,15 @@ export function WorkspacePlanCard() {
                 Each workspace has its own plan and 1 WhatsApp number.
               </CardDescription>
             </div>
-            <Button onClick={() => setUpgradeOpen(true)} className="gap-2">
-              Upgrade <ArrowRight className="w-3.5 h-3.5" />
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button variant="outline" size="sm" onClick={goAddOns} className="gap-1.5">
+                <Plus className="w-3.5 h-3.5" />
+                Add-ons
+              </Button>
+              <Button onClick={() => setUpgradeOpen(true)} className="gap-2">
+                Upgrade <ArrowRight className="w-3.5 h-3.5" />
+              </Button>
+            </div>
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -81,6 +118,8 @@ export function WorkspacePlanCard() {
             label="Team Members"
             used={teamUsage?.used ?? 0}
             limit={(limits as any)?.max_team_members ?? (limits as any)?.team_members ?? 1}
+            addOnHint="Add Extra Agents"
+            onAddOn={goAddOns}
           />
           <UsageBar
             icon={<Contact className="w-3.5 h-3.5" />}
@@ -93,12 +132,16 @@ export function WorkspacePlanCard() {
             label="Messages Sent"
             used={usage?.messages_sent ?? 0}
             limit={(limits as any)?.monthly_messages ?? 500}
+            addOnHint="Add Campaign Boost"
+            onAddOn={goAddOns}
           />
           <UsageBar
             icon={<Workflow className="w-3.5 h-3.5" />}
             label="Automations"
             used={usage?.automation_runs ?? 0}
             limit={(limits as any)?.max_automations ?? (limits as any)?.automations ?? 0}
+            addOnHint="Add Extra Flows"
+            onAddOn={goAddOns}
           />
           <UsageBar
             icon={<Phone className="w-3.5 h-3.5" />}
