@@ -82,7 +82,7 @@ export default function Pricing() {
       <Navbar />
 
       {/* Hero */}
-      <section className="relative pt-20 pb-6 md:pt-28 md:pb-10 overflow-hidden">
+      <section className="relative pt-20 pb-4 md:pt-24 md:pb-6 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-background to-accent/30" />
         <div className="absolute top-20 right-10 w-72 h-72 bg-primary/5 rounded-full blur-3xl hidden md:block" />
         <div className="absolute bottom-0 left-0 w-96 h-96 bg-primary/3 rounded-full blur-3xl hidden md:block" />
@@ -131,7 +131,7 @@ export default function Pricing() {
       </section>
 
       {/* Pricing Cards */}
-      <section className="py-8 md:py-12">
+      <section className="py-6 md:py-8">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 max-w-7xl mx-auto">
             {pricingPlans.map((plan) => {
@@ -266,7 +266,7 @@ export default function Pricing() {
       </section>
 
       {/* Social Proof */}
-      <section className="py-10 border-y border-border/50 bg-muted/20">
+      <section className="py-6 border-y border-border/50 bg-muted/20">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-4xl mx-auto">
             {trustedBy.map((item, idx) => (
@@ -282,7 +282,7 @@ export default function Pricing() {
       </section>
 
       {/* Meta Billing Note */}
-      <section className="py-10">
+      <section className="py-6 md:py-8">
         <div className="container mx-auto px-4">
           <Card className="max-w-3xl mx-auto border-amber-500/30 bg-amber-50/50 dark:bg-amber-500/5">
             <CardContent className="p-5 sm:p-6">
@@ -316,9 +316,9 @@ export default function Pricing() {
       </section>
 
       {/* Premium Comparison Table */}
-      <section className="py-16 md:py-20 bg-muted/30">
+      <section className="py-10 md:py-14 bg-muted/30">
         <div className="container mx-auto px-4">
-          <div className="text-center mb-12">
+          <div className="text-center mb-8">
             <Badge className="bg-primary/10 text-primary border-primary/20 mb-4">
               <BarChart3 className="w-3.5 h-3.5 mr-1.5" />
               Feature Comparison
@@ -513,10 +513,10 @@ export default function Pricing() {
       </section>
 
       {/* Add-Ons Showcase */}
-      <section className="py-16 md:py-20">
+      <section className="py-10 md:py-14">
         <div className="container mx-auto px-4">
-          <div className="text-center mb-10">
-            <Badge className="bg-primary/10 text-primary border-primary/20 mb-4">
+          <div className="text-center mb-8">
+            <Badge className="bg-primary/10 text-primary border-primary/20 mb-3">
               <Plus className="w-3.5 h-3.5 mr-1.5" />
               Add-Ons
             </Badge>
@@ -568,7 +568,7 @@ export default function Pricing() {
       </section>
 
       {/* Trust Section */}
-      <section className="py-16 bg-foreground text-background relative overflow-hidden">
+      <section className="py-10 bg-foreground text-background relative overflow-hidden">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_50%,hsl(var(--primary)/0.15),transparent_50%)]" />
         <div className="container mx-auto px-4 text-center relative">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/20 text-primary text-sm font-medium mb-6">
@@ -592,10 +592,10 @@ export default function Pricing() {
       </section>
 
       {/* FAQ */}
-      <section className="py-16 md:py-20">
+      <section className="py-10 md:py-14">
         <div className="container mx-auto px-4">
-          <div className="text-center mb-10">
-            <Badge className="bg-primary/10 text-primary border-primary/20 mb-4">
+          <div className="text-center mb-8">
+            <Badge className="bg-primary/10 text-primary border-primary/20 mb-3">
               <HelpCircle className="w-3.5 h-3.5 mr-1.5" />
               FAQ
             </Badge>
@@ -622,13 +622,13 @@ export default function Pricing() {
       </section>
 
       {/* CTA */}
-      <section className="py-16 md:py-20 bg-gradient-to-br from-primary via-emerald-500 to-primary relative overflow-hidden">
+      <section className="py-10 md:py-14 bg-gradient-to-br from-primary via-emerald-500 to-primary relative overflow-hidden">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_30%,rgba(255,255,255,0.1),transparent_50%)]" />
         <div className="container mx-auto px-4 relative text-center">
           <h2 className="text-2xl sm:text-3xl md:text-5xl font-bold text-primary-foreground mb-4">
             Ready to get started?
           </h2>
-          <p className="text-lg text-primary-foreground/80 mb-10 max-w-2xl mx-auto">
+          <p className="text-lg text-primary-foreground/80 mb-6 max-w-2xl mx-auto">
             Start free — no credit card required. Upgrade when you're ready.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
