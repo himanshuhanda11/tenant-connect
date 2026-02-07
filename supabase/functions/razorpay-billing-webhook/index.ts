@@ -45,7 +45,43 @@ Deno.serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     );
 
-    // Handle payment captured/authorized
+    // ── Helper: insert billing event ──
+    const insertBillingEvent = async (evtType: string, workspaceId: string | null, amount: number, meta: any) => {
+      await supabase.from('platform_billing_events').insert({
+        provider: 'razorpay',
+        event_type: evtType,
+        workspace_id: workspaceId,
+        amount,
+        currency: 'INR',
+        provider_event_id: payload.payload?.payment?.entity?.id,
+        payload: meta,
+      });
+    };
+
+    // ── Helper: create invoice record ──
+    const createInvoice = async (workspaceId: string, amount: number, planName: string, billingCycle: string) => {
+      const { data: invNum } = await supabase.rpc('next_invoice_number');
+      const invoiceNumber = invNum || `INV-${Date.now()}`;
+
+      const periodStart = new Date();
+      const periodEnd = new Date();
+      periodEnd.setMonth(periodEnd.getMonth() + (billingCycle === 'yearly' ? 12 : 1));
+
+      await supabase.from('platform_invoices').insert({
+        workspace_id: workspaceId,
+        provider: 'razorpay',
+        invoice_number: invoiceNumber,
+        amount,
+        currency: 'INR',
+        status: 'paid',
+        billed_to: {},
+        line_items: [{ name: `${planName} Plan (${billingCycle})`, qty: 1, unit_amount: amount, amount }],
+        period_start: periodStart.toISOString(),
+        period_end: periodEnd.toISOString(),
+      });
+    };
+
+    // ── payment captured ──
     if (eventType === 'payment.captured' || eventType === 'order.paid') {
       const payment = payload.payload?.payment?.entity;
       if (!payment) {
@@ -60,6 +96,8 @@ Deno.serve(async (req) => {
         console.log('No workspace/plan metadata, skipping billing activation');
         return new Response('ok');
       }
+
+      const amount = payment.amount / 100; // Convert paise to rupees
 
       // Update payment record
       if (paymentId) {
@@ -83,10 +121,22 @@ Deno.serve(async (req) => {
         current_period_end: periodEnd.toISOString(),
       }, { onConflict: 'tenant_id' });
 
-      // Recompute entitlements
-      await supabase.rpc('compute_workspace_entitlements', {
-        p_workspace_id: workspaceId,
+      // Fetch plan for invoice
+      const { data: plan } = await supabase.from('platform_plans').select('name').eq('id', planId).single();
+
+      // Insert billing event
+      await insertBillingEvent('payment_succeeded', workspaceId, amount, {
+        razorpay_payment_id: payment.id,
+        razorpay_order_id: payment.order_id,
+        plan_id: planId,
+        billing_cycle: billingCycle,
       });
+
+      // Create invoice
+      await createInvoice(workspaceId, amount, plan?.name || planId, billingCycle || 'monthly');
+
+      // Recompute entitlements
+      await supabase.rpc('compute_workspace_entitlements', { p_workspace_id: workspaceId });
 
       // Audit log
       await supabase.from('audit_logs').insert({
@@ -100,15 +150,14 @@ Deno.serve(async (req) => {
           billing_cycle: billingCycle,
           razorpay_payment_id: payment.id,
           razorpay_order_id: payment.order_id,
-          amount: payment.amount / 100,
-          currency: payment.currency,
+          amount,
         },
       });
 
       console.log(`Plan ${planId} activated for workspace ${workspaceId} via Razorpay`);
     }
 
-    // Handle payment failed
+    // ── payment failed ──
     if (eventType === 'payment.failed') {
       const payment = payload.payload?.payment?.entity;
       const notes = payment?.notes || {};
@@ -122,6 +171,16 @@ Deno.serve(async (req) => {
       }
 
       if (workspaceId) {
+        await insertBillingEvent('payment_failed', workspaceId, (payment?.amount || 0) / 100, {
+          error: payment?.error_description,
+        });
+
+        // Record risk event
+        await supabase.from('platform_risk_events').insert({
+          action: 'payment_failed',
+          meta: { provider: 'razorpay', workspace_id: workspaceId, payment_id: payment?.id },
+        });
+
         await supabase.from('audit_logs').insert({
           tenant_id: workspaceId,
           action: 'subscription.payment_failed',
@@ -135,16 +194,21 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Handle refund
+    // ── refund ──
     if (eventType === 'refund.created' || eventType === 'payment.refunded') {
       const refund = payload.payload?.refund?.entity || payload.payload?.payment?.entity;
       const notes = refund?.notes || {};
-      const { paymentId } = notes;
+      const { workspaceId, paymentId } = notes;
+      const refundAmount = (refund?.amount || 0) / 100;
+
+      if (workspaceId) {
+        await insertBillingEvent('refund', workspaceId, refundAmount, {
+          razorpay_refund_id: refund?.id,
+        });
+      }
 
       if (paymentId) {
-        await supabase.from('platform_payments').update({
-          status: 'refunded',
-        }).eq('id', paymentId);
+        await supabase.from('platform_payments').update({ status: 'refunded' }).eq('id', paymentId);
       }
     }
 
