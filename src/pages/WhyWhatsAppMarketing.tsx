@@ -479,7 +479,7 @@ const WhyWhatsAppMarketing = () => {
               <Button 
                 size="lg" 
                 variant="outline" 
-                className="h-14 px-8 text-base border-2 border-border text-foreground hover:bg-muted"
+                className="h-14 px-8 text-base border-2 border-foreground/30 text-foreground hover:bg-muted font-medium"
                 onClick={() => navigate('/contact')}
               >
                 Talk to Sales

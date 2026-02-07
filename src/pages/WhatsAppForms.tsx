@@ -242,19 +242,6 @@ export default function WhatsAppForms() {
         </div>
       </section>
 
-      {/* Social Proof */}
-      <section className="py-12 bg-slate-50 border-y border-slate-100">
-        <div className="container mx-auto px-4">
-          <p className="text-center text-sm text-slate-500 mb-8">Trusted by teams worldwide</p>
-          <div className="flex flex-wrap items-center justify-center gap-8 md:gap-16 opacity-60">
-            {['Company A', 'Company B', 'Company C', 'Company D', 'Company E'].map((company, i) => (
-              <div key={i} className="h-8 px-6 bg-slate-200 rounded flex items-center justify-center text-slate-500 text-sm font-medium">
-                {company}
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
 
       {/* What Are WhatsApp Forms */}
       <section className="py-20 md:py-28 bg-white">
@@ -614,7 +601,7 @@ export default function WhatsAppForms() {
                   <Button 
                     size="lg" 
                     variant="outline" 
-                    className="h-14 px-8 text-base font-medium border-white/20 text-white hover:bg-white/10" 
+                    className="h-14 px-8 text-base font-medium border-white/40 text-white hover:bg-white/10 hover:text-white" 
                     asChild
                   >
                     <Link to="/contact">Talk to Sales</Link>
