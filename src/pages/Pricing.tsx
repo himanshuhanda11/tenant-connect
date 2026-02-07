@@ -6,10 +6,8 @@ import PricingHero from '@/components/pricing/PricingHero';
 import PricingCards from '@/components/pricing/PricingCards';
 import PricingAddOns from '@/components/pricing/PricingAddOns';
 import PricingComparison from '@/components/pricing/PricingComparison';
-import PricingTrust from '@/components/pricing/PricingTrust';
 import PricingFAQ from '@/components/pricing/PricingFAQ';
 import PricingCTA from '@/components/pricing/PricingCTA';
-import PricingMetaNote from '@/components/pricing/PricingMetaNote';
 
 export default function Pricing() {
   const [isAnnual, setIsAnnual] = useState(false);
@@ -23,13 +21,11 @@ export default function Pricing() {
       />
       <Navbar />
       <PricingHero isAnnual={isAnnual} setIsAnnual={setIsAnnual} />
-      <PricingCards isAnnual={isAnnual} />
-      <PricingTrust />
-      <PricingMetaNote />
-      <PricingComparison isAnnual={isAnnual} />
+      <PricingCards isAnnual={isAnnual} setIsAnnual={setIsAnnual} />
       <PricingAddOns />
-      <PricingFAQ />
+      <PricingComparison isAnnual={isAnnual} />
       <PricingCTA />
+      <PricingFAQ />
       <Footer />
     </div>
   );
