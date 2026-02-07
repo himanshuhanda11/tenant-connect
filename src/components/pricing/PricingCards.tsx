@@ -1,7 +1,6 @@
 import React from 'react';
 import {
   CheckCircle2, ArrowRight, X, Sparkles,
-  Users, Contact, Workflow, MessageSquare, Bot, Brain,
   Rocket, Crown, Building2, Gift, TrendingUp,
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -10,6 +9,10 @@ import { Badge } from '@/components/ui/badge';
 import { pricingPlans, type PricingPlan } from '@/data/pricingPlans';
 import { cn } from '@/lib/utils';
 import { useNavigate } from 'react-router-dom';
+import addonExtraAgents from '@/assets/addon-extra-agents.png';
+import addonExtraFlows from '@/assets/addon-extra-flows.png';
+import addonAutoforms from '@/assets/addon-autoforms.png';
+import addonAiCredits from '@/assets/addon-ai-credits.png';
 
 const planIcons: Record<string, React.ReactNode> = {
   free: <Gift className="w-5 h-5" />,
@@ -25,13 +28,11 @@ const planColors: Record<string, { text: string; iconBg: string }> = {
   business: { text: 'text-amber-600', iconBg: 'bg-amber-50' },
 };
 
-const limitIcons: Record<string, React.ComponentType<{ className?: string }>> = {
-  team_members: Users,
-  contacts: Contact,
-  flows: Workflow,
-  autoforms: MessageSquare,
-  automations: Bot,
-  ai_features: Brain,
+const limitImages: Record<string, string> = {
+  team_members: addonExtraAgents,
+  contacts: addonAutoforms,
+  flows: addonExtraFlows,
+  automations: addonAiCredits,
 };
 
 interface PricingCardsProps {
@@ -131,10 +132,10 @@ export default function PricingCards({ isAnnual }: PricingCardsProps) {
                       { key: 'flows', label: 'Flows', value: plan.limits.flows === 'unlimited' ? '∞' : plan.limits.flows === 0 ? '—' : plan.limits.flows },
                       { key: 'automations', label: 'Automations', value: plan.limits.automations === 'unlimited' ? '∞' : plan.limits.automations === 0 ? '—' : plan.limits.automations },
                     ].map((item) => {
-                      const Icon = limitIcons[item.key];
+                      const img = limitImages[item.key];
                       return (
                         <div key={item.key} className="flex items-center gap-2">
-                          <Icon className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />
+                          <img src={img} alt={item.label} className="w-6 h-6 rounded flex-shrink-0 object-cover" />
                           <div className="min-w-0">
                             <p className="text-[10px] text-muted-foreground leading-tight">{item.label}</p>
                             <p className="text-xs font-semibold text-foreground capitalize truncate">{String(item.value)}</p>
