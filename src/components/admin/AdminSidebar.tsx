@@ -14,6 +14,7 @@ interface AdminSidebarProps {
   role: string;
   collapsed: boolean;
   onToggle: () => void;
+  inline?: boolean;
 }
 
 const navItems = [
@@ -26,7 +27,7 @@ const navItems = [
   { to: '/control/settings', icon: Settings, label: 'Settings', superOnly: true },
 ];
 
-export function AdminSidebar({ role, collapsed, onToggle }: AdminSidebarProps) {
+export function AdminSidebar({ role, collapsed, onToggle, inline = false }: AdminSidebarProps) {
   const navigate = useNavigate();
   const isSuperAdmin = role === 'super_admin';
   const filteredItems = navItems.filter(i => !i.superOnly || isSuperAdmin);
@@ -88,8 +89,11 @@ export function AdminSidebar({ role, collapsed, onToggle }: AdminSidebarProps) {
   return (
     <aside
       className={cn(
-        'hidden md:flex sticky top-0 h-screen flex-col bg-background/80 backdrop-blur border-r border-border/50 transition-all duration-200',
-        collapsed ? 'w-16' : 'w-[280px]'
+        'flex flex-col bg-background/80 backdrop-blur transition-all duration-200',
+        inline
+          ? 'w-full h-full'
+          : 'hidden md:flex sticky top-0 h-screen border-r border-border/50',
+        !inline && (collapsed ? 'w-16' : 'w-[280px]')
       )}
     >
       {/* Brand */}

@@ -43,7 +43,7 @@ export function AdminTopBar({ role, onSearchOpen, readOnly }: AdminTopBarProps) 
               <SheetTitle>Control Center</SheetTitle>
             </SheetHeader>
             <div className="border-t">
-              <AdminSidebar role={role} collapsed={false} onToggle={() => {}} />
+              <AdminSidebar role={role} collapsed={false} onToggle={() => {}} inline />
             </div>
           </SheetContent>
         </Sheet>
