@@ -2,14 +2,12 @@ import React from 'react';
 import { TrendingDown, TrendingUp, Clock } from 'lucide-react';
 
 const metrics = [
-  { icon: Clock, value: '↓ 60%', label: 'Avg. reply time', color: 'text-green-500' },
-  { icon: TrendingUp, value: '↑ 3.5x', label: 'Conversion rate', color: 'text-blue-500' },
-  { icon: TrendingDown, value: '↓ 45%', label: 'Cost per lead', color: 'text-purple-500' },
+  { icon: Clock, value: '↓ 60%', label: 'Avg. reply time', color: 'text-primary' },
+  { icon: TrendingUp, value: '↑ 3.5x', label: 'Conversion rate', color: 'text-info' },
+  { icon: TrendingDown, value: '↓ 45%', label: 'Cost per lead', color: 'text-accent-foreground' },
 ];
 
-// Real companies from UAE and India
 const companies = [
-  // India
   { name: 'Tata Group', logo: 'https://logo.clearbit.com/tata.com' },
   { name: 'Reliance', logo: 'https://logo.clearbit.com/ril.com' },
   { name: 'Infosys', logo: 'https://logo.clearbit.com/infosys.com' },
@@ -24,7 +22,6 @@ const companies = [
   { name: 'Razorpay', logo: 'https://logo.clearbit.com/razorpay.com' },
   { name: 'Ola', logo: 'https://logo.clearbit.com/olacabs.com' },
   { name: 'BigBasket', logo: 'https://logo.clearbit.com/bigbasket.com' },
-  // UAE
   { name: 'Emirates', logo: 'https://logo.clearbit.com/emirates.com' },
   { name: 'Etisalat', logo: 'https://logo.clearbit.com/etisalat.ae' },
   { name: 'Du', logo: 'https://logo.clearbit.com/du.ae' },
@@ -38,7 +35,6 @@ const companies = [
 ];
 
 export default function SocialProofBar() {
-  // Duplicate the array for seamless infinite scroll
   const duplicatedCompanies = [...companies, ...companies];
 
   return (
@@ -48,13 +44,11 @@ export default function SocialProofBar() {
           TRUSTED BY <span className="font-semibold text-foreground">2,000+</span> BUSINESSES
         </p>
         
-        {/* Scrolling Logo Marquee - Optimized for mobile */}
+        {/* Scrolling Logo Marquee */}
         <div className="relative mb-6 sm:mb-8">
-          {/* Gradient overlays for fade effect */}
           <div className="absolute left-0 top-0 bottom-0 w-12 sm:w-20 md:w-32 bg-gradient-to-r from-muted/30 to-transparent z-10 pointer-events-none" />
           <div className="absolute right-0 top-0 bottom-0 w-12 sm:w-20 md:w-32 bg-gradient-to-l from-muted/30 to-transparent z-10 pointer-events-none" />
           
-          {/* Scrolling container */}
           <div className="flex animate-marquee">
             {duplicatedCompanies.map((company, index) => (
               <div 
@@ -81,7 +75,7 @@ export default function SocialProofBar() {
           </div>
         </div>
 
-        {/* Metrics row - Stack on small mobile */}
+        {/* Metrics row */}
         <div className="flex flex-col xs:flex-row flex-wrap justify-center items-center gap-4 sm:gap-6 md:gap-12">
           {metrics.map((metric, index) => (
             <div key={index} className="flex items-center gap-2 text-center">

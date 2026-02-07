@@ -79,7 +79,7 @@ export default function TestimonialsCarousel() {
   const goToNext = () => goToSlide((currentIndex + 1) % testimonials.length);
 
   return (
-    <section className="py-10 sm:py-12 md:py-16 lg:py-20 bg-white">
+    <section className="py-10 sm:py-12 md:py-16 lg:py-20 bg-background">
       <div className="container mx-auto px-4">
         <div className="text-center max-w-3xl mx-auto mb-8 sm:mb-10 md:mb-14">
           <Badge className="mb-3 sm:mb-4 bg-amber-100 text-amber-700 border-0 text-xs sm:text-sm">
