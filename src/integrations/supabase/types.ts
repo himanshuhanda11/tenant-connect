@@ -9661,6 +9661,17 @@ export type Database = {
           },
         ]
       }
+      platform_revenue_daily: {
+        Row: {
+          currency: string | null
+          day: string | null
+          gross: number | null
+          net: number | null
+          payments_count: number | null
+          refunds: number | null
+        }
+        Relationships: []
+      }
       platform_workspace_directory: {
         Row: {
           contacts_count: number | null
