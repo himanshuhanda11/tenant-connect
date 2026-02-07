@@ -31,6 +31,7 @@ export default function AdminWorkspaceDetail() {
   const [entitlements, setEntitlements] = useState<any>(null);
   const [members, setMembers] = useState<any[]>([]);
   const [phones, setPhones] = useState<any[]>([]);
+  const [workspacePhone, setWorkspacePhone] = useState<any>(null);
   const [auditLogs, setAuditLogs] = useState<any[]>([]);
   const [suspendDialog, setSuspendDialog] = useState(false);
   const [suspendReason, setSuspendReason] = useState('');
@@ -42,6 +43,7 @@ export default function AdminWorkspaceDetail() {
       setEntitlements(data.entitlements);
       setMembers(data.members || []);
       setPhones(data.phones || []);
+      setWorkspacePhone(data.workspace_phone || null);
     }).catch(() => {});
 
     get(`audit-logs?workspace_id=${id}`).then(data => {
@@ -137,7 +139,7 @@ export default function AdminWorkspaceDetail() {
           <TeamTab members={members} isSuperAdmin={isSuperAdmin} />
         </TabsContent>
         <TabsContent value="whatsapp" className="mt-4">
-          <WhatsAppTab phones={phones} isSuperAdmin={isSuperAdmin} />
+          <WhatsAppTab phones={phones} workspacePhone={workspacePhone} isSuperAdmin={isSuperAdmin} />
         </TabsContent>
         <TabsContent value="templates" className="mt-4">
           <TemplatesTab />

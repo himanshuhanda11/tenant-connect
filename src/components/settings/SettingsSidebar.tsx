@@ -11,7 +11,8 @@ import {
   FileCheck,
   Code,
   Bell,
-  Settings2
+  Settings2,
+  Phone
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -25,6 +26,7 @@ interface SettingsSection {
 
 const settingsSections: SettingsSection[] = [
   { id: 'workspace', label: 'Workspace', icon: Building2 },
+  { id: 'whatsapp', label: 'WhatsApp Number', icon: Phone },
   { id: 'messaging', label: 'Messaging', icon: MessageSquare },
   { id: 'inbox', label: 'Inbox', icon: Inbox },
   { id: 'automation', label: 'Automation', icon: Zap },

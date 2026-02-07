@@ -6,7 +6,7 @@ import { Separator } from '@/components/ui/separator';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import {
   Shield, LayoutDashboard, Building2, ScrollText, Users, CreditCard,
-  ChevronLeft, ChevronRight, ArrowLeft, Settings, Siren
+  ChevronLeft, ChevronRight, ArrowLeft, Settings, Siren, Phone
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -20,6 +20,7 @@ interface AdminSidebarProps {
 const navItems = [
   { to: '/control', icon: LayoutDashboard, label: 'Overview', end: true },
   { to: '/control/workspaces', icon: Building2, label: 'Workspaces' },
+  { to: '/control/phone-numbers', icon: Phone, label: 'Phone Numbers' },
   { to: '/control/billing', icon: CreditCard, label: 'Billing' },
   { to: '/control/incidents', icon: Siren, label: 'Incidents', badge: 'New' },
   { to: '/control/team', icon: Users, label: 'Platform Team', superOnly: true },

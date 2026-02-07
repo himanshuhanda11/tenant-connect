@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { SettingsSidebar, SettingsMobileNav } from '@/components/settings/SettingsSidebar';
 import { WorkspaceSettings } from '@/components/settings/sections/WorkspaceSettings';
+import { WhatsAppNumberSettings } from '@/components/settings/sections/WhatsAppNumberSettings';
 import { MessagingSettings } from '@/components/settings/sections/MessagingSettings';
 import { InboxSettings } from '@/components/settings/sections/InboxSettings';
 import { AutomationSettings } from '@/components/settings/sections/AutomationSettings';
@@ -20,6 +21,7 @@ export default function Settings() {
   const renderContent = () => {
     switch (activeSection) {
       case 'workspace': return <WorkspaceSettings />;
+      case 'whatsapp': return <WhatsAppNumberSettings />;
       case 'messaging': return <MessagingSettings />;
       case 'inbox': return <InboxSettings />;
       case 'automation': return <AutomationSettings />;
