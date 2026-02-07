@@ -23,7 +23,7 @@ const differentiators = [
   },
   {
     icon: Route,
-    title: 'Ads → Flow → Agent Attribution',
+    title: 'Ads → Flow → Agent',
     description: 'Track the complete journey from Meta Ads click to conversation to conversion.',
     link: '/features/integrations'
   },
@@ -36,7 +36,7 @@ const differentiators = [
   {
     icon: Lock,
     title: 'Pro Features, Unlockable',
-    description: 'See what\'s possible with Pro badges. Upgrade when you\'re ready — no surprises.',
+    description: "See what's possible with Pro badges. Upgrade when you're ready — no surprises.",
     badge: 'Pro',
     link: '/pricing'
   },
@@ -65,41 +65,41 @@ export default function DifferentiatorCards() {
         </div>
 
         {/* Image Left + Cards Right Layout */}
-        <div className="flex flex-col lg:flex-row gap-6 lg:gap-10 max-w-6xl mx-auto items-center">
-          {/* Left - Illustration */}
-          <div className="w-full lg:w-[45%] shrink-0">
+        <div className="flex flex-col lg:flex-row gap-6 lg:gap-8 max-w-6xl mx-auto items-center">
+          {/* Left - Square Illustration */}
+          <div className="w-full max-w-sm mx-auto lg:mx-0 lg:w-[42%] shrink-0">
             <img 
               src={homeDifferentiators} 
               alt="Platform features overview" 
-              className="w-full rounded-2xl shadow-lg" 
+              className="w-full aspect-square object-cover rounded-2xl shadow-lg" 
               loading="lazy" 
             />
           </div>
 
-          {/* Right - 2x3 Grid */}
-          <div className="w-full lg:w-[55%] grid grid-cols-1 xs:grid-cols-2 gap-4">
+          {/* Right - 2x3 Grid of Cards */}
+          <div className="w-full lg:w-[58%] grid grid-cols-2 gap-3 sm:gap-4">
             {differentiators.map((item, index) => (
               <Link to={item.link} key={index}>
                 <Card className="group h-full border border-border bg-card hover:shadow-lg hover:-translate-y-1 transition-all duration-300 cursor-pointer hover:border-primary/30">
-                  <CardContent className="p-4">
-                    <div className="flex items-start justify-between mb-2.5">
-                      <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center shadow-sm">
-                        <item.icon className="w-4.5 h-4.5 text-primary" />
+                  <CardContent className="p-3 sm:p-4">
+                    <div className="flex items-start justify-between mb-2">
+                      <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-primary/10 flex items-center justify-center shadow-sm">
+                        <item.icon className="w-4 h-4 sm:w-[18px] sm:h-[18px] text-primary" />
                       </div>
                       {item.badge && (
-                        <Badge className="bg-accent text-accent-foreground border-0 text-[10px] font-semibold">
+                        <Badge className="bg-accent text-accent-foreground border-0 text-[9px] sm:text-[10px] font-semibold">
                           {item.badge}
                         </Badge>
                       )}
                     </div>
-                    <h3 className="text-sm sm:text-base font-bold text-foreground mb-1 group-hover:text-primary transition-colors">
+                    <h3 className="text-xs sm:text-sm font-bold text-foreground mb-1 group-hover:text-primary transition-colors leading-tight">
                       {item.title}
                     </h3>
-                    <p className="text-muted-foreground text-xs leading-relaxed mb-2.5">
+                    <p className="text-muted-foreground text-[10px] sm:text-xs leading-relaxed mb-2 line-clamp-3">
                       {item.description}
                     </p>
-                    <span className="inline-flex items-center gap-1 text-xs font-medium text-primary group-hover:gap-2 transition-all">
-                      Learn more <ArrowRight className="w-3 h-3" />
+                    <span className="inline-flex items-center gap-1 text-[10px] sm:text-xs font-medium text-primary group-hover:gap-2 transition-all">
+                      Learn more <ArrowRight className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
                     </span>
                   </CardContent>
                 </Card>
