@@ -26,8 +26,8 @@ export default function Billing() {
   const { data: subscription } = useSubscription();
 
   const handlePlanSelect = (plan: Plan) => {
-    if (plan.name === 'Enterprise') {
-      toast.info('Contact sales for Enterprise pricing');
+    if (plan.name === 'Business') {
+      toast.info('Contact sales for Business pricing');
     } else {
       toast.info('Stripe integration pending - Upgrade will be available soon');
     }
@@ -104,7 +104,7 @@ export default function Billing() {
                       plan={plan}
                       isCurrentPlan={subscription?.plan_id === plan.id}
                       isYearly={isYearly}
-                      isRecommended={plan.name === 'Growth'}
+                      isRecommended={plan.name === 'Pro'}
                       onSelect={handlePlanSelect}
                     />
                   ))}
