@@ -8640,6 +8640,7 @@ export type Database = {
           id: string
           is_suspended: boolean | null
           name: string
+          onboarding_status: string | null
           slug: string
           suspended_at: string | null
           suspended_reason: string | null
@@ -8650,6 +8651,7 @@ export type Database = {
           id?: string
           is_suspended?: boolean | null
           name: string
+          onboarding_status?: string | null
           slug: string
           suspended_at?: string | null
           suspended_reason?: string | null
@@ -8660,6 +8662,7 @@ export type Database = {
           id?: string
           is_suspended?: boolean | null
           name?: string
+          onboarding_status?: string | null
           slug?: string
           suspended_at?: string | null
           suspended_reason?: string | null
@@ -9551,24 +9554,48 @@ export type Database = {
       }
       workspace_phone_numbers: {
         Row: {
-          created_at: string | null
+          created_at: string
+          display_name: string | null
           id: string
-          label: string | null
+          is_primary: boolean
+          messaging_limit: number | null
           phone_e164: string
+          phone_number_id: string | null
+          provider: string
+          quality_rating: string | null
+          status: string
+          updated_at: string
+          waba_id: string | null
           workspace_id: string
         }
         Insert: {
-          created_at?: string | null
+          created_at?: string
+          display_name?: string | null
           id?: string
-          label?: string | null
+          is_primary?: boolean
+          messaging_limit?: number | null
           phone_e164: string
+          phone_number_id?: string | null
+          provider?: string
+          quality_rating?: string | null
+          status?: string
+          updated_at?: string
+          waba_id?: string | null
           workspace_id: string
         }
         Update: {
-          created_at?: string | null
+          created_at?: string
+          display_name?: string | null
           id?: string
-          label?: string | null
+          is_primary?: boolean
+          messaging_limit?: number | null
           phone_e164?: string
+          phone_number_id?: string | null
+          provider?: string
+          quality_rating?: string | null
+          status?: string
+          updated_at?: string
+          waba_id?: string | null
           workspace_id?: string
         }
         Relationships: [
@@ -9602,6 +9629,37 @@ export type Database = {
           total_workspaces: number | null
         }
         Relationships: []
+      }
+      platform_phone_numbers_view: {
+        Row: {
+          created_at: string | null
+          id: string | null
+          is_primary: boolean | null
+          messaging_limit: number | null
+          phone_e164: string | null
+          provider: string | null
+          quality_rating: string | null
+          status: string | null
+          updated_at: string | null
+          workspace_id: string | null
+          workspace_name: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workspace_phone_numbers_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: true
+            referencedRelation: "platform_workspace_directory"
+            referencedColumns: ["workspace_id"]
+          },
+          {
+            foreignKeyName: "workspace_phone_numbers_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: true
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       platform_workspace_directory: {
         Row: {
@@ -10220,6 +10278,7 @@ export type Database = {
           id: string
           is_suspended: boolean | null
           name: string
+          onboarding_status: string | null
           slug: string
           suspended_at: string | null
           suspended_reason: string | null
