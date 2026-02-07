@@ -82,17 +82,17 @@ export default function TestimonialsCarousel() {
     <section className="py-10 sm:py-12 md:py-16 lg:py-20 bg-background">
       <div className="container mx-auto px-4">
         <div className="text-center max-w-3xl mx-auto mb-8 sm:mb-10 md:mb-14">
-          <Badge className="mb-3 sm:mb-4 bg-amber-100 text-amber-700 border-0 text-xs sm:text-sm">
-            <Star className="w-3 sm:w-3.5 h-3 sm:h-3.5 mr-1 sm:mr-1.5 fill-amber-500" />
+          <Badge className="mb-3 sm:mb-4 bg-accent text-accent-foreground border-0 text-xs sm:text-sm">
+            <Star className="w-3 sm:w-3.5 h-3 sm:h-3.5 mr-1 sm:mr-1.5 fill-primary" />
             Customer Stories
           </Badge>
-          <h2 className="text-2xl xs:text-3xl md:text-4xl lg:text-5xl font-bold text-slate-900 mb-3 sm:mb-4">
+          <h2 className="text-2xl xs:text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-3 sm:mb-4">
             Loved by{' '}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-600 to-orange-500">
-              2,000+ Teams
-            </span>
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-emerald-500">
+                2,000+ Teams
+              </span>
           </h2>
-          <p className="text-sm sm:text-base lg:text-lg text-slate-600">
+          <p className="text-sm sm:text-base lg:text-lg text-muted-foreground">
             Real results from real businesses
           </p>
         </div>
@@ -100,13 +100,13 @@ export default function TestimonialsCarousel() {
         <div className="max-w-4xl mx-auto">
           {/* Main Carousel */}
           <div className="relative">
-            <Card className="border-0 shadow-xl bg-gradient-to-br from-slate-50 to-white">
+            <Card className="border-0 shadow-xl bg-gradient-to-br from-muted/50 to-card">
               <CardContent className="p-5 sm:p-8 md:p-12">
-                <Quote className="w-8 sm:w-10 md:w-12 h-8 sm:h-10 md:h-12 text-green-200 mb-4 sm:mb-6" />
+                <Quote className="w-8 sm:w-10 md:w-12 h-8 sm:h-10 md:h-12 text-primary/20 mb-4 sm:mb-6" />
                 
                 <div className="grid md:grid-cols-3 gap-6 sm:gap-8 items-center">
                   <div className="md:col-span-2">
-                    <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-slate-700 leading-relaxed mb-4 sm:mb-6">
+                    <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-foreground/80 leading-relaxed mb-4 sm:mb-6">
                       "{testimonials[currentIndex].quote}"
                     </p>
                     
@@ -117,15 +117,15 @@ export default function TestimonialsCarousel() {
                         className="w-10 sm:w-12 md:w-14 h-10 sm:h-12 md:h-14 rounded-full object-cover border-2 border-white shadow-md"
                       />
                       <div>
-                        <div className="font-semibold text-slate-900 text-sm sm:text-base">
+                        <div className="font-semibold text-foreground text-sm sm:text-base">
                           {testimonials[currentIndex].name}
                         </div>
-                        <div className="text-xs sm:text-sm text-slate-500">
+                        <div className="text-xs sm:text-sm text-muted-foreground">
                           {testimonials[currentIndex].role}, {testimonials[currentIndex].company}
                         </div>
                         <div className="flex items-center gap-0.5 mt-1">
                           {[...Array(testimonials[currentIndex].rating)].map((_, i) => (
-                            <Star key={i} className="w-3 sm:w-4 h-3 sm:h-4 text-amber-400 fill-amber-400" />
+                            <Star key={i} className="w-3 sm:w-4 h-3 sm:h-4 text-primary fill-primary" />
                           ))}
                         </div>
                       </div>
@@ -134,12 +134,12 @@ export default function TestimonialsCarousel() {
                   
                   {/* Metric Highlight */}
                   <div className="text-center md:text-right mt-4 md:mt-0">
-                    <div className="inline-block p-4 sm:p-6 rounded-xl sm:rounded-2xl bg-green-50 border border-green-200">
-                      <TrendingUp className="w-6 sm:w-8 h-6 sm:h-8 text-green-600 mx-auto mb-1.5 sm:mb-2" />
-                      <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-green-600 mb-0.5 sm:mb-1">
+                    <div className="inline-block p-4 sm:p-6 rounded-xl sm:rounded-2xl bg-accent border border-primary/20">
+                      <TrendingUp className="w-6 sm:w-8 h-6 sm:h-8 text-primary mx-auto mb-1.5 sm:mb-2" />
+                      <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-primary mb-0.5 sm:mb-1">
                         {testimonials[currentIndex].metric}
                       </div>
-                      <div className="text-xs sm:text-sm text-slate-600">
+                      <div className="text-xs sm:text-sm text-muted-foreground">
                         {testimonials[currentIndex].metricLabel}
                       </div>
                     </div>
@@ -153,7 +153,7 @@ export default function TestimonialsCarousel() {
               <Button 
                 variant="outline" 
                 size="icon"
-                className="rounded-full bg-white shadow-lg pointer-events-auto w-8 h-8 sm:w-10 sm:h-10"
+                className="rounded-full bg-card shadow-lg pointer-events-auto w-8 h-8 sm:w-10 sm:h-10"
                 onClick={goToPrev}
               >
                 <ChevronLeft className="w-4 sm:w-5 h-4 sm:h-5" />
@@ -161,7 +161,7 @@ export default function TestimonialsCarousel() {
               <Button 
                 variant="outline" 
                 size="icon"
-                className="rounded-full bg-white shadow-lg pointer-events-auto w-8 h-8 sm:w-10 sm:h-10"
+                className="rounded-full bg-card shadow-lg pointer-events-auto w-8 h-8 sm:w-10 sm:h-10"
                 onClick={goToNext}
               >
                 <ChevronRight className="w-4 sm:w-5 h-4 sm:h-5" />
@@ -177,8 +177,8 @@ export default function TestimonialsCarousel() {
                 onClick={() => goToSlide(index)}
                 className={`w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full transition-all ${
                   index === currentIndex 
-                    ? 'bg-green-600 w-6 sm:w-8' 
-                    : 'bg-slate-300 hover:bg-slate-400'
+                    ? 'bg-primary w-6 sm:w-8' 
+                    : 'bg-muted-foreground/30 hover:bg-muted-foreground/50'
                 }`}
               />
             ))}

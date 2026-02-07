@@ -168,22 +168,22 @@ function variantClasses(variant: UspVariant) {
 
 export default function PowerfulUSPsSection() {
   return (
-    <section className="py-16 md:py-24 bg-background">
+    <section className="py-10 sm:py-12 md:py-16 lg:py-24 bg-background">
       <div className="container mx-auto px-4">
-        <div className="text-center mb-10 md:mb-14">
-          <Badge variant="outline" className="mb-4 border-primary/30 text-primary">
+        <div className="text-center mb-8 sm:mb-10 md:mb-14">
+          <Badge variant="outline" className="mb-3 sm:mb-4 border-primary/30 text-primary text-xs sm:text-sm">
             Why AiReatro
           </Badge>
-          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-4">
+          <h2 className="text-2xl xs:text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-3 sm:mb-4">
             10 Powerful Reasons to Choose <span className="text-primary">AiReatro</span>
           </h2>
-          <p className="text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto">
+          <p className="text-sm sm:text-base md:text-lg lg:text-xl text-muted-foreground max-w-3xl mx-auto px-2">
             AiReatro is an AI-powered WhatsApp platform that doesn't just automate conversations — it tells you what's
             working, what's broken, and what to fix to grow revenue.
           </p>
         </div>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-14">
+        <div className="grid grid-cols-1 xs:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-6 mb-8 sm:mb-14">
           {usps.map((usp) => {
             const Icon = usp.icon;
             const v = variantClasses(usp.variant);
@@ -192,7 +192,7 @@ export default function PowerfulUSPsSection() {
               <Card
                 key={usp.number}
                 className={cn(
-                  'relative overflow-hidden p-6 border transition-all duration-300',
+                  'relative overflow-hidden p-4 sm:p-6 border transition-all duration-300',
                   'hover:-translate-y-1 hover:shadow-xl',
                   'group'
                 )}
@@ -204,34 +204,34 @@ export default function PowerfulUSPsSection() {
                     v.glow
                   )}
                 />
-                <div className="pointer-events-none absolute -bottom-8 -right-2 text-7xl font-black tracking-tight text-foreground/5">
+                <div className="pointer-events-none absolute -bottom-6 -right-2 text-5xl sm:text-7xl font-black tracking-tight text-foreground/5">
                   {usp.number}
                 </div>
 
                 <div className="relative">
-                  <div className="flex items-start gap-4 mb-4">
-                    <div className={cn('flex-shrink-0 w-12 h-12 rounded-2xl flex items-center justify-center border', v.iconWrap)}>
-                      <Icon className="w-6 h-6" />
+                  <div className="flex items-start gap-3 sm:gap-4 mb-3 sm:mb-4">
+                    <div className={cn('flex-shrink-0 w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl flex items-center justify-center border', v.iconWrap)}>
+                      <Icon className="w-5 h-5 sm:w-6 sm:h-6" />
                     </div>
                     <div className="min-w-0">
-                      <span className={cn('inline-flex text-[11px] font-bold px-2 py-1 rounded-full border', v.chip)}>
+                      <span className={cn('inline-flex text-[10px] sm:text-[11px] font-bold px-2 py-0.5 sm:py-1 rounded-full border', v.chip)}>
                         USP #{usp.number}
                       </span>
-                      <h3 className="text-lg font-bold text-foreground mt-2 leading-snug">{usp.title}</h3>
-                      <p className="text-sm font-medium text-primary/80">{usp.subtitle}</p>
+                      <h3 className="text-sm sm:text-lg font-bold text-foreground mt-1.5 sm:mt-2 leading-snug">{usp.title}</h3>
+                      <p className="text-xs sm:text-sm font-medium text-primary/80">{usp.subtitle}</p>
                     </div>
                   </div>
-                  <p className="text-sm text-muted-foreground mb-4">{usp.description}</p>
-                  <ul className="space-y-2 mb-4">
+                  <p className="text-xs sm:text-sm text-muted-foreground mb-3 sm:mb-4">{usp.description}</p>
+                  <ul className="space-y-1.5 sm:space-y-2 mb-3 sm:mb-4">
                     {usp.bullets.map((bullet) => (
-                      <li key={bullet} className="flex items-start gap-2 text-sm text-foreground/90">
-                        <Check className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" />
+                      <li key={bullet} className="flex items-start gap-1.5 sm:gap-2 text-xs sm:text-sm text-foreground/90">
+                        <Check className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-primary flex-shrink-0 mt-0.5" />
                         <span className="leading-snug">{bullet}</span>
                       </li>
                     ))}
                   </ul>
-                  <div className={cn('pt-4 border-t', v.divider)}>
-                    <p className="text-sm font-semibold text-primary">→ {usp.cta}</p>
+                  <div className={cn('pt-3 sm:pt-4 border-t', v.divider)}>
+                    <p className="text-xs sm:text-sm font-semibold text-primary">→ {usp.cta}</p>
                   </div>
                 </div>
               </Card>
@@ -241,15 +241,15 @@ export default function PowerfulUSPsSection() {
 
         {/* Redesigned Comparison Section */}
         <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-8">
-            <Badge className="mb-3 bg-primary/10 text-primary border-0">
+          <div className="text-center mb-6 sm:mb-8">
+            <Badge className="mb-3 bg-primary/10 text-primary border-0 text-xs sm:text-sm">
               <Zap className="w-3 h-3 mr-1" />
               Head-to-Head
             </Badge>
-            <h3 className="text-2xl md:text-4xl font-bold text-foreground mb-2">
+            <h3 className="text-xl xs:text-2xl md:text-4xl font-bold text-foreground mb-2">
               AiReatro vs. Others
             </h3>
-            <p className="text-muted-foreground max-w-lg mx-auto">
+            <p className="text-sm sm:text-base text-muted-foreground max-w-lg mx-auto px-2">
               See why teams switch from legacy WhatsApp platforms to AiReatro
             </p>
           </div>

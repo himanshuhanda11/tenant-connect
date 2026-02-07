@@ -16,10 +16,10 @@ const planIcons: Record<string, React.ReactNode> = {
 };
 
 const planAccent: Record<string, string> = {
-  free: 'bg-slate-100 text-slate-600',
-  basic: 'bg-blue-100 text-blue-600',
+  free: 'bg-muted text-muted-foreground',
+  basic: 'bg-info/10 text-info',
   pro: 'bg-primary/10 text-primary',
-  business: 'bg-amber-100 text-amber-600',
+  business: 'bg-accent text-accent-foreground',
 };
 
 export default function PricingPreview() {
