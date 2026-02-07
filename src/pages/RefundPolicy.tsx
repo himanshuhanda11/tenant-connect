@@ -1,9 +1,10 @@
 import { Link } from 'react-router-dom';
-import { ArrowLeft, CreditCard, CheckCircle2, Clock, HelpCircle } from 'lucide-react';
+import { CreditCard, CheckCircle2, Clock, HelpCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
+import Breadcrumb from '@/components/layout/Breadcrumb';
 
 export default function RefundPolicy() {
   const eligibleRefunds = [
@@ -36,10 +37,7 @@ export default function RefundPolicy() {
         
         <div className="container mx-auto px-4 relative">
           <div className="max-w-3xl mx-auto">
-            <Link to="/" className="inline-flex items-center text-muted-foreground hover:text-foreground mb-6">
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Home
-            </Link>
+            <Breadcrumb className="mb-6" />
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-green-500/10 border border-green-500/20 text-green-500 text-sm font-medium mb-6">
               <CreditCard className="w-4 h-4" />
               Refund Policy
