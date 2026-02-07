@@ -35,6 +35,7 @@ import Footer from '@/components/layout/Footer';
 import SeoMeta from '@/components/seo/SeoMeta';
 import Breadcrumb from '@/components/layout/Breadcrumb';
 import { JsonLd, organizationSchema, softwareApplicationSchema } from '@/components/seo/JsonLd';
+import clickToWhatsAppHero from '@/assets/click-to-whatsapp-hero.png';
 
 const ClickToWhatsApp = () => {
   const navigate = useNavigate();
@@ -182,55 +183,55 @@ const ClickToWhatsApp = () => {
         
         <div className="container mx-auto px-4 relative">
           <Breadcrumb className="mb-6" />
-          <div className="max-w-4xl mx-auto text-center">
-            <Badge className="mb-6 px-4 py-2 bg-primary/10 text-primary border-primary/20 hover:bg-primary/15">
-              <MousePointer className="w-4 h-4 mr-2" />
-              Click to WhatsApp App
-            </Badge>
-            
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 leading-tight text-foreground">
-              Click to WhatsApp.{' '}
-              <span className="text-primary">Convert Faster.</span>{' '}
-              Powered by AI.
-            </h1>
-            
-            <p className="text-lg md:text-xl text-muted-foreground mb-8 max-w-3xl mx-auto">
-              Turn ads, links, QR codes, and buttons into instant WhatsApp conversations — with full attribution, AI insights, and automation built in.
-            </p>
-            
-            <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
-              <Button 
-                size="lg" 
-                className="bg-primary hover:bg-primary/90 text-primary-foreground h-14 px-8 text-base shadow-lg shadow-primary/30"
-                onClick={() => navigate('/signup')}
-              >
-                Create Click to WhatsApp Link
-                <ArrowRight className="w-5 h-5 ml-2" />
-              </Button>
-              <Button 
-                size="lg" 
-                variant="outline" 
-                className="h-14 px-8 text-base border-2 border-border text-foreground hover:bg-muted"
-                onClick={() => navigate('/contact')}
-              >
-                Talk to Sales
-              </Button>
+          <div className="flex flex-col lg:flex-row items-center gap-8 lg:gap-12">
+            <div className="flex-1 text-center lg:text-left">
+              <Badge className="mb-6 px-4 py-2 bg-primary/10 text-primary border-primary/20 hover:bg-primary/15">
+                <MousePointer className="w-4 h-4 mr-2" />
+                Click to WhatsApp App
+              </Badge>
+              
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 leading-tight text-foreground">
+                Click to WhatsApp.{' '}
+                <span className="text-primary">Convert Faster.</span>{' '}
+                Powered by AI.
+              </h1>
+              
+              <p className="text-lg md:text-xl text-muted-foreground mb-8 max-w-xl">
+                Turn ads, links, QR codes, and buttons into instant WhatsApp conversations — with full attribution, AI insights, and automation built in.
+              </p>
+              
+              <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-8">
+                <Button 
+                  size="lg" 
+                  className="bg-primary hover:bg-primary/90 text-primary-foreground h-14 px-8 text-base shadow-lg shadow-primary/30"
+                  onClick={() => navigate('/signup')}
+                >
+                  Create Click to WhatsApp Link
+                  <ArrowRight className="w-5 h-5 ml-2" />
+                </Button>
+                <Button 
+                  size="lg" 
+                  variant="outline" 
+                  className="h-14 px-8 text-base border-2 border-border text-foreground hover:bg-muted"
+                  onClick={() => navigate('/contact')}
+                >
+                  Talk to Sales
+                </Button>
+              </div>
+              
+              <div className="flex flex-wrap items-center justify-center lg:justify-start gap-4 text-sm text-muted-foreground">
+                <span className="flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-primary" />
+                  Official WhatsApp Cloud API
+                </span>
+                <span className="flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-primary" />
+                  Track every click
+                </span>
+              </div>
             </div>
-            
-            {/* Trust badges */}
-            <div className="flex flex-wrap items-center justify-center gap-6 text-sm text-muted-foreground">
-              <span className="flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-primary" />
-                Powered by Official WhatsApp Cloud API
-              </span>
-              <span className="flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-primary" />
-                Track every click
-              </span>
-              <span className="flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-primary" />
-                No credit card required
-              </span>
+            <div className="w-full max-w-md lg:max-w-lg shrink-0">
+              <img src={clickToWhatsAppHero} alt="Click to WhatsApp - Convert ads and links into conversations" className="w-full h-auto rounded-2xl" loading="lazy" />
             </div>
           </div>
         </div>

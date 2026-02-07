@@ -28,6 +28,7 @@ import Footer from '@/components/layout/Footer';
 import Breadcrumb from '@/components/layout/Breadcrumb';
 import SeoMeta from '@/components/seo/SeoMeta';
 import { JsonLd, organizationSchema, softwareApplicationSchema } from '@/components/seo/JsonLd';
+import productsHero from '@/assets/products-hero.png';
 
 export default function Products() {
   const navigate = useNavigate();
@@ -159,26 +160,31 @@ export default function Products() {
         
         <div className="container mx-auto px-4 relative">
           <Breadcrumb className="mb-8" />
-          <div className="max-w-4xl mx-auto text-center">
-            <Badge className="mb-6 px-4 py-2 bg-primary/10 text-primary border-primary/20">
-              <Sparkles className="w-4 h-4 mr-2" />
-              Complete WhatsApp Business Platform
-            </Badge>
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 leading-tight text-foreground">
-              Everything for{' '}
-              <span className="text-primary">WhatsApp Success</span>
-            </h1>
-            <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mb-10">
-              From API integration to AI-powered marketing — all the tools you need to connect, engage, and grow on WhatsApp.
-            </p>
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Button size="lg" className="h-14 px-8 text-primary-foreground" onClick={() => navigate('/signup')}>
-                Start Free Trial
-                <ArrowRight className="w-5 h-5 ml-2" />
-              </Button>
-              <Button size="lg" variant="outline" className="h-14 px-8 border-border text-foreground hover:bg-muted" onClick={() => navigate('/contact')}>
-                Talk to Sales
-              </Button>
+          <div className="flex flex-col lg:flex-row items-center gap-8 lg:gap-12">
+            <div className="flex-1 text-center lg:text-left">
+              <Badge className="mb-6 px-4 py-2 bg-primary/10 text-primary border-primary/20">
+                <Sparkles className="w-4 h-4 mr-2" />
+                Complete WhatsApp Business Platform
+              </Badge>
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 leading-tight text-foreground">
+                Everything for{' '}
+                <span className="text-primary">WhatsApp Success</span>
+              </h1>
+              <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mb-10">
+                From API integration to AI-powered marketing — all the tools you need to connect, engage, and grow on WhatsApp.
+              </p>
+              <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4">
+                <Button size="lg" className="h-14 px-8 text-primary-foreground" onClick={() => navigate('/signup')}>
+                  Start Free Trial
+                  <ArrowRight className="w-5 h-5 ml-2" />
+                </Button>
+                <Button size="lg" variant="outline" className="h-14 px-8 border-border text-foreground hover:bg-muted" onClick={() => navigate('/contact')}>
+                  Talk to Sales
+                </Button>
+              </div>
+            </div>
+            <div className="w-full max-w-md lg:max-w-lg shrink-0">
+              <img src={productsHero} alt="AiReatro WhatsApp Business Platform" className="w-full h-auto rounded-2xl" loading="lazy" />
             </div>
           </div>
         </div>

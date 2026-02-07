@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import Breadcrumb from '@/components/layout/Breadcrumb';
+import featureAnalytics from '@/assets/feature-analytics.png';
 
 export default function AnalyticsFeature() {
   const navigate = useNavigate();
@@ -25,11 +26,16 @@ export default function AnalyticsFeature() {
         <div className="absolute inset-0"><div className="absolute top-20 left-1/4 w-[400px] h-[400px] bg-cyan-500/5 rounded-full blur-[100px]" /></div>
         <div className="container mx-auto px-4 relative">
           <Breadcrumb className="mb-8" />
-          <div className="max-w-4xl">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-600 text-sm font-medium mb-6"><BarChart3 className="w-4 h-4" />Analytics & Reports</div>
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-foreground mb-6 leading-tight">Data-Driven <span className="bg-gradient-to-r from-cyan-500 via-blue-500 to-indigo-500 bg-clip-text text-transparent">Decisions</span></h1>
-            <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mb-8">Get deep insights into your messaging performance with comprehensive analytics dashboards.</p>
-            <Button size="lg" className="h-14 px-8 bg-gradient-to-r from-green-500 to-emerald-600 shadow-lg shadow-green-500/20" onClick={() => navigate('/signup')}>Start Free Trial<ArrowRight className="w-5 h-5 ml-2" /></Button>
+          <div className="flex flex-col lg:flex-row items-center gap-8 lg:gap-12">
+            <div className="flex-1">
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-600 text-sm font-medium mb-6"><BarChart3 className="w-4 h-4" />Analytics & Reports</div>
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-foreground mb-6 leading-tight">Data-Driven <span className="bg-gradient-to-r from-cyan-500 via-blue-500 to-indigo-500 bg-clip-text text-transparent">Decisions</span></h1>
+              <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mb-8">Get deep insights into your messaging performance with comprehensive analytics dashboards.</p>
+              <Button size="lg" className="h-14 px-8 bg-gradient-to-r from-green-500 to-emerald-600 shadow-lg shadow-green-500/20" onClick={() => navigate('/signup')}>Start Free Trial<ArrowRight className="w-5 h-5 ml-2" /></Button>
+            </div>
+            <div className="w-full max-w-sm lg:max-w-md shrink-0">
+              <img src={featureAnalytics} alt="Analytics Dashboard" className="w-full h-auto rounded-2xl" loading="lazy" />
+            </div>
           </div>
         </div>
       </section>

@@ -43,6 +43,7 @@ import Footer from '@/components/layout/Footer';
 import SeoMeta from '@/components/seo/SeoMeta';
 import Breadcrumb from '@/components/layout/Breadcrumb';
 import { JsonLd, organizationSchema, softwareApplicationSchema } from '@/components/seo/JsonLd';
+import whyWhatsAppHero from '@/assets/why-whatsapp-hero.png';
 
 const WhyWhatsAppMarketing = () => {
   const navigate = useNavigate();
@@ -186,53 +187,54 @@ const WhyWhatsAppMarketing = () => {
         
         <div className="container mx-auto px-4 relative">
           <Breadcrumb className="mb-6" />
-          <div className="max-w-4xl mx-auto text-center">
-            <Badge className="mb-6 px-4 py-2 bg-primary/10 text-primary border-primary/20 hover:bg-primary/15">
-              <TrendingUp className="w-4 h-4 mr-2" />
-              WhatsApp Marketing
-            </Badge>
-            
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 leading-tight text-foreground">
-              Why WhatsApp Marketing Works —{' '}
-              <span className="text-primary">And Why It Wins Every Time</span>
-            </h1>
-            
-            <p className="text-lg md:text-xl text-muted-foreground mb-8 max-w-3xl mx-auto">
-              Reach customers where they already are. Deliver instant, personal conversations that convert up to 3× more than email and SMS — safely and at scale.
-            </p>
-            
-            <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
-              <Button 
-                size="lg" 
-                className="bg-primary hover:bg-primary/90 text-primary-foreground h-14 px-8 text-base shadow-lg shadow-primary/30"
-                onClick={() => navigate('/signup')}
-              >
-                Start Free Trial
-                <ArrowRight className="w-5 h-5 ml-2" />
-              </Button>
-              <Button 
-                size="lg" 
-                variant="outline" 
-                className="h-14 px-8 text-base border-2 border-border text-foreground hover:bg-muted"
-                onClick={() => navigate('/contact')}
-              >
-                Talk to Sales
-              </Button>
+          <div className="flex flex-col lg:flex-row items-center gap-8 lg:gap-12">
+            <div className="flex-1 text-center lg:text-left">
+              <Badge className="mb-6 px-4 py-2 bg-primary/10 text-primary border-primary/20 hover:bg-primary/15">
+                <TrendingUp className="w-4 h-4 mr-2" />
+                WhatsApp Marketing
+              </Badge>
+              
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 leading-tight text-foreground">
+                Why WhatsApp Marketing Works —{' '}
+                <span className="text-primary">And Why It Wins</span>
+              </h1>
+              
+              <p className="text-lg md:text-xl text-muted-foreground mb-8 max-w-xl">
+                Reach customers where they already are. Deliver instant, personal conversations that convert up to 3× more than email and SMS — safely and at scale.
+              </p>
+              
+              <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-8">
+                <Button 
+                  size="lg" 
+                  className="bg-primary hover:bg-primary/90 text-primary-foreground h-14 px-8 text-base shadow-lg shadow-primary/30"
+                  onClick={() => navigate('/signup')}
+                >
+                  Start Free Trial
+                  <ArrowRight className="w-5 h-5 ml-2" />
+                </Button>
+                <Button 
+                  size="lg" 
+                  variant="outline" 
+                  className="h-14 px-8 text-base border-2 border-border text-foreground hover:bg-muted"
+                  onClick={() => navigate('/contact')}
+                >
+                  Talk to Sales
+                </Button>
+              </div>
+              
+              <div className="flex flex-wrap items-center justify-center lg:justify-start gap-4 text-sm text-muted-foreground">
+                <span className="flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-primary" />
+                  Official WhatsApp Business API
+                </span>
+                <span className="flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-primary" />
+                  Safe & Compliant
+                </span>
+              </div>
             </div>
-            
-            <div className="flex flex-wrap items-center justify-center gap-6 text-sm text-muted-foreground">
-              <span className="flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-primary" />
-                Powered by Official WhatsApp Business API
-              </span>
-              <span className="flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-primary" />
-                Safe & Compliant
-              </span>
-              <span className="flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-primary" />
-                Built for Scale
-              </span>
+            <div className="w-full max-w-md lg:max-w-lg shrink-0">
+              <img src={whyWhatsAppHero} alt="WhatsApp Marketing - Higher conversions and engagement" className="w-full h-auto rounded-2xl" loading="lazy" />
             </div>
           </div>
         </div>
