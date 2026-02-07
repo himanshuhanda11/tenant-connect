@@ -1,44 +1,19 @@
 import React from 'react';
-import {
-  CheckCircle2, ArrowRight, X, Sparkles,
-  Users, Contact, Workflow, MessageSquare, Bot, Brain,
-  Rocket, Crown, Building2, Gift, TrendingUp,
-} from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { ArrowRight } from 'lucide-react';
+import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Switch } from '@/components/ui/switch';
 import { pricingPlans, type PricingPlan } from '@/data/pricingPlans';
 import { cn } from '@/lib/utils';
 import { useNavigate } from 'react-router-dom';
 
-const planIcons: Record<string, React.ReactNode> = {
-  free: <Gift className="w-5 h-5" />,
-  basic: <Rocket className="w-5 h-5" />,
-  pro: <Crown className="w-5 h-5" />,
-  business: <Building2 className="w-5 h-5" />,
-};
-
-const planColors: Record<string, { text: string; iconBg: string }> = {
-  free: { text: 'text-slate-600', iconBg: 'bg-slate-100' },
-  basic: { text: 'text-blue-600', iconBg: 'bg-blue-50' },
-  pro: { text: 'text-primary', iconBg: 'bg-primary/10' },
-  business: { text: 'text-amber-600', iconBg: 'bg-amber-50' },
-};
-
-const limitIcons: Record<string, React.ComponentType<{ className?: string }>> = {
-  team_members: Users,
-  contacts: Contact,
-  flows: Workflow,
-  autoforms: MessageSquare,
-  automations: Bot,
-  ai_features: Brain,
-};
-
 interface PricingCardsProps {
   isAnnual: boolean;
+  setIsAnnual?: (v: boolean) => void;
 }
 
-export default function PricingCards({ isAnnual }: PricingCardsProps) {
+export default function PricingCards({ isAnnual, setIsAnnual }: PricingCardsProps) {
   const navigate = useNavigate();
 
   const getPrice = (plan: PricingPlan) => {
@@ -52,123 +27,95 @@ export default function PricingCards({ isAnnual }: PricingCardsProps) {
   return (
     <section id="pricing-cards" className="py-6 md:py-10">
       <div className="container mx-auto px-4">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 max-w-7xl mx-auto items-stretch">
+        {/* Billing toggle */}
+        {setIsAnnual && (
+          <div className="flex items-center justify-center gap-3 mb-8">
+            <div className="inline-flex items-center rounded-full border border-border bg-card shadow-sm p-1">
+              <button
+                className={cn(
+                  'px-5 py-2 rounded-full text-sm font-medium transition-all',
+                  !isAnnual ? 'bg-primary text-primary-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'
+                )}
+                onClick={() => setIsAnnual(false)}
+              >
+                Monthly
+              </button>
+              <button
+                className={cn(
+                  'px-5 py-2 rounded-full text-sm font-medium transition-all',
+                  isAnnual ? 'bg-primary text-primary-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'
+                )}
+                onClick={() => setIsAnnual(true)}
+              >
+                Yearly (save 20%)
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Plan cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 max-w-5xl mx-auto items-start">
           {pricingPlans.map((plan) => {
             const price = getPrice(plan);
             const isCustom = plan.price === 'custom';
-            const colors = planColors[plan.id];
             const isPro = plan.highlight;
 
             return (
               <Card key={plan.id} className={cn(
-                'relative flex flex-col transition-all duration-300 rounded-2xl',
+                'relative flex flex-col rounded-2xl p-6 transition-all duration-300',
                 isPro
-                  ? 'border-primary shadow-2xl shadow-primary/10 lg:scale-[1.03] z-10 ring-1 ring-primary/20'
+                  ? 'border-primary shadow-xl ring-1 ring-primary/20'
                   : 'border-border hover:shadow-lg hover:border-primary/20',
               )}>
-                {isPro && (
-                  <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary via-emerald-400 to-primary" />
-                )}
+                {/* Most Popular badge */}
                 {plan.badge && (
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-20">
-                    <Badge className="px-3 py-1 bg-gradient-to-r from-primary to-emerald-500 text-white text-[11px] font-semibold rounded-full shadow-lg gap-1.5">
-                      <Sparkles className="w-3 h-3" />
+                    <Badge className="px-3 py-1 bg-primary text-white text-xs font-semibold rounded-md shadow-md">
                       {plan.badge}
                     </Badge>
                   </div>
                 )}
 
-                <CardHeader className="text-center pt-8 pb-2">
-                  <div className={cn('w-11 h-11 rounded-xl mx-auto mb-3 flex items-center justify-center', colors.iconBg, colors.text)}>
-                    {planIcons[plan.id]}
-                  </div>
-                  <CardTitle className="text-lg font-bold">{plan.name}</CardTitle>
-                  <CardDescription className="text-sm mt-0.5">{plan.tagline}</CardDescription>
+                {/* Plan name */}
+                <h3 className="text-xl font-bold text-foreground text-center mt-2">{plan.name}</h3>
 
-                  <div className="mt-4">
-                    {isCustom ? (
-                      <span className="text-3xl font-bold text-foreground">Custom</span>
-                    ) : price === 0 ? (
-                      <div>
-                        <span className="text-4xl font-bold text-foreground">Free</span>
-                        <p className="text-xs text-muted-foreground mt-0.5">Forever</p>
-                      </div>
-                    ) : (
-                      <div>
-                        {isAnnual && (
-                          <span className="text-sm text-muted-foreground line-through block mb-0.5">
-                            {formatPrice(plan.price as number)}
-                          </span>
-                        )}
-                        <div className="flex items-baseline justify-center gap-0.5">
-                          <span className="text-4xl font-bold text-foreground">{formatPrice(price!)}</span>
-                          <span className="text-muted-foreground text-sm">/mo</span>
-                        </div>
-                        <p className="text-[11px] text-muted-foreground mt-0.5">Per workspace</p>
-                      </div>
-                    )}
-                  </div>
-                </CardHeader>
+                {/* Tagline */}
+                <p className="text-xs text-muted-foreground text-center mt-1 mb-4">{plan.tagline}</p>
 
-                <CardContent className="pb-6 flex-1 flex flex-col px-5">
-                  <Button
-                    className={cn(
-                      'w-full mb-4 h-11 font-semibold gap-2 rounded-xl transition-all',
-                      isPro && 'bg-gradient-to-r from-primary to-emerald-500 shadow-lg shadow-primary/20 hover:shadow-xl',
-                    )}
-                    variant={isPro ? 'default' : 'outline'}
-                    onClick={() => isCustom ? navigate('/contact') : navigate('/signup')}
-                  >
-                    {plan.cta}
-                    <ArrowRight className="w-4 h-4" />
-                  </Button>
-
-                  {/* Key limits */}
-                  <div className="grid grid-cols-2 gap-2 mb-4 p-3 rounded-xl bg-muted/30 border border-border/40">
-                    {[
-                      { key: 'team_members', label: 'Members', value: plan.limits.team_members === 25 ? '25+' : plan.limits.team_members },
-                      { key: 'contacts', label: 'Contacts', value: plan.limits.contacts === 'unlimited' ? '∞' : (plan.limits.contacts as number).toLocaleString('en-IN') },
-                      { key: 'flows', label: 'Flows', value: plan.limits.flows === 'unlimited' ? '∞' : plan.limits.flows === 0 ? '—' : plan.limits.flows },
-                      { key: 'automations', label: 'Automations', value: plan.limits.automations === 'unlimited' ? '∞' : plan.limits.automations === 0 ? '—' : plan.limits.automations },
-                    ].map((item) => {
-                      const Icon = limitIcons[item.key];
-                      return (
-                        <div key={item.key} className="flex items-center gap-2">
-                          <Icon className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />
-                          <div className="min-w-0">
-                            <p className="text-[10px] text-muted-foreground leading-tight">{item.label}</p>
-                            <p className="text-xs font-semibold text-foreground capitalize truncate">{String(item.value)}</p>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-
-                  {/* Features — 4-5 high impact bullets */}
-                  <div className="space-y-2 flex-1">
-                    {plan.features.slice(0, 5).map((feature, i) => (
-                      <div key={i} className="flex items-start gap-2">
-                        <CheckCircle2 className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" />
-                        <span className="text-sm text-foreground leading-snug">{feature}</span>
-                      </div>
-                    ))}
-                    {plan.restrictions?.slice(0, 2).map((r, i) => (
-                      <div key={`r-${i}`} className="flex items-start gap-2 opacity-35">
-                        <X className="w-4 h-4 flex-shrink-0 mt-0.5" />
-                        <span className="text-sm line-through leading-snug">{r}</span>
-                      </div>
-                    ))}
-                  </div>
-
-                  {plan.addons.length > 0 && (
-                    <div className="mt-4 pt-3 border-t border-border/40 text-center">
-                      <span className="text-[11px] text-muted-foreground inline-flex items-center gap-1">
-                        <TrendingUp className="w-3 h-3" />
-                        Add-ons available
-                      </span>
+                {/* Price */}
+                <div className="text-center mb-5">
+                  {isCustom ? (
+                    <span className="text-3xl font-bold text-foreground">Custom</span>
+                  ) : price === 0 ? (
+                    <span className="text-3xl font-bold text-foreground">Free</span>
+                  ) : (
+                    <div>
+                      {isAnnual && (
+                        <span className="text-sm text-muted-foreground line-through block mb-0.5">
+                          {formatPrice(plan.price as number)}
+                        </span>
+                      )}
+                      <span className="text-3xl font-bold text-foreground">{formatPrice(price!)}</span>
+                      <span className="text-sm text-muted-foreground">/mo</span>
                     </div>
                   )}
-                </CardContent>
+                </div>
+
+                {/* CTA button */}
+                <Button
+                  className={cn(
+                    'w-full h-11 font-semibold rounded-xl transition-all',
+                    isPro
+                      ? 'bg-gradient-to-r from-primary to-emerald-500 text-primary-foreground shadow-lg shadow-primary/20'
+                      : isCustom
+                        ? 'border-foreground'
+                        : '',
+                  )}
+                  variant={isPro ? 'default' : 'outline'}
+                  onClick={() => isCustom ? navigate('/contact') : navigate('/signup')}
+                >
+                  {plan.cta}
+                </Button>
               </Card>
             );
           })}
