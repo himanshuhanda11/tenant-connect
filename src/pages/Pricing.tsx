@@ -3,7 +3,7 @@ import {
   CheckCircle2, ArrowRight, HelpCircle, Zap, AlertCircle, X, Shield, Sparkles,
   Users, Phone, Contact, Tag, Bot, Workflow, Brain, MessageSquare,
   Rocket, Crown, Building2, Gift, Star, TrendingUp, Lock, HeadphonesIcon,
-  ChevronRight, Globe, BarChart3
+  ChevronRight, Globe, BarChart3, Check
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -64,7 +64,7 @@ export default function Pricing() {
     { question: 'What are WhatsApp conversation charges?', answer: 'WhatsApp conversation fees are billed separately by Meta based on the type and volume of conversations. The first 1,000 user-initiated conversations per month are free.' },
     { question: 'Do I need a separate phone number for each workspace?', answer: 'Yes, each workspace is linked to one WhatsApp Business API phone number. This ensures clean separation of contacts, templates, and analytics.' },
     { question: 'What happens when I hit my plan limits?', answer: "You'll receive alerts as you approach limits. You can either purchase add-ons or upgrade to a higher plan for more capacity." },
-    { question: 'Is there a free trial for paid plans?', answer: 'Yes, all paid plans come with a 14-day free trial. No credit card required to start.' },
+    { question: 'Is the Free plan really free forever?', answer: 'Yes! The Free plan has no time limit. Use it for as long as you need. When you are ready to grow, upgrade to a paid plan for more features and capacity.' },
   ];
 
   const trustedBy = [
@@ -105,7 +105,7 @@ export default function Pricing() {
                 <Phone className="w-3 h-3" /> 1 number per workspace
               </span>
               <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-muted/60">
-                <Shield className="w-3 h-3" /> 14-day free trial
+                <Gift className="w-3 h-3" /> Free plan available
               </span>
               <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-muted/60">
                 <Lock className="w-3 h-3" /> No credit card required
@@ -156,7 +156,6 @@ export default function Pricing() {
                   )}
 
                   <CardHeader className="text-center pt-8 pb-3">
-                    {/* Plan Icon */}
                     <div className={cn('w-12 h-12 rounded-xl mx-auto mb-3 flex items-center justify-center', colors.iconBg, colors.text)}>
                       {planIcons[plan.id]}
                     </div>
@@ -258,7 +257,7 @@ export default function Pricing() {
           </div>
 
           <p className="text-center text-muted-foreground mt-8 text-sm">
-            All paid plans include a 14-day free trial • No credit card required
+            Start free — no credit card required. Upgrade anytime.
           </p>
         </div>
       </section>
@@ -313,10 +312,10 @@ export default function Pricing() {
         </div>
       </section>
 
-      {/* Comparison Table */}
+      {/* Premium Comparison Table */}
       <section className="py-16 md:py-20 bg-muted/30">
         <div className="container mx-auto px-4">
-          <div className="text-center mb-10">
+          <div className="text-center mb-12">
             <Badge className="bg-primary/10 text-primary border-primary/20 mb-4">
               <BarChart3 className="w-3.5 h-3.5 mr-1.5" />
               Feature Comparison
@@ -325,30 +324,43 @@ export default function Pricing() {
               Compare Plans Side by Side
             </h2>
             <p className="text-muted-foreground max-w-lg mx-auto">
-              Find the perfect plan for your workspace
+              Every feature, every limit — at a glance
             </p>
           </div>
 
-          {/* Mobile: accordion view */}
-          <div className="block md:hidden max-w-lg mx-auto">
-            <Accordion type="multiple" className="space-y-3">
-              {comparisonGroups.map((group, gi) => (
-                <AccordionItem key={gi} value={`cg-${gi}`} className="border border-border rounded-xl px-4 bg-card">
-                  <AccordionTrigger className="text-sm font-semibold text-primary hover:no-underline py-3">
-                    {group.category}
+          {/* Mobile: Premium accordion cards */}
+          <div className="block md:hidden max-w-lg mx-auto space-y-3">
+            {comparisonGroups.map((group, gi) => (
+              <Accordion key={gi} type="single" collapsible>
+                <AccordionItem value={`cg-${gi}`} className="border border-border rounded-2xl overflow-hidden bg-card shadow-sm">
+                  <AccordionTrigger className="px-5 py-4 text-sm font-semibold text-foreground hover:no-underline hover:bg-muted/30 transition-colors">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center">
+                        <BarChart3 className="w-3.5 h-3.5 text-primary" />
+                      </div>
+                      {group.category}
+                    </div>
                   </AccordionTrigger>
-                  <AccordionContent>
-                    <div className="space-y-3 pb-2">
+                  <AccordionContent className="px-5 pb-4">
+                    <div className="space-y-3">
                       {group.features.map((feature, fi) => (
-                        <div key={fi} className="bg-muted/40 rounded-lg p-3">
-                          <p className="text-sm font-medium text-foreground mb-2">{feature.name}</p>
-                          <div className="grid grid-cols-4 gap-2 text-xs">
+                        <div key={fi} className="rounded-xl border border-border/50 overflow-hidden">
+                          <div className="bg-muted/30 px-3.5 py-2">
+                            <p className="text-sm font-medium text-foreground">{feature.name}</p>
+                          </div>
+                          <div className="grid grid-cols-4 divide-x divide-border/40">
                             {(['free', 'basic', 'pro', 'business'] as const).map((tier) => (
-                              <div key={tier} className={cn('text-center p-1.5 rounded-md', tier === 'pro' ? 'bg-primary/10 font-semibold' : 'bg-muted/60')}>
-                                <p className="text-[10px] text-muted-foreground mb-0.5 capitalize">{tier}</p>
-                                <p className={cn('text-xs', tier === 'pro' ? 'text-primary' : 'text-foreground')}>
-                                  {feature[tier]}
-                                </p>
+                              <div key={tier} className={cn(
+                                'text-center py-2.5 px-1.5',
+                                tier === 'pro' && 'bg-primary/5'
+                              )}>
+                                <p className={cn(
+                                  'text-[9px] uppercase tracking-wider mb-0.5 font-medium',
+                                  tier === 'pro' ? 'text-primary' : 'text-muted-foreground'
+                                )}>{tier}</p>
+                                <div className="text-xs font-semibold text-foreground">
+                                  {renderCellMobile(feature[tier], tier === 'pro')}
+                                </div>
                               </div>
                             ))}
                           </div>
@@ -357,77 +369,142 @@ export default function Pricing() {
                     </div>
                   </AccordionContent>
                 </AccordionItem>
-              ))}
-            </Accordion>
+              </Accordion>
+            ))}
           </div>
 
-          {/* Desktop: table view */}
-          <div className="hidden md:block max-w-5xl mx-auto">
-            <Card className="overflow-hidden">
+          {/* Desktop: Premium glassmorphism table */}
+          <div className="hidden md:block max-w-6xl mx-auto">
+            <div className="rounded-2xl border border-border/60 bg-card/80 backdrop-blur-sm shadow-xl overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full">
+                  {/* Sticky header with plan columns */}
                   <thead>
-                    <tr className="border-b border-border bg-muted/30">
-                      <th className="text-left py-4 px-5 font-semibold text-foreground">Feature</th>
-                      <th className="text-center py-4 px-4 font-semibold text-foreground w-[120px]">
-                        <div className="flex flex-col items-center gap-1">
-                          <Gift className="w-4 h-4 text-slate-500" />
-                          Free
+                    <tr className="bg-gradient-to-r from-muted/50 via-muted/30 to-muted/50">
+                      <th className="text-left py-5 px-6 w-[280px]">
+                        <span className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Feature</span>
+                      </th>
+                      {/* Free */}
+                      <th className="text-center py-5 px-3 w-[140px]">
+                        <div className="flex flex-col items-center gap-2">
+                          <div className="w-9 h-9 rounded-xl bg-slate-100 flex items-center justify-center">
+                            <Gift className="w-4.5 h-4.5 text-slate-500" />
+                          </div>
+                          <span className="text-sm font-bold text-foreground">Free</span>
+                          <span className="text-xs text-muted-foreground">₹0/mo</span>
                         </div>
                       </th>
-                      <th className="text-center py-4 px-4 font-semibold text-foreground w-[120px]">
-                        <div className="flex flex-col items-center gap-1">
-                          <Rocket className="w-4 h-4 text-blue-500" />
-                          Basic
+                      {/* Basic */}
+                      <th className="text-center py-5 px-3 w-[140px]">
+                        <div className="flex flex-col items-center gap-2">
+                          <div className="w-9 h-9 rounded-xl bg-blue-100 flex items-center justify-center">
+                            <Rocket className="w-4.5 h-4.5 text-blue-600" />
+                          </div>
+                          <span className="text-sm font-bold text-foreground">Basic</span>
+                          <span className="text-xs text-muted-foreground">{isAnnual ? '₹1,199' : '₹1,499'}/mo</span>
                         </div>
                       </th>
-                      <th className="text-center py-4 px-4 font-semibold text-primary w-[120px] bg-primary/5">
-                        <div className="flex flex-col items-center gap-1">
-                          <Crown className="w-4 h-4 text-primary" />
-                          Pro ⭐
+                      {/* Pro — highlighted column */}
+                      <th className="text-center py-5 px-3 w-[140px] relative">
+                        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary to-emerald-500" />
+                        <div className="absolute -top-0.5 left-1/2 -translate-x-1/2 -translate-y-full">
+                          <Badge className="bg-gradient-to-r from-primary to-emerald-500 text-primary-foreground text-[10px] px-2.5 py-0.5 rounded-full shadow-lg gap-1">
+                            <Sparkles className="w-2.5 h-2.5" />
+                            Popular
+                          </Badge>
+                        </div>
+                        <div className="flex flex-col items-center gap-2">
+                          <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center ring-2 ring-primary/20">
+                            <Crown className="w-4.5 h-4.5 text-primary" />
+                          </div>
+                          <span className="text-sm font-bold text-primary">Pro</span>
+                          <span className="text-xs text-primary font-medium">{isAnnual ? '₹2,799' : '₹3,499'}/mo</span>
                         </div>
                       </th>
-                      <th className="text-center py-4 px-4 font-semibold text-foreground w-[120px]">
-                        <div className="flex flex-col items-center gap-1">
-                          <Building2 className="w-4 h-4 text-amber-500" />
-                          Business
+                      {/* Business */}
+                      <th className="text-center py-5 px-3 w-[140px]">
+                        <div className="flex flex-col items-center gap-2">
+                          <div className="w-9 h-9 rounded-xl bg-amber-100 flex items-center justify-center">
+                            <Building2 className="w-4.5 h-4.5 text-amber-600" />
+                          </div>
+                          <span className="text-sm font-bold text-foreground">Business</span>
+                          <span className="text-xs text-muted-foreground">Custom</span>
                         </div>
                       </th>
                     </tr>
                   </thead>
                   <tbody>
-                    {comparisonGroups.map((group) => (
+                    {comparisonGroups.map((group, gi) => (
                       <React.Fragment key={group.category}>
+                        {/* Category header row */}
                         <tr>
-                          <td colSpan={5} className="pt-5 pb-2 px-5">
-                            <span className="text-xs font-bold uppercase tracking-wider text-primary">
-                              {group.category}
-                            </span>
+                          <td colSpan={5} className={cn(
+                            'px-6 pt-6 pb-2',
+                            gi > 0 && 'border-t border-border/50'
+                          )}>
+                            <div className="flex items-center gap-2.5">
+                              <div className="w-6 h-6 rounded-md bg-primary/10 flex items-center justify-center">
+                                <Zap className="w-3 h-3 text-primary" />
+                              </div>
+                              <span className="text-xs font-bold uppercase tracking-widest text-primary">
+                                {group.category}
+                              </span>
+                            </div>
                           </td>
                         </tr>
+                        {/* Feature rows */}
                         {group.features.map((feature, idx) => (
-                          <tr key={idx} className="border-b border-border/40 hover:bg-muted/20 transition-colors">
-                            <td className="py-3 px-5 text-sm text-foreground">{feature.name}</td>
-                            <td className="py-3 px-4 text-center text-sm text-muted-foreground">
-                              {renderCell(feature.free)}
+                          <tr
+                            key={idx}
+                            className="group/row border-b border-border/20 last:border-b-0 hover:bg-muted/30 transition-colors"
+                          >
+                            <td className="py-3.5 px-6 text-sm text-foreground font-medium">
+                              {feature.name}
                             </td>
-                            <td className="py-3 px-4 text-center text-sm text-muted-foreground">
-                              {renderCell(feature.basic)}
+                            <td className="py-3.5 px-3 text-center">
+                              {renderCellDesktop(feature.free, false)}
                             </td>
-                            <td className="py-3 px-4 text-center text-sm font-medium bg-primary/5">
-                              {renderCell(feature.pro, true)}
+                            <td className="py-3.5 px-3 text-center">
+                              {renderCellDesktop(feature.basic, false)}
                             </td>
-                            <td className="py-3 px-4 text-center text-sm text-muted-foreground">
-                              {renderCell(feature.business)}
+                            <td className="py-3.5 px-3 text-center bg-primary/[0.03]">
+                              {renderCellDesktop(feature.pro, true)}
+                            </td>
+                            <td className="py-3.5 px-3 text-center">
+                              {renderCellDesktop(feature.business, false)}
                             </td>
                           </tr>
                         ))}
                       </React.Fragment>
                     ))}
+                    {/* CTA row at bottom of table */}
+                    <tr className="border-t border-border/50">
+                      <td className="py-5 px-6" />
+                      <td className="py-5 px-3 text-center">
+                        <Button size="sm" variant="outline" className="text-xs h-8 px-4" onClick={() => navigate('/signup')}>
+                          Start Free
+                        </Button>
+                      </td>
+                      <td className="py-5 px-3 text-center">
+                        <Button size="sm" variant="outline" className="text-xs h-8 px-4" onClick={() => navigate('/signup')}>
+                          Get Basic
+                        </Button>
+                      </td>
+                      <td className="py-5 px-3 text-center bg-primary/[0.03]">
+                        <Button size="sm" className="text-xs h-8 px-4 bg-gradient-to-r from-primary to-emerald-500 shadow-md" onClick={() => navigate('/signup')}>
+                          Start Pro
+                        </Button>
+                      </td>
+                      <td className="py-5 px-3 text-center">
+                        <Button size="sm" variant="outline" className="text-xs h-8 px-4" onClick={() => navigate('/contact')}>
+                          Contact Sales
+                        </Button>
+                      </td>
+                    </tr>
                   </tbody>
                 </table>
               </div>
-            </Card>
+            </div>
           </div>
         </div>
       </section>
@@ -513,8 +590,39 @@ export default function Pricing() {
   );
 }
 
-function renderCell(value: string, isPro = false) {
-  if (value === '✓') return <CheckCircle2 className={cn('w-4 h-4 mx-auto', isPro ? 'text-primary' : 'text-primary')} />;
-  if (value === '—') return <span className="text-muted-foreground/40">—</span>;
-  return <span className={isPro ? 'text-primary font-semibold' : ''}>{value}</span>;
+/* ── Cell renderers ── */
+
+function renderCellDesktop(value: string, isPro: boolean) {
+  if (value === '✓') {
+    return (
+      <div className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-primary/10">
+        <Check className={cn('w-4 h-4', isPro ? 'text-primary' : 'text-primary')} />
+      </div>
+    );
+  }
+  if (value === '—') {
+    return (
+      <div className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-muted/50">
+        <X className="w-3.5 h-3.5 text-muted-foreground/30" />
+      </div>
+    );
+  }
+  if (value === 'Unlimited') {
+    return <span className={cn('text-sm font-bold', isPro ? 'text-primary' : 'text-foreground')}>∞</span>;
+  }
+  return (
+    <span className={cn(
+      'text-sm font-medium',
+      isPro ? 'text-primary font-semibold' : 'text-foreground'
+    )}>
+      {value}
+    </span>
+  );
+}
+
+function renderCellMobile(value: string, isPro: boolean) {
+  if (value === '✓') return <Check className={cn('w-3.5 h-3.5 mx-auto', isPro ? 'text-primary' : 'text-primary')} />;
+  if (value === '—') return <X className="w-3 h-3 mx-auto text-muted-foreground/30" />;
+  if (value === 'Unlimited') return <span className={cn('text-[11px] font-bold', isPro ? 'text-primary' : '')}>∞</span>;
+  return <span className={cn('text-[11px]', isPro ? 'text-primary font-bold' : '')}>{value}</span>;
 }
