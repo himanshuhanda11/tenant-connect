@@ -1,9 +1,10 @@
 import { Link } from 'react-router-dom';
-import { ArrowLeft, Shield, CheckCircle2, XCircle, AlertTriangle } from 'lucide-react';
+import { Shield, CheckCircle2, XCircle, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
+import Breadcrumb from '@/components/layout/Breadcrumb';
 
 export default function AcceptableUse() {
   const permitted = [
@@ -65,10 +66,7 @@ export default function AcceptableUse() {
         
         <div className="container mx-auto px-4 relative">
           <div className="max-w-3xl mx-auto">
-            <Link to="/" className="inline-flex items-center text-muted-foreground hover:text-foreground mb-6">
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Home
-            </Link>
+            <Breadcrumb className="mb-6" />
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-500 text-sm font-medium mb-6">
               <Shield className="w-4 h-4" />
               Acceptable Use Policy

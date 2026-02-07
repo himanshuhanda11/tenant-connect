@@ -21,6 +21,7 @@ import { useNavigate } from 'react-router-dom';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import SeoMeta from '@/components/seo/SeoMeta';
+import Breadcrumb from '@/components/layout/Breadcrumb';
 
 export default function Help() {
   const navigate = useNavigate();
@@ -126,6 +127,7 @@ export default function Help() {
         <div className="absolute bottom-10 left-10 w-80 h-80 bg-primary/3 rounded-full blur-3xl" />
         
         <div className="container mx-auto px-4 relative">
+          <Breadcrumb className="mb-6" />
           <div className="max-w-3xl mx-auto text-center">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 text-primary text-sm font-medium mb-6">
               <Book className="w-4 h-4" />

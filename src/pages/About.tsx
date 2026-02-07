@@ -32,6 +32,7 @@ import { Link } from 'react-router-dom';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import SeoMeta from '@/components/seo/SeoMeta';
+import Breadcrumb from '@/components/layout/Breadcrumb';
 
 export default function About() {
   const problemBefore = [
@@ -143,6 +144,7 @@ export default function About() {
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-gradient-to-br from-primary/5 to-emerald-500/5 rounded-full blur-3xl" />
         
         <div className="container mx-auto px-4 relative">
+          <Breadcrumb className="mb-6" />
           <div className="max-w-4xl mx-auto text-center">
             <Badge className="mb-6 bg-primary/10 text-primary border-primary/20 px-4 py-2">
               <Sparkles className="w-4 h-4 mr-2" />

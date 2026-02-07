@@ -22,6 +22,18 @@ const routeNames: Record<string, string> = {
   'webinars': 'Webinars',
   'api-docs': 'API Docs',
   'add-ons': 'Add-Ons',
+  'cookie-policy': 'Cookie Policy',
+  'refund-policy': 'Refund Policy',
+  'acceptable-use': 'Acceptable Use',
+  'compliance': 'Compliance',
+  'features': 'Features',
+  'case-studies': 'Case Studies',
+  'partners': 'Partners',
+  'documentation': 'Documentation',
+  'whatsapp-business-api': 'WhatsApp Business API',
+  'whatsapp-forms': 'WhatsApp Forms',
+  'free-whatsapp-api-lifetime': 'Free WhatsApp API',
+  'data-deletion': 'Data Deletion',
 };
 
 interface BreadcrumbProps {

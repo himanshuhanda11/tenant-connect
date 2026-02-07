@@ -1,19 +1,14 @@
 import { Link } from 'react-router-dom';
-import { ArrowLeft } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import Navbar from '@/components/layout/Navbar';
+import Footer from '@/components/layout/Footer';
+import Breadcrumb from '@/components/layout/Breadcrumb';
 
 export default function Terms() {
   return (
     <div className="min-h-screen bg-background">
+      <Navbar />
       <div className="max-w-4xl mx-auto px-4 py-12">
-        <div className="mb-8">
-          <Link to="/">
-            <Button variant="ghost" size="sm">
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Home
-            </Button>
-          </Link>
-        </div>
+        <Breadcrumb className="mb-6" />
 
         <h1 className="text-4xl font-bold text-foreground mb-8">Terms of Service</h1>
         
@@ -125,6 +120,7 @@ export default function Terms() {
           </p>
         </div>
       </div>
+      <Footer />
     </div>
   );
 }
