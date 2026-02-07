@@ -8,24 +8,18 @@ const metrics = [
 ];
 
 const companies = [
-  { name: 'Tata Group', logo: 'https://img.logo.dev/tata.com?token=pk_a8CO5mIhQNOkSM7oNEBbbw&size=80&format=png' },
-  { name: 'Reliance', logo: 'https://img.logo.dev/ril.com?token=pk_a8CO5mIhQNOkSM7oNEBbbw&size=80&format=png' },
-  { name: 'Infosys', logo: 'https://img.logo.dev/infosys.com?token=pk_a8CO5mIhQNOkSM7oNEBbbw&size=80&format=png' },
-  { name: 'Wipro', logo: 'https://img.logo.dev/wipro.com?token=pk_a8CO5mIhQNOkSM7oNEBbbw&size=80&format=png' },
-  { name: 'HCL Tech', logo: 'https://img.logo.dev/hcltech.com?token=pk_a8CO5mIhQNOkSM7oNEBbbw&size=80&format=png' },
-  { name: 'Tech Mahindra', logo: 'https://img.logo.dev/techmahindra.com?token=pk_a8CO5mIhQNOkSM7oNEBbbw&size=80&format=png' },
-  { name: 'Flipkart', logo: 'https://img.logo.dev/flipkart.com?token=pk_a8CO5mIhQNOkSM7oNEBbbw&size=80&format=png' },
-  { name: 'Zomato', logo: 'https://img.logo.dev/zomato.com?token=pk_a8CO5mIhQNOkSM7oNEBbbw&size=80&format=png' },
-  { name: 'Swiggy', logo: 'https://img.logo.dev/swiggy.com?token=pk_a8CO5mIhQNOkSM7oNEBbbw&size=80&format=png' },
-  { name: 'Paytm', logo: 'https://img.logo.dev/paytm.com?token=pk_a8CO5mIhQNOkSM7oNEBbbw&size=80&format=png' },
-  { name: 'PhonePe', logo: 'https://img.logo.dev/phonepe.com?token=pk_a8CO5mIhQNOkSM7oNEBbbw&size=80&format=png' },
-  { name: 'Razorpay', logo: 'https://img.logo.dev/razorpay.com?token=pk_a8CO5mIhQNOkSM7oNEBbbw&size=80&format=png' },
-  { name: 'Ola', logo: 'https://img.logo.dev/olacabs.com?token=pk_a8CO5mIhQNOkSM7oNEBbbw&size=80&format=png' },
-  { name: 'Emirates', logo: 'https://img.logo.dev/emirates.com?token=pk_a8CO5mIhQNOkSM7oNEBbbw&size=80&format=png' },
-  { name: 'Etisalat', logo: 'https://img.logo.dev/etisalat.ae?token=pk_a8CO5mIhQNOkSM7oNEBbbw&size=80&format=png' },
-  { name: 'Emaar', logo: 'https://img.logo.dev/emaar.com?token=pk_a8CO5mIhQNOkSM7oNEBbbw&size=80&format=png' },
-  { name: 'Noon', logo: 'https://img.logo.dev/noon.com?token=pk_a8CO5mIhQNOkSM7oNEBbbw&size=80&format=png' },
-  { name: 'Careem', logo: 'https://img.logo.dev/careem.com?token=pk_a8CO5mIhQNOkSM7oNEBbbw&size=80&format=png' },
+  { name: 'Tata Group', logo: 'https://cdn.brandfetch.io/tata.com/w/256/h/256/logo' },
+  { name: 'Infosys', logo: 'https://cdn.brandfetch.io/infosys.com/w/256/h/256/logo' },
+  { name: 'Wipro', logo: 'https://cdn.brandfetch.io/wipro.com/w/256/h/256/logo' },
+  { name: 'HCL Tech', logo: 'https://cdn.brandfetch.io/hcltech.com/w/256/h/256/logo' },
+  { name: 'Flipkart', logo: 'https://cdn.brandfetch.io/flipkart.com/w/256/h/256/logo' },
+  { name: 'Zomato', logo: 'https://cdn.brandfetch.io/zomato.com/w/256/h/256/logo' },
+  { name: 'Swiggy', logo: 'https://cdn.brandfetch.io/swiggy.com/w/256/h/256/logo' },
+  { name: 'Razorpay', logo: 'https://cdn.brandfetch.io/razorpay.com/w/256/h/256/logo' },
+  { name: 'Emirates', logo: 'https://cdn.brandfetch.io/emirates.com/w/256/h/256/logo' },
+  { name: 'Emaar', logo: 'https://cdn.brandfetch.io/emaar.com/w/256/h/256/logo' },
+  { name: 'Noon', logo: 'https://cdn.brandfetch.io/noon.com/w/256/h/256/logo' },
+  { name: 'Careem', logo: 'https://cdn.brandfetch.io/careem.com/w/256/h/256/logo' },
 ];
 
 export default function SocialProofBar() {
