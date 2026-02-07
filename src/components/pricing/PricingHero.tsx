@@ -1,10 +1,10 @@
-import { useState } from 'react';
 import { Zap, Phone, Gift, Lock } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import Breadcrumb from '@/components/layout/Breadcrumb';
+import heroImage from '@/assets/pricing-hero.png';
 
 interface PricingHeroProps {
   isAnnual: boolean;
@@ -60,6 +60,10 @@ export default function PricingHero({ isAnnual, setIsAnnual }: PricingHeroProps)
             {isAnnual && (
               <Badge className="bg-primary/10 text-primary border-primary/20 text-xs">Save 20%</Badge>
             )}
+          </div>
+          {/* Hero illustration */}
+          <div className="mt-8 max-w-2xl mx-auto">
+            <img src={heroImage} alt="WhatsApp API + AI Automation" className="w-full rounded-2xl" />
           </div>
 
           {/* CTAs */}
