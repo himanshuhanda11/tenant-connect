@@ -65,3 +65,12 @@ verify_jwt = false
 
 [functions.subscription-update]
 verify_jwt = false
+
+[functions.phone-connect-start]
+verify_jwt = false
+
+[functions.phone-connect-complete]
+verify_jwt = false
+
+[functions.billing-apply-plan]
+verify_jwt = false
