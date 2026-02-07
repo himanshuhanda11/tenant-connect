@@ -8,30 +8,24 @@ const metrics = [
 ];
 
 const companies = [
-  { name: 'Tata Group', logo: 'https://logo.clearbit.com/tata.com' },
-  { name: 'Reliance', logo: 'https://logo.clearbit.com/ril.com' },
-  { name: 'Infosys', logo: 'https://logo.clearbit.com/infosys.com' },
-  { name: 'Wipro', logo: 'https://logo.clearbit.com/wipro.com' },
-  { name: 'HCL Tech', logo: 'https://logo.clearbit.com/hcltech.com' },
-  { name: 'Tech Mahindra', logo: 'https://logo.clearbit.com/techmahindra.com' },
-  { name: 'Flipkart', logo: 'https://logo.clearbit.com/flipkart.com' },
-  { name: 'Zomato', logo: 'https://logo.clearbit.com/zomato.com' },
-  { name: 'Swiggy', logo: 'https://logo.clearbit.com/swiggy.com' },
-  { name: 'Paytm', logo: 'https://logo.clearbit.com/paytm.com' },
-  { name: 'PhonePe', logo: 'https://logo.clearbit.com/phonepe.com' },
-  { name: 'Razorpay', logo: 'https://logo.clearbit.com/razorpay.com' },
-  { name: 'Ola', logo: 'https://logo.clearbit.com/olacabs.com' },
-  { name: 'BigBasket', logo: 'https://logo.clearbit.com/bigbasket.com' },
-  { name: 'Emirates', logo: 'https://logo.clearbit.com/emirates.com' },
-  { name: 'Etisalat', logo: 'https://logo.clearbit.com/etisalat.ae' },
-  { name: 'Du', logo: 'https://logo.clearbit.com/du.ae' },
-  { name: 'Emaar', logo: 'https://logo.clearbit.com/emaar.com' },
-  { name: 'Majid Al Futtaim', logo: 'https://logo.clearbit.com/majidalfuttaim.com' },
-  { name: 'Noon', logo: 'https://logo.clearbit.com/noon.com' },
-  { name: 'Talabat', logo: 'https://logo.clearbit.com/talabat.com' },
-  { name: 'Careem', logo: 'https://logo.clearbit.com/careem.com' },
-  { name: 'Mashreq', logo: 'https://logo.clearbit.com/mashreqbank.com' },
-  { name: 'ADCB', logo: 'https://logo.clearbit.com/adcb.com' },
+  { name: 'Tata Group', logo: 'https://img.logo.dev/tata.com?token=pk_a8CO5mIhQNOkSM7oNEBbbw&size=80&format=png' },
+  { name: 'Reliance', logo: 'https://img.logo.dev/ril.com?token=pk_a8CO5mIhQNOkSM7oNEBbbw&size=80&format=png' },
+  { name: 'Infosys', logo: 'https://img.logo.dev/infosys.com?token=pk_a8CO5mIhQNOkSM7oNEBbbw&size=80&format=png' },
+  { name: 'Wipro', logo: 'https://img.logo.dev/wipro.com?token=pk_a8CO5mIhQNOkSM7oNEBbbw&size=80&format=png' },
+  { name: 'HCL Tech', logo: 'https://img.logo.dev/hcltech.com?token=pk_a8CO5mIhQNOkSM7oNEBbbw&size=80&format=png' },
+  { name: 'Tech Mahindra', logo: 'https://img.logo.dev/techmahindra.com?token=pk_a8CO5mIhQNOkSM7oNEBbbw&size=80&format=png' },
+  { name: 'Flipkart', logo: 'https://img.logo.dev/flipkart.com?token=pk_a8CO5mIhQNOkSM7oNEBbbw&size=80&format=png' },
+  { name: 'Zomato', logo: 'https://img.logo.dev/zomato.com?token=pk_a8CO5mIhQNOkSM7oNEBbbw&size=80&format=png' },
+  { name: 'Swiggy', logo: 'https://img.logo.dev/swiggy.com?token=pk_a8CO5mIhQNOkSM7oNEBbbw&size=80&format=png' },
+  { name: 'Paytm', logo: 'https://img.logo.dev/paytm.com?token=pk_a8CO5mIhQNOkSM7oNEBbbw&size=80&format=png' },
+  { name: 'PhonePe', logo: 'https://img.logo.dev/phonepe.com?token=pk_a8CO5mIhQNOkSM7oNEBbbw&size=80&format=png' },
+  { name: 'Razorpay', logo: 'https://img.logo.dev/razorpay.com?token=pk_a8CO5mIhQNOkSM7oNEBbbw&size=80&format=png' },
+  { name: 'Ola', logo: 'https://img.logo.dev/olacabs.com?token=pk_a8CO5mIhQNOkSM7oNEBbbw&size=80&format=png' },
+  { name: 'Emirates', logo: 'https://img.logo.dev/emirates.com?token=pk_a8CO5mIhQNOkSM7oNEBbbw&size=80&format=png' },
+  { name: 'Etisalat', logo: 'https://img.logo.dev/etisalat.ae?token=pk_a8CO5mIhQNOkSM7oNEBbbw&size=80&format=png' },
+  { name: 'Emaar', logo: 'https://img.logo.dev/emaar.com?token=pk_a8CO5mIhQNOkSM7oNEBbbw&size=80&format=png' },
+  { name: 'Noon', logo: 'https://img.logo.dev/noon.com?token=pk_a8CO5mIhQNOkSM7oNEBbbw&size=80&format=png' },
+  { name: 'Careem', logo: 'https://img.logo.dev/careem.com?token=pk_a8CO5mIhQNOkSM7oNEBbbw&size=80&format=png' },
 ];
 
 export default function SocialProofBar() {
@@ -58,13 +52,15 @@ export default function SocialProofBar() {
                 <img 
                   src={company.logo}
                   alt={company.name}
-                  className="h-6 sm:h-8 md:h-10 w-auto grayscale opacity-60 hover:grayscale-0 hover:opacity-100 transition-all duration-300"
+                  className="h-7 sm:h-9 md:h-11 w-auto grayscale opacity-60 hover:grayscale-0 hover:opacity-100 transition-all duration-300 object-contain"
                   loading="lazy"
                   decoding="async"
                   onError={(e) => {
                     const target = e.target as HTMLImageElement;
                     target.style.display = 'none';
-                    target.nextElementSibling?.classList.remove('hidden');
+                    if (target.nextElementSibling) {
+                      target.nextElementSibling.classList.remove('hidden');
+                    }
                   }}
                 />
                 <span className="hidden text-sm sm:text-lg font-bold text-muted-foreground/50">

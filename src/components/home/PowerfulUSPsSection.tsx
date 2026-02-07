@@ -1,17 +1,7 @@
 import React from 'react';
 import {
-  Activity,
-  Brain,
-  TrendingUp,
-  Flame,
-  Layout,
-  Sparkles,
-  Crown,
-  Plug,
-  Users,
-  Zap,
-  Check,
-  X,
+  Activity, Brain, TrendingUp, Flame, Layout, Sparkles,
+  Crown, Plug, Users, Zap, Check, X, Minus,
 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -46,9 +36,9 @@ const usps: Array<{
     subtitle: 'Not Raw Data',
     description: 'Others show dashboards. AiReatro explains the dashboard.',
     bullets: [
-      '“Replies dropped because message was too long”',
-      '“Leads from Campaign X have low intent”',
-      '“Flow #3 causes 42% drop-off”',
+      '"Replies dropped because message was too long"',
+      '"Leads from Campaign X have low intent"',
+      '"Flow #3 causes 42% drop-off"',
     ],
     cta: 'AI turns data into actions.',
     variant: 'accent',
@@ -68,7 +58,7 @@ const usps: Array<{
     icon: Flame,
     title: 'Flow Health Score + Heatmaps',
     subtitle: 'Measured Performance',
-    description: 'Flows don’t just “run” — they’re measured.',
+    description: "Flows don't just run — they're measured.",
     bullets: ['Node-level completion', 'Heatmaps', 'Version comparison', 'Before/after performance'],
     cta: 'Flows become conversion assets, not guesswork.',
     variant: 'primary',
@@ -108,7 +98,7 @@ const usps: Array<{
     icon: Plug,
     title: 'One-Click Integrations',
     subtitle: 'With Health Monitoring',
-    description: 'AiReatro doesn’t just “connect” — it stays reliable.',
+    description: "AiReatro doesn't just connect — it stays reliable.",
     bullets: ['Auto webhook setup (Razorpay, Shopify)', 'Event debugger', 'Retry failed events', 'Integration health score'],
     cta: 'Integrations you can trust.',
     variant: 'accent',
@@ -136,13 +126,14 @@ const usps: Array<{
 ];
 
 const comparisonData = [
-  { feature: 'Diagnostics', aireatro: 'Deep', others: 'None' },
-  { feature: 'AI insights', aireatro: 'Actionable', others: 'Stats only' },
-  { feature: 'Attribution', aireatro: 'End-to-end', others: 'Partial' },
-  { feature: 'Flow health', aireatro: 'Yes', others: 'No' },
-  { feature: 'UI clarity', aireatro: 'Clean', others: 'Cluttered' },
-  { feature: 'Integration health', aireatro: 'Yes', others: 'No' },
-  { feature: 'Team ops', aireatro: 'Advanced', others: 'Basic' },
+  { feature: 'Flow Diagnostics', aireatro: 'Deep health scores & fixes', others: 'None', aiLevel: 'full' as const },
+  { feature: 'AI Insights', aireatro: 'Actionable recommendations', others: 'Raw stats only', aiLevel: 'full' as const },
+  { feature: 'Ad Attribution', aireatro: 'End-to-end tracking', others: 'Click only', aiLevel: 'full' as const },
+  { feature: 'Flow Health Score', aireatro: 'Real-time monitoring', others: 'Not available', aiLevel: 'full' as const },
+  { feature: 'UI / UX Quality', aireatro: 'Stripe-level design', others: 'Cluttered dashboards', aiLevel: 'partial' as const },
+  { feature: 'Integration Health', aireatro: 'Auto-monitoring', others: 'Manual checks', aiLevel: 'full' as const },
+  { feature: 'Team Operations', aireatro: 'SLA, scorecards, RBAC', others: 'Basic assignment', aiLevel: 'partial' as const },
+  { feature: 'Onboarding Speed', aireatro: '< 30 minutes', others: 'Hours to days', aiLevel: 'full' as const },
 ];
 
 function variantClasses(variant: UspVariant) {
@@ -187,8 +178,8 @@ export default function PowerfulUSPsSection() {
             10 Powerful Reasons to Choose <span className="text-primary">AiReatro</span>
           </h2>
           <p className="text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto">
-            AiReatro is an AI-powered WhatsApp platform that doesn’t just automate conversations — it tells you what’s
-            working, what’s broken, and what to fix to grow revenue.
+            AiReatro is an AI-powered WhatsApp platform that doesn't just automate conversations — it tells you what's
+            working, what's broken, and what to fix to grow revenue.
           </p>
         </div>
 
@@ -207,14 +198,12 @@ export default function PowerfulUSPsSection() {
                 )}
               >
                 <div className={cn('absolute inset-0', v.shell)} />
-
                 <div
                   className={cn(
                     'pointer-events-none absolute -top-16 -right-16 h-40 w-40 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity',
                     v.glow
                   )}
                 />
-
                 <div className="pointer-events-none absolute -bottom-8 -right-2 text-7xl font-black tracking-tight text-foreground/5">
                   {usp.number}
                 </div>
@@ -224,7 +213,6 @@ export default function PowerfulUSPsSection() {
                     <div className={cn('flex-shrink-0 w-12 h-12 rounded-2xl flex items-center justify-center border', v.iconWrap)}>
                       <Icon className="w-6 h-6" />
                     </div>
-
                     <div className="min-w-0">
                       <span className={cn('inline-flex text-[11px] font-bold px-2 py-1 rounded-full border', v.chip)}>
                         USP #{usp.number}
@@ -233,9 +221,7 @@ export default function PowerfulUSPsSection() {
                       <p className="text-sm font-medium text-primary/80">{usp.subtitle}</p>
                     </div>
                   </div>
-
                   <p className="text-sm text-muted-foreground mb-4">{usp.description}</p>
-
                   <ul className="space-y-2 mb-4">
                     {usp.bullets.map((bullet) => (
                       <li key={bullet} className="flex items-start gap-2 text-sm text-foreground/90">
@@ -244,7 +230,6 @@ export default function PowerfulUSPsSection() {
                       </li>
                     ))}
                   </ul>
-
                   <div className={cn('pt-4 border-t', v.divider)}>
                     <p className="text-sm font-semibold text-primary">→ {usp.cta}</p>
                   </div>
@@ -254,34 +239,66 @@ export default function PowerfulUSPsSection() {
           })}
         </div>
 
-        <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-6">
-            <h3 className="text-2xl md:text-3xl font-bold text-foreground">AiReatro vs. Others</h3>
-            <p className="text-muted-foreground">See the difference at a glance</p>
+        {/* Redesigned Comparison Section */}
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-8">
+            <Badge className="mb-3 bg-primary/10 text-primary border-0">
+              <Zap className="w-3 h-3 mr-1" />
+              Head-to-Head
+            </Badge>
+            <h3 className="text-2xl md:text-4xl font-bold text-foreground mb-2">
+              AiReatro vs. Others
+            </h3>
+            <p className="text-muted-foreground max-w-lg mx-auto">
+              See why teams switch from legacy WhatsApp platforms to AiReatro
+            </p>
           </div>
 
-          <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
+          {/* Desktop Table */}
+          <div className="hidden md:block overflow-hidden rounded-2xl border-2 border-primary/20 bg-card shadow-xl">
             <table className="w-full">
               <thead>
-                <tr className="bg-muted/40 text-foreground">
-                  <th className="py-4 px-5 text-left font-semibold">Feature</th>
-                  <th className="py-4 px-5 text-center font-semibold text-primary">AiReatro</th>
-                  <th className="py-4 px-5 text-center font-semibold text-muted-foreground">Others</th>
+                <tr className="border-b border-border">
+                  <th className="py-5 px-6 text-left text-sm font-semibold text-muted-foreground uppercase tracking-wider w-[35%]">
+                    Capability
+                  </th>
+                  <th className="py-5 px-6 text-center w-[35%]">
+                    <div className="inline-flex items-center gap-2 bg-primary/10 text-primary font-bold px-4 py-2 rounded-full text-sm">
+                      <Sparkles className="w-4 h-4" />
+                      AiReatro
+                    </div>
+                  </th>
+                  <th className="py-5 px-6 text-center text-sm font-semibold text-muted-foreground w-[30%]">
+                    Other Platforms
+                  </th>
                 </tr>
               </thead>
               <tbody>
                 {comparisonData.map((row, idx) => (
-                  <tr key={row.feature} className={idx % 2 === 0 ? 'bg-background' : 'bg-muted/20'}>
-                    <td className="py-4 px-5 font-medium text-foreground">{row.feature}</td>
-                    <td className="py-4 px-5 text-center">
-                      <span className="inline-flex items-center gap-2 text-primary font-semibold">
-                        <Check className="w-5 h-5" />
+                  <tr key={row.feature} className={cn(
+                    'border-b border-border/50 transition-colors hover:bg-muted/30',
+                    idx === comparisonData.length - 1 && 'border-b-0'
+                  )}>
+                    <td className="py-4 px-6">
+                      <span className="font-semibold text-foreground text-sm">{row.feature}</span>
+                    </td>
+                    <td className="py-4 px-6 text-center bg-primary/[0.03]">
+                      <span className="inline-flex items-center gap-2 text-sm font-medium text-primary">
+                        <div className="w-5 h-5 rounded-full bg-primary/15 flex items-center justify-center flex-shrink-0">
+                          <Check className="w-3.5 h-3.5" />
+                        </div>
                         {row.aireatro}
                       </span>
                     </td>
-                    <td className="py-4 px-5 text-center">
-                      <span className="inline-flex items-center gap-2 text-muted-foreground">
-                        <X className="w-5 h-5" />
+                    <td className="py-4 px-6 text-center">
+                      <span className="inline-flex items-center gap-2 text-sm text-muted-foreground">
+                        <div className="w-5 h-5 rounded-full bg-destructive/10 flex items-center justify-center flex-shrink-0">
+                          {row.others === 'Not available' ? (
+                            <X className="w-3.5 h-3.5 text-destructive" />
+                          ) : (
+                            <Minus className="w-3.5 h-3.5 text-muted-foreground" />
+                          )}
+                        </div>
                         {row.others}
                       </span>
                     </td>
@@ -289,6 +306,31 @@ export default function PowerfulUSPsSection() {
                 ))}
               </tbody>
             </table>
+          </div>
+
+          {/* Mobile Cards */}
+          <div className="md:hidden space-y-3">
+            {comparisonData.map((row) => (
+              <Card key={row.feature} className="p-4 border border-border">
+                <p className="text-sm font-semibold text-foreground mb-3">{row.feature}</p>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="bg-primary/5 rounded-lg p-3">
+                    <p className="text-[10px] font-semibold text-primary mb-1">AiReatro</p>
+                    <p className="text-xs text-foreground flex items-center gap-1.5">
+                      <Check className="w-3.5 h-3.5 text-primary flex-shrink-0" />
+                      {row.aireatro}
+                    </p>
+                  </div>
+                  <div className="bg-muted/30 rounded-lg p-3">
+                    <p className="text-[10px] font-semibold text-muted-foreground mb-1">Others</p>
+                    <p className="text-xs text-muted-foreground flex items-center gap-1.5">
+                      <X className="w-3.5 h-3.5 text-destructive/60 flex-shrink-0" />
+                      {row.others}
+                    </p>
+                  </div>
+                </div>
+              </Card>
+            ))}
           </div>
         </div>
       </div>
