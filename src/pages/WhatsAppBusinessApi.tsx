@@ -228,24 +228,35 @@ const WhatsAppBusinessApi = () => {
 
   const plans = [
     {
-      name: 'Starter',
-      price: '$29',
-      description: 'For small teams getting started',
-      features: ['1 Phone Number', '2,000 messages/mo', 'Basic Analytics', 'Email Support'],
+      name: 'Free',
+      price: '₹0',
+      period: 'forever',
+      description: 'Get started with WhatsApp',
+      features: ['1 Phone Number', '1,000 Contacts', 'Basic Inbox', 'Manual Replies', 'Basic Analytics'],
+      popular: false
+    },
+    {
+      name: 'Basic',
+      price: '₹1,499',
+      period: '/mo',
+      description: 'For small teams starting WhatsApp marketing',
+      features: ['5 Team Members', '10,000 Contacts', '3 WhatsApp Flows', 'Webhook & Zapier', 'Campaign Scheduling'],
       popular: false
     },
     {
       name: 'Pro',
-      price: '$79',
-      description: 'Diagnostics + Attribution + AI',
-      features: ['3 Phone Numbers', '10,000 messages/mo', 'Flow Heatmaps', 'AI Insights', 'End-to-End Attribution', 'WhatsApp Forms'],
+      price: '₹3,499',
+      period: '/mo',
+      description: 'Automation + AI powered growth',
+      features: ['10 Team Members', '50,000 Contacts', '20 Automation Flows', 'AI Inbox Assist', 'Meta Ads Attribution', 'WhatsApp Forms'],
       popular: true
     },
     {
       name: 'Business',
-      price: '$199',
-      description: 'For enterprise teams at scale',
-      features: ['Unlimited Numbers', '50,000 messages/mo', 'Dedicated Support', 'Custom Integrations', 'SLA Guarantee'],
+      price: 'Custom',
+      period: '',
+      description: 'Scale securely with full control',
+      features: ['25+ Team Members', 'Unlimited Contacts', 'AI Agent Mode', 'Audit Logs', 'Dedicated Support'],
       popular: false
     }
   ];
@@ -707,9 +718,9 @@ const WhatsAppBusinessApi = () => {
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
             {plans.map((plan, index) => (
-              <Card key={index} className={`border-border/50 relative ${plan.popular ? 'border-primary shadow-lg shadow-primary/10 scale-105' : ''}`}>
+              <Card key={index} className={`border-border/50 relative ${plan.popular ? 'border-primary border-2 shadow-lg shadow-primary/10' : ''}`}>
                 {plan.popular && (
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2">
                     <Badge className="bg-primary text-primary-foreground shadow-lg">Most Popular</Badge>
@@ -720,7 +731,7 @@ const WhatsAppBusinessApi = () => {
                   <CardDescription>{plan.description}</CardDescription>
                   <div className="mt-4">
                     <span className="text-4xl font-bold">{plan.price}</span>
-                    <span className="text-muted-foreground">/mo</span>
+                    {plan.period && <span className="text-muted-foreground">{plan.period}</span>}
                   </div>
                 </CardHeader>
                 <CardContent className="pb-6">
@@ -735,9 +746,9 @@ const WhatsAppBusinessApi = () => {
                   <Button 
                     className={`w-full ${plan.popular ? 'bg-gradient-to-r from-primary to-emerald-600' : ''}`}
                     variant={plan.popular ? 'default' : 'outline'}
-                    onClick={() => navigate('/signup')}
+                    onClick={() => navigate(plan.name === 'Business' ? '/contact' : '/signup')}
                   >
-                    Get Started
+                    {plan.name === 'Business' ? 'Talk to Sales' : 'Get Started'}
                   </Button>
                 </CardContent>
               </Card>
@@ -800,7 +811,7 @@ const WhatsAppBusinessApi = () => {
               <Button 
                 size="lg" 
                 variant="outline" 
-                className="h-12 px-8 text-base border-2 border-border text-foreground hover:bg-muted"
+                className="h-12 px-8 text-base border-2 border-foreground/30 text-foreground hover:bg-muted font-medium"
                 onClick={() => navigate('/contact')}
               >
                 Talk to Sales
