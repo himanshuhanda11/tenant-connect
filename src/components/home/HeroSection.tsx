@@ -28,7 +28,7 @@ export default function HeroSection() {
           <div className="flex flex-col lg:flex-row items-center gap-8 lg:gap-12">
             
             {/* Left Side - Text (60%) */}
-            <div className="w-full lg:w-[60%] text-center lg:text-left">
+            <div className="w-full lg:w-[55%] text-center lg:text-left">
               <Badge className="mb-4 sm:mb-5 bg-accent text-accent-foreground border-primary/20 hover:bg-accent/80 px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm">
                 <Sparkles className="w-3 sm:w-3.5 h-3 sm:h-3.5 mr-1.5 sm:mr-2" />
                 Official WhatsApp Cloud API Partner
@@ -85,7 +85,7 @@ export default function HeroSection() {
             </div>
 
             {/* Right Side - Video (40%) */}
-            <div className="w-full lg:w-[40%]">
+            <div className="w-full lg:w-[45%]">
               <div className="relative rounded-xl sm:rounded-2xl overflow-hidden shadow-2xl border border-border bg-foreground">
                 <video
                   src={heroVideo}
