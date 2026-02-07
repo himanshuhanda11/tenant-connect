@@ -3891,6 +3891,82 @@ export type Database = {
         }
         Relationships: []
       }
+      platform_payments: {
+        Row: {
+          amount: number
+          billing_cycle: string | null
+          created_at: string | null
+          currency: string
+          id: string
+          metadata: Json | null
+          plan_id: string | null
+          provider: string
+          provider_invoice_id: string | null
+          provider_order_id: string | null
+          provider_payment_id: string | null
+          provider_subscription_id: string | null
+          status: string
+          updated_at: string | null
+          workspace_id: string
+        }
+        Insert: {
+          amount: number
+          billing_cycle?: string | null
+          created_at?: string | null
+          currency?: string
+          id?: string
+          metadata?: Json | null
+          plan_id?: string | null
+          provider: string
+          provider_invoice_id?: string | null
+          provider_order_id?: string | null
+          provider_payment_id?: string | null
+          provider_subscription_id?: string | null
+          status?: string
+          updated_at?: string | null
+          workspace_id: string
+        }
+        Update: {
+          amount?: number
+          billing_cycle?: string | null
+          created_at?: string | null
+          currency?: string
+          id?: string
+          metadata?: Json | null
+          plan_id?: string | null
+          provider?: string
+          provider_invoice_id?: string | null
+          provider_order_id?: string | null
+          provider_payment_id?: string | null
+          provider_subscription_id?: string | null
+          status?: string
+          updated_at?: string | null
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "platform_payments_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "platform_plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "platform_payments_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "platform_workspace_directory"
+            referencedColumns: ["workspace_id"]
+          },
+          {
+            foreignKeyName: "platform_payments_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       platform_plans: {
         Row: {
           addons: Json
