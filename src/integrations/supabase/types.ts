@@ -3808,6 +3808,63 @@ export type Database = {
         }
         Relationships: []
       }
+      platform_billing_events: {
+        Row: {
+          amount: number
+          created_at: string | null
+          currency: string
+          event_type: string
+          id: string
+          occurred_at: string
+          payload: Json | null
+          provider: string
+          provider_event_id: string | null
+          status: string
+          workspace_id: string | null
+        }
+        Insert: {
+          amount?: number
+          created_at?: string | null
+          currency?: string
+          event_type: string
+          id?: string
+          occurred_at?: string
+          payload?: Json | null
+          provider: string
+          provider_event_id?: string | null
+          status?: string
+          workspace_id?: string | null
+        }
+        Update: {
+          amount?: number
+          created_at?: string | null
+          currency?: string
+          event_type?: string
+          id?: string
+          occurred_at?: string
+          payload?: Json | null
+          provider?: string
+          provider_event_id?: string | null
+          status?: string
+          workspace_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "platform_billing_events_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "platform_workspace_directory"
+            referencedColumns: ["workspace_id"]
+          },
+          {
+            foreignKeyName: "platform_billing_events_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       platform_incident_events: {
         Row: {
           actor_user_id: string | null
@@ -3890,6 +3947,72 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      platform_invoices: {
+        Row: {
+          amount: number
+          billed_to: Json
+          created_at: string | null
+          currency: string
+          id: string
+          invoice_number: string
+          line_items: Json
+          pdf_path: string | null
+          period_end: string | null
+          period_start: string | null
+          provider: string
+          provider_invoice_id: string | null
+          status: string
+          workspace_id: string
+        }
+        Insert: {
+          amount: number
+          billed_to?: Json
+          created_at?: string | null
+          currency?: string
+          id?: string
+          invoice_number: string
+          line_items?: Json
+          pdf_path?: string | null
+          period_end?: string | null
+          period_start?: string | null
+          provider: string
+          provider_invoice_id?: string | null
+          status?: string
+          workspace_id: string
+        }
+        Update: {
+          amount?: number
+          billed_to?: Json
+          created_at?: string | null
+          currency?: string
+          id?: string
+          invoice_number?: string
+          line_items?: Json
+          pdf_path?: string | null
+          period_end?: string | null
+          period_start?: string | null
+          provider?: string
+          provider_invoice_id?: string | null
+          status?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "platform_invoices_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "platform_workspace_directory"
+            referencedColumns: ["workspace_id"]
+          },
+          {
+            foreignKeyName: "platform_invoices_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       platform_payments: {
         Row: {
@@ -4018,6 +4141,33 @@ export type Database = {
           restrictions?: Json | null
           sort_order?: number | null
           tagline?: string | null
+        }
+        Relationships: []
+      }
+      platform_risk_events: {
+        Row: {
+          action: string
+          actor_user_id: string | null
+          created_at: string | null
+          id: string
+          ip: string | null
+          meta: Json | null
+        }
+        Insert: {
+          action: string
+          actor_user_id?: string | null
+          created_at?: string | null
+          id?: string
+          ip?: string | null
+          meta?: Json | null
+        }
+        Update: {
+          action?: string
+          actor_user_id?: string | null
+          created_at?: string | null
+          id?: string
+          ip?: string | null
+          meta?: Json | null
         }
         Relationships: []
       }
@@ -9297,6 +9447,39 @@ export type Database = {
           },
         ]
       }
+      workspace_credits: {
+        Row: {
+          balance: number
+          updated_at: string | null
+          workspace_id: string
+        }
+        Insert: {
+          balance?: number
+          updated_at?: string | null
+          workspace_id: string
+        }
+        Update: {
+          balance?: number
+          updated_at?: string | null
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workspace_credits_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: true
+            referencedRelation: "platform_workspace_directory"
+            referencedColumns: ["workspace_id"]
+          },
+          {
+            foreignKeyName: "workspace_credits_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: true
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       workspace_entitlements: {
         Row: {
           enable_ads: boolean
@@ -9359,6 +9542,45 @@ export type Database = {
           },
           {
             foreignKeyName: "workspace_entitlements_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: true
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      workspace_phone_numbers: {
+        Row: {
+          created_at: string | null
+          id: string
+          label: string | null
+          phone_e164: string
+          workspace_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          label?: string | null
+          phone_e164: string
+          workspace_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          label?: string | null
+          phone_e164?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workspace_phone_numbers_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: true
+            referencedRelation: "platform_workspace_directory"
+            referencedColumns: ["workspace_id"]
+          },
+          {
+            foreignKeyName: "workspace_phone_numbers_workspace_id_fkey"
             columns: ["workspace_id"]
             isOneToOne: true
             referencedRelation: "tenants"
@@ -9935,8 +10157,16 @@ export type Database = {
         }
         Returns: boolean
       }
+      check_payment_attempt_allowed: {
+        Args: { p_user_id: string }
+        Returns: boolean
+      }
       check_tenant_limit: {
         Args: { p_limit_key: string; p_tenant_id: string }
+        Returns: boolean
+      }
+      check_workspace_creation_allowed: {
+        Args: { p_user_id: string }
         Returns: boolean
       }
       cleanup_automation_expired_records: { Args: never; Returns: undefined }
@@ -10168,6 +10398,8 @@ export type Database = {
         }
         Returns: undefined
       }
+      next_invoice_number: { Args: never; Returns: string }
+      owner_workspace_count: { Args: { p_owner: string }; Returns: number }
       pause_campaign: { Args: { p_campaign_id: string }; Returns: number }
       pause_smeksh_campaign: {
         Args: { p_campaign_id: string; p_tenant_id: string }
@@ -10193,6 +10425,26 @@ export type Database = {
           p_tenant_id: string
         }
         Returns: string
+      }
+      platform_revenue_daily: {
+        Args: { p_days?: number }
+        Returns: {
+          day: string
+          gross: number
+          net: number
+          payments_count: number
+          refunds: number
+        }[]
+      }
+      platform_revenue_summary: {
+        Args: { p_days?: number }
+        Returns: {
+          active_subscriptions: number
+          gross: number
+          net: number
+          payments_count: number
+          refunds: number
+        }[]
       }
       schedule_automation_job: {
         Args: {
