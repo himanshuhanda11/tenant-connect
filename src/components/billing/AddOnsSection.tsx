@@ -8,7 +8,7 @@ const addOns = [
     id: 'extra-seats',
     name: 'Extra Team Seats',
     description: 'Add more team members to your workspace',
-    price: 10,
+    price: 499,
     unit: 'per seat/month',
     icon: Users,
   },
@@ -16,7 +16,7 @@ const addOns = [
     id: 'extra-numbers',
     name: 'Additional Phone Numbers',
     description: 'Connect more WhatsApp numbers',
-    price: 15,
+    price: 799,
     unit: 'per number/month',
     icon: Phone,
   },
@@ -24,7 +24,7 @@ const addOns = [
     id: 'extra-automations',
     name: 'Automation Boost',
     description: '1,000 additional automation runs per month',
-    price: 25,
+    price: 1499,
     unit: 'per 1,000 runs/month',
     icon: Workflow,
   },
@@ -32,12 +32,14 @@ const addOns = [
     id: 'dedicated-ip',
     name: 'Dedicated Webhook IP',
     description: 'Get a dedicated IP for webhook callbacks',
-    price: 50,
+    price: 2999,
     unit: 'per month',
     icon: Server,
     badge: 'Enterprise',
   },
 ];
+
+const formatINR = (val: number) => `₹${val.toLocaleString('en-IN')}`;
 
 export function AddOnsSection() {
   return (
@@ -72,7 +74,7 @@ export function AddOnsSection() {
                 </p>
                 <div className="flex items-center justify-between mt-2 sm:mt-3 gap-2">
                   <span className="text-xs sm:text-sm">
-                    <span className="font-semibold">${addon.price}</span>
+                    <span className="font-semibold">{formatINR(addon.price)}</span>
                     <span className="text-muted-foreground"> {addon.unit}</span>
                   </span>
                   <Button size="sm" variant="outline" className="h-7 sm:h-8 text-xs sm:text-sm px-2 sm:px-3">
