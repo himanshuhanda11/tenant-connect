@@ -584,11 +584,13 @@ const WhatsAppBusinessApi = () => {
                             Learn more <ChevronRight className="w-4 h-4 ml-1" />
                           </Button>
                         </div>
-                        <div className="bg-muted/50 rounded-xl aspect-video flex items-center justify-center border border-border/50">
-                          <div className="text-center p-4">
-                            <tab.icon className="w-12 h-12 text-muted-foreground/50 mx-auto mb-2" />
-                            <p className="text-sm text-muted-foreground">{tab.label} UI Preview</p>
-                          </div>
+                        <div className="rounded-xl overflow-hidden border border-border/50 shadow-soft">
+                          <img 
+                            src={dashboardPreview} 
+                            alt={`${tab.label} feature preview`} 
+                            className="w-full h-auto"
+                            loading="lazy"
+                          />
                         </div>
                       </div>
                     </CardContent>
