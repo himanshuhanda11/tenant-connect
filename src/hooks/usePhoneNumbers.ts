@@ -357,12 +357,12 @@ export function useWABAs() {
     try {
       const { data: result, error } = await supabase
         .from('waba_accounts')
-        .insert({
+        .upsert({
           tenant_id: currentTenant.id,
           waba_id: data.waba_id,
           name: data.name,
           business_id: '',
-        })
+        }, { onConflict: 'tenant_id,waba_id' })
         .select()
         .single();
 
