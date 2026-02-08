@@ -37,9 +37,10 @@ export function usePhoneNumbers() {
 
     try {
       setLoading(true);
-      const { data, error } = await supabase
+      // Fetch phone numbers with joined WABA data
+      const { data, error } = await (supabase as any)
         .from('phone_numbers')
-        .select('*')
+        .select('*, waba_accounts!waba_account_id(id, waba_id, name, business_name, status)')
         .eq('tenant_id', currentTenant.id);
 
       if (error) throw error;
@@ -75,8 +76,8 @@ export function usePhoneNumbers() {
       const mappedNumbers: PhoneNumber[] = (data || []).map((n: any) => ({
         id: n.id,
         tenant_id: n.tenant_id,
-        waba_uuid: n.waba_uuid,
-        waba_id: n.waba_id,
+        waba_uuid: n.waba_account_id,
+        waba_id: n.waba_accounts?.waba_id || null,
         phone_number_id: n.phone_number_id,
         display_name: n.display_number || n.verified_name,
         phone_e164: n.display_number || '',
