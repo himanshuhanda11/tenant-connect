@@ -49,7 +49,8 @@ import {
   Filter,
   RefreshCw,
   Send,
-  X
+  X,
+  Link2
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { usePhoneNumbers } from '@/hooks/usePhoneNumbers';
@@ -162,6 +163,9 @@ export default function PhoneNumbersList() {
         break;
       case 'test':
         navigate(`/phone-numbers/${number.id}?tab=diagnostics`);
+        break;
+      case 'reconnect':
+        navigate('/phone-numbers/connect');
         break;
       case 'disconnect':
         disconnectNumber(number.id);
@@ -470,6 +474,10 @@ export default function PhoneNumbersList() {
                           Settings
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
+                        <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleAction('reconnect', number); }}>
+                          <Link2 className="h-4 w-4 mr-2" />
+                          Reconnect
+                        </DropdownMenuItem>
                         <DropdownMenuItem 
                           onClick={(e) => { e.stopPropagation(); handleAction('disconnect', number); }}
                           className="text-destructive focus:text-destructive"
@@ -676,6 +684,10 @@ export default function PhoneNumbersList() {
                             {number.is_default ? 'Remove Default' : 'Set Default'}
                           </DropdownMenuItem>
                           <DropdownMenuSeparator />
+                          <DropdownMenuItem onClick={() => handleAction('reconnect', number)}>
+                            <Link2 className="h-4 w-4 mr-2" />
+                            Reconnect
+                          </DropdownMenuItem>
                           <DropdownMenuItem 
                             onClick={() => handleAction('disconnect', number)}
                             className="text-destructive"
