@@ -98,25 +98,29 @@ export default function ConnectNumber() {
   const handleComplete = async () => {
     setIsConnecting(true);
     try {
-      // Add WABA if new
+      // Add WABA first and get back the database UUID
+      let wabaUuid = '';
       if (state.wabaId) {
-        await addWaba({
+        const wabaResult = await addWaba({
           waba_id: state.wabaId,
           name: state.wabaName || 'My Business',
         });
+        // Use the returned database UUID (not the Meta WABA ID)
+        wabaUuid = wabaResult?.id || '';
       }
 
-      // Add phone number
+      // Add phone number using the WABA's database UUID as the foreign key
       await addPhoneNumber({
         phone_number_id: state.phoneNumberId,
         phone_e164: state.phoneE164,
         display_name: state.displayName,
-        waba_id: state.wabaId,
+        waba_id: wabaUuid,
         status: 'connected',
       });
 
       setCurrentStep('complete');
     } catch (error) {
+      console.error('Manual setup error:', error);
       toast.error('Failed to connect number');
     } finally {
       setIsConnecting(false);
