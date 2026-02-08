@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useTenant } from '@/contexts/TenantContext';
 import { toast } from 'sonner';
@@ -161,7 +161,7 @@ export function useInboxConversations(view: InboxView, filters: InboxFilters) {
     ));
   }, []);
 
-  // Realtime subscription - background refresh (no loading spinner)
+  // Realtime subscription - update conversations in-place for speed
   useEffect(() => {
     if (!currentTenant?.id) return;
 
@@ -175,20 +175,32 @@ export function useInboxConversations(view: InboxView, filters: InboxFilters) {
           table: 'conversations',
           filter: `tenant_id=eq.${currentTenant.id}`,
         },
-        () => {
-          fetchConversations(true);
-        }
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'messages',
-          filter: `tenant_id=eq.${currentTenant.id}`,
-        },
-        () => {
-          fetchConversations(true);
+        (payload) => {
+          if (payload.eventType === 'UPDATE') {
+            const updated = payload.new as any;
+            setConversations(prev => {
+              const idx = prev.findIndex(c => c.id === updated.id);
+              if (idx === -1) return prev;
+              const existing = prev[idx];
+              const merged = {
+                ...existing,
+                status: updated.status || existing.status,
+                unread_count: updated.unread_count ?? existing.unread_count,
+                last_message_at: updated.last_message_at || existing.last_message_at,
+                last_message_preview: updated.last_message_preview || existing.last_message_preview,
+                assigned_to: updated.assigned_to,
+                updated_at: updated.updated_at,
+              };
+              const newList = [...prev];
+              newList[idx] = merged;
+              // Re-sort by last_message_at
+              newList.sort((a, b) => new Date(b.last_message_at || 0).getTime() - new Date(a.last_message_at || 0).getTime());
+              return newList;
+            });
+          } else if (payload.eventType === 'INSERT') {
+            // New conversation — do a background fetch to get joined contact data
+            fetchConversations(true);
+          }
         }
       )
       .subscribe();
@@ -206,6 +218,7 @@ export function useInboxMessages(conversationId: string | null) {
   const [messages, setMessages] = useState<InboxMessage[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const prevConversationId = useRef<string | null>(null);
 
   const fetchMessages = useCallback(async () => {
     if (!conversationId) {
@@ -213,7 +226,14 @@ export function useInboxMessages(conversationId: string | null) {
       return;
     }
     
-    setLoading(true);
+    // Only show loading on conversation switch, not refetch
+    const isSwitch = prevConversationId.current !== conversationId;
+    if (isSwitch) {
+      setLoading(true);
+      setMessages([]); // Clear immediately on switch to avoid stale messages
+      prevConversationId.current = conversationId;
+    }
+    
     try {
       const { data, error: queryError } = await supabase
         .from('messages')
@@ -238,8 +258,9 @@ export function useInboxMessages(conversationId: string | null) {
 
   const addMessage = useCallback((message: InboxMessage) => {
     setMessages(prev => {
-      // Deduplicate
+      // Deduplicate by id
       if (prev.some(m => m.id === message.id)) return prev;
+      // Remove optimistic messages with same text (replace with real)
       return [...prev, message];
     });
   }, []);
@@ -261,8 +282,14 @@ export function useInboxMessages(conversationId: string | null) {
         (payload) => {
           const mapped = mapMessage(payload.new);
           setMessages(prev => {
-            if (prev.some(m => m.id === mapped.id)) return prev;
-            return [...prev, mapped];
+            // Remove any optimistic message with matching text
+            const withoutOptimistic = prev.filter(m => {
+              if (!m.id.startsWith('optimistic-')) return true;
+              return m.body_text !== mapped.body_text;
+            });
+            // Don't add if already exists
+            if (withoutOptimistic.some(m => m.id === mapped.id)) return withoutOptimistic;
+            return [...withoutOptimistic, mapped];
           });
         }
       )

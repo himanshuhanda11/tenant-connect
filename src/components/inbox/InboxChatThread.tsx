@@ -113,13 +113,14 @@ export function InboxChatThread({
   const [aiIntent, setAiIntent] = useState<'sales' | 'support' | 'complaint' | 'inquiry' | 'urgent' | 'spam'>('inquiry');
   const [aiHealth, setAiHealth] = useState<'good' | 'warning' | 'critical'>('good');
   const scrollRef = useRef<HTMLDivElement>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Scroll to bottom on new messages
+  // Scroll to bottom on new messages — smooth and instant
   useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-    }
+    requestAnimationFrame(() => {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    });
   }, [messages]);
 
   // Check if outside 24h window
@@ -616,6 +617,7 @@ export function InboxChatThread({
               {typingUsers[0].full_name} is typing...
             </div>
           )}
+          <div ref={messagesEndRef} />
         </div>
       </ScrollArea>
 
