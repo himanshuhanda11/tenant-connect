@@ -73,12 +73,26 @@ export default function ConnectNumber() {
 
   const handleBack = () => {
     const prevStep = steps[stepIndex - 1];
-    if (prevStep) setCurrentStep(prevStep.id);
+    if (prevStep) {
+      // Skip verify step when going back in manual setup
+      if (prevStep.id === 'verify' && state.method === 'manual') {
+        const selectStep = steps.find(s => s.id === 'select');
+        if (selectStep) { setCurrentStep(selectStep.id); return; }
+      }
+      setCurrentStep(prevStep.id);
+    }
   };
 
   const handleNext = () => {
     const nextStep = steps[stepIndex + 1];
-    if (nextStep) setCurrentStep(nextStep.id);
+    if (nextStep) {
+      // Skip verify step for manual setup - number is already verified on Meta's side
+      if (nextStep.id === 'verify' && state.method === 'manual') {
+        const webhookStep = steps.find(s => s.id === 'webhook');
+        if (webhookStep) { setCurrentStep(webhookStep.id); return; }
+      }
+      setCurrentStep(nextStep.id);
+    }
   };
 
   const handleComplete = async () => {
