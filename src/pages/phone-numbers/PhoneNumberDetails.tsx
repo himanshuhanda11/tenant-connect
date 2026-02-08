@@ -299,14 +299,16 @@ export default function PhoneNumberDetails() {
     setTestResult(null);
 
     try {
-      const { data, error } = await supabase.functions.invoke('send-template-message', {
+      const cleanRecipient = testRecipient.replace(/[^0-9]/g, '');
+      
+      // Try sending a text message first (works within 24h window)
+      const { data, error } = await supabase.functions.invoke('send-text-message', {
         body: {
           tenant_id: number.tenant_id,
           phone_number_id: number.id,
-          to_wa_id: testRecipient.replace(/[^0-9]/g, ''),
-          template_name: selectedTemplate || 'hello_world',
-          template_language: 'en',
-          components: [],
+          to_wa_id: cleanRecipient,
+          type: 'text',
+          text: 'Hello! This is a test message from SMEKSH platform. 🚀',
         }
       });
 
