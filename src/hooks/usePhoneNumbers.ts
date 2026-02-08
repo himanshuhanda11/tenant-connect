@@ -36,13 +36,21 @@ export function usePhoneNumbers() {
 
     try {
       setLoading(true);
-      // Fetch phone numbers with joined WABA data
-      const { data, error } = await (supabase as any)
+      // Fetch phone numbers first
+      const { data: phoneData, error: phoneError } = await supabase
         .from('phone_numbers')
-        .select('*, waba_accounts!waba_account_id(id, waba_id, name, business_name, status)')
+        .select('*')
         .eq('tenant_id', currentTenant.id);
 
-      if (error) throw error;
+      if (phoneError) throw phoneError;
+
+      // Fetch WABA accounts for this tenant to map waba_id
+      const { data: wabaData } = await supabase
+        .from('waba_accounts')
+        .select('id, waba_id, name, business_name, status')
+        .eq('tenant_id', currentTenant.id);
+
+      const wabaMap = new Map((wabaData || []).map((w: any) => [w.id, w]));
 
       // Helper to map quality rating from DB (uppercase) to frontend (lowercase)
       const mapQualityRating = (rating?: string): 'green' | 'yellow' | 'red' | 'unknown' => {
@@ -72,11 +80,13 @@ export function usePhoneNumbers() {
       };
 
       // Map database fields to PhoneNumber type
-      const mappedNumbers: PhoneNumber[] = (data || []).map((n: any) => ({
+      const mappedNumbers: PhoneNumber[] = (phoneData || []).map((n: any) => {
+        const waba = wabaMap.get(n.waba_account_id);
+        return {
         id: n.id,
         tenant_id: n.tenant_id,
         waba_uuid: n.waba_account_id,
-        waba_id: n.waba_accounts?.waba_id || null,
+        waba_id: waba?.waba_id || null,
         phone_number_id: n.phone_number_id,
         display_name: n.display_number || n.verified_name,
         phone_e164: n.display_number || '',
@@ -101,7 +111,8 @@ export function usePhoneNumbers() {
         is_default: n.is_default || false,
         created_at: n.created_at,
         updated_at: n.updated_at,
-      }));
+      };
+      });
 
       setPhoneNumbers(mappedNumbers);
 
