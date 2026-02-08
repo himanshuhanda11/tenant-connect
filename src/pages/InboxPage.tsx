@@ -27,7 +27,7 @@ export default function InboxPage() {
   const [view, setView] = useState<InboxView>('all');
   const [filters, setFilters] = useState<InboxFilters>({});
   const [selectedId, setSelectedId] = useState<string | null>(conversationId || null);
-  const [refreshKey, setRefreshKey] = useState(0);
+  
   const [showContextPanel, setShowContextPanel] = useState(false);
 
   // Hooks
@@ -43,12 +43,8 @@ export default function InboxPage() {
 
   // Listen for inbox updates
   useEffect(() => {
-    const handleUpdate = (e: Event) => {
-      const detail = (e as CustomEvent).detail;
-      if (detail?.conversationId) {
-        setRefreshKey(prev => prev + 1);
-        refetch();
-      }
+    const handleUpdate = () => {
+      refetch();
     };
 
     const handleMessage = (e: Event) => {
@@ -181,7 +177,7 @@ export default function InboxPage() {
     return (
       <DashboardLayout>
         <TooltipProvider>
-          <div className="h-[calc(100vh-4rem)] flex flex-col -mx-4 -my-4 sm:-m-6" key={refreshKey}>
+          <div className="h-[calc(100vh-4rem)] flex flex-col -mx-4 -my-4 sm:-m-6">
             {/* Mobile: Show list when no conversation selected */}
             {!selectedId ? (
               <InboxConversationList
@@ -247,7 +243,7 @@ export default function InboxPage() {
   return (
     <DashboardLayout>
       <TooltipProvider>
-        <div className="h-[calc(100vh-4rem)] flex -m-6" key={refreshKey}>
+        <div className="h-[calc(100vh-4rem)] flex -m-6">
           {/* Left: Conversation List */}
           <div className="w-80 flex-shrink-0">
             <InboxConversationList

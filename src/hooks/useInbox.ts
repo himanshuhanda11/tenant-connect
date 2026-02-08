@@ -88,14 +88,17 @@ export function useInboxConversations(view: InboxView, filters: InboxFilters) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchConversations = useCallback(async () => {
+  const initialLoadDone = useCallback(() => conversations.length > 0 || !loading, [conversations.length, loading]);
+
+  const fetchConversations = useCallback(async (isBackground = false) => {
     if (!currentTenant?.id) {
       setConversations([]);
       setLoading(false);
       return;
     }
     
-    setLoading(true);
+    // Only show loading spinner on initial load, not background refreshes
+    if (!isBackground) setLoading(true);
     try {
       let query = supabase
         .from('conversations')
@@ -108,14 +111,12 @@ export function useInboxConversations(view: InboxView, filters: InboxFilters) {
 
       // Apply filters
       if (filters.status && filters.status !== 'all') {
-        // Map inbox status to DB status (DB only has open/closed/expired)
         const dbStatus = filters.status === 'pending' ? 'open' : filters.status;
         query = query.eq('status', dbStatus);
       }
       if (filters.assignment === 'unassigned') {
         query = query.is('assigned_to', null);
       } else if (filters.assignment === 'mine') {
-        // TODO: use current user profile id
         query = query.not('assigned_to', 'is', null);
       }
       if (filters.priority && filters.priority !== 'all') {
@@ -160,7 +161,7 @@ export function useInboxConversations(view: InboxView, filters: InboxFilters) {
     ));
   }, []);
 
-  // Realtime subscription
+  // Realtime subscription - background refresh (no loading spinner)
   useEffect(() => {
     if (!currentTenant?.id) return;
 
@@ -175,7 +176,7 @@ export function useInboxConversations(view: InboxView, filters: InboxFilters) {
           filter: `tenant_id=eq.${currentTenant.id}`,
         },
         () => {
-          fetchConversations();
+          fetchConversations(true);
         }
       )
       .on(
@@ -187,7 +188,7 @@ export function useInboxConversations(view: InboxView, filters: InboxFilters) {
           filter: `tenant_id=eq.${currentTenant.id}`,
         },
         () => {
-          fetchConversations();
+          fetchConversations(true);
         }
       )
       .subscribe();
@@ -197,7 +198,7 @@ export function useInboxConversations(view: InboxView, filters: InboxFilters) {
     };
   }, [currentTenant?.id, fetchConversations]);
 
-  return { conversations, loading, error, refetch: fetchConversations, updateConversation };
+  return { conversations, loading, error, refetch: () => fetchConversations(true), updateConversation };
 }
 
 export function useInboxMessages(conversationId: string | null) {
@@ -477,6 +478,23 @@ export function useInboxActions() {
     if (!message.text?.trim() && !message.template) return;
     if (!currentTenant?.id) return;
 
+    // Optimistic: immediately dispatch a local message event so the chat thread updates instantly
+    const optimisticId = `optimistic-${Date.now()}`;
+    const optimisticMsg: InboxMessage = {
+      id: optimisticId,
+      tenant_id: currentTenant.id,
+      conversation_id: conversationId,
+      direction: 'outbound',
+      message_type: 'text',
+      body_text: message.text,
+      payload: {},
+      is_failed: false,
+      latest_status: 'sent',
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+    window.dispatchEvent(new CustomEvent('inbox-message', { detail: { conversationId, message: optimisticMsg } }));
+
     try {
       // Get conversation to find phone_number_id and contact wa_id
       const { data: conv } = await supabase
@@ -503,7 +521,6 @@ export function useInboxActions() {
 
       if (error) throw error;
       if (data?.error) {
-        // Show user-friendly error for known codes
         if (data.code === 'OUTSIDE_24H') {
           toast.error('Cannot send: no inbound message within 24 hours. Use a template instead.');
         } else if (data.code === 'LIMIT_EXCEEDED') {
@@ -515,7 +532,6 @@ export function useInboxActions() {
       }
 
       toast.success('Message sent');
-      // Refetch messages to show the new one
       window.dispatchEvent(new CustomEvent('inbox-update', { detail: { conversationId } }));
     } catch (err: any) {
       console.error('Send message error:', err);
