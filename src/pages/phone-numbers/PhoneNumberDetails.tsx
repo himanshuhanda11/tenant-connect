@@ -299,22 +299,36 @@ export default function PhoneNumberDetails() {
     setTestResult(null);
 
     try {
-      // Simulate test message - in production this would call the edge function
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      const { data, error } = await supabase.functions.invoke('send-template-message', {
+        body: {
+          tenant_id: number.tenant_id,
+          phone_number_id: number.phone_number_id,
+          to_wa_id: testRecipient.replace(/[^0-9]/g, ''),
+          template_name: selectedTemplate || 'hello_world',
+          template_language: 'en',
+          components: [],
+        }
+      });
+
+      if (error) throw error;
       
+      if (data?.ok === false) {
+        throw new Error(data?.error || 'Failed to send test message');
+      }
+
       setTestResult({
         success: true,
-        messageId: `wamid.${Date.now()}`,
+        messageId: data?.wamid || data?.message_id,
         status: 'sent',
       });
       
       toast.success('Test message sent successfully');
-    } catch (error) {
+    } catch (error: any) {
       setTestResult({
         success: false,
-        error: 'Failed to send test message',
+        error: error.message || 'Failed to send test message',
       });
-      toast.error('Failed to send test message');
+      toast.error(error.message || 'Failed to send test message');
     } finally {
       setIsSendingTest(false);
     }
