@@ -458,10 +458,10 @@ async function processInboundMessage(
     text = ev.raw?.message?.reaction?.emoji || '';
   }
 
-  // Insert message with idempotency on wamid (partial unique index)
+  // Insert message (use plain insert; partial unique index handles dedup)
   const { error: msgError } = await supabase
     .from('messages')
-    .upsert({
+    .insert({
       tenant_id: tenantId,
       conversation_id: conversationId,
       wamid: ev.wamid,
@@ -473,13 +473,15 @@ async function processInboundMessage(
       status: 'delivered',
       context_message_id: ev.context_message_id,
       raw: ev.raw,
-    }, {
-      onConflict: 'tenant_id,wamid',
-      ignoreDuplicates: true,
     });
 
   if (msgError) {
-    console.error('Error inserting message:', msgError);
+    // Ignore duplicate key violations (23505) for idempotency
+    if (msgError.code === '23505') {
+      console.log(`Duplicate message ${ev.wamid} ignored`);
+    } else {
+      console.error('Error inserting message:', msgError);
+    }
   } else {
     console.log(`Processed inbound message ${ev.wamid} from ${ev.from_wa_id}`);
     
