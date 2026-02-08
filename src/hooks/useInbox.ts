@@ -495,15 +495,27 @@ export function useInboxActions() {
           tenant_id: currentTenant.id,
           phone_number_id: conv.phone_number_id,
           to_wa_id: contactWaId,
+          conversation_id: conversationId,
           type: 'text',
           text: message.text,
         }
       });
 
       if (error) throw error;
-      if (data?.error) throw new Error(data.error);
+      if (data?.error) {
+        // Show user-friendly error for known codes
+        if (data.code === 'OUTSIDE_24H') {
+          toast.error('Cannot send: no inbound message within 24 hours. Use a template instead.');
+        } else if (data.code === 'LIMIT_EXCEEDED') {
+          toast.error('Monthly message limit exceeded. Please upgrade your plan.');
+        } else {
+          toast.error(data.error);
+        }
+        return;
+      }
 
       toast.success('Message sent');
+      // Refetch messages to show the new one
       window.dispatchEvent(new CustomEvent('inbox-update', { detail: { conversationId } }));
     } catch (err: any) {
       console.error('Send message error:', err);
