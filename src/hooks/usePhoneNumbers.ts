@@ -29,8 +29,7 @@ export function usePhoneNumbers() {
 
   const fetchPhoneNumbers = useCallback(async () => {
     if (!currentTenant) {
-      // Use mock data when no tenant
-      setPhoneNumbers(MOCK_PHONE_NUMBERS);
+      setPhoneNumbers([]);
       setLoading(false);
       return;
     }
@@ -104,7 +103,7 @@ export function usePhoneNumbers() {
         updated_at: n.updated_at,
       }));
 
-      setPhoneNumbers(mappedNumbers.length > 0 ? mappedNumbers : MOCK_PHONE_NUMBERS);
+      setPhoneNumbers(mappedNumbers);
 
       // Auto-select first phone number if none selected
       if (mappedNumbers.length > 0 && !selectedPhoneId) {
@@ -112,8 +111,7 @@ export function usePhoneNumbers() {
       }
     } catch (error) {
       console.error('Error fetching phone numbers:', error);
-      // Fallback to mock data
-      setPhoneNumbers(MOCK_PHONE_NUMBERS);
+      setPhoneNumbers([]);
     } finally {
       setLoading(false);
     }
@@ -335,7 +333,7 @@ export function useWABAs() {
 
   const fetchWabas = useCallback(async () => {
     if (!currentTenant) {
-      setWabas(MOCK_WABAS);
+      setWabas([]);
       setLoading(false);
       return;
     }
@@ -361,10 +359,10 @@ export function useWABAs() {
         updated_at: w.updated_at,
       }));
 
-      setWabas(mappedWabas.length > 0 ? mappedWabas : MOCK_WABAS);
+      setWabas(mappedWabas);
     } catch (error) {
       console.error('Error fetching WABAs:', error);
-      setWabas(MOCK_WABAS);
+      setWabas([]);
     } finally {
       setLoading(false);
     }
