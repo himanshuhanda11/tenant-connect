@@ -226,11 +226,11 @@ export function useInboxMessages(conversationId: string | null) {
       return;
     }
     
-    // Only show loading on conversation switch, not refetch
+    // Only show loading on conversation switch
     const isSwitch = prevConversationId.current !== conversationId;
     if (isSwitch) {
       setLoading(true);
-      setMessages([]); // Clear immediately on switch to avoid stale messages
+      setMessages([]); // Clear immediately on switch
       prevConversationId.current = conversationId;
     }
     
@@ -239,7 +239,8 @@ export function useInboxMessages(conversationId: string | null) {
         .from('messages')
         .select('*')
         .eq('conversation_id', conversationId)
-        .order('created_at', { ascending: true });
+        .order('created_at', { ascending: true })
+        .limit(200);
 
       if (queryError) throw queryError;
 

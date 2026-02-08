@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -115,13 +115,33 @@ export function InboxChatThread({
   const scrollRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const prevMessageCount = useRef(0);
 
-  // Scroll to bottom on new messages — smooth and instant
-  useEffect(() => {
+  // Scroll to bottom — works with Radix ScrollArea viewport
+  const scrollToBottom = useCallback((smooth = true) => {
     requestAnimationFrame(() => {
-      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+      // Find the Radix ScrollArea viewport (the actual scrollable container)
+      const viewport = scrollRef.current?.querySelector('[data-radix-scroll-area-viewport]');
+      if (viewport) {
+        viewport.scrollTo({
+          top: viewport.scrollHeight,
+          behavior: smooth ? 'smooth' : 'instant',
+        });
+      }
     });
-  }, [messages]);
+  }, []);
+
+  // Scroll instantly on conversation switch (messages replaced)
+  useEffect(() => {
+    if (messages.length > 0 && prevMessageCount.current === 0) {
+      // Conversation just loaded — instant scroll
+      scrollToBottom(false);
+    } else if (messages.length > prevMessageCount.current) {
+      // New message arrived — smooth scroll
+      scrollToBottom(true);
+    }
+    prevMessageCount.current = messages.length;
+  }, [messages, scrollToBottom]);
 
   // Check if outside 24h window
   const isOutside24hWindow = conversation?.last_inbound_at
@@ -617,7 +637,7 @@ export function InboxChatThread({
               {typingUsers[0].full_name} is typing...
             </div>
           )}
-          <div ref={messagesEndRef} />
+          <div style={{ height: 1 }} />
         </div>
       </ScrollArea>
 
