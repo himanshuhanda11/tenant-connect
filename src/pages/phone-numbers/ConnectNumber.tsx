@@ -21,12 +21,14 @@ import {
   CheckCircle,
   AlertCircle,
   Loader2,
-  ExternalLink
+  ExternalLink,
+  Copy
 } from 'lucide-react';
 import { usePhoneNumbers, useWABAs } from '@/hooks/usePhoneNumbers';
 import { MetaEmbeddedSignup } from '@/components/meta/MetaEmbeddedSignup';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { supabase } from '@/integrations/supabase/client';
 
 type Step = 'method' | 'connect' | 'select' | 'verify' | 'webhook' | 'complete';
 
@@ -110,13 +112,23 @@ export default function ConnectNumber() {
       }
 
       // Add phone number using the WABA's database UUID as the foreign key
-      await addPhoneNumber({
+      const result = await addPhoneNumber({
         phone_number_id: state.phoneNumberId,
         phone_e164: state.phoneE164,
         display_name: state.displayName,
         waba_id: wabaUuid,
         status: 'connected',
       });
+
+      // For manual setup, update webhook_health to indicate user needs to configure webhooks
+      // For embedded signup, webhooks are auto-configured
+      if (result?.id) {
+        const webhookStatus = state.method === 'embedded' ? 'healthy' : 'unknown';
+        await supabase
+          .from('phone_numbers')
+          .update({ webhook_health: webhookStatus })
+          .eq('id', result.id);
+      }
 
       setCurrentStep('complete');
     } catch (error) {
@@ -463,30 +475,77 @@ export default function ConnectNumber() {
                 Webhook Configuration
               </CardTitle>
               <CardDescription>
-                Configure webhooks to receive messages and status updates.
+                {state.method === 'manual' 
+                  ? 'Configure webhooks in your Meta App Dashboard to receive messages.'
+                  : 'Webhooks are configured automatically.'}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-              <div className="flex items-center gap-3 p-4 bg-green-50 border border-green-200 rounded-lg">
-                <CheckCircle className="h-6 w-6 text-green-600" />
-                <div>
-                  <p className="font-medium text-green-900">Webhooks Configured</p>
-                  <p className="text-sm text-green-700">AIREATRO will receive all WhatsApp events automatically.</p>
-                </div>
-              </div>
+              {state.method === 'manual' ? (
+                <>
+                  <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+                    <h4 className="font-medium text-amber-900 mb-2 flex items-center gap-2">
+                      <AlertCircle className="h-4 w-4" />
+                      Action Required
+                    </h4>
+                    <p className="text-sm text-amber-800 mb-3">
+                      You need to configure the webhook URL in your Meta App Dashboard for messages to work.
+                    </p>
+                    <ol className="list-decimal list-inside space-y-2 text-sm text-amber-800">
+                      <li>Go to <strong>Meta App Dashboard → WhatsApp → Configuration</strong></li>
+                      <li>Set the <strong>Callback URL</strong> to the URL below</li>
+                      <li>Set the <strong>Verify Token</strong> to: <code className="bg-amber-100 px-1 rounded">smeksh_verify</code></li>
+                      <li>Subscribe to <strong>messages</strong> and <strong>message_template_status_update</strong> fields</li>
+                      <li>Click <strong>Verify and Save</strong></li>
+                    </ol>
+                  </div>
 
-              <div className="bg-muted rounded-lg p-4 space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">Callback URL</span>
-                  <code className="text-xs bg-background px-2 py-1 rounded">
-                    https://api.aireatro.app/webhooks/whatsapp
-                  </code>
+                  <div className="bg-muted rounded-lg p-4 space-y-3">
+                    <div>
+                      <div className="text-xs text-muted-foreground mb-1">Callback URL</div>
+                      <div className="flex items-center gap-2">
+                        <code className="text-xs bg-background px-2 py-1.5 rounded flex-1 break-all">
+                          {`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/whatsapp-webhook`}
+                        </code>
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="shrink-0 h-8 w-8"
+                          onClick={() => {
+                            navigator.clipboard.writeText(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/whatsapp-webhook`);
+                            toast.success('Copied to clipboard');
+                          }}
+                        >
+                          <Copy className="h-3.5 w-3.5" />
+                        </Button>
+                      </div>
+                    </div>
+                    <Separator />
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-muted-foreground">Subscribed Events</span>
+                      <span className="text-sm">messages, statuses</span>
+                    </div>
+                  </div>
+
+                  <a 
+                    href="https://developers.facebook.com/apps/" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 text-sm text-primary hover:underline"
+                  >
+                    Open Meta App Dashboard
+                    <ExternalLink className="h-3.5 w-3.5" />
+                  </a>
+                </>
+              ) : (
+                <div className="flex items-center gap-3 p-4 bg-green-50 border border-green-200 rounded-lg">
+                  <CheckCircle className="h-6 w-6 text-green-600" />
+                  <div>
+                    <p className="font-medium text-green-900">Webhooks Configured</p>
+                    <p className="text-sm text-green-700">AIREATRO will receive all WhatsApp events automatically.</p>
+                  </div>
                 </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">Events</span>
-                  <span className="text-sm">messages, statuses</span>
-                </div>
-              </div>
+              )}
 
               <div className="flex justify-between">
                 <Button variant="outline" onClick={handleBack}>
@@ -521,6 +580,15 @@ export default function ConnectNumber() {
                 <p className="font-mono text-lg">{state.phoneE164}</p>
                 <p className="text-sm text-muted-foreground">{state.displayName || 'Unnamed'}</p>
               </div>
+
+              {state.method === 'manual' && (
+                <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 text-left max-w-md mx-auto">
+                  <p className="text-sm text-amber-800">
+                    <strong>Important:</strong> Make sure you've configured the webhook URL in your Meta App Dashboard. 
+                    Messages won't work until webhooks are properly set up.
+                  </p>
+                </div>
+              )}
 
               <div className="flex justify-center gap-4">
                 <Button variant="outline" onClick={() => navigate('/phone-numbers')}>
