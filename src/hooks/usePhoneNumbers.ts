@@ -355,14 +355,28 @@ export function useWABAs() {
     }
 
     try {
+      // First check if WABA already exists for this tenant
+      const { data: existing } = await supabase
+        .from('waba_accounts')
+        .select('*')
+        .eq('tenant_id', currentTenant.id)
+        .eq('waba_id', data.waba_id)
+        .maybeSingle();
+
+      if (existing) {
+        // Already exists, return it
+        return existing;
+      }
+
+      // Insert new WABA
       const { data: result, error } = await supabase
         .from('waba_accounts')
-        .upsert({
+        .insert({
           tenant_id: currentTenant.id,
           waba_id: data.waba_id,
           name: data.name,
           business_id: '',
-        }, { onConflict: 'tenant_id,waba_id' })
+        })
         .select()
         .single();
 
