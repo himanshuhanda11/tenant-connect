@@ -302,7 +302,7 @@ export default function PhoneNumberDetails() {
       const { data, error } = await supabase.functions.invoke('send-template-message', {
         body: {
           tenant_id: number.tenant_id,
-          phone_number_id: number.phone_number_id,
+          phone_number_id: number.id,
           to_wa_id: testRecipient.replace(/[^0-9]/g, ''),
           template_name: selectedTemplate || 'hello_world',
           template_language: 'en',
