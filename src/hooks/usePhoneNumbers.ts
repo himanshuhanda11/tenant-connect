@@ -151,6 +151,40 @@ export function usePhoneNumbers() {
     }
 
     try {
+      // Check if phone number already exists for this tenant
+      const { data: existing } = await supabase
+        .from('phone_numbers')
+        .select('*')
+        .eq('tenant_id', currentTenant.id)
+        .eq('phone_number_id', data.phone_number_id || '')
+        .maybeSingle();
+
+      if (existing) {
+        // Update existing record
+        const statusVal = (['pending', 'connected', 'disconnected', 'banned'].includes(data.status || '')
+          ? data.status
+          : existing.status) as 'pending' | 'connected' | 'disconnected' | 'banned';
+        const { data: updated, error: updateError } = await supabase
+          .from('phone_numbers')
+          .update({
+            display_number: data.phone_e164 || existing.display_number,
+            verified_name: data.display_name || existing.verified_name,
+            waba_account_id: data.waba_id || existing.waba_account_id,
+            status: statusVal,
+          })
+          .eq('id', existing.id)
+          .select()
+          .single();
+
+        if (updateError) throw updateError;
+        toast.success('Phone number updated');
+        await fetchPhoneNumbers();
+        return updated;
+      }
+
+      const insertStatus = (['pending', 'connected', 'disconnected', 'banned'].includes(data.status || '')
+        ? data.status
+        : 'pending') as 'pending' | 'connected' | 'disconnected' | 'banned';
       const { data: result, error } = await supabase
         .from('phone_numbers')
         .insert({
@@ -159,7 +193,7 @@ export function usePhoneNumbers() {
           display_number: data.phone_e164 || '',
           verified_name: data.display_name,
           waba_account_id: data.waba_id || '',
-          status: 'pending',
+          status: insertStatus,
         })
         .select()
         .single();
