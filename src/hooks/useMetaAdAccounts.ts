@@ -56,9 +56,11 @@ export function useMetaAdAccounts() {
     isConnected,
     isLoading: accountsQuery.isLoading || campaignsQuery.isLoading,
     error: accountsQuery.error || campaignsQuery.error,
-    refetch: () => {
-      accountsQuery.refetch();
-      campaignsQuery.refetch();
+    refetch: async () => {
+      await Promise.all([
+        accountsQuery.refetch(),
+        campaignsQuery.refetch(),
+      ]);
     },
   };
 }
