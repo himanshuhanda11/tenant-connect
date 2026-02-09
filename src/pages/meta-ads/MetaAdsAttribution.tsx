@@ -53,48 +53,7 @@ interface AttributionRule {
   is_active: boolean;
 }
 
-const MOCK_RULES: AttributionRule[] = [
-  {
-    id: '1',
-    name: 'Meta Ads Attribution',
-    priority: 1,
-    source_type: 'meta_ads',
-    attribution_window: '7_days',
-    set_source: 'Meta Ads',
-    set_tags: ['Meta Lead', 'Paid'],
-    is_active: true,
-  },
-  {
-    id: '2',
-    name: 'QR Code Scans',
-    priority: 2,
-    source_type: 'qr',
-    attribution_window: '1_day',
-    set_source: 'QR Code',
-    set_tags: ['QR Lead'],
-    is_active: true,
-  },
-  {
-    id: '3',
-    name: 'Website Widget',
-    priority: 3,
-    source_type: 'website',
-    attribution_window: '7_days',
-    set_source: 'Website',
-    set_tags: ['Website Lead'],
-    is_active: true,
-  },
-  {
-    id: '4',
-    name: 'API Integration',
-    priority: 4,
-    source_type: 'api',
-    attribution_window: '28_days',
-    set_source: 'API',
-    set_tags: ['CRM Lead'],
-    is_active: false,
-  },
-];
+const INITIAL_RULES: AttributionRule[] = [];
 
 const SOURCE_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
   meta_ads: TrendingUp,
@@ -110,7 +69,7 @@ const WINDOW_LABELS: Record<string, string> = {
 };
 
 export default function MetaAdsAttribution() {
-  const [rules, setRules] = useState(MOCK_RULES);
+  const [rules, setRules] = useState(INITIAL_RULES);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [editingRule, setEditingRule] = useState<AttributionRule | null>(null);
 
