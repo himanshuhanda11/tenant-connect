@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -15,7 +15,6 @@ import {
   CheckCircle2,
   ArrowRight,
   ArrowLeft,
-  Facebook,
   Building2,
   FileText,
   Phone,
@@ -31,8 +30,6 @@ import { supabase } from '@/integrations/supabase/client';
 import { useTenant } from '@/contexts/TenantContext';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 
-// No longer need AdAccount/FacebookPage interfaces - using manual entry
-
 interface SetupStep {
   id: number;
   title: string;
@@ -41,24 +38,19 @@ interface SetupStep {
 }
 
 const SETUP_STEPS: SetupStep[] = [
-  { id: 1, title: 'Connect Facebook', description: 'Sign in with your Facebook account', icon: Facebook },
-  { id: 2, title: 'Ad Account', description: 'Select your Meta Ad Account', icon: Building2 },
-  { id: 3, title: 'Facebook Page', description: 'Choose your business page', icon: FileText },
-  { id: 4, title: 'WhatsApp Number', description: 'Link your WhatsApp Business number', icon: Phone },
-  { id: 5, title: 'Finalize', description: 'Review and enable tracking', icon: CheckCircle2 },
+  { id: 1, title: 'Ad Account', description: 'Enter your Meta Ad Account ID', icon: Building2 },
+  { id: 2, title: 'Facebook Page', description: 'Enter your Facebook Page ID', icon: FileText },
+  { id: 3, title: 'WhatsApp Number', description: 'Link your WhatsApp Business number', icon: Phone },
+  { id: 4, title: 'Finalize', description: 'Review and enable tracking', icon: CheckCircle2 },
 ];
 
 export default function MetaAdsSetup() {
   const navigate = useNavigate();
   const { currentTenant } = useTenant();
   const queryClient = useQueryClient();
-  const [searchParams] = useSearchParams();
   const [currentStep, setCurrentStep] = useState(1);
   const [isConnecting, setIsConnecting] = useState(false);
-  const [sessionId, setSessionId] = useState<string | null>(null);
   const [formData, setFormData] = useState({
-    facebookConnected: false,
-    fbUserName: '',
     adAccountId: '',
     adAccountName: '',
     pageId: '',
@@ -66,54 +58,6 @@ export default function MetaAdsSetup() {
     phoneNumberId: '',
     phoneDisplay: '',
   });
-
-  // Handle OAuth callback redirect
-  useEffect(() => {
-    const session = searchParams.get('session');
-    const connected = searchParams.get('connected');
-    const error = searchParams.get('error');
-
-    if (error) {
-      toast.error(error);
-      // Clear URL params
-      navigate('/meta-ads/setup', { replace: true });
-      return;
-    }
-
-    if (connected === '1' && session) {
-      setSessionId(session);
-      // Fetch the pending setup data
-      fetchSetupData(session);
-    }
-  }, [searchParams]);
-
-  const fetchSetupData = async (id: string) => {
-    try {
-      const { data, error } = await supabase
-        .from('smeksh_meta_ad_accounts')
-        .select('setup_data, meta_user_name')
-        .eq('id', id)
-        .single();
-
-      if (error || !data) {
-        toast.error('Failed to load connection data');
-        return;
-      }
-
-      setFormData(prev => ({
-        ...prev,
-        facebookConnected: true,
-        fbUserName: data.meta_user_name || 'Facebook User',
-      }));
-      setCurrentStep(2);
-      toast.success('Facebook account connected!');
-
-      // Clean URL
-      navigate('/meta-ads/setup', { replace: true });
-    } catch (err) {
-      console.error('Error fetching setup data:', err);
-    }
-  };
 
   // Fetch existing phone numbers
   const phoneNumbersQuery = useQuery({
@@ -149,53 +93,6 @@ export default function MetaAdsSetup() {
   const phoneNumbers = phoneNumbersQuery.data || [];
   const progress = (currentStep / SETUP_STEPS.length) * 100;
 
-  const handleFacebookConnect = async () => {
-    if (!currentTenant) {
-      toast.error('No workspace selected');
-      return;
-    }
-
-    setIsConnecting(true);
-
-    try {
-      const session = await supabase.auth.getSession();
-      const token = session.data.session?.access_token;
-
-      if (!token) {
-        throw new Error('Not authenticated');
-      }
-
-      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-      const response = await fetch(
-        `${supabaseUrl}/functions/v1/meta-ads-connect-start?tenantId=${currentTenant.id}`,
-        {
-          method: 'GET',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
-        }
-      );
-
-      const result = await response.json();
-
-      if (!response.ok) {
-        throw new Error(result.error || 'Failed to start connection');
-      }
-
-      if (result.url) {
-        // Redirect to Meta OAuth
-        window.location.href = result.url;
-      } else {
-        throw new Error('No OAuth URL returned');
-      }
-    } catch (err: any) {
-      console.error('Error starting Meta Ads connect:', err);
-      toast.error(err.message || 'Failed to start connection');
-      setIsConnecting(false);
-    }
-  };
-
   const handleNext = () => {
     if (currentStep < SETUP_STEPS.length) {
       setCurrentStep(currentStep + 1);
@@ -218,46 +115,24 @@ export default function MetaAdsSetup() {
     try {
       const { data: { user } } = await supabase.auth.getUser();
 
-      if (sessionId) {
-        // Update the pending row with selected values
-        const { error } = await supabase
-          .from('smeksh_meta_ad_accounts')
-          .update({
-            meta_account_id: formData.adAccountId,
-            meta_account_name: formData.adAccountName,
-            facebook_page_id: formData.pageId,
-            facebook_page_name: formData.pageName,
-            whatsapp_phone_number_id: formData.phoneNumberId,
-            whatsapp_display_number: formData.phoneDisplay || phoneNumbers.find(p => p.id === formData.phoneNumberId)?.display_number || null,
-            status: 'connected',
-            is_active: true,
-            setup_data: null, // Clear temporary data
-          })
-          .eq('id', sessionId);
+      const { error } = await supabase
+        .from('smeksh_meta_ad_accounts')
+        .upsert({
+          workspace_id: currentTenant.id,
+          meta_account_id: formData.adAccountId,
+          meta_account_name: formData.adAccountName || null,
+          facebook_page_id: formData.pageId,
+          facebook_page_name: formData.pageName || null,
+          whatsapp_phone_number_id: formData.phoneNumberId,
+          whatsapp_display_number: formData.phoneDisplay || phoneNumbers.find(p => p.id === formData.phoneNumberId)?.display_number || null,
+          status: 'connected' as const,
+          is_active: true,
+          connected_by: user?.id || null,
+        }, {
+          onConflict: 'workspace_id,meta_account_id',
+        });
 
-        if (error) throw error;
-      } else {
-        // Fallback: create new row (shouldn't normally happen)
-        const { error } = await supabase
-          .from('smeksh_meta_ad_accounts')
-          .upsert({
-            workspace_id: currentTenant.id,
-            meta_account_id: formData.adAccountId,
-            meta_account_name: formData.adAccountName,
-            meta_user_name: formData.fbUserName,
-            facebook_page_id: formData.pageId,
-            facebook_page_name: formData.pageName,
-            whatsapp_phone_number_id: formData.phoneNumberId,
-            whatsapp_display_number: formData.phoneDisplay || phoneNumbers.find(p => p.id === formData.phoneNumberId)?.display_number || null,
-            status: 'connected' as const,
-            is_active: true,
-            connected_by: user?.id || null,
-          }, {
-            onConflict: 'workspace_id,meta_account_id',
-          });
-
-        if (error) throw error;
-      }
+      if (error) throw error;
 
       queryClient.invalidateQueries({ queryKey: ['meta-ad-accounts'] });
       queryClient.invalidateQueries({ queryKey: ['meta-ad-campaigns'] });
@@ -274,11 +149,10 @@ export default function MetaAdsSetup() {
 
   const canProceed = () => {
     switch (currentStep) {
-      case 1: return formData.facebookConnected;
-      case 2: return !!formData.adAccountId;
-      case 3: return !!formData.pageId;
-      case 4: return !!formData.phoneNumberId;
-      case 5: return true;
+      case 1: return !!formData.adAccountId;
+      case 2: return !!formData.pageId;
+      case 3: return !!formData.phoneNumberId;
+      case 4: return true;
       default: return false;
     }
   };
@@ -288,8 +162,8 @@ export default function MetaAdsSetup() {
       <div className="p-6 max-w-4xl mx-auto">
         {/* Header */}
         <div className="flex items-center gap-4 mb-8">
-          <div className="flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 shadow-lg shadow-blue-500/25">
-            <Megaphone className="h-7 w-7 text-white" />
+          <div className="flex items-center justify-center w-14 h-14 rounded-2xl bg-primary shadow-lg">
+            <Megaphone className="h-7 w-7 text-primary-foreground" />
           </div>
           <div>
             <h1 className="text-2xl font-bold tracking-tight">Connect Meta Ads</h1>
@@ -375,49 +249,8 @@ export default function MetaAdsSetup() {
             <CardDescription>{SETUP_STEPS[currentStep - 1].description}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
-            {/* Step 1: Connect Facebook */}
+            {/* Step 1: Ad Account ID */}
             {currentStep === 1 && (
-              <div className="space-y-6">
-                <Alert className="border-blue-200 bg-blue-50 dark:bg-blue-950/30">
-                  <Info className="h-4 w-4 text-blue-600" />
-                  <AlertDescription className="text-blue-700 dark:text-blue-300">
-                    Sign in with Facebook to verify your identity. You'll then enter your 
-                    Ad Account ID and Page ID manually in the next steps.
-                  </AlertDescription>
-                </Alert>
-
-                {formData.facebookConnected ? (
-                  <div className="flex items-center gap-4 p-4 rounded-xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800">
-                    <div className="flex items-center justify-center w-12 h-12 rounded-full bg-emerald-100 dark:bg-emerald-900">
-                      <CheckCircle2 className="h-6 w-6 text-emerald-600" />
-                    </div>
-                    <div>
-                      <p className="font-medium">Facebook Connected</p>
-                      <p className="text-sm text-muted-foreground">Signed in as {formData.fbUserName}</p>
-                    </div>
-                    <Badge variant="secondary" className="ml-auto bg-emerald-100 text-emerald-700">
-                      Connected
-                    </Badge>
-                  </div>
-                ) : (
-                  <Button
-                    onClick={handleFacebookConnect}
-                    disabled={isConnecting}
-                    className="w-full h-14 bg-[#1877F2] hover:bg-[#166FE5] text-white gap-3 text-lg"
-                  >
-                    {isConnecting ? (
-                      <Loader2 className="h-5 w-5 animate-spin" />
-                    ) : (
-                      <Facebook className="h-5 w-5" />
-                    )}
-                    {isConnecting ? 'Redirecting to Facebook...' : 'Continue with Facebook'}
-                  </Button>
-                )}
-              </div>
-            )}
-
-            {/* Step 2: Choose Ad Account */}
-            {currentStep === 2 && (
               <div className="space-y-4">
                 <Label>Meta Ad Account ID</Label>
                 <Input
@@ -446,15 +279,15 @@ export default function MetaAdsSetup() {
                   <Alert className="border-emerald-200 bg-emerald-50 dark:bg-emerald-950/30">
                     <CheckCircle2 className="h-4 w-4 text-emerald-600" />
                     <AlertDescription className="text-emerald-700 dark:text-emerald-300">
-                      Ad account selected. AIREATRO will only read campaign performance data.
+                      Ad account ID entered. AIREATRO will only read campaign performance data.
                     </AlertDescription>
                   </Alert>
                 )}
               </div>
             )}
 
-            {/* Step 3: Choose Page */}
-            {currentStep === 3 && (
+            {/* Step 2: Facebook Page ID */}
+            {currentStep === 2 && (
               <div className="space-y-4">
                 <Label>Facebook Page ID</Label>
                 <Input
@@ -481,8 +314,8 @@ export default function MetaAdsSetup() {
               </div>
             )}
 
-            {/* Step 4: Link WhatsApp Number */}
-            {currentStep === 4 && (
+            {/* Step 3: Link WhatsApp Number */}
+            {currentStep === 3 && (
               <div className="space-y-4">
                 <Label>Select WhatsApp Business Number</Label>
                 <Select
@@ -525,8 +358,8 @@ export default function MetaAdsSetup() {
               </div>
             )}
 
-            {/* Step 5: Finalize */}
-            {currentStep === 5 && (
+            {/* Step 4: Finalize */}
+            {currentStep === 4 && (
               <div className="space-y-6">
                 <div className="p-4 rounded-xl bg-muted/50 space-y-4">
                   <h4 className="font-medium flex items-center gap-2">
@@ -535,18 +368,13 @@ export default function MetaAdsSetup() {
                   </h4>
                   <div className="space-y-3 text-sm">
                     <div className="flex items-center justify-between">
-                      <span className="text-muted-foreground">Facebook Account</span>
-                      <span className="font-medium">{formData.fbUserName}</span>
-                    </div>
-                    <Separator />
-                    <div className="flex items-center justify-between">
                       <span className="text-muted-foreground">Ad Account</span>
-                      <span className="font-medium">{formData.adAccountName}</span>
+                      <span className="font-medium">{formData.adAccountName || formData.adAccountId}</span>
                     </div>
                     <Separator />
                     <div className="flex items-center justify-between">
                       <span className="text-muted-foreground">Facebook Page</span>
-                      <span className="font-medium">{formData.pageName}</span>
+                      <span className="font-medium">{formData.pageName || formData.pageId}</span>
                     </div>
                     <Separator />
                     <div className="flex items-center justify-between">
