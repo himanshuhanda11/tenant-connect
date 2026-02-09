@@ -89,3 +89,6 @@ verify_jwt = false
 
 [functions.razorpay-billing-webhook]
 verify_jwt = false
+
+[functions.meta-ads-fb-login]
+verify_jwt = false
