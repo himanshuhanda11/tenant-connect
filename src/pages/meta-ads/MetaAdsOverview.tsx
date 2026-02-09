@@ -31,6 +31,7 @@ import {
   Inbox,
 } from 'lucide-react';
 import { useMetaAdAccounts } from '@/hooks/useMetaAdAccounts';
+import { AddCampaignDialog } from '@/components/meta-ads/AddCampaignDialog';
 import { formatDistanceToNow } from 'date-fns';
 
 export default function MetaAdsOverview() {
@@ -85,6 +86,12 @@ export default function MetaAdsOverview() {
             </div>
           </div>
           <div className="flex items-center gap-2 sm:gap-3">
+            {isConnected && connectedAccounts[0] && (
+              <AddCampaignDialog
+                adAccountId={connectedAccounts[0].id}
+                onSuccess={refetch}
+              />
+            )}
             <Button
               variant="outline"
               size="sm"
