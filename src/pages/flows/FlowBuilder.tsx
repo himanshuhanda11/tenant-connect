@@ -92,6 +92,7 @@ import { FlowHistoryModal } from '@/components/flows/FlowHistoryModal';
 import { AINodeGenerator } from '@/components/flows/AINodeGenerator';
 import { FlowAnalytics } from '@/components/flows/FlowAnalytics';
 import { FlowStartPanel } from '@/components/flows/FlowStartPanel';
+import { useMetaAdAccounts } from '@/hooks/useMetaAdAccounts';
 
 // Node type configurations
 const nodeCategories = [
@@ -205,6 +206,8 @@ const FlowBuilder = () => {
     addNode, updateNode, deleteNode, addEdge, deleteEdge, saveFlow, publishFlow,
     addTrigger, updateTrigger, deleteTrigger, toggleTrigger
   } = useFlowBuilder(id);
+
+  const { campaignsForFlows } = useMetaAdAccounts();
 
   // Trigger configuration state
   const [editingTriggerId, setEditingTriggerId] = useState<string | null>(null);
@@ -607,6 +610,7 @@ const FlowBuilder = () => {
                   >
                     <FlowStartPanel
                       triggers={triggers}
+                      metaAds={campaignsForFlows.length > 0 ? campaignsForFlows : undefined}
                       onAddTrigger={addTrigger}
                       onUpdateTrigger={updateTrigger}
                       onDeleteTrigger={deleteTrigger}
