@@ -114,39 +114,16 @@ Deno.serve(async (req) => {
       console.log('Long-lived token obtained');
     }
 
-    // Fetch user info
+    // Fetch user info (only basic profile with email scope)
     const meResponse = await fetch(`${GRAPH_API_BASE}/me?fields=id,name&access_token=${accessToken}`);
     const meData = await meResponse.json();
     const fbUserName = meData.name || 'Facebook User';
-    console.log('Facebook user:', fbUserName);
+    const fbUserId = meData.id;
+    console.log('Facebook user:', fbUserName, fbUserId);
 
-    // Fetch ad accounts
-    const adAccountsResponse = await fetch(
-      `${GRAPH_API_BASE}/me/adaccounts?fields=id,name,currency,account_status&limit=50&access_token=${accessToken}`
-    );
-    const adAccountsData = await adAccountsResponse.json();
-    const adAccounts = (adAccountsData.data || []).map((a: any) => ({
-      id: a.id,
-      name: a.name,
-      currency: a.currency,
-      status: a.account_status,
-    }));
-    console.log('Ad accounts found:', adAccounts.length);
-
-    // Fetch pages
-    const pagesResponse = await fetch(
-      `${GRAPH_API_BASE}/me/accounts?fields=id,name,fan_count&limit=50&access_token=${accessToken}`
-    );
-    const pagesData = await pagesResponse.json();
-    const pages = (pagesData.data || []).map((p: any) => ({
-      id: p.id,
-      name: p.name,
-      followers: p.fan_count || 0,
-    }));
-    console.log('Pages found:', pages.length);
-
-    // Store a pending setup row with the token and fetched data
-    const setupData = { adAccounts, pages, fbUserName };
+    // With basic email scope, we can't fetch ad accounts or pages
+    // User will enter these manually in the setup UI
+    const setupData = { fbUserName, fbUserId };
     
     const { data: pendingRow, error: insertError } = await supabase
       .from('smeksh_meta_ad_accounts')

@@ -99,13 +99,13 @@ Deno.serve(async (req) => {
     const signedState = await signState(statePayload, appSecret);
     const callbackUrl = `${supabaseUrl}/functions/v1/meta-ads-connect-callback`;
 
-    // Request ads_read + pages permissions for Meta Ads integration
+    // Use basic email scope - works without app verification
     const params = new URLSearchParams({
       client_id: appId,
       redirect_uri: callbackUrl,
       response_type: 'code',
       state: signedState,
-      scope: 'ads_read,pages_read_engagement,pages_show_list',
+      scope: 'email',
     });
 
     const oauthUrl = `https://www.facebook.com/v21.0/dialog/oauth?${params.toString()}`;
