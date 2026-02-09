@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
+import { Input } from '@/components/ui/input';
 import {
   Megaphone,
   CheckCircle2,
@@ -30,18 +31,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useTenant } from '@/contexts/TenantContext';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 
-interface AdAccount {
-  id: string;
-  name: string;
-  currency: string;
-  status?: number;
-}
-
-interface FacebookPage {
-  id: string;
-  name: string;
-  followers: number;
-}
+// No longer need AdAccount/FacebookPage interfaces - using manual entry
 
 interface SetupStep {
   id: number;
@@ -66,8 +56,6 @@ export default function MetaAdsSetup() {
   const [currentStep, setCurrentStep] = useState(1);
   const [isConnecting, setIsConnecting] = useState(false);
   const [sessionId, setSessionId] = useState<string | null>(null);
-  const [adAccounts, setAdAccounts] = useState<AdAccount[]>([]);
-  const [pages, setPages] = useState<FacebookPage[]>([]);
   const [formData, setFormData] = useState({
     facebookConnected: false,
     fbUserName: '',
@@ -112,18 +100,13 @@ export default function MetaAdsSetup() {
         return;
       }
 
-      const setupData = data.setup_data as any;
-      if (setupData) {
-        setAdAccounts(setupData.adAccounts || []);
-        setPages(setupData.pages || []);
-        setFormData(prev => ({
-          ...prev,
-          facebookConnected: true,
-          fbUserName: data.meta_user_name || setupData.fbUserName || 'Facebook User',
-        }));
-        setCurrentStep(2);
-        toast.success('Facebook account connected!');
-      }
+      setFormData(prev => ({
+        ...prev,
+        facebookConnected: true,
+        fbUserName: data.meta_user_name || 'Facebook User',
+      }));
+      setCurrentStep(2);
+      toast.success('Facebook account connected!');
 
       // Clean URL
       navigate('/meta-ads/setup', { replace: true });
@@ -398,12 +381,8 @@ export default function MetaAdsSetup() {
                 <Alert className="border-blue-200 bg-blue-50 dark:bg-blue-950/30">
                   <Info className="h-4 w-4 text-blue-600" />
                   <AlertDescription className="text-blue-700 dark:text-blue-300">
-                    AIREATRO will request the following permissions:
-                    <ul className="mt-2 space-y-1 list-disc list-inside">
-                      <li>Read Ad Accounts (to view campaign data)</li>
-                      <li>Read Pages (to link your business page)</li>
-                      <li>Read WhatsApp Ad Events (to track leads)</li>
-                    </ul>
+                    Sign in with Facebook to verify your identity. You'll then enter your 
+                    Ad Account ID and Page ID manually in the next steps.
                   </AlertDescription>
                 </Alert>
 
@@ -440,38 +419,28 @@ export default function MetaAdsSetup() {
             {/* Step 2: Choose Ad Account */}
             {currentStep === 2 && (
               <div className="space-y-4">
-                <Label>Select Ad Account</Label>
-                {adAccounts.length === 0 ? (
-                  <Alert>
-                    <Info className="h-4 w-4" />
-                    <AlertDescription>
-                      No ad accounts found for your Facebook account. Make sure you have a Meta Business account with ad accounts set up.
-                    </AlertDescription>
-                  </Alert>
-                ) : (
-                  <Select
-                    value={formData.adAccountId}
-                    onValueChange={(value) => {
-                      const account = adAccounts.find(a => a.id === value);
-                      setFormData(prev => ({ ...prev, adAccountId: value, adAccountName: account?.name || '' }));
-                    }}
-                  >
-                    <SelectTrigger className="h-12">
-                      <SelectValue placeholder="Choose an ad account" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {adAccounts.map((account) => (
-                        <SelectItem key={account.id} value={account.id}>
-                          <div className="flex items-center gap-3">
-                            <Building2 className="h-4 w-4 text-muted-foreground" />
-                            <span>{account.name}</span>
-                            <Badge variant="outline" className="text-xs">{account.currency}</Badge>
-                          </div>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                )}
+                <Label>Meta Ad Account ID</Label>
+                <Input
+                  placeholder="act_123456789"
+                  value={formData.adAccountId}
+                  onChange={(e) => setFormData(prev => ({ ...prev, adAccountId: e.target.value.trim() }))}
+                  className="h-12"
+                />
+                <Label>Ad Account Name (optional)</Label>
+                <Input
+                  placeholder="My Business Ad Account"
+                  value={formData.adAccountName}
+                  onChange={(e) => setFormData(prev => ({ ...prev, adAccountName: e.target.value }))}
+                  className="h-12"
+                />
+
+                <Alert className="border-blue-200 bg-blue-50 dark:bg-blue-950/30">
+                  <Info className="h-4 w-4 text-blue-600" />
+                  <AlertDescription className="text-blue-700 dark:text-blue-300">
+                    Find your Ad Account ID in <strong>Meta Business Suite → Settings → Ad Accounts</strong>. 
+                    It starts with <code className="bg-blue-100 dark:bg-blue-900 px-1 rounded">act_</code>.
+                  </AlertDescription>
+                </Alert>
 
                 {formData.adAccountId && (
                   <Alert className="border-emerald-200 bg-emerald-50 dark:bg-emerald-950/30">
@@ -487,40 +456,28 @@ export default function MetaAdsSetup() {
             {/* Step 3: Choose Page */}
             {currentStep === 3 && (
               <div className="space-y-4">
-                <Label>Select Facebook Page</Label>
-                {pages.length === 0 ? (
-                  <Alert>
-                    <Info className="h-4 w-4" />
-                    <AlertDescription>
-                      No Facebook pages found. Make sure you manage at least one Facebook page.
-                    </AlertDescription>
-                  </Alert>
-                ) : (
-                  <Select
-                    value={formData.pageId}
-                    onValueChange={(value) => {
-                      const page = pages.find(p => p.id === value);
-                      setFormData(prev => ({ ...prev, pageId: value, pageName: page?.name || '' }));
-                    }}
-                  >
-                    <SelectTrigger className="h-12">
-                      <SelectValue placeholder="Choose a Facebook page" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {pages.map((page) => (
-                        <SelectItem key={page.id} value={page.id}>
-                          <div className="flex items-center gap-3">
-                            <FileText className="h-4 w-4 text-muted-foreground" />
-                            <span>{page.name}</span>
-                            <span className="text-xs text-muted-foreground">
-                              {page.followers.toLocaleString()} followers
-                            </span>
-                          </div>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                )}
+                <Label>Facebook Page ID</Label>
+                <Input
+                  placeholder="123456789012345"
+                  value={formData.pageId}
+                  onChange={(e) => setFormData(prev => ({ ...prev, pageId: e.target.value.trim() }))}
+                  className="h-12"
+                />
+                <Label>Page Name (optional)</Label>
+                <Input
+                  placeholder="My Business Page"
+                  value={formData.pageName}
+                  onChange={(e) => setFormData(prev => ({ ...prev, pageName: e.target.value }))}
+                  className="h-12"
+                />
+
+                <Alert className="border-blue-200 bg-blue-50 dark:bg-blue-950/30">
+                  <Info className="h-4 w-4 text-blue-600" />
+                  <AlertDescription className="text-blue-700 dark:text-blue-300">
+                    Find your Page ID in <strong>Facebook Page → About → Page ID</strong>, or 
+                    in <strong>Meta Business Suite → Settings → Pages</strong>.
+                  </AlertDescription>
+                </Alert>
               </div>
             )}
 
