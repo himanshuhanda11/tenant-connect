@@ -9,6 +9,12 @@ verify_jwt = false
 [functions.meta-embedded-signup]
 verify_jwt = false
 
+[functions.meta-ads-connect-start]
+verify_jwt = false
+
+[functions.meta-ads-connect-callback]
+verify_jwt = false
+
 [functions.send-text-message]
 verify_jwt = false
 

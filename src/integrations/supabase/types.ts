@@ -6386,10 +6386,12 @@ export type Database = {
           id: string
           is_active: boolean
           last_synced_at: string | null
+          meta_access_token: string | null
           meta_account_id: string
           meta_account_name: string | null
           meta_user_id: string | null
           meta_user_name: string | null
+          setup_data: Json | null
           status: Database["public"]["Enums"]["smeksh_meta_connection_status"]
           sync_error: string | null
           token_expires_at: string | null
@@ -6407,10 +6409,12 @@ export type Database = {
           id?: string
           is_active?: boolean
           last_synced_at?: string | null
+          meta_access_token?: string | null
           meta_account_id: string
           meta_account_name?: string | null
           meta_user_id?: string | null
           meta_user_name?: string | null
+          setup_data?: Json | null
           status?: Database["public"]["Enums"]["smeksh_meta_connection_status"]
           sync_error?: string | null
           token_expires_at?: string | null
@@ -6428,10 +6432,12 @@ export type Database = {
           id?: string
           is_active?: boolean
           last_synced_at?: string | null
+          meta_access_token?: string | null
           meta_account_id?: string
           meta_account_name?: string | null
           meta_user_id?: string | null
           meta_user_name?: string | null
+          setup_data?: Json | null
           status?: Database["public"]["Enums"]["smeksh_meta_connection_status"]
           sync_error?: string | null
           token_expires_at?: string | null

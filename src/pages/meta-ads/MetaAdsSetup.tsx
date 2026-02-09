@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -30,6 +30,19 @@ import { supabase } from '@/integrations/supabase/client';
 import { useTenant } from '@/contexts/TenantContext';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 
+interface AdAccount {
+  id: string;
+  name: string;
+  currency: string;
+  status?: number;
+}
+
+interface FacebookPage {
+  id: string;
+  name: string;
+  followers: number;
+}
+
 interface SetupStep {
   id: number;
   title: string;
@@ -49,8 +62,12 @@ export default function MetaAdsSetup() {
   const navigate = useNavigate();
   const { currentTenant } = useTenant();
   const queryClient = useQueryClient();
+  const [searchParams] = useSearchParams();
   const [currentStep, setCurrentStep] = useState(1);
   const [isConnecting, setIsConnecting] = useState(false);
+  const [sessionId, setSessionId] = useState<string | null>(null);
+  const [adAccounts, setAdAccounts] = useState<AdAccount[]>([]);
+  const [pages, setPages] = useState<FacebookPage[]>([]);
   const [formData, setFormData] = useState({
     facebookConnected: false,
     fbUserName: '',
@@ -62,7 +79,60 @@ export default function MetaAdsSetup() {
     phoneDisplay: '',
   });
 
-  // Fetch existing phone numbers from workspace
+  // Handle OAuth callback redirect
+  useEffect(() => {
+    const session = searchParams.get('session');
+    const connected = searchParams.get('connected');
+    const error = searchParams.get('error');
+
+    if (error) {
+      toast.error(error);
+      // Clear URL params
+      navigate('/meta-ads/setup', { replace: true });
+      return;
+    }
+
+    if (connected === '1' && session) {
+      setSessionId(session);
+      // Fetch the pending setup data
+      fetchSetupData(session);
+    }
+  }, [searchParams]);
+
+  const fetchSetupData = async (id: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('smeksh_meta_ad_accounts')
+        .select('setup_data, meta_user_name')
+        .eq('id', id)
+        .single();
+
+      if (error || !data) {
+        toast.error('Failed to load connection data');
+        return;
+      }
+
+      const setupData = data.setup_data as any;
+      if (setupData) {
+        setAdAccounts(setupData.adAccounts || []);
+        setPages(setupData.pages || []);
+        setFormData(prev => ({
+          ...prev,
+          facebookConnected: true,
+          fbUserName: data.meta_user_name || setupData.fbUserName || 'Facebook User',
+        }));
+        setCurrentStep(2);
+        toast.success('Facebook account connected!');
+      }
+
+      // Clean URL
+      navigate('/meta-ads/setup', { replace: true });
+    } catch (err) {
+      console.error('Error fetching setup data:', err);
+    }
+  };
+
+  // Fetch existing phone numbers
   const phoneNumbersQuery = useQuery({
     queryKey: ['phone-numbers', currentTenant?.id],
     queryFn: async () => {
@@ -96,26 +166,51 @@ export default function MetaAdsSetup() {
   const phoneNumbers = phoneNumbersQuery.data || [];
   const progress = (currentStep / SETUP_STEPS.length) * 100;
 
-  // Mock ad accounts (in production these come from Meta Graph API after OAuth)
-  const MOCK_AD_ACCOUNTS = [
-    { id: 'act_123456789', name: `${currentTenant?.name || 'My'} Business`, currency: 'USD' },
-    { id: 'act_987654321', name: 'Marketing Team', currency: 'AED' },
-  ];
-
-  const MOCK_PAGES = [
-    { id: 'page_001', name: `${currentTenant?.name || 'My'} Official`, followers: 12500 },
-    { id: 'page_002', name: `${currentTenant?.name || 'My'} Support`, followers: 3200 },
-  ];
-
   const handleFacebookConnect = async () => {
+    if (!currentTenant) {
+      toast.error('No workspace selected');
+      return;
+    }
+
     setIsConnecting(true);
-    // In production: redirect to Meta OAuth flow
-    // For now simulate successful OAuth
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    setFormData(prev => ({ ...prev, facebookConnected: true, fbUserName: 'Meta Business User' }));
-    setIsConnecting(false);
-    toast.success('Facebook account connected successfully!');
-    setCurrentStep(2);
+
+    try {
+      const session = await supabase.auth.getSession();
+      const token = session.data.session?.access_token;
+
+      if (!token) {
+        throw new Error('Not authenticated');
+      }
+
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const response = await fetch(
+        `${supabaseUrl}/functions/v1/meta-ads-connect-start?tenantId=${currentTenant.id}`,
+        {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to start connection');
+      }
+
+      if (result.url) {
+        // Redirect to Meta OAuth
+        window.location.href = result.url;
+      } else {
+        throw new Error('No OAuth URL returned');
+      }
+    } catch (err: any) {
+      console.error('Error starting Meta Ads connect:', err);
+      toast.error(err.message || 'Failed to start connection');
+      setIsConnecting(false);
+    }
   };
 
   const handleNext = () => {
@@ -138,31 +233,49 @@ export default function MetaAdsSetup() {
 
     setIsConnecting(true);
     try {
-      // Get current user
       const { data: { user } } = await supabase.auth.getUser();
 
-      // Save the ad account connection to the database
-      const { error } = await supabase
-        .from('smeksh_meta_ad_accounts')
-        .upsert({
-          workspace_id: currentTenant.id,
-          meta_account_id: formData.adAccountId,
-          meta_account_name: formData.adAccountName || MOCK_AD_ACCOUNTS.find(a => a.id === formData.adAccountId)?.name || null,
-          meta_user_name: formData.fbUserName,
-          facebook_page_id: formData.pageId,
-          facebook_page_name: formData.pageName || MOCK_PAGES.find(p => p.id === formData.pageId)?.name || null,
-          whatsapp_phone_number_id: formData.phoneNumberId,
-          whatsapp_display_number: formData.phoneDisplay || phoneNumbers.find(p => p.id === formData.phoneNumberId)?.display_number || null,
-          status: 'connected' as const,
-          is_active: true,
-          connected_by: user?.id || null,
-        }, {
-          onConflict: 'workspace_id,meta_account_id',
-        });
+      if (sessionId) {
+        // Update the pending row with selected values
+        const { error } = await supabase
+          .from('smeksh_meta_ad_accounts')
+          .update({
+            meta_account_id: formData.adAccountId,
+            meta_account_name: formData.adAccountName,
+            facebook_page_id: formData.pageId,
+            facebook_page_name: formData.pageName,
+            whatsapp_phone_number_id: formData.phoneNumberId,
+            whatsapp_display_number: formData.phoneDisplay || phoneNumbers.find(p => p.id === formData.phoneNumberId)?.display_number || null,
+            status: 'connected',
+            is_active: true,
+            setup_data: null, // Clear temporary data
+          })
+          .eq('id', sessionId);
 
-      if (error) throw error;
+        if (error) throw error;
+      } else {
+        // Fallback: create new row (shouldn't normally happen)
+        const { error } = await supabase
+          .from('smeksh_meta_ad_accounts')
+          .upsert({
+            workspace_id: currentTenant.id,
+            meta_account_id: formData.adAccountId,
+            meta_account_name: formData.adAccountName,
+            meta_user_name: formData.fbUserName,
+            facebook_page_id: formData.pageId,
+            facebook_page_name: formData.pageName,
+            whatsapp_phone_number_id: formData.phoneNumberId,
+            whatsapp_display_number: formData.phoneDisplay || phoneNumbers.find(p => p.id === formData.phoneNumberId)?.display_number || null,
+            status: 'connected' as const,
+            is_active: true,
+            connected_by: user?.id || null,
+          }, {
+            onConflict: 'workspace_id,meta_account_id',
+          });
 
-      // Invalidate queries so other components see the new connection
+        if (error) throw error;
+      }
+
       queryClient.invalidateQueries({ queryKey: ['meta-ad-accounts'] });
       queryClient.invalidateQueries({ queryKey: ['meta-ad-campaigns'] });
 
@@ -318,7 +431,7 @@ export default function MetaAdsSetup() {
                     ) : (
                       <Facebook className="h-5 w-5" />
                     )}
-                    Continue with Facebook
+                    {isConnecting ? 'Redirecting to Facebook...' : 'Continue with Facebook'}
                   </Button>
                 )}
               </div>
@@ -328,28 +441,37 @@ export default function MetaAdsSetup() {
             {currentStep === 2 && (
               <div className="space-y-4">
                 <Label>Select Ad Account</Label>
-                <Select
-                  value={formData.adAccountId}
-                  onValueChange={(value) => {
-                    const account = MOCK_AD_ACCOUNTS.find(a => a.id === value);
-                    setFormData(prev => ({ ...prev, adAccountId: value, adAccountName: account?.name || '' }));
-                  }}
-                >
-                  <SelectTrigger className="h-12">
-                    <SelectValue placeholder="Choose an ad account" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {MOCK_AD_ACCOUNTS.map((account) => (
-                      <SelectItem key={account.id} value={account.id}>
-                        <div className="flex items-center gap-3">
-                          <Building2 className="h-4 w-4 text-muted-foreground" />
-                          <span>{account.name}</span>
-                          <Badge variant="outline" className="text-xs">{account.currency}</Badge>
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                {adAccounts.length === 0 ? (
+                  <Alert>
+                    <Info className="h-4 w-4" />
+                    <AlertDescription>
+                      No ad accounts found for your Facebook account. Make sure you have a Meta Business account with ad accounts set up.
+                    </AlertDescription>
+                  </Alert>
+                ) : (
+                  <Select
+                    value={formData.adAccountId}
+                    onValueChange={(value) => {
+                      const account = adAccounts.find(a => a.id === value);
+                      setFormData(prev => ({ ...prev, adAccountId: value, adAccountName: account?.name || '' }));
+                    }}
+                  >
+                    <SelectTrigger className="h-12">
+                      <SelectValue placeholder="Choose an ad account" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {adAccounts.map((account) => (
+                        <SelectItem key={account.id} value={account.id}>
+                          <div className="flex items-center gap-3">
+                            <Building2 className="h-4 w-4 text-muted-foreground" />
+                            <span>{account.name}</span>
+                            <Badge variant="outline" className="text-xs">{account.currency}</Badge>
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
 
                 {formData.adAccountId && (
                   <Alert className="border-emerald-200 bg-emerald-50 dark:bg-emerald-950/30">
@@ -366,30 +488,39 @@ export default function MetaAdsSetup() {
             {currentStep === 3 && (
               <div className="space-y-4">
                 <Label>Select Facebook Page</Label>
-                <Select
-                  value={formData.pageId}
-                  onValueChange={(value) => {
-                    const page = MOCK_PAGES.find(p => p.id === value);
-                    setFormData(prev => ({ ...prev, pageId: value, pageName: page?.name || '' }));
-                  }}
-                >
-                  <SelectTrigger className="h-12">
-                    <SelectValue placeholder="Choose a Facebook page" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {MOCK_PAGES.map((page) => (
-                      <SelectItem key={page.id} value={page.id}>
-                        <div className="flex items-center gap-3">
-                          <FileText className="h-4 w-4 text-muted-foreground" />
-                          <span>{page.name}</span>
-                          <span className="text-xs text-muted-foreground">
-                            {page.followers.toLocaleString()} followers
-                          </span>
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                {pages.length === 0 ? (
+                  <Alert>
+                    <Info className="h-4 w-4" />
+                    <AlertDescription>
+                      No Facebook pages found. Make sure you manage at least one Facebook page.
+                    </AlertDescription>
+                  </Alert>
+                ) : (
+                  <Select
+                    value={formData.pageId}
+                    onValueChange={(value) => {
+                      const page = pages.find(p => p.id === value);
+                      setFormData(prev => ({ ...prev, pageId: value, pageName: page?.name || '' }));
+                    }}
+                  >
+                    <SelectTrigger className="h-12">
+                      <SelectValue placeholder="Choose a Facebook page" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {pages.map((page) => (
+                        <SelectItem key={page.id} value={page.id}>
+                          <div className="flex items-center gap-3">
+                            <FileText className="h-4 w-4 text-muted-foreground" />
+                            <span>{page.name}</span>
+                            <span className="text-xs text-muted-foreground">
+                              {page.followers.toLocaleString()} followers
+                            </span>
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
               </div>
             )}
 
@@ -453,16 +584,12 @@ export default function MetaAdsSetup() {
                     <Separator />
                     <div className="flex items-center justify-between">
                       <span className="text-muted-foreground">Ad Account</span>
-                      <span className="font-medium">
-                        {formData.adAccountName || MOCK_AD_ACCOUNTS.find(a => a.id === formData.adAccountId)?.name}
-                      </span>
+                      <span className="font-medium">{formData.adAccountName}</span>
                     </div>
                     <Separator />
                     <div className="flex items-center justify-between">
                       <span className="text-muted-foreground">Facebook Page</span>
-                      <span className="font-medium">
-                        {formData.pageName || MOCK_PAGES.find(p => p.id === formData.pageId)?.name}
-                      </span>
+                      <span className="font-medium">{formData.pageName}</span>
                     </div>
                     <Separator />
                     <div className="flex items-center justify-between">
