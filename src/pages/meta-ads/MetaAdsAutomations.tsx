@@ -49,47 +49,7 @@ interface Automation {
   is_template: boolean;
 }
 
-const MOCK_AUTOMATIONS: Automation[] = [
-  {
-    id: '1',
-    name: 'Meta Ad Welcome',
-    description: 'Send welcome template when a new lead comes from Meta Ads',
-    trigger_type: 'new_lead',
-    actions: [
-      { type: 'send_template', label: 'Send Welcome Template' },
-      { type: 'add_tag', label: 'Add "Meta Lead" tag' },
-    ],
-    executions_count: 234,
-    is_active: true,
-    is_template: false,
-  },
-  {
-    id: '2',
-    name: 'High-Intent Lead Routing',
-    description: 'Assign high-value ad leads to senior agents',
-    trigger_type: 'first_message',
-    actions: [
-      { type: 'add_tag', label: 'Add "High Intent" tag' },
-      { type: 'assign_team', label: 'Assign to Sales Team' },
-    ],
-    executions_count: 89,
-    is_active: true,
-    is_template: false,
-  },
-  {
-    id: '3',
-    name: 'Ad Lead Follow-up (24h)',
-    description: 'Send follow-up if no response within 24 hours',
-    trigger_type: 'new_lead',
-    actions: [
-      { type: 'wait', label: 'Wait 24 hours' },
-      { type: 'send_template', label: 'Send Follow-up Template' },
-    ],
-    executions_count: 156,
-    is_active: false,
-    is_template: false,
-  },
-];
+const INITIAL_AUTOMATIONS: Automation[] = [];
 
 const TEMPLATE_AUTOMATIONS: Automation[] = [
   {
@@ -149,7 +109,7 @@ const ACTION_ICONS: Record<string, React.ComponentType<{ className?: string }>> 
 };
 
 export default function MetaAdsAutomations() {
-  const [automations, setAutomations] = useState(MOCK_AUTOMATIONS);
+  const [automations, setAutomations] = useState(INITIAL_AUTOMATIONS);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
 
   const handleToggle = (id: string) => {
