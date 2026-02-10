@@ -58,7 +58,7 @@ export function MetaEmbeddedSignup({ onSuccess, onError }: MetaEmbeddedSignupPro
     return () => window.removeEventListener('message', handler);
   }, []);
 
-  const launchWhatsAppSignup = async (e?: React.MouseEvent) => {
+  const launchWhatsAppSignup = (e?: React.MouseEvent) => {
     e?.preventDefault();
     e?.stopPropagation();
     if (!currentTenant) {
@@ -75,67 +75,71 @@ export function MetaEmbeddedSignup({ onSuccess, onError }: MetaEmbeddedSignupPro
     sessionDataRef.current = null;
 
     // FB.login callback — receives the auth code
-    const fbLoginCallback = async (response: any) => {
+    const fbLoginCallback = (response: any) => {
       if (response.authResponse) {
         const code = response.authResponse.code;
         console.log('FB.login returned code, exchanging on backend...');
 
-        try {
-          const session = await supabase.auth.getSession();
-          const token = session.data.session?.access_token;
-          if (!token) throw new Error('Not authenticated');
+        // Handle the async exchange in a separate function
+        (async () => {
+          try {
+            const session = await supabase.auth.getSession();
+            const token = session.data.session?.access_token;
+            if (!token) throw new Error('Not authenticated');
 
-          // Wait a brief moment for the MessageEvent to arrive with WABA/phone IDs
-          await new Promise((r) => setTimeout(r, 1500));
+            // Wait a brief moment for the MessageEvent to arrive with WABA/phone IDs
+            await new Promise((r) => setTimeout(r, 1500));
 
-          const wabaId = sessionDataRef.current?.wabaId;
-          const phoneNumberId = sessionDataRef.current?.phoneNumberId;
+            const wabaId = sessionDataRef.current?.wabaId;
+            const phoneNumberId = sessionDataRef.current?.phoneNumberId;
 
-          console.log('Sending to backend — code, wabaId:', wabaId, 'phoneNumberId:', phoneNumberId);
+            console.log('Sending to backend — code, wabaId:', wabaId, 'phoneNumberId:', phoneNumberId);
 
-          const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-          const res = await fetch(`${supabaseUrl}/functions/v1/meta-embedded-signup`, {
-            method: 'POST',
-            headers: {
-              Authorization: `Bearer ${token}`,
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              action: 'exchange_code',
-              code,
-              tenantId: currentTenant.id,
-              wabaId: wabaId || undefined,
-              phoneNumberId: phoneNumberId || undefined,
-            }),
-          });
+            const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+            const res = await fetch(`${supabaseUrl}/functions/v1/meta-embedded-signup`, {
+              method: 'POST',
+              headers: {
+                Authorization: `Bearer ${token}`,
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                action: 'exchange_code',
+                code,
+                tenantId: currentTenant.id,
+                wabaId: wabaId || undefined,
+                phoneNumberId: phoneNumberId || undefined,
+              }),
+            });
 
-          const result = await res.json();
+            const result = await res.json();
 
-          if (!res.ok) {
-            throw new Error(result.error || 'Failed to complete signup');
+            if (!res.ok) {
+              throw new Error(result.error || 'Failed to complete signup');
+            }
+
+            toast.success(
+              `WhatsApp connected! ${result.phoneCount || 0} phone number(s) linked.`
+            );
+            onSuccess?.({
+              wabaId: result.wabaId,
+              phoneNumberId: result.phoneNumberId,
+            });
+          } catch (err: any) {
+            console.error('Embedded signup exchange error:', err);
+            toast.error(err.message || 'Failed to complete signup');
+            onError?.(err);
+          } finally {
+            setLoading(false);
           }
-
-          toast.success(
-            `WhatsApp connected! ${result.phoneCount || 0} phone number(s) linked.`
-          );
-          onSuccess?.({
-            wabaId: result.wabaId,
-            phoneNumberId: result.phoneNumberId,
-          });
-        } catch (err: any) {
-          console.error('Embedded signup exchange error:', err);
-          toast.error(err.message || 'Failed to complete signup');
-          onError?.(err);
-        }
+        })();
       } else {
         console.warn('FB.login cancelled or failed', response);
         toast.info('Facebook login was cancelled');
+        setLoading(false);
       }
-
-      setLoading(false);
     };
 
-    // Launch the Embedded Signup popup via FB.login
+    // Launch the Embedded Signup popup via FB.login — must be synchronous from user click
     window.FB.login(fbLoginCallback, {
       config_id: '1271263174873831',
       response_type: 'code',
