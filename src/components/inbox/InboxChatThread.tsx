@@ -144,10 +144,13 @@ export function InboxChatThread({
     prevMessageCount.current = messages.length;
   }, [messages, scrollToBottom]);
 
+  // Check if phone number is disconnected
+  const isPhoneDisconnected = conversation?.phone_number_status === 'disconnected';
+
   // Check if outside 24h window
-  const isOutside24hWindow = conversation?.last_inbound_at
+  const isOutside24hWindow = !isPhoneDisconnected && (conversation?.last_inbound_at
     ? differenceInHours(new Date(), new Date(conversation.last_inbound_at)) > 24
-    : true;
+    : true);
 
   const handleSend = () => {
     if (!messageText.trim()) return;
@@ -508,8 +511,21 @@ export function InboxChatThread({
       </div>
 
 
+      {/* Phone Disconnected Warning */}
+      {isPhoneDisconnected && (
+        <div className={cn(
+          "bg-destructive/10 border-b border-destructive/20 flex items-center gap-2 text-destructive",
+          isMobile ? "px-3 py-2 text-xs" : "px-4 py-2 text-sm"
+        )}>
+          <AlertCircle className="h-4 w-4 flex-shrink-0" />
+          <span className="flex-1 font-medium">
+            {isMobile ? "Phone disconnected. Reconnect to send." : "Phone number is disconnected. Reconnect to send or receive messages."}
+          </span>
+        </div>
+      )}
+
       {/* 24h Window Warning */}
-      {isOutside24hWindow && (
+      {!isPhoneDisconnected && isOutside24hWindow && (
         <div className={cn(
           "bg-amber-50 border-b border-amber-200 flex items-center gap-2 text-amber-800",
           isMobile ? "px-3 py-2 text-xs" : "px-4 py-2 text-sm"
@@ -677,7 +693,13 @@ export function InboxChatThread({
         <div className={cn(
           isMobile ? "" : "max-w-3xl mx-auto"
         )}>
-          {isSupervisorMode ? (
+          {isPhoneDisconnected ? (
+            <div className="text-center py-4 text-destructive/70">
+              <AlertCircle className="w-6 h-6 mx-auto mb-2 opacity-50" />
+              <p className="text-sm font-medium">Phone number disconnected</p>
+              <p className="text-xs text-muted-foreground mt-1">Reconnect to send messages</p>
+            </div>
+          ) : isSupervisorMode ? (
             <div className="text-center py-4 text-muted-foreground">
               <Eye className="w-6 h-6 mx-auto mb-2 opacity-50" />
               <p className="text-sm">Supervisor mode - viewing only</p>

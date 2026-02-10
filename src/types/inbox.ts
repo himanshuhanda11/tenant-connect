@@ -30,6 +30,7 @@ export interface InboxMessage {
   media_url?: string;
   media_mime_type?: string;
   media_size_bytes?: number;
+  media_filename?: string;
   template_name?: string;
   template_language?: string;
   template_category?: string;
@@ -96,6 +97,7 @@ export interface InboxConversation {
     snooze_until: string;
     reason?: string;
   };
+  phone_number_status?: string;
 }
 
 export interface ConversationEvent {

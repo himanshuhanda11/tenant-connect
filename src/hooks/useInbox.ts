@@ -50,6 +50,7 @@ function mapConversation(row: any): InboxConversation {
       full_name: row.assigned_agent.full_name || row.assigned_agent.display_name,
       avatar_url: row.assigned_agent.avatar_url,
     } : undefined,
+    phone_number_status: row.phone_number?.status || undefined,
   };
 }
 
@@ -68,6 +69,8 @@ function mapMessage(row: any): InboxMessage {
     payload: row.payload || {},
     media_url: row.media_url,
     media_mime_type: row.media_mime_type,
+    media_bucket: row.media_bucket,
+    media_path: row.media_path,
     latest_status: row.status,
     is_failed: row.status === 'failed',
     error_code: row.error_code,
@@ -104,7 +107,8 @@ export function useInboxConversations(view: InboxView, filters: InboxFilters) {
         .from('conversations')
         .select(`
           *,
-          contact:contacts(id, name, first_name, wa_id, profile_picture_url, opt_out, language)
+          contact:contacts(id, name, first_name, wa_id, profile_picture_url, opt_out, language),
+          phone_number:phone_numbers(id, status)
         `)
         .eq('tenant_id', currentTenant.id)
         .order('last_message_at', { ascending: false, nullsFirst: false });
@@ -576,6 +580,18 @@ export function useInboxActions() {
   const sendMessage = useCallback(async (conversationId: string, message: { text?: string; template?: string; media?: File }) => {
     if (!message.text?.trim() && !message.template && !message.media) return;
     if (!currentTenant?.id) return;
+
+    // Check phone number status before sending
+    const { data: convCheck } = await supabase
+      .from('conversations')
+      .select('phone_number:phone_numbers(status)')
+      .eq('id', conversationId)
+      .single();
+    
+    if ((convCheck?.phone_number as any)?.status === 'disconnected') {
+      toast.error('Phone number is disconnected. Please reconnect to send messages.');
+      return;
+    }
 
     // Handle media upload
     if (message.media) {
