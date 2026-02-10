@@ -497,6 +497,55 @@ Deno.serve(async (req: Request) => {
       });
     }
 
+    // POST /workspaces/:id/delete
+    if (req.method === "POST" && path.match(/^workspaces\/[^/]+\/delete$/)) {
+      const workspaceId = path.split("/")[1];
+      const body = await req.json();
+      const actor = await requirePlatformRole(req, ["super_admin"]);
+      const sb = adminClient();
+      const deleteType = body.type || 'soft';
+      const reason = body.reason || '';
+
+      if (deleteType === 'soft') {
+        // Soft delete: suspend + mark as deleted
+        const { error } = await sb.from("tenants").update({
+          is_suspended: true,
+          suspended_reason: `Archived by admin: ${reason}`.trim(),
+          suspended_at: new Date().toISOString(),
+          deleted_at: new Date().toISOString(),
+        }).eq("id", workspaceId);
+        if (error) throw new Error(error.message);
+        await logAction(sb, actor, "PLATFORM_WORKSPACE_ARCHIVED", {
+          workspace_id: workspaceId, note: reason || 'Soft deleted / archived',
+        });
+      } else {
+        // Hard delete: remove workspace and all associated data
+        // Delete in order to respect foreign keys
+        const tables = [
+          "campaign_jobs", "campaign_logs", "campaign_analytics", "campaign_audiences", "campaigns",
+          "automation_steps", "automation_scheduled_jobs", "automation_runs",
+          "automation_deadletters", "automation_cooldowns", "automation_rate_limits",
+          "automation_loop_guards", "automation_edges", "automation_nodes", "automation_workflows",
+          "messages", "conversations", "contact_tags", "contact_timeline", "contacts",
+          "templates", "smeksh_phone_numbers", "agents",
+          "workspace_entitlements", "tenant_members", "audit_logs",
+        ];
+        for (const table of tables) {
+          await sb.from(table).delete().eq("tenant_id", workspaceId);
+        }
+        // Finally delete the tenant itself
+        const { error } = await sb.from("tenants").delete().eq("id", workspaceId);
+        if (error) throw new Error(error.message);
+        await logAction(sb, actor, "PLATFORM_WORKSPACE_HARD_DELETED", {
+          workspace_id: workspaceId, note: reason || 'Permanently deleted',
+        });
+      }
+
+      return new Response(JSON.stringify({ success: true, type: deleteType }), {
+        headers: { ...corsHeaders, "content-type": "application/json" },
+      });
+    }
+
     // POST /incidents/:id/ai-summary
     if (req.method === "POST" && path.match(/^incidents\/[^/]+\/ai-summary$/)) {
       const incidentId = path.split("/")[1];
