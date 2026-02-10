@@ -15,6 +15,7 @@ const statusConfig: Record<string, { label: string; classes: string }> = {
   pending: { label: 'Pending', classes: 'bg-amber-50 text-amber-700 border-amber-200' },
   paused: { label: 'Paused', classes: 'bg-orange-50 text-orange-600 border-orange-200' },
   disconnected: { label: 'Disconnected', classes: 'bg-muted text-muted-foreground border-border' },
+  inactive: { label: 'Inactive', classes: 'bg-muted text-muted-foreground border-border' },
 };
 
 export function AdminStatusBadge({ status, className }: AdminStatusBadgeProps) {

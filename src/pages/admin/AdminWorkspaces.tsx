@@ -18,7 +18,8 @@ import { AdminSavedViews, defaultViews, type SavedView } from '@/components/admi
 import { useIsMobile } from '@/hooks/use-mobile';
 import {
   Search, Loader2, Ban, Play, Pause, ChevronLeft, ChevronRight,
-  Eye, MoreHorizontal, Copy, Users, Phone, AlertTriangle, Trash2, X
+  Eye, MoreHorizontal, Copy, Users, Phone, AlertTriangle, Trash2, X,
+  Mail, Wifi, WifiOff, ArrowRightLeft
 } from 'lucide-react';
 
 interface Workspace {
@@ -34,7 +35,12 @@ interface Workspace {
   contacts_count: number;
   conversations_count: number;
   plan_name: string | null;
+  owner_email: string | null;
+  phone_number: string | null;
+  waba_status: string | null;
 }
+
+const PLANS = ['free', 'basic', 'pro', 'business'];
 
 export default function AdminWorkspaces() {
   const { role } = useOutletContext<{ role: string }>();
@@ -54,6 +60,8 @@ export default function AdminWorkspaces() {
   const [deleteType, setDeleteType] = useState<'soft' | 'hard'>('soft');
   const [deleteConfirmText, setDeleteConfirmText] = useState('');
   const [deleteReason, setDeleteReason] = useState('');
+  const [planDialog, setPlanDialog] = useState<{ id: string; name: string; currentPlan: string } | null>(null);
+  const [newPlan, setNewPlan] = useState('');
 
   const isSuperAdmin = role === 'super_admin';
 
@@ -117,6 +125,19 @@ export default function AdminWorkspaces() {
       setDeleteConfirmText('');
       setDeleteReason('');
       setSelectedIds(new Set());
+      loadWorkspaces();
+    } catch (e: any) {
+      toast({ title: 'Error', description: e.message, variant: 'destructive' });
+    }
+  };
+
+  const handleChangePlan = async () => {
+    if (!planDialog || !newPlan) return;
+    try {
+      await post(`workspaces/${planDialog.id}/change-plan`, { plan_id: newPlan });
+      toast({ title: 'Plan changed', description: `${planDialog.name} → ${newPlan}` });
+      setPlanDialog(null);
+      setNewPlan('');
       loadWorkspaces();
     } catch (e: any) {
       toast({ title: 'Error', description: e.message, variant: 'destructive' });
@@ -235,10 +256,12 @@ export default function AdminWorkspaces() {
                     </TableHead>
                   )}
                   <TableHead>Workspace</TableHead>
+                  <TableHead>Owner</TableHead>
+                  <TableHead>Phone</TableHead>
                   <TableHead>Plan</TableHead>
                   <TableHead>Status</TableHead>
+                  <TableHead>WABA</TableHead>
                   <TableHead className="text-right">Members</TableHead>
-                  <TableHead className="text-right">Phones</TableHead>
                   <TableHead className="text-right">Contacts</TableHead>
                   <TableHead>Created</TableHead>
                   <TableHead className="w-10"></TableHead>
@@ -268,15 +291,45 @@ export default function AdminWorkspaces() {
                         </div>
                       </div>
                     </TableCell>
+                    <TableCell>
+                      {w.owner_email ? (
+                        <div className="flex items-center gap-1.5">
+                          <Mail className="h-3 w-3 text-muted-foreground flex-shrink-0" />
+                          <span className="text-xs truncate max-w-[160px]" title={w.owner_email}>{w.owner_email}</span>
+                        </div>
+                      ) : <span className="text-xs text-muted-foreground">—</span>}
+                    </TableCell>
+                    <TableCell>
+                      {w.phone_number ? (
+                        <div className="flex items-center gap-1.5">
+                          <Phone className="h-3 w-3 text-muted-foreground flex-shrink-0" />
+                          <span className="text-xs font-mono">{w.phone_number}</span>
+                        </div>
+                      ) : <span className="text-xs text-muted-foreground">—</span>}
+                    </TableCell>
                     <TableCell><AdminPlanBadge plan={w.plan_name || w.plan} /></TableCell>
                     <TableCell>
                       <div className="flex gap-1.5">
-                        <AdminStatusBadge status={w.is_suspended ? 'suspended' : 'active'} />
+                        <AdminStatusBadge status={w.is_suspended ? 'suspended' : (w.waba_status === 'active' ? 'active' : 'inactive')} />
                         {w.sending_paused && <AdminStatusBadge status="paused" />}
                       </div>
                     </TableCell>
+                    <TableCell>
+                      {w.waba_status === 'active' ? (
+                        <div className="flex items-center gap-1">
+                          <Wifi className="h-3.5 w-3.5 text-emerald-500" />
+                          <span className="text-xs text-emerald-600">Connected</span>
+                        </div>
+                      ) : w.waba_status ? (
+                        <div className="flex items-center gap-1">
+                          <WifiOff className="h-3.5 w-3.5 text-amber-500" />
+                          <span className="text-xs capitalize text-amber-600">{w.waba_status}</span>
+                        </div>
+                      ) : (
+                        <span className="text-xs text-muted-foreground">Not connected</span>
+                      )}
+                    </TableCell>
                     <TableCell className="text-right text-sm">{w.members_count}</TableCell>
-                    <TableCell className="text-right text-sm">{w.phone_numbers_count}</TableCell>
                     <TableCell className="text-right text-sm">{w.contacts_count.toLocaleString()}</TableCell>
                     <TableCell className="text-xs text-muted-foreground">
                       {new Date(w.created_at).toLocaleDateString()}
@@ -298,6 +351,13 @@ export default function AdminWorkspaces() {
                           </DropdownMenuItem>
                           {isSuperAdmin && (
                             <>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem onClick={() => {
+                                setPlanDialog({ id: w.workspace_id, name: w.workspace_name, currentPlan: w.plan_name || w.plan });
+                                setNewPlan(w.plan || 'free');
+                              }}>
+                                <ArrowRightLeft className="h-3.5 w-3.5 mr-2" /> Change plan
+                              </DropdownMenuItem>
                               <DropdownMenuSeparator />
                               <DropdownMenuItem
                                 onClick={() => setSuspendDialog({ id: w.workspace_id, name: w.workspace_name, suspend: !w.is_suspended })}
@@ -322,7 +382,7 @@ export default function AdminWorkspaces() {
                 ))}
                 {workspaces.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={isSuperAdmin ? 9 : 8} className="text-center py-8 text-muted-foreground">
+                    <TableCell colSpan={isSuperAdmin ? 11 : 10} className="text-center py-8 text-muted-foreground">
                       No workspaces found
                     </TableCell>
                   </TableRow>
@@ -452,6 +512,42 @@ export default function AdminWorkspaces() {
               disabled={deleteConfirmText !== (deleteType === 'hard' ? 'DELETE' : 'ARCHIVE')}
             >
               {deleteType === 'hard' ? 'Permanently Delete' : 'Archive Workspace(s)'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Change Plan Dialog */}
+      <Dialog open={!!planDialog} onOpenChange={() => { setPlanDialog(null); setNewPlan(''); }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <ArrowRightLeft className="h-5 w-5 text-primary" />
+              Change Plan: {planDialog?.name}
+            </DialogTitle>
+            <DialogDescription>
+              Current plan: <span className="font-medium capitalize">{planDialog?.currentPlan}</span>
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <label className="text-sm font-medium">New Plan</label>
+            <Select value={newPlan} onValueChange={setNewPlan}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select plan" />
+              </SelectTrigger>
+              <SelectContent>
+                {PLANS.map(p => (
+                  <SelectItem key={p} value={p}>
+                    <span className="capitalize">{p}</span>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { setPlanDialog(null); setNewPlan(''); }}>Cancel</Button>
+            <Button onClick={handleChangePlan} disabled={!newPlan || newPlan === planDialog?.currentPlan}>
+              Change Plan
             </Button>
           </DialogFooter>
         </DialogContent>
