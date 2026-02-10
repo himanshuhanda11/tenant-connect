@@ -106,12 +106,12 @@ export default function AdminWorkspaces() {
       return;
     }
     try {
-      for (const id of deleteDialog.ids) {
-        await post(`workspaces/${id}/delete`, {
+      await Promise.all(deleteDialog.ids.map(id =>
+        post(`workspaces/${id}/delete`, {
           type: deleteType,
           reason: deleteReason,
-        });
-      }
+        })
+      ));
       toast({ title: `${deleteDialog.ids.length} workspace(s) ${deleteType === 'hard' ? 'permanently deleted' : 'archived'}` });
       setDeleteDialog(null);
       setDeleteConfirmText('');
