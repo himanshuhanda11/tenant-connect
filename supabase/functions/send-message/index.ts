@@ -252,10 +252,11 @@ Deno.serve(async (req) => {
         })
         .eq('id', message.id);
 
-      // Update conversation last_message_at
+      // Update conversation last_message_at and preview
+      const preview = type === 'text' ? (text || '').substring(0, 100) : `📎 ${type.charAt(0).toUpperCase() + type.slice(1)}`;
       await supabase
         .from('conversations')
-        .update({ last_message_at: new Date().toISOString() })
+        .update({ last_message_at: new Date().toISOString(), last_message_preview: preview })
         .eq('id', conversation.id);
 
       return new Response(JSON.stringify({

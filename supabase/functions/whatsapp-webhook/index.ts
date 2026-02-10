@@ -431,6 +431,14 @@ async function processInboundMessage(
     conversationId = existingConv.id;
   }
 
+  // Build preview text for sidebar
+  const msgType = mapMessageType(ev.msg_type);
+  const previewText = ev.text 
+    ? ev.text.substring(0, 100) 
+    : msgType !== 'text' 
+      ? `📎 ${msgType.charAt(0).toUpperCase() + msgType.slice(1)}`
+      : '';
+
   // Increment unread count
   await supabase
     .from('conversations')
@@ -438,6 +446,7 @@ async function processInboundMessage(
       unread_count: (conversation?.unread_count || 0) + 1,
       last_message_at: new Date().toISOString(),
       last_inbound_at: new Date().toISOString(),
+      last_message_preview: previewText || undefined,
     })
     .eq('id', conversationId);
 
