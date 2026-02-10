@@ -139,127 +139,134 @@ Deno.serve(async (req) => {
         });
       }
 
-      // 4. Process each WABA
-      let firstPhoneNumberId: string | null = null;
-      let totalPhones = 0;
+      // 4. Process only the primary WABA and the single selected phone number
       const primaryWabaId = wabaIds[0];
+      let connectedPhoneId: string | null = null;
 
-      for (const wabaId of wabaIds) {
-        // Fetch WABA details
-        const wabaRes = await fetch(
-          `${GRAPH_API_BASE}/${wabaId}?fields=id,name,currency,timezone_id,owner_business_info`,
+      // Fetch WABA details
+      const wabaRes = await fetch(
+        `${GRAPH_API_BASE}/${primaryWabaId}?fields=id,name,currency,timezone_id,owner_business_info`,
+        { headers: { Authorization: `Bearer ${accessToken}` } }
+      );
+      const wabaData = await wabaRes.json();
+      if (wabaData.error) {
+        console.error('WABA fetch error:', wabaData.error);
+        return new Response(JSON.stringify({ error: 'Failed to fetch WABA details' }), {
+          status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      const businessId = wabaData.owner_business_info?.id || 'unknown';
+
+      // Upsert WABA account
+      const { data: existingWaba } = await supabase
+        .from('waba_accounts')
+        .select('id')
+        .eq('tenant_id', tenantId)
+        .eq('waba_id', primaryWabaId)
+        .maybeSingle();
+
+      let wabaAccountId: string;
+      if (existingWaba) {
+        await supabase.from('waba_accounts').update({
+          encrypted_access_token: accessToken,
+          status: 'active',
+          name: wabaData.name,
+          business_id: businessId,
+          updated_at: new Date().toISOString(),
+        }).eq('id', existingWaba.id);
+        wabaAccountId = existingWaba.id;
+        console.log('Updated WABA:', wabaAccountId);
+      } else {
+        const { data: newWaba, error: insertErr } = await supabase.from('waba_accounts').insert({
+          tenant_id: tenantId,
+          waba_id: primaryWabaId,
+          business_id: businessId,
+          name: wabaData.name,
+          encrypted_access_token: accessToken,
+          status: 'active',
+        }).select().single();
+        if (insertErr) {
+          console.error('WABA insert error:', insertErr);
+          return new Response(JSON.stringify({ error: 'Failed to save WABA account' }), {
+            status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+        wabaAccountId = newWaba.id;
+        console.log('Created WABA:', wabaAccountId);
+      }
+
+      // Only connect the single phone number selected in the popup
+      if (clientPhoneId) {
+        console.log('Connecting single phone:', clientPhoneId);
+        const phoneRes = await fetch(
+          `${GRAPH_API_BASE}/${clientPhoneId}?fields=id,display_phone_number,verified_name,quality_rating,messaging_limit_tier`,
           { headers: { Authorization: `Bearer ${accessToken}` } }
         );
-        const wabaData = await wabaRes.json();
-        if (wabaData.error) {
-          console.error('WABA fetch error for', wabaId, ':', wabaData.error);
-          continue;
-        }
-
-        const businessId = wabaData.owner_business_info?.id || 'unknown';
-
-        // Upsert WABA account
-        const { data: existingWaba } = await supabase
-          .from('waba_accounts')
-          .select('id')
-          .eq('tenant_id', tenantId)
-          .eq('waba_id', wabaId)
-          .maybeSingle();
-
-        let wabaAccountId: string;
-        if (existingWaba) {
-          await supabase.from('waba_accounts').update({
-            encrypted_access_token: accessToken,
-            status: 'active',
-            name: wabaData.name,
-            business_id: businessId,
-            updated_at: new Date().toISOString(),
-          }).eq('id', existingWaba.id);
-          wabaAccountId = existingWaba.id;
-          console.log('Updated WABA:', wabaAccountId);
+        const phoneData = await phoneRes.json();
+        if (phoneData.error) {
+          console.error('Phone fetch error:', phoneData.error);
         } else {
-          const { data: newWaba, error: insertErr } = await supabase.from('waba_accounts').insert({
-            tenant_id: tenantId,
-            waba_id: wabaId,
-            business_id: businessId,
-            name: wabaData.name,
-            encrypted_access_token: accessToken,
-            status: 'active',
-          }).select().single();
-          if (insertErr) { console.error('WABA insert error:', insertErr); continue; }
-          wabaAccountId = newWaba.id;
-          console.log('Created WABA:', wabaAccountId);
-        }
-
-        // Fetch & upsert phone numbers
-        const phonesRes = await fetch(
-          `${GRAPH_API_BASE}/${wabaId}/phone_numbers?fields=id,display_phone_number,verified_name,quality_rating,messaging_limit_tier`,
-          { headers: { Authorization: `Bearer ${accessToken}` } }
-        );
-        const phonesData = await phonesRes.json();
-        const phoneNumbers = phonesData.data || [];
-        console.log('Found', phoneNumbers.length, 'phones for WABA', wabaId);
-
-        for (const phone of phoneNumbers) {
-          const qualityRating = mapQuality(phone.quality_rating);
-          const messagingLimit = mapMessagingLimit(phone.messaging_limit_tier);
+          const qualityRating = mapQuality(phoneData.quality_rating);
+          const messagingLimit = mapMessagingLimit(phoneData.messaging_limit_tier);
 
           const { data: existingPhone } = await supabase
             .from('phone_numbers')
             .select('id')
             .eq('tenant_id', tenantId)
-            .eq('phone_number_id', phone.id)
+            .eq('phone_number_id', clientPhoneId)
             .maybeSingle();
 
           if (existingPhone) {
             await supabase.from('phone_numbers').update({
-              display_number: phone.display_phone_number,
-              verified_name: phone.verified_name,
+              display_number: phoneData.display_phone_number,
+              verified_name: phoneData.verified_name,
               quality_rating: qualityRating,
               messaging_limit: messagingLimit,
               status: 'connected',
               waba_account_id: wabaAccountId,
               updated_at: new Date().toISOString(),
             }).eq('id', existingPhone.id);
-            if (!firstPhoneNumberId) firstPhoneNumberId = existingPhone.id;
+            connectedPhoneId = existingPhone.id;
           } else {
             const { data: newPhone, error: phoneErr } = await supabase.from('phone_numbers').insert({
               tenant_id: tenantId,
               waba_account_id: wabaAccountId,
-              phone_number_id: phone.id,
-              display_number: phone.display_phone_number,
-              verified_name: phone.verified_name,
+              phone_number_id: clientPhoneId,
+              display_number: phoneData.display_phone_number,
+              verified_name: phoneData.verified_name,
               quality_rating: qualityRating,
               messaging_limit: messagingLimit,
               status: 'connected',
             }).select().single();
-            if (phoneErr) { console.error('Phone insert error:', phoneErr); continue; }
-            if (!firstPhoneNumberId) firstPhoneNumberId = newPhone.id;
+            if (phoneErr) { console.error('Phone insert error:', phoneErr); }
+            else { connectedPhoneId = newPhone.id; }
           }
-          totalPhones++;
         }
-
-        // Auto-subscribe to webhooks
-        try {
-          const subRes = await fetch(`${GRAPH_API_BASE}/${wabaId}/subscribed_apps`, {
-            method: 'POST',
-            headers: { Authorization: `Bearer ${accessToken}` },
-          });
-          const subData = await subRes.json();
-          console.log('Webhook subscription for WABA', wabaId, ':', subData.success ? 'OK' : 'FAILED');
-        } catch (e) {
-          console.error('Webhook subscription error:', e);
-        }
+      } else {
+        console.warn('No phone_number_id from client, skipping phone connection');
       }
 
-      console.log('Embedded signup complete. Phones connected:', totalPhones);
+      // Auto-subscribe to webhooks
+      try {
+        const subRes = await fetch(`${GRAPH_API_BASE}/${primaryWabaId}/subscribed_apps`, {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${accessToken}` },
+        });
+        const subData = await subRes.json();
+        console.log('Webhook subscription:', subData.success ? 'OK' : 'FAILED');
+      } catch (e) {
+        console.error('Webhook subscription error:', e);
+      }
+
+      console.log('Embedded signup complete. Phone connected:', connectedPhoneId);
 
       return new Response(JSON.stringify({
         success: true,
         wabaId: primaryWabaId,
-        wabaAccountId: primaryWabaId,
-        phoneNumberId: firstPhoneNumberId,
-        phoneCount: totalPhones,
+        wabaAccountId: wabaAccountId,
+        phoneNumberId: connectedPhoneId,
+        phoneCount: connectedPhoneId ? 1 : 0,
       }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
