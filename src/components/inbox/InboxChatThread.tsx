@@ -581,18 +581,29 @@ export function InboxChatThread({
                   )}>
                     {/* Media */}
                     {message.message_type === 'image' && message.media_url && (
-                      <img 
-                        src={message.media_url} 
-                        alt="Shared image" 
-                        className="rounded-lg max-w-full mb-2"
-                        onError={(e) => {
-                          const img = e.currentTarget;
-                          if (!img.dataset.retried) {
-                            img.dataset.retried = 'true';
-                            img.src = message.media_url + (message.media_url.includes('?') ? '&' : '?') + 't=' + Date.now();
-                          }
-                        }}
-                      />
+                      message.media_url.startsWith('http') || message.media_url.startsWith('data:') ? (
+                        <img 
+                          src={message.media_url} 
+                          alt="Shared image" 
+                          className="rounded-lg max-w-full mb-2"
+                          onError={(e) => {
+                            const img = e.currentTarget;
+                            if (!img.dataset.retried) {
+                              img.dataset.retried = 'true';
+                              img.src = message.media_url + (message.media_url.includes('?') ? '&' : '?') + 't=' + Date.now();
+                            } else {
+                              img.style.display = 'none';
+                              img.parentElement?.insertAdjacentHTML('afterbegin',
+                                '<div class="flex items-center gap-2 p-2 rounded"><span class="text-sm">📷 Image</span></div>'
+                              );
+                            }
+                          }}
+                        />
+                      ) : (
+                        <div className="flex items-center gap-2 p-2 rounded">
+                          <span className="text-sm">📷 Image</span>
+                        </div>
+                      )
                     )}
                     
                     {/* Text */}

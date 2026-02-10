@@ -333,7 +333,7 @@ async function processEvent(supabase: any, ev: NormalizedEvent, webhookEventId?:
     // Find phone number and tenant
     const { data: phoneNumber, error: phoneError } = await supabase
       .from('phone_numbers')
-      .select('id, tenant_id, waba_account_id')
+      .select('id, tenant_id, waba_account_id, waba_account:waba_accounts!inner(encrypted_access_token)')
       .eq('phone_number_id', ev.phone_number_id)
       .single();
 
@@ -346,7 +346,8 @@ async function processEvent(supabase: any, ev: NormalizedEvent, webhookEventId?:
     const tenantId = phoneNumber.tenant_id;
 
     if (ev.kind === 'inbound_message') {
-      await processInboundMessage(supabase, tenantId, phoneNumber.id, ev);
+      const accessToken = phoneNumber.waba_account?.encrypted_access_token || null;
+      await processInboundMessage(supabase, tenantId, phoneNumber.id, ev, accessToken);
     } else if (ev.kind === 'message_status') {
       await processStatusUpdate(supabase, tenantId, ev);
     }
@@ -362,7 +363,8 @@ async function processInboundMessage(
   supabase: any,
   tenantId: string,
   phoneNumberId: string,
-  ev: NormalizedEvent & { kind: 'inbound_message' }
+  ev: NormalizedEvent & { kind: 'inbound_message' },
+  accessToken: string | null
 ) {
   // Upsert contact
   const { data: contact, error: contactError } = await supabase
@@ -444,8 +446,59 @@ async function processInboundMessage(
   let mediaUrl: string | null = null;
   let mediaMimeType: string | null = null;
 
-  if (ev.media?.id) {
-    mediaUrl = ev.media.id; // Store media ID for later retrieval
+  if (ev.media?.id && accessToken) {
+    mediaMimeType = ev.media.mime_type || null;
+    try {
+      // Step 1: Get media download URL from Meta
+      const metaMediaResp = await fetch(
+        `https://graph.facebook.com/v18.0/${ev.media.id}`,
+        { headers: { Authorization: `Bearer ${accessToken}` } }
+      );
+      const metaMedia = await metaMediaResp.json();
+
+      if (metaMedia.url) {
+        // Step 2: Download the actual media binary
+        const mediaResp = await fetch(metaMedia.url, {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        });
+
+        if (mediaResp.ok) {
+          const mediaBuffer = await mediaResp.arrayBuffer();
+          const ext = (mediaMimeType?.split('/')[1] || 'bin').split(';')[0];
+          const filePath = `${tenantId}/${ev.from_wa_id}/${Date.now()}-${ev.media.id}.${ext}`;
+
+          // Step 3: Upload to Supabase storage
+          const { error: uploadErr } = await supabase.storage
+            .from('wa-media')
+            .upload(filePath, mediaBuffer, {
+              contentType: mediaMimeType || 'application/octet-stream',
+              upsert: false,
+            });
+
+          if (!uploadErr) {
+            // Step 4: Get signed URL (30-day expiry)
+            const { data: signedData } = await supabase.storage
+              .from('wa-media')
+              .createSignedUrl(filePath, 60 * 60 * 24 * 30);
+            mediaUrl = signedData?.signedUrl || ev.media.id;
+          } else {
+            console.error('Failed to upload inbound media:', uploadErr);
+            mediaUrl = ev.media.id; // Fallback to media ID
+          }
+        } else {
+          console.error('Failed to download media from Meta:', mediaResp.status);
+          mediaUrl = ev.media.id;
+        }
+      } else {
+        console.error('No URL in Meta media response:', metaMedia);
+        mediaUrl = ev.media.id;
+      }
+    } catch (mediaErr) {
+      console.error('Error downloading inbound media:', mediaErr);
+      mediaUrl = ev.media.id; // Fallback
+    }
+  } else if (ev.media?.id) {
+    mediaUrl = ev.media.id;
     mediaMimeType = ev.media.mime_type || null;
   }
 
