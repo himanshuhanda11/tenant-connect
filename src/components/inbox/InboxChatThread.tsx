@@ -589,7 +589,7 @@ export function InboxChatThread({
                   )}>
                     {/* Media */}
                     {message.message_type === 'image' && message.media_url && (
-                      message.media_url.startsWith('http') || message.media_url.startsWith('data:') ? (
+                      message.media_url.startsWith('http') || message.media_url.startsWith('data:') || message.media_url.startsWith('blob:') ? (
                         <img 
                           src={message.media_url} 
                           alt="Shared image" 
@@ -610,6 +610,60 @@ export function InboxChatThread({
                       ) : (
                         <div className="flex items-center gap-2 p-2 rounded">
                           <span className="text-sm">📷 Image</span>
+                        </div>
+                      )
+                    )}
+
+                    {/* Video */}
+                    {message.message_type === 'video' && message.media_url && (
+                      (message.media_url.startsWith('http') || message.media_url.startsWith('blob:')) ? (
+                        <video 
+                          src={message.media_url} 
+                          controls 
+                          className="rounded-lg max-w-full mb-2 max-h-64"
+                          preload="metadata"
+                        />
+                      ) : (
+                        <div className="flex items-center gap-2 p-3 bg-muted/30 rounded-lg mb-2">
+                          <span className="text-sm">🎥 Video</span>
+                        </div>
+                      )
+                    )}
+
+                    {/* Audio */}
+                    {message.message_type === 'audio' && message.media_url && (
+                      (message.media_url.startsWith('http') || message.media_url.startsWith('blob:')) ? (
+                        <audio src={message.media_url} controls className="mb-2 max-w-full" preload="metadata" />
+                      ) : (
+                        <div className="flex items-center gap-2 p-3 bg-muted/30 rounded-lg mb-2">
+                          <span className="text-sm">🎵 Audio</span>
+                        </div>
+                      )
+                    )}
+
+                    {/* Document */}
+                    {message.message_type === 'document' && message.media_url && (
+                      <a
+                        href={message.media_url.startsWith('http') ? message.media_url : '#'}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={cn(
+                          "flex items-center gap-2 p-3 rounded-lg mb-2 no-underline",
+                          isOutbound ? "bg-primary-foreground/10" : "bg-muted/50"
+                        )}
+                      >
+                        <span className="text-lg">📄</span>
+                        <span className="text-sm underline">Document</span>
+                      </a>
+                    )}
+
+                    {/* Sticker */}
+                    {message.message_type === 'sticker' && message.media_url && (
+                      (message.media_url.startsWith('http')) ? (
+                        <img src={message.media_url} alt="Sticker" className="max-w-[150px] mb-2" />
+                      ) : (
+                        <div className="flex items-center gap-2 p-2 rounded">
+                          <span className="text-sm">🏷️ Sticker</span>
                         </div>
                       )
                     )}

@@ -69,6 +69,7 @@ Deno.serve(async (req) => {
         phone_number:phone_numbers!inner(
           id,
           phone_number_id,
+          status,
           waba_account:waba_accounts!inner(
             id,
             encrypted_access_token
@@ -106,6 +107,15 @@ Deno.serve(async (req) => {
 
     const phoneNumber = conversation.phone_number;
     const contact = conversation.contact;
+
+    // Block messaging if phone is disconnected
+    if (phoneNumber.status === 'disconnected') {
+      return new Response(JSON.stringify({ error: 'Phone number is disconnected. Please reconnect to send messages.' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     const accessToken = phoneNumber.waba_account.encrypted_access_token;
 
     if (!accessToken) {

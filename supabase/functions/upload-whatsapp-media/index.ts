@@ -158,7 +158,7 @@ Deno.serve(async (req) => {
           .select(`
             *,
             phone_number:phone_numbers!inner(
-              id, phone_number_id,
+              id, phone_number_id, status,
               waba_account:waba_accounts!inner(id, encrypted_access_token)
             ),
             contact:contacts!inner(wa_id)
@@ -174,6 +174,13 @@ Deno.serve(async (req) => {
         }
 
         const phoneNumber = conversation.phone_number;
+
+        if (phoneNumber.status === 'disconnected') {
+          return new Response(JSON.stringify({ ok: true, url: mediaUrl, mediaType, sent: false, error: 'Phone number is disconnected' }), {
+            status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+
         const accessToken = phoneNumber.waba_account.encrypted_access_token;
 
         // Build WhatsApp API payload
