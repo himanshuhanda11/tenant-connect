@@ -88,7 +88,7 @@ export function usePhoneNumbers() {
         waba_uuid: n.waba_account_id,
         waba_id: waba?.waba_id || null,
         phone_number_id: n.phone_number_id,
-        display_name: n.display_number || n.verified_name,
+        display_name: n.verified_name || null,
         phone_e164: n.display_number || '',
         verified_name: n.verified_name,
         certificate: n.certificate,
