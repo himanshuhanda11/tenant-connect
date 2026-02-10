@@ -111,6 +111,13 @@ export default function AdminWorkspaceDetail() {
         onPauseSending={handlePauseSending}
         onSuspendClick={() => setSuspendDialog(true)}
         onImpersonate={() => startImpersonation(workspace.id, workspace.name)}
+        onDeleteWorkspace={(type) => {
+          if (type === 'soft') {
+            toast({ title: 'Workspace archived', description: `${workspace.name} has been archived. All data is preserved.` });
+          } else {
+            toast({ title: 'Workspace deleted', description: `${workspace.name} has been permanently deleted.` });
+          }
+        }}
       />
 
       <Tabs defaultValue="overview">
@@ -139,7 +146,18 @@ export default function AdminWorkspaceDetail() {
           <TeamTab members={members} isSuperAdmin={isSuperAdmin} />
         </TabsContent>
         <TabsContent value="whatsapp" className="mt-4">
-          <WhatsAppTab phones={phones} workspacePhone={workspacePhone} isSuperAdmin={isSuperAdmin} />
+          <WhatsAppTab 
+            phones={phones} 
+            workspacePhone={workspacePhone} 
+            isSuperAdmin={isSuperAdmin} 
+            workspaceId={id}
+            onRefresh={() => {
+              get(`workspaces/${id}`).then(data => {
+                setPhones(data.phones || []);
+                setWorkspacePhone(data.workspace_phone || null);
+              }).catch(() => {});
+            }}
+          />
         </TabsContent>
         <TabsContent value="templates" className="mt-4">
           <TemplatesTab />

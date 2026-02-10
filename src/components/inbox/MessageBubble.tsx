@@ -43,7 +43,34 @@ export function MessageBubble({ message }: MessageBubbleProps) {
   };
 
   const renderContent = () => {
-    // For media messages, show a placeholder with icon
+    // For image messages, show actual image
+    if (message.type === 'image' && message.media_url) {
+      return (
+        <div>
+          <img 
+            src={message.media_url} 
+            alt="Shared image" 
+            className="rounded-lg max-w-full mb-1"
+            onError={(e) => {
+              const img = e.currentTarget;
+              if (!img.dataset.retried) {
+                img.dataset.retried = 'true';
+                img.src = message.media_url + (message.media_url.includes('?') ? '&' : '?') + 't=' + Date.now();
+              } else {
+                // Show fallback
+                img.style.display = 'none';
+                img.parentElement?.insertAdjacentHTML('afterbegin', 
+                  '<div class="flex items-center gap-2 p-3 bg-muted/50 rounded-lg"><span class="text-sm">📷 Image</span></div>'
+                );
+              }
+            }}
+          />
+          {message.text && <p className="text-sm whitespace-pre-wrap">{message.text}</p>}
+        </div>
+      );
+    }
+
+    // For other media messages, show a placeholder with icon
     if (message.type !== 'text' && message.media_url) {
       return (
         <div className="flex items-center gap-2 p-3 bg-muted/50 rounded-lg">

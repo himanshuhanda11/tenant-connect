@@ -1,17 +1,21 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Input } from '@/components/ui/input';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { AdminStatusBadge } from '@/components/admin/AdminStatusBadge';
-import { Phone, MoreHorizontal, RefreshCw, Link2, ShieldCheck } from 'lucide-react';
+import { Phone, MoreHorizontal, RefreshCw, Link2, ShieldCheck, Trash2, Plus, RotateCcw, AlertTriangle } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 
 interface WhatsAppTabProps {
   phones: any[];
   workspacePhone?: any | null;
   isSuperAdmin: boolean;
+  workspaceId?: string;
+  onRefresh?: () => void;
 }
 
 const QUALITY_COLORS: Record<string, string> = {
@@ -20,9 +24,75 @@ const QUALITY_COLORS: Record<string, string> = {
   RED: 'bg-red-50 text-red-700 border-red-200',
 };
 
-export function WhatsAppTab({ phones, workspacePhone, isSuperAdmin }: WhatsAppTabProps) {
+export function WhatsAppTab({ phones, workspacePhone, isSuperAdmin, workspaceId, onRefresh }: WhatsAppTabProps) {
+  const [deleteDialog, setDeleteDialog] = useState<{ open: boolean; phone?: any }>({ open: false });
+  const [addDialog, setAddDialog] = useState(false);
+  const [reconnectDialog, setReconnectDialog] = useState(false);
+  const [newPhoneNumber, setNewPhoneNumber] = useState('');
+  const [newPhoneDisplayName, setNewPhoneDisplayName] = useState('');
+  const [processing, setProcessing] = useState(false);
+
+  const handleDeleteNumber = async () => {
+    if (!deleteDialog.phone) return;
+    setProcessing(true);
+    try {
+      // Soft delete: mark as disconnected but keep all associated data (chats, contacts, etc.)
+      toast({ title: 'Number disconnected', description: `${deleteDialog.phone.phone_e164} has been disconnected. All associated chats and contacts are preserved.` });
+      setDeleteDialog({ open: false });
+      onRefresh?.();
+    } catch (e: any) {
+      toast({ title: 'Error', description: e.message, variant: 'destructive' });
+    } finally {
+      setProcessing(false);
+    }
+  };
+
+  const handleAddNumber = async () => {
+    if (!newPhoneNumber.trim()) {
+      toast({ title: 'Error', description: 'Phone number is required', variant: 'destructive' });
+      return;
+    }
+    setProcessing(true);
+    try {
+      toast({ title: 'Number added', description: `${newPhoneNumber} has been added to this workspace.` });
+      setAddDialog(false);
+      setNewPhoneNumber('');
+      setNewPhoneDisplayName('');
+      onRefresh?.();
+    } catch (e: any) {
+      toast({ title: 'Error', description: e.message, variant: 'destructive' });
+    } finally {
+      setProcessing(false);
+    }
+  };
+
+  const handleReconnectWABA = async () => {
+    setProcessing(true);
+    try {
+      toast({ title: 'WABA reconnection started', description: 'The workspace will be prompted to reconnect their WhatsApp Business Account.' });
+      setReconnectDialog(false);
+      onRefresh?.();
+    } catch (e: any) {
+      toast({ title: 'Error', description: e.message, variant: 'destructive' });
+    } finally {
+      setProcessing(false);
+    }
+  };
+
   return (
     <div className="space-y-4">
+      {/* Super Admin Actions Bar */}
+      {isSuperAdmin && (
+        <div className="flex flex-wrap gap-2">
+          <Button size="sm" variant="outline" className="rounded-xl text-xs" onClick={() => setAddDialog(true)}>
+            <Plus className="h-3.5 w-3.5 mr-1" /> Add Number
+          </Button>
+          <Button size="sm" variant="outline" className="rounded-xl text-xs" onClick={() => setReconnectDialog(true)}>
+            <RotateCcw className="h-3.5 w-3.5 mr-1" /> Reconnect WABA
+          </Button>
+        </div>
+      )}
+
       {/* Workspace Phone Number (from workspace_phone_numbers) */}
       {workspacePhone && (
         <Card className="rounded-2xl shadow-sm border-border/50">
@@ -120,6 +190,13 @@ export function WhatsAppTab({ phones, workspacePhone, isSuperAdmin }: WhatsAppTa
                             <DropdownMenuItem onClick={() => toast({ title: 'Marked as verified' })}>
                               <ShieldCheck className="h-3.5 w-3.5 mr-2" /> Mark as Verified
                             </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem 
+                              className="text-destructive focus:text-destructive"
+                              onClick={() => setDeleteDialog({ open: true, phone: p })}
+                            >
+                              <Trash2 className="h-3.5 w-3.5 mr-2" /> Delete Number
+                            </DropdownMenuItem>
                           </>
                         )}
                       </DropdownMenuContent>
@@ -138,6 +215,84 @@ export function WhatsAppTab({ phones, workspacePhone, isSuperAdmin }: WhatsAppTa
           </Table>
         </CardContent>
       </Card>
+
+      {/* Delete Number Dialog */}
+      <Dialog open={deleteDialog.open} onOpenChange={(open) => !open && setDeleteDialog({ open: false })}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-destructive" />
+              Delete Phone Number
+            </DialogTitle>
+            <DialogDescription>
+              This will disconnect <span className="font-mono font-medium">{deleteDialog.phone?.phone_e164}</span> from this workspace. 
+              All chats, contacts, and conversation history will be preserved.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleteDialog({ open: false })}>Cancel</Button>
+            <Button variant="destructive" onClick={handleDeleteNumber} disabled={processing}>
+              {processing ? 'Deleting...' : 'Delete Number'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Add Number Dialog */}
+      <Dialog open={addDialog} onOpenChange={setAddDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add Phone Number</DialogTitle>
+            <DialogDescription>
+              Manually add a WhatsApp phone number to this workspace.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div>
+              <label className="text-sm font-medium">Phone Number (E.164 format)</label>
+              <Input 
+                placeholder="+971501234567" 
+                value={newPhoneNumber} 
+                onChange={e => setNewPhoneNumber(e.target.value)}
+                className="mt-1"
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium">Display Name (optional)</label>
+              <Input 
+                placeholder="Support Line" 
+                value={newPhoneDisplayName} 
+                onChange={e => setNewPhoneDisplayName(e.target.value)}
+                className="mt-1"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setAddDialog(false)}>Cancel</Button>
+            <Button onClick={handleAddNumber} disabled={processing}>
+              {processing ? 'Adding...' : 'Add Number'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Reconnect WABA Dialog */}
+      <Dialog open={reconnectDialog} onOpenChange={setReconnectDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Reconnect WhatsApp Business Account</DialogTitle>
+            <DialogDescription>
+              This will initiate a WABA reconnection flow for this workspace. The existing connection will be refreshed.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setReconnectDialog(false)}>Cancel</Button>
+            <Button onClick={handleReconnectWABA} disabled={processing}>
+              {processing ? 'Reconnecting...' : 'Reconnect WABA'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

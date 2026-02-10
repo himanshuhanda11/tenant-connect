@@ -574,8 +574,57 @@ export function useInboxActions() {
   }, []);
 
   const sendMessage = useCallback(async (conversationId: string, message: { text?: string; template?: string; media?: File }) => {
-    if (!message.text?.trim() && !message.template) return;
+    if (!message.text?.trim() && !message.template && !message.media) return;
     if (!currentTenant?.id) return;
+
+    // Handle media upload first if present
+    if (message.media) {
+      try {
+        // Get conversation to find contact wa_id
+        const { data: conv } = await supabase
+          .from('conversations')
+          .select('phone_number_id, contact:contacts(wa_id)')
+          .eq('id', conversationId)
+          .single();
+
+        if (!conv) throw new Error('Conversation not found');
+        const contactWaId = (conv.contact as any)?.wa_id;
+
+        // Upload file via edge function
+        const formData = new FormData();
+        formData.append('file', message.media);
+        formData.append('tenant_id', currentTenant.id);
+        if (contactWaId) formData.append('contact_wa_id', contactWaId);
+
+        const { data: uploadData, error: uploadError } = await supabase.functions.invoke('upload-whatsapp-media', {
+          body: formData,
+        });
+
+        if (uploadError) throw uploadError;
+        if (!uploadData?.ok) throw new Error(uploadData?.error || 'Upload failed');
+
+        // Now send the media message via send-message
+        const { data: sendData, error: sendError } = await supabase.functions.invoke('send-message', {
+          body: {
+            conversation_id: conversationId,
+            type: uploadData.mediaType,
+            media_url: uploadData.url,
+            text: message.text || null,
+          }
+        });
+
+        if (sendError) throw sendError;
+        if (sendData?.error) throw new Error(sendData.error);
+
+        toast.success('Media sent');
+        window.dispatchEvent(new CustomEvent('inbox-update', { detail: { conversationId } }));
+        return;
+      } catch (err: any) {
+        console.error('Send media error:', err);
+        toast.error(err.message || 'Failed to send media');
+        return;
+      }
+    }
 
     // Optimistic: immediately dispatch a local message event so the chat thread updates instantly
     const optimisticId = `optimistic-${Date.now()}`;

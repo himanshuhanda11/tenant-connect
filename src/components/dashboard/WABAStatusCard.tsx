@@ -68,10 +68,21 @@ export function WABAStatusCard({
               </Tooltip>
             </div>
             {isConnected ? (
-              <Badge className="bg-success text-success-foreground hover:bg-success/90 font-semibold px-3 py-1 text-sm">
-                <Wifi className="h-3.5 w-3.5 mr-1.5" />
-                LIVE
-              </Badge>
+              <div>
+                <Badge className="bg-success text-success-foreground hover:bg-success/90 font-semibold px-3 py-1 text-sm">
+                  <Wifi className="h-3.5 w-3.5 mr-1.5" />
+                  LIVE
+                </Badge>
+                {phoneNumber && (
+                  <p className="text-sm font-mono font-medium mt-2">{phoneNumber}</p>
+                )}
+                {businessName && (
+                  <p className="text-xs text-muted-foreground mt-1">{businessName}</p>
+                )}
+                <Button size="sm" variant="ghost" onClick={onConnect} className="text-xs mt-2 text-muted-foreground">
+                  Reconnect
+                </Button>
+              </div>
             ) : (
               <div className="flex items-center gap-3">
                 <Badge variant="outline" className="border-warning text-warning font-semibold px-3 py-1 text-sm">
@@ -82,9 +93,6 @@ export function WABAStatusCard({
                   Connect Now
                 </Button>
               </div>
-            )}
-            {businessName && (
-              <p className="text-xs text-muted-foreground mt-2">{businessName}</p>
             )}
           </div>
 
@@ -128,9 +136,6 @@ export function WABAStatusCard({
             <p className="text-2xl font-bold text-primary">
               {remainingQuota.toLocaleString()}
             </p>
-            {phoneNumber && (
-              <p className="text-xs text-muted-foreground mt-1">{phoneNumber}</p>
-            )}
           </div>
         </div>
       </CardContent>
