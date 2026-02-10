@@ -327,14 +327,31 @@ export default function MetaAdsSetup() {
                     Connecting...
                   </div>
                 )}
-                <div
-                  className="fb-login-button"
-                  data-config-id="1271263174873831"
-                  data-onlogin="checkLoginState();"
-                  data-size="large"
-                  data-button-type="login_with"
-                  data-use-continue-as="true"
-                />
+                <Button
+                  className="bg-[#1877F2] hover:bg-[#166FE5] text-white gap-2 h-10 px-5"
+                  disabled={isFbLoading}
+                  onClick={() => {
+                    if (!window.FB) {
+                      toast.error('Facebook SDK not loaded. Please refresh the page.');
+                      return;
+                    }
+                    setIsFbLoading(true);
+                    window.FB.login((response: any) => {
+                      if (response.status === 'connected' && response.authResponse) {
+                        fetchMetaData(response.authResponse.accessToken);
+                      } else {
+                        setIsFbLoading(false);
+                        toast.error('Facebook login was cancelled or failed.');
+                      }
+                    }, {
+                      config_id: '1271263174873831',
+                      override_default_response_type: true,
+                    });
+                  }}
+                >
+                  <Facebook className="h-4 w-4" />
+                  Login with Facebook
+                </Button>
               </div>
             </CardContent>
           </Card>
