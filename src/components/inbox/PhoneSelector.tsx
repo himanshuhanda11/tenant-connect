@@ -53,11 +53,6 @@ export function PhoneSelector({
           <SelectItem key={phone.id} value={phone.id}>
             <div className="flex flex-col">
               <span>{phone.display_number}</span>
-              {phone.verified_name && (
-                <span className="text-xs text-muted-foreground">
-                  {phone.verified_name}
-                </span>
-              )}
             </div>
           </SelectItem>
         ))}
