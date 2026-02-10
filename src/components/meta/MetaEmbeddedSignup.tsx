@@ -146,6 +146,8 @@ export function MetaEmbeddedSignup({ onSuccess, onError }: MetaEmbeddedSignupPro
       override_default_response_type: true,
       extras: {
         setup: {},
+        featureType: '',
+        sessionInfoVersion: '3',
       },
     });
   };
