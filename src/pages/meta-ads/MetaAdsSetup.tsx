@@ -344,7 +344,8 @@ export default function MetaAdsSetup() {
                         toast.error('Facebook login was cancelled or failed.');
                       }
                     }, {
-                      config_id: '1271263174873831',
+                      scope: 'ads_read,pages_show_list',
+                      response_type: 'code',
                       override_default_response_type: true,
                     });
                   }}
