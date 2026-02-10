@@ -147,6 +147,7 @@ export function MetaEmbeddedSignup({ onSuccess, onError }: MetaEmbeddedSignupPro
   return (
     <div className="space-y-4">
       <Button
+        type="button"
         onClick={launchWhatsAppSignup}
         disabled={loading}
         className="w-full h-12"
