@@ -93,7 +93,52 @@ Deno.serve(async (req: Request) => {
         query = query.or(`workspace_name.ilike.%${search}%,slug.ilike.%${search}%`);
       }
       const { data, count } = await query.order("created_at", { ascending: false }).range(offset, offset + limit - 1);
-      return new Response(JSON.stringify({ workspaces: data, total: count, page, limit }), {
+
+      // Enrich with owner email, phone number, WABA status
+      const workspaceIds = (data || []).map((w: any) => w.workspace_id);
+      
+      // Owner emails
+      let ownerMap: Record<string, string> = {};
+      if (workspaceIds.length > 0) {
+        const { data: owners } = await sb.from("tenant_members")
+          .select("tenant_id, user_id, profiles(email)")
+          .eq("role", "owner")
+          .in("tenant_id", workspaceIds);
+        for (const o of owners || []) {
+          if (!ownerMap[o.tenant_id]) ownerMap[o.tenant_id] = (o as any).profiles?.email || '';
+        }
+      }
+
+      // Phone numbers
+      let phoneMap: Record<string, string> = {};
+      if (workspaceIds.length > 0) {
+        const { data: phones } = await sb.from("phone_numbers")
+          .select("tenant_id, display_number")
+          .in("tenant_id", workspaceIds);
+        for (const p of phones || []) {
+          if (!phoneMap[p.tenant_id]) phoneMap[p.tenant_id] = p.display_number || '';
+        }
+      }
+
+      // WABA status
+      let wabaMap: Record<string, string> = {};
+      if (workspaceIds.length > 0) {
+        const { data: wabas } = await sb.from("waba_accounts")
+          .select("tenant_id, status")
+          .in("tenant_id", workspaceIds);
+        for (const w of wabas || []) {
+          if (!wabaMap[w.tenant_id]) wabaMap[w.tenant_id] = w.status || '';
+        }
+      }
+
+      const enriched = (data || []).map((w: any) => ({
+        ...w,
+        owner_email: ownerMap[w.workspace_id] || null,
+        phone_number: phoneMap[w.workspace_id] || null,
+        waba_status: wabaMap[w.workspace_id] || null,
+      }));
+
+      return new Response(JSON.stringify({ workspaces: enriched, total: count, page, limit }), {
         headers: { ...corsHeaders, "content-type": "application/json" },
       });
     }
@@ -182,6 +227,52 @@ Deno.serve(async (req: Request) => {
         workspace_id: workspaceId,
       });
       return new Response(JSON.stringify({ success: true }), {
+        headers: { ...corsHeaders, "content-type": "application/json" },
+      });
+    }
+
+    // POST /workspaces/:id/change-plan
+    if (req.method === "POST" && path.match(/^workspaces\/[^/]+\/change-plan$/)) {
+      const workspaceId = path.split("/")[1];
+      const body = await req.json();
+      const actor = await requirePlatformRole(req, ["super_admin"]);
+      const sb = adminClient();
+      const planId = body.plan_id;
+      if (!planId) throw new Error("plan_id required");
+
+      // Verify plan exists
+      const { data: plan } = await sb.from("platform_plans").select("id, name").eq("id", planId).single();
+      if (!plan) throw new Error(`Plan '${planId}' not found`);
+
+      // Update or create subscription
+      const { data: existingSub } = await sb.from("subscriptions")
+        .select("id")
+        .eq("tenant_id", workspaceId)
+        .eq("status", "active")
+        .maybeSingle();
+
+      if (existingSub) {
+        await sb.from("subscriptions").update({
+          plan_id: planId,
+          updated_at: new Date().toISOString(),
+        }).eq("id", existingSub.id);
+      } else {
+        await sb.from("subscriptions").insert({
+          tenant_id: workspaceId,
+          plan_id: planId,
+          status: "active",
+        });
+      }
+
+      // Recompute entitlements
+      await sb.rpc("compute_workspace_entitlements", { p_workspace_id: workspaceId });
+
+      await logAction(sb, actor, "PLATFORM_PLAN_CHANGED", {
+        workspace_id: workspaceId, after: { plan_id: planId, plan_name: plan.name },
+        note: `Plan changed to ${plan.name}`,
+      });
+
+      return new Response(JSON.stringify({ success: true, plan: plan.name }), {
         headers: { ...corsHeaders, "content-type": "application/json" },
       });
     }
