@@ -291,7 +291,9 @@ export default function ConnectNumber() {
                         wabaId: data.wabaId,
                         phoneNumberId: data.phoneNumberId,
                       }));
-                      setCurrentStep('select');
+                      // Backend already saved WABA + phone number + webhooks
+                      // Skip directly to complete
+                      setCurrentStep('complete');
                     }}
                     onError={(error) => {
                       toast.error(error.message || 'Failed to connect');
