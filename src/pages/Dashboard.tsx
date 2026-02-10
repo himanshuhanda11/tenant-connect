@@ -64,8 +64,9 @@ export default function Dashboard() {
   const currentHour = new Date().getHours();
   const greeting = currentHour < 12 ? 'Good morning' : currentHour < 18 ? 'Good afternoon' : 'Good evening';
 
-  // Check if connected to WhatsApp
-  const isWABAConnected = phoneHealth.length > 0 && phoneHealth.some(p => p.webhookHealth === 'healthy');
+  // Check if connected to WhatsApp (1 workspace = 1 number)
+  const hasPhoneConnected = phoneHealth.length > 0;
+  const isWABAConnected = hasPhoneConnected && phoneHealth.some(p => p.webhookHealth === 'healthy');
   const primaryPhone = phoneHealth[0];
 
   // Setup steps based on actual data
@@ -293,7 +294,7 @@ export default function Dashboard() {
           isConnected={isWABAConnected}
           qualityRating={primaryPhone?.qualityRating || 'unknown'}
           remainingQuota={10000}
-          phoneNumber={primaryPhone?.phoneNumber}
+          phoneNumber={primaryPhone?.phoneNumber || primaryPhone?.displayName}
           businessName={currentTenant?.name}
           loading={loading}
           onConnect={() => setEmbeddedSignupOpen(true)}
@@ -367,13 +368,15 @@ export default function Dashboard() {
         <WorkspaceTip />
       </div>
 
-      {/* Embedded Signup Dialog */}
+      {/* Embedded Signup Dialog - for connect/reconnect */}
       <Dialog open={embeddedSignupOpen} onOpenChange={setEmbeddedSignupOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Connect WhatsApp Business</DialogTitle>
+            <DialogTitle>{hasPhoneConnected ? 'Reconnect WhatsApp Business' : 'Connect WhatsApp Business'}</DialogTitle>
             <DialogDescription>
-              Use Meta's secure signup flow to connect your WhatsApp Business Account.
+              {hasPhoneConnected
+                ? 'Re-authenticate your existing WhatsApp Business Account connection.'
+                : 'Use Meta\'s secure signup flow to connect your WhatsApp Business Account. Each workspace supports one phone number.'}
             </DialogDescription>
           </DialogHeader>
           <MetaEmbeddedSignup
