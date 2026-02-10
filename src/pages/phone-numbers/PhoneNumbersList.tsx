@@ -446,16 +446,18 @@ export default function PhoneNumbersList() {
                   <div className="flex items-start justify-between">
                     <div className="space-y-1.5 flex-1 min-w-0">
                       <div className="flex items-center gap-2">
-                        <CardTitle className="text-base truncate">
-                          {number.display_name || 'Unnamed Number'}
+                        <CardTitle className="text-base truncate font-mono">
+                          {number.phone_e164}
                         </CardTitle>
                         {number.is_default && (
                           <Star className="h-4 w-4 text-amber-500 fill-amber-500 shrink-0" />
                         )}
                       </div>
-                      <p className="text-sm text-muted-foreground font-mono truncate">
-                        {number.phone_e164}
-                      </p>
+                      {number.display_name && (
+                        <p className="text-sm text-muted-foreground truncate">
+                          {number.display_name}
+                        </p>
+                      )}
                     </div>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>

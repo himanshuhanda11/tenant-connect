@@ -97,15 +97,25 @@ Deno.serve(async (req: Request) => {
       // Enrich with owner email, phone number, WABA status
       const workspaceIds = (data || []).map((w: any) => w.workspace_id);
       
-      // Owner emails
+      // Owner emails - manual join since no FK between tenant_members and profiles
       let ownerMap: Record<string, string> = {};
       if (workspaceIds.length > 0) {
         const { data: owners } = await sb.from("tenant_members")
-          .select("tenant_id, user_id, profiles(email)")
+          .select("tenant_id, user_id, role")
           .eq("role", "owner")
           .in("tenant_id", workspaceIds);
+        const ownerUserIds = (owners || []).map((o: any) => o.user_id).filter(Boolean);
+        let profileMap: Record<string, string> = {};
+        if (ownerUserIds.length > 0) {
+          const { data: profiles } = await sb.from("profiles")
+            .select("id, email")
+            .in("id", ownerUserIds);
+          for (const p of profiles || []) {
+            profileMap[p.id] = p.email || '';
+          }
+        }
         for (const o of owners || []) {
-          if (!ownerMap[o.tenant_id]) ownerMap[o.tenant_id] = (o as any).profiles?.email || '';
+          if (!ownerMap[o.tenant_id]) ownerMap[o.tenant_id] = profileMap[o.user_id] || '';
         }
       }
 
