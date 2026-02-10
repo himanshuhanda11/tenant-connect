@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -120,7 +120,8 @@ export default function MetaAdsSetup() {
   const phoneNumbers = phoneNumbersQuery.data || [];
   const progress = (currentStep / SETUP_STEPS.length) * 100;
 
-  const handleFacebookLogin = () => {
+  // Callback for the <fb:login-button> onlogin event
+  const checkLoginState = () => {
     if (!window.FB) {
       toast.error('Facebook SDK not loaded. Please refresh the page.');
       return;
@@ -128,19 +129,29 @@ export default function MetaAdsSetup() {
 
     setIsFbLoading(true);
 
-    window.FB.login(
-      (response: any) => {
-        if (response.status === 'connected' && response.authResponse) {
-          const { accessToken } = response.authResponse;
-          fetchMetaData(accessToken);
-        } else {
-          setIsFbLoading(false);
-          toast.error('Facebook login was cancelled or failed.');
-        }
-      },
-      { scope: 'ads_read,pages_read_engagement,pages_show_list' }
-    );
+    window.FB.getLoginStatus((response: any) => {
+      if (response.status === 'connected' && response.authResponse) {
+        const { accessToken } = response.authResponse;
+        fetchMetaData(accessToken);
+      } else {
+        setIsFbLoading(false);
+        toast.error('Facebook login was cancelled or failed.');
+      }
+    });
   };
+
+  // Expose checkLoginState globally so the fb:login-button onlogin can call it
+  (window as any).checkLoginState = checkLoginState;
+
+  // Re-parse FB XFBML when component mounts or fbConnected changes
+  useEffect(() => {
+    if (window.FB && !fbConnected) {
+      window.FB.XFBML.parse();
+    }
+    return () => {
+      delete (window as any).checkLoginState;
+    };
+  }, [fbConnected]);
 
   const fetchMetaData = async (shortLivedToken: string) => {
     try {
@@ -309,18 +320,22 @@ export default function MetaAdsSetup() {
                   </p>
                 </div>
               </div>
-              <Button
-                onClick={handleFacebookLogin}
-                disabled={isFbLoading}
-                className="bg-[#1877F2] hover:bg-[#166FE5] text-white gap-2 px-6"
-              >
-                {isFbLoading ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <Facebook className="h-4 w-4" />
+              <div className="flex items-center gap-3">
+                {isFbLoading && (
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Connecting...
+                  </div>
                 )}
-                {isFbLoading ? 'Connecting...' : 'Login with Facebook'}
-              </Button>
+                <div
+                  className="fb-login-button"
+                  data-config-id="1271263174873831"
+                  data-onlogin="checkLoginState();"
+                  data-size="large"
+                  data-button-type="login_with"
+                  data-use-continue-as="true"
+                />
+              </div>
             </CardContent>
           </Card>
         )}
