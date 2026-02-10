@@ -621,8 +621,8 @@ export default function PhoneNumbersList() {
                           <Star className="h-4 w-4 text-amber-500 fill-amber-500" />
                         )}
                         <div>
-                          <p className="font-medium">{number.display_name || 'Unnamed'}</p>
-                          <p className="text-sm text-muted-foreground font-mono">{number.phone_e164}</p>
+                          <p className="font-medium font-mono">{number.phone_e164}</p>
+                          {number.display_name && <p className="text-sm text-muted-foreground">{number.display_name}</p>}
                         </div>
                       </div>
                     </TableCell>

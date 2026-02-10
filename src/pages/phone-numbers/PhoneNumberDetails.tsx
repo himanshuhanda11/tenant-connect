@@ -347,7 +347,7 @@ export default function PhoneNumberDetails() {
             </Button>
             <div>
               <div className="flex items-center gap-2">
-                <h1 className="text-2xl font-bold">{number.display_name || 'Unnamed Number'}</h1>
+                <h1 className="text-2xl font-bold font-mono">{number.phone_e164}</h1>
                 {number.is_default && (
                   <Star className="h-5 w-5 text-amber-500 fill-amber-500" />
                 )}
