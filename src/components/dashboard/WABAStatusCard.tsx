@@ -87,7 +87,7 @@ export function WABAStatusCard({
               <div className="flex items-center gap-3">
                 <Badge variant="outline" className="border-warning text-warning font-semibold px-3 py-1 text-sm">
                   <WifiOff className="h-3.5 w-3.5 mr-1.5" />
-                  PENDING
+                  NOT CONNECTED
                 </Badge>
                 <Button size="sm" variant="outline" onClick={onConnect} className="text-xs">
                   Connect Now
