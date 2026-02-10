@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button';
 import { NavLink } from '@/components/NavLink';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTenant } from '@/contexts/TenantContext';
+import { usePhoneNumbers } from '@/hooks/usePhoneNumbers';
 import { sidebarDescriptions } from '@/data/sidebarDescriptions';
 import { cn } from '@/lib/utils';
 import aireatroLogo from '@/assets/aireatro-logo.png';
@@ -40,10 +41,7 @@ const mainMenuItems: MenuItem[] = [
   { title: 'User Attributes', url: '/user-attributes', icon: ListFilter, key: 'user-attributes' }
 ];
 
-const channelMenuItems: MenuItem[] = [
-  { title: 'Phone Numbers', url: '/phone-numbers', icon: Phone, key: 'phone-numbers' },
-  { title: 'Templates', url: '/templates', icon: FileText, key: 'templates', isNew: true }
-];
+// channelMenuItems defined dynamically inside component
 
 const growthMenuItems: MenuItem[] = [
   { title: 'Campaigns', url: '/campaigns', icon: Send, key: 'campaigns' },
@@ -79,12 +77,7 @@ const settingsMenuItems: MenuItem[] = [
   { title: 'Guide', url: '/help', icon: HelpCircle, key: 'help' }
 ];
 
-const menuGroups: MenuGroup[] = [
-  { label: 'Channels', icon: Phone, items: channelMenuItems },
-  { label: 'Growth', icon: TrendingUp, items: growthMenuItems },
-  { label: 'Meta Ads', icon: Megaphone, items: metaAdsMenuItems },
-  { label: 'Team', icon: Users, items: teamMenuItems }
-];
+// menuGroups defined dynamically inside component
 
 const roleConfig: Record<string, { color: string; bg: string; border: string }> = {
   owner: { color: 'text-amber-600', bg: 'bg-amber-500/10', border: 'border-amber-500/20' },
@@ -116,6 +109,22 @@ export function AppSidebar() {
   const { tenants, currentTenant, currentRole, setCurrentTenant } = useTenant();
   const { state, toggleSidebar } = useSidebar();
   const isCollapsed = state === 'collapsed';
+  const { phoneNumbers } = usePhoneNumbers();
+  
+  const primaryPhone = phoneNumbers.length > 0 ? phoneNumbers[0] : null;
+  const phoneLabel = primaryPhone?.phone_e164 || 'Phone Numbers';
+
+  const channelMenuItems: MenuItem[] = [
+    { title: phoneLabel, url: '/phone-numbers', icon: Phone, key: 'phone-numbers' },
+    { title: 'Templates', url: '/templates', icon: FileText, key: 'templates', isNew: true }
+  ];
+
+  const menuGroups: MenuGroup[] = [
+    { label: 'Channels', icon: Phone, items: channelMenuItems },
+    { label: 'Growth', icon: TrendingUp, items: growthMenuItems },
+    { label: 'Meta Ads', icon: Megaphone, items: metaAdsMenuItems },
+    { label: 'Team', icon: Users, items: teamMenuItems }
+  ];
 
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({
     'Meta Ads': true,
