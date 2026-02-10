@@ -149,6 +149,7 @@ export function MetaEmbeddedSignup({ onSuccess, onError }: MetaEmbeddedSignupPro
         featureType: '',
         sessionInfoVersion: '3',
       },
+      scope: 'whatsapp_business_management,whatsapp_business_messaging',
     });
   };
 

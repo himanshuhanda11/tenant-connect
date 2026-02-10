@@ -32,6 +32,21 @@ import { supabase } from '@/integrations/supabase/client';
 
 type Step = 'method' | 'connect' | 'select' | 'verify' | 'webhook' | 'complete';
 
+// For embedded signup, only show method → connect → complete (3 steps)
+const EMBEDDED_STEPS: { id: Step; title: string; description: string }[] = [
+  { id: 'method', title: 'Connection Method', description: 'Choose how to connect' },
+  { id: 'connect', title: 'Connect Meta', description: 'Authenticate with Meta' },
+  { id: 'complete', title: 'Complete', description: 'Setup complete' },
+];
+
+const MANUAL_STEPS: { id: Step; title: string; description: string }[] = [
+  { id: 'method', title: 'Connection Method', description: 'Choose how to connect' },
+  { id: 'connect', title: 'Connect Meta', description: 'Enter details' },
+  { id: 'select', title: 'Select Number', description: 'Choose WABA & number' },
+  { id: 'webhook', title: 'Webhooks', description: 'Configure webhooks' },
+  { id: 'complete', title: 'Complete', description: 'Setup complete' },
+];
+
 interface WizardState {
   method: 'embedded' | 'manual' | null;
   wabaId: string;
@@ -61,14 +76,9 @@ export default function ConnectNumber() {
     webhookUrl: '',
   });
 
-  const steps: { id: Step; title: string; description: string }[] = [
-    { id: 'method', title: 'Connection Method', description: 'Choose how to connect' },
-    { id: 'connect', title: 'Connect Meta', description: 'Authenticate with Meta' },
-    { id: 'select', title: 'Select Number', description: 'Choose WABA & number' },
-    { id: 'verify', title: 'Verify', description: 'Verify phone number' },
-    { id: 'webhook', title: 'Webhooks', description: 'Configure webhooks' },
-    { id: 'complete', title: 'Complete', description: 'Setup complete' },
-  ];
+  const steps = state.method === 'manual' ? MANUAL_STEPS 
+    : state.method === 'embedded' ? EMBEDDED_STEPS 
+    : EMBEDDED_STEPS; // default before selection
 
   const stepIndex = steps.findIndex(s => s.id === currentStep);
   const progress = ((stepIndex + 1) / steps.length) * 100;
