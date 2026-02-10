@@ -47,7 +47,7 @@ export function usePhoneNumbers() {
       // Fetch WABA accounts for this tenant to map waba_id
       const { data: wabaData } = await supabase
         .from('waba_accounts')
-        .select('id, waba_id, name, business_name, status')
+        .select('id, waba_id, name, status')
         .eq('tenant_id', currentTenant.id);
 
       const wabaMap = new Map((wabaData || []).map((w: any) => [w.id, w]));
