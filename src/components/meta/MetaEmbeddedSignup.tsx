@@ -58,7 +58,9 @@ export function MetaEmbeddedSignup({ onSuccess, onError }: MetaEmbeddedSignupPro
     return () => window.removeEventListener('message', handler);
   }, []);
 
-  const launchWhatsAppSignup = async () => {
+  const launchWhatsAppSignup = async (e?: React.MouseEvent) => {
+    e?.preventDefault();
+    e?.stopPropagation();
     if (!currentTenant) {
       toast.error('No workspace selected');
       return;
