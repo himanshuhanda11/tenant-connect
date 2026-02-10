@@ -228,7 +228,7 @@ Deno.serve(async (req) => {
     // 4. Verify phone number belongs to tenant
     const { data: phoneNumber, error: phoneError } = await supabase
       .from('phone_numbers')
-      .select('id, phone_number_id, tenant_id, waba_account_id')
+      .select('id, phone_number_id, tenant_id, waba_account_id, status')
       .eq('id', phone_number_id)
       .eq('tenant_id', tenant_id)
       .single();
@@ -236,6 +236,13 @@ Deno.serve(async (req) => {
     if (phoneError || !phoneNumber) {
       return new Response(JSON.stringify({ error: 'Phone number not found or access denied' }), {
         status: 404,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    if (phoneNumber.status === 'disconnected') {
+      return new Response(JSON.stringify({ error: 'Phone number is disconnected. Please reconnect to send messages.' }), {
+        status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
@@ -420,8 +427,10 @@ Deno.serve(async (req) => {
       }).eq('id', message.id);
 
       // Update conversation
+      const preview = type === 'text' ? (text || '').substring(0, 100) : `📎 ${type.charAt(0).toUpperCase() + type.slice(1)}`;
       await supabase.from('conversations').update({
         last_message_at: new Date().toISOString(),
+        last_message_preview: preview,
         status: 'open'
       }).eq('id', conversationIdFinal);
 
