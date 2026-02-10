@@ -5,7 +5,7 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-const GRAPH_API_VERSION = 'v22.0';
+const GRAPH_API_VERSION = 'v24.0';
 const GRAPH_API_BASE = `https://graph.facebook.com/${GRAPH_API_VERSION}`;
 
 Deno.serve(async (req) => {
