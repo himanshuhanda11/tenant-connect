@@ -51,12 +51,17 @@ Deno.serve(async (req) => {
       const supabase = createClient(supabaseUrl, supabaseKey);
 
       const token = authHeader.replace('Bearer ', '');
-      const { data: { user }, error: userError } = await supabase.auth.getUser(token);
-      if (userError || !user) {
+      const supabaseAuth = createClient(supabaseUrl, Deno.env.get('SUPABASE_ANON_KEY')!, {
+        global: { headers: { Authorization: authHeader } },
+      });
+      const { data: claimsData, error: claimsError } = await supabaseAuth.auth.getClaims(token);
+      if (claimsError || !claimsData?.claims) {
+        console.error('Auth failed:', claimsError?.message);
         return new Response(JSON.stringify({ error: 'Invalid token' }), {
           status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       }
+      const user = { id: claimsData.claims.sub as string };
 
       // Tenant membership
       const { data: membership } = await supabase
@@ -202,6 +207,18 @@ Deno.serve(async (req) => {
       // Only connect the single phone number selected in the popup
       if (clientPhoneId) {
         console.log('Connecting single phone:', clientPhoneId);
+
+        // ── Enforce 1 phone per workspace: remove ALL existing phones first ──
+        const { data: existingPhones } = await supabase
+          .from('phone_numbers')
+          .select('id')
+          .eq('tenant_id', tenantId);
+        if (existingPhones && existingPhones.length > 0) {
+          const idsToDelete = existingPhones.map((p: any) => p.id);
+          console.log('Removing existing phone(s) to enforce 1-per-workspace:', idsToDelete);
+          await supabase.from('phone_numbers').delete().in('id', idsToDelete);
+        }
+
         const phoneRes = await fetch(
           `${GRAPH_API_BASE}/${clientPhoneId}?fields=id,display_phone_number,verified_name,quality_rating,messaging_limit_tier`,
           { headers: { Authorization: `Bearer ${accessToken}` } }
@@ -213,38 +230,18 @@ Deno.serve(async (req) => {
           const qualityRating = mapQuality(phoneData.quality_rating);
           const messagingLimit = mapMessagingLimit(phoneData.messaging_limit_tier);
 
-          const { data: existingPhone } = await supabase
-            .from('phone_numbers')
-            .select('id')
-            .eq('tenant_id', tenantId)
-            .eq('phone_number_id', clientPhoneId)
-            .maybeSingle();
-
-          if (existingPhone) {
-            await supabase.from('phone_numbers').update({
-              display_number: phoneData.display_phone_number,
-              verified_name: phoneData.verified_name,
-              quality_rating: qualityRating,
-              messaging_limit: messagingLimit,
-              status: 'connected',
-              waba_account_id: wabaAccountId,
-              updated_at: new Date().toISOString(),
-            }).eq('id', existingPhone.id);
-            connectedPhoneId = existingPhone.id;
-          } else {
-            const { data: newPhone, error: phoneErr } = await supabase.from('phone_numbers').insert({
-              tenant_id: tenantId,
-              waba_account_id: wabaAccountId,
-              phone_number_id: clientPhoneId,
-              display_number: phoneData.display_phone_number,
-              verified_name: phoneData.verified_name,
-              quality_rating: qualityRating,
-              messaging_limit: messagingLimit,
-              status: 'connected',
-            }).select().single();
-            if (phoneErr) { console.error('Phone insert error:', phoneErr); }
-            else { connectedPhoneId = newPhone.id; }
-          }
+          const { data: newPhone, error: phoneErr } = await supabase.from('phone_numbers').insert({
+            tenant_id: tenantId,
+            waba_account_id: wabaAccountId,
+            phone_number_id: clientPhoneId,
+            display_number: phoneData.display_phone_number,
+            verified_name: phoneData.verified_name,
+            quality_rating: qualityRating,
+            messaging_limit: messagingLimit,
+            status: 'connected',
+          }).select().single();
+          if (phoneErr) { console.error('Phone insert error:', phoneErr); }
+          else { connectedPhoneId = newPhone.id; }
         }
       } else {
         console.warn('No phone_number_id from client, skipping phone connection');
