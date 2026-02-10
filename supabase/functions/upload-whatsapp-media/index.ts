@@ -231,7 +231,8 @@ Deno.serve(async (req) => {
 
         const wamid = waResult.messages?.[0]?.id;
         await supabase.from('messages').update({ wamid, status: 'sent' }).eq('id', dbMsg.id);
-        await supabase.from('conversations').update({ last_message_at: new Date().toISOString() }).eq('id', conversationId);
+        const preview = caption ? `📎 ${mediaType.charAt(0).toUpperCase() + mediaType.slice(1)}: ${caption}` : `📎 ${mediaType.charAt(0).toUpperCase() + mediaType.slice(1)}`;
+        await supabase.from('conversations').update({ last_message_at: new Date().toISOString(), last_message_preview: preview }).eq('id', conversationId);
 
         console.log('Media uploaded and sent:', { mediaType, wamid });
         return new Response(JSON.stringify({ ok: true, url: mediaUrl, mediaType, sent: true, message_id: dbMsg.id, wamid }), {

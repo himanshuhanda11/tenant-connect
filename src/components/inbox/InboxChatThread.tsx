@@ -183,8 +183,16 @@ export function InboxChatThread({
     }
   };
 
-  const handleAttachmentClick = () => {
-    fileInputRef.current?.click();
+  const handleAttachmentClick = (accept?: string, capture?: boolean) => {
+    if (fileInputRef.current) {
+      fileInputRef.current.accept = accept || 'image/*,video/*,audio/*,.pdf,.doc,.docx,.xls,.xlsx';
+      if (capture) {
+        fileInputRef.current.setAttribute('capture', 'environment');
+      } else {
+        fileInputRef.current.removeAttribute('capture');
+      }
+      fileInputRef.current.click();
+    }
   };
 
   const getInitials = (name?: string) => {
@@ -736,20 +744,20 @@ export function InboxChatThread({
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="start" className="w-48">
-                    <DropdownMenuItem onClick={handleAttachmentClick}>
+                    <DropdownMenuItem onClick={() => handleAttachmentClick('image/*')}>
                       <ImageIcon className="h-4 w-4 mr-2 text-blue-500" />
                       Image
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={handleAttachmentClick}>
+                    <DropdownMenuItem onClick={() => handleAttachmentClick('video/*')}>
                       <Video className="h-4 w-4 mr-2 text-red-500" />
                       Video
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={handleAttachmentClick}>
+                    <DropdownMenuItem onClick={() => handleAttachmentClick('.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx')}>
                       <File className="h-4 w-4 mr-2 text-amber-500" />
                       Document
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={handleAttachmentClick}>
+                    <DropdownMenuItem onClick={() => handleAttachmentClick('image/*', true)}>
                       <Camera className="h-4 w-4 mr-2 text-green-500" />
                       Camera
                     </DropdownMenuItem>
