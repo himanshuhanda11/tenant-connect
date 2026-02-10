@@ -42,9 +42,25 @@ export function MessageBubble({ message }: MessageBubbleProps) {
     }
   };
 
+  // Check if a media_url is a valid URL (not just a bare Meta media ID)
+  const isValidMediaUrl = (url: string | null | undefined): boolean => {
+    if (!url) return false;
+    return url.startsWith('http://') || url.startsWith('https://') || url.startsWith('data:');
+  };
+
   const renderContent = () => {
-    // For image messages, show actual image
+    // For image messages, show actual image only if valid URL
     if (message.type === 'image' && message.media_url) {
+      if (!isValidMediaUrl(message.media_url)) {
+        // Bare Meta media ID — show placeholder
+        return (
+          <div className="flex items-center gap-2 p-3 bg-muted/50 rounded-lg">
+            <Image className="h-4 w-4" />
+            <span className="text-sm">📷 Image</span>
+            {message.text && <p className="text-sm whitespace-pre-wrap mt-1">{message.text}</p>}
+          </div>
+        );
+      }
       return (
         <div>
           <img 
@@ -57,7 +73,6 @@ export function MessageBubble({ message }: MessageBubbleProps) {
                 img.dataset.retried = 'true';
                 img.src = message.media_url + (message.media_url.includes('?') ? '&' : '?') + 't=' + Date.now();
               } else {
-                // Show fallback
                 img.style.display = 'none';
                 img.parentElement?.insertAdjacentHTML('afterbegin', 
                   '<div class="flex items-center gap-2 p-3 bg-muted/50 rounded-lg"><span class="text-sm">📷 Image</span></div>'
