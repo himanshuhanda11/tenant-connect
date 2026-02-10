@@ -1,23 +1,42 @@
-import { useState } from 'react';
-import { Play, X, RefreshCw } from 'lucide-react';
+import { useState, useCallback } from 'react';
+import { Play, X, RefreshCw, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useMediaUrl } from '@/hooks/useMediaUrl';
 
 interface VideoPreviewProps {
   url: string;
   fileName?: string;
   caption?: string;
   isOutbound?: boolean;
+  mediaBucket?: string;
+  mediaPath?: string;
 }
 
-export function VideoPreview({ url, fileName, caption, isOutbound }: VideoPreviewProps) {
+export function VideoPreview({ url, fileName, caption, isOutbound, mediaBucket, mediaPath }: VideoPreviewProps) {
+  const { url: mediaUrl, refresh, loading, hasStoragePath } = useMediaUrl(url, mediaBucket, mediaPath);
   const [loaded, setLoaded] = useState(false);
   const [failed, setFailed] = useState(false);
   const [modal, setModal] = useState(false);
 
-  const isValid = url?.startsWith('http') || url?.startsWith('blob:');
+  const isValid = mediaUrl?.startsWith('http') || mediaUrl?.startsWith('blob:');
 
-  if (!isValid) {
+  const handleError = useCallback(async () => {
+    if (hasStoragePath) {
+      const newUrl = await refresh();
+      if (!newUrl) setFailed(true);
+    } else {
+      setFailed(true);
+    }
+  }, [hasStoragePath, refresh]);
+
+  const handleRetry = useCallback(async () => {
+    setFailed(false);
+    setLoaded(false);
+    if (hasStoragePath) await refresh();
+  }, [hasStoragePath, refresh]);
+
+  if (!isValid && !hasStoragePath) {
     return (
       <div className={cn(
         "flex items-center gap-2 p-3 rounded-xl mb-1",
@@ -32,13 +51,18 @@ export function VideoPreview({ url, fileName, caption, isOutbound }: VideoPrevie
   if (failed) {
     return (
       <button
-        onClick={() => { setFailed(false); setLoaded(false); }}
+        onClick={handleRetry}
+        disabled={loading}
         className={cn(
           "flex flex-col items-center justify-center gap-2 w-full rounded-xl p-6 mb-1 transition-colors",
           isOutbound ? "bg-primary-foreground/10 hover:bg-primary-foreground/15" : "bg-background/80 hover:bg-background border border-border/50"
         )}
       >
-        <RefreshCw className={cn("h-6 w-6", isOutbound ? "text-primary-foreground/50" : "text-muted-foreground")} />
+        {loading ? (
+          <Loader2 className={cn("h-6 w-6 animate-spin", isOutbound ? "text-primary-foreground/50" : "text-muted-foreground")} />
+        ) : (
+          <RefreshCw className={cn("h-6 w-6", isOutbound ? "text-primary-foreground/50" : "text-muted-foreground")} />
+        )}
         <span className={cn("text-xs", isOutbound ? "text-primary-foreground/60" : "text-muted-foreground")}>
           Tap to reload
         </span>
@@ -49,14 +73,10 @@ export function VideoPreview({ url, fileName, caption, isOutbound }: VideoPrevie
   return (
     <>
       <div className="mb-1">
-        {/* Thumbnail with play button */}
-        <div
-          className="relative cursor-pointer group rounded-xl overflow-hidden"
-          onClick={() => setModal(true)}
-        >
+        <div className="relative cursor-pointer group rounded-xl overflow-hidden" onClick={() => setModal(true)}>
           {!loaded && <Skeleton className="w-full aspect-video rounded-xl" />}
           <video
-            src={url}
+            src={mediaUrl}
             preload="metadata"
             className={cn(
               "max-w-full max-h-[250px] rounded-xl object-cover transition-opacity",
@@ -64,13 +84,13 @@ export function VideoPreview({ url, fileName, caption, isOutbound }: VideoPrevie
               loaded && "opacity-100"
             )}
             onLoadedMetadata={() => setLoaded(true)}
-            onError={() => setFailed(true)}
+            onError={handleError}
             muted
           />
           {loaded && (
             <div className="absolute inset-0 flex items-center justify-center bg-black/20 group-hover:bg-black/30 transition-colors">
               <div className="h-12 w-12 rounded-full bg-white/90 flex items-center justify-center shadow-lg">
-                <Play className="h-5 w-5 text-gray-800 ml-0.5" fill="currentColor" />
+                <Play className="h-5 w-5 text-foreground ml-0.5" fill="currentColor" />
               </div>
             </div>
           )}
@@ -87,12 +107,8 @@ export function VideoPreview({ url, fileName, caption, isOutbound }: VideoPrevie
         )}
       </div>
 
-      {/* Video modal */}
       {modal && (
-        <div
-          className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4"
-          onClick={() => setModal(false)}
-        >
+        <div className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4" onClick={() => setModal(false)}>
           <button
             onClick={() => setModal(false)}
             className="absolute top-4 right-4 h-10 w-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors"
@@ -100,7 +116,7 @@ export function VideoPreview({ url, fileName, caption, isOutbound }: VideoPrevie
             <X className="h-5 w-5 text-white" />
           </button>
           <video
-            src={url}
+            src={mediaUrl}
             controls
             autoPlay
             className="max-w-full max-h-[90vh] rounded-lg"

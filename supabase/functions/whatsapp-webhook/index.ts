@@ -454,6 +454,8 @@ async function processInboundMessage(
   let text = ev.text || '';
   let mediaUrl: string | null = null;
   let mediaMimeType: string | null = null;
+  let mediaBucket: string | null = null;
+  let mediaPath: string | null = null;
 
   if (ev.media?.id && accessToken) {
     mediaMimeType = ev.media.mime_type || null;
@@ -485,6 +487,9 @@ async function processInboundMessage(
             });
 
           if (!uploadErr) {
+            // Store the path for on-demand signed URL generation
+            mediaBucket = 'wa-media';
+            mediaPath = filePath;
             // Step 4: Get signed URL (30-day expiry)
             const { data: signedData } = await supabase.storage
               .from('wa-media')
@@ -531,6 +536,8 @@ async function processInboundMessage(
       text,
       media_url: mediaUrl,
       media_mime_type: mediaMimeType,
+      media_bucket: mediaBucket,
+      media_path: mediaPath,
       status: 'delivered',
       context_message_id: ev.context_message_id,
       raw: ev.raw,

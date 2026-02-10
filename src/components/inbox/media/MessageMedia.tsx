@@ -4,6 +4,7 @@ import { VideoPreview } from './VideoPreview';
 import { Music, RefreshCw } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useState } from 'react';
+import { useMediaUrl } from '@/hooks/useMediaUrl';
 import type { InboxMessage } from '@/types/inbox';
 
 interface MessageMediaProps {
@@ -12,69 +13,78 @@ interface MessageMediaProps {
 }
 
 export function MessageMedia({ message, isOutbound }: MessageMediaProps) {
-  const { message_type, media_url, media_mime_type, body_text, payload } = message;
-  const fileName = (payload as any)?.filename || (payload as any)?.file_name || undefined;
+  const { message_type, media_url, media_mime_type, media_bucket, media_path, body_text, payload } = message;
+  const fileName = (message as any).media_filename || (payload as any)?.filename || (payload as any)?.file_name || undefined;
   const fileSize = (message as any).media_size_bytes || (payload as any)?.file_size || undefined;
 
-  if (!media_url) return null;
+  if (!media_url && !media_path) return null;
+
+  const commonProps = {
+    mediaBucket: media_bucket || undefined,
+    mediaPath: media_path || undefined,
+  };
 
   switch (message_type) {
     case 'image':
       return (
         <ImagePreview
-          url={media_url}
+          url={media_url || ''}
           fileName={fileName}
           caption={body_text || undefined}
           isOutbound={isOutbound}
+          {...commonProps}
         />
       );
 
     case 'video':
       return (
         <VideoPreview
-          url={media_url}
+          url={media_url || ''}
           fileName={fileName}
           caption={body_text || undefined}
           isOutbound={isOutbound}
+          {...commonProps}
         />
       );
 
     case 'document':
       return (
         <DocumentPreview
-          url={media_url}
+          url={media_url || ''}
           fileName={fileName}
           fileSize={fileSize}
           mimeType={media_mime_type || undefined}
           isOutbound={isOutbound}
           caption={body_text || undefined}
+          {...commonProps}
         />
       );
 
     case 'audio':
-      return <AudioPreview url={media_url} isOutbound={isOutbound} />;
+      return <AudioPreview url={media_url || ''} isOutbound={isOutbound} mediaBucket={media_bucket || undefined} mediaPath={media_path || undefined} />;
 
     case 'sticker':
-      return <StickerPreview url={media_url} />;
+      return <StickerPreview url={media_url || ''} />;
 
     default:
-      // Generic fallback for any other media type
       return (
         <DocumentPreview
-          url={media_url}
+          url={media_url || ''}
           fileName={fileName || message_type}
           fileSize={fileSize}
           mimeType={media_mime_type || undefined}
           isOutbound={isOutbound}
           caption={body_text || undefined}
+          {...commonProps}
         />
       );
   }
 }
 
-function AudioPreview({ url, isOutbound }: { url: string; isOutbound: boolean }) {
+function AudioPreview({ url, isOutbound, mediaBucket, mediaPath }: { url: string; isOutbound: boolean; mediaBucket?: string; mediaPath?: string }) {
+  const { url: mediaUrl, refresh, loading, hasStoragePath } = useMediaUrl(url, mediaBucket, mediaPath);
   const [failed, setFailed] = useState(false);
-  const isValid = url?.startsWith('http') || url?.startsWith('blob:');
+  const isValid = mediaUrl?.startsWith('http') || mediaUrl?.startsWith('blob:');
 
   if (!isValid || failed) {
     return (
@@ -84,9 +94,9 @@ function AudioPreview({ url, isOutbound }: { url: string; isOutbound: boolean })
       )}>
         <Music className="h-4 w-4" />
         <span className="text-sm">Audio message</span>
-        {failed && (
-          <button onClick={() => setFailed(false)}>
-            <RefreshCw className="h-3 w-3 text-muted-foreground" />
+        {(failed && hasStoragePath) && (
+          <button onClick={async () => { const u = await refresh(); if (u) setFailed(false); }}>
+            <RefreshCw className={cn("h-3 w-3 text-muted-foreground", loading && "animate-spin")} />
           </button>
         )}
       </div>
@@ -96,11 +106,18 @@ function AudioPreview({ url, isOutbound }: { url: string; isOutbound: boolean })
   return (
     <div className="mb-1">
       <audio
-        src={url}
+        src={mediaUrl}
         controls
         preload="metadata"
         className="max-w-full w-full"
-        onError={() => setFailed(true)}
+        onError={async () => {
+          if (hasStoragePath) {
+            const u = await refresh();
+            if (!u) setFailed(true);
+          } else {
+            setFailed(true);
+          }
+        }}
       />
     </div>
   );
@@ -115,12 +132,5 @@ function StickerPreview({ url }: { url: string }) {
       </div>
     );
   }
-  return (
-    <img
-      src={url}
-      alt="Sticker"
-      className="max-w-[150px] mb-1"
-      loading="lazy"
-    />
-  );
+  return <img src={url} alt="Sticker" className="max-w-[150px] mb-1" loading="lazy" />;
 }
