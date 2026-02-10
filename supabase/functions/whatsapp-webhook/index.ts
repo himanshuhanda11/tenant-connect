@@ -48,9 +48,11 @@ async function verifySignature(rawBody: string, signatureHeader: string | null):
     return false;
   }
 
-  const [algo, theirSig] = signatureHeader.split('=');
+  const parts = signatureHeader.split('=');
+  const algo = parts[0];
+  const theirSig = parts.slice(1).join('='); // Handle edge case where sig contains =
   if (algo !== 'sha256' || !theirSig) {
-    console.log('Invalid signature format');
+    console.log('Invalid signature format:', signatureHeader.substring(0, 30));
     return false;
   }
 
@@ -69,8 +71,13 @@ async function verifySignature(rawBody: string, signatureHeader: string | null):
     .map(b => b.toString(16).padStart(2, '0'))
     .join('');
 
+  console.log(`Sig verify: ours=${ourSig.substring(0, 12)}... theirs=${theirSig.substring(0, 12)}... body_len=${rawBody.length} secret_len=${appSecret.length}`);
+
   // Timing-safe comparison
-  if (ourSig.length !== theirSig.length) return false;
+  if (ourSig.length !== theirSig.length) {
+    console.log(`Sig length mismatch: ours=${ourSig.length} theirs=${theirSig.length}`);
+    return false;
+  }
   
   let result = 0;
   for (let i = 0; i < ourSig.length; i++) {
