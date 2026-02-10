@@ -180,7 +180,11 @@ export function useInboxConversations(view: InboxView, filters: InboxFilters) {
             const updated = payload.new as any;
             setConversations(prev => {
               const idx = prev.findIndex(c => c.id === updated.id);
-              if (idx === -1) return prev;
+              if (idx === -1) {
+                // New conversation we don't have — background fetch
+                fetchConversations(true);
+                return prev;
+              }
               const existing = prev[idx];
               const merged = {
                 ...existing,
@@ -189,6 +193,7 @@ export function useInboxConversations(view: InboxView, filters: InboxFilters) {
                 last_message_at: updated.last_message_at || existing.last_message_at,
                 last_message_preview: updated.last_message_preview || existing.last_message_preview,
                 assigned_to: updated.assigned_to,
+                priority: updated.priority || existing.priority,
                 updated_at: updated.updated_at,
               };
               const newList = [...prev];
@@ -203,11 +208,24 @@ export function useInboxConversations(view: InboxView, filters: InboxFilters) {
           }
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log(`Realtime conversations channel status: ${status}`);
+      });
 
     return () => {
       supabase.removeChannel(channel);
     };
+  }, [currentTenant?.id, fetchConversations]);
+
+  // Polling fallback — refresh conversations every 5 seconds for reliability
+  useEffect(() => {
+    if (!currentTenant?.id) return;
+
+    const interval = setInterval(() => {
+      fetchConversations(true);
+    }, 5000);
+
+    return () => clearInterval(interval);
   }, [currentTenant?.id, fetchConversations]);
 
   return { conversations, loading, error, refetch: () => fetchConversations(true), updateConversation };
@@ -219,8 +237,10 @@ export function useInboxMessages(conversationId: string | null) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const prevConversationId = useRef<string | null>(null);
+  const pollIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const lastFetchedAtRef = useRef<string | null>(null);
 
-  const fetchMessages = useCallback(async () => {
+  const fetchMessages = useCallback(async (isInitial = true) => {
     if (!conversationId) {
       setMessages([]);
       return;
@@ -228,10 +248,11 @@ export function useInboxMessages(conversationId: string | null) {
     
     // Only show loading on conversation switch
     const isSwitch = prevConversationId.current !== conversationId;
-    if (isSwitch) {
+    if (isSwitch && isInitial) {
       setLoading(true);
-      setMessages([]); // Clear immediately on switch
+      setMessages([]);
       prevConversationId.current = conversationId;
+      lastFetchedAtRef.current = null;
     }
     
     try {
@@ -244,7 +265,13 @@ export function useInboxMessages(conversationId: string | null) {
 
       if (queryError) throw queryError;
 
-      setMessages((data || []).map(mapMessage));
+      const mapped = (data || []).map(mapMessage);
+      setMessages(mapped);
+      
+      // Track last message timestamp for polling
+      if (mapped.length > 0) {
+        lastFetchedAtRef.current = mapped[mapped.length - 1].created_at;
+      }
     } catch (err) {
       console.error('Error fetching messages:', err);
       setError(err instanceof Error ? err.message : 'Failed to load messages');
@@ -253,15 +280,40 @@ export function useInboxMessages(conversationId: string | null) {
     }
   }, [conversationId]);
 
+  // Incremental poll — only fetch new messages since last known
+  const pollNewMessages = useCallback(async () => {
+    if (!conversationId || !lastFetchedAtRef.current) return;
+    
+    try {
+      const { data } = await supabase
+        .from('messages')
+        .select('*')
+        .eq('conversation_id', conversationId)
+        .gt('created_at', lastFetchedAtRef.current)
+        .order('created_at', { ascending: true });
+
+      if (data && data.length > 0) {
+        const newMapped = data.map(mapMessage);
+        setMessages(prev => {
+          const existingIds = new Set(prev.map(m => m.id));
+          const uniqueNew = newMapped.filter(m => !existingIds.has(m.id));
+          if (uniqueNew.length === 0) return prev;
+          return [...prev, ...uniqueNew];
+        });
+        lastFetchedAtRef.current = newMapped[newMapped.length - 1].created_at;
+      }
+    } catch {
+      // Silent fail on poll
+    }
+  }, [conversationId]);
+
   useEffect(() => {
-    fetchMessages();
+    fetchMessages(true);
   }, [fetchMessages]);
 
   const addMessage = useCallback((message: InboxMessage) => {
     setMessages(prev => {
-      // Deduplicate by id
       if (prev.some(m => m.id === message.id)) return prev;
-      // Remove optimistic messages with same text (replace with real)
       return [...prev, message];
     });
   }, []);
@@ -288,9 +340,11 @@ export function useInboxMessages(conversationId: string | null) {
               if (!m.id.startsWith('optimistic-')) return true;
               return m.body_text !== mapped.body_text;
             });
-            // Don't add if already exists
             if (withoutOptimistic.some(m => m.id === mapped.id)) return withoutOptimistic;
-            return [...withoutOptimistic, mapped];
+            const updated = [...withoutOptimistic, mapped];
+            // Update last fetched timestamp
+            lastFetchedAtRef.current = mapped.created_at;
+            return updated;
           });
         }
       )
@@ -309,12 +363,29 @@ export function useInboxMessages(conversationId: string | null) {
           );
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log(`Realtime messages channel status: ${status}`);
+      });
 
     return () => {
       supabase.removeChannel(channel);
     };
   }, [conversationId]);
+
+  // Polling fallback — check for new messages every 3 seconds
+  // This ensures messages appear even if Realtime has connection issues
+  useEffect(() => {
+    if (!conversationId) return;
+
+    pollIntervalRef.current = setInterval(pollNewMessages, 3000);
+
+    return () => {
+      if (pollIntervalRef.current) {
+        clearInterval(pollIntervalRef.current);
+        pollIntervalRef.current = null;
+      }
+    };
+  }, [conversationId, pollNewMessages]);
 
   return { messages, loading, error, refetch: fetchMessages, addMessage };
 }
