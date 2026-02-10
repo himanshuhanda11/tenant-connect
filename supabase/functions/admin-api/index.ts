@@ -586,6 +586,115 @@ Deno.serve(async (req: Request) => {
       });
     }
 
+    // GET /phone-numbers
+    if (req.method === "GET" && path === "phone-numbers") {
+      const actor = await requirePlatformRole(req, ["super_admin", "support"]);
+      const sb = adminClient();
+      const search = url.searchParams.get("search") || "";
+      const page = parseInt(url.searchParams.get("page") || "1");
+      const limit = 25;
+      const offset = (page - 1) * limit;
+
+      let query = sb.from("phone_numbers").select("id, tenant_id, waba_account_id, phone_number_id, display_number, verified_name, quality_rating, status, messaging_limit, webhook_health, last_webhook_at, is_default, created_at, updated_at", { count: "exact" });
+      if (search) {
+        query = query.or(`display_number.ilike.%${search}%,verified_name.ilike.%${search}%`);
+      }
+      const { data: phones, count } = await query.order("created_at", { ascending: false }).range(offset, offset + limit - 1);
+
+      // Enrich with workspace names
+      const tenantIds = [...new Set((phones || []).map((p: any) => p.tenant_id))];
+      let tenantMap: Record<string, string> = {};
+      if (tenantIds.length > 0) {
+        const { data: tenants } = await sb.from("tenants").select("id, name").in("id", tenantIds);
+        for (const t of tenants || []) tenantMap[t.id] = t.name;
+      }
+
+      // Enrich with WABA status
+      const wabaIds = [...new Set((phones || []).filter((p: any) => p.waba_account_id).map((p: any) => p.waba_account_id))];
+      let wabaMap: Record<string, any> = {};
+      if (wabaIds.length > 0) {
+        const { data: wabas } = await sb.from("waba_accounts").select("id, waba_id, status, name").in("id", wabaIds);
+        for (const w of wabas || []) wabaMap[w.id] = w;
+      }
+
+      const enriched = (phones || []).map((p: any) => ({
+        ...p,
+        workspace_name: tenantMap[p.tenant_id] || null,
+        waba: wabaMap[p.waba_account_id] || null,
+      }));
+
+      return new Response(JSON.stringify({ phones: enriched, total: count, page, limit }), {
+        headers: { ...corsHeaders, "content-type": "application/json" },
+      });
+    }
+
+    // POST /phone-numbers/:id/update-status
+    if (req.method === "POST" && path.match(/^phone-numbers\/[^/]+\/update-status$/)) {
+      const phoneId = path.split("/")[1];
+      const actor = await requirePlatformRole(req, ["super_admin"]);
+      const sb = adminClient();
+      const body = await req.json();
+      const { data: before } = await sb.from("phone_numbers").select("*").eq("id", phoneId).single();
+      const { error } = await sb.from("phone_numbers").update({
+        status: body.status,
+        updated_at: new Date().toISOString(),
+      }).eq("id", phoneId);
+      if (error) throw new Error(error.message);
+      await logAction(sb, actor, "PLATFORM_PHONE_STATUS_UPDATED", {
+        target_table: "phone_numbers", target_id: phoneId,
+        before: { status: before?.status }, after: { status: body.status },
+      });
+      return new Response(JSON.stringify({ success: true }), {
+        headers: { ...corsHeaders, "content-type": "application/json" },
+      });
+    }
+
+    // POST /phone-numbers/:id/delete
+    if (req.method === "POST" && path.match(/^phone-numbers\/[^/]+\/delete$/)) {
+      const phoneId = path.split("/")[1];
+      const actor = await requirePlatformRole(req, ["super_admin"]);
+      const sb = adminClient();
+      const { data: phone } = await sb.from("phone_numbers").select("*").eq("id", phoneId).single();
+      if (!phone) throw new Error("Phone number not found");
+
+      // Remove from workspace_phone_numbers mapping
+      await sb.from("workspace_phone_numbers").delete().eq("phone_e164", phone.display_number);
+
+      // Delete the phone number record
+      const { error } = await sb.from("phone_numbers").delete().eq("id", phoneId);
+      if (error) throw new Error(error.message);
+
+      await logAction(sb, actor, "PLATFORM_PHONE_DELETED", {
+        workspace_id: phone.tenant_id, target_table: "phone_numbers", target_id: phoneId,
+        note: `Deleted phone ${phone.display_number} from workspace`,
+      });
+      return new Response(JSON.stringify({ success: true }), {
+        headers: { ...corsHeaders, "content-type": "application/json" },
+      });
+    }
+
+    // POST /phone-numbers/:id/toggle-waba
+    if (req.method === "POST" && path.match(/^phone-numbers\/[^/]+\/toggle-waba$/)) {
+      const phoneId = path.split("/")[1];
+      const actor = await requirePlatformRole(req, ["super_admin"]);
+      const sb = adminClient();
+      const body = await req.json();
+      const { data: phone } = await sb.from("phone_numbers").select("waba_account_id").eq("id", phoneId).single();
+      if (!phone?.waba_account_id) throw new Error("No WABA account linked");
+      const newStatus = body.enabled ? 'active' : 'disabled';
+      const { error } = await sb.from("waba_accounts").update({
+        status: newStatus,
+        updated_at: new Date().toISOString(),
+      }).eq("id", phone.waba_account_id);
+      if (error) throw new Error(error.message);
+      await logAction(sb, actor, body.enabled ? "PLATFORM_WABA_ENABLED" : "PLATFORM_WABA_DISABLED", {
+        target_table: "waba_accounts", target_id: phone.waba_account_id,
+      });
+      return new Response(JSON.stringify({ success: true }), {
+        headers: { ...corsHeaders, "content-type": "application/json" },
+      });
+    }
+
     return new Response(JSON.stringify({ error: "Not found" }), {
       status: 404, headers: { ...corsHeaders, "content-type": "application/json" },
     });
