@@ -24,13 +24,18 @@ async function requirePlatformRole(req: Request, allowed: string[]) {
     Deno.env.get("SUPABASE_ANON_KEY")!,
     { global: { headers: { Authorization: authHeader } } }
   );
-  const { data: { user }, error } = await userClient.auth.getUser(jwt);
-  if (error || !user) throw new Error("Invalid auth");
+  const { data: claimsData, error } = await userClient.auth.getClaims(jwt);
+  if (error || !claimsData?.claims) {
+    console.error("Auth verification failed:", error?.message);
+    throw new Error("Invalid auth");
+  }
+  const userId = claimsData.claims.sub as string;
+  const userEmail = claimsData.claims.email as string;
 
   const { data: pu } = await sb
     .from("platform_admins")
     .select("role,is_active")
-    .eq("user_id", user.id)
+    .eq("user_id", userId)
     .single();
 
   if (!pu || !pu.is_active) throw new Error("Access denied");
@@ -50,7 +55,7 @@ async function requirePlatformRole(req: Request, allowed: string[]) {
     }
   }
 
-  return { user, role };
+  return { user: { id: userId, email: userEmail }, role };
 }
 
 async function logAction(sb: any, actor: any, action: string, details: any) {
