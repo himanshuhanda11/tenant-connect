@@ -190,14 +190,21 @@ export default function PhoneNumbersList() {
             <h1 className="text-2xl font-bold tracking-tight">Phone Numbers</h1>
             <p className="text-muted-foreground">Manage your WhatsApp Business phone numbers and routing</p>
           </div>
-          <div className="flex items-center gap-2">
+           <div className="flex items-center gap-2">
             <Button variant="outline" size="icon" onClick={() => refetch()}>
               <RefreshCw className="h-4 w-4" />
             </Button>
-            <Button onClick={() => navigate('/phone-numbers/connect')} className="gap-2">
-              <Plus className="h-4 w-4" />
-              Connect Number
-            </Button>
+            {phoneNumbers.length > 0 ? (
+              <Button variant="outline" onClick={() => navigate('/phone-numbers/connect')} className="gap-2">
+                <RefreshCw className="h-4 w-4" />
+                Reconnect
+              </Button>
+            ) : (
+              <Button onClick={() => navigate('/phone-numbers/connect')} className="gap-2">
+                <Plus className="h-4 w-4" />
+                Connect Number
+              </Button>
+            )}
           </div>
         </div>
 
