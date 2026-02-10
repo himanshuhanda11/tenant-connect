@@ -18,7 +18,13 @@ async function requirePlatformRole(req: Request, allowed: string[]) {
   const jwt = authHeader.replace("Bearer ", "");
   if (!jwt) throw new Error("Missing auth");
 
-  const { data: { user }, error } = await sb.auth.getUser(jwt);
+  // Use anon-key client with user's JWT so ES256 tokens are verified correctly
+  const userClient = createClient(
+    Deno.env.get("SUPABASE_URL")!,
+    Deno.env.get("SUPABASE_ANON_KEY")!,
+    { global: { headers: { Authorization: authHeader } } }
+  );
+  const { data: { user }, error } = await userClient.auth.getUser(jwt);
   if (error || !user) throw new Error("Invalid auth");
 
   const { data: pu } = await sb
