@@ -144,7 +144,9 @@ export function MetaEmbeddedSignup({ onSuccess, onError }: MetaEmbeddedSignupPro
       config_id: '1271263174873831',
       response_type: 'code',
       override_default_response_type: true,
-      extras: { version: 'v3' },
+      extras: {
+        setup: {},
+      },
     });
   };
 
