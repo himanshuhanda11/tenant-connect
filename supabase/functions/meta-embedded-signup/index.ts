@@ -100,11 +100,14 @@ Deno.serve(async (req) => {
       console.log('Short-lived token obtained');
 
       // 2. Exchange for long-lived token (60 days)
+      // 2. Exchange for long-lived token (60 days)
+      // Use grant_type=fb_exchange_token with set_token_expires_in_60_days
       const llUrl = `${GRAPH_API_BASE}/oauth/access_token?` + new URLSearchParams({
         grant_type: 'fb_exchange_token',
         client_id: appId,
         client_secret: appSecret,
         fb_exchange_token: accessToken,
+        set_token_expires_in_60_days: 'true',
       });
       const llRes = await fetch(llUrl);
       const llData = await llRes.json();
