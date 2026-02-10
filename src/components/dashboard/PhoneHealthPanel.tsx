@@ -100,8 +100,8 @@ export function PhoneHealthPanel({ phones, loading }: PhoneHealthPanelProps) {
                 >
                   <div className="flex items-start justify-between mb-2">
                     <div className="min-w-0">
-                      <p className="font-medium truncate">{phone.displayName}</p>
-                      <p className="text-xs text-muted-foreground">{phone.phoneNumber}</p>
+                      <p className="font-medium truncate font-mono">{phone.phoneNumber}</p>
+                      <p className="text-xs text-muted-foreground">{phone.displayName}</p>
                     </div>
                     {phone.needsAction && (
                       <AlertTriangle className="w-4 h-4 text-red-500 shrink-0" />

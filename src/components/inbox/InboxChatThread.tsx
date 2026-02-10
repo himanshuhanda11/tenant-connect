@@ -585,6 +585,13 @@ export function InboxChatThread({
                         src={message.media_url} 
                         alt="Shared image" 
                         className="rounded-lg max-w-full mb-2"
+                        onError={(e) => {
+                          const img = e.currentTarget;
+                          if (!img.dataset.retried) {
+                            img.dataset.retried = 'true';
+                            img.src = message.media_url + (message.media_url.includes('?') ? '&' : '?') + 't=' + Date.now();
+                          }
+                        }}
                       />
                     )}
                     
