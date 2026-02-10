@@ -115,7 +115,7 @@ export function AppSidebar() {
   const phoneLabel = primaryPhone?.phone_e164 || 'Phone Numbers';
 
   const channelMenuItems: MenuItem[] = [
-    { title: phoneLabel, url: '/phone-numbers', icon: Phone, key: 'phone-numbers' },
+    { title: 'WhatsApp Number', url: '/phone-numbers', icon: Phone, key: 'phone-numbers' },
     { title: 'Templates', url: '/templates', icon: FileText, key: 'templates', isNew: true }
   ];
 
