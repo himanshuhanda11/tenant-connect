@@ -48,6 +48,8 @@ Deno.serve(async (req) => {
     const file = formData.get('file') as File | null;
     const tenantId = formData.get('tenant_id') as string | null;
     const contactWaId = formData.get('contact_wa_id') as string | null;
+    const conversationId = formData.get('conversation_id') as string | null;
+    const caption = formData.get('caption') as string | null;
 
     if (!file || !tenantId) {
       return new Response(JSON.stringify({ error: 'file and tenant_id are required' }), {
@@ -145,9 +147,107 @@ Deno.serve(async (req) => {
 
     console.log('Upload successful:', { filePath, mediaType });
 
+    const mediaUrl = signedUrlData.signedUrl;
+
+    // If conversation_id provided, send the message directly (combined upload+send)
+    if (conversationId) {
+      try {
+        // Get conversation with phone number and contact
+        const { data: conversation, error: convError } = await supabase
+          .from('conversations')
+          .select(`
+            *,
+            phone_number:phone_numbers!inner(
+              id, phone_number_id,
+              waba_account:waba_accounts!inner(id, encrypted_access_token)
+            ),
+            contact:contacts!inner(wa_id)
+          `)
+          .eq('id', conversationId)
+          .single();
+
+        if (convError || !conversation) {
+          console.error('Conversation not found for send:', convError);
+          return new Response(JSON.stringify({ ok: true, url: mediaUrl, mediaType, sent: false, error: 'Conversation not found' }), {
+            status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+
+        const phoneNumber = conversation.phone_number;
+        const accessToken = phoneNumber.waba_account.encrypted_access_token;
+
+        // Build WhatsApp API payload
+        const messagePayload: any = {
+          messaging_product: 'whatsapp',
+          recipient_type: 'individual',
+          to: conversation.contact.wa_id,
+          type: mediaType,
+          [mediaType]: { link: mediaUrl },
+        };
+        if (caption) messagePayload[mediaType].caption = caption;
+
+        // Insert message in DB
+        const { data: dbMsg, error: msgErr } = await supabase
+          .from('messages')
+          .insert({
+            tenant_id: conversation.tenant_id,
+            conversation_id: conversationId,
+            direction: 'outbound',
+            type: mediaType,
+            text: caption || null,
+            media_url: mediaUrl,
+            media_mime_type: file.type,
+            status: 'pending',
+          })
+          .select()
+          .single();
+
+        if (msgErr) {
+          console.error('Failed to create message:', msgErr);
+          return new Response(JSON.stringify({ ok: true, url: mediaUrl, mediaType, sent: false, error: 'DB insert failed' }), {
+            status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+
+        // Send to WhatsApp API
+        const waResponse = await fetch(
+          `https://graph.facebook.com/v18.0/${phoneNumber.phone_number_id}/messages`,
+          {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify(messagePayload),
+          }
+        );
+        const waResult = await waResponse.json();
+
+        if (!waResponse.ok) {
+          await supabase.from('messages').update({
+            status: 'failed', error_code: waResult.error?.code?.toString(), error_message: waResult.error?.message,
+          }).eq('id', dbMsg.id);
+          return new Response(JSON.stringify({ ok: true, url: mediaUrl, mediaType, sent: false, error: waResult.error?.message }), {
+            status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+
+        const wamid = waResult.messages?.[0]?.id;
+        await supabase.from('messages').update({ wamid, status: 'sent' }).eq('id', dbMsg.id);
+        await supabase.from('conversations').update({ last_message_at: new Date().toISOString() }).eq('id', conversationId);
+
+        console.log('Media uploaded and sent:', { mediaType, wamid });
+        return new Response(JSON.stringify({ ok: true, url: mediaUrl, mediaType, sent: true, message_id: dbMsg.id, wamid }), {
+          status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      } catch (sendErr: any) {
+        console.error('Send after upload error:', sendErr);
+        return new Response(JSON.stringify({ ok: true, url: mediaUrl, mediaType, sent: false, error: sendErr.message }), {
+          status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+    }
+
     return new Response(JSON.stringify({
       ok: true,
-      url: signedUrlData.signedUrl,
+      url: mediaUrl,
       path: filePath,
       mimeType: file.type,
       mediaType,

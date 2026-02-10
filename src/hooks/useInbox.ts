@@ -577,52 +577,53 @@ export function useInboxActions() {
     if (!message.text?.trim() && !message.template && !message.media) return;
     if (!currentTenant?.id) return;
 
-    // Handle media upload first if present
+    // Handle media upload
     if (message.media) {
+      // Optimistic: show media immediately with local blob URL
+      const blobUrl = URL.createObjectURL(message.media);
+      const mediaType = message.media.type.startsWith('image/') ? 'image'
+        : message.media.type.startsWith('video/') ? 'video'
+        : message.media.type.startsWith('audio/') ? 'audio' : 'document';
+      const optimisticId = `optimistic-${Date.now()}`;
+      const optimisticMsg: InboxMessage = {
+        id: optimisticId,
+        tenant_id: currentTenant.id,
+        conversation_id: conversationId,
+        direction: 'outbound',
+        message_type: mediaType,
+        body_text: message.text || null,
+        media_url: blobUrl,
+        payload: {},
+        is_failed: false,
+        latest_status: 'sent',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+      window.dispatchEvent(new CustomEvent('inbox-message', { detail: { conversationId, message: optimisticMsg } }));
+
       try {
-        // Get conversation to find contact wa_id
-        const { data: conv } = await supabase
-          .from('conversations')
-          .select('phone_number_id, contact:contacts(wa_id)')
-          .eq('id', conversationId)
-          .single();
-
-        if (!conv) throw new Error('Conversation not found');
-        const contactWaId = (conv.contact as any)?.wa_id;
-
-        // Upload file via edge function
+        // Single call: upload + send combined
         const formData = new FormData();
         formData.append('file', message.media);
         formData.append('tenant_id', currentTenant.id);
-        if (contactWaId) formData.append('contact_wa_id', contactWaId);
+        formData.append('conversation_id', conversationId);
+        if (message.text) formData.append('caption', message.text);
 
-        const { data: uploadData, error: uploadError } = await supabase.functions.invoke('upload-whatsapp-media', {
+        const { data: result, error: err } = await supabase.functions.invoke('upload-whatsapp-media', {
           body: formData,
         });
 
-        if (uploadError) throw uploadError;
-        if (!uploadData?.ok) throw new Error(uploadData?.error || 'Upload failed');
+        if (err) throw err;
+        if (!result?.ok) throw new Error(result?.error || 'Upload failed');
 
-        // Now send the media message via send-message
-        const { data: sendData, error: sendError } = await supabase.functions.invoke('send-message', {
-          body: {
-            conversation_id: conversationId,
-            type: uploadData.mediaType,
-            media_url: uploadData.url,
-            text: message.text || null,
-          }
-        });
-
-        if (sendError) throw sendError;
-        if (sendData?.error) throw new Error(sendData.error);
-
-        toast.success('Media sent');
         window.dispatchEvent(new CustomEvent('inbox-update', { detail: { conversationId } }));
         return;
       } catch (err: any) {
         console.error('Send media error:', err);
         toast.error(err.message || 'Failed to send media');
         return;
+      } finally {
+        URL.revokeObjectURL(blobUrl);
       }
     }
 
