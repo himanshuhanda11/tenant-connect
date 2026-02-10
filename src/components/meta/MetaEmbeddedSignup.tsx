@@ -141,7 +141,7 @@ export function MetaEmbeddedSignup({ onSuccess, onError }: MetaEmbeddedSignupPro
 
     // Launch the Embedded Signup popup via FB.login — must be synchronous from user click
     window.FB.login(fbLoginCallback, {
-      config_id: '1271263174873831',
+      config_id: '900402862393193',
       response_type: 'code',
       override_default_response_type: true,
       extras: {
