@@ -37,24 +37,22 @@ type NormalizedEvent =
 async function verifySignature(rawBody: string, signatureHeader: string | null): Promise<boolean> {
   const appSecret = Deno.env.get('META_APP_SECRET');
   
-  // Temporarily bypass signature verification for debugging
-  // TODO: Re-enable once correct META_APP_SECRET is confirmed
   if (!appSecret) {
     console.log('META_APP_SECRET not configured, skipping signature verification');
     return true;
   }
   
   if (!signatureHeader) {
-    console.log('No signature header provided, allowing request (temp bypass)');
-    return true;
+    console.log('No signature header provided');
+    return false;
   }
 
   const parts = signatureHeader.split('=');
   const algo = parts[0];
   const theirSig = parts.slice(1).join('=');
   if (algo !== 'sha256' || !theirSig) {
-    console.log('Invalid signature format, allowing request (temp bypass)');
-    return true;
+    console.log('Invalid signature format');
+    return false;
   }
 
   // Use Web Crypto API for HMAC
@@ -72,13 +70,20 @@ async function verifySignature(rawBody: string, signatureHeader: string | null):
     .map(b => b.toString(16).padStart(2, '0'))
     .join('');
 
-  const match = ourSig === theirSig;
-  if (!match) {
-    console.warn(`Signature mismatch (allowing temporarily): ours=${ourSig.substring(0, 12)}... theirs=${theirSig.substring(0, 12)}... secret_len=${appSecret.length}`);
+  // Log mismatch for debugging (temporary)
+  if (ourSig !== theirSig) {
+    console.warn(`Signature mismatch: ours=${ourSig.substring(0, 12)}... theirs=${theirSig.substring(0, 12)}...`);
+  }
+
+  // Timing-safe comparison
+  if (ourSig.length !== theirSig.length) return false;
+  
+  let result = 0;
+  for (let i = 0; i < ourSig.length; i++) {
+    result |= ourSig.charCodeAt(i) ^ theirSig.charCodeAt(i);
   }
   
-  // Temporarily return true to allow messages through
-  return true;
+  return result === 0;
 }
 
 // Extract normalized events from Meta webhook payload
