@@ -6,8 +6,10 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { toast } from '@/hooks/use-toast';
 import { AdminStatusBadge, AdminPlanBadge } from '@/components/admin/AdminStatusBadge';
@@ -16,7 +18,7 @@ import { AdminSavedViews, defaultViews, type SavedView } from '@/components/admi
 import { useIsMobile } from '@/hooks/use-mobile';
 import {
   Search, Loader2, Ban, Play, Pause, ChevronLeft, ChevronRight,
-  Eye, MoreHorizontal, Copy, Users, Phone, AlertTriangle
+  Eye, MoreHorizontal, Copy, Users, Phone, AlertTriangle, Trash2, X
 } from 'lucide-react';
 
 interface Workspace {
@@ -47,6 +49,11 @@ export default function AdminWorkspaces() {
   const [suspendReason, setSuspendReason] = useState('');
   const [confirmText, setConfirmText] = useState('');
   const [activeView, setActiveView] = useState('all');
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [deleteDialog, setDeleteDialog] = useState<{ ids: string[]; names: string[] } | null>(null);
+  const [deleteType, setDeleteType] = useState<'soft' | 'hard'>('soft');
+  const [deleteConfirmText, setDeleteConfirmText] = useState('');
+  const [deleteReason, setDeleteReason] = useState('');
 
   const isSuperAdmin = role === 'super_admin';
 
@@ -91,9 +98,56 @@ export default function AdminWorkspaces() {
     }
   };
 
+  const handleDeleteWorkspaces = async () => {
+    if (!deleteDialog) return;
+    const confirmWord = deleteType === 'hard' ? 'DELETE' : 'ARCHIVE';
+    if (deleteConfirmText !== confirmWord) {
+      toast({ title: `Type ${confirmWord} to confirm`, variant: 'destructive' });
+      return;
+    }
+    try {
+      for (const id of deleteDialog.ids) {
+        await post(`workspaces/${id}/delete`, {
+          type: deleteType,
+          reason: deleteReason,
+        });
+      }
+      toast({ title: `${deleteDialog.ids.length} workspace(s) ${deleteType === 'hard' ? 'permanently deleted' : 'archived'}` });
+      setDeleteDialog(null);
+      setDeleteConfirmText('');
+      setDeleteReason('');
+      setSelectedIds(new Set());
+      loadWorkspaces();
+    } catch (e: any) {
+      toast({ title: 'Error', description: e.message, variant: 'destructive' });
+    }
+  };
+
   const copyId = (id: string) => {
     navigator.clipboard.writeText(id);
     toast({ title: 'ID copied' });
+  };
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedIds.size === workspaces.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(workspaces.map(w => w.workspace_id)));
+    }
+  };
+
+  const openDeleteForSelected = () => {
+    const selected = workspaces.filter(w => selectedIds.has(w.workspace_id));
+    setDeleteDialog({ ids: selected.map(w => w.workspace_id), names: selected.map(w => w.workspace_name) });
   };
 
   const totalPages = Math.ceil(total / 25);
@@ -111,8 +165,8 @@ export default function AdminWorkspaces() {
         onViewChange={(view) => { setActiveView(view.id); setPage(1); }}
       />
 
-      {/* Search & Filters */}
-      <div className="flex gap-2">
+      {/* Search & Bulk Actions */}
+      <div className="flex gap-2 items-center">
         <div className="relative flex-1 max-w-md">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
           <Input
@@ -122,6 +176,29 @@ export default function AdminWorkspaces() {
             onChange={e => { setSearch(e.target.value); setPage(1); }}
           />
         </div>
+        {isSuperAdmin && selectedIds.size > 0 && (
+          <div className="flex items-center gap-2">
+            <Badge variant="secondary" className="text-xs">
+              {selectedIds.size} selected
+            </Badge>
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={openDeleteForSelected}
+              className="gap-1"
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+              Delete Selected
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setSelectedIds(new Set())}
+            >
+              <X className="h-3.5 w-3.5" />
+            </Button>
+          </div>
+        )}
       </div>
 
       {/* Mobile: Cards | Desktop: Table */}
@@ -149,6 +226,14 @@ export default function AdminWorkspaces() {
             <Table>
               <TableHeader>
                 <TableRow>
+                  {isSuperAdmin && (
+                    <TableHead className="w-10">
+                      <Checkbox
+                        checked={workspaces.length > 0 && selectedIds.size === workspaces.length}
+                        onCheckedChange={toggleSelectAll}
+                      />
+                    </TableHead>
+                  )}
                   <TableHead>Workspace</TableHead>
                   <TableHead>Plan</TableHead>
                   <TableHead>Status</TableHead>
@@ -162,6 +247,14 @@ export default function AdminWorkspaces() {
               <TableBody>
                 {workspaces.map(w => (
                   <TableRow key={w.workspace_id} className="group">
+                    {isSuperAdmin && (
+                      <TableCell>
+                        <Checkbox
+                          checked={selectedIds.has(w.workspace_id)}
+                          onCheckedChange={() => toggleSelect(w.workspace_id)}
+                        />
+                      </TableCell>
+                    )}
                     <TableCell>
                       <div className="flex items-center gap-2">
                         <div>
@@ -213,6 +306,13 @@ export default function AdminWorkspaces() {
                                 <Ban className="h-3.5 w-3.5 mr-2" />
                                 {w.is_suspended ? 'Unsuspend' : 'Suspend workspace'}
                               </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() => setDeleteDialog({ ids: [w.workspace_id], names: [w.workspace_name] })}
+                                className="text-destructive"
+                              >
+                                <Trash2 className="h-3.5 w-3.5 mr-2" />
+                                Delete workspace
+                              </DropdownMenuItem>
                             </>
                           )}
                         </DropdownMenuContent>
@@ -222,7 +322,7 @@ export default function AdminWorkspaces() {
                 ))}
                 {workspaces.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
+                    <TableCell colSpan={isSuperAdmin ? 9 : 8} className="text-center py-8 text-muted-foreground">
                       No workspaces found
                     </TableCell>
                   </TableRow>
@@ -285,6 +385,73 @@ export default function AdminWorkspaces() {
               disabled={suspendDialog?.suspend ? confirmText !== 'SUSPEND' : false}
             >
               {suspendDialog?.suspend ? 'Suspend Workspace' : 'Unsuspend Workspace'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Workspace Dialog */}
+      <Dialog open={!!deleteDialog} onOpenChange={() => { setDeleteDialog(null); setDeleteConfirmText(''); setDeleteReason(''); setDeleteType('soft'); }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <div className="h-8 w-8 rounded-xl bg-red-50 flex items-center justify-center">
+                <Trash2 className="h-4 w-4 text-red-500" />
+              </div>
+              Delete {deleteDialog?.ids.length === 1 ? deleteDialog.names[0] : `${deleteDialog?.ids.length} workspaces`}?
+            </DialogTitle>
+            <DialogDescription>
+              This action affects workspace data. Chat history and contact data are preserved.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            {deleteDialog && deleteDialog.ids.length > 1 && (
+              <div className="text-sm text-muted-foreground">
+                <p className="font-medium mb-1">Selected workspaces:</p>
+                <ul className="list-disc list-inside space-y-0.5">
+                  {deleteDialog.names.map((name, i) => (
+                    <li key={i}>{name}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Delete Type</label>
+              <Select value={deleteType} onValueChange={(v) => setDeleteType(v as 'soft' | 'hard')}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="soft">Soft Delete (Archive — data preserved)</SelectItem>
+                  <SelectItem value="hard">Hard Delete (Permanent — cannot undo)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              Type <strong>{deleteType === 'hard' ? 'DELETE' : 'ARCHIVE'}</strong> to confirm.
+            </p>
+            <Input
+              placeholder={`Type ${deleteType === 'hard' ? 'DELETE' : 'ARCHIVE'}`}
+              value={deleteConfirmText}
+              onChange={e => setDeleteConfirmText(e.target.value)}
+              className="font-mono"
+            />
+            <Textarea
+              placeholder="Reason (required for auditing)..."
+              value={deleteReason}
+              onChange={e => setDeleteReason(e.target.value)}
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { setDeleteDialog(null); setDeleteConfirmText(''); setDeleteReason(''); setDeleteType('soft'); }}>
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleDeleteWorkspaces}
+              disabled={deleteConfirmText !== (deleteType === 'hard' ? 'DELETE' : 'ARCHIVE')}
+            >
+              {deleteType === 'hard' ? 'Permanently Delete' : 'Archive Workspace(s)'}
             </Button>
           </DialogFooter>
         </DialogContent>
