@@ -1,6 +1,7 @@
-import { FileText, FileSpreadsheet, Download, RefreshCw } from 'lucide-react';
+import { FileText, FileSpreadsheet, Download, RefreshCw, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
+import { useMediaUrl } from '@/hooks/useMediaUrl';
 
 interface DocumentPreviewProps {
   url: string;
@@ -9,6 +10,8 @@ interface DocumentPreviewProps {
   mimeType?: string;
   isOutbound?: boolean;
   caption?: string;
+  mediaBucket?: string;
+  mediaPath?: string;
 }
 
 function getDocInfo(mimeType?: string, fileName?: string) {
@@ -45,32 +48,61 @@ function extractFileName(url: string, fallback?: string): string {
   return 'Document';
 }
 
-export function DocumentPreview({ url, fileName, fileSize, mimeType, isOutbound, caption }: DocumentPreviewProps) {
+export function DocumentPreview({ url, fileName, fileSize, mimeType, isOutbound, caption, mediaBucket, mediaPath }: DocumentPreviewProps) {
+  const { url: mediaUrl, refresh, loading, hasStoragePath } = useMediaUrl(url, mediaBucket, mediaPath);
   const [failed, setFailed] = useState(false);
-  const isValid = url?.startsWith('http') || url?.startsWith('blob:');
   const displayName = extractFileName(url, fileName);
   const doc = getDocInfo(mimeType, displayName);
   const Icon = doc.icon;
   const size = formatSize(fileSize);
 
+  const isValid = mediaUrl?.startsWith('http') || mediaUrl?.startsWith('blob:');
+
+  const handleClick = useCallback(async (e: React.MouseEvent) => {
+    // If URL seems expired or failed, try refreshing first
+    if (failed || !isValid) {
+      e.preventDefault();
+      if (hasStoragePath) {
+        const newUrl = await refresh();
+        if (newUrl) {
+          setFailed(false);
+          window.open(newUrl, '_blank');
+        }
+      }
+      return;
+    }
+  }, [failed, isValid, hasStoragePath, refresh]);
+
+  const handleRetry = useCallback(async () => {
+    if (hasStoragePath) {
+      const newUrl = await refresh();
+      if (newUrl) setFailed(false);
+    }
+  }, [hasStoragePath, refresh]);
+
   if (failed) {
     return (
       <button
-        onClick={() => setFailed(false)}
+        onClick={handleRetry}
+        disabled={loading}
         className={cn(
           "flex items-center gap-3 w-full rounded-xl p-3 mb-1 transition-colors",
           isOutbound ? "bg-primary-foreground/10 hover:bg-primary-foreground/15" : "bg-background/80 hover:bg-background"
         )}
       >
         <div className="h-10 w-10 rounded-lg bg-muted flex items-center justify-center flex-shrink-0">
-          <RefreshCw className="h-4 w-4 text-muted-foreground" />
+          {loading ? (
+            <Loader2 className="h-4 w-4 text-muted-foreground animate-spin" />
+          ) : (
+            <RefreshCw className="h-4 w-4 text-muted-foreground" />
+          )}
         </div>
         <div className="flex-1 text-left min-w-0">
           <p className={cn("text-sm font-medium truncate", isOutbound ? "text-primary-foreground" : "text-foreground")}>
-            Tap to reload
+            {hasStoragePath ? 'Tap to reload' : 'File unavailable'}
           </p>
           <p className={cn("text-xs", isOutbound ? "text-primary-foreground/60" : "text-muted-foreground")}>
-            File may have expired
+            {displayName}
           </p>
         </div>
       </button>
@@ -80,10 +112,10 @@ export function DocumentPreview({ url, fileName, fileSize, mimeType, isOutbound,
   return (
     <div className="mb-1">
       <a
-        href={isValid ? url : undefined}
+        href={isValid ? mediaUrl : undefined}
         target="_blank"
         rel="noopener noreferrer"
-        onClick={(e) => { if (!isValid) { e.preventDefault(); setFailed(true); } }}
+        onClick={handleClick}
         className={cn(
           "flex items-center gap-3 rounded-xl p-3 no-underline transition-colors group",
           isOutbound 
@@ -91,12 +123,9 @@ export function DocumentPreview({ url, fileName, fileSize, mimeType, isOutbound,
             : "bg-background/80 hover:bg-background border border-border/50"
         )}
       >
-        {/* File type icon */}
         <div className={cn("h-11 w-11 rounded-lg flex items-center justify-center flex-shrink-0", doc.bg)}>
           <Icon className={cn("h-5 w-5", doc.color)} />
         </div>
-
-        {/* File info */}
         <div className="flex-1 min-w-0">
           <p className={cn("text-sm font-medium truncate", isOutbound ? "text-primary-foreground" : "text-foreground")}>
             {displayName}
@@ -105,8 +134,6 @@ export function DocumentPreview({ url, fileName, fileSize, mimeType, isOutbound,
             {doc.label}{size ? ` · ${size}` : ''}
           </p>
         </div>
-
-        {/* Download icon */}
         <div className={cn(
           "h-8 w-8 rounded-full flex items-center justify-center flex-shrink-0 opacity-60 group-hover:opacity-100 transition-opacity",
           isOutbound ? "bg-primary-foreground/10" : "bg-muted"

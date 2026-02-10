@@ -3495,7 +3495,11 @@ export type Database = {
           error_message: string | null
           failed_at: string | null
           id: string
+          media_bucket: string | null
+          media_filename: string | null
           media_mime_type: string | null
+          media_path: string | null
+          media_size_bytes: number | null
           media_url: string | null
           metadata: Json | null
           raw: Json | null
@@ -3518,7 +3522,11 @@ export type Database = {
           error_message?: string | null
           failed_at?: string | null
           id?: string
+          media_bucket?: string | null
+          media_filename?: string | null
           media_mime_type?: string | null
+          media_path?: string | null
+          media_size_bytes?: number | null
           media_url?: string | null
           metadata?: Json | null
           raw?: Json | null
@@ -3541,7 +3549,11 @@ export type Database = {
           error_message?: string | null
           failed_at?: string | null
           id?: string
+          media_bucket?: string | null
+          media_filename?: string | null
           media_mime_type?: string | null
+          media_path?: string | null
+          media_size_bytes?: number | null
           media_url?: string | null
           metadata?: Json | null
           raw?: Json | null

@@ -203,6 +203,10 @@ Deno.serve(async (req) => {
             type: mediaType,
             text: caption || null,
             media_url: mediaUrl,
+            media_bucket: 'wa-media',
+            media_path: filePath,
+            media_filename: file.name,
+            media_size_bytes: file.size,
             media_mime_type: file.type,
             status: 'pending',
           })
