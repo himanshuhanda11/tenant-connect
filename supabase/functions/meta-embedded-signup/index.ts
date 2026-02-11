@@ -260,6 +260,37 @@ Deno.serve(async (req) => {
           }).select().single();
           if (phoneErr) { console.error('Phone insert error:', phoneErr); }
           else { connectedPhoneId = newPhone.id; }
+
+          // ── Register phone with Cloud API for messaging ──
+          try {
+            const regRes = await fetch(`${GRAPH_API_BASE}/${clientPhoneId}/register`, {
+              method: 'POST',
+              headers: {
+                Authorization: `Bearer ${accessToken}`,
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({ messaging_product: 'whatsapp', pin: '000000' }),
+            });
+            const regData = await regRes.json();
+            console.log('Phone register result:', JSON.stringify(regData));
+            if (regData.error) {
+              console.warn('Phone registration warning:', regData.error.message);
+            }
+          } catch (regErr) {
+            console.warn('Phone registration attempt failed:', regErr);
+          }
+
+          // ── Verify token can send by checking phone messaging capability ──
+          try {
+            const capRes = await fetch(
+              `${GRAPH_API_BASE}/${clientPhoneId}?fields=id,is_official_business_account,messaging_product,register_status`,
+              { headers: { Authorization: `Bearer ${accessToken}` } }
+            );
+            const capData = await capRes.json();
+            console.log('Phone capabilities:', JSON.stringify(capData));
+          } catch (capErr) {
+            console.warn('Capability check failed:', capErr);
+          }
         }
       } else {
         console.warn('No phone_number_id from client, skipping phone connection');
