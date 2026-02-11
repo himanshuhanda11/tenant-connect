@@ -240,10 +240,18 @@ Deno.serve(async (req) => {
       // Mark failed
       let userFacingError = errorMsg;
       let errorCodeStr = errorCode?.toString();
-      if (errorCode === 200 && errorMsg.includes('permission')) {
-        userFacingError = 'WhatsApp token lacks messaging permission. Please reconnect your phone number.';
+      if (errorCode === 200 && (errorMsg || '').toLowerCase().includes('permission')) {
+        // This commonly happens right after a workspace/number is recreated and Meta is still provisioning,
+        // or the token scopes/WABA linkage aren't fully ready yet.
+        userFacingError = 'Messaging permission is not ready yet for this number. If you just reconnected/recreated the workspace, wait 10–30 minutes and try again. If it still fails, reconnect the number.';
         errorCodeStr = 'MISSING_MESSAGING_PERMISSION';
-        // Do NOT auto-disconnect - let the user decide to reconnect manually
+
+        // Also reflect a non-ready state on the number to avoid "connected but cannot send".
+        supabase
+          .from('phone_numbers')
+          .update({ status: 'pending', updated_at: new Date().toISOString() })
+          .eq('id', phone_number_id)
+          .then(() => {});
       }
 
       supabase.from('messages').update({

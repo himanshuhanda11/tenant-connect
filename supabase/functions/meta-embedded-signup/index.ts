@@ -256,16 +256,22 @@ Deno.serve(async (req) => {
           const qualityRating = mapQuality(phoneData.quality_rating);
           const messagingLimit = mapMessagingLimit(phoneData.messaging_limit_tier);
 
-          const { data: newPhone, error: phoneErr } = await supabase.from('phone_numbers').insert({
-            tenant_id: tenantId,
-            waba_account_id: wabaAccountId,
-            phone_number_id: clientPhoneId,
-            display_number: phoneData.display_phone_number,
-            verified_name: phoneData.verified_name,
-            quality_rating: qualityRating,
-            messaging_limit: messagingLimit,
-            status: 'connected',
-          }).select().single();
+          // Create phone in a safe default state first.
+          // We'll only mark it as "connected" after registration succeeds.
+          const { data: newPhone, error: phoneErr } = await supabase
+            .from('phone_numbers')
+            .insert({
+              tenant_id: tenantId,
+              waba_account_id: wabaAccountId,
+              phone_number_id: clientPhoneId,
+              display_number: phoneData.display_phone_number,
+              verified_name: phoneData.verified_name,
+              quality_rating: qualityRating,
+              messaging_limit: messagingLimit,
+              status: 'pending',
+            })
+            .select()
+            .single();
 
           if (phoneErr) {
             console.error('Phone insert error:', phoneErr);
@@ -279,9 +285,13 @@ Deno.serve(async (req) => {
           // Now that the new phone is saved, cleanup any previous phone records for this tenant.
           await cleanupOtherPhones(connectedPhoneId);
 
-          // ── Register phone with Cloud API for messaging ──
-          // Uses the user-provided 2-step verification PIN (defaults to 000000 if not set)
+          // ── Register phone for messaging ──
+          // If Meta rate-limits registration (133016) we keep the number in "pending".
+          // If PIN mismatch (133005) we mark it as verification_required.
           const registrationPin = pin || '000000';
+          let registrationStatus: 'connected' | 'pending' | 'verification_required' = 'pending';
+          let registrationWarning: string | undefined;
+
           try {
             const regRes = await fetch(`${GRAPH_API_BASE}/${clientPhoneId}/register`, {
               method: 'POST',
@@ -293,27 +303,54 @@ Deno.serve(async (req) => {
             });
             const regData = await regRes.json();
             console.log('Phone register result:', JSON.stringify(regData));
-            if (regData.error) {
-              console.warn('Phone registration warning:', regData.error.message);
-              // If PIN mismatch, mark as needing re-registration but don't block connection
-              if (regData.error.code === 133005) {
-                console.warn('Two-step PIN mismatch. Phone connected but may need re-registration with correct PIN.');
+
+            if (regData?.success === true) {
+              registrationStatus = 'connected';
+            } else if (regData?.error) {
+              const code = regData.error.code;
+              const msg = regData.error.message || 'Registration failed';
+              registrationWarning = msg;
+
+              if (code === 133005) {
+                registrationStatus = 'verification_required';
+              } else if (code === 133016) {
+                // Too many register/deregister attempts in a short period of time.
+                // Keep pending and let user retry later.
+                registrationStatus = 'pending';
+              } else {
+                registrationStatus = 'pending';
               }
             }
           } catch (regErr) {
             console.warn('Phone registration attempt failed:', regErr);
+            registrationStatus = 'pending';
+            registrationWarning = 'Registration attempt failed (network/server).';
           }
 
-          // ── Verify token can send by checking phone messaging capability ──
+          // Persist final status
+          try {
+            await supabase
+              .from('phone_numbers')
+              .update({ status: registrationStatus, updated_at: new Date().toISOString() })
+              .eq('id', connectedPhoneId);
+          } catch (e) {
+            console.warn('Failed to update phone status after registration (non-blocking):', e);
+          }
+
+          // ── Best-effort capability check (avoid invalid fields) ──
           try {
             const capRes = await fetch(
-              `${GRAPH_API_BASE}/${clientPhoneId}?fields=id,is_official_business_account,messaging_product,register_status`,
+              `${GRAPH_API_BASE}/${clientPhoneId}?fields=id,is_official_business_account,register_status`,
               { headers: { Authorization: `Bearer ${accessToken}` } }
             );
             const capData = await capRes.json();
             console.log('Phone capabilities:', JSON.stringify(capData));
           } catch (capErr) {
             console.warn('Capability check failed:', capErr);
+          }
+
+          if (registrationWarning) {
+            console.warn('Registration warning (non-blocking):', registrationWarning);
           }
         }
       } else {
