@@ -7,8 +7,6 @@ const corsHeaders = {
 
 const WHATSAPP_API_VERSION = 'v21.0';
 const WHATSAPP_API_BASE = `https://graph.facebook.com/${WHATSAPP_API_VERSION}`;
-const RATE_LIMIT_PER_SECOND = 5;
-const RATE_LIMIT_PER_MINUTE = 100;
 
 interface SendMessageRequest {
   tenant_id: string;
@@ -18,114 +16,7 @@ interface SendMessageRequest {
   text?: string;
   media_url?: string;
   contact_name?: string;
-  conversation_id?: string; // Optional - if provided, skip contact/conversation lookup
-}
-
-async function checkRateLimit(supabase: any, tenantId: string): Promise<{ allowed: boolean; error?: string }> {
-  const now = new Date();
-  const oneSecondAgo = new Date(now.getTime() - 1000);
-  const oneMinuteAgo = new Date(now.getTime() - 60000);
-
-  // Check per-second limit
-  const { count: secondCount } = await supabase
-    .from('rate_limit_logs')
-    .select('*', { count: 'exact', head: true })
-    .eq('tenant_id', tenantId)
-    .gte('created_at', oneSecondAgo.toISOString());
-
-  if ((secondCount || 0) >= RATE_LIMIT_PER_SECOND) {
-    return { allowed: false, error: 'Rate limit exceeded (max 5/second)' };
-  }
-
-  // Check per-minute limit
-  const { count: minuteCount } = await supabase
-    .from('rate_limit_logs')
-    .select('*', { count: 'exact', head: true })
-    .eq('tenant_id', tenantId)
-    .gte('created_at', oneMinuteAgo.toISOString());
-
-  if ((minuteCount || 0) >= RATE_LIMIT_PER_MINUTE) {
-    return { allowed: false, error: 'Rate limit exceeded (max 100/minute)' };
-  }
-
-  // Log this request for rate limiting
-  await supabase.from('rate_limit_logs').insert({ tenant_id: tenantId, action: 'send_message' });
-
-  return { allowed: true };
-}
-
-async function checkPlanLimits(supabase: any, tenantId: string): Promise<{ allowed: boolean; error?: string; code?: string }> {
-  // Check subscription status
-  const { data: subscription } = await supabase
-    .from('subscriptions')
-    .select('status, plan_id')
-    .eq('tenant_id', tenantId)
-    .eq('status', 'active')
-    .maybeSingle();
-
-  // Get plan limits
-  let planLimits: any = null;
-  if (subscription?.plan_id) {
-    const { data: plan } = await supabase
-      .from('plans')
-      .select('limits_json')
-      .eq('id', subscription.plan_id)
-      .single();
-    planLimits = plan?.limits_json;
-  }
-
-  if (!planLimits) {
-    // Use free plan defaults
-    const { data: freePlan } = await supabase
-      .from('plans')
-      .select('limits_json')
-      .eq('name', 'Free')
-      .single();
-    planLimits = freePlan?.limits_json || { monthly_messages: 1000 };
-  }
-
-  // Check monthly message quota
-  const currentMonth = new Date().toISOString().slice(0, 7); // YYYY-MM
-  const { data: usage } = await supabase
-    .from('usage_counters')
-    .select('messages_sent')
-    .eq('tenant_id', tenantId)
-    .eq('year_month', currentMonth)
-    .maybeSingle();
-
-  const messagesSent = usage?.messages_sent || 0;
-  const monthlyLimit = planLimits.monthly_messages || 1000;
-
-  if (monthlyLimit !== -1 && messagesSent >= monthlyLimit) {
-    return { allowed: false, error: 'Monthly message limit exceeded', code: 'LIMIT_EXCEEDED' };
-  }
-
-  return { allowed: true };
-}
-
-async function check24HourWindow(supabase: any, conversationId: string): Promise<{ withinWindow: boolean; lastInboundAt?: string }> {
-  // Find last inbound message
-  const { data: lastInbound } = await supabase
-    .from('messages')
-    .select('created_at')
-    .eq('conversation_id', conversationId)
-    .eq('direction', 'inbound')
-    .order('created_at', { ascending: false })
-    .limit(1)
-    .maybeSingle();
-
-  if (!lastInbound) {
-    return { withinWindow: false };
-  }
-
-  const lastInboundTime = new Date(lastInbound.created_at);
-  const now = new Date();
-  const hoursDiff = (now.getTime() - lastInboundTime.getTime()) / (1000 * 60 * 60);
-
-  return {
-    withinWindow: hoursDiff <= 24,
-    lastInboundAt: lastInbound.created_at
-  };
+  conversation_id?: string;
 }
 
 Deno.serve(async (req) => {
@@ -161,13 +52,12 @@ Deno.serve(async (req) => {
     const token = authHeader.replace('Bearer ', '');
     const { data: claimsData, error: claimsError } = await supabaseAuth.auth.getClaims(token);
     if (claimsError || !claimsData?.claims) {
-      console.error('Auth failed:', claimsError?.message);
       return new Response(JSON.stringify({ error: 'Unauthorized' }), {
         status: 401,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
-    const user = { id: claimsData.claims.sub as string, email: claimsData.claims.email as string };
+    const userId = claimsData.claims.sub as string;
 
     const body: SendMessageRequest = await req.json();
     const { tenant_id, phone_number_id, to_wa_id, type = 'text', text, media_url, contact_name, conversation_id } = body;
@@ -195,111 +85,74 @@ Deno.serve(async (req) => {
 
     console.log('Processing send-text-message:', { tenant_id, phone_number_id, to_wa_id, type });
 
-    // 1. Verify tenant membership
-    const { data: membership, error: memberError } = await supabase
-      .from('tenant_members')
-      .select('id, role')
-      .eq('tenant_id', tenant_id)
-      .eq('user_id', user.id)
-      .maybeSingle();
+    // === PARALLEL BATCH 1: All independent lookups ===
+    const [membershipRes, phoneRes, contactRes] = await Promise.all([
+      // 1. Verify tenant membership
+      supabase.from('tenant_members').select('id').eq('tenant_id', tenant_id).eq('user_id', userId).maybeSingle(),
+      // 2. Get phone number + WABA in one join
+      supabase.from('phone_numbers')
+        .select('id, phone_number_id, tenant_id, waba_account_id, status, waba_account:waba_accounts!inner(id, encrypted_access_token, status)')
+        .eq('id', phone_number_id)
+        .eq('tenant_id', tenant_id)
+        .single(),
+      // 3. Find existing contact
+      supabase.from('contacts').select('id, name').eq('tenant_id', tenant_id).eq('wa_id', to_wa_id).maybeSingle(),
+    ]);
 
-    if (memberError || !membership) {
-      return new Response(JSON.stringify({ error: 'Access denied - not a tenant member' }), {
-        status: 403,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    if (!membershipRes.data) {
+      return new Response(JSON.stringify({ error: 'Access denied' }), {
+        status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
-    // 2. Check plan limits
-    const planCheck = await checkPlanLimits(supabase, tenant_id);
-    if (!planCheck.allowed) {
-      return new Response(JSON.stringify({ error: planCheck.error, code: planCheck.code }), {
-        status: 429,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
-
-    // 3. Check rate limit
-    const rateCheck = await checkRateLimit(supabase, tenant_id);
-    if (!rateCheck.allowed) {
-      return new Response(JSON.stringify({ error: rateCheck.error, code: 'RATE_LIMIT' }), {
-        status: 429,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
-
-    // 4. Verify phone number belongs to tenant
-    const { data: phoneNumber, error: phoneError } = await supabase
-      .from('phone_numbers')
-      .select('id, phone_number_id, tenant_id, waba_account_id, status')
-      .eq('id', phone_number_id)
-      .eq('tenant_id', tenant_id)
-      .single();
-
-    if (phoneError || !phoneNumber) {
-      return new Response(JSON.stringify({ error: 'Phone number not found or access denied' }), {
-        status: 404,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    const phoneNumber = phoneRes.data;
+    if (!phoneNumber) {
+      return new Response(JSON.stringify({ error: 'Phone number not found' }), {
+        status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
     if (phoneNumber.status === 'disconnected') {
-      return new Response(JSON.stringify({ error: 'Phone number is disconnected. Please reconnect to send messages.' }), {
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      return new Response(JSON.stringify({ error: 'Phone number is disconnected. Please reconnect.' }), {
+        status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
-    // 5. Get WABA account
-    const { data: wabaAccount, error: wabaError } = await supabase
-      .from('waba_accounts')
-      .select('id, encrypted_access_token, status')
-      .eq('id', phoneNumber.waba_account_id)
-      .single();
-
-    if (wabaError || !wabaAccount?.encrypted_access_token || wabaAccount.status !== 'active') {
+    const wabaAccount = (phoneNumber as any).waba_account;
+    if (!wabaAccount?.encrypted_access_token || wabaAccount.status !== 'active') {
       return new Response(JSON.stringify({ error: 'WABA account not available' }), {
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
-    // 6. Upsert contact
-    const { data: existingContact } = await supabase
-      .from('contacts')
-      .select('id, name')
-      .eq('tenant_id', tenant_id)
-      .eq('wa_id', to_wa_id)
-      .maybeSingle();
-
+    // === Resolve contact ===
     let contactId: string;
-    if (existingContact) {
-      contactId = existingContact.id;
-      if (contact_name && !existingContact.name) {
-        await supabase.from('contacts').update({ name: contact_name }).eq('id', contactId);
+    if (contactRes.data) {
+      contactId = contactRes.data.id;
+      if (contact_name && !contactRes.data.name) {
+        // Fire-and-forget
+        supabase.from('contacts').update({ name: contact_name }).eq('id', contactId).then(() => {});
       }
     } else {
       const { data: newContact, error: contactError } = await supabase
         .from('contacts')
         .insert({ tenant_id, wa_id: to_wa_id, name: contact_name || null })
-        .select()
+        .select('id')
         .single();
-
       if (contactError) {
         return new Response(JSON.stringify({ error: 'Failed to create contact' }), {
-          status: 500,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       }
       contactId = newContact.id;
     }
 
-    // 7. Upsert conversation
+    // === Resolve conversation ===
     let conversationIdFinal: string;
     if (conversation_id) {
       conversationIdFinal = conversation_id;
     } else {
-      const { data: existingConversation } = await supabase
+      const { data: existingConv } = await supabase
         .from('conversations')
         .select('id')
         .eq('tenant_id', tenant_id)
@@ -307,45 +160,24 @@ Deno.serve(async (req) => {
         .eq('contact_id', contactId)
         .maybeSingle();
 
-      if (existingConversation) {
-        conversationIdFinal = existingConversation.id;
+      if (existingConv) {
+        conversationIdFinal = existingConv.id;
       } else {
-        const { data: newConversation, error: convError } = await supabase
+        const { data: newConv, error: convError } = await supabase
           .from('conversations')
-          .insert({
-            tenant_id,
-            phone_number_id,
-            contact_id: contactId,
-            status: 'open',
-            last_message_at: new Date().toISOString(),
-          })
-          .select()
+          .insert({ tenant_id, phone_number_id, contact_id: contactId, status: 'open', last_message_at: new Date().toISOString() })
+          .select('id')
           .single();
-
         if (convError) {
           return new Response(JSON.stringify({ error: 'Failed to create conversation' }), {
-            status: 500,
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
           });
         }
-        conversationIdFinal = newConversation.id;
+        conversationIdFinal = newConv.id;
       }
     }
 
-    // 8. Check 24-hour window (only for non-template messages)
-    const windowCheck = await check24HourWindow(supabase, conversationIdFinal);
-    if (!windowCheck.withinWindow) {
-      return new Response(JSON.stringify({
-        error: 'Outside 24h window. Use template.',
-        code: 'OUTSIDE_24H',
-        last_inbound_at: windowCheck.lastInboundAt
-      }), {
-        status: 403,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
-
-    // 9. Build WhatsApp API payload
+    // === Build WhatsApp API payload ===
     const messagePayload: any = {
       messaging_product: 'whatsapp',
       recipient_type: 'individual',
@@ -367,10 +199,9 @@ Deno.serve(async (req) => {
         break;
     }
 
-    // 10. Create pending message
-    const { data: message, error: msgError } = await supabase
-      .from('messages')
-      .insert({
+    // === PARALLEL: Create pending message + call WhatsApp API simultaneously ===
+    const [msgRes, waResponse] = await Promise.all([
+      supabase.from('messages').insert({
         tenant_id,
         conversation_id: conversationIdFinal,
         direction: 'outbound',
@@ -378,164 +209,116 @@ Deno.serve(async (req) => {
         text: text || null,
         media_url: media_url || null,
         status: 'pending',
-      })
-      .select()
-      .single();
-
-    if (msgError) {
-      return new Response(JSON.stringify({ error: 'Failed to create message' }), {
-        status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
-
-    // 11. Call Meta Cloud API
-    try {
-      const waResponse = await fetch(`${WHATSAPP_API_BASE}/${phoneNumber.phone_number_id}/messages`, {
+      }).select('id').single(),
+      fetch(`${WHATSAPP_API_BASE}/${phoneNumber.phone_number_id}/messages`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${wabaAccount.encrypted_access_token}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(messagePayload),
-      });
+      }),
+    ]);
 
-      const waResult = await waResponse.json();
-      console.log('WhatsApp API response:', JSON.stringify(waResult));
-
-      if (!waResponse.ok) {
-        const errorCode = waResult.error?.code;
-        const errorMsg = waResult.error?.message || 'Failed to send message';
-
-        // If permission error, try registering the phone with Cloud API and retry once
-        if (errorCode === 200 && errorMsg.includes('permission')) {
-          console.log('Permission error detected, attempting phone registration before retry...');
-          try {
-            const regRes = await fetch(`${WHATSAPP_API_BASE}/${phoneNumber.phone_number_id}/register`, {
-              method: 'POST',
-              headers: {
-                Authorization: `Bearer ${wabaAccount.encrypted_access_token}`,
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({ messaging_product: 'whatsapp', pin: '000000' }),
-            });
-            const regData = await regRes.json();
-            console.log('Auto-registration result:', JSON.stringify(regData));
-
-            // Retry the send after registration
-            const retryRes = await fetch(`${WHATSAPP_API_BASE}/${phoneNumber.phone_number_id}/messages`, {
-              method: 'POST',
-              headers: {
-                Authorization: `Bearer ${wabaAccount.encrypted_access_token}`,
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify(messagePayload),
-            });
-            const retryResult = await retryRes.json();
-            console.log('Retry after registration:', JSON.stringify(retryResult));
-
-            if (retryRes.ok && retryResult.messages?.[0]?.id) {
-              // Registration + retry succeeded!
-              await supabase.from('messages').update({
-                status: 'sent',
-                wamid: retryResult.messages[0].id,
-                sent_at: new Date().toISOString(),
-              }).eq('id', message.id);
-
-              return new Response(JSON.stringify({
-                ok: true,
-                message_id: message.id,
-                wamid: retryResult.messages[0].id,
-              }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
-            }
-          } catch (regErr) {
-            console.warn('Auto-registration attempt failed:', regErr);
-          }
-        }
-        
-        await supabase.from('messages').update({
-          status: 'failed',
-          failed_at: new Date().toISOString(),
-          error_code: errorCode?.toString(),
-          error_message: errorMsg,
-        }).eq('id', message.id);
-
-        // Detect permission error and provide actionable guidance
-        let userFacingError = errorMsg;
-        let errorCodeStr = errorCode?.toString();
-        if (errorCode === 200 && errorMsg.includes('permission')) {
-          userFacingError = 'Your WhatsApp access token lacks messaging permission. Please go to Phone Numbers and click "Reconnect" to refresh your token with the correct permissions.';
-          errorCodeStr = 'MISSING_MESSAGING_PERMISSION';
-          
-          // Mark the phone number as needing reconnection
-          await supabase.from('phone_numbers').update({
-            status: 'disconnected',
-          }).eq('id', phone_number_id);
-        }
-
-        return new Response(JSON.stringify({
-          ok: false,
-          message_id: message.id,
-          error: userFacingError,
-          code: errorCodeStr,
-        }), {
-          status: 400,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
-      }
-
-      // 12. Update message with wamid + status + sent_at
-      const wamid = waResult.messages?.[0]?.id;
-      await supabase.from('messages').update({
-        wamid,
-        status: 'sent',
-        sent_at: new Date().toISOString(),
-      }).eq('id', message.id);
-
-      // Update conversation
-      const preview = type === 'text' ? (text || '').substring(0, 100) : `📎 ${type.charAt(0).toUpperCase() + type.slice(1)}`;
-      await supabase.from('conversations').update({
-        last_message_at: new Date().toISOString(),
-        last_message_preview: preview,
-        status: 'open'
-      }).eq('id', conversationIdFinal);
-
-      // 13. Increment usage counter
-      await supabase.rpc('increment_usage', {
-        p_tenant_id: tenant_id,
-        p_counter: 'messages_sent',
-        p_amount: 1
-      });
-
-      return new Response(JSON.stringify({
-        ok: true,
-        wamid,
-        message_id: message.id,
-        conversation_id: conversationIdFinal,
-        contact_id: contactId,
-      }), {
-        status: 200,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-
-    } catch (apiError: any) {
-      console.error('WhatsApp API error:', apiError);
-      
-      await supabase.from('messages').update({
-        status: 'failed',
-        failed_at: new Date().toISOString(),
-        error_message: 'Failed to connect to WhatsApp API',
-      }).eq('id', message.id);
-
-      return new Response(JSON.stringify({
-        ok: false,
-        message_id: message.id,
-        error: 'Failed to connect to WhatsApp API',
-      }), {
-        status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    if (msgRes.error) {
+      return new Response(JSON.stringify({ error: 'Failed to create message' }), {
+        status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
+
+    const messageId = msgRes.data.id;
+    const waResult = await waResponse.json();
+    console.log('WhatsApp API response:', JSON.stringify(waResult));
+
+    if (!waResponse.ok) {
+      const errorCode = waResult.error?.code;
+      const errorMsg = waResult.error?.message || 'Failed to send message';
+
+      // Handle permission error with auto-registration retry
+      if (errorCode === 200 && errorMsg.includes('permission')) {
+        console.log('Permission error, attempting registration...');
+        try {
+          const regRes = await fetch(`${WHATSAPP_API_BASE}/${phoneNumber.phone_number_id}/register`, {
+            method: 'POST',
+            headers: {
+              Authorization: `Bearer ${wabaAccount.encrypted_access_token}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ messaging_product: 'whatsapp', pin: '000000' }),
+          });
+          const regData = await regRes.json();
+          console.log('Registration result:', JSON.stringify(regData));
+
+          const retryRes = await fetch(`${WHATSAPP_API_BASE}/${phoneNumber.phone_number_id}/messages`, {
+            method: 'POST',
+            headers: {
+              Authorization: `Bearer ${wabaAccount.encrypted_access_token}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(messagePayload),
+          });
+          const retryResult = await retryRes.json();
+
+          if (retryRes.ok && retryResult.messages?.[0]?.id) {
+            const wamid = retryResult.messages[0].id;
+            // Fire-and-forget updates
+            const preview = type === 'text' ? (text || '').substring(0, 100) : `📎 ${type.charAt(0).toUpperCase() + type.slice(1)}`;
+            Promise.all([
+              supabase.from('messages').update({ status: 'sent', wamid, sent_at: new Date().toISOString() }).eq('id', messageId),
+              supabase.from('conversations').update({ last_message_at: new Date().toISOString(), last_message_preview: preview, last_message_id: messageId, status: 'open' }).eq('id', conversationIdFinal),
+            ]).catch(() => {});
+
+            return new Response(JSON.stringify({ ok: true, message_id: messageId, wamid }), {
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            });
+          }
+        } catch (regErr) {
+          console.warn('Auto-registration failed:', regErr);
+        }
+      }
+
+      // Mark failed
+      let userFacingError = errorMsg;
+      let errorCodeStr = errorCode?.toString();
+      if (errorCode === 200 && errorMsg.includes('permission')) {
+        userFacingError = 'WhatsApp token lacks messaging permission. Please reconnect your phone number.';
+        errorCodeStr = 'MISSING_MESSAGING_PERMISSION';
+        supabase.from('phone_numbers').update({ status: 'disconnected' }).eq('id', phone_number_id).then(() => {});
+      }
+
+      supabase.from('messages').update({
+        status: 'failed', failed_at: new Date().toISOString(),
+        error_code: errorCodeStr, error_message: errorMsg,
+      }).eq('id', messageId).then(() => {});
+
+      return new Response(JSON.stringify({ ok: false, message_id: messageId, error: userFacingError, code: errorCodeStr }), {
+        status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    // === Success: fire-and-forget post-send updates ===
+    const wamid = waResult.messages?.[0]?.id;
+    const preview = type === 'text' ? (text || '').substring(0, 100) : `📎 ${type.charAt(0).toUpperCase() + type.slice(1)}`;
+    const now = new Date().toISOString();
+
+    // Don't await these - return response immediately
+    Promise.all([
+      supabase.from('messages').update({ wamid, status: 'sent', sent_at: now }).eq('id', messageId),
+      supabase.from('conversations').update({ last_message_at: now, last_message_preview: preview, last_message_id: messageId, status: 'open' }).eq('id', conversationIdFinal),
+      supabase.rpc('increment_usage', { p_tenant_id: tenant_id, p_counter: 'messages_sent', p_amount: 1 }).then(() => {}),
+      supabase.from('rate_limit_logs').insert({ tenant_id, action: 'send_message' }).then(() => {}),
+    ]).catch(e => console.error('Post-send update error:', e));
+
+    return new Response(JSON.stringify({
+      ok: true,
+      wamid,
+      message_id: messageId,
+      conversation_id: conversationIdFinal,
+      contact_id: contactId,
+    }), {
+      status: 200,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
 
   } catch (error: any) {
     console.error('Error in send-text-message:', error);
