@@ -406,6 +406,52 @@ Deno.serve(async (req) => {
       if (!waResponse.ok) {
         const errorCode = waResult.error?.code;
         const errorMsg = waResult.error?.message || 'Failed to send message';
+
+        // If permission error, try registering the phone with Cloud API and retry once
+        if (errorCode === 200 && errorMsg.includes('permission')) {
+          console.log('Permission error detected, attempting phone registration before retry...');
+          try {
+            const regRes = await fetch(`${WHATSAPP_API_BASE}/${phoneNumber.phone_number_id}/register`, {
+              method: 'POST',
+              headers: {
+                Authorization: `Bearer ${wabaAccount.encrypted_access_token}`,
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({ messaging_product: 'whatsapp', pin: '000000' }),
+            });
+            const regData = await regRes.json();
+            console.log('Auto-registration result:', JSON.stringify(regData));
+
+            // Retry the send after registration
+            const retryRes = await fetch(`${WHATSAPP_API_BASE}/${phoneNumber.phone_number_id}/messages`, {
+              method: 'POST',
+              headers: {
+                Authorization: `Bearer ${wabaAccount.encrypted_access_token}`,
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify(messagePayload),
+            });
+            const retryResult = await retryRes.json();
+            console.log('Retry after registration:', JSON.stringify(retryResult));
+
+            if (retryRes.ok && retryResult.messages?.[0]?.id) {
+              // Registration + retry succeeded!
+              await supabase.from('messages').update({
+                status: 'sent',
+                wamid: retryResult.messages[0].id,
+                sent_at: new Date().toISOString(),
+              }).eq('id', message.id);
+
+              return new Response(JSON.stringify({
+                ok: true,
+                message_id: message.id,
+                wamid: retryResult.messages[0].id,
+              }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+            }
+          } catch (regErr) {
+            console.warn('Auto-registration attempt failed:', regErr);
+          }
+        }
         
         await supabase.from('messages').update({
           status: 'failed',
