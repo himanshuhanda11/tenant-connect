@@ -232,20 +232,32 @@ Deno.serve(async (req) => {
       console.log('WhatsApp API response:', waResult);
 
       if (!waResponse.ok) {
+        const errorCode = waResult?.error?.code;
+        const errorMessage = waResult?.error?.message || 'Failed to send message';
+
+        // If Meta says we lack permission, reflect that this number isn't ready (common after reconnect/recreate)
+        if (errorCode === 200 && (errorMessage || '').toLowerCase().includes('permission')) {
+          supabase
+            .from('phone_numbers')
+            .update({ status: 'pending', updated_at: new Date().toISOString() })
+            .eq('id', phoneNumber.id)
+            .then(() => {});
+        }
+
         // Update message as failed
         await supabase
           .from('messages')
           .update({
             status: 'failed',
-            error_code: waResult.error?.code?.toString(),
-            error_message: waResult.error?.message,
+            error_code: errorCode?.toString(),
+            error_message: errorMessage,
           })
           .eq('id', message.id);
 
         return new Response(JSON.stringify({
           success: false,
           message_id: message.id,
-          error: waResult.error?.message || 'Failed to send message',
+          error: errorMessage,
         }), {
           status: 400,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
