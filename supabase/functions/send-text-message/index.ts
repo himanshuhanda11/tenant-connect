@@ -283,7 +283,7 @@ Deno.serve(async (req) => {
       if (errorCode === 200 && errorMsg.includes('permission')) {
         userFacingError = 'WhatsApp token lacks messaging permission. Please reconnect your phone number.';
         errorCodeStr = 'MISSING_MESSAGING_PERMISSION';
-        supabase.from('phone_numbers').update({ status: 'disconnected' }).eq('id', phone_number_id).then(() => {});
+        // Do NOT auto-disconnect - let the user decide to reconnect manually
       }
 
       supabase.from('messages').update({
