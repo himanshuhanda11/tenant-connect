@@ -256,10 +256,15 @@ export default function PhoneNumbers() {
                         <MetaEmbeddedSignup
                           onSuccess={(data) => {
                             setEmbeddedSignupOpen(false);
+                            setMetaError(null);
                             fetchPhoneNumbers();
                           }}
                           onError={(error) => {
                             console.error('Embedded signup error:', error);
+                          }}
+                          onConnectionError={(errorMessage) => {
+                            setEmbeddedSignupOpen(false);
+                            setMetaError({ message: errorMessage });
                           }}
                         />
                       </div>
@@ -283,15 +288,20 @@ export default function PhoneNumbers() {
                           </DialogDescription>
                         </DialogHeader>
                         <div className="py-4">
-                          <MetaEmbeddedSignup
-                            onSuccess={(data) => {
-                              setEmbeddedSignupOpen(false);
-                              fetchPhoneNumbers();
-                            }}
-                            onError={(error) => {
-                              console.error('Embedded signup error:', error);
-                            }}
-                          />
+                        <MetaEmbeddedSignup
+                          onSuccess={(data) => {
+                            setEmbeddedSignupOpen(false);
+                            setMetaError(null);
+                            fetchPhoneNumbers();
+                          }}
+                          onError={(error) => {
+                            console.error('Embedded signup error:', error);
+                          }}
+                          onConnectionError={(errorMessage) => {
+                            setEmbeddedSignupOpen(false);
+                            setMetaError({ message: errorMessage });
+                          }}
+                        />
                         </div>
                       </DialogContent>
                     </Dialog>

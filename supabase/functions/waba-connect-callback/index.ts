@@ -1,6 +1,6 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
-const GRAPH_API_VERSION = 'v21.0';
+const GRAPH_API_VERSION = 'v24.0';
 const GRAPH_API_BASE = `https://graph.facebook.com/${GRAPH_API_VERSION}`;
 
 // Verify HMAC signature
@@ -45,6 +45,23 @@ async function verifyState(signedState: string, secret: string): Promise<{ valid
   }
 }
 
+function mapQuality(rating?: string): string {
+  if (!rating) return 'UNKNOWN';
+  const r = rating.toUpperCase();
+  if (['GREEN', 'YELLOW', 'RED'].includes(r)) return r;
+  return 'UNKNOWN';
+}
+
+function mapMessagingLimit(tier?: string): string {
+  if (!tier) return 'TIER_1K';
+  const t = tier.toUpperCase();
+  if (t.includes('1K')) return 'TIER_1K';
+  if (t.includes('10K')) return 'TIER_10K';
+  if (t.includes('100K')) return 'TIER_100K';
+  if (t.includes('UNLIMITED')) return 'TIER_UNLIMITED';
+  return 'TIER_1K';
+}
+
 Deno.serve(async (req) => {
   try {
     const url = new URL(req.url);
@@ -54,74 +71,51 @@ Deno.serve(async (req) => {
     const errorReason = url.searchParams.get('error_reason');
     const errorDescription = url.searchParams.get('error_description');
 
-    // Get the app URL for redirects (remove trailing slash if present)
     const rawAppUrl = Deno.env.get('APP_URL') || 'https://9ee3464f-477f-4b1e-b642-f9597c9a83d5.lovableproject.com';
     const appUrl = rawAppUrl.replace(/\/+$/, '');
     
-    // Handle OAuth errors (redirect back to app so the user sees the error UI)
     if (error) {
       const received = Object.fromEntries(url.searchParams.entries());
       const metaCode = received.error_code || '';
       const metaMsg = received.error_message || errorDescription || error;
       console.error('OAuth error:', { error, errorReason, errorDescription, metaCode });
-
       const msg = metaCode ? `Meta OAuth error (${metaCode}): ${metaMsg}` : `Meta OAuth error: ${metaMsg}`;
-      return Response.redirect(
-        `${appUrl}/phone-numbers?error=${encodeURIComponent(msg)}`,
-        302
-      );
+      return Response.redirect(`${appUrl}/phone-numbers?error=${encodeURIComponent(msg)}`, 302);
     }
 
-    // If Meta fails before completing the flow, it may redirect without ?code=
     if (!code) {
       const received = Object.fromEntries(url.searchParams.entries());
       const metaCode = received.error_code || '';
       const metaMsg = received.error_message || 'Meta did not return an authorization code.';
-
       console.error('Missing authorization code', { metaCode, metaMsg, received });
-
       const msg = metaCode ? `Meta OAuth error (${metaCode}): ${metaMsg}` : metaMsg;
-      return Response.redirect(
-        `${appUrl}/phone-numbers?error=${encodeURIComponent(msg)}`,
-        302
-      );
+      return Response.redirect(`${appUrl}/phone-numbers?error=${encodeURIComponent(msg)}`, 302);
     }
 
     if (!state) {
       console.error('Missing state');
-      return Response.redirect(
-        `${appUrl}/phone-numbers?error=${encodeURIComponent('Meta OAuth error: missing state parameter')}`,
-        302
-      );
+      return Response.redirect(`${appUrl}/phone-numbers?error=${encodeURIComponent('Meta OAuth error: missing state parameter')}`, 302);
     }
 
     const appSecret = Deno.env.get('META_APP_SECRET');
     if (!appSecret) {
       console.error('Missing META_APP_SECRET');
-      return Response.redirect(
-        `${appUrl}/phone-numbers?error=${encodeURIComponent('Server configuration error')}`,
-        302
-      );
+      return Response.redirect(`${appUrl}/phone-numbers?error=${encodeURIComponent('Server configuration error')}`, 302);
     }
 
-    // Verify state signature
     const { valid, payload } = await verifyState(state, appSecret);
     if (!valid) {
       console.error('Invalid state signature');
-      return Response.redirect(
-        `${appUrl}/phone-numbers?error=${encodeURIComponent('Invalid or expired session')}`,
-        302
-      );
+      return Response.redirect(`${appUrl}/phone-numbers?error=${encodeURIComponent('Invalid or expired session')}`, 302);
     }
 
-    const { tenantId, userId } = payload;
-    console.log('Processing callback for tenant:', tenantId, 'user:', userId);
+    const { tenantId, userId, phoneNumberId: selectedPhoneId } = payload;
+    console.log('Processing callback for tenant:', tenantId, 'user:', userId, 'selectedPhone:', selectedPhoneId);
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Verify user still has access to tenant
     const { data: membership, error: memberError } = await supabase
       .from('tenant_members')
       .select('role')
@@ -131,10 +125,7 @@ Deno.serve(async (req) => {
 
     if (memberError || !membership || !['owner', 'admin'].includes(membership.role)) {
       console.error('Membership verification failed:', memberError);
-      return Response.redirect(
-        `${appUrl}/phone-numbers?error=${encodeURIComponent('Access denied')}`,
-        302
-      );
+      return Response.redirect(`${appUrl}/phone-numbers?error=${encodeURIComponent('Access denied')}`, 302);
     }
 
     // Exchange code for access token
@@ -154,21 +145,19 @@ Deno.serve(async (req) => {
 
     if (tokenData.error) {
       console.error('Token exchange error:', tokenData.error);
-      return Response.redirect(
-        `${appUrl}/phone-numbers?error=${encodeURIComponent(tokenData.error.message || 'Failed to exchange code')}`,
-        302
-      );
+      return Response.redirect(`${appUrl}/phone-numbers?error=${encodeURIComponent(tokenData.error.message || 'Failed to exchange code')}`, 302);
     }
 
     let accessToken = tokenData.access_token;
-    console.log('Short-lived access token obtained, exchanging for long-lived token...');
+    console.log('Short-lived access token obtained');
 
-    // Exchange short-lived token for long-lived token (60 days validity)
+    // Exchange for long-lived token (60 days)
     const longLivedUrl = `${GRAPH_API_BASE}/oauth/access_token?` + new URLSearchParams({
       grant_type: 'fb_exchange_token',
       client_id: appId!,
       client_secret: appSecret,
-      fb_exchange_token: accessToken
+      fb_exchange_token: accessToken,
+      set_token_expires_in_60_days: 'true',
     });
 
     const longLivedResponse = await fetch(longLivedUrl);
@@ -176,14 +165,12 @@ Deno.serve(async (req) => {
 
     if (longLivedData.access_token) {
       accessToken = longLivedData.access_token;
-      console.log('Long-lived access token obtained successfully (valid for ~60 days)');
+      console.log('Long-lived access token obtained');
     } else {
-      console.warn('Could not get long-lived token, using short-lived token:', longLivedData.error?.message);
-      // Continue with short-lived token as fallback
+      console.warn('Could not get long-lived token, using short-lived');
     }
 
-    // Debug token to get shared WABA ID and phone numbers
-    // IMPORTANT: debug_token requires an app access token (app_id|app_secret), not user token
+    // Debug token to get WABA IDs
     console.log('Debugging token to get WABA info...');
     const appAccessToken = `${appId}|${appSecret}`;
     const debugUrl = `${GRAPH_API_BASE}/debug_token?` + new URLSearchParams({
@@ -194,221 +181,141 @@ Deno.serve(async (req) => {
     const debugResponse = await fetch(debugUrl);
     const debugData = await debugResponse.json();
 
-    if (debugData.error) {
-      console.error('Debug token error:', debugData.error);
-      // Don't fail here, try alternative methods to find WABAs
-      console.log('Will try alternative methods to find WABAs...');
-    }
-
-    // Extract WABA info from granular_scopes
     const granularScopes = debugData.data?.granular_scopes || [];
     const wabaScope = granularScopes.find((s: any) => s.scope === 'whatsapp_business_management');
     let wabaIds = wabaScope?.target_ids || [];
-
     console.log('WABA IDs from granular_scopes:', wabaIds);
 
-    // Fallback: If no WABAs in granular_scopes, try fetching from user's businesses
     if (wabaIds.length === 0) {
-      console.log('No WABAs in granular_scopes, trying to fetch from businesses...');
-      
-      // First get user's businesses
-      const businessesResponse = await fetch(
-        `${GRAPH_API_BASE}/me/businesses?fields=id,name&access_token=${accessToken}`
-      );
-      const businessesData = await businessesResponse.json();
-      console.log('Businesses found:', businessesData.data?.length || 0);
-
-      // For each business, try to get owned WABAs
-      for (const business of (businessesData.data || [])) {
-        console.log('Checking business:', business.id, business.name);
-        const wabasResponse = await fetch(
-          `${GRAPH_API_BASE}/${business.id}/owned_whatsapp_business_accounts?access_token=${accessToken}`
-        );
-        const wabasData = await wabasResponse.json();
-        
-        if (wabasData.data && wabasData.data.length > 0) {
-          console.log('Found WABAs in business', business.id, ':', wabasData.data.map((w: any) => w.id));
-          wabaIds = wabaIds.concat(wabasData.data.map((w: any) => w.id));
-        }
-      }
+      return Response.redirect(`${appUrl}/phone-numbers?error=${encodeURIComponent('No WhatsApp Business Account found.')}`, 302);
     }
 
-    console.log('Total WABA IDs found:', wabaIds);
+    // Use only the first (primary) WABA
+    const primaryWabaId = wabaIds[0];
+    console.log('Processing primary WABA:', primaryWabaId);
 
-    if (wabaIds.length === 0) {
-      return Response.redirect(
-        `${appUrl}/phone-numbers?error=${encodeURIComponent('No WhatsApp Business Account found. Please ensure you have a WABA linked to your Meta Business account, or use the Embedded Signup flow.')}`,
-        302
-      );
+    const wabaResponse = await fetch(
+      `${GRAPH_API_BASE}/${primaryWabaId}?fields=id,name,currency,timezone_id,owner_business_info`,
+      { headers: { Authorization: `Bearer ${accessToken}` } }
+    );
+    const wabaData = await wabaResponse.json();
+
+    if (wabaData.error) {
+      console.error('WABA fetch error:', wabaData.error);
+      return Response.redirect(`${appUrl}/phone-numbers?error=${encodeURIComponent('Failed to fetch WABA details')}`, 302);
     }
 
-    // Process each WABA
-    let totalPhones = 0;
-    for (const wabaId of wabaIds) {
-      console.log('Processing WABA:', wabaId);
+    const businessId = wabaData.owner_business_info?.id || 'unknown';
 
-      // Get WABA details
-      const wabaResponse = await fetch(
-        `${GRAPH_API_BASE}/${wabaId}?fields=id,name,currency,timezone_id,owner_business_info`,
-        { headers: { Authorization: `Bearer ${accessToken}` } }
-      );
-      const wabaData = await wabaResponse.json();
+    // Upsert WABA account
+    const { data: existingWaba } = await supabase
+      .from('waba_accounts')
+      .select('id')
+      .eq('tenant_id', tenantId)
+      .eq('waba_id', primaryWabaId)
+      .maybeSingle();
 
-      if (wabaData.error) {
-        console.error('WABA fetch error for', wabaId, ':', wabaData.error);
-        continue;
+    let wabaAccountId: string;
+
+    if (existingWaba) {
+      await supabase.from('waba_accounts').update({
+        encrypted_access_token: accessToken,
+        status: 'active',
+        name: wabaData.name,
+        business_id: businessId,
+        updated_at: new Date().toISOString()
+      }).eq('id', existingWaba.id);
+      wabaAccountId = existingWaba.id;
+    } else {
+      const { data: newWaba, error: insertError } = await supabase.from('waba_accounts').insert({
+        tenant_id: tenantId,
+        waba_id: primaryWabaId,
+        business_id: businessId,
+        name: wabaData.name,
+        encrypted_access_token: accessToken,
+        status: 'active'
+      }).select().single();
+
+      if (insertError) {
+        console.error('WABA insert error:', insertError);
+        return Response.redirect(`${appUrl}/phone-numbers?error=${encodeURIComponent('Failed to save WABA account')}`, 302);
       }
+      wabaAccountId = newWaba.id;
+    }
 
-      const businessId = wabaData.owner_business_info?.id || 'unknown';
+    // ── Get phone numbers from Meta ──
+    const phonesResponse = await fetch(
+      `${GRAPH_API_BASE}/${primaryWabaId}/phone_numbers?fields=id,display_phone_number,verified_name,quality_rating,messaging_limit_tier`,
+      { headers: { Authorization: `Bearer ${accessToken}` } }
+    );
+    const phonesData = await phonesResponse.json();
+    const allPhones = phonesData.data || [];
+    console.log('Found', allPhones.length, 'phone numbers for WABA', primaryWabaId);
 
-      // Upsert WABA account
-      const { data: existingWaba } = await supabase
-        .from('waba_accounts')
-        .select('id')
-        .eq('tenant_id', tenantId)
-        .eq('waba_id', wabaId)
-        .maybeSingle();
-
-      let wabaAccountId: string;
-
-      if (existingWaba) {
-        await supabase
-          .from('waba_accounts')
-          .update({
-            encrypted_access_token: accessToken,
-            status: 'active',
-            name: wabaData.name,
-            business_id: businessId,
-            updated_at: new Date().toISOString()
-          })
-          .eq('id', existingWaba.id);
-        wabaAccountId = existingWaba.id;
-        console.log('Updated WABA account:', wabaAccountId);
+    // ── Select ONLY ONE phone number ──
+    // Priority: 1) selectedPhoneId from state, 2) first phone in list
+    let targetPhone = allPhones[0]; // default to first
+    if (selectedPhoneId) {
+      const found = allPhones.find((p: any) => p.id === selectedPhoneId);
+      if (found) {
+        targetPhone = found;
       } else {
-        const { data: newWaba, error: insertError } = await supabase
-          .from('waba_accounts')
-          .insert({
-            tenant_id: tenantId,
-            waba_id: wabaId,
-            business_id: businessId,
-            name: wabaData.name,
-            encrypted_access_token: accessToken,
-            status: 'active'
-          })
-          .select()
-          .single();
-
-        if (insertError) {
-          console.error('WABA insert error:', insertError);
-          continue;
-        }
-        wabaAccountId = newWaba.id;
-        console.log('Created WABA account:', wabaAccountId);
-      }
-
-      // Get and store phone numbers with all relevant fields
-      const phonesResponse = await fetch(
-        `${GRAPH_API_BASE}/${wabaId}/phone_numbers?fields=id,display_phone_number,verified_name,quality_rating,messaging_limit_tier,code_verification_status,status,name_status,is_official_business_account`,
-        { headers: { Authorization: `Bearer ${accessToken}` } }
-      );
-      const phonesData = await phonesResponse.json();
-
-      const phoneNumbers = phonesData.data || [];
-      console.log('Found', phoneNumbers.length, 'phone numbers for WABA', wabaId);
-
-      for (const phone of phoneNumbers) {
-        // Map Meta's messaging_limit_tier to our format (stored as text)
-        // Meta returns: TIER_1K, TIER_10K, TIER_100K, TIER_UNLIMITED or undefined
-        const mapMessagingLimit = (tier?: string): string => {
-          if (!tier) return 'TIER_1K'; // Default to 1K for new numbers
-          // Normalize to uppercase
-          const t = tier.toUpperCase();
-          if (t.includes('1K')) return 'TIER_1K';
-          if (t.includes('10K')) return 'TIER_10K';
-          if (t.includes('100K')) return 'TIER_100K';
-          if (t.includes('UNLIMITED')) return 'TIER_UNLIMITED';
-          return 'TIER_1K';
-        };
-
-        // Map quality rating to uppercase to match enum
-        const mapQuality = (rating?: string): string => {
-          if (!rating) return 'UNKNOWN';
-          const r = rating.toUpperCase();
-          if (['GREEN', 'YELLOW', 'RED'].includes(r)) return r;
-          return 'UNKNOWN';
-        };
-
-        const qualityRating = mapQuality(phone.quality_rating);
-        const messagingLimit = mapMessagingLimit(phone.messaging_limit_tier);
-        
-        console.log('Phone', phone.id, '- Quality:', phone.quality_rating, '->', qualityRating, 
-                   ', Limit:', phone.messaging_limit_tier, '->', messagingLimit);
-
-        const { data: existingPhone } = await supabase
-          .from('phone_numbers')
-          .select('id')
-          .eq('tenant_id', tenantId)
-          .eq('phone_number_id', phone.id)
-          .maybeSingle();
-
-        if (existingPhone) {
-          await supabase
-            .from('phone_numbers')
-            .update({
-              display_number: phone.display_phone_number,
-              verified_name: phone.verified_name,
-              quality_rating: qualityRating,
-              messaging_limit: messagingLimit,
-              status: 'connected',
-              waba_account_id: wabaAccountId,
-              updated_at: new Date().toISOString()
-            })
-            .eq('id', existingPhone.id);
-        } else {
-          await supabase
-            .from('phone_numbers')
-            .insert({
-              tenant_id: tenantId,
-              waba_account_id: wabaAccountId,
-              phone_number_id: phone.id,
-              display_number: phone.display_phone_number,
-              verified_name: phone.verified_name,
-              quality_rating: qualityRating,
-              messaging_limit: messagingLimit,
-              status: 'connected'
-            });
-        }
-        totalPhones++;
-      }
-
-      // Auto-subscribe to webhooks for this WABA
-      try {
-        console.log('Subscribing to webhooks for WABA:', wabaId);
-        const subscribeResponse = await fetch(
-          `${GRAPH_API_BASE}/${wabaId}/subscribed_apps`,
-          {
-            method: 'POST',
-            headers: { Authorization: `Bearer ${accessToken}` }
-          }
-        );
-        const subscribeData = await subscribeResponse.json();
-        
-        if (subscribeData.success) {
-          console.log('Webhook subscription successful for WABA:', wabaId);
-        } else {
-          console.error('Webhook subscription failed:', subscribeData);
-        }
-      } catch (webhookError) {
-        console.error('Webhook subscription error:', webhookError);
-        // Continue anyway, webhooks can be set up later
+        console.warn('Selected phone', selectedPhoneId, 'not found in WABA, using first available');
       }
     }
 
-    console.log('Callback completed. Total phones connected:', totalPhones);
+    let connectedPhoneId: string | null = null;
 
-    // Redirect to success page
+    if (targetPhone) {
+      const qualityRating = mapQuality(targetPhone.quality_rating);
+      const messagingLimit = mapMessagingLimit(targetPhone.messaging_limit_tier);
+
+      // Enforce 1 phone per workspace: delete ALL existing phones first
+      const { data: existingPhones } = await supabase
+        .from('phone_numbers')
+        .select('id')
+        .eq('tenant_id', tenantId);
+      if (existingPhones && existingPhones.length > 0) {
+        const idsToDelete = existingPhones.map((p: any) => p.id);
+        console.log('Removing existing phone(s) to enforce 1-per-workspace:', idsToDelete);
+        await supabase.from('phone_numbers').delete().in('id', idsToDelete);
+      }
+
+      const { data: newPhone, error: phoneErr } = await supabase.from('phone_numbers').insert({
+        tenant_id: tenantId,
+        waba_account_id: wabaAccountId,
+        phone_number_id: targetPhone.id,
+        display_number: targetPhone.display_phone_number,
+        verified_name: targetPhone.verified_name,
+        quality_rating: qualityRating,
+        messaging_limit: messagingLimit,
+        status: 'connected',
+      }).select().single();
+
+      if (phoneErr) {
+        console.error('Phone insert error:', phoneErr);
+      } else {
+        connectedPhoneId = newPhone.id;
+        console.log('Connected single phone:', connectedPhoneId);
+      }
+    }
+
+    // Auto-subscribe to webhooks
+    try {
+      const subRes = await fetch(`${GRAPH_API_BASE}/${primaryWabaId}/subscribed_apps`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
+      const subData = await subRes.json();
+      console.log('Webhook subscription:', subData.success ? 'OK' : 'FAILED');
+    } catch (e) {
+      console.error('Webhook subscription error:', e);
+    }
+
+    console.log('Callback completed. Phone connected:', connectedPhoneId);
+
     return Response.redirect(
-      `${appUrl}/phone-numbers?connected=1&phones=${totalPhones}`,
+      `${appUrl}/phone-numbers?connected=1&phones=${connectedPhoneId ? 1 : 0}`,
       302
     );
 
