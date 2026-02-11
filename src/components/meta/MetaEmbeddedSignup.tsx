@@ -14,9 +14,10 @@ declare global {
 interface MetaEmbeddedSignupProps {
   onSuccess?: (data: { wabaId: string; phoneNumberId: string }) => void;
   onError?: (error: Error) => void;
+  onConnectionError?: (errorMessage: string) => void;
 }
 
-export function MetaEmbeddedSignup({ onSuccess, onError }: MetaEmbeddedSignupProps) {
+export function MetaEmbeddedSignup({ onSuccess, onError, onConnectionError }: MetaEmbeddedSignupProps) {
   const { currentTenant } = useTenant();
   const [loading, setLoading] = useState(false);
   // Store WABA + phone IDs received via the MessageEvent listener
@@ -114,7 +115,9 @@ export function MetaEmbeddedSignup({ onSuccess, onError }: MetaEmbeddedSignupPro
             const result = await res.json();
 
             if (!res.ok) {
-              throw new Error(result.error || 'Failed to complete signup');
+              const errMsg = result.error || 'Failed to complete signup';
+              onConnectionError?.(errMsg);
+              throw new Error(errMsg);
             }
 
             toast.success(
@@ -126,7 +129,9 @@ export function MetaEmbeddedSignup({ onSuccess, onError }: MetaEmbeddedSignupPro
             });
           } catch (err: any) {
             console.error('Embedded signup exchange error:', err);
-            toast.error(err.message || 'Failed to complete signup');
+            const errMsg = err.message || 'Failed to complete signup';
+            toast.error(errMsg);
+            onConnectionError?.(errMsg);
             onError?.(err);
           } finally {
             setLoading(false);
