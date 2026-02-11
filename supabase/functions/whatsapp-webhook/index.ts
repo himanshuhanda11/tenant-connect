@@ -331,24 +331,25 @@ Deno.serve(async (req) => {
 async function processEvent(supabase: any, ev: NormalizedEvent, webhookEventId?: string) {
   try {
     // Find phone number and tenant
-    const { data: phoneNumber, error: phoneError } = await supabase
+    // Use limit(1) instead of single() to avoid PGRST116 when the same Meta phone ID
+    // exists across multiple tenants (e.g. after workspace reconnects).
+    const { data: phoneNumbers, error: phoneError } = await supabase
       .from('phone_numbers')
       .select('id, tenant_id, status, waba_account_id, waba_account:waba_accounts!inner(encrypted_access_token)')
       .eq('phone_number_id', ev.phone_number_id)
-      .single();
+      .eq('status', 'connected')
+      .order('created_at', { ascending: false })
+      .limit(1);
+
+    const phoneNumber = phoneNumbers?.[0];
 
     if (phoneError || !phoneNumber) {
-      console.log(`Phone number ${ev.phone_number_id} not found, ignoring event`);
+      console.log(`Phone number ${ev.phone_number_id} not found or not connected, ignoring event`);
       await markEventProcessed(supabase, webhookEventId, 'ignored - phone not found');
       return;
     }
 
-    // Block processing for disconnected phone numbers
-    if (phoneNumber.status === 'disconnected') {
-      console.log(`Phone number ${ev.phone_number_id} is disconnected, ignoring event`);
-      await markEventProcessed(supabase, webhookEventId, 'ignored - phone disconnected');
-      return;
-    }
+    // No need to check disconnected status — already filtered above
 
     const tenantId = phoneNumber.tenant_id;
 
