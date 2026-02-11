@@ -1,6 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { MessageSquare, Loader2 } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { MessageSquare, Loader2, Info } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useTenant } from '@/contexts/TenantContext';
 import { toast } from 'sonner';
@@ -20,6 +22,7 @@ interface MetaEmbeddedSignupProps {
 export function MetaEmbeddedSignup({ onSuccess, onError, onConnectionError }: MetaEmbeddedSignupProps) {
   const { currentTenant } = useTenant();
   const [loading, setLoading] = useState(false);
+  const [pin, setPin] = useState('');
   // Store WABA + phone IDs received via the MessageEvent listener
   const sessionDataRef = useRef<{ wabaId: string; phoneNumberId: string } | null>(null);
 
@@ -75,6 +78,9 @@ export function MetaEmbeddedSignup({ onSuccess, onError, onConnectionError }: Me
     setLoading(true);
     sessionDataRef.current = null;
 
+    // Capture PIN value at the time of click (before async flow)
+    const currentPin = pin.trim();
+
     // FB.login callback — receives the auth code
     const fbLoginCallback = (response: any) => {
       if (response.authResponse) {
@@ -109,6 +115,7 @@ export function MetaEmbeddedSignup({ onSuccess, onError, onConnectionError }: Me
                 tenantId: currentTenant.id,
                 wabaId: wabaId || undefined,
                 phoneNumberId: phoneNumberId || undefined,
+                pin: currentPin || undefined,
               }),
             });
 
@@ -160,6 +167,31 @@ export function MetaEmbeddedSignup({ onSuccess, onError, onConnectionError }: Me
 
   return (
     <div className="space-y-4">
+      {/* Two-step verification PIN input */}
+      <div className="space-y-2">
+        <Label htmlFor="wa-pin" className="text-sm font-medium">
+          Two-Step Verification PIN <span className="text-muted-foreground">(if enabled)</span>
+        </Label>
+        <Input
+          id="wa-pin"
+          type="password"
+          inputMode="numeric"
+          maxLength={6}
+          placeholder="6-digit PIN"
+          value={pin}
+          onChange={(e) => setPin(e.target.value.replace(/\D/g, '').slice(0, 6))}
+          disabled={loading}
+          className="font-mono tracking-widest"
+        />
+        <div className="flex items-start gap-2 text-xs text-muted-foreground">
+          <Info className="h-3.5 w-3.5 mt-0.5 shrink-0" />
+          <span>
+            If your WhatsApp number has two-step verification enabled, enter the 6-digit PIN here. 
+            Leave empty if not set.
+          </span>
+        </div>
+      </div>
+
       <Button
         type="button"
         onClick={launchWhatsAppSignup}

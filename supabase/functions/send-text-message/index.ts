@@ -234,48 +234,8 @@ Deno.serve(async (req) => {
       const errorCode = waResult.error?.code;
       const errorMsg = waResult.error?.message || 'Failed to send message';
 
-      // Handle permission error with auto-registration retry
-      if (errorCode === 200 && errorMsg.includes('permission')) {
-        console.log('Permission error, attempting registration...');
-        try {
-          const regRes = await fetch(`${WHATSAPP_API_BASE}/${phoneNumber.phone_number_id}/register`, {
-            method: 'POST',
-            headers: {
-              Authorization: `Bearer ${wabaAccount.encrypted_access_token}`,
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ messaging_product: 'whatsapp', pin: '000000' }),
-          });
-          const regData = await regRes.json();
-          console.log('Registration result:', JSON.stringify(regData));
-
-          const retryRes = await fetch(`${WHATSAPP_API_BASE}/${phoneNumber.phone_number_id}/messages`, {
-            method: 'POST',
-            headers: {
-              Authorization: `Bearer ${wabaAccount.encrypted_access_token}`,
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(messagePayload),
-          });
-          const retryResult = await retryRes.json();
-
-          if (retryRes.ok && retryResult.messages?.[0]?.id) {
-            const wamid = retryResult.messages[0].id;
-            // Fire-and-forget updates
-            const preview = type === 'text' ? (text || '').substring(0, 100) : `📎 ${type.charAt(0).toUpperCase() + type.slice(1)}`;
-            Promise.all([
-              supabase.from('messages').update({ status: 'sent', wamid, sent_at: new Date().toISOString() }).eq('id', messageId),
-              supabase.from('conversations').update({ last_message_at: new Date().toISOString(), last_message_preview: preview, last_message_id: messageId, status: 'open' }).eq('id', conversationIdFinal),
-            ]).catch(() => {});
-
-            return new Response(JSON.stringify({ ok: true, message_id: messageId, wamid }), {
-              headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-            });
-          }
-        } catch (regErr) {
-          console.warn('Auto-registration failed:', regErr);
-        }
-      }
+      // Permission error — do NOT attempt auto-registration (PIN unknown, will always fail if 2-step verification is enabled)
+      // The user needs to reconnect their number via the Embedded Signup flow with the correct PIN
 
       // Mark failed
       let userFacingError = errorMsg;
