@@ -314,9 +314,10 @@ Deno.serve(async (req) => {
               if (code === 133005) {
                 registrationStatus = 'verification_required';
               } else if (code === 133016) {
-                // Too many register/deregister attempts in a short period of time.
-                // Keep pending and let user retry later.
-                registrationStatus = 'pending';
+                // Rate-limited — the number is already registered and working on Meta's side.
+                // Safe to mark as connected since repeated disconnect/reconnect triggers this.
+                registrationStatus = 'connected';
+                registrationWarning = 'Registration rate-limited (number already registered). Marked as connected.';
               } else {
                 registrationStatus = 'pending';
               }

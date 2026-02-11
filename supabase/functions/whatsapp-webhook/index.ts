@@ -355,7 +355,7 @@ async function processEvent(supabase: any, ev: NormalizedEvent, webhookEventId?:
       .from('phone_numbers')
       .select('id, tenant_id, status, waba_account_id, waba_account:waba_accounts!inner(encrypted_access_token)')
       .eq('phone_number_id', ev.phone_number_id)
-      .eq('status', 'connected')
+      .in('status', ['connected', 'pending'])
       .order('created_at', { ascending: false })
       .limit(1);
 
