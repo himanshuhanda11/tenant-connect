@@ -273,11 +273,15 @@ Deno.serve(async (req) => {
         const idKey = generateIdKey(ev);
 
         // Check if already processed (idempotency)
-        const { data: existing } = await supabase
+        const { data: existing, error: existingError } = await supabase
           .from('webhook_events')
           .select('id, processed')
           .eq('id_key', idKey)
-          .single();
+          .maybeSingle();
+
+        if (existingError) {
+          console.warn('Error checking webhook event idempotency:', existingError);
+        }
 
         if (existing?.processed) {
           console.log(`Event ${idKey} already processed, skipping`);
@@ -292,25 +296,39 @@ Deno.serve(async (req) => {
         // Store raw event
         const { data: webhookEvent, error: insertError } = await supabase
           .from('webhook_events')
-          .upsert({
-            id_key: idKey,
-            event_type: eventType,
-            payload: ev.raw,
-            processed: false,
-          }, {
-            onConflict: 'id_key',
-            ignoreDuplicates: true,
-          })
-          .select()
-          .single();
+          .upsert(
+            {
+              id_key: idKey,
+              event_type: eventType,
+              payload: ev.raw,
+              processed: false,
+            },
+            {
+              onConflict: 'id_key',
+              ignoreDuplicates: true,
+            }
+          )
+          .select('id')
+          .maybeSingle();
 
         if (insertError && !insertError.message?.includes('duplicate')) {
           console.error('Error storing webhook event:', insertError);
           continue;
         }
 
+        // If we didn't get an id back (e.g. duplicate upsert with ignoreDuplicates), fetch existing id
+        const webhookEventId = webhookEvent?.id
+          ? webhookEvent.id
+          : (
+              await supabase
+                .from('webhook_events')
+                .select('id')
+                .eq('id_key', idKey)
+                .maybeSingle()
+            ).data?.id;
+
         // Process the event
-        await processEvent(supabase, ev, webhookEvent?.id);
+        await processEvent(supabase, ev, webhookEventId);
       }
     };
 
@@ -377,26 +395,34 @@ async function processInboundMessage(
   // Upsert contact
   const { data: contact, error: contactError } = await supabase
     .from('contacts')
-    .upsert({
-      tenant_id: tenantId,
-      wa_id: ev.from_wa_id,
-      name: ev.contact_name || null,
-      last_seen: new Date().toISOString(),
-    }, {
-      onConflict: 'tenant_id,wa_id',
-    })
-    .select()
-    .single();
+    .upsert(
+      {
+        tenant_id: tenantId,
+        wa_id: ev.from_wa_id,
+        name: ev.contact_name || null,
+        last_seen: new Date().toISOString(),
+      },
+      {
+        onConflict: 'tenant_id,wa_id',
+      }
+    )
+    .select('id')
+    .maybeSingle();
 
   let contactId = contact?.id;
   if (contactError || !contactId) {
     // Try to get existing contact
-    const { data: existingContact } = await supabase
+    const { data: existingContact, error: existingError } = await supabase
       .from('contacts')
       .select('id')
       .eq('tenant_id', tenantId)
       .eq('wa_id', ev.from_wa_id)
-      .single();
+      .maybeSingle();
+
+    if (existingError) {
+      console.error('Failed to lookup existing contact for', ev.from_wa_id, existingError);
+      return;
+    }
 
     if (!existingContact) {
       console.error('Failed to upsert contact for', ev.from_wa_id, contactError);
@@ -408,29 +434,37 @@ async function processInboundMessage(
   // Upsert conversation (unique on phone_number_id + contact_id)
   const { data: conversation, error: convError } = await supabase
     .from('conversations')
-    .upsert({
-      tenant_id: tenantId,
-      phone_number_id: phoneNumberId,
-      contact_id: contactId,
-      status: 'open',
-      last_message_at: new Date().toISOString(),
-      last_inbound_at: new Date().toISOString(),
-    }, {
-      onConflict: 'phone_number_id,contact_id',
-    })
-    .select()
-    .single();
+    .upsert(
+      {
+        tenant_id: tenantId,
+        phone_number_id: phoneNumberId,
+        contact_id: contactId,
+        status: 'open',
+        last_message_at: new Date().toISOString(),
+        last_inbound_at: new Date().toISOString(),
+      },
+      {
+        onConflict: 'phone_number_id,contact_id',
+      }
+    )
+    .select('id, unread_count')
+    .maybeSingle();
 
   let conversationId = conversation?.id;
   if (convError || !conversationId) {
     // Try to get existing conversation
-    const { data: existingConv } = await supabase
+    const { data: existingConv, error: existingError } = await supabase
       .from('conversations')
       .select('id')
       .eq('tenant_id', tenantId)
       .eq('phone_number_id', phoneNumberId)
       .eq('contact_id', contactId)
-      .single();
+      .maybeSingle();
+
+    if (existingError) {
+      console.error('Failed to lookup existing conversation', existingError);
+      return;
+    }
 
     if (!existingConv) {
       console.error('Failed to upsert conversation', convError);
