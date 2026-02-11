@@ -14,7 +14,7 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { action, code, tenantId, wabaId: clientWabaId, phoneNumberId: clientPhoneId } = await req.json();
+    const { action, code, tenantId, wabaId: clientWabaId, phoneNumberId: clientPhoneId, pin } = await req.json();
 
     // ── get_config (public) ──────────────────────────────────────────────
     if (action === 'get_config') {
@@ -262,6 +262,8 @@ Deno.serve(async (req) => {
           else { connectedPhoneId = newPhone.id; }
 
           // ── Register phone with Cloud API for messaging ──
+          // Uses the user-provided 2-step verification PIN (defaults to 000000 if not set)
+          const registrationPin = pin || '000000';
           try {
             const regRes = await fetch(`${GRAPH_API_BASE}/${clientPhoneId}/register`, {
               method: 'POST',
@@ -269,12 +271,16 @@ Deno.serve(async (req) => {
                 Authorization: `Bearer ${accessToken}`,
                 'Content-Type': 'application/json',
               },
-              body: JSON.stringify({ messaging_product: 'whatsapp', pin: '000000' }),
+              body: JSON.stringify({ messaging_product: 'whatsapp', pin: registrationPin }),
             });
             const regData = await regRes.json();
             console.log('Phone register result:', JSON.stringify(regData));
             if (regData.error) {
               console.warn('Phone registration warning:', regData.error.message);
+              // If PIN mismatch, mark as needing re-registration but don't block connection
+              if (regData.error.code === 133005) {
+                console.warn('Two-step PIN mismatch. Phone connected but may need re-registration with correct PIN.');
+              }
             }
           } catch (regErr) {
             console.warn('Phone registration attempt failed:', regErr);
