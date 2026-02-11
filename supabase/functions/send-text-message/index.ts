@@ -404,17 +404,34 @@ Deno.serve(async (req) => {
       console.log('WhatsApp API response:', JSON.stringify(waResult));
 
       if (!waResponse.ok) {
+        const errorCode = waResult.error?.code;
+        const errorMsg = waResult.error?.message || 'Failed to send message';
+        
         await supabase.from('messages').update({
           status: 'failed',
           failed_at: new Date().toISOString(),
-          error_code: waResult.error?.code?.toString(),
-          error_message: waResult.error?.message,
+          error_code: errorCode?.toString(),
+          error_message: errorMsg,
         }).eq('id', message.id);
+
+        // Detect permission error and provide actionable guidance
+        let userFacingError = errorMsg;
+        let errorCodeStr = errorCode?.toString();
+        if (errorCode === 200 && errorMsg.includes('permission')) {
+          userFacingError = 'Your WhatsApp access token lacks messaging permission. Please go to Phone Numbers and click "Reconnect" to refresh your token with the correct permissions.';
+          errorCodeStr = 'MISSING_MESSAGING_PERMISSION';
+          
+          // Mark the phone number as needing reconnection
+          await supabase.from('phone_numbers').update({
+            status: 'disconnected',
+          }).eq('id', phone_number_id);
+        }
 
         return new Response(JSON.stringify({
           ok: false,
           message_id: message.id,
-          error: waResult.error?.message || 'Failed to send message',
+          error: userFacingError,
+          code: errorCodeStr,
         }), {
           status: 400,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
