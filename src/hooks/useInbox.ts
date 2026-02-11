@@ -686,7 +686,9 @@ export function useInboxActions() {
 
       if (error) throw error;
       if (data?.error) {
-        if (data.code === 'OUTSIDE_24H') {
+        if (data.code === 'MISSING_MESSAGING_PERMISSION') {
+          toast.error('WhatsApp token expired or missing permissions. Please go to Phone Numbers and reconnect your number.', { duration: 8000 });
+        } else if (data.code === 'OUTSIDE_24H') {
           toast.error('Cannot send: no inbound message within 24 hours. Use a template instead.');
         } else if (data.code === 'LIMIT_EXCEEDED') {
           toast.error('Monthly message limit exceeded. Please upgrade your plan.');
