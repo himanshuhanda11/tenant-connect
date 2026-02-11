@@ -226,16 +226,20 @@ Deno.serve(async (req) => {
       if (clientPhoneId) {
         console.log('Connecting single phone:', clientPhoneId);
 
-        // ── Enforce 1 phone per workspace: remove ALL existing phones first ──
-        const { data: existingPhones } = await supabase
-          .from('phone_numbers')
-          .select('id')
-          .eq('tenant_id', tenantId);
-        if (existingPhones && existingPhones.length > 0) {
-          const idsToDelete = existingPhones.map((p: any) => p.id);
-          console.log('Removing existing phone(s) to enforce 1-per-workspace:', idsToDelete);
-          await supabase.from('phone_numbers').delete().in('id', idsToDelete);
-        }
+        // ── Enforce 1 phone per workspace ──
+        // IMPORTANT: Do NOT delete existing phones until the new one is successfully saved.
+        // Otherwise transient Meta API errors can leave the workspace with zero phones.
+        const cleanupOtherPhones = async (keepPhoneDbId: string) => {
+          try {
+            await supabase
+              .from('phone_numbers')
+              .delete()
+              .eq('tenant_id', tenantId)
+              .neq('id', keepPhoneDbId);
+          } catch (e) {
+            console.warn('Failed to cleanup other phones (non-blocking):', e);
+          }
+        };
 
         const phoneRes = await fetch(
           `${GRAPH_API_BASE}/${clientPhoneId}?fields=id,display_phone_number,verified_name,quality_rating,messaging_limit_tier`,
@@ -244,6 +248,10 @@ Deno.serve(async (req) => {
         const phoneData = await phoneRes.json();
         if (phoneData.error) {
           console.error('Phone fetch error:', phoneData.error);
+          return new Response(JSON.stringify({ error: 'Failed to fetch phone number details from Meta' }), {
+            status: 400,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
         } else {
           const qualityRating = mapQuality(phoneData.quality_rating);
           const messagingLimit = mapMessagingLimit(phoneData.messaging_limit_tier);
@@ -258,8 +266,18 @@ Deno.serve(async (req) => {
             messaging_limit: messagingLimit,
             status: 'connected',
           }).select().single();
-          if (phoneErr) { console.error('Phone insert error:', phoneErr); }
-          else { connectedPhoneId = newPhone.id; }
+
+          if (phoneErr) {
+            console.error('Phone insert error:', phoneErr);
+            return new Response(JSON.stringify({ error: 'Failed to save phone number' }), {
+              status: 500,
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            });
+          }
+
+          connectedPhoneId = newPhone.id;
+          // Now that the new phone is saved, cleanup any previous phone records for this tenant.
+          await cleanupOtherPhones(connectedPhoneId);
 
           // ── Register phone with Cloud API for messaging ──
           // Uses the user-provided 2-step verification PIN (defaults to 000000 if not set)
