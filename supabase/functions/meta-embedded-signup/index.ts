@@ -123,19 +123,37 @@ Deno.serve(async (req) => {
         console.warn('Could not get long-lived token, continuing with short-lived');
       }
 
-      // 3. Determine WABA IDs — prefer client-provided, fall back to debug_token
+      // 3. Validate token has required messaging permission
+      const appAccessToken = `${appId}|${appSecret}`;
+      const debugUrl = `${GRAPH_API_BASE}/debug_token?` + new URLSearchParams({
+        input_token: accessToken,
+        access_token: appAccessToken,
+      });
+      const debugRes = await fetch(debugUrl);
+      const debugData = await debugRes.json();
+      const grantedScopes = debugData.data?.scopes || [];
+      const granularScopes = debugData.data?.granular_scopes || [];
+      console.log('Token scopes:', grantedScopes);
+      console.log('Token granular_scopes:', JSON.stringify(granularScopes));
+
+      const hasMessagingPerm = grantedScopes.includes('whatsapp_business_messaging') ||
+        granularScopes.some((s: any) => s.scope === 'whatsapp_business_messaging');
+
+      if (!hasMessagingPerm) {
+        console.error('Token missing whatsapp_business_messaging permission');
+        return new Response(JSON.stringify({
+          error: 'Missing messaging permission. The token does not include "whatsapp_business_messaging". Please ensure your Meta App has this permission in Advanced Access, then reconnect.',
+          code: 'MISSING_MESSAGING_PERMISSION',
+        }), {
+          status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      // 4. Determine WABA IDs — prefer client-provided, fall back to debug_token
       let wabaIds: string[] = clientWabaId ? [clientWabaId] : [];
 
       if (wabaIds.length === 0) {
-        console.log('No client WABA ID, debugging token...');
-        const appAccessToken = `${appId}|${appSecret}`;
-        const debugUrl = `${GRAPH_API_BASE}/debug_token?` + new URLSearchParams({
-          input_token: accessToken,
-          access_token: appAccessToken,
-        });
-        const debugRes = await fetch(debugUrl);
-        const debugData = await debugRes.json();
-        const granularScopes = debugData.data?.granular_scopes || [];
+        console.log('No client WABA ID, using granular_scopes from debug...');
         const wabaScope = granularScopes.find((s: any) => s.scope === 'whatsapp_business_management');
         wabaIds = wabaScope?.target_ids || [];
         console.log('WABA IDs from debug_token:', wabaIds);
