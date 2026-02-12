@@ -2049,7 +2049,7 @@ export type Database = {
           last_message_at: string | null
           last_message_id: string | null
           last_message_preview: string | null
-          phone_number_id: string
+          phone_number_id: string | null
           priority: string | null
           sla_breached: boolean | null
           sla_first_response_due: string | null
@@ -2072,7 +2072,7 @@ export type Database = {
           last_message_at?: string | null
           last_message_id?: string | null
           last_message_preview?: string | null
-          phone_number_id: string
+          phone_number_id?: string | null
           priority?: string | null
           sla_breached?: boolean | null
           sla_first_response_due?: string | null
@@ -2095,7 +2095,7 @@ export type Database = {
           last_message_at?: string | null
           last_message_id?: string | null
           last_message_preview?: string | null
-          phone_number_id?: string
+          phone_number_id?: string | null
           priority?: string | null
           sla_breached?: boolean | null
           sla_first_response_due?: string | null
