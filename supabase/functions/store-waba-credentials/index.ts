@@ -105,9 +105,15 @@ Deno.serve(async (req) => {
       const hasSystemUserToken = existingWabaFull?.token_source === 'system_user' && existingWabaFull?.encrypted_access_token;
 
       const updatePayload: any = { status: "active" };
+      const systemUserToken = Deno.env.get('META_SYSTEM_USER_TOKEN');
       if (!hasSystemUserToken) {
-        updatePayload.encrypted_access_token = accessToken;
-        updatePayload.token_source = 'embedded_signup';
+        if (systemUserToken) {
+          updatePayload.encrypted_access_token = systemUserToken;
+          updatePayload.token_source = 'system_user';
+        } else {
+          updatePayload.encrypted_access_token = accessToken;
+          updatePayload.token_source = 'embedded_signup';
+        }
       }
 
       const { error: updateError } = await adminClient
@@ -121,13 +127,15 @@ Deno.serve(async (req) => {
       }
     } else {
       // Create new WABA account using service role
+      const newWabaSystemToken = Deno.env.get('META_SYSTEM_USER_TOKEN');
       const { data: newWaba, error: wabaError } = await adminClient
         .from("waba_accounts")
         .insert({
           tenant_id: tenantId,
           business_id: businessId,
           waba_id: wabaId,
-          encrypted_access_token: accessToken,
+          encrypted_access_token: newWabaSystemToken || accessToken,
+          token_source: newWabaSystemToken ? 'system_user' : 'embedded_signup',
           status: "active",
         })
         .select("id")
