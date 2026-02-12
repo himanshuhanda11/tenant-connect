@@ -237,11 +237,7 @@ Deno.serve(async (req) => {
 
         // If Meta says we lack permission, reflect that this number isn't ready (common after reconnect/recreate)
         if (errorCode === 200 && (errorMessage || '').toLowerCase().includes('permission')) {
-          supabase
-            .from('phone_numbers')
-            .update({ status: 'pending', updated_at: new Date().toISOString() })
-            .eq('id', phoneNumber.id)
-            .then(() => {});
+          // Do NOT revert status to pending — keep 'connected' so user can retry after Meta provisions.
         }
 
         // Update message as failed

@@ -245,13 +245,7 @@ Deno.serve(async (req) => {
         // or the token scopes/WABA linkage aren't fully ready yet.
         userFacingError = 'Messaging permission is not ready yet for this number. If you just reconnected/recreated the workspace, wait 10–30 minutes and try again. If it still fails, reconnect the number.';
         errorCodeStr = 'MISSING_MESSAGING_PERMISSION';
-
-        // Also reflect a non-ready state on the number to avoid "connected but cannot send".
-        supabase
-          .from('phone_numbers')
-          .update({ status: 'pending', updated_at: new Date().toISOString() })
-          .eq('id', phone_number_id)
-          .then(() => {});
+        // Do NOT revert status to pending — keep 'connected' so the user can retry without re-connecting.
       }
 
       supabase.from('messages').update({
