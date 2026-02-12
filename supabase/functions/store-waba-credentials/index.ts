@@ -95,13 +95,24 @@ Deno.serve(async (req) => {
 
     if (existingWaba) {
       wabaAccountId = existingWaba.id;
-      // Update access token using service role (never exposed to client)
+      // Check if existing WABA has a System User token — preserve it
+      const { data: existingWabaFull } = await adminClient
+        .from("waba_accounts")
+        .select("token_source, encrypted_access_token")
+        .eq("id", wabaAccountId)
+        .single();
+
+      const hasSystemUserToken = existingWabaFull?.token_source === 'system_user' && existingWabaFull?.encrypted_access_token;
+
+      const updatePayload: any = { status: "active" };
+      if (!hasSystemUserToken) {
+        updatePayload.encrypted_access_token = accessToken;
+        updatePayload.token_source = 'embedded_signup';
+      }
+
       const { error: updateError } = await adminClient
         .from("waba_accounts")
-        .update({ 
-          encrypted_access_token: accessToken, 
-          status: "active" 
-        })
+        .update(updatePayload)
         .eq("id", wabaAccountId);
 
       if (updateError) {
