@@ -218,13 +218,28 @@ Deno.serve(async (req) => {
     let wabaAccountId: string;
 
     if (existingWaba) {
-      await supabase.from('waba_accounts').update({
-        encrypted_access_token: accessToken,
+      // Check if existing WABA has a System User token — preserve it
+      const { data: existingWabaFull } = await supabase
+        .from('waba_accounts')
+        .select('token_source, encrypted_access_token')
+        .eq('id', existingWaba.id)
+        .single();
+
+      const hasSystemUserToken = existingWabaFull?.token_source === 'system_user' && existingWabaFull?.encrypted_access_token;
+
+      const updatePayload: any = {
         status: 'active',
         name: wabaData.name,
         business_id: businessId,
-        updated_at: new Date().toISOString()
-      }).eq('id', existingWaba.id);
+        updated_at: new Date().toISOString(),
+      };
+
+      if (!hasSystemUserToken) {
+        updatePayload.encrypted_access_token = accessToken;
+        updatePayload.token_source = 'embedded_signup';
+      }
+
+      await supabase.from('waba_accounts').update(updatePayload).eq('id', existingWaba.id);
       wabaAccountId = existingWaba.id;
     } else {
       const { data: newWaba, error: insertError } = await supabase.from('waba_accounts').insert({

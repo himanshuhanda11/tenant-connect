@@ -9258,6 +9258,7 @@ export type Database = {
           name: string | null
           status: Database["public"]["Enums"]["waba_status"]
           tenant_id: string
+          token_source: string | null
           updated_at: string
           waba_id: string
         }
@@ -9269,6 +9270,7 @@ export type Database = {
           name?: string | null
           status?: Database["public"]["Enums"]["waba_status"]
           tenant_id: string
+          token_source?: string | null
           updated_at?: string
           waba_id: string
         }
@@ -9280,6 +9282,7 @@ export type Database = {
           name?: string | null
           status?: Database["public"]["Enums"]["waba_status"]
           tenant_id?: string
+          token_source?: string | null
           updated_at?: string
           waba_id?: string
         }

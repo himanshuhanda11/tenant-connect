@@ -1,0 +1,1 @@
+ALTER TABLE public.waba_accounts ADD COLUMN IF NOT EXISTS token_source text DEFAULT 'embedded_signup';
