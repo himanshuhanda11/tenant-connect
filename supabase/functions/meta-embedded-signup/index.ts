@@ -213,10 +213,19 @@ Deno.serve(async (req) => {
           updated_at: new Date().toISOString(),
         };
 
+        // Check for System User token in secrets as fallback
+        const systemUserToken = Deno.env.get('META_SYSTEM_USER_TOKEN');
+
         if (!hasSystemUserToken) {
-          updatePayload.encrypted_access_token = accessToken;
-          updatePayload.token_source = 'embedded_signup';
-          console.log('Updating WABA with new Embedded Signup token');
+          if (systemUserToken) {
+            updatePayload.encrypted_access_token = systemUserToken;
+            updatePayload.token_source = 'system_user';
+            console.log('Updating WABA with System User token from secrets');
+          } else {
+            updatePayload.encrypted_access_token = accessToken;
+            updatePayload.token_source = 'embedded_signup';
+            console.log('Updating WABA with new Embedded Signup token');
+          }
         } else {
           console.log('Preserving existing System User token for WABA');
         }
@@ -225,12 +234,15 @@ Deno.serve(async (req) => {
         wabaAccountId = existingWaba.id;
         console.log('Updated WABA:', wabaAccountId);
       } else {
+        // Use System User token from secrets if available for new WABA records
+        const newWabaSystemToken = Deno.env.get('META_SYSTEM_USER_TOKEN');
         const { data: newWaba, error: insertErr } = await supabase.from('waba_accounts').insert({
           tenant_id: effectiveTenantId,
           waba_id: primaryWabaId,
           business_id: businessId,
           name: wabaData.name,
-          encrypted_access_token: accessToken,
+          encrypted_access_token: newWabaSystemToken || accessToken,
+          token_source: newWabaSystemToken ? 'system_user' : 'embedded_signup',
           status: 'active',
         }).select().single();
         if (insertErr) {
