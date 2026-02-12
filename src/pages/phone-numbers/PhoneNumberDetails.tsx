@@ -42,7 +42,9 @@ import {
   Mail,
   Link as LinkIcon,
   Building2,
-  Save
+  Save,
+  Upload,
+  Camera
 } from 'lucide-react';
 import { formatDistanceToNow, format } from 'date-fns';
 import { usePhoneNumbers, useWebhookLogs, useQualityHistory } from '@/hooks/usePhoneNumbers';
@@ -222,6 +224,50 @@ export default function PhoneNumberDetails() {
       ...prev,
       data: { ...prev.data, [field]: value }
     }));
+  };
+
+  // Profile picture upload state
+  const [uploadingPicture, setUploadingPicture] = useState(false);
+
+  const handleProfilePictureUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !number?.waba_uuid || !number?.phone_number_id) return;
+
+    // Validate file
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please select an image file');
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('Image must be less than 5MB');
+      return;
+    }
+
+    setUploadingPicture(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('phone_number_id', number.phone_number_id);
+      formData.append('waba_account_id', number.waba_uuid);
+
+      const { data, error } = await supabase.functions.invoke('whatsapp-profile', {
+        body: formData,
+      });
+
+      if (error) throw error;
+      if (!data?.success) throw new Error(data?.error || 'Upload failed');
+
+      toast.success('Profile picture updated successfully! It may take a few minutes to appear on WhatsApp.');
+      // Refresh profile to get new picture URL
+      fetchBusinessProfile();
+    } catch (error: any) {
+      console.error('Failed to upload profile picture:', error);
+      toast.error(error.message || 'Failed to upload profile picture');
+    } finally {
+      setUploadingPicture(false);
+      // Reset input
+      e.target.value = '';
+    }
   };
 
   useEffect(() => {
@@ -762,20 +808,54 @@ export default function PhoneNumberDetails() {
                   </div>
                 ) : (
                   <>
-                    {/* Profile Picture Preview */}
-                    {businessProfile.data.profile_picture_url && (
-                      <div className="flex items-center gap-4 p-4 bg-muted/50 rounded-lg">
+                    {/* Profile Picture */}
+                    <div className="flex items-center gap-4 p-4 bg-muted/50 rounded-lg">
+                      {businessProfile.data.profile_picture_url ? (
                         <img 
                           src={businessProfile.data.profile_picture_url} 
                           alt="Business Profile" 
                           className="w-16 h-16 rounded-full object-cover"
                         />
-                        <div>
-                          <p className="font-medium">{number.verified_name || 'Your Business'}</p>
-                          <p className="text-sm text-muted-foreground">Current profile picture</p>
+                      ) : (
+                        <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center">
+                          <Camera className="h-6 w-6 text-muted-foreground" />
                         </div>
+                      )}
+                      <div className="flex-1">
+                        <p className="font-medium">{number.verified_name || 'Your Business'}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {businessProfile.data.profile_picture_url ? 'Current profile picture' : 'No profile picture set'}
+                        </p>
                       </div>
-                    )}
+                      <div>
+                        <input
+                          type="file"
+                          id="profile-picture-upload"
+                          accept="image/jpeg,image/png"
+                          className="hidden"
+                          onChange={handleProfilePictureUpload}
+                          disabled={uploadingPicture}
+                        />
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          disabled={uploadingPicture}
+                          onClick={() => document.getElementById('profile-picture-upload')?.click()}
+                        >
+                          {uploadingPicture ? (
+                            <>
+                              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                              Uploading...
+                            </>
+                          ) : (
+                            <>
+                              <Upload className="h-4 w-4 mr-2" />
+                              {businessProfile.data.profile_picture_url ? 'Change' : 'Upload'}
+                            </>
+                          )}
+                        </Button>
+                      </div>
+                    </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       {/* About */}
@@ -940,10 +1020,10 @@ export default function PhoneNumberDetails() {
               </CardHeader>
               <CardContent>
                 <ul className="text-sm text-muted-foreground space-y-1">
-                  <li>• Profile photo can only be changed via Meta Business Suite</li>
-                  <li>• Go to <strong>business.facebook.com</strong> → WhatsApp Accounts → Phone Number → Profile</li>
-                  <li>• Use a square image (640x640 recommended) for best results</li>
+                  <li>• Use a square image (640×640 recommended) for best results</li>
+                  <li>• Supported formats: JPEG, PNG (max 5MB)</li>
                   <li>• Changes may take a few minutes to appear on WhatsApp</li>
+                  <li>• The image will be cropped to a circle in WhatsApp</li>
                 </ul>
               </CardContent>
             </Card>
