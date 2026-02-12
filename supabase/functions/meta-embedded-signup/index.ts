@@ -169,25 +169,9 @@ Deno.serve(async (req) => {
       const primaryWabaId = wabaIds[0];
       let connectedPhoneId: string | null = null;
 
-      // ── RECONNECT FIX: If this phone already exists in ANY tenant, reuse that tenant ──
-      // This prevents the same phone from being created under a different workspace
-      // when the user reconnects while viewing a different workspace.
-      let effectiveTenantId = tenantId;
-      if (clientPhoneId) {
-        const { data: existingPhone } = await supabase
-          .from('phone_numbers')
-          .select('id, tenant_id, waba_account_id')
-          .eq('phone_number_id', clientPhoneId)
-          .in('status', ['connected', 'pending'])
-          .order('created_at', { ascending: false })
-          .limit(1)
-          .maybeSingle();
-
-        if (existingPhone && existingPhone.tenant_id !== tenantId) {
-          console.log(`Phone ${clientPhoneId} already exists in tenant ${existingPhone.tenant_id}, reusing that tenant instead of ${tenantId}`);
-          effectiveTenantId = existingPhone.tenant_id;
-        }
-      }
+      // Always use the tenant the user is connecting FROM.
+      // The phone and WABA will be moved to this workspace.
+      const effectiveTenantId = tenantId;
 
       // Fetch WABA details
       const wabaRes = await fetch(
@@ -204,8 +188,7 @@ Deno.serve(async (req) => {
 
       const businessId = wabaData.owner_business_info?.id || 'unknown';
 
-      // Upsert WABA account — search across ALL tenants for this waba_id first
-      // to find existing System User tokens
+      // Find existing WABA across ALL tenants to preserve system_user tokens
       const { data: existingWabaAny } = await supabase
         .from('waba_accounts')
         .select('id, tenant_id, token_source, encrypted_access_token')
@@ -213,23 +196,17 @@ Deno.serve(async (req) => {
         .order('created_at', { ascending: false })
         .limit(5);
 
-      // Prefer WABA in the effective tenant, then any with system_user token
-      const existingWaba = existingWabaAny?.find(w => w.tenant_id === effectiveTenantId)
-        || existingWabaAny?.find(w => w.token_source === 'system_user')
+      // Prefer one with system_user token, then any
+      const existingWaba = existingWabaAny?.find(w => w.token_source === 'system_user')
         || existingWabaAny?.[0]
         || null;
-
-      // If we found an existing WABA in a different tenant, use that tenant
-      if (existingWaba && existingWaba.tenant_id !== effectiveTenantId) {
-        console.log(`Existing WABA found in tenant ${existingWaba.tenant_id}, switching effective tenant`);
-        effectiveTenantId = existingWaba.tenant_id;
-      }
 
       let wabaAccountId: string;
       if (existingWaba) {
         const hasSystemUserToken = existingWaba.token_source === 'system_user' && existingWaba.encrypted_access_token;
 
         const updatePayload: any = {
+          tenant_id: effectiveTenantId, // Move WABA to current workspace
           status: 'active',
           name: wabaData.name,
           business_id: businessId,
@@ -275,19 +252,12 @@ Deno.serve(async (req) => {
         // Otherwise transient Meta API errors can leave the workspace with zero phones.
         const cleanupOtherPhones = async (keepPhoneDbId: string) => {
           try {
-            // Clean up in BOTH the original tenantId and effectiveTenantId
+            // Remove any other phones in this workspace
             await supabase
               .from('phone_numbers')
               .delete()
               .eq('tenant_id', effectiveTenantId)
               .neq('id', keepPhoneDbId);
-            if (tenantId !== effectiveTenantId) {
-              await supabase
-                .from('phone_numbers')
-                .delete()
-                .eq('tenant_id', tenantId)
-                .eq('phone_number_id', clientPhoneId);
-            }
           } catch (e) {
             console.warn('Failed to cleanup other phones (non-blocking):', e);
           }
