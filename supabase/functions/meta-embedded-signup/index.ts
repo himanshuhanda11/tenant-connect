@@ -169,6 +169,26 @@ Deno.serve(async (req) => {
       const primaryWabaId = wabaIds[0];
       let connectedPhoneId: string | null = null;
 
+      // ── RECONNECT FIX: If this phone already exists in ANY tenant, reuse that tenant ──
+      // This prevents the same phone from being created under a different workspace
+      // when the user reconnects while viewing a different workspace.
+      let effectiveTenantId = tenantId;
+      if (clientPhoneId) {
+        const { data: existingPhone } = await supabase
+          .from('phone_numbers')
+          .select('id, tenant_id, waba_account_id')
+          .eq('phone_number_id', clientPhoneId)
+          .in('status', ['connected', 'pending'])
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
+        if (existingPhone && existingPhone.tenant_id !== tenantId) {
+          console.log(`Phone ${clientPhoneId} already exists in tenant ${existingPhone.tenant_id}, reusing that tenant instead of ${tenantId}`);
+          effectiveTenantId = existingPhone.tenant_id;
+        }
+      }
+
       // Fetch WABA details
       const wabaRes = await fetch(
         `${GRAPH_API_BASE}/${primaryWabaId}?fields=id,name,currency,timezone_id,owner_business_info`,
@@ -184,24 +204,30 @@ Deno.serve(async (req) => {
 
       const businessId = wabaData.owner_business_info?.id || 'unknown';
 
-      // Upsert WABA account
-      const { data: existingWaba } = await supabase
+      // Upsert WABA account — search across ALL tenants for this waba_id first
+      // to find existing System User tokens
+      const { data: existingWabaAny } = await supabase
         .from('waba_accounts')
-        .select('id')
-        .eq('tenant_id', tenantId)
+        .select('id, tenant_id, token_source, encrypted_access_token')
         .eq('waba_id', primaryWabaId)
-        .maybeSingle();
+        .order('created_at', { ascending: false })
+        .limit(5);
+
+      // Prefer WABA in the effective tenant, then any with system_user token
+      const existingWaba = existingWabaAny?.find(w => w.tenant_id === effectiveTenantId)
+        || existingWabaAny?.find(w => w.token_source === 'system_user')
+        || existingWabaAny?.[0]
+        || null;
+
+      // If we found an existing WABA in a different tenant, use that tenant
+      if (existingWaba && existingWaba.tenant_id !== effectiveTenantId) {
+        console.log(`Existing WABA found in tenant ${existingWaba.tenant_id}, switching effective tenant`);
+        effectiveTenantId = existingWaba.tenant_id;
+      }
 
       let wabaAccountId: string;
       if (existingWaba) {
-        // Check if existing WABA has a System User token — if so, preserve it
-        const { data: existingWabaFull } = await supabase
-          .from('waba_accounts')
-          .select('token_source, encrypted_access_token')
-          .eq('id', existingWaba.id)
-          .single();
-
-        const hasSystemUserToken = existingWabaFull?.token_source === 'system_user' && existingWabaFull?.encrypted_access_token;
+        const hasSystemUserToken = existingWaba.token_source === 'system_user' && existingWaba.encrypted_access_token;
 
         const updatePayload: any = {
           status: 'active',
@@ -211,7 +237,6 @@ Deno.serve(async (req) => {
         };
 
         if (!hasSystemUserToken) {
-          // Only overwrite token if there's no System User token
           updatePayload.encrypted_access_token = accessToken;
           updatePayload.token_source = 'embedded_signup';
           console.log('Updating WABA with new Embedded Signup token');
@@ -224,7 +249,7 @@ Deno.serve(async (req) => {
         console.log('Updated WABA:', wabaAccountId);
       } else {
         const { data: newWaba, error: insertErr } = await supabase.from('waba_accounts').insert({
-          tenant_id: tenantId,
+          tenant_id: effectiveTenantId,
           waba_id: primaryWabaId,
           business_id: businessId,
           name: wabaData.name,
@@ -250,11 +275,19 @@ Deno.serve(async (req) => {
         // Otherwise transient Meta API errors can leave the workspace with zero phones.
         const cleanupOtherPhones = async (keepPhoneDbId: string) => {
           try {
+            // Clean up in BOTH the original tenantId and effectiveTenantId
             await supabase
               .from('phone_numbers')
               .delete()
-              .eq('tenant_id', tenantId)
+              .eq('tenant_id', effectiveTenantId)
               .neq('id', keepPhoneDbId);
+            if (tenantId !== effectiveTenantId) {
+              await supabase
+                .from('phone_numbers')
+                .delete()
+                .eq('tenant_id', tenantId)
+                .eq('phone_number_id', clientPhoneId);
+            }
           } catch (e) {
             console.warn('Failed to cleanup other phones (non-blocking):', e);
           }
@@ -275,25 +308,61 @@ Deno.serve(async (req) => {
           const qualityRating = mapQuality(phoneData.quality_rating);
           const messagingLimit = mapMessagingLimit(phoneData.messaging_limit_tier);
 
-          // Create phone in a safe default state first.
-          // We'll only mark it as "connected" after registration succeeds.
-          const { data: newPhone, error: phoneErr } = await supabase
+          // Check if phone already exists (any tenant) — update it instead of inserting duplicate
+          const { data: existingPhoneRecord } = await supabase
             .from('phone_numbers')
-            .insert({
-              tenant_id: tenantId,
-              waba_account_id: wabaAccountId,
-              phone_number_id: clientPhoneId,
-              display_number: phoneData.display_phone_number,
-              verified_name: phoneData.verified_name,
-              quality_rating: qualityRating,
-              messaging_limit: messagingLimit,
-              status: 'pending',
-            })
-            .select()
-            .single();
+            .select('id')
+            .eq('phone_number_id', clientPhoneId)
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .maybeSingle();
+
+          let newPhone: any;
+          let phoneErr: any;
+
+          if (existingPhoneRecord) {
+            // Update existing record to correct tenant and WABA
+            const { data, error } = await supabase
+              .from('phone_numbers')
+              .update({
+                tenant_id: effectiveTenantId,
+                waba_account_id: wabaAccountId,
+                display_number: phoneData.display_phone_number,
+                verified_name: phoneData.verified_name,
+                quality_rating: qualityRating,
+                messaging_limit: messagingLimit,
+                status: 'pending',
+                updated_at: new Date().toISOString(),
+              })
+              .eq('id', existingPhoneRecord.id)
+              .select()
+              .single();
+            newPhone = data;
+            phoneErr = error;
+            console.log('Updated existing phone record:', existingPhoneRecord.id);
+          } else {
+            // Create new phone record
+            const { data, error } = await supabase
+              .from('phone_numbers')
+              .insert({
+                tenant_id: effectiveTenantId,
+                waba_account_id: wabaAccountId,
+                phone_number_id: clientPhoneId,
+                display_number: phoneData.display_phone_number,
+                verified_name: phoneData.verified_name,
+                quality_rating: qualityRating,
+                messaging_limit: messagingLimit,
+                status: 'pending',
+              })
+              .select()
+              .single();
+            newPhone = data;
+            phoneErr = error;
+            console.log('Created new phone record');
+          }
 
           if (phoneErr) {
-            console.error('Phone insert error:', phoneErr);
+            console.error('Phone upsert error:', phoneErr);
             return new Response(JSON.stringify({ error: 'Failed to save phone number' }), {
               status: 500,
               headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -301,7 +370,7 @@ Deno.serve(async (req) => {
           }
 
           connectedPhoneId = newPhone.id;
-          // Now that the new phone is saved, cleanup any previous phone records for this tenant.
+          // Cleanup any OTHER phone records for this tenant
           await cleanupOtherPhones(connectedPhoneId);
 
           // ── Register phone for messaging ──
