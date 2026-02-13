@@ -9483,6 +9483,7 @@ export type Database = {
           id: string
           mode: string
           reduce_motion: boolean
+          sidebar_color: string | null
           theme: string
           updated_at: string
           workspace_id: string
@@ -9495,6 +9496,7 @@ export type Database = {
           id?: string
           mode?: string
           reduce_motion?: boolean
+          sidebar_color?: string | null
           theme?: string
           updated_at?: string
           workspace_id: string
@@ -9507,6 +9509,7 @@ export type Database = {
           id?: string
           mode?: string
           reduce_motion?: boolean
+          sidebar_color?: string | null
           theme?: string
           updated_at?: string
           workspace_id?: string
