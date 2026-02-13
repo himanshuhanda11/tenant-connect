@@ -189,20 +189,6 @@ export function AppearanceSettings() {
         </CardContent>
       </Card>
 
-      {/* Sidebar Color */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <PanelLeft className="w-5 h-5 text-primary" />
-            Sidebar Color
-          </CardTitle>
-          <CardDescription>Pick a custom sidebar background color independent of the theme</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <SidebarColorPicker canEdit={canEdit} />
-        </CardContent>
-      </Card>
-
       {/* UI Density */}
       <Card>
         <CardHeader>
