@@ -265,14 +265,14 @@ const TeamGroups = () => {
               <div className="space-y-2">
                 <Label>Team Lead</Label>
                 <Select 
-                  value={formData.team_lead_id} 
-                  onValueChange={(v) => setFormData({ ...formData, team_lead_id: v })}
+                  value={formData.team_lead_id || 'none'} 
+                  onValueChange={(v) => setFormData({ ...formData, team_lead_id: v === 'none' ? '' : v })}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select team lead (optional)" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">None</SelectItem>
+                    <SelectItem value="none">None</SelectItem>
                     {members.map(m => (
                       <SelectItem key={m.id} value={m.user_id}>
                         {m.display_name || m.profile?.full_name || m.profile?.email}
