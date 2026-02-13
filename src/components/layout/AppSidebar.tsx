@@ -350,7 +350,7 @@ export function AppSidebar() {
                   variant="ghost"
                   size="icon"
                   onClick={toggleSidebar}
-                  className="h-8 w-8 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-500 hover:text-gray-700 transition-all"
+                  className="h-8 w-8 rounded-lg bg-sidebar-accent hover:bg-sidebar-accent/80 text-sidebar-foreground/50 hover:text-sidebar-foreground transition-all"
                 >
                   <PanelLeftClose className="w-4 h-4" />
                 </Button>
@@ -366,7 +366,7 @@ export function AppSidebar() {
                 variant="ghost"
                 size="icon"
                 onClick={toggleSidebar}
-                className="w-full h-8 mt-2 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-500 hover:text-gray-700 transition-all"
+                className="w-full h-8 mt-2 rounded-lg bg-sidebar-accent hover:bg-sidebar-accent/80 text-sidebar-foreground/50 hover:text-sidebar-foreground transition-all"
               >
                 <PanelLeft className="w-4 h-4" />
               </Button>
@@ -383,8 +383,8 @@ export function AppSidebar() {
             <DropdownMenuTrigger asChild>
               <button className={cn(
                 "w-full flex items-center gap-3 rounded-xl transition-all duration-200 group",
-                "bg-white border border-gray-200 shadow-sm",
-                "hover:border-green-300 hover:shadow-md",
+                "bg-card border border-sidebar-border shadow-sm",
+                "hover:border-primary/30 hover:shadow-md",
                 isCollapsed ? "p-2 justify-center" : "px-3 py-3"
               )}>
                 <div className={cn(
@@ -397,28 +397,28 @@ export function AppSidebar() {
                 {!isCollapsed && (
                   <>
                     <div className="flex-1 min-w-0 text-left">
-                      <p className="text-sm font-semibold text-gray-900 truncate">
+                      <p className="text-sm font-semibold text-sidebar-foreground truncate">
                         {currentTenant?.name || 'Select Workspace'}
                       </p>
                       {currentRole && (
                         <div className="flex items-center gap-1.5 mt-0.5">
                           <span className={cn(
                             "text-xs font-medium capitalize",
-                            roleConfig[currentRole]?.color || "text-gray-500"
+                            roleConfig[currentRole]?.color || "text-muted-foreground"
                           )}>
                             {currentRole}
                           </span>
                         </div>
                       )}
                     </div>
-                    <ChevronDown className="w-4 h-4 text-gray-400 group-hover:text-gray-600 transition-colors" />
+                    <ChevronDown className="w-4 h-4 text-sidebar-foreground/40 group-hover:text-sidebar-foreground/60 transition-colors" />
                   </>
                 )}
               </button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="w-72 p-2 bg-white shadow-xl border border-gray-200">
-              <div className="px-2 py-2 mb-2 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg">
-                <p className="text-xs font-semibold text-green-700 uppercase tracking-wider flex items-center gap-1.5">
+            <DropdownMenuContent align="start" className="w-72 p-2 bg-popover shadow-xl border border-border">
+              <div className="px-2 py-2 mb-2 bg-primary/10 rounded-lg">
+                <p className="text-xs font-semibold text-primary uppercase tracking-wider flex items-center gap-1.5">
                   <Building2 className="w-3.5 h-3.5" />
                   Switch Workspace
                 </p>
@@ -434,7 +434,7 @@ export function AppSidebar() {
                       onClick={() => setCurrentTenant(tenant)}
                       className={cn(
                         "flex items-center gap-3 p-2.5 rounded-lg cursor-pointer transition-all",
-                        isSelected ? "bg-green-50 border border-green-200" : "hover:bg-gray-50"
+                        isSelected ? "bg-primary/10 border border-primary/20" : "hover:bg-accent"
                       )}
                     >
                       <div className={cn(
@@ -444,10 +444,10 @@ export function AppSidebar() {
                         {tenant.name.slice(0, 1).toUpperCase()}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-gray-900 truncate">{tenant.name}</p>
+                        <p className="text-sm font-medium text-popover-foreground truncate">{tenant.name}</p>
                         <span className={cn(
                           "text-[10px] font-medium capitalize",
-                          roleConfig[tenant.role]?.color || "text-gray-500"
+                          roleConfig[tenant.role]?.color || "text-muted-foreground"
                         )}>
                           {tenant.role}
                         </span>
@@ -464,14 +464,14 @@ export function AppSidebar() {
               <DropdownMenuSeparator className="my-2" />
               <DropdownMenuItem
                 onClick={() => navigate('/select-workspace')}
-                className="gap-3 p-2.5 rounded-lg bg-gradient-to-r from-green-50 to-emerald-50 hover:from-green-100 hover:to-emerald-100"
+                className="gap-3 p-2.5 rounded-lg bg-primary/10 hover:bg-primary/15"
               >
-                <div className="w-9 h-9 rounded-lg bg-white border-2 border-dashed border-green-300 flex items-center justify-center">
-                  <Plus className="w-4 h-4 text-green-600" />
+                <div className="w-9 h-9 rounded-lg bg-card border-2 border-dashed border-primary/30 flex items-center justify-center">
+                  <Plus className="w-4 h-4 text-primary" />
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-green-700">Create or Switch</p>
-                  <p className="text-xs text-green-600/70">Manage workspaces</p>
+                  <p className="text-sm font-medium text-primary">Create or Switch</p>
+                  <p className="text-xs text-primary/70">Manage workspaces</p>
                 </div>
               </DropdownMenuItem>
             </DropdownMenuContent>
@@ -539,8 +539,8 @@ export function AppSidebar() {
           <DropdownMenuTrigger asChild>
             <button className={cn(
               "w-full flex items-center gap-3 rounded-xl transition-all group",
-              "bg-gradient-to-r from-gray-50 to-gray-100/50 border border-gray-200",
-              "hover:from-gray-100 hover:to-gray-50 hover:border-gray-300 hover:shadow-sm",
+              "bg-sidebar-accent/50 border border-sidebar-border",
+              "hover:bg-sidebar-accent hover:border-sidebar-border hover:shadow-sm",
               isCollapsed ? "p-2 justify-center" : "px-3 py-2.5"
             )}>
               <div className={cn(
@@ -553,20 +553,20 @@ export function AppSidebar() {
               {!isCollapsed && (
                 <>
                   <div className="flex-1 min-w-0 text-left">
-                    <p className="text-sm font-medium text-gray-900 truncate">
+                    <p className="text-sm font-medium text-sidebar-foreground truncate">
                       {profile?.full_name || 'User'}
                     </p>
-                    <p className="text-xs text-gray-500 truncate">
+                    <p className="text-xs text-sidebar-foreground/50 truncate">
                       {user?.email}
                     </p>
                   </div>
-                  <ChevronUp className="w-4 h-4 text-gray-400 group-hover:text-gray-600 transition-colors" />
+                  <ChevronUp className="w-4 h-4 text-sidebar-foreground/40 group-hover:text-sidebar-foreground/60 transition-colors" />
                 </>
               )}
             </button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="start" side="top" className="w-64 p-2 bg-white shadow-xl border border-gray-200 mb-2">
-            <div className="px-3 py-3 mb-2 bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg">
+          <DropdownMenuContent align="start" side="top" className="w-64 p-2 bg-popover shadow-xl border border-border mb-2">
+            <div className="px-3 py-3 mb-2 bg-accent rounded-lg">
               <div className="flex items-center gap-3">
                 <div className={cn(
                   "w-10 h-10 rounded-full font-bold text-white text-sm flex items-center justify-center shadow-sm",
@@ -575,21 +575,21 @@ export function AppSidebar() {
                   {getInitials(profile?.full_name ?? null, user?.email ?? '')}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-gray-900">{profile?.full_name || 'User'}</p>
-                  <p className="text-xs text-gray-500 truncate">{user?.email}</p>
+                  <p className="text-sm font-semibold text-popover-foreground">{profile?.full_name || 'User'}</p>
+                  <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
                 </div>
               </div>
             </div>
-            <DropdownMenuItem onClick={() => navigate('/settings')} className="gap-3 py-2.5 rounded-lg hover:bg-gray-50">
-              <User className="w-4 h-4 text-gray-500" />
+            <DropdownMenuItem onClick={() => navigate('/settings')} className="gap-3 py-2.5 rounded-lg hover:bg-accent">
+              <User className="w-4 h-4 text-muted-foreground" />
               <span>My Profile</span>
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => navigate('/settings')} className="gap-3 py-2.5 rounded-lg hover:bg-gray-50">
-              <Settings className="w-4 h-4 text-gray-500" />
+            <DropdownMenuItem onClick={() => navigate('/settings')} className="gap-3 py-2.5 rounded-lg hover:bg-accent">
+              <Settings className="w-4 h-4 text-muted-foreground" />
               <span>Account Settings</span>
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => navigate('/help')} className="gap-3 py-2.5 rounded-lg hover:bg-gray-50">
-              <Headphones className="w-4 h-4 text-gray-500" />
+            <DropdownMenuItem onClick={() => navigate('/help')} className="gap-3 py-2.5 rounded-lg hover:bg-accent">
+              <Headphones className="w-4 h-4 text-muted-foreground" />
               <span>Help & Support</span>
             </DropdownMenuItem>
             <DropdownMenuSeparator className="my-2" />
