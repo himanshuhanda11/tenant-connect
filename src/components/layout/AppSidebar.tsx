@@ -121,12 +121,23 @@ export function AppSidebar() {
     { title: 'Templates', url: '/templates', icon: FileText, key: 'templates', isNew: true, emoji: '📄' }
   ];
 
+  const isAgent = currentRole === 'agent';
+
+  // Agent-accessible main items
+  const filteredMainMenuItems = isAgent
+    ? mainMenuItems.filter(i => ['inbox', 'contacts', 'tags'].includes(i.key))
+    : mainMenuItems;
+
   const menuGroups: MenuGroup[] = [
-    { label: 'Channels', icon: Phone, items: channelMenuItems, emoji: '📡' },
-    { label: 'Growth', icon: TrendingUp, items: growthMenuItems, emoji: '🚀' },
-    { label: 'Meta Ads', icon: Megaphone, items: metaAdsMenuItems, emoji: '📢' },
-    { label: 'Team', icon: Users, items: teamMenuItems, emoji: '👥' }
+    ...(isAgent ? [] : [{ label: 'Channels', icon: Phone, items: channelMenuItems, emoji: '📡' }]),
+    ...(isAgent ? [] : [{ label: 'Growth', icon: TrendingUp, items: growthMenuItems, emoji: '🚀' }]),
+    ...(isAgent ? [] : [{ label: 'Meta Ads', icon: Megaphone, items: metaAdsMenuItems, emoji: '📢' }]),
+    ...(isAgent ? [] : [{ label: 'Team', icon: Users, items: teamMenuItems, emoji: '👥' }]),
   ];
+
+  const filteredSettingsMenuItems = isAgent
+    ? settingsMenuItems.filter(i => ['help'].includes(i.key))
+    : settingsMenuItems;
 
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>(() => ({
     'Meta Ads': true,
@@ -482,10 +493,10 @@ export function AppSidebar() {
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu className="space-y-1">
-              {mainMenuItems.map((item, index) => (
+              {filteredMainMenuItems.map((item, index) => (
                 <div key={item.title}>
                   {renderMenuItem(item)}
-                  {index < mainMenuItems.length - 1 && !isCollapsed && (
+                  {index < filteredMainMenuItems.length - 1 && !isCollapsed && (
                     <div className="mx-3 my-1 border-b border-sidebar-border/50" />
                   )}
                 </div>
@@ -520,10 +531,10 @@ export function AppSidebar() {
           )}
           <SidebarGroupContent>
             <SidebarMenu className="space-y-1">
-              {settingsMenuItems.map((item, index) => (
+              {filteredSettingsMenuItems.map((item, index) => (
                 <div key={item.title}>
                   {renderMenuItem(item)}
-                  {index < settingsMenuItems.length - 1 && !isCollapsed && (
+                  {index < filteredSettingsMenuItems.length - 1 && !isCollapsed && (
                     <div className="mx-3 my-1 border-b border-sidebar-border/50" />
                   )}
                 </div>
