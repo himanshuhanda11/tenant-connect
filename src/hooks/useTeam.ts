@@ -492,14 +492,14 @@ export function useMemberInvites() {
 
       // Send invitation email via Resend
       try {
-        const { data: profile } = await supabase.from('profiles').select('full_name').eq('id', (await supabase.auth.getUser()).data.user?.id || '').maybeSingle();
+        const { data: profile } = await supabase.from('profiles').select('full_name').eq('id', user?.id || '').maybeSingle();
         await supabase.functions.invoke('send-team-email', {
           body: {
             type: 'invite',
             to: email,
-            inviterName: profile?.full_name || 'A team member',
-            workspaceName: currentTenant.name,
+            inviterName: profile?.full_name || 'Your team admin',
             token,
+            appUrl: 'https://aireatro.com',
           },
         });
       } catch (emailErr) {
@@ -535,12 +535,14 @@ export function useMemberInvites() {
       try {
         const { data: invite } = await supabase.from('member_invites').select('email').eq('id', id).maybeSingle();
         if (invite?.email) {
+          const { data: profile } = await supabase.from('profiles').select('full_name').eq('id', (await supabase.auth.getUser()).data.user?.id || '').maybeSingle();
           await supabase.functions.invoke('send-team-email', {
             body: {
               type: 'invite',
               to: invite.email,
-              workspaceName: currentTenant?.name,
+              inviterName: profile?.full_name || 'Your team admin',
               token: newToken,
+              appUrl: 'https://aireatro.com',
             },
           });
         }

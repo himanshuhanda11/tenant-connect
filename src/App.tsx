@@ -13,6 +13,7 @@ import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
+import InviteAccept from "./pages/InviteAccept";
 import SignupPage from "./pages/onboarding/SignupPage";
 import OrganizationPage from "./pages/onboarding/OrganizationPage";
 import PasswordPage from "./pages/onboarding/PasswordPage";
@@ -144,6 +145,7 @@ const App = () => (
               <Route path="/signup" element={<SignupPage />} />
               <Route path="/forgot-password" element={<ForgotPassword />} />
               <Route path="/reset-password" element={<ResetPassword />} />
+              <Route path="/invite/accept" element={<InviteAccept />} />
               <Route path="/onboarding/org" element={<OrganizationPage />} />
               <Route path="/onboarding/password" element={<PasswordPage />} />
               <Route path="/create-workspace" element={<CreateWorkspace />} />
