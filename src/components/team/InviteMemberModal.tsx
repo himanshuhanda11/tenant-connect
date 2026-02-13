@@ -10,9 +10,11 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue
 } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { X } from 'lucide-react';
+import { X, Lock, ArrowRight, AlertTriangle } from 'lucide-react';
 import { useMemberInvites, useRoles, useTeams } from '@/hooks/useTeam';
 import { usePhoneNumbers } from '@/hooks/usePhoneNumbers';
+import { usePlanGate, getPlanLabel } from '@/hooks/usePlanGate';
+import { UpgradePlanDialog } from '@/components/billing/UpgradePlanDialog';
 
 interface InviteMemberModalProps {
   open: boolean;
@@ -24,15 +26,23 @@ const InviteMemberModal = ({ open, onOpenChange }: InviteMemberModalProps) => {
   const { roles } = useRoles();
   const { teams } = useTeams();
   const { phoneNumbers } = usePhoneNumbers();
+  const { canInviteMembers, teamMemberLimit, teamMemberCount, currentPlan, nextPlan } = usePlanGate();
   
   const [email, setEmail] = useState('');
   const [roleId, setRoleId] = useState('');
   const [selectedTeams, setSelectedTeams] = useState<string[]>([]);
   const [selectedPhones, setSelectedPhones] = useState<string[]>([]);
   const [sending, setSending] = useState(false);
+  const [showUpgrade, setShowUpgrade] = useState(false);
 
   const handleSubmit = async () => {
     if (!email || !roleId) return;
+    
+    // Check plan limit before sending
+    if (!canInviteMembers) {
+      setShowUpgrade(true);
+      return;
+    }
     
     setSending(true);
     await sendInvite(email, roleId, selectedTeams, selectedPhones);
@@ -63,108 +73,154 @@ const InviteMemberModal = ({ open, onOpenChange }: InviteMemberModalProps) => {
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[95vw] sm:w-full sm:max-w-lg">
-        <DialogHeader>
-          <DialogTitle className="text-base sm:text-lg">Invite Team Member</DialogTitle>
-          <DialogDescription className="text-xs sm:text-sm">
-            Send an invite to add a new member to your team
-          </DialogDescription>
-        </DialogHeader>
-        <div className="space-y-3 sm:space-y-4 py-3 sm:py-4 max-h-[60vh] overflow-y-auto -mx-4 sm:-mx-6 px-4 sm:px-6">
-          <div className="space-y-2">
-            <Label>Email Address</Label>
-            <Input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="colleague@company.com"
-            />
-          </div>
-          
-          <div className="space-y-2">
-            <Label className="text-sm">Role</Label>
-            <Select value={roleId} onValueChange={setRoleId}>
-              <SelectTrigger className="touch-manipulation">
-                <SelectValue placeholder="Select a role" />
-              </SelectTrigger>
-              <SelectContent>
-                {roles.map(role => (
-                  <SelectItem key={role.id} value={role.id}>
-                    <div className="flex items-center gap-2">
-                      <div 
-                        className="w-2 h-2 rounded-full"
-                        style={{ backgroundColor: role.color }}
-                      />
-                      {role.name}
-                    </div>
-                  </SelectItem>
+    <>
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="w-[95vw] sm:w-full sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="text-base sm:text-lg">Invite Team Member</DialogTitle>
+            <DialogDescription className="text-xs sm:text-sm">
+              Send an invite to add a new member to your team
+            </DialogDescription>
+          </DialogHeader>
+
+          {/* Plan limit warning */}
+          {!canInviteMembers && (
+            <div className="flex items-start gap-3 p-3 rounded-xl border border-amber-500/30 bg-amber-50/60 dark:bg-amber-500/5">
+              <AlertTriangle className="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" />
+              <div className="flex-1">
+                <p className="text-sm font-medium">Team member limit reached</p>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Your {getPlanLabel(currentPlan)} plan allows {teamMemberLimit} team member{teamMemberLimit > 1 ? 's' : ''}. 
+                  You currently have {teamMemberCount}.
+                  {nextPlan && ` Upgrade to ${getPlanLabel(nextPlan)} to add more.`}
+                </p>
+                {nextPlan && (
+                  <Button 
+                    size="sm" 
+                    className="mt-2 gap-1.5 text-xs h-7"
+                    onClick={() => { onOpenChange(false); setShowUpgrade(true); }}
+                  >
+                    <Lock className="w-3 h-3" />
+                    Upgrade to {getPlanLabel(nextPlan)}
+                    <ArrowRight className="w-3 h-3" />
+                  </Button>
+                )}
+              </div>
+            </div>
+          )}
+
+          <div className="space-y-3 sm:space-y-4 py-3 sm:py-4 max-h-[60vh] overflow-y-auto -mx-4 sm:-mx-6 px-4 sm:px-6">
+            <div className="space-y-2">
+              <Label>Email Address</Label>
+              <Input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="colleague@company.com"
+                disabled={!canInviteMembers}
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label className="text-sm">Role</Label>
+              <Select value={roleId} onValueChange={setRoleId} disabled={!canInviteMembers}>
+                <SelectTrigger className="touch-manipulation">
+                  <SelectValue placeholder="Select a role" />
+                </SelectTrigger>
+                <SelectContent>
+                  {roles.map(role => (
+                    <SelectItem key={role.id} value={role.id}>
+                      <div className="flex items-center gap-2">
+                        <div 
+                          className="w-2 h-2 rounded-full"
+                          style={{ backgroundColor: role.color }}
+                        />
+                        {role.name}
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-sm">Team Groups (Optional)</Label>
+              <div className="flex flex-wrap gap-2 p-3 border rounded-lg min-h-[60px]">
+                {teams.map(team => (
+                  <Badge
+                    key={team.id}
+                    variant={selectedTeams.includes(team.id) ? 'default' : 'outline'}
+                    className="cursor-pointer touch-manipulation py-1.5"
+                    onClick={() => !canInviteMembers ? null : toggleTeam(team.id)}
+                  >
+                    {team.name}
+                    {selectedTeams.includes(team.id) && (
+                      <X className="ml-1 h-3 w-3" />
+                    )}
+                  </Badge>
                 ))}
-              </SelectContent>
-            </Select>
-          </div>
+                {teams.length === 0 && (
+                  <span className="text-xs sm:text-sm text-muted-foreground">No teams created yet</span>
+                )}
+              </div>
+            </div>
 
-          <div className="space-y-2">
-            <Label className="text-sm">Team Groups (Optional)</Label>
-            <div className="flex flex-wrap gap-2 p-3 border rounded-lg min-h-[60px]">
-              {teams.map(team => (
-                <Badge
-                  key={team.id}
-                  variant={selectedTeams.includes(team.id) ? 'default' : 'outline'}
-                  className="cursor-pointer touch-manipulation py-1.5"
-                  onClick={() => toggleTeam(team.id)}
-                >
-                  {team.name}
-                  {selectedTeams.includes(team.id) && (
-                    <X className="ml-1 h-3 w-3" />
-                  )}
-                </Badge>
-              ))}
-              {teams.length === 0 && (
-                <span className="text-xs sm:text-sm text-muted-foreground">No teams created yet</span>
-              )}
+            <div className="space-y-2">
+              <Label className="text-sm">Phone Number Access (Optional)</Label>
+              <p className="text-[10px] sm:text-xs text-muted-foreground mb-2">
+                Restrict to specific phone numbers, or leave empty for all access
+              </p>
+              <div className="flex flex-wrap gap-2 p-3 border rounded-lg min-h-[60px]">
+                {phoneNumbers.map(phone => (
+                  <Badge
+                    key={phone.id}
+                    variant={selectedPhones.includes(phone.id) ? 'default' : 'outline'}
+                    className="cursor-pointer touch-manipulation py-1.5"
+                    onClick={() => !canInviteMembers ? null : togglePhone(phone.id)}
+                  >
+                    {phone.display_name || phone.phone_e164}
+                    {selectedPhones.includes(phone.id) && (
+                      <X className="ml-1 h-3 w-3" />
+                    )}
+                  </Badge>
+                ))}
+                {phoneNumbers.length === 0 && (
+                  <span className="text-xs sm:text-sm text-muted-foreground">No phone numbers connected</span>
+                )}
+              </div>
             </div>
           </div>
+          <DialogFooter className="flex-col-reverse sm:flex-row gap-2 sm:gap-0">
+            <Button variant="outline" onClick={() => onOpenChange(false)} className="touch-manipulation w-full sm:w-auto">
+              Cancel
+            </Button>
+            {canInviteMembers ? (
+              <Button 
+                onClick={handleSubmit} 
+                disabled={!email || !roleId || sending}
+                className="touch-manipulation w-full sm:w-auto"
+              >
+                {sending ? 'Sending...' : 'Send Invite'}
+              </Button>
+            ) : (
+              <Button
+                onClick={() => { onOpenChange(false); setShowUpgrade(true); }}
+                className="touch-manipulation w-full sm:w-auto gap-1.5"
+              >
+                <Lock className="w-3.5 h-3.5" />
+                Upgrade to Invite
+              </Button>
+            )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
-          <div className="space-y-2">
-            <Label className="text-sm">Phone Number Access (Optional)</Label>
-            <p className="text-[10px] sm:text-xs text-muted-foreground mb-2">
-              Restrict to specific phone numbers, or leave empty for all access
-            </p>
-            <div className="flex flex-wrap gap-2 p-3 border rounded-lg min-h-[60px]">
-              {phoneNumbers.map(phone => (
-                <Badge
-                  key={phone.id}
-                  variant={selectedPhones.includes(phone.id) ? 'default' : 'outline'}
-                  className="cursor-pointer touch-manipulation py-1.5"
-                  onClick={() => togglePhone(phone.id)}
-                >
-                  {phone.display_name || phone.phone_e164}
-                  {selectedPhones.includes(phone.id) && (
-                    <X className="ml-1 h-3 w-3" />
-                  )}
-                </Badge>
-              ))}
-              {phoneNumbers.length === 0 && (
-                <span className="text-xs sm:text-sm text-muted-foreground">No phone numbers connected</span>
-              )}
-            </div>
-          </div>
-        </div>
-        <DialogFooter className="flex-col-reverse sm:flex-row gap-2 sm:gap-0">
-          <Button variant="outline" onClick={() => onOpenChange(false)} className="touch-manipulation w-full sm:w-auto">
-            Cancel
-          </Button>
-          <Button 
-            onClick={handleSubmit} 
-            disabled={!email || !roleId || sending}
-            className="touch-manipulation w-full sm:w-auto"
-          >
-            {sending ? 'Sending...' : 'Send Invite'}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+      <UpgradePlanDialog
+        open={showUpgrade}
+        onOpenChange={setShowUpgrade}
+        currentPlanId={currentPlan}
+      />
+    </>
   );
 };
 

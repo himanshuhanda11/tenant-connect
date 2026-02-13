@@ -35,6 +35,9 @@ import { WorkflowBuilder } from '@/components/automation/WorkflowBuilder';
 import { WorkflowTestModal } from '@/components/automation/WorkflowTestModal';
 import { useAutomationWorkflows } from '@/hooks/useAutomationWorkflows';
 import { Workflow, WorkflowWithRelations, StarterAutomation, TRIGGER_DEFINITIONS, CONDITION_DEFINITIONS, ACTION_DEFINITIONS } from '@/types/automation';
+import { UpgradePrompt } from '@/components/billing/UpgradePrompt';
+import { UpgradePlanDialog } from '@/components/billing/UpgradePlanDialog';
+import { usePlanGate } from '@/hooks/usePlanGate';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -59,6 +62,9 @@ export default function AutomationWorkflows() {
     installStarterAutomation,
     pauseAllWorkflows,
   } = useAutomationWorkflows();
+  const { hasFeature, currentPlan, requiredPlanFor } = usePlanGate();
+  const automationLocked = !hasFeature('automations');
+  const [upgradeOpen, setUpgradeOpen] = useState(false);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'paused' | 'draft'>('all');
@@ -126,7 +132,16 @@ export default function AutomationWorkflows() {
   return (
     <DashboardLayout>
       <div className="space-y-4 sm:space-y-6">
-        {/* Header */}
+        {/* Plan gate */}
+        {automationLocked && (
+          <UpgradePrompt
+            currentPlan={currentPlan}
+            requiredPlan={requiredPlanFor('automations') || 'basic'}
+            feature="Automations"
+            description="Create powerful When → If → Then workflows to automate your WhatsApp conversations. Upgrade to unlock automation workflows."
+            onUpgrade={() => setUpgradeOpen(true)}
+          />
+        )}
         <div className="flex flex-col gap-3 sm:gap-4">
           <div>
             <h1 className="text-xl sm:text-2xl font-bold flex items-center gap-2">
@@ -522,6 +537,7 @@ export default function AutomationWorkflows() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      <UpgradePlanDialog open={upgradeOpen} onOpenChange={setUpgradeOpen} currentPlanId={currentPlan} />
     </DashboardLayout>
   );
 }

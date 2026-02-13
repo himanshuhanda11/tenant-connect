@@ -13,6 +13,9 @@ import { useIntegrations } from '@/hooks/useIntegrations';
 import { useToast } from '@/hooks/use-toast';
 import type { IntegrationCatalog, IntegrationCategory } from '@/types/integration';
 import { Skeleton } from '@/components/ui/skeleton';
+import { usePlanGate } from '@/hooks/usePlanGate';
+import { UpgradePrompt } from '@/components/billing/UpgradePrompt';
+import { UpgradePlanDialog } from '@/components/billing/UpgradePlanDialog';
 
 export default function IntegrationsHub() {
   const navigate = useNavigate();
@@ -30,6 +33,9 @@ export default function IntegrationsHub() {
   const [selectedIntegration, setSelectedIntegration] = useState<IntegrationCatalog | null>(null);
   const [isConnectModalOpen, setIsConnectModalOpen] = useState(false);
   const [isRazorpayModalOpen, setIsRazorpayModalOpen] = useState(false);
+  const { hasFeature, currentPlan, requiredPlanFor } = usePlanGate();
+  const integrationsLocked = !hasFeature('integrations');
+  const [upgradeOpen, setUpgradeOpen] = useState(false);
 
   // Calculate counts for filters
   const counts = useMemo(() => {
@@ -108,6 +114,16 @@ export default function IntegrationsHub() {
   return (
     <DashboardLayout>
       <div className="container mx-auto px-4 py-6 max-w-7xl">
+        {integrationsLocked && (
+          <UpgradePrompt
+            currentPlan={currentPlan}
+            requiredPlan={requiredPlanFor('integrations') || 'pro'}
+            feature="Integrations"
+            description="Connect with Shopify, WooCommerce, Razorpay, Zapier and more. Upgrade to Pro to unlock integrations."
+            onUpgrade={() => setUpgradeOpen(true)}
+            className="mb-6"
+          />
+        )}
         {/* Quick Guide Banner */}
         <QuickGuide
           title="Integrations Guide"
@@ -245,6 +261,7 @@ export default function IntegrationsHub() {
           }}
         />
       </div>
+      <UpgradePlanDialog open={upgradeOpen} onOpenChange={setUpgradeOpen} currentPlanId={currentPlan} />
     </DashboardLayout>
   );
 }

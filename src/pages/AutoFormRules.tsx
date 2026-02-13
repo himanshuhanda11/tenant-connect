@@ -54,6 +54,9 @@ import { FORM_RULE_TRIGGER_OPTIONS } from '@/types/formRule';
 import type { FormRule } from '@/types/formRule';
 import { cn } from '@/lib/utils';
 import { formatDistanceToNow } from 'date-fns';
+import { usePlanGate } from '@/hooks/usePlanGate';
+import { UpgradePrompt } from '@/components/billing/UpgradePrompt';
+import { UpgradePlanDialog } from '@/components/billing/UpgradePlanDialog';
 
 const triggerIconMap: Record<string, React.ElementType> = {
   first_message: MessageSquare,
@@ -77,6 +80,9 @@ const triggerColorMap: Record<string, string> = {
 
 export default function AutoFormRules() {
   const { rules, loading, toggleRule, deleteRule, duplicateRule } = useFormRules();
+  const { hasFeature, currentPlan, requiredPlanFor } = usePlanGate();
+  const autoformsLocked = !hasFeature('autoforms');
+  const [upgradeOpen, setUpgradeOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterTrigger, setFilterTrigger] = useState<string | null>(null);
   const [createModalOpen, setCreateModalOpen] = useState(false);
@@ -108,6 +114,16 @@ export default function AutoFormRules() {
 
   return (
     <DashboardLayout>
+      {autoformsLocked && (
+        <UpgradePrompt
+          currentPlan={currentPlan}
+          requiredPlan={requiredPlanFor('autoforms') || 'basic'}
+          feature="AutoForms"
+          description="Automate form responses and lead capture. Upgrade to unlock AutoForms."
+          onUpgrade={() => setUpgradeOpen(true)}
+          className="mb-6"
+        />
+      )}
       <div className="flex flex-col h-full">
         {/* Header */}
         <div className="px-3 sm:px-6 py-4 sm:py-6 border-b bg-gradient-to-r from-card to-primary/5">
@@ -395,6 +411,7 @@ export default function AutoFormRules() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      <UpgradePlanDialog open={upgradeOpen} onOpenChange={setUpgradeOpen} currentPlanId={currentPlan} />
     </DashboardLayout>
   );
 }
