@@ -1,314 +1,303 @@
 import { useQuery } from '@tanstack/react-query';
 import { useTenant } from '@/contexts/TenantContext';
-import type { Plan, Subscription, Invoice, PaymentMethod, UsageCounter, BillingSettings } from '@/types/billing';
+import { supabase } from '@/integrations/supabase/client';
+import type { BillingSettings } from '@/types/billing';
 
-// Mock data for development (Stripe integration pending)
-const mockPlans: Plan[] = [
-  {
-    id: 'plan_free',
-    name: 'Free',
-    description: 'Get started with WhatsApp',
-    price_monthly: 0,
-    price_yearly: 0,
-    is_active: true,
-    sort_order: 1,
-    limits_json: {
-      max_phone_numbers: 1,
-      max_team_members: 1,
-      max_contacts: 1000,
-      monthly_messages: 500,
-      max_campaigns: 3,
-      max_automations: 0,
-      api_access: false,
-      audit_logs_days: 0,
-      support_level: 'email',
-    },
-  },
-  {
-    id: 'plan_basic',
-    name: 'Basic',
-    description: 'For small teams starting WhatsApp marketing',
-    price_monthly: 1499,
-    price_yearly: 14390,
-    is_active: true,
-    sort_order: 2,
-    limits_json: {
-      max_phone_numbers: 1,
-      max_team_members: 5,
-      max_contacts: 10000,
-      monthly_messages: 10000,
-      max_campaigns: 20,
-      max_automations: 10,
-      api_access: false,
-      audit_logs_days: 7,
-      support_level: 'email',
-    },
-  },
-  {
-    id: 'plan_pro',
-    name: 'Pro',
-    description: 'Automation + AI powered growth',
-    price_monthly: 3499,
-    price_yearly: 33590,
-    is_active: true,
-    sort_order: 3,
-    limits_json: {
-      max_phone_numbers: 1,
-      max_team_members: 10,
-      max_contacts: 50000,
-      monthly_messages: 50000,
-      max_campaigns: -1,
-      max_automations: 200,
-      api_access: true,
-      audit_logs_days: 30,
-      support_level: 'chat',
-    },
-  },
-  {
-    id: 'plan_business',
-    name: 'Business',
-    description: 'Scale securely with full control',
-    price_monthly: 0,
-    price_yearly: 0,
-    is_active: true,
-    sort_order: 4,
-    limits_json: {
-      max_phone_numbers: 1,
-      max_team_members: 25,
-      max_contacts: -1,
-      monthly_messages: -1,
-      max_campaigns: -1,
-      max_automations: -1,
-      api_access: true,
-      audit_logs_days: 365,
-      support_level: 'priority',
-    },
-  },
-];
-
-const mockSubscription: Subscription = {
-  id: 'sub_1',
-  tenant_id: 'tenant_1',
-  plan_id: 'plan_pro',
-  stripe_customer_id: null,
-  stripe_subscription_id: null,
-  status: 'active',
-  current_period_start: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString(),
-  current_period_end: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000).toISOString(),
-  cancel_at_period_end: false,
-  canceled_at: null,
-  billing_cycle: 'monthly',
-  created_at: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString(),
-  updated_at: new Date().toISOString(),
-  plan: mockPlans[2],
-};
-
-const mockInvoices: Invoice[] = [
-  {
-    id: 'inv_1',
-    tenant_id: 'tenant_1',
-    stripe_invoice_id: 'in_1234567890',
-    invoice_number: 'INV-2026-001',
-    amount_due: 3499,
-    amount_paid: 3499,
-    currency: 'inr',
-    status: 'paid',
-    hosted_invoice_url: '#',
-    invoice_pdf_url: '#',
-    due_date: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
-    paid_at: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
-    period_start: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString(),
-    period_end: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
-    line_items: [
-      { description: 'Pro Plan - Monthly', quantity: 1, unit_amount: 3499, amount: 3499 },
-    ],
-    created_at: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
-  },
-  {
-    id: 'inv_2',
-    tenant_id: 'tenant_1',
-    stripe_invoice_id: 'in_0987654321',
-    invoice_number: 'INV-2025-012',
-    amount_due: 3499,
-    amount_paid: 3499,
-    currency: 'inr',
-    status: 'paid',
-    hosted_invoice_url: '#',
-    invoice_pdf_url: '#',
-    due_date: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString(),
-    paid_at: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString(),
-    period_start: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString(),
-    period_end: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString(),
-    line_items: [
-      { description: 'Pro Plan - Monthly', quantity: 1, unit_amount: 3499, amount: 3499 },
-    ],
-    created_at: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString(),
-  },
-];
-
-const mockPaymentMethods: PaymentMethod[] = [
-  {
-    id: 'pm_1',
-    tenant_id: 'tenant_1',
-    stripe_payment_method_id: 'pm_1234567890',
-    type: 'card',
-    card_brand: 'visa',
-    card_last4: '4242',
-    card_exp_month: 12,
-    card_exp_year: 2027,
-    is_default: true,
-    created_at: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString(),
-  },
-];
-
-const mockUsage: UsageCounter = {
-  id: 'usage_1',
-  tenant_id: 'tenant_1',
-  year_month: new Date().toISOString().slice(0, 7),
-  messages_sent: 8450,
-  messages_received: 12300,
-  campaigns_created: 8,
-  contacts_added: 3200,
-  automation_runs: 156,
-  template_submissions: 12,
-  api_calls: 45000,
-  storage_bytes: 524288000, // 500MB
-};
-
-const mockBillingSettings: BillingSettings = {
-  id: 'bs_1',
-  tenant_id: 'tenant_1',
-  business_name: 'Acme Corp LLC',
-  billing_email: 'billing@acmecorp.com',
-  address_line1: '123 Business Bay',
-  address_line2: 'Tower A, Floor 15',
-  city: 'Dubai',
-  state: 'Dubai',
-  postal_code: '00000',
-  country: 'AE',
-  tax_id: 'TRN123456789',
-  vat_enabled: true,
-  vat_percentage: 5,
-  invoice_notes: 'Thank you for your business!',
-  enforcement_mode: 'soft',
-};
-
+// ---------- Plans (from platform_plans) ----------
 export function usePlans() {
   return useQuery({
     queryKey: ['plans'],
     queryFn: async () => {
-      // TODO: Replace with actual Supabase query when ready
-      await new Promise(resolve => setTimeout(resolve, 300));
-      return mockPlans;
+      const { data, error } = await supabase
+        .from('platform_plans')
+        .select('*')
+        .eq('is_active', true)
+        .order('sort_order', { ascending: true });
+
+      if (error) throw error;
+
+      // Map platform_plans to the Plan shape expected by components
+      return (data ?? []).map((p: any) => ({
+        id: `plan_${p.id}`,
+        name: p.name,
+        description: p.tagline ?? null,
+        price_monthly: p.price_monthly ?? 0,
+        price_yearly: p.price_yearly ?? 0,
+        is_active: p.is_active,
+        sort_order: p.sort_order,
+        limits_json: {
+          max_phone_numbers: Number(p.limits?.phone_numbers ?? 1),
+          max_team_members: p.limits?.team_members === 'unlimited' ? -1 : Number(p.limits?.team_members ?? 1),
+          max_contacts: p.limits?.contacts === 'unlimited' ? -1 : Number(p.limits?.contacts ?? 1000),
+          monthly_messages: -1, // Meta charges separately
+          max_campaigns: -1,
+          max_automations: p.limits?.automations === 'unlimited' ? -1 : Number(p.limits?.automations ?? 0),
+          api_access: p.limits?.ai_features !== 'preview',
+          audit_logs_days: 30,
+          support_level: (p.name === 'Business' ? 'priority' : p.name === 'Pro' ? 'chat' : 'email') as 'email' | 'chat' | 'priority',
+        },
+        features: p.features ?? [],
+        restrictions: p.restrictions ?? [],
+        badge: p.badge,
+        highlight: p.highlight,
+      }));
     },
   });
 }
 
+// ---------- Subscription ----------
 export function useSubscription() {
   const { currentTenant } = useTenant();
-  
+
   return useQuery({
     queryKey: ['subscription', currentTenant?.id],
     queryFn: async () => {
-      // TODO: Replace with actual Supabase query when ready
-      await new Promise(resolve => setTimeout(resolve, 300));
-      return mockSubscription;
+      if (!currentTenant?.id) return null;
+
+      const { data, error } = await supabase
+        .from('subscriptions')
+        .select('*')
+        .eq('tenant_id', currentTenant.id)
+        .eq('status', 'active')
+        .maybeSingle();
+
+      if (error) throw error;
+      if (!data) {
+        // No subscription = Free plan
+        return {
+          id: 'free',
+          tenant_id: currentTenant.id,
+          plan_id: 'plan_free',
+          stripe_customer_id: null,
+          stripe_subscription_id: null,
+          status: 'active' as const,
+          current_period_start: null,
+          current_period_end: null,
+          cancel_at_period_end: false,
+          canceled_at: null,
+          billing_cycle: 'monthly' as const,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          plan: {
+            id: 'plan_free',
+            name: 'Free',
+            description: 'Get started with WhatsApp',
+            price_monthly: 0,
+            price_yearly: 0,
+            is_active: true,
+            sort_order: 1,
+            limits_json: {
+              max_phone_numbers: 1,
+              max_team_members: 1,
+              max_contacts: 1000,
+              monthly_messages: -1,
+              max_campaigns: 3,
+              max_automations: 0,
+              api_access: false,
+              audit_logs_days: 0,
+              support_level: 'email' as const,
+            },
+          },
+        };
+      }
+
+      return {
+        ...data,
+        plan_id: `plan_${data.plan_id}`,
+        status: data.status as 'active',
+        billing_cycle: (data.billing_cycle ?? 'monthly') as 'monthly' | 'yearly',
+      };
     },
-    enabled: !!currentTenant,
+    enabled: !!currentTenant?.id,
   });
 }
 
+// ---------- Invoices (from platform_invoices) ----------
 export function useInvoices() {
   const { currentTenant } = useTenant();
-  
+
   return useQuery({
     queryKey: ['invoices', currentTenant?.id],
     queryFn: async () => {
-      // TODO: Replace with actual Supabase query when ready
-      await new Promise(resolve => setTimeout(resolve, 300));
-      return mockInvoices;
+      if (!currentTenant?.id) return [];
+
+      const { data, error } = await supabase
+        .from('platform_invoices')
+        .select('*')
+        .eq('workspace_id', currentTenant.id)
+        .order('created_at', { ascending: false })
+        .limit(20);
+
+      if (error) throw error;
+      if (!data || data.length === 0) return [];
+
+      return data.map((inv: any) => ({
+        id: inv.id,
+        tenant_id: inv.workspace_id,
+        stripe_invoice_id: inv.stripe_invoice_id ?? null,
+        invoice_number: inv.invoice_number ?? inv.id,
+        amount_due: inv.amount_due ?? 0,
+        amount_paid: inv.amount_paid ?? 0,
+        currency: inv.currency ?? 'inr',
+        status: inv.status ?? 'paid',
+        hosted_invoice_url: inv.hosted_invoice_url ?? null,
+        invoice_pdf_url: inv.invoice_pdf_url ?? null,
+        due_date: inv.due_date ?? null,
+        paid_at: inv.paid_at ?? null,
+        period_start: inv.period_start ?? null,
+        period_end: inv.period_end ?? null,
+        line_items: inv.line_items ?? [],
+        created_at: inv.created_at,
+      }));
     },
-    enabled: !!currentTenant,
+    enabled: !!currentTenant?.id,
   });
 }
 
+// ---------- Payment Methods (no table yet — return empty) ----------
 export function usePaymentMethods() {
   const { currentTenant } = useTenant();
-  
+
   return useQuery({
     queryKey: ['payment-methods', currentTenant?.id],
     queryFn: async () => {
-      // TODO: Replace with actual Supabase query when ready
-      await new Promise(resolve => setTimeout(resolve, 300));
-      return mockPaymentMethods;
+      // No payment_methods table yet; return empty
+      return [];
     },
-    enabled: !!currentTenant,
+    enabled: !!currentTenant?.id,
   });
 }
 
+// ---------- Usage (from usage_counters) ----------
 export function useUsage() {
   const { currentTenant } = useTenant();
-  
+  const currentMonth = new Date().toISOString().slice(0, 7);
+
   return useQuery({
-    queryKey: ['usage', currentTenant?.id],
+    queryKey: ['usage', currentTenant?.id, currentMonth],
     queryFn: async () => {
-      // TODO: Replace with actual Supabase query when ready
-      await new Promise(resolve => setTimeout(resolve, 300));
-      return mockUsage;
+      if (!currentTenant?.id) return null;
+
+      const { data, error } = await supabase
+        .from('usage_counters')
+        .select('*')
+        .eq('tenant_id', currentTenant.id)
+        .eq('year_month', currentMonth)
+        .maybeSingle();
+
+      if (error) throw error;
+
+      return {
+        id: data?.id ?? '',
+        tenant_id: currentTenant.id,
+        year_month: currentMonth,
+        messages_sent: data?.messages_sent ?? 0,
+        messages_received: data?.messages_received ?? 0,
+        campaigns_created: data?.campaigns_created ?? 0,
+        contacts_added: data?.contacts_added ?? 0,
+        automation_runs: 0,
+        template_submissions: 0,
+        api_calls: 0,
+        storage_bytes: 0,
+      };
     },
-    enabled: !!currentTenant,
+    enabled: !!currentTenant?.id,
   });
 }
 
+// ---------- Billing Settings (no dedicated table — return defaults) ----------
 export function useBillingSettings() {
   const { currentTenant } = useTenant();
-  
+
   return useQuery({
     queryKey: ['billing-settings', currentTenant?.id],
-    queryFn: async () => {
-      // TODO: Replace with actual Supabase query when ready
-      await new Promise(resolve => setTimeout(resolve, 300));
-      return mockBillingSettings;
+    queryFn: async (): Promise<BillingSettings> => {
+      return {
+        id: '',
+        tenant_id: currentTenant?.id ?? '',
+        business_name: currentTenant?.name ?? null,
+        billing_email: null,
+        address_line1: null,
+        address_line2: null,
+        city: null,
+        state: null,
+        postal_code: null,
+        country: 'IN',
+        tax_id: null,
+        vat_enabled: false,
+        vat_percentage: 0,
+        invoice_notes: null,
+        enforcement_mode: 'soft',
+      };
     },
-    enabled: !!currentTenant,
+    enabled: !!currentTenant?.id,
   });
 }
 
+// ---------- Team usage (real count) ----------
 export function useTeamUsage() {
   const { currentTenant } = useTenant();
-  
+
   return useQuery({
     queryKey: ['team-usage', currentTenant?.id],
     queryFn: async () => {
-      await new Promise(resolve => setTimeout(resolve, 300));
-      return { used: 7, limit: 10 };
+      if (!currentTenant?.id) return { used: 0, limit: 1 };
+
+      const { count, error } = await supabase
+        .from('tenant_members')
+        .select('*', { count: 'exact', head: true })
+        .eq('tenant_id', currentTenant.id);
+
+      if (error) throw error;
+
+      // Default free plan limit
+      return { used: count ?? 0, limit: 1 };
     },
-    enabled: !!currentTenant,
+    enabled: !!currentTenant?.id,
   });
 }
 
+// ---------- Phone usage (real count) ----------
 export function usePhoneUsage() {
   const { currentTenant } = useTenant();
-  
+
   return useQuery({
     queryKey: ['phone-usage', currentTenant?.id],
     queryFn: async () => {
-      await new Promise(resolve => setTimeout(resolve, 300));
-      return { used: 2, limit: 3 };
+      if (!currentTenant?.id) return { used: 0, limit: 1 };
+
+      const { count, error } = await supabase
+        .from('phone_numbers')
+        .select('*', { count: 'exact', head: true })
+        .eq('tenant_id', currentTenant.id);
+
+      if (error) throw error;
+
+      return { used: count ?? 0, limit: 1 };
     },
-    enabled: !!currentTenant,
+    enabled: !!currentTenant?.id,
   });
 }
 
+// ---------- Contacts usage (real count) ----------
 export function useContactsUsage() {
   const { currentTenant } = useTenant();
-  
+
   return useQuery({
     queryKey: ['contacts-usage', currentTenant?.id],
     queryFn: async () => {
-      await new Promise(resolve => setTimeout(resolve, 300));
-      return { used: 4850, limit: 10000 };
+      if (!currentTenant?.id) return { used: 0, limit: 1000 };
+
+      const { count, error } = await supabase
+        .from('contacts')
+        .select('*', { count: 'exact', head: true })
+        .eq('tenant_id', currentTenant.id);
+
+      if (error) throw error;
+
+      // Default free plan limit
+      return { used: count ?? 0, limit: 1000 };
     },
-    enabled: !!currentTenant,
+    enabled: !!currentTenant?.id,
   });
 }

@@ -1,18 +1,38 @@
 import React from 'react';
-import { CreditCard, Receipt, TrendingUp, AlertTriangle, Gauge, Tag, DollarSign, Settings2 } from 'lucide-react';
+import { CreditCard, Receipt, TrendingUp, Gauge, Tag, DollarSign } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Link } from 'react-router-dom';
+import { useSubscription, useUsage, useInvoices, useTeamUsage, usePhoneUsage } from '@/hooks/useBilling';
+import { format } from 'date-fns';
 
 export function BillingSettings() {
+  const { data: subscription, isLoading: subLoading } = useSubscription();
+  const { data: usage, isLoading: usageLoading } = useUsage();
+  const { data: invoices, isLoading: invLoading } = useInvoices();
+  const { data: teamUsage } = useTeamUsage();
+  const { data: phoneUsage } = usePhoneUsage();
+
+  const isLoading = subLoading || usageLoading || invLoading;
+
+  const planName = subscription?.plan?.name ?? 'Free';
+  const planPrice = subscription?.plan?.price_monthly ?? 0;
+  const billingCycle = subscription?.billing_cycle ?? 'monthly';
+
+  const teamUsed = teamUsage?.used ?? 0;
+  const teamLimit = teamUsage?.limit ?? 1;
+  const phoneUsed = phoneUsage?.used ?? 0;
+  const phoneLimit = phoneUsage?.limit ?? 1;
+  const messagesSent = usage?.messages_sent ?? 0;
+
   return (
     <div className="space-y-6">
       <Tabs defaultValue="general">
@@ -22,6 +42,7 @@ export function BillingSettings() {
         </TabsList>
 
         <TabsContent value="general" className="space-y-6 mt-6">
+          {/* Current Plan */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -31,50 +52,73 @@ export function BillingSettings() {
               <CardDescription>Your subscription details</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-              <div className="flex items-center justify-between p-4 rounded-lg border border-primary/30 bg-primary/5">
-                <div>
-                  <div className="flex items-center gap-2">
-                    <h3 className="text-xl font-bold">Growth Plan</h3>
-                    <Badge className="bg-primary text-primary-foreground">Active</Badge>
+              {isLoading ? (
+                <div className="space-y-3">
+                  <Skeleton className="h-16 w-full" />
+                  <div className="grid gap-4 md:grid-cols-3">
+                    <Skeleton className="h-20" /><Skeleton className="h-20" /><Skeleton className="h-20" />
                   </div>
-                  <p className="text-sm text-muted-foreground">$99/month • Billed monthly</p>
                 </div>
-                <Button>Upgrade</Button>
-              </div>
+              ) : (
+                <>
+                  <div className="flex items-center justify-between p-4 rounded-lg border border-primary/30 bg-primary/5">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <h3 className="text-xl font-bold">{planName} Plan</h3>
+                        <Badge className="bg-primary text-primary-foreground">
+                          {subscription?.status === 'active' ? 'Active' : subscription?.status ?? 'Active'}
+                        </Badge>
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        {planPrice > 0 ? `₹${planPrice.toLocaleString('en-IN')}/${billingCycle === 'yearly' ? 'year' : 'month'}` : 'Free forever'}
+                        {billingCycle === 'yearly' && ' • Billed yearly'}
+                      </p>
+                    </div>
+                    <Button asChild>
+                      <Link to="/billing">Upgrade</Link>
+                    </Button>
+                  </div>
 
-              <div className="grid gap-4 md:grid-cols-3">
-                <div className="p-4 rounded-lg border border-border">
-                  <p className="text-sm text-muted-foreground">Team Members</p>
-                  <div className="flex items-baseline gap-1">
-                    <span className="text-2xl font-bold">5</span>
-                    <span className="text-muted-foreground">/ 10</span>
+                  <div className="grid gap-4 md:grid-cols-3">
+                    <div className="p-4 rounded-lg border border-border">
+                      <p className="text-sm text-muted-foreground">Team Members</p>
+                      <div className="flex items-baseline gap-1">
+                        <span className="text-2xl font-bold">{teamUsed}</span>
+                        <span className="text-muted-foreground">/ {teamLimit === -1 ? '∞' : teamLimit}</span>
+                      </div>
+                      {teamLimit > 0 && teamLimit !== -1 && (
+                        <Progress value={Math.min(Math.round((teamUsed / teamLimit) * 100), 100)} className="mt-2 h-1.5" />
+                      )}
+                    </div>
+                    <div className="p-4 rounded-lg border border-border">
+                      <p className="text-sm text-muted-foreground">Phone Numbers</p>
+                      <div className="flex items-baseline gap-1">
+                        <span className="text-2xl font-bold">{phoneUsed}</span>
+                        <span className="text-muted-foreground">/ {phoneLimit === -1 ? '∞' : phoneLimit}</span>
+                      </div>
+                      {phoneLimit > 0 && phoneLimit !== -1 && (
+                        <Progress value={Math.min(Math.round((phoneUsed / phoneLimit) * 100), 100)} className="mt-2 h-1.5" />
+                      )}
+                    </div>
+                    <div className="p-4 rounded-lg border border-border">
+                      <p className="text-sm text-muted-foreground">Messages (This Month)</p>
+                      <div className="flex items-baseline gap-1">
+                        <span className="text-2xl font-bold">{messagesSent.toLocaleString()}</span>
+                        <span className="text-muted-foreground">sent</span>
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-1">Meta charges apply separately</p>
+                    </div>
                   </div>
-                  <Progress value={50} className="mt-2 h-1.5" />
-                </div>
-                <div className="p-4 rounded-lg border border-border">
-                  <p className="text-sm text-muted-foreground">Phone Numbers</p>
-                  <div className="flex items-baseline gap-1">
-                    <span className="text-2xl font-bold">2</span>
-                    <span className="text-muted-foreground">/ 5</span>
-                  </div>
-                  <Progress value={40} className="mt-2 h-1.5" />
-                </div>
-                <div className="p-4 rounded-lg border border-border">
-                  <p className="text-sm text-muted-foreground">Messages</p>
-                  <div className="flex items-baseline gap-1">
-                    <span className="text-2xl font-bold">8.5K</span>
-                    <span className="text-muted-foreground">/ 10K</span>
-                  </div>
-                  <Progress value={85} className="mt-2 h-1.5" />
-                </div>
-              </div>
 
-              <Button asChild variant="outline" className="w-full">
-                <Link to="/billing">Manage Billing →</Link>
-              </Button>
+                  <Button asChild variant="outline" className="w-full">
+                    <Link to="/billing">Manage Billing →</Link>
+                  </Button>
+                </>
+              )}
             </CardContent>
           </Card>
 
+          {/* Invoice History */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -83,27 +127,46 @@ export function BillingSettings() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-2">
-                {[
-                  { date: 'Jan 1, 2025', amount: '$99.00', status: 'Paid' },
-                  { date: 'Dec 1, 2024', amount: '$99.00', status: 'Paid' },
-                  { date: 'Nov 1, 2024', amount: '$99.00', status: 'Paid' },
-                ].map((inv, i) => (
-                  <div key={i} className="flex items-center justify-between p-3 rounded-lg border border-border">
-                    <div>
-                      <p className="font-medium">{inv.date}</p>
-                      <p className="text-sm text-muted-foreground">{inv.amount}</p>
+              {isLoading ? (
+                <div className="space-y-2">
+                  {[1, 2, 3].map(i => <Skeleton key={i} className="h-14 w-full" />)}
+                </div>
+              ) : invoices && invoices.length > 0 ? (
+                <div className="space-y-2">
+                  {invoices.slice(0, 5).map((inv: any) => (
+                    <div key={inv.id} className="flex items-center justify-between p-3 rounded-lg border border-border">
+                      <div>
+                        <p className="font-medium">
+                          {inv.created_at ? format(new Date(inv.created_at), 'MMM d, yyyy') : 'N/A'}
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          ₹{(inv.amount_paid ?? 0).toLocaleString('en-IN')}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Badge variant="outline" className={inv.status === 'paid' ? 'text-green-600' : ''}>
+                          {inv.status}
+                        </Badge>
+                        {inv.invoice_pdf_url && (
+                          <Button variant="ghost" size="sm" asChild>
+                            <a href={inv.invoice_pdf_url} target="_blank" rel="noopener">Download</a>
+                          </Button>
+                        )}
+                      </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <Badge variant="outline" className="text-green-600">{inv.status}</Badge>
-                      <Button variant="ghost" size="sm">Download</Button>
-                    </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8 text-muted-foreground">
+                  <Receipt className="h-8 w-8 mx-auto mb-2 opacity-40" />
+                  <p className="text-sm">No invoices yet</p>
+                  <p className="text-xs mt-1">Invoices will appear here once you have a paid subscription</p>
+                </div>
+              )}
             </CardContent>
           </Card>
 
+          {/* Payment Method */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -111,18 +174,15 @@ export function BillingSettings() {
                 Payment Method
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center justify-between p-4 rounded-lg border border-border">
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-8 bg-gradient-to-r from-blue-600 to-blue-800 rounded flex items-center justify-center text-white text-xs font-bold">VISA</div>
-                  <div>
-                    <p className="font-medium">•••• •••• •••• 4242</p>
-                    <p className="text-sm text-muted-foreground">Expires 12/26</p>
-                  </div>
-                </div>
-                <Button variant="outline" size="sm">Update</Button>
+            <CardContent>
+              <div className="text-center py-8 text-muted-foreground">
+                <CreditCard className="h-8 w-8 mx-auto mb-2 opacity-40" />
+                <p className="text-sm">No payment method configured</p>
+                <p className="text-xs mt-1">Add a payment method when you upgrade your plan</p>
+                <Button variant="outline" size="sm" className="mt-4" asChild>
+                  <Link to="/billing">Add Payment Method</Link>
+                </Button>
               </div>
-              <Button variant="ghost" size="sm">+ Add Payment Method</Button>
             </CardContent>
           </Card>
         </TabsContent>
@@ -142,18 +202,11 @@ export function BillingSettings() {
                   <Label>Enable Overage Billing</Label>
                   <p className="text-sm text-muted-foreground">Charge for usage beyond plan limits</p>
                 </div>
-                <Switch defaultChecked />
+                <Switch />
               </div>
 
-              <div className="grid gap-4 md:grid-cols-2">
-                <div className="p-4 rounded-lg border border-border">
-                  <p className="text-sm text-muted-foreground">Extra Message Rate</p>
-                  <p className="text-lg font-bold">$0.005 / message</p>
-                </div>
-                <div className="p-4 rounded-lg border border-border">
-                  <p className="text-sm text-muted-foreground">This Month Overages</p>
-                  <p className="text-lg font-bold">$12.50</p>
-                </div>
+              <div className="text-center py-4 text-muted-foreground">
+                <p className="text-sm">Overage billing settings will be available with paid plans</p>
               </div>
             </CardContent>
           </Card>
@@ -212,10 +265,7 @@ export function BillingSettings() {
               <div className="space-y-2">
                 <Label>Cost Centers</Label>
                 <div className="flex flex-wrap gap-2">
-                  <Badge variant="outline">Marketing</Badge>
-                  <Badge variant="outline">Sales</Badge>
-                  <Badge variant="outline">Support</Badge>
-                  <Button variant="ghost" size="sm">+ Add</Button>
+                  <Button variant="ghost" size="sm">+ Add Cost Center</Button>
                 </div>
               </div>
             </CardContent>
@@ -231,13 +281,13 @@ export function BillingSettings() {
             </CardHeader>
             <CardContent>
               <div className="p-4 rounded-lg border border-border bg-muted/30">
-                <p className="text-sm text-muted-foreground mb-2">If you upgrade to Business today:</p>
-                <div className="flex items-baseline gap-2">
-                  <span className="text-2xl font-bold">$150.50</span>
-                  <span className="text-muted-foreground">prorated for remaining days</span>
-                </div>
+                <p className="text-sm text-muted-foreground">
+                  Plan change proration will be calculated automatically when you upgrade or downgrade.
+                </p>
               </div>
-              <Button variant="outline" className="w-full mt-4">View Upgrade Options</Button>
+              <Button variant="outline" className="w-full mt-4" asChild>
+                <Link to="/billing">View Upgrade Options</Link>
+              </Button>
             </CardContent>
           </Card>
         </TabsContent>

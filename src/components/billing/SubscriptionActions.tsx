@@ -38,7 +38,7 @@ export function SubscriptionActions() {
   };
 
   const isCanceled = subscription?.cancel_at_period_end;
-  const isPaused = subscription?.status === 'paused';
+  const isPaused = (subscription?.status as string) === 'paused';
 
   return (
     <>
