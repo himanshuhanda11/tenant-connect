@@ -26,6 +26,7 @@ import {
 } from 'lucide-react';
 import { usePhoneNumbers, useWABAs } from '@/hooks/usePhoneNumbers';
 import { MetaEmbeddedSignup } from '@/components/meta/MetaEmbeddedSignup';
+import { useTenant } from '@/contexts/TenantContext';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
@@ -62,6 +63,7 @@ export default function ConnectNumber() {
   const navigate = useNavigate();
   const { addPhoneNumber } = usePhoneNumbers();
   const { addWaba } = useWABAs();
+  const { currentTenant, refreshTenants, setCurrentTenant, tenants } = useTenant();
 
   const [currentStep, setCurrentStep] = useState<Step>('method');
   const [isConnecting, setIsConnecting] = useState(false);
@@ -139,6 +141,9 @@ export default function ConnectNumber() {
           .update({ webhook_health: webhookStatus })
           .eq('id', result.id);
       }
+
+      // Refresh tenants to ensure workspace metadata is current
+      await refreshTenants();
 
       setCurrentStep('complete');
     } catch (error) {
@@ -295,12 +300,14 @@ export default function ConnectNumber() {
                   </div>
 
                   <MetaEmbeddedSignup 
-                    onSuccess={(data) => {
+                    onSuccess={async (data) => {
                       setState(prev => ({
                         ...prev,
                         wabaId: data.wabaId,
                         phoneNumberId: data.phoneNumberId,
                       }));
+                      // Refresh tenants to ensure workspace metadata is up-to-date
+                      await refreshTenants();
                       // Backend already saved WABA + phone number + webhooks
                       // Skip directly to complete
                       setCurrentStep('complete');
@@ -606,7 +613,13 @@ export default function ConnectNumber() {
                 <Button variant="outline" onClick={() => navigate('/phone-numbers')}>
                   View All Numbers
                 </Button>
-                <Button onClick={() => navigate('/inbox')}>
+                <Button onClick={() => {
+                  // Ensure currentTenant is set (it should be since we connected on this workspace)
+                  if (currentTenant) {
+                    setCurrentTenant(currentTenant);
+                  }
+                  navigate('/inbox');
+                }}>
                   Go to Inbox
                   <ArrowRight className="h-4 w-4 ml-2" />
                 </Button>
