@@ -12,7 +12,7 @@ Deno.serve(async (req) => {
       return json({ error: "RESEND_API_KEY not configured" }, 500);
     }
 
-    const { type, to, inviterName, workspaceName, token, appUrl } = await req.json();
+    const { type, to, inviteeName, workspaceName, token, appUrl } = await req.json();
 
     if (!to || !type) {
       return json({ error: "Missing required fields: to, type" }, 400);
@@ -25,8 +25,9 @@ Deno.serve(async (req) => {
 
     if (type === "invite") {
       const acceptUrl = `${baseUrl}/invite/accept?token=${token}`;
-      const displayInviter = inviterName || "Your team admin";
-      subject = `${displayInviter} invited you to join on Aireatro`;
+      const displayWorkspace = workspaceName || "Aireatro";
+      const displayName = inviteeName || "there";
+      subject = `${displayWorkspace} invited you to join on Aireatro`;
       html = `
 <!DOCTYPE html>
 <html lang="en">
@@ -55,20 +56,23 @@ Deno.serve(async (req) => {
               
               <!-- Greeting -->
               <p style="margin:0 0 8px;font-size:14px;color:#94a3b8;text-transform:uppercase;letter-spacing:1px;font-weight:600;">Team Invitation</p>
-              <h1 style="margin:0 0 20px;font-size:26px;font-weight:700;color:#0f172a;line-height:1.3;">
-                You've been invited to collaborate
+              <h1 style="margin:0 0 12px;font-size:26px;font-weight:700;color:#0f172a;line-height:1.3;">
+                Hi ${displayName} 👋
               </h1>
+              <p style="margin:0 0 24px;font-size:15px;color:#475569;line-height:1.7;">
+                You've been invited to join <strong>${displayWorkspace}</strong> on Aireatro. Accept the invitation below to get started.
+              </p>
               
-              <!-- Inviter info -->
+              <!-- Workspace info -->
               <table width="100%" cellpadding="0" cellspacing="0" style="background:#f8fafc;border-radius:12px;margin-bottom:28px;">
                 <tr><td style="padding:20px 24px;">
                   <table cellpadding="0" cellspacing="0">
                     <tr>
                       <td style="width:44px;height:44px;background:linear-gradient(135deg,#6366f1,#8b5cf6);border-radius:12px;text-align:center;vertical-align:middle;">
-                        <span style="color:#ffffff;font-size:18px;font-weight:700;">${displayInviter.charAt(0).toUpperCase()}</span>
+                        <span style="color:#ffffff;font-size:18px;font-weight:700;">${displayWorkspace.charAt(0).toUpperCase()}</span>
                       </td>
                       <td style="padding-left:16px;">
-                        <p style="margin:0;font-size:16px;font-weight:600;color:#0f172a;">${displayInviter}</p>
+                        <p style="margin:0;font-size:16px;font-weight:600;color:#0f172a;">${displayWorkspace}</p>
                         <p style="margin:2px 0 0;font-size:13px;color:#64748b;">invited you to join the team</p>
                       </td>
                     </tr>

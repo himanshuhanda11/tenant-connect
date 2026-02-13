@@ -12,8 +12,8 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { X, Lock, ArrowRight, AlertTriangle, UserPlus, Mail, Eye, EyeOff } from 'lucide-react';
-import { useMemberInvites, useRoles, useTeams, useTeamMembers } from '@/hooks/useTeam';
-import { usePhoneNumbers } from '@/hooks/usePhoneNumbers';
+import { useMemberInvites, useRoles, useTeams } from '@/hooks/useTeam';
+import { useTeamMembers } from '@/hooks/useTeam';
 import { usePlanGate, getPlanLabel } from '@/hooks/usePlanGate';
 import { UpgradePlanDialog } from '@/components/billing/UpgradePlanDialog';
 import { useTenant } from '@/contexts/TenantContext';
@@ -30,28 +30,27 @@ const InviteMemberModal = ({ open, onOpenChange }: InviteMemberModalProps) => {
   const { refetch } = useTeamMembers();
   const { roles } = useRoles();
   const { teams } = useTeams();
-  const { phoneNumbers } = usePhoneNumbers();
   const { currentTenant } = useTenant();
   const { canInviteMembers, teamMemberLimit, teamMemberCount, currentPlan, nextPlan } = usePlanGate();
   
-  const [tab, setTab] = useState<string>('add');
+  const [tab, setTab] = useState<string>('invite');
   const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [roleId, setRoleId] = useState('');
   const [selectedTeams, setSelectedTeams] = useState<string[]>([]);
-  const [selectedPhones, setSelectedPhones] = useState<string[]>([]);
   const [sending, setSending] = useState(false);
   const [showUpgrade, setShowUpgrade] = useState(false);
 
   const resetForm = () => {
     setEmail('');
+    setUsername('');
     setPassword('');
     setFullName('');
     setRoleId('');
     setSelectedTeams([]);
-    setSelectedPhones([]);
     setShowPassword(false);
   };
 
@@ -60,27 +59,27 @@ const InviteMemberModal = ({ open, onOpenChange }: InviteMemberModalProps) => {
     if (!canInviteMembers) { setShowUpgrade(true); return; }
     
     setSending(true);
-    await sendInvite(email, roleId, selectedTeams, selectedPhones);
+    await sendInvite(email, roleId, selectedTeams, [], fullName);
     setSending(false);
     resetForm();
     onOpenChange(false);
   };
 
   const handleDirectAdd = async () => {
-    if (!email || !password || !currentTenant?.id) return;
+    const loginEmail = email || (username ? `${username}@${currentTenant?.slug || 'workspace'}.local` : '');
+    if (!loginEmail || !password || !currentTenant?.id) return;
     if (!canInviteMembers) { setShowUpgrade(true); return; }
 
     setSending(true);
     try {
       const { data, error } = await supabase.functions.invoke('create-team-member', {
         body: {
-          email,
+          email: loginEmail,
           password,
-          fullName: fullName || email.split('@')[0],
+          fullName: fullName || username || loginEmail.split('@')[0],
           tenantId: currentTenant.id,
           roleId: roleId || undefined,
           teamIds: selectedTeams.length > 0 ? selectedTeams : undefined,
-          phoneNumberIds: selectedPhones.length > 0 ? selectedPhones : undefined,
         },
       });
 
@@ -101,12 +100,6 @@ const InviteMemberModal = ({ open, onOpenChange }: InviteMemberModalProps) => {
   const toggleTeam = (teamId: string) => {
     setSelectedTeams(prev => 
       prev.includes(teamId) ? prev.filter(t => t !== teamId) : [...prev, teamId]
-    );
-  };
-
-  const togglePhone = (phoneId: string) => {
-    setSelectedPhones(prev => 
-      prev.includes(phoneId) ? prev.filter(p => p !== phoneId) : [...prev, phoneId]
     );
   };
 
@@ -150,31 +143,10 @@ const InviteMemberModal = ({ open, onOpenChange }: InviteMemberModalProps) => {
           )}
         </div>
       </div>
-
-      <div className="space-y-2">
-        <Label className="text-sm">Phone Number Access (Optional)</Label>
-        <p className="text-[10px] sm:text-xs text-muted-foreground mb-2">
-          Restrict to specific phone numbers, or leave empty for all access
-        </p>
-        <div className="flex flex-wrap gap-2 p-3 border rounded-lg min-h-[48px]">
-          {phoneNumbers.map(phone => (
-            <Badge
-              key={phone.id}
-              variant={selectedPhones.includes(phone.id) ? 'default' : 'outline'}
-              className="cursor-pointer touch-manipulation py-1.5"
-              onClick={() => canInviteMembers && togglePhone(phone.id)}
-            >
-              {phone.display_name || phone.phone_e164}
-              {selectedPhones.includes(phone.id) && <X className="ml-1 h-3 w-3" />}
-            </Badge>
-          ))}
-          {phoneNumbers.length === 0 && (
-            <span className="text-xs text-muted-foreground">No phone numbers connected</span>
-          )}
-        </div>
-      </div>
     </>
   );
+
+  const directAddValid = (email || username) && password && password.length >= 6;
 
   return (
     <>
@@ -183,7 +155,7 @@ const InviteMemberModal = ({ open, onOpenChange }: InviteMemberModalProps) => {
           <DialogHeader>
             <DialogTitle className="text-base sm:text-lg">Add Team Member</DialogTitle>
             <DialogDescription className="text-xs sm:text-sm">
-              Add a member directly or send an email invite
+              Send an email invite or add a member directly
             </DialogDescription>
           </DialogHeader>
 
@@ -215,15 +187,39 @@ const InviteMemberModal = ({ open, onOpenChange }: InviteMemberModalProps) => {
 
           <Tabs value={tab} onValueChange={(v) => { setTab(v); resetForm(); }}>
             <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="add" className="gap-1.5 text-xs sm:text-sm">
-                <UserPlus className="h-3.5 w-3.5" />
-                Add Directly
-              </TabsTrigger>
               <TabsTrigger value="invite" className="gap-1.5 text-xs sm:text-sm">
                 <Mail className="h-3.5 w-3.5" />
                 Send Invite
               </TabsTrigger>
+              <TabsTrigger value="add" className="gap-1.5 text-xs sm:text-sm">
+                <UserPlus className="h-3.5 w-3.5" />
+                Add Directly
+              </TabsTrigger>
             </TabsList>
+
+            {/* Send Invite Tab */}
+            <TabsContent value="invite" className="space-y-3 mt-3 max-h-[55vh] overflow-y-auto -mx-4 sm:-mx-6 px-4 sm:px-6">
+              <div className="space-y-2">
+                <Label>Full Name</Label>
+                <Input
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  placeholder="John Doe"
+                  disabled={!canInviteMembers}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Email Address</Label>
+                <Input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="colleague@company.com"
+                  disabled={!canInviteMembers}
+                />
+              </div>
+              {sharedFields}
+            </TabsContent>
 
             {/* Direct Add Tab */}
             <TabsContent value="add" className="space-y-3 mt-3 max-h-[55vh] overflow-y-auto -mx-4 sm:-mx-6 px-4 sm:px-6">
@@ -242,9 +238,23 @@ const InviteMemberModal = ({ open, onOpenChange }: InviteMemberModalProps) => {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="member@company.com"
+                  placeholder="member@company.com (optional if username provided)"
                   disabled={!canInviteMembers}
                 />
+              </div>
+              <div className="space-y-2">
+                <Label>Username <span className="text-xs text-muted-foreground">(if no email)</span></Label>
+                <Input
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value.replace(/\s/g, '').toLowerCase())}
+                  placeholder="johndoe"
+                  disabled={!canInviteMembers || !!email}
+                />
+                {username && !email && (
+                  <p className="text-[10px] text-muted-foreground">
+                    Login: {username}@{currentTenant?.slug || 'workspace'}.local
+                  </p>
+                )}
               </div>
               <div className="space-y-2">
                 <Label>Password</Label>
@@ -270,21 +280,6 @@ const InviteMemberModal = ({ open, onOpenChange }: InviteMemberModalProps) => {
               </div>
               {sharedFields}
             </TabsContent>
-
-            {/* Invite Tab */}
-            <TabsContent value="invite" className="space-y-3 mt-3 max-h-[55vh] overflow-y-auto -mx-4 sm:-mx-6 px-4 sm:px-6">
-              <div className="space-y-2">
-                <Label>Email Address</Label>
-                <Input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="colleague@company.com"
-                  disabled={!canInviteMembers}
-                />
-              </div>
-              {sharedFields}
-            </TabsContent>
           </Tabs>
 
           <DialogFooter className="flex-col-reverse sm:flex-row gap-2 sm:gap-0 mt-2">
@@ -292,21 +287,21 @@ const InviteMemberModal = ({ open, onOpenChange }: InviteMemberModalProps) => {
               Cancel
             </Button>
             {canInviteMembers ? (
-              tab === 'add' ? (
-                <Button 
-                  onClick={handleDirectAdd} 
-                  disabled={!email || !password || password.length < 6 || sending}
-                  className="touch-manipulation w-full sm:w-auto"
-                >
-                  {sending ? 'Adding...' : 'Add Member'}
-                </Button>
-              ) : (
+              tab === 'invite' ? (
                 <Button 
                   onClick={handleInviteSubmit} 
                   disabled={!email || !roleId || sending}
                   className="touch-manipulation w-full sm:w-auto"
                 >
                   {sending ? 'Sending...' : 'Send Invite'}
+                </Button>
+              ) : (
+                <Button 
+                  onClick={handleDirectAdd} 
+                  disabled={!directAddValid || sending}
+                  className="touch-manipulation w-full sm:w-auto"
+                >
+                  {sending ? 'Adding...' : 'Add Member'}
                 </Button>
               )
             ) : (
