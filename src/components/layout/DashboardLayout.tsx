@@ -95,7 +95,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
               </NavLink>
             </Button>
           </header>
-          <div className="flex-1 p-3 sm:p-4 md:p-6 lg:p-8 animate-fade-in overflow-x-hidden">
+          <div className="flex-1 p-3 sm:p-4 md:p-6 lg:p-8 overflow-x-hidden">
             {children}
           </div>
         </main>

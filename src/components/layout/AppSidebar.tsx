@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useLocation, useNavigate, Link } from 'react-router-dom';
 import { LayoutDashboard, Users, Settings, LogOut, ChevronDown, ChevronRight, Plus, Inbox, Contact, Phone, FileText, Send, Zap, CreditCard, Shield, UsersRound, Route, Clock, ScrollText, Tag, ListFilter, HelpCircle, Megaphone, BarChart3, Link2, Target, Workflow, Cog, Building2, Sparkles, TrendingUp, Headphones, Check, Puzzle, PanelLeftClose, PanelLeft, User, ChevronUp } from 'lucide-react';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from '@/components/ui/sidebar';
@@ -126,11 +126,41 @@ export function AppSidebar() {
     { label: 'Team', icon: Users, items: teamMenuItems }
   ];
 
-  const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({
+  const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>(() => ({
     'Meta Ads': true,
-    'Team': false
-  });
+    'Team': location.pathname.startsWith('/team'),
+  }));
 
+  // Auto-expand Team group when navigating to team routes
+  useEffect(() => {
+    if (location.pathname.startsWith('/team')) {
+      setExpandedGroups(prev => ({ ...prev, 'Team': true }));
+    }
+  }, [location.pathname]);
+
+  // Preserve sidebar scroll position across route changes
+  const sidebarScrollRef = useRef<HTMLDivElement>(null);
+  const scrollPosRef = useRef(0);
+
+  useEffect(() => {
+    const el = sidebarScrollRef.current;
+    if (!el) return;
+    
+    const handleScroll = () => {
+      scrollPosRef.current = el.scrollTop;
+    };
+    el.addEventListener('scroll', handleScroll);
+    return () => el.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  useEffect(() => {
+    const el = sidebarScrollRef.current;
+    if (el && scrollPosRef.current > 0) {
+      requestAnimationFrame(() => {
+        el.scrollTop = scrollPosRef.current;
+      });
+    }
+  }, [location.pathname]);
   const handleSignOut = async () => {
     // Clear tenant immediately so route guards don't bounce the user back.
     setCurrentTenant(null);
@@ -351,7 +381,7 @@ export function AppSidebar() {
         )}
       </SidebarHeader>
 
-      <SidebarContent className="px-3 py-4">
+      <SidebarContent ref={sidebarScrollRef} className="px-3 py-4">
         {/* Workspace Switcher - Redesigned */}
         <div className="mb-4">
           <DropdownMenu>

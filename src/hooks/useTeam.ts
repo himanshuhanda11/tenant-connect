@@ -155,17 +155,19 @@ export function useTeams() {
     }
     
     try {
+      const insertPayload = {
+        name: team.name!,
+        description: team.description || null,
+        color: team.color || '#6366f1',
+        team_lead_id: team.team_lead_id && team.team_lead_id.length > 0 ? team.team_lead_id : null,
+        default_routing_strategy: team.default_routing_strategy || 'round_robin',
+        is_active: true,
+        tenant_id: currentTenant.id
+      };
+      console.log('Creating team with payload:', insertPayload);
       const { error } = await supabase
         .from('teams')
-        .insert({
-          name: team.name,
-          description: team.description || null,
-          color: team.color || '#6366f1',
-          team_lead_id: team.team_lead_id || null,
-          default_routing_strategy: team.default_routing_strategy || 'round_robin',
-          is_active: true,
-          tenant_id: currentTenant.id
-        });
+        .insert(insertPayload);
       
       if (error) {
         console.error('Create team error:', error);
