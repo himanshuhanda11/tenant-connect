@@ -131,35 +131,25 @@ export function AppSidebar() {
     'Team': location.pathname.startsWith('/team'),
   }));
 
-  // Auto-expand Team group when navigating to team routes
+  // Auto-expand active group when navigating
   useEffect(() => {
-    if (location.pathname.startsWith('/team')) {
-      setExpandedGroups(prev => ({ ...prev, 'Team': true }));
+    const activeGroup = menuGroups.find(g => isGroupActive(g.items));
+    if (activeGroup) {
+      setExpandedGroups(prev => ({ ...prev, [activeGroup.label]: true }));
     }
   }, [location.pathname]);
 
-  // Preserve sidebar scroll position across route changes
+  // Auto-scroll sidebar to active group
   const sidebarScrollRef = useRef<HTMLDivElement>(null);
-  const scrollPosRef = useRef(0);
+  const activeGroupRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const el = sidebarScrollRef.current;
-    if (!el) return;
-    
-    const handleScroll = () => {
-      scrollPosRef.current = el.scrollTop;
-    };
-    el.addEventListener('scroll', handleScroll);
-    return () => el.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  useEffect(() => {
-    const el = sidebarScrollRef.current;
-    if (el && scrollPosRef.current > 0) {
-      requestAnimationFrame(() => {
-        el.scrollTop = scrollPosRef.current;
-      });
-    }
+    const timer = setTimeout(() => {
+      if (activeGroupRef.current && sidebarScrollRef.current) {
+        activeGroupRef.current.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+      }
+    }, 150);
+    return () => clearTimeout(timer);
   }, [location.pathname]);
   const handleSignOut = async () => {
     // Clear tenant immediately so route guards don't bounce the user back.
@@ -309,6 +299,7 @@ export function AppSidebar() {
     }
 
     return (
+      <div ref={hasActiveItem ? activeGroupRef : undefined}>
       <Collapsible key={group.label} open={isOpen} onOpenChange={() => toggleGroup(group.label)} className="mt-2">
         <SidebarGroup>
           <CollapsibleTrigger asChild>
@@ -330,6 +321,7 @@ export function AppSidebar() {
           </CollapsibleContent>
         </SidebarGroup>
       </Collapsible>
+      </div>
     );
   };
 
