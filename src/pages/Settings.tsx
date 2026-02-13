@@ -14,6 +14,7 @@ import { ComplianceSettings } from '@/components/settings/sections/ComplianceSet
 import { DeveloperSettings } from '@/components/settings/sections/DeveloperSettings';
 import { NotificationSettings } from '@/components/settings/sections/NotificationSettings';
 import { AdvancedSettings } from '@/components/settings/sections/AdvancedSettings';
+import { AutoReplySettings } from '@/components/settings/sections/AutoReplySettings';
 
 export default function Settings() {
   const [activeSection, setActiveSection] = useState('workspace');
@@ -24,6 +25,7 @@ export default function Settings() {
       case 'whatsapp': return <WhatsAppNumberSettings />;
       case 'messaging': return <MessagingSettings />;
       case 'inbox': return <InboxSettings />;
+      case 'autoreply': return <AutoReplySettings />;
       case 'automation': return <AutomationSettings />;
       case 'integrations': return <IntegrationsSettings />;
       case 'team': return <TeamPermissionsSettings />;

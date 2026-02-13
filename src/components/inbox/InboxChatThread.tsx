@@ -58,6 +58,7 @@ import { toast } from 'sonner';
 
 // Assets
 import inboxEmptyChat from '@/assets/inbox-empty-chat.png';
+import inboxAiAssistant from '@/assets/inbox-ai-assistant.png';
 import inboxDisconnected from '@/assets/inbox-disconnected.png';
 import inboxSupervisor from '@/assets/inbox-supervisor.png';
 
@@ -68,6 +69,7 @@ import { TemplatePicker } from './TemplatePicker';
 import { IntentBadge, SentimentBadge } from './IntentBadge';
 import { MessageMedia } from './media/MessageMedia';
 import { ConversationHealthIndicator, HealthDot } from './ConversationHealthIndicator';
+import { QuickReplyManager } from './QuickReplyManager';
 
 interface InboxChatThreadProps {
   conversation: InboxConversation | null;
@@ -256,7 +258,7 @@ export function InboxChatThread({
   }
 
   return (
-    <div className="flex-1 flex flex-col bg-background">
+    <div className="flex-1 flex flex-col bg-background overflow-hidden">
       {/* Header - Modern Clean White Design */}
       <div className="border-b bg-white shadow-sm">
         {/* Row 1: Contact Info */}
@@ -568,7 +570,7 @@ export function InboxChatThread({
         </div>
       )}
 
-      {/* Messages Area - WhatsApp style background */}
+      {/* Messages Area - Premium chat background */}
         <ScrollArea 
         className={cn(
           "flex-1",
@@ -576,7 +578,12 @@ export function InboxChatThread({
         )} 
         ref={scrollRef}
         style={{
-          background: 'linear-gradient(135deg, hsl(var(--muted) / 0.3) 0%, hsl(var(--background)) 50%, hsl(var(--muted) / 0.2) 100%)',
+          background: `
+            radial-gradient(circle at 20% 20%, hsl(var(--primary) / 0.03) 0%, transparent 50%),
+            radial-gradient(circle at 80% 80%, hsl(var(--primary) / 0.02) 0%, transparent 50%),
+            linear-gradient(180deg, hsl(var(--muted) / 0.15) 0%, hsl(var(--background)) 30%, hsl(var(--background)) 70%, hsl(var(--muted) / 0.1) 100%)
+          `,
+          backgroundAttachment: 'fixed',
         }}
       >
         <div className={cn(
@@ -717,7 +724,7 @@ export function InboxChatThread({
 
       {/* AI Reply Suggestions Panel - Collapsible */}
       {!isSupervisorMode && showAISuggestions && (
-        <div className="px-4 py-2 border-t bg-gradient-to-r from-violet-50 to-purple-50">
+        <div className="px-4 py-2 border-t bg-gradient-to-r from-primary/5 via-primary/3 to-transparent">
           <AIReplySuggestions
             messages={messages}
             onSelectSuggestion={(text) => {
@@ -771,20 +778,26 @@ export function InboxChatThread({
                       variant={showAISuggestions ? "default" : "ghost"} 
                       size="icon" 
                       className={cn(
-                        "flex-shrink-0 relative",
+                        "flex-shrink-0 relative overflow-hidden",
                         isMobile ? "h-10 w-10" : "h-11 w-11",
-                        showAISuggestions && "bg-gradient-to-r from-violet-500 to-purple-500 hover:from-violet-600 hover:to-purple-600"
+                        showAISuggestions 
+                          ? "bg-gradient-to-br from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-md shadow-primary/20" 
+                          : "hover:bg-primary/5"
                       )}
                       onClick={() => setShowAISuggestions(!showAISuggestions)}
                     >
-                      <Sparkles className={cn(isMobile ? "h-5 w-5" : "h-4 w-4")} />
-                      <Paperclip className={cn(
-                        "absolute -bottom-0.5 -right-0.5 bg-background rounded-full p-0.5",
-                        isMobile ? "h-4 w-4" : "h-3.5 w-3.5"
-                      )} />
+                      <img 
+                        src={inboxAiAssistant} 
+                        alt="AI Assistant" 
+                        className={cn(
+                          "object-contain transition-transform",
+                          isMobile ? "h-7 w-7" : "h-6 w-6",
+                          showAISuggestions && "brightness-0 invert scale-110"
+                        )} 
+                      />
                     </Button>
                   </TooltipTrigger>
-                  <TooltipContent>AI Assistant & Quick Actions</TooltipContent>
+                  <TooltipContent>AI Assistant</TooltipContent>
                 </Tooltip>
 
                 {/* Attachment Button - Dropdown with options */}
@@ -898,21 +911,11 @@ export function InboxChatThread({
                 </Button>
               </div>
 
-              {/* Quick Replies - desktop only */}
-              {!isMobile && (
-                <div className="flex items-center gap-2 mt-2">
-                  <span className="text-xs text-muted-foreground">Quick:</span>
-                  <Button variant="outline" size="sm" className="h-6 text-xs" onClick={() => setMessageText("Thank you for reaching out!")}>
-                    Thanks
-                  </Button>
-                  <Button variant="outline" size="sm" className="h-6 text-xs" onClick={() => setMessageText("I'll look into this and get back to you shortly.")}>
-                    Looking into it
-                  </Button>
-                  <Button variant="outline" size="sm" className="h-6 text-xs" onClick={() => setMessageText("Is there anything else I can help you with?")}>
-                    Anything else?
-                  </Button>
-                </div>
-              )}
+              {/* Quick Replies - editable by agents */}
+              <QuickReplyManager 
+                onSelectReply={(text) => setMessageText(text)} 
+                isMobile={isMobile}
+              />
             </>
           )}
         </div>
