@@ -319,10 +319,11 @@ export default function SelectWorkspace() {
                     <div className="flex flex-col xs:flex-row gap-3">
                       <Button 
                         onClick={() => setModalOpen(true)}
-                        className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-md text-sm h-10"
+                        variant="outline"
+                        className="border-2 border-foreground/20 hover:border-foreground/40 bg-card hover:bg-accent text-foreground shadow-sm text-sm h-10 font-semibold"
                       >
+                        <Plus className="w-4 h-4 mr-2" />
                         Create workspace
-                        <ArrowRight className="w-4 h-4 ml-2" />
                       </Button>
                       <Button variant="ghost" className="text-muted-foreground hover:text-foreground text-sm h-10" asChild>
                         <Link to="/help/workspaces">
@@ -469,7 +470,8 @@ export default function SelectWorkspace() {
         <div className="fixed bottom-0 left-0 right-0 p-3 xs:p-4 bg-card/95 backdrop-blur-sm border-t border-border sm:hidden z-40">
           <Button 
             onClick={() => setModalOpen(true)}
-            className="w-full h-11 bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg text-sm"
+            variant="outline"
+            className="w-full h-11 border-2 border-foreground/20 hover:border-foreground/40 bg-card hover:bg-accent text-foreground shadow-sm text-sm font-semibold"
           >
             <Plus className="w-4 h-4 mr-2" />
             Create workspace
