@@ -9471,6 +9471,60 @@ export type Database = {
           },
         ]
       }
+      workspace_appearance: {
+        Row: {
+          accent_color: string | null
+          border_radius: string
+          created_at: string
+          density: string
+          id: string
+          mode: string
+          reduce_motion: boolean
+          theme: string
+          updated_at: string
+          workspace_id: string
+        }
+        Insert: {
+          accent_color?: string | null
+          border_radius?: string
+          created_at?: string
+          density?: string
+          id?: string
+          mode?: string
+          reduce_motion?: boolean
+          theme?: string
+          updated_at?: string
+          workspace_id: string
+        }
+        Update: {
+          accent_color?: string | null
+          border_radius?: string
+          created_at?: string
+          density?: string
+          id?: string
+          mode?: string
+          reduce_motion?: boolean
+          theme?: string
+          updated_at?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workspace_appearance_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: true
+            referencedRelation: "platform_workspace_directory"
+            referencedColumns: ["workspace_id"]
+          },
+          {
+            foreignKeyName: "workspace_appearance_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: true
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       workspace_credits: {
         Row: {
           balance: number

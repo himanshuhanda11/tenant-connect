@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { HelmetProvider } from "react-helmet-async";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { TenantProvider } from "@/contexts/TenantContext";
+import { ThemeProvider } from "@/contexts/ThemeContext";
 import ScrollToTop from "@/components/ScrollToTop";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
@@ -134,6 +135,7 @@ const App = () => (
         <BrowserRouter>
           <AuthProvider>
             <TenantProvider>
+              <ThemeProvider>
               <ScrollToTop />
               <Routes>
               <Route path="/" element={<Index />} />
@@ -260,6 +262,7 @@ const App = () => (
               </Route>
               <Route path="*" element={<NotFound />} />
             </Routes>
+          </ThemeProvider>
           </TenantProvider>
         </AuthProvider>
       </BrowserRouter>

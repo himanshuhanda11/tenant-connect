@@ -207,3 +207,30 @@
 .animate-marquee:hover {
   animation-play-state: paused;
 }
+
+/* Density: compact mode */
+.density-compact button,
+.density-compact a {
+  @apply text-sm;
+}
+.density-compact .p-4 {
+  padding: 0.625rem;
+}
+.density-compact .p-6 {
+  padding: 1rem;
+}
+.density-compact .gap-4 {
+  gap: 0.625rem;
+}
+.density-compact .gap-6 {
+  gap: 1rem;
+}
+
+/* Reduce motion */
+.reduce-motion *,
+.reduce-motion *::before,
+.reduce-motion *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+}
