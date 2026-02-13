@@ -259,8 +259,8 @@ export function InboxChatThread({
 
   return (
     <div className="flex-1 flex flex-col bg-background overflow-hidden">
-      {/* Header - Modern Clean White Design */}
-      <div className="border-b bg-white shadow-sm">
+      {/* Header - Premium Glassmorphism Design */}
+      <div className="border-b border-border/60 bg-card/90 backdrop-blur-md shadow-sm">
         {/* Row 1: Contact Info */}
         <div className={cn(
           "flex items-center justify-between",
@@ -433,7 +433,7 @@ export function InboxChatThread({
 
         {/* Row 2: Status Bar with badges and actions (Desktop only) */}
         {!isMobile && (
-          <div className="h-11 px-5 flex items-center gap-3 bg-gray-50/80 border-t border-gray-100 overflow-x-auto">
+          <div className="h-11 px-5 flex items-center gap-3 bg-muted/40 backdrop-blur-sm border-t border-border/40 overflow-x-auto">
             {/* AI Intent & Health */}
             <div className="flex items-center gap-2 pr-3 border-r border-gray-200">
               <IntentBadge intent={aiIntent} />
@@ -570,7 +570,7 @@ export function InboxChatThread({
         </div>
       )}
 
-      {/* Messages Area - Premium chat background */}
+      {/* Messages Area - Premium immersive background */}
         <ScrollArea 
         className={cn(
           "flex-1",
@@ -579,9 +579,10 @@ export function InboxChatThread({
         ref={scrollRef}
         style={{
           background: `
-            radial-gradient(circle at 20% 20%, hsl(var(--primary) / 0.03) 0%, transparent 50%),
-            radial-gradient(circle at 80% 80%, hsl(var(--primary) / 0.02) 0%, transparent 50%),
-            linear-gradient(180deg, hsl(var(--muted) / 0.15) 0%, hsl(var(--background)) 30%, hsl(var(--background)) 70%, hsl(var(--muted) / 0.1) 100%)
+            radial-gradient(ellipse at 10% 10%, hsl(var(--primary) / 0.06) 0%, transparent 40%),
+            radial-gradient(ellipse at 90% 90%, hsl(var(--primary) / 0.04) 0%, transparent 40%),
+            radial-gradient(ellipse at 50% 50%, hsl(var(--accent) / 0.08) 0%, transparent 60%),
+            linear-gradient(175deg, hsl(var(--muted) / 0.2) 0%, hsl(var(--background)) 20%, hsl(var(--background)) 80%, hsl(var(--muted) / 0.15) 100%)
           `,
           backgroundAttachment: 'fixed',
         }}
@@ -633,9 +634,9 @@ export function InboxChatThread({
                 )}
               >
                 {!isOutbound && (
-                  <Avatar className="h-8 w-8 flex-shrink-0 ring-2 ring-border/50 shadow-sm">
+                  <Avatar className="h-9 w-9 flex-shrink-0 ring-2 ring-primary/10 shadow-md">
                     <AvatarImage src={conversation.contact?.profile_picture_url || undefined} />
-                    <AvatarFallback className="bg-gradient-to-br from-muted to-muted-foreground/10 text-xs font-semibold">
+                    <AvatarFallback className="bg-gradient-to-br from-primary/20 to-accent text-foreground text-xs font-bold">
                       {getInitials(conversation.contact?.name)}
                     </AvatarFallback>
                   </Avatar>
@@ -646,10 +647,10 @@ export function InboxChatThread({
                   isOutbound && "items-end"
                 )}>
                   <div className={cn(
-                    "rounded-2xl px-4 py-2.5 shadow-sm",
+                    "rounded-2xl px-4 py-3 transition-all duration-200",
                     isOutbound 
-                      ? "bg-primary text-primary-foreground rounded-br-md shadow-primary/10" 
-                      : "bg-card border border-border/50 rounded-bl-md shadow-sm"
+                      ? "bg-gradient-to-br from-primary to-primary/90 text-primary-foreground rounded-br-sm shadow-md shadow-primary/15" 
+                      : "bg-card/95 backdrop-blur-sm border border-border/40 rounded-bl-sm shadow-sm hover:shadow-md transition-shadow"
                   )}>
                     {/* Media (WhatsApp-style previews) */}
                     {message.media_url && message.message_type !== 'text' && message.message_type !== 'template' && (
@@ -684,8 +685,8 @@ export function InboxChatThread({
                 </div>
 
                 {isOutbound && (
-                  <Avatar className="h-8 w-8 flex-shrink-0 ring-2 ring-primary/20 shadow-sm">
-                    <AvatarFallback className="bg-gradient-to-br from-primary/20 to-primary/5 text-primary text-xs font-semibold">
+                  <Avatar className="h-9 w-9 flex-shrink-0 ring-2 ring-primary/20 shadow-md">
+                    <AvatarFallback className="bg-gradient-to-br from-primary/30 to-primary/10 text-primary text-xs font-bold">
                       {getInitials(message.sender?.full_name)}
                     </AvatarFallback>
                   </Avatar>
@@ -694,15 +695,15 @@ export function InboxChatThread({
             );
           })}
 
-          {/* Typing Indicator */}
+          {/* Typing Indicator - Premium */}
           {typingUsers.length > 0 && (
             <div className="flex items-center gap-3 px-2">
-              <div className="bg-card border border-border/50 rounded-2xl rounded-bl-md px-4 py-3 shadow-sm">
-                <div className="flex items-center gap-2">
-                  <span className="flex gap-1">
-                    <span className="w-2 h-2 bg-primary/60 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                    <span className="w-2 h-2 bg-primary/60 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                    <span className="w-2 h-2 bg-primary/60 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+              <div className="bg-card/90 backdrop-blur-sm border border-border/40 rounded-2xl rounded-bl-sm px-5 py-3 shadow-md">
+                <div className="flex items-center gap-2.5">
+                  <span className="flex gap-1.5">
+                    <span className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                    <span className="w-2 h-2 bg-primary/70 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                    <span className="w-2 h-2 bg-primary/40 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
                   </span>
                   <span className="text-xs text-muted-foreground font-medium">{typingUsers[0].full_name} is typing...</span>
                 </div>
@@ -736,9 +737,9 @@ export function InboxChatThread({
         </div>
       )}
 
-      {/* Composer - WhatsApp style */}
+      {/* Composer - Premium glassmorphism */}
       <div className={cn(
-        "border-t bg-card/80 backdrop-blur-sm",
+        "border-t border-border/40 bg-card/70 backdrop-blur-xl",
         isMobile ? "p-2" : "p-4"
       )}>
         <div className={cn(
@@ -771,18 +772,18 @@ export function InboxChatThread({
           ) : (
             <>
               <div className="flex items-end gap-2">
-                {/* AI Assistant Button */}
+                {/* AI Assistant Button - Premium Robot */}
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button 
                       variant={showAISuggestions ? "default" : "ghost"} 
                       size="icon" 
                       className={cn(
-                        "flex-shrink-0 relative overflow-hidden",
+                        "flex-shrink-0 relative overflow-hidden rounded-xl",
                         isMobile ? "h-10 w-10" : "h-11 w-11",
                         showAISuggestions 
-                          ? "bg-gradient-to-br from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-md shadow-primary/20" 
-                          : "hover:bg-primary/5"
+                          ? "bg-gradient-to-br from-primary via-primary/90 to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-lg shadow-primary/25 ring-2 ring-primary/20" 
+                          : "hover:bg-primary/5 hover:ring-2 hover:ring-primary/10"
                       )}
                       onClick={() => setShowAISuggestions(!showAISuggestions)}
                     >
@@ -790,9 +791,9 @@ export function InboxChatThread({
                         src={inboxAiAssistant} 
                         alt="AI Assistant" 
                         className={cn(
-                          "object-contain transition-transform",
-                          isMobile ? "h-7 w-7" : "h-6 w-6",
-                          showAISuggestions && "brightness-0 invert scale-110"
+                          "object-contain transition-all duration-300",
+                          isMobile ? "h-7 w-7" : "h-7 w-7",
+                          showAISuggestions ? "brightness-0 invert scale-110 drop-shadow-md" : "drop-shadow-sm"
                         )} 
                       />
                     </Button>
