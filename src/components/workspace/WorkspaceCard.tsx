@@ -61,6 +61,34 @@ const getAvatarGradient = (name: string): string => {
   return gradients[Math.abs(hash) % gradients.length];
 };
 
+const getInitial = (name: string) => name.charAt(0).toUpperCase();
+
+function WorkspaceAvatar({ name, logoUrl, gradient }: { name: string; logoUrl?: string | null; gradient: string }) {
+  const [imgError, setImgError] = React.useState(false);
+
+  if (logoUrl && !imgError) {
+    return (
+      <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl overflow-hidden shadow-lg border border-border">
+        <img
+          src={logoUrl}
+          alt={name}
+          className="w-full h-full object-cover"
+          onError={() => setImgError(true)}
+        />
+      </div>
+    );
+  }
+
+  return (
+    <div className={cn(
+      "w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br flex items-center justify-center text-white font-bold text-lg shadow-lg",
+      gradient
+    )}>
+      {getInitial(name)}
+    </div>
+  );
+}
+
 export default function WorkspaceCard({
   workspace,
   onSelect,
@@ -74,7 +102,7 @@ export default function WorkspaceCard({
   const isAttention = workspace.status === 'attention';
   const avatarGradient = getAvatarGradient(workspace.name);
 
-  const getInitial = (name: string) => name.charAt(0).toUpperCase();
+
 
   return (
     <Card className={cn(
@@ -94,29 +122,11 @@ export default function WorkspaceCard({
         <div className="flex items-start gap-3 mb-4">
           {/* Premium avatar */}
           <div className="relative">
-            {workspace.logo_url ? (
-              <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl overflow-hidden shadow-lg border border-border">
-                <img
-                  src={workspace.logo_url}
-                  alt={workspace.name}
-                  className="w-full h-full object-cover"
-                  onError={(e) => {
-                    // Fallback to gradient avatar on error
-                    const target = e.currentTarget;
-                    target.style.display = 'none';
-                    target.parentElement!.classList.add('bg-gradient-to-br', ...avatarGradient.split(' '), 'flex', 'items-center', 'justify-center', 'text-white', 'font-bold', 'text-lg');
-                    target.parentElement!.textContent = getInitial(workspace.name);
-                  }}
-                />
-              </div>
-            ) : (
-              <div className={cn(
-                "w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br flex items-center justify-center text-white font-bold text-lg shadow-lg",
-                avatarGradient
-              )}>
-                {getInitial(workspace.name)}
-              </div>
-            )}
+            <WorkspaceAvatar
+              name={workspace.name}
+              logoUrl={workspace.logo_url}
+              gradient={avatarGradient}
+            />
             {/* Live dot */}
             {isConnected && (
               <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full bg-card flex items-center justify-center">
