@@ -653,7 +653,7 @@ export function useTemplateBuilder(): UseTemplateBuilderReturn {
       const { data, error } = await supabase.functions.invoke('submit-template-to-meta', {
         body: {
           template_id: templateId,
-          tenant_id: currentTenant.id
+          version_id: template.current_version_id
         }
       });
       
