@@ -23,6 +23,7 @@ interface WorkspaceCardProps {
     id: string;
     name: string;
     slug: string;
+    logo_url?: string | null;
     role: string;
     created_at: string;
     phoneCount: number;
@@ -93,12 +94,29 @@ export default function WorkspaceCard({
         <div className="flex items-start gap-3 mb-4">
           {/* Premium avatar */}
           <div className="relative">
-            <div className={cn(
-              "w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br flex items-center justify-center text-white font-bold text-lg shadow-lg",
-              avatarGradient
-            )}>
-              {getInitial(workspace.name)}
-            </div>
+            {workspace.logo_url ? (
+              <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl overflow-hidden shadow-lg border border-border">
+                <img
+                  src={workspace.logo_url}
+                  alt={workspace.name}
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    // Fallback to gradient avatar on error
+                    const target = e.currentTarget;
+                    target.style.display = 'none';
+                    target.parentElement!.classList.add('bg-gradient-to-br', ...avatarGradient.split(' '), 'flex', 'items-center', 'justify-center', 'text-white', 'font-bold', 'text-lg');
+                    target.parentElement!.textContent = getInitial(workspace.name);
+                  }}
+                />
+              </div>
+            ) : (
+              <div className={cn(
+                "w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br flex items-center justify-center text-white font-bold text-lg shadow-lg",
+                avatarGradient
+              )}>
+                {getInitial(workspace.name)}
+              </div>
+            )}
             {/* Live dot */}
             {isConnected && (
               <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full bg-card flex items-center justify-center">

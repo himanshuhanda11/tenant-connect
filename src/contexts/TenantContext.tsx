@@ -46,6 +46,7 @@ export function TenantProvider({ children }: { children: React.ReactNode }) {
             id,
             name,
             slug,
+            logo_url,
             created_at,
             updated_at
           )

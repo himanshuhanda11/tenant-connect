@@ -8657,6 +8657,7 @@ export type Database = {
           created_at: string
           id: string
           is_suspended: boolean | null
+          logo_url: string | null
           name: string
           onboarding_status: string | null
           slug: string
@@ -8668,6 +8669,7 @@ export type Database = {
           created_at?: string
           id?: string
           is_suspended?: boolean | null
+          logo_url?: string | null
           name: string
           onboarding_status?: string | null
           slug: string
@@ -8679,6 +8681,7 @@ export type Database = {
           created_at?: string
           id?: string
           is_suspended?: boolean | null
+          logo_url?: string | null
           name?: string
           onboarding_status?: string | null
           slug?: string
@@ -10363,6 +10366,7 @@ export type Database = {
           created_at: string
           id: string
           is_suspended: boolean | null
+          logo_url: string | null
           name: string
           onboarding_status: string | null
           slug: string
