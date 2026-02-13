@@ -267,20 +267,22 @@ Deno.serve(async (req: Request) => {
 
       // Get plan limits and features
       const { data: fullPlan } = await sb.from("platform_plans").select("*").eq("id", planId).single();
+      const lim = fullPlan?.limits || {};
+      const toInt = (v: any) => (v === 'unlimited' || v === null || v === undefined) ? -1 : (typeof v === 'number' ? v : parseInt(v) || -1);
 
       // Directly upsert workspace_entitlements with correct columns
       const { error: entError } = await sb.from("workspace_entitlements").upsert({
         workspace_id: workspaceId,
         plan: planId,
         status: "active",
-        monthly_conversation_limit: fullPlan?.limits?.monthly_messages ?? null,
-        monthly_broadcast_limit: fullPlan?.limits?.monthly_broadcasts ?? null,
-        monthly_template_limit: fullPlan?.limits?.monthly_templates ?? null,
-        monthly_flow_limit: fullPlan?.limits?.flows ?? null,
-        enable_ai: fullPlan?.limits?.ai_credits !== 0,
-        enable_ads: !!fullPlan?.features?.includes("ads_manager"),
-        enable_integrations: !!fullPlan?.features?.includes("integrations"),
-        enable_autoforms: !!fullPlan?.features?.includes("autoforms"),
+        monthly_conversation_limit: toInt(lim.monthly_messages),
+        monthly_broadcast_limit: toInt(lim.monthly_broadcasts),
+        monthly_template_limit: toInt(lim.monthly_templates),
+        monthly_flow_limit: toInt(lim.flows),
+        enable_ai: lim.ai_features !== 'none' && lim.ai_features !== false,
+        enable_ads: Array.isArray(fullPlan?.features) && fullPlan.features.includes("ads_manager"),
+        enable_integrations: Array.isArray(fullPlan?.features) && fullPlan.features.includes("integrations"),
+        enable_autoforms: lim.autoforms === 'unlimited' || lim.autoforms === true,
         updated_at: new Date().toISOString(),
       }, { onConflict: "workspace_id" });
 
