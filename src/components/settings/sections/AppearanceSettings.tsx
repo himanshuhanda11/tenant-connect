@@ -97,7 +97,7 @@ export function AppearanceSettings() {
                 >
                   <div
                     className="w-8 h-8 rounded-full shadow-inner ring-2 ring-background"
-                    style={{ backgroundColor: `hsl(${theme.primary})` }}
+                    style={{ backgroundColor: `hsl(${theme.light.primary})` }}
                   />
                   {active && (
                     <div className="absolute top-1.5 right-1.5">

@@ -2,31 +2,157 @@ import React, { createContext, useContext, useEffect, useState, useCallback } fr
 import { supabase } from '@/integrations/supabase/client';
 import { useTenant } from './TenantContext';
 
-// 20 professional themes
-export const THEMES = [
-  { id: 'default', name: 'WhatsApp Green', primary: '142 70% 45%', accent: '142 60% 94%', accentFg: '142 70% 30%' },
-  { id: 'ocean', name: 'Ocean Blue', primary: '210 80% 50%', accent: '210 60% 94%', accentFg: '210 80% 30%' },
-  { id: 'royal', name: 'Royal Purple', primary: '270 65% 55%', accent: '270 50% 94%', accentFg: '270 65% 35%' },
-  { id: 'sunset', name: 'Sunset Orange', primary: '25 90% 55%', accent: '25 70% 94%', accentFg: '25 90% 35%' },
-  { id: 'rose', name: 'Rose Pink', primary: '345 75% 55%', accent: '345 60% 94%', accentFg: '345 75% 35%' },
-  { id: 'teal', name: 'Teal', primary: '175 70% 40%', accent: '175 50% 93%', accentFg: '175 70% 25%' },
-  { id: 'indigo', name: 'Indigo', primary: '240 60% 55%', accent: '240 50% 94%', accentFg: '240 60% 35%' },
-  { id: 'amber', name: 'Amber Gold', primary: '38 92% 50%', accent: '38 70% 93%', accentFg: '38 92% 30%' },
-  { id: 'emerald', name: 'Emerald', primary: '160 84% 39%', accent: '160 60% 93%', accentFg: '160 84% 25%' },
-  { id: 'crimson', name: 'Crimson', primary: '0 72% 50%', accent: '0 55% 94%', accentFg: '0 72% 30%' },
-  { id: 'slate', name: 'Slate', primary: '215 25% 40%', accent: '215 20% 94%', accentFg: '215 25% 25%' },
-  { id: 'violet', name: 'Violet', primary: '290 60% 50%', accent: '290 45% 94%', accentFg: '290 60% 30%' },
-  { id: 'cyan', name: 'Cyan', primary: '190 80% 45%', accent: '190 60% 93%', accentFg: '190 80% 28%' },
-  { id: 'lime', name: 'Lime', primary: '85 70% 45%', accent: '85 55% 93%', accentFg: '85 70% 28%' },
-  { id: 'fuchsia', name: 'Fuchsia', primary: '310 70% 55%', accent: '310 55% 94%', accentFg: '310 70% 35%' },
-  { id: 'sky', name: 'Sky', primary: '199 89% 48%', accent: '199 65% 93%', accentFg: '199 89% 30%' },
-  { id: 'bronze', name: 'Bronze', primary: '30 50% 45%', accent: '30 35% 93%', accentFg: '30 50% 28%' },
-  { id: 'forest', name: 'Forest', primary: '150 50% 35%', accent: '150 35% 93%', accentFg: '150 50% 22%' },
-  { id: 'midnight', name: 'Midnight', primary: '230 50% 45%', accent: '230 35% 93%', accentFg: '230 50% 28%' },
-  { id: 'coral', name: 'Coral', primary: '16 80% 58%', accent: '16 60% 94%', accentFg: '16 80% 35%' },
-] as const;
+// Full theme palette for both light and dark
+interface ThemePalette {
+  background: string;
+  foreground: string;
+  card: string;
+  cardForeground: string;
+  popover: string;
+  popoverForeground: string;
+  primary: string;
+  primaryForeground: string;
+  secondary: string;
+  secondaryForeground: string;
+  muted: string;
+  mutedForeground: string;
+  accent: string;
+  accentForeground: string;
+  border: string;
+  input: string;
+  ring: string;
+  sidebarBackground: string;
+  sidebarForeground: string;
+  sidebarPrimary: string;
+  sidebarPrimaryForeground: string;
+  sidebarAccent: string;
+  sidebarAccentForeground: string;
+  sidebarBorder: string;
+}
 
-export type ThemeId = typeof THEMES[number]['id'];
+interface ThemeDefinition {
+  id: string;
+  name: string;
+  light: ThemePalette;
+  dark: ThemePalette;
+}
+
+// Helper to build light palette from a primary hue
+function buildLightPalette(h: number, s: number, l: number): ThemePalette {
+  return {
+    background: '0 0% 98%',
+    foreground: `${h} 15% 10%`,
+    card: '0 0% 100%',
+    cardForeground: `${h} 15% 10%`,
+    popover: '0 0% 100%',
+    popoverForeground: `${h} 15% 10%`,
+    primary: `${h} ${s}% ${l}%`,
+    primaryForeground: '0 0% 100%',
+    secondary: `${h} 10% 96%`,
+    secondaryForeground: `${h} 15% 10%`,
+    muted: `${h} 10% 96%`,
+    mutedForeground: `${h} 8% 46%`,
+    accent: `${h} ${Math.round(s * 0.7)}% 94%`,
+    accentForeground: `${h} ${s}% ${Math.max(l - 15, 20)}%`,
+    border: `${h} 10% 90%`,
+    input: `${h} 10% 90%`,
+    ring: `${h} ${s}% ${l}%`,
+    sidebarBackground: '0 0% 100%',
+    sidebarForeground: `${h} 20% 12%`,
+    sidebarPrimary: `${h} ${s}% ${l}%`,
+    sidebarPrimaryForeground: '0 0% 100%',
+    sidebarAccent: `${h} 10% 94%`,
+    sidebarAccentForeground: `${h} 20% 10%`,
+    sidebarBorder: `${h} 10% 90%`,
+  };
+}
+
+function buildDarkPalette(h: number, s: number, l: number): ThemePalette {
+  return {
+    background: `${h} 20% 6%`,
+    foreground: `${h} 8% 95%`,
+    card: `${h} 20% 10%`,
+    cardForeground: `${h} 8% 95%`,
+    popover: `${h} 20% 10%`,
+    popoverForeground: `${h} 8% 95%`,
+    primary: `${h} ${s}% ${l}%`,
+    primaryForeground: '0 0% 100%',
+    secondary: `${h} 15% 16%`,
+    secondaryForeground: `${h} 8% 95%`,
+    muted: `${h} 15% 16%`,
+    mutedForeground: `${h} 8% 55%`,
+    accent: `${h} ${Math.round(s * 0.6)}% 15%`,
+    accentForeground: `${h} ${s}% 60%`,
+    border: `${h} 15% 18%`,
+    input: `${h} 15% 18%`,
+    ring: `${h} ${s}% ${l}%`,
+    sidebarBackground: `${h} 25% 6%`,
+    sidebarForeground: `${h} 8% 85%`,
+    sidebarPrimary: `${h} ${s}% ${l}%`,
+    sidebarPrimaryForeground: '0 0% 100%',
+    sidebarAccent: `${h} 18% 12%`,
+    sidebarAccentForeground: `${h} 8% 95%`,
+    sidebarBorder: `${h} 18% 12%`,
+  };
+}
+
+function theme(id: string, name: string, h: number, s: number, l: number): ThemeDefinition {
+  return { id, name, light: buildLightPalette(h, s, l), dark: buildDarkPalette(h, s, l) };
+}
+
+// Special dark-first themes
+function darkTheme(id: string, name: string, h: number, s: number, l: number): ThemeDefinition {
+  const dark = buildDarkPalette(h, s, l);
+  // For dark-first themes, the light mode is also dark-ish
+  return {
+    id,
+    name,
+    light: {
+      ...dark,
+      background: `${h} 18% 8%`,
+      card: `${h} 18% 12%`,
+      cardForeground: `${h} 8% 92%`,
+      foreground: `${h} 8% 92%`,
+      popover: `${h} 18% 12%`,
+      popoverForeground: `${h} 8% 92%`,
+      muted: `${h} 14% 15%`,
+      mutedForeground: `${h} 8% 55%`,
+      border: `${h} 14% 18%`,
+      input: `${h} 14% 18%`,
+      sidebarBackground: `${h} 22% 7%`,
+      sidebarBorder: `${h} 14% 14%`,
+      secondary: `${h} 14% 16%`,
+      secondaryForeground: `${h} 8% 92%`,
+    },
+    dark,
+  };
+}
+
+export const THEMES: ThemeDefinition[] = [
+  theme('default', 'WhatsApp Green', 142, 70, 45),
+  theme('ocean', 'Ocean Blue', 210, 80, 50),
+  theme('royal', 'Royal Purple', 270, 65, 55),
+  theme('sunset', 'Sunset Orange', 25, 90, 55),
+  theme('rose', 'Rose Pink', 345, 75, 55),
+  theme('teal', 'Teal', 175, 70, 40),
+  theme('indigo', 'Indigo', 240, 60, 55),
+  theme('amber', 'Amber Gold', 38, 92, 50),
+  theme('emerald', 'Emerald', 160, 84, 39),
+  theme('crimson', 'Crimson', 0, 72, 50),
+  theme('slate', 'Slate', 215, 25, 40),
+  theme('violet', 'Violet', 290, 60, 50),
+  theme('cyan', 'Cyan', 190, 80, 45),
+  theme('lime', 'Lime', 85, 70, 45),
+  theme('fuchsia', 'Fuchsia', 310, 70, 55),
+  theme('sky', 'Sky', 199, 89, 48),
+  theme('bronze', 'Bronze', 30, 50, 45),
+  theme('forest', 'Forest', 150, 50, 35),
+  // Dark-first themes
+  darkTheme('midnight', 'Midnight Dark', 230, 50, 45),
+  theme('coral', 'Coral', 16, 80, 58),
+];
+
+export type ThemeId = string;
 export type ThemeMode = 'light' | 'dark' | 'system';
 export type Density = 'comfortable' | 'compact';
 export type BorderRadius = 'small' | 'medium' | 'large';
@@ -66,6 +192,35 @@ const RADIUS_MAP: Record<BorderRadius, string> = {
 
 function getSystemMode(): 'light' | 'dark' {
   return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+}
+
+// Apply full palette to root
+function applyPalette(root: HTMLElement, palette: ThemePalette) {
+  root.style.setProperty('--background', palette.background);
+  root.style.setProperty('--foreground', palette.foreground);
+  root.style.setProperty('--card', palette.card);
+  root.style.setProperty('--card-foreground', palette.cardForeground);
+  root.style.setProperty('--popover', palette.popover);
+  root.style.setProperty('--popover-foreground', palette.popoverForeground);
+  root.style.setProperty('--primary', palette.primary);
+  root.style.setProperty('--primary-foreground', palette.primaryForeground);
+  root.style.setProperty('--secondary', palette.secondary);
+  root.style.setProperty('--secondary-foreground', palette.secondaryForeground);
+  root.style.setProperty('--muted', palette.muted);
+  root.style.setProperty('--muted-foreground', palette.mutedForeground);
+  root.style.setProperty('--accent', palette.accent);
+  root.style.setProperty('--accent-foreground', palette.accentForeground);
+  root.style.setProperty('--border', palette.border);
+  root.style.setProperty('--input', palette.input);
+  root.style.setProperty('--ring', palette.ring);
+  root.style.setProperty('--sidebar-background', palette.sidebarBackground);
+  root.style.setProperty('--sidebar-foreground', palette.sidebarForeground);
+  root.style.setProperty('--sidebar-primary', palette.sidebarPrimary);
+  root.style.setProperty('--sidebar-primary-foreground', palette.sidebarPrimaryForeground);
+  root.style.setProperty('--sidebar-accent', palette.sidebarAccent);
+  root.style.setProperty('--sidebar-accent-foreground', palette.sidebarAccentForeground);
+  root.style.setProperty('--sidebar-border', palette.sidebarBorder);
+  root.style.setProperty('--sidebar-ring', palette.sidebarPrimary);
 }
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
@@ -109,7 +264,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       });
   }, [currentTenant?.id]);
 
-  // Apply theme to DOM
+  // Apply theme to DOM — FULL PALETTE
   useEffect(() => {
     const root = document.documentElement;
     
@@ -120,14 +275,10 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       root.classList.remove('dark');
     }
 
-    // Apply theme colors
-    const theme = THEMES.find(t => t.id === appearance.theme) || THEMES[0];
-    root.style.setProperty('--primary', theme.primary);
-    root.style.setProperty('--accent', theme.accent);
-    root.style.setProperty('--accent-foreground', theme.accentFg);
-    root.style.setProperty('--ring', theme.primary);
-    root.style.setProperty('--sidebar-primary', theme.primary);
-    root.style.setProperty('--sidebar-ring', theme.primary);
+    // Find theme and apply full palette
+    const themeDef = THEMES.find(t => t.id === appearance.theme) || THEMES[0];
+    const palette = resolvedMode === 'dark' ? themeDef.dark : themeDef.light;
+    applyPalette(root, palette);
 
     // Border radius
     root.style.setProperty('--radius', RADIUS_MAP[appearance.border_radius]);

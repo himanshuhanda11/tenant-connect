@@ -102,6 +102,16 @@
     @apply border-border;
   }
 
+  /* Smooth theme transitions */
+  body,
+  .sidebar,
+  [data-sidebar],
+  header,
+  main,
+  nav {
+    transition: background-color 200ms ease, color 200ms ease, border-color 200ms ease;
+  }
+
   body {
     @apply bg-background text-foreground font-sans antialiased;
     font-family: 'Inter', system-ui, sans-serif;
