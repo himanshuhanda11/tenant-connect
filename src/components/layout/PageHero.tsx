@@ -21,7 +21,7 @@ export default function PageHero({
   children 
 }: PageHeroProps) {
   return (
-    <section className="relative pt-16 pb-12 md:pt-20 md:pb-16 bg-white overflow-hidden">
+    <section className="relative pt-16 pb-12 md:pt-20 md:pb-16 bg-card overflow-hidden">
       {/* Subtle decorative elements */}
       <div className="absolute top-10 right-10 w-64 h-64 bg-primary/5 rounded-full blur-3xl" />
       <div className="absolute bottom-10 left-10 w-80 h-80 bg-primary/3 rounded-full blur-3xl" />
