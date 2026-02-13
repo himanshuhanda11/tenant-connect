@@ -605,18 +605,48 @@ export function useTemplateBuilder(): UseTemplateBuilderReturn {
   }, []);
 
   const submitToMeta = useCallback(async (templateId: string): Promise<boolean> => {
-    if (!currentTenant?.id || !currentTemplate) return false;
+    if (!currentTenant?.id) return false;
     
     try {
-      // Check internal approval
-      if (currentTemplate.internal_status !== 'approved') {
-        toast.error('Template must be internally approved before submitting to Meta');
+      // Get template info
+      const { data: template } = await supabase
+        .from('templates')
+        .select('*, current_version:template_versions!templates_current_version_id_fkey(*)')
+        .eq('id', templateId)
+        .single();
+
+      if (!template) {
+        toast.error('Template not found');
         return false;
+      }
+
+      // Auto-approve internally if still in draft (skip internal review like AISensy)
+      if (template.internal_status === 'draft' || template.internal_status === 'changes_requested') {
+        const { data: { user } } = await supabase.auth.getUser();
+        
+        // Auto-create approval record
+        await supabase
+          .from('template_approvals')
+          .insert({
+            template_id: templateId,
+            version_id: template.current_version_id,
+            requested_by: user?.id,
+            reviewed_by: user?.id,
+            status: 'approved',
+            comments: 'Auto-approved for quick submission',
+            tenant_id: currentTenant.id,
+            reviewed_at: new Date().toISOString()
+          } as any);
+        
+        await supabase
+          .from('templates')
+          .update({ internal_status: 'approved' })
+          .eq('id', templateId);
       }
       
       // Check for lint errors
       if (hasLintErrors(lintResults)) {
-        toast.error('Cannot submit: template has validation errors');
+        toast.error('Cannot submit: template has validation errors. Fix them first.');
         return false;
       }
 
@@ -630,7 +660,7 @@ export function useTemplateBuilder(): UseTemplateBuilderReturn {
       if (error) throw error;
       
       if (data.success) {
-        setCurrentTemplate(prev => prev ? { ...prev, status: 'PENDING' } : null);
+        setCurrentTemplate(prev => prev ? { ...prev, status: 'PENDING', internal_status: 'approved' } : null);
         toast.success('Template submitted to Meta for review');
         return true;
       } else {
@@ -642,7 +672,7 @@ export function useTemplateBuilder(): UseTemplateBuilderReturn {
       toast.error('Failed to submit template to Meta');
       return false;
     }
-  }, [currentTenant?.id, currentTemplate, lintResults]);
+  }, [currentTenant?.id, lintResults]);
 
   const validateTemplate = useCallback((
     template: Partial<Template>,

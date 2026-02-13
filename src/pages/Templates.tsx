@@ -110,7 +110,9 @@ export default function Templates() {
       toast.error('No version to submit');
       return;
     }
+    // submitToMeta now auto-approves internally, no need to check internal_status
     await submitToMeta(template.id);
+    fetchTemplates(filters);
   };
 
   const handleDuplicate = async (template: TemplateType) => {
@@ -187,7 +189,7 @@ export default function Templates() {
     setActiveTab('list');
   };
 
-  // Industry pack handler
+  // Industry pack handler - auto-fill variable samples from template variables
   const handleUseIndustryTemplate = async (templateData: {
     name: string;
     category: TemplateCategory;
@@ -197,7 +199,63 @@ export default function Templates() {
     body: string;
     footer?: string;
     buttons?: any[];
+    variables?: string[];
   }) => {
+    // Auto-generate variable samples from the variable names
+    const variableSamples: Record<string, string> = {};
+    const sampleMap: Record<string, string> = {
+      customer_name: 'John', client_name: 'John', patient_name: 'Sarah', student_name: 'Ahmed',
+      candidate_name: 'Maria', guest_name: 'David', member_name: 'Alex', 
+      name: 'John', doctor_name: 'Smith', agent_name: 'Ali', trainer: 'Mike',
+      consultant_name: 'Sarah', attorney_name: 'James', interviewer: 'Lisa',
+      instructor: 'Prof. Khan', agent_name_alt: 'Ali',
+      phone: '+971501234567', phone_number: '+971501234567',
+      email: 'john@example.com',
+      date: '15 Feb 2026', test_date: '10 Feb 2026', due_date: '20 Feb 2026',
+      checkin_date: '15 Feb 2026', checkout_date: '18 Feb 2026', start_date: '1 Mar 2026',
+      expiry_date: '28 Feb 2026', end_date: '28 Feb 2026', next_hearing_date: '20 Mar 2026',
+      time: '10:00 AM', checkout_time: '12:00 PM', estimated_time: '2:00 PM - 4:00 PM',
+      pickup_time: '30 minutes',
+      location: 'Dubai Marina', address: '123 Business Bay, Dubai', office_address: 'Downtown Dubai Office',
+      service_center: 'Al Quoz Service Center', venue: 'Hall A, Building 5',
+      property_name: 'Marina Heights 2BR', property_type: 'Apartment',
+      order_number: 'ORD-12345', receipt_number: 'REC-67890', invoice_number: 'INV-2026-001',
+      ticket_number: 'TKT-5678', case_number: 'CASE-9012', loan_id: 'LN-3456',
+      prescription_number: 'RX-7890', seat_number: 'A-15',
+      amount: 'AED 500', total: 'AED 1,250', price: 'AED 850,000', fee: 'AED 15,000',
+      bill_amount: 'AED 320', refund_amount: 'AED 200',
+      carrier: 'Aramex', tracking_number: 'ARX-123456789',
+      delivery_date: '17 Feb 2026', delivery_address: 'Office Reception',
+      position: 'Senior Developer', company_name: 'TechCorp', package: 'AED 25,000/month',
+      items: '2x Widget Pro, 1x Cable', medication: 'Amoxicillin 500mg',
+      discount: '25', promo_code: 'SAVE25',
+      subject: 'Mathematics', course: 'Computer Science',
+      institution: 'Dubai International University',
+      meeting_link: 'https://meet.example.com/class123',
+      visa_type: 'Tourist Visa', country: 'Canada', document_list: 'Passport, Photo, Bank Statement',
+      deadline: '28 Feb 2026', status: 'In Progress',
+      transaction_type: 'Debit', balance: 'AED 15,430', account_number: '****5678',
+      interest_rate: '4.5% p.a.', emi_start_date: '1 Apr 2026',
+      payment_method: 'Credit Card ending 4567', expected_date: '3-5 business days',
+      hotel_name: 'Grand Hyatt Dubai', room_type: 'Deluxe Suite',
+      restaurant_name: 'Spice Kitchen', guest_count: '4',
+      class_name: 'HIIT Training', plan_name: 'Premium Annual',
+      vehicle: 'Toyota Camry 2024', service_type: 'Annual Service', service_done: 'Oil Change + Filter',
+      dish_name: 'Grilled Salmon with Truffle Risotto',
+      office_hours: 'Sun-Thu 9AM-5PM',
+      hours: 'Mon-Sat 8AM-10PM', pharmacy_name: 'MedPlus Pharmacy',
+      test_name: 'Complete Blood Count', resolution: 'Issue resolved by updating settings',
+      message: 'We will notify you of the next steps shortly.',
+      response_time: '24 hours', priority: 'High',
+      bedrooms: '3', size: '1,800',
+    };
+
+    if (templateData.variables) {
+      templateData.variables.forEach((varName, idx) => {
+        variableSamples[String(idx + 1)] = sampleMap[varName] || varName.replace(/_/g, ' ');
+      });
+    }
+
     await createTemplate({
       name: templateData.name.toLowerCase().replace(/\s+/g, '_'),
       category: templateData.category,
@@ -207,7 +265,7 @@ export default function Templates() {
       body: templateData.body,
       footer: templateData.footer,
       buttons: templateData.buttons,
-      variable_samples: {},
+      variable_samples: variableSamples,
     });
     fetchTemplates(filters);
     setActiveTab('list');
