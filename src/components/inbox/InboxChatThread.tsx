@@ -48,12 +48,18 @@ import {
   Camera,
   Sparkles,
   File,
+  MessageSquare,
 } from 'lucide-react';
 import { format, formatDistanceToNow, differenceInHours } from 'date-fns';
 import { InboxConversation, InboxMessage, WAStatus, ConversationEvent, STATUS_CONFIG, PRIORITY_CONFIG, ConversationStatus } from '@/types/inbox';
 import { cn } from '@/lib/utils';
 import EmojiPicker, { EmojiClickData } from 'emoji-picker-react';
 import { toast } from 'sonner';
+
+// Assets
+import inboxEmptyChat from '@/assets/inbox-empty-chat.png';
+import inboxDisconnected from '@/assets/inbox-disconnected.png';
+import inboxSupervisor from '@/assets/inbox-supervisor.png';
 
 // New AI components
 import { AIReplySuggestions } from './AIReplySuggestions';
@@ -214,12 +220,36 @@ export function InboxChatThread({
     return (
       <div className={cn(
         "flex-1 flex items-center justify-center",
-        isMobile ? "bg-background" : "bg-muted/30"
+        isMobile ? "bg-background" : "bg-muted/10"
       )}>
-        <div className="text-center text-muted-foreground">
-          <Phone className="h-16 w-16 mx-auto mb-4 opacity-30" />
-          <p className="text-lg font-medium">Select a conversation</p>
-          <p className="text-sm">Choose a conversation from the list to start chatting</p>
+        <div className="text-center max-w-xs">
+          <img 
+            src={inboxEmptyChat} 
+            alt="Select a conversation" 
+            className="w-44 h-44 mx-auto mb-6 drop-shadow-lg" 
+            loading="lazy"
+            decoding="async"
+          />
+          <h3 className="text-xl font-semibold text-foreground mb-2">Start a Conversation</h3>
+          <p className="text-sm text-muted-foreground leading-relaxed">
+            Select a chat from the list to view messages and start replying to your customers.
+          </p>
+          <div className="flex items-center justify-center gap-3 mt-5">
+            <div className="flex items-center gap-1.5 text-xs text-muted-foreground/70">
+              <MessageSquare className="h-3.5 w-3.5" />
+              <span>Real-time</span>
+            </div>
+            <span className="w-1 h-1 rounded-full bg-muted-foreground/30" />
+            <div className="flex items-center gap-1.5 text-xs text-muted-foreground/70">
+              <Sparkles className="h-3.5 w-3.5" />
+              <span>AI-Powered</span>
+            </div>
+            <span className="w-1 h-1 rounded-full bg-muted-foreground/30" />
+            <div className="flex items-center gap-1.5 text-xs text-muted-foreground/70">
+              <Zap className="h-3.5 w-3.5" />
+              <span>Instant</span>
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -539,14 +569,14 @@ export function InboxChatThread({
       )}
 
       {/* Messages Area - WhatsApp style background */}
-      <ScrollArea 
+        <ScrollArea 
         className={cn(
-          "flex-1 bg-[#e5ddd5]",
+          "flex-1",
           isMobile ? "p-2" : "p-4"
         )} 
         ref={scrollRef}
         style={{
-          backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\'60\' height=\'60\' viewBox=\'0 0 60 60\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cg fill=\'none\' fill-rule=\'evenodd\'%3E%3Cg fill=\'%23c8bfb6\' fill-opacity=\'0.2\'%3E%3Cpath d=\'M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z\'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")'
+          background: 'linear-gradient(135deg, hsl(var(--muted) / 0.3) 0%, hsl(var(--background)) 50%, hsl(var(--muted) / 0.2) 100%)',
         }}
       >
         <div className={cn(
@@ -557,20 +587,29 @@ export function InboxChatThread({
             if (item.type === 'event') {
               const event = item.data as ConversationEvent;
               return (
-                <div key={event.id} className="flex items-center justify-center gap-2 py-2">
-                  <div className="flex-1 border-t border-dashed" />
-                  <span className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded-full">
+                <div key={event.id} className="flex items-center justify-center gap-3 py-3">
+                  <div className="flex-1 h-px bg-gradient-to-r from-transparent via-border to-transparent" />
+                  <span className="text-[11px] text-muted-foreground bg-card border border-border/50 px-3 py-1.5 rounded-full shadow-sm font-medium">
                     {event.event_type === 'assigned' && (
-                      <>Assigned to {event.actor?.full_name}</>
+                      <span className="flex items-center gap-1.5">
+                        <User className="h-3 w-3" />
+                        Assigned to {event.actor?.full_name}
+                      </span>
                     )}
                     {event.event_type === 'tag_added' && (
-                      <>Tag "{event.tag_name}" added by {event.actor?.full_name}</>
+                      <span className="flex items-center gap-1.5">
+                        <Tag className="h-3 w-3" />
+                        Tag "{event.tag_name}" added by {event.actor?.full_name}
+                      </span>
                     )}
                     {event.event_type === 'intervened' && (
-                      <>{event.actor?.full_name} took over the conversation</>
+                      <span className="flex items-center gap-1.5">
+                        <Hand className="h-3 w-3" />
+                        {event.actor?.full_name} took over
+                      </span>
                     )}
                   </span>
-                  <div className="flex-1 border-t border-dashed" />
+                  <div className="flex-1 h-px bg-gradient-to-r from-transparent via-border to-transparent" />
                 </div>
               );
             }
@@ -587,8 +626,9 @@ export function InboxChatThread({
                 )}
               >
                 {!isOutbound && (
-                  <Avatar className="h-8 w-8 flex-shrink-0">
-                    <AvatarFallback className="bg-muted text-xs">
+                  <Avatar className="h-8 w-8 flex-shrink-0 ring-2 ring-border/50 shadow-sm">
+                    <AvatarImage src={conversation.contact?.profile_picture_url || undefined} />
+                    <AvatarFallback className="bg-gradient-to-br from-muted to-muted-foreground/10 text-xs font-semibold">
                       {getInitials(conversation.contact?.name)}
                     </AvatarFallback>
                   </Avatar>
@@ -599,10 +639,10 @@ export function InboxChatThread({
                   isOutbound && "items-end"
                 )}>
                   <div className={cn(
-                    "rounded-2xl px-4 py-2",
+                    "rounded-2xl px-4 py-2.5 shadow-sm",
                     isOutbound 
-                      ? "bg-primary text-primary-foreground rounded-br-md" 
-                      : "bg-muted rounded-bl-md"
+                      ? "bg-primary text-primary-foreground rounded-br-md shadow-primary/10" 
+                      : "bg-card border border-border/50 rounded-bl-md shadow-sm"
                   )}>
                     {/* Media (WhatsApp-style previews) */}
                     {message.media_url && message.message_type !== 'text' && message.message_type !== 'template' && (
@@ -611,34 +651,34 @@ export function InboxChatThread({
                     
                     {/* Text — skip if media component already renders caption */}
                     {message.body_text && (message.message_type === 'text' || message.message_type === 'template' || !message.media_url) && (
-                      <p className="text-sm whitespace-pre-wrap">{message.body_text}</p>
+                      <p className="text-sm whitespace-pre-wrap leading-relaxed">{message.body_text}</p>
                     )}
 
                     {/* Template indicator */}
                     {message.message_type === 'template' && (
-                      <div className="flex items-center gap-1 text-xs opacity-70 mt-1">
+                      <div className="flex items-center gap-1.5 text-xs opacity-70 mt-1.5">
                         <FileText className="h-3 w-3" />
-                        Template: {message.template_name}
+                        <span className="font-medium">Template:</span> {message.template_name}
                       </div>
                     )}
                   </div>
 
                   {/* Timestamp + Status */}
                   <div className={cn(
-                    "flex items-center gap-1 text-xs text-muted-foreground",
+                    "flex items-center gap-1.5 text-[11px] text-muted-foreground mt-1",
                     isOutbound && "justify-end"
                   )}>
                     <span>{format(new Date(message.created_at), 'h:mm a')}</span>
                     {isOutbound && message.latest_status && STATUS_ICONS[message.latest_status]}
                     {isOutbound && message.sender?.full_name && (
-                      <span>• {message.sender.full_name}</span>
+                      <span className="opacity-70">• {message.sender.full_name}</span>
                     )}
                   </div>
                 </div>
 
                 {isOutbound && (
-                  <Avatar className="h-8 w-8 flex-shrink-0">
-                    <AvatarFallback className="bg-primary/10 text-primary text-xs">
+                  <Avatar className="h-8 w-8 flex-shrink-0 ring-2 ring-primary/20 shadow-sm">
+                    <AvatarFallback className="bg-gradient-to-br from-primary/20 to-primary/5 text-primary text-xs font-semibold">
                       {getInitials(message.sender?.full_name)}
                     </AvatarFallback>
                   </Avatar>
@@ -649,13 +689,17 @@ export function InboxChatThread({
 
           {/* Typing Indicator */}
           {typingUsers.length > 0 && (
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <span className="flex gap-1">
-                <span className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                <span className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                <span className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
-              </span>
-              {typingUsers[0].full_name} is typing...
+            <div className="flex items-center gap-3 px-2">
+              <div className="bg-card border border-border/50 rounded-2xl rounded-bl-md px-4 py-3 shadow-sm">
+                <div className="flex items-center gap-2">
+                  <span className="flex gap-1">
+                    <span className="w-2 h-2 bg-primary/60 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                    <span className="w-2 h-2 bg-primary/60 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                    <span className="w-2 h-2 bg-primary/60 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                  </span>
+                  <span className="text-xs text-muted-foreground font-medium">{typingUsers[0].full_name} is typing...</span>
+                </div>
+              </div>
             </div>
           )}
           <div style={{ height: 1 }} />
@@ -687,22 +731,35 @@ export function InboxChatThread({
 
       {/* Composer - WhatsApp style */}
       <div className={cn(
-        "border-t bg-card",
+        "border-t bg-card/80 backdrop-blur-sm",
         isMobile ? "p-2" : "p-4"
       )}>
         <div className={cn(
           isMobile ? "" : "max-w-3xl mx-auto"
         )}>
           {isPhoneDisconnected ? (
-            <div className="text-center py-4 text-destructive/70">
-              <AlertCircle className="w-6 h-6 mx-auto mb-2 opacity-50" />
-              <p className="text-sm font-medium">Phone number disconnected</p>
-              <p className="text-xs text-muted-foreground mt-1">Reconnect to send messages</p>
+            <div className="text-center py-6">
+              <img 
+                src={inboxDisconnected} 
+                alt="Phone disconnected" 
+                className="w-20 h-20 mx-auto mb-3 opacity-80 drop-shadow-sm" 
+                loading="lazy"
+                decoding="async"
+              />
+              <p className="text-sm font-semibold text-destructive/80">Phone Disconnected</p>
+              <p className="text-xs text-muted-foreground mt-1">Reconnect your number to resume messaging</p>
             </div>
           ) : isSupervisorMode ? (
-            <div className="text-center py-4 text-muted-foreground">
-              <Eye className="w-6 h-6 mx-auto mb-2 opacity-50" />
-              <p className="text-sm">Supervisor mode - viewing only</p>
+            <div className="text-center py-6">
+              <img 
+                src={inboxSupervisor} 
+                alt="Supervisor mode" 
+                className="w-20 h-20 mx-auto mb-3 opacity-80 drop-shadow-sm" 
+                loading="lazy"
+                decoding="async"
+              />
+              <p className="text-sm font-semibold text-muted-foreground">Supervisor Mode</p>
+              <p className="text-xs text-muted-foreground mt-1">You're observing this conversation</p>
             </div>
           ) : (
             <>
