@@ -64,21 +64,24 @@ export function TenantProvider({ children }: { children: React.ReactNode }) {
 
       setTenants(tenantsWithRoles);
 
-      // Only restore from localStorage if there's a saved selection
-      // Don't auto-select even if there's only one tenant - always let user choose
-      const savedTenantId = localStorage.getItem(CURRENT_TENANT_KEY);
-      if (savedTenantId && tenantsWithRoles.length > 0) {
-        const savedTenant = tenantsWithRoles.find(t => t.id === savedTenantId);
-        if (savedTenant) {
-          setCurrentTenantState(savedTenant);
-        } else {
-          // Saved tenant no longer accessible, clear selection
-          setCurrentTenantState(null);
-          localStorage.removeItem(CURRENT_TENANT_KEY);
-        }
+      // Auto-select if user has exactly one tenant (e.g. agents added directly)
+      if (tenantsWithRoles.length === 1) {
+        setCurrentTenantState(tenantsWithRoles[0]);
+        localStorage.setItem(CURRENT_TENANT_KEY, tenantsWithRoles[0].id);
       } else {
-        // No saved selection or no tenants - don't auto-select
-        setCurrentTenantState(null);
+        // Try to restore from localStorage
+        const savedTenantId = localStorage.getItem(CURRENT_TENANT_KEY);
+        if (savedTenantId && tenantsWithRoles.length > 0) {
+          const savedTenant = tenantsWithRoles.find(t => t.id === savedTenantId);
+          if (savedTenant) {
+            setCurrentTenantState(savedTenant);
+          } else {
+            setCurrentTenantState(null);
+            localStorage.removeItem(CURRENT_TENANT_KEY);
+          }
+        } else {
+          setCurrentTenantState(null);
+        }
       }
     } catch (error) {
       console.error('Error fetching tenants:', error);

@@ -220,6 +220,7 @@ export default function SelectWorkspace() {
   };
 
   const connectedCount = workspaces.filter(w => w.status === 'connected').length;
+  const canCreateWorkspace = workspaces.some(w => ['owner', 'admin'].includes(w.role)) || workspaces.length === 0;
 
   if (authLoading || tenantLoading) {
     return (
@@ -296,7 +297,7 @@ export default function SelectWorkspace() {
           </div>
 
           {/* Create Workspace Card */}
-          <Card className="mb-8 sm:mb-10 overflow-hidden bg-gradient-to-br from-primary/5 via-card to-primary/3 border border-primary/15 shadow-sm hidden sm:block">
+          {canCreateWorkspace && <Card className="mb-8 sm:mb-10 overflow-hidden bg-gradient-to-br from-primary/5 via-card to-primary/3 border border-primary/15 shadow-sm hidden sm:block">
             <CardContent className="p-5 sm:p-6 md:p-8 relative">
               <Badge className="absolute top-4 left-4 bg-primary text-primary-foreground hover:bg-primary border-0 text-xs font-medium">
                 ✨ Recommended
@@ -336,7 +337,7 @@ export default function SelectWorkspace() {
                 </div>
               </div>
             </CardContent>
-          </Card>
+          </Card>}
 
           {/* Content */}
           {loadingDetails ? (
@@ -467,16 +468,18 @@ export default function SelectWorkspace() {
         </main>
 
         {/* Mobile sticky CTA */}
-        <div className="fixed bottom-0 left-0 right-0 p-3 xs:p-4 bg-card/95 backdrop-blur-sm border-t border-border sm:hidden z-40">
-          <Button 
-            onClick={() => setModalOpen(true)}
-            variant="outline"
-            className="w-full h-11 border-2 border-foreground/20 hover:border-foreground/40 bg-card hover:bg-accent text-foreground shadow-sm text-sm font-semibold"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Create workspace
-          </Button>
-        </div>
+        {canCreateWorkspace && (
+          <div className="fixed bottom-0 left-0 right-0 p-3 xs:p-4 bg-card/95 backdrop-blur-sm border-t border-border sm:hidden z-40">
+            <Button 
+              onClick={() => setModalOpen(true)}
+              variant="outline"
+              className="w-full h-11 border-2 border-foreground/20 hover:border-foreground/40 bg-card hover:bg-accent text-foreground shadow-sm text-sm font-semibold"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Create workspace
+            </Button>
+          </div>
+        )}
 
         <CreateWorkspaceModal
           open={modalOpen}
