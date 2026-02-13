@@ -1,0 +1,1 @@
+ALTER TABLE public.workspace_appearance ADD COLUMN sidebar_color text DEFAULT NULL;

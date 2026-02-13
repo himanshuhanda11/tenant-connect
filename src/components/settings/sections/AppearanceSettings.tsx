@@ -1,10 +1,11 @@
-import React from 'react';
-import { Palette, Sun, Moon, Monitor, Maximize2, Minimize2, SquareIcon, CircleIcon, Check, Sparkles } from 'lucide-react';
+import React, { useState } from 'react';
+import { Palette, Sun, Moon, Monitor, Maximize2, Minimize2, SquareIcon, CircleIcon, Check, Sparkles, PanelLeft, RotateCcw } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { useTheme, THEMES, type ThemeMode, type Density, type BorderRadius } from '@/contexts/ThemeContext';
 import { useTenant } from '@/contexts/TenantContext';
@@ -25,6 +26,80 @@ const radiusOptions: { value: BorderRadius; label: string; preview: string }[] =
   { value: 'medium', label: 'Medium', preview: 'rounded-lg' },
   { value: 'large', label: 'Large', preview: 'rounded-2xl' },
 ];
+
+const SIDEBAR_PRESETS = [
+  { label: 'Charcoal', color: '#1e1e2e' },
+  { label: 'Navy', color: '#1e293b' },
+  { label: 'Slate', color: '#334155' },
+  { label: 'Forest', color: '#14532d' },
+  { label: 'Wine', color: '#4c1d3d' },
+  { label: 'Midnight', color: '#0f172a' },
+  { label: 'Espresso', color: '#3b2f2f' },
+  { label: 'Storm', color: '#1c2333' },
+  { label: 'Ocean', color: '#0c4a6e' },
+  { label: 'Plum', color: '#3b0764' },
+  { label: 'White', color: '#ffffff' },
+  { label: 'Snow', color: '#f8fafc' },
+];
+
+function SidebarColorPicker({ canEdit }: { canEdit: boolean }) {
+  const { appearance, setAppearance } = useTheme();
+  const currentColor = appearance.sidebar_color;
+
+  return (
+    <div className="space-y-4">
+      <div className="grid grid-cols-6 gap-3">
+        {SIDEBAR_PRESETS.map(preset => {
+          const active = currentColor === preset.color;
+          return (
+            <button
+              key={preset.color}
+              disabled={!canEdit}
+              onClick={() => setAppearance({ sidebar_color: preset.color })}
+              className={cn(
+                "flex flex-col items-center gap-1.5 p-2 rounded-xl border-2 transition-all",
+                active ? "border-primary shadow-sm" : "border-border hover:border-muted-foreground/30",
+                !canEdit && "opacity-50 cursor-not-allowed"
+              )}
+            >
+              <div
+                className="w-8 h-8 rounded-lg ring-1 ring-border shadow-inner"
+                style={{ backgroundColor: preset.color }}
+              />
+              {active && (
+                <Check className="w-3 h-3 text-primary" />
+              )}
+              <span className="text-[10px] text-muted-foreground">{preset.label}</span>
+            </button>
+          );
+        })}
+      </div>
+
+      <div className="flex items-center gap-3">
+        <Label className="text-sm text-muted-foreground shrink-0">Custom:</Label>
+        <input
+          type="color"
+          value={currentColor || '#1e1e2e'}
+          disabled={!canEdit}
+          onChange={(e) => setAppearance({ sidebar_color: e.target.value })}
+          className="w-10 h-8 rounded-lg border border-border cursor-pointer disabled:opacity-50"
+        />
+        {currentColor && (
+          <Button
+            variant="ghost"
+            size="sm"
+            disabled={!canEdit}
+            onClick={() => setAppearance({ sidebar_color: null })}
+            className="text-xs text-muted-foreground gap-1.5"
+          >
+            <RotateCcw className="w-3.5 h-3.5" />
+            Reset to theme default
+          </Button>
+        )}
+      </div>
+    </div>
+  );
+}
 
 export function AppearanceSettings() {
   const { appearance, setAppearance, saving } = useTheme();
@@ -111,6 +186,20 @@ export function AppearanceSettings() {
               );
             })}
           </div>
+        </CardContent>
+      </Card>
+
+      {/* Sidebar Color */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <PanelLeft className="w-5 h-5 text-primary" />
+            Sidebar Color
+          </CardTitle>
+          <CardDescription>Pick a custom sidebar background color independent of the theme</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <SidebarColorPicker canEdit={canEdit} />
         </CardContent>
       </Card>
 

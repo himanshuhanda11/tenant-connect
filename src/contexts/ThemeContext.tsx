@@ -161,6 +161,7 @@ interface WorkspaceAppearance {
   theme: ThemeId;
   mode: ThemeMode;
   accent_color: string | null;
+  sidebar_color: string | null;
   density: Density;
   border_radius: BorderRadius;
   reduce_motion: boolean;
@@ -177,6 +178,7 @@ const defaultAppearance: WorkspaceAppearance = {
   theme: 'default',
   mode: 'system',
   accent_color: null,
+  sidebar_color: null,
   density: 'comfortable',
   border_radius: 'medium',
   reduce_motion: false,
@@ -192,6 +194,26 @@ const RADIUS_MAP: Record<BorderRadius, string> = {
 
 function getSystemMode(): 'light' | 'dark' {
   return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+}
+
+function hexToHsl(hex: string): [number, number, number] | null {
+  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  if (!result) return null;
+  let r = parseInt(result[1], 16) / 255;
+  let g = parseInt(result[2], 16) / 255;
+  let b = parseInt(result[3], 16) / 255;
+  const max = Math.max(r, g, b), min = Math.min(r, g, b);
+  let h = 0, s = 0, l = (max + min) / 2;
+  if (max !== min) {
+    const d = max - min;
+    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+    switch (max) {
+      case r: h = ((g - b) / d + (g < b ? 6 : 0)) / 6; break;
+      case g: h = ((b - r) / d + 2) / 6; break;
+      case b: h = ((r - g) / d + 4) / 6; break;
+    }
+  }
+  return [Math.round(h * 360), Math.round(s * 100), Math.round(l * 100)];
 }
 
 // Apply full palette to root
@@ -254,6 +276,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
             theme: data.theme as ThemeId,
             mode: data.mode as ThemeMode,
             accent_color: data.accent_color,
+            sidebar_color: (data as any).sidebar_color ?? null,
             density: data.density as Density,
             border_radius: data.border_radius as BorderRadius,
             reduce_motion: data.reduce_motion,
@@ -279,6 +302,24 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     const themeDef = THEMES.find(t => t.id === appearance.theme) || THEMES[0];
     const palette = resolvedMode === 'dark' ? themeDef.dark : themeDef.light;
     applyPalette(root, palette);
+
+    // Apply custom sidebar color override
+    if (appearance.sidebar_color) {
+      const hex = appearance.sidebar_color;
+      // Convert hex to HSL for CSS variables
+      const hsl = hexToHsl(hex);
+      if (hsl) {
+        const [h, s, l] = hsl;
+        const hslStr = `${h} ${s}% ${l}%`;
+        root.style.setProperty('--sidebar-background', hslStr);
+        // Derive sidebar foreground based on luminance
+        const fgLight = l < 50;
+        root.style.setProperty('--sidebar-foreground', fgLight ? `${h} 10% 95%` : `${h} 20% 10%`);
+        root.style.setProperty('--sidebar-accent', fgLight ? `${h} ${Math.min(s + 10, 100)}% ${Math.min(l + 8, 100)}%` : `${h} 10% ${Math.max(l - 5, 0)}%`);
+        root.style.setProperty('--sidebar-accent-foreground', fgLight ? `${h} 10% 95%` : `${h} 20% 10%`);
+        root.style.setProperty('--sidebar-border', fgLight ? `${h} ${Math.min(s, 30)}% ${Math.min(l + 12, 100)}%` : `${h} 10% ${Math.max(l - 8, 0)}%`);
+      }
+    }
 
     // Border radius
     root.style.setProperty('--radius', RADIUS_MAP[appearance.border_radius]);
@@ -313,10 +354,11 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
           theme: newAppearance.theme,
           mode: newAppearance.mode,
           accent_color: newAppearance.accent_color,
+          sidebar_color: newAppearance.sidebar_color,
           density: newAppearance.density,
           border_radius: newAppearance.border_radius,
           reduce_motion: newAppearance.reduce_motion,
-        }, { onConflict: 'workspace_id' });
+        } as any, { onConflict: 'workspace_id' });
 
       if (error) console.error('Failed to save appearance:', error);
     } finally {
