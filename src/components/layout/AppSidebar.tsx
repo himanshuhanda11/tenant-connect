@@ -24,6 +24,7 @@ interface MenuItem {
   badge?: number;
   key: string;
   isNew?: boolean;
+  emoji?: string;
 }
 
 interface MenuGroup {
@@ -31,50 +32,51 @@ interface MenuGroup {
   icon: React.ComponentType<{ className?: string }>;
   items: MenuItem[];
   defaultOpen?: boolean;
+  emoji?: string;
 }
 
 const mainMenuItems: MenuItem[] = [
-  { title: 'Dashboard', url: '/dashboard', icon: LayoutDashboard, key: 'dashboard' },
-  { title: 'Inbox', url: '/inbox', icon: Inbox, badge: 0, key: 'inbox' },
-  { title: 'Contacts', url: '/contacts', icon: Contact, key: 'contacts' },
-  { title: 'Tags', url: '/tags', icon: Tag, key: 'tags' },
-  { title: 'User Attributes', url: '/user-attributes', icon: ListFilter, key: 'user-attributes' }
+  { title: 'Dashboard', url: '/dashboard', icon: LayoutDashboard, key: 'dashboard', emoji: '📊' },
+  { title: 'Inbox', url: '/inbox', icon: Inbox, badge: 0, key: 'inbox', emoji: '💬' },
+  { title: 'Contacts', url: '/contacts', icon: Contact, key: 'contacts', emoji: '👥' },
+  { title: 'Tags', url: '/tags', icon: Tag, key: 'tags', emoji: '🏷️' },
+  { title: 'User Attributes', url: '/user-attributes', icon: ListFilter, key: 'user-attributes', emoji: '📝' }
 ];
 
 // channelMenuItems defined dynamically inside component
 
 const growthMenuItems: MenuItem[] = [
-  { title: 'Campaigns', url: '/campaigns', icon: Send, key: 'campaigns' },
-  { title: 'Automation', url: '/automation', icon: Zap, key: 'automation' },
-  { title: 'Auto-Form Rules', url: '/automation/form-rules', icon: FileText, key: 'form-rules', isNew: true },
-  { title: 'Flows', url: '/flows', icon: Workflow, key: 'flows' }
+  { title: 'Campaigns', url: '/campaigns', icon: Send, key: 'campaigns', emoji: '📣' },
+  { title: 'Automation', url: '/automation', icon: Zap, key: 'automation', emoji: '⚡' },
+  { title: 'Auto-Form Rules', url: '/automation/form-rules', icon: FileText, key: 'form-rules', isNew: true, emoji: '📋' },
+  { title: 'Flows', url: '/flows', icon: Workflow, key: 'flows', emoji: '🔀' }
 ];
 
 const metaAdsMenuItems: MenuItem[] = [
-  { title: 'Overview', url: '/meta-ads', icon: Megaphone, key: 'meta-ads-overview' },
-  { title: 'Setup', url: '/meta-ads/setup', icon: Link2, key: 'meta-ads-setup' },
-  { title: 'Ads Manager', url: '/meta-ads/manager', icon: Target, key: 'meta-ads-manager' },
-  { title: 'Lead Analytics', url: '/meta-ads/analytics', icon: BarChart3, key: 'meta-ads-analytics', isNew: true },
-  { title: 'Attribution Rules', url: '/meta-ads/attribution', icon: Route, key: 'meta-ads-attribution' },
-  { title: 'Automations', url: '/meta-ads/automations', icon: Workflow, key: 'meta-ads-automations' },
-  { title: 'Settings', url: '/meta-ads/settings', icon: Cog, key: 'meta-ads-settings' }
+  { title: 'Overview', url: '/meta-ads', icon: Megaphone, key: 'meta-ads-overview', emoji: '📢' },
+  { title: 'Setup', url: '/meta-ads/setup', icon: Link2, key: 'meta-ads-setup', emoji: '🔗' },
+  { title: 'Ads Manager', url: '/meta-ads/manager', icon: Target, key: 'meta-ads-manager', emoji: '🎯' },
+  { title: 'Lead Analytics', url: '/meta-ads/analytics', icon: BarChart3, key: 'meta-ads-analytics', isNew: true, emoji: '📈' },
+  { title: 'Attribution Rules', url: '/meta-ads/attribution', icon: Route, key: 'meta-ads-attribution', emoji: '🔄' },
+  { title: 'Automations', url: '/meta-ads/automations', icon: Workflow, key: 'meta-ads-automations', emoji: '🤖' },
+  { title: 'Settings', url: '/meta-ads/settings', icon: Cog, key: 'meta-ads-settings', emoji: '⚙️' }
 ];
 
 const teamMenuItems: MenuItem[] = [
-  { title: 'Overview', url: '/team', icon: Users, key: 'team-overview' },
-  { title: 'Members', url: '/team/members', icon: Users, key: 'team-members' },
-  { title: 'Roles & Permissions', url: '/team/roles', icon: Shield, key: 'team-roles' },
-  { title: 'Teams (Groups)', url: '/team/groups', icon: UsersRound, key: 'team-groups' },
-  { title: 'Routing', url: '/team/routing', icon: Route, key: 'team-routing' },
-  { title: 'Working Hours & SLA', url: '/team/sla', icon: Clock, key: 'team-sla' },
-  { title: 'Audit Logs', url: '/team/audit', icon: ScrollText, key: 'team-audit' }
+  { title: 'Overview', url: '/team', icon: Users, key: 'team-overview', emoji: '👔' },
+  { title: 'Members', url: '/team/members', icon: Users, key: 'team-members', emoji: '👥' },
+  { title: 'Roles & Permissions', url: '/team/roles', icon: Shield, key: 'team-roles', emoji: '🛡️' },
+  { title: 'Teams (Groups)', url: '/team/groups', icon: UsersRound, key: 'team-groups', emoji: '🏢' },
+  { title: 'Routing', url: '/team/routing', icon: Route, key: 'team-routing', emoji: '🔄' },
+  { title: 'Working Hours & SLA', url: '/team/sla', icon: Clock, key: 'team-sla', emoji: '⏰' },
+  { title: 'Audit Logs', url: '/team/audit', icon: ScrollText, key: 'team-audit', emoji: '📋' }
 ];
 
 const settingsMenuItems: MenuItem[] = [
-  { title: 'Integrations', url: '/app/integrations', icon: Puzzle, key: 'integrations', isNew: true },
-  { title: 'Billing', url: '/billing', icon: CreditCard, key: 'billing' },
-  { title: 'Settings', url: '/settings', icon: Settings, key: 'settings' },
-  { title: 'Guide', url: '/help', icon: HelpCircle, key: 'help' }
+  { title: 'Integrations', url: '/app/integrations', icon: Puzzle, key: 'integrations', isNew: true, emoji: '🔌' },
+  { title: 'Billing', url: '/billing', icon: CreditCard, key: 'billing', emoji: '💳' },
+  { title: 'Settings', url: '/settings', icon: Settings, key: 'settings', emoji: '⚙️' },
+  { title: 'Guide', url: '/help', icon: HelpCircle, key: 'help', emoji: '❓' }
 ];
 
 // menuGroups defined dynamically inside component
@@ -115,15 +117,15 @@ export function AppSidebar() {
   const phoneLabel = primaryPhone?.phone_e164 || 'Phone Numbers';
 
   const channelMenuItems: MenuItem[] = [
-    { title: 'WhatsApp Number', url: '/phone-numbers', icon: Phone, key: 'phone-numbers' },
-    { title: 'Templates', url: '/templates', icon: FileText, key: 'templates', isNew: true }
+    { title: 'WhatsApp Number', url: '/phone-numbers', icon: Phone, key: 'phone-numbers', emoji: '📱' },
+    { title: 'Templates', url: '/templates', icon: FileText, key: 'templates', isNew: true, emoji: '📄' }
   ];
 
   const menuGroups: MenuGroup[] = [
-    { label: 'Channels', icon: Phone, items: channelMenuItems },
-    { label: 'Growth', icon: TrendingUp, items: growthMenuItems },
-    { label: 'Meta Ads', icon: Megaphone, items: metaAdsMenuItems },
-    { label: 'Team', icon: Users, items: teamMenuItems }
+    { label: 'Channels', icon: Phone, items: channelMenuItems, emoji: '📡' },
+    { label: 'Growth', icon: TrendingUp, items: growthMenuItems, emoji: '🚀' },
+    { label: 'Meta Ads', icon: Megaphone, items: metaAdsMenuItems, emoji: '📢' },
+    { label: 'Team', icon: Users, items: teamMenuItems, emoji: '👥' }
   ];
 
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>(() => ({
@@ -193,16 +195,16 @@ export function AppSidebar() {
                   to={item.url}
                   end={item.url === '/dashboard'}
                   className={cn(
-                    "flex items-center justify-center p-2 rounded-lg transition-all duration-200 font-medium",
+                    "flex items-center justify-center p-2 rounded-xl transition-all duration-200 font-medium",
                     isActive
-                      ? "bg-primary text-primary-foreground shadow-sm"
+                      ? "bg-primary text-primary-foreground shadow-md shadow-primary/20"
                       : isHelpItem
                         ? "bg-primary/10 text-primary hover:bg-primary/15"
                         : "text-foreground/80 hover:text-foreground hover:bg-sidebar-accent"
                   )}
                   activeClassName=""
                 >
-                  <item.icon className="w-5 h-5" />
+                  <span className="text-lg">{item.emoji}</span>
                 </NavLink>
               </SidebarMenuButton>
             </TooltipTrigger>
@@ -226,20 +228,20 @@ export function AppSidebar() {
             to={item.url}
             end={item.url === '/dashboard'}
             className={cn(
-              "flex items-center gap-3 px-3 pr-10 rounded-lg transition-all duration-200 font-medium",
+              "flex items-center gap-3 px-3 pr-10 rounded-xl transition-all duration-200 font-medium",
               compact ? "py-2" : "py-2.5",
               isActive
-                ? "bg-primary/10 text-primary font-semibold border-l-2 border-primary -ml-[2px] pl-[14px]"
+                ? "bg-primary/10 text-primary font-semibold border-l-[3px] border-primary -ml-[3px] pl-[13px] shadow-sm shadow-primary/5"
                 : isHelpItem
                   ? "bg-primary/10 text-primary hover:bg-primary/15"
-                  : "text-foreground/80 hover:text-foreground hover:bg-sidebar-accent"
+                  : "text-foreground/70 hover:text-foreground hover:bg-sidebar-accent/80"
             )}
             activeClassName=""
           >
-            <item.icon className={cn("w-5 h-5 flex-shrink-0", isActive && "text-primary", isHelpItem && !isActive && "text-primary")} />
+            <span className="text-base flex-shrink-0 w-6 text-center">{item.emoji}</span>
             <span className="flex-1 truncate">{item.title}</span>
             {item.isNew && (
-              <Badge className="h-5 px-1.5 text-[10px] bg-gradient-to-r from-violet-500 to-purple-500 text-white border-0">
+              <Badge className="h-5 px-1.5 text-[10px] bg-gradient-to-r from-violet-500 to-purple-500 text-white border-0 shadow-sm">
                 NEW
               </Badge>
             )}
@@ -257,9 +259,9 @@ export function AppSidebar() {
               <button
                 type="button"
                 className={cn(
-                  "absolute right-2 top-1/2 -translate-y-1/2 z-10 p-1 rounded",
-                  "bg-sidebar-accent text-sidebar-foreground/60",
-                  "hover:text-sidebar-foreground hover:bg-sidebar-accent/80"
+                  "absolute right-2 top-1/2 -translate-y-1/2 z-10 p-1 rounded-lg",
+                  "bg-sidebar-accent/60 text-sidebar-foreground/40",
+                  "hover:text-sidebar-foreground hover:bg-sidebar-accent"
                 )}
                 aria-label={`Help for ${item.title}`}
               >
@@ -284,7 +286,6 @@ export function AppSidebar() {
   const renderCollapsibleGroup = (group: MenuGroup) => {
     const isOpen = expandedGroups[group.label] ?? isGroupActive(group.items);
     const hasActiveItem = isGroupActive(group.items);
-    const GroupIcon = group.icon;
 
     if (isCollapsed) {
       return (
@@ -304,16 +305,18 @@ export function AppSidebar() {
         <SidebarGroup>
           <CollapsibleTrigger asChild>
             <button className={cn(
-              "w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold uppercase tracking-wider transition-colors",
-              hasActiveItem ? "text-primary bg-primary/5" : "text-foreground/70 hover:text-foreground hover:bg-sidebar-accent/50"
+              "w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all duration-200",
+              hasActiveItem 
+                ? "text-primary bg-primary/5 shadow-sm shadow-primary/5" 
+                : "text-foreground/60 hover:text-foreground hover:bg-sidebar-accent/50"
             )}>
-              <GroupIcon className="w-4 h-4" />
+              <span className="text-sm">{group.emoji}</span>
               <span className="flex-1 text-left">{group.label}</span>
               <ChevronRight className={cn("w-4 h-4 transition-transform duration-200", isOpen && "rotate-90")} />
             </button>
           </CollapsibleTrigger>
           <CollapsibleContent className="animate-accordion-down">
-            <SidebarGroupContent className="mt-1 ml-2 pl-4 border-l border-sidebar-border">
+            <SidebarGroupContent className="mt-1 ml-3 pl-4 border-l-2 border-sidebar-border/60">
               <SidebarMenu className="space-y-0.5">
                 {group.items.map(item => renderMenuItem(item, true))}
               </SidebarMenu>
@@ -329,7 +332,7 @@ export function AppSidebar() {
   const userColor = profile?.full_name || user?.email ? getAvatarColor(profile?.full_name || user?.email || '') : 'from-blue-400 to-indigo-500';
 
   return (
-    <Sidebar className={cn("border-r border-sidebar-border bg-sidebar transition-all duration-300", isCollapsed ? "w-[68px]" : "w-[260px]")} collapsible="icon">
+    <Sidebar className={cn("border-r border-sidebar-border/80 bg-sidebar transition-all duration-300", isCollapsed ? "w-[68px]" : "w-[260px]")} collapsible="icon">
       {/* Header with Logo and Toggle */}
       <SidebarHeader className="p-3 border-b border-sidebar-border">
         <div className="flex items-center justify-between">
@@ -511,7 +514,7 @@ export function AppSidebar() {
         <SidebarGroup className="mt-2">
           {!isCollapsed && (
             <SidebarGroupLabel className="text-sidebar-foreground/40 text-xs uppercase tracking-wider px-3 mb-1 flex items-center gap-2">
-              <Sparkles className="w-3.5 h-3.5" />
+              <span className="text-sm">✨</span>
               Platform
             </SidebarGroupLabel>
           )}
