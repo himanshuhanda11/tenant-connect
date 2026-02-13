@@ -1,7 +1,8 @@
 import React from 'react';
 import { 
   ArrowRight, Users, Phone, Clock, MoreHorizontal,
-  CheckCircle, Sparkles, AlertTriangle, Settings, Pencil, Archive
+  CheckCircle, Sparkles, AlertTriangle, Settings, Pencil, Archive,
+  MessageSquare, Wifi, Signal
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -38,46 +39,25 @@ interface WorkspaceCardProps {
   onArchive?: () => void;
 }
 
-const statusConfig: Record<string, { icon: React.ElementType; bgColor: string; textColor: string; label: string }> = {
-  connected: { 
-    icon: CheckCircle, 
-    bgColor: 'bg-green-50',
-    textColor: 'text-green-600',
-    label: 'WhatsApp connected',
-  },
-  setup: { 
-    icon: Sparkles, 
-    bgColor: 'bg-amber-50',
-    textColor: 'text-amber-600',
-    label: 'Finish setup',
-  },
-  attention: { 
-    icon: AlertTriangle, 
-    bgColor: 'bg-red-50',
-    textColor: 'text-red-600',
-    label: 'Needs attention',
-  },
-};
-
 // Generate consistent color from workspace name
-const getAvatarColor = (name: string): string => {
-  const colors = [
-    'bg-green-500',
-    'bg-emerald-500', 
-    'bg-teal-500',
-    'bg-cyan-500',
-    'bg-blue-500',
-    'bg-indigo-500',
-    'bg-violet-500',
-    'bg-purple-500',
-    'bg-pink-500',
-    'bg-rose-500',
+const getAvatarGradient = (name: string): string => {
+  const gradients = [
+    'from-emerald-400 to-green-600',
+    'from-teal-400 to-cyan-600',
+    'from-blue-400 to-indigo-600',
+    'from-violet-400 to-purple-600',
+    'from-pink-400 to-rose-600',
+    'from-amber-400 to-orange-600',
+    'from-lime-400 to-green-600',
+    'from-sky-400 to-blue-600',
+    'from-fuchsia-400 to-pink-600',
+    'from-cyan-400 to-teal-600',
   ];
   let hash = 0;
   for (let i = 0; i < name.length; i++) {
     hash = name.charCodeAt(i) + ((hash << 5) - hash);
   }
-  return colors[Math.abs(hash) % colors.length];
+  return gradients[Math.abs(hash) % gradients.length];
 };
 
 export default function WorkspaceCard({
@@ -88,133 +68,140 @@ export default function WorkspaceCard({
   onSettings,
   onArchive,
 }: WorkspaceCardProps) {
-  const status = statusConfig[workspace.status] || statusConfig.setup;
-  const StatusIcon = status.icon;
-  const avatarColor = getAvatarColor(workspace.name);
+  const isConnected = workspace.status === 'connected';
+  const isSetup = workspace.status === 'setup';
+  const isAttention = workspace.status === 'attention';
+  const avatarGradient = getAvatarGradient(workspace.name);
 
-  const getInitial = (name: string) => {
-    return name.charAt(0).toUpperCase();
-  };
+  const getInitial = (name: string) => name.charAt(0).toUpperCase();
 
   return (
-    <Card className="group relative overflow-hidden bg-white border border-gray-100 shadow-sm hover:shadow-lg hover:border-primary/20 transition-all duration-300 touch-manipulation">
-      <CardContent className="p-3.5 xs:p-4 sm:p-5">
-        {/* Header row */}
-        <div className="flex items-start gap-2.5 xs:gap-3 mb-2.5 xs:mb-3">
-          {/* Avatar */}
-          <div className={cn(
-            "w-9 h-9 xs:w-10 xs:h-10 sm:w-11 sm:h-11 rounded-full flex items-center justify-center flex-shrink-0 text-white font-bold text-sm xs:text-base sm:text-lg",
-            avatarColor
-          )}>
-            {getInitial(workspace.name)}
-          </div>
-          
-          <div className="flex-1 min-w-0">
-            <h3 className="font-semibold text-gray-900 truncate text-sm xs:text-base">
-              {workspace.name}
-            </h3>
-            
-            {/* Status badge */}
-            <Badge 
-              variant="secondary" 
-              className={cn(
-                "mt-1 xs:mt-1.5 text-[10px] xs:text-xs font-medium border-0 gap-1",
-                status.bgColor,
-                status.textColor
-              )}
-            >
-              <StatusIcon className="w-2.5 h-2.5 xs:w-3 xs:h-3" />
-              {status.label}
-            </Badge>
+    <Card className={cn(
+      "group relative overflow-hidden border transition-all duration-300 touch-manipulation cursor-pointer",
+      "bg-card hover:shadow-xl hover:-translate-y-0.5",
+      isConnected && "border-primary/20 hover:border-primary/40",
+      isSetup && "border-border hover:border-muted-foreground/30",
+      isAttention && "border-destructive/20 hover:border-destructive/40",
+    )} onClick={onSelect}>
+      {/* Live indicator strip for connected */}
+      {isConnected && (
+        <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-primary via-primary/80 to-primary animate-pulse" />
+      )}
+
+      <CardContent className="p-4 sm:p-5">
+        {/* Header */}
+        <div className="flex items-start gap-3 mb-4">
+          {/* Premium avatar */}
+          <div className="relative">
+            <div className={cn(
+              "w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br flex items-center justify-center text-white font-bold text-lg shadow-lg",
+              avatarGradient
+            )}>
+              {getInitial(workspace.name)}
+            </div>
+            {/* Live dot */}
+            {isConnected && (
+              <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full bg-card flex items-center justify-center">
+                <div className="w-2.5 h-2.5 rounded-full bg-primary animate-pulse shadow-[0_0_6px_hsl(var(--primary)/0.6)]" />
+              </div>
+            )}
           </div>
 
-          {/* Actions menu - always visible on mobile for better UX */}
+          <div className="flex-1 min-w-0">
+            <h3 className="font-semibold text-foreground truncate text-sm sm:text-base">
+              {workspace.name}
+            </h3>
+            <p className="text-xs text-muted-foreground capitalize">{workspace.role}</p>
+          </div>
+
+          {/* Actions */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button 
                 variant="ghost" 
                 size="icon" 
-                className="h-7 w-7 xs:h-8 xs:w-8 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity text-gray-400 hover:text-gray-600"
+                className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-foreground"
                 onClick={(e) => e.stopPropagation()}
               >
-                <MoreHorizontal className="w-3.5 h-3.5 xs:w-4 xs:h-4" />
+                <MoreHorizontal className="w-4 h-4" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
-              {onRename && (
-                <DropdownMenuItem onClick={onRename}>
-                  <Pencil className="w-4 h-4 mr-2" />
-                  Rename
-                </DropdownMenuItem>
-              )}
-              {onManageMembers && (
-                <DropdownMenuItem onClick={onManageMembers}>
-                  <Users className="w-4 h-4 mr-2" />
-                  Manage members
-                </DropdownMenuItem>
-              )}
-              {onSettings && (
-                <DropdownMenuItem onClick={onSettings}>
-                  <Settings className="w-4 h-4 mr-2" />
-                  Workspace settings
-                </DropdownMenuItem>
-              )}
+              {onRename && <DropdownMenuItem onClick={onRename}><Pencil className="w-4 h-4 mr-2" />Rename</DropdownMenuItem>}
+              {onManageMembers && <DropdownMenuItem onClick={onManageMembers}><Users className="w-4 h-4 mr-2" />Members</DropdownMenuItem>}
+              {onSettings && <DropdownMenuItem onClick={onSettings}><Settings className="w-4 h-4 mr-2" />Settings</DropdownMenuItem>}
               {onArchive && (
                 <>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={onArchive} className="text-destructive focus:text-destructive">
-                    <Archive className="w-4 h-4 mr-2" />
-                    Archive
-                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={onArchive} className="text-destructive"><Archive className="w-4 h-4 mr-2" />Archive</DropdownMenuItem>
                 </>
               )}
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
 
-        {/* Metadata row */}
-        <div className="flex items-center gap-3 xs:gap-4 text-xs xs:text-sm text-gray-500 mb-2.5 xs:mb-3">
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <div className="flex items-center gap-1 xs:gap-1.5">
-                <Phone className="w-3.5 h-3.5 xs:w-4 xs:h-4 text-gray-400" />
-                <span>{workspace.phoneCount} phone{workspace.phoneCount !== 1 ? 's' : ''}</span>
-              </div>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>{workspace.phoneCount} phone number{workspace.phoneCount !== 1 ? 's' : ''} connected</p>
-            </TooltipContent>
-          </Tooltip>
-          
-          <div className="flex items-center gap-1 xs:gap-1.5">
-            <Users className="w-3.5 h-3.5 xs:w-4 xs:h-4 text-gray-400" />
-            <span>{workspace.memberCount} member{workspace.memberCount !== 1 ? 's' : ''}</span>
-          </div>
+        {/* Status badge */}
+        <div className="mb-3">
+          {isConnected ? (
+            <Badge className="bg-primary/10 text-primary border-primary/20 hover:bg-primary/15 gap-1.5 font-medium">
+              <Signal className="w-3 h-3" />
+              Live · WhatsApp Connected
+            </Badge>
+          ) : isAttention ? (
+            <Badge variant="destructive" className="gap-1.5 font-medium">
+              <AlertTriangle className="w-3 h-3" />
+              Needs Attention
+            </Badge>
+          ) : (
+            <Badge variant="secondary" className="gap-1.5 font-medium text-muted-foreground">
+              <Sparkles className="w-3 h-3" />
+              Finish Setup
+            </Badge>
+          )}
         </div>
 
-        {/* Phone number display */}
+        {/* Phone number with live indicator */}
         {workspace.phoneNumber && (
-          <div className="flex items-center gap-1 xs:gap-1.5 text-xs xs:text-sm text-green-600 mb-2.5 xs:mb-3">
-            <CheckCircle className="w-3.5 h-3.5 xs:w-4 xs:h-4" />
-            <span className="font-medium truncate">{workspace.phoneNumber}</span>
+          <div className="flex items-center gap-2 mb-3 p-2 rounded-lg bg-primary/5 border border-primary/10">
+            <Phone className="w-3.5 h-3.5 text-primary" />
+            <span className="text-sm font-medium text-primary truncate">{workspace.phoneNumber}</span>
+            <Wifi className="w-3 h-3 text-primary ml-auto animate-pulse" />
           </div>
         )}
+
+        {/* Stats row */}
+        <div className="flex items-center gap-4 text-xs text-muted-foreground mb-4">
+          <div className="flex items-center gap-1.5">
+            <Users className="w-3.5 h-3.5" />
+            <span>{workspace.memberCount} member{workspace.memberCount !== 1 ? 's' : ''}</span>
+          </div>
+          {(workspace.messagesThisWeek ?? 0) > 0 && (
+            <div className="flex items-center gap-1.5">
+              <MessageSquare className="w-3.5 h-3.5" />
+              <span>{workspace.messagesThisWeek} this week</span>
+            </div>
+          )}
+        </div>
 
         {/* Last active */}
         {workspace.lastActive && (
-          <div className="flex items-center gap-1 xs:gap-1.5 text-[10px] xs:text-xs text-gray-400 mb-3 xs:mb-4">
-            <Clock className="w-3 h-3 xs:w-3.5 xs:h-3.5" />
-            <span>Active {formatDistanceToNow(new Date(workspace.lastActive), { addSuffix: false })} ago</span>
-          </div>
+          <p className="text-[11px] text-muted-foreground/60 mb-3 flex items-center gap-1">
+            <Clock className="w-3 h-3" />
+            Active {formatDistanceToNow(new Date(workspace.lastActive), { addSuffix: false })} ago
+          </p>
         )}
 
-        {/* Primary action button */}
+        {/* CTA */}
         <Button
-          onClick={onSelect}
-          className="w-full h-9 xs:h-10 text-sm bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-medium shadow-sm"
+          className={cn(
+            "w-full h-10 font-medium shadow-sm transition-all",
+            isConnected
+              ? "bg-primary hover:bg-primary/90 text-primary-foreground"
+              : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
+          )}
         >
-          Open workspace
-          <ArrowRight className="w-3.5 h-3.5 xs:w-4 xs:h-4 ml-2" />
+          {isConnected ? 'Open workspace' : 'Continue setup'}
+          <ArrowRight className="w-4 h-4 ml-2" />
         </Button>
       </CardContent>
     </Card>

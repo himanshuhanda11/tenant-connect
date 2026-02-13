@@ -1,12 +1,17 @@
 import React from 'react';
-import { Building2, Sparkles, ArrowUp } from 'lucide-react';
+import { Sparkles, ArrowUp } from 'lucide-react';
+import workspaceEmptyIllustration from '@/assets/workspace-empty-illustration.png';
 
 export default function WorkspaceEmptyState() {
   return (
-    <div className="flex flex-col items-center justify-center py-16 px-4">
-      <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-primary/10 to-emerald-500/10 flex items-center justify-center mb-6 border border-primary/10">
-        <Building2 className="w-10 h-10 text-primary/40" />
-      </div>
+    <div className="flex flex-col items-center justify-center py-12 sm:py-16 px-4">
+      <img 
+        src={workspaceEmptyIllustration} 
+        alt="Create your first workspace" 
+        className="w-40 h-40 sm:w-52 sm:h-52 object-contain mb-6"
+        loading="lazy"
+        decoding="async"
+      />
       
       <div className="text-center max-w-md">
         <div className="flex items-center justify-center gap-2 mb-3">
