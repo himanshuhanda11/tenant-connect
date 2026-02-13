@@ -100,7 +100,7 @@ export function TemplatesListView({
   };
 
   const canSubmitToMeta = (template: Template) => {
-    return template.internal_status === 'approved' && template.status !== 'APPROVED';
+    return template.status !== 'APPROVED';
   };
 
   const canEdit = (template: Template) => {
