@@ -12,7 +12,8 @@ import {
   Code,
   Bell,
   Settings2,
-  Phone
+  Phone,
+  Bot,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -29,6 +30,7 @@ const settingsSections: SettingsSection[] = [
   { id: 'whatsapp', label: 'WhatsApp Number', icon: Phone },
   { id: 'messaging', label: 'Messaging', icon: MessageSquare },
   { id: 'inbox', label: 'Inbox', icon: Inbox },
+  { id: 'autoreply', label: 'Auto-Reply', icon: Bot },
   { id: 'automation', label: 'Automation', icon: Zap },
   { id: 'integrations', label: 'Integrations', icon: Puzzle },
   { id: 'team', label: 'Team & Permissions', icon: Users },
