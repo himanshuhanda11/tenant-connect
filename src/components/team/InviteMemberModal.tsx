@@ -66,7 +66,7 @@ const InviteMemberModal = ({ open, onOpenChange }: InviteMemberModalProps) => {
   };
 
   const handleDirectAdd = async () => {
-    const loginEmail = email || (username ? `${username}@${currentTenant?.slug || 'workspace'}.local` : '');
+    const loginEmail = email || (username ? `${username}@team.local` : '');
     if (!loginEmail || !password || !currentTenant?.id) return;
     if (!canInviteMembers) { setShowUpgrade(true); return; }
 
@@ -252,7 +252,7 @@ const InviteMemberModal = ({ open, onOpenChange }: InviteMemberModalProps) => {
                 />
                 {username && !email && (
                   <p className="text-[10px] text-muted-foreground">
-                    Login: {username}@{currentTenant?.slug || 'workspace'}.local
+                    Login username: {username}
                   </p>
                 )}
               </div>
