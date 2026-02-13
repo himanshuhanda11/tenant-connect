@@ -491,24 +491,46 @@ export function useTypingState(conversationId: string | null) {
 
   return { typingUsers, setTyping };
 }
-
-// Team members and tags
-const TEAM_MEMBERS = [
-  { id: 'u1', full_name: 'Ahmed Hassan', avatar_url: null },
-  { id: 'u2', full_name: 'Sara Ali', avatar_url: null },
-  { id: 'u3', full_name: 'Mohammed Khan', avatar_url: null },
-];
-
-const AVAILABLE_TAGS = [
-  { id: 't1', name: 'VIP', color: '#FFD700' },
-  { id: 't2', name: 'Pricing', color: '#3B82F6' },
-  { id: 't3', name: 'Support', color: '#10B981' },
-  { id: 't4', name: 'Urgent', color: '#EF4444' },
-  { id: 't5', name: 'Follow-up', color: '#8B5CF6' },
-];
+// Removed hardcoded TEAM_MEMBERS and AVAILABLE_TAGS - now fetched from DB
 
 export function useInboxActions() {
   const { currentTenant } = useTenant();
+  const [teamMembers, setTeamMembers] = useState<Array<{ id: string; full_name: string; avatar_url: string | null }>>([]);
+  const [availableTags, setAvailableTags] = useState<Array<{ id: string; name: string; color: string }>>([]);
+
+  // Fetch real team members from agents table
+  useEffect(() => {
+    if (!currentTenant?.id) return;
+    const fetchTeam = async () => {
+      const { data } = await supabase
+        .from('agents')
+        .select('user_id, display_name, profiles!agents_user_id_fkey(full_name, avatar_url)')
+        .eq('tenant_id', currentTenant.id)
+        .eq('is_active', true);
+      if (data) {
+        setTeamMembers(data.map(a => ({
+          id: a.user_id,
+          full_name: a.display_name || (a.profiles as any)?.full_name || 'Unknown',
+          avatar_url: (a.profiles as any)?.avatar_url || null,
+        })));
+      }
+    };
+    fetchTeam();
+  }, [currentTenant?.id]);
+
+  // Fetch real tags
+  useEffect(() => {
+    if (!currentTenant?.id) return;
+    const fetchTags = async () => {
+      const { data } = await supabase
+        .from('tags')
+        .select('id, name, color')
+        .eq('tenant_id', currentTenant.id)
+        .order('name');
+      if (data) setAvailableTags(data);
+    };
+    fetchTags();
+  }, [currentTenant?.id]);
 
   const assignConversation = useCallback(async (conversationId: string, profileId: string | null) => {
     try {
@@ -564,18 +586,18 @@ export function useInboxActions() {
   }, []);
 
   const addTag = useCallback(async (conversationId: string, tagId: string) => {
-    const tag = AVAILABLE_TAGS.find(t => t.id === tagId);
+    const tag = availableTags.find(t => t.id === tagId);
     if (tag) {
       toast.success(`Tag "${tag.name}" added`);
       window.dispatchEvent(new CustomEvent('inbox-update', { detail: { conversationId } }));
     }
-  }, []);
+  }, [availableTags]);
 
   const removeTag = useCallback(async (conversationId: string, tagId: string) => {
-    const tag = AVAILABLE_TAGS.find(t => t.id === tagId);
+    const tag = availableTags.find(t => t.id === tagId);
     toast.success(`Tag "${tag?.name}" removed`);
     window.dispatchEvent(new CustomEvent('inbox-update', { detail: { conversationId } }));
-  }, []);
+  }, [availableTags]);
 
   const sendMessage = useCallback(async (conversationId: string, message: { text?: string; template?: string; media?: File }) => {
     if (!message.text?.trim() && !message.template && !message.media) return;
@@ -726,9 +748,7 @@ export function useInboxActions() {
     removeTag,
     sendMessage,
     markAsRead,
-    teamMembers: TEAM_MEMBERS,
-    availableTags: AVAILABLE_TAGS,
+    teamMembers,
+    availableTags,
   };
 }
-
-export { TEAM_MEMBERS, AVAILABLE_TAGS };
