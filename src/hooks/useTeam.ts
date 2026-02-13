@@ -442,6 +442,23 @@ export function useMemberInvites() {
         console.error('Send invite error:', error);
         throw error;
       }
+
+      // Send invitation email via Resend
+      try {
+        const { data: profile } = await supabase.from('profiles').select('full_name').eq('id', (await supabase.auth.getUser()).data.user?.id || '').maybeSingle();
+        await supabase.functions.invoke('send-team-email', {
+          body: {
+            type: 'invite',
+            to: email,
+            inviterName: profile?.full_name || 'A team member',
+            workspaceName: currentTenant.name,
+            token,
+          },
+        });
+      } catch (emailErr) {
+        console.warn('Invite email failed (invite still created):', emailErr);
+      }
+
       toast.success('Invite sent');
       await fetchInvites();
       return true;
@@ -466,6 +483,24 @@ export function useMemberInvites() {
         console.error('Resend invite error:', error);
         throw error;
       }
+
+      // Get invite details and resend email
+      try {
+        const { data: invite } = await supabase.from('member_invites').select('email').eq('id', id).maybeSingle();
+        if (invite?.email) {
+          await supabase.functions.invoke('send-team-email', {
+            body: {
+              type: 'invite',
+              to: invite.email,
+              workspaceName: currentTenant?.name,
+              token: newToken,
+            },
+          });
+        }
+      } catch (emailErr) {
+        console.warn('Resend email failed:', emailErr);
+      }
+
       toast.success('Invite resent');
       await fetchInvites();
       return true;
