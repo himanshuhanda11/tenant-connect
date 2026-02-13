@@ -21,6 +21,7 @@ export function useTeamMembers() {
     
     setLoading(true);
     try {
+      // Fetch actual agents
       const { data, error: fetchError } = await supabase
         .from('agents')
         .select(`
@@ -56,7 +57,51 @@ export function useTeamMembers() {
         open_conversations_count: countMap[m.user_id] || 0,
       })) as TeamMember[];
 
-      setMembers(enrichedMembers);
+      // Fetch pending invites and merge as virtual members
+      const { data: pendingInvites } = await supabase
+        .from('member_invites')
+        .select(`
+          *,
+          role:roles(id, name, base_role, color)
+        `)
+        .eq('tenant_id', currentTenant.id)
+        .is('accepted_at', null)
+        .order('created_at', { ascending: false });
+
+      const existingEmails = new Set(enrichedMembers.map(m => m.profile?.email?.toLowerCase()));
+
+      const inviteMembers = (pendingInvites || [])
+        .filter(inv => !existingEmails.has(inv.email?.toLowerCase()))
+        .map(inv => ({
+          id: `invite-${inv.id}`,
+          tenant_id: currentTenant.id,
+          user_id: '',
+          display_name: inv.email.split('@')[0],
+          is_active: false,
+          is_online: false,
+          status: 'invited',
+          presence: 'offline',
+          role: inv.role?.base_role || inv.role?.name || 'Agent',
+          languages: [],
+          skills: [],
+          timezone: 'UTC',
+          max_open_chats: 10,
+          weight: 1,
+          notes: null,
+          created_at: inv.created_at,
+          updated_at: inv.created_at,
+          last_active_at: null,
+          open_conversations_count: 0,
+          profile: {
+            id: '',
+            email: inv.email,
+            full_name: inv.email.split('@')[0],
+            avatar_url: null,
+          },
+          _invite_id: inv.id,
+        })) as TeamMember[];
+
+      setMembers([...enrichedMembers, ...inviteMembers]);
     } catch (err: any) {
       setError(err.message);
       toast.error('Failed to load team members');

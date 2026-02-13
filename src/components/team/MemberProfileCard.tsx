@@ -40,6 +40,7 @@ export function MemberProfileCard({
   const [emailValue, setEmailValue] = useState('');
   const [loading, setLoading] = useState(false);
 
+  const isInvited = member.status === 'invited';
   const displayName = member.display_name || member.profile?.full_name || 'Unknown';
   const email = member.profile?.email || '';
   const initials = displayName[0]?.toUpperCase() || 'U';
@@ -88,7 +89,7 @@ export function MemberProfileCard({
 
   return (
     <>
-      <Card className="group hover:shadow-md transition-shadow">
+      <Card className={`group hover:shadow-md transition-shadow ${isInvited ? 'border-amber-300 dark:border-amber-700 bg-amber-50/30 dark:bg-amber-900/10' : ''}`}>
         <CardContent className="p-5">
           {/* Header row: avatar + actions */}
           <div className="flex items-start justify-between mb-4">
@@ -185,15 +186,21 @@ export function MemberProfileCard({
 
           {/* Quick actions */}
           <div className="flex items-center gap-2 mt-4 pt-3 border-t">
-            <Button variant="outline" size="sm" className="flex-1 text-xs h-8" onClick={() => onViewDetails(member.id)}>
-              <Eye className="mr-1.5 h-3 w-3" /> Profile
-            </Button>
-            <Button variant="outline" size="sm" className="flex-1 text-xs h-8" onClick={() => { setNameValue(displayName); setEditNameOpen(true); }}>
-              <Pencil className="mr-1.5 h-3 w-3" /> Edit
-            </Button>
-            <Button variant="outline" size="sm" className="flex-1 text-xs h-8" onClick={() => setResetPwOpen(true)}>
-              <KeyRound className="mr-1.5 h-3 w-3" /> Reset
-            </Button>
+            {isInvited ? (
+              <p className="text-xs text-muted-foreground italic flex-1 text-center">Pending invitation acceptance</p>
+            ) : (
+              <>
+                <Button variant="outline" size="sm" className="flex-1 text-xs h-8" onClick={() => onViewDetails(member.id)}>
+                  <Eye className="mr-1.5 h-3 w-3" /> Profile
+                </Button>
+                <Button variant="outline" size="sm" className="flex-1 text-xs h-8" onClick={() => { setNameValue(displayName); setEditNameOpen(true); }}>
+                  <Pencil className="mr-1.5 h-3 w-3" /> Edit
+                </Button>
+                <Button variant="outline" size="sm" className="flex-1 text-xs h-8" onClick={() => setResetPwOpen(true)}>
+                  <KeyRound className="mr-1.5 h-3 w-3" /> Reset
+                </Button>
+              </>
+            )}
           </div>
         </CardContent>
       </Card>
