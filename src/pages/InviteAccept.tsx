@@ -21,7 +21,7 @@ const InviteAccept = () => {
 
       const { data, error } = await supabase
         .from('member_invites')
-        .select('*, role:roles(name, color)')
+        .select('*')
         .eq('token', token)
         .maybeSingle();
 
@@ -77,10 +77,7 @@ const InviteAccept = () => {
               <div>
                 <h1 className="text-2xl font-bold">You're Invited!</h1>
                 <p className="text-muted-foreground mt-2">
-                  You've been invited to join the team
-                  {invite.role?.name && (
-                    <> as <span className="font-semibold" style={{ color: invite.role.color }}>{invite.role.name}</span></>
-                  )}
+80:                   You've been invited to join the team.
                 </p>
               </div>
               <div className="space-y-3">
