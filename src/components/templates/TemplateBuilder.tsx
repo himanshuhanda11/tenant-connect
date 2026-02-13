@@ -294,10 +294,39 @@ export function TemplateBuilder({
           <CardHeader>
             <div className="flex items-center justify-between">
               <CardTitle className="text-lg">Body *</CardTitle>
-              <Button variant="outline" size="sm" onClick={handleInsertVariable}>
-                <Plus className="h-4 w-4 mr-1" />
-                Add Variable
-              </Button>
+              <div className="flex items-center gap-1 flex-wrap">
+                {[
+                  { label: '👤 Name', sample: 'John' },
+                  { label: '📱 Phone', sample: '+971501234567' },
+                  { label: '✉️ Email', sample: 'john@example.com' },
+                  { label: '📅 Date', sample: '15 Feb 2026' },
+                  { label: '🔢 Order #', sample: 'ORD-12345' },
+                  { label: '💰 Amount', sample: 'AED 500' },
+                ].map(({ label, sample }) => (
+                  <Button
+                    key={label}
+                    variant="outline"
+                    size="sm"
+                    className="text-xs h-7 px-2"
+                    onClick={() => {
+                      const nextVar = variableNumbers.length > 0
+                        ? Math.max(...variableNumbers.map(Number)) + 1
+                        : 1;
+                      setBody(body + `{{${nextVar}}}`);
+                      setVariableSamples({
+                        ...variableSamples,
+                        [String(nextVar)]: sample
+                      });
+                    }}
+                  >
+                    {label}
+                  </Button>
+                ))}
+                <Button variant="outline" size="sm" className="text-xs h-7" onClick={handleInsertVariable}>
+                  <Plus className="h-3 w-3 mr-1" />
+                  Custom
+                </Button>
+              </div>
             </div>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -314,9 +343,9 @@ export function TemplateBuilder({
 
             {variableNumbers.length > 0 && (
               <div className="space-y-3">
-                <Label>Variable Samples</Label>
+                <Label>Variable Samples (required for Meta approval)</Label>
                 <p className="text-xs text-muted-foreground">
-                  Provide example values for each variable to help with Meta review
+                  Provide realistic example values — Meta reviewers check these to understand context
                 </p>
                 {variableNumbers.map((varNum) => (
                   <div key={varNum} className="flex items-center gap-2">
