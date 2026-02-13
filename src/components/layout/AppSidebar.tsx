@@ -200,7 +200,7 @@ export function AppSidebar() {
                       ? "bg-primary text-primary-foreground shadow-md shadow-primary/20"
                       : isHelpItem
                         ? "bg-primary/10 text-primary hover:bg-primary/15"
-                        : "text-foreground/80 hover:text-foreground hover:bg-sidebar-accent"
+                        : "text-sidebar-foreground/80 hover:text-sidebar-foreground hover:bg-sidebar-accent"
                   )}
                   activeClassName=""
                 >
@@ -234,7 +234,7 @@ export function AppSidebar() {
                 ? "bg-primary/10 text-primary font-semibold border-l-[3px] border-primary -ml-[3px] pl-[13px] shadow-sm shadow-primary/5"
                 : isHelpItem
                   ? "bg-primary/10 text-primary hover:bg-primary/15"
-                  : "text-foreground/70 hover:text-foreground hover:bg-sidebar-accent/80"
+                  : "text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent/80"
             )}
             activeClassName=""
           >
@@ -308,7 +308,7 @@ export function AppSidebar() {
               "w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all duration-200",
               hasActiveItem 
                 ? "text-primary bg-primary/5 shadow-sm shadow-primary/5" 
-                : "text-foreground/60 hover:text-foreground hover:bg-sidebar-accent/50"
+                : "text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent/50"
             )}>
               <span className="text-sm">{group.emoji}</span>
               <span className="flex-1 text-left">{group.label}</span>
@@ -383,7 +383,7 @@ export function AppSidebar() {
             <DropdownMenuTrigger asChild>
               <button className={cn(
                 "w-full flex items-center gap-3 rounded-xl transition-all duration-200 group",
-                "bg-card border border-sidebar-border shadow-sm",
+                "bg-sidebar-accent/50 border border-sidebar-border shadow-sm",
                 "hover:border-primary/30 hover:shadow-md",
                 isCollapsed ? "p-2 justify-center" : "px-3 py-3"
               )}>
