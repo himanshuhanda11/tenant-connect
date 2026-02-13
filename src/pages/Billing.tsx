@@ -13,6 +13,7 @@ import { SubscriptionActions } from '@/components/billing/SubscriptionActions';
 import { BillingFAQ } from '@/components/billing/BillingFAQ';
 import { WorkspacePlanCard } from '@/components/billing/WorkspacePlanCard';
 import { usePlans, useSubscription } from '@/hooks/useBilling';
+import { useEntitlements } from '@/hooks/useEntitlements';
 import { QuickGuide, quickGuides } from '@/components/help/QuickGuide';
 import { useState } from 'react';
 import { Switch } from '@/components/ui/switch';
@@ -25,6 +26,8 @@ export default function Billing() {
   const [isYearly, setIsYearly] = useState(false);
   const { data: plans } = usePlans();
   const { data: subscription } = useSubscription();
+  const { data: entitlements } = useEntitlements();
+  const currentPlanId = entitlements?.plan_id ?? subscription?.plan_id?.replace('plan_', '') ?? 'free';
 
   const handlePlanSelect = (plan: Plan) => {
     if (plan.name === 'Business') {
@@ -104,7 +107,7 @@ export default function Billing() {
                     <PlanCard
                       key={plan.id}
                       plan={plan}
-                      isCurrentPlan={subscription?.plan_id === plan.id}
+                      isCurrentPlan={currentPlanId === plan.id}
                       isYearly={isYearly}
                       isRecommended={plan.name === 'Pro'}
                       onSelect={handlePlanSelect}
