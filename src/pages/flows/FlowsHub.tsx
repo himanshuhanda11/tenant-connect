@@ -73,6 +73,9 @@ import { cn } from '@/lib/utils';
 import { useFlows, useFlowTemplates } from '@/hooks/useFlows';
 import { QuickGuide, quickGuides } from '@/components/help/QuickGuide';
 import { usePhoneNumbers } from '@/hooks/usePhoneNumbers';
+import { usePlanGate } from '@/hooks/usePlanGate';
+import { UpgradePrompt } from '@/components/billing/UpgradePrompt';
+import { UpgradePlanDialog } from '@/components/billing/UpgradePlanDialog';
 
 const quickCreateOptions = [
   { label: 'Lead Qualification', icon: Target, description: 'Qualify and score incoming leads', emoji: '🎯' },
@@ -89,6 +92,9 @@ const FlowsHub = () => {
   const { flows, loading, createFlow, createFlowFromTemplate, deleteFlow, duplicateFlow, toggleFlowStatus } = useFlows();
   const { templates, loading: templatesLoading } = useFlowTemplates();
   const { phoneNumbers } = usePhoneNumbers();
+  const { hasFeature, currentPlan, requiredPlanFor } = usePlanGate();
+  const flowsLocked = !hasFeature('flows');
+  const [upgradeOpen, setUpgradeOpen] = useState(false);
   
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [searchQuery, setSearchQuery] = useState('');
@@ -178,6 +184,15 @@ const FlowsHub = () => {
   return (
     <DashboardLayout>
       <div className="space-y-4 sm:space-y-6">
+        {flowsLocked && (
+          <UpgradePrompt
+            currentPlan={currentPlan}
+            requiredPlan={requiredPlanFor('flows') || 'basic'}
+            feature="WhatsApp Flows"
+            description="Build interactive conversational flows for lead qualification, appointment booking, and more. Upgrade to unlock flows."
+            onUpgrade={() => setUpgradeOpen(true)}
+          />
+        )}
         {/* Quick Guide */}
         <QuickGuide {...quickGuides.flows} />
 
@@ -715,6 +730,7 @@ const FlowsHub = () => {
           </TabsContent>
         </Tabs>
       </div>
+      <UpgradePlanDialog open={upgradeOpen} onOpenChange={setUpgradeOpen} currentPlanId={currentPlan} />
     </DashboardLayout>
   );
 };
