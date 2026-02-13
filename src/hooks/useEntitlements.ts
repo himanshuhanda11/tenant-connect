@@ -35,12 +35,30 @@ export function useEntitlements() {
       if (!currentTenant?.id) return null;
       const { data, error } = await (supabase as any)
         .from('workspace_entitlements')
-        .select('workspace_id, plan_id, limits, features')
+        .select('*')
         .eq('workspace_id', currentTenant.id)
         .maybeSingle();
 
       if (error) throw error;
-      return data as unknown as WorkspaceEntitlements | null;
+      if (!data) return null;
+      // Map DB columns to the interface
+      return {
+        workspace_id: data.workspace_id,
+        plan_id: data.plan || 'free',
+        limits: {
+          monthly_messages: data.monthly_conversation_limit,
+          monthly_broadcasts: data.monthly_broadcast_limit,
+          monthly_templates: data.monthly_template_limit,
+          flows: data.monthly_flow_limit,
+          ai_credits: data.enable_ai ? 'unlimited' : 0,
+        },
+        features: [
+          ...(data.enable_ai ? ['ai'] : []),
+          ...(data.enable_ads ? ['ads_manager'] : []),
+          ...(data.enable_integrations ? ['integrations'] : []),
+          ...(data.enable_autoforms ? ['autoforms'] : []),
+        ],
+      } as WorkspaceEntitlements;
     },
     enabled: !!currentTenant?.id,
   });

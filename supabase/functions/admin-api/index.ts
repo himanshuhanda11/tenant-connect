@@ -265,28 +265,29 @@ Deno.serve(async (req: Request) => {
       const { data: plan } = await sb.from("platform_plans").select("id, name").eq("id", planId).single();
       if (!plan) throw new Error(`Plan '${planId}' not found`);
 
-      // Update or create subscription
-      const { data: existingSub } = await sb.from("subscriptions")
-        .select("id")
-        .eq("tenant_id", workspaceId)
-        .eq("status", "active")
-        .maybeSingle();
+      // Get plan limits and features
+      const { data: fullPlan } = await sb.from("platform_plans").select("*").eq("id", planId).single();
 
-      if (existingSub) {
-        await sb.from("subscriptions").update({
-          plan_id: planId,
-          updated_at: new Date().toISOString(),
-        }).eq("id", existingSub.id);
-      } else {
-        await sb.from("subscriptions").insert({
-          tenant_id: workspaceId,
-          plan_id: planId,
-          status: "active",
-        });
+      // Directly upsert workspace_entitlements with correct columns
+      const { error: entError } = await sb.from("workspace_entitlements").upsert({
+        workspace_id: workspaceId,
+        plan: planId,
+        status: "active",
+        monthly_conversation_limit: fullPlan?.limits?.monthly_messages ?? null,
+        monthly_broadcast_limit: fullPlan?.limits?.monthly_broadcasts ?? null,
+        monthly_template_limit: fullPlan?.limits?.monthly_templates ?? null,
+        monthly_flow_limit: fullPlan?.limits?.flows ?? null,
+        enable_ai: fullPlan?.limits?.ai_credits !== 0,
+        enable_ads: !!fullPlan?.features?.includes("ads_manager"),
+        enable_integrations: !!fullPlan?.features?.includes("integrations"),
+        enable_autoforms: !!fullPlan?.features?.includes("autoforms"),
+        updated_at: new Date().toISOString(),
+      }, { onConflict: "workspace_id" });
+
+      if (entError) {
+        console.error("Entitlements upsert error:", entError);
+        throw new Error(`Failed to update entitlements: ${entError.message}`);
       }
-
-      // Recompute entitlements
-      await sb.rpc("compute_workspace_entitlements", { p_workspace_id: workspaceId });
 
       await logAction(sb, actor, "PLATFORM_PLAN_CHANGED", {
         workspace_id: workspaceId, after: { plan_id: planId, plan_name: plan.name },
