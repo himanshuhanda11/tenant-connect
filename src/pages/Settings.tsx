@@ -15,6 +15,7 @@ import { DeveloperSettings } from '@/components/settings/sections/DeveloperSetti
 import { NotificationSettings } from '@/components/settings/sections/NotificationSettings';
 import { AdvancedSettings } from '@/components/settings/sections/AdvancedSettings';
 import { AutoReplySettings } from '@/components/settings/sections/AutoReplySettings';
+import { AppearanceSettings } from '@/components/settings/sections/AppearanceSettings';
 
 export default function Settings() {
   const [activeSection, setActiveSection] = useState('workspace');
@@ -35,6 +36,7 @@ export default function Settings() {
       case 'developer': return <DeveloperSettings />;
       case 'notifications': return <NotificationSettings />;
       case 'advanced': return <AdvancedSettings />;
+      case 'appearance': return <AppearanceSettings />;
       default: return <WorkspaceSettings />;
     }
   };

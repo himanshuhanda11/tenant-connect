@@ -14,6 +14,7 @@ import {
   Settings2,
   Phone,
   Bot,
+  Palette,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -39,6 +40,7 @@ const settingsSections: SettingsSection[] = [
   { id: 'compliance', label: 'Compliance', icon: FileCheck },
   { id: 'developer', label: 'Developer', icon: Code, badge: 'API' },
   { id: 'notifications', label: 'Notifications', icon: Bell },
+  { id: 'appearance', label: 'Appearance', icon: Palette },
   { id: 'advanced', label: 'Advanced', icon: Settings2 },
 ];
 
