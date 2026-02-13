@@ -461,7 +461,7 @@ export function useMemberInvites() {
     fetchInvites();
   }, [fetchInvites]);
 
-  const sendInvite = async (email: string, roleId: string, teamIds: string[] = [], phoneNumberIds: string[] = []): Promise<boolean> => {
+  const sendInvite = async (email: string, roleId: string, teamIds: string[] = [], phoneNumberIds: string[] = [], inviteeName?: string): Promise<boolean> => {
     if (!currentTenant?.id) {
       toast.error('No workspace selected');
       return false;
@@ -492,12 +492,12 @@ export function useMemberInvites() {
 
       // Send invitation email via Resend
       try {
-        const { data: profile } = await supabase.from('profiles').select('full_name').eq('id', user?.id || '').maybeSingle();
         await supabase.functions.invoke('send-team-email', {
           body: {
             type: 'invite',
             to: email,
-            inviterName: profile?.full_name || 'Your team admin',
+            inviteeName: inviteeName || email.split('@')[0],
+            workspaceName: currentTenant.name || 'Aireatro',
             token,
             appUrl: 'https://aireatro.com',
           },
@@ -535,12 +535,11 @@ export function useMemberInvites() {
       try {
         const { data: invite } = await supabase.from('member_invites').select('email').eq('id', id).maybeSingle();
         if (invite?.email) {
-          const { data: profile } = await supabase.from('profiles').select('full_name').eq('id', (await supabase.auth.getUser()).data.user?.id || '').maybeSingle();
           await supabase.functions.invoke('send-team-email', {
             body: {
               type: 'invite',
               to: invite.email,
-              inviterName: profile?.full_name || 'Your team admin',
+              workspaceName: currentTenant?.name || 'Aireatro',
               token: newToken,
               appUrl: 'https://aireatro.com',
             },
