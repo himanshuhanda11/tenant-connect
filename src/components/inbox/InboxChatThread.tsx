@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -115,6 +116,7 @@ export function InboxChatThread({
   onBack,
   onShowInfo,
 }: InboxChatThreadProps) {
+  const { user } = useAuth();
   const [messageText, setMessageText] = useState('');
   const [showTemplates, setShowTemplates] = useState(false);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
@@ -405,7 +407,7 @@ export function InboxChatThread({
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-56">
                   <div className="px-2 py-1.5 text-xs font-medium text-muted-foreground">Assignment</div>
-                  <DropdownMenuItem onClick={() => onAssign('u1')}>
+                  <DropdownMenuItem onClick={() => user?.id && onAssign(user.id)}>
                     <User className="h-4 w-4 mr-2" /> Assign to me
                   </DropdownMenuItem>
                   {teamMembers.map(member => (
