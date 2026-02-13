@@ -425,6 +425,7 @@ export function useMemberInvites() {
     try {
       const token = crypto.randomUUID();
       const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(); // 7 days
+      const { data: { user } } = await supabase.auth.getUser();
 
       const { error } = await supabase
         .from('member_invites')
@@ -436,6 +437,7 @@ export function useMemberInvites() {
           phone_number_ids: phoneNumberIds,
           token,
           expires_at: expiresAt,
+          invited_by: user?.id || null,
         });
 
       if (error) {

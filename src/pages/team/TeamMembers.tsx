@@ -234,15 +234,17 @@ const TeamMembers = () => {
             ) : filteredMembers.length === 0 ? (
               <EmptyTeamState
                 icon={Users}
-                title={search ? 'No members found' : 'No team members yet'}
+                title={search ? 'No members found' : 'No active team members yet'}
                 description={search
                   ? `No members match "${search}". Try a different search.`
-                  : 'Invite your first team member to get started with collaborative inbox management.'
+                  : pendingInvites.length > 0
+                    ? `You have ${pendingInvites.length} pending invite(s) above. Members will appear here once they accept the invitation.`
+                    : 'Invite your first team member to get started with collaborative inbox management.'
                 }
                 actionLabel={!search ? 'Invite Member' : undefined}
                 onAction={!search ? () => setShowInviteModal(true) : undefined}
                 tips={!search ? [
-                  'Team members can help respond to customers',
+                  'Invited members must accept the invite to appear here',
                   'Assign different roles for different access levels',
                   'Add skills and languages for smart routing'
                 ] : undefined}
