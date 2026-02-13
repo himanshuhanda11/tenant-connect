@@ -30,6 +30,7 @@ interface WorkspaceEnriched {
   id: string;
   name: string;
   slug: string;
+  logo_url?: string | null;
   role: string;
   created_at: string;
   phoneCount: number;
@@ -123,6 +124,7 @@ export default function SelectWorkspace() {
               id: tenant.id,
               name: tenant.name,
               slug: tenant.slug,
+              logo_url: tenant.logo_url,
               role: tenant.role,
               created_at: tenant.created_at,
               phoneCount,
