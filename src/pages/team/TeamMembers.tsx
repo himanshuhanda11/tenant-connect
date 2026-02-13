@@ -3,127 +3,41 @@ import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { 
-  Table, TableBody, TableCell, TableHead, TableHeader, TableRow 
-} from '@/components/ui/table';
 import {
-  DropdownMenu, DropdownMenuContent, DropdownMenuItem, 
-  DropdownMenuSeparator, DropdownMenuTrigger
-} from '@/components/ui/dropdown-menu';
-import {
-  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle
-} from '@/components/ui/dialog';
-import { 
-  Search, UserPlus, MoreHorizontal, Eye, Edit, Ban, 
-  RotateCcw, Mail, Users, Filter, Download, RefreshCw, KeyRound, Pencil
+  Search, UserPlus, Mail, Users, RefreshCw, LayoutGrid, List
 } from 'lucide-react';
 import { useTeamMembers, useMemberInvites } from '@/hooks/useTeam';
-import { STATUS_COLORS, PRESENCE_COLORS } from '@/types/team';
 import { formatDistanceToNow } from 'date-fns';
 import InviteMemberModal from '@/components/team/InviteMemberModal';
 import MemberDetailDrawer from '@/components/team/MemberDetailDrawer';
 import { TeamGuideCard } from '@/components/team/TeamGuideCard';
 import { TeamBreadcrumb } from '@/components/team/TeamBreadcrumb';
 import { EmptyTeamState } from '@/components/team/EmptyTeamState';
+import { MemberProfileCard } from '@/components/team/MemberProfileCard';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { supabase } from '@/integrations/supabase/client';
-import { useTenant } from '@/contexts/TenantContext';
-import { toast } from 'sonner';
 
 const TeamMembers = () => {
   const { members, loading, disableMember, enableMember, updateMember, refetch } = useTeamMembers();
   const { invites, resendInvite, cancelInvite } = useMemberInvites();
-  const { currentTenant } = useTenant();
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [selectedMember, setSelectedMember] = useState<string | null>(null);
 
-  // Edit name dialog
-  const [editNameMember, setEditNameMember] = useState<{ id: string; name: string } | null>(null);
-  const [editNameValue, setEditNameValue] = useState('');
-
-  // Edit email dialog
-  const [editEmailMember, setEditEmailMember] = useState<{ id: string; email: string } | null>(null);
-  const [editEmailValue, setEditEmailValue] = useState('');
-
-  // Reset password dialog
-  const [resetPasswordMember, setResetPasswordMember] = useState<{ id: string; email: string } | null>(null);
-  const [actionLoading, setActionLoading] = useState(false);
-
-  const handleSaveName = async () => {
-    if (!editNameMember || !editNameValue.trim()) return;
-    setActionLoading(true);
-    try {
-      await updateMember(editNameMember.id, { display_name: editNameValue.trim() });
-      // Also update profiles table
-      const member = members.find(m => m.id === editNameMember.id);
-      if (member?.user_id) {
-        await supabase.from('profiles').update({ full_name: editNameValue.trim() }).eq('id', member.user_id);
-      }
-      toast.success('Name updated');
-      setEditNameMember(null);
-      refetch();
-    } catch {
-      toast.error('Failed to update name');
-    } finally {
-      setActionLoading(false);
-    }
-  };
-
-  const handleSaveEmail = async () => {
-    if (!editEmailMember || !editEmailValue.trim()) return;
-    setActionLoading(true);
-    try {
-      const member = members.find(m => m.id === editEmailMember.id);
-      if (member?.user_id) {
-        await supabase.from('profiles').update({ email: editEmailValue.trim() }).eq('id', member.user_id);
-      }
-      toast.success('Email updated');
-      setEditEmailMember(null);
-      refetch();
-    } catch {
-      toast.error('Failed to update email');
-    } finally {
-      setActionLoading(false);
-    }
-  };
-
-  const handleResetPassword = async () => {
-    if (!resetPasswordMember) return;
-    setActionLoading(true);
-    try {
-      // Use Supabase auth's built-in password reset which sends a magic link
-      const { error } = await supabase.auth.resetPasswordForEmail(resetPasswordMember.email, {
-        redirectTo: `${window.location.origin}/reset-password`,
-      });
-      if (error) throw error;
-      toast.success('Password reset email sent');
-      setResetPasswordMember(null);
-    } catch {
-      toast.error('Failed to send reset email');
-    } finally {
-      setActionLoading(false);
-    }
-  };
-
   const filteredMembers = members.filter(m => {
-    const matchesSearch = 
+    const matchesSearch =
       m.display_name?.toLowerCase().includes(search.toLowerCase()) ||
       m.profile?.email?.toLowerCase().includes(search.toLowerCase()) ||
       m.profile?.full_name?.toLowerCase().includes(search.toLowerCase());
-    
     const matchesStatus = statusFilter === 'all' || m.status === statusFilter;
-    
     return matchesSearch && matchesStatus;
   });
 
   const pendingInvites = invites.filter(i => !i.accepted_at);
-  
+
   const statusCounts = {
     all: members.length,
     active: members.filter(m => m.status === 'active').length,
@@ -137,6 +51,7 @@ const TeamMembers = () => {
     <DashboardLayout>
       <div className="space-y-6 max-w-7xl">
         <TeamBreadcrumb currentPage="Members" />
+
         {/* Header */}
         <div className="flex items-start justify-between">
           <div>
@@ -254,23 +169,14 @@ const TeamMembers = () => {
                     </div>
                     <div className="flex items-center gap-2">
                       {invite.role && (
-                        <Badge 
-                          variant="outline"
-                          style={{ borderColor: invite.role.color, color: invite.role.color }}
-                        >
+                        <Badge variant="outline" style={{ borderColor: invite.role.color, color: invite.role.color }}>
                           {invite.role.name}
                         </Badge>
                       )}
                       <Button variant="ghost" size="sm" onClick={() => resendInvite(invite.id)}>
-                        <RefreshCw className="mr-1.5 h-3.5 w-3.5" />
-                        Resend
+                        <RefreshCw className="mr-1.5 h-3.5 w-3.5" /> Resend
                       </Button>
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        className="text-destructive hover:text-destructive"
-                        onClick={() => cancelInvite(invite.id)}
-                      >
+                      <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive" onClick={() => cancelInvite(invite.id)}>
                         Cancel
                       </Button>
                     </div>
@@ -281,7 +187,7 @@ const TeamMembers = () => {
           </Card>
         )}
 
-        {/* Members Table */}
+        {/* Members Section */}
         <Card>
           <CardHeader className="pb-3">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -289,26 +195,24 @@ const TeamMembers = () => {
                 <CardTitle className="text-lg">Members</CardTitle>
                 <CardDescription>{filteredMembers.length} of {members.length} members</CardDescription>
               </div>
-              <div className="flex items-center gap-2">
-                <div className="relative w-64">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    placeholder="Search by name or email..."
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                    className="pl-9"
-                  />
-                </div>
+              <div className="relative w-64">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search by name or email..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="pl-9"
+                />
               </div>
             </div>
           </CardHeader>
-          
+
           {/* Status Tabs */}
           <div className="px-6 border-b">
             <Tabs value={statusFilter} onValueChange={setStatusFilter}>
               <TabsList className="h-auto p-0 bg-transparent gap-4">
                 {Object.entries(statusCounts).map(([status, count]) => (
-                  <TabsTrigger 
+                  <TabsTrigger
                     key={status}
                     value={status}
                     className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-1 pb-3"
@@ -331,7 +235,7 @@ const TeamMembers = () => {
               <EmptyTeamState
                 icon={Users}
                 title={search ? 'No members found' : 'No team members yet'}
-                description={search 
+                description={search
                   ? `No members match "${search}". Try a different search.`
                   : 'Invite your first team member to get started with collaborative inbox management.'
                 }
@@ -344,223 +248,26 @@ const TeamMembers = () => {
                 ] : undefined}
               />
             ) : (
-              <div className="rounded-lg border overflow-hidden">
-                <Table>
-                  <TableHeader>
-                    <TableRow className="bg-muted/50">
-                      <TableHead className="w-[280px]">Member</TableHead>
-                      <TableHead>Role</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Presence</TableHead>
-                      <TableHead className="text-center">Open Chats</TableHead>
-                      <TableHead>Last Active</TableHead>
-                      <TableHead className="text-right w-[80px]">Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredMembers.map((member) => (
-                      <TableRow 
-                        key={member.id} 
-                        className="cursor-pointer hover:bg-muted/50"
-                        onClick={() => setSelectedMember(member.id)}
-                      >
-                        <TableCell>
-                          <div className="flex items-center gap-3">
-                            <div className="relative">
-                              <Avatar className="h-10 w-10 border">
-                                <AvatarImage src={member.profile?.avatar_url || undefined} />
-                                <AvatarFallback className="bg-primary/10 text-primary font-medium">
-                                  {(member.display_name || member.profile?.full_name || 'U')[0].toUpperCase()}
-                                </AvatarFallback>
-                              </Avatar>
-                              <span 
-                                className={`absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full border-2 border-background ${
-                                  PRESENCE_COLORS[member.presence as keyof typeof PRESENCE_COLORS] || 'bg-gray-400'
-                                }`}
-                              />
-                            </div>
-                            <div>
-                              <p className="font-medium">
-                                {member.display_name || member.profile?.full_name || 'Unknown'}
-                              </p>
-                              <p className="text-sm text-muted-foreground">
-                                {member.profile?.email}
-                              </p>
-                            </div>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant="outline">{member.role || 'Agent'}</Badge>
-                        </TableCell>
-                        <TableCell>
-                          <Badge 
-                            variant="secondary"
-                            className={STATUS_COLORS[member.status as keyof typeof STATUS_COLORS] || STATUS_COLORS.active}
-                          >
-                            {member.status}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            <span 
-                              className={`w-2 h-2 rounded-full ${
-                                PRESENCE_COLORS[member.presence as keyof typeof PRESENCE_COLORS] || 'bg-gray-400'
-                              }`}
-                            />
-                            <span className="capitalize text-sm">{member.presence}</span>
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-center">
-                          <Badge variant={member.open_conversations_count ? 'default' : 'outline'}>
-                            {member.open_conversations_count || 0}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <span className="text-sm text-muted-foreground">
-                            {member.last_active_at 
-                              ? formatDistanceToNow(new Date(member.last_active_at), { addSuffix: true })
-                              : 'Never'}
-                          </span>
-                        </TableCell>
-                        <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="icon" className="h-8 w-8">
-                                <MoreHorizontal className="h-4 w-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem onClick={() => setSelectedMember(member.id)}>
-                                <Eye className="mr-2 h-4 w-4" />
-                                View Details
-                              </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => {
-                                setEditNameMember({ id: member.id, name: member.display_name || member.profile?.full_name || '' });
-                                setEditNameValue(member.display_name || member.profile?.full_name || '');
-                              }}>
-                                <Pencil className="mr-2 h-4 w-4" />
-                                Change Name
-                              </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => {
-                                setEditEmailMember({ id: member.id, email: member.profile?.email || '' });
-                                setEditEmailValue(member.profile?.email || '');
-                              }}>
-                                <Mail className="mr-2 h-4 w-4" />
-                                Edit Email
-                              </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => {
-                                setResetPasswordMember({ id: member.id, email: member.profile?.email || '' });
-                              }}>
-                                <KeyRound className="mr-2 h-4 w-4" />
-                                Reset Password
-                              </DropdownMenuItem>
-                              <DropdownMenuSeparator />
-                              {member.is_active ? (
-                                <DropdownMenuItem 
-                                  onClick={() => disableMember(member.id)}
-                                  className="text-destructive focus:text-destructive"
-                                >
-                                  <Ban className="mr-2 h-4 w-4" />
-                                  Disable Access
-                                </DropdownMenuItem>
-                              ) : (
-                                <DropdownMenuItem onClick={() => enableMember(member.id)}>
-                                  <RotateCcw className="mr-2 h-4 w-4" />
-                                  Enable Access
-                                </DropdownMenuItem>
-                              )}
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+              <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+                {filteredMembers.map((member) => (
+                  <MemberProfileCard
+                    key={member.id}
+                    member={member}
+                    onViewDetails={setSelectedMember}
+                    onDisable={disableMember}
+                    onEnable={enableMember}
+                    onUpdate={updateMember}
+                    onRefetch={refetch}
+                  />
+                ))}
               </div>
             )}
           </CardContent>
         </Card>
       </div>
 
-      <InviteMemberModal 
-        open={showInviteModal} 
-        onOpenChange={setShowInviteModal} 
-      />
-
-      <MemberDetailDrawer
-        memberId={selectedMember}
-        onClose={() => setSelectedMember(null)}
-      />
-
-      {/* Edit Name Dialog */}
-      <Dialog open={!!editNameMember} onOpenChange={(open) => !open && setEditNameMember(null)}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Change Member Name</DialogTitle>
-            <DialogDescription>Update the display name for this team member.</DialogDescription>
-          </DialogHeader>
-          <div className="space-y-2">
-            <Label>Name</Label>
-            <Input
-              value={editNameValue}
-              onChange={(e) => setEditNameValue(e.target.value)}
-              placeholder="Enter new name"
-            />
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setEditNameMember(null)}>Cancel</Button>
-            <Button onClick={handleSaveName} disabled={actionLoading || !editNameValue.trim()}>
-              {actionLoading ? <RefreshCw className="mr-2 h-4 w-4 animate-spin" /> : null}
-              Save
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Edit Email Dialog */}
-      <Dialog open={!!editEmailMember} onOpenChange={(open) => !open && setEditEmailMember(null)}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Edit Email Address</DialogTitle>
-            <DialogDescription>Update the email address for this team member.</DialogDescription>
-          </DialogHeader>
-          <div className="space-y-2">
-            <Label>Email</Label>
-            <Input
-              type="email"
-              value={editEmailValue}
-              onChange={(e) => setEditEmailValue(e.target.value)}
-              placeholder="Enter new email"
-            />
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setEditEmailMember(null)}>Cancel</Button>
-            <Button onClick={handleSaveEmail} disabled={actionLoading || !editEmailValue.trim()}>
-              {actionLoading ? <RefreshCw className="mr-2 h-4 w-4 animate-spin" /> : null}
-              Save
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Reset Password Dialog */}
-      <Dialog open={!!resetPasswordMember} onOpenChange={(open) => !open && setResetPasswordMember(null)}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Reset Password</DialogTitle>
-            <DialogDescription>
-              Send a password reset email to <strong>{resetPasswordMember?.email}</strong>?
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setResetPasswordMember(null)}>Cancel</Button>
-            <Button onClick={handleResetPassword} disabled={actionLoading}>
-              {actionLoading ? <RefreshCw className="mr-2 h-4 w-4 animate-spin" /> : <KeyRound className="mr-2 h-4 w-4" />}
-              Send Reset Email
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <InviteMemberModal open={showInviteModal} onOpenChange={setShowInviteModal} />
+      <MemberDetailDrawer memberId={selectedMember} onClose={() => setSelectedMember(null)} />
     </DashboardLayout>
   );
 };
