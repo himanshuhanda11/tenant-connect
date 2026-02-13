@@ -3,6 +3,7 @@ import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -13,9 +14,12 @@ import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, 
   DropdownMenuSeparator, DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
+import {
+  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle
+} from '@/components/ui/dialog';
 import { 
   Search, UserPlus, MoreHorizontal, Eye, Edit, Ban, 
-  RotateCcw, Mail, Users, Filter, Download, RefreshCw
+  RotateCcw, Mail, Users, Filter, Download, RefreshCw, KeyRound, Pencil
 } from 'lucide-react';
 import { useTeamMembers, useMemberInvites } from '@/hooks/useTeam';
 import { STATUS_COLORS, PRESENCE_COLORS } from '@/types/team';
@@ -26,14 +30,86 @@ import { TeamGuideCard } from '@/components/team/TeamGuideCard';
 import { TeamBreadcrumb } from '@/components/team/TeamBreadcrumb';
 import { EmptyTeamState } from '@/components/team/EmptyTeamState';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { supabase } from '@/integrations/supabase/client';
+import { useTenant } from '@/contexts/TenantContext';
+import { toast } from 'sonner';
 
 const TeamMembers = () => {
   const { members, loading, disableMember, enableMember, updateMember, refetch } = useTeamMembers();
   const { invites, resendInvite, cancelInvite } = useMemberInvites();
+  const { currentTenant } = useTenant();
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [selectedMember, setSelectedMember] = useState<string | null>(null);
+
+  // Edit name dialog
+  const [editNameMember, setEditNameMember] = useState<{ id: string; name: string } | null>(null);
+  const [editNameValue, setEditNameValue] = useState('');
+
+  // Edit email dialog
+  const [editEmailMember, setEditEmailMember] = useState<{ id: string; email: string } | null>(null);
+  const [editEmailValue, setEditEmailValue] = useState('');
+
+  // Reset password dialog
+  const [resetPasswordMember, setResetPasswordMember] = useState<{ id: string; email: string } | null>(null);
+  const [actionLoading, setActionLoading] = useState(false);
+
+  const handleSaveName = async () => {
+    if (!editNameMember || !editNameValue.trim()) return;
+    setActionLoading(true);
+    try {
+      await updateMember(editNameMember.id, { display_name: editNameValue.trim() });
+      // Also update profiles table
+      const member = members.find(m => m.id === editNameMember.id);
+      if (member?.user_id) {
+        await supabase.from('profiles').update({ full_name: editNameValue.trim() }).eq('id', member.user_id);
+      }
+      toast.success('Name updated');
+      setEditNameMember(null);
+      refetch();
+    } catch {
+      toast.error('Failed to update name');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleSaveEmail = async () => {
+    if (!editEmailMember || !editEmailValue.trim()) return;
+    setActionLoading(true);
+    try {
+      const member = members.find(m => m.id === editEmailMember.id);
+      if (member?.user_id) {
+        await supabase.from('profiles').update({ email: editEmailValue.trim() }).eq('id', member.user_id);
+      }
+      toast.success('Email updated');
+      setEditEmailMember(null);
+      refetch();
+    } catch {
+      toast.error('Failed to update email');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleResetPassword = async () => {
+    if (!resetPasswordMember) return;
+    setActionLoading(true);
+    try {
+      // Use Supabase auth's built-in password reset which sends a magic link
+      const { error } = await supabase.auth.resetPasswordForEmail(resetPasswordMember.email, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+      if (error) throw error;
+      toast.success('Password reset email sent');
+      setResetPasswordMember(null);
+    } catch {
+      toast.error('Failed to send reset email');
+    } finally {
+      setActionLoading(false);
+    }
+  };
 
   const filteredMembers = members.filter(m => {
     const matchesSearch = 
@@ -358,9 +434,25 @@ const TeamMembers = () => {
                                 <Eye className="mr-2 h-4 w-4" />
                                 View Details
                               </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => setSelectedMember(member.id)}>
-                                <Edit className="mr-2 h-4 w-4" />
-                                Edit Member
+                              <DropdownMenuItem onClick={() => {
+                                setEditNameMember({ id: member.id, name: member.display_name || member.profile?.full_name || '' });
+                                setEditNameValue(member.display_name || member.profile?.full_name || '');
+                              }}>
+                                <Pencil className="mr-2 h-4 w-4" />
+                                Change Name
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => {
+                                setEditEmailMember({ id: member.id, email: member.profile?.email || '' });
+                                setEditEmailValue(member.profile?.email || '');
+                              }}>
+                                <Mail className="mr-2 h-4 w-4" />
+                                Edit Email
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => {
+                                setResetPasswordMember({ id: member.id, email: member.profile?.email || '' });
+                              }}>
+                                <KeyRound className="mr-2 h-4 w-4" />
+                                Reset Password
                               </DropdownMenuItem>
                               <DropdownMenuSeparator />
                               {member.is_active ? (
@@ -399,6 +491,76 @@ const TeamMembers = () => {
         memberId={selectedMember}
         onClose={() => setSelectedMember(null)}
       />
+
+      {/* Edit Name Dialog */}
+      <Dialog open={!!editNameMember} onOpenChange={(open) => !open && setEditNameMember(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Change Member Name</DialogTitle>
+            <DialogDescription>Update the display name for this team member.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2">
+            <Label>Name</Label>
+            <Input
+              value={editNameValue}
+              onChange={(e) => setEditNameValue(e.target.value)}
+              placeholder="Enter new name"
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditNameMember(null)}>Cancel</Button>
+            <Button onClick={handleSaveName} disabled={actionLoading || !editNameValue.trim()}>
+              {actionLoading ? <RefreshCw className="mr-2 h-4 w-4 animate-spin" /> : null}
+              Save
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Email Dialog */}
+      <Dialog open={!!editEmailMember} onOpenChange={(open) => !open && setEditEmailMember(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Email Address</DialogTitle>
+            <DialogDescription>Update the email address for this team member.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2">
+            <Label>Email</Label>
+            <Input
+              type="email"
+              value={editEmailValue}
+              onChange={(e) => setEditEmailValue(e.target.value)}
+              placeholder="Enter new email"
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditEmailMember(null)}>Cancel</Button>
+            <Button onClick={handleSaveEmail} disabled={actionLoading || !editEmailValue.trim()}>
+              {actionLoading ? <RefreshCw className="mr-2 h-4 w-4 animate-spin" /> : null}
+              Save
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Reset Password Dialog */}
+      <Dialog open={!!resetPasswordMember} onOpenChange={(open) => !open && setResetPasswordMember(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Reset Password</DialogTitle>
+            <DialogDescription>
+              Send a password reset email to <strong>{resetPasswordMember?.email}</strong>?
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setResetPasswordMember(null)}>Cancel</Button>
+            <Button onClick={handleResetPassword} disabled={actionLoading}>
+              {actionLoading ? <RefreshCw className="mr-2 h-4 w-4 animate-spin" /> : <KeyRound className="mr-2 h-4 w-4" />}
+              Send Reset Email
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </DashboardLayout>
   );
 };
