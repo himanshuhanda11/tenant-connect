@@ -629,16 +629,18 @@ const TeamRouting = () => {
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label className="text-xs text-muted-foreground">Assign to Team</Label>
+                    <Label className="text-xs text-muted-foreground">
+                      Assign to Team {!formData.assign_to_user_id && <span className="text-destructive">*</span>}
+                    </Label>
                     <Select 
                       value={formData.assign_to_team_id || '__none__'} 
                       onValueChange={(v) => setFormData({ ...formData, assign_to_team_id: v === '__none__' ? '' : v, assign_to_user_id: '' })}
                     >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Any available team" />
+                      <SelectTrigger className={!formData.assign_to_team_id && !formData.assign_to_user_id ? 'border-destructive/50' : ''}>
+                        <SelectValue placeholder="Select a team" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="__none__">Any available team</SelectItem>
+                        <SelectItem value="__none__">— No team selected —</SelectItem>
                         {teams.map(t => (
                           <SelectItem key={t.id} value={t.id}>
                             <div className="flex items-center gap-2">
@@ -649,18 +651,25 @@ const TeamRouting = () => {
                         ))}
                       </SelectContent>
                     </Select>
+                    {teams.length === 0 && (
+                      <p className="text-xs text-amber-600">
+                        No teams created yet. <a href="/team/groups" className="underline">Create a team first</a>.
+                      </p>
+                    )}
                   </div>
                   <div className="space-y-2">
-                    <Label className="text-xs text-muted-foreground">Or Specific Agent</Label>
+                    <Label className="text-xs text-muted-foreground">
+                      Or Specific Agent {!formData.assign_to_team_id && <span className="text-destructive">*</span>}
+                    </Label>
                     <Select 
                       value={formData.assign_to_user_id || '__none__'} 
                       onValueChange={(v) => setFormData({ ...formData, assign_to_user_id: v === '__none__' ? '' : v, assign_to_team_id: '' })}
                     >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Use strategy" />
+                      <SelectTrigger className={!formData.assign_to_team_id && !formData.assign_to_user_id ? 'border-destructive/50' : ''}>
+                        <SelectValue placeholder="Select an agent" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="__none__">Use strategy</SelectItem>
+                        <SelectItem value="__none__">— Use team strategy —</SelectItem>
                         {members.filter(m => m.is_active).map(m => (
                           <SelectItem key={m.id} value={m.user_id}>
                             {m.display_name || m.profile?.full_name || m.profile?.email}
@@ -670,13 +679,22 @@ const TeamRouting = () => {
                     </Select>
                   </div>
                 </div>
+                {!formData.assign_to_team_id && !formData.assign_to_user_id && (
+                  <p className="text-xs text-destructive flex items-center gap-1">
+                    <AlertTriangle className="h-3 w-3" />
+                    You must select either a team or a specific agent for the rule to work.
+                  </p>
+                )}
               </div>
             </div>
             <DialogFooter>
               <Button variant="outline" onClick={() => setShowModal(false)} disabled={submitting}>
                 Cancel
               </Button>
-              <Button onClick={handleSubmit} disabled={!formData.name.trim() || submitting}>
+              <Button 
+                onClick={handleSubmit} 
+                disabled={!formData.name.trim() || (!formData.assign_to_team_id && !formData.assign_to_user_id) || submitting}
+              >
                 {submitting ? 'Saving...' : editingRule ? 'Save Changes' : 'Create Rule'}
               </Button>
             </DialogFooter>
