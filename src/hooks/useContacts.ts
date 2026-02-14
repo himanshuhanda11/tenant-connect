@@ -30,6 +30,40 @@ export function useContacts() {
     
     setLoading(true);
     try {
+      // Pre-filter: if attribute filters are set, find matching contact IDs first
+      let attributeContactIds: string[] | null = null;
+      if (filters.attributes?.length) {
+        const validAttrs = filters.attributes.filter(a => a.key);
+        if (validAttrs.length > 0) {
+          // Get contacts matching ALL attribute filters
+          let attrIds: Set<string> | null = null;
+          for (const attr of validAttrs) {
+            let attrQuery = (supabase as any)
+              .from('contact_attributes')
+              .select('contact_id')
+              .eq('tenant_id', currentTenant.id)
+              .eq('key', attr.key);
+            if (attr.value) {
+              attrQuery = attrQuery.ilike('value', `%${attr.value}%`);
+            }
+            const { data: attrData } = await attrQuery;
+            const ids = new Set<string>((attrData || []).map((d: any) => String(d.contact_id)));
+            if (attrIds === null) {
+              attrIds = ids;
+            } else {
+              attrIds = new Set([...attrIds].filter(id => ids.has(id)));
+            }
+          }
+          attributeContactIds = attrIds ? [...attrIds] : [];
+          if (attributeContactIds.length === 0) {
+            setContacts([]);
+            setTotalCount(0);
+            setLoading(false);
+            return;
+          }
+        }
+      }
+
       let query = supabase
         .from('contacts')
         .select(`
@@ -39,6 +73,11 @@ export function useContacts() {
         `, { count: 'exact' })
         .eq('tenant_id', currentTenant.id)
         .order('updated_at', { ascending: false });
+
+      // If attribute filter narrowed results, apply contact ID filter
+      if (attributeContactIds) {
+        query = query.in('id', attributeContactIds.slice(0, 500));
+      }
 
       // Apply filters
       if (filters.search) {
@@ -77,6 +116,14 @@ export function useContacts() {
         query = query.eq('intervened', true);
       } else if (filters.intervened === 'no') {
         query = query.eq('intervened', false);
+      }
+
+      // Date range filters
+      if (filters.createdDateFrom) {
+        query = query.gte('created_at', filters.createdDateFrom);
+      }
+      if (filters.createdDateTo) {
+        query = query.lte('created_at', filters.createdDateTo + 'T23:59:59');
       }
 
       // Pagination

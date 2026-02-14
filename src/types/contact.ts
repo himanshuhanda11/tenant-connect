@@ -104,6 +104,13 @@ export interface ContactFilters {
   optInStatus: 'all' | 'opted_in' | 'opted_out';
   hasAgent: 'all' | 'assigned' | 'unassigned';
   intervened: 'all' | 'yes' | 'no';
+  // CRM filters
+  leadState?: string[];
+  assignedTo?: string;
+  isUnreplied?: 'all' | 'yes' | 'no';
+  createdDateFrom?: string;
+  createdDateTo?: string;
+  attributes?: { key: string; value: string }[];
 }
 
 export const PRIORITY_OPTIONS = [

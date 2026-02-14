@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { useContacts } from '@/hooks/useContacts';
 import { useContactInboxSummary } from '@/hooks/useContactInboxSummary';
+import { useAttributeKeys } from '@/hooks/useContactAttributes';
 import { useTenant } from '@/contexts/TenantContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -44,6 +45,40 @@ export default function Contacts() {
 
   const contactIds = useMemo(() => contacts.map(c => c.id), [contacts]);
   const { summaries: inboxSummaries } = useContactInboxSummary(contactIds);
+  const attributeKeys = useAttributeKeys();
+
+  // Client-side CRM filters (leadState, assignedTo, isUnreplied) applied on inbox summaries
+  const filteredContacts = useMemo(() => {
+    let result = contacts;
+    
+    if (filters.leadState?.length && Object.keys(inboxSummaries).length > 0) {
+      result = result.filter(c => {
+        const summary = inboxSummaries[c.id];
+        return summary && filters.leadState!.includes(summary.lead_state);
+      });
+    }
+    
+    if (filters.assignedTo && Object.keys(inboxSummaries).length > 0) {
+      result = result.filter(c => {
+        const summary = inboxSummaries[c.id];
+        return summary?.assigned_to === filters.assignedTo;
+      });
+    }
+    
+    if (filters.isUnreplied === 'yes' && Object.keys(inboxSummaries).length > 0) {
+      result = result.filter(c => {
+        const summary = inboxSummaries[c.id];
+        return summary?.is_unreplied === true;
+      });
+    } else if (filters.isUnreplied === 'no' && Object.keys(inboxSummaries).length > 0) {
+      result = result.filter(c => {
+        const summary = inboxSummaries[c.id];
+        return !summary?.is_unreplied;
+      });
+    }
+    
+    return result;
+  }, [contacts, filters.leadState, filters.assignedTo, filters.isUnreplied, inboxSummaries]);
 
   const [activeView, setActiveView] = useState<SmartView>(DEFAULT_SMART_VIEWS[0]);
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
@@ -113,6 +148,12 @@ export default function Contacts() {
       optInStatus: newFilters.optInStatus || 'all',
       hasAgent: newFilters.hasAgent || 'all',
       intervened: newFilters.intervened || 'all',
+      leadState: newFilters.leadState,
+      assignedTo: newFilters.assignedTo,
+      isUnreplied: newFilters.isUnreplied,
+      createdDateFrom: newFilters.createdDateFrom,
+      createdDateTo: newFilters.createdDateTo,
+      attributes: newFilters.attributes,
     });
     setPage(1);
   };
@@ -193,6 +234,12 @@ export default function Contacts() {
     optInStatus: filters.optInStatus,
     hasAgent: filters.hasAgent,
     intervened: filters.intervened,
+    leadState: filters.leadState,
+    assignedTo: filters.assignedTo,
+    isUnreplied: filters.isUnreplied,
+    createdDateFrom: filters.createdDateFrom,
+    createdDateTo: filters.createdDateTo,
+    attributes: filters.attributes,
   };
 
   const SidebarContent = (
@@ -262,15 +309,17 @@ export default function Contacts() {
             onSaveAsSegment={() => setShowCreateSegment(true)}
             onReset={resetFilters}
             availableTags={availableTags}
+            availableAgents={availableAgents}
+            attributeKeys={attributeKeys}
             sources={['facebook', 'website', 'qr', 'api', 'manual']}
             countries={[]}
           />
 
           <div className="flex-1 overflow-auto">
             <ContactsTable
-              contacts={contacts}
+              contacts={filteredContacts}
               loading={loading}
-              totalCount={totalCount}
+              totalCount={filteredContacts.length < contacts.length ? filteredContacts.length : totalCount}
               page={page}
               pageSize={pageSize}
               onPageChange={setPage}
