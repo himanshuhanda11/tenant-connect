@@ -46,6 +46,7 @@ import {
   Eye,
   ArrowLeft,
   Info,
+  UserX,
   Camera,
   Sparkles,
   File,
@@ -82,6 +83,8 @@ interface InboxChatThreadProps {
   onSetStatus: (status: ConversationStatus) => void;
   onSetIntervene: (intervene: boolean) => void;
   onAddTag: (tagId: string) => void;
+  onClaim?: () => void;
+  onIntervene?: () => void;
   loading?: boolean;
   availableTags?: Array<{ id: string; name: string; color: string }>;
   teamMembers?: Array<{ id: string; full_name: string; avatar_url: string | null }>;
@@ -108,6 +111,8 @@ export function InboxChatThread({
   onSetStatus,
   onSetIntervene,
   onAddTag,
+  onClaim,
+  onIntervene,
   loading,
   availableTags = [],
   teamMembers = [],
@@ -544,6 +549,27 @@ export function InboxChatThread({
         )}
       </div>
 
+      {/* Claim / Intervene Banner */}
+      {!conversation.assigned_to && onClaim && (
+        <div className="bg-blue-50 border-b border-blue-200 flex items-center gap-2 text-blue-800 px-4 py-2.5">
+          <UserX className="h-4 w-4 flex-shrink-0" />
+          <span className="flex-1 text-sm font-medium">This conversation is unassigned</span>
+          <Button size="sm" className="h-7 text-xs bg-blue-600 hover:bg-blue-700 text-white" onClick={onClaim}>
+            <Hand className="h-3.5 w-3.5 mr-1" /> Claim
+          </Button>
+        </div>
+      )}
+      {conversation.assigned_to && conversation.assigned_to !== user?.id && onIntervene && (
+        <div className="bg-purple-50 border-b border-purple-200 flex items-center gap-2 text-purple-800 px-4 py-2.5">
+          <User className="h-4 w-4 flex-shrink-0" />
+          <span className="flex-1 text-sm">
+            Assigned to <strong>{conversation.assigned_agent?.full_name || 'another agent'}</strong>
+          </span>
+          <Button size="sm" variant="outline" className="h-7 text-xs border-purple-300 text-purple-700 hover:bg-purple-100" onClick={onIntervene}>
+            <Hand className="h-3.5 w-3.5 mr-1" /> Intervene
+          </Button>
+        </div>
+      )}
 
       {/* Phone Disconnected Warning */}
       {isPhoneDisconnected && (

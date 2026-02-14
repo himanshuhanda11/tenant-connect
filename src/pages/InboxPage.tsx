@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { InboxConversationList } from '@/components/inbox/InboxConversationList';
 import { InboxChatThread } from '@/components/inbox/InboxChatThread';
@@ -22,6 +23,7 @@ import { cn } from '@/lib/utils';
 export default function InboxPage() {
   const { id: conversationId } = useParams<{ id?: string }>();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const isMobile = useIsMobile();
   
   const [view, setView] = useState<InboxView>('all');
@@ -71,11 +73,12 @@ export default function InboxPage() {
   }, [conversationId]);
 
   // Handle selection
+  // Handle selection — call open_conversation RPC
   const handleSelect = (id: string) => {
     setSelectedId(id);
     navigate(`/inbox/${id}`, { replace: true });
-    // Mark as read
     actions.markAsRead(id);
+    actions.openConversation(id, true); // auto-claim on open
   };
 
   // Handle back navigation on mobile
@@ -125,6 +128,18 @@ export default function InboxPage() {
   const handleSendMessage = useCallback((msg: { text?: string; template?: string; media?: File }) => {
     if (selectedId) {
       actions.sendMessage(selectedId, msg);
+    }
+  }, [selectedId, actions]);
+
+  const handleClaim = useCallback(() => {
+    if (selectedId) {
+      actions.claimConversation(selectedId);
+    }
+  }, [selectedId, actions]);
+
+  const handleIntervene = useCallback(() => {
+    if (selectedId) {
+      actions.interveneConversation(selectedId);
     }
   }, [selectedId, actions]);
 
@@ -190,6 +205,7 @@ export default function InboxPage() {
                 onFiltersChange={setFilters}
                 loading={loadingConversations}
                 isMobile={true}
+                currentUserId={user?.id}
               />
             ) : showContextPanel ? (
               /* Mobile: Show context panel */
@@ -225,6 +241,8 @@ export default function InboxPage() {
                 onSetStatus={handleSetStatus}
                 onSetIntervene={handleSetIntervene}
                 onAddTag={handleAddTag}
+                onClaim={handleClaim}
+                onIntervene={handleIntervene}
                 loading={loadingMessages}
                 availableTags={actions.availableTags}
                 teamMembers={actions.teamMembers}
@@ -255,6 +273,7 @@ export default function InboxPage() {
               filters={filters}
               onFiltersChange={setFilters}
               loading={loadingConversations}
+              currentUserId={user?.id}
             />
           </div>
 
@@ -269,6 +288,8 @@ export default function InboxPage() {
             onSetStatus={handleSetStatus}
             onSetIntervene={handleSetIntervene}
             onAddTag={handleAddTag}
+            onClaim={handleClaim}
+            onIntervene={handleIntervene}
             loading={loadingMessages}
             availableTags={actions.availableTags}
             teamMembers={actions.teamMembers}

@@ -2038,6 +2038,8 @@ export type Database = {
       conversations: {
         Row: {
           assigned_to: string | null
+          claimed_at: string | null
+          claimed_by: string | null
           contact_id: string
           created_at: string
           first_response_at: string | null
@@ -2049,6 +2051,10 @@ export type Database = {
           last_message_at: string | null
           last_message_id: string | null
           last_message_preview: string | null
+          last_opened_at: string | null
+          last_opened_by: string | null
+          locked_at: string | null
+          locked_by: string | null
           phone_number_id: string | null
           priority: string | null
           sla_breached: boolean | null
@@ -2058,9 +2064,12 @@ export type Database = {
           tenant_id: string
           unread_count: number
           updated_at: string
+          version: number
         }
         Insert: {
           assigned_to?: string | null
+          claimed_at?: string | null
+          claimed_by?: string | null
           contact_id: string
           created_at?: string
           first_response_at?: string | null
@@ -2072,6 +2081,10 @@ export type Database = {
           last_message_at?: string | null
           last_message_id?: string | null
           last_message_preview?: string | null
+          last_opened_at?: string | null
+          last_opened_by?: string | null
+          locked_at?: string | null
+          locked_by?: string | null
           phone_number_id?: string | null
           priority?: string | null
           sla_breached?: boolean | null
@@ -2081,9 +2094,12 @@ export type Database = {
           tenant_id: string
           unread_count?: number
           updated_at?: string
+          version?: number
         }
         Update: {
           assigned_to?: string | null
+          claimed_at?: string | null
+          claimed_by?: string | null
           contact_id?: string
           created_at?: string
           first_response_at?: string | null
@@ -2095,6 +2111,10 @@ export type Database = {
           last_message_at?: string | null
           last_message_id?: string | null
           last_message_preview?: string | null
+          last_opened_at?: string | null
+          last_opened_by?: string | null
+          locked_at?: string | null
+          locked_by?: string | null
           phone_number_id?: string | null
           priority?: string | null
           sla_breached?: boolean | null
@@ -2104,11 +2124,19 @@ export type Database = {
           tenant_id?: string
           unread_count?: number
           updated_at?: string
+          version?: number
         }
         Relationships: [
           {
             foreignKeyName: "conversations_assigned_to_fkey"
             columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conversations_claimed_by_fkey"
+            columns: ["claimed_by"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -2123,6 +2151,20 @@ export type Database = {
           {
             foreignKeyName: "conversations_intervened_by_fkey"
             columns: ["intervened_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conversations_last_opened_by_fkey"
+            columns: ["last_opened_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conversations_locked_by_fkey"
+            columns: ["locked_by"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -10319,6 +10361,10 @@ export type Database = {
         Args: { p_user_id: string }
         Returns: boolean
       }
+      claim_conversation: {
+        Args: { p_conversation_id: string; p_tenant_id: string }
+        Returns: Json
+      }
       cleanup_automation_expired_records: { Args: never; Returns: undefined }
       cleanup_expired_typing: { Args: never; Returns: undefined }
       cleanup_rate_limit_logs: { Args: never; Returns: undefined }
@@ -10434,6 +10480,10 @@ export type Database = {
       increment_usage: {
         Args: { p_amount?: number; p_counter: string; p_tenant_id: string }
         Returns: undefined
+      }
+      intervene_conversation: {
+        Args: { p_conversation_id: string; p_tenant_id: string }
+        Returns: Json
       }
       is_platform_admin: { Args: { _user_id: string }; Returns: boolean }
       is_platform_user: { Args: { allowed_roles: string[] }; Returns: boolean }
@@ -10551,6 +10601,14 @@ export type Database = {
         Returns: undefined
       }
       next_invoice_number: { Args: never; Returns: string }
+      open_conversation: {
+        Args: {
+          p_auto_claim?: boolean
+          p_conversation_id: string
+          p_tenant_id: string
+        }
+        Returns: Json
+      }
       owner_workspace_count: { Args: { p_owner: string }; Returns: number }
       pause_campaign: { Args: { p_campaign_id: string }; Returns: number }
       pause_smeksh_campaign: {
