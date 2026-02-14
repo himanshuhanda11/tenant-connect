@@ -599,25 +599,6 @@ export function InboxChatThread({
             
             <div className="h-5 w-px bg-border" />
             
-            {/* Intervene Toggle (Bot) */}
-            <Button 
-              variant={conversation.is_intervened ? "secondary" : "ghost"}
-              size="sm"
-              className={cn(
-                "h-7 text-xs gap-1",
-                conversation.is_intervened 
-                  ? "bg-amber-100 text-amber-700 hover:bg-amber-200" 
-                  : "text-muted-foreground hover:text-foreground"
-              )}
-              onClick={() => onSetIntervene(!conversation.is_intervened)}
-            >
-              {conversation.is_intervened ? (
-                <><Bot className="h-3.5 w-3.5" /> Resume Bot</>
-              ) : (
-                <><Hand className="h-3.5 w-3.5" /> Take Over</>
-              )}
-            </Button>
-            
             {/* Status Dropdown */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
