@@ -474,7 +474,7 @@ export function ContactsTable({
                     <Badge variant="secondary" className={cn("text-xs font-medium", stateConfig.className)}>
                       {stateConfig.label}
                     </Badge>
-                    {summary?.is_unreplied && (
+                    {summary?.is_unreplied && leadState !== 'unreplied' && (
                       <Badge variant="destructive" className="text-[10px] ml-1 px-1.5 py-0">
                         Unreplied
                       </Badge>
