@@ -363,7 +363,7 @@ export function TemplatePicker({
               ← Back to templates
             </Button>
 
-            <div className="grid grid-cols-2 gap-6 flex-1 overflow-hidden">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 flex-1 overflow-hidden">
               {/* Variable Form */}
               <ScrollArea className="pr-4">
                 <div className="space-y-4">
