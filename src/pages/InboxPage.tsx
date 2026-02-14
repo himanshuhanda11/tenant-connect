@@ -34,7 +34,7 @@ export default function InboxPage() {
 
   // Hooks
   const { conversations, loading: loadingConversations, refetch } = useInboxConversations(view, filters);
-  const { messages, loading: loadingMessages, addMessage } = useInboxMessages(selectedId);
+  const { messages, loading: loadingMessages, addMessage, refetch: refetchMessages } = useInboxMessages(selectedId);
   const { events, addEvent } = useConversationEvents(selectedId);
   const { notes, addNote } = useInternalNotes(selectedId);
   const { typingUsers, setTyping } = useTypingState(selectedId);
@@ -57,6 +57,7 @@ export default function InboxPage() {
   useEffect(() => {
     const handleUpdate = () => {
       refetch();
+      refetchMessages();
     };
 
     const handleMessage = (e: Event) => {
@@ -73,7 +74,7 @@ export default function InboxPage() {
       window.removeEventListener('inbox-update', handleUpdate);
       window.removeEventListener('inbox-message', handleMessage);
     };
-  }, [selectedId, refetch, addMessage]);
+  }, [selectedId, refetch, refetchMessages, addMessage]);
 
   // Handle URL changes
   useEffect(() => {
