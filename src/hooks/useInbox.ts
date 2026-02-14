@@ -602,23 +602,59 @@ export function useInboxActions() {
     fetchTags();
   }, [currentTenant?.id]);
 
+  // Assign conversation via RPC (admin only, does NOT claim)
   const assignConversation = useCallback(async (conversationId: string, profileId: string | null) => {
+    if (!currentTenant?.id) return;
     try {
-      const { error } = await supabase
-        .from('conversations')
-        .update({
-          assigned_to: profileId,
-          assigned_at: profileId ? new Date().toISOString() : null,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', conversationId);
-      if (error) throw error;
+      if (profileId) {
+        const { data, error } = await supabase.rpc('assign_conversation', {
+          p_tenant_id: currentTenant.id,
+          p_conversation_id: conversationId,
+          p_assigned_to: profileId,
+        });
+        if (error) throw error;
+        const result = data as any;
+        if (result?.ok === false) {
+          toast.error(result.reason === 'forbidden' ? 'Only admins can assign' : 'Failed to assign');
+          return;
+        }
+      } else {
+        // Unassign: direct update (also clear claim)
+        const { error } = await supabase
+          .from('conversations')
+          .update({ assigned_to: null, assigned_at: null, claimed_by: null, claimed_at: null, updated_at: new Date().toISOString() })
+          .eq('id', conversationId);
+        if (error) throw error;
+      }
       toast.success(profileId ? 'Conversation assigned' : 'Conversation unassigned');
       window.dispatchEvent(new CustomEvent('inbox-update', { detail: { conversationId } }));
     } catch (err) {
       toast.error('Failed to assign conversation');
     }
-  }, []);
+  }, [currentTenant?.id]);
+
+  // Transfer conversation via RPC (admin only, optionally resets claim)
+  const transferConversation = useCallback(async (conversationId: string, newAssignedTo: string, resetClaim = false) => {
+    if (!currentTenant?.id) return;
+    try {
+      const { data, error } = await supabase.rpc('transfer_conversation', {
+        p_tenant_id: currentTenant.id,
+        p_conversation_id: conversationId,
+        p_new_assigned_to: newAssignedTo,
+        p_reset_claim: resetClaim,
+      });
+      if (error) throw error;
+      const result = data as any;
+      if (result?.ok === false) {
+        toast.error(result.reason === 'forbidden' ? 'Only admins can transfer' : 'Failed to transfer');
+        return;
+      }
+      toast.success('Conversation transferred');
+      window.dispatchEvent(new CustomEvent('inbox-update', { detail: { conversationId } }));
+    } catch (err) {
+      toast.error('Failed to transfer conversation');
+    }
+  }, [currentTenant?.id]);
 
   // Claim conversation (atomic, prevents two agents claiming)
   const claimConversation = useCallback(async (conversationId: string) => {
@@ -876,6 +912,7 @@ export function useInboxActions() {
 
   return {
     assignConversation,
+    transferConversation,
     claimConversation,
     openConversation,
     interveneConversation,
