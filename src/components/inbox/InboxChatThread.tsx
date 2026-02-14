@@ -633,6 +633,24 @@ export function InboxChatThread({
           </Button>
         </div>
       )}
+      {/* Intervention notice - shown to the assigned agent when someone else intervened */}
+      {conversation.is_intervened && conversation.assigned_to === user?.id && conversation.intervened_by && conversation.intervened_by !== user?.id && (
+        <div className="bg-amber-50 border-b border-amber-200 flex items-center gap-2 text-amber-800 px-4 py-2.5">
+          <Hand className="h-4 w-4 flex-shrink-0" />
+          <span className="flex-1 text-sm">
+            This conversation was intervened by another agent
+          </span>
+        </div>
+      )}
+      {/* Intervened by you notice */}
+      {conversation.is_intervened && conversation.intervened_by === user?.id && conversation.assigned_to !== user?.id && (
+        <div className="bg-amber-50 border-b border-amber-200 flex items-center gap-2 text-amber-800 px-4 py-2.5">
+          <Hand className="h-4 w-4 flex-shrink-0" />
+          <span className="flex-1 text-sm font-medium">
+            You intervened in this conversation — now assigned to <strong>{conversation.assigned_agent?.full_name || 'another agent'}</strong>
+          </span>
+        </div>
+      )}
 
       {/* Phone Disconnected Warning */}
       {isPhoneDisconnected && (

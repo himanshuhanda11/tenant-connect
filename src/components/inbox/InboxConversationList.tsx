@@ -311,6 +311,13 @@ export function InboxConversationList({
                         </Badge>
                       )}
 
+                      {/* Intervened indicator */}
+                      {conversation.is_intervened && (
+                        <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4 bg-amber-100 text-amber-700 border-0 font-medium">
+                          {conversation.intervened_by === currentUserId ? 'Intervened by you' : 'Intervened'}
+                        </Badge>
+                      )}
+
                       {/* Assignment */}
                       {conversation.assigned_agent && !isMobile && (
                         <span className="text-[10px] text-muted-foreground ml-auto flex items-center gap-1">
