@@ -837,6 +837,17 @@ export function useInboxActions() {
       }
     }
 
+    // Handle template sends - no text message needed
+    if (message.template && !message.text) {
+      // Template send is handled by the TemplatePicker directly via send-template-message
+      // Just update the conversation
+      window.dispatchEvent(new CustomEvent('inbox-update', { detail: { conversationId } }));
+      return;
+    }
+
+    // Only proceed with text message if we have text
+    if (!message.text?.trim()) return;
+
     // Optimistic: immediately dispatch a local message event so the chat thread updates instantly
     const optimisticId = `optimistic-${Date.now()}`;
     const optimisticMsg: InboxMessage = {
