@@ -7,6 +7,7 @@ import { UsageOverview } from '@/components/billing/UsageOverview';
 import { PlanCard } from '@/components/billing/PlanCard';
 import { AddOnsSection } from '@/components/billing/AddOnsSection';
 import { InvoicesTable } from '@/components/billing/InvoicesTable';
+import { MessageCreditsCard } from '@/components/billing/MessageCreditsCard';
 import { PaymentMethodsCard } from '@/components/billing/PaymentMethodsCard';
 import { BillingSettingsForm } from '@/components/billing/BillingSettingsForm';
 import { SubscriptionActions } from '@/components/billing/SubscriptionActions';
@@ -66,6 +67,7 @@ export default function Billing() {
           {/* Overview Tab */}
           <TabsContent value="overview" className="space-y-6">
             <WorkspacePlanCard />
+            <MessageCreditsCard />
             <MetaBillingNotice />
             <BillingOverviewCards />
             <BillingQuickActions />
