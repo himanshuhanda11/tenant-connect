@@ -85,6 +85,7 @@ interface InboxChatThreadProps {
   onAddTag: (tagId: string) => void;
   onClaim?: () => void;
   onIntervene?: () => void;
+  onTyping?: (isTyping: boolean) => void;
   loading?: boolean;
   availableTags?: Array<{ id: string; name: string; color: string }>;
   teamMembers?: Array<{ id: string; full_name: string; avatar_url: string | null }>;
@@ -92,6 +93,7 @@ interface InboxChatThreadProps {
   isMobile?: boolean;
   onBack?: () => void;
   onShowInfo?: () => void;
+  viewerName?: string | null;
 }
 
 const STATUS_ICONS: Record<WAStatus, React.ReactNode> = {
@@ -113,6 +115,7 @@ export function InboxChatThread({
   onAddTag,
   onClaim,
   onIntervene,
+  onTyping,
   loading,
   availableTags = [],
   teamMembers = [],
@@ -120,6 +123,7 @@ export function InboxChatThread({
   isMobile = false,
   onBack,
   onShowInfo,
+  viewerName,
 }: InboxChatThreadProps) {
   const { user } = useAuth();
   const [messageText, setMessageText] = useState('');
@@ -171,6 +175,7 @@ export function InboxChatThread({
     if (!messageText.trim()) return;
     onSendMessage({ text: messageText });
     setMessageText('');
+    onTyping?.(false);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -549,6 +554,14 @@ export function InboxChatThread({
         )}
       </div>
 
+      {/* Viewer Presence Banner */}
+      {viewerName && (
+        <div className="bg-muted/60 border-b border-border/40 flex items-center gap-2 px-4 py-1.5">
+          <Eye className="h-3.5 w-3.5 text-muted-foreground" />
+          <span className="text-xs text-muted-foreground font-medium">{viewerName} is viewing this chat</span>
+        </div>
+      )}
+
       {/* Claim / Intervene Banner */}
       {!conversation.assigned_to && onClaim && (
         <div className="bg-blue-50 border-b border-blue-200 flex items-center gap-2 text-blue-800 px-4 py-2.5">
@@ -868,8 +881,12 @@ export function InboxChatThread({
                   <Textarea
                     placeholder={isOutside24hWindow ? "Select template..." : "Type a message"}
                     value={messageText}
-                    onChange={(e) => setMessageText(e.target.value)}
+                    onChange={(e) => {
+                      setMessageText(e.target.value);
+                      if (onTyping && e.target.value.length > 0) onTyping(true);
+                    }}
                     onKeyDown={handleKeyDown}
+                    onBlur={() => onTyping?.(false)}
                     disabled={isOutside24hWindow}
                     className={cn(
                       "resize-none",
