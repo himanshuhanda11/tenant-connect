@@ -1700,6 +1700,113 @@ export type Database = {
           },
         ]
       }
+      contact_inbox_summary: {
+        Row: {
+          assigned_at: string | null
+          assigned_to: string | null
+          claimed_at: string | null
+          claimed_by: string | null
+          contact_id: string
+          is_unreplied: boolean
+          last_inbound_at: string | null
+          last_message_at: string | null
+          last_outbound_at: string | null
+          last_replied_at: string | null
+          last_replied_by: string | null
+          lead_state: string
+          open_conversation_id: string | null
+          phone_number_id: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          assigned_at?: string | null
+          assigned_to?: string | null
+          claimed_at?: string | null
+          claimed_by?: string | null
+          contact_id: string
+          is_unreplied?: boolean
+          last_inbound_at?: string | null
+          last_message_at?: string | null
+          last_outbound_at?: string | null
+          last_replied_at?: string | null
+          last_replied_by?: string | null
+          lead_state?: string
+          open_conversation_id?: string | null
+          phone_number_id: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          assigned_at?: string | null
+          assigned_to?: string | null
+          claimed_at?: string | null
+          claimed_by?: string | null
+          contact_id?: string
+          is_unreplied?: boolean
+          last_inbound_at?: string | null
+          last_message_at?: string | null
+          last_outbound_at?: string | null
+          last_replied_at?: string | null
+          last_replied_by?: string | null
+          lead_state?: string
+          open_conversation_id?: string | null
+          phone_number_id?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contact_inbox_summary_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contact_inbox_summary_claimed_by_fkey"
+            columns: ["claimed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contact_inbox_summary_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contact_inbox_summary_last_replied_by_fkey"
+            columns: ["last_replied_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contact_inbox_summary_open_conversation_id_fkey"
+            columns: ["open_conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contact_inbox_summary_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "platform_workspace_directory"
+            referencedColumns: ["workspace_id"]
+          },
+          {
+            foreignKeyName: "contact_inbox_summary_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       contact_tags: {
         Row: {
           contact_id: string

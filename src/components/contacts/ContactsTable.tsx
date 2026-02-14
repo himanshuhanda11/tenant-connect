@@ -1,4 +1,5 @@
 import { Contact, PRIORITY_OPTIONS, LEAD_STATUS_OPTIONS, MAU_STATUS_OPTIONS } from '@/types/contact';
+import { ContactInboxSummary } from '@/hooks/useContactInboxSummary';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -36,6 +37,8 @@ import {
   Sparkles,
   TrendingUp,
   Inbox,
+  HandMetal,
+  MessageSquareReply,
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { cn } from '@/lib/utils';
@@ -53,7 +56,16 @@ interface ContactsTableProps {
   selectedContactIds: string[];
   onToggleSelection: (contactId: string) => void;
   onSelectAll: () => void;
+  inboxSummaries?: Record<string, ContactInboxSummary>;
 }
+
+const LEAD_STATE_CONFIG: Record<string, { label: string; className: string }> = {
+  new: { label: 'New', className: 'bg-blue-100 text-blue-700' },
+  assigned_pending: { label: 'Assigned Pending', className: 'bg-amber-100 text-amber-700' },
+  claimed: { label: 'Claimed', className: 'bg-emerald-100 text-emerald-700' },
+  unreplied: { label: 'Unreplied', className: 'bg-rose-100 text-rose-700' },
+  closed: { label: 'Closed', className: 'bg-muted text-muted-foreground' },
+};
 
 export function ContactsTable({
   contacts,
@@ -67,6 +79,7 @@ export function ContactsTable({
   selectedContactIds,
   onToggleSelection,
   onSelectAll,
+  inboxSummaries = {},
 }: ContactsTableProps) {
   const isMobile = useIsMobile();
   const totalPages = Math.ceil(totalCount / pageSize);
@@ -373,21 +386,33 @@ export function ContactsTable({
               <TableHead>
                 <div className="flex items-center gap-2 font-semibold">
                   <TrendingUp className="h-4 w-4 text-muted-foreground" />
-                  Status
+                  Lead State
+                </div>
+              </TableHead>
+              <TableHead>
+                <div className="flex items-center gap-2 font-semibold">
+                  <UserCheck className="h-4 w-4 text-muted-foreground" />
+                  Assigned
+                </div>
+              </TableHead>
+              <TableHead>
+                <div className="flex items-center gap-2 font-semibold">
+                  <HandMetal className="h-4 w-4 text-muted-foreground" />
+                  Claimed
+                </div>
+              </TableHead>
+              <TableHead>
+                <div className="flex items-center gap-2 font-semibold">
+                  <MessageSquareReply className="h-4 w-4 text-muted-foreground" />
+                  Replied
                 </div>
               </TableHead>
               <TableHead>Priority</TableHead>
-              <TableHead>
-                <div className="flex items-center gap-2 font-semibold">
-                  <Sparkles className="h-4 w-4 text-muted-foreground" />
-                  MAU
-                </div>
-              </TableHead>
               <TableHead>Tags</TableHead>
               <TableHead>
                 <div className="flex items-center gap-2 font-semibold">
                   <Shield className="h-4 w-4 text-muted-foreground" />
-                  Status
+                  Compliance
                 </div>
               </TableHead>
               <TableHead>
@@ -403,6 +428,9 @@ export function ContactsTable({
             {contacts.map((contact) => {
               const isSelected = selectedContactIds.includes(contact.id);
               const isActive = selectedContactId === contact.id;
+              const summary = inboxSummaries[contact.id];
+              const leadState = summary?.lead_state || 'new';
+              const stateConfig = LEAD_STATE_CONFIG[leadState] || LEAD_STATE_CONFIG.new;
               
               return (
                 <TableRow
@@ -431,13 +459,8 @@ export function ContactsTable({
                         </AvatarFallback>
                       </Avatar>
                       <div className="min-w-0">
-                        <div className="font-semibold truncate flex items-center gap-2">
+                        <div className="font-semibold truncate">
                           {contact.name || contact.first_name || 'Unknown'}
-                          {contact.assigned_agent && (
-                            <Badge variant="outline" className="text-[10px] font-normal px-1.5 py-0">
-                              {contact.assigned_agent.full_name?.split(' ')[0] || 'Assigned'}
-                            </Badge>
-                          )}
                         </div>
                         <div className="flex items-center gap-1.5 text-xs text-muted-foreground mt-0.5">
                           <Phone className="h-3 w-3" />
@@ -446,14 +469,106 @@ export function ContactsTable({
                       </div>
                     </div>
                   </TableCell>
+                  {/* Lead State */}
                   <TableCell>
-                    {getLeadStatusBadge(contact.lead_status)}
+                    <Badge variant="secondary" className={cn("text-xs font-medium", stateConfig.className)}>
+                      {stateConfig.label}
+                    </Badge>
+                    {summary?.is_unreplied && (
+                      <Badge variant="destructive" className="text-[10px] ml-1 px-1.5 py-0">
+                        Unreplied
+                      </Badge>
+                    )}
+                  </TableCell>
+                  {/* Assigned To */}
+                  <TableCell>
+                    {summary?.assigned_agent ? (
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <div className="flex items-center gap-1.5">
+                            <Avatar className="h-6 w-6">
+                              <AvatarFallback className="text-[10px] bg-primary/10 text-primary">
+                                {summary.assigned_agent.full_name?.charAt(0) || '?'}
+                              </AvatarFallback>
+                            </Avatar>
+                            <span className="text-sm truncate max-w-[100px]">
+                              {summary.assigned_agent.full_name?.split(' ')[0] || summary.assigned_agent.email}
+                            </span>
+                          </div>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          Assigned to {summary.assigned_agent.full_name || summary.assigned_agent.email}
+                          {summary.assigned_at && (
+                            <span className="block text-xs opacity-70">
+                              {formatDistanceToNow(new Date(summary.assigned_at), { addSuffix: true })}
+                            </span>
+                          )}
+                        </TooltipContent>
+                      </Tooltip>
+                    ) : (
+                      <span className="text-xs text-muted-foreground">—</span>
+                    )}
+                  </TableCell>
+                  {/* Claimed By */}
+                  <TableCell>
+                    {summary?.claiming_agent ? (
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <div className="flex items-center gap-1.5">
+                            <Avatar className="h-6 w-6">
+                              <AvatarFallback className="text-[10px] bg-emerald-100 text-emerald-700">
+                                {summary.claiming_agent.full_name?.charAt(0) || '?'}
+                              </AvatarFallback>
+                            </Avatar>
+                            <span className="text-sm truncate max-w-[100px]">
+                              {summary.claiming_agent.full_name?.split(' ')[0] || summary.claiming_agent.email}
+                            </span>
+                          </div>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          Claimed by {summary.claiming_agent.full_name || summary.claiming_agent.email}
+                          {summary.claimed_at && (
+                            <span className="block text-xs opacity-70">
+                              {formatDistanceToNow(new Date(summary.claimed_at), { addSuffix: true })}
+                            </span>
+                          )}
+                        </TooltipContent>
+                      </Tooltip>
+                    ) : (
+                      <span className="text-xs text-muted-foreground">—</span>
+                    )}
+                  </TableCell>
+                  {/* Replied By */}
+                  <TableCell>
+                    {summary?.replying_agent ? (
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <div className="flex items-center gap-1.5">
+                            <Avatar className="h-6 w-6">
+                              <AvatarFallback className="text-[10px] bg-blue-100 text-blue-700">
+                                {summary.replying_agent.full_name?.charAt(0) || '?'}
+                              </AvatarFallback>
+                            </Avatar>
+                            <span className="text-sm truncate max-w-[100px]">
+                              {summary.replying_agent.full_name?.split(' ')[0] || summary.replying_agent.email}
+                            </span>
+                          </div>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          Last replied by {summary.replying_agent.full_name || summary.replying_agent.email}
+                          {summary.last_replied_at && (
+                            <span className="block text-xs opacity-70">
+                              {formatDistanceToNow(new Date(summary.last_replied_at), { addSuffix: true })}
+                            </span>
+                          )}
+                        </TooltipContent>
+                      </Tooltip>
+                    ) : (
+                      <span className="text-xs text-muted-foreground">—</span>
+                    )}
                   </TableCell>
                   <TableCell>
                     {getPriorityBadge(contact.priority_level)}
-                  </TableCell>
-                  <TableCell>
-                    {getMauStatusBadge(contact.mau_status)}
                   </TableCell>
                   <TableCell>
                     <div className="flex flex-wrap gap-1 max-w-[140px]">
