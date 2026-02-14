@@ -483,28 +483,23 @@ export function ContactsTable({
                   {/* Assigned To */}
                   <TableCell>
                     {summary?.assigned_agent ? (
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <div className="flex items-center gap-1.5">
-                            <Avatar className="h-6 w-6">
-                              <AvatarFallback className="text-[10px] bg-primary/10 text-primary">
-                                {summary.assigned_agent.full_name?.charAt(0) || '?'}
-                              </AvatarFallback>
-                            </Avatar>
-                            <span className="text-sm truncate max-w-[100px]">
-                              {summary.assigned_agent.full_name?.split(' ')[0] || summary.assigned_agent.email}
-                            </span>
-                          </div>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          Assigned to {summary.assigned_agent.full_name || summary.assigned_agent.email}
-                          {summary.assigned_at && (
-                            <span className="block text-xs opacity-70">
-                              {formatDistanceToNow(new Date(summary.assigned_at), { addSuffix: true })}
-                            </span>
-                          )}
-                        </TooltipContent>
-                      </Tooltip>
+                      <div className="space-y-0.5">
+                        <div className="flex items-center gap-1.5">
+                          <Avatar className="h-6 w-6">
+                            <AvatarFallback className="text-[10px] bg-primary/10 text-primary">
+                              {summary.assigned_agent.full_name?.charAt(0) || '?'}
+                            </AvatarFallback>
+                          </Avatar>
+                          <span className="text-sm font-medium truncate max-w-[100px]">
+                            {summary.assigned_agent.full_name?.split(' ')[0] || summary.assigned_agent.email}
+                          </span>
+                        </div>
+                        {summary.assigned_at && (
+                          <span className="text-[10px] text-muted-foreground pl-7">
+                            {formatDistanceToNow(new Date(summary.assigned_at), { addSuffix: true })}
+                          </span>
+                        )}
+                      </div>
                     ) : (
                       <span className="text-xs text-muted-foreground">—</span>
                     )}
@@ -512,28 +507,23 @@ export function ContactsTable({
                   {/* Claimed By */}
                   <TableCell>
                     {summary?.claiming_agent ? (
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <div className="flex items-center gap-1.5">
-                            <Avatar className="h-6 w-6">
-                              <AvatarFallback className="text-[10px] bg-emerald-100 text-emerald-700">
-                                {summary.claiming_agent.full_name?.charAt(0) || '?'}
-                              </AvatarFallback>
-                            </Avatar>
-                            <span className="text-sm truncate max-w-[100px]">
-                              {summary.claiming_agent.full_name?.split(' ')[0] || summary.claiming_agent.email}
-                            </span>
-                          </div>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          Claimed by {summary.claiming_agent.full_name || summary.claiming_agent.email}
-                          {summary.claimed_at && (
-                            <span className="block text-xs opacity-70">
-                              {formatDistanceToNow(new Date(summary.claimed_at), { addSuffix: true })}
-                            </span>
-                          )}
-                        </TooltipContent>
-                      </Tooltip>
+                      <div className="space-y-0.5">
+                        <div className="flex items-center gap-1.5">
+                          <Avatar className="h-6 w-6">
+                            <AvatarFallback className="text-[10px] bg-emerald-100 text-emerald-700">
+                              {summary.claiming_agent.full_name?.charAt(0) || '?'}
+                            </AvatarFallback>
+                          </Avatar>
+                          <span className="text-sm font-medium truncate max-w-[100px]">
+                            {summary.claiming_agent.full_name?.split(' ')[0] || summary.claiming_agent.email}
+                          </span>
+                        </div>
+                        {summary.claimed_at && (
+                          <span className="text-[10px] text-muted-foreground pl-7">
+                            {formatDistanceToNow(new Date(summary.claimed_at), { addSuffix: true })}
+                          </span>
+                        )}
+                      </div>
                     ) : (
                       <span className="text-xs text-muted-foreground">—</span>
                     )}
@@ -541,28 +531,23 @@ export function ContactsTable({
                   {/* Replied By */}
                   <TableCell>
                     {summary?.replying_agent ? (
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <div className="flex items-center gap-1.5">
-                            <Avatar className="h-6 w-6">
-                              <AvatarFallback className="text-[10px] bg-blue-100 text-blue-700">
-                                {summary.replying_agent.full_name?.charAt(0) || '?'}
-                              </AvatarFallback>
-                            </Avatar>
-                            <span className="text-sm truncate max-w-[100px]">
-                              {summary.replying_agent.full_name?.split(' ')[0] || summary.replying_agent.email}
-                            </span>
-                          </div>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          Last replied by {summary.replying_agent.full_name || summary.replying_agent.email}
-                          {summary.last_replied_at && (
-                            <span className="block text-xs opacity-70">
-                              {formatDistanceToNow(new Date(summary.last_replied_at), { addSuffix: true })}
-                            </span>
-                          )}
-                        </TooltipContent>
-                      </Tooltip>
+                      <div className="space-y-0.5">
+                        <div className="flex items-center gap-1.5">
+                          <Avatar className="h-6 w-6">
+                            <AvatarFallback className="text-[10px] bg-blue-100 text-blue-700">
+                              {summary.replying_agent.full_name?.charAt(0) || '?'}
+                            </AvatarFallback>
+                          </Avatar>
+                          <span className="text-sm font-medium truncate max-w-[100px]">
+                            {summary.replying_agent.full_name?.split(' ')[0] || summary.replying_agent.email}
+                          </span>
+                        </div>
+                        {summary.last_replied_at && (
+                          <span className="text-[10px] text-muted-foreground pl-7">
+                            {formatDistanceToNow(new Date(summary.last_replied_at), { addSuffix: true })}
+                          </span>
+                        )}
+                      </div>
                     ) : (
                       <span className="text-xs text-muted-foreground">—</span>
                     )}
