@@ -41,16 +41,40 @@ export function useEntitlements() {
 
       if (error) throw error;
       if (!data) return null;
-      // Map DB columns to the interface
+
+      const planId = data.plan || 'free';
+
+      // Fetch platform plan limits to merge
+      const { data: planData } = await (supabase as any)
+        .from('platform_plans')
+        .select('limits')
+        .eq('id', planId)
+        .maybeSingle();
+
+      const planLimits = planData?.limits ?? {};
+
+      // Map DB columns to the interface, merging platform plan limits
       return {
         workspace_id: data.workspace_id,
-        plan_id: data.plan || 'free',
+        plan_id: planId,
         limits: {
           monthly_messages: data.monthly_conversation_limit,
           monthly_broadcasts: data.monthly_broadcast_limit,
           monthly_templates: data.monthly_template_limit,
           flows: data.monthly_flow_limit,
           ai_credits: data.enable_ai ? 'unlimited' : 0,
+          // Merge platform plan resource limits
+          team_members: planLimits.team_members,
+          max_team_members: planLimits.team_members,
+          contacts: planLimits.contacts,
+          max_contacts: planLimits.contacts,
+          automations: planLimits.automations,
+          max_automations: planLimits.automations,
+          phone_numbers: planLimits.phone_numbers,
+          max_phone_numbers: planLimits.phone_numbers,
+          tags: planLimits.tags,
+          autoforms: planLimits.autoforms,
+          custom_attributes: planLimits.custom_attributes,
         },
         features: [
           ...(data.enable_ai ? ['ai'] : []),
