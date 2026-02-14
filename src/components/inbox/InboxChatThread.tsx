@@ -233,7 +233,7 @@ export function InboxChatThread({
   if (!conversation) {
     return (
       <div className={cn(
-        "flex-1 flex items-center justify-center",
+        "flex-1 min-w-0 flex items-center justify-center",
         isMobile ? "bg-background" : "bg-muted/10"
       )}>
         <div className="text-center max-w-xs">
