@@ -37,11 +37,21 @@ export default function InboxPage() {
   const { messages, loading: loadingMessages, addMessage } = useInboxMessages(selectedId);
   const { events, addEvent } = useConversationEvents(selectedId);
   const { notes, addNote } = useInternalNotes(selectedId);
-  const { typingUsers } = useTypingState(selectedId);
+  const { typingUsers, setTyping } = useTypingState(selectedId);
   const actions = useInboxActions();
 
   // Get selected conversation - refresh when conversations update
   const selectedConversation = conversations.find(c => c.id === selectedId) || null;
+
+  // Compute viewer name from locked_by (soft lock)
+  const viewerName = (() => {
+    if (!selectedConversation) return null;
+    const conv = selectedConversation as any;
+    if (!conv.locked_by || conv.locked_by === user?.id) return null;
+    if (conv.locked_at && (Date.now() - new Date(conv.locked_at).getTime()) > 60000) return null;
+    const agent = actions.teamMembers?.find(m => m.id === conv.locked_by);
+    return agent?.full_name || 'Another agent';
+  })();
 
   // Listen for inbox updates
   useEffect(() => {
@@ -243,12 +253,14 @@ export default function InboxPage() {
                 onAddTag={handleAddTag}
                 onClaim={handleClaim}
                 onIntervene={handleIntervene}
+                onTyping={setTyping}
                 loading={loadingMessages}
                 availableTags={actions.availableTags}
                 teamMembers={actions.teamMembers}
                 isMobile={true}
                 onBack={handleBack}
                 onShowInfo={toggleContextPanel}
+                viewerName={viewerName}
               />
             )}
           </div>
@@ -290,9 +302,11 @@ export default function InboxPage() {
             onAddTag={handleAddTag}
             onClaim={handleClaim}
             onIntervene={handleIntervene}
+            onTyping={setTyping}
             loading={loadingMessages}
             availableTags={actions.availableTags}
             teamMembers={actions.teamMembers}
+            viewerName={viewerName}
           />
 
           {/* Right: Context Panel */}

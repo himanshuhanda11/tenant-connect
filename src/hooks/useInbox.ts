@@ -463,10 +463,38 @@ export function useInternalNotes(conversationId: string | null) {
 
 export function useTypingState(conversationId: string | null) {
   const { currentTenant } = useTenant();
+  const { user } = useAuth();
   const [typingUsers, setTypingUsers] = useState<Array<{ profile_id: string; full_name?: string }>>([]);
+  const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  // Fetch current typing users & subscribe to changes
   useEffect(() => {
-    if (!currentTenant?.id || !conversationId) return;
+    if (!currentTenant?.id || !conversationId) {
+      setTypingUsers([]);
+      return;
+    }
+
+    const fetchTyping = async () => {
+      const { data } = await supabase
+        .from('smeksh_typing_state')
+        .select('profile_id, status, expires_at, profiles:profiles!smeksh_typing_state_profile_id_fkey(full_name)')
+        .eq('conversation_id', conversationId)
+        .eq('status', 'typing')
+        .gt('expires_at', new Date().toISOString());
+
+      if (data) {
+        setTypingUsers(
+          data
+            .filter(d => d.profile_id !== user?.id)
+            .map(d => ({
+              profile_id: d.profile_id,
+              full_name: (d.profiles as any)?.full_name || undefined,
+            }))
+        );
+      }
+    };
+
+    fetchTyping();
 
     const channel = supabase
       .channel(`typing-${conversationId}`)
@@ -478,18 +506,50 @@ export function useTypingState(conversationId: string | null) {
           table: 'smeksh_typing_state',
           filter: `conversation_id=eq.${conversationId}`,
         },
-        () => {}
+        () => fetchTyping()
       )
       .subscribe();
 
+    // Clean up expired typing indicators every 5s
+    const cleanupInterval = setInterval(fetchTyping, 5000);
+
     return () => {
       supabase.removeChannel(channel);
+      clearInterval(cleanupInterval);
     };
-  }, [currentTenant?.id, conversationId]);
+  }, [currentTenant?.id, conversationId, user?.id]);
 
+  // Upsert typing state with auto-expire
   const setTyping = useCallback(async (isTyping: boolean) => {
-    console.log('Setting typing state:', isTyping);
-  }, []);
+    if (!currentTenant?.id || !conversationId || !user?.id) return;
+
+    // Clear previous stop-typing timeout
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+      typingTimeoutRef.current = null;
+    }
+
+    const expiresAt = new Date(Date.now() + (isTyping ? 10000 : 0)).toISOString();
+
+    await supabase
+      .from('smeksh_typing_state')
+      .upsert({
+        tenant_id: currentTenant.id,
+        conversation_id: conversationId,
+        profile_id: user.id,
+        status: isTyping ? 'typing' : 'stopped',
+        expires_at: expiresAt,
+        updated_at: new Date().toISOString(),
+      }, { onConflict: 'tenant_id,conversation_id,profile_id' })
+      .then(() => {});
+
+    // Auto-stop after 8 seconds if no new keystroke
+    if (isTyping) {
+      typingTimeoutRef.current = setTimeout(() => {
+        setTyping(false);
+      }, 8000);
+    }
+  }, [currentTenant?.id, conversationId, user?.id]);
 
   return { typingUsers, setTyping };
 }
