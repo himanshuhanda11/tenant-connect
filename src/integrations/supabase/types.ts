@@ -2348,6 +2348,57 @@ export type Database = {
           },
         ]
       }
+      credit_transactions: {
+        Row: {
+          amount: number
+          balance_after: number
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          reference_id: string | null
+          tenant_id: string
+          type: string
+        }
+        Insert: {
+          amount: number
+          balance_after: number
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          reference_id?: string | null
+          tenant_id: string
+          type: string
+        }
+        Update: {
+          amount?: number
+          balance_after?: number
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          reference_id?: string | null
+          tenant_id?: string
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "credit_transactions_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "platform_workspace_directory"
+            referencedColumns: ["workspace_id"]
+          },
+          {
+            foreignKeyName: "credit_transactions_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       event_action_mappings: {
         Row: {
           action_config: Json
@@ -3678,6 +3729,51 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      message_credits: {
+        Row: {
+          balance: number
+          created_at: string
+          id: string
+          tenant_id: string
+          total_purchased: number
+          total_used: number
+          updated_at: string
+        }
+        Insert: {
+          balance?: number
+          created_at?: string
+          id?: string
+          tenant_id: string
+          total_purchased?: number
+          total_used?: number
+          updated_at?: string
+        }
+        Update: {
+          balance?: number
+          created_at?: string
+          id?: string
+          tenant_id?: string
+          total_purchased?: number
+          total_used?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "message_credits_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: true
+            referencedRelation: "platform_workspace_directory"
+            referencedColumns: ["workspace_id"]
+          },
+          {
+            foreignKeyName: "message_credits_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: true
+            referencedRelation: "tenants"
             referencedColumns: ["id"]
           },
         ]
@@ -10449,6 +10545,17 @@ export type Database = {
       }
     }
     Functions: {
+      add_message_credits: {
+        Args: {
+          p_amount: number
+          p_created_by?: string
+          p_description?: string
+          p_reference_id?: string
+          p_tenant_id: string
+          p_type?: string
+        }
+        Returns: number
+      }
       assign_conversation: {
         Args: {
           p_assigned_to: string
@@ -10635,6 +10742,14 @@ export type Database = {
           isOneToOne: true
           isSetofReturn: false
         }
+      }
+      deduct_message_credit: {
+        Args: {
+          p_description?: string
+          p_reference_id?: string
+          p_tenant_id: string
+        }
+        Returns: boolean
       }
       get_platform_role: { Args: { _user_id: string }; Returns: string }
       get_team_workload: {

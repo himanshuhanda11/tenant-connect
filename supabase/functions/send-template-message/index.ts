@@ -175,7 +175,25 @@ Deno.serve(async (req) => {
       });
     }
 
-    // 2. Check plan limits
+    // 2. Deduct message credit
+    const { data: creditDeducted, error: creditError } = await supabase
+      .rpc('deduct_message_credit', {
+        p_tenant_id: tenant_id,
+        p_reference_id: null,
+        p_description: `Template: ${template_name} to ${to_wa_id}`,
+      });
+
+    if (creditError || creditDeducted === false) {
+      return new Response(JSON.stringify({ 
+        error: 'Insufficient message credits. Please purchase more credits to send template messages.',
+        code: 'NO_CREDITS' 
+      }), {
+        status: 402,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    // 3. Check plan limits
     const planCheck = await checkPlanLimits(supabase, tenant_id);
     if (!planCheck.allowed) {
       return new Response(JSON.stringify({ error: planCheck.error, code: planCheck.code }), {
