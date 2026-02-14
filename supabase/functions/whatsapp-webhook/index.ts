@@ -31,6 +31,14 @@ type NormalizedEvent =
       error_code?: string;
       error_title?: string;
       raw: any;
+    }
+  | {
+      kind: 'template_status_update';
+      waba_id?: string;
+      template_name: string;
+      meta_status: string;
+      reason?: string;
+      raw: any;
     };
 
 // Verify webhook signature using META_APP_SECRET
@@ -90,6 +98,37 @@ function extractNormalizedEvents(payload: any): NormalizedEvent[] {
     for (const change of changes) {
       const value = change?.value;
       if (!value) continue;
+
+      // Handle template status updates (field = 'message_template_status_update')
+      if (change?.field === 'message_template_status_update') {
+        const templateName = value?.message_template_name;
+        const event = value?.event;
+        const reason = value?.reason || value?.other_info?.description;
+        if (templateName && event) {
+          // Map Meta event names to our status values
+          const statusMap: Record<string, string> = {
+            APPROVED: 'APPROVED',
+            REJECTED: 'REJECTED',
+            PENDING_DELETION: 'DISABLED',
+            DISABLED: 'DISABLED',
+            PAUSED: 'PAUSED',
+            IN_APPEAL: 'PENDING',
+            PENDING: 'PENDING',
+            FLAGGED: 'PAUSED',
+            REINSTATED: 'APPROVED',
+          };
+          const metaStatus = statusMap[event] || event;
+          out.push({
+            kind: 'template_status_update',
+            waba_id: entry?.id,
+            template_name: templateName,
+            meta_status: metaStatus,
+            reason,
+            raw: { entry, change, value },
+          });
+        }
+        continue;
+      }
 
       const metadata = value?.metadata;
       const phone_number_id = metadata?.phone_number_id;
@@ -174,6 +213,8 @@ function extractNormalizedEvents(payload: any): NormalizedEvent[] {
 function generateIdKey(ev: NormalizedEvent): string {
   if (ev.kind === 'inbound_message') {
     return `msg:${ev.phone_number_id}:${ev.wamid || 'noid'}:${ev.timestamp || ''}`;
+  } else if (ev.kind === 'template_status_update') {
+    return `tpl:${ev.waba_id || 'noid'}:${ev.template_name}:${ev.meta_status}`;
   } else {
     return `st:${ev.phone_number_id}:${ev.wamid}:${ev.status}:${ev.timestamp || ''}`;
   }
@@ -348,6 +389,13 @@ Deno.serve(async (req) => {
 // Process a normalized event
 async function processEvent(supabase: any, ev: NormalizedEvent, webhookEventId?: string) {
   try {
+    // Handle template status updates separately (no phone_number_id needed)
+    if (ev.kind === 'template_status_update') {
+      await processTemplateStatusUpdate(supabase, ev);
+      await markEventProcessed(supabase, webhookEventId);
+      return;
+    }
+
     // Find phone number and tenant
     // Use limit(1) instead of single() to avoid PGRST116 when the same Meta phone ID
     // exists across multiple tenants (e.g. after workspace reconnects).
@@ -639,6 +687,74 @@ async function processStatusUpdate(
     console.error('Error updating message status:', error);
   } else {
     console.log(`Updated message ${ev.wamid} status to ${ev.status}`);
+  }
+}
+
+// Process template status updates from Meta webhook
+async function processTemplateStatusUpdate(
+  supabase: any,
+  ev: NormalizedEvent & { kind: 'template_status_update' }
+) {
+  const { template_name, meta_status, waba_id, reason } = ev;
+  console.log(`Template status update: ${template_name} → ${meta_status} (WABA: ${waba_id})`);
+
+  // Find matching templates by name (may span multiple tenants via WABA)
+  let query = supabase
+    .from('templates')
+    .select('id, name, status, tenant_id, waba_account_id')
+    .eq('name', template_name);
+
+  // If we have a WABA ID, narrow down via waba_accounts
+  if (waba_id) {
+    const { data: wabaAccounts } = await supabase
+      .from('waba_accounts')
+      .select('id')
+      .eq('waba_id', waba_id);
+
+    if (wabaAccounts?.length) {
+      const wabaAccountIds = wabaAccounts.map((w: any) => w.id);
+      query = query.in('waba_account_id', wabaAccountIds);
+    }
+  }
+
+  const { data: templates, error: fetchError } = await query;
+
+  if (fetchError) {
+    console.error('Error fetching templates for status update:', fetchError);
+    return;
+  }
+
+  if (!templates?.length) {
+    console.log(`No templates found with name "${template_name}", ignoring status update`);
+    return;
+  }
+
+  // Update all matching templates
+  for (const tpl of templates) {
+    if (tpl.status === meta_status) {
+      console.log(`Template ${tpl.id} already has status ${meta_status}, skipping`);
+      continue;
+    }
+
+    const updateData: Record<string, any> = {
+      status: meta_status,
+      last_synced_at: new Date().toISOString(),
+    };
+
+    if (meta_status === 'REJECTED' && reason) {
+      updateData.rejection_reason = reason;
+    }
+
+    const { error: updateError } = await supabase
+      .from('templates')
+      .update(updateData)
+      .eq('id', tpl.id);
+
+    if (updateError) {
+      console.error(`Error updating template ${tpl.id} status:`, updateError);
+    } else {
+      console.log(`Template ${tpl.id} (${tpl.name}) status updated: ${tpl.status} → ${meta_status}`);
+    }
   }
 }
 
