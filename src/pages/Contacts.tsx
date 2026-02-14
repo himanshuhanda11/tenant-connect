@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
+import { useContactsCrmSearch, CrmSearchFilters, DEFAULT_CRM_FILTERS } from '@/hooks/useContactsCrmSearch';
 import { useContacts } from '@/hooks/useContacts';
-import { useContactInboxSummary } from '@/hooks/useContactInboxSummary';
 import { useAttributeKeys } from '@/hooks/useContactAttributes';
 import { useTenant } from '@/contexts/TenantContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -17,68 +17,38 @@ import { ContactDetailDrawer } from '@/components/contacts/ContactDetailDrawer';
 import { ContactsBulkActionsBar } from '@/components/contacts/ContactsBulkActionsBar';
 import { CreateSegmentModal } from '@/components/contacts/CreateSegmentModal';
 import { AddContactModal } from '@/components/contacts/AddContactModal';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { Sheet, SheetContent } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
-import { Filter, Menu } from 'lucide-react';
+import { Menu } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 
 export default function Contacts() {
   const { currentTenant } = useTenant();
   const isMobile = useIsMobile();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  // CRM search (primary data source)
   const {
-    contacts,
-    loading,
-    filters,
-    setFilters,
-    totalCount,
-    page,
-    setPage,
-    pageSize,
-    fetchContacts,
+    contacts: crmContacts,
+    loading: crmLoading,
+    filters: crmFilters,
+    setFilters: setCrmFilters,
+    page: crmPage,
+    setPage: setCrmPage,
+    pageSize: crmPageSize,
+    fetchContacts: fetchCrmContacts,
+    resetFilters: resetCrmFilters,
+  } = useContactsCrmSearch();
+
+  // Legacy hook for mutations (updateContact, assignAgent, addTag, removeTag)
+  const {
     updateContact,
     assignAgent,
     addTag,
     removeTag,
-    resetFilters,
   } = useContacts();
 
-  const contactIds = useMemo(() => contacts.map(c => c.id), [contacts]);
-  const { summaries: inboxSummaries } = useContactInboxSummary(contactIds);
   const attributeKeys = useAttributeKeys();
-
-  // Client-side CRM filters (leadState, assignedTo, isUnreplied) applied on inbox summaries
-  const filteredContacts = useMemo(() => {
-    let result = contacts;
-    
-    if (filters.leadState?.length && Object.keys(inboxSummaries).length > 0) {
-      result = result.filter(c => {
-        const summary = inboxSummaries[c.id];
-        return summary && filters.leadState!.includes(summary.lead_state);
-      });
-    }
-    
-    if (filters.assignedTo && Object.keys(inboxSummaries).length > 0) {
-      result = result.filter(c => {
-        const summary = inboxSummaries[c.id];
-        return summary?.assigned_to === filters.assignedTo;
-      });
-    }
-    
-    if (filters.isUnreplied === 'yes' && Object.keys(inboxSummaries).length > 0) {
-      result = result.filter(c => {
-        const summary = inboxSummaries[c.id];
-        return summary?.is_unreplied === true;
-      });
-    } else if (filters.isUnreplied === 'no' && Object.keys(inboxSummaries).length > 0) {
-      result = result.filter(c => {
-        const summary = inboxSummaries[c.id];
-        return !summary?.is_unreplied;
-      });
-    }
-    
-    return result;
-  }, [contacts, filters.leadState, filters.assignedTo, filters.isUnreplied, inboxSummaries]);
 
   const [activeView, setActiveView] = useState<SmartView>(DEFAULT_SMART_VIEWS[0]);
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
@@ -117,45 +87,119 @@ export default function Contacts() {
   }, [currentTenant?.id]);
 
   useEffect(() => {
-    setViewCounts({ all: totalCount });
-  }, [totalCount]);
+    setViewCounts({ all: crmContacts.length });
+  }, [crmContacts.length]);
+
+  // Convert CRM contacts to Contact shape for table/drawer compatibility
+  const contactsForTable = useMemo((): Contact[] => {
+    return crmContacts.map(crm => ({
+      id: crm.contact_id,
+      tenant_id: crm.tenant_id,
+      wa_id: crm.wa_id,
+      name: crm.contact_name,
+      first_name: crm.first_name,
+      profile_picture_url: crm.profile_picture_url,
+      // CRM-derived fields
+      lead_status: 'new' as const,
+      priority_level: 'normal' as const,
+      mau_status: 'active' as const,
+      opt_in_status: false,
+      opt_out: false,
+      blocked_by_user: false,
+      bot_handled: false,
+      intervened: false,
+      data_deletion_requested: false,
+      closed: crm.lead_state === 'closed',
+      created_at: crm.last_message_at || new Date().toISOString(),
+      updated_at: crm.last_message_at || new Date().toISOString(),
+      // Nullable fields
+      country: null, language: null, timezone: null,
+      source: null, campaign_source: null, first_message: null,
+      first_message_time: null, entry_point: null, referrer_url: null,
+      segment: null, deal_stage: null, closed_reason: null,
+      closure_time: null, request_type: null, request_time: null,
+      last_active_date: null, whatsapp_quality_rating: null,
+      pricing_category: null, automation_flow: null,
+      ai_intent_detected: null, sentiment_score: null,
+      followup_due: null, sla_timer: null, next_best_action: null,
+      opt_in_source: null, opt_in_timestamp: null, opt_out_timestamp: null,
+      notes: null, assigned_agent_id: crm.assigned_to,
+      intervened_at: null, intervened_by: null,
+      last_seen: crm.last_message_at,
+      // Tags from RPC
+      tags: crm.tags?.map(t => ({
+        id: t.id,
+        tag_id: t.id,
+        tag: { id: t.id, name: t.name, color: t.color },
+      })) || [],
+    }));
+  }, [crmContacts]);
+
+  // Build inbox summaries map from CRM data (for table columns)
+  const inboxSummaries = useMemo(() => {
+    const map: Record<string, any> = {};
+    crmContacts.forEach(crm => {
+      map[crm.contact_id] = {
+        tenant_id: crm.tenant_id,
+        contact_id: crm.contact_id,
+        phone_number_id: crm.phone_number_id,
+        assigned_to: crm.assigned_to,
+        assigned_at: crm.assigned_at,
+        claimed_by: crm.claimed_by,
+        claimed_at: crm.claimed_at,
+        last_inbound_at: crm.last_inbound_at,
+        last_outbound_at: crm.last_outbound_at,
+        last_replied_by: crm.last_replied_by,
+        last_replied_at: crm.last_replied_at,
+        last_message_at: crm.last_message_at,
+        open_conversation_id: crm.open_conversation_id,
+        is_unreplied: crm.is_unreplied,
+        lead_state: crm.lead_state,
+        updated_at: crm.last_message_at || '',
+      };
+    });
+    return map;
+  }, [crmContacts]);
+
+  // Convert SegmentFilters → CrmSearchFilters
+  const handleFiltersChange = (newFilters: SegmentFilters) => {
+    const crm: CrmSearchFilters = {
+      search: newFilters.search || '',
+      leadStates: newFilters.leadState || [],
+      isUnreplied: newFilters.isUnreplied === 'yes' ? true : newFilters.isUnreplied === 'no' ? false : undefined,
+      dateFrom: newFilters.createdDateFrom,
+      dateTo: newFilters.createdDateTo ? newFilters.createdDateTo + 'T23:59:59Z' : undefined,
+      assignedTo: newFilters.assignedTo,
+      tagIds: newFilters.tags || [],
+      tagMatchAll: false,
+      attributes: newFilters.attributes || [],
+    };
+    setCrmFilters(crm);
+    setCrmPage(0);
+  };
+
+  // Convert CrmSearchFilters back to SegmentFilters for the filter UI
+  const currentFilters: SegmentFilters = {
+    search: crmFilters.search,
+    leadStatus: [],
+    priority: [],
+    mauStatus: [],
+    tags: crmFilters.tagIds,
+    optInStatus: 'all',
+    hasAgent: 'all',
+    intervened: 'all',
+    leadState: crmFilters.leadStates,
+    assignedTo: crmFilters.assignedTo,
+    isUnreplied: crmFilters.isUnreplied === true ? 'yes' : crmFilters.isUnreplied === false ? 'no' : 'all',
+    createdDateFrom: crmFilters.dateFrom,
+    createdDateTo: crmFilters.dateTo?.replace('T23:59:59Z', ''),
+    attributes: crmFilters.attributes,
+  };
 
   const handleViewChange = (view: SmartView) => {
     setActiveView(view);
-    setFilters({
-      search: filters.search,
-      leadStatus: view.filters.leadStatus || [],
-      priority: view.filters.priority || [],
-      mauStatus: view.filters.mauStatus || [],
-      tags: view.filters.tags || [],
-      segment: '',
-      optInStatus: view.filters.optInStatus || 'all',
-      hasAgent: view.filters.hasAgent || 'all',
-      intervened: view.filters.intervened || 'all',
-    });
-    setPage(1);
+    resetCrmFilters();
     setSidebarOpen(false);
-  };
-
-  const handleFiltersChange = (newFilters: SegmentFilters) => {
-    setFilters({
-      search: newFilters.search || '',
-      leadStatus: newFilters.leadStatus || [],
-      priority: newFilters.priority || [],
-      mauStatus: newFilters.mauStatus || [],
-      tags: newFilters.tags || [],
-      segment: '',
-      optInStatus: newFilters.optInStatus || 'all',
-      hasAgent: newFilters.hasAgent || 'all',
-      intervened: newFilters.intervened || 'all',
-      leadState: newFilters.leadState,
-      assignedTo: newFilters.assignedTo,
-      isUnreplied: newFilters.isUnreplied,
-      createdDateFrom: newFilters.createdDateFrom,
-      createdDateTo: newFilters.createdDateTo,
-      attributes: newFilters.attributes,
-    });
-    setPage(1);
   };
 
   const handleContactSelect = (contact: Contact) => {
@@ -170,46 +214,42 @@ export default function Contacts() {
   };
 
   const handleSelectAll = () => {
-    if (contacts.every(c => selectedContactIds.includes(c.id))) {
+    if (contactsForTable.every(c => selectedContactIds.includes(c.id))) {
       setSelectedContactIds([]);
     } else {
-      setSelectedContactIds(contacts.map(c => c.id));
+      setSelectedContactIds(contactsForTable.map(c => c.id));
     }
   };
 
   const handleBulkAddTag = async (tagId: string) => {
-    for (const id of selectedContactIds) {
-      await addTag(id, tagId);
-    }
+    for (const id of selectedContactIds) await addTag(id, tagId);
     setSelectedContactIds([]);
+    fetchCrmContacts();
     toast.success(`Tag added to ${selectedContactIds.length} contacts`);
   };
 
   const handleBulkRemoveTag = async (tagId: string) => {
-    for (const id of selectedContactIds) {
-      await removeTag(id, tagId);
-    }
+    for (const id of selectedContactIds) await removeTag(id, tagId);
     setSelectedContactIds([]);
+    fetchCrmContacts();
     toast.success(`Tag removed from ${selectedContactIds.length} contacts`);
   };
 
   const handleBulkAssign = async (agentId: string | null) => {
-    for (const id of selectedContactIds) {
-      await assignAgent(id, agentId);
-    }
+    for (const id of selectedContactIds) await assignAgent(id, agentId);
     setSelectedContactIds([]);
+    fetchCrmContacts();
     toast.success(agentId ? `Assigned ${selectedContactIds.length} contacts` : `Unassigned ${selectedContactIds.length} contacts`);
   };
 
-  const handleExport = () => {
-    toast.info('Export functionality coming soon');
-  };
+  const handleExport = () => toast.info('Export functionality coming soon');
 
   const handleMarkOptOut = async () => {
     for (const id of selectedContactIds) {
       await updateContact(id, { opt_out: true, opt_out_timestamp: new Date().toISOString() });
     }
     setSelectedContactIds([]);
+    fetchCrmContacts();
     toast.success(`${selectedContactIds.length} contacts marked as opted out`);
   };
 
@@ -218,6 +258,7 @@ export default function Contacts() {
       await updateContact(id, { data_deletion_requested: true });
     }
     setSelectedContactIds([]);
+    fetchCrmContacts();
     toast.success(`Deletion requested for ${selectedContactIds.length} contacts`);
   };
 
@@ -225,22 +266,7 @@ export default function Contacts() {
     toast.success(`Segment "${name}" saved`);
   };
 
-  const currentFilters: SegmentFilters = {
-    search: filters.search,
-    leadStatus: filters.leadStatus,
-    priority: filters.priority,
-    mauStatus: filters.mauStatus,
-    tags: filters.tags,
-    optInStatus: filters.optInStatus,
-    hasAgent: filters.hasAgent,
-    intervened: filters.intervened,
-    leadState: filters.leadState,
-    assignedTo: filters.assignedTo,
-    isUnreplied: filters.isUnreplied,
-    createdDateFrom: filters.createdDateFrom,
-    createdDateTo: filters.createdDateTo,
-    attributes: filters.attributes,
-  };
+  const totalCount = crmContacts.length;
 
   const SidebarContent = (
     <ContactsSmartViewsSidebar
@@ -271,33 +297,24 @@ export default function Contacts() {
 
         {/* Main Content */}
         <div className="flex-1 flex flex-col min-w-0 overflow-hidden bg-muted/10">
-          {/* Mobile Filter Toggle */}
           {isMobile && (
             <div className="flex items-center gap-2 p-3 border-b lg:hidden">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setSidebarOpen(true)}
-                className="gap-2"
-              >
+              <Button variant="outline" size="sm" onClick={() => setSidebarOpen(true)} className="gap-2">
                 <Menu className="h-4 w-4" />
                 Views
               </Button>
-              <span className="text-sm text-muted-foreground">
-                {activeView.name}
-              </span>
+              <span className="text-sm text-muted-foreground">{activeView.name}</span>
             </div>
           )}
 
-          {/* Quick Guide - Hidden on mobile */}
           <div className="hidden md:block px-4 pt-4">
             <QuickGuide {...quickGuides.contacts} />
           </div>
 
           <ContactsHeader
             totalCount={totalCount}
-            loading={loading}
-            onRefresh={fetchContacts}
+            loading={crmLoading}
+            onRefresh={fetchCrmContacts}
             onExport={handleExport}
             onCreateSegment={() => setShowCreateSegment(true)}
             onAddContact={() => setShowAddContact(true)}
@@ -307,7 +324,7 @@ export default function Contacts() {
             filters={currentFilters}
             onFiltersChange={handleFiltersChange}
             onSaveAsSegment={() => setShowCreateSegment(true)}
-            onReset={resetFilters}
+            onReset={resetCrmFilters}
             availableTags={availableTags}
             availableAgents={availableAgents}
             attributeKeys={attributeKeys}
@@ -317,12 +334,12 @@ export default function Contacts() {
 
           <div className="flex-1 overflow-auto">
             <ContactsTable
-              contacts={filteredContacts}
-              loading={loading}
-              totalCount={filteredContacts.length < contacts.length ? filteredContacts.length : totalCount}
-              page={page}
-              pageSize={pageSize}
-              onPageChange={setPage}
+              contacts={contactsForTable}
+              loading={crmLoading}
+              totalCount={totalCount}
+              page={crmPage + 1}
+              pageSize={crmPageSize}
+              onPageChange={(p) => setCrmPage(p - 1)}
               onSelectContact={handleContactSelect}
               selectedContactId={selectedContact?.id}
               selectedContactIds={selectedContactIds}
@@ -333,14 +350,10 @@ export default function Contacts() {
           </div>
         </div>
 
-        {/* Contact Detail Drawer */}
         <ContactDetailDrawer
           contact={selectedContact}
           open={drawerOpen}
-          onClose={() => {
-            setDrawerOpen(false);
-            setSelectedContact(null);
-          }}
+          onClose={() => { setDrawerOpen(false); setSelectedContact(null); }}
           onUpdate={updateContact}
           onAddTag={addTag}
           onRemoveTag={removeTag}
@@ -348,7 +361,6 @@ export default function Contacts() {
         />
       </div>
 
-      {/* Bulk Actions Bar */}
       <ContactsBulkActionsBar
         selectedCount={selectedContactIds.length}
         onClearSelection={() => setSelectedContactIds([])}
@@ -364,7 +376,6 @@ export default function Contacts() {
         availableSegments={segments}
       />
 
-      {/* Modals */}
       <CreateSegmentModal
         open={showCreateSegment}
         onClose={() => setShowCreateSegment(false)}
@@ -376,7 +387,7 @@ export default function Contacts() {
       <AddContactModal
         open={showAddContact}
         onClose={() => setShowAddContact(false)}
-        onSuccess={fetchContacts}
+        onSuccess={fetchCrmContacts}
       />
     </DashboardLayout>
   );
