@@ -88,7 +88,10 @@ export default function InboxPage() {
     setSelectedId(id);
     navigate(`/inbox/${id}`, { replace: true });
     actions.markAsRead(id);
-    actions.openConversation(id, true); // auto-claim on open
+    // Only auto-claim if conversation is unassigned
+    const conv = conversations.find(c => c.id === id);
+    const shouldAutoClaim = !conv?.assigned_to;
+    actions.openConversation(id, shouldAutoClaim);
   };
 
   // Handle back navigation on mobile

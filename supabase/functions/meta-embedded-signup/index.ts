@@ -54,14 +54,14 @@ Deno.serve(async (req) => {
       const supabaseAuth = createClient(supabaseUrl, Deno.env.get('SUPABASE_ANON_KEY')!, {
         global: { headers: { Authorization: authHeader } },
       });
-      const { data: claimsData, error: claimsError } = await supabaseAuth.auth.getClaims(token);
-      if (claimsError || !claimsData?.claims) {
-        console.error('Auth failed:', claimsError?.message);
+      const { data: userData, error: authError } = await supabaseAuth.auth.getUser(token);
+      if (authError || !userData?.user) {
+        console.error('Auth failed:', authError?.message);
         return new Response(JSON.stringify({ error: 'Invalid token' }), {
           status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       }
-      const user = { id: claimsData.claims.sub as string };
+      const user = { id: userData.user.id };
 
       // Tenant membership
       const { data: membership } = await supabase

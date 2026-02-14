@@ -24,13 +24,13 @@ async function requirePlatformRole(req: Request, allowed: string[]) {
     Deno.env.get("SUPABASE_ANON_KEY")!,
     { global: { headers: { Authorization: authHeader } } }
   );
-  const { data: claimsData, error } = await userClient.auth.getClaims(jwt);
-  if (error || !claimsData?.claims) {
+  const { data: userData, error } = await userClient.auth.getUser(jwt);
+  if (error || !userData?.user) {
     console.error("Auth verification failed:", error?.message);
     throw new Error("Invalid auth");
   }
-  const userId = claimsData.claims.sub as string;
-  const userEmail = claimsData.claims.email as string;
+  const userId = userData.user.id;
+  const userEmail = userData.user.email as string;
 
   const { data: pu } = await sb
     .from("platform_admins")
