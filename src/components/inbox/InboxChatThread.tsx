@@ -60,6 +60,7 @@ import { InboxConversation, InboxMessage, WAStatus, ConversationEvent, STATUS_CO
 import { cn } from '@/lib/utils';
 import EmojiPicker, { EmojiClickData } from 'emoji-picker-react';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 
 // Assets
 import inboxEmptyChat from '@/assets/inbox-empty-chat.png';
@@ -1040,8 +1041,30 @@ export function InboxChatThread({
         open={showTemplates}
         onClose={() => setShowTemplates(false)}
         onSend={async (templateName, language, components) => {
-          onSendMessage({ template: templateName });
-          toast.success(`Sending template: ${templateName}`);
+          try {
+            const { data, error } = await supabase.functions.invoke('send-template-message', {
+              body: {
+                tenant_id: conversation.tenant_id,
+                phone_number_id: conversation.phone_number_id,
+                to_wa_id: conversation.contact?.wa_id,
+                template_name: templateName,
+                template_language: language,
+                components: components || [],
+                contact_name: conversation.contact?.name,
+                conversation_id: conversation.id,
+              }
+            });
+            if (error) throw error;
+            if (data?.error) {
+              toast.error(data.error);
+              return;
+            }
+            toast.success('Template sent');
+            window.dispatchEvent(new CustomEvent('inbox-update', { detail: { conversationId: conversation.id } }));
+          } catch (err: any) {
+            console.error('Template send error:', err);
+            toast.error(err.message || 'Failed to send template');
+          }
         }}
         contactName={conversation.contact?.name}
         contactWaId={conversation.contact?.wa_id}
