@@ -319,10 +319,17 @@ export function InboxConversationList({
                       )}
 
                       {/* Assignment */}
-                      {conversation.assigned_agent && !isMobile && (
-                        <span className="text-[10px] text-muted-foreground ml-auto flex items-center gap-1">
+                      {conversation.assigned_to && (
+                        <span className={cn(
+                          "text-[10px] ml-auto flex items-center gap-1",
+                          conversation.assigned_to === currentUserId 
+                            ? "text-primary font-semibold" 
+                            : "text-muted-foreground"
+                        )}>
                           <User className="h-3 w-3" />
-                          {conversation.assigned_agent.full_name?.split(' ')[0]}
+                          {conversation.assigned_to === currentUserId 
+                            ? 'You' 
+                            : conversation.assigned_agent?.full_name?.split(' ')[0] || 'Agent'}
                         </span>
                       )}
                     </div>
