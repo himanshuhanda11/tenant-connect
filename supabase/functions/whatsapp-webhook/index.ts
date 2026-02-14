@@ -600,6 +600,16 @@ async function processInboundMessage(
       p_tenant_id: tenantId,
       p_counter: 'messages_received',
     });
+
+    // Update contact inbox summary (fire-and-forget)
+    supabase.rpc('upsert_contact_inbox_summary', {
+      p_tenant_id: tenantId,
+      p_contact_id: contactId,
+      p_phone_number_id: phoneNumberId,
+      p_conversation_id: conversationId,
+    }).then(({ error: sumErr }: any) => {
+      if (sumErr) console.error('inbox summary upsert error:', sumErr);
+    });
   }
 }
 

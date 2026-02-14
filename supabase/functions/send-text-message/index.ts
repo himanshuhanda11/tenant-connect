@@ -282,6 +282,12 @@ Deno.serve(async (req) => {
       supabase.from('conversations').update({ last_message_at: now, last_message_preview: preview, last_message_id: messageId, status: 'open' }).eq('id', conversationIdFinal),
       supabase.rpc('increment_usage', { p_tenant_id: tenant_id, p_counter: 'messages_sent', p_amount: 1 }).then(() => {}),
       supabase.from('rate_limit_logs').insert({ tenant_id, action: 'send_message' }).then(() => {}),
+      supabase.rpc('upsert_contact_inbox_summary', {
+        p_tenant_id: tenant_id,
+        p_contact_id: contactId,
+        p_phone_number_id: phone_number_id,
+        p_conversation_id: conversationIdFinal,
+      }).then(() => {}),
     ]).catch(e => console.error('Post-send update error:', e));
 
     return new Response(JSON.stringify({
