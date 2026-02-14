@@ -54,7 +54,7 @@ const VIEW_ICONS: Record<InboxView, React.ReactNode> = {
   sla_risk: <AlertTriangle className="h-4 w-4" />,
   vip: <Star className="h-4 w-4" />,
   closed: <CheckCircle className="h-4 w-4" />,
-  snoozed: <Clock className="h-4 w-4" />,
+  
 };
 
 const SOURCE_ICONS: Record<string, React.ReactNode> = {
@@ -255,11 +255,6 @@ export function InboxConversationList({
                         )}
                         {conversation.priority === 'urgent' && (
                           <AlertTriangle className="h-3 w-3 text-red-500 flex-shrink-0" />
-                        )}
-                        {conversation.is_intervened && (
-                          <Badge variant="outline" className="text-[10px] px-1 py-0 h-4 bg-amber-100 text-amber-700 border-0">
-                            Bot paused
-                          </Badge>
                         )}
                       </div>
                       <div className="flex items-center gap-1 flex-shrink-0">

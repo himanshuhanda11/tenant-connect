@@ -191,7 +191,7 @@ export interface InboxFilters {
   search?: string;
 }
 
-export type InboxView = 'all' | 'mine' | 'assigned_pending' | 'unassigned' | 'sla_risk' | 'vip' | 'closed' | 'snoozed';
+export type InboxView = 'all' | 'mine' | 'assigned_pending' | 'unassigned' | 'sla_risk' | 'vip' | 'closed';
 
 export const INBOX_VIEW_CONFIG: Record<InboxView, { label: string; icon: string; filter: Partial<InboxFilters> }> = {
   all: { label: 'All Open', icon: 'inbox', filter: { status: 'all' } },
@@ -201,7 +201,6 @@ export const INBOX_VIEW_CONFIG: Record<InboxView, { label: string; icon: string;
   sla_risk: { label: 'SLA Risk', icon: 'alert-triangle', filter: { slaRisk: true } },
   vip: { label: 'VIP', icon: 'star', filter: { priority: 'urgent' } },
   closed: { label: 'Closed', icon: 'check-circle', filter: { status: 'closed' } },
-  snoozed: { label: 'Snoozed', icon: 'clock', filter: {} },
 };
 
 export const PRIORITY_CONFIG: Record<Priority, { label: string; color: string; bgColor: string }> = {

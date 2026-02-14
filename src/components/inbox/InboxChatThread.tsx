@@ -397,14 +397,6 @@ export function InboxChatThread({
                     Close
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => onSetIntervene(!conversation.is_intervened)}>
-                    {conversation.is_intervened ? (
-                      <><Bot className="h-4 w-4 mr-2" /> Resume Bot</>
-                    ) : (
-                      <><Hand className="h-4 w-4 mr-2" /> Take Over</>
-                    )}
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={() => setShowTemplates(true)}>
                     <FileText className="h-4 w-4 mr-2" />
                     Send Template
@@ -439,9 +431,6 @@ export function InboxChatThread({
                   <DropdownMenuItem onClick={() => onAssign(null)}>
                     <X className="h-4 w-4 mr-2" /> Unassign
                   </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem><Clock className="h-4 w-4 mr-2" /> Snooze</DropdownMenuItem>
-                  <DropdownMenuItem><Zap className="h-4 w-4 mr-2" /> Run automation</DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             )}
@@ -547,13 +536,6 @@ export function InboxChatThread({
               <HealthDot health={aiHealth} />
             </div>
             
-            {/* Bot Paused Badge */}
-            {conversation.is_intervened && (
-              <Badge className="bg-amber-100 text-amber-700 border-amber-200 hover:bg-amber-100">
-                <Hand className="h-3 w-3 mr-1" />
-                Bot Paused
-              </Badge>
-            )}
             
             {/* SLA Timer */}
             <SLATimer

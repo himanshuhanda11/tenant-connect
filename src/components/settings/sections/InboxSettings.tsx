@@ -295,45 +295,6 @@ export function InboxSettings() {
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <BellOff className="w-5 h-5 text-primary" />
-                Snooze Automation
-              </CardTitle>
-              <CardDescription>Configure snooze behavior</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="space-y-2">
-                <Label>Default Snooze Duration</Label>
-                <Select defaultValue="4">
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="1">1 hour</SelectItem>
-                    <SelectItem value="4">4 hours</SelectItem>
-                    <SelectItem value="24">24 hours</SelectItem>
-                    <SelectItem value="custom">Custom</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label>Auto-unsnooze on Reply</Label>
-                  <p className="text-sm text-muted-foreground">Unsnooze when customer replies</p>
-                </div>
-                <Switch defaultChecked />
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label>Snooze Limit per Agent</Label>
-                  <p className="text-sm text-muted-foreground">Max snoozed conversations per agent</p>
-                </div>
-                <Input type="number" defaultValue="10" className="w-20" />
-              </div>
-            </CardContent>
-          </Card>
         </TabsContent>
       </Tabs>
     </div>
