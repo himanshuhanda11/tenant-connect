@@ -283,7 +283,7 @@ export default function InboxPage() {
   return (
     <DashboardLayout>
       <TooltipProvider>
-        <div className="h-[calc(100vh-4rem)] flex -m-6 overflow-hidden w-[calc(100%+3rem)]">
+        <div className="h-[calc(100vh-3rem)] sm:h-[calc(100vh-3.5rem)] flex -m-3 sm:-m-4 md:-m-6 lg:-m-8 overflow-hidden">
           {/* Left: Conversation List */}
           <div className="w-80 flex-shrink-0">
             <InboxConversationList
