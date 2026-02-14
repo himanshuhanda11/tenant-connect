@@ -118,20 +118,20 @@ export function useInboxConversations(view: InboxView, filters: InboxFilters) {
         .eq('tenant_id', currentTenant.id)
         .order('last_message_at', { ascending: false, nullsFirst: false });
 
-      // Apply filters based on new queue model
+      // Apply filters based on queue model (matches useInboxQueues spec)
       if (filters.status && filters.status !== 'all') {
         const dbStatus = filters.status === 'pending' ? 'open' : filters.status;
         query = query.eq('status', dbStatus);
       }
       if (filters.assignment === 'unassigned') {
-        // Unassigned: no one assigned, not claimed, not closed
+        // Unassigned: assigned_to null AND claimed_at null AND not closed
         query = query.is('assigned_to', null).is('claimed_at', null).neq('status', 'closed');
       } else if (filters.assignment === 'assigned_pending' && user?.id) {
         // Assigned to me but NOT yet claimed (pending handling)
         query = query.eq('assigned_to', user.id).is('claimed_at', null).neq('status', 'closed');
       } else if (filters.assignment === 'mine' && user?.id) {
-        // Mine = I claimed it (actively handling)
-        query = query.eq('claimed_by', user.id).not('claimed_at', 'is', null);
+        // Mine (Claimed): claimed_by = me AND not closed
+        query = query.eq('claimed_by', user.id).not('claimed_at', 'is', null).neq('status', 'closed');
       }
       if (filters.priority && filters.priority !== 'all') {
         query = query.eq('priority', filters.priority);
