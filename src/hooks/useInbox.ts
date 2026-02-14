@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useTenant } from '@/contexts/TenantContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { 
   InboxConversation, 
@@ -87,6 +88,7 @@ function mapMessage(row: any): InboxMessage {
 
 export function useInboxConversations(view: InboxView, filters: InboxFilters) {
   const { currentTenant } = useTenant();
+  const { user } = useAuth();
   const [conversations, setConversations] = useState<InboxConversation[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -120,8 +122,8 @@ export function useInboxConversations(view: InboxView, filters: InboxFilters) {
       }
       if (filters.assignment === 'unassigned') {
         query = query.is('assigned_to', null);
-      } else if (filters.assignment === 'mine') {
-        query = query.not('assigned_to', 'is', null);
+      } else if (filters.assignment === 'mine' && user?.id) {
+        query = query.eq('assigned_to', user.id);
       }
       if (filters.priority && filters.priority !== 'all') {
         query = query.eq('priority', filters.priority);
@@ -546,6 +548,67 @@ export function useInboxActions() {
     }
   }, []);
 
+  // Claim conversation (atomic, prevents two agents claiming)
+  const claimConversation = useCallback(async (conversationId: string) => {
+    if (!currentTenant?.id) return false;
+    try {
+      const { data, error } = await supabase.rpc('claim_conversation', {
+        p_tenant_id: currentTenant.id,
+        p_conversation_id: conversationId,
+      });
+      if (error) throw error;
+      const result = data as any;
+      if (result?.ok) {
+        toast.success('Conversation claimed');
+        window.dispatchEvent(new CustomEvent('inbox-update', { detail: { conversationId } }));
+        return true;
+      } else {
+        toast.error(result?.reason === 'already_claimed' ? 'Already claimed by another agent' : 'Cannot claim');
+        return false;
+      }
+    } catch (err) {
+      toast.error('Failed to claim conversation');
+      return false;
+    }
+  }, [currentTenant?.id]);
+
+  // Open conversation (logs open + optional auto-claim)
+  const openConversation = useCallback(async (conversationId: string, autoClaim = true) => {
+    if (!currentTenant?.id) return;
+    try {
+      await supabase.rpc('open_conversation', {
+        p_tenant_id: currentTenant.id,
+        p_conversation_id: conversationId,
+        p_auto_claim: autoClaim,
+      });
+      window.dispatchEvent(new CustomEvent('inbox-update', { detail: { conversationId } }));
+    } catch (err) {
+      console.error('Failed to open conversation:', err);
+    }
+  }, [currentTenant?.id]);
+
+  // Intervene on another agent's conversation
+  const interveneConversation = useCallback(async (conversationId: string) => {
+    if (!currentTenant?.id) return false;
+    try {
+      const { data, error } = await supabase.rpc('intervene_conversation', {
+        p_tenant_id: currentTenant.id,
+        p_conversation_id: conversationId,
+      });
+      if (error) throw error;
+      const result = data as any;
+      if (result?.ok) {
+        toast.success('You have taken over this conversation');
+        window.dispatchEvent(new CustomEvent('inbox-update', { detail: { conversationId } }));
+        return true;
+      }
+      return false;
+    } catch (err) {
+      toast.error('Failed to intervene');
+      return false;
+    }
+  }, [currentTenant?.id]);
+
   const setConversationStatus = useCallback(async (conversationId: string, status: ConversationStatus) => {
     try {
       // Map inbox status to DB-compatible status
@@ -741,6 +804,9 @@ export function useInboxActions() {
 
   return {
     assignConversation,
+    claimConversation,
+    openConversation,
+    interveneConversation,
     setConversationStatus,
     setInterveneMode,
     snoozeConversation,

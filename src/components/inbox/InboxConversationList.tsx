@@ -43,6 +43,7 @@ interface InboxConversationListProps {
   onFiltersChange: (filters: InboxFilters) => void;
   loading?: boolean;
   isMobile?: boolean;
+  currentUserId?: string;
 }
 
 const VIEW_ICONS: Record<InboxView, React.ReactNode> = {
@@ -72,6 +73,7 @@ export function InboxConversationList({
   onFiltersChange,
   loading,
   isMobile = false,
+  currentUserId,
 }: InboxConversationListProps) {
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -94,7 +96,7 @@ export function InboxConversationList({
     return {
       all: conversations.length,
       open: conversations.filter(c => c.status === 'open').length,
-      mine: conversations.filter(c => c.assigned_to === 'u1').length,
+      mine: conversations.filter(c => c.assigned_to === currentUserId).length,
       unassigned: conversations.filter(c => !c.assigned_to).length,
       closed: conversations.filter(c => c.status === 'closed').length,
     };
@@ -245,6 +247,11 @@ export function InboxConversationList({
                         )}>
                           {conversation.contact?.name || conversation.contact?.wa_id}
                         </span>
+                        {!conversation.assigned_to && (
+                          <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4 bg-blue-100 text-blue-700 border-0 font-semibold">
+                            NEW
+                          </Badge>
+                        )}
                         {conversation.priority === 'urgent' && (
                           <AlertTriangle className="h-3 w-3 text-red-500 flex-shrink-0" />
                         )}
