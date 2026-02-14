@@ -10573,6 +10573,48 @@ export type Database = {
         Args: { p_workspace_id: string }
         Returns: undefined
       }
+      contacts_crm_search: {
+        Args: {
+          p_assigned_to?: string
+          p_attributes?: Json
+          p_claimed_by?: string
+          p_date_from?: string
+          p_date_to?: string
+          p_is_unreplied?: boolean
+          p_last_replied_by?: string
+          p_lead_states?: string[]
+          p_limit?: number
+          p_offset?: number
+          p_phone_number_id?: string
+          p_search?: string
+          p_tag_ids?: string[]
+          p_tag_match_all?: boolean
+          p_tenant_id: string
+        }
+        Returns: {
+          assigned_at: string
+          assigned_to: string
+          attributes: Json
+          claimed_at: string
+          claimed_by: string
+          contact_id: string
+          contact_name: string
+          first_name: string
+          is_unreplied: boolean
+          last_inbound_at: string
+          last_message_at: string
+          last_outbound_at: string
+          last_replied_at: string
+          last_replied_by: string
+          lead_state: string
+          open_conversation_id: string
+          phone_number_id: string
+          profile_picture_url: string
+          tags: Json
+          tenant_id: string
+          wa_id: string
+        }[]
+      }
       create_tenant_with_owner: {
         Args: { _name: string; _slug: string }
         Returns: {
