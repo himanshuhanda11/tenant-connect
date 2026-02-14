@@ -345,30 +345,9 @@ export function InboxContextPanel({
           {/* Automation Tab */}
           <TabsContent value="automation" className="m-0 p-4 space-y-4">
             <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <h4 className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                  Bot Status
-                </h4>
-                <Badge variant={conversation.is_intervened ? "secondary" : "default"}>
-                  {conversation.is_intervened ? (
-                    <>
-                      <Hand className="h-3 w-3 mr-1" />
-                      Paused
-                    </>
-                  ) : (
-                    <>
-                      <Bot className="h-3 w-3 mr-1" />
-                      Active
-                    </>
-                  )}
-                </Badge>
+              <div className="text-sm text-muted-foreground">
+                No bot configured. Automation rules can be managed in Settings.
               </div>
-
-              {conversation.is_intervened && conversation.intervened_by && (
-                <div className="text-sm text-muted-foreground">
-                  Taken over by agent {formatDistanceToNow(new Date(conversation.intervened_at!), { addSuffix: true })}
-                </div>
-              )}
             </div>
 
             <Separator />
