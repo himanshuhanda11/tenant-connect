@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { useTenant } from '@/contexts/TenantContext';
 import { supabase } from '@/integrations/supabase/client';
+import { useEntitlements } from '@/hooks/useEntitlements';
 import type { BillingSettings } from '@/types/billing';
 
 // ---------- Plans (from platform_plans) ----------
@@ -48,9 +49,10 @@ export function usePlans() {
 // ---------- Subscription ----------
 export function useSubscription() {
   const { currentTenant } = useTenant();
+  const { data: entitlements } = useEntitlements();
 
   return useQuery({
-    queryKey: ['subscription', currentTenant?.id],
+    queryKey: ['subscription', currentTenant?.id, entitlements?.plan_id],
     queryFn: async () => {
       if (!currentTenant?.id) return null;
 
@@ -62,12 +64,29 @@ export function useSubscription() {
         .maybeSingle();
 
       if (error) throw error;
+
+      // Build limits from entitlements (the source of truth)
+      const limits = entitlements?.limits ?? {};
+      const planId = entitlements?.plan_id ?? 'free';
+      const planNames: Record<string, string> = { free: 'Free', basic: 'Basic', pro: 'Pro', business: 'Business' };
+
+      const planLimits = {
+        max_phone_numbers: typeof limits.phone_numbers === 'number' ? limits.phone_numbers : 1,
+        max_team_members: limits.team_members === 'unlimited' ? -1 : (typeof limits.team_members === 'number' ? limits.team_members : 1),
+        max_contacts: limits.contacts === 'unlimited' ? -1 : (typeof limits.contacts === 'number' ? limits.contacts : 1000),
+        monthly_messages: -1,
+        max_campaigns: -1,
+        max_automations: limits.automations === 'unlimited' ? -1 : (typeof limits.automations === 'number' ? limits.automations : 0),
+        api_access: planId !== 'free',
+        audit_logs_days: 30,
+        support_level: (planId === 'business' ? 'priority' : planId === 'pro' ? 'chat' : 'email') as 'email' | 'chat' | 'priority',
+      };
+
       if (!data) {
-        // No subscription = Free plan
         return {
-          id: 'free',
+          id: planId,
           tenant_id: currentTenant.id,
-          plan_id: 'plan_free',
+          plan_id: `plan_${planId}`,
           stripe_customer_id: null,
           stripe_subscription_id: null,
           status: 'active' as const,
@@ -79,24 +98,14 @@ export function useSubscription() {
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
           plan: {
-            id: 'plan_free',
-            name: 'Free',
-            description: 'Get started with WhatsApp',
+            id: `plan_${planId}`,
+            name: planNames[planId] ?? 'Free',
+            description: null,
             price_monthly: 0,
             price_yearly: 0,
             is_active: true,
             sort_order: 1,
-            limits_json: {
-              max_phone_numbers: 1,
-              max_team_members: 1,
-              max_contacts: 1000,
-              monthly_messages: -1,
-              max_campaigns: 3,
-              max_automations: 0,
-              api_access: false,
-              audit_logs_days: 0,
-              support_level: 'email' as const,
-            },
+            limits_json: planLimits,
           },
         };
       }
@@ -106,6 +115,16 @@ export function useSubscription() {
         plan_id: `plan_${data.plan_id}`,
         status: data.status as 'active',
         billing_cycle: (data.billing_cycle ?? 'monthly') as 'monthly' | 'yearly',
+        plan: {
+          id: `plan_${data.plan_id}`,
+          name: planNames[data.plan_id] ?? data.plan_id,
+          description: null,
+          price_monthly: 0,
+          price_yearly: 0,
+          is_active: true,
+          sort_order: 1,
+          limits_json: planLimits,
+        },
       };
     },
     enabled: !!currentTenant?.id,
@@ -237,9 +256,10 @@ export function useBillingSettings() {
 // ---------- Team usage (real count) ----------
 export function useTeamUsage() {
   const { currentTenant } = useTenant();
+  const { data: entitlements } = useEntitlements();
 
   return useQuery({
-    queryKey: ['team-usage', currentTenant?.id],
+    queryKey: ['team-usage', currentTenant?.id, entitlements?.plan_id],
     queryFn: async () => {
       if (!currentTenant?.id) return { used: 0, limit: 1 };
 
@@ -250,8 +270,9 @@ export function useTeamUsage() {
 
       if (error) throw error;
 
-      // Default free plan limit
-      return { used: count ?? 0, limit: 1 };
+      const limit = entitlements?.limits?.team_members;
+      const numLimit = limit === 'unlimited' ? -1 : (typeof limit === 'number' ? limit : 1);
+      return { used: count ?? 0, limit: numLimit };
     },
     enabled: !!currentTenant?.id,
   });
@@ -260,9 +281,10 @@ export function useTeamUsage() {
 // ---------- Phone usage (real count) ----------
 export function usePhoneUsage() {
   const { currentTenant } = useTenant();
+  const { data: entitlements } = useEntitlements();
 
   return useQuery({
-    queryKey: ['phone-usage', currentTenant?.id],
+    queryKey: ['phone-usage', currentTenant?.id, entitlements?.plan_id],
     queryFn: async () => {
       if (!currentTenant?.id) return { used: 0, limit: 1 };
 
@@ -273,7 +295,9 @@ export function usePhoneUsage() {
 
       if (error) throw error;
 
-      return { used: count ?? 0, limit: 1 };
+      const limit = entitlements?.limits?.phone_numbers;
+      const numLimit = typeof limit === 'number' ? limit : 1;
+      return { used: count ?? 0, limit: numLimit };
     },
     enabled: !!currentTenant?.id,
   });
@@ -282,9 +306,10 @@ export function usePhoneUsage() {
 // ---------- Contacts usage (real count) ----------
 export function useContactsUsage() {
   const { currentTenant } = useTenant();
+  const { data: entitlements } = useEntitlements();
 
   return useQuery({
-    queryKey: ['contacts-usage', currentTenant?.id],
+    queryKey: ['contacts-usage', currentTenant?.id, entitlements?.plan_id],
     queryFn: async () => {
       if (!currentTenant?.id) return { used: 0, limit: 1000 };
 
@@ -295,8 +320,9 @@ export function useContactsUsage() {
 
       if (error) throw error;
 
-      // Default free plan limit
-      return { used: count ?? 0, limit: 1000 };
+      const limit = entitlements?.limits?.contacts;
+      const numLimit = limit === 'unlimited' ? -1 : (typeof limit === 'number' ? limit : 1000);
+      return { used: count ?? 0, limit: numLimit };
     },
     enabled: !!currentTenant?.id,
   });
