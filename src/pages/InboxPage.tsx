@@ -285,7 +285,7 @@ export default function InboxPage() {
       <TooltipProvider>
         <div className="flex overflow-hidden -m-3 sm:-m-4 md:-m-6 lg:-m-8 w-[calc(100%+1.5rem)] sm:w-[calc(100%+2rem)] md:w-[calc(100%+3rem)] lg:w-[calc(100%+4rem)] h-[calc(100vh-3rem)] sm:h-[calc(100vh-3.5rem)]">
           {/* Left: Conversation List */}
-          <div className="w-80 flex-shrink-0">
+          <div className="w-72 xl:w-80 flex-shrink-0 flex-grow-0">
             <InboxConversationList
               conversations={conversations}
               selectedId={selectedId}
@@ -300,36 +300,40 @@ export default function InboxPage() {
           </div>
 
           {/* Center: Chat Thread */}
-          <InboxChatThread
-            conversation={selectedConversation}
-            messages={messages}
-            events={events}
-            typingUsers={typingUsers}
-            onSendMessage={handleSendMessage}
-            onAssign={handleAssign}
-            onSetStatus={handleSetStatus}
-            onSetIntervene={handleSetIntervene}
-            onAddTag={handleAddTag}
-            onClaim={handleClaim}
-            onIntervene={handleIntervene}
-            onTransfer={handleTransfer}
-            onTyping={setTyping}
-            loading={loadingMessages}
-            availableTags={actions.availableTags}
-            teamMembers={actions.teamMembers}
-            viewerName={viewerName}
-          />
+          <div className="flex-1 min-w-0 overflow-hidden">
+            <InboxChatThread
+              conversation={selectedConversation}
+              messages={messages}
+              events={events}
+              typingUsers={typingUsers}
+              onSendMessage={handleSendMessage}
+              onAssign={handleAssign}
+              onSetStatus={handleSetStatus}
+              onSetIntervene={handleSetIntervene}
+              onAddTag={handleAddTag}
+              onClaim={handleClaim}
+              onIntervene={handleIntervene}
+              onTransfer={handleTransfer}
+              onTyping={setTyping}
+              loading={loadingMessages}
+              availableTags={actions.availableTags}
+              teamMembers={actions.teamMembers}
+              viewerName={viewerName}
+            />
+          </div>
 
           {/* Right: Context Panel */}
-          <InboxContextPanel
-            conversation={selectedConversation}
-            events={events}
-            notes={notes}
-            onAddNote={addNote}
-            onAddTag={handleAddTag}
-            onRemoveTag={handleRemoveTag}
-            availableTags={actions.availableTags}
-          />
+          <div className="w-72 xl:w-80 flex-shrink-0 flex-grow-0">
+            <InboxContextPanel
+              conversation={selectedConversation}
+              events={events}
+              notes={notes}
+              onAddNote={addNote}
+              onAddTag={handleAddTag}
+              onRemoveTag={handleRemoveTag}
+              availableTags={actions.availableTags}
+            />
+          </div>
         </div>
       </TooltipProvider>
     </DashboardLayout>

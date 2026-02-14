@@ -275,7 +275,7 @@ export function InboxChatThread({
   }
 
   return (
-    <div className="flex-1 min-w-0 flex flex-col bg-background overflow-hidden">
+    <div className="flex flex-col h-full w-full bg-background overflow-hidden">
       {/* Header - Premium Glassmorphism Design */}
       <div className="border-b border-border/60 bg-card/90 backdrop-blur-md shadow-sm">
         {/* Row 1: Contact Info */}
