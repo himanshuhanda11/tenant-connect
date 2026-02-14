@@ -199,6 +199,19 @@ Deno.serve(async (req) => {
         break;
     }
 
+    // === Claim on reply: auto-claim conversation for the sender ===
+    const claimResult = await supabase.rpc('claim_on_reply', {
+      p_tenant_id: tenant_id,
+      p_conversation_id: conversationIdFinal,
+      p_actor_id: userId,
+      p_takeover: false,
+    });
+    if (claimResult.error) {
+      console.error('claim_on_reply error:', claimResult.error);
+    } else {
+      console.log('claim_on_reply result:', JSON.stringify(claimResult.data));
+    }
+
     // === PARALLEL: Create pending message + call WhatsApp API simultaneously ===
     const [msgRes, waResponse] = await Promise.all([
       supabase.from('messages').insert({

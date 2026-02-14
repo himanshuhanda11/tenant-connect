@@ -57,6 +57,9 @@ export interface InboxConversation {
   phone_number_id: string;
   status: ConversationStatus;
   assigned_to?: string;
+  assigned_at?: string;
+  claimed_by?: string;
+  claimed_at?: string;
   unread_count: number;
   last_message_at?: string;
   last_message_preview?: string;
@@ -179,7 +182,7 @@ export interface TypingState {
 
 export interface InboxFilters {
   status?: ConversationStatus | 'all';
-  assignment?: 'all' | 'mine' | 'unassigned' | 'team';
+  assignment?: 'all' | 'mine' | 'unassigned' | 'assigned_pending' | 'team';
   priority?: Priority | 'all';
   hasUnread?: boolean;
   slaRisk?: boolean;
@@ -188,12 +191,13 @@ export interface InboxFilters {
   search?: string;
 }
 
-export type InboxView = 'all' | 'mine' | 'unassigned' | 'sla_risk' | 'vip' | 'closed' | 'snoozed';
+export type InboxView = 'all' | 'mine' | 'assigned_pending' | 'unassigned' | 'sla_risk' | 'vip' | 'closed' | 'snoozed';
 
 export const INBOX_VIEW_CONFIG: Record<InboxView, { label: string; icon: string; filter: Partial<InboxFilters> }> = {
-  all: { label: 'All', icon: 'inbox', filter: { status: 'all' } },
-  mine: { label: 'Mine', icon: 'user', filter: { assignment: 'mine' } },
+  all: { label: 'All Open', icon: 'inbox', filter: { status: 'all' } },
   unassigned: { label: 'Unassigned', icon: 'user-x', filter: { assignment: 'unassigned' } },
+  assigned_pending: { label: 'Assigned (Pending)', icon: 'clock', filter: { assignment: 'assigned_pending' } },
+  mine: { label: 'Mine (Claimed)', icon: 'user', filter: { assignment: 'mine' } },
   sla_risk: { label: 'SLA Risk', icon: 'alert-triangle', filter: { slaRisk: true } },
   vip: { label: 'VIP', icon: 'star', filter: { priority: 'urgent' } },
   closed: { label: 'Closed', icon: 'check-circle', filter: { status: 'closed' } },

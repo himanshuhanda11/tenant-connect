@@ -22,6 +22,9 @@ function mapConversation(row: any): InboxConversation {
     phone_number_id: row.phone_number_id,
     status: row.status || 'open',
     assigned_to: row.assigned_to,
+    assigned_at: row.assigned_at,
+    claimed_by: row.claimed_by,
+    claimed_at: row.claimed_at,
     unread_count: row.unread_count || 0,
     last_message_at: row.last_message_at,
     last_message_preview: row.last_message_preview,
@@ -115,15 +118,20 @@ export function useInboxConversations(view: InboxView, filters: InboxFilters) {
         .eq('tenant_id', currentTenant.id)
         .order('last_message_at', { ascending: false, nullsFirst: false });
 
-      // Apply filters
+      // Apply filters based on new queue model
       if (filters.status && filters.status !== 'all') {
         const dbStatus = filters.status === 'pending' ? 'open' : filters.status;
         query = query.eq('status', dbStatus);
       }
       if (filters.assignment === 'unassigned') {
-        query = query.is('assigned_to', null);
+        // Unassigned: no one assigned, not claimed, not closed
+        query = query.is('assigned_to', null).is('claimed_at', null).neq('status', 'closed');
+      } else if (filters.assignment === 'assigned_pending' && user?.id) {
+        // Assigned to me but NOT yet claimed (pending handling)
+        query = query.eq('assigned_to', user.id).is('claimed_at', null).neq('status', 'closed');
       } else if (filters.assignment === 'mine' && user?.id) {
-        query = query.eq('assigned_to', user.id);
+        // Mine = I claimed it (actively handling)
+        query = query.eq('claimed_by', user.id).not('claimed_at', 'is', null);
       }
       if (filters.priority && filters.priority !== 'all') {
         query = query.eq('priority', filters.priority);
@@ -598,7 +606,11 @@ export function useInboxActions() {
     try {
       const { error } = await supabase
         .from('conversations')
-        .update({ assigned_to: profileId, updated_at: new Date().toISOString() })
+        .update({
+          assigned_to: profileId,
+          assigned_at: profileId ? new Date().toISOString() : null,
+          updated_at: new Date().toISOString(),
+        })
         .eq('id', conversationId);
       if (error) throw error;
       toast.success(profileId ? 'Conversation assigned' : 'Conversation unassigned');

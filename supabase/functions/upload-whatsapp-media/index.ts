@@ -193,6 +193,17 @@ Deno.serve(async (req) => {
         };
         if (caption) messagePayload[mediaType].caption = caption;
 
+        // Claim on reply for media messages
+        await supabase.rpc('claim_on_reply', {
+          p_tenant_id: conversation.tenant_id,
+          p_conversation_id: conversationId,
+          p_actor_id: user.id,
+          p_takeover: false,
+        }).then(r => {
+          if (r.error) console.error('claim_on_reply error:', r.error);
+          else console.log('claim_on_reply result:', JSON.stringify(r.data));
+        });
+
         // Insert message in DB
         const { data: dbMsg, error: msgErr } = await supabase
           .from('messages')
