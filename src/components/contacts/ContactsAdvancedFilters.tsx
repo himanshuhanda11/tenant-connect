@@ -20,7 +20,6 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import {
   Filter,
-  Plus,
   X,
   Search,
   Save,
@@ -29,9 +28,12 @@ import {
   Tag,
   Users,
   Shield,
-  Globe,
   Calendar,
   TrendingUp,
+  Inbox,
+  Settings2,
+  Plus,
+  Trash2,
 } from 'lucide-react';
 import { LEAD_STATUS_OPTIONS, PRIORITY_OPTIONS, MAU_STATUS_OPTIONS } from '@/types/contact';
 import { SegmentFilters } from '@/types/segment';
@@ -43,6 +45,8 @@ interface ContactsAdvancedFiltersProps {
   onSaveAsSegment: () => void;
   onReset: () => void;
   availableTags: { id: string; name: string; color: string | null }[];
+  availableAgents?: { id: string; full_name: string | null; email: string }[];
+  attributeKeys?: string[];
   sources: string[];
   countries: string[];
 }
@@ -57,12 +61,22 @@ const SOURCE_LABELS: Record<string, string> = {
   whatsapp: 'WhatsApp',
 };
 
+const LEAD_STATE_OPTIONS = [
+  { value: 'new', label: 'New', className: 'bg-blue-100 text-blue-700' },
+  { value: 'assigned_pending', label: 'Assigned Pending', className: 'bg-amber-100 text-amber-700' },
+  { value: 'claimed', label: 'Claimed', className: 'bg-emerald-100 text-emerald-700' },
+  { value: 'unreplied', label: 'Unreplied', className: 'bg-rose-100 text-rose-700' },
+  { value: 'closed', label: 'Closed', className: 'bg-muted text-muted-foreground' },
+];
+
 export function ContactsAdvancedFilters({
   filters,
   onFiltersChange,
   onSaveAsSegment,
   onReset,
   availableTags,
+  availableAgents = [],
+  attributeKeys = [],
   sources,
   countries,
 }: ContactsAdvancedFiltersProps) {
@@ -78,17 +92,40 @@ export function ContactsAdvancedFilters({
     onFiltersChange(newFilters);
   };
 
-  const toggleArrayFilter = (key: 'leadStatus' | 'priority' | 'mauStatus' | 'tags' | 'source' | 'country', value: string) => {
-    const current = filters[key] || [];
+  const toggleArrayFilter = (key: 'leadStatus' | 'priority' | 'mauStatus' | 'tags' | 'source' | 'country' | 'leadState', value: string) => {
+    const current = (filters[key] as string[] | undefined) || [];
     const updated = current.includes(value)
       ? current.filter((v) => v !== value)
       : [...current, value];
     updateFilter(key, updated.length > 0 ? updated : undefined);
   };
 
+  const addAttributeFilter = () => {
+    const current = filters.attributes || [];
+    updateFilter('attributes', [...current, { key: '', value: '' }]);
+  };
+
+  const updateAttributeFilter = (index: number, field: 'key' | 'value', val: string) => {
+    const current = [...(filters.attributes || [])];
+    current[index] = { ...current[index], [field]: val };
+    updateFilter('attributes', current);
+  };
+
+  const removeAttributeFilter = (index: number) => {
+    const current = [...(filters.attributes || [])];
+    current.splice(index, 1);
+    updateFilter('attributes', current.length > 0 ? current : undefined);
+  };
+
   const getActiveFilters = () => {
     const active: { key: keyof SegmentFilters; label: string; value: string; color?: string }[] = [];
 
+    if (filters.leadState?.length) {
+      filters.leadState.forEach((s) => {
+        const opt = LEAD_STATE_OPTIONS.find((o) => o.value === s);
+        active.push({ key: 'leadState', label: 'Lead State', value: opt?.label || s, color: opt?.className });
+      });
+    }
     if (filters.leadStatus?.length) {
       filters.leadStatus.forEach((s) => {
         const opt = LEAD_STATUS_OPTIONS.find((o) => o.value === s);
@@ -118,6 +155,13 @@ export function ContactsAdvancedFilters({
         active.push({ key: 'source', label: 'Source', value: SOURCE_LABELS[s] || s });
       });
     }
+    if (filters.assignedTo) {
+      const agent = availableAgents.find(a => a.id === filters.assignedTo);
+      active.push({ key: 'assignedTo', label: 'Assigned', value: agent?.full_name || agent?.email || 'Agent' });
+    }
+    if (filters.isUnreplied && filters.isUnreplied !== 'all') {
+      active.push({ key: 'isUnreplied', label: 'Unreplied', value: filters.isUnreplied === 'yes' ? 'Yes' : 'No' });
+    }
     if (filters.optInStatus && filters.optInStatus !== 'all') {
       active.push({ key: 'optInStatus', label: 'Opt-in', value: filters.optInStatus === 'opted_in' ? 'Yes' : 'No' });
     }
@@ -130,6 +174,19 @@ export function ContactsAdvancedFilters({
     if (filters.blocked && filters.blocked !== 'all') {
       active.push({ key: 'blocked', label: 'Blocked', value: filters.blocked === 'yes' ? 'Yes' : 'No' });
     }
+    if (filters.createdDateFrom) {
+      active.push({ key: 'createdDateFrom', label: 'Created From', value: filters.createdDateFrom });
+    }
+    if (filters.createdDateTo) {
+      active.push({ key: 'createdDateTo', label: 'Created To', value: filters.createdDateTo });
+    }
+    if (filters.attributes?.length) {
+      filters.attributes.forEach((attr, i) => {
+        if (attr.key) {
+          active.push({ key: 'attributes', label: `Attr: ${attr.key}`, value: attr.value || '(any)' });
+        }
+      });
+    }
 
     return active;
   };
@@ -138,10 +195,10 @@ export function ContactsAdvancedFilters({
   const hasFilters = activeFilters.length > 0 || !!filters.search;
 
   return (
-    <div className="space-y-3 px-6 py-4 border-b bg-muted/30">
-      <div className="flex items-center gap-3">
+    <div className="space-y-3 px-4 sm:px-6 py-4 border-b bg-muted/30">
+      <div className="flex items-center gap-3 flex-wrap">
         {/* Search */}
-        <div className="relative flex-1 max-w-lg">
+        <div className="relative flex-1 min-w-[200px] max-w-lg">
           <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Search by name, phone, email, or tag..."
@@ -174,7 +231,7 @@ export function ContactsAdvancedFilters({
               )}
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="w-96 p-0" align="start">
+          <PopoverContent className="w-[420px] p-0" align="start">
             <div className="p-4 border-b bg-muted/50">
               <h4 className="font-semibold flex items-center gap-2">
                 <Filter className="h-4 w-4" />
@@ -184,8 +241,34 @@ export function ContactsAdvancedFilters({
                 Combine multiple filters to find specific contacts
               </p>
             </div>
-            <ScrollArea className="h-[400px]">
+            <ScrollArea className="h-[460px]">
               <div className="p-4 space-y-5">
+                {/* Lead State (CRM) */}
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <Inbox className="h-4 w-4 text-muted-foreground" />
+                    <Label className="text-sm font-medium">Lead State (CRM)</Label>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    {LEAD_STATE_OPTIONS.map((opt) => (
+                      <div key={opt.value} className="flex items-center space-x-2">
+                        <Checkbox
+                          id={`state-${opt.value}`}
+                          checked={filters.leadState?.includes(opt.value)}
+                          onCheckedChange={() => toggleArrayFilter('leadState', opt.value)}
+                        />
+                        <Label htmlFor={`state-${opt.value}`} className="text-sm cursor-pointer">
+                          <Badge variant="secondary" className={cn(opt.className, "text-xs")}>
+                            {opt.label}
+                          </Badge>
+                        </Label>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <Separator />
+
                 {/* Lead Status */}
                 <div className="space-y-3">
                   <div className="flex items-center gap-2">
@@ -302,6 +385,87 @@ export function ContactsAdvancedFilters({
                   </>
                 )}
 
+                {/* Agent Assignment */}
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <Users className="h-4 w-4 text-muted-foreground" />
+                    <Label className="text-sm font-medium">Assignment & Agents</Label>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1.5">
+                      <Label className="text-xs text-muted-foreground">Assigned To</Label>
+                      <Select
+                        value={filters.assignedTo || 'all'}
+                        onValueChange={(v) => updateFilter('assignedTo', v === 'all' ? undefined : v)}
+                      >
+                        <SelectTrigger className="h-8">
+                          <SelectValue placeholder="Any agent" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">Any Agent</SelectItem>
+                          {availableAgents.map(a => (
+                            <SelectItem key={a.id} value={a.id}>
+                              {a.full_name || a.email}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className="text-xs text-muted-foreground">Unreplied</Label>
+                      <Select
+                        value={filters.isUnreplied || 'all'}
+                        onValueChange={(v) => updateFilter('isUnreplied', v as SegmentFilters['isUnreplied'])}
+                      >
+                        <SelectTrigger className="h-8">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">All</SelectItem>
+                          <SelectItem value="yes">Unreplied Only</SelectItem>
+                          <SelectItem value="no">Replied</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1.5">
+                      <Label className="text-xs text-muted-foreground">Has Agent</Label>
+                      <Select
+                        value={filters.hasAgent || 'all'}
+                        onValueChange={(v) => updateFilter('hasAgent', v as SegmentFilters['hasAgent'])}
+                      >
+                        <SelectTrigger className="h-8">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">All</SelectItem>
+                          <SelectItem value="assigned">Assigned</SelectItem>
+                          <SelectItem value="unassigned">Unassigned</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className="text-xs text-muted-foreground">Intervention</Label>
+                      <Select
+                        value={filters.intervened || 'all'}
+                        onValueChange={(v) => updateFilter('intervened', v as SegmentFilters['intervened'])}
+                      >
+                        <SelectTrigger className="h-8">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">All</SelectItem>
+                          <SelectItem value="yes">Intervened</SelectItem>
+                          <SelectItem value="no">Bot Only</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                </div>
+
+                <Separator />
+
                 {/* Compliance */}
                 <div className="space-y-3">
                   <div className="flex items-center gap-2">
@@ -346,47 +510,83 @@ export function ContactsAdvancedFilters({
 
                 <Separator />
 
-                {/* Assignment */}
+                {/* Date Filters */}
                 <div className="space-y-3">
                   <div className="flex items-center gap-2">
-                    <Users className="h-4 w-4 text-muted-foreground" />
-                    <Label className="text-sm font-medium">Assignment</Label>
+                    <Calendar className="h-4 w-4 text-muted-foreground" />
+                    <Label className="text-sm font-medium">Date Range</Label>
                   </div>
                   <div className="grid grid-cols-2 gap-3">
                     <div className="space-y-1.5">
-                      <Label className="text-xs text-muted-foreground">Agent</Label>
-                      <Select
-                        value={filters.hasAgent || 'all'}
-                        onValueChange={(v) => updateFilter('hasAgent', v as SegmentFilters['hasAgent'])}
-                      >
-                        <SelectTrigger className="h-8">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="all">All</SelectItem>
-                          <SelectItem value="assigned">Assigned</SelectItem>
-                          <SelectItem value="unassigned">Unassigned</SelectItem>
-                        </SelectContent>
-                      </Select>
+                      <Label className="text-xs text-muted-foreground">Created From</Label>
+                      <Input
+                        type="date"
+                        value={filters.createdDateFrom || ''}
+                        onChange={(e) => updateFilter('createdDateFrom', e.target.value || undefined)}
+                        className="h-8 text-sm"
+                      />
                     </div>
                     <div className="space-y-1.5">
-                      <Label className="text-xs text-muted-foreground">Intervention</Label>
-                      <Select
-                        value={filters.intervened || 'all'}
-                        onValueChange={(v) => updateFilter('intervened', v as SegmentFilters['intervened'])}
-                      >
-                        <SelectTrigger className="h-8">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="all">All</SelectItem>
-                          <SelectItem value="yes">Intervened</SelectItem>
-                          <SelectItem value="no">Bot Only</SelectItem>
-                        </SelectContent>
-                      </Select>
+                      <Label className="text-xs text-muted-foreground">Created To</Label>
+                      <Input
+                        type="date"
+                        value={filters.createdDateTo || ''}
+                        onChange={(e) => updateFilter('createdDateTo', e.target.value || undefined)}
+                        className="h-8 text-sm"
+                      />
                     </div>
                   </div>
                 </div>
+
+                {/* Attribute Filters */}
+                {attributeKeys.length > 0 && (
+                  <>
+                    <Separator />
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <Settings2 className="h-4 w-4 text-muted-foreground" />
+                          <Label className="text-sm font-medium">Custom Attributes</Label>
+                        </div>
+                        <Button variant="ghost" size="sm" onClick={addAttributeFilter} className="h-7 gap-1 text-xs">
+                          <Plus className="h-3 w-3" />
+                          Add
+                        </Button>
+                      </div>
+                      {(filters.attributes || []).map((attr, idx) => (
+                        <div key={idx} className="flex items-center gap-2">
+                          <Select
+                            value={attr.key || ''}
+                            onValueChange={(v) => updateAttributeFilter(idx, 'key', v)}
+                          >
+                            <SelectTrigger className="h-8 flex-1">
+                              <SelectValue placeholder="Key" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {attributeKeys.map(k => (
+                                <SelectItem key={k} value={k}>{k}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <Input
+                            placeholder="Value"
+                            value={attr.value}
+                            onChange={(e) => updateAttributeFilter(idx, 'value', e.target.value)}
+                            className="h-8 flex-1"
+                          />
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7 shrink-0 hover:bg-destructive/10 hover:text-destructive"
+                            onClick={() => removeAttributeFilter(idx)}
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                )}
               </div>
             </ScrollArea>
             {hasFilters && (
@@ -438,12 +638,16 @@ export function ContactsAdvancedFilters({
                 size="icon"
                 className="h-4 w-4 ml-1 hover:bg-destructive/10 hover:text-destructive rounded-full"
                 onClick={() => {
-                  if (['leadStatus', 'priority', 'mauStatus', 'tags', 'source', 'country'].includes(filter.key)) {
-                    const current = filters[filter.key as 'leadStatus'] || [];
+                  if (['leadStatus', 'priority', 'mauStatus', 'tags', 'source', 'country', 'leadState'].includes(filter.key)) {
+                    const current = (filters[filter.key as 'leadStatus'] as string[] | undefined) || [];
                     const updated = current.filter((v) => {
                       if (filter.key === 'tags') {
                         const tag = availableTags.find((t) => t.name === filter.value);
                         return v !== tag?.id;
+                      }
+                      if (filter.key === 'leadState') {
+                        const opt = LEAD_STATE_OPTIONS.find(o => o.label === filter.value);
+                        return v !== opt?.value && v !== filter.value;
                       }
                       const opts = filter.key === 'leadStatus' ? LEAD_STATUS_OPTIONS :
                                   filter.key === 'priority' ? PRIORITY_OPTIONS :
@@ -452,6 +656,12 @@ export function ContactsAdvancedFilters({
                       return v !== opt?.value && v !== filter.value;
                     });
                     updateFilter(filter.key as 'leadStatus', updated.length > 0 ? updated : undefined);
+                  } else if (filter.key === 'attributes') {
+                    // Remove attribute filter by label match
+                    const attrKey = filter.label.replace('Attr: ', '');
+                    const current = filters.attributes || [];
+                    const updated = current.filter(a => a.key !== attrKey);
+                    updateFilter('attributes', updated.length > 0 ? updated : undefined);
                   } else {
                     removeFilter(filter.key);
                   }

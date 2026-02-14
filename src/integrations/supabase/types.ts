@@ -1700,6 +1700,52 @@ export type Database = {
           },
         ]
       }
+      contact_attributes: {
+        Row: {
+          contact_id: string
+          key: string
+          tenant_id: string
+          updated_at: string
+          value: string | null
+        }
+        Insert: {
+          contact_id: string
+          key: string
+          tenant_id: string
+          updated_at?: string
+          value?: string | null
+        }
+        Update: {
+          contact_id?: string
+          key?: string
+          tenant_id?: string
+          updated_at?: string
+          value?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contact_attributes_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contact_attributes_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "platform_workspace_directory"
+            referencedColumns: ["workspace_id"]
+          },
+          {
+            foreignKeyName: "contact_attributes_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       contact_inbox_summary: {
         Row: {
           assigned_at: string | null

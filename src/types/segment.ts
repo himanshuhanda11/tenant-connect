@@ -33,6 +33,14 @@ export interface SegmentFilters {
   lastMessageTo?: string;
   firstMessageFrom?: string;
   firstMessageTo?: string;
+  // Lead CRM filters
+  leadState?: string[];
+  assignedTo?: string;
+  claimedBy?: string;
+  repliedBy?: string;
+  isUnreplied?: 'all' | 'yes' | 'no';
+  // Attribute filters
+  attributes?: { key: string; value: string }[];
 }
 
 export interface SmartView {
