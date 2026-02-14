@@ -156,6 +156,12 @@ export default function InboxPage() {
     }
   }, [selectedId, actions]);
 
+  const handleTransfer = useCallback((profileId: string, resetClaim: boolean) => {
+    if (selectedId) {
+      actions.transferConversation(selectedId, profileId, resetClaim);
+    }
+  }, [selectedId, actions]);
+
   // Toggle context panel on mobile
   const toggleContextPanel = () => {
     setShowContextPanel(!showContextPanel);
@@ -256,6 +262,7 @@ export default function InboxPage() {
                 onAddTag={handleAddTag}
                 onClaim={handleClaim}
                 onIntervene={handleIntervene}
+                onTransfer={handleTransfer}
                 onTyping={setTyping}
                 loading={loadingMessages}
                 availableTags={actions.availableTags}
@@ -305,6 +312,7 @@ export default function InboxPage() {
             onAddTag={handleAddTag}
             onClaim={handleClaim}
             onIntervene={handleIntervene}
+            onTransfer={handleTransfer}
             onTyping={setTyping}
             loading={loadingMessages}
             availableTags={actions.availableTags}

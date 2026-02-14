@@ -51,6 +51,9 @@ import {
   Sparkles,
   File,
   MessageSquare,
+  Shield,
+  ArrowRightLeft,
+  UserPlus,
 } from 'lucide-react';
 import { format, formatDistanceToNow, differenceInHours } from 'date-fns';
 import { InboxConversation, InboxMessage, WAStatus, ConversationEvent, STATUS_CONFIG, PRIORITY_CONFIG, ConversationStatus } from '@/types/inbox';
@@ -85,6 +88,7 @@ interface InboxChatThreadProps {
   onAddTag: (tagId: string) => void;
   onClaim?: () => void;
   onIntervene?: () => void;
+  onTransfer?: (profileId: string, resetClaim: boolean) => void;
   onTyping?: (isTyping: boolean) => void;
   loading?: boolean;
   availableTags?: Array<{ id: string; name: string; color: string }>;
@@ -115,6 +119,7 @@ export function InboxChatThread({
   onAddTag,
   onClaim,
   onIntervene,
+  onTransfer,
   onTyping,
   loading,
   availableTags = [],
@@ -443,11 +448,101 @@ export function InboxChatThread({
           </div>
         </div>
 
-        {/* Row 2: Status Bar with badges and actions (Desktop only) */}
+        {/* Row 2: Status Bar with ownership actions + badges (Desktop only) */}
         {!isMobile && (
-          <div className="h-11 px-5 flex items-center gap-3 bg-muted/40 backdrop-blur-sm border-t border-border/40 overflow-x-auto">
+          <div className="h-11 px-5 flex items-center gap-2 bg-muted/40 backdrop-blur-sm border-t border-border/40 overflow-x-auto">
+            {/* === Ownership Action Buttons === */}
+            
+            {/* Claim: show if not claimed AND (unassigned OR assigned to me) */}
+            {!conversation.claimed_at && (!conversation.assigned_to || conversation.assigned_to === user?.id) && onClaim && (
+              <Button
+                variant="default"
+                size="sm"
+                className="h-7 text-xs gap-1"
+                onClick={onClaim}
+              >
+                <Hand className="h-3.5 w-3.5" /> Claim
+              </Button>
+            )}
+
+            {/* Intervene: show if claimed/assigned by someone else */}
+            {((conversation.claimed_by && conversation.claimed_by !== user?.id) ||
+              (conversation.assigned_to && conversation.assigned_to !== user?.id && !conversation.claimed_at)) && onIntervene && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-7 text-xs gap-1 border-amber-300 text-amber-700 hover:bg-amber-50"
+                onClick={onIntervene}
+              >
+                <Shield className="h-3.5 w-3.5" /> Intervene
+              </Button>
+            )}
+
+            {/* Assign (admin/owner): opens agent picker */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="sm" className="h-7 text-xs gap-1 text-muted-foreground hover:text-foreground">
+                  <UserPlus className="h-3.5 w-3.5" /> Assign
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="w-52">
+                <div className="px-2 py-1.5 text-xs font-medium text-muted-foreground">Assign to agent (no claim)</div>
+                {teamMembers.map(member => (
+                  <DropdownMenuItem
+                    key={member.id}
+                    onClick={() => onAssign(member.id)}
+                    className={conversation.assigned_to === member.id ? 'bg-muted' : ''}
+                  >
+                    <User className="h-4 w-4 mr-2" />
+                    {member.full_name}
+                    {conversation.assigned_to === member.id && <Check className="h-3 w-3 ml-auto" />}
+                  </DropdownMenuItem>
+                ))}
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => onAssign(null)}>
+                  <X className="h-4 w-4 mr-2" /> Unassign
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            {/* Transfer (admin/owner): reroute + optional reset claim */}
+            {onTransfer && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="sm" className="h-7 text-xs gap-1 text-muted-foreground hover:text-foreground">
+                    <ArrowRightLeft className="h-3.5 w-3.5" /> Transfer
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="w-52">
+                  <div className="px-2 py-1.5 text-xs font-medium text-muted-foreground">Transfer & keep claim</div>
+                  {teamMembers.filter(m => m.id !== conversation.assigned_to).map(member => (
+                    <DropdownMenuItem
+                      key={member.id}
+                      onClick={() => onTransfer(member.id, false)}
+                    >
+                      <User className="h-4 w-4 mr-2" />
+                      {member.full_name}
+                    </DropdownMenuItem>
+                  ))}
+                  <DropdownMenuSeparator />
+                  <div className="px-2 py-1.5 text-xs font-medium text-muted-foreground">Transfer & reset claim</div>
+                  {teamMembers.filter(m => m.id !== conversation.assigned_to).map(member => (
+                    <DropdownMenuItem
+                      key={`reset-${member.id}`}
+                      onClick={() => onTransfer(member.id, true)}
+                    >
+                      <ArrowRightLeft className="h-4 w-4 mr-2" />
+                      {member.full_name} <span className="ml-auto text-xs text-muted-foreground">reset</span>
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
+
+            <div className="h-5 w-px bg-border" />
+
             {/* AI Intent & Health */}
-            <div className="flex items-center gap-2 pr-3 border-r border-gray-200">
+            <div className="flex items-center gap-2 pr-3 border-r border-border/40">
               <IntentBadge intent={aiIntent} />
               <HealthDot health={aiHealth} />
             </div>
@@ -457,14 +552,6 @@ export function InboxChatThread({
               <Badge className="bg-amber-100 text-amber-700 border-amber-200 hover:bg-amber-100">
                 <Hand className="h-3 w-3 mr-1" />
                 Bot Paused
-              </Badge>
-            )}
-            
-            {/* Supervisor Badge */}
-            {isSupervisorMode && (
-              <Badge className="bg-purple-100 text-purple-700 border-purple-200 hover:bg-purple-100">
-                <Eye className="h-3 w-3 mr-1" />
-                Watching
               </Badge>
             )}
             
@@ -492,7 +579,7 @@ export function InboxChatThread({
               ))}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="sm" className="h-7 px-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100">
+                  <Button variant="ghost" size="sm" className="h-7 px-2 text-muted-foreground hover:text-foreground">
                     <Tag className="h-3.5 w-3.5" />
                   </Button>
                 </DropdownMenuTrigger>
@@ -510,9 +597,9 @@ export function InboxChatThread({
               </DropdownMenu>
             </div>
             
-            <div className="h-5 w-px bg-gray-200" />
+            <div className="h-5 w-px bg-border" />
             
-            {/* Intervene Toggle */}
+            {/* Intervene Toggle (Bot) */}
             <Button 
               variant={conversation.is_intervened ? "secondary" : "ghost"}
               size="sm"
@@ -520,7 +607,7 @@ export function InboxChatThread({
                 "h-7 text-xs gap-1",
                 conversation.is_intervened 
                   ? "bg-amber-100 text-amber-700 hover:bg-amber-200" 
-                  : "text-gray-600 hover:bg-gray-100"
+                  : "text-muted-foreground hover:text-foreground"
               )}
               onClick={() => onSetIntervene(!conversation.is_intervened)}
             >
@@ -534,7 +621,7 @@ export function InboxChatThread({
             {/* Status Dropdown */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm" className="h-7 text-xs gap-1 border-gray-200">
+                <Button variant="outline" size="sm" className="h-7 text-xs gap-1 border-border">
                   Status <ChevronDown className="h-3 w-3" />
                 </Button>
               </DropdownMenuTrigger>
@@ -546,7 +633,7 @@ export function InboxChatThread({
                   <span className="w-2 h-2 rounded-full bg-amber-500 mr-2" /> Pending
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => onSetStatus('closed')}>
-                  <span className="w-2 h-2 rounded-full bg-gray-400 mr-2" /> Close
+                  <span className="w-2 h-2 rounded-full bg-muted-foreground mr-2" /> Close
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
