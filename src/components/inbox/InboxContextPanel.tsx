@@ -74,7 +74,7 @@ export function InboxContextPanel({
     return (
       <div className={cn(
         "border-l bg-card flex items-center justify-center",
-        isMobile ? "w-full h-full" : "w-80"
+        isMobile ? "w-full h-full" : "w-80 flex-shrink-0"
       )}>
         <div className="text-center text-muted-foreground p-4">
           <User className="h-12 w-12 mx-auto mb-3 opacity-30" />
@@ -101,7 +101,7 @@ export function InboxContextPanel({
   return (
     <div className={cn(
       "border-l bg-card flex flex-col",
-      isMobile ? "w-full h-full border-l-0" : "w-80"
+      isMobile ? "w-full h-full border-l-0" : "w-80 flex-shrink-0"
     )}>
       {/* Contact Header */}
       <div className="p-4 border-b">
