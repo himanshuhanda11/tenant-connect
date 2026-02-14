@@ -137,6 +137,9 @@ export default function Contacts() {
 
   // Build inbox summaries map from CRM data (for table columns)
   const inboxSummaries = useMemo(() => {
+    const agentMap: Record<string, { id: string; full_name: string | null; email: string }> = {};
+    availableAgents.forEach(a => { agentMap[a.id] = a; });
+
     const map: Record<string, any> = {};
     crmContacts.forEach(crm => {
       map[crm.contact_id] = {
@@ -156,10 +159,14 @@ export default function Contacts() {
         is_unreplied: crm.is_unreplied,
         lead_state: crm.lead_state,
         updated_at: crm.last_message_at || '',
+        // Resolve agent names for table display
+        assigned_agent: crm.assigned_to ? agentMap[crm.assigned_to] || { id: crm.assigned_to, full_name: null, email: crm.assigned_to.slice(0, 8) } : null,
+        claiming_agent: crm.claimed_by ? agentMap[crm.claimed_by] || { id: crm.claimed_by, full_name: null, email: crm.claimed_by.slice(0, 8) } : null,
+        replying_agent: crm.last_replied_by ? agentMap[crm.last_replied_by] || { id: crm.last_replied_by, full_name: null, email: crm.last_replied_by.slice(0, 8) } : null,
       };
     });
     return map;
-  }, [crmContacts]);
+  }, [crmContacts, availableAgents]);
 
   // Convert SegmentFilters → CrmSearchFilters
   const handleFiltersChange = (newFilters: SegmentFilters) => {
