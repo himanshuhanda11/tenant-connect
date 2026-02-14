@@ -48,8 +48,9 @@ interface InboxConversationListProps {
 
 const VIEW_ICONS: Record<InboxView, React.ReactNode> = {
   all: <Inbox className="h-4 w-4" />,
-  mine: <User className="h-4 w-4" />,
   unassigned: <UserX className="h-4 w-4" />,
+  assigned_pending: <Clock className="h-4 w-4" />,
+  mine: <User className="h-4 w-4" />,
   sla_risk: <AlertTriangle className="h-4 w-4" />,
   vip: <Star className="h-4 w-4" />,
   closed: <CheckCircle className="h-4 w-4" />,

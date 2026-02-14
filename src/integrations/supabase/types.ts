@@ -2037,6 +2037,7 @@ export type Database = {
       }
       conversations: {
         Row: {
+          assigned_at: string | null
           assigned_to: string | null
           claimed_at: string | null
           claimed_by: string | null
@@ -2067,6 +2068,7 @@ export type Database = {
           version: number
         }
         Insert: {
+          assigned_at?: string | null
           assigned_to?: string | null
           claimed_at?: string | null
           claimed_by?: string | null
@@ -2097,6 +2099,7 @@ export type Database = {
           version?: number
         }
         Update: {
+          assigned_at?: string | null
           assigned_to?: string | null
           claimed_at?: string | null
           claimed_by?: string | null
@@ -10363,6 +10366,15 @@ export type Database = {
       }
       claim_conversation: {
         Args: { p_conversation_id: string; p_tenant_id: string }
+        Returns: Json
+      }
+      claim_on_reply: {
+        Args: {
+          p_actor_id: string
+          p_conversation_id: string
+          p_takeover?: boolean
+          p_tenant_id: string
+        }
         Returns: Json
       }
       cleanup_automation_expired_records: { Args: never; Returns: undefined }
