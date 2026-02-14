@@ -10298,12 +10298,11 @@ export type Database = {
     Functions: {
       assign_conversation: {
         Args: {
+          p_assigned_to: string
           p_conversation_id: string
-          p_only_if_unassigned?: boolean
-          p_profile_id: string
           p_tenant_id: string
         }
-        Returns: boolean
+        Returns: Json
       }
       auto_route_conversation: {
         Args: {
@@ -10760,6 +10759,15 @@ export type Database = {
           p_tenant_id: string
         }
         Returns: string
+      }
+      transfer_conversation: {
+        Args: {
+          p_conversation_id: string
+          p_new_assigned_to: string
+          p_reset_claim?: boolean
+          p_tenant_id: string
+        }
+        Returns: Json
       }
       update_campaign_progress: {
         Args: { p_campaign_id: string }
