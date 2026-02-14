@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { useContacts } from '@/hooks/useContacts';
+import { useContactInboxSummary } from '@/hooks/useContactInboxSummary';
 import { useTenant } from '@/contexts/TenantContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -40,6 +41,9 @@ export default function Contacts() {
     removeTag,
     resetFilters,
   } = useContacts();
+
+  const contactIds = useMemo(() => contacts.map(c => c.id), [contacts]);
+  const { summaries: inboxSummaries } = useContactInboxSummary(contactIds);
 
   const [activeView, setActiveView] = useState<SmartView>(DEFAULT_SMART_VIEWS[0]);
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
@@ -275,6 +279,7 @@ export default function Contacts() {
               selectedContactIds={selectedContactIds}
               onToggleSelection={toggleContactSelection}
               onSelectAll={handleSelectAll}
+              inboxSummaries={inboxSummaries}
             />
           </div>
         </div>
