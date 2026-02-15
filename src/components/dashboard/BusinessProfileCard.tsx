@@ -7,6 +7,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 import { Building2, Phone, Copy, ExternalLink, Pencil, Wifi, WifiOff, Shield, Zap, Info } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import dashboardWhatsappProfile from '@/assets/dashboard-whatsapp-profile.png';
 
 interface BusinessProfileCardProps {
   businessName: string;
@@ -78,7 +79,33 @@ export function BusinessProfileCard({
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
-        {/* WABA Status */}
+        {/* Illustration + WABA Status */}
+        <div className="flex items-center gap-3 mb-1">
+          <img 
+            src={dashboardWhatsappProfile} 
+            alt="WhatsApp Business" 
+            className="h-16 w-16 object-contain flex-shrink-0"
+            loading="lazy"
+          />
+          <div className="flex-1">
+            <h3 className="font-semibold text-foreground text-sm">{businessName}</h3>
+            {businessId && (
+              <p className="text-[10px] text-muted-foreground font-mono mt-0.5">{businessId}</p>
+            )}
+          </div>
+          {isWABAConnected ? (
+            <Badge className="bg-emerald-500 text-white hover:bg-emerald-600 font-bold px-3 py-1 text-xs rounded-lg shadow-sm">
+              LIVE
+            </Badge>
+          ) : (
+            <Button size="sm" onClick={onConnect} className="h-7 text-xs bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg">
+              <Zap className="h-3 w-3 mr-1" />
+              Connect
+            </Button>
+          )}
+        </div>
+
+        {/* API Status row */}
         <div className="flex items-center justify-between p-3 rounded-xl bg-muted/50">
           <div className="flex items-center gap-2">
             <div className={cn(
@@ -107,28 +134,7 @@ export function BusinessProfileCard({
           )}
         </div>
 
-        {/* Profile Header */}
-        <div className="flex items-start gap-3">
-          {profilePictureUrl ? (
-            <img
-              src={profilePictureUrl}
-              alt={businessName}
-              className="h-12 w-12 rounded-xl object-cover border border-border"
-            />
-          ) : (
-            <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-primary to-emerald-500 flex items-center justify-center flex-shrink-0">
-              <span className="text-lg font-bold text-primary-foreground">
-                {businessName.charAt(0).toUpperCase()}
-              </span>
-            </div>
-          )}
-          <div className="flex-1 min-w-0">
-            <h3 className="font-semibold text-foreground truncate text-sm">{businessName}</h3>
-            {businessId && (
-              <p className="text-[10px] text-muted-foreground font-mono mt-0.5">{businessId}</p>
-            )}
-          </div>
-        </div>
+        {/* Profile Header removed - now in illustration section above */}
 
         {/* Phone Number */}
         {phoneNumber && (

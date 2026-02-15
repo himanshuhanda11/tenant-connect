@@ -12,6 +12,7 @@ import {
   CheckCircle2,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import dashboardAllClear from '@/assets/dashboard-all-clear.png';
 
 interface AlertItem {
   id: string;
@@ -118,9 +119,15 @@ export function AttentionCard({
       </CardHeader>
       <CardContent>
         {visibleAlerts.length === 0 ? (
-          <div className="flex flex-col items-center py-6 text-center">
-            <CheckCircle2 className="h-10 w-10 text-emerald-500 mb-2" strokeWidth={1.5} />
-            <p className="text-sm text-muted-foreground">No issues right now</p>
+          <div className="flex flex-col items-center py-4 text-center">
+            <img 
+              src={dashboardAllClear} 
+              alt="All clear" 
+              className="h-16 w-16 object-contain mb-2"
+              loading="lazy"
+            />
+            <p className="text-sm font-medium text-foreground">All Clear! 🎉</p>
+            <p className="text-xs text-muted-foreground mt-0.5">No issues right now</p>
           </div>
         ) : (
           <div className="space-y-2">

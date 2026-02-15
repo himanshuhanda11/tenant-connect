@@ -7,6 +7,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Progress } from '@/components/ui/progress';
 import { Coins, CreditCard, ChevronRight, Crown, AlertTriangle } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import dashboardCredits from '@/assets/dashboard-credits.png';
 
 interface CreditsBillingCardProps {
   creditsBalance: number;
@@ -62,18 +63,26 @@ export function CreditsBillingCard({
       </CardHeader>
       <CardContent className="space-y-5">
         {/* Credits Balance */}
-        <div className="p-4 rounded-xl bg-gradient-to-br from-primary/8 to-primary/3 border border-primary/10">
-          <p className="text-xs text-muted-foreground mb-1">Message Credits</p>
-          <p className="text-3xl font-bold text-foreground">
-            {creditsCurrency}{creditsBalance.toLocaleString()}
-          </p>
-          <Button
-            size="sm"
-            className="mt-3 h-8 text-xs font-semibold"
-            onClick={() => navigate('/billing')}
-          >
-            Buy Credits
-          </Button>
+        <div className="p-4 rounded-xl bg-gradient-to-br from-primary/8 to-primary/3 border border-primary/10 flex items-center gap-4">
+          <img 
+            src={dashboardCredits} 
+            alt="Credits" 
+            className="h-16 w-16 object-contain flex-shrink-0"
+            loading="lazy"
+          />
+          <div>
+            <p className="text-xs text-muted-foreground mb-1">Message Credits</p>
+            <p className="text-3xl font-bold text-foreground">
+              {creditsCurrency}{creditsBalance.toLocaleString()}
+            </p>
+            <Button
+              size="sm"
+              className="mt-2 h-8 text-xs font-semibold"
+              onClick={() => navigate('/billing')}
+            >
+              Buy Credits
+            </Button>
+          </div>
         </div>
 
         {/* Plan */}
