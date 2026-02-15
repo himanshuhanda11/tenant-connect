@@ -3,8 +3,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Progress } from '@/components/ui/progress';
-import { Building2, Phone, Copy, ExternalLink, Pencil, MessageCircle } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { Building2, Phone, Copy, ExternalLink, Pencil, Wifi, WifiOff, Shield, Zap, Info } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 
@@ -13,11 +13,12 @@ interface BusinessProfileCardProps {
   businessId?: string;
   phoneNumber?: string;
   profilePictureUrl?: string;
-  freeConversations?: { used: number; limit: number };
-  credits?: { balance: number; currency: string };
+  isWABAConnected?: boolean;
+  qualityRating?: 'green' | 'yellow' | 'red' | 'unknown';
   loading?: boolean;
   onViewProfile?: () => void;
   onEdit?: () => void;
+  onConnect?: () => void;
 }
 
 export function BusinessProfileCard({
@@ -25,16 +26,26 @@ export function BusinessProfileCard({
   businessId,
   phoneNumber,
   profilePictureUrl,
-  freeConversations,
-  credits,
+  isWABAConnected = false,
+  qualityRating = 'unknown',
   loading,
   onViewProfile,
   onEdit,
+  onConnect,
 }: BusinessProfileCardProps) {
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
     toast.success('Copied to clipboard');
   };
+
+  const qualityConfig = {
+    green: { label: 'Good', dotColor: 'bg-emerald-500', textColor: 'text-emerald-600', bgColor: 'bg-emerald-500/10', tooltip: 'Your account is in good standing. Keep up the quality!' },
+    yellow: { label: 'Medium', dotColor: 'bg-amber-500', textColor: 'text-amber-600', bgColor: 'bg-amber-500/10', tooltip: 'Quality needs attention. Avoid spam reports.' },
+    red: { label: 'Low', dotColor: 'bg-destructive', textColor: 'text-destructive', bgColor: 'bg-destructive/10', tooltip: 'Action required! Your messaging limits may be reduced.' },
+    unknown: { label: 'N/A', dotColor: 'bg-muted-foreground', textColor: 'text-muted-foreground', bgColor: 'bg-muted', tooltip: 'Connect WhatsApp to see quality rating.' },
+  };
+
+  const qc = qualityConfig[qualityRating];
 
   if (loading) {
     return (
@@ -53,43 +64,68 @@ export function BusinessProfileCard({
     );
   }
 
-  const conversationPercentage = freeConversations
-    ? (freeConversations.used / freeConversations.limit) * 100
-    : 0;
-
   return (
     <Card className="border-0 shadow-soft bg-card">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <CardTitle className="text-base font-semibold flex items-center gap-2">
             <Building2 className="h-4 w-4 text-muted-foreground" />
-            Business Profile
+            WhatsApp Business
           </CardTitle>
           <Button variant="ghost" size="icon" className="h-8 w-8" onClick={onEdit}>
             <Pencil className="h-4 w-4" />
           </Button>
         </div>
       </CardHeader>
-      <CardContent className="space-y-5">
+      <CardContent className="space-y-4">
+        {/* WABA Status */}
+        <div className="flex items-center justify-between p-3 rounded-xl bg-muted/50">
+          <div className="flex items-center gap-2">
+            <div className={cn(
+              "h-8 w-8 rounded-lg flex items-center justify-center",
+              isWABAConnected ? "bg-emerald-500/10" : "bg-muted"
+            )}>
+              {isWABAConnected ? (
+                <Wifi className="h-4 w-4 text-emerald-600" />
+              ) : (
+                <WifiOff className="h-4 w-4 text-muted-foreground" />
+              )}
+            </div>
+            <div>
+              <p className="text-xs font-medium text-muted-foreground">API Status</p>
+            </div>
+          </div>
+          {isWABAConnected ? (
+            <Badge className="bg-emerald-500 text-white hover:bg-emerald-600 font-bold px-3 py-1 text-xs rounded-lg shadow-sm">
+              LIVE
+            </Badge>
+          ) : (
+            <Button size="sm" onClick={onConnect} className="h-7 text-xs bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg">
+              <Zap className="h-3 w-3 mr-1" />
+              Connect
+            </Button>
+          )}
+        </div>
+
         {/* Profile Header */}
-        <div className="flex items-start gap-4">
+        <div className="flex items-start gap-3">
           {profilePictureUrl ? (
             <img
               src={profilePictureUrl}
               alt={businessName}
-              className="h-14 w-14 rounded-xl object-cover border border-border"
+              className="h-12 w-12 rounded-xl object-cover border border-border"
             />
           ) : (
-            <div className="h-14 w-14 rounded-xl bg-gradient-to-br from-primary to-emerald-500 flex items-center justify-center">
-              <span className="text-xl font-bold text-primary-foreground">
+            <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-primary to-emerald-500 flex items-center justify-center flex-shrink-0">
+              <span className="text-lg font-bold text-primary-foreground">
                 {businessName.charAt(0).toUpperCase()}
               </span>
             </div>
           )}
           <div className="flex-1 min-w-0">
-            <h3 className="font-semibold text-foreground truncate">{businessName}</h3>
+            <h3 className="font-semibold text-foreground truncate text-sm">{businessName}</h3>
             {businessId && (
-              <p className="text-xs text-muted-foreground">{businessId}</p>
+              <p className="text-[10px] text-muted-foreground font-mono mt-0.5">{businessId}</p>
             )}
           </div>
         </div>
@@ -99,7 +135,7 @@ export function BusinessProfileCard({
           <div className="flex items-center justify-between p-3 rounded-lg bg-primary/5 border border-primary/10">
             <div className="flex items-center gap-2">
               <Phone className="h-4 w-4 text-primary" />
-              <span className="font-semibold text-primary">{phoneNumber}</span>
+              <span className="font-semibold text-primary text-sm">{phoneNumber}</span>
             </div>
             <Button
               variant="ghost"
@@ -112,47 +148,36 @@ export function BusinessProfileCard({
           </div>
         )}
 
-        {/* View Profile Link */}
+        {/* Quality Rating */}
+        <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
+          <div className="flex items-center gap-2">
+            <Shield className={cn("h-4 w-4", qc.textColor)} />
+            <span className="text-xs font-medium text-muted-foreground">Quality Rating</span>
+          </div>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div className="flex items-center gap-1.5 cursor-help">
+                <div className={cn("h-2 w-2 rounded-full", qc.dotColor)} />
+                <span className={cn("text-xs font-bold", qc.textColor)}>{qc.label}</span>
+                <Info className="h-3 w-3 text-muted-foreground" />
+              </div>
+            </TooltipTrigger>
+            <TooltipContent side="left" className="max-w-[200px]">
+              <p className="text-xs">{qc.tooltip}</p>
+            </TooltipContent>
+          </Tooltip>
+        </div>
+
+        {/* View Settings Link */}
         <Button
           variant="outline"
           size="sm"
           className="w-full justify-between"
           onClick={onViewProfile}
         >
-          <span>View Profile</span>
+          <span>View WhatsApp Settings</span>
           <ExternalLink className="h-4 w-4" />
         </Button>
-
-        {/* Free Conversations */}
-        {freeConversations && (
-          <div className="space-y-2">
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-muted-foreground flex items-center gap-1.5">
-                <MessageCircle className="h-4 w-4" />
-                Free Service Conversations
-              </span>
-              <span className="text-xs text-muted-foreground">
-                {freeConversations.limit === Infinity ? 'Unlimited' : `${freeConversations.used}/${freeConversations.limit}`}
-              </span>
-            </div>
-            <Progress value={conversationPercentage} className="h-2" />
-          </div>
-        )}
-
-        {/* Credits Balance */}
-        {credits && (
-          <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
-            <div>
-              <p className="text-xs text-muted-foreground">Conversation Credits</p>
-              <p className="text-lg font-bold text-foreground">
-                {credits.currency} {credits.balance.toLocaleString()}
-              </p>
-            </div>
-            <Button variant="default" size="sm">
-              Buy More
-            </Button>
-          </div>
-        )}
       </CardContent>
     </Card>
   );
