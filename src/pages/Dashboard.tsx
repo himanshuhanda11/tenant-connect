@@ -42,6 +42,12 @@ export default function Dashboard() {
     phoneHealth,
     contacts,
     billing,
+    creditsBalance,
+    templatesPending,
+    totalTemplates,
+    messagesReceivedToday,
+    messagesRepliedToday,
+    totalCampaigns,
     refetch,
   } = useDashboardData(filters);
 
@@ -125,19 +131,24 @@ export default function Dashboard() {
         <StatusRow
           isWABAConnected={isWABAConnected}
           qualityRating={primaryPhone?.qualityRating || 'unknown'}
-          creditsBalance={678.69}
+          creditsBalance={creditsBalance}
           creditsCurrency="₹"
           planName={billing?.planName || 'Free'}
+          phoneNumber={primaryPhone?.phoneNumber}
           loading={loading}
           onConnect={() => setEmbeddedSignupOpen(true)}
         />
 
-        {/* KPI Row — 4 cards */}
+        {/* KPI Row */}
         <KPIRow
           openChats={openChats}
           newContacts7d={contacts?.newContacts7d || 0}
           automationRuns7d={automations?.totalExecutions || 0}
-          templatesPending={0}
+          templatesPending={templatesPending}
+          totalTemplates={totalTemplates}
+          messagesReceivedToday={messagesReceivedToday}
+          messagesRepliedToday={messagesRepliedToday}
+          totalCampaigns={totalCampaigns}
           loading={loading}
         />
 

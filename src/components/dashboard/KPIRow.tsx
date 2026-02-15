@@ -7,6 +7,9 @@ import {
   UserPlus,
   Zap,
   FileText,
+  ArrowDownLeft,
+  ArrowUpRight,
+  Megaphone,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -25,6 +28,10 @@ interface KPIRowProps {
   newContacts7d: number;
   automationRuns7d: number;
   templatesPending: number;
+  totalTemplates?: number;
+  messagesReceivedToday?: number;
+  messagesRepliedToday?: number;
+  totalCampaigns?: number;
   loading?: boolean;
 }
 
@@ -33,14 +40,18 @@ export function KPIRow({
   newContacts7d,
   automationRuns7d,
   templatesPending,
+  totalTemplates = 0,
+  messagesReceivedToday = 0,
+  messagesRepliedToday = 0,
+  totalCampaigns = 0,
   loading,
 }: KPIRowProps) {
   const navigate = useNavigate();
 
   if (loading) {
     return (
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        {Array.from({ length: 4 }).map((_, i) => (
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+        {Array.from({ length: 8 }).map((_, i) => (
           <Card key={i} className="border-0 shadow-card">
             <CardContent className="p-5">
               <Skeleton className="h-10 w-10 rounded-xl mb-3" />
@@ -64,6 +75,24 @@ export function KPIRow({
       bgColor: 'bg-blue-500/10',
     },
     {
+      id: 'received-today',
+      label: 'Received Today',
+      value: messagesReceivedToday,
+      icon: ArrowDownLeft,
+      href: '/inbox',
+      color: 'text-emerald-600',
+      bgColor: 'bg-emerald-500/10',
+    },
+    {
+      id: 'replied-today',
+      label: 'Replied Today',
+      value: messagesRepliedToday,
+      icon: ArrowUpRight,
+      href: '/inbox',
+      color: 'text-cyan-600',
+      bgColor: 'bg-cyan-500/10',
+    },
+    {
       id: 'new-contacts',
       label: 'New Contacts (7d)',
       value: newContacts7d,
@@ -82,18 +111,27 @@ export function KPIRow({
       bgColor: 'bg-amber-500/10',
     },
     {
-      id: 'templates-pending',
-      label: 'Templates Pending',
-      value: templatesPending,
+      id: 'templates',
+      label: `Templates${templatesPending > 0 ? ` (${templatesPending} pending)` : ''}`,
+      value: totalTemplates,
       icon: FileText,
       href: '/templates',
       color: 'text-pink-600',
       bgColor: 'bg-pink-500/10',
     },
+    {
+      id: 'campaigns',
+      label: 'Total Campaigns',
+      value: totalCampaigns,
+      icon: Megaphone,
+      href: '/campaigns',
+      color: 'text-orange-600',
+      bgColor: 'bg-orange-500/10',
+    },
   ];
 
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
       {stats.map((stat) => {
         const Icon = stat.icon;
         return (
@@ -101,7 +139,7 @@ export function KPIRow({
             key={stat.id}
             onClick={() => stat.href && navigate(stat.href)}
             className={cn(
-              "border-0 shadow-card hover:shadow-soft transition-all duration-200 group",
+              "border border-border/50 shadow-card hover:shadow-soft transition-all duration-200 group rounded-2xl",
               stat.href && "cursor-pointer"
             )}
           >
@@ -110,7 +148,7 @@ export function KPIRow({
                 <Icon className={cn("h-5 w-5", stat.color)} />
               </div>
               <p className="text-2xl font-bold text-foreground">{stat.value}</p>
-              <p className="text-sm text-muted-foreground mt-0.5">{stat.label}</p>
+              <p className="text-xs text-muted-foreground mt-0.5">{stat.label}</p>
             </CardContent>
           </Card>
         );

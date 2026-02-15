@@ -56,6 +56,12 @@ export function useDashboardData(filters: DashboardFilters) {
   const [alerts, setAlerts] = useState<SystemAlert[]>([]);
   const [heatmap, setHeatmap] = useState<ConversationHeatmapData[]>([]);
   const [nextActions, setNextActions] = useState<NextBestAction[]>([]);
+  const [creditsBalance, setCreditsBalance] = useState(0);
+  const [templatesPending, setTemplatesPending] = useState(0);
+  const [totalTemplates, setTotalTemplates] = useState(0);
+  const [messagesReceivedToday, setMessagesReceivedToday] = useState(0);
+  const [messagesRepliedToday, setMessagesRepliedToday] = useState(0);
+  const [totalCampaigns, setTotalCampaigns] = useState(0);
 
   const isAdmin = currentRole === 'owner' || currentRole === 'admin';
 
@@ -349,17 +355,87 @@ export function useDashboardData(filters: DashboardFilters) {
         ],
       });
 
-      // Billing (admin only)
+      // Fetch real credits balance
+      const { data: creditsData } = await supabase
+        .from('message_credits')
+        .select('balance')
+        .eq('tenant_id', currentTenant.id)
+        .maybeSingle();
+      setCreditsBalance(creditsData?.balance || 0);
+
+      // Fetch templates pending approval + total
+      const { count: pendingTemplates } = await supabase
+        .from('templates')
+        .select('id', { count: 'exact', head: true })
+        .eq('tenant_id', currentTenant.id)
+        .eq('status', 'PENDING');
+      setTemplatesPending(pendingTemplates || 0);
+
+      const { count: allTemplates } = await supabase
+        .from('templates')
+        .select('id', { count: 'exact', head: true })
+        .eq('tenant_id', currentTenant.id);
+      setTotalTemplates(allTemplates || 0);
+
+      // Fetch total campaigns
+      const { count: campaignCount } = await supabase
+        .from('campaigns')
+        .select('id', { count: 'exact', head: true })
+        .eq('tenant_id', currentTenant.id);
+      setTotalCampaigns(campaignCount || 0);
+
+      // Messages received today (inbound) and replied today (outbound)
+      const { count: inboundToday } = await supabase
+        .from('messages')
+        .select('id', { count: 'exact', head: true })
+        .eq('tenant_id', currentTenant.id)
+        .eq('direction', 'inbound')
+        .gte('created_at', todayStart.toISOString());
+      setMessagesReceivedToday(inboundToday || 0);
+
+      const { count: outboundToday } = await supabase
+        .from('messages')
+        .select('id', { count: 'exact', head: true })
+        .eq('tenant_id', currentTenant.id)
+        .eq('direction', 'outbound')
+        .gte('created_at', todayStart.toISOString());
+      setMessagesRepliedToday(outboundToday || 0);
+
+
       if (isAdmin) {
-        const { data: members, count: memberCount } = await supabase
+        const { count: memberCount } = await supabase
           .from('tenant_members')
-          .select('id', { count: 'exact' })
+          .select('id', { count: 'exact', head: true })
           .eq('tenant_id', currentTenant.id);
 
         const phoneCount = phones?.length || 0;
 
+        // Fetch real plan from workspace_entitlements
+        const { data: entitlementData } = await supabase
+          .from('workspace_entitlements')
+          .select('plan')
+          .eq('workspace_id', currentTenant.id)
+          .maybeSingle();
+
+        let realPlanName = entitlementData?.plan || 'free';
+
+        // Fallback to subscriptions if no entitlement
+        if (!entitlementData) {
+          const { data: subData } = await supabase
+            .from('subscriptions')
+            .select('plan_id')
+            .eq('tenant_id', currentTenant.id)
+            .eq('status', 'active')
+            .maybeSingle();
+          if (subData?.plan_id) {
+            realPlanName = subData.plan_id.replace('plan_', '');
+          }
+        }
+
+        const planDisplay = realPlanName.charAt(0).toUpperCase() + realPlanName.slice(1);
+
         setBilling({
-          planName: 'Professional',
+          planName: planDisplay,
           seatsUsed: memberCount || 1,
           seatsLimit: 10,
           numbersUsed: phoneCount,
@@ -491,6 +567,12 @@ export function useDashboardData(filters: DashboardFilters) {
     heatmap,
     nextActions,
     isAdmin,
+    creditsBalance,
+    templatesPending,
+    totalTemplates,
+    messagesReceivedToday,
+    messagesRepliedToday,
+    totalCampaigns,
     refetch: fetchDashboardData,
   };
 }
