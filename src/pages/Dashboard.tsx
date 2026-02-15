@@ -9,14 +9,15 @@ import { MetaEmbeddedSignup } from '@/components/meta/MetaEmbeddedSignup';
 import { useDashboardData } from '@/hooks/useDashboardData';
 import type { DashboardFilters } from '@/types/dashboard';
 
-// Premium dashboard components
-import { StatusRow } from '@/components/dashboard/StatusRow';
+// Dashboard components
+import { BusinessProfileCard } from '@/components/dashboard/BusinessProfileCard';
+import { CreditsBillingCard } from '@/components/dashboard/CreditsBillingCard';
+import { SetupProgressCard } from '@/components/dashboard/SetupProgressCard';
 import { KPIRow } from '@/components/dashboard/KPIRow';
-import { AttentionCard } from '@/components/dashboard/AttentionCard';
 import { QuickActionButtons } from '@/components/dashboard/QuickActionButtons';
 import { AIInsightsCard } from '@/components/dashboard/AIInsightsCard';
+import { AttentionCard } from '@/components/dashboard/AttentionCard';
 import { RecentTimeline } from '@/components/dashboard/RecentTimeline';
-import { SetupProgressCard } from '@/components/dashboard/SetupProgressCard';
 
 import { RefreshCw } from 'lucide-react';
 
@@ -118,28 +119,38 @@ export default function Dashboard() {
           </Button>
         </div>
 
-        {/* Setup Progress (if incomplete) */}
-        {!allStepsCompleted && (
+        {/* Row 1: Profile + Credits & Billing + Setup Progress */}
+        <div className="grid gap-4 lg:grid-cols-3">
+          {/* WhatsApp Business Profile Card */}
+          <BusinessProfileCard
+            businessName={primaryPhone?.displayName || currentTenant?.name || 'My Business'}
+            businessId={primaryPhone?.id}
+            phoneNumber={primaryPhone?.phoneNumber}
+            isWABAConnected={isWABAConnected}
+            qualityRating={(primaryPhone?.qualityRating as any) || 'unknown'}
+            loading={loading}
+            onViewProfile={() => navigate('/phone-numbers')}
+            onEdit={() => navigate('/settings')}
+            onConnect={() => setEmbeddedSignupOpen(true)}
+          />
+
+          {/* Credits & Billing Card */}
+          <CreditsBillingCard
+            creditsBalance={creditsBalance}
+            creditsCurrency="₹"
+            planName={billing?.planName || 'Free'}
+            loading={loading}
+          />
+
+          {/* Setup Progress (always show, with completed state) */}
           <SetupProgressCard
             steps={setupSteps.map(s => ({ ...s, status: s.status as 'completed' | 'pending' | 'current' }))}
             loading={loading}
             creditsReward={200}
           />
-        )}
+        </div>
 
-        {/* Status Row — 5 mini cards */}
-        <StatusRow
-          isWABAConnected={isWABAConnected}
-          qualityRating={primaryPhone?.qualityRating || 'unknown'}
-          creditsBalance={creditsBalance}
-          creditsCurrency="₹"
-          planName={billing?.planName || 'Free'}
-          phoneNumber={primaryPhone?.phoneNumber}
-          loading={loading}
-          onConnect={() => setEmbeddedSignupOpen(true)}
-        />
-
-        {/* KPI Row */}
+        {/* Row 2: KPI Row */}
         <KPIRow
           openChats={openChats}
           newContacts7d={contacts?.newContacts7d || 0}
@@ -152,20 +163,20 @@ export default function Dashboard() {
           loading={loading}
         />
 
-        {/* Quick Actions — 4 buttons */}
+        {/* Row 3: Quick Actions */}
         <QuickActionButtons />
 
-        {/* Main Grid: Attention + AI Insights + Recent Activity */}
+        {/* Row 4: AI Insights + Attention + Recent Activity */}
         <div className="grid gap-4 lg:grid-cols-3">
-          <AttentionCard
-            templatesPending={0}
-            qualityRating={primaryPhone?.qualityRating || 'green'}
-            chatsWaiting={unassigned}
-            loading={loading}
-          />
           <AIInsightsCard
             metrics={aiMetrics}
             isPro={true}
+            loading={loading}
+          />
+          <AttentionCard
+            templatesPending={templatesPending}
+            qualityRating={primaryPhone?.qualityRating || 'green'}
+            chatsWaiting={unassigned}
             loading={loading}
           />
           <RecentTimeline
