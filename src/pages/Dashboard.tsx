@@ -2,41 +2,30 @@ import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
 import { useTenant } from '@/contexts/TenantContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { MetaEmbeddedSignup } from '@/components/meta/MetaEmbeddedSignup';
 import { useDashboardData } from '@/hooks/useDashboardData';
 import type { DashboardFilters } from '@/types/dashboard';
 
-// New modern dashboard components
-import { WABAStatusCard } from '@/components/dashboard/WABAStatusCard';
+// Premium dashboard components
+import { StatusRow } from '@/components/dashboard/StatusRow';
+import { KPIRow } from '@/components/dashboard/KPIRow';
+import { AttentionCard } from '@/components/dashboard/AttentionCard';
+import { QuickActionButtons } from '@/components/dashboard/QuickActionButtons';
+import { AIInsightsCard } from '@/components/dashboard/AIInsightsCard';
+import { RecentTimeline } from '@/components/dashboard/RecentTimeline';
 import { SetupProgressCard } from '@/components/dashboard/SetupProgressCard';
-import { BusinessProfileCard } from '@/components/dashboard/BusinessProfileCard';
-import { QuickStatsGrid } from '@/components/dashboard/QuickStatsGrid';
-import { QuickActionsCard } from '@/components/dashboard/QuickActionsCard';
-import { RecentActivityCard } from '@/components/dashboard/RecentActivityCard';
-import { AIInsightsSummary } from '@/components/dashboard/AIInsightsSummary';
-import { VIPQuickActions } from '@/components/dashboard/VIPQuickActions';
-import { WorkspaceTip } from '@/components/dashboard/WorkspaceTip';
-import { WhatsNewPanel } from '@/components/dashboard/WhatsNewPanel';
 
-// Existing enhanced components
-import { DashboardFiltersBar } from '@/components/dashboard/DashboardFiltersBar';
-import { AlertsPanel } from '@/components/dashboard/AlertsPanel';
-import { AIInsightsPanel } from '@/components/dashboard/AIInsightsPanel';
-import { AttentionNeededPanel } from '@/components/dashboard/AttentionNeededPanel';
-import { InboxHealthPanel } from '@/components/dashboard/InboxHealthPanel';
-import { CampaignsPanel } from '@/components/dashboard/CampaignsPanel';
-import { MetaAdsPanel } from '@/components/dashboard/MetaAdsPanel';
-import { AutomationsPanel } from '@/components/dashboard/AutomationsPanel';
+import { RefreshCw } from 'lucide-react';
 
 export default function Dashboard() {
   const navigate = useNavigate();
-  const { currentTenant, currentRole } = useTenant();
+  const { currentTenant } = useTenant();
   const { profile } = useAuth();
   const [embeddedSignupOpen, setEmbeddedSignupOpen] = useState(false);
-  const [showWhatsNew, setShowWhatsNew] = useState(true);
-  const [filters, setFilters] = useState<DashboardFilters>({
+  const [filters] = useState<DashboardFilters>({
     dateRange: '7d',
     phoneNumberId: null,
     teamId: null,
@@ -47,16 +36,12 @@ export default function Dashboard() {
     loading,
     kpis,
     inboxHealth,
-    actionQueue,
-    agents,
     automations,
     campaigns,
     metaAds,
     phoneHealth,
     contacts,
     billing,
-    alerts,
-    isAdmin,
     refetch,
   } = useDashboardData(filters);
 
@@ -64,243 +49,70 @@ export default function Dashboard() {
   const currentHour = new Date().getHours();
   const greeting = currentHour < 12 ? 'Good morning' : currentHour < 18 ? 'Good afternoon' : 'Good evening';
 
-  // Check if connected to WhatsApp (1 workspace = 1 number)
   const hasPhoneConnected = phoneHealth.length > 0;
   const isWABAConnected = hasPhoneConnected && phoneHealth.some(p => p.webhookHealth === 'healthy');
   const primaryPhone = phoneHealth[0];
 
-  // Setup steps based on actual data
+  // Setup steps
   const setupSteps = useMemo(() => {
     const hasPhone = phoneHealth.length > 0;
-    const hasTemplate = true; // We'd need to check templates
     const hasCampaign = campaigns.length > 0;
     const hasAutomation = (automations?.totalExecutions || 0) > 0;
 
     return [
-      {
-        id: 'api-live',
-        title: 'Get API Live',
-        status: hasPhone ? 'completed' : 'current',
-        href: '/phone-numbers/connect',
-      },
-      {
-        id: 'create-template',
-        title: 'Create Template',
-        status: hasPhone && hasTemplate ? 'completed' : hasPhone ? 'current' : 'pending',
-        href: '/templates',
-      },
-      {
-        id: 'send-campaign',
-        title: 'Send Campaign',
-        status: hasCampaign ? 'completed' : hasTemplate ? 'current' : 'pending',
-        href: '/campaigns/create',
-      },
-      {
-        id: 'create-flow',
-        title: 'Create Flow',
-        status: hasAutomation ? 'completed' : 'pending',
-        href: '/flows',
-      },
+      { id: 'api-live', title: 'Get API Live', status: hasPhone ? 'completed' : 'current', href: '/phone-numbers/connect' },
+      { id: 'create-template', title: 'Create Template', status: hasPhone ? 'completed' : 'pending', href: '/templates' },
+      { id: 'send-campaign', title: 'Send Campaign', status: hasCampaign ? 'completed' : 'pending', href: '/campaigns/create' },
+      { id: 'create-flow', title: 'Create Flow', status: hasAutomation ? 'completed' : 'pending', href: '/flows' },
     ] as const;
   }, [phoneHealth, campaigns, automations]);
 
   const allStepsCompleted = setupSteps.every(s => s.status === 'completed');
 
-  // Quick stats from KPIs
-  const quickStats = useMemo(() => [
-    {
-      id: 'conversations',
-      label: 'Open Chats',
-      value: kpis.find(k => k.id === 'open')?.value || 0,
-      change: 12,
-      changeType: 'positive' as const,
-      icon: 'messages' as const,
-      href: '/inbox',
-      color: 'primary' as const,
-    },
-    {
-      id: 'contacts',
-      label: 'New Contacts',
-      value: contacts?.newContacts7d || 0,
-      change: 8,
-      changeType: 'positive' as const,
-      icon: 'contacts' as const,
-      href: '/contacts',
-      color: 'purple' as const,
-    },
-    {
-      id: 'automations',
-      label: 'Automation Runs',
-      value: automations?.totalExecutions || 0,
-      icon: 'automations' as const,
-      href: '/automation',
-      color: 'orange' as const,
-    },
-    {
-      id: 'campaigns',
-      label: 'Campaigns Sent',
-      value: campaigns.reduce((sum, c) => sum + c.sent, 0),
-      icon: 'campaigns' as const,
-      href: '/campaigns',
-      color: 'blue' as const,
-    },
-    {
-      id: 'response',
-      label: 'Avg Response',
-      value: kpis.find(k => k.id === 'response')?.value || '—',
-      icon: 'response' as const,
-      color: 'cyan' as const,
-    },
-    {
-      id: 'resolved',
-      label: 'Resolved Today',
-      value: kpis.find(k => k.id === 'resolved')?.value || 0,
-      change: 5,
-      changeType: 'positive' as const,
-      icon: 'resolved' as const,
-      color: 'pink' as const,
-    },
-  ], [kpis, contacts, automations, campaigns]);
-
-  // Recent activity (mock for now - would come from audit logs)
-  const recentActivity = useMemo(() => [
-    {
-      id: '1',
-      type: 'message' as const,
-      title: 'New message from VIP customer',
-      description: 'Regarding order #12345',
-      timestamp: new Date(Date.now() - 5 * 60 * 1000).toISOString(),
-      href: '/inbox',
-    },
-    {
-      id: '2',
-      type: 'automation' as const,
-      title: 'Welcome Flow triggered',
-      description: '3 new contacts enrolled',
-      timestamp: new Date(Date.now() - 15 * 60 * 1000).toISOString(),
-      href: '/flows',
-    },
-    {
-      id: '3',
-      type: 'campaign' as const,
-      title: 'Summer Sale campaign completed',
-      description: '2,450 messages delivered',
-      timestamp: new Date(Date.now() - 60 * 60 * 1000).toISOString(),
-      href: '/campaigns',
-    },
-    {
-      id: '4',
-      type: 'contact' as const,
-      title: '12 new contacts added',
-      description: 'Via Meta Ads lead form',
-      timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-      href: '/contacts',
-    },
-    {
-      id: '5',
-      type: 'resolved' as const,
-      title: 'Ticket resolved',
-      description: 'Customer support query handled',
-      timestamp: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString(),
-      href: '/inbox',
-    },
-  ], []);
-
-  // AI metrics for insights panel
+  // AI Insights metrics
   const aiMetrics = useMemo(() => ({
     openConversations: inboxHealth?.openConversations || 0,
-    unassigned: kpis.find(k => k.id === 'unassigned')?.value as number || 0,
-    slaBreaches: kpis.find(k => k.id === 'sla')?.value as number || 0,
+    unassigned: (kpis.find(k => k.id === 'unassigned')?.value as number) || 0,
+    slaBreaches: (kpis.find(k => k.id === 'sla')?.value as number) || 0,
     avgResponseTime: 180,
-    resolvedToday: kpis.find(k => k.id === 'resolved')?.value as number || 0,
+    resolvedToday: (kpis.find(k => k.id === 'resolved')?.value as number) || 0,
     conversionRate: metaAds?.conversionRate || 0,
     campaignsSent: campaigns.reduce((sum, c) => sum + c.sent, 0),
     automationRuns: automations?.totalExecutions || 0,
   }), [inboxHealth, kpis, metaAds, campaigns, automations]);
 
-  // Attention items
-  const attentionItems = useMemo(() => {
-    const items: Array<{
-      id: string;
-      type: 'unassigned' | 'sla_breach' | 'broken_flow' | 'low_conversion' | 'webhook_error';
-      title: string;
-      subtitle: string;
-      count?: number;
-      severity: 'critical' | 'warning' | 'info';
-      href: string;
-    }> = [];
+  // Recent timeline events
+  const timelineEvents = useMemo(() => [
+    { id: '1', type: 'template_submitted' as const, title: 'Template "welcome_v2" submitted for approval', timestamp: new Date(Date.now() - 15 * 60 * 1000).toISOString() },
+    { id: '2', type: 'campaign_sent' as const, title: 'Campaign "Summer Sale" completed — 2,450 delivered', timestamp: new Date(Date.now() - 60 * 60 * 1000).toISOString() },
+    { id: '3', type: 'flow_triggered' as const, title: 'Welcome Flow triggered for 3 new contacts', timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString() },
+    { id: '4', type: 'payment_success' as const, title: 'Payment of ₹2,500 received successfully', timestamp: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString() },
+    { id: '5', type: 'template_approved' as const, title: 'Template "order_update" approved by Meta', timestamp: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString() },
+  ], []);
 
-    const unassignedCount = (kpis.find(k => k.id === 'unassigned')?.value as number) || 0;
-    if (unassignedCount > 0) {
-      items.push({
-        id: 'unassigned',
-        type: 'unassigned',
-        title: 'Unassigned Chats',
-        subtitle: 'Conversations waiting for assignment',
-        count: unassignedCount,
-        severity: unassignedCount > 10 ? 'critical' : 'warning',
-        href: '/inbox?assigned=none',
-      });
-    }
-
-    const slaCount = (kpis.find(k => k.id === 'sla')?.value as number) || 0;
-    if (slaCount > 0) {
-      items.push({
-        id: 'sla',
-        type: 'sla_breach',
-        title: 'SLA Breaches',
-        subtitle: 'Response time exceeded limits',
-        count: slaCount,
-        severity: 'critical',
-        href: '/inbox?sla=breached',
-      });
-    }
-
-    return items;
-  }, [kpis]);
+  const openChats = (kpis.find(k => k.id === 'open')?.value as number) || 0;
+  const unassigned = (kpis.find(k => k.id === 'unassigned')?.value as number) || 0;
 
   return (
     <DashboardLayout>
-      <div className="space-y-4 sm:space-y-6 max-w-[1600px] animate-fade-in">
-        {/* Welcome Header with Current Plan - Mobile optimized */}
-        <div className="flex flex-col gap-3 sm:gap-4">
+      <div className="space-y-6 max-w-[1400px] animate-fade-in">
+        {/* Header */}
+        <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground">
-              {greeting}, {displayName}! 👋
+            <h1 className="text-xl sm:text-2xl font-bold text-foreground">
+              {greeting}, {displayName} 👋
             </h1>
-            <p className="text-sm sm:text-base text-muted-foreground mt-1">
-              Here's what's happening in{' '}
-              <span className="font-medium text-foreground">{currentTenant?.name}</span>
+            <p className="text-sm text-muted-foreground mt-0.5">
+              Here's what's happening in <span className="font-medium text-foreground">{currentTenant?.name}</span>
             </p>
           </div>
-          <DashboardFiltersBar
-            filters={filters}
-            onChange={setFilters}
-            onRefresh={refetch}
-            loading={loading}
-          />
+          <Button variant="outline" size="sm" onClick={refetch} disabled={loading} className="h-9">
+            <RefreshCw className={`h-4 w-4 mr-1.5 ${loading ? 'animate-spin' : ''}`} />
+            Refresh
+          </Button>
         </div>
 
-        {/* System Alerts */}
-        <AlertsPanel alerts={alerts} />
-
-        {/* What's New Panel - New Features */}
-        {showWhatsNew && (
-          <WhatsNewPanel onDismiss={() => setShowWhatsNew(false)} />
-        )}
-
-        {/* WABA Status Card - Key Feature from Reference */}
-        <WABAStatusCard
-          isConnected={isWABAConnected}
-          qualityRating={primaryPhone?.qualityRating || 'unknown'}
-          remainingQuota={10000}
-          phoneNumber={primaryPhone?.phoneNumber || primaryPhone?.displayName}
-          businessName={currentTenant?.name}
-          loading={loading}
-          onConnect={() => setEmbeddedSignupOpen(true)}
-        />
-
-        {/* Setup Progress - Only show if not all completed */}
+        {/* Setup Progress (if incomplete) */}
         {!allStepsCompleted && (
           <SetupProgressCard
             steps={setupSteps.map(s => ({ ...s, status: s.status as 'completed' | 'pending' | 'current' }))}
@@ -309,66 +121,50 @@ export default function Dashboard() {
           />
         )}
 
-        {/* Quick Stats Grid */}
-        <QuickStatsGrid stats={quickStats} loading={loading} />
+        {/* Status Row — 5 mini cards */}
+        <StatusRow
+          isWABAConnected={isWABAConnected}
+          qualityRating={primaryPhone?.qualityRating || 'unknown'}
+          creditsBalance={678.69}
+          creditsCurrency="₹"
+          planName={billing?.planName || 'Free'}
+          loading={loading}
+          onConnect={() => setEmbeddedSignupOpen(true)}
+        />
 
-        {/* Main Content Grid - Responsive */}
-        <div className="grid gap-4 sm:gap-6 lg:grid-cols-3">
-          {/* Left Column - Full width on mobile, 2/3 on large */}
-          <div className="lg:col-span-2 space-y-4 sm:space-y-6">
-            {/* AI Insights + Attention Needed - Stack on mobile */}
-            <div className="grid gap-4 md:grid-cols-2">
-              <AIInsightsPanel metrics={aiMetrics} isPro={true} />
-              <AttentionNeededPanel items={attentionItems} loading={loading} />
-            </div>
+        {/* KPI Row — 4 cards */}
+        <KPIRow
+          openChats={openChats}
+          newContacts7d={contacts?.newContacts7d || 0}
+          automationRuns7d={automations?.totalExecutions || 0}
+          templatesPending={0}
+          loading={loading}
+        />
 
-            {/* Inbox Health */}
-            <InboxHealthPanel
-              metrics={inboxHealth}
-              actionQueue={actionQueue}
-              loading={loading}
-            />
+        {/* Quick Actions — 4 buttons */}
+        <QuickActionButtons />
 
-            {/* Campaigns, Meta Ads - Side by side */}
-            <div className="grid gap-4 sm:grid-cols-2">
-              <CampaignsPanel campaigns={campaigns} loading={loading} />
-              <MetaAdsPanel metrics={metaAds} loading={loading} />
-            </div>
-
-            {/* AI Insights Summary + VIP Quick Actions */}
-            <div className="grid gap-4 md:grid-cols-2">
-              <AIInsightsSummary loading={loading} />
-              <VIPQuickActions />
-            </div>
-          </div>
-
-          {/* Right Column - 1/3 width on large */}
-          <div className="space-y-4 sm:space-y-6">
-            {/* Business Profile Card */}
-            <BusinessProfileCard
-              businessName={currentTenant?.name || 'Your Business'}
-              businessId={currentTenant?.id?.slice(0, 8).toUpperCase()}
-              phoneNumber={primaryPhone?.phoneNumber}
-              freeConversations={{ used: 0, limit: Infinity }}
-              credits={{ balance: 678.69, currency: '₹' }}
-              loading={loading}
-              onViewProfile={() => navigate('/settings')}
-              onEdit={() => navigate('/settings')}
-            />
-
-            {/* Quick Actions */}
-            <QuickActionsCard />
-
-            {/* Recent Activity */}
-            <RecentActivityCard activities={recentActivity} loading={loading} />
-          </div>
+        {/* Main Grid: Attention + AI Insights + Recent Activity */}
+        <div className="grid gap-4 lg:grid-cols-3">
+          <AttentionCard
+            templatesPending={0}
+            qualityRating={primaryPhone?.qualityRating || 'green'}
+            chatsWaiting={unassigned}
+            loading={loading}
+          />
+          <AIInsightsCard
+            metrics={aiMetrics}
+            isPro={true}
+            loading={loading}
+          />
+          <RecentTimeline
+            events={timelineEvents}
+            loading={loading}
+          />
         </div>
-
-        {/* Bottom Tip */}
-        <WorkspaceTip />
       </div>
 
-      {/* Embedded Signup Dialog - for connect/reconnect */}
+      {/* Embedded Signup Dialog */}
       <Dialog open={embeddedSignupOpen} onOpenChange={setEmbeddedSignupOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
@@ -376,14 +172,11 @@ export default function Dashboard() {
             <DialogDescription>
               {hasPhoneConnected
                 ? 'Re-authenticate your existing WhatsApp Business Account connection.'
-                : 'Use Meta\'s secure signup flow to connect your WhatsApp Business Account. Each workspace supports one phone number.'}
+                : 'Use Meta\'s secure signup flow to connect your WhatsApp Business Account.'}
             </DialogDescription>
           </DialogHeader>
           <MetaEmbeddedSignup
-            onSuccess={() => {
-              setEmbeddedSignupOpen(false);
-              refetch();
-            }}
+            onSuccess={() => { setEmbeddedSignupOpen(false); refetch(); }}
             onError={(error) => console.error('Embedded signup error:', error)}
           />
         </DialogContent>
