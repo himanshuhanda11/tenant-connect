@@ -1,8 +1,8 @@
 import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Check, Clock, AlertCircle, Trophy, Sparkles, ArrowRight } from 'lucide-react';
+import { Check, Circle, Gift, ArrowRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useNavigate } from 'react-router-dom';
 
@@ -22,16 +22,19 @@ interface SetupProgressCardProps {
 export function SetupProgressCard({ steps, loading, creditsReward = 200 }: SetupProgressCardProps) {
   const navigate = useNavigate();
   const completedCount = steps.filter(s => s.status === 'completed').length;
-  const allCompleted = completedCount === steps.length;
+  const totalSteps = steps.length;
+  const allCompleted = completedCount === totalSteps;
+  const progressPercent = (completedCount / totalSteps) * 100;
 
   if (loading) {
     return (
-      <Card className="border-0 shadow-soft bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/30">
+      <Card className="border border-border/50 shadow-card rounded-2xl">
         <CardContent className="p-6">
           <Skeleton className="h-6 w-64 mb-4" />
+          <Skeleton className="h-2 w-full mb-4" />
           <div className="flex gap-4">
             {Array.from({ length: 4 }).map((_, i) => (
-              <Skeleton key={i} className="h-16 w-32" />
+              <Skeleton key={i} className="h-14 flex-1" />
             ))}
           </div>
         </CardContent>
@@ -40,94 +43,100 @@ export function SetupProgressCard({ steps, loading, creditsReward = 200 }: Setup
   }
 
   return (
-    <Card className="border-0 shadow-soft bg-gradient-to-r from-amber-50 via-orange-50 to-yellow-50 dark:from-amber-950/30 dark:via-orange-950/30 dark:to-yellow-950/30 overflow-hidden">
-      <CardContent className="p-0">
-        <div className="p-5 flex flex-col lg:flex-row lg:items-center gap-4">
-          {/* Left: Trophy icon + text */}
-          <div className="flex items-center gap-4 lg:min-w-[320px]">
-            <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-lg">
-              <Trophy className="h-6 w-6 text-white" />
+    <Card className={cn(
+      "border shadow-card rounded-2xl overflow-hidden",
+      allCompleted
+        ? "border-emerald-500/30 bg-emerald-500/5"
+        : "border-primary/20 bg-gradient-to-r from-primary/5 via-primary/3 to-transparent"
+    )}>
+      <CardContent className="p-5">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-3">
+            <div className={cn(
+              "h-10 w-10 rounded-xl flex items-center justify-center",
+              allCompleted
+                ? "bg-emerald-500/15"
+                : "bg-primary/10"
+            )}>
+              <Gift className={cn(
+                "h-5 w-5",
+                allCompleted ? "text-emerald-600" : "text-primary"
+              )} />
             </div>
             <div>
-              <h3 className="font-semibold text-foreground text-base">
-                {allCompleted ? 'Setup Complete! 🎉' : `Complete the steps & win ${creditsReward} Credits`}
+              <h3 className="font-semibold text-foreground text-sm">
+                {allCompleted ? 'All steps completed! 🎉' : `Complete ${totalSteps} steps & earn ${creditsReward} free credits`}
               </h3>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-xs text-muted-foreground">
                 {allCompleted
-                  ? 'You\'re all set to start messaging'
-                  : `${steps.length - completedCount} steps left to complete`}
+                  ? `You earned ${creditsReward} credits!`
+                  : `${completedCount} of ${totalSteps} completed`}
               </p>
             </div>
           </div>
+          <span className="text-xs font-bold text-primary bg-primary/10 px-2.5 py-1 rounded-full">
+            {completedCount}/{totalSteps}
+          </span>
+        </div>
 
-          {/* Right: Steps */}
-          <div className="flex-1 flex items-center gap-2 overflow-x-auto pb-2 lg:pb-0">
-            {steps.map((step, index) => (
-              <React.Fragment key={step.id}>
-                {/* Step */}
-                <button
-                  onClick={() => step.href && step.status !== 'completed' && navigate(step.href)}
-                  disabled={step.status === 'completed'}
-                  className={cn(
-                    "flex flex-col items-center min-w-[100px] p-3 rounded-xl transition-all",
-                    step.status === 'completed' && "opacity-80",
-                    step.status === 'current' && "bg-white/60 dark:bg-white/10 shadow-sm",
-                    step.status === 'pending' && "hover:bg-white/40 dark:hover:bg-white/5 cursor-pointer"
-                  )}
-                >
-                  <div
-                    className={cn(
-                      "h-8 w-8 rounded-full flex items-center justify-center mb-2 transition-all",
-                      step.status === 'completed' && "bg-success text-success-foreground",
-                      step.status === 'current' && "bg-warning text-warning-foreground animate-pulse",
-                      step.status === 'pending' && "bg-muted text-muted-foreground"
-                    )}
-                  >
-                    {step.status === 'completed' ? (
-                      <Check className="h-4 w-4" />
-                    ) : step.status === 'current' ? (
-                      <AlertCircle className="h-4 w-4" />
-                    ) : (
-                      <Clock className="h-4 w-4" />
-                    )}
-                  </div>
-                  <span className="text-xs text-center font-medium text-foreground/80">
-                    Step {index + 1}
-                  </span>
-                  <span
-                    className={cn(
-                      "text-xs text-center",
-                      step.status === 'current' ? 'text-warning font-semibold' : 'text-muted-foreground'
-                    )}
-                  >
-                    {step.title}
-                  </span>
-                </button>
+        {/* Progress bar */}
+        <div className="h-1.5 bg-muted rounded-full mb-5 overflow-hidden">
+          <div
+            className={cn(
+              "h-full rounded-full transition-all duration-500",
+              allCompleted ? "bg-emerald-500" : "bg-primary"
+            )}
+            style={{ width: `${progressPercent}%` }}
+          />
+        </div>
 
-                {/* Connector line */}
-                {index < steps.length - 1 && (
-                  <div
-                    className={cn(
-                      "h-0.5 w-6 lg:w-10 flex-shrink-0",
-                      steps[index + 1].status === 'completed' || step.status === 'completed'
-                        ? "bg-success"
-                        : "bg-border"
-                    )}
-                  />
+        {/* Steps */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          {steps.map((step, index) => {
+            const isCompleted = step.status === 'completed';
+            const isCurrent = step.status === 'current';
+
+            return (
+              <button
+                key={step.id}
+                onClick={() => step.href && !isCompleted && navigate(step.href)}
+                disabled={isCompleted}
+                className={cn(
+                  "flex items-center gap-3 p-3 rounded-xl transition-all text-left",
+                  isCompleted && "bg-emerald-500/8 opacity-80",
+                  isCurrent && "bg-primary/8 ring-1 ring-primary/20 shadow-sm",
+                  !isCompleted && !isCurrent && "bg-muted/50 hover:bg-muted/80 cursor-pointer"
                 )}
-              </React.Fragment>
-            ))}
-
-            {/* Reward */}
-            <div className="flex flex-col items-center min-w-[80px] p-3">
-              <div className="h-8 w-8 rounded-full bg-gradient-to-br from-yellow-400 to-amber-500 flex items-center justify-center mb-2 shadow-lg">
-                <Sparkles className="h-4 w-4 text-white" />
-              </div>
-              <span className="text-xs text-center font-semibold text-amber-600 dark:text-amber-400">
-                {creditsReward} Credits
-              </span>
-            </div>
-          </div>
+              >
+                <div className={cn(
+                  "h-7 w-7 rounded-full flex items-center justify-center flex-shrink-0 transition-all",
+                  isCompleted && "bg-emerald-500 text-white",
+                  isCurrent && "bg-primary text-primary-foreground",
+                  !isCompleted && !isCurrent && "bg-border text-muted-foreground"
+                )}>
+                  {isCompleted ? (
+                    <Check className="h-3.5 w-3.5" />
+                  ) : (
+                    <span className="text-xs font-bold">{index + 1}</span>
+                  )}
+                </div>
+                <div className="min-w-0">
+                  <p className={cn(
+                    "text-xs font-medium truncate",
+                    isCompleted ? "text-emerald-700 dark:text-emerald-400 line-through" : "text-foreground"
+                  )}>
+                    {step.title}
+                  </p>
+                  {isCurrent && (
+                    <p className="text-[10px] text-primary font-medium flex items-center gap-0.5 mt-0.5">
+                      Start <ArrowRight className="h-2.5 w-2.5" />
+                    </p>
+                  )}
+                </div>
+              </button>
+            );
+          })}
         </div>
       </CardContent>
     </Card>
