@@ -12,6 +12,7 @@ import {
   Crown,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import dashboardAiInsights from '@/assets/dashboard-ai-insights.png';
 
 interface AIInsight {
   id: string;
@@ -122,9 +123,12 @@ export function AIInsightsCard({ metrics, isPro = true, loading: externalLoading
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="p-1.5 rounded-lg bg-primary/10">
-              <Sparkles className="h-4 w-4 text-primary" />
-            </div>
+            <img 
+              src={dashboardAiInsights} 
+              alt="AI Insights" 
+              className="h-10 w-10 object-contain"
+              loading="lazy"
+            />
             <CardTitle className="text-base font-semibold">AI Insights</CardTitle>
           </div>
           <Button variant="ghost" size="icon" className="h-8 w-8" onClick={fetchInsights}>

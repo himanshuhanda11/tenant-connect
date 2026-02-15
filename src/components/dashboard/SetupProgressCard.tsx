@@ -5,6 +5,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Check, Circle, Gift, ArrowRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useNavigate } from 'react-router-dom';
+import dashboardSetupReward from '@/assets/dashboard-setup-reward.png';
 
 interface SetupStep {
   id: string;
@@ -53,17 +54,12 @@ export function SetupProgressCard({ steps, loading, creditsReward = 200 }: Setup
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
-            <div className={cn(
-              "h-10 w-10 rounded-xl flex items-center justify-center",
-              allCompleted
-                ? "bg-emerald-500/15"
-                : "bg-primary/10"
-            )}>
-              <Gift className={cn(
-                "h-5 w-5",
-                allCompleted ? "text-emerald-600" : "text-primary"
-              )} />
-            </div>
+            <img 
+              src={dashboardSetupReward} 
+              alt="Setup rewards" 
+              className="h-12 w-12 object-contain flex-shrink-0"
+              loading="lazy"
+            />
             <div>
               <h3 className="font-semibold text-foreground text-sm">
                 {allCompleted ? 'All steps completed! 🎉' : `Complete ${totalSteps} steps & earn ${creditsReward} free credits`}
