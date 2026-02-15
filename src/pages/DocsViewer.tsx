@@ -1,7 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Helmet } from "react-helmet-async";
 import { Button } from "@/components/ui/button";
-import { Download, Printer, ArrowLeft } from "lucide-react";
+import { Download, FileDown, ArrowLeft, Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 const MARKDOWN_PATH = "/docs/AIReatro-Platform-Documentation.md";
@@ -9,6 +9,8 @@ const MARKDOWN_PATH = "/docs/AIReatro-Platform-Documentation.md";
 const DocsViewer = () => {
   const [html, setHtml] = useState<string>("");
   const [loading, setLoading] = useState(true);
+  const [generating, setGenerating] = useState(false);
+  const contentRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -24,11 +26,33 @@ const DocsViewer = () => {
       });
   }, []);
 
-  const handleDownload = () => {
+  const handleDownloadMd = () => {
     const a = document.createElement("a");
     a.href = MARKDOWN_PATH;
     a.download = "AIReatro-Platform-Documentation.md";
     a.click();
+  };
+
+  const handleDownloadPdf = async () => {
+    if (!contentRef.current || generating) return;
+    setGenerating(true);
+    try {
+      const html2pdf = (await import("html2pdf.js")).default;
+      const opt = {
+        margin: [10, 10, 10, 10],
+        filename: "AIReatro-Platform-Documentation.pdf",
+        image: { type: "jpeg", quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true, backgroundColor: "#0f172a" },
+        jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
+        pagebreak: { mode: ["avoid-all", "css", "legacy"] },
+      };
+      await html2pdf().set(opt).from(contentRef.current).save();
+    } catch (e) {
+      console.error("PDF generation failed:", e);
+      window.print();
+    } finally {
+      setGenerating(false);
+    }
   };
 
   return (
@@ -38,18 +62,19 @@ const DocsViewer = () => {
         <meta name="description" content="Complete technical documentation for the AIReatro Communications Platform." />
       </Helmet>
       <div className="min-h-screen bg-background text-foreground">
-        <div className="sticky top-0 z-10 bg-background/95 backdrop-blur border-b border-border">
+        <div className="sticky top-0 z-10 bg-background/95 backdrop-blur border-b border-border print:hidden">
           <div className="max-w-4xl mx-auto flex items-center justify-between px-4 py-3">
             <Button variant="ghost" size="sm" onClick={() => navigate(-1)}>
               <ArrowLeft className="h-4 w-4 mr-1" /> Back
             </Button>
             <h1 className="text-sm font-semibold">Platform Documentation</h1>
             <div className="flex gap-2">
-              <Button variant="outline" size="sm" onClick={handleDownload}>
-                <Download className="h-4 w-4 mr-1" /> Download
+              <Button variant="outline" size="sm" onClick={handleDownloadMd}>
+                <Download className="h-4 w-4 mr-1" /> Markdown
               </Button>
-              <Button variant="outline" size="sm" onClick={() => window.print()}>
-                <Printer className="h-4 w-4 mr-1" /> PDF
+              <Button variant="default" size="sm" onClick={handleDownloadPdf} disabled={generating || loading}>
+                {generating ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <FileDown className="h-4 w-4 mr-1" />}
+                {generating ? "Generating..." : "Download PDF"}
               </Button>
             </div>
           </div>
@@ -60,6 +85,7 @@ const DocsViewer = () => {
             <p className="text-muted-foreground">Loading documentation...</p>
           ) : (
             <article
+              ref={contentRef}
               className="prose prose-invert max-w-none
                 prose-headings:text-foreground
                 prose-h2:border-b prose-h2:border-border prose-h2:pb-2 prose-h2:mt-12
