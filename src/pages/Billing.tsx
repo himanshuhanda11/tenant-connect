@@ -6,11 +6,8 @@ import { MetaBillingNotice } from '@/components/billing/MetaBillingNotice';
 import { UsageOverview } from '@/components/billing/UsageOverview';
 import { PlanCard } from '@/components/billing/PlanCard';
 import { AddOnsSection } from '@/components/billing/AddOnsSection';
-import { InvoicesTable } from '@/components/billing/InvoicesTable';
 import { MessageCreditsCard } from '@/components/billing/MessageCreditsCard';
-import { PaymentMethodsCard } from '@/components/billing/PaymentMethodsCard';
 import { BillingSettingsForm } from '@/components/billing/BillingSettingsForm';
-import { SubscriptionActions } from '@/components/billing/SubscriptionActions';
 import { BillingFAQ } from '@/components/billing/BillingFAQ';
 import { WorkspacePlanCard } from '@/components/billing/WorkspacePlanCard';
 import { usePlans, useSubscription } from '@/hooks/useBilling';
@@ -54,12 +51,10 @@ export default function Billing() {
         <Tabs defaultValue="overview" className="space-y-4 sm:space-y-6">
           {/* Mobile: horizontal scrollable tabs */}
           <div className="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0">
-            <TabsList className="inline-flex w-auto min-w-max sm:grid sm:w-full sm:grid-cols-3 lg:grid-cols-6 gap-1">
+            <TabsList className="inline-flex w-auto min-w-max sm:grid sm:w-full sm:grid-cols-4 gap-1">
               <TabsTrigger value="overview" className="text-xs sm:text-sm px-3 sm:px-4">Overview</TabsTrigger>
               <TabsTrigger value="plans" className="text-xs sm:text-sm px-3 sm:px-4">Plans</TabsTrigger>
               <TabsTrigger value="usage" className="text-xs sm:text-sm px-3 sm:px-4">Usage</TabsTrigger>
-              <TabsTrigger value="invoices" className="text-xs sm:text-sm px-3 sm:px-4">Invoices</TabsTrigger>
-              <TabsTrigger value="payment" className="text-xs sm:text-sm px-3 sm:px-4">Payment</TabsTrigger>
               <TabsTrigger value="settings" className="text-xs sm:text-sm px-3 sm:px-4">Settings</TabsTrigger>
             </TabsList>
           </div>
@@ -124,27 +119,6 @@ export default function Billing() {
           {/* Usage Tab */}
           <TabsContent value="usage" className="space-y-6">
             <UsageOverview />
-          </TabsContent>
-
-          {/* Invoices Tab */}
-          <TabsContent value="invoices" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Invoices</CardTitle>
-                <CardDescription>
-                  View and download your billing history
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <InvoicesTable />
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* Payment Tab */}
-          <TabsContent value="payment" className="space-y-6">
-            <PaymentMethodsCard />
-            <SubscriptionActions />
           </TabsContent>
 
           {/* Settings Tab */}
