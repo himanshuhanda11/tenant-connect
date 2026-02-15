@@ -10,8 +10,7 @@ import { useDashboardData } from '@/hooks/useDashboardData';
 import type { DashboardFilters } from '@/types/dashboard';
 
 // Dashboard components
-import { BusinessProfileCard } from '@/components/dashboard/BusinessProfileCard';
-import { CreditsBillingCard } from '@/components/dashboard/CreditsBillingCard';
+import { StatusStrip } from '@/components/dashboard/StatusStrip';
 import { SetupProgressCard } from '@/components/dashboard/SetupProgressCard';
 import { KPIRow } from '@/components/dashboard/KPIRow';
 import { QuickActionButtons } from '@/components/dashboard/QuickActionButtons';
@@ -74,8 +73,6 @@ export default function Dashboard() {
     ] as const;
   }, [phoneHealth, campaigns, automations]);
 
-  const allStepsCompleted = setupSteps.every(s => s.status === 'completed');
-
   // AI Insights metrics
   const aiMetrics = useMemo(() => ({
     openConversations: inboxHealth?.openConversations || 0,
@@ -102,7 +99,7 @@ export default function Dashboard() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-6 max-w-[1400px] animate-fade-in">
+      <div className="space-y-5 max-w-[1400px] animate-fade-in">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
@@ -119,38 +116,19 @@ export default function Dashboard() {
           </Button>
         </div>
 
-        {/* Row 1: Profile + Credits & Billing + Setup Progress */}
-        <div className="grid gap-4 lg:grid-cols-3">
-          {/* WhatsApp Business Profile Card */}
-          <BusinessProfileCard
-            businessName={primaryPhone?.displayName || currentTenant?.name || 'My Business'}
-            businessId={primaryPhone?.id}
-            phoneNumber={primaryPhone?.phoneNumber}
-            isWABAConnected={isWABAConnected}
-            qualityRating={(primaryPhone?.qualityRating as any) || 'unknown'}
-            loading={loading}
-            onViewProfile={() => navigate('/phone-numbers')}
-            onEdit={() => navigate('/settings')}
-            onConnect={() => setEmbeddedSignupOpen(true)}
-          />
+        {/* Row 1: Status Strip (5 compact cards) */}
+        <StatusStrip
+          isWABAConnected={isWABAConnected}
+          phoneNumber={primaryPhone?.phoneNumber}
+          qualityRating={(primaryPhone?.qualityRating as any) || 'unknown'}
+          creditsBalance={creditsBalance}
+          creditsCurrency="₹"
+          planName={billing?.planName || 'Free'}
+          loading={loading}
+          onConnect={() => setEmbeddedSignupOpen(true)}
+        />
 
-          {/* Credits & Billing Card */}
-          <CreditsBillingCard
-            creditsBalance={creditsBalance}
-            creditsCurrency="₹"
-            planName={billing?.planName || 'Free'}
-            loading={loading}
-          />
-
-          {/* Setup Progress (always show, with completed state) */}
-          <SetupProgressCard
-            steps={setupSteps.map(s => ({ ...s, status: s.status as 'completed' | 'pending' | 'current' }))}
-            loading={loading}
-            creditsReward={200}
-          />
-        </div>
-
-        {/* Row 2: KPI Row */}
+        {/* Row 2: KPI Row with illustrations */}
         <KPIRow
           openChats={openChats}
           newContacts7d={contacts?.newContacts7d || 0}
@@ -163,27 +141,34 @@ export default function Dashboard() {
           loading={loading}
         />
 
-        {/* Row 3: Quick Actions */}
-        <QuickActionButtons />
-
-        {/* Row 4: AI Insights + Attention + Recent Activity */}
+        {/* Row 3: Attention + Setup Progress + Quick Actions */}
         <div className="grid gap-4 lg:grid-cols-3">
-          <AIInsightsCard
-            metrics={aiMetrics}
-            isPro={true}
-            loading={loading}
-          />
           <AttentionCard
             templatesPending={templatesPending}
             qualityRating={primaryPhone?.qualityRating || 'green'}
             chatsWaiting={unassigned}
             loading={loading}
           />
-          <RecentTimeline
-            events={timelineEvents}
+          <SetupProgressCard
+            steps={setupSteps.map(s => ({ ...s, status: s.status as 'completed' | 'pending' | 'current' }))}
+            loading={loading}
+            creditsReward={200}
+          />
+          <AIInsightsCard
+            metrics={aiMetrics}
+            isPro={true}
             loading={loading}
           />
         </div>
+
+        {/* Row 4: Quick Actions */}
+        <QuickActionButtons />
+
+        {/* Row 5: Recent Activity (full width) */}
+        <RecentTimeline
+          events={timelineEvents}
+          loading={loading}
+        />
       </div>
 
       {/* Embedded Signup Dialog */}

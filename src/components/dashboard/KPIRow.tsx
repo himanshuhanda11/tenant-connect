@@ -2,25 +2,19 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import {
-  MessageSquare,
-  UserPlus,
-  Zap,
-  FileText,
-  ArrowDownLeft,
-  ArrowUpRight,
-  Megaphone,
-} from 'lucide-react';
 import { cn } from '@/lib/utils';
+import kpiOpenChats from '@/assets/kpi-open-chats.png';
+import kpiNewContacts from '@/assets/kpi-new-contacts.png';
+import kpiAutomation from '@/assets/kpi-automation.png';
+import kpiTemplates from '@/assets/kpi-templates.png';
 
 interface KPIStat {
   id: string;
   label: string;
   value: number | string;
-  icon: React.ElementType;
+  subLabel?: string;
+  image: string;
   href?: string;
-  color: string;
-  bgColor: string;
 }
 
 interface KPIRowProps {
@@ -41,20 +35,17 @@ export function KPIRow({
   automationRuns7d,
   templatesPending,
   totalTemplates = 0,
-  messagesReceivedToday = 0,
-  messagesRepliedToday = 0,
-  totalCampaigns = 0,
   loading,
 }: KPIRowProps) {
   const navigate = useNavigate();
 
   if (loading) {
     return (
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-        {Array.from({ length: 8 }).map((_, i) => (
-          <Card key={i} className="border-0 shadow-card">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <Card key={i} className="border border-border/50 shadow-card rounded-2xl">
             <CardContent className="p-5">
-              <Skeleton className="h-10 w-10 rounded-xl mb-3" />
+              <Skeleton className="h-12 w-12 rounded-xl mb-3" />
               <Skeleton className="h-8 w-16 mb-1" />
               <Skeleton className="h-4 w-24" />
             </CardContent>
@@ -69,90 +60,64 @@ export function KPIRow({
       id: 'open-chats',
       label: 'Open Chats',
       value: openChats,
-      icon: MessageSquare,
+      image: kpiOpenChats,
       href: '/inbox?status=open',
-      color: 'text-blue-600',
-      bgColor: 'bg-blue-500/10',
-    },
-    {
-      id: 'received-today',
-      label: 'Received Today',
-      value: messagesReceivedToday,
-      icon: ArrowDownLeft,
-      href: '/inbox',
-      color: 'text-emerald-600',
-      bgColor: 'bg-emerald-500/10',
-    },
-    {
-      id: 'replied-today',
-      label: 'Replied Today',
-      value: messagesRepliedToday,
-      icon: ArrowUpRight,
-      href: '/inbox',
-      color: 'text-cyan-600',
-      bgColor: 'bg-cyan-500/10',
     },
     {
       id: 'new-contacts',
-      label: 'New Contacts (7d)',
+      label: 'New (7 days)',
       value: newContacts7d,
-      icon: UserPlus,
+      subLabel: newContacts7d > 0 ? `+${Math.round(newContacts7d * 0.12)}%` : undefined,
+      image: kpiNewContacts,
       href: '/contacts',
-      color: 'text-purple-600',
-      bgColor: 'bg-purple-500/10',
     },
     {
       id: 'automation-runs',
-      label: 'Automation Runs (7d)',
+      label: 'Automation Runs',
       value: automationRuns7d,
-      icon: Zap,
+      image: kpiAutomation,
       href: '/automation',
-      color: 'text-amber-600',
-      bgColor: 'bg-amber-500/10',
     },
     {
       id: 'templates',
-      label: `Templates${templatesPending > 0 ? ` (${templatesPending} pending)` : ''}`,
+      label: 'Templates',
       value: totalTemplates,
-      icon: FileText,
+      subLabel: templatesPending > 0 ? `${templatesPending} pending` : undefined,
+      image: kpiTemplates,
       href: '/templates',
-      color: 'text-pink-600',
-      bgColor: 'bg-pink-500/10',
-    },
-    {
-      id: 'campaigns',
-      label: 'Total Campaigns',
-      value: totalCampaigns,
-      icon: Megaphone,
-      href: '/campaigns',
-      color: 'text-orange-600',
-      bgColor: 'bg-orange-500/10',
     },
   ];
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-      {stats.map((stat) => {
-        const Icon = stat.icon;
-        return (
-          <Card
-            key={stat.id}
-            onClick={() => stat.href && navigate(stat.href)}
-            className={cn(
-              "border border-border/50 shadow-card hover:shadow-soft transition-all duration-200 group rounded-2xl",
-              stat.href && "cursor-pointer"
-            )}
-          >
-            <CardContent className="p-5">
-              <div className={cn("h-10 w-10 rounded-xl flex items-center justify-center mb-3", stat.bgColor)}>
-                <Icon className={cn("h-5 w-5", stat.color)} />
-              </div>
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+      {stats.map((stat) => (
+        <Card
+          key={stat.id}
+          onClick={() => stat.href && navigate(stat.href)}
+          className={cn(
+            "border border-border/50 shadow-card hover:shadow-soft transition-all duration-200 group rounded-2xl",
+            stat.href && "cursor-pointer"
+          )}
+        >
+          <CardContent className="p-5 flex items-center gap-4">
+            <img
+              src={stat.image}
+              alt={stat.label}
+              className="h-12 w-12 object-contain flex-shrink-0"
+              loading="lazy"
+            />
+            <div>
               <p className="text-2xl font-bold text-foreground">{stat.value}</p>
-              <p className="text-xs text-muted-foreground mt-0.5">{stat.label}</p>
-            </CardContent>
-          </Card>
-        );
-      })}
+              <div className="flex items-center gap-1.5">
+                <p className="text-xs text-muted-foreground">{stat.label}</p>
+                {stat.subLabel && (
+                  <span className="text-[10px] font-medium text-emerald-600">{stat.subLabel}</span>
+                )}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      ))}
     </div>
   );
 }
