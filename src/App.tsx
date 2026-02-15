@@ -104,6 +104,7 @@ import WhatsAppBusinessApi from "./pages/WhatsAppBusinessApi";
 import ClickToWhatsApp from "./pages/ClickToWhatsApp";
 import WhyWhatsAppMarketing from "./pages/WhyWhatsAppMarketing";
 import FreeWhatsAppApiLifetime from "./pages/FreeWhatsAppApiLifetime";
+import DocsViewer from "./pages/DocsViewer";
 import NotFound from "./pages/NotFound";
 import MetaAdsOverview from "./pages/meta-ads/MetaAdsOverview";
 import MetaAdsSetup from "./pages/meta-ads/MetaAdsSetup";
@@ -226,6 +227,7 @@ const App = () => (
               <Route path="/case-studies/:slug" element={<CaseStudyDetail />} />
               <Route path="/template-library" element={<TemplateLibrary />} />
               <Route path="/documentation" element={<Documentation />} />
+              <Route path="/docs" element={<DocsViewer />} />
               <Route path="/api-docs" element={<Documentation />} />
               <Route path="/guides" element={<Help />} />
               <Route path="/webinars" element={<Blog />} />
