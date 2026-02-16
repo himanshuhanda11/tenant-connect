@@ -122,8 +122,6 @@ export default function Dashboard() {
           </Button>
         </div>
 
-        {/* Feature Documentation Overview */}
-        <DocsOverviewCard loading={loading} />
 
         {/* Row 1: Bento Grid — Status + KPIs */}
         <DashboardBentoGrid
@@ -199,7 +197,10 @@ export default function Dashboard() {
           loading={loading}
         />
 
-        {/* Row 8: Guide & Help */}
+        {/* Row 8: Feature Documentation */}
+        <DocsOverviewCard loading={loading} />
+
+        {/* Row 9: Guide & Help */}
         <GuideCard loading={loading} />
       </div>
 
