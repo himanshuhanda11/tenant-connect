@@ -10,9 +10,8 @@ import { useDashboardData } from '@/hooks/useDashboardData';
 import type { DashboardFilters } from '@/types/dashboard';
 
 // Dashboard components
-import { StatusStrip } from '@/components/dashboard/StatusStrip';
+import { DashboardBentoGrid } from '@/components/dashboard/DashboardBentoGrid';
 import { SetupProgressCard } from '@/components/dashboard/SetupProgressCard';
-import { KPIRow } from '@/components/dashboard/KPIRow';
 import { QuickActionButtons } from '@/components/dashboard/QuickActionButtons';
 import { AIInsightsCard } from '@/components/dashboard/AIInsightsCard';
 import { AttentionCard } from '@/components/dashboard/AttentionCard';
@@ -121,29 +120,21 @@ export default function Dashboard() {
           </Button>
         </div>
 
-        {/* Row 1: Status Strip */}
-        <StatusStrip
+        {/* Row 1: Bento Grid — Status + KPIs */}
+        <DashboardBentoGrid
           isWABAConnected={isWABAConnected}
           phoneNumber={primaryPhone?.phoneNumber}
           qualityRating={(primaryPhone?.qualityRating as any) || 'unknown'}
           creditsBalance={creditsBalance}
           creditsCurrency="₹"
           planName={billing?.planName || 'Free'}
-          loading={loading}
-          onConnect={() => setEmbeddedSignupOpen(true)}
-        />
-
-        {/* Row 2: KPI Row */}
-        <KPIRow
           openChats={openChats}
           newContacts7d={contacts?.newContacts7d || 0}
           automationRuns7d={automations?.totalExecutions || 0}
           templatesPending={templatesPending}
           totalTemplates={totalTemplates}
-          messagesReceivedToday={messagesReceivedToday}
-          messagesRepliedToday={messagesRepliedToday}
-          totalCampaigns={totalCampaigns}
           loading={loading}
+          onConnect={() => setEmbeddedSignupOpen(true)}
         />
 
         {/* Row 3: Charts + Goals */}
