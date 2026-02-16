@@ -53,13 +53,13 @@ export function StatusStrip({
 
   if (loading) {
     return (
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-5">
         {Array.from({ length: 5 }).map((_, i) => (
-          <Card key={i} className="border border-border/50 shadow-card rounded-2xl">
-            <CardContent className="p-4">
-              <Skeleton className="h-10 w-10 rounded-xl mb-2" />
-              <Skeleton className="h-3 w-16 mb-1" />
-              <Skeleton className="h-6 w-20" />
+          <Card key={i} className="border border-border/40 shadow-soft rounded-2xl bg-gradient-to-br from-card to-muted/30">
+            <CardContent className="p-6">
+              <Skeleton className="h-16 w-16 rounded-2xl mb-3" />
+              <Skeleton className="h-4 w-20 mb-2" />
+              <Skeleton className="h-7 w-24" />
             </CardContent>
           </Card>
         ))}
@@ -68,21 +68,24 @@ export function StatusStrip({
   }
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-5">
       {/* WhatsApp API Status */}
-      <Card className="border border-border/50 shadow-card rounded-2xl hover:shadow-soft transition-shadow">
-        <CardContent className="p-5 flex items-center gap-4">
-          <img src={statusWhatsapp} alt="WhatsApp" className="h-14 w-14 object-contain flex-shrink-0" loading="lazy" />
-          <div className="min-w-0">
-            <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">WhatsApp API</p>
-            {phoneNumber && <p className="text-xs text-muted-foreground truncate mt-0.5">{phoneNumber}</p>}
-            <div className="mt-1.5">
+      <Card className="border border-border/30 shadow-soft rounded-2xl hover:shadow-lg transition-all duration-300 bg-gradient-to-br from-card via-card to-muted/20 group">
+        <CardContent className="p-6 flex flex-col items-center text-center gap-3">
+          <div className="relative">
+            <div className="absolute inset-0 bg-primary/10 rounded-full blur-xl scale-150 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+            <img src={statusWhatsapp} alt="WhatsApp" className="h-20 w-20 object-contain relative z-10 group-hover:scale-105 transition-transform duration-300" loading="lazy" />
+          </div>
+          <div className="min-w-0 w-full">
+            <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wider">WhatsApp API</p>
+            {phoneNumber && <p className="text-xs text-muted-foreground truncate mt-1">{phoneNumber}</p>}
+            <div className="mt-2">
               {isWABAConnected ? (
-                <Badge className="bg-emerald-500 text-white hover:bg-emerald-600 font-bold px-3 py-0.5 text-xs rounded-md">
+                <Badge className="bg-emerald-500 text-white hover:bg-emerald-600 font-bold px-4 py-1 text-xs rounded-full shadow-sm">
                   LIVE
                 </Badge>
               ) : (
-                <Button size="sm" onClick={onConnect} className="h-7 text-xs px-3 rounded-md">
+                <Button size="sm" onClick={onConnect} className="h-8 text-xs px-4 rounded-full shadow-sm">
                   Connect
                 </Button>
               )}
@@ -92,12 +95,15 @@ export function StatusStrip({
       </Card>
 
       {/* Quality Rating */}
-      <Card className="border border-border/50 shadow-card rounded-2xl hover:shadow-soft transition-shadow">
-        <CardContent className="p-5 flex items-center gap-4">
-          <img src={statusQuality} alt="Quality" className="h-14 w-14 object-contain flex-shrink-0" loading="lazy" />
+      <Card className="border border-border/30 shadow-soft rounded-2xl hover:shadow-lg transition-all duration-300 bg-gradient-to-br from-card via-card to-muted/20 group">
+        <CardContent className="p-6 flex flex-col items-center text-center gap-3">
+          <div className="relative">
+            <div className="absolute inset-0 bg-primary/10 rounded-full blur-xl scale-150 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+            <img src={statusQuality} alt="Quality" className="h-20 w-20 object-contain relative z-10 group-hover:scale-105 transition-transform duration-300" loading="lazy" />
+          </div>
           <div>
-            <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Quality Rating</p>
-            <p className={cn("text-2xl font-bold mt-0.5", qualityColors[qualityRating])}>
+            <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wider">Quality Rating</p>
+            <p className={cn("text-3xl font-bold mt-1", qualityColors[qualityRating])}>
               {qualityLabels[qualityRating]}
             </p>
           </div>
@@ -106,48 +112,54 @@ export function StatusStrip({
 
       {/* Credits Balance */}
       <Card
-        className="border border-border/50 shadow-card rounded-2xl hover:shadow-soft transition-shadow cursor-pointer"
+        className="border border-border/30 shadow-soft rounded-2xl hover:shadow-lg transition-all duration-300 bg-gradient-to-br from-card via-card to-muted/20 cursor-pointer group"
         onClick={() => navigate('/billing')}
       >
-        <CardContent className="p-5 flex items-center gap-4">
-          <img src={statusCredits} alt="Credits" className="h-14 w-14 object-contain flex-shrink-0" loading="lazy" />
+        <CardContent className="p-6 flex flex-col items-center text-center gap-3">
+          <div className="relative">
+            <div className="absolute inset-0 bg-primary/10 rounded-full blur-xl scale-150 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+            <img src={statusCredits} alt="Credits" className="h-20 w-20 object-contain relative z-10 group-hover:scale-105 transition-transform duration-300" loading="lazy" />
+          </div>
           <div>
-            <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Credits Balance</p>
-            <p className="text-2xl font-bold text-foreground mt-0.5">
+            <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wider">Credits Balance</p>
+            <p className="text-3xl font-bold text-foreground mt-1">
               {creditsCurrency}{creditsBalance.toLocaleString()}
             </p>
-            <p className="text-xs text-primary font-medium cursor-pointer mt-0.5">Buy Credits</p>
+            <p className="text-xs text-primary font-semibold cursor-pointer mt-1 hover:underline">Buy Credits</p>
           </div>
         </CardContent>
       </Card>
 
       {/* Billing Due */}
-      <Card className="border border-border/50 shadow-card rounded-2xl hover:shadow-soft transition-shadow">
-        <CardContent className="p-5 flex items-center gap-4">
-          <img src={statusBilling} alt="Billing" className="h-14 w-14 object-contain flex-shrink-0" loading="lazy" />
+      <Card className="border border-border/30 shadow-soft rounded-2xl hover:shadow-lg transition-all duration-300 bg-gradient-to-br from-card via-card to-muted/20 group">
+        <CardContent className="p-6 flex flex-col items-center text-center gap-3">
+          <div className="relative">
+            <div className="absolute inset-0 bg-primary/10 rounded-full blur-xl scale-150 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+            <img src={statusBilling} alt="Billing" className="h-20 w-20 object-contain relative z-10 group-hover:scale-105 transition-transform duration-300" loading="lazy" />
+          </div>
           <div>
-            <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Billing Due</p>
-            <p className="text-2xl font-bold text-foreground mt-0.5">
+            <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wider">Billing Due</p>
+            <p className="text-3xl font-bold text-foreground mt-1">
               {billingAmount || 'No dues'}
             </p>
             {billingDueDate && (
-              <p className="text-xs text-muted-foreground mt-0.5">{billingDueDate}</p>
+              <p className="text-xs text-muted-foreground mt-1">{billingDueDate}</p>
             )}
           </div>
         </CardContent>
       </Card>
 
       {/* Plan / Upgrade */}
-      <Card className="border border-border/50 shadow-card rounded-2xl hover:shadow-soft transition-shadow">
-        <CardContent className="p-5 flex items-center justify-between">
+      <Card className="border border-border/30 shadow-soft rounded-2xl hover:shadow-lg transition-all duration-300 bg-gradient-to-br from-card via-card to-primary/5 group">
+        <CardContent className="p-6 flex flex-col items-center text-center gap-3 justify-between h-full">
           <div>
-            <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Current Plan</p>
-            <p className="text-2xl font-bold text-foreground mt-0.5">{planName}</p>
+            <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wider">Current Plan</p>
+            <p className="text-3xl font-bold text-foreground mt-1">{planName}</p>
           </div>
           <Button
             size="sm"
             variant="outline"
-            className="h-8 text-sm rounded-lg"
+            className="h-9 text-sm px-5 rounded-full border-primary/30 hover:bg-primary hover:text-primary-foreground transition-colors"
             onClick={() => navigate('/billing')}
           >
             Upgrade
