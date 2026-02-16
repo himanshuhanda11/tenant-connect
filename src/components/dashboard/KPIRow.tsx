@@ -89,7 +89,7 @@ export function KPIRow({
   ];
 
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
       {stats.map((stat) => (
         <Card
           key={stat.id}
@@ -99,19 +99,19 @@ export function KPIRow({
             stat.href && "cursor-pointer"
           )}
         >
-          <CardContent className="p-5 flex items-center gap-4">
+          <CardContent className="p-6 flex items-center gap-5">
             <img
               src={stat.image}
               alt={stat.label}
-              className="h-12 w-12 object-contain flex-shrink-0"
+              className="h-16 w-16 object-contain flex-shrink-0"
               loading="lazy"
             />
             <div>
-              <p className="text-2xl font-bold text-foreground">{stat.value}</p>
-              <div className="flex items-center gap-1.5">
-                <p className="text-xs text-muted-foreground">{stat.label}</p>
+              <p className="text-3xl font-bold text-foreground">{stat.value}</p>
+              <div className="flex items-center gap-2 mt-1">
+                <p className="text-sm text-muted-foreground">{stat.label}</p>
                 {stat.subLabel && (
-                  <span className="text-[10px] font-medium text-emerald-600">{stat.subLabel}</span>
+                  <span className="text-xs font-medium text-emerald-600">{stat.subLabel}</span>
                 )}
               </div>
             </div>
