@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import Breadcrumb from '@/components/layout/Breadcrumb';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import { Button } from '@/components/ui/button';
@@ -204,6 +205,7 @@ export default function HelpCenter() {
       {/* Hero Section */}
       <section className="relative py-16 lg:py-20 bg-gradient-to-br from-primary/5 via-background to-primary/5">
         <div className="container mx-auto px-4">
+          <Breadcrumb className="mb-6" />
           <div className="max-w-3xl mx-auto text-center">
             <div className="flex items-center justify-center gap-2 mb-4">
               <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center shadow-lg shadow-primary/20">

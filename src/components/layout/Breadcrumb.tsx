@@ -9,6 +9,7 @@ const routeNames: Record<string, string> = {
   'products': 'Products',
   'pricing': 'Pricing',
   'help': 'Help Center',
+  'category': 'Category',
   'about': 'About Us',
   'contact': 'Contact',
   'blog': 'Blog',
