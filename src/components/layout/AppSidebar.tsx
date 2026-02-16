@@ -71,7 +71,6 @@ const settingsMenuItems: MenuItem[] = [
   { title: 'Integrations', url: '/app/integrations', icon: Puzzle, key: 'integrations', isNew: true },
   { title: 'Billing', url: '/billing', icon: CreditCard, key: 'billing' },
   { title: 'Settings', url: '/settings', icon: Settings, key: 'settings' },
-  { title: 'Guide', url: '/help', icon: HelpCircle, key: 'help' },
 ];
 
 const roleConfig: Record<string, { color: string }> = {
@@ -449,8 +448,10 @@ export function AppSidebar() {
             <DropdownMenuItem onClick={() => navigate('/settings')} className="gap-2 py-1.5 rounded-md text-[12px]">
               <Settings className="w-3.5 h-3.5 text-muted-foreground" /> Settings
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => navigate('/help')} className="gap-2 py-1.5 rounded-md text-[12px]">
-              <Headphones className="w-3.5 h-3.5 text-muted-foreground" /> Help
+            <DropdownMenuItem asChild className="gap-2 py-1.5 rounded-md text-[12px]">
+              <a href="/help" target="_blank" rel="noopener noreferrer">
+                <Headphones className="w-3.5 h-3.5 text-muted-foreground" /> Help
+              </a>
             </DropdownMenuItem>
             <DropdownMenuSeparator className="my-1" />
             <DropdownMenuItem onClick={handleSignOut} className="gap-2 py-1.5 rounded-md text-[12px] text-destructive focus:text-destructive">

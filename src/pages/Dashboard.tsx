@@ -20,6 +20,7 @@ import { MessagesChart } from '@/components/dashboard/MessagesChart';
 import { ConversationTrendsChart } from '@/components/dashboard/ConversationTrendsChart';
 import { GoalsCard } from '@/components/dashboard/GoalsCard';
 import { WhatsAppLinksCard } from '@/components/dashboard/WhatsAppLinksCard';
+import { GuideCard } from '@/components/dashboard/GuideCard';
 
 import { RefreshCw } from 'lucide-react';
 
@@ -193,6 +194,9 @@ export default function Dashboard() {
           events={timelineEvents}
           loading={loading}
         />
+
+        {/* Row 8: Guide & Help */}
+        <GuideCard loading={loading} />
       </div>
 
       {/* Embedded Signup Dialog */}
