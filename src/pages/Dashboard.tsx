@@ -21,6 +21,7 @@ import { ConversationTrendsChart } from '@/components/dashboard/ConversationTren
 import { GoalsCard } from '@/components/dashboard/GoalsCard';
 import { WhatsAppLinksCard } from '@/components/dashboard/WhatsAppLinksCard';
 import { GuideCard } from '@/components/dashboard/GuideCard';
+import { DocsOverviewCard } from '@/components/dashboard/DocsOverviewCard';
 
 import { RefreshCw } from 'lucide-react';
 
@@ -120,6 +121,9 @@ export default function Dashboard() {
             Refresh
           </Button>
         </div>
+
+        {/* Feature Documentation Overview */}
+        <DocsOverviewCard loading={loading} />
 
         {/* Row 1: Bento Grid — Status + KPIs */}
         <DashboardBentoGrid
