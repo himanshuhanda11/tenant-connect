@@ -57,8 +57,20 @@ export default function Login() {
           return;
         }
 
-        // Onboarding complete - go to workspace selector
-        navigate('/select-workspace', { replace: true });
+        // Check if user is an agent — redirect directly to inbox
+        const { data: memberships } = await supabase
+          .from('tenant_members')
+          .select('role')
+          .eq('user_id', user.id);
+
+        const isAgentOnly = memberships && memberships.length > 0 && memberships.every(m => m.role === 'agent');
+        
+        if (isAgentOnly) {
+          navigate('/inbox', { replace: true });
+        } else {
+          // Onboarding complete - go to workspace selector
+          navigate('/select-workspace', { replace: true });
+        }
       } else {
         setIsCheckingAuth(false);
       }
