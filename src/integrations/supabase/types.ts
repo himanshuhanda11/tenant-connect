@@ -3882,6 +3882,7 @@ export type Database = {
           error_message: string | null
           failed_at: string | null
           id: string
+          is_auto_reply: boolean
           media_bucket: string | null
           media_filename: string | null
           media_mime_type: string | null
@@ -3909,6 +3910,7 @@ export type Database = {
           error_message?: string | null
           failed_at?: string | null
           id?: string
+          is_auto_reply?: boolean
           media_bucket?: string | null
           media_filename?: string | null
           media_mime_type?: string | null
@@ -3936,6 +3938,7 @@ export type Database = {
           error_message?: string | null
           failed_at?: string | null
           id?: string
+          is_auto_reply?: boolean
           media_bucket?: string | null
           media_filename?: string | null
           media_mime_type?: string | null

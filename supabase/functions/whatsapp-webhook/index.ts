@@ -658,6 +658,11 @@ async function processInboundMessage(
     }).then(({ error: sumErr }: any) => {
       if (sumErr) console.error('inbox summary upsert error:', sumErr);
     });
+
+    // Auto-reply logic (fire-and-forget)
+    handleAutoReply(supabase, tenantId, phoneNumberId, conversationId, contactId, ev).catch(e =>
+      console.error('Auto-reply error:', e)
+    );
   }
 }
 
@@ -769,4 +774,211 @@ async function markEventProcessed(supabase: any, webhookEventId?: string, error?
       error: error || null,
     })
     .eq('id', webhookEventId);
+}
+
+// ─── Auto-Reply Handler ───
+async function handleAutoReply(
+  supabase: any,
+  tenantId: string,
+  phoneNumberId: string,
+  conversationId: string,
+  contactId: string,
+  ev: NormalizedEvent & { kind: 'inbound_message' }
+) {
+  try {
+    // 1. Fetch tenant's auto-reply settings
+    const { data: settings, error: settingsErr } = await supabase
+      .from('auto_reply_settings')
+      .select('*')
+      .eq('tenant_id', tenantId)
+      .maybeSingle();
+
+    if (settingsErr || !settings) return;
+
+    // Check if any auto-reply is enabled
+    const hasGeneral = settings.business_hours_enabled || settings.after_hours_enabled;
+    const hasKeywords = settings.keywords_enabled && settings.keyword_rules?.length > 0;
+    if (!hasGeneral && !hasKeywords) return;
+
+    // 2. If exclude_assigned, check if conversation has an agent assigned
+    if (settings.exclude_assigned) {
+      const { data: conv } = await supabase
+        .from('conversations')
+        .select('assigned_to')
+        .eq('id', conversationId)
+        .maybeSingle();
+      if (conv?.assigned_to) {
+        console.log('Auto-reply skipped: conversation is assigned');
+        return;
+      }
+    }
+
+    // 3. Cooldown check — don't re-send within cooldown window
+    const cooldownHours = settings.cooldown_hours || 24;
+    const cooldownCutoff = new Date(Date.now() - cooldownHours * 60 * 60 * 1000).toISOString();
+    const { data: recentAutoReply } = await supabase
+      .from('messages')
+      .select('id')
+      .eq('conversation_id', conversationId)
+      .eq('direction', 'outbound')
+      .eq('is_auto_reply', true)
+      .gte('created_at', cooldownCutoff)
+      .limit(1)
+      .maybeSingle();
+
+    if (recentAutoReply) {
+      console.log('Auto-reply skipped: within cooldown period');
+      return;
+    }
+
+    // 4. First-message-only check
+    if (settings.first_message_only) {
+      const { count } = await supabase
+        .from('messages')
+        .select('id', { count: 'exact', head: true })
+        .eq('conversation_id', conversationId)
+        .eq('direction', 'inbound');
+      if ((count || 0) > 1) {
+        console.log('Auto-reply skipped: not first message');
+        return;
+      }
+    }
+
+    // 5. Determine reply text
+    let replyText: string | null = null;
+
+    // 5a. Check keyword rules first (higher priority)
+    if (hasKeywords && ev.text) {
+      const incomingText = ev.text.toLowerCase();
+      for (const rule of settings.keyword_rules) {
+        if (!rule.keywords || !rule.response) continue;
+        const keywords = rule.keywords.split(',').map((k: string) => k.trim().toLowerCase()).filter(Boolean);
+        let matched = false;
+
+        if (rule.matchType === 'exact') {
+          matched = keywords.some((kw: string) => incomingText === kw);
+        } else if (rule.matchType === 'contains') {
+          matched = keywords.some((kw: string) => incomingText.includes(kw));
+        } else if (rule.matchType === 'regex') {
+          try {
+            matched = keywords.some((kw: string) => new RegExp(kw, 'i').test(ev.text || ''));
+          } catch { /* invalid regex, skip */ }
+        }
+
+        if (matched) {
+          replyText = rule.response;
+          console.log(`Auto-reply matched keyword rule: "${rule.keywords}"`);
+          break;
+        }
+      }
+    }
+
+    // 5b. Business hours / after-hours fallback
+    if (!replyText && hasGeneral) {
+      const isWithinBusinessHours = checkBusinessHours(settings);
+      if (isWithinBusinessHours && settings.business_hours_enabled) {
+        replyText = settings.business_hours_message;
+      } else if (!isWithinBusinessHours && settings.after_hours_enabled) {
+        replyText = settings.after_hours_message;
+      }
+    }
+
+    if (!replyText) return;
+
+    // 6. Apply delay
+    const delaySec = settings.delay_seconds || 0;
+    if (delaySec > 0) {
+      await new Promise(resolve => setTimeout(resolve, delaySec * 1000));
+    }
+
+    // 7. Get phone number's Meta ID and access token
+    const { data: phone } = await supabase
+      .from('phone_numbers')
+      .select('phone_number_id, waba_account:waba_accounts!inner(encrypted_access_token)')
+      .eq('id', phoneNumberId)
+      .maybeSingle();
+
+    if (!phone?.phone_number_id || !phone.waba_account?.encrypted_access_token) {
+      console.error('Auto-reply: phone number or token not found');
+      return;
+    }
+
+    // 8. Send via WhatsApp API
+    const waPayload = {
+      messaging_product: 'whatsapp',
+      recipient_type: 'individual',
+      to: ev.from_wa_id,
+      type: 'text',
+      text: { body: replyText },
+    };
+
+    const waResp = await fetch(
+      `https://graph.facebook.com/v21.0/${phone.phone_number_id}/messages`,
+      {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${phone.waba_account.encrypted_access_token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(waPayload),
+      }
+    );
+
+    const waResult = await waResp.json();
+
+    if (!waResp.ok) {
+      console.error('Auto-reply WhatsApp API error:', JSON.stringify(waResult));
+      return;
+    }
+
+    const wamid = waResult.messages?.[0]?.id;
+    const now = new Date().toISOString();
+
+    // 9. Store outbound auto-reply message
+    await supabase.from('messages').insert({
+      tenant_id: tenantId,
+      conversation_id: conversationId,
+      direction: 'outbound',
+      type: 'text',
+      text: replyText,
+      wamid,
+      status: 'sent',
+      sent_at: now,
+      is_auto_reply: true,
+    });
+
+    // Update conversation preview
+    await supabase.from('conversations').update({
+      last_message_at: now,
+      last_message_preview: replyText.substring(0, 100),
+    }).eq('id', conversationId);
+
+    console.log(`Auto-reply sent to ${ev.from_wa_id}: "${replyText.substring(0, 50)}..."`);
+  } catch (err) {
+    console.error('handleAutoReply error:', err);
+  }
+}
+
+// Check if current time is within business hours
+function checkBusinessHours(settings: any): boolean {
+  try {
+    // Parse timezone offset
+    const tz = settings.timezone || 'UTC+0';
+    const match = tz.match(/UTC([+-])(\d+\.?\d*)/);
+    const offsetHours = match ? parseFloat(match[1] + match[2]) : 0;
+
+    // Get current time in the business timezone
+    const now = new Date();
+    const utcHours = now.getUTCHours() + now.getUTCMinutes() / 60;
+    const localHours = ((utcHours + offsetHours) % 24 + 24) % 24;
+
+    const [startH, startM] = (settings.business_hours_start || '09:00').split(':').map(Number);
+    const [endH, endM] = (settings.business_hours_end || '18:00').split(':').map(Number);
+    const start = startH + startM / 60;
+    const end = endH + endM / 60;
+
+    return localHours >= start && localHours < end;
+  } catch {
+    return true; // Default to business hours if parsing fails
+  }
 }
