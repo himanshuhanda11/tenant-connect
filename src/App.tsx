@@ -68,6 +68,10 @@ import AutomationGuide from "./pages/help/AutomationGuide";
 import ContactsTagsGuide from "./pages/help/ContactsTagsGuide";
 import MetaAdsGuide from "./pages/help/MetaAdsGuide";
 import WorkspacesGuide from "./pages/help/WorkspacesGuide";
+import TeamGuide from "./pages/help/TeamGuide";
+import CampaignsGuide from "./pages/help/CampaignsGuide";
+import FormRulesGuide from "./pages/help/FormRulesGuide";
+import PhoneNumbersGuide from "./pages/help/PhoneNumbersGuide";
 import { GuideManager } from "./components/admin/GuideManager";
 import About from "./pages/About";
 import Contact from "./pages/Contact";
@@ -213,6 +217,10 @@ const App = () => (
               <Route path="/help/contacts-tags" element={<ContactsTagsGuide />} />
               <Route path="/help/meta-ads" element={<MetaAdsGuide />} />
               <Route path="/help/workspaces" element={<WorkspacesGuide />} />
+              <Route path="/help/team" element={<TeamGuide />} />
+              <Route path="/help/campaigns" element={<CampaignsGuide />} />
+              <Route path="/help/form-rules" element={<FormRulesGuide />} />
+              <Route path="/help/phone-numbers" element={<PhoneNumbersGuide />} />
               <Route path="/help/:slug" element={<GuideDetail />} />
               <Route path="/control/guides" element={<GuideManager />} />
               <Route path="/help/all" element={<HelpCenter />} />

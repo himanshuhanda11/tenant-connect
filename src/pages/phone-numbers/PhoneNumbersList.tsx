@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
+import { QuickGuide, quickGuides } from '@/components/help/QuickGuide';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -184,7 +185,7 @@ export default function PhoneNumbersList() {
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        {/* Header */}
+        <QuickGuide {...quickGuides.phoneNumbers} />
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold tracking-tight">Phone Numbers</h1>

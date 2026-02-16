@@ -42,9 +42,9 @@ const mainMenuItems: MenuItem[] = [
 ];
 
 const growthMenuItems: MenuItem[] = [
-  { title: 'Campaigns', url: '/campaigns', icon: Send, key: 'campaigns', docUrl: '/help/category/campaigns' },
+  { title: 'Campaigns', url: '/campaigns', icon: Send, key: 'campaigns', docUrl: '/help/campaigns' },
   { title: 'Automation', url: '/automation', icon: Zap, key: 'automation', docUrl: '/help/automation' },
-  { title: 'Form Rules', url: '/automation/form-rules', icon: FileText, key: 'form-rules', isNew: true, docUrl: '/help/automation' },
+  { title: 'Form Rules', url: '/automation/form-rules', icon: FileText, key: 'form-rules', isNew: true, docUrl: '/help/form-rules' },
   { title: 'Flows', url: '/flows', icon: Workflow, key: 'flows', docUrl: '/help/automation' },
 ];
 
@@ -59,13 +59,13 @@ const metaAdsMenuItems: MenuItem[] = [
 ];
 
 const teamMenuItems: MenuItem[] = [
-  { title: 'Overview', url: '/team', icon: Users, key: 'team-overview' },
-  { title: 'Members', url: '/team/members', icon: Users, key: 'team-members' },
-  { title: 'Roles', url: '/team/roles', icon: Shield, key: 'team-roles' },
-  { title: 'Groups', url: '/team/groups', icon: UsersRound, key: 'team-groups' },
-  { title: 'Routing', url: '/team/routing', icon: Route, key: 'team-routing' },
-  { title: 'Hours & SLA', url: '/team/sla', icon: Clock, key: 'team-sla' },
-  { title: 'Audit Logs', url: '/team/audit', icon: ScrollText, key: 'team-audit' },
+  { title: 'Overview', url: '/team', icon: Users, key: 'team-overview', docUrl: '/help/team' },
+  { title: 'Members', url: '/team/members', icon: Users, key: 'team-members', docUrl: '/help/team' },
+  { title: 'Roles', url: '/team/roles', icon: Shield, key: 'team-roles', docUrl: '/help/team' },
+  { title: 'Groups', url: '/team/groups', icon: UsersRound, key: 'team-groups', docUrl: '/help/team' },
+  { title: 'Routing', url: '/team/routing', icon: Route, key: 'team-routing', docUrl: '/help/team' },
+  { title: 'Hours & SLA', url: '/team/sla', icon: Clock, key: 'team-sla', docUrl: '/help/team' },
+  { title: 'Audit Logs', url: '/team/audit', icon: ScrollText, key: 'team-audit', docUrl: '/help/team' },
 ];
 
 const settingsMenuItems: MenuItem[] = [
@@ -104,7 +104,7 @@ export function AppSidebar() {
   const { phoneNumbers } = usePhoneNumbers();
 
   const channelMenuItems: MenuItem[] = [
-    { title: 'WhatsApp', url: '/phone-numbers', icon: Phone, key: 'phone-numbers', docUrl: '/help/category/whatsapp' },
+    { title: 'WhatsApp', url: '/phone-numbers', icon: Phone, key: 'phone-numbers', docUrl: '/help/phone-numbers' },
     { title: 'Templates', url: '/templates', icon: FileText, key: 'templates', isNew: true, docUrl: '/help/templates' },
   ];
 
