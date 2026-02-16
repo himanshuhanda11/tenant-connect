@@ -17,6 +17,10 @@ import { QuickActionButtons } from '@/components/dashboard/QuickActionButtons';
 import { AIInsightsCard } from '@/components/dashboard/AIInsightsCard';
 import { AttentionCard } from '@/components/dashboard/AttentionCard';
 import { RecentTimeline } from '@/components/dashboard/RecentTimeline';
+import { MessagesChart } from '@/components/dashboard/MessagesChart';
+import { ConversationTrendsChart } from '@/components/dashboard/ConversationTrendsChart';
+import { GoalsCard } from '@/components/dashboard/GoalsCard';
+import { WhatsAppLinksCard } from '@/components/dashboard/WhatsAppLinksCard';
 
 import { RefreshCw } from 'lucide-react';
 
@@ -96,10 +100,11 @@ export default function Dashboard() {
 
   const openChats = (kpis.find(k => k.id === 'open')?.value as number) || 0;
   const unassigned = (kpis.find(k => k.id === 'unassigned')?.value as number) || 0;
+  const resolvedToday = (kpis.find(k => k.id === 'resolved')?.value as number) || 0;
 
   return (
     <DashboardLayout>
-      <div className="space-y-5 max-w-[1400px] animate-fade-in">
+      <div className="space-y-6 max-w-[1400px] animate-fade-in">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
@@ -110,13 +115,13 @@ export default function Dashboard() {
               Here's what's happening in <span className="font-medium text-foreground">{currentTenant?.name}</span>
             </p>
           </div>
-          <Button variant="outline" size="sm" onClick={refetch} disabled={loading} className="h-9">
+          <Button variant="outline" size="sm" onClick={refetch} disabled={loading} className="h-9 rounded-xl backdrop-blur-sm">
             <RefreshCw className={`h-4 w-4 mr-1.5 ${loading ? 'animate-spin' : ''}`} />
             Refresh
           </Button>
         </div>
 
-        {/* Row 1: Status Strip (5 compact cards) */}
+        {/* Row 1: Status Strip */}
         <StatusStrip
           isWABAConnected={isWABAConnected}
           phoneNumber={primaryPhone?.phoneNumber}
@@ -128,7 +133,7 @@ export default function Dashboard() {
           onConnect={() => setEmbeddedSignupOpen(true)}
         />
 
-        {/* Row 2: KPI Row with illustrations */}
+        {/* Row 2: KPI Row */}
         <KPIRow
           openChats={openChats}
           newContacts7d={contacts?.newContacts7d || 0}
@@ -141,18 +146,42 @@ export default function Dashboard() {
           loading={loading}
         />
 
-        {/* Row 3: Attention + Setup Progress + Quick Actions */}
-        <div className="grid gap-4 lg:grid-cols-3">
+        {/* Row 3: Charts + Goals */}
+        <div className="grid gap-5 lg:grid-cols-3">
+          <MessagesChart
+            messagesReceived={messagesReceivedToday}
+            messagesReplied={messagesRepliedToday}
+            loading={loading}
+          />
+          <ConversationTrendsChart
+            openChats={openChats}
+            resolvedToday={resolvedToday}
+            loading={loading}
+          />
+          <GoalsCard
+            messagesReceived={messagesReceivedToday}
+            contacts7d={contacts?.newContacts7d || 0}
+            campaignsSent={totalCampaigns}
+            automationRuns={automations?.totalExecutions || 0}
+            loading={loading}
+          />
+        </div>
+
+        {/* Row 4: Quick Actions */}
+        <QuickActionButtons />
+
+        {/* Row 5: WhatsApp Links + Attention + AI Insights */}
+        <div className="grid gap-5 lg:grid-cols-3">
+          <WhatsAppLinksCard
+            phoneNumber={primaryPhone?.phoneNumber}
+            businessName={currentTenant?.name}
+            loading={loading}
+          />
           <AttentionCard
             templatesPending={templatesPending}
             qualityRating={primaryPhone?.qualityRating || 'green'}
             chatsWaiting={unassigned}
             loading={loading}
-          />
-          <SetupProgressCard
-            steps={setupSteps.map(s => ({ ...s, status: s.status as 'completed' | 'pending' | 'current' }))}
-            loading={loading}
-            creditsReward={200}
           />
           <AIInsightsCard
             metrics={aiMetrics}
@@ -161,10 +190,14 @@ export default function Dashboard() {
           />
         </div>
 
-        {/* Row 4: Quick Actions */}
-        <QuickActionButtons />
+        {/* Row 6: Setup Progress */}
+        <SetupProgressCard
+          steps={setupSteps.map(s => ({ ...s, status: s.status as 'completed' | 'pending' | 'current' }))}
+          loading={loading}
+          creditsReward={200}
+        />
 
-        {/* Row 5: Recent Activity (full width) */}
+        {/* Row 7: Recent Activity */}
         <RecentTimeline
           events={timelineEvents}
           loading={loading}
