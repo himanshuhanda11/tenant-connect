@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
+import Breadcrumb from '@/components/layout/Breadcrumb';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -42,6 +43,7 @@ export default function HelpCategory() {
       {/* Header */}
       <section className="py-12 bg-muted/30 border-b">
         <div className="container mx-auto px-4">
+          <Breadcrumb className="mb-4" />
           <div className="max-w-4xl mx-auto">
             <Link 
               to="/help" 

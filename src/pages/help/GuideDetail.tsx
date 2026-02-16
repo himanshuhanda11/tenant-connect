@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
+import Breadcrumb from '@/components/layout/Breadcrumb';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -117,6 +118,7 @@ export default function GuideDetail() {
       {/* Header */}
       <section className="py-8 bg-muted/30 border-b">
         <div className="container mx-auto px-4">
+          <Breadcrumb className="mb-4" />
           <div className="max-w-4xl mx-auto">
             <Link 
               to={`/help/category/${guide.category}`}
