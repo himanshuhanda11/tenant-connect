@@ -34,13 +34,12 @@ export function MessagingSettings() {
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="space-y-2">
                   <Label>Default Sender Number</Label>
-                  <Select defaultValue="primary">
+                  <Select>
                     <SelectTrigger>
-                      <SelectValue />
+                      <SelectValue placeholder="Select a phone number" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="primary">+1 (555) 123-4567 (Primary)</SelectItem>
-                      <SelectItem value="secondary">+1 (555) 987-6543</SelectItem>
+                      <SelectItem value="none" disabled>No numbers connected</SelectItem>
                     </SelectContent>
                   </Select>
                   <p className="text-xs text-muted-foreground">Used when no specific number is selected</p>
@@ -181,11 +180,10 @@ export function MessagingSettings() {
 
               <div className="space-y-2">
                 <Label>Failover Phone Number</Label>
-                <Select defaultValue="none">
-                  <SelectTrigger><SelectValue /></SelectTrigger>
+                <Select>
+                  <SelectTrigger><SelectValue placeholder="Select failover number" /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="none">No failover</SelectItem>
-                    <SelectItem value="secondary">+1 (555) 987-6543</SelectItem>
                   </SelectContent>
                 </Select>
                 <p className="text-xs text-muted-foreground">Use this number if primary fails</p>
