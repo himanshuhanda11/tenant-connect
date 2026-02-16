@@ -17,6 +17,7 @@ import {
   Palette,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useTenant } from '@/contexts/TenantContext';
 
 interface SettingsSection {
   id: string;
@@ -44,12 +45,20 @@ const settingsSections: SettingsSection[] = [
   { id: 'advanced', label: 'Advanced', icon: Settings2 },
 ];
 
+const agentSections = ['appearance'];
+
 interface SettingsSidebarProps {
   activeSection: string;
   onSectionChange: (section: string) => void;
 }
 
 export function SettingsSidebar({ activeSection, onSectionChange }: SettingsSidebarProps) {
+  const { currentRole } = useTenant();
+  const isAgent = currentRole === 'agent';
+  const visibleSections = isAgent 
+    ? settingsSections.filter(s => agentSections.includes(s.id))
+    : settingsSections;
+
   return (
     <aside className="w-64 shrink-0 border-r border-border bg-card hidden lg:block">
       <div className="sticky top-0">
@@ -60,7 +69,7 @@ export function SettingsSidebar({ activeSection, onSectionChange }: SettingsSide
           </h2>
         </div>
         <nav className="p-2 space-y-1">
-          {settingsSections.map((section) => {
+          {visibleSections.map((section) => {
             const Icon = section.icon;
             const isActive = activeSection === section.id;
             
@@ -94,7 +103,13 @@ export function SettingsSidebar({ activeSection, onSectionChange }: SettingsSide
 }
 
 export function SettingsMobileNav({ activeSection, onSectionChange }: SettingsSidebarProps) {
-  const currentSection = settingsSections.find(s => s.id === activeSection);
+  const { currentRole } = useTenant();
+  const isAgent = currentRole === 'agent';
+  const visibleSections = isAgent 
+    ? settingsSections.filter(s => agentSections.includes(s.id))
+    : settingsSections;
+
+  const currentSection = visibleSections.find(s => s.id === activeSection);
   const Icon = currentSection?.icon || Settings2;
   
   return (
@@ -108,7 +123,7 @@ export function SettingsMobileNav({ activeSection, onSectionChange }: SettingsSi
       {/* Scrollable navigation */}
       <div className="overflow-x-auto scrollbar-hide">
         <div className="flex gap-1 p-2 min-w-max">
-          {settingsSections.map((section) => {
+          {visibleSections.map((section) => {
             const SectionIcon = section.icon;
             const isActive = activeSection === section.id;
             
