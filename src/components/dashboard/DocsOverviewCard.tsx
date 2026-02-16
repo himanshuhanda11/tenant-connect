@@ -4,51 +4,51 @@ import { ExternalLink, MessageSquare, Megaphone, Workflow, Users, CreditCard, Ba
 const featureDocs = [
   {
     title: 'Inbox & Conversations',
-    summary: 'Manage all WhatsApp conversations, assign agents, and track response times.',
+    summary: 'Manage WhatsApp conversations, assign agents, track response times, and handle SLA.',
     icon: MessageSquare,
     href: '/help/inbox',
   },
   {
-    title: 'Campaigns',
-    summary: 'Send bulk template messages, schedule deliveries, and track performance.',
+    title: 'Campaigns & Bulk Messaging',
+    summary: 'Send bulk template messages, schedule deliveries, A/B test, and track campaign performance.',
     icon: Megaphone,
     href: '/help/category/campaigns',
   },
   {
     title: 'Automation & Flows',
-    summary: 'Build automated workflows triggered by messages, keywords, or events.',
+    summary: 'Build automated workflows with triggers, conditions, delays, and multi-step actions.',
     icon: Workflow,
     href: '/help/automation',
   },
   {
-    title: 'Contacts & Segments',
-    summary: 'Organize contacts with tags, segments, and custom attributes.',
+    title: 'Contacts, Tags & Segments',
+    summary: 'Organize contacts with tags, custom attributes, segments, and opt-in management.',
     icon: Users,
     href: '/help/contacts-tags',
   },
   {
-    title: 'Templates',
-    summary: 'Create and submit WhatsApp message templates for Meta approval.',
+    title: 'Template Management',
+    summary: 'Create, preview, and submit WhatsApp message templates for Meta approval.',
     icon: BookOpen,
     href: '/help/templates',
   },
   {
-    title: 'Analytics & Reports',
-    summary: 'Monitor KPIs, message delivery rates, and agent performance.',
-    icon: BarChart3,
-    href: '/help/category/analytics',
-  },
-  {
     title: 'Meta Ads & CTWA',
-    summary: 'Configure Click-to-WhatsApp ads and track lead conversions.',
+    summary: 'Set up Click-to-WhatsApp ads, track lead attribution, and automate follow-ups.',
     icon: Bot,
     href: '/help/meta-ads',
   },
   {
-    title: 'Workspaces & Billing',
-    summary: 'Manage workspaces, team members, plans, and credit usage.',
+    title: 'Workspaces & Team',
+    summary: 'Manage workspaces, invite team members, configure roles, routing, and business hours.',
     icon: CreditCard,
     href: '/help/workspaces',
+  },
+  {
+    title: 'Analytics & Reports',
+    summary: 'Monitor KPIs, delivery rates, agent performance, and export detailed reports.',
+    icon: BarChart3,
+    href: '/help/category/analytics',
   },
 ];
 
