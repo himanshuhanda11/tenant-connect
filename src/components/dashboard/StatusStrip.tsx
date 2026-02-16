@@ -68,21 +68,21 @@ export function StatusStrip({
   }
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
       {/* WhatsApp API Status */}
       <Card className="border border-border/50 shadow-card rounded-2xl hover:shadow-soft transition-shadow">
-        <CardContent className="p-4 flex items-center gap-3">
-          <img src={statusWhatsapp} alt="WhatsApp" className="h-10 w-10 object-contain flex-shrink-0" loading="lazy" />
+        <CardContent className="p-5 flex items-center gap-4">
+          <img src={statusWhatsapp} alt="WhatsApp" className="h-14 w-14 object-contain flex-shrink-0" loading="lazy" />
           <div className="min-w-0">
-            <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wide">WhatsApp API</p>
-            {phoneNumber && <p className="text-[10px] text-muted-foreground truncate">{phoneNumber}</p>}
-            <div className="mt-0.5">
+            <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">WhatsApp API</p>
+            {phoneNumber && <p className="text-xs text-muted-foreground truncate mt-0.5">{phoneNumber}</p>}
+            <div className="mt-1.5">
               {isWABAConnected ? (
-                <Badge className="bg-emerald-500 text-white hover:bg-emerald-600 font-bold px-2 py-0 text-[10px] rounded-md">
+                <Badge className="bg-emerald-500 text-white hover:bg-emerald-600 font-bold px-3 py-0.5 text-xs rounded-md">
                   LIVE
                 </Badge>
               ) : (
-                <Button size="sm" onClick={onConnect} className="h-5 text-[10px] px-2 rounded-md">
+                <Button size="sm" onClick={onConnect} className="h-7 text-xs px-3 rounded-md">
                   Connect
                 </Button>
               )}
@@ -93,11 +93,11 @@ export function StatusStrip({
 
       {/* Quality Rating */}
       <Card className="border border-border/50 shadow-card rounded-2xl hover:shadow-soft transition-shadow">
-        <CardContent className="p-4 flex items-center gap-3">
-          <img src={statusQuality} alt="Quality" className="h-10 w-10 object-contain flex-shrink-0" loading="lazy" />
+        <CardContent className="p-5 flex items-center gap-4">
+          <img src={statusQuality} alt="Quality" className="h-14 w-14 object-contain flex-shrink-0" loading="lazy" />
           <div>
-            <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wide">Quality Rating</p>
-            <p className={cn("text-lg font-bold", qualityColors[qualityRating])}>
+            <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Quality Rating</p>
+            <p className={cn("text-2xl font-bold mt-0.5", qualityColors[qualityRating])}>
               {qualityLabels[qualityRating]}
             </p>
           </div>
@@ -109,29 +109,29 @@ export function StatusStrip({
         className="border border-border/50 shadow-card rounded-2xl hover:shadow-soft transition-shadow cursor-pointer"
         onClick={() => navigate('/billing')}
       >
-        <CardContent className="p-4 flex items-center gap-3">
-          <img src={statusCredits} alt="Credits" className="h-10 w-10 object-contain flex-shrink-0" loading="lazy" />
+        <CardContent className="p-5 flex items-center gap-4">
+          <img src={statusCredits} alt="Credits" className="h-14 w-14 object-contain flex-shrink-0" loading="lazy" />
           <div>
-            <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wide">Credits Balance</p>
-            <p className="text-lg font-bold text-foreground">
+            <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Credits Balance</p>
+            <p className="text-2xl font-bold text-foreground mt-0.5">
               {creditsCurrency}{creditsBalance.toLocaleString()}
             </p>
-            <p className="text-[10px] text-primary font-medium cursor-pointer">Buy Credits</p>
+            <p className="text-xs text-primary font-medium cursor-pointer mt-0.5">Buy Credits</p>
           </div>
         </CardContent>
       </Card>
 
       {/* Billing Due */}
       <Card className="border border-border/50 shadow-card rounded-2xl hover:shadow-soft transition-shadow">
-        <CardContent className="p-4 flex items-center gap-3">
-          <img src={statusBilling} alt="Billing" className="h-10 w-10 object-contain flex-shrink-0" loading="lazy" />
+        <CardContent className="p-5 flex items-center gap-4">
+          <img src={statusBilling} alt="Billing" className="h-14 w-14 object-contain flex-shrink-0" loading="lazy" />
           <div>
-            <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wide">Billing Due</p>
-            <p className="text-lg font-bold text-foreground">
+            <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Billing Due</p>
+            <p className="text-2xl font-bold text-foreground mt-0.5">
               {billingAmount || 'No dues'}
             </p>
             {billingDueDate && (
-              <p className="text-[10px] text-muted-foreground">{billingDueDate}</p>
+              <p className="text-xs text-muted-foreground mt-0.5">{billingDueDate}</p>
             )}
           </div>
         </CardContent>
@@ -139,15 +139,15 @@ export function StatusStrip({
 
       {/* Plan / Upgrade */}
       <Card className="border border-border/50 shadow-card rounded-2xl hover:shadow-soft transition-shadow">
-        <CardContent className="p-4 flex items-center justify-between">
+        <CardContent className="p-5 flex items-center justify-between">
           <div>
-            <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wide">Current Plan</p>
-            <p className="text-lg font-bold text-foreground">{planName}</p>
+            <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Current Plan</p>
+            <p className="text-2xl font-bold text-foreground mt-0.5">{planName}</p>
           </div>
           <Button
             size="sm"
             variant="outline"
-            className="h-7 text-xs rounded-lg"
+            className="h-8 text-sm rounded-lg"
             onClick={() => navigate('/billing')}
           >
             Upgrade
