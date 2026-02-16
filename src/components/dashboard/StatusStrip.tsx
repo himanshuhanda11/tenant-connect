@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
+import { ArrowUpRight } from 'lucide-react';
 import statusWhatsapp from '@/assets/status-whatsapp.png';
 import statusQuality from '@/assets/status-quality.png';
 import statusCredits from '@/assets/status-credits.png';
@@ -44,22 +45,22 @@ export function StatusStrip({
     unknown: 'N/A',
   };
 
-  const qualityColors: Record<string, string> = {
-    green: 'text-emerald-600',
-    yellow: 'text-amber-600',
-    red: 'text-destructive',
-    unknown: 'text-muted-foreground',
+  const qualityDots: Record<string, string> = {
+    green: 'bg-emerald-500',
+    yellow: 'bg-amber-500',
+    red: 'bg-destructive',
+    unknown: 'bg-muted-foreground/40',
   };
 
   if (loading) {
     return (
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-5">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
         {Array.from({ length: 5 }).map((_, i) => (
-          <Card key={i} className="border border-border/40 shadow-soft rounded-2xl bg-gradient-to-br from-card to-muted/30">
-            <CardContent className="p-6">
-              <Skeleton className="h-16 w-16 rounded-2xl mb-3" />
-              <Skeleton className="h-4 w-20 mb-2" />
-              <Skeleton className="h-7 w-24" />
+          <Card key={i} className="border border-border/20 rounded-2xl backdrop-blur-sm bg-card/70">
+            <CardContent className="p-5">
+              <Skeleton className="h-12 w-12 rounded-xl mb-3" />
+              <Skeleton className="h-4 w-20 mb-1.5" />
+              <Skeleton className="h-6 w-24" />
             </CardContent>
           </Card>
         ))}
@@ -68,24 +69,23 @@ export function StatusStrip({
   }
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-5">
-      {/* WhatsApp API Status */}
-      <Card className="border border-border/30 shadow-soft rounded-2xl hover:shadow-lg transition-all duration-300 bg-gradient-to-br from-card via-card to-muted/20 group">
-        <CardContent className="p-6 flex flex-col items-center text-center gap-3">
-          <div className="relative">
-            <div className="absolute inset-0 bg-primary/10 rounded-full blur-xl scale-150 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-            <img src={statusWhatsapp} alt="WhatsApp" className="h-20 w-20 object-contain relative z-10 group-hover:scale-105 transition-transform duration-300" loading="lazy" />
-          </div>
-          <div className="min-w-0 w-full">
-            <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wider">WhatsApp API</p>
-            {phoneNumber && <p className="text-xs text-muted-foreground truncate mt-1">{phoneNumber}</p>}
+    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+      {/* WhatsApp API */}
+      <Card className="border border-border/20 rounded-2xl backdrop-blur-sm bg-card/70 hover:bg-card/90 transition-all duration-200 group">
+        <CardContent className="p-5 flex items-start gap-3">
+          <img src={statusWhatsapp} alt="WhatsApp" className="h-11 w-11 object-contain flex-shrink-0 mt-0.5" loading="lazy" />
+          <div className="min-w-0 flex-1">
+            <p className="text-[11px] text-muted-foreground font-medium uppercase tracking-wider leading-none">WhatsApp API</p>
+            {phoneNumber && (
+              <p className="text-xs text-foreground font-semibold mt-1 truncate">{phoneNumber}</p>
+            )}
             <div className="mt-2">
               {isWABAConnected ? (
-                <Badge className="bg-emerald-500 text-white hover:bg-emerald-600 font-bold px-4 py-1 text-xs rounded-full shadow-sm">
-                  LIVE
+                <Badge className="bg-emerald-500/15 text-emerald-600 hover:bg-emerald-500/20 font-bold px-2.5 py-0.5 text-[10px] rounded-md border border-emerald-500/20">
+                  ● LIVE
                 </Badge>
               ) : (
-                <Button size="sm" onClick={onConnect} className="h-8 text-xs px-4 rounded-full shadow-sm">
+                <Button size="sm" onClick={onConnect} className="h-6 text-[10px] px-3 rounded-md">
                   Connect
                 </Button>
               )}
@@ -95,71 +95,67 @@ export function StatusStrip({
       </Card>
 
       {/* Quality Rating */}
-      <Card className="border border-border/30 shadow-soft rounded-2xl hover:shadow-lg transition-all duration-300 bg-gradient-to-br from-card via-card to-muted/20 group">
-        <CardContent className="p-6 flex flex-col items-center text-center gap-3">
-          <div className="relative">
-            <div className="absolute inset-0 bg-primary/10 rounded-full blur-xl scale-150 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-            <img src={statusQuality} alt="Quality" className="h-20 w-20 object-contain relative z-10 group-hover:scale-105 transition-transform duration-300" loading="lazy" />
-          </div>
+      <Card className="border border-border/20 rounded-2xl backdrop-blur-sm bg-card/70 hover:bg-card/90 transition-all duration-200">
+        <CardContent className="p-5 flex items-start gap-3">
+          <img src={statusQuality} alt="Quality" className="h-11 w-11 object-contain flex-shrink-0 mt-0.5" loading="lazy" />
           <div>
-            <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wider">Quality Rating</p>
-            <p className={cn("text-3xl font-bold mt-1", qualityColors[qualityRating])}>
-              {qualityLabels[qualityRating]}
-            </p>
+            <p className="text-[11px] text-muted-foreground font-medium uppercase tracking-wider leading-none">Quality</p>
+            <div className="flex items-center gap-2 mt-1.5">
+              <div className={cn("h-2.5 w-2.5 rounded-full", qualityDots[qualityRating])} />
+              <p className="text-xl font-bold text-foreground leading-none">
+                {qualityLabels[qualityRating]}
+              </p>
+            </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* Credits Balance */}
+      {/* Credits */}
       <Card
-        className="border border-border/30 shadow-soft rounded-2xl hover:shadow-lg transition-all duration-300 bg-gradient-to-br from-card via-card to-muted/20 cursor-pointer group"
+        className="border border-border/20 rounded-2xl backdrop-blur-sm bg-card/70 hover:bg-card/90 transition-all duration-200 cursor-pointer group"
         onClick={() => navigate('/billing')}
       >
-        <CardContent className="p-6 flex flex-col items-center text-center gap-3">
-          <div className="relative">
-            <div className="absolute inset-0 bg-primary/10 rounded-full blur-xl scale-150 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-            <img src={statusCredits} alt="Credits" className="h-20 w-20 object-contain relative z-10 group-hover:scale-105 transition-transform duration-300" loading="lazy" />
-          </div>
-          <div>
-            <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wider">Credits Balance</p>
-            <p className="text-3xl font-bold text-foreground mt-1">
+        <CardContent className="p-5 flex items-start gap-3">
+          <img src={statusCredits} alt="Credits" className="h-11 w-11 object-contain flex-shrink-0 mt-0.5" loading="lazy" />
+          <div className="flex-1 min-w-0">
+            <p className="text-[11px] text-muted-foreground font-medium uppercase tracking-wider leading-none">Credits</p>
+            <p className="text-xl font-bold text-foreground mt-1.5 leading-none">
               {creditsCurrency}{creditsBalance.toLocaleString()}
             </p>
-            <p className="text-xs text-primary font-semibold cursor-pointer mt-1 hover:underline">Buy Credits</p>
+            <p className="text-[10px] text-primary font-semibold mt-1.5 group-hover:underline flex items-center gap-0.5">
+              Buy Credits <ArrowUpRight className="h-2.5 w-2.5" />
+            </p>
           </div>
         </CardContent>
       </Card>
 
-      {/* Billing Due */}
-      <Card className="border border-border/30 shadow-soft rounded-2xl hover:shadow-lg transition-all duration-300 bg-gradient-to-br from-card via-card to-muted/20 group">
-        <CardContent className="p-6 flex flex-col items-center text-center gap-3">
-          <div className="relative">
-            <div className="absolute inset-0 bg-primary/10 rounded-full blur-xl scale-150 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-            <img src={statusBilling} alt="Billing" className="h-20 w-20 object-contain relative z-10 group-hover:scale-105 transition-transform duration-300" loading="lazy" />
-          </div>
+      {/* Billing */}
+      <Card className="border border-border/20 rounded-2xl backdrop-blur-sm bg-card/70 hover:bg-card/90 transition-all duration-200">
+        <CardContent className="p-5 flex items-start gap-3">
+          <img src={statusBilling} alt="Billing" className="h-11 w-11 object-contain flex-shrink-0 mt-0.5" loading="lazy" />
           <div>
-            <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wider">Billing Due</p>
-            <p className="text-3xl font-bold text-foreground mt-1">
+            <p className="text-[11px] text-muted-foreground font-medium uppercase tracking-wider leading-none">Billing</p>
+            <p className="text-xl font-bold text-foreground mt-1.5 leading-none">
               {billingAmount || 'No dues'}
             </p>
             {billingDueDate && (
-              <p className="text-xs text-muted-foreground mt-1">{billingDueDate}</p>
+              <p className="text-[10px] text-muted-foreground mt-1">{billingDueDate}</p>
             )}
           </div>
         </CardContent>
       </Card>
 
-      {/* Plan / Upgrade */}
-      <Card className="border border-border/30 shadow-soft rounded-2xl hover:shadow-lg transition-all duration-300 bg-gradient-to-br from-card via-card to-primary/5 group">
-        <CardContent className="p-6 flex flex-col items-center text-center gap-3 justify-between h-full">
+      {/* Plan */}
+      <Card className="border border-border/20 rounded-2xl backdrop-blur-sm bg-card/70 hover:bg-card/90 transition-all duration-200">
+        <CardContent className="p-5 flex items-start justify-between">
           <div>
-            <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wider">Current Plan</p>
-            <p className="text-3xl font-bold text-foreground mt-1">{planName}</p>
+            <p className="text-[11px] text-muted-foreground font-medium uppercase tracking-wider leading-none">Plan</p>
+            <p className="text-xl font-bold text-foreground mt-1.5 leading-none">{planName}</p>
           </div>
           <Button
             size="sm"
             variant="outline"
-            className="h-9 text-sm px-5 rounded-full border-primary/30 hover:bg-primary hover:text-primary-foreground transition-colors"
+            className="h-7 text-[10px] px-3 rounded-lg border-primary/25 hover:bg-primary hover:text-primary-foreground transition-colors mt-0.5"
             onClick={() => navigate('/billing')}
           >
             Upgrade

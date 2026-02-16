@@ -57,7 +57,7 @@ export function WhatsAppLinksCard({ phoneNumber, businessName, loading }: WhatsA
       <CardContent className="space-y-3">
         {/* Business Profile */}
         <button
-          onClick={() => navigate('/phone-numbers')}
+          onClick={() => navigate('/phone-numbers?tab=profile')}
           className="w-full flex items-center gap-4 p-4 rounded-xl bg-gradient-to-r from-primary/8 to-primary/3 border border-primary/10 hover:border-primary/25 transition-all group"
         >
           <img src={dashboardProfile} alt="Profile" className="h-14 w-14 object-contain flex-shrink-0 group-hover:scale-105 transition-transform" loading="lazy" />
