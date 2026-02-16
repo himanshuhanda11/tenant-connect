@@ -7,21 +7,21 @@ import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useTenant } from '@/contexts/TenantContext';
 import {
-  Phone, CheckCircle2, Clock, AlertTriangle, RefreshCw, Loader2, Unplug, Wifi
+  Phone, CheckCircle2, Clock, AlertTriangle, RefreshCw, Loader2, Wifi
 } from 'lucide-react';
 
-interface WorkspacePhone {
+interface PhoneRecord {
   id: string;
-  workspace_id: string;
-  phone_e164: string;
-  display_name: string | null;
-  provider: string;
+  tenant_id: string;
+  display_number: string | null;
+  verified_name: string | null;
+  phone_number_id: string | null;
+  waba_account_id: string | null;
   status: string;
   quality_rating: string | null;
-  messaging_limit: number | null;
-  waba_id: string | null;
-  phone_number_id: string | null;
-  is_primary: boolean;
+  messaging_limit: string | null;
+  webhook_health: string | null;
+  is_default: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -32,9 +32,16 @@ const QUALITY_CONFIG: Record<string, { color: string; label: string }> = {
   RED: { color: 'bg-red-50 text-red-700 border-red-200', label: 'Low Quality' },
 };
 
+const LIMIT_LABELS: Record<string, string> = {
+  TIER_1K: '1,000 / day',
+  TIER_10K: '10,000 / day',
+  TIER_100K: '100,000 / day',
+  TIER_UNLIMITED: 'Unlimited',
+};
+
 export function WhatsAppNumberSettings() {
   const { currentTenant } = useTenant();
-  const [phone, setPhone] = useState<WorkspacePhone | null>(null);
+  const [phone, setPhone] = useState<PhoneRecord | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
@@ -42,10 +49,12 @@ export function WhatsAppNumberSettings() {
     if (!currentTenant?.id) return;
     setLoading(true);
     try {
-      const { data, error } = await (supabase as any)
-        .from('workspace_phone_numbers')
+      const { data, error } = await supabase
+        .from('phone_numbers')
         .select('*')
-        .eq('workspace_id', currentTenant.id)
+        .eq('tenant_id', currentTenant.id)
+        .order('is_default', { ascending: false })
+        .limit(1)
         .maybeSingle();
 
       if (error) throw error;
@@ -67,7 +76,7 @@ export function WhatsAppNumberSettings() {
         body: { workspaceId: currentTenant.id },
       });
       if (error) throw error;
-      if (data?.phone) setPhone(data.phone);
+      await fetchPhone();
       toast({ title: 'Status refreshed' });
     } catch (e: any) {
       toast({ title: 'Error', description: e.message, variant: 'destructive' });
@@ -86,7 +95,6 @@ export function WhatsAppNumberSettings() {
     );
   }
 
-  // No phone connected
   if (!phone) {
     return (
       <Card className="rounded-2xl border-dashed">
@@ -98,7 +106,7 @@ export function WhatsAppNumberSettings() {
             <h3 className="font-semibold text-lg">No WhatsApp Number Connected</h3>
             <p className="text-sm text-muted-foreground mt-1 max-w-md mx-auto">
               Connect your WhatsApp Business number to start sending messages. 
-              Go to the Integrations page to begin the setup process.
+              Go to the Phone Numbers page to begin the setup process.
             </p>
           </div>
           <Button variant="outline" className="rounded-xl" onClick={() => window.location.href = '/phone-numbers'}>
@@ -111,6 +119,7 @@ export function WhatsAppNumberSettings() {
   }
 
   const quality = phone.quality_rating ? QUALITY_CONFIG[phone.quality_rating] : null;
+  const limitLabel = phone.messaging_limit ? LIMIT_LABELS[phone.messaging_limit] || phone.messaging_limit : null;
 
   return (
     <div className="space-y-4">
@@ -130,26 +139,26 @@ export function WhatsAppNumberSettings() {
           {/* Number + status */}
           <div className="flex items-start justify-between">
             <div className="space-y-1">
-              <div className="font-mono text-lg font-semibold">{phone.phone_e164}</div>
-              {phone.display_name && (
-                <div className="text-sm text-muted-foreground">{phone.display_name}</div>
+              <div className="font-mono text-lg font-semibold">{phone.display_number}</div>
+              {phone.verified_name && (
+                <div className="text-sm text-muted-foreground">{phone.verified_name}</div>
               )}
             </div>
             <div className="flex items-center gap-2">
-              {phone.status === 'active' ? (
+              {phone.status === 'connected' ? (
                 <Badge className="bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100">
                   <CheckCircle2 className="h-3 w-3 mr-1" />
-                  Active
+                  Connected
                 </Badge>
-              ) : phone.status === 'suspended' ? (
+              ) : phone.status === 'disconnected' || phone.status === 'error' ? (
                 <Badge variant="destructive">
                   <AlertTriangle className="h-3 w-3 mr-1" />
-                  Suspended
+                  {phone.status === 'error' ? 'Error' : 'Disconnected'}
                 </Badge>
               ) : (
                 <Badge variant="secondary">
                   <Clock className="h-3 w-3 mr-1" />
-                  Pending
+                  {phone.status}
                 </Badge>
               )}
             </div>
@@ -160,14 +169,10 @@ export function WhatsAppNumberSettings() {
           {/* Details grid */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="space-y-1">
-              <div className="text-xs text-muted-foreground">Provider</div>
-              <div className="text-sm font-medium capitalize">{phone.provider}</div>
-            </div>
-            <div className="space-y-1">
               <div className="text-xs text-muted-foreground">Quality Rating</div>
               {quality ? (
                 <Badge variant="outline" className={`text-xs ${quality.color}`}>
-                  {phone.quality_rating} — {quality.label}
+                  {quality.label}
                 </Badge>
               ) : (
                 <div className="text-sm text-muted-foreground">—</div>
@@ -176,7 +181,13 @@ export function WhatsAppNumberSettings() {
             <div className="space-y-1">
               <div className="text-xs text-muted-foreground">Messaging Limit</div>
               <div className="text-sm font-medium">
-                {phone.messaging_limit ? `${phone.messaging_limit.toLocaleString()} / day` : '—'}
+                {limitLabel || '—'}
+              </div>
+            </div>
+            <div className="space-y-1">
+              <div className="text-xs text-muted-foreground">Webhook Health</div>
+              <div className="text-sm font-medium capitalize">
+                {phone.webhook_health || '—'}
               </div>
             </div>
             <div className="space-y-1">
@@ -187,23 +198,15 @@ export function WhatsAppNumberSettings() {
             </div>
           </div>
 
-          {/* WABA details (if exists) */}
-          {(phone.waba_id || phone.phone_number_id) && (
+          {/* Meta IDs */}
+          {phone.phone_number_id && (
             <>
               <Separator />
               <div className="grid grid-cols-2 gap-4">
-                {phone.waba_id && (
-                  <div className="space-y-1">
-                    <div className="text-xs text-muted-foreground">WABA ID</div>
-                    <div className="text-xs font-mono bg-muted px-2 py-1 rounded">{phone.waba_id}</div>
-                  </div>
-                )}
-                {phone.phone_number_id && (
-                  <div className="space-y-1">
-                    <div className="text-xs text-muted-foreground">Phone Number ID</div>
-                    <div className="text-xs font-mono bg-muted px-2 py-1 rounded">{phone.phone_number_id}</div>
-                  </div>
-                )}
+                <div className="space-y-1">
+                  <div className="text-xs text-muted-foreground">Phone Number ID</div>
+                  <div className="text-xs font-mono bg-muted px-2 py-1 rounded">{phone.phone_number_id}</div>
+                </div>
               </div>
             </>
           )}
