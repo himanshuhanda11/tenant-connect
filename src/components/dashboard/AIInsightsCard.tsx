@@ -119,7 +119,7 @@ export function AIInsightsCard({ metrics, isPro = true, loading: externalLoading
   }
 
   return (
-    <Card className="border-0 shadow-card">
+    <Card className="border border-border/20 shadow-soft backdrop-blur-sm bg-card/80 rounded-2xl">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">

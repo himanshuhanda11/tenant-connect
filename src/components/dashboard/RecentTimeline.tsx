@@ -36,7 +36,7 @@ const iconConfig: Record<string, { icon: React.ElementType; color: string; bg: s
 export function RecentTimeline({ events, loading }: RecentTimelineProps) {
   if (loading) {
     return (
-      <Card className="border-0 shadow-card">
+      <Card className="border border-border/20 shadow-soft backdrop-blur-sm bg-card/80 rounded-2xl">
         <CardHeader className="pb-3">
           <CardTitle className="text-base font-semibold">Recent Activity</CardTitle>
         </CardHeader>
@@ -56,7 +56,7 @@ export function RecentTimeline({ events, loading }: RecentTimelineProps) {
   }
 
   return (
-    <Card className="border-0 shadow-card">
+    <Card className="border border-border/20 shadow-soft backdrop-blur-sm bg-card/80 rounded-2xl">
       <CardHeader className="pb-3">
         <div className="flex items-center gap-2">
           <Clock className="h-4 w-4 text-muted-foreground" />
