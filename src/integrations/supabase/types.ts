@@ -160,6 +160,99 @@ export type Database = {
           },
         ]
       }
+      auto_reply_settings: {
+        Row: {
+          after_hours_enabled: boolean
+          after_hours_message: string
+          ai_enabled: boolean
+          ai_fallback_template: boolean
+          ai_knowledge_base: string | null
+          ai_require_approval: boolean
+          ai_response_length: string
+          ai_tone: string
+          business_hours_enabled: boolean
+          business_hours_end: string
+          business_hours_message: string
+          business_hours_start: string
+          cooldown_hours: number
+          created_at: string
+          delay_seconds: number
+          exclude_assigned: boolean
+          first_message_only: boolean
+          id: string
+          keyword_rules: Json
+          keywords_enabled: boolean
+          tenant_id: string
+          timezone: string
+          updated_at: string
+        }
+        Insert: {
+          after_hours_enabled?: boolean
+          after_hours_message?: string
+          ai_enabled?: boolean
+          ai_fallback_template?: boolean
+          ai_knowledge_base?: string | null
+          ai_require_approval?: boolean
+          ai_response_length?: string
+          ai_tone?: string
+          business_hours_enabled?: boolean
+          business_hours_end?: string
+          business_hours_message?: string
+          business_hours_start?: string
+          cooldown_hours?: number
+          created_at?: string
+          delay_seconds?: number
+          exclude_assigned?: boolean
+          first_message_only?: boolean
+          id?: string
+          keyword_rules?: Json
+          keywords_enabled?: boolean
+          tenant_id: string
+          timezone?: string
+          updated_at?: string
+        }
+        Update: {
+          after_hours_enabled?: boolean
+          after_hours_message?: string
+          ai_enabled?: boolean
+          ai_fallback_template?: boolean
+          ai_knowledge_base?: string | null
+          ai_require_approval?: boolean
+          ai_response_length?: string
+          ai_tone?: string
+          business_hours_enabled?: boolean
+          business_hours_end?: string
+          business_hours_message?: string
+          business_hours_start?: string
+          cooldown_hours?: number
+          created_at?: string
+          delay_seconds?: number
+          exclude_assigned?: boolean
+          first_message_only?: boolean
+          id?: string
+          keyword_rules?: Json
+          keywords_enabled?: boolean
+          tenant_id?: string
+          timezone?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "auto_reply_settings_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: true
+            referencedRelation: "platform_workspace_directory"
+            referencedColumns: ["workspace_id"]
+          },
+          {
+            foreignKeyName: "auto_reply_settings_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: true
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       automation_cooldowns: {
         Row: {
           action_type:
