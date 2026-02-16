@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useLocation, useNavigate, Link } from 'react-router-dom';
-import { LayoutDashboard, Users, Settings, LogOut, ChevronDown, ChevronRight, Plus, Inbox, Contact, Phone, FileText, Send, Zap, CreditCard, Shield, UsersRound, Route, Clock, ScrollText, Tag, ListFilter, HelpCircle, Megaphone, BarChart3, Link2, Target, Workflow, Cog, Building2, TrendingUp, Headphones, Check, Puzzle, PanelLeftClose, PanelLeft, User, ChevronUp } from 'lucide-react';
+import { LayoutDashboard, Users, Settings, LogOut, ChevronDown, ChevronRight, Plus, Inbox, Contact, Phone, FileText, Send, Zap, CreditCard, Shield, UsersRound, Route, Clock, ScrollText, Tag, ListFilter, HelpCircle, Megaphone, BarChart3, Link2, Target, Workflow, Cog, Building2, TrendingUp, Headphones, Check, Puzzle, PanelLeftClose, PanelLeft, User, ChevronUp, ExternalLink } from 'lucide-react';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from '@/components/ui/sidebar';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
@@ -23,6 +23,7 @@ interface MenuItem {
   badge?: number;
   key: string;
   isNew?: boolean;
+  docUrl?: string;
 }
 
 interface MenuGroup {
@@ -34,27 +35,27 @@ interface MenuGroup {
 
 const mainMenuItems: MenuItem[] = [
   { title: 'Dashboard', url: '/dashboard', icon: LayoutDashboard, key: 'dashboard' },
-  { title: 'Inbox', url: '/inbox', icon: Inbox, badge: 0, key: 'inbox' },
-  { title: 'Contacts', url: '/contacts', icon: Contact, key: 'contacts' },
-  { title: 'Tags', url: '/tags', icon: Tag, key: 'tags' },
-  { title: 'Attributes', url: '/user-attributes', icon: ListFilter, key: 'user-attributes' },
+  { title: 'Inbox', url: '/inbox', icon: Inbox, badge: 0, key: 'inbox', docUrl: '/help/inbox' },
+  { title: 'Contacts', url: '/contacts', icon: Contact, key: 'contacts', docUrl: '/help/contacts-tags' },
+  { title: 'Tags', url: '/tags', icon: Tag, key: 'tags', docUrl: '/help/contacts-tags' },
+  { title: 'Attributes', url: '/user-attributes', icon: ListFilter, key: 'user-attributes', docUrl: '/help/contacts-tags' },
 ];
 
 const growthMenuItems: MenuItem[] = [
-  { title: 'Campaigns', url: '/campaigns', icon: Send, key: 'campaigns' },
-  { title: 'Automation', url: '/automation', icon: Zap, key: 'automation' },
-  { title: 'Form Rules', url: '/automation/form-rules', icon: FileText, key: 'form-rules', isNew: true },
-  { title: 'Flows', url: '/flows', icon: Workflow, key: 'flows' },
+  { title: 'Campaigns', url: '/campaigns', icon: Send, key: 'campaigns', docUrl: '/help/category/campaigns' },
+  { title: 'Automation', url: '/automation', icon: Zap, key: 'automation', docUrl: '/help/automation' },
+  { title: 'Form Rules', url: '/automation/form-rules', icon: FileText, key: 'form-rules', isNew: true, docUrl: '/help/automation' },
+  { title: 'Flows', url: '/flows', icon: Workflow, key: 'flows', docUrl: '/help/automation' },
 ];
 
 const metaAdsMenuItems: MenuItem[] = [
-  { title: 'Overview', url: '/meta-ads', icon: Megaphone, key: 'meta-ads-overview' },
-  { title: 'Setup', url: '/meta-ads/setup', icon: Link2, key: 'meta-ads-setup' },
-  { title: 'Ads Manager', url: '/meta-ads/manager', icon: Target, key: 'meta-ads-manager' },
-  { title: 'Lead Analytics', url: '/meta-ads/analytics', icon: BarChart3, key: 'meta-ads-analytics', isNew: true },
-  { title: 'Attribution', url: '/meta-ads/attribution', icon: Route, key: 'meta-ads-attribution' },
-  { title: 'Automations', url: '/meta-ads/automations', icon: Workflow, key: 'meta-ads-automations' },
-  { title: 'Settings', url: '/meta-ads/settings', icon: Cog, key: 'meta-ads-settings' },
+  { title: 'Overview', url: '/meta-ads', icon: Megaphone, key: 'meta-ads-overview', docUrl: '/help/meta-ads' },
+  { title: 'Setup', url: '/meta-ads/setup', icon: Link2, key: 'meta-ads-setup', docUrl: '/help/meta-ads' },
+  { title: 'Ads Manager', url: '/meta-ads/manager', icon: Target, key: 'meta-ads-manager', docUrl: '/help/meta-ads' },
+  { title: 'Lead Analytics', url: '/meta-ads/analytics', icon: BarChart3, key: 'meta-ads-analytics', isNew: true, docUrl: '/help/meta-ads' },
+  { title: 'Attribution', url: '/meta-ads/attribution', icon: Route, key: 'meta-ads-attribution', docUrl: '/help/meta-ads' },
+  { title: 'Automations', url: '/meta-ads/automations', icon: Workflow, key: 'meta-ads-automations', docUrl: '/help/meta-ads' },
+  { title: 'Settings', url: '/meta-ads/settings', icon: Cog, key: 'meta-ads-settings', docUrl: '/help/meta-ads' },
 ];
 
 const teamMenuItems: MenuItem[] = [
@@ -103,8 +104,8 @@ export function AppSidebar() {
   const { phoneNumbers } = usePhoneNumbers();
 
   const channelMenuItems: MenuItem[] = [
-    { title: 'WhatsApp', url: '/phone-numbers', icon: Phone, key: 'phone-numbers' },
-    { title: 'Templates', url: '/templates', icon: FileText, key: 'templates', isNew: true },
+    { title: 'WhatsApp', url: '/phone-numbers', icon: Phone, key: 'phone-numbers', docUrl: '/help/category/whatsapp' },
+    { title: 'Templates', url: '/templates', icon: FileText, key: 'templates', isNew: true, docUrl: '/help/templates' },
   ];
 
   const isAgent = currentRole === 'agent';
@@ -200,7 +201,7 @@ export function AppSidebar() {
             to={item.url}
             end={item.url === '/dashboard'}
             className={cn(
-              "flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg text-[13px] font-medium transition-all duration-150",
+              "group/menuitem flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg text-[13px] font-medium transition-all duration-150",
               isActive
                 ? "bg-primary/10 text-primary"
                 : "text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent/50"
@@ -218,6 +219,18 @@ export function AppSidebar() {
               <Badge variant="destructive" className="h-4 min-w-[16px] px-1 text-[10px] rounded-full">
                 {item.badge}
               </Badge>
+            )}
+            {item.docUrl && (
+              <a
+                href={item.docUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e) => e.stopPropagation()}
+                className="opacity-0 group-hover/menuitem:opacity-100 transition-opacity p-0.5 rounded hover:bg-sidebar-accent/80"
+                title={`${item.title} docs`}
+              >
+                <ExternalLink className="h-3 w-3 text-sidebar-foreground/40 hover:text-primary" />
+              </a>
             )}
           </NavLink>
         </SidebarMenuButton>
