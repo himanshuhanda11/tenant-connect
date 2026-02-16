@@ -72,10 +72,6 @@ export function WhatsAppNumberSettings() {
     if (!currentTenant?.id || !phone) return;
     setRefreshing(true);
     try {
-      const { data, error } = await supabase.functions.invoke('phone-connect-complete', {
-        body: { workspaceId: currentTenant.id },
-      });
-      if (error) throw error;
       await fetchPhone();
       toast({ title: 'Status refreshed' });
     } catch (e: any) {
