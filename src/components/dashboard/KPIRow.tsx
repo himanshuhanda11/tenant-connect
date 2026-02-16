@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
+import { ArrowUpRight } from 'lucide-react';
 import kpiOpenChats from '@/assets/kpi-open-chats.png';
 import kpiNewContacts from '@/assets/kpi-new-contacts.png';
 import kpiAutomation from '@/assets/kpi-automation.png';
@@ -41,13 +42,13 @@ export function KPIRow({
 
   if (loading) {
     return (
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {Array.from({ length: 4 }).map((_, i) => (
-          <Card key={i} className="border border-border/40 shadow-soft rounded-2xl bg-gradient-to-br from-card to-muted/30">
-            <CardContent className="p-7">
-              <Skeleton className="h-20 w-20 rounded-2xl mb-4 mx-auto" />
-              <Skeleton className="h-9 w-20 mb-2 mx-auto" />
-              <Skeleton className="h-5 w-28 mx-auto" />
+          <Card key={i} className="border border-border/20 rounded-2xl backdrop-blur-sm bg-card/70">
+            <CardContent className="p-5">
+              <Skeleton className="h-11 w-11 rounded-xl mb-3" />
+              <Skeleton className="h-7 w-14 mb-1.5" />
+              <Skeleton className="h-4 w-24" />
             </CardContent>
           </Card>
         ))}
@@ -89,35 +90,35 @@ export function KPIRow({
   ];
 
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
       {stats.map((stat) => (
         <Card
           key={stat.id}
           onClick={() => stat.href && navigate(stat.href)}
           className={cn(
-            "border border-border/30 shadow-soft hover:shadow-lg transition-all duration-300 group rounded-2xl bg-gradient-to-br from-card via-card to-muted/20",
+            "border border-border/20 rounded-2xl backdrop-blur-sm bg-card/70 hover:bg-card/90 transition-all duration-200 group",
             stat.href && "cursor-pointer"
           )}
         >
-          <CardContent className="p-7 flex flex-col items-center text-center gap-4">
-            <div className="relative">
-              <div className="absolute inset-0 bg-primary/10 rounded-full blur-xl scale-150 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-              <img
-                src={stat.image}
-                alt={stat.label}
-                className="h-20 w-20 object-contain relative z-10 group-hover:scale-105 transition-transform duration-300"
-                loading="lazy"
-              />
+          <CardContent className="p-5 flex items-start gap-3">
+            <img
+              src={stat.image}
+              alt={stat.label}
+              className="h-11 w-11 object-contain flex-shrink-0 mt-0.5"
+              loading="lazy"
+            />
+            <div className="flex-1 min-w-0">
+              <p className="text-[11px] text-muted-foreground font-medium uppercase tracking-wider leading-none">{stat.label}</p>
+              <p className="text-2xl font-bold text-foreground mt-1.5 leading-none">{stat.value}</p>
+              {stat.subLabel && (
+                <span className="inline-flex items-center text-[10px] font-semibold text-emerald-600 bg-emerald-500/10 px-1.5 py-0.5 rounded mt-1.5">
+                  {stat.subLabel}
+                </span>
+              )}
             </div>
-            <div>
-              <p className="text-4xl font-bold text-foreground">{stat.value}</p>
-              <div className="flex items-center justify-center gap-2 mt-1.5">
-                <p className="text-sm text-muted-foreground font-medium">{stat.label}</p>
-                {stat.subLabel && (
-                  <span className="text-xs font-semibold text-emerald-600 bg-emerald-500/10 px-2 py-0.5 rounded-full">{stat.subLabel}</span>
-                )}
-              </div>
-            </div>
+            {stat.href && (
+              <ArrowUpRight className="h-3.5 w-3.5 text-muted-foreground/40 group-hover:text-foreground transition-colors flex-shrink-0 mt-1" />
+            )}
           </CardContent>
         </Card>
       ))}
