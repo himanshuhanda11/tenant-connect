@@ -41,13 +41,13 @@ export function KPIRow({
 
   if (loading) {
     return (
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
         {Array.from({ length: 4 }).map((_, i) => (
-          <Card key={i} className="border border-border/50 shadow-card rounded-2xl">
-            <CardContent className="p-5">
-              <Skeleton className="h-12 w-12 rounded-xl mb-3" />
-              <Skeleton className="h-8 w-16 mb-1" />
-              <Skeleton className="h-4 w-24" />
+          <Card key={i} className="border border-border/40 shadow-soft rounded-2xl bg-gradient-to-br from-card to-muted/30">
+            <CardContent className="p-7">
+              <Skeleton className="h-20 w-20 rounded-2xl mb-4 mx-auto" />
+              <Skeleton className="h-9 w-20 mb-2 mx-auto" />
+              <Skeleton className="h-5 w-28 mx-auto" />
             </CardContent>
           </Card>
         ))}
@@ -89,29 +89,32 @@ export function KPIRow({
   ];
 
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
       {stats.map((stat) => (
         <Card
           key={stat.id}
           onClick={() => stat.href && navigate(stat.href)}
           className={cn(
-            "border border-border/50 shadow-card hover:shadow-soft transition-all duration-200 group rounded-2xl",
+            "border border-border/30 shadow-soft hover:shadow-lg transition-all duration-300 group rounded-2xl bg-gradient-to-br from-card via-card to-muted/20",
             stat.href && "cursor-pointer"
           )}
         >
-          <CardContent className="p-6 flex items-center gap-5">
-            <img
-              src={stat.image}
-              alt={stat.label}
-              className="h-16 w-16 object-contain flex-shrink-0"
-              loading="lazy"
-            />
+          <CardContent className="p-7 flex flex-col items-center text-center gap-4">
+            <div className="relative">
+              <div className="absolute inset-0 bg-primary/10 rounded-full blur-xl scale-150 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              <img
+                src={stat.image}
+                alt={stat.label}
+                className="h-20 w-20 object-contain relative z-10 group-hover:scale-105 transition-transform duration-300"
+                loading="lazy"
+              />
+            </div>
             <div>
-              <p className="text-3xl font-bold text-foreground">{stat.value}</p>
-              <div className="flex items-center gap-2 mt-1">
-                <p className="text-sm text-muted-foreground">{stat.label}</p>
+              <p className="text-4xl font-bold text-foreground">{stat.value}</p>
+              <div className="flex items-center justify-center gap-2 mt-1.5">
+                <p className="text-sm text-muted-foreground font-medium">{stat.label}</p>
                 {stat.subLabel && (
-                  <span className="text-xs font-medium text-emerald-600">{stat.subLabel}</span>
+                  <span className="text-xs font-semibold text-emerald-600 bg-emerald-500/10 px-2 py-0.5 rounded-full">{stat.subLabel}</span>
                 )}
               </div>
             </div>
