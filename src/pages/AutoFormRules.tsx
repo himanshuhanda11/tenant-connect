@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
+import { QuickGuide, quickGuides } from '@/components/help/QuickGuide';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -114,6 +115,7 @@ export default function AutoFormRules() {
 
   return (
     <DashboardLayout>
+      <QuickGuide {...quickGuides.formRules} className="mb-4" />
       {autoformsLocked && (
         <UpgradePrompt
           currentPlan={currentPlan}

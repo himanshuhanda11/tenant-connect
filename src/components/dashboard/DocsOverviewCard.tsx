@@ -12,7 +12,7 @@ const featureDocs = [
     title: 'Campaigns & Bulk Messaging',
     summary: 'Send bulk template messages, schedule deliveries, A/B test, and track campaign performance.',
     icon: Megaphone,
-    href: '/help/category/campaigns',
+    href: '/help/campaigns',
   },
   {
     title: 'Automation & Flows',
@@ -39,16 +39,16 @@ const featureDocs = [
     href: '/help/meta-ads',
   },
   {
-    title: 'Workspaces & Team',
-    summary: 'Manage workspaces, invite team members, configure roles, routing, and business hours.',
+    title: 'Team Management',
+    summary: 'Invite members, assign roles, set up routing, SLA policies, and audit logs.',
     icon: CreditCard,
-    href: '/help/workspaces',
+    href: '/help/team',
   },
   {
-    title: 'Analytics & Reports',
-    summary: 'Monitor KPIs, delivery rates, agent performance, and export detailed reports.',
+    title: 'Phone Numbers',
+    summary: 'Connect, configure, and monitor your WhatsApp Business phone numbers.',
     icon: BarChart3,
-    href: '/help/category/analytics',
+    href: '/help/phone-numbers',
   },
 ];
 

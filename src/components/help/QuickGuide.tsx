@@ -92,8 +92,8 @@ export const quickGuides = {
   campaigns: {
     description: 'Send targeted WhatsApp broadcasts to your audience using approved templates.',
     links: [
-      { label: 'How to create a campaign?', url: '/help/category/campaigns', external: true },
-      { label: 'Campaign best practices', url: '/help/category/campaigns', external: true },
+      { label: 'How to create a campaign?', url: '/help/campaigns', external: true },
+      { label: 'Campaign best practices', url: '/help/campaigns', external: true },
     ],
   },
   automation: {
@@ -120,8 +120,8 @@ export const quickGuides = {
   team: {
     description: 'Invite team members, define roles, and set up conversation routing.',
     links: [
-      { label: 'How to invite team members?', url: '/help/workspaces', external: true },
-      { label: 'How to set up roles?', url: '/help/workspaces', external: true },
+      { label: 'How to invite team members?', url: '/help/team', external: true },
+      { label: 'How to set up roles?', url: '/help/team', external: true },
     ],
   },
   billing: {
@@ -134,8 +134,15 @@ export const quickGuides = {
   phoneNumbers: {
     description: 'Connect and manage your WhatsApp Business phone numbers.',
     links: [
-      { label: 'How to connect a number?', url: '/help/category/whatsapp', external: true },
-      { label: 'Quality rating explained', url: '/help/category/whatsapp', external: true },
+      { label: 'How to connect a number?', url: '/help/phone-numbers', external: true },
+      { label: 'Quality rating explained', url: '/help/phone-numbers', external: true },
+    ],
+  },
+  formRules: {
+    description: 'Automatically send WhatsApp Forms based on triggers like keywords, ad clicks, or tags.',
+    links: [
+      { label: 'How do Auto-Form Rules work?', url: '/help/form-rules', external: true },
+      { label: 'Trigger types & safety settings', url: '/help/form-rules', external: true },
     ],
   },
   tags: {
