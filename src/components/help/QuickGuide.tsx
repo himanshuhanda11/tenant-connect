@@ -71,93 +71,93 @@ export const quickGuides = {
   inbox: {
     description: 'Manage all your WhatsApp conversations in one place. Reply to customers, assign chats, and track status.',
     links: [
-      { label: 'How to manage conversations?', url: '/help/inbox-guide' },
-      { label: 'How to assign chats to agents?', url: '/help/team-management' },
+      { label: 'How to manage conversations?', url: '/help/inbox', external: true },
+      { label: 'How to assign chats to agents?', url: '/help/inbox', external: true },
     ],
   },
   contacts: {
     description: 'Build and organize your customer database with profiles, tags, and segments.',
     links: [
-      { label: 'How to import contacts?', url: '/help/contacts-management' },
-      { label: 'How to create segments?', url: '/help/tags-and-segments' },
+      { label: 'How to import contacts?', url: '/help/contacts-tags', external: true },
+      { label: 'How to create segments?', url: '/help/contacts-tags', external: true },
     ],
   },
   templates: {
     description: 'Create and manage WhatsApp message templates. All templates must be approved by Meta.',
     links: [
-      { label: 'How to create templates?', url: '/help/templates-guide' },
-      { label: 'Template best practices', url: '/help/templates-guide' },
+      { label: 'How to create templates?', url: '/help/templates', external: true },
+      { label: 'Template best practices', url: '/help/templates', external: true },
     ],
   },
   campaigns: {
     description: 'Send targeted WhatsApp broadcasts to your audience using approved templates.',
     links: [
-      { label: 'How to create a campaign?', url: '/help/campaigns-guide' },
-      { label: 'Campaign best practices', url: '/help/campaigns-guide' },
+      { label: 'How to create a campaign?', url: '/help/category/campaigns', external: true },
+      { label: 'Campaign best practices', url: '/help/category/campaigns', external: true },
     ],
   },
   automation: {
     description: 'Build workflows that automatically respond, tag, and route conversations.',
     links: [
-      { label: 'How to create automations?', url: '/help/automation-workflows' },
-      { label: 'Automation triggers explained', url: '/help/automation-workflows' },
+      { label: 'How to create automations?', url: '/help/automation', external: true },
+      { label: 'Automation triggers explained', url: '/help/automation', external: true },
     ],
   },
   flows: {
     description: 'Create visual conversation flows with our drag-and-drop builder.',
     links: [
-      { label: 'How to build flows?', url: '/help/flows-guide' },
-      { label: 'Flow triggers & nodes', url: '/help/flows-guide' },
+      { label: 'How to build flows?', url: '/help/automation', external: true },
+      { label: 'Flow triggers & nodes', url: '/help/automation', external: true },
     ],
   },
   metaAds: {
     description: 'Connect with Facebook to fetch and manage your Click-to-WhatsApp ad leads.',
     links: [
-      { label: 'How to connect Meta Ads?', url: '/help/meta-ads-guide' },
-      { label: 'How to set up attribution?', url: '/help/meta-ads-guide' },
+      { label: 'How to connect Meta Ads?', url: '/help/meta-ads', external: true },
+      { label: 'How to set up attribution?', url: '/help/meta-ads', external: true },
     ],
   },
   team: {
     description: 'Invite team members, define roles, and set up conversation routing.',
     links: [
-      { label: 'How to invite team members?', url: '/help/team-management' },
-      { label: 'How to set up roles?', url: '/help/team-management' },
+      { label: 'How to invite team members?', url: '/help/workspaces', external: true },
+      { label: 'How to set up roles?', url: '/help/workspaces', external: true },
     ],
   },
   billing: {
     description: 'Manage your subscription, view usage, and download invoices.',
     links: [
-      { label: 'How billing works?', url: '/help/billing-guide' },
-      { label: 'How to upgrade plans?', url: '/help/billing-guide' },
+      { label: 'How billing works?', url: '/help/workspaces', external: true },
+      { label: 'How to upgrade plans?', url: '/help/workspaces', external: true },
     ],
   },
   phoneNumbers: {
     description: 'Connect and manage your WhatsApp Business phone numbers.',
     links: [
-      { label: 'How to connect a number?', url: '/help/phone-numbers-setup' },
-      { label: 'Quality rating explained', url: '/help/phone-numbers-setup' },
+      { label: 'How to connect a number?', url: '/help/category/whatsapp', external: true },
+      { label: 'Quality rating explained', url: '/help/category/whatsapp', external: true },
     ],
   },
   tags: {
     description: 'Create labels to organize contacts and conversations for better targeting.',
     links: [
-      { label: 'How to use tags?', url: '/help/tags-and-segments' },
-      { label: 'Automation with tags', url: '/help/automation-workflows' },
+      { label: 'How to use tags?', url: '/help/contacts-tags', external: true },
+      { label: 'Automation with tags', url: '/help/automation', external: true },
     ],
   },
   catalogue: {
     description: 'You can connect with Facebook to fetch catalogue and manage it from our platform.',
     links: [
-      { label: 'How to create a catalogue in Commerce Manager?', url: '/help/catalogue-guide' },
-      { label: 'How to manage your Meta catalogue with Shopify?', url: '/help/shopify-integration' },
+      { label: 'How to create a catalogue in Commerce Manager?', url: '/help/category/integrations', external: true },
+      { label: 'How to manage your Meta catalogue with Shopify?', url: '/help/category/integrations', external: true },
     ],
   },
   integrations: {
     description: 'Connect Shopify, Razorpay, Zapier, and other tools to automate WhatsApp messaging based on events.',
     links: [
-      { label: 'How to set up integrations?', url: '/help/integrations-guide' },
-      { label: 'Event-to-action mapping', url: '/help/integrations-guide' },
-      { label: 'Webhook debugging', url: '/help/integrations-guide' },
+      { label: 'How to set up integrations?', url: '/help/category/integrations', external: true },
+      { label: 'Event-to-action mapping', url: '/help/category/integrations', external: true },
+      { label: 'Webhook debugging', url: '/help/category/integrations', external: true },
     ],
   },
 };
