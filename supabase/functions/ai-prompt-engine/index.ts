@@ -12,6 +12,7 @@ interface AiSettings {
   workspace_id: string;
   enabled: boolean;
   tone: string;
+  language: string;
   response_length: string;
   require_agent_approval: boolean;
   fallback_to_template: boolean;
@@ -83,10 +84,15 @@ function buildSystemPrompt(
   }
   const fieldKeys = Object.keys(fieldsSchema);
 
+  // Language instruction
+  const langInstruction = settings.language && settings.language !== 'auto'
+    ? `You MUST always respond in ${settings.language}. Do not switch to any other language regardless of what the customer writes.`
+    : `Always respond in the SAME LANGUAGE the customer uses. If they write in Hindi, reply in Hindi. If English, reply in English.`;
+
   let prompt = `You are a ${tone} AI assistant for a business workspace.
 Your primary objective is: ${objectiveLabel}.
 Keep your customer-facing response to ${responseLen}.
-Always respond in the SAME LANGUAGE the customer uses. If they write in Hindi, reply in Hindi. If English, reply in English.
+${langInstruction}
 
 You MUST output ONLY valid JSON (no markdown, no backticks, no explanation outside the JSON).
 The JSON must follow this EXACT schema:
@@ -113,7 +119,7 @@ The JSON must follow this EXACT schema:
 
   // Qualification mode
   if (settings.qualification_mode && fieldKeys.length > 0) {
-    prompt += `\n\n─── QUALIFICATION MODE ───\nYou must collect the following fields from the customer through natural conversation.\nAsk ONE field at a time. Do NOT ask multiple questions in one message.\n\nRequired fields schema:\n${JSON.stringify(fieldsSchema, null, 2)}\n\nRules:\n- For each message, extract any field values the customer provides into "captured".\n- List remaining uncollected fields in "missing_fields".\n- Set "next_question" to a natural conversational question for the NEXT missing field.\n- When ALL required fields are collected, set lead_stage to "qualified".\n- While collecting, set lead_stage to "qualifying".`;
+    prompt += `\n\n─── QUALIFICATION MODE ───\nYou must collect the following fields from the customer through natural conversation.\nIMPORTANT: Be efficient! Combine related fields into a SINGLE question when natural (e.g. "Could you share your name and city?" or "What's your budget and timeline?").\nAim to complete qualification in 4-5 messages maximum. Do NOT stretch it unnecessarily.\n\nRequired fields schema:\n${JSON.stringify(fieldsSchema, null, 2)}\n\nRules:\n- For each message, extract ALL field values the customer provides into "captured" — even if you didn't explicitly ask for them.\n- Group 2-3 related fields per question when it feels natural.\n- List remaining uncollected fields in "missing_fields".\n- Set "next_question" to a natural conversational question for the NEXT missing field(s).\n- When ALL required fields are collected, set lead_stage to "qualified".\n- While collecting, set lead_stage to "qualifying".`;
 
     if (settings.retry_missing_questions) {
       prompt += `\n- If a customer does not answer a question, retry that field with different phrasing.\n- Track retries in "retry": {"field": "field_name", "attempt": N}.\n- Maximum retries per field: ${settings.max_retries}. After max retries for a field, skip it and move to the next.`;
@@ -194,6 +200,7 @@ serve(async (req) => {
       workspace_id,
       enabled: rawSettings.ai_enabled,
       tone: rawSettings.ai_tone || "professional",
+      language: rawSettings.ai_language || "auto",
       response_length: rawSettings.ai_response_length || "medium",
       require_agent_approval: rawSettings.ai_require_approval || false,
       fallback_to_template: rawSettings.ai_fallback_template || false,

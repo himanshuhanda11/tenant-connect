@@ -44,6 +44,7 @@ interface AutoReplyData {
   keyword_rules: KeywordRule[];
   ai_enabled: boolean;
   ai_tone: string;
+  ai_language: string;
   ai_knowledge_base: string;
   ai_response_length: string;
   ai_require_approval: boolean;
@@ -75,6 +76,7 @@ const DEFAULTS: AutoReplyData = {
   keyword_rules: [],
   ai_enabled: false,
   ai_tone: 'professional',
+  ai_language: 'auto',
   ai_knowledge_base: '',
   ai_response_length: 'medium',
   ai_require_approval: true,
@@ -126,6 +128,7 @@ export function AutoReplySettings() {
           keyword_rules: (row.keyword_rules as KeywordRule[]) || [],
           ai_enabled: row.ai_enabled,
           ai_tone: row.ai_tone,
+          ai_language: (row as any).ai_language || 'auto',
           ai_knowledge_base: row.ai_knowledge_base || '',
           ai_response_length: row.ai_response_length,
           ai_require_approval: row.ai_require_approval,
@@ -514,7 +517,7 @@ export function AutoReplySettings() {
 
               <Separator />
 
-              <div className="grid gap-4 md:grid-cols-2">
+              <div className="grid gap-4 md:grid-cols-3">
                 <div className="space-y-2">
                   <Label>AI Tone</Label>
                   <Select value={data.ai_tone} onValueChange={v => update('ai_tone', v)}>
@@ -526,6 +529,25 @@ export function AutoReplySettings() {
                       <SelectItem value="sales">Sales-oriented</SelectItem>
                       <SelectItem value="support">Support-focused</SelectItem>
                       <SelectItem value="casual">Casual</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label>Response Language</Label>
+                  <Select value={data.ai_language} onValueChange={v => update('ai_language', v)}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="auto">Auto-detect (match customer)</SelectItem>
+                      <SelectItem value="english">English</SelectItem>
+                      <SelectItem value="hindi">Hindi (हिन्दी)</SelectItem>
+                      <SelectItem value="gujarati">Gujarati (ગુજરાતી)</SelectItem>
+                      <SelectItem value="marathi">Marathi (मराठी)</SelectItem>
+                      <SelectItem value="tamil">Tamil (தமிழ்)</SelectItem>
+                      <SelectItem value="telugu">Telugu (తెలుగు)</SelectItem>
+                      <SelectItem value="bengali">Bengali (বাংলা)</SelectItem>
+                      <SelectItem value="kannada">Kannada (ಕನ್ನಡ)</SelectItem>
+                      <SelectItem value="malayalam">Malayalam (മലയാളം)</SelectItem>
+                      <SelectItem value="punjabi">Punjabi (ਪੰਜਾਬੀ)</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
