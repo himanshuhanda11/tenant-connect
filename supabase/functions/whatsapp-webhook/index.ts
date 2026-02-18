@@ -659,15 +659,20 @@ async function processInboundMessage(
       if (sumErr) console.error('inbox summary upsert error:', sumErr);
     });
 
-    // Auto-reply logic (fire-and-forget)
-    handleAutoReply(supabase, tenantId, phoneNumberId, conversationId, contactId, ev).catch(e =>
-      console.error('Auto-reply error:', e)
-    );
-
-    // AI Prompt Engine (fire-and-forget, runs in parallel with auto-reply)
-    handleAiEngine(supabase, tenantId, phoneNumberId, conversationId, contactId, ev).catch(e =>
-      console.error('AI engine error:', e)
-    );
+    // Auto-reply + AI engine (sequential to prevent double-sends)
+    (async () => {
+      try {
+        const generalSent = await handleAutoReply(supabase, tenantId, phoneNumberId, conversationId, contactId, ev);
+        // Only run AI engine if general auto-reply did NOT send a message
+        if (!generalSent) {
+          await handleAiEngine(supabase, tenantId, phoneNumberId, conversationId, contactId, ev);
+        } else {
+          console.log('Skipping AI engine: general auto-reply already sent');
+        }
+      } catch (e) {
+        console.error('Auto-reply/AI engine error:', e);
+      }
+    })();
   }
 }
 
@@ -789,7 +794,7 @@ async function handleAutoReply(
   conversationId: string,
   contactId: string,
   ev: NormalizedEvent & { kind: 'inbound_message' }
-) {
+): Promise<boolean> {
   try {
     // 1. Fetch tenant's auto-reply settings
     const { data: settings, error: settingsErr } = await supabase
@@ -798,12 +803,12 @@ async function handleAutoReply(
       .eq('tenant_id', tenantId)
       .maybeSingle();
 
-    if (settingsErr || !settings) return;
+    if (settingsErr || !settings) return false;
 
-    // Check if any auto-reply is enabled
+    // Check if any general auto-reply is enabled (not AI)
     const hasGeneral = settings.business_hours_enabled || settings.after_hours_enabled;
     const hasKeywords = settings.keywords_enabled && settings.keyword_rules?.length > 0;
-    if (!hasGeneral && !hasKeywords) return;
+    if (!hasGeneral && !hasKeywords) return false;
 
     // 2. If exclude_assigned, check if conversation has an agent assigned
     if (settings.exclude_assigned) {
@@ -814,7 +819,7 @@ async function handleAutoReply(
         .maybeSingle();
       if (conv?.assigned_to) {
         console.log('Auto-reply skipped: conversation is assigned');
-        return;
+        return false;
       }
     }
 
@@ -833,7 +838,7 @@ async function handleAutoReply(
 
     if (recentAutoReply) {
       console.log('Auto-reply skipped: within cooldown period');
-      return;
+      return false;
     }
 
     // 4. First-message-only check
@@ -845,7 +850,7 @@ async function handleAutoReply(
         .eq('direction', 'inbound');
       if ((count || 0) > 1) {
         console.log('Auto-reply skipped: not first message');
-        return;
+        return false;
       }
     }
 
@@ -888,7 +893,7 @@ async function handleAutoReply(
       }
     }
 
-    if (!replyText) return;
+    if (!replyText) return false;
 
     // 6. Apply delay
     const delaySec = settings.delay_seconds || 0;
@@ -905,7 +910,7 @@ async function handleAutoReply(
 
     if (!phone?.phone_number_id || !phone.waba_account?.encrypted_access_token) {
       console.error('Auto-reply: phone number or token not found');
-      return;
+      return false;
     }
 
     // 8. Send via WhatsApp API
@@ -933,7 +938,7 @@ async function handleAutoReply(
 
     if (!waResp.ok) {
       console.error('Auto-reply WhatsApp API error:', JSON.stringify(waResult));
-      return;
+      return false;
     }
 
     const wamid = waResult.messages?.[0]?.id;
@@ -959,8 +964,10 @@ async function handleAutoReply(
     }).eq('id', conversationId);
 
     console.log(`Auto-reply sent to ${ev.from_wa_id}: "${replyText.substring(0, 50)}..."`);
+    return true;
   } catch (err) {
     console.error('handleAutoReply error:', err);
+    return false;
   }
 }
 
@@ -1000,14 +1007,23 @@ async function handleAiEngine(
   try {
     if (!ev.text) return; // Only process text messages
 
-    // Check if workspace AI settings are enabled
-    const { data: aiSettings } = await supabase
-      .from('workspace_ai_settings')
-      .select('enabled')
-      .eq('workspace_id', tenantId)
+    // Check if AI auto-reply is enabled in auto_reply_settings
+    const { data: settings } = await supabase
+      .from('auto_reply_settings')
+      .select('ai_enabled')
+      .eq('tenant_id', tenantId)
       .maybeSingle();
 
-    if (!aiSettings?.enabled) return;
+    if (!settings?.ai_enabled) {
+      // Fallback: also check workspace_ai_settings for backward compatibility
+      const { data: aiSettings } = await supabase
+        .from('workspace_ai_settings')
+        .select('enabled')
+        .eq('workspace_id', tenantId)
+        .maybeSingle();
+
+      if (!aiSettings?.enabled) return;
+    }
 
     // Call the AI prompt engine
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
