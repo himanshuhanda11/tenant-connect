@@ -54,8 +54,7 @@ export function LeadQualificationPanel({ contactId, conversationId, isMobile }: 
       .eq('contact_id', contactId)
       .order('updated_at', { ascending: false })
       .limit(1);
-      const lead = data?.[0] || null;
-      setLead(data);
+      setLead(data?.[0] || null);
       setLoading(false);
     };
     fetchLead();
