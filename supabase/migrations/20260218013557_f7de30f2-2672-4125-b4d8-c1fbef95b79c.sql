@@ -1,0 +1,1 @@
+ALTER TABLE public.auto_reply_settings ADD COLUMN ai_language text NOT NULL DEFAULT 'auto';

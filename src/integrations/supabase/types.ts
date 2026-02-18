@@ -239,6 +239,7 @@ export type Database = {
           ai_enabled: boolean
           ai_fallback_template: boolean
           ai_knowledge_base: string | null
+          ai_language: string
           ai_require_approval: boolean
           ai_response_length: string
           ai_tone: string
@@ -272,6 +273,7 @@ export type Database = {
           ai_enabled?: boolean
           ai_fallback_template?: boolean
           ai_knowledge_base?: string | null
+          ai_language?: string
           ai_require_approval?: boolean
           ai_response_length?: string
           ai_tone?: string
@@ -305,6 +307,7 @@ export type Database = {
           ai_enabled?: boolean
           ai_fallback_template?: boolean
           ai_knowledge_base?: string | null
+          ai_language?: string
           ai_require_approval?: boolean
           ai_response_length?: string
           ai_tone?: string
