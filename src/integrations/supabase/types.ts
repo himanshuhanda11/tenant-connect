@@ -99,6 +99,77 @@ export type Database = {
           },
         ]
       }
+      ai_drafts: {
+        Row: {
+          contact_id: string | null
+          conversation_id: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          lead_update: Json | null
+          message_text: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          workspace_id: string
+        }
+        Insert: {
+          contact_id?: string | null
+          conversation_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          lead_update?: Json | null
+          message_text: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          workspace_id: string
+        }
+        Update: {
+          contact_id?: string | null
+          conversation_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          lead_update?: Json | null
+          message_text?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_drafts_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ai_drafts_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ai_drafts_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "platform_workspace_directory"
+            referencedColumns: ["workspace_id"]
+          },
+          {
+            foreignKeyName: "ai_drafts_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       audit_logs: {
         Row: {
           action: string
@@ -4659,6 +4730,85 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      qualified_leads: {
+        Row: {
+          captured: Json
+          confidence: number | null
+          contact_id: string | null
+          created_at: string
+          handoff_reason: string | null
+          id: string
+          intent: string | null
+          last_ai_message: string | null
+          lead_stage: Database["public"]["Enums"]["lead_stage"]
+          missing_fields: string[] | null
+          next_question: string | null
+          phone_number_id: string | null
+          retry_attempt: number
+          retry_field: string | null
+          updated_at: string
+          workspace_id: string
+        }
+        Insert: {
+          captured?: Json
+          confidence?: number | null
+          contact_id?: string | null
+          created_at?: string
+          handoff_reason?: string | null
+          id?: string
+          intent?: string | null
+          last_ai_message?: string | null
+          lead_stage?: Database["public"]["Enums"]["lead_stage"]
+          missing_fields?: string[] | null
+          next_question?: string | null
+          phone_number_id?: string | null
+          retry_attempt?: number
+          retry_field?: string | null
+          updated_at?: string
+          workspace_id: string
+        }
+        Update: {
+          captured?: Json
+          confidence?: number | null
+          contact_id?: string | null
+          created_at?: string
+          handoff_reason?: string | null
+          id?: string
+          intent?: string | null
+          last_ai_message?: string | null
+          lead_stage?: Database["public"]["Enums"]["lead_stage"]
+          missing_fields?: string[] | null
+          next_question?: string | null
+          phone_number_id?: string | null
+          retry_attempt?: number
+          retry_field?: string | null
+          updated_at?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "qualified_leads_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "qualified_leads_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "platform_workspace_directory"
+            referencedColumns: ["workspace_id"]
+          },
+          {
+            foreignKeyName: "qualified_leads_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       rate_limit_logs: {
         Row: {
@@ -9888,6 +10038,81 @@ export type Database = {
           },
         ]
       }
+      workspace_ai_settings: {
+        Row: {
+          auto_create_lead: boolean
+          auto_tag: boolean
+          confidence_threshold: number
+          enabled: boolean
+          fallback_message: string | null
+          fallback_to_template: boolean
+          knowledge_base: string | null
+          lead_objective: string
+          max_retries: number
+          qualification_mode: boolean
+          require_agent_approval: boolean
+          required_fields_schema: Json
+          response_length: string
+          retry_missing_questions: boolean
+          tone: string
+          updated_at: string
+          workspace_id: string
+        }
+        Insert: {
+          auto_create_lead?: boolean
+          auto_tag?: boolean
+          confidence_threshold?: number
+          enabled?: boolean
+          fallback_message?: string | null
+          fallback_to_template?: boolean
+          knowledge_base?: string | null
+          lead_objective?: string
+          max_retries?: number
+          qualification_mode?: boolean
+          require_agent_approval?: boolean
+          required_fields_schema?: Json
+          response_length?: string
+          retry_missing_questions?: boolean
+          tone?: string
+          updated_at?: string
+          workspace_id: string
+        }
+        Update: {
+          auto_create_lead?: boolean
+          auto_tag?: boolean
+          confidence_threshold?: number
+          enabled?: boolean
+          fallback_message?: string | null
+          fallback_to_template?: boolean
+          knowledge_base?: string | null
+          lead_objective?: string
+          max_retries?: number
+          qualification_mode?: boolean
+          require_agent_approval?: boolean
+          required_fields_schema?: Json
+          response_length?: string
+          retry_missing_questions?: boolean
+          tone?: string
+          updated_at?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workspace_ai_settings_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: true
+            referencedRelation: "platform_workspace_directory"
+            referencedColumns: ["workspace_id"]
+          },
+          {
+            foreignKeyName: "workspace_ai_settings_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: true
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       workspace_appearance: {
         Row: {
           accent_color: string | null
@@ -11344,6 +11569,12 @@ export type Database = {
         | "manual"
         | "fallback"
       flow_version_status: "draft" | "published" | "archived"
+      lead_stage:
+        | "new"
+        | "qualifying"
+        | "qualified"
+        | "needs_agent"
+        | "unqualified"
       member_status: "active" | "invited" | "suspended" | "disabled"
       message_direction: "inbound" | "outbound"
       message_status: "pending" | "sent" | "delivered" | "read" | "failed"
@@ -11835,6 +12066,13 @@ export const Constants = {
         "fallback",
       ],
       flow_version_status: ["draft", "published", "archived"],
+      lead_stage: [
+        "new",
+        "qualifying",
+        "qualified",
+        "needs_agent",
+        "unqualified",
+      ],
       member_status: ["active", "invited", "suspended", "disabled"],
       message_direction: ["inbound", "outbound"],
       message_status: ["pending", "sent", "delivered", "read", "failed"],
