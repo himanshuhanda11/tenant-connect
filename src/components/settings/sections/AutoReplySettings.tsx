@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
@@ -152,7 +152,25 @@ export function AutoReplySettings() {
 
   const update = <K extends keyof AutoReplyData>(key: K, value: AutoReplyData[K]) => {
     setData(prev => ({ ...prev, [key]: value }));
+    setDirty(true);
   };
+
+  // Auto-save with debounce
+  const [dirty, setDirty] = useState(false);
+  const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    if (!dirty || !currentTenant?.id) return;
+    if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+    saveTimeoutRef.current = setTimeout(() => {
+      handleSave();
+      setDirty(false);
+    }, 1500);
+    return () => {
+      if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dirty, data]);
 
   const handleSave = async () => {
     if (!currentTenant?.id) return;
