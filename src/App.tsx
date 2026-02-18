@@ -129,6 +129,7 @@ import AdminBilling from "./pages/admin/AdminBilling";
 import AdminPhoneNumbers from "./pages/admin/AdminPhoneNumbers";
 import AdminSettings from "./pages/admin/AdminSettings";
 import AdminIncidents from "./pages/admin/AdminIncidents";
+import QualifiedLeads from "./pages/QualifiedLeads";
 
 const queryClient = new QueryClient();
 
@@ -159,6 +160,7 @@ const App = () => (
               <Route path="/inbox" element={<InboxPage />} />
               <Route path="/inbox/:id" element={<InboxPage />} />
               <Route path="/contacts" element={<Contacts />} />
+              <Route path="/qualified-leads" element={<QualifiedLeads />} />
               <Route path="/contacts/segments" element={<ContactSegments />} />
               <Route path="/contacts/imports" element={<ContactImports />} />
               <Route path="/contacts/duplicates" element={<ContactDuplicates />} />

@@ -70,6 +70,7 @@ import inboxSupervisor from '@/assets/inbox-supervisor.png';
 
 // New AI components
 import { AIReplySuggestions } from './AIReplySuggestions';
+import { AiDraftBanner } from './AiDraftBanner';
 import { SLATimer } from './SLATimer';
 import { TemplatePicker } from './TemplatePicker';
 import { IntentBadge, SentimentBadge } from './IntentBadge';
@@ -136,6 +137,7 @@ export function InboxChatThread({
   const [showTemplates, setShowTemplates] = useState(false);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [showAISuggestions, setShowAISuggestions] = useState(false);
+  const [aiDraft, setAiDraft] = useState<any>(null);
   const [aiIntent, setAiIntent] = useState<'sales' | 'support' | 'complaint' | 'inquiry' | 'urgent' | 'spam'>('inquiry');
   const [aiHealth, setAiHealth] = useState<'good' | 'warning' | 'critical'>('good');
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -168,6 +170,43 @@ export function InboxChatThread({
     }
     prevMessageCount.current = messages.length;
   }, [messages, scrollToBottom]);
+
+  // Fetch pending AI drafts for this conversation
+  useEffect(() => {
+    if (!conversation?.id) { setAiDraft(null); return; }
+    const fetchDraft = async () => {
+      const { data } = await supabase
+        .from('ai_drafts')
+        .select('*')
+        .eq('conversation_id', conversation.id)
+        .eq('status', 'pending')
+        .order('created_at', { ascending: false })
+        .limit(1);
+      setAiDraft(data?.[0] || null);
+    };
+    fetchDraft();
+    // Subscribe to realtime changes
+    const channel = supabase
+      .channel(`ai-drafts-${conversation.id}`)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'ai_drafts', filter: `conversation_id=eq.${conversation.id}` }, () => fetchDraft())
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [conversation?.id]);
+
+  const handleApproveDraft = async (draftId: string, text: string) => {
+    // Send the message
+    onSendMessage({ text });
+    // Update draft status
+    await supabase.from('ai_drafts').update({ status: 'approved', reviewed_by: user?.id, reviewed_at: new Date().toISOString() }).eq('id', draftId);
+    setAiDraft(null);
+    toast.success('AI draft approved and sent');
+  };
+
+  const handleRejectDraft = async (draftId: string) => {
+    await supabase.from('ai_drafts').update({ status: 'rejected', reviewed_by: user?.id, reviewed_at: new Date().toISOString() }).eq('id', draftId);
+    setAiDraft(null);
+    toast.info('AI draft rejected');
+  };
 
   // Check if phone number is disconnected
   const isPhoneDisconnected = conversation?.phone_number_status === 'disconnected';
@@ -845,6 +884,16 @@ export function InboxChatThread({
             isPro={true}
           />
         </div>
+      )}
+
+      {/* AI Draft Banner */}
+      {aiDraft && !isSupervisorMode && (
+        <AiDraftBanner
+          draft={aiDraft}
+          onApprove={handleApproveDraft}
+          onReject={handleRejectDraft}
+          isMobile={isMobile}
+        />
       )}
 
       {/* Composer - Premium glassmorphism */}

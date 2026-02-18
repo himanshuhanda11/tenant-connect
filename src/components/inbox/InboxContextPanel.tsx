@@ -7,6 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { LeadQualificationPanel } from './LeadQualificationPanel';
 import { Separator } from '@/components/ui/separator';
 import {
   User,
@@ -128,15 +129,18 @@ export function InboxContextPanel({
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col">
-        <TabsList className="mx-4 mt-2 grid grid-cols-5 h-9">
+        <TabsList className="mx-4 mt-2 grid grid-cols-6 h-9">
           <TabsTrigger value="contact" className="px-2">
             <User className="h-4 w-4" />
+          </TabsTrigger>
+          <TabsTrigger value="lead" className="px-2">
+            <Zap className="h-4 w-4" />
           </TabsTrigger>
           <TabsTrigger value="tags" className="px-2">
             <Tag className="h-4 w-4" />
           </TabsTrigger>
           <TabsTrigger value="automation" className="px-2">
-            <Zap className="h-4 w-4" />
+            <Bot className="h-4 w-4" />
           </TabsTrigger>
           <TabsTrigger value="notes" className="px-2">
             <FileText className="h-4 w-4" />
@@ -253,6 +257,15 @@ export function InboxContextPanel({
                 </div>
               </div>
             </div>
+          </TabsContent>
+
+          {/* Lead Qualification Tab */}
+          <TabsContent value="lead" className="m-0">
+            <LeadQualificationPanel
+              contactId={conversation.contact_id || null}
+              conversationId={conversation.id}
+              isMobile={isMobile}
+            />
           </TabsContent>
 
           {/* Tags Tab */}

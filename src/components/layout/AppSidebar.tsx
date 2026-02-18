@@ -37,6 +37,7 @@ const mainMenuItems: MenuItem[] = [
   { title: 'Dashboard', url: '/dashboard', icon: LayoutDashboard, key: 'dashboard' },
   { title: 'Inbox', url: '/inbox', icon: Inbox, badge: 0, key: 'inbox', docUrl: '/help/inbox' },
   { title: 'Contacts', url: '/contacts', icon: Contact, key: 'contacts', docUrl: '/help/contacts-tags' },
+  { title: 'Qualified Leads', url: '/qualified-leads', icon: Target, key: 'qualified-leads', isNew: true },
   { title: 'Tags', url: '/tags', icon: Tag, key: 'tags', docUrl: '/help/contacts-tags' },
   { title: 'Attributes', url: '/user-attributes', icon: ListFilter, key: 'user-attributes', docUrl: '/help/contacts-tags' },
 ];
