@@ -663,6 +663,11 @@ async function processInboundMessage(
     handleAutoReply(supabase, tenantId, phoneNumberId, conversationId, contactId, ev).catch(e =>
       console.error('Auto-reply error:', e)
     );
+
+    // AI Prompt Engine (fire-and-forget, runs in parallel with auto-reply)
+    handleAiEngine(supabase, tenantId, phoneNumberId, conversationId, contactId, ev).catch(e =>
+      console.error('AI engine error:', e)
+    );
   }
 }
 
@@ -980,5 +985,132 @@ function checkBusinessHours(settings: any): boolean {
     return localHours >= start && localHours < end;
   } catch {
     return true; // Default to business hours if parsing fails
+  }
+}
+
+// ─── AI Prompt Engine Handler ───
+async function handleAiEngine(
+  supabase: any,
+  tenantId: string,
+  phoneNumberId: string,
+  conversationId: string,
+  contactId: string,
+  ev: NormalizedEvent & { kind: 'inbound_message' }
+) {
+  try {
+    if (!ev.text) return; // Only process text messages
+
+    // Check if workspace AI settings are enabled
+    const { data: aiSettings } = await supabase
+      .from('workspace_ai_settings')
+      .select('enabled')
+      .eq('workspace_id', tenantId)
+      .maybeSingle();
+
+    if (!aiSettings?.enabled) return;
+
+    // Call the AI prompt engine
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+
+    const engineResp = await fetch(`${supabaseUrl}/functions/v1/ai-prompt-engine`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${serviceKey}`,
+      },
+      body: JSON.stringify({
+        workspace_id: tenantId,
+        conversation_id: conversationId,
+        contact_id: contactId,
+        phone_number_id: phoneNumberId,
+        message: ev.text,
+        _service_call: true,
+      }),
+    });
+
+    if (!engineResp.ok) {
+      const errText = await engineResp.text();
+      console.error('AI engine call failed:', engineResp.status, errText);
+      return;
+    }
+
+    const result = await engineResp.json();
+    if (result.skipped) {
+      console.log('AI engine skipped:', result.reason);
+      return;
+    }
+
+    console.log(`AI engine result: action=${result.action}, confidence=${result.confidence}, stage=${result.lead_update?.lead_stage}`);
+
+    // If action is "send" or "fallback_send", send the message directly
+    if (result.action === 'send' || result.action === 'fallback_send') {
+      const replyText = result.reply;
+      if (!replyText) return;
+
+      // Get phone number's Meta ID and access token
+      const { data: phone } = await supabase
+        .from('phone_numbers')
+        .select('phone_number_id, waba_account:waba_accounts!inner(encrypted_access_token)')
+        .eq('id', phoneNumberId)
+        .maybeSingle();
+
+      if (!phone?.phone_number_id || !phone.waba_account?.encrypted_access_token) {
+        console.error('AI engine: phone number or token not found');
+        return;
+      }
+
+      const waResp = await fetch(
+        `https://graph.facebook.com/v21.0/${phone.phone_number_id}/messages`,
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${phone.waba_account.encrypted_access_token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            messaging_product: 'whatsapp',
+            recipient_type: 'individual',
+            to: ev.from_wa_id,
+            type: 'text',
+            text: { body: replyText },
+          }),
+        }
+      );
+
+      const waResult = await waResp.json();
+      if (!waResp.ok) {
+        console.error('AI engine WhatsApp API error:', JSON.stringify(waResult));
+        return;
+      }
+
+      const wamid = waResult.messages?.[0]?.id;
+      const now = new Date().toISOString();
+
+      // Store outbound AI message
+      await supabase.from('messages').insert({
+        tenant_id: tenantId,
+        conversation_id: conversationId,
+        direction: 'outbound',
+        type: 'text',
+        text: replyText,
+        wamid,
+        status: 'sent',
+        sent_at: now,
+        is_auto_reply: true,
+      });
+
+      // Update conversation preview
+      await supabase.from('conversations').update({
+        last_message_at: now,
+        last_message_preview: replyText.substring(0, 100),
+      }).eq('id', conversationId);
+
+      console.log(`AI engine sent reply to ${ev.from_wa_id}: "${replyText.substring(0, 50)}..."`);
+    } else if (result.action === 'draft') {
+      console.log(`AI engine created draft ${result.draft_id} for agent approval`);
+    }
+  } catch (err) {
+    console.error('handleAiEngine error:', err);
   }
 }

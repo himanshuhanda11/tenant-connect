@@ -95,3 +95,6 @@ verify_jwt = false
 
 [functions.test-ai-reply]
 verify_jwt = false
+
+[functions.ai-prompt-engine]
+verify_jwt = false
