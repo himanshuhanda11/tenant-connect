@@ -659,16 +659,15 @@ async function processInboundMessage(
       if (sumErr) console.error('inbox summary upsert error:', sumErr);
     });
 
-    // Auto-reply + AI engine (sequential to prevent double-sends)
+    // Auto-reply + AI engine (sequential)
+    // General auto-reply: first message only (when AI is also enabled)
+    // AI auto-reply: every message
     (async () => {
       try {
-        const generalSent = await handleAutoReply(supabase, tenantId, phoneNumberId, conversationId, contactId, ev);
-        // Only run AI engine if general auto-reply did NOT send a message
-        if (!generalSent) {
-          await handleAiEngine(supabase, tenantId, phoneNumberId, conversationId, contactId, ev);
-        } else {
-          console.log('Skipping AI engine: general auto-reply already sent');
-        }
+        // General auto-reply runs first (will self-skip if not first message when AI enabled)
+        await handleAutoReply(supabase, tenantId, phoneNumberId, conversationId, contactId, ev);
+        // AI engine always runs independently (handles all messages)
+        await handleAiEngine(supabase, tenantId, phoneNumberId, conversationId, contactId, ev);
       } catch (e) {
         console.error('Auto-reply/AI engine error:', e);
       }
@@ -842,14 +841,16 @@ async function handleAutoReply(
     }
 
     // 4. First-message-only check
-    if (settings.first_message_only) {
+    // When AI auto-reply is also enabled, general auto-reply is always first-message-only
+    const enforceFirstOnly = settings.first_message_only || settings.ai_enabled;
+    if (enforceFirstOnly) {
       const { count } = await supabase
         .from('messages')
         .select('id', { count: 'exact', head: true })
         .eq('conversation_id', conversationId)
         .eq('direction', 'inbound');
       if ((count || 0) > 1) {
-        console.log('Auto-reply skipped: not first message');
+        console.log('Auto-reply skipped: not first message (AI handles follow-ups)');
         return false;
       }
     }
