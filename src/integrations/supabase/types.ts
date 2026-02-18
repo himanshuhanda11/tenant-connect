@@ -164,12 +164,16 @@ export type Database = {
         Row: {
           after_hours_enabled: boolean
           after_hours_message: string
+          ai_confidence_threshold: number
           ai_enabled: boolean
           ai_fallback_template: boolean
           ai_knowledge_base: string | null
           ai_require_approval: boolean
           ai_response_length: string
           ai_tone: string
+          ask_missing_max: number
+          auto_create_lead: boolean
+          auto_tag_contacts: boolean
           business_hours_enabled: boolean
           business_hours_end: string
           business_hours_message: string
@@ -178,10 +182,14 @@ export type Database = {
           created_at: string
           delay_seconds: number
           exclude_assigned: boolean
+          fallback_template_message: string
           first_message_only: boolean
           id: string
           keyword_rules: Json
           keywords_enabled: boolean
+          lead_objective: string
+          qualification_mode: boolean
+          required_fields_schema: string | null
           tenant_id: string
           timezone: string
           updated_at: string
@@ -189,12 +197,16 @@ export type Database = {
         Insert: {
           after_hours_enabled?: boolean
           after_hours_message?: string
+          ai_confidence_threshold?: number
           ai_enabled?: boolean
           ai_fallback_template?: boolean
           ai_knowledge_base?: string | null
           ai_require_approval?: boolean
           ai_response_length?: string
           ai_tone?: string
+          ask_missing_max?: number
+          auto_create_lead?: boolean
+          auto_tag_contacts?: boolean
           business_hours_enabled?: boolean
           business_hours_end?: string
           business_hours_message?: string
@@ -203,10 +215,14 @@ export type Database = {
           created_at?: string
           delay_seconds?: number
           exclude_assigned?: boolean
+          fallback_template_message?: string
           first_message_only?: boolean
           id?: string
           keyword_rules?: Json
           keywords_enabled?: boolean
+          lead_objective?: string
+          qualification_mode?: boolean
+          required_fields_schema?: string | null
           tenant_id: string
           timezone?: string
           updated_at?: string
@@ -214,12 +230,16 @@ export type Database = {
         Update: {
           after_hours_enabled?: boolean
           after_hours_message?: string
+          ai_confidence_threshold?: number
           ai_enabled?: boolean
           ai_fallback_template?: boolean
           ai_knowledge_base?: string | null
           ai_require_approval?: boolean
           ai_response_length?: string
           ai_tone?: string
+          ask_missing_max?: number
+          auto_create_lead?: boolean
+          auto_tag_contacts?: boolean
           business_hours_enabled?: boolean
           business_hours_end?: string
           business_hours_message?: string
@@ -228,10 +248,14 @@ export type Database = {
           created_at?: string
           delay_seconds?: number
           exclude_assigned?: boolean
+          fallback_template_message?: string
           first_message_only?: boolean
           id?: string
           keyword_rules?: Json
           keywords_enabled?: boolean
+          lead_objective?: string
+          qualification_mode?: boolean
+          required_fields_schema?: string | null
           tenant_id?: string
           timezone?: string
           updated_at?: string

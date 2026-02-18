@@ -10,13 +10,16 @@ import { Separator } from '@/components/ui/separator';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Slider } from '@/components/ui/slider';
 import { 
   MessageSquare, Clock, Bot, Zap, Plus, Trash2, 
-  Sparkles, Shield, AlertTriangle, Settings2, Loader2
+  Sparkles, Shield, AlertTriangle, Settings2, Loader2,
+  Brain, Target, Tag, UserPlus, ListChecks, SlidersHorizontal
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useTenant } from '@/contexts/TenantContext';
 import { toast } from 'sonner';
+import { TestAiReplyModal } from './auto-reply/TestAiReplyModal';
 
 interface KeywordRule {
   id: string;
@@ -45,6 +48,15 @@ interface AutoReplyData {
   ai_response_length: string;
   ai_require_approval: boolean;
   ai_fallback_template: boolean;
+  // Advanced AI Bot fields
+  qualification_mode: boolean;
+  ask_missing_max: number;
+  ai_confidence_threshold: number;
+  auto_tag_contacts: boolean;
+  auto_create_lead: boolean;
+  lead_objective: string;
+  required_fields_schema: string;
+  fallback_template_message: string;
 }
 
 const DEFAULTS: AutoReplyData = {
@@ -67,6 +79,14 @@ const DEFAULTS: AutoReplyData = {
   ai_response_length: 'medium',
   ai_require_approval: true,
   ai_fallback_template: true,
+  qualification_mode: false,
+  ask_missing_max: 3,
+  ai_confidence_threshold: 0.70,
+  auto_tag_contacts: false,
+  auto_create_lead: true,
+  lead_objective: 'lead_qualification',
+  required_fields_schema: '',
+  fallback_template_message: 'Thank you for reaching out! One of our team members will get back to you shortly. 🙏',
 };
 
 export function AutoReplySettings() {
@@ -110,6 +130,14 @@ export function AutoReplySettings() {
           ai_response_length: row.ai_response_length,
           ai_require_approval: row.ai_require_approval,
           ai_fallback_template: row.ai_fallback_template,
+          qualification_mode: row.qualification_mode ?? false,
+          ask_missing_max: row.ask_missing_max ?? 3,
+          ai_confidence_threshold: Number(row.ai_confidence_threshold ?? 0.70),
+          auto_tag_contacts: row.auto_tag_contacts ?? false,
+          auto_create_lead: row.auto_create_lead ?? true,
+          lead_objective: row.lead_objective ?? 'lead_qualification',
+          required_fields_schema: row.required_fields_schema || '',
+          fallback_template_message: row.fallback_template_message || '',
         });
       }
     } catch (err: any) {
@@ -135,6 +163,7 @@ export function AutoReplySettings() {
         ...data,
         keyword_rules: data.keyword_rules as any,
         ai_knowledge_base: data.ai_knowledge_base || null,
+        required_fields_schema: data.required_fields_schema || null,
       };
 
       let error: any;
@@ -442,8 +471,9 @@ export function AutoReplySettings() {
           </Card>
         </TabsContent>
 
-        {/* AI Auto-Reply */}
+        {/* AI Auto-Reply Pro */}
         <TabsContent value="ai" className="space-y-6 mt-6">
+          {/* Core AI Settings */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-base">
@@ -452,7 +482,7 @@ export function AutoReplySettings() {
                 <Badge variant="secondary" className="text-xs">Pro</Badge>
               </CardTitle>
               <CardDescription>
-                Use AI to generate contextual automatic responses based on conversation history.
+                Train a workspace-level AI bot that qualifies leads, extracts data, and responds contextually.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
@@ -466,46 +496,184 @@ export function AutoReplySettings() {
 
               <Separator />
 
-              <div className="space-y-2">
-                <Label>AI Tone</Label>
-                <Select value={data.ai_tone} onValueChange={v => update('ai_tone', v)}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="professional">Professional</SelectItem>
-                    <SelectItem value="friendly">Friendly & Casual</SelectItem>
-                    <SelectItem value="formal">Formal</SelectItem>
-                    <SelectItem value="sales">Sales-oriented</SelectItem>
-                  </SelectContent>
-                </Select>
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <Label>AI Tone</Label>
+                  <Select value={data.ai_tone} onValueChange={v => update('ai_tone', v)}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="professional">Professional</SelectItem>
+                      <SelectItem value="friendly">Friendly & Casual</SelectItem>
+                      <SelectItem value="formal">Formal</SelectItem>
+                      <SelectItem value="sales">Sales-oriented</SelectItem>
+                      <SelectItem value="support">Support-focused</SelectItem>
+                      <SelectItem value="casual">Casual</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label>Response Length</Label>
+                  <Select value={data.ai_response_length} onValueChange={v => update('ai_response_length', v)}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="short">Short (1-2 sentences)</SelectItem>
+                      <SelectItem value="medium">Medium (2-4 sentences)</SelectItem>
+                      <SelectItem value="long">Detailed (4-7 sentences)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
 
               <div className="space-y-2">
-                <Label>AI Knowledge Base</Label>
+                <Label className="flex items-center gap-1.5">
+                  <Brain className="h-3.5 w-3.5 text-primary" />
+                  AI Knowledge Base
+                </Label>
                 <Textarea 
                   value={data.ai_knowledge_base}
                   onChange={e => update('ai_knowledge_base', e.target.value)}
-                  placeholder="Paste your FAQ, product info, or custom instructions for the AI to reference when generating replies..."
-                  className="min-h-[120px]"
+                  placeholder="Paste your FAQ, product info, pricing, or custom instructions for the AI to reference when generating replies..."
+                  className="min-h-[140px] font-mono text-xs"
                 />
                 <p className="text-xs text-muted-foreground">
-                  The AI will use this context to generate accurate, brand-consistent replies.
+                  The AI will use this context to generate accurate, brand-consistent replies. Include pricing, product details, and common Q&A.
                 </p>
               </div>
+            </CardContent>
+          </Card>
 
-              <div className="space-y-2">
-                <Label>Response Length</Label>
-                <Select value={data.ai_response_length} onValueChange={v => update('ai_response_length', v)}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
+          {/* Advanced AI Controls */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-base">
+                <SlidersHorizontal className="h-4 w-4 text-primary" />
+                Advanced AI Controls
+              </CardTitle>
+              <CardDescription>Fine-tune AI behavior, lead qualification, and confidence thresholds.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-5">
+              {/* Qualification Mode */}
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label className="flex items-center gap-1.5">
+                    <ListChecks className="h-3.5 w-3.5 text-primary" />
+                    Qualification Mode
+                  </Label>
+                  <p className="text-xs text-muted-foreground">AI asks step-by-step questions to qualify the lead</p>
+                </div>
+                <Switch checked={data.qualification_mode} onCheckedChange={v => update('qualification_mode', v)} />
+              </div>
+
+              {/* Ask Missing up to N times */}
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label>Ask Missing Question (max retries)</Label>
+                  <p className="text-xs text-muted-foreground">Re-ask unanswered questions up to this many times</p>
+                </div>
+                <Select value={String(data.ask_missing_max)} onValueChange={v => update('ask_missing_max', Number(v))}>
+                  <SelectTrigger className="w-28"><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="short">Short (1-2 sentences)</SelectItem>
-                    <SelectItem value="medium">Medium (2-4 sentences)</SelectItem>
-                    <SelectItem value="long">Detailed (4+ sentences)</SelectItem>
+                    <SelectItem value="1">1 time</SelectItem>
+                    <SelectItem value="2">2 times</SelectItem>
+                    <SelectItem value="3">3 times</SelectItem>
+                    <SelectItem value="5">5 times</SelectItem>
                   </SelectContent>
                 </Select>
+              </div>
+
+              {/* Confidence Threshold */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label>AI Confidence Threshold</Label>
+                    <p className="text-xs text-muted-foreground">Below this, AI falls back to template message</p>
+                  </div>
+                  <Badge variant="outline" className="font-mono text-xs">
+                    {(data.ai_confidence_threshold * 100).toFixed(0)}%
+                  </Badge>
+                </div>
+                <Slider
+                  value={[data.ai_confidence_threshold * 100]}
+                  onValueChange={v => update('ai_confidence_threshold', v[0] / 100)}
+                  min={55}
+                  max={90}
+                  step={5}
+                  className="w-full"
+                />
+                <div className="flex justify-between text-[10px] text-muted-foreground">
+                  <span>55% (More replies)</span>
+                  <span>90% (Safer)</span>
+                </div>
               </div>
 
               <Separator />
 
+              {/* Lead Objective */}
+              <div className="space-y-2">
+                <Label className="flex items-center gap-1.5">
+                  <Target className="h-3.5 w-3.5 text-primary" />
+                  Lead Objective
+                </Label>
+                <Select value={data.lead_objective} onValueChange={v => update('lead_objective', v)}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="lead_qualification">Lead Qualification</SelectItem>
+                    <SelectItem value="sales_enquiry">Sales Enquiry</SelectItem>
+                    <SelectItem value="support_ticket">Support Ticket</SelectItem>
+                    <SelectItem value="booking">Booking / Appointment</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Auto-Tag Contacts */}
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label className="flex items-center gap-1.5">
+                    <Tag className="h-3.5 w-3.5 text-primary" />
+                    Auto-Tag Contacts
+                  </Label>
+                  <p className="text-xs text-muted-foreground">AI assigns tags based on detected intent</p>
+                </div>
+                <Switch checked={data.auto_tag_contacts} onCheckedChange={v => update('auto_tag_contacts', v)} />
+              </div>
+
+              {/* Auto-Create Lead */}
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label className="flex items-center gap-1.5">
+                    <UserPlus className="h-3.5 w-3.5 text-primary" />
+                    Auto-Create Qualified Lead
+                  </Label>
+                  <p className="text-xs text-muted-foreground">Automatically create a lead record when qualification is complete</p>
+                </div>
+                <Switch checked={data.auto_create_lead} onCheckedChange={v => update('auto_create_lead', v)} />
+              </div>
+
+              {/* Required Fields Schema */}
+              <div className="space-y-2">
+                <Label>Required Fields Schema</Label>
+                <Textarea 
+                  value={data.required_fields_schema}
+                  onChange={e => update('required_fields_schema', e.target.value)}
+                  placeholder={'{\n  "name": "string",\n  "email": "email",\n  "company": "string",\n  "team_size": "number",\n  "budget": "string"\n}'}
+                  className="min-h-[100px] font-mono text-xs"
+                />
+                <p className="text-xs text-muted-foreground">
+                  JSON-style schema of fields the AI should collect during qualification.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Safety & Fallbacks */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-base">
+                <Shield className="h-4 w-4 text-primary" />
+                Safety & Fallbacks
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-5">
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
                   <Label>Require Agent Approval</Label>
@@ -517,20 +685,33 @@ export function AutoReplySettings() {
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
                   <Label>Fallback to Template</Label>
-                  <p className="text-xs text-muted-foreground">Use a template if AI confidence is low</p>
+                  <p className="text-xs text-muted-foreground">Use template message if AI confidence is below threshold</p>
                 </div>
                 <Switch checked={data.ai_fallback_template} onCheckedChange={v => update('ai_fallback_template', v)} />
               </div>
 
-              <Card className="bg-amber-50/50 border-amber-200/50">
+              <div className="space-y-2">
+                <Label>Fallback Template Message</Label>
+                <Textarea 
+                  value={data.fallback_template_message}
+                  onChange={e => update('fallback_template_message', e.target.value)}
+                  placeholder="Thank you for reaching out! One of our team members will get back to you shortly. 🙏"
+                  className="min-h-[80px]"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Sent when AI confidence is too low. Variables: {'{{name}}'}, {'{{company}}'}
+                </p>
+              </div>
+
+              <Card className="bg-accent/30 border-accent/50">
                 <CardContent className="pt-4">
                   <div className="flex items-start gap-2">
-                    <AlertTriangle className="h-4 w-4 text-amber-600 mt-0.5 flex-shrink-0" />
+                    <AlertTriangle className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
                     <div>
-                      <p className="text-sm font-medium text-amber-800">Safety Note</p>
-                      <p className="text-xs text-amber-700 mt-0.5">
+                      <p className="text-sm font-medium">Safety Note</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">
                         AI auto-replies are generated based on your knowledge base and conversation context. 
-                        We recommend enabling "Require Agent Approval" to review responses before they're sent.
+                        We recommend enabling "Require Agent Approval" and setting a high confidence threshold for regulated industries.
                       </p>
                     </div>
                   </div>
@@ -538,6 +719,13 @@ export function AutoReplySettings() {
               </Card>
             </CardContent>
           </Card>
+
+          {/* Test Modal */}
+          {currentTenant?.id && (
+            <div className="flex justify-start">
+              <TestAiReplyModal tenantId={currentTenant.id} />
+            </div>
+          )}
         </TabsContent>
       </Tabs>
 
