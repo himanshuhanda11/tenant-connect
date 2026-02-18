@@ -178,16 +178,36 @@ serve(async (req) => {
       if (error || !data?.claims) return respond({ error: "Unauthorized" }, 401);
     }
 
-    // 1. Fetch workspace AI settings
-    const { data: settings, error: sErr } = await admin
-      .from("workspace_ai_settings")
+    // 1. Fetch workspace AI settings from auto_reply_settings
+    const { data: rawSettings, error: sErr } = await admin
+      .from("auto_reply_settings")
       .select("*")
-      .eq("workspace_id", workspace_id)
+      .eq("tenant_id", workspace_id)
       .maybeSingle();
 
-    if (sErr || !settings || !settings.enabled) {
+    if (sErr || !rawSettings || !rawSettings.ai_enabled) {
       return respond({ skipped: true, reason: "AI not enabled" });
     }
+
+    // Map auto_reply_settings columns to AiSettings interface
+    const settings: AiSettings = {
+      workspace_id,
+      enabled: rawSettings.ai_enabled,
+      tone: rawSettings.ai_tone || "professional",
+      response_length: rawSettings.ai_response_length || "medium",
+      require_agent_approval: rawSettings.ai_require_approval || false,
+      fallback_to_template: rawSettings.ai_fallback_template || false,
+      fallback_message: rawSettings.fallback_template_message || null,
+      qualification_mode: rawSettings.qualification_mode || false,
+      retry_missing_questions: true,
+      max_retries: rawSettings.ask_missing_max || 3,
+      confidence_threshold: rawSettings.ai_confidence_threshold || 0.7,
+      lead_objective: rawSettings.lead_objective || "sales",
+      required_fields_schema: rawSettings.required_fields_schema || null,
+      knowledge_base: rawSettings.ai_knowledge_base || null,
+      auto_tag: rawSettings.auto_tag_contacts || false,
+      auto_create_lead: rawSettings.auto_create_lead || false,
+    };
 
     // 2. Parallel fetches: conversation history + existing lead
     const [historyResult, leadResult] = await Promise.all([
