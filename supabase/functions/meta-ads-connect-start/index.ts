@@ -1,5 +1,4 @@
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-
+// Meta Ads OAuth start function
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
@@ -39,7 +38,6 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Verify user authentication
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
       return new Response(
@@ -50,27 +48,28 @@ Deno.serve(async (req) => {
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
-
     const token = authHeader.replace('Bearer ', '');
-    const { data: { user }, error: userError } = await supabase.auth.getUser(token);
-    
-    if (userError || !user) {
+
+    // Verify user via Supabase REST API directly (no SDK import needed)
+    const userRes = await fetch(`${supabaseUrl}/auth/v1/user`, {
+      headers: { Authorization: `Bearer ${token}`, apikey: supabaseKey },
+    });
+    if (!userRes.ok) {
       return new Response(
         JSON.stringify({ error: 'Invalid token' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
+    const user = await userRes.json();
 
-    // Verify tenant membership (admin/owner)
-    const { data: membership } = await supabase
-      .from('tenant_members')
-      .select('role')
-      .eq('tenant_id', tenantId)
-      .eq('user_id', user.id)
-      .single();
+    // Verify tenant membership (admin/owner) via REST
+    const memberRes = await fetch(
+      `${supabaseUrl}/rest/v1/tenant_members?tenant_id=eq.${tenantId}&user_id=eq.${user.id}&select=role`,
+      { headers: { apikey: supabaseKey, Authorization: `Bearer ${supabaseKey}` } }
+    );
+    const members = await memberRes.json();
 
-    if (!membership || !['owner', 'admin'].includes(membership.role)) {
+    if (!members?.length || !['owner', 'admin'].includes(members[0].role)) {
       return new Response(
         JSON.stringify({ error: 'Only admins can connect Meta Ads' }),
         { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -87,7 +86,6 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Generate signed state
     const statePayload = {
       tenantId,
       userId: user.id,
@@ -99,7 +97,6 @@ Deno.serve(async (req) => {
     const signedState = await signState(statePayload, appSecret);
     const callbackUrl = `${supabaseUrl}/functions/v1/meta-ads-connect-callback`;
 
-    // Use basic email scope - works without app verification
     const params = new URLSearchParams({
       client_id: appId,
       redirect_uri: callbackUrl,
