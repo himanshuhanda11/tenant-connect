@@ -66,6 +66,19 @@ export default function SelectWorkspace() {
     }
   }, [user, authLoading, navigate]);
 
+  // Agent auto-redirect: skip workspace selection, go straight to inbox
+  useEffect(() => {
+    if (authLoading || tenantLoading || !user || tenants.length === 0) return;
+
+    const isAgentOnly = tenants.every(t => t.role === 'agent');
+    if (isAgentOnly) {
+      // Auto-select first workspace and redirect to inbox
+      const agentTenant = tenants[0];
+      setCurrentTenant(agentTenant);
+      navigate('/inbox', { replace: true });
+    }
+  }, [authLoading, tenantLoading, user, tenants, setCurrentTenant, navigate]);
+
   // Check onboarding status
   useEffect(() => {
     const checkOnboarding = async () => {
