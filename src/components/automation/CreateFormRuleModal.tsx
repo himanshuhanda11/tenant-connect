@@ -155,9 +155,16 @@ export function CreateFormRuleModal({ open, onOpenChange, editingRule, createRul
   const [webhookUrl, setWebhookUrl] = useState('');
   const [formSettings, setFormSettings] = useState<FormBuilderState['settings']>(DEFAULT_FORM_STATE.settings);
 
-  // Reset form when modal opens/closes or editing rule changes
+  // Track previous open state to only reset on open transition
+  const prevOpenRef = React.useRef(false);
+  
+  // Reset form when modal opens (closed→open transition) or editing rule changes
   useEffect(() => {
-    if (open) {
+    const wasOpen = prevOpenRef.current;
+    prevOpenRef.current = open;
+    
+    // Only reset when transitioning from closed to open
+    if (open && !wasOpen) {
       setCurrentStep(1);
       if (editingRule) {
         setName(editingRule.name);
