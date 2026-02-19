@@ -49,6 +49,10 @@ import CampaignDetails from "./pages/campaigns/CampaignDetails";
 import CampaignLibrary from "./pages/campaigns/CampaignLibrary";
 import AutomationWorkflows from "./pages/AutomationWorkflows";
 import AutoFormRules from "./pages/AutoFormRules";
+import AutoFormsList from "./pages/auto-forms/AutoFormsList";
+import AutoFormBuilder from "./pages/auto-forms/AutoFormBuilder";
+import AutoFormRulesPage from "./pages/auto-forms/AutoFormRulesPage";
+import AutoFormSubmissions from "./pages/auto-forms/AutoFormSubmissions";
 import FlowsHub from "./pages/flows/FlowsHub";
 import FlowBuilder from "./pages/flows/FlowBuilder";
 import Billing from "./pages/Billing";
@@ -178,6 +182,10 @@ const App = () => (
               <Route path="/campaigns/:id" element={<CampaignDetails />} />
               <Route path="/automation" element={<AutomationWorkflows />} />
               <Route path="/automation/form-rules" element={<AutoFormRules />} />
+              <Route path="/auto-forms" element={<AutoFormsList />} />
+              <Route path="/auto-forms/:id/builder" element={<AutoFormBuilder />} />
+              <Route path="/auto-forms/:id/rules" element={<AutoFormRulesPage />} />
+              <Route path="/auto-forms/:id/submissions" element={<AutoFormSubmissions />} />
               <Route path="/flows" element={<FlowsHub />} />
               <Route path="/flows/builder" element={<FlowBuilder />} />
               <Route path="/flows/builder/:id" element={<FlowBuilder />} />
