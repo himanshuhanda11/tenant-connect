@@ -5,6 +5,11 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Checkbox } from '@/components/ui/checkbox';
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from '@/components/ui/select';
 import {
   Star, Upload, MapPin, ShieldCheck, Clock, Calculator,
   EyeOff, Tag, TrendingUp, CheckCircle2, ChevronRight, ChevronLeft,
@@ -118,9 +123,19 @@ export function FormPreview({ state, whatsappStyle = false }: FormPreviewProps) 
                 <div className="h-16 rounded-md border border-border bg-background px-3 py-2 text-sm text-muted-foreground">{field.placeholder || 'Type here...'}</div>
               ) : field.type === 'select' || field.type === 'tag_assignment' || field.type === 'lead_score' ? (
                 <div className="space-y-1">
-                  <div className="h-10 rounded-md border border-border bg-background px-3 flex items-center text-sm text-muted-foreground">
-                    Select {field.label.toLowerCase()}...
-                  </div>
+                  <Select>
+                    <SelectTrigger className="h-10">
+                      <SelectValue placeholder={`Select ${field.label.toLowerCase()}...`} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {(field.options || []).map((opt, i) => (
+                        <SelectItem key={i} value={opt.value || `opt-${i}`}>{opt.label}</SelectItem>
+                      ))}
+                      {(!field.options || field.options.length === 0) && (
+                        <SelectItem value="__empty" disabled>No options added</SelectItem>
+                      )}
+                    </SelectContent>
+                  </Select>
                   {field.type === 'lead_score' && (
                     <div className="flex gap-1">
                       <Badge variant="outline" className="text-[8px]">🔥 Hot</Badge>
@@ -130,22 +145,28 @@ export function FormPreview({ state, whatsappStyle = false }: FormPreviewProps) 
                   )}
                 </div>
               ) : field.type === 'radio' ? (
-                <div className="space-y-1.5">
+                <RadioGroup className="space-y-1.5">
                   {(field.options || []).map((opt, i) => (
                     <div key={i} className="flex items-center gap-2">
-                      <div className="w-4 h-4 rounded-full border-2 border-border" />
-                      <span className="text-sm">{opt.label}</span>
+                      <RadioGroupItem value={opt.value || `opt-${i}`} id={`${field.id}-radio-${i}`} />
+                      <Label htmlFor={`${field.id}-radio-${i}`} className="text-sm font-normal cursor-pointer">{opt.label}</Label>
                     </div>
                   ))}
-                </div>
+                  {(!field.options || field.options.length === 0) && (
+                    <p className="text-xs text-muted-foreground italic">No options added yet</p>
+                  )}
+                </RadioGroup>
               ) : field.type === 'checkbox' ? (
                 <div className="space-y-1.5">
                   {(field.options || []).map((opt, i) => (
                     <div key={i} className="flex items-center gap-2">
-                      <div className="w-4 h-4 rounded border-2 border-border" />
-                      <span className="text-sm">{opt.label}</span>
+                      <Checkbox id={`${field.id}-check-${i}`} />
+                      <Label htmlFor={`${field.id}-check-${i}`} className="text-sm font-normal cursor-pointer">{opt.label}</Label>
                     </div>
                   ))}
+                  {(!field.options || field.options.length === 0) && (
+                    <p className="text-xs text-muted-foreground italic">No options added yet</p>
+                  )}
                 </div>
               ) : field.type === 'rating' ? (
                 <div className="flex gap-1">
