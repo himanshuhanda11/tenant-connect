@@ -1742,14 +1742,17 @@ async function sendFormQuestion(
   const prefix = `📋 *Question ${qNum}/${total}*\n\n`;
   const req = field.required ? ' _(required)_' : '';
 
-  if (field.options?.length > 0 && field.options.length <= 3 && ['select', 'radio'].includes(field.type)) {
+  const choiceTypes = ['select', 'radio', 'checkbox', 'tag_assignment', 'lead_score'];
+
+  if (field.options?.length > 0 && field.options.length <= 3 && choiceTypes.includes(field.type)) {
     // Buttons (max 3)
+    const selectHint = field.type === 'checkbox' ? '_Select one or more (tap to choose):_' : '_Select one:_';
     const payload = {
       messaging_product: 'whatsapp', recipient_type: 'individual', to: recipientWaId,
       type: 'interactive',
       interactive: {
         type: 'button',
-        body: { text: `${prefix}*${field.label}*${req}\n\n_Select one:_` },
+        body: { text: `${prefix}*${field.label}*${req}\n\n${selectHint}` },
         action: { buttons: field.options.slice(0, 3).map((opt: any) => ({
           type: 'reply', reply: { id: `form_${field.id}_${opt.value}`, title: (opt.label || opt.value).substring(0, 20) },
         })) },
@@ -1767,7 +1770,7 @@ async function sendFormQuestion(
     } else { console.error('Button message failed:', JSON.stringify(result)); }
     return wamid;
 
-  } else if (field.options?.length > 3 && ['select', 'radio'].includes(field.type)) {
+  } else if (field.options?.length > 3 && choiceTypes.includes(field.type)) {
     // List (4-10)
     const payload = {
       messaging_product: 'whatsapp', recipient_type: 'individual', to: recipientWaId,
@@ -1790,14 +1793,31 @@ async function sendFormQuestion(
     } else { console.error('List message failed:', JSON.stringify(result)); }
     return wamid;
 
+  } else if (field.type === 'date' || field.type === 'datetime') {
+    // Date picker — send as text with clear format instruction
+    let body = `${prefix}*${field.label}*${req}\n\n`;
+    if (field.type === 'datetime') {
+      body += '📅 _Please enter a date and time_\n_Format: DD/MM/YYYY HH:MM_\n_Example: 25/12/2025 14:30_';
+    } else {
+      body += '📅 _Please enter a date_\n_Format: DD/MM/YYYY_\n_Example: 25/12/2025_';
+    }
+    const r = await sendWAText(metaPhoneId, accessToken, recipientWaId, body.trim());
+    if (r.wamid) {
+      await supabase.from('messages').insert({ tenant_id: tenantId, conversation_id: conversationId, direction: 'outbound', type: 'text', text: body.trim(), wamid: r.wamid, status: 'sent', sent_at: new Date().toISOString(), is_auto_reply: true });
+    }
+    return r.wamid;
+
   } else {
-    // Text input
+    // Text input fallback
     let body = `${prefix}*${field.label}*${req}\n\n`;
     if (field.placeholder) body += `_${field.placeholder}_\n`;
-    if (field.type === 'email') body += '_Enter a valid email_\n';
-    if (field.type === 'phone') body += '_Enter your phone number_\n';
-    if (field.type === 'date') body += '_Format: DD/MM/YYYY_\n';
-    body += '\n_Type your answer:_';
+    if (field.type === 'email') body += '📧 _Enter a valid email address_\n';
+    else if (field.type === 'phone') body += '📱 _Enter your phone number_\n';
+    else if (field.type === 'url') body += '🔗 _Enter a valid URL_\n';
+    else if (field.type === 'number') body += '🔢 _Enter a number_\n';
+    else if (field.type === 'rating') body += '⭐ _Enter a rating from 1 to 5_\n';
+    else if (field.type === 'location') body += '📍 _Share your location or type an address_\n';
+    else body += '\n_Type your answer:_';
     const r = await sendWAText(metaPhoneId, accessToken, recipientWaId, body.trim());
     if (r.wamid) {
       await supabase.from('messages').insert({ tenant_id: tenantId, conversation_id: conversationId, direction: 'outbound', type: 'text', text: body.trim(), wamid: r.wamid, status: 'sent', sent_at: new Date().toISOString(), is_auto_reply: true });
@@ -1858,7 +1878,8 @@ async function handleActiveFormSession(
   }
 
   // ─── Validate answer ───
-  const fieldHasOptions = currentField.options?.length > 0 && ['select', 'radio'].includes(currentField.type);
+  const choiceFieldTypes = ['select', 'radio', 'checkbox', 'tag_assignment', 'lead_score'];
+  const fieldHasOptions = currentField.options?.length > 0 && choiceFieldTypes.includes(currentField.type);
   
   if (fieldHasOptions && !isInteractive) {
     // User typed free text instead of clicking a button/list option
