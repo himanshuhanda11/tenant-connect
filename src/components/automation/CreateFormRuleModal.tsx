@@ -177,6 +177,24 @@ export function CreateFormRuleModal({ open, onOpenChange, editingRule, createRul
         setIntroMessage((editingRule.form_variables as any)?.intro_message || '');
         setDelaySeconds((editingRule.trigger_config as any)?.delay_seconds || 0);
         setFallbackMessage((editingRule.form_variables as any)?.fallback_message || '');
+        
+        // Restore form mode from saved data
+        const savedFormMode = (editingRule.form_variables as any)?.form_mode;
+        if (savedFormMode === 'builder') {
+          setFormMode('builder');
+          setBuilderFormName(editingRule.form_template_name || '');
+          // Load builder fields from form version if available
+          if (editingRule.form_version_id) {
+            loadFormVersionFields(editingRule.form_version_id);
+          }
+        } else {
+          setFormMode('template');
+          setBuilderFields([]);
+          setBuilderFormName('');
+        }
+        setIfThenRules([]);
+        setWebhookUrl('');
+        setFormSettings(DEFAULT_FORM_STATE.settings);
       } else {
         setName('');
         setDescription('');
@@ -204,6 +222,29 @@ export function CreateFormRuleModal({ open, onOpenChange, editingRule, createRul
       setKeywordInput('');
     }
   }, [open, editingRule]);
+
+  // Load form version fields for edit mode
+  const loadFormVersionFields = async (versionId: string) => {
+    try {
+      const { data: version } = await (supabase as any)
+        .from('form_versions')
+        .select('schema_json')
+        .eq('id', versionId)
+        .single();
+      
+      if (version?.schema_json) {
+        const schema = version.schema_json;
+        if (schema.fields) setBuilderFields(schema.fields);
+        if (schema.if_then_rules) setIfThenRules(schema.if_then_rules);
+        if (schema.webhook_url) setWebhookUrl(schema.webhook_url);
+        if (schema.settings) setFormSettings(schema.settings);
+        if (schema.intro_message) setIntroMessage(schema.intro_message);
+        if (schema.delay_seconds) setDelaySeconds(schema.delay_seconds);
+      }
+    } catch (err) {
+      console.error('Error loading form version fields:', err);
+    }
+  };
 
   const handleSubmit = async () => {
     if (!name.trim()) return;
