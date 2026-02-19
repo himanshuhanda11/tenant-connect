@@ -30,6 +30,8 @@ import { TeamGuideCard } from '@/components/team/TeamGuideCard';
 import { EmptyTeamState } from '@/components/team/EmptyTeamState';
 
 const CONDITION_TYPES = [
+  { value: 'all', label: 'All New Conversations', icon: MessageSquare, description: 'Route every new incoming chat' },
+  { value: 'new_conversation', label: 'New Conversation', icon: Zap, description: 'First message from a new contact' },
   { value: 'tag', label: 'Has Tag', icon: Tag, description: 'Route based on contact tags' },
   { value: 'keyword', label: 'Keyword Match', icon: MessageSquare, description: 'Match message content' },
   { value: 'source', label: 'Contact Source', icon: User, description: 'Route by lead source' },
