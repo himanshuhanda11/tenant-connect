@@ -315,10 +315,16 @@ const FlowsHub = () => {
             <span className="hidden xs:inline">Import</span>
           </Button>
           
-          <Button variant="outline" className="gap-1.5 sm:gap-2 ml-auto border-amber-500/30 text-amber-600 hover:bg-amber-500/10 text-xs sm:text-sm h-9">
-            <Crown className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-            <span className="hidden sm:inline">Upgrade to </span>Pro
-          </Button>
+          {flowsLocked && (
+            <Button 
+              variant="outline" 
+              className="gap-1.5 sm:gap-2 ml-auto border-amber-500/30 text-amber-600 hover:bg-amber-500/10 text-xs sm:text-sm h-9"
+              onClick={() => setUpgradeOpen(true)}
+            >
+              <Crown className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              <span className="hidden sm:inline">Upgrade to </span>Pro
+            </Button>
+          )}
         </div>
 
         {/* Stats Cards */}
