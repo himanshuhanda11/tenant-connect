@@ -256,7 +256,7 @@ export function CreateFormRuleModal({ open, onOpenChange, editingRule, createRul
     setSaving(true);
     try {
       let finalFormId = formId;
-      let finalVersionId: string | null = null;
+      let finalVersionId: string | null = editingRule?.form_version_id || null;
 
       // If builder mode, save to forms → form_versions → form_fields
       if (formMode === 'builder' && currentTenant?.id) {
@@ -264,23 +264,6 @@ export function CreateFormRuleModal({ open, onOpenChange, editingRule, createRul
         const { data: userData } = await supabase.auth.getUser();
         const userId = userData?.user?.id;
 
-        // 1. Create form definition
-        const { data: savedForm, error: formError } = await (supabase as any)
-          .from('forms')
-          .insert({
-            tenant_id: currentTenant.id,
-            name: builderFormName.trim(),
-            description: null,
-            status: 'active',
-            created_by: userId,
-          })
-          .select()
-          .single();
-
-        if (formError) throw formError;
-        finalFormId = savedForm.id;
-
-        // 2. Create form version
         const schemaJson = {
           fields: builderFields,
           if_then_rules: ifThenRules,
@@ -290,75 +273,105 @@ export function CreateFormRuleModal({ open, onOpenChange, editingRule, createRul
           delay_seconds: delaySeconds,
         };
 
-        const { data: savedVersion, error: versionError } = await (supabase as any)
-          .from('form_versions')
-          .insert({
-            form_id: finalFormId,
-            version: 1,
-            schema_json: schemaJson,
-            published_at: new Date().toISOString(),
-            created_by: userId,
-          })
-          .select()
-          .single();
+        // Check if we're editing an existing builder rule with an existing form
+        const existingFormVersionId = editingRule?.form_version_id;
+        
+        if (editingRule && existingFormVersionId) {
+          // UPDATE existing form version schema
+          const { error: versionUpdateErr } = await (supabase as any)
+            .from('form_versions')
+            .update({ schema_json: schemaJson })
+            .eq('id', existingFormVersionId);
 
-        if (versionError) throw versionError;
-        finalVersionId = savedVersion.id;
+          if (versionUpdateErr) throw versionUpdateErr;
+          finalVersionId = existingFormVersionId;
 
-        // 3. Link active version
-        await (supabase as any)
-          .from('forms')
-          .update({ active_version_id: finalVersionId })
-          .eq('id', finalFormId);
+          // Get the form_id from the existing version
+          const { data: existingVersion } = await (supabase as any)
+            .from('form_versions')
+            .select('form_id')
+            .eq('id', existingFormVersionId)
+            .single();
 
-        // 4. Insert form fields
-        const fieldRows = builderFields.map((f, idx) => ({
-          form_version_id: finalVersionId,
-          key: f.id,
-          label: f.label,
-          type: mapFieldType(f.type),
-          help_text: f.description || null,
-          placeholder: f.placeholder || null,
-          required: f.required,
-          order_index: idx,
-          validation_json: f.validation || {},
-          default_value: null,
-          is_system: f.type === 'hidden',
-          config_json: {
-            ...(f.hiddenSource ? { hidden_source: f.hiddenSource, hidden_value: f.hiddenValue } : {}),
-            ...(f.calculationFormula ? { formula: f.calculationFormula, operator: f.calculationOperator, fields: f.calculationFields } : {}),
-            ...(f.otpType ? { otp_type: f.otpType } : {}),
-            ...(f.fileTypes ? { file_types: f.fileTypes, max_file_size: f.maxFileSize } : {}),
-            ...(f.timeSlotConfig ? { time_slot: f.timeSlotConfig } : {}),
-            ...(f.leadScoreRules ? { lead_score_rules: f.leadScoreRules } : {}),
-            ...(f.tagRules ? { tag_rules: f.tagRules } : {}),
-            ...(f.conditionalRules ? { conditional_rules: f.conditionalRules } : {}),
-          },
-        }));
-
-        if (fieldRows.length > 0) {
-          const { error: fieldsError } = await (supabase as any)
-            .from('form_fields')
-            .insert(fieldRows);
-          if (fieldsError) throw fieldsError;
-        }
-
-        // 5. Insert field options for dropdown/radio/checkbox fields
-        const optionInserts: any[] = [];
-        builderFields.forEach((f) => {
-          if (f.options && ['select', 'radio', 'checkbox', 'tag_assignment', 'lead_score'].includes(f.type)) {
-            f.options.forEach((opt, optIdx) => {
-              optionInserts.push({
-                field_id: null, // will need field ID from DB — use schema_json for now
-                value: opt.value,
-                label: opt.label,
-                order_index: optIdx,
-                score: opt.score || 0,
-                tag: opt.tag || null,
-              });
-            });
+          if (existingVersion) {
+            finalFormId = existingVersion.form_id;
+            // Update form name if changed
+            await (supabase as any)
+              .from('forms')
+              .update({ name: builderFormName.trim(), updated_at: new Date().toISOString() })
+              .eq('id', finalFormId);
           }
-        });
+        } else {
+          // CREATE new form definition
+          const { data: savedForm, error: formError } = await (supabase as any)
+            .from('forms')
+            .insert({
+              tenant_id: currentTenant.id,
+              name: builderFormName.trim(),
+              description: null,
+              status: 'active',
+              created_by: userId,
+            })
+            .select()
+            .single();
+
+          if (formError) throw formError;
+          finalFormId = savedForm.id;
+
+          // Create form version
+          const { data: savedVersion, error: versionError } = await (supabase as any)
+            .from('form_versions')
+            .insert({
+              form_id: finalFormId,
+              version: 1,
+              schema_json: schemaJson,
+              published_at: new Date().toISOString(),
+              created_by: userId,
+            })
+            .select()
+            .single();
+
+          if (versionError) throw versionError;
+          finalVersionId = savedVersion.id;
+
+          // Link active version
+          await (supabase as any)
+            .from('forms')
+            .update({ active_version_id: finalVersionId })
+            .eq('id', finalFormId);
+
+          // Insert form fields
+          const fieldRows = builderFields.map((f, idx) => ({
+            form_version_id: finalVersionId,
+            key: f.id,
+            label: f.label,
+            type: mapFieldType(f.type),
+            help_text: f.description || null,
+            placeholder: f.placeholder || null,
+            required: f.required,
+            order_index: idx,
+            validation_json: f.validation || {},
+            default_value: null,
+            is_system: f.type === 'hidden',
+            config_json: {
+              ...(f.hiddenSource ? { hidden_source: f.hiddenSource, hidden_value: f.hiddenValue } : {}),
+              ...(f.calculationFormula ? { formula: f.calculationFormula, operator: f.calculationOperator, fields: f.calculationFields } : {}),
+              ...(f.otpType ? { otp_type: f.otpType } : {}),
+              ...(f.fileTypes ? { file_types: f.fileTypes, max_file_size: f.maxFileSize } : {}),
+              ...(f.timeSlotConfig ? { time_slot: f.timeSlotConfig } : {}),
+              ...(f.leadScoreRules ? { lead_score_rules: f.leadScoreRules } : {}),
+              ...(f.tagRules ? { tag_rules: f.tagRules } : {}),
+              ...(f.conditionalRules ? { conditional_rules: f.conditionalRules } : {}),
+            },
+          }));
+
+          if (fieldRows.length > 0) {
+            const { error: fieldsError } = await (supabase as any)
+              .from('form_fields')
+              .insert(fieldRows);
+            if (fieldsError) throw fieldsError;
+          }
+        }
 
         setSavingForm(false);
       }

@@ -1199,6 +1199,8 @@ async function handleFormRules(
   isNewConversation: boolean
 ) {
   try {
+    console.log(`Form rules engine: starting for tenant ${tenantId}, isNew=${isNewConversation}`);
+    
     // 1. Fetch active form rules for this tenant, ordered by priority
     const { data: rules, error: rulesErr } = await supabase
       .from('form_rules')
@@ -1207,9 +1209,16 @@ async function handleFormRules(
       .eq('is_active', true)
       .order('priority', { ascending: false });
 
-    if (rulesErr || !rules?.length) return;
+    if (rulesErr) {
+      console.error('Form rules fetch error:', rulesErr);
+      return;
+    }
+    if (!rules?.length) {
+      console.log('Form rules: no active rules found');
+      return;
+    }
 
-    console.log(`Form rules: evaluating ${rules.length} active rules`);
+    console.log(`Form rules: evaluating ${rules.length} active rules for message: "${ev.text?.substring(0, 50) || '(no text)'}"`);
 
     for (const rule of rules) {
       try {
