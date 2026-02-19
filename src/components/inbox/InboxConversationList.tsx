@@ -32,6 +32,7 @@ import {
   UserCheck,
   XCircle,
   HelpCircle,
+  Bell,
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { InboxConversation, InboxView, InboxFilters, PRIORITY_CONFIG } from '@/types/inbox';
@@ -48,6 +49,8 @@ interface InboxConversationListProps {
   loading?: boolean;
   isMobile?: boolean;
   currentUserId?: string;
+  unreadNewCount?: number;
+  onClearNotifications?: () => void;
 }
 
 const VIEW_ICONS: Record<InboxView, React.ReactNode> = {
@@ -87,6 +90,8 @@ export function InboxConversationList({
   loading,
   isMobile = false,
   currentUserId,
+  unreadNewCount = 0,
+  onClearNotifications,
 }: InboxConversationListProps) {
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -134,6 +139,27 @@ export function InboxConversationList({
           )}>
             Chats
           </h2>
+          <div className="flex items-center gap-1">
+            {/* Notification bell */}
+            <Button
+              variant="ghost"
+              size="sm"
+              className={cn(
+                "relative hover:bg-white/10",
+                isMobile ? "text-primary-foreground" : ""
+              )}
+              onClick={onClearNotifications}
+            >
+              <Bell className={cn(
+                "h-4 w-4",
+                unreadNewCount > 0 && "animate-[wiggle_0.5s_ease-in-out]"
+              )} />
+              {unreadNewCount > 0 && (
+                <span className="absolute -top-0.5 -right-0.5 flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-destructive text-[10px] font-bold text-destructive-foreground px-1">
+                  {unreadNewCount > 99 ? '99+' : unreadNewCount}
+                </span>
+              )}
+            </Button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button 
@@ -157,6 +183,7 @@ export function InboxConversationList({
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
+          </div>
         </div>
 
         {/* Search - WhatsApp style */}
