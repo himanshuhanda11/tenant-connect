@@ -343,7 +343,7 @@ export default function MetaAdsSetup() {
                         setIsFbLoading(false);
                         toast.error('Facebook login was cancelled or failed.');
                       }
-                    });
+                    }, { scope: 'email' });
                   }}
                 >
                   <Facebook className="h-4 w-4" />
