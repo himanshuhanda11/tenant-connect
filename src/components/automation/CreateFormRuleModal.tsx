@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -60,6 +60,9 @@ import {
   type FormRuleTriggerConfig,
 } from '@/types/formRule';
 import { cn } from '@/lib/utils';
+import { FormBuilder, type FormField } from '@/components/automation/FormBuilder';
+import { supabase } from '@/integrations/supabase/client';
+import { useTenant } from '@/contexts/TenantContext';
 
 interface CreateFormRuleModalProps {
   open: boolean;
@@ -113,6 +116,7 @@ const EXTENDED_TRIGGER_OPTIONS = [
 export function CreateFormRuleModal({ open, onOpenChange, editingRule }: CreateFormRuleModalProps) {
   const { createRule, updateRule } = useFormRules();
   const { templates } = useTemplates();
+  const { currentTenant } = useTenant();
   const [saving, setSaving] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
 
@@ -138,6 +142,12 @@ export function CreateFormRuleModal({ open, onOpenChange, editingRule }: CreateF
 
   // Keyword input state
   const [keywordInput, setKeywordInput] = useState('');
+
+  // Form builder state
+  const [formMode, setFormMode] = useState<'template' | 'builder'>('template');
+  const [builderFields, setBuilderFields] = useState<FormField[]>([]);
+  const [builderFormName, setBuilderFormName] = useState('');
+  const [savingForm, setSavingForm] = useState(false);
 
   // Reset form when modal opens/closes or editing rule changes
   useEffect(() => {
@@ -178,16 +188,47 @@ export function CreateFormRuleModal({ open, onOpenChange, editingRule }: CreateF
         setIntroMessage('');
         setDelaySeconds(0);
         setFallbackMessage('');
+        setFormMode('template');
+        setBuilderFields([]);
+        setBuilderFormName('');
       }
       setKeywordInput('');
     }
   }, [open, editingRule]);
 
   const handleSubmit = async () => {
-    if (!name.trim() || !formId) return;
+    if (!name.trim()) return;
+    
+    // Validate based on mode
+    if (formMode === 'template' && !formId) return;
+    if (formMode === 'builder' && (builderFields.length === 0 || !builderFormName.trim())) return;
 
     setSaving(true);
     try {
+      let finalFormId = formId;
+
+      // If builder mode, save the custom form first
+      if (formMode === 'builder' && currentTenant?.id) {
+        setSavingForm(true);
+        const { data: userData } = await supabase.auth.getUser();
+        const { data: savedForm, error: formError } = await (supabase as any)
+          .from('lead_forms')
+          .insert({
+            tenant_id: currentTenant.id,
+            name: builderFormName.trim(),
+            fields: builderFields,
+            settings: { intro_message: introMessage, delay_seconds: delaySeconds },
+            status: 'active',
+            created_by: userData?.user?.id,
+          })
+          .select()
+          .single();
+
+        if (formError) throw formError;
+        finalFormId = savedForm.id;
+        setSavingForm(false);
+      }
+
       const ruleData = {
         name: name.trim(),
         description: description.trim() || null,
@@ -198,10 +239,13 @@ export function CreateFormRuleModal({ open, onOpenChange, editingRule }: CreateF
           stop_on_free_text: stopOnFreeText,
           delay_seconds: delaySeconds,
         },
-        form_id: formId,
+        form_id: finalFormId,
+        form_template_name: formMode === 'builder' ? builderFormName : null,
         form_variables: {
           intro_message: introMessage,
           fallback_message: fallbackMessage,
+          form_mode: formMode,
+          ...(formMode === 'builder' ? { builder_fields: builderFields } : {}),
         },
         conditions,
         cooldown_minutes: cooldownMinutes,
@@ -219,6 +263,7 @@ export function CreateFormRuleModal({ open, onOpenChange, editingRule }: CreateF
       onOpenChange(false);
     } finally {
       setSaving(false);
+      setSavingForm(false);
     }
   };
 
@@ -265,9 +310,9 @@ export function CreateFormRuleModal({ open, onOpenChange, editingRule }: CreateF
     switch (currentStep) {
       case 1: return !!triggerType;
       case 2: return true; // Conditions are optional
-      case 3: return !!formId;
+      case 3: return formMode === 'template' ? !!formId : (builderFields.length > 0 && !!builderFormName.trim());
       case 4: return true; // Safety has defaults
-      case 5: return !!name.trim() && !!formId;
+      case 5: return !!name.trim() && (formMode === 'template' ? !!formId : builderFields.length > 0);
       default: return false;
     }
   };
@@ -573,52 +618,95 @@ export function CreateFormRuleModal({ open, onOpenChange, editingRule }: CreateF
               </div>
             )}
 
-            {/* Step 3: Form Selection */}
+            {/* Step 3: Form Selection / Builder */}
             {currentStep === 3 && (
               <div className="space-y-3 sm:space-y-4">
                 <div className="text-center mb-4 sm:mb-6">
-                  <h3 className="text-base sm:text-lg font-semibold">Select Form to Send</h3>
-                  <p className="text-xs sm:text-sm text-muted-foreground">Choose which WhatsApp form to deliver</p>
+                  <h3 className="text-base sm:text-lg font-semibold">Configure Your Form</h3>
+                  <p className="text-xs sm:text-sm text-muted-foreground">Use an existing template or build a custom form</p>
                 </div>
 
-                <div className="space-y-3">
-                  <Label className="text-sm font-semibold">WhatsApp Form Template *</Label>
-                  <Select value={formId} onValueChange={setFormId}>
-                    <SelectTrigger className="h-12">
-                      <SelectValue placeholder="Select a form template" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {templates.length === 0 ? (
-                        <div className="py-2 px-3 text-sm text-muted-foreground">No templates available</div>
-                      ) : (
-                        templates.map(template => (
-                          <SelectItem key={template.id} value={template.id}>
-                            <div className="flex items-center gap-2">
-                              <FileText className="w-4 h-4 text-muted-foreground" />
-                              <span>{template.name}</span>
-                            </div>
-                          </SelectItem>
-                        ))
-                      )}
-                    </SelectContent>
-                  </Select>
-                  
-                  {selectedForm && (
-                    <div className="p-3 rounded-lg bg-green-50 border border-green-200 flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-lg bg-green-100 flex items-center justify-center">
-                        <FileText className="w-5 h-5 text-green-600" />
-                      </div>
-                      <div className="flex-1">
-                        <p className="font-medium text-green-900">{selectedForm.name}</p>
-                        <p className="text-xs text-green-700">Ready to send</p>
-                      </div>
-                      <Button variant="ghost" size="sm" className="text-green-600">
-                        <Eye className="w-4 h-4 mr-1" />
-                        Preview
-                      </Button>
-                    </div>
-                  )}
+                {/* Mode Switcher */}
+                <div className="grid grid-cols-2 gap-2 p-1 bg-muted rounded-xl">
+                  <button
+                    type="button"
+                    onClick={() => setFormMode('template')}
+                    className={cn(
+                      "flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg text-sm font-medium transition-all",
+                      formMode === 'template'
+                        ? "bg-background shadow-sm text-foreground"
+                        : "text-muted-foreground hover:text-foreground"
+                    )}
+                  >
+                    <FileText className="w-4 h-4" />
+                    Use Template
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setFormMode('builder')}
+                    className={cn(
+                      "flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg text-sm font-medium transition-all",
+                      formMode === 'builder'
+                        ? "bg-background shadow-sm text-foreground"
+                        : "text-muted-foreground hover:text-foreground"
+                    )}
+                  >
+                    <Plus className="w-4 h-4" />
+                    Build Form
+                  </button>
                 </div>
+
+                {/* Template Mode */}
+                {formMode === 'template' && (
+                  <div className="space-y-3">
+                    <Label className="text-sm font-semibold">WhatsApp Form Template *</Label>
+                    <Select value={formId} onValueChange={setFormId}>
+                      <SelectTrigger className="h-12">
+                        <SelectValue placeholder="Select a form template" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {templates.length === 0 ? (
+                          <div className="py-2 px-3 text-sm text-muted-foreground">No templates available</div>
+                        ) : (
+                          templates.map(template => (
+                            <SelectItem key={template.id} value={template.id}>
+                              <div className="flex items-center gap-2">
+                                <FileText className="w-4 h-4 text-muted-foreground" />
+                                <span>{template.name}</span>
+                              </div>
+                            </SelectItem>
+                          ))
+                        )}
+                      </SelectContent>
+                    </Select>
+                    
+                    {selectedForm && (
+                      <div className="p-3 rounded-lg bg-primary/5 border border-primary/20 flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                          <FileText className="w-5 h-5 text-primary" />
+                        </div>
+                        <div className="flex-1">
+                          <p className="font-medium">{selectedForm.name}</p>
+                          <p className="text-xs text-muted-foreground">Ready to send</p>
+                        </div>
+                        <Button variant="ghost" size="sm" className="text-primary">
+                          <Eye className="w-4 h-4 mr-1" />
+                          Preview
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Builder Mode */}
+                {formMode === 'builder' && (
+                  <FormBuilder
+                    fields={builderFields}
+                    onChange={setBuilderFields}
+                    formName={builderFormName}
+                    onFormNameChange={setBuilderFormName}
+                  />
+                )}
 
                 <Separator className="my-4" />
 
@@ -787,10 +875,10 @@ export function CreateFormRuleModal({ open, onOpenChange, editingRule }: CreateF
                     </div>
                     
                     <div className="flex items-center gap-2">
-                      <div className="w-6 h-6 rounded-md bg-green-100 flex items-center justify-center">
-                        <FileText className="w-3.5 h-3.5 text-green-600" />
+                      <div className="w-6 h-6 rounded-md bg-primary/10 flex items-center justify-center">
+                        <FileText className="w-3.5 h-3.5 text-primary" />
                       </div>
-                      <span><strong>Send:</strong> {selectedForm?.name || 'Not selected'}</span>
+                      <span><strong>Send:</strong> {formMode === 'builder' ? builderFormName || 'Custom Form' : selectedForm?.name || 'Not selected'}</span>
                     </div>
                     
                     <div className="flex items-center gap-2">
@@ -869,10 +957,10 @@ export function CreateFormRuleModal({ open, onOpenChange, editingRule }: CreateF
               <Button 
                 size="sm"
                 onClick={handleSubmit} 
-                disabled={saving || !name.trim() || !formId}
+                disabled={saving || !name.trim() || (formMode === 'template' ? !formId : builderFields.length === 0)}
                 className="h-9 bg-gradient-to-r from-primary to-primary/80"
               >
-                {saving ? 'Saving...' : editingRule ? 'Update' : 'Create'}
+                {savingForm ? 'Saving Form...' : saving ? 'Saving...' : editingRule ? 'Update' : 'Create'}
               </Button>
             )}
           </div>
