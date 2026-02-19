@@ -241,6 +241,30 @@ export default function Contacts() {
     toast.success(agentId ? `Assigned ${selectedContactIds.length} contacts` : `Unassigned ${selectedContactIds.length} contacts`);
   };
 
+  const handleDeleteContact = async (contactId: string) => {
+    try {
+      const { error } = await supabase
+        .from('contacts')
+        .delete()
+        .eq('id', contactId)
+        .eq('tenant_id', currentTenant?.id);
+
+      if (error) throw error;
+
+      setDrawerOpen(false);
+      setSelectedContact(null);
+      fetchCrmContacts();
+      toast.success('Contact deleted successfully');
+    } catch (error: any) {
+      console.error('Error deleting contact:', error);
+      if (error?.message?.includes('row-level security')) {
+        toast.error('Permission denied: Only owners and admins can delete contacts');
+      } else {
+        toast.error('Failed to delete contact');
+      }
+    }
+  };
+
   const handleExport = () => toast.info('Export functionality coming soon');
 
   const handleMarkOptOut = async () => {
@@ -324,6 +348,7 @@ export default function Contacts() {
           onAddTag={addTag}
           onRemoveTag={removeTag}
           onAssignAgent={assignAgent}
+          onDelete={handleDeleteContact}
         />
       </div>
 

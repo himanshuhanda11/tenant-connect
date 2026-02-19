@@ -4,6 +4,16 @@ import { useContactTimeline } from '@/hooks/useContacts';
 import { supabase } from '@/integrations/supabase/client';
 import { useTenant } from '@/contexts/TenantContext';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -64,6 +74,7 @@ interface ContactDetailDrawerProps {
   onAddTag: (contactId: string, tagId: string) => void;
   onRemoveTag: (contactId: string, tagId: string) => void;
   onAssignAgent: (contactId: string, agentId: string | null) => void;
+  onDelete?: (contactId: string) => void;
 }
 
 export function ContactDetailDrawer({
@@ -74,11 +85,13 @@ export function ContactDetailDrawer({
   onAddTag,
   onRemoveTag,
   onAssignAgent,
+  onDelete,
 }: ContactDetailDrawerProps) {
   const { currentTenant } = useTenant();
   const [activeTab, setActiveTab] = useState('overview');
   const [editMode, setEditMode] = useState(false);
   const [formData, setFormData] = useState<Partial<Contact>>({});
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [availableTags, setAvailableTags] = useState<{ id: string; name: string; color: string }[]>([]);
   const [agents, setAgents] = useState<{ id: string; full_name: string | null; email: string }[]>([]);
   const { events, loading: timelineLoading } = useContactTimeline(contact?.id || null);
@@ -176,6 +189,7 @@ export function ContactDetailDrawer({
   const availableToAdd = availableTags.filter(t => !contactTags.find(ct => ct.id === t.id));
 
   return (
+    <>
     <Sheet open={open} onOpenChange={() => onClose()}>
       <SheetContent className="w-full sm:max-w-xl p-0 flex flex-col">
         {/* Header */}
@@ -269,6 +283,15 @@ export function ContactDetailDrawer({
                   <MessageSquare className="h-4 w-4 mr-2" />
                   Open Chat
                 </Button>
+                {onDelete && (
+                  <Button 
+                    variant="outline" 
+                    className="text-destructive border-destructive/50 hover:bg-destructive/10"
+                    onClick={() => setShowDeleteConfirm(true)}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                )}
               </div>
 
               {/* Status Cards */}
@@ -778,5 +801,34 @@ export function ContactDetailDrawer({
         </Tabs>
       </SheetContent>
     </Sheet>
+
+      {/* Delete Confirmation */}
+      <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete contact?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete {contact?.name || 'this contact'} and all associated data 
+              including conversations, messages, and timeline events. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => {
+                if (contact && onDelete) {
+                  onDelete(contact.id);
+                  setShowDeleteConfirm(false);
+                  onClose();
+                }
+              }}
+            >
+              Delete Contact
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 }
