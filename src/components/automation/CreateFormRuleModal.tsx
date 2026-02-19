@@ -12,7 +12,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
-import { ScrollArea } from '@/components/ui/scroll-area';
+
 import { Separator } from '@/components/ui/separator';
 import { Slider } from '@/components/ui/slider';
 import { Progress } from '@/components/ui/progress';
@@ -502,7 +502,7 @@ export function CreateFormRuleModal({ open, onOpenChange, editingRule }: CreateF
           </div>
         </DialogHeader>
 
-        <ScrollArea className="flex-1 min-h-0">
+        <div className="flex-1 min-h-0 overflow-y-auto">
           <div className="px-3 sm:px-6 py-4 sm:py-5">
             
             {/* Step 1: Trigger Selection */}
@@ -1049,7 +1049,7 @@ export function CreateFormRuleModal({ open, onOpenChange, editingRule }: CreateF
               </div>
             )}
           </div>
-        </ScrollArea>
+        </div>
 
         {/* Footer with Navigation */}
         <div className="px-3 sm:px-6 py-3 sm:py-4 border-t bg-muted/30 flex items-center justify-between gap-2 shrink-0">
