@@ -27,6 +27,7 @@ export const FIELD_TYPES: {
   // Advanced
   { type: 'date', label: 'Date', icon: Calendar, category: 'Advanced', description: 'Date picker' },
   { type: 'datetime', label: 'Date & Time', icon: Calendar, category: 'Advanced', description: 'Date and time picker' },
+  { type: 'year', label: 'Year', icon: Calendar, category: 'Advanced', description: 'Select a year' },
   { type: 'file_upload', label: 'File Upload', icon: Upload, category: 'Advanced', description: 'Upload documents, images, PDFs' },
   { type: 'location', label: 'Location', icon: MapPin, category: 'Advanced', description: 'Address or location input' },
   { type: 'time_slot', label: 'Time Slot', icon: Clock, category: 'Advanced', description: 'Appointment time picker' },

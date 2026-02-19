@@ -3633,11 +3633,13 @@ export type Database = {
       form_sessions: {
         Row: {
           answers: Json
+          awaiting_edit: boolean | null
           completed_at: string | null
           contact_id: string
           conversation_id: string
           created_at: string
           current_field_index: number
+          editing_field_index: number | null
           expires_at: string
           form_rule_id: string
           form_version_id: string
@@ -3649,11 +3651,13 @@ export type Database = {
         }
         Insert: {
           answers?: Json
+          awaiting_edit?: boolean | null
           completed_at?: string | null
           contact_id: string
           conversation_id: string
           created_at?: string
           current_field_index?: number
+          editing_field_index?: number | null
           expires_at?: string
           form_rule_id: string
           form_version_id: string
@@ -3665,11 +3669,13 @@ export type Database = {
         }
         Update: {
           answers?: Json
+          awaiting_edit?: boolean | null
           completed_at?: string | null
           contact_id?: string
           conversation_id?: string
           created_at?: string
           current_field_index?: number
+          editing_field_index?: number | null
           expires_at?: string
           form_rule_id?: string
           form_version_id?: string

@@ -1770,7 +1770,7 @@ async function sendFormQuestion(
     } else { console.error('Button message failed:', JSON.stringify(result)); }
     return wamid;
 
-  } else if (field.options?.length > 3 && choiceTypes.includes(field.type)) {
+  } else if (field.options?.length > 3 && field.options.length <= 10 && choiceTypes.includes(field.type)) {
     // List (4-10)
     const payload = {
       messaging_product: 'whatsapp', recipient_type: 'individual', to: recipientWaId,
@@ -1793,6 +1793,19 @@ async function sendFormQuestion(
     } else { console.error('List message failed:', JSON.stringify(result)); }
     return wamid;
 
+  } else if (field.options?.length > 10 && choiceTypes.includes(field.type)) {
+    // More than 10 options — send as numbered text list (WhatsApp List max is 10)
+    let body = `${prefix}*${field.label}*${req}\n\n`;
+    body += '_Choose by replying with the number or option name:_\n\n';
+    field.options.forEach((opt: any, i: number) => {
+      body += `*${i + 1}.* ${opt.label || opt.value}\n`;
+    });
+    const r = await sendWAText(metaPhoneId, accessToken, recipientWaId, body.trim());
+    if (r.wamid) {
+      await supabase.from('messages').insert({ tenant_id: tenantId, conversation_id: conversationId, direction: 'outbound', type: 'text', text: body.trim(), wamid: r.wamid, status: 'sent', sent_at: new Date().toISOString(), is_auto_reply: true });
+    }
+    return r.wamid;
+
   } else if (field.type === 'date' || field.type === 'datetime') {
     // Date picker — send as text with clear format instruction
     let body = `${prefix}*${field.label}*${req}\n\n`;
@@ -1801,6 +1814,18 @@ async function sendFormQuestion(
     } else {
       body += '📅 _Please enter a date_\n_Format: DD/MM/YYYY_\n_Example: 25/12/2025_';
     }
+    const r = await sendWAText(metaPhoneId, accessToken, recipientWaId, body.trim());
+    if (r.wamid) {
+      await supabase.from('messages').insert({ tenant_id: tenantId, conversation_id: conversationId, direction: 'outbound', type: 'text', text: body.trim(), wamid: r.wamid, status: 'sent', sent_at: new Date().toISOString(), is_auto_reply: true });
+    }
+    return r.wamid;
+
+  } else if (field.type === 'year') {
+    // Year selector — send as numbered list of years
+    const currentYear = new Date().getFullYear();
+    const years = Array.from({ length: 10 }, (_, i) => currentYear + i);
+    let body = `${prefix}*${field.label}*${req}\n\n📅 _Reply with the year:_\n\n`;
+    years.forEach((y, i) => { body += `*${i + 1}.* ${y}\n`; });
     const r = await sendWAText(metaPhoneId, accessToken, recipientWaId, body.trim());
     if (r.wamid) {
       await supabase.from('messages').insert({ tenant_id: tenantId, conversation_id: conversationId, direction: 'outbound', type: 'text', text: body.trim(), wamid: r.wamid, status: 'sent', sent_at: new Date().toISOString(), is_auto_reply: true });
@@ -1882,12 +1907,22 @@ async function handleActiveFormSession(
   const fieldHasOptions = currentField.options?.length > 0 && choiceFieldTypes.includes(currentField.type);
   
   if (fieldHasOptions && !isInteractive) {
-    // User typed free text instead of clicking a button/list option
-    // Check if their text matches any option label/value (case-insensitive)
+    // User typed free text — match by label, value, or number (for >10 option lists)
     const typed = answer.trim().toLowerCase();
-    const matchedOption = currentField.options.find((opt: any) =>
-      opt.label?.toLowerCase() === typed || opt.value?.toLowerCase() === typed
-    );
+    
+    // Try matching by number (e.g. user typed "3" for option #3)
+    const numMatch = parseInt(typed, 10);
+    let matchedOption: any = null;
+    if (!isNaN(numMatch) && numMatch >= 1 && numMatch <= currentField.options.length) {
+      matchedOption = currentField.options[numMatch - 1];
+    }
+    
+    // Try matching by label/value
+    if (!matchedOption) {
+      matchedOption = currentField.options.find((opt: any) =>
+        opt.label?.toLowerCase() === typed || opt.value?.toLowerCase() === typed
+      );
+    }
     
     if (matchedOption) {
       answer = matchedOption.value;
@@ -1898,7 +1933,7 @@ async function handleActiveFormSession(
         .select('phone_number_id, waba_account:waba_accounts!inner(encrypted_access_token)')
         .eq('id', phoneNumberId).maybeSingle();
       if (phone?.phone_number_id && phone.waba_account?.encrypted_access_token) {
-        const fallbackMsg = `⚠️ Please choose from the options provided. Tap the button or select from the list above.`;
+        const fallbackMsg = `⚠️ Please choose from the options provided. Tap the button, select from the list, or reply with the option number.`;
         const r = await sendWAText(phone.phone_number_id, phone.waba_account.encrypted_access_token, ev.from_wa_id, fallbackMsg);
         if (r.wamid) {
           await supabase.from('messages').insert({
@@ -1907,11 +1942,37 @@ async function handleActiveFormSession(
             sent_at: new Date().toISOString(), is_auto_reply: true,
           });
         }
-        // Re-send the question
         await new Promise(r => setTimeout(r, 500));
         await sendFormQuestion(supabase, phone.phone_number_id, phone.waba_account.encrypted_access_token, ev.from_wa_id, tenantId, conversationId, currentField, session.current_field_index + 1, visibleFields.length);
       }
-      return true; // Consumed the message but didn't advance
+      return true;
+    }
+  }
+
+  // Year field validation — match by number index or year value
+  if (currentField.type === 'year' && !isInteractive) {
+    const typed = answer.trim();
+    const numMatch = parseInt(typed, 10);
+    const currentYear = new Date().getFullYear();
+    const years = Array.from({ length: 10 }, (_, i) => currentYear + i);
+    
+    if (numMatch >= 1 && numMatch <= 10) {
+      answer = String(years[numMatch - 1]);
+      answerLabel = answer;
+    } else if (years.includes(numMatch)) {
+      answer = String(numMatch);
+      answerLabel = answer;
+    } else {
+      const { data: phone } = await supabase.from('phone_numbers')
+        .select('phone_number_id, waba_account:waba_accounts!inner(encrypted_access_token)')
+        .eq('id', phoneNumberId).maybeSingle();
+      if (phone?.phone_number_id && phone.waba_account?.encrypted_access_token) {
+        const msg = `⚠️ Please reply with a year number (1-10) or the year (e.g. ${currentYear})`;
+        await sendWAText(phone.phone_number_id, phone.waba_account.encrypted_access_token, ev.from_wa_id, msg);
+        await new Promise(r => setTimeout(r, 500));
+        await sendFormQuestion(supabase, phone.phone_number_id, phone.waba_account.encrypted_access_token, ev.from_wa_id, tenantId, conversationId, currentField, session.current_field_index + 1, visibleFields.length);
+      }
+      return true;
     }
   }
 
@@ -1938,33 +1999,190 @@ async function handleActiveFormSession(
     return true;
   }
 
+  // ─── Check for edit commands ───
+  const lowerAnswer = answer.trim().toLowerCase();
+  if (session.status === 'review' || session.awaiting_edit) {
+    // User is in edit mode
+    if (session.awaiting_edit) {
+      // They typed a field number to edit — map to field index
+      const editNum = parseInt(lowerAnswer, 10);
+      if (!isNaN(editNum) && editNum >= 1 && editNum <= visibleFields.length) {
+        const editFieldIndex = editNum - 1;
+        await supabase.from('form_sessions').update({
+          current_field_index: editFieldIndex,
+          status: 'active',
+          awaiting_edit: false,
+          editing_field_index: editFieldIndex,
+        }).eq('id', session.id);
+        const { data: phone } = await supabase.from('phone_numbers')
+          .select('phone_number_id, waba_account:waba_accounts!inner(encrypted_access_token)')
+          .eq('id', phoneNumberId).maybeSingle();
+        if (phone?.phone_number_id && phone.waba_account?.encrypted_access_token) {
+          await sendFormQuestion(supabase, phone.phone_number_id, phone.waba_account.encrypted_access_token, ev.from_wa_id, tenantId, conversationId, visibleFields[editFieldIndex], editFieldIndex + 1, visibleFields.length);
+        }
+        return true;
+      } else {
+        const { data: phone } = await supabase.from('phone_numbers')
+          .select('phone_number_id, waba_account:waba_accounts!inner(encrypted_access_token)')
+          .eq('id', phoneNumberId).maybeSingle();
+        if (phone?.phone_number_id && phone.waba_account?.encrypted_access_token) {
+          await sendWAText(phone.phone_number_id, phone.waba_account.encrypted_access_token, ev.from_wa_id, `⚠️ Please reply with a number between 1 and ${visibleFields.length}, or type *submit* to confirm.`);
+        }
+        return true;
+      }
+    }
+    // Waiting for confirm/edit choice
+    if (isInteractive) {
+      const raw = ev.raw?.message?.interactive;
+      const btnId = raw?.button_reply?.id || '';
+      if (btnId === 'form_confirm_submit') {
+        // Proceed to completion
+        await supabase.from('form_sessions').update({ status: 'completed', completed_at: new Date().toISOString() }).eq('id', session.id);
+        const { data: phone } = await supabase.from('phone_numbers')
+          .select('phone_number_id, waba_account:waba_accounts!inner(encrypted_access_token)')
+          .eq('id', phoneNumberId).maybeSingle();
+        if (phone?.phone_number_id && phone.waba_account?.encrypted_access_token) {
+          await handleFormCompletion(supabase, tenantId, phoneNumberId, conversationId, contactId, ev.from_wa_id, session, session.answers, allFields, fv.schema_json, phone.phone_number_id, phone.waba_account.encrypted_access_token);
+        }
+        return true;
+      } else if (btnId === 'form_edit_answers') {
+        // Enter edit mode — ask which field to change
+        let editMsg = '✏️ *Which answer do you want to change?*\n_Reply with the number:_\n\n';
+        visibleFields.forEach((f: any, i: number) => {
+          const ans = session.answers[f.id];
+          editMsg += `*${i + 1}.* ${f.label}: ${ans?.displayValue || ans?.value || '—'}\n`;
+        });
+        await supabase.from('form_sessions').update({ awaiting_edit: true, status: 'review' }).eq('id', session.id);
+        const { data: phone } = await supabase.from('phone_numbers')
+          .select('phone_number_id, waba_account:waba_accounts!inner(encrypted_access_token)')
+          .eq('id', phoneNumberId).maybeSingle();
+        if (phone?.phone_number_id && phone.waba_account?.encrypted_access_token) {
+          const r = await sendWAText(phone.phone_number_id, phone.waba_account.encrypted_access_token, ev.from_wa_id, editMsg.trim());
+          if (r.wamid) {
+            await supabase.from('messages').insert({ tenant_id: tenantId, conversation_id: conversationId, direction: 'outbound', type: 'text', text: editMsg.trim(), wamid: r.wamid, status: 'sent', sent_at: new Date().toISOString(), is_auto_reply: true });
+          }
+        }
+        return true;
+      }
+    }
+    // Non-interactive text: "submit" or "edit"
+    if (lowerAnswer === 'submit' || lowerAnswer === 'confirm' || lowerAnswer === 'yes') {
+      await supabase.from('form_sessions').update({ status: 'completed', completed_at: new Date().toISOString() }).eq('id', session.id);
+      const { data: phone } = await supabase.from('phone_numbers')
+        .select('phone_number_id, waba_account:waba_accounts!inner(encrypted_access_token)')
+        .eq('id', phoneNumberId).maybeSingle();
+      if (phone?.phone_number_id && phone.waba_account?.encrypted_access_token) {
+        await handleFormCompletion(supabase, tenantId, phoneNumberId, conversationId, contactId, ev.from_wa_id, session, session.answers, allFields, fv.schema_json, phone.phone_number_id, phone.waba_account.encrypted_access_token);
+      }
+      return true;
+    }
+    if (lowerAnswer === 'edit' || lowerAnswer === 'change') {
+      let editMsg = '✏️ *Which answer do you want to change?*\n_Reply with the number:_\n\n';
+      visibleFields.forEach((f: any, i: number) => {
+        const ans = session.answers[f.id];
+        editMsg += `*${i + 1}.* ${f.label}: ${ans?.displayValue || ans?.value || '—'}\n`;
+      });
+      await supabase.from('form_sessions').update({ awaiting_edit: true, status: 'review' }).eq('id', session.id);
+      const { data: phone } = await supabase.from('phone_numbers')
+        .select('phone_number_id, waba_account:waba_accounts!inner(encrypted_access_token)')
+        .eq('id', phoneNumberId).maybeSingle();
+      if (phone?.phone_number_id && phone.waba_account?.encrypted_access_token) {
+        await sendWAText(phone.phone_number_id, phone.waba_account.encrypted_access_token, ev.from_wa_id, editMsg.trim());
+      }
+      return true;
+    }
+    return true;
+  }
+
   // ─── Store answer and advance ───
   const updatedAnswers = { ...session.answers, [currentField.id]: { label: currentField.label, value: answer, displayValue: answerLabel, fieldType: currentField.type } };
+  
+  // If editing a specific field, go back to review after storing the answer
+  if (session.editing_field_index != null) {
+    await supabase.from('form_sessions').update({
+      answers: updatedAnswers,
+      current_field_index: visibleFields.length, // keep at end
+      editing_field_index: null,
+      status: 'review',
+    }).eq('id', session.id);
+    // Show updated review summary
+    const { data: phone } = await supabase.from('phone_numbers')
+      .select('phone_number_id, waba_account:waba_accounts!inner(encrypted_access_token)')
+      .eq('id', phoneNumberId).maybeSingle();
+    if (phone?.phone_number_id && phone.waba_account?.encrypted_access_token) {
+      await sendReviewSummary(supabase, phone.phone_number_id, phone.waba_account.encrypted_access_token, ev.from_wa_id, tenantId, conversationId, updatedAnswers, visibleFields);
+    }
+    return true;
+  }
+
   const nextIndex = session.current_field_index + 1;
   const isComplete = nextIndex >= visibleFields.length;
 
-  await supabase.from('form_sessions').update({
-    current_field_index: nextIndex, answers: updatedAnswers,
-    status: isComplete ? 'completed' : 'active',
-    completed_at: isComplete ? new Date().toISOString() : null,
-  }).eq('id', session.id);
-
-  const { data: phone } = await supabase.from('phone_numbers')
-    .select('phone_number_id, waba_account:waba_accounts!inner(encrypted_access_token)')
-    .eq('id', phoneNumberId).maybeSingle();
-  if (!phone?.phone_number_id || !phone.waba_account?.encrypted_access_token) return true;
-
-  const accessToken = phone.waba_account.encrypted_access_token;
-  const metaPhoneId = phone.phone_number_id;
-
   if (isComplete) {
-    // ─── FORM COMPLETION ENGINE ───
-    await handleFormCompletion(supabase, tenantId, phoneNumberId, conversationId, contactId, ev.from_wa_id, session, updatedAnswers, allFields, fv.schema_json, metaPhoneId, accessToken);
+    // All questions answered — show review summary with edit option
+    await supabase.from('form_sessions').update({
+      current_field_index: nextIndex, answers: updatedAnswers,
+      status: 'review',
+    }).eq('id', session.id);
+
+    const { data: phone } = await supabase.from('phone_numbers')
+      .select('phone_number_id, waba_account:waba_accounts!inner(encrypted_access_token)')
+      .eq('id', phoneNumberId).maybeSingle();
+    if (!phone?.phone_number_id || !phone.waba_account?.encrypted_access_token) return true;
+
+    await sendReviewSummary(supabase, phone.phone_number_id, phone.waba_account.encrypted_access_token, ev.from_wa_id, tenantId, conversationId, updatedAnswers, visibleFields);
   } else {
-    await new Promise(r => setTimeout(r, 500));
-    await sendFormQuestion(supabase, metaPhoneId, accessToken, ev.from_wa_id, tenantId, conversationId, visibleFields[nextIndex], nextIndex + 1, visibleFields.length);
+    await supabase.from('form_sessions').update({
+      current_field_index: nextIndex, answers: updatedAnswers,
+      status: 'active',
+    }).eq('id', session.id);
+    const { data: phone } = await supabase.from('phone_numbers')
+      .select('phone_number_id, waba_account:waba_accounts!inner(encrypted_access_token)')
+      .eq('id', phoneNumberId).maybeSingle();
+    if (phone?.phone_number_id && phone.waba_account?.encrypted_access_token) {
+      await new Promise(r => setTimeout(r, 500));
+      await sendFormQuestion(supabase, phone.phone_number_id, phone.waba_account.encrypted_access_token, ev.from_wa_id, tenantId, conversationId, visibleFields[nextIndex], nextIndex + 1, visibleFields.length);
+    }
   }
   return true;
+}
+
+// ─── Send Review Summary with Edit/Submit buttons ───
+async function sendReviewSummary(
+  supabase: any, metaPhoneId: string, accessToken: string, recipientWaId: string,
+  tenantId: string, conversationId: string, answers: Record<string, any>, visibleFields: any[]
+) {
+  let summaryMsg = '📋 *Review Your Answers:*\n\n';
+  visibleFields.forEach((f: any, i: number) => {
+    const ans = answers[f.id];
+    summaryMsg += `*${i + 1}. ${f.label}:* ${ans?.displayValue || ans?.value || '—'}\n`;
+  });
+  summaryMsg += '\n_Tap *Submit* to confirm or *Edit* to change an answer._';
+
+  const payload = {
+    messaging_product: 'whatsapp', recipient_type: 'individual', to: recipientWaId,
+    type: 'interactive',
+    interactive: {
+      type: 'button',
+      body: { text: summaryMsg },
+      action: {
+        buttons: [
+          { type: 'reply', reply: { id: 'form_confirm_submit', title: '✅ Submit' } },
+          { type: 'reply', reply: { id: 'form_edit_answers', title: '✏️ Edit' } },
+        ],
+      },
+    },
+  };
+  const resp = await fetch(`https://graph.facebook.com/v21.0/${metaPhoneId}/messages`, {
+    method: 'POST', headers: { 'Authorization': `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+  const result = await resp.json();
+  const wamid = result.messages?.[0]?.id;
+  if (wamid) {
+    await supabase.from('messages').insert({ tenant_id: tenantId, conversation_id: conversationId, direction: 'outbound', type: 'interactive', text: summaryMsg, wamid, status: 'sent', sent_at: new Date().toISOString(), is_auto_reply: true });
+  }
+  return wamid;
 }
 
 // ─── Form Completion Engine ───
@@ -2170,7 +2388,7 @@ async function handleFormCompletion(
       }
     }
 
-    // 8. Send completion message with summary
+    // 8. Send completion message (NO lead score shown to customer)
     const successMsg = schema.settings?.successMessage || 'Thank you for your response! ✅';
     let summaryMsg = `${successMsg}\n\n`;
     summaryMsg += `📊 *Your Summary:*\n`;
@@ -2178,11 +2396,8 @@ async function handleFormCompletion(
       const ans = ansData as any;
       summaryMsg += `• *${ans.label}:* ${ans.displayValue || ans.value}\n`;
     }
-    if (totalScore > 0) {
-      summaryMsg += `\n⭐ Lead Score: ${totalScore} (${qualification.toUpperCase()})`;
-    }
     if (isQualified) {
-      summaryMsg += `\n\n✅ You've been qualified! A counselor will be in touch shortly.`;
+      summaryMsg += `\n✅ A counselor will be in touch shortly.`;
     }
 
     const r = await sendWAText(metaPhoneId, accessToken, recipientWaId, summaryMsg.trim());
@@ -2197,7 +2412,7 @@ async function handleFormCompletion(
     // Update conversation preview
     await supabase.from('conversations').update({
       last_message_at: new Date().toISOString(),
-      last_message_preview: `✅ Form completed (Score: ${totalScore})`,
+      last_message_preview: `✅ Form completed`,
     }).eq('id', conversationId);
 
     console.log('Form completion engine done. Score:', totalScore, 'Tags:', tagsToApply.join(', '));
