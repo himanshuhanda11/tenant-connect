@@ -1956,15 +1956,18 @@ async function handleFormCompletion(
   try {
     console.log('Form completion engine starting for session:', session.id);
 
-    // 1. Calculate lead score from lead_score fields
+    // 1. Calculate lead score
     let totalScore = 0;
     const scoreBreakdown: Record<string, number> = {};
+    const answeredVisibleFields = allFields.filter((f: any) => !['hidden', 'calculated', 'lead_score', 'tag_assignment'].includes(f.type));
+    const totalQuestions = answeredVisibleFields.length;
+    let answeredCount = 0;
     
+    // Explicit lead_score rules
     for (const field of allFields) {
       if (field.type === 'lead_score' && field.leadScoreRules) {
         for (const rule of field.leadScoreRules) {
-          // Check if any answered field matches a scoring rule
-          for (const [fieldId, ansData] of Object.entries(answers)) {
+          for (const [, ansData] of Object.entries(answers)) {
             const ans = ansData as any;
             if (ans.value === rule.answer || ans.displayValue === rule.answer) {
               totalScore += rule.points || 0;
@@ -1975,7 +1978,7 @@ async function handleFormCompletion(
       }
     }
 
-    // Score based on answer values matching option scores
+    // Option-level scores
     for (const field of allFields.filter((f: any) => f.options?.length > 0)) {
       const ansData = answers[field.id] as any;
       if (!ansData) continue;
@@ -1984,6 +1987,23 @@ async function handleFormCompletion(
         totalScore += matchedOpt.score;
         scoreBreakdown[field.label] = (scoreBreakdown[field.label] || 0) + matchedOpt.score;
       }
+    }
+
+    // Default scoring: if no explicit scores configured, score based on completeness
+    const hasExplicitScoring = totalScore > 0 || allFields.some((f: any) =>
+      (f.type === 'lead_score' && f.leadScoreRules?.length > 0) ||
+      f.options?.some((o: any) => o.score != null)
+    );
+
+    if (!hasExplicitScoring) {
+      // Score based on form completion: each answered field = points proportional to 100
+      for (const field of answeredVisibleFields) {
+        if (answers[field.id]) {
+          answeredCount++;
+        }
+      }
+      totalScore = totalQuestions > 0 ? Math.round((answeredCount / totalQuestions) * 100) : 0;
+      console.log(`Default scoring: ${answeredCount}/${totalQuestions} fields answered = ${totalScore}`);
     }
 
     // 2. Determine qualification from score thresholds
@@ -2057,21 +2077,32 @@ async function handleFormCompletion(
       submissionData[ans.label] = ans.displayValue || ans.value;
     }
 
-    await supabase.from('form_submissions').insert({
-      tenant_id: tenantId,
-      form_id: session.form_rule_id, // Link to rule
-      form_version_id: session.form_version_id,
-      contact_id: contactId,
-      conversation_id: conversationId,
-      data_json: submissionData,
-      lead_score: totalScore,
-      tags: tagsToApply,
-      status: 'completed',
-      submitted_at: new Date().toISOString(),
-    }).then(({ error }: any) => {
-      if (error) console.error('Form submission save error:', error);
-      else console.log('Form submission saved');
-    });
+    // Resolve actual form_id from form_version
+    let actualFormId: string | null = null;
+    if (session.form_version_id) {
+      const { data: fvRow } = await supabase.from('form_versions')
+        .select('form_id').eq('id', session.form_version_id).maybeSingle();
+      actualFormId = fvRow?.form_id || null;
+    }
+
+    if (actualFormId) {
+      const { error: subErr } = await supabase.from('form_submissions').insert({
+        tenant_id: tenantId,
+        form_id: actualFormId,
+        form_version_id: session.form_version_id,
+        contact_id: contactId,
+        conversation_id: conversationId,
+        data_json: submissionData,
+        lead_score: totalScore,
+        tags: tagsToApply,
+        status: 'completed',
+        submitted_at: new Date().toISOString(),
+      });
+      if (subErr) console.error('Form submission save error:', subErr);
+      else console.log('Form submission saved successfully');
+    } else {
+      console.error('Could not resolve form_id from version:', session.form_version_id);
+    }
 
     // 6. Update contact with lead status
     await supabase.from('contacts').update({
