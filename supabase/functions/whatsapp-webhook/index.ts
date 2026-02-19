@@ -525,21 +525,32 @@ async function processInboundMessage(
   }
 
   // Auto-route new conversations via routing rules (round robin, etc.)
+  // Skip auto-routing when AI bot is enabled — keep chat unassigned until a human agent replies
   if (isNewConversation && !conversation?.assigned_to) {
     try {
-      const { data: routeResult, error: routeErr } = await supabase.rpc(
-        'smeksh_auto_route_conversation',
-        {
-          p_workspace_id: tenantId,
-          p_conversation_id: conversationId,
-          p_trigger_event: 'new_conversation',
-          p_only_if_unassigned: true,
-        }
-      );
-      if (routeErr) {
-        console.error('Auto-route error:', routeErr);
+      const { data: aiCheck } = await supabase
+        .from('auto_reply_settings')
+        .select('ai_enabled')
+        .eq('tenant_id', tenantId)
+        .maybeSingle();
+
+      if (aiCheck?.ai_enabled) {
+        console.log('Auto-route skipped: AI bot is enabled, chat stays unassigned until human reply');
       } else {
-        console.log('Auto-route result:', JSON.stringify(routeResult));
+        const { data: routeResult, error: routeErr } = await supabase.rpc(
+          'smeksh_auto_route_conversation',
+          {
+            p_workspace_id: tenantId,
+            p_conversation_id: conversationId,
+            p_trigger_event: 'new_conversation',
+            p_only_if_unassigned: true,
+          }
+        );
+        if (routeErr) {
+          console.error('Auto-route error:', routeErr);
+        } else {
+          console.log('Auto-route result:', JSON.stringify(routeResult));
+        }
       }
     } catch (e) {
       console.error('Auto-route exception:', e);
