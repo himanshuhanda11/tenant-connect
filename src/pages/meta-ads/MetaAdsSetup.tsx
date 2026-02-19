@@ -341,44 +341,47 @@ export default function MetaAdsSetup() {
                     }
                     setIsFbLoading(true);
                     try {
-                      window.FB.login(async (response: any) => {
-                        try {
-                          if (response.status !== 'connected' || !response.authResponse?.accessToken) {
-                            toast.error('Facebook login was cancelled or failed');
-                            setIsFbLoading(false);
-                            return;
-                          }
-
-                          const { data: { session } } = await supabase.auth.getSession();
-                          if (!session) throw new Error('Not authenticated');
-
-                          const res = await fetch(
-                            `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/meta-ads-fb-login`,
-                            {
-                              method: 'POST',
-                              headers: {
-                                Authorization: `Bearer ${session.access_token}`,
-                                'Content-Type': 'application/json',
-                              },
-                              body: JSON.stringify({
-                                accessToken: response.authResponse.accessToken,
-                                tenantId: currentTenant.id,
-                              }),
-                            }
-                          );
-                          const data = await res.json();
-                          if (!res.ok) throw new Error(data.error || 'Failed to process Facebook login');
-
-                          setAdAccounts(data.adAccounts || []);
-                          setPages(data.pages || []);
-                          setFbConnected(true);
-                          toast.success(`Connected! Found ${data.adAccounts?.length || 0} ad account(s) and ${data.pages?.length || 0} page(s).`);
-                        } catch (err: any) {
-                          console.error('Meta Ads FB login error:', err);
-                          toast.error(err.message || 'Failed to process Facebook login');
-                        } finally {
+                      window.FB.login((response: any) => {
+                        if (response.status !== 'connected' || !response.authResponse?.accessToken) {
+                          toast.error('Facebook login was cancelled or failed');
                           setIsFbLoading(false);
+                          return;
                         }
+
+                        // Handle async work outside the FB.login callback
+                        (async () => {
+                          try {
+                            const { data: { session } } = await supabase.auth.getSession();
+                            if (!session) throw new Error('Not authenticated');
+
+                            const res = await fetch(
+                              `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/meta-ads-fb-login`,
+                              {
+                                method: 'POST',
+                                headers: {
+                                  Authorization: `Bearer ${session.access_token}`,
+                                  'Content-Type': 'application/json',
+                                },
+                                body: JSON.stringify({
+                                  accessToken: response.authResponse.accessToken,
+                                  tenantId: currentTenant.id,
+                                }),
+                              }
+                            );
+                            const data = await res.json();
+                            if (!res.ok) throw new Error(data.error || 'Failed to process Facebook login');
+
+                            setAdAccounts(data.adAccounts || []);
+                            setPages(data.pages || []);
+                            setFbConnected(true);
+                            toast.success(`Connected! Found ${data.adAccounts?.length || 0} ad account(s) and ${data.pages?.length || 0} page(s).`);
+                          } catch (err: any) {
+                            console.error('Meta Ads FB login error:', err);
+                            toast.error(err.message || 'Failed to process Facebook login');
+                          } finally {
+                            setIsFbLoading(false);
+                          }
+                        })();
                       }, { scope: 'public_profile,email' });
                     } catch (err: any) {
                       console.error('FB.login error:', err);
