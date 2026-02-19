@@ -101,6 +101,7 @@ export interface InboxConversation {
     reason?: string;
   };
   phone_number_status?: string;
+  lead_stage?: 'new' | 'qualifying' | 'qualified' | 'needs_agent' | 'unqualified';
 }
 
 export interface ConversationEvent {
