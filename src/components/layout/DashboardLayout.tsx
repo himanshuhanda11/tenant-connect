@@ -16,15 +16,22 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   const { user, loading: authLoading } = useAuth();
   const { loading: tenantLoading, currentTenant } = useTenant();
   const [onboardingChecked, setOnboardingChecked] = useState(false);
+  // Track user id to avoid re-running onboarding check on token refreshes
+  const [checkedUserId, setCheckedUserId] = useState<string | null>(null);
 
-  // Check onboarding status
+  // Check onboarding status — only once per unique user id
   useEffect(() => {
-    const checkOnboarding = async () => {
-      if (!user) {
-        setOnboardingChecked(true);
-        return;
-      }
+    if (authLoading) return;
 
+    if (!user) {
+      setOnboardingChecked(true);
+      return;
+    }
+
+    // Skip if we already checked this user (prevents reset on token refresh / tab switch)
+    if (checkedUserId === user.id) return;
+
+    const checkOnboarding = async () => {
       const { data: profile } = await supabase
         .from('profiles')
         .select('onboarding_step')
@@ -32,22 +39,18 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         .maybeSingle();
 
       if (profile && profile.onboarding_step !== 'completed') {
-        // Redirect to appropriate onboarding step
         if (profile.onboarding_step === 'pending' || profile.onboarding_step === 'google_done') {
           navigate('/onboarding/org');
         } else if (profile.onboarding_step === 'org_done') {
           navigate('/onboarding/password');
         }
       }
+      setCheckedUserId(user.id);
       setOnboardingChecked(true);
     };
 
-    if (!authLoading && user) {
-      checkOnboarding();
-    } else if (!authLoading) {
-      setOnboardingChecked(true);
-    }
-  }, [user, authLoading, navigate]);
+    checkOnboarding();
+  }, [user, authLoading, navigate, checkedUserId]);
 
   useEffect(() => {
     if (!authLoading && !user) {

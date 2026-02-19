@@ -67,21 +67,31 @@ export function TenantProvider({ children }: { children: React.ReactNode }) {
 
       // Auto-select if user has exactly one tenant (e.g. agents added directly)
       if (tenantsWithRoles.length === 1) {
-        setCurrentTenantState(tenantsWithRoles[0]);
-        localStorage.setItem(CURRENT_TENANT_KEY, tenantsWithRoles[0].id);
+        // Only update state if the tenant id actually changed to avoid unnecessary re-renders
+        setCurrentTenantState(prev => {
+          if (prev?.id === tenantsWithRoles[0].id) return prev;
+          localStorage.setItem(CURRENT_TENANT_KEY, tenantsWithRoles[0].id);
+          return tenantsWithRoles[0];
+        });
       } else {
         // Try to restore from localStorage
         const savedTenantId = localStorage.getItem(CURRENT_TENANT_KEY);
         if (savedTenantId && tenantsWithRoles.length > 0) {
           const savedTenant = tenantsWithRoles.find(t => t.id === savedTenantId);
           if (savedTenant) {
-            setCurrentTenantState(savedTenant);
+            setCurrentTenantState(prev => {
+              if (prev?.id === savedTenant.id) return prev;
+              return savedTenant;
+            });
           } else {
             setCurrentTenantState(null);
             localStorage.removeItem(CURRENT_TENANT_KEY);
           }
         } else {
-          setCurrentTenantState(null);
+          setCurrentTenantState(prev => {
+            if (prev === null) return prev;
+            return null;
+          });
         }
       }
     } catch (error) {
