@@ -138,4 +138,22 @@ export const FORM_PRESETS = [
       { type: 'hidden' as FormFieldType, label: 'Campaign', hiddenSource: 'campaign' as const },
     ],
   },
+  {
+    name: 'Study Abroad',
+    icon: '🎓',
+    description: 'Qualify study abroad leads',
+    fields: [
+      { type: 'text' as FormFieldType, label: 'Full Name', required: true },
+      { type: 'phone' as FormFieldType, label: 'Phone Number', required: true },
+      { type: 'email' as FormFieldType, label: 'Email Address', required: false },
+      { type: 'select' as FormFieldType, label: 'Country of Interest', required: true, options: [{ label: '🇬🇧 UK', value: 'uk' }, { label: '🇨🇦 Canada', value: 'canada' }, { label: '🇦🇺 Australia', value: 'australia' }, { label: '🇺🇸 USA', value: 'usa' }, { label: '🌍 Not Sure', value: 'not_sure' }] },
+      { type: 'text' as FormFieldType, label: 'Last Qualification & %', required: true },
+      { type: 'select' as FormFieldType, label: 'Target Intake', required: true, options: [{ label: 'Jan 2026', value: 'jan_2026' }, { label: 'May 2026', value: 'may_2026' }, { label: 'July 2026', value: 'july_2026' }, { label: 'Sept 2026', value: 'sept_2026' }] },
+      { type: 'radio' as FormFieldType, label: 'IELTS/PTE Status', required: true, options: [{ label: 'Yes', value: 'yes' }, { label: 'No', value: 'no' }, { label: 'Planning Soon', value: 'planning' }] },
+      { type: 'select' as FormFieldType, label: 'Yearly Budget', required: true, options: [{ label: 'Under ₹10L', value: 'under_10l' }, { label: '₹10L – ₹20L', value: '10l_20l' }, { label: '₹20L+', value: 'above_20l' }] },
+      { type: 'lead_score' as FormFieldType, label: 'Lead Quality' },
+      { type: 'tag_assignment' as FormFieldType, label: 'Lead Tag' },
+      { type: 'hidden' as FormFieldType, label: 'Source', hiddenSource: 'source' as const },
+    ],
+  },
 ];
