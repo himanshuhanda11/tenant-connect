@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { QuickGuide, quickGuides } from '@/components/help/QuickGuide';
 import { Button } from '@/components/ui/button';
+import { ViewFormRuleDialog } from '@/components/automation/ViewFormRuleDialog';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -32,6 +33,7 @@ import {
   Edit,
   Copy,
   Trash2,
+  Eye,
   FileText,
   Zap,
   MessageSquare,
@@ -88,6 +90,7 @@ export default function AutoFormRules() {
   const [filterTrigger, setFilterTrigger] = useState<string | null>(null);
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [editingRule, setEditingRule] = useState<FormRule | null>(null);
+  const [viewingRule, setViewingRule] = useState<FormRule | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [ruleToDelete, setRuleToDelete] = useState<FormRule | null>(null);
 
@@ -299,7 +302,11 @@ export default function AutoFormRules() {
                                       <MoreVertical className="h-4 w-4" />
                                     </Button>
                                   </DropdownMenuTrigger>
-                                  <DropdownMenuContent align="end">
+                                    <DropdownMenuContent align="end">
+                                    <DropdownMenuItem onClick={() => setViewingRule(rule)}>
+                                      <Eye className="h-4 w-4 mr-2" />
+                                      View
+                                    </DropdownMenuItem>
                                     <DropdownMenuItem onClick={() => setEditingRule(rule)}>
                                       <Edit className="h-4 w-4 mr-2" />
                                       Edit
@@ -397,6 +404,14 @@ export default function AutoFormRules() {
         createRule={createRule}
         updateRule={updateRule}
         onSaved={fetchRules}
+      />
+
+      {/* View Dialog */}
+      <ViewFormRuleDialog
+        open={!!viewingRule}
+        onOpenChange={(open) => { if (!open) setViewingRule(null); }}
+        rule={viewingRule}
+        onEdit={(rule) => setEditingRule(rule)}
       />
 
       {/* Delete Confirmation */}
