@@ -65,10 +65,10 @@ const VIEW_ICONS: Record<InboxView, React.ReactNode> = {
 };
 
 const LEAD_STAGE_CONFIG: Record<string, { label: string; icon: React.ReactNode; className: string }> = {
-  qualified: { label: 'Qualified', icon: <CheckCircle className="h-3 w-3" />, className: 'bg-green-100 text-green-700 border-0' },
+  qualified: { label: 'Interested', icon: <CheckCircle className="h-3 w-3" />, className: 'bg-green-100 text-green-700 border-0' },
   needs_agent: { label: 'Needs Agent', icon: <UserCheck className="h-3 w-3" />, className: 'bg-amber-100 text-amber-700 border-0' },
   qualifying: { label: 'Qualifying', icon: <Sparkles className="h-3 w-3" />, className: 'bg-blue-100 text-blue-700 border-0' },
-  unqualified: { label: 'Unqualified', icon: <XCircle className="h-3 w-3" />, className: 'bg-red-100 text-red-700 border-0' },
+  unqualified: { label: 'Not Interested', icon: <XCircle className="h-3 w-3" />, className: 'bg-red-100 text-red-700 border-0' },
   new: { label: 'New Lead', icon: <HelpCircle className="h-3 w-3" />, className: 'bg-purple-100 text-purple-700 border-0' },
 };
 
