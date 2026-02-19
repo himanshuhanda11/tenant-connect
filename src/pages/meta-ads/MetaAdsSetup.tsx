@@ -343,8 +343,6 @@ export default function MetaAdsSetup() {
                         setIsFbLoading(false);
                         toast.error('Facebook login was cancelled or failed.');
                       }
-                    }, {
-                      scope: 'public_profile',
                     });
                   }}
                 >
