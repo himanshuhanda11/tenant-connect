@@ -841,6 +841,73 @@ export function useFlowBuilder(flowId: string | undefined) {
     return updateTrigger(triggerId, { is_enabled: enabled });
   };
 
+  const loadPrebuiltFlow = async (prebuilt: import('@/data/prebuiltFlows').PrebuiltFlow) => {
+    if (!flowId || !currentTenant?.id) return false;
+
+    try {
+      const newNodes = prebuilt.nodes.map(n => ({
+        tenant_id: currentTenant.id,
+        flow_id: flowId,
+        node_key: `${n.node_key}_${Date.now()}`,
+        node_type: n.node_type,
+        label: n.label,
+        position_x: n.position_x,
+        position_y: n.position_y,
+        config: n.config,
+      }));
+
+      const { data: insertedNodes, error: nodesErr } = await supabase
+        .from('flow_nodes')
+        .insert(newNodes)
+        .select();
+
+      if (nodesErr) throw nodesErr;
+
+      // Create edges: start → first node, then chain sequentially
+      const edgesToInsert: any[] = [];
+      const startNode = nodes.find(n => n.node_type === 'start');
+      
+      if (startNode && insertedNodes && insertedNodes.length > 0) {
+        edgesToInsert.push({
+          tenant_id: currentTenant.id,
+          flow_id: flowId,
+          edge_key: `edge_start_${insertedNodes[0].node_key}`,
+          source_node_key: startNode.node_key,
+          target_node_key: insertedNodes[0].node_key,
+          config: {},
+        });
+      }
+
+      if (insertedNodes) {
+        for (let i = 0; i < insertedNodes.length - 1; i++) {
+          edgesToInsert.push({
+            tenant_id: currentTenant.id,
+            flow_id: flowId,
+            edge_key: `edge_${insertedNodes[i].node_key}_${insertedNodes[i + 1].node_key}`,
+            source_node_key: insertedNodes[i].node_key,
+            target_node_key: insertedNodes[i + 1].node_key,
+            config: {},
+          });
+        }
+      }
+
+      if (edgesToInsert.length > 0) {
+        const { error: edgesErr } = await supabase
+          .from('flow_edges')
+          .insert(edgesToInsert);
+        if (edgesErr) throw edgesErr;
+      }
+
+      toast.success(`"${prebuilt.name}" loaded into canvas`);
+      await fetchFlow();
+      return true;
+    } catch (err: any) {
+      toast.error('Failed to load prebuilt flow');
+      console.error(err);
+      return false;
+    }
+  };
+
   return {
     flow,
     nodes,
@@ -860,6 +927,7 @@ export function useFlowBuilder(flowId: string | undefined) {
     updateTrigger,
     deleteTrigger,
     toggleTrigger,
+    loadPrebuiltFlow,
     setNodes,
     setEdges,
     setTriggers,
