@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import type { Profile } from '@/types/tenant';
@@ -17,10 +17,21 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUserState] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
+  // Keep a ref to the current user id so we can skip unnecessary setUser calls
+  // that would create new object references and cascade re-renders through the app.
+  const userIdRef = useRef<string | null>(null);
+
+  // Stable setUser: only updates state if the user id actually changed
+  const setUser = (newUser: User | null) => {
+    const newId = newUser?.id ?? null;
+    if (newId === userIdRef.current) return; // same user, skip re-render
+    userIdRef.current = newId;
+    setUserState(newUser);
+  };
 
   useEffect(() => {
     // Set up auth state listener FIRST
