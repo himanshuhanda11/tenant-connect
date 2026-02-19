@@ -11,7 +11,6 @@ Deno.serve(async (req) => {
   }
 
   try {
-    // Authenticate user
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
       return new Response(JSON.stringify({ error: 'Unauthorized' }), {
@@ -62,7 +61,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Step 1: Exchange short-lived token for long-lived token
+    // Exchange short-lived token for long-lived token
     const exchangeUrl = `https://graph.facebook.com/v21.0/oauth/access_token?grant_type=fb_exchange_token&client_id=${appId}&client_secret=${appSecret}&fb_exchange_token=${accessToken}`;
     const exchangeRes = await fetch(exchangeUrl);
     const exchangeData = await exchangeRes.json();
@@ -76,7 +75,7 @@ Deno.serve(async (req) => {
 
     const longLivedToken = exchangeData.access_token;
 
-    // Step 2: Fetch ad accounts
+    // Fetch ad accounts
     const adAccountsRes = await fetch(
       `https://graph.facebook.com/v21.0/me/adaccounts?fields=id,name,account_status,currency,timezone_name&access_token=${longLivedToken}`
     );
@@ -89,7 +88,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Step 3: Fetch Facebook pages
+    // Fetch Facebook pages
     const pagesRes = await fetch(
       `https://graph.facebook.com/v21.0/me/accounts?fields=id,name,category,access_token&access_token=${longLivedToken}`
     );
@@ -101,9 +100,6 @@ Deno.serve(async (req) => {
         status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
-
-    // Store the long-lived token for future syncing
-    // We'll store it when the user finalizes the setup
 
     console.log(`FB Login: fetched ${adAccountsData.data?.length || 0} ad accounts, ${pagesData.data?.length || 0} pages for tenant ${tenantId}`);
 
