@@ -1475,8 +1475,18 @@ async function sendFormRuleTemplate(
   contactId: string,
   recipientWaId: string
 ): Promise<{ success: boolean; messageId?: string; error?: string }> {
-  // Get template details
-  const template = rule.form;
+  // Get template details — try joined data first, then lookup by name
+  let template = rule.form;
+  if (!template && rule.form_template_name) {
+    const { data: tmpl } = await supabase
+      .from('templates')
+      .select('id, name, language, components')
+      .eq('tenant_id', tenantId)
+      .eq('name', rule.form_template_name)
+      .limit(1)
+      .maybeSingle();
+    template = tmpl;
+  }
   if (!template) {
     return { success: false, error: 'no_template_linked' };
   }
