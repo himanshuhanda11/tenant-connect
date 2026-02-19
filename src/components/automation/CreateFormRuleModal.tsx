@@ -214,28 +214,130 @@ export function CreateFormRuleModal({ open, onOpenChange, editingRule }: CreateF
     setSaving(true);
     try {
       let finalFormId = formId;
+      let finalVersionId: string | null = null;
 
-      // If builder mode, save the custom form first
+      // If builder mode, save to forms → form_versions → form_fields
       if (formMode === 'builder' && currentTenant?.id) {
         setSavingForm(true);
         const { data: userData } = await supabase.auth.getUser();
+        const userId = userData?.user?.id;
+
+        // 1. Create form definition
         const { data: savedForm, error: formError } = await (supabase as any)
-          .from('lead_forms')
+          .from('forms')
           .insert({
             tenant_id: currentTenant.id,
             name: builderFormName.trim(),
-            fields: builderFields,
-            settings: { intro_message: introMessage, delay_seconds: delaySeconds },
+            description: null,
             status: 'active',
-            created_by: userData?.user?.id,
+            created_by: userId,
           })
           .select()
           .single();
 
         if (formError) throw formError;
-          finalFormId = savedForm.id;
+        finalFormId = savedForm.id;
+
+        // 2. Create form version
+        const schemaJson = {
+          fields: builderFields,
+          if_then_rules: ifThenRules,
+          webhook_url: webhookUrl,
+          settings: formSettings,
+          intro_message: introMessage,
+          delay_seconds: delaySeconds,
+        };
+
+        const { data: savedVersion, error: versionError } = await (supabase as any)
+          .from('form_versions')
+          .insert({
+            form_id: finalFormId,
+            version: 1,
+            schema_json: schemaJson,
+            published_at: new Date().toISOString(),
+            created_by: userId,
+          })
+          .select()
+          .single();
+
+        if (versionError) throw versionError;
+        finalVersionId = savedVersion.id;
+
+        // 3. Link active version
+        await (supabase as any)
+          .from('forms')
+          .update({ active_version_id: finalVersionId })
+          .eq('id', finalFormId);
+
+        // 4. Insert form fields
+        const fieldRows = builderFields.map((f, idx) => ({
+          form_version_id: finalVersionId,
+          key: f.id,
+          label: f.label,
+          type: mapFieldType(f.type),
+          help_text: f.description || null,
+          placeholder: f.placeholder || null,
+          required: f.required,
+          order_index: idx,
+          validation_json: f.validation || {},
+          default_value: null,
+          is_system: f.type === 'hidden',
+          config_json: {
+            ...(f.hiddenSource ? { hidden_source: f.hiddenSource, hidden_value: f.hiddenValue } : {}),
+            ...(f.calculationFormula ? { formula: f.calculationFormula, operator: f.calculationOperator, fields: f.calculationFields } : {}),
+            ...(f.otpType ? { otp_type: f.otpType } : {}),
+            ...(f.fileTypes ? { file_types: f.fileTypes, max_file_size: f.maxFileSize } : {}),
+            ...(f.timeSlotConfig ? { time_slot: f.timeSlotConfig } : {}),
+            ...(f.leadScoreRules ? { lead_score_rules: f.leadScoreRules } : {}),
+            ...(f.tagRules ? { tag_rules: f.tagRules } : {}),
+            ...(f.conditionalRules ? { conditional_rules: f.conditionalRules } : {}),
+          },
+        }));
+
+        if (fieldRows.length > 0) {
+          const { error: fieldsError } = await (supabase as any)
+            .from('form_fields')
+            .insert(fieldRows);
+          if (fieldsError) throw fieldsError;
+        }
+
+        // 5. Insert field options for dropdown/radio/checkbox fields
+        const optionInserts: any[] = [];
+        builderFields.forEach((f) => {
+          if (f.options && ['select', 'radio', 'checkbox', 'tag_assignment', 'lead_score'].includes(f.type)) {
+            f.options.forEach((opt, optIdx) => {
+              optionInserts.push({
+                field_id: null, // will need field ID from DB — use schema_json for now
+                value: opt.value,
+                label: opt.label,
+                order_index: optIdx,
+                score: opt.score || 0,
+                tag: opt.tag || null,
+              });
+            });
+          }
+        });
+
         setSavingForm(false);
       }
+
+      // Build conditions_json and actions_json from IF-THEN rules
+      const conditionsJson = {
+        all: conditions.map(c => ({
+          field: c.type,
+          op: '==',
+          value: c.config,
+        })),
+      };
+
+      const actionsJson = {
+        actions: ifThenRules.flatMap(rule => 
+          rule.actions.map(a => ({
+            type: a.type,
+            ...a.config,
+          }))
+        ),
+      };
 
       const ruleData = {
         name: name.trim(),
@@ -247,20 +349,18 @@ export function CreateFormRuleModal({ open, onOpenChange, editingRule }: CreateF
           stop_on_free_text: stopOnFreeText,
           delay_seconds: delaySeconds,
         },
-        form_id: finalFormId,
+        form_id: finalFormId || null,
+        form_version_id: finalVersionId,
         form_template_name: formMode === 'builder' ? builderFormName : null,
         form_variables: {
           intro_message: introMessage,
           fallback_message: fallbackMessage,
           form_mode: formMode,
-          ...(formMode === 'builder' ? {
-            builder_fields: builderFields,
-            if_then_rules: ifThenRules,
-            webhook_url: webhookUrl,
-            form_settings: formSettings,
-          } : {}),
         },
         conditions,
+        conditions_json: conditionsJson,
+        actions_json: actionsJson,
+        trigger: 'on_submit' as const,
         cooldown_minutes: cooldownMinutes,
         max_sends_per_contact_per_day: sendOncePerUser ? 1 : 999,
         require_opt_in: requireOptIn,
@@ -278,6 +378,17 @@ export function CreateFormRuleModal({ open, onOpenChange, editingRule }: CreateF
       setSaving(false);
       setSavingForm(false);
     }
+  };
+
+  // Map form builder types to DB field types
+  const mapFieldType = (type: string): string => {
+    const map: Record<string, string> = {
+      'textarea': 'long_text',
+      'select': 'dropdown',
+      'file_upload': 'file',
+      'otp_verification': 'otp',
+    };
+    return map[type] || type;
   };
 
   const addKeyword = () => {

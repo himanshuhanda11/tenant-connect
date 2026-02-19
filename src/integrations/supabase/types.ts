@@ -3258,6 +3258,177 @@ export type Database = {
           },
         ]
       }
+      form_field_library: {
+        Row: {
+          category: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          field_config: Json
+          id: string
+          is_global: boolean
+          name: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          field_config?: Json
+          id?: string
+          is_global?: boolean
+          name: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          field_config?: Json
+          id?: string
+          is_global?: boolean
+          name?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "form_field_library_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "form_field_library_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "platform_workspace_directory"
+            referencedColumns: ["workspace_id"]
+          },
+          {
+            foreignKeyName: "form_field_library_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      form_field_options: {
+        Row: {
+          created_at: string
+          field_id: string
+          id: string
+          label: string
+          order_index: number
+          score: number | null
+          tag: string | null
+          value: string
+        }
+        Insert: {
+          created_at?: string
+          field_id: string
+          id?: string
+          label: string
+          order_index?: number
+          score?: number | null
+          tag?: string | null
+          value: string
+        }
+        Update: {
+          created_at?: string
+          field_id?: string
+          id?: string
+          label?: string
+          order_index?: number
+          score?: number | null
+          tag?: string | null
+          value?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "form_field_options_field_id_fkey"
+            columns: ["field_id"]
+            isOneToOne: false
+            referencedRelation: "form_fields"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      form_fields: {
+        Row: {
+          config_json: Json | null
+          created_at: string
+          default_value: Json | null
+          form_version_id: string
+          help_text: string | null
+          id: string
+          is_system: boolean
+          key: string
+          label: string
+          order_index: number
+          placeholder: string | null
+          required: boolean
+          step_id: string | null
+          type: string
+          validation_json: Json | null
+        }
+        Insert: {
+          config_json?: Json | null
+          created_at?: string
+          default_value?: Json | null
+          form_version_id: string
+          help_text?: string | null
+          id?: string
+          is_system?: boolean
+          key: string
+          label: string
+          order_index?: number
+          placeholder?: string | null
+          required?: boolean
+          step_id?: string | null
+          type: string
+          validation_json?: Json | null
+        }
+        Update: {
+          config_json?: Json | null
+          created_at?: string
+          default_value?: Json | null
+          form_version_id?: string
+          help_text?: string | null
+          id?: string
+          is_system?: boolean
+          key?: string
+          label?: string
+          order_index?: number
+          placeholder?: string | null
+          required?: boolean
+          step_id?: string | null
+          type?: string
+          validation_json?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "form_fields_form_version_id_fkey"
+            columns: ["form_version_id"]
+            isOneToOne: false
+            referencedRelation: "form_versions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "form_fields_step_id_fkey"
+            columns: ["step_id"]
+            isOneToOne: false
+            referencedRelation: "form_steps"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       form_rule_logs: {
         Row: {
           contact_id: string | null
@@ -3338,8 +3509,10 @@ export type Database = {
       }
       form_rules: {
         Row: {
+          actions_json: Json | null
           business_hours_only: boolean | null
           conditions: Json | null
+          conditions_json: Json | null
           cooldown_minutes: number | null
           created_at: string
           created_by: string | null
@@ -3349,6 +3522,7 @@ export type Database = {
           form_language: string | null
           form_template_name: string | null
           form_variables: Json | null
+          form_version_id: string | null
           id: string
           is_active: boolean | null
           last_executed_at: string | null
@@ -3357,13 +3531,16 @@ export type Database = {
           priority: number | null
           require_opt_in: boolean | null
           tenant_id: string
+          trigger: string | null
           trigger_config: Json
           trigger_type: string
           updated_at: string
         }
         Insert: {
+          actions_json?: Json | null
           business_hours_only?: boolean | null
           conditions?: Json | null
+          conditions_json?: Json | null
           cooldown_minutes?: number | null
           created_at?: string
           created_by?: string | null
@@ -3373,6 +3550,7 @@ export type Database = {
           form_language?: string | null
           form_template_name?: string | null
           form_variables?: Json | null
+          form_version_id?: string | null
           id?: string
           is_active?: boolean | null
           last_executed_at?: string | null
@@ -3381,13 +3559,16 @@ export type Database = {
           priority?: number | null
           require_opt_in?: boolean | null
           tenant_id: string
+          trigger?: string | null
           trigger_config?: Json
           trigger_type: string
           updated_at?: string
         }
         Update: {
+          actions_json?: Json | null
           business_hours_only?: boolean | null
           conditions?: Json | null
+          conditions_json?: Json | null
           cooldown_minutes?: number | null
           created_at?: string
           created_by?: string | null
@@ -3397,6 +3578,7 @@ export type Database = {
           form_language?: string | null
           form_template_name?: string | null
           form_variables?: Json | null
+          form_version_id?: string | null
           id?: string
           is_active?: boolean | null
           last_executed_at?: string | null
@@ -3405,6 +3587,7 @@ export type Database = {
           priority?: number | null
           require_opt_in?: boolean | null
           tenant_id?: string
+          trigger?: string | null
           trigger_config?: Json
           trigger_type?: string
           updated_at?: string
@@ -3425,6 +3608,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "form_rules_form_version_id_fkey"
+            columns: ["form_version_id"]
+            isOneToOne: false
+            referencedRelation: "form_versions"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "form_rules_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
@@ -3433,6 +3623,225 @@ export type Database = {
           },
           {
             foreignKeyName: "form_rules_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      form_steps: {
+        Row: {
+          created_at: string
+          form_version_id: string
+          id: string
+          order_index: number
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          form_version_id: string
+          id?: string
+          order_index?: number
+          title?: string
+        }
+        Update: {
+          created_at?: string
+          form_version_id?: string
+          id?: string
+          order_index?: number
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "form_steps_form_version_id_fkey"
+            columns: ["form_version_id"]
+            isOneToOne: false
+            referencedRelation: "form_versions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      form_submissions: {
+        Row: {
+          contact_id: string | null
+          conversation_id: string | null
+          created_at: string
+          data_json: Json
+          form_id: string
+          form_version_id: string | null
+          id: string
+          lead_score: number | null
+          processed_at: string | null
+          status: string
+          submitted_at: string
+          tags: string[] | null
+          tenant_id: string
+        }
+        Insert: {
+          contact_id?: string | null
+          conversation_id?: string | null
+          created_at?: string
+          data_json?: Json
+          form_id: string
+          form_version_id?: string | null
+          id?: string
+          lead_score?: number | null
+          processed_at?: string | null
+          status?: string
+          submitted_at?: string
+          tags?: string[] | null
+          tenant_id: string
+        }
+        Update: {
+          contact_id?: string | null
+          conversation_id?: string | null
+          created_at?: string
+          data_json?: Json
+          form_id?: string
+          form_version_id?: string | null
+          id?: string
+          lead_score?: number | null
+          processed_at?: string | null
+          status?: string
+          submitted_at?: string
+          tags?: string[] | null
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "form_submissions_form_id_fkey"
+            columns: ["form_id"]
+            isOneToOne: false
+            referencedRelation: "forms"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "form_submissions_form_version_id_fkey"
+            columns: ["form_version_id"]
+            isOneToOne: false
+            referencedRelation: "form_versions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "form_submissions_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "platform_workspace_directory"
+            referencedColumns: ["workspace_id"]
+          },
+          {
+            foreignKeyName: "form_submissions_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      form_versions: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          form_id: string
+          id: string
+          published_at: string | null
+          schema_json: Json | null
+          version: number
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          form_id: string
+          id?: string
+          published_at?: string | null
+          schema_json?: Json | null
+          version?: number
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          form_id?: string
+          id?: string
+          published_at?: string | null
+          schema_json?: Json | null
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "form_versions_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "form_versions_form_id_fkey"
+            columns: ["form_id"]
+            isOneToOne: false
+            referencedRelation: "forms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      forms: {
+        Row: {
+          active_version_id: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          name: string
+          status: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          active_version_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          name: string
+          status?: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          active_version_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          name?: string
+          status?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "forms_active_version_fk"
+            columns: ["active_version_id"]
+            isOneToOne: false
+            referencedRelation: "form_versions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "forms_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "forms_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "platform_workspace_directory"
+            referencedColumns: ["workspace_id"]
+          },
+          {
+            foreignKeyName: "forms_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
