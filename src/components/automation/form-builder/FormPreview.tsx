@@ -18,14 +18,18 @@ interface FormPreviewProps {
   whatsappStyle?: boolean;
 }
 
+// Internal/smart fields that are auto-processed and should NOT be shown to the end user
+const INTERNAL_FIELD_TYPES = new Set(['hidden', 'lead_score', 'tag_assignment', 'calculated']);
+
 export function FormPreview({ state, whatsappStyle = false }: FormPreviewProps) {
   const { fields, formName, settings } = state;
   const totalSteps = settings.multiStep ? Math.max(...fields.map(f => f.step || 1), 1) : 1;
   const [currentStep, setCurrentStep] = useState(1);
   
-  const visibleFields = settings.multiStep
+  const visibleFields = (settings.multiStep
     ? fields.filter(f => (f.step || 1) === currentStep)
-    : fields;
+    : fields
+  ).filter(f => !INTERNAL_FIELD_TYPES.has(f.type));
 
   if (whatsappStyle) {
     return (
@@ -49,7 +53,7 @@ export function FormPreview({ state, whatsappStyle = false }: FormPreviewProps) 
               <div className="flex justify-start">
                 <div className="bg-white rounded-lg rounded-tl-none px-3 py-2 max-w-[85%] shadow-sm">
                   <p className="text-sm text-gray-800 font-medium mb-2">{formName || 'Form'}</p>
-                  {visibleFields.filter(f => f.type !== 'hidden').map(field => (
+                  {visibleFields.map(field => (
                     <div key={field.id} className="mb-2 last:mb-0">
                       <p className="text-[11px] text-gray-500 mb-0.5">{field.label}{field.required ? ' *' : ''}</p>
                       <div className="bg-gray-50 rounded px-2 py-1.5 text-xs text-gray-400">
@@ -100,7 +104,6 @@ export function FormPreview({ state, whatsappStyle = false }: FormPreviewProps) 
         )}
 
         {visibleFields.map(field => {
-          if (field.type === 'hidden') return null;
           const Icon = FIELD_ICON_MAP[field.type];
           return (
             <div key={field.id} className={cn("space-y-1.5", field.width === 'half' && 'w-1/2 inline-block pr-2')}>
