@@ -495,10 +495,13 @@ async function processInboundMessage(
         onConflict: 'phone_number_id,contact_id',
       }
     )
-    .select('id, unread_count')
+    .select('id, unread_count, assigned_to, created_at')
     .maybeSingle();
 
   let conversationId = conversation?.id;
+  const isNewConversation = conversation && !convError && 
+    (new Date().getTime() - new Date(conversation.created_at).getTime()) < 5000;
+
   if (convError || !conversationId) {
     // Try to get existing conversation
     const { data: existingConv, error: existingError } = await supabase
@@ -519,6 +522,28 @@ async function processInboundMessage(
       return;
     }
     conversationId = existingConv.id;
+  }
+
+  // Auto-route new conversations via routing rules (round robin, etc.)
+  if (isNewConversation && !conversation?.assigned_to) {
+    try {
+      const { data: routeResult, error: routeErr } = await supabase.rpc(
+        'smeksh_auto_route_conversation',
+        {
+          p_workspace_id: tenantId,
+          p_conversation_id: conversationId,
+          p_trigger_event: 'new_conversation',
+          p_only_if_unassigned: true,
+        }
+      );
+      if (routeErr) {
+        console.error('Auto-route error:', routeErr);
+      } else {
+        console.log('Auto-route result:', JSON.stringify(routeResult));
+      }
+    } catch (e) {
+      console.error('Auto-route exception:', e);
+    }
   }
 
   // Build preview text for sidebar
