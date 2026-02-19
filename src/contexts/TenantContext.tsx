@@ -91,9 +91,13 @@ export function TenantProvider({ children }: { children: React.ReactNode }) {
   };
 
   useEffect(() => {
-    // When auth state changes, immediately mark tenants as loading
-    // to avoid route guards acting on stale/empty state.
-    setLoading(true);
+    // When auth state changes, re-fetch tenants.
+    // Only show loading spinner on initial load (no tenant yet).
+    // On subsequent refreshes (e.g. token refresh on tab switch),
+    // keep showing current data to avoid unmounting the entire UI.
+    if (!currentTenant) {
+      setLoading(true);
+    }
     fetchTenants();
   }, [user]);
 
