@@ -95,6 +95,7 @@ import { FlowAnalytics } from '@/components/flows/FlowAnalytics';
 import { FlowStartPanel } from '@/components/flows/FlowStartPanel';
 import { NodeConfigPanel } from '@/components/flows/NodeConfigPanel';
 import { useMetaAdAccounts } from '@/hooks/useMetaAdAccounts';
+import { PREBUILT_FLOWS, PREBUILT_FLOW_CATEGORIES, PrebuiltFlow } from '@/data/prebuiltFlows';
 
 // Node type configurations
 const nodeCategories = [
@@ -206,8 +207,10 @@ const FlowBuilder = () => {
   const { 
     flow, nodes, edges, triggers, diagnostics, loading, saving,
     addNode, updateNode, deleteNode, addEdge, deleteEdge, saveFlow, publishFlow,
-    addTrigger, updateTrigger, deleteTrigger, toggleTrigger
+    addTrigger, updateTrigger, deleteTrigger, toggleTrigger, loadPrebuiltFlow
   } = useFlowBuilder(id);
+
+  const [loadingPrebuilt, setLoadingPrebuilt] = useState<string | null>(null);
 
   const { campaignsForFlows } = useMetaAdAccounts();
 
@@ -499,6 +502,50 @@ const FlowBuilder = () => {
                   )}
                 </div>
               ))}
+
+              {/* Prebuilt Flow Category */}
+              <div className="mb-1">
+                <button
+                  className="w-full flex items-center gap-2 p-2.5 rounded-lg hover:bg-muted text-sm font-medium transition-colors"
+                  onClick={() => toggleCategory('Prebuilt Flow')}
+                >
+                  <Layers className="w-4 h-4 text-indigo-500" />
+                  <span className="flex-1 text-left">Prebuilt Flow</span>
+                  <Badge variant="secondary" className="text-[10px] bg-indigo-500/10 text-indigo-600">New</Badge>
+                  <ChevronRight className={cn(
+                    'w-4 h-4 transition-transform text-muted-foreground',
+                    expandedCategories.includes('Prebuilt Flow') && 'rotate-90'
+                  )} />
+                </button>
+                {expandedCategories.includes('Prebuilt Flow') && (
+                  <div className="ml-2 mt-1 space-y-1 pl-4 border-l border-border">
+                    {PREBUILT_FLOWS.map((pf) => (
+                      <Tooltip key={pf.id} delayDuration={300}>
+                        <TooltipTrigger asChild>
+                          <button
+                            onClick={async () => {
+                              setLoadingPrebuilt(pf.id);
+                              await loadPrebuiltFlow(pf);
+                              setLoadingPrebuilt(null);
+                            }}
+                            disabled={loadingPrebuilt === pf.id}
+                            className="w-full flex items-center gap-2.5 p-2.5 rounded-lg text-sm transition-all select-none cursor-pointer hover:bg-muted active:scale-95 active:bg-primary/10 text-left"
+                          >
+                            <span className="text-base shrink-0">{pf.emoji}</span>
+                            <span className="flex-1 truncate">{pf.name}</span>
+                            {loadingPrebuilt === pf.id && <Loader2 className="w-3.5 h-3.5 animate-spin text-muted-foreground" />}
+                          </button>
+                        </TooltipTrigger>
+                        <TooltipContent side="right" className="max-w-[220px]">
+                          <p className="font-medium">{pf.name}</p>
+                          <p className="text-muted-foreground mt-1">{pf.description}</p>
+                          <p className="text-xs text-primary mt-1">{pf.nodes.length} nodes • Click to load</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           </ScrollArea>
         </div>
