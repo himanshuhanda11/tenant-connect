@@ -330,20 +330,34 @@ export default function MetaAdsSetup() {
                 <Button
                   className="bg-[#1877F2] hover:bg-[#166FE5] text-white gap-2 h-10 px-5"
                   disabled={isFbLoading}
-                  onClick={() => {
-                    if (!window.FB) {
-                      toast.error('Facebook SDK not loaded. Please refresh the page.');
+                  onClick={async () => {
+                    if (!currentTenant?.id) {
+                      toast.error('No workspace selected');
                       return;
                     }
                     setIsFbLoading(true);
-                    window.FB.login((response: any) => {
-                      if (response.status === 'connected' && response.authResponse) {
-                        fetchMetaData(response.authResponse.accessToken);
-                      } else {
-                        setIsFbLoading(false);
-                        toast.error('Facebook login was cancelled or failed.');
-                      }
-                    }, { scope: 'email' });
+                    try {
+                      const { data: { session } } = await supabase.auth.getSession();
+                      if (!session) throw new Error('Not authenticated');
+
+                      const res = await fetch(
+                        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/meta-ads-connect-start?tenantId=${currentTenant.id}`,
+                        {
+                          headers: { Authorization: `Bearer ${session.access_token}` },
+                        }
+                      );
+                      const data = await res.json();
+                      if (!res.ok) throw new Error(data.error || 'Failed to start OAuth');
+
+                      // Redirect to Meta OAuth (works in iframes unlike FB.login popup)
+                      window.open(data.url, '_blank');
+                      toast.info('Complete the Facebook login in the new tab, then return here.');
+                    } catch (err: any) {
+                      console.error('Meta Ads OAuth start error:', err);
+                      toast.error(err.message || 'Failed to start Facebook login');
+                    } finally {
+                      setIsFbLoading(false);
+                    }
                   }}
                 >
                   <Facebook className="h-4 w-4" />
