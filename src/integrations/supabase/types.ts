@@ -11154,6 +11154,7 @@ export type Database = {
         Args: { p_conversation_id: string; p_tenant_id: string }
         Returns: Json
       }
+      is_agent_role: { Args: { p_tenant_id: string }; Returns: boolean }
       is_platform_admin: { Args: { _user_id: string }; Returns: boolean }
       is_platform_user: { Args: { allowed_roles: string[] }; Returns: boolean }
       is_super_admin: { Args: never; Returns: boolean }
