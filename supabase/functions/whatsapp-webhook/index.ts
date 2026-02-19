@@ -715,10 +715,17 @@ async function processInboundMessage(
         }
         // AI engine always runs independently (handles all messages)
         await handleAiEngine(supabase, tenantId, phoneNumberId, conversationId, contactId, ev);
-        // Form rules engine — evaluate active form_rules and send matching templates
-        await handleFormRules(supabase, tenantId, phoneNumberId, conversationId, contactId, ev, isNewConversation);
       } catch (e) {
         console.error('Auto-reply/AI engine error:', e);
+      }
+    })();
+
+    // Form rules engine — separate fire-and-forget to avoid hoisting issues
+    (async () => {
+      try {
+        await handleFormRules(supabase, tenantId, phoneNumberId, conversationId, contactId, ev, isNewConversation);
+      } catch (e) {
+        console.error('Form rules engine error:', e);
       }
     })();
   }
@@ -1178,6 +1185,7 @@ async function handleAiEngine(
     }
   } catch (err) {
     console.error('handleAiEngine error:', err);
+  }
 }
 
 // ─── Form Rules Engine Handler ───
@@ -1639,5 +1647,4 @@ async function logFormRuleExecution(
   } catch (err) {
     console.error('Failed to log form rule execution:', err);
   }
-}
 }
