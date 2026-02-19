@@ -1,6 +1,7 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -1122,6 +1123,47 @@ const FlowBuilder = () => {
           </Tabs>
         </div>
       </div>
+      {/* Modals */}
+      <FlowTestModal
+        open={testModalOpen}
+        onOpenChange={setTestModalOpen}
+        flowName={flow?.name || flowName}
+        nodes={nodes}
+        triggers={triggers}
+      />
+      <FlowPreviewModal
+        open={previewModalOpen}
+        onOpenChange={setPreviewModalOpen}
+        flowName={flow?.name || flowName}
+        nodes={nodes}
+      />
+      <FlowHistoryModal
+        open={historyModalOpen}
+        onOpenChange={setHistoryModalOpen}
+        flowName={flow?.name || flowName}
+        flowId={id}
+      />
+      {analyticsModalOpen && id && (
+        <Dialog open={analyticsModalOpen} onOpenChange={setAnalyticsModalOpen}>
+          <DialogContent className="max-w-4xl max-h-[85vh] overflow-y-auto">
+            <FlowAnalytics flowId={id} />
+          </DialogContent>
+        </Dialog>
+      )}
+      {showAIGenerator && (
+        <Dialog open={showAIGenerator} onOpenChange={setShowAIGenerator}>
+          <DialogContent className="max-w-2xl">
+            <AINodeGenerator
+              onGenerate={(generatedNodes) => {
+                generatedNodes.forEach((n, i) => {
+                  addNode(n.type, { x: 300, y: 100 + i * 150 }, n.label);
+                });
+                setShowAIGenerator(false);
+              }}
+            />
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 };
