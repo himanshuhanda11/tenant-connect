@@ -212,7 +212,7 @@ export default function InboxPage() {
     return (
       <DashboardLayout>
         <TooltipProvider>
-          <div className="h-[calc(100vh-4rem)] flex flex-col -mx-4 -my-4 sm:-m-6">
+          <div className="fixed inset-0 top-12 z-20 flex flex-col bg-background">
             {/* Mobile: Show list when no conversation selected */}
             {!selectedId ? (
               <InboxConversationList
@@ -232,7 +232,7 @@ export default function InboxPage() {
             ) : showContextPanel ? (
               /* Mobile: Show context panel */
               <div className="flex flex-col h-full bg-background">
-                <div className="h-14 border-b flex items-center gap-2 px-4 bg-card">
+                <div className="h-14 border-b flex items-center gap-2 px-4 bg-card flex-shrink-0">
                   <Button variant="ghost" size="icon" onClick={toggleContextPanel}>
                     <ArrowLeft className="h-5 w-5" />
                   </Button>
