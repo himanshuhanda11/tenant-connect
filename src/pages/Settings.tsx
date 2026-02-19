@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { SettingsSidebar, SettingsMobileNav } from '@/components/settings/SettingsSidebar';
+import { ProfileSettings } from '@/components/settings/sections/ProfileSettings';
 import { WorkspaceSettings } from '@/components/settings/sections/WorkspaceSettings';
 import { WhatsAppNumberSettings } from '@/components/settings/sections/WhatsAppNumberSettings';
 import { MessagingSettings } from '@/components/settings/sections/MessagingSettings';
@@ -21,10 +23,17 @@ import { useTenant } from '@/contexts/TenantContext';
 export default function Settings() {
   const { currentRole } = useTenant();
   const isAgent = currentRole === 'agent';
-  const [activeSection, setActiveSection] = useState(isAgent ? 'appearance' : 'workspace');
+  const [searchParams] = useSearchParams();
+  const sectionParam = searchParams.get('section');
+  const [activeSection, setActiveSection] = useState(sectionParam || (isAgent ? 'profile' : 'workspace'));
+
+  useEffect(() => {
+    if (sectionParam) setActiveSection(sectionParam);
+  }, [sectionParam]);
 
   const renderContent = () => {
     switch (activeSection) {
+      case 'profile': return <ProfileSettings />;
       case 'workspace': return <WorkspaceSettings />;
       case 'whatsapp': return <WhatsAppNumberSettings />;
       case 'messaging': return <MessagingSettings />;
