@@ -722,6 +722,11 @@ async function processInboundMessage(
       formSessionHandled = await handleActiveFormSession(supabase, tenantId, phoneNumberId, conversationId, contactId, ev);
       if (formSessionHandled) {
         console.log('Message consumed by active form session');
+        // Tag the already-inserted message so the inbox bell stays silent
+        if (ev.wamid) {
+          await supabase.from('messages').update({ metadata: { is_form_response: true } })
+            .eq('tenant_id', tenantId).eq('wamid', ev.wamid);
+        }
       }
     } catch (e) {
       console.error('Form session handler error:', e);
@@ -744,7 +749,12 @@ async function processInboundMessage(
       // Form rules engine
       (async () => {
         try {
-          await handleFormRules(supabase, tenantId, phoneNumberId, conversationId, contactId, ev, isNewConversation);
+          const formTriggered = await handleFormRules(supabase, tenantId, phoneNumberId, conversationId, contactId, ev, isNewConversation);
+          // If a form was just triggered by this message, tag it so bell stays silent
+          if (formTriggered && ev.wamid) {
+            await supabase.from('messages').update({ metadata: { is_form_response: true } })
+              .eq('tenant_id', tenantId).eq('wamid', ev.wamid);
+          }
         } catch (e) {
           console.error('Form rules engine error:', e);
         }
@@ -1219,7 +1229,7 @@ async function handleFormRules(
   contactId: string,
   ev: NormalizedEvent & { kind: 'inbound_message' },
   isNewConversation: boolean
-) {
+): Promise<boolean> {
   try {
     console.log(`Form rules engine: starting for tenant ${tenantId}, isNew=${isNewConversation}`);
     
@@ -1233,11 +1243,11 @@ async function handleFormRules(
 
     if (rulesErr) {
       console.error('Form rules fetch error:', rulesErr);
-      return;
+      return false;
     }
     if (!rules?.length) {
       console.log('Form rules: no active rules found');
-      return;
+      return false;
     }
 
     console.log(`Form rules: evaluating ${rules.length} active rules for message: "${ev.text?.substring(0, 50) || '(no text)'}"`);
@@ -1284,7 +1294,7 @@ async function handleFormRules(
             .eq('id', rule.id);
 
           // Only send first matching rule (highest priority wins)
-          break;
+          return true;
         } else {
           console.error(`Form rule "${rule.name}" send failed: ${sendResult.error}`);
           await logFormRuleExecution(supabase, tenantId, rule.id, contactId, conversationId, 'failed', sendResult.error);
@@ -1294,8 +1304,10 @@ async function handleFormRules(
         await logFormRuleExecution(supabase, tenantId, rule.id, contactId, conversationId, 'failed', String(ruleErr));
       }
     }
+    return false;
   } catch (err) {
     console.error('handleFormRules error:', err);
+    return false;
   }
 }
 
