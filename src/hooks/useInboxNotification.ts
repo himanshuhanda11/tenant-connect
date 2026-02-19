@@ -54,7 +54,9 @@ export function useInboxNotification() {
         },
         (payload) => {
           const msg = payload.new as any;
-          if (msg.direction === 'inbound') {
+          // Only notify for regular inbound messages, NOT form session responses
+          const isFormResponse = msg.metadata?.is_form_response === true;
+          if (msg.direction === 'inbound' && !isFormResponse) {
             setUnreadNewCount(prev => prev + 1);
             playNotificationSound();
           }
