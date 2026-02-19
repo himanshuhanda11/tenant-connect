@@ -445,7 +445,7 @@ export function CreateFormRuleModal({ open, onOpenChange, editingRule }: CreateF
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] sm:max-h-[85vh] p-0 overflow-hidden w-[95vw] sm:w-full">
+      <DialogContent className="max-w-2xl max-h-[90vh] sm:max-h-[85vh] p-0 overflow-hidden w-[95vw] sm:w-full flex flex-col !gap-0">
         {/* Header */}
         <DialogHeader className="px-3 sm:px-6 pt-3 sm:pt-6 pb-2 sm:pb-3 border-b bg-gradient-to-r from-primary/5 to-transparent">
           <div className="flex items-center gap-2 sm:gap-3">
@@ -502,7 +502,7 @@ export function CreateFormRuleModal({ open, onOpenChange, editingRule }: CreateF
           </div>
         </DialogHeader>
 
-        <ScrollArea className="flex-1 max-h-[calc(90vh-240px)] sm:max-h-[calc(85vh-280px)]">
+        <ScrollArea className="flex-1 min-h-0">
           <div className="px-3 sm:px-6 py-4 sm:py-5">
             
             {/* Step 1: Trigger Selection */}
@@ -1052,7 +1052,7 @@ export function CreateFormRuleModal({ open, onOpenChange, editingRule }: CreateF
         </ScrollArea>
 
         {/* Footer with Navigation */}
-        <div className="px-3 sm:px-6 py-3 sm:py-4 border-t bg-muted/30 flex items-center justify-between gap-2">
+        <div className="px-3 sm:px-6 py-3 sm:py-4 border-t bg-muted/30 flex items-center justify-between gap-2 shrink-0">
           <div className="shrink-0">
             {currentStep > 1 && (
               <Button 
