@@ -137,7 +137,8 @@ const FlowsHub = () => {
     const flow = await createFlow({ 
       name: option.label, 
       emoji: option.emoji,
-      description: option.description 
+      description: option.description,
+      quickCreateKey: option.label,
     });
     if (flow) {
       navigate(`/flows/builder/${flow.id}`);
