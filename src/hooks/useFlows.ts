@@ -899,21 +899,39 @@ function getDefaultConfig(nodeType: string): Record<string, any> {
     case 'text-buttons':
       return { message: '', buttons: [] };
     case 'list-message':
-      return { header: '', body: '', footer: '', sections: [] };
+      return { header: '', body: '', button_label: '', items: [] };
     case 'media':
-      return { media_type: 'image', url: '', caption: '' };
+      return { media_type: 'image', media_url: '', caption: '' };
+    case 'document':
+      return { document_url: '', filename: '', caption: '' };
+    case 'template':
+      return { template_name: '', language: 'en', message: '' };
     case 'delay':
       return { duration: 5, unit: 'seconds' };
     case 'condition':
-      return { conditions: [], operator: 'and' };
+      return { field: 'message', operator: 'contains', value: '' };
+    case 'switch':
+      return { variable: '' };
+    case 'timeout':
+      return { timeout: 60, unit: 'minutes' };
     case 'webhook':
-      return { url: '', method: 'POST', headers: {}, body: {} };
+      return { url: '', method: 'POST', headers: '' };
     case 'assign-agent':
-      return { strategy: 'round_robin', team_id: null };
+      return { strategy: 'round_robin' };
     case 'set-attribute':
       return { attribute: '', value: '' };
     case 'add-tag':
-      return { tag_ids: [], action: 'add' };
+      return { action: 'add', tag: '' };
+    case 'notify-team':
+      return { message: '', channel: 'inbox' };
+    case 'create-ticket':
+      return { subject: '', priority: 'medium' };
+    case 'add-segment':
+      return { segment: '' };
+    case 'random-split':
+      return { splits: [50, 50] };
+    case 'business-hours':
+      return { timezone: 'UTC', schedule: {} };
     default:
       return {};
   }
