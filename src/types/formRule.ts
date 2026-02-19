@@ -12,6 +12,8 @@ export type FormRuleTriggerType =
 
 export type FormRuleLogStatus = 'triggered' | 'sent' | 'delivered' | 'failed' | 'skipped';
 
+export type FormRuleTrigger = 'on_view' | 'on_change' | 'on_submit';
+
 export interface FormRuleTriggerConfig {
   // For keyword trigger
   keywords?: string[];
@@ -42,6 +44,92 @@ export interface FormRuleCondition {
   type: 'has_tag' | 'not_has_tag' | 'attribute_eq' | 'attribute_contains' | 'source_in' | 'opted_in';
   config: Record<string, any>;
   operator?: 'and' | 'or';
+}
+
+// --- New schema types ---
+
+export type FormStatus = 'draft' | 'active' | 'archived';
+
+export type FormFieldType =
+  | 'text' | 'email' | 'phone' | 'number' | 'long_text'
+  | 'dropdown' | 'radio' | 'checkbox'
+  | 'date' | 'time' | 'datetime' | 'url' | 'location' | 'rating'
+  | 'file' | 'hidden' | 'section' | 'calculated' | 'otp'
+  | 'tag_assignment' | 'lead_score' | 'time_slot';
+
+export interface FormDefinition {
+  id: string;
+  tenant_id: string;
+  name: string;
+  description: string | null;
+  status: FormStatus;
+  active_version_id: string | null;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface FormVersion {
+  id: string;
+  form_id: string;
+  version: number;
+  schema_json: Record<string, any>;
+  published_at: string | null;
+  created_by: string | null;
+  created_at: string;
+}
+
+export interface FormFieldRecord {
+  id: string;
+  form_version_id: string;
+  key: string;
+  label: string;
+  type: FormFieldType;
+  help_text: string | null;
+  placeholder: string | null;
+  required: boolean;
+  order_index: number;
+  step_id: string | null;
+  validation_json: Record<string, any>;
+  default_value: any;
+  is_system: boolean;
+  config_json: Record<string, any>;
+  created_at: string;
+}
+
+export interface FormFieldOption {
+  id: string;
+  field_id: string;
+  value: string;
+  label: string;
+  order_index: number;
+  score: number;
+  tag: string | null;
+  created_at: string;
+}
+
+export interface FormStep {
+  id: string;
+  form_version_id: string;
+  title: string;
+  order_index: number;
+  created_at: string;
+}
+
+export interface FormSubmission {
+  id: string;
+  tenant_id: string;
+  form_id: string;
+  form_version_id: string | null;
+  contact_id: string | null;
+  conversation_id: string | null;
+  data_json: Record<string, any>;
+  lead_score: number;
+  tags: string[];
+  status: 'partial' | 'completed' | 'processed';
+  submitted_at: string;
+  processed_at: string | null;
+  created_at: string;
 }
 
 export interface FormRule {
@@ -76,6 +164,12 @@ export interface FormRule {
   // Stats
   execution_count: number;
   last_executed_at: string | null;
+  
+  // New engine columns
+  form_version_id: string | null;
+  trigger: FormRuleTrigger | null;
+  conditions_json: Record<string, any>;
+  actions_json: Record<string, any>;
   
   // Metadata
   created_by: string | null;
