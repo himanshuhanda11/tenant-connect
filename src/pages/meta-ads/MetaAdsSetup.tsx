@@ -382,7 +382,7 @@ export default function MetaAdsSetup() {
                             setIsFbLoading(false);
                           }
                         })();
-                      }, { scope: 'public_profile,email' });
+                      }, { scope: 'email' });
                     } catch (err: any) {
                       console.error('FB.login error:', err);
                       toast.error(err.message || 'Failed to open Facebook login');
