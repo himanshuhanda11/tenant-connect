@@ -105,7 +105,7 @@ Deno.serve(async (req) => {
       redirect_uri: callbackUrl,
       response_type: 'code',
       state: signedState,
-      scope: 'email',
+      scope: 'public_profile,email',
     });
 
     const oauthUrl = `https://www.facebook.com/v21.0/dialog/oauth?${params.toString()}`;
