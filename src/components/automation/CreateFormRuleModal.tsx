@@ -61,6 +61,8 @@ import {
 } from '@/types/formRule';
 import { cn } from '@/lib/utils';
 import { FormBuilder, type FormField } from '@/components/automation/FormBuilder';
+import type { IFThenRule, FormBuilderState } from '@/components/automation/form-builder/types';
+import { DEFAULT_FORM_STATE } from '@/components/automation/form-builder/types';
 import { supabase } from '@/integrations/supabase/client';
 import { useTenant } from '@/contexts/TenantContext';
 
@@ -148,6 +150,9 @@ export function CreateFormRuleModal({ open, onOpenChange, editingRule }: CreateF
   const [builderFields, setBuilderFields] = useState<FormField[]>([]);
   const [builderFormName, setBuilderFormName] = useState('');
   const [savingForm, setSavingForm] = useState(false);
+  const [ifThenRules, setIfThenRules] = useState<IFThenRule[]>([]);
+  const [webhookUrl, setWebhookUrl] = useState('');
+  const [formSettings, setFormSettings] = useState<FormBuilderState['settings']>(DEFAULT_FORM_STATE.settings);
 
   // Reset form when modal opens/closes or editing rule changes
   useEffect(() => {
@@ -191,6 +196,9 @@ export function CreateFormRuleModal({ open, onOpenChange, editingRule }: CreateF
         setFormMode('template');
         setBuilderFields([]);
         setBuilderFormName('');
+        setIfThenRules([]);
+        setWebhookUrl('');
+        setFormSettings(DEFAULT_FORM_STATE.settings);
       }
       setKeywordInput('');
     }
@@ -225,7 +233,7 @@ export function CreateFormRuleModal({ open, onOpenChange, editingRule }: CreateF
           .single();
 
         if (formError) throw formError;
-        finalFormId = savedForm.id;
+          finalFormId = savedForm.id;
         setSavingForm(false);
       }
 
@@ -245,7 +253,12 @@ export function CreateFormRuleModal({ open, onOpenChange, editingRule }: CreateF
           intro_message: introMessage,
           fallback_message: fallbackMessage,
           form_mode: formMode,
-          ...(formMode === 'builder' ? { builder_fields: builderFields } : {}),
+          ...(formMode === 'builder' ? {
+            builder_fields: builderFields,
+            if_then_rules: ifThenRules,
+            webhook_url: webhookUrl,
+            form_settings: formSettings,
+          } : {}),
         },
         conditions,
         cooldown_minutes: cooldownMinutes,
@@ -705,6 +718,12 @@ export function CreateFormRuleModal({ open, onOpenChange, editingRule }: CreateF
                     onChange={setBuilderFields}
                     formName={builderFormName}
                     onFormNameChange={setBuilderFormName}
+                    ifThenRules={ifThenRules}
+                    onIfThenRulesChange={setIfThenRules}
+                    webhookUrl={webhookUrl}
+                    onWebhookUrlChange={setWebhookUrl}
+                    formSettings={formSettings}
+                    onFormSettingsChange={setFormSettings}
                   />
                 )}
 
