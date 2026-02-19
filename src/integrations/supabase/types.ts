@@ -3630,6 +3630,100 @@ export type Database = {
           },
         ]
       }
+      form_sessions: {
+        Row: {
+          answers: Json
+          completed_at: string | null
+          contact_id: string
+          conversation_id: string
+          created_at: string
+          current_field_index: number
+          expires_at: string
+          form_rule_id: string
+          form_version_id: string
+          id: string
+          started_at: string
+          status: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          answers?: Json
+          completed_at?: string | null
+          contact_id: string
+          conversation_id: string
+          created_at?: string
+          current_field_index?: number
+          expires_at?: string
+          form_rule_id: string
+          form_version_id: string
+          id?: string
+          started_at?: string
+          status?: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          answers?: Json
+          completed_at?: string | null
+          contact_id?: string
+          conversation_id?: string
+          created_at?: string
+          current_field_index?: number
+          expires_at?: string
+          form_rule_id?: string
+          form_version_id?: string
+          id?: string
+          started_at?: string
+          status?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "form_sessions_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "form_sessions_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "form_sessions_form_rule_id_fkey"
+            columns: ["form_rule_id"]
+            isOneToOne: false
+            referencedRelation: "form_rules"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "form_sessions_form_version_id_fkey"
+            columns: ["form_version_id"]
+            isOneToOne: false
+            referencedRelation: "form_versions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "form_sessions_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "platform_workspace_directory"
+            referencedColumns: ["workspace_id"]
+          },
+          {
+            foreignKeyName: "form_sessions_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       form_steps: {
         Row: {
           created_at: string
