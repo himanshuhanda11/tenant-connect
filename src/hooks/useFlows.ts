@@ -128,7 +128,7 @@ export function useFlows() {
     fetchFlows();
   }, [fetchFlows]);
 
-  const createFlow = async (data: { name: string; description?: string; emoji?: string; folder?: string }) => {
+  const createFlow = async (data: { name: string; description?: string; emoji?: string; folder?: string; quickCreateKey?: string }) => {
     if (!currentTenant?.id || !user?.id) {
       toast.error('Please select a workspace');
       return null;
@@ -152,7 +152,7 @@ export function useFlows() {
       if (error) throw error;
       
       // Create default start node
-      await supabase.from('flow_nodes').insert({
+      const startNode = {
         tenant_id: currentTenant.id,
         flow_id: newFlow.id,
         node_key: 'start',
@@ -161,7 +161,22 @@ export function useFlows() {
         position_x: 400,
         position_y: 50,
         config: {},
-      });
+      };
+
+      // Get quick create sample nodes if applicable
+      const sampleNodes = data.quickCreateKey
+        ? getQuickCreateNodes(data.quickCreateKey, currentTenant.id, newFlow.id)
+        : [];
+
+      await supabase.from('flow_nodes').insert([startNode, ...sampleNodes]);
+
+      // Create edges connecting start → first sample node
+      if (sampleNodes.length > 0) {
+        const sampleEdges = getTemplateSampleEdges(sampleNodes, currentTenant.id, newFlow.id);
+        if (sampleEdges.length > 0) {
+          await supabase.from('flow_edges').insert(sampleEdges);
+        }
+      }
 
       toast.success('Flow created successfully');
       await fetchFlows();
@@ -407,6 +422,47 @@ function getTemplateSampleNodes(template: FlowTemplate, tenantId: string, flowId
   };
   
   const nodes = categoryNodes[template.category] || categoryNodes['default'];
+  return nodes.map(node => ({
+    ...node,
+    tenant_id: tenantId,
+    flow_id: flowId,
+  }));
+}
+
+function getQuickCreateNodes(quickCreateKey: string, tenantId: string, flowId: string) {
+  const quickCreateMap: Record<string, any[]> = {
+    'Lead Qualification': [
+      { node_key: 'welcome_msg', node_type: 'text-buttons', label: 'Welcome Message', position_x: 400, position_y: 180, config: { message: 'Hi there! 🎯 Thanks for reaching out. I\'d love to learn more about your needs. What are you looking for?', buttons: ['Product Info', 'Get a Quote', 'Talk to Sales'] } },
+      { node_key: 'ask_budget', node_type: 'text-buttons', label: 'Ask Budget', position_x: 400, position_y: 320, config: { message: 'Great! What\'s your approximate budget range?', buttons: ['< $1,000', '$1,000 - $5,000', '$5,000+'] } },
+      { node_key: 'ask_timeline', node_type: 'text-buttons', label: 'Ask Timeline', position_x: 400, position_y: 460, config: { message: 'When are you looking to get started?', buttons: ['Immediately', 'This Month', 'Just Exploring'] } },
+      { node_key: 'set_lead', node_type: 'set-attribute', label: 'Mark as Qualified', position_x: 400, position_y: 600, config: { attribute: 'lead_status', value: 'qualified' } },
+      { node_key: 'assign', node_type: 'assign-agent', label: 'Assign to Sales', position_x: 400, position_y: 740, config: { strategy: 'round_robin' } },
+    ],
+    'Appointment Booking': [
+      { node_key: 'welcome_msg', node_type: 'text-buttons', label: 'Welcome Message', position_x: 400, position_y: 180, config: { message: 'Hi! 📅 I can help you book an appointment. What type of appointment are you looking for?', buttons: ['Consultation', 'Follow-up', 'Demo Call'] } },
+      { node_key: 'select_time', node_type: 'list-message', label: 'Select Time Slot', position_x: 400, position_y: 320, config: { header: 'Available Slots', body: 'Choose a time that works for you:', sections: [] } },
+      { node_key: 'confirm', node_type: 'text-buttons', label: 'Confirm Booking', position_x: 400, position_y: 460, config: { message: '✅ Your appointment has been booked! You\'ll receive a confirmation shortly.', buttons: ['Reschedule', 'Cancel', 'Done'] } },
+    ],
+    'Support Triage': [
+      { node_key: 'welcome_msg', node_type: 'text-buttons', label: 'Welcome Message', position_x: 400, position_y: 180, config: { message: 'Hi! 🎧 Welcome to support. How can I help you today?', buttons: ['Technical Issue', 'Billing Question', 'Feature Request'] } },
+      { node_key: 'priority', node_type: 'condition', label: 'Check Priority', position_x: 400, position_y: 320, config: { conditions: [] } },
+      { node_key: 'create_ticket', node_type: 'create-ticket', label: 'Create Ticket', position_x: 400, position_y: 460, config: {} },
+      { node_key: 'assign', node_type: 'assign-agent', label: 'Assign Agent', position_x: 400, position_y: 600, config: { strategy: 'least_busy' } },
+    ],
+    'Abandoned Cart': [
+      { node_key: 'reminder', node_type: 'text-buttons', label: 'Cart Reminder', position_x: 400, position_y: 180, config: { message: 'Hey {{first_name}}! 🛒 You left some items in your cart. Want to complete your order?', buttons: ['Complete Order', 'Need Help', 'Not Now'] } },
+      { node_key: 'offer', node_type: 'text-buttons', label: 'Special Offer', position_x: 400, position_y: 320, config: { message: '🎉 Here\'s a 10% discount code just for you: SAVE10. Complete your order now!', buttons: ['Shop Now', 'Browse More'] } },
+      { node_key: 'tag_interested', node_type: 'add-tag', label: 'Tag as Interested', position_x: 400, position_y: 460, config: { tag: 'cart_recovery' } },
+    ],
+    'Feedback NPS': [
+      { node_key: 'ask_rating', node_type: 'text-buttons', label: 'Ask Rating', position_x: 400, position_y: 180, config: { message: 'Hi {{first_name}}! ⭐ How would you rate your recent experience with us?', buttons: ['😍 Amazing', '😊 Good', '😐 Okay', '😞 Poor'] } },
+      { node_key: 'ask_feedback', node_type: 'text-buttons', label: 'Ask Feedback', position_x: 400, position_y: 320, config: { message: 'Thanks! Would you like to share any additional feedback?', buttons: ['Yes, I have feedback', 'No, that\'s all'] } },
+      { node_key: 'thank_you', node_type: 'text-buttons', label: 'Thank You', position_x: 400, position_y: 460, config: { message: 'Thank you for your feedback! 🙏 We really appreciate it.' } },
+      { node_key: 'set_nps', node_type: 'set-attribute', label: 'Set NPS Score', position_x: 400, position_y: 600, config: { attribute: 'nps_score', value: '' } },
+    ],
+  };
+
+  const nodes = quickCreateMap[quickCreateKey] || quickCreateMap['Lead Qualification'] || [];
   return nodes.map(node => ({
     ...node,
     tenant_id: tenantId,
