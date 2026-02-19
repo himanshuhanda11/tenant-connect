@@ -1716,7 +1716,8 @@ async function sendBuilderFormMessages(
   if (delaySec > 0) await new Promise(r => setTimeout(r, delaySec * 1000));
 
 // Auto-detect customer name for {{first_name}} substitution
-  const contactName = ev.contact_name || '';
+  const { data: contactRow } = await supabase.from('contacts').select('name').eq('id', contactId).maybeSingle();
+  const contactName = contactRow?.name || '';
   const firstName = contactName.split(' ')[0] || '';
 
   // Send intro (replace {{first_name}} placeholder)
