@@ -147,6 +147,24 @@ export function useInboxConversations(view: InboxView, filters: InboxFilters) {
 
       let mapped = (data || []).map(mapConversation);
 
+      // Fetch lead stages for all contact_ids
+      const contactIds = mapped.map(c => c.contact_id).filter(Boolean);
+      if (contactIds.length > 0) {
+        const { data: leads } = await supabase
+          .from('qualified_leads')
+          .select('contact_id, lead_stage')
+          .eq('workspace_id', currentTenant.id)
+          .in('contact_id', contactIds);
+
+        if (leads && leads.length > 0) {
+          const stageMap = new Map(leads.map(l => [l.contact_id, l.lead_stage]));
+          mapped = mapped.map(c => ({
+            ...c,
+            lead_stage: stageMap.get(c.contact_id) as InboxConversation['lead_stage'],
+          }));
+        }
+      }
+
       // Client-side search filter
       if (filters.search) {
         const search = filters.search.toLowerCase();
