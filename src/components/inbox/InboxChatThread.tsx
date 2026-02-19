@@ -319,9 +319,9 @@ export function InboxChatThread({
       {/* Header - Premium Glassmorphism Design */}
       <div className="border-b border-border/60 bg-card/90 backdrop-blur-md shadow-sm">
         {/* Row 1: Contact Info */}
-        <div className={cn(
+         <div className={cn(
           "flex items-center justify-between",
-          isMobile ? "h-16 px-3" : "h-16 px-5"
+          isMobile ? "h-14 px-2 gap-1" : "h-16 px-5"
         )}>
           <div className="flex items-center gap-3 min-w-0 flex-1">
             {/* Back button for mobile */}
@@ -782,7 +782,7 @@ export function InboxChatThread({
                   isOutbound ? "justify-end" : "justify-start"
                 )}
               >
-                {!isOutbound && (
+                {!isOutbound && !isMobile && (
                   <Avatar className="h-9 w-9 flex-shrink-0 ring-2 ring-primary/10 shadow-md">
                     <AvatarImage src={conversation.contact?.profile_picture_url || undefined} />
                     <AvatarFallback className="bg-gradient-to-br from-primary/20 to-accent text-foreground text-xs font-bold">
@@ -792,7 +792,8 @@ export function InboxChatThread({
                 )}
 
                 <div className={cn(
-                  "max-w-[70%] space-y-1",
+                  "space-y-1",
+                  isMobile ? "max-w-[85%]" : "max-w-[70%]",
                   isOutbound && "items-end"
                 )}>
                   <div className={cn(
@@ -833,7 +834,7 @@ export function InboxChatThread({
                   </div>
                 </div>
 
-                {isOutbound && (
+                {isOutbound && !isMobile && (
                   <Avatar className="h-9 w-9 flex-shrink-0 ring-2 ring-primary/20 shadow-md">
                     <AvatarFallback className="bg-gradient-to-br from-primary/30 to-primary/10 text-primary text-xs font-bold">
                       {getInitials(message.sender?.full_name)}
@@ -899,7 +900,7 @@ export function InboxChatThread({
       {/* Composer - Premium glassmorphism */}
       <div className={cn(
         "border-t border-border/40 bg-card/70 backdrop-blur-xl",
-        isMobile ? "p-2" : "p-4"
+        isMobile ? "p-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))]" : "p-4"
       )}>
         <div className={cn(
           isMobile ? "" : "max-w-3xl mx-auto"
