@@ -524,6 +524,16 @@ async function processInboundMessage(
     conversationId = existingConv.id;
   }
 
+  // Auto-reply BEFORE routing so the welcome message fires while conversation is unassigned
+  // (exclude_assigned=true would skip auto-reply if routed first)
+  if (isNewConversation) {
+    try {
+      await handleAutoReply(supabase, tenantId, phoneNumberId, conversationId, contactId, ev);
+    } catch (e) {
+      console.error('Pre-route auto-reply error:', e);
+    }
+  }
+
   // Auto-route new conversations via routing rules (round robin, etc.)
   // Skip auto-routing when AI bot is enabled — keep chat unassigned until a human agent replies
   if (isNewConversation && !conversation?.assigned_to) {
@@ -695,13 +705,14 @@ async function processInboundMessage(
       if (sumErr) console.error('inbox summary upsert error:', sumErr);
     });
 
-    // Auto-reply + AI engine (sequential)
-    // General auto-reply: first message only (when AI is also enabled)
-    // AI auto-reply: every message
+    // Auto-reply + AI engine
+    // General auto-reply already ran for new conversations (before routing).
+    // For follow-up messages, run it here. AI engine always runs.
     (async () => {
       try {
-        // General auto-reply runs first (will self-skip if not first message when AI enabled)
-        await handleAutoReply(supabase, tenantId, phoneNumberId, conversationId, contactId, ev);
+        if (!isNewConversation) {
+          await handleAutoReply(supabase, tenantId, phoneNumberId, conversationId, contactId, ev);
+        }
         // AI engine always runs independently (handles all messages)
         await handleAiEngine(supabase, tenantId, phoneNumberId, conversationId, contactId, ev);
       } catch (e) {
