@@ -13,6 +13,7 @@ import {
   useTypingState,
   useInboxActions 
 } from '@/hooks/useInbox';
+import { useInboxNotification } from '@/hooks/useInboxNotification';
 import { InboxView, InboxFilters, INBOX_VIEW_CONFIG, ConversationStatus } from '@/types/inbox';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -39,6 +40,7 @@ export default function InboxPage() {
   const { notes, addNote } = useInternalNotes(selectedId);
   const { typingUsers, setTyping } = useTypingState(selectedId);
   const actions = useInboxActions();
+  const { unreadNewCount, clearNotifications } = useInboxNotification();
 
   // Get selected conversation - refresh when conversations update
   const selectedConversation = conversations.find(c => c.id === selectedId) || null;
@@ -224,6 +226,8 @@ export default function InboxPage() {
                 loading={loadingConversations}
                 isMobile={true}
                 currentUserId={user?.id}
+                unreadNewCount={unreadNewCount}
+                onClearNotifications={clearNotifications}
               />
             ) : showContextPanel ? (
               /* Mobile: Show context panel */
@@ -295,6 +299,8 @@ export default function InboxPage() {
               onFiltersChange={setFilters}
               loading={loadingConversations}
               currentUserId={user?.id}
+              unreadNewCount={unreadNewCount}
+              onClearNotifications={clearNotifications}
             />
           </div>
 
