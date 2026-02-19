@@ -660,6 +660,16 @@ async function processInboundMessage(
     text = ev.raw?.message?.reaction?.emoji || '';
   }
 
+  // Check if there's an active form session BEFORE inserting — to tag the message
+  let hasActiveFormSession = false;
+  try {
+    const { data: activeSession } = await supabase.from('form_sessions')
+      .select('id').eq('tenant_id', tenantId).eq('contact_id', contactId)
+      .in('status', ['active', 'review']).gt('expires_at', new Date().toISOString())
+      .limit(1).maybeSingle();
+    hasActiveFormSession = !!activeSession;
+  } catch (e) { /* ignore */ }
+
   // Insert message (use plain insert; partial unique index handles dedup)
   const { error: msgError } = await supabase
     .from('messages')
@@ -677,6 +687,7 @@ async function processInboundMessage(
       status: 'delivered',
       context_message_id: ev.context_message_id,
       raw: ev.raw,
+      metadata: hasActiveFormSession ? { is_form_response: true } : null,
     });
 
   if (msgError) {
@@ -711,11 +722,6 @@ async function processInboundMessage(
       formSessionHandled = await handleActiveFormSession(supabase, tenantId, phoneNumberId, conversationId, contactId, ev);
       if (formSessionHandled) {
         console.log('Message consumed by active form session');
-        // Mark inbound message as form response so bell notification is suppressed
-        supabase.from('messages').update({ metadata: { is_form_response: true } })
-          .eq('tenant_id', tenantId).eq('conversation_id', conversationId)
-          .eq('direction', 'inbound').eq('wamid', ev.wamid)
-          .then(() => {});
       }
     } catch (e) {
       console.error('Form session handler error:', e);
@@ -1865,44 +1871,15 @@ async function sendFormQuestion(
     return r.wamid;
 
   } else if (field.type === 'year') {
-    // Year selector — send as WhatsApp interactive list (dropdown)
-    const currentYear = new Date().getFullYear();
-    const years = Array.from({ length: 10 }, (_, i) => currentYear + i);
-    const rows = years.map((y, idx) => ({
-      id: `year_${field.id.substring(0, 30)}_${idx}`,
-      title: String(y),
-      description: '',
-    }));
-    const payload = {
-      messaging_product: 'whatsapp', recipient_type: 'individual', to: recipientWaId,
-      type: 'interactive',
-      interactive: {
-        type: 'list',
-        body: { text: `${prefix}*${field.label}*${req}\n\n📅 _Select a year:_`.substring(0, 1024) },
-        action: { button: 'Select Year', sections: [{ title: 'Years', rows }] },
-      },
-    };
-    const resp = await fetch(`https://graph.facebook.com/v21.0/${metaPhoneId}/messages`, {
-      method: 'POST', headers: { 'Authorization': `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    });
-    const result = await resp.json();
-    const wamid = result.messages?.[0]?.id;
-    if (wamid) {
-      const displayText = `${prefix}*${field.label}*${req}\n\n📅 Select a year:\n${years.map(y => `• ${y}`).join('\n')}`;
-      await supabase.from('messages').insert({ tenant_id: tenantId, conversation_id: conversationId, direction: 'outbound', type: 'interactive', text: displayText, wamid, status: 'sent', sent_at: new Date().toISOString(), is_auto_reply: true });
-    } else {
-      // Fallback to numbered text if list fails
-      console.error('Year list failed, fallback:', JSON.stringify(result));
-      let body = `${prefix}*${field.label}*${req}\n\n📅 _Reply with the number:_\n\n`;
-      years.forEach((y, i) => { body += `*${i + 1}.* ${y}\n`; });
-      const fallback = await sendWAText(metaPhoneId, accessToken, recipientWaId, body.trim());
-      if (fallback.wamid) {
-        await supabase.from('messages').insert({ tenant_id: tenantId, conversation_id: conversationId, direction: 'outbound', type: 'text', text: body.trim(), wamid: fallback.wamid, status: 'sent', sent_at: new Date().toISOString(), is_auto_reply: true });
-      }
-      return fallback.wamid;
+    // Year selector — 2010 to 2030 as numbered text list (21 items, too many for WhatsApp list max 10)
+    const years = Array.from({ length: 21 }, (_, i) => 2010 + i); // 2010-2030
+    let body = `${prefix}*${field.label}*${req}\n\n📅 _Reply with the number or year:_\n\n`;
+    years.forEach((y, i) => { body += `*${i + 1}.* ${y}\n`; });
+    const r = await sendWAText(metaPhoneId, accessToken, recipientWaId, body.trim());
+    if (r.wamid) {
+      await supabase.from('messages').insert({ tenant_id: tenantId, conversation_id: conversationId, direction: 'outbound', type: 'text', text: body.trim(), wamid: r.wamid, status: 'sent', sent_at: new Date().toISOString(), is_auto_reply: true });
     }
-    return wamid;
+    return r.wamid;
 
   } else {
     // Text input fallback
@@ -1983,123 +1960,10 @@ async function handleActiveFormSession(
     }
   }
 
-  // ─── Validate answer ───
-  const choiceFieldTypes = ['select', 'radio', 'checkbox', 'tag_assignment', 'lead_score'];
-  const fieldHasOptions = currentField.options?.length > 0 && choiceFieldTypes.includes(currentField.type);
-  
-  if (fieldHasOptions && !isInteractive) {
-    // User typed free text — match by label, value, or number (for >10 option lists)
-    const typed = answer.trim().toLowerCase();
-    
-    // Try matching by number (e.g. user typed "3" for option #3)
-    const numMatch = parseInt(typed, 10);
-    let matchedOption: any = null;
-    if (!isNaN(numMatch) && numMatch >= 1 && numMatch <= currentField.options.length) {
-      matchedOption = currentField.options[numMatch - 1];
-    }
-    
-    // Try matching by label/value
-    if (!matchedOption) {
-      matchedOption = currentField.options.find((opt: any) =>
-        opt.label?.toLowerCase() === typed || opt.value?.toLowerCase() === typed
-      );
-    }
-    
-    if (matchedOption) {
-      answer = matchedOption.value;
-      answerLabel = matchedOption.label;
-    } else {
-      // Invalid answer — send fallback, don't advance
-      const { data: phone } = await supabase.from('phone_numbers')
-        .select('phone_number_id, waba_account:waba_accounts!inner(encrypted_access_token)')
-        .eq('id', phoneNumberId).maybeSingle();
-      if (phone?.phone_number_id && phone.waba_account?.encrypted_access_token) {
-        const fallbackMsg = `⚠️ Please choose from the options provided. Tap the button, select from the list, or reply with the option number.`;
-        const r = await sendWAText(phone.phone_number_id, phone.waba_account.encrypted_access_token, ev.from_wa_id, fallbackMsg);
-        if (r.wamid) {
-          await supabase.from('messages').insert({
-            tenant_id: tenantId, conversation_id: conversationId, direction: 'outbound',
-            type: 'text', text: fallbackMsg, wamid: r.wamid, status: 'sent',
-            sent_at: new Date().toISOString(), is_auto_reply: true,
-          });
-        }
-        
-        await sendFormQuestion(supabase, phone.phone_number_id, phone.waba_account.encrypted_access_token, ev.from_wa_id, tenantId, conversationId, currentField, session.current_field_index + 1, visibleFields.length);
-      }
-      return true;
-    }
-  }
-
-  // Year field validation — handle interactive list selection or typed input
-  if (currentField.type === 'year') {
-    const currentYear = new Date().getFullYear();
-    const years = Array.from({ length: 10 }, (_, i) => currentYear + i);
-
-    if (isInteractive) {
-      // Interactive list reply: id = "year_{fieldId}_{index}"
-      const parts = answer.split('_');
-      const idx = parseInt(parts[parts.length - 1], 10);
-      if (!isNaN(idx) && idx >= 0 && idx < years.length) {
-        answer = String(years[idx]);
-        answerLabel = answer;
-      } else {
-        // Try title match
-        const yearNum = parseInt(answer, 10);
-        if (years.includes(yearNum)) {
-          answer = String(yearNum);
-          answerLabel = answer;
-        }
-      }
-    } else {
-      const typed = answer.trim();
-      const numMatch = parseInt(typed, 10);
-      if (numMatch >= 1 && numMatch <= 10) {
-        answer = String(years[numMatch - 1]);
-        answerLabel = answer;
-      } else if (years.includes(numMatch)) {
-        answer = String(numMatch);
-        answerLabel = answer;
-      } else {
-        const { data: phone } = await supabase.from('phone_numbers')
-          .select('phone_number_id, waba_account:waba_accounts!inner(encrypted_access_token)')
-          .eq('id', phoneNumberId).maybeSingle();
-        if (phone?.phone_number_id && phone.waba_account?.encrypted_access_token) {
-          const msg = `⚠️ Please select a year from the list or reply with a year (e.g. ${currentYear})`;
-          await sendWAText(phone.phone_number_id, phone.waba_account.encrypted_access_token, ev.from_wa_id, msg);
-          await sendFormQuestion(supabase, phone.phone_number_id, phone.waba_account.encrypted_access_token, ev.from_wa_id, tenantId, conversationId, currentField, session.current_field_index + 1, visibleFields.length);
-        }
-        return true;
-      }
-    }
-  }
-
-  // Basic type validation for text fields
-  if (currentField.type === 'email' && answer && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(answer)) {
-    const { data: phone } = await supabase.from('phone_numbers')
-      .select('phone_number_id, waba_account:waba_accounts!inner(encrypted_access_token)')
-      .eq('id', phoneNumberId).maybeSingle();
-    if (phone?.phone_number_id && phone.waba_account?.encrypted_access_token) {
-      const msg = '⚠️ That doesn\'t look like a valid email. Please try again:';
-      await sendWAText(phone.phone_number_id, phone.waba_account.encrypted_access_token, ev.from_wa_id, msg);
-    }
-    return true;
-  }
-
-  if (currentField.required && !answer.trim()) {
-    const { data: phone } = await supabase.from('phone_numbers')
-      .select('phone_number_id, waba_account:waba_accounts!inner(encrypted_access_token)')
-      .eq('id', phoneNumberId).maybeSingle();
-    if (phone?.phone_number_id && phone.waba_account?.encrypted_access_token) {
-      const msg = '⚠️ This field is required. Please provide an answer:';
-      await sendWAText(phone.phone_number_id, phone.waba_account.encrypted_access_token, ev.from_wa_id, msg);
-    }
-    return true;
-  }
-
-  // ─── Check for edit commands ───
-  const lowerAnswer = answer.trim().toLowerCase();
+  // ─── REVIEW/EDIT check — MUST run before any field validation ───
   if (session.status === 'review' || session.awaiting_edit) {
-    // User is in edit mode
+    const lowerAnswer = answer.trim().toLowerCase();
+
     if (session.awaiting_edit) {
       // They typed a field number to edit — map to field index
       const editNum = parseInt(lowerAnswer, 10);
@@ -2128,12 +1992,12 @@ async function handleActiveFormSession(
         return true;
       }
     }
+
     // Waiting for confirm/edit choice
     if (isInteractive) {
       const raw = ev.raw?.message?.interactive;
       const btnId = raw?.button_reply?.id || '';
       if (btnId === 'form_confirm_submit') {
-        // Proceed to completion
         await supabase.from('form_sessions').update({ status: 'completed', completed_at: new Date().toISOString() }).eq('id', session.id);
         const { data: phone } = await supabase.from('phone_numbers')
           .select('phone_number_id, waba_account:waba_accounts!inner(encrypted_access_token)')
@@ -2143,7 +2007,6 @@ async function handleActiveFormSession(
         }
         return true;
       } else if (btnId === 'form_edit_answers') {
-        // Enter edit mode — ask which field to change
         let editMsg = '✏️ *Which answer do you want to change?*\n_Reply with the number:_\n\n';
         visibleFields.forEach((f: any, i: number) => {
           const ans = session.answers[f.id];
@@ -2162,6 +2025,7 @@ async function handleActiveFormSession(
         return true;
       }
     }
+
     // Non-interactive text: "submit" or "edit"
     if (lowerAnswer === 'submit' || lowerAnswer === 'confirm' || lowerAnswer === 'yes') {
       await supabase.from('form_sessions').update({ status: 'completed', completed_at: new Date().toISOString() }).eq('id', session.id);
@@ -2190,6 +2054,10 @@ async function handleActiveFormSession(
     }
     return true;
   }
+
+  // ─── Validate answer (only for active status, not review) ───
+  const choiceFieldTypes = ['select', 'radio', 'checkbox', 'tag_assignment', 'lead_score'];
+  const fieldHasOptions = currentField.options?.length > 0 && choiceFieldTypes.includes(currentField.type);
 
   // ─── Store answer and advance ───
   const updatedAnswers = { ...session.answers, [currentField.id]: { label: currentField.label, value: answer, displayValue: answerLabel, fieldType: currentField.type } };
