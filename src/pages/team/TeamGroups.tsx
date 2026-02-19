@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -9,14 +9,14 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   Dialog, DialogContent, DialogDescription, DialogFooter, 
-  DialogHeader, DialogTitle, DialogTrigger
+  DialogHeader, DialogTitle
 } from '@/components/ui/dialog';
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue
 } from '@/components/ui/select';
 import { 
   UsersRound, Plus, Edit, Trash2, Users, 
-  MessageSquare, Clock, AlertTriangle, MoreHorizontal
+  MessageSquare, Clock, MoreHorizontal, UserPlus, X
 } from 'lucide-react';
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger
@@ -27,7 +27,7 @@ import { ROUTING_STRATEGY_LABELS } from '@/types/team';
 import type { Team, RoutingStrategy } from '@/types/team';
 
 const TeamGroups = () => {
-  const { teams, loading, createTeam, updateTeam, deleteTeam } = useTeams();
+  const { teams, loading, createTeam, updateTeam, deleteTeam, addTeamMember, removeTeamMember, getTeamMembers } = useTeams();
   const { members } = useTeamMembers();
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [editingTeam, setEditingTeam] = useState<Team | null>(null);
@@ -39,6 +39,12 @@ const TeamGroups = () => {
     team_lead_id: '',
     default_routing_strategy: 'round_robin' as RoutingStrategy,
   });
+
+  // Manage members state
+  const [managingTeam, setManagingTeam] = useState<Team | null>(null);
+  const [teamAgents, setTeamAgents] = useState<any[]>([]);
+  const [loadingMembers, setLoadingMembers] = useState(false);
+  const [addingAgent, setAddingAgent] = useState(false);
 
   const resetForm = () => {
     setFormData({
@@ -91,6 +97,41 @@ const TeamGroups = () => {
       await deleteTeam(id);
     }
   };
+
+  const handleOpenManageMembers = async (team: Team) => {
+    setManagingTeam(team);
+    setLoadingMembers(true);
+    const data = await getTeamMembers(team.id);
+    setTeamAgents(data);
+    setLoadingMembers(false);
+  };
+
+  const handleAddAgent = async (agentId: string) => {
+    if (!managingTeam) return;
+    setAddingAgent(true);
+    const ok = await addTeamMember(managingTeam.id, agentId);
+    if (ok) {
+      const data = await getTeamMembers(managingTeam.id);
+      setTeamAgents(data);
+    }
+    setAddingAgent(false);
+  };
+
+  const handleRemoveAgent = async (agentId: string) => {
+    if (!managingTeam) return;
+    const ok = await removeTeamMember(managingTeam.id, agentId);
+    if (ok) {
+      const data = await getTeamMembers(managingTeam.id);
+      setTeamAgents(data);
+    }
+  };
+
+  // Filter out agents already in the team (only real agents, not invited)
+  const availableAgents = members.filter(m => 
+    m.user_id && 
+    !m.id.startsWith('invite-') &&
+    !teamAgents.some(ta => ta.agent_id === m.id)
+  );
 
   const colorOptions = [
     '#6366f1', '#22c55e', '#f59e0b', '#ef4444', '#8b5cf6', 
@@ -155,6 +196,10 @@ const TeamGroups = () => {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => handleOpenManageMembers(team)}>
+                          <UserPlus className="mr-2 h-4 w-4" />
+                          Manage Members
+                        </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => handleOpenEdit(team)}>
                           <Edit className="mr-2 h-4 w-4" />
                           Edit
@@ -213,6 +258,17 @@ const TeamGroups = () => {
                       {ROUTING_STRATEGY_LABELS[team.default_routing_strategy]}
                     </Badge>
                   </div>
+
+                  {/* Manage Members Button */}
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="w-full"
+                    onClick={() => handleOpenManageMembers(team)}
+                  >
+                    <UserPlus className="mr-2 h-3.5 w-3.5" />
+                    Manage Members
+                  </Button>
                 </CardContent>
               </Card>
             ))}
@@ -307,6 +363,100 @@ const TeamGroups = () => {
               </Button>
               <Button onClick={handleSubmit} disabled={!formData.name.trim() || submitting}>
                 {submitting ? 'Saving...' : editingTeam ? 'Save Changes' : 'Create Team'}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Manage Members Modal */}
+        <Dialog open={!!managingTeam} onOpenChange={(open) => !open && setManagingTeam(null)}>
+          <DialogContent className="max-w-lg">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Users className="h-5 w-5 text-primary" />
+                Manage Members — {managingTeam?.name}
+              </DialogTitle>
+              <DialogDescription>
+                Add or remove agents from this team group for round-robin routing.
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="space-y-4 py-2">
+              {/* Add Agent */}
+              <div className="space-y-2">
+                <Label>Add Agent</Label>
+                <Select
+                  value=""
+                  onValueChange={(agentId) => handleAddAgent(agentId)}
+                  disabled={addingAgent || availableAgents.length === 0}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder={
+                      availableAgents.length === 0 
+                        ? 'All agents already added' 
+                        : 'Select an agent to add...'
+                    } />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {availableAgents.map(m => (
+                      <SelectItem key={m.id} value={m.id}>
+                        {m.display_name || m.profile?.full_name || m.profile?.email}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Current Members */}
+              <div className="space-y-2">
+                <Label>Current Members ({teamAgents.length})</Label>
+                {loadingMembers ? (
+                  <p className="text-sm text-muted-foreground py-4 text-center">Loading...</p>
+                ) : teamAgents.length === 0 ? (
+                  <div className="text-center py-6 border border-dashed border-border rounded-lg">
+                    <Users className="h-8 w-8 mx-auto text-muted-foreground mb-2" />
+                    <p className="text-sm text-muted-foreground">No agents in this team yet</p>
+                    <p className="text-xs text-muted-foreground">Use the dropdown above to add agents</p>
+                  </div>
+                ) : (
+                  <div className="space-y-2 max-h-64 overflow-y-auto">
+                    {teamAgents.map((ta) => (
+                      <div key={ta.id} className="flex items-center justify-between p-3 rounded-lg border border-border bg-card">
+                        <div className="flex items-center gap-3">
+                          <Avatar className="h-8 w-8">
+                            <AvatarImage src={ta.agent?.profile?.avatar_url || undefined} />
+                            <AvatarFallback className="text-xs">
+                              {(ta.agent?.display_name || ta.agent?.profile?.full_name || '?')[0].toUpperCase()}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <p className="text-sm font-medium">
+                              {ta.agent?.display_name || ta.agent?.profile?.full_name || 'Unknown'}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              {ta.agent?.profile?.email}
+                            </p>
+                          </div>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 w-7 p-0 text-destructive hover:text-destructive"
+                          onClick={() => handleRemoveAgent(ta.agent_id)}
+                          title="Remove from team"
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setManagingTeam(null)}>
+                Done
               </Button>
             </DialogFooter>
           </DialogContent>
