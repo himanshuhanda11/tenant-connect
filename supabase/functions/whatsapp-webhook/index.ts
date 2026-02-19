@@ -2059,6 +2059,79 @@ async function handleActiveFormSession(
   const choiceFieldTypes = ['select', 'radio', 'checkbox', 'tag_assignment', 'lead_score'];
   const fieldHasOptions = currentField.options?.length > 0 && choiceFieldTypes.includes(currentField.type);
 
+  if (fieldHasOptions && !isInteractive) {
+    // User typed free text — match by label, value, or number
+    const typed = answer.trim().toLowerCase();
+    const numMatch = parseInt(typed, 10);
+    let matchedOption: any = null;
+    if (!isNaN(numMatch) && numMatch >= 1 && numMatch <= currentField.options.length) {
+      matchedOption = currentField.options[numMatch - 1];
+    }
+    if (!matchedOption) {
+      matchedOption = currentField.options.find((o: any) =>
+        (o.label || '').toLowerCase() === typed || (o.value || '').toLowerCase() === typed
+      );
+    }
+    if (matchedOption) {
+      answer = matchedOption.value;
+      answerLabel = matchedOption.label;
+    } else {
+      const { data: phone } = await supabase.from('phone_numbers')
+        .select('phone_number_id, waba_account:waba_accounts!inner(encrypted_access_token)')
+        .eq('id', phoneNumberId).maybeSingle();
+      if (phone?.phone_number_id && phone.waba_account?.encrypted_access_token) {
+        await sendWAText(phone.phone_number_id, phone.waba_account.encrypted_access_token, ev.from_wa_id, `⚠️ Please choose from the options provided. Reply with the option number or name.`);
+        await sendFormQuestion(supabase, phone.phone_number_id, phone.waba_account.encrypted_access_token, ev.from_wa_id, tenantId, conversationId, currentField, session.current_field_index + 1, visibleFields.length);
+      }
+      return true;
+    }
+  }
+
+  // Year field validation
+  if (currentField.type === 'year') {
+    const years = Array.from({ length: 21 }, (_, i) => 2010 + i);
+    const typed = answer.trim();
+    const numMatch = parseInt(typed, 10);
+    if (years.includes(numMatch)) {
+      answer = String(numMatch);
+      answerLabel = answer;
+    } else if (numMatch >= 1 && numMatch <= years.length) {
+      answer = String(years[numMatch - 1]);
+      answerLabel = answer;
+    } else {
+      const { data: phone } = await supabase.from('phone_numbers')
+        .select('phone_number_id, waba_account:waba_accounts!inner(encrypted_access_token)')
+        .eq('id', phoneNumberId).maybeSingle();
+      if (phone?.phone_number_id && phone.waba_account?.encrypted_access_token) {
+        await sendWAText(phone.phone_number_id, phone.waba_account.encrypted_access_token, ev.from_wa_id, `⚠️ Please reply with a year between 2010 and 2030.`);
+        await sendFormQuestion(supabase, phone.phone_number_id, phone.waba_account.encrypted_access_token, ev.from_wa_id, tenantId, conversationId, currentField, session.current_field_index + 1, visibleFields.length);
+      }
+      return true;
+    }
+  }
+
+  // Email validation
+  if (currentField.type === 'email' && answer && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(answer)) {
+    const { data: phone } = await supabase.from('phone_numbers')
+      .select('phone_number_id, waba_account:waba_accounts!inner(encrypted_access_token)')
+      .eq('id', phoneNumberId).maybeSingle();
+    if (phone?.phone_number_id && phone.waba_account?.encrypted_access_token) {
+      await sendWAText(phone.phone_number_id, phone.waba_account.encrypted_access_token, ev.from_wa_id, '⚠️ That doesn\'t look like a valid email. Please try again:');
+    }
+    return true;
+  }
+
+  // Required check
+  if (currentField.required && !answer.trim()) {
+    const { data: phone } = await supabase.from('phone_numbers')
+      .select('phone_number_id, waba_account:waba_accounts!inner(encrypted_access_token)')
+      .eq('id', phoneNumberId).maybeSingle();
+    if (phone?.phone_number_id && phone.waba_account?.encrypted_access_token) {
+      await sendWAText(phone.phone_number_id, phone.waba_account.encrypted_access_token, ev.from_wa_id, '⚠️ This field is required. Please provide an answer:');
+    }
+    return true;
+  }
+
   // ─── Store answer and advance ───
   const updatedAnswers = { ...session.answers, [currentField.id]: { label: currentField.label, value: answer, displayValue: answerLabel, fieldType: currentField.type } };
   
