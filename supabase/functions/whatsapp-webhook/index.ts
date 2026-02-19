@@ -715,6 +715,8 @@ async function processInboundMessage(
         }
         // AI engine always runs independently (handles all messages)
         await handleAiEngine(supabase, tenantId, phoneNumberId, conversationId, contactId, ev);
+        // Form rules engine — evaluate active form_rules and send matching templates
+        await handleFormRules(supabase, tenantId, phoneNumberId, conversationId, contactId, ev, isNewConversation);
       } catch (e) {
         console.error('Auto-reply/AI engine error:', e);
       }
@@ -1176,5 +1178,466 @@ async function handleAiEngine(
     }
   } catch (err) {
     console.error('handleAiEngine error:', err);
+}
+
+// ─── Form Rules Engine Handler ───
+async function handleFormRules(
+  supabase: any,
+  tenantId: string,
+  phoneNumberId: string,
+  conversationId: string,
+  contactId: string,
+  ev: NormalizedEvent & { kind: 'inbound_message' },
+  isNewConversation: boolean
+) {
+  try {
+    // 1. Fetch active form rules for this tenant, ordered by priority
+    const { data: rules, error: rulesErr } = await supabase
+      .from('form_rules')
+      .select('*, form:templates(id, name, language, components)')
+      .eq('tenant_id', tenantId)
+      .eq('is_active', true)
+      .order('priority', { ascending: false });
+
+    if (rulesErr || !rules?.length) return;
+
+    console.log(`Form rules: evaluating ${rules.length} active rules`);
+
+    for (const rule of rules) {
+      try {
+        // 2. Check trigger match
+        const triggerMatched = checkFormRuleTrigger(rule, ev, isNewConversation);
+        if (!triggerMatched) continue;
+
+        console.log(`Form rule "${rule.name}" trigger matched: ${rule.trigger_type}`);
+
+        // 3. Check guardrails
+        const guardResult = await checkFormRuleGuardrails(supabase, rule, tenantId, contactId, conversationId);
+        if (!guardResult.passed) {
+          console.log(`Form rule "${rule.name}" guardrail blocked: ${guardResult.reason}`);
+          // Log as skipped
+          await logFormRuleExecution(supabase, tenantId, rule.id, contactId, conversationId, 'skipped', guardResult.reason);
+          continue;
+        }
+
+        // 4. Check conditions (tags, opt-in, etc.)
+        const conditionsPass = await checkFormRuleConditions(supabase, rule, tenantId, contactId);
+        if (!conditionsPass) {
+          console.log(`Form rule "${rule.name}" conditions not met`);
+          await logFormRuleExecution(supabase, tenantId, rule.id, contactId, conversationId, 'skipped', 'conditions_not_met');
+          continue;
+        }
+
+        // 5. Send the template message
+        const sendResult = await sendFormRuleTemplate(supabase, rule, tenantId, phoneNumberId, conversationId, contactId, ev.from_wa_id);
+        
+        if (sendResult.success) {
+          console.log(`Form rule "${rule.name}" sent successfully to ${ev.from_wa_id}`);
+          await logFormRuleExecution(supabase, tenantId, rule.id, contactId, conversationId, 'sent', null, sendResult.messageId);
+          
+          // Update execution count
+          await supabase
+            .from('form_rules')
+            .update({ 
+              execution_count: (rule.execution_count || 0) + 1,
+              last_executed_at: new Date().toISOString(),
+            })
+            .eq('id', rule.id);
+
+          // Only send first matching rule (highest priority wins)
+          break;
+        } else {
+          console.error(`Form rule "${rule.name}" send failed: ${sendResult.error}`);
+          await logFormRuleExecution(supabase, tenantId, rule.id, contactId, conversationId, 'failed', sendResult.error);
+        }
+      } catch (ruleErr) {
+        console.error(`Form rule "${rule.name}" error:`, ruleErr);
+        await logFormRuleExecution(supabase, tenantId, rule.id, contactId, conversationId, 'failed', String(ruleErr));
+      }
+    }
+  } catch (err) {
+    console.error('handleFormRules error:', err);
   }
+}
+
+// Check if a form rule's trigger matches the current message
+function checkFormRuleTrigger(
+  rule: any,
+  ev: NormalizedEvent & { kind: 'inbound_message' },
+  isNewConversation: boolean
+): boolean {
+  const config = rule.trigger_config || {};
+
+  switch (rule.trigger_type) {
+    case 'first_message':
+      return isNewConversation;
+
+    case 'keyword': {
+      if (!ev.text) return false;
+      const keywords: string[] = config.keywords || [];
+      if (keywords.length === 0) return false;
+      const text = ev.text.toLowerCase();
+      const matchType = config.match_type || 'contains';
+
+      return keywords.some((kw: string) => {
+        const kwLower = kw.toLowerCase();
+        switch (matchType) {
+          case 'exact': return text === kwLower;
+          case 'starts_with': return text.startsWith(kwLower);
+          case 'regex': try { return new RegExp(kw, 'i').test(ev.text || ''); } catch { return false; }
+          case 'contains':
+          default: return text.includes(kwLower);
+        }
+      });
+    }
+
+    case 'ad_click':
+      // Check referral data in raw payload for CTWA ads
+      const referral = ev.raw?.message?.referral || ev.raw?.value?.contacts?.[0]?.referral;
+      if (!referral) return false;
+      if (config.campaign_ids?.length) {
+        return config.campaign_ids.includes(referral.headline || referral.source_id);
+      }
+      return true; // Any ad click
+
+    case 'source': {
+      // Check conversation source
+      const sources: string[] = config.sources || [];
+      if (sources.length === 0) return true;
+      const referralSource = ev.raw?.message?.referral?.source_type || 'direct';
+      return sources.includes(referralSource);
+    }
+
+    case 'tag_added':
+      // Tag-based triggers are handled differently (via DB trigger/event)
+      // For now, skip in webhook context
+      return false;
+
+    case 'scheduled':
+      // Scheduled triggers are handled by cron, not webhook
+      return false;
+
+    default:
+      return false;
+  }
+}
+
+// Check guardrails (cooldown, max sends per day, business hours, opt-in)
+async function checkFormRuleGuardrails(
+  supabase: any,
+  rule: any,
+  tenantId: string,
+  contactId: string,
+  conversationId: string
+): Promise<{ passed: boolean; reason?: string }> {
+  // 1. Cooldown check
+  if (rule.cooldown_minutes > 0) {
+    const cooldownCutoff = new Date(Date.now() - rule.cooldown_minutes * 60 * 1000).toISOString();
+    const { data: recentLog } = await supabase
+      .from('form_rule_logs')
+      .select('id')
+      .eq('rule_id', rule.id)
+      .eq('contact_id', contactId)
+      .in('status', ['sent', 'delivered'])
+      .gte('created_at', cooldownCutoff)
+      .limit(1)
+      .maybeSingle();
+
+    if (recentLog) {
+      return { passed: false, reason: 'cooldown_active' };
+    }
+  }
+
+  // 2. Max sends per contact per day
+  const maxPerDay = rule.max_sends_per_contact_per_day || 999;
+  const todayStart = new Date();
+  todayStart.setHours(0, 0, 0, 0);
+  
+  const { count: todayCount } = await supabase
+    .from('form_rule_logs')
+    .select('id', { count: 'exact', head: true })
+    .eq('rule_id', rule.id)
+    .eq('contact_id', contactId)
+    .in('status', ['sent', 'delivered'])
+    .gte('created_at', todayStart.toISOString());
+
+  if ((todayCount || 0) >= maxPerDay) {
+    return { passed: false, reason: 'max_sends_per_day_reached' };
+  }
+
+  // 3. Opt-in check
+  if (rule.require_opt_in) {
+    const { data: contact } = await supabase
+      .from('contacts')
+      .select('opt_out')
+      .eq('id', contactId)
+      .maybeSingle();
+
+    if (contact?.opt_out) {
+      return { passed: false, reason: 'contact_opted_out' };
+    }
+  }
+
+  // 4. Business hours check
+  if (rule.business_hours_only) {
+    const { data: settings } = await supabase
+      .from('auto_reply_settings')
+      .select('business_hours_start, business_hours_end, timezone')
+      .eq('tenant_id', tenantId)
+      .maybeSingle();
+
+    if (settings) {
+      const isInHours = checkBusinessHours(settings);
+      if (!isInHours) {
+        return { passed: false, reason: 'outside_business_hours' };
+      }
+    }
+  }
+
+  return { passed: true };
+}
+
+// Check form rule conditions (tags, attributes, etc.)
+async function checkFormRuleConditions(
+  supabase: any,
+  rule: any,
+  tenantId: string,
+  contactId: string
+): Promise<boolean> {
+  const conditions = rule.conditions || [];
+  if (conditions.length === 0) return true;
+
+  for (const cond of conditions) {
+    let passed = false;
+
+    switch (cond.type) {
+      case 'has_tag': {
+        const tagId = cond.config?.tag_id;
+        if (!tagId) { passed = true; break; }
+        const { data } = await supabase
+          .from('contact_tags')
+          .select('id')
+          .eq('contact_id', contactId)
+          .eq('tag_id', tagId)
+          .limit(1)
+          .maybeSingle();
+        passed = !!data;
+        break;
+      }
+      case 'not_has_tag': {
+        const tagId = cond.config?.tag_id;
+        if (!tagId) { passed = true; break; }
+        const { data } = await supabase
+          .from('contact_tags')
+          .select('id')
+          .eq('contact_id', contactId)
+          .eq('tag_id', tagId)
+          .limit(1)
+          .maybeSingle();
+        passed = !data;
+        break;
+      }
+      case 'opted_in': {
+        const { data: contact } = await supabase
+          .from('contacts')
+          .select('opt_out')
+          .eq('id', contactId)
+          .maybeSingle();
+        passed = !contact?.opt_out;
+        break;
+      }
+      default:
+        passed = true; // Unknown condition type, allow
+    }
+
+    // All conditions use AND logic by default
+    if (!passed) return false;
+  }
+
+  return true;
+}
+
+// Send the template message for a form rule
+async function sendFormRuleTemplate(
+  supabase: any,
+  rule: any,
+  tenantId: string,
+  phoneNumberId: string,
+  conversationId: string,
+  contactId: string,
+  recipientWaId: string
+): Promise<{ success: boolean; messageId?: string; error?: string }> {
+  // Get template details
+  const template = rule.form;
+  if (!template) {
+    return { success: false, error: 'no_template_linked' };
+  }
+
+  // Get phone number's Meta ID and access token
+  const { data: phone } = await supabase
+    .from('phone_numbers')
+    .select('phone_number_id, waba_account:waba_accounts!inner(encrypted_access_token)')
+    .eq('id', phoneNumberId)
+    .maybeSingle();
+
+  if (!phone?.phone_number_id || !phone.waba_account?.encrypted_access_token) {
+    return { success: false, error: 'phone_or_token_not_found' };
+  }
+
+  // Send intro message first if configured
+  const introMessage = rule.form_variables?.intro_message;
+  const delaySec = rule.trigger_config?.delay_seconds || 0;
+
+  if (delaySec > 0) {
+    await new Promise(resolve => setTimeout(resolve, delaySec * 1000));
+  }
+
+  if (introMessage) {
+    const introPayload = {
+      messaging_product: 'whatsapp',
+      recipient_type: 'individual',
+      to: recipientWaId,
+      type: 'text',
+      text: { body: introMessage },
+    };
+
+    const introResp = await fetch(
+      `https://graph.facebook.com/v21.0/${phone.phone_number_id}/messages`,
+      {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${phone.waba_account.encrypted_access_token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(introPayload),
+      }
+    );
+
+    if (introResp.ok) {
+      const introResult = await introResp.json();
+      const introWamid = introResult.messages?.[0]?.id;
+      const now = new Date().toISOString();
+
+      // Store intro message
+      await supabase.from('messages').insert({
+        tenant_id: tenantId,
+        conversation_id: conversationId,
+        direction: 'outbound',
+        type: 'text',
+        text: introMessage,
+        wamid: introWamid,
+        status: 'sent',
+        sent_at: now,
+        is_auto_reply: true,
+      });
+
+      // Small delay between intro and template
+      await new Promise(resolve => setTimeout(resolve, 1000));
+    }
+  }
+
+  // Build template payload
+  const templateName = template.name;
+  const templateLang = rule.form_language || template.language || 'en';
+
+  // Build components from form_variables if any variable mappings exist
+  const components: any[] = [];
+  const formVars = rule.form_variables || {};
+  
+  // Check if there are template variable values to send
+  if (formVars.body_variables && Object.keys(formVars.body_variables).length > 0) {
+    const bodyParams = Object.values(formVars.body_variables).map((val: any) => ({
+      type: 'text',
+      text: String(val),
+    }));
+    if (bodyParams.length > 0) {
+      components.push({ type: 'body', parameters: bodyParams });
+    }
+  }
+
+  const templatePayload: any = {
+    messaging_product: 'whatsapp',
+    recipient_type: 'individual',
+    to: recipientWaId,
+    type: 'template',
+    template: {
+      name: templateName,
+      language: { code: templateLang },
+    },
+  };
+
+  if (components.length > 0) {
+    templatePayload.template.components = components;
+  }
+
+  const waResp = await fetch(
+    `https://graph.facebook.com/v21.0/${phone.phone_number_id}/messages`,
+    {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${phone.waba_account.encrypted_access_token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(templatePayload),
+    }
+  );
+
+  const waResult = await waResp.json();
+
+  if (!waResp.ok) {
+    return { success: false, error: `WhatsApp API: ${JSON.stringify(waResult?.error || waResult)}` };
+  }
+
+  const wamid = waResult.messages?.[0]?.id;
+  const now = new Date().toISOString();
+
+  // Store outbound template message
+  await supabase.from('messages').insert({
+    tenant_id: tenantId,
+    conversation_id: conversationId,
+    direction: 'outbound',
+    type: 'template',
+    text: `📋 Form: ${templateName}`,
+    wamid,
+    status: 'sent',
+    sent_at: now,
+    is_auto_reply: true,
+    template_name: templateName,
+  });
+
+  // Update conversation preview
+  await supabase.from('conversations').update({
+    last_message_at: now,
+    last_message_preview: `📋 Form: ${templateName}`,
+  }).eq('id', conversationId);
+
+  return { success: true, messageId: wamid };
+}
+
+// Log form rule execution
+async function logFormRuleExecution(
+  supabase: any,
+  tenantId: string,
+  ruleId: string,
+  contactId: string,
+  conversationId: string,
+  status: string,
+  skipReason?: string | null,
+  messageId?: string | null
+) {
+  try {
+    await supabase.from('form_rule_logs').insert({
+      tenant_id: tenantId,
+      rule_id: ruleId,
+      contact_id: contactId,
+      conversation_id: conversationId,
+      status,
+      skip_reason: skipReason || null,
+      message_id: messageId || null,
+      trigger_data: {},
+    });
+  } catch (err) {
+    console.error('Failed to log form rule execution:', err);
+  }
+}
 }
