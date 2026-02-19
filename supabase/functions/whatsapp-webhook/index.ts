@@ -1204,7 +1204,7 @@ async function handleFormRules(
     // 1. Fetch active form rules for this tenant, ordered by priority
     const { data: rules, error: rulesErr } = await supabase
       .from('form_rules')
-      .select('*, form:templates(id, name, language, components)')
+      .select('*, form:templates(id, name, language, components_json)')
       .eq('tenant_id', tenantId)
       .eq('is_active', true)
       .order('priority', { ascending: false });
@@ -1489,7 +1489,7 @@ async function sendFormRuleTemplate(
   if (!template && rule.form_template_name) {
     const { data: tmpl } = await supabase
       .from('templates')
-      .select('id, name, language, components')
+      .select('id, name, language, components_json')
       .eq('tenant_id', tenantId)
       .eq('name', rule.form_template_name)
       .limit(1)
