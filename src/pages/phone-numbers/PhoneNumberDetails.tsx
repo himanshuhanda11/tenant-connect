@@ -44,10 +44,12 @@ import {
   Building2,
   Save,
   Upload,
-  Camera
+  Camera,
+  MessageSquare as MessageSquareIcon
 } from 'lucide-react';
 import { formatDistanceToNow, format } from 'date-fns';
 import { usePhoneNumbers, useWebhookLogs, useQualityHistory } from '@/hooks/usePhoneNumbers';
+import { MessageSequencesTab } from '@/components/phone-numbers/MessageSequencesTab';
 import { 
   STATUS_CONFIG, 
   QUALITY_CONFIG, 
@@ -478,7 +480,7 @@ export default function PhoneNumberDetails() {
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-6 lg:w-auto lg:grid-cols-none lg:flex">
+          <TabsList className="grid w-full grid-cols-7 lg:w-auto lg:grid-cols-none lg:flex">
             <TabsTrigger value="overview" className="gap-2">
               <Activity className="h-4 w-4" />
               <span className="hidden sm:inline">Overview</span>
@@ -486,6 +488,10 @@ export default function PhoneNumberDetails() {
             <TabsTrigger value="profile" className="gap-2">
               <User className="h-4 w-4" />
               <span className="hidden sm:inline">Profile</span>
+            </TabsTrigger>
+            <TabsTrigger value="sequences" className="gap-2">
+              <MessageSquareIcon className="h-4 w-4" />
+              <span className="hidden sm:inline">Sequences</span>
             </TabsTrigger>
             <TabsTrigger value="routing" className="gap-2">
               <Users className="h-4 w-4" />
@@ -504,6 +510,17 @@ export default function PhoneNumberDetails() {
               <span className="hidden sm:inline">Diagnostics</span>
             </TabsTrigger>
           </TabsList>
+
+          {/* Sequences Tab */}
+          <TabsContent value="sequences" className="space-y-6">
+            {number && (
+              <MessageSequencesTab
+                phoneNumberId={number.id}
+                metaPhoneNumberId={number.phone_number_id}
+                wabaUuid={number.waba_uuid}
+              />
+            )}
+          </TabsContent>
 
           {/* Overview Tab */}
           <TabsContent value="overview" className="space-y-6">
