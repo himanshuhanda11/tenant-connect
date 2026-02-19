@@ -2111,6 +2111,29 @@ async function handleFormCompletion(
       priority_level: qualification === 'hot' ? 'high' : qualification === 'warm' ? 'normal' : 'low',
     }).eq('id', contactId);
 
+    // 6b. Upsert qualified_leads so inbox shows lead_stage badge
+    const leadStage = isQualified ? 'qualified' : 'new';
+    const capturedData: Record<string, any> = {};
+    for (const [, ansData] of Object.entries(answers)) {
+      const ans = ansData as any;
+      capturedData[ans.label] = ans.displayValue || ans.value;
+    }
+    try {
+      await supabase.from('qualified_leads').upsert({
+        workspace_id: tenantId,
+        contact_id: contactId,
+        lead_stage: leadStage,
+        confidence: totalScore,
+        captured: capturedData,
+        missing_fields: [],
+        intent: qualification === 'hot' ? 'high_interest' : qualification === 'warm' ? 'interested' : 'browsing',
+        updated_at: new Date().toISOString(),
+      }, { onConflict: 'workspace_id,contact_id', ignoreDuplicates: false });
+      console.log(`Qualified lead upserted: stage=${leadStage}, score=${totalScore}`);
+    } catch (qlErr) {
+      console.error('Qualified lead upsert error:', qlErr);
+    }
+
     // 7. Auto-assign counselor if qualified (via routing rules)
     if (isQualified) {
       try {

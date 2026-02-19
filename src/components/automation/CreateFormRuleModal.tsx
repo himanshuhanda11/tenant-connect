@@ -157,77 +157,83 @@ export function CreateFormRuleModal({ open, onOpenChange, editingRule, createRul
 
   // Track previous open state to only reset on open transition
   const prevOpenRef = React.useRef(false);
+  const editingRuleIdRef = React.useRef<string | null>(null);
   
-  // Reset form when modal opens (closed→open transition) or editing rule changes
+  // Reset form ONLY when modal transitions from closed→open, not on re-renders or tab switches
   useEffect(() => {
     const wasOpen = prevOpenRef.current;
     prevOpenRef.current = open;
     
-    // Only reset when transitioning from closed to open
-    if (open && !wasOpen) {
-      setCurrentStep(1);
-      if (editingRule) {
-        setName(editingRule.name);
-        setDescription(editingRule.description || '');
-        setTriggerType(editingRule.trigger_type);
-        setTriggerConfig(editingRule.trigger_config || {});
-        setFormId(editingRule.form_id || '');
-        setConditions(editingRule.conditions || []);
-        setCooldownMinutes(editingRule.cooldown_minutes);
-        setRequireOptIn(editingRule.require_opt_in);
-        setBusinessHoursOnly(editingRule.business_hours_only);
-        setIsActive(editingRule.is_active);
-        // Extract safety controls from config if present
-        setSendOncePerUser(editingRule.max_sends_per_contact_per_day === 1);
-        setStopOnAgentReply((editingRule.trigger_config as any)?.stop_on_agent_reply ?? true);
-        setStopOnFreeText((editingRule.trigger_config as any)?.stop_on_free_text ?? false);
-        setIntroMessage((editingRule.form_variables as any)?.intro_message || '');
-        setDelaySeconds((editingRule.trigger_config as any)?.delay_seconds || 0);
-        setFallbackMessage((editingRule.form_variables as any)?.fallback_message || '');
-        
-        // Restore form mode from saved data
-        const savedFormMode = (editingRule.form_variables as any)?.form_mode;
-        if (savedFormMode === 'builder') {
-          setFormMode('builder');
-          setBuilderFormName(editingRule.form_template_name || '');
-          // Load builder fields from form version if available
-          if (editingRule.form_version_id) {
-            loadFormVersionFields(editingRule.form_version_id);
-          }
-        } else {
-          setFormMode('template');
-          setBuilderFields([]);
-          setBuilderFormName('');
+    if (!open) {
+      // Modal closed – reset tracking for next open
+      editingRuleIdRef.current = null;
+      return;
+    }
+    
+    // Skip if already open and same rule (prevents reset on tab switch / re-render)
+    const currentEditId = editingRule?.id ?? null;
+    if (wasOpen && currentEditId === editingRuleIdRef.current) return;
+    
+    editingRuleIdRef.current = currentEditId;
+    setCurrentStep(1);
+    
+    if (editingRule) {
+      setName(editingRule.name);
+      setDescription(editingRule.description || '');
+      setTriggerType(editingRule.trigger_type);
+      setTriggerConfig(editingRule.trigger_config || {});
+      setFormId(editingRule.form_id || '');
+      setConditions(editingRule.conditions || []);
+      setCooldownMinutes(editingRule.cooldown_minutes);
+      setRequireOptIn(editingRule.require_opt_in);
+      setBusinessHoursOnly(editingRule.business_hours_only);
+      setIsActive(editingRule.is_active);
+      setSendOncePerUser(editingRule.max_sends_per_contact_per_day === 1);
+      setStopOnAgentReply((editingRule.trigger_config as any)?.stop_on_agent_reply ?? true);
+      setStopOnFreeText((editingRule.trigger_config as any)?.stop_on_free_text ?? false);
+      setIntroMessage((editingRule.form_variables as any)?.intro_message || '');
+      setDelaySeconds((editingRule.trigger_config as any)?.delay_seconds || 0);
+      setFallbackMessage((editingRule.form_variables as any)?.fallback_message || '');
+      const savedFormMode = (editingRule.form_variables as any)?.form_mode;
+      if (savedFormMode === 'builder') {
+        setFormMode('builder');
+        setBuilderFormName(editingRule.form_template_name || '');
+        if (editingRule.form_version_id) {
+          loadFormVersionFields(editingRule.form_version_id);
         }
-        setIfThenRules([]);
-        setWebhookUrl('');
-        setFormSettings(DEFAULT_FORM_STATE.settings);
       } else {
-        setName('');
-        setDescription('');
-        setTriggerType('first_message');
-        setTriggerConfig({});
-        setFormId('');
-        setConditions([]);
-        setCooldownMinutes(60);
-        setRequireOptIn(true);
-        setBusinessHoursOnly(false);
-        setIsActive(true);
-        setSendOncePerUser(true);
-        setStopOnAgentReply(true);
-        setStopOnFreeText(false);
-        setIntroMessage('');
-        setDelaySeconds(0);
-        setFallbackMessage('');
         setFormMode('template');
         setBuilderFields([]);
         setBuilderFormName('');
-        setIfThenRules([]);
-        setWebhookUrl('');
-        setFormSettings(DEFAULT_FORM_STATE.settings);
       }
-      setKeywordInput('');
+      setIfThenRules([]);
+      setWebhookUrl('');
+      setFormSettings(DEFAULT_FORM_STATE.settings);
+    } else {
+      setName('');
+      setDescription('');
+      setTriggerType('first_message');
+      setTriggerConfig({});
+      setFormId('');
+      setConditions([]);
+      setCooldownMinutes(60);
+      setRequireOptIn(true);
+      setBusinessHoursOnly(false);
+      setIsActive(true);
+      setSendOncePerUser(true);
+      setStopOnAgentReply(true);
+      setStopOnFreeText(false);
+      setIntroMessage('');
+      setDelaySeconds(0);
+      setFallbackMessage('');
+      setFormMode('template');
+      setBuilderFields([]);
+      setBuilderFormName('');
+      setIfThenRules([]);
+      setWebhookUrl('');
+      setFormSettings(DEFAULT_FORM_STATE.settings);
     }
+    setKeywordInput('');
   }, [open, editingRule]);
 
   // Load form version fields for edit mode
