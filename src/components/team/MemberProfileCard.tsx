@@ -39,6 +39,9 @@ export function MemberProfileCard({
   const [nameValue, setNameValue] = useState('');
   const [emailValue, setEmailValue] = useState('');
   const [loading, setLoading] = useState(false);
+  const [manualPassword, setManualPassword] = useState('');
+  const [confirmManualPassword, setConfirmManualPassword] = useState('');
+  const [resetMode, setResetMode] = useState<'choose' | 'manual'>('choose');
 
   const isInvited = member.status === 'invited';
   const displayName = member.display_name || member.profile?.full_name || 'Unknown';
@@ -83,8 +86,50 @@ export function MemberProfileCard({
       if (error) throw error;
       toast.success('Password reset email sent');
       setResetPwOpen(false);
+      setResetMode('choose');
     } catch { toast.error('Failed to send reset email'); }
     finally { setLoading(false); }
+  };
+
+  const handleSetManualPassword = async () => {
+    if (!manualPassword || manualPassword.length < 6) {
+      toast.error('Password must be at least 6 characters');
+      return;
+    }
+    if (manualPassword !== confirmManualPassword) {
+      toast.error('Passwords do not match');
+      return;
+    }
+    setLoading(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const res = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/admin-set-password`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${session?.access_token}`,
+          },
+          body: JSON.stringify({
+            user_id: member.user_id,
+            new_password: manualPassword,
+            tenant_id: member.tenant_id,
+          }),
+        }
+      );
+      const result = await res.json();
+      if (!res.ok) throw new Error(result.error || 'Failed');
+      toast.success('Password updated successfully');
+      setResetPwOpen(false);
+      setManualPassword('');
+      setConfirmManualPassword('');
+      setResetMode('choose');
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to set password');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -246,21 +291,72 @@ export function MemberProfileCard({
       </Dialog>
 
       {/* Reset Password Dialog */}
-      <Dialog open={resetPwOpen} onOpenChange={setResetPwOpen}>
+      <Dialog open={resetPwOpen} onOpenChange={(open) => { setResetPwOpen(open); if (!open) { setResetMode('choose'); setManualPassword(''); setConfirmManualPassword(''); } }}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Reset Password</DialogTitle>
             <DialogDescription>
-              Send a password reset email to <strong>{email}</strong>?
+              Choose how to reset the password for <strong>{displayName}</strong>
             </DialogDescription>
           </DialogHeader>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setResetPwOpen(false)}>Cancel</Button>
-            <Button onClick={handleResetPassword} disabled={loading}>
-              {loading ? <RefreshCw className="mr-2 h-4 w-4 animate-spin" /> : <KeyRound className="mr-2 h-4 w-4" />}
-              Send Reset Email
-            </Button>
-          </DialogFooter>
+
+          {resetMode === 'choose' ? (
+            <div className="space-y-3">
+              <Button
+                variant="outline"
+                className="w-full justify-start gap-3 h-auto py-3"
+                onClick={handleResetPassword}
+                disabled={loading}
+              >
+                {loading ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Mail className="h-4 w-4" />}
+                <div className="text-left">
+                  <p className="font-medium text-sm">Send Reset Email</p>
+                  <p className="text-xs text-muted-foreground">Send a password reset link to {email}</p>
+                </div>
+              </Button>
+              <Button
+                variant="outline"
+                className="w-full justify-start gap-3 h-auto py-3"
+                onClick={() => setResetMode('manual')}
+              >
+                <KeyRound className="h-4 w-4" />
+                <div className="text-left">
+                  <p className="font-medium text-sm">Set New Password Manually</p>
+                  <p className="text-xs text-muted-foreground">Enter a new password for this member directly</p>
+                </div>
+              </Button>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label>New Password</Label>
+                <Input
+                  type="password"
+                  value={manualPassword}
+                  onChange={(e) => setManualPassword(e.target.value)}
+                  placeholder="Enter new password (min 6 characters)"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Confirm Password</Label>
+                <Input
+                  type="password"
+                  value={confirmManualPassword}
+                  onChange={(e) => setConfirmManualPassword(e.target.value)}
+                  placeholder="Confirm new password"
+                />
+              </div>
+              <DialogFooter className="gap-2">
+                <Button variant="outline" onClick={() => { setResetMode('choose'); setManualPassword(''); setConfirmManualPassword(''); }}>
+                  Back
+                </Button>
+                <Button onClick={handleSetManualPassword} disabled={loading || !manualPassword || manualPassword.length < 6}>
+                  {loading ? <RefreshCw className="mr-2 h-4 w-4 animate-spin" /> : <KeyRound className="mr-2 h-4 w-4" />}
+                  Set Password
+                </Button>
+              </DialogFooter>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
     </>
