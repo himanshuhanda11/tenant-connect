@@ -199,6 +199,18 @@ export function FormPreview({ state, whatsappStyle = false }: FormPreviewProps) 
                   <Calculator className="w-4 h-4" />
                   <span>Auto-calculated</span>
                 </div>
+              ) : field.type === 'year' ? (
+                <Select>
+                  <SelectTrigger className="h-10">
+                    <SelectValue placeholder="Select year..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Array.from({ length: 10 }, (_, i) => {
+                      const y = new Date().getFullYear() + i;
+                      return <SelectItem key={y} value={String(y)}>{y}</SelectItem>;
+                    })}
+                  </SelectContent>
+                </Select>
               ) : (
                 <Input disabled placeholder={field.placeholder || `Enter ${field.label.toLowerCase()}`} className="h-10" />
               )}

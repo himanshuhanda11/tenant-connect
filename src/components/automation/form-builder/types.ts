@@ -18,7 +18,8 @@ export type FormFieldType =
   | 'tag_assignment'
   | 'lead_score'
   | 'otp_verification'
-  | 'time_slot';
+  | 'time_slot'
+  | 'year';
 
 export interface FormFieldOption {
   label: string;
