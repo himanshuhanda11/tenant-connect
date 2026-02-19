@@ -12285,6 +12285,8 @@ export type Database = {
         | "qualified"
         | "needs_agent"
         | "unqualified"
+        | "not_relevant"
+        | "abuse"
       member_status: "active" | "invited" | "suspended" | "disabled"
       message_direction: "inbound" | "outbound"
       message_status: "pending" | "sent" | "delivered" | "read" | "failed"
@@ -12782,6 +12784,8 @@ export const Constants = {
         "qualified",
         "needs_agent",
         "unqualified",
+        "not_relevant",
+        "abuse",
       ],
       member_status: ["active", "invited", "suspended", "disabled"],
       message_direction: ["inbound", "outbound"],

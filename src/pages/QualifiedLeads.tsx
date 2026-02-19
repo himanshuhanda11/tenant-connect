@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import {
   Target,
   Search,
@@ -21,11 +22,15 @@ import {
   Loader2,
   Calendar,
   RefreshCw,
+  MoreVertical,
+  Ban,
+  ThumbsDown,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { useTenant } from '@/contexts/TenantContext';
 import { format, formatDistanceToNow } from 'date-fns';
+import { toast } from 'sonner';
 
 const STAGE_CONFIG: Record<string, { label: string; icon: React.ReactNode; color: string }> = {
   new: { label: 'New', icon: <HelpCircle className="h-3 w-3" />, color: 'bg-blue-100 text-blue-700' },
@@ -33,6 +38,8 @@ const STAGE_CONFIG: Record<string, { label: string; icon: React.ReactNode; color
   qualified: { label: 'Qualified', icon: <CheckCircle2 className="h-3 w-3" />, color: 'bg-green-100 text-green-700' },
   needs_agent: { label: 'Needs Agent', icon: <AlertCircle className="h-3 w-3" />, color: 'bg-red-100 text-red-700' },
   unqualified: { label: 'Unqualified', icon: <XCircle className="h-3 w-3" />, color: 'bg-gray-100 text-gray-600' },
+  not_relevant: { label: 'Not Relevant', icon: <ThumbsDown className="h-3 w-3" />, color: 'bg-slate-100 text-slate-600' },
+  abuse: { label: 'Abuse', icon: <Ban className="h-3 w-3" />, color: 'bg-red-200 text-red-800' },
 };
 
 export default function QualifiedLeads() {
@@ -68,6 +75,18 @@ export default function QualifiedLeads() {
   };
 
   useEffect(() => { fetchLeads(); }, [currentTenant?.id, stageFilter, intentFilter]);
+
+  const markLead = async (leadId: string, stage: string) => {
+    const { error } = await supabase.from('qualified_leads')
+      .update({ lead_stage: stage as any })
+      .eq('id', leadId);
+    if (error) {
+      toast.error('Failed to update lead');
+    } else {
+      toast.success(`Lead marked as ${STAGE_CONFIG[stage]?.label || stage}`);
+      setLeads(prev => prev.map(l => l.id === leadId ? { ...l, lead_stage: stage } : l));
+    }
+  };
 
   const filteredLeads = leads.filter(lead => {
     if (!search) return true;
@@ -219,7 +238,24 @@ export default function QualifiedLeads() {
                               {Math.round(lead.confidence * 100)}%
                             </Badge>
                           )}
-                          <Button variant="ghost" size="icon" className="h-7 w-7">
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={e => e.stopPropagation()}>
+                                <MoreVertical className="h-3.5 w-3.5 text-muted-foreground" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" onClick={e => e.stopPropagation()}>
+                              {Object.entries(STAGE_CONFIG)
+                                .filter(([key]) => key !== lead.lead_stage)
+                                .map(([key, conf]) => (
+                                  <DropdownMenuItem key={key} onClick={() => markLead(lead.id, key)}>
+                                    <span className="mr-2">{conf.icon}</span>
+                                    Mark as {conf.label}
+                                  </DropdownMenuItem>
+                                ))}
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={e => { e.stopPropagation(); navigate('/inbox'); }}>
                             <MessageSquare className="h-3.5 w-3.5 text-muted-foreground" />
                           </Button>
                         </div>
