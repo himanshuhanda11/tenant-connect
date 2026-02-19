@@ -243,10 +243,24 @@ const FlowBuilder = () => {
   // Ensure dragging always ends even if mouseup happens outside the canvas
   useEffect(() => {
     if (!draggingNode) return;
+    const handleMove = (e: MouseEvent) => {
+      if (!canvasContentRef.current) return;
+      const rect = canvasContentRef.current.getBoundingClientRect();
+      const scale = zoom / 100;
+      const pointerX = (e.clientX - rect.left) / scale;
+      const pointerY = (e.clientY - rect.top) / scale;
+      const newX = Math.max(0, pointerX - dragOffset.x);
+      const newY = Math.max(0, pointerY - dragOffset.y);
+      updateNode(draggingNode, { position_x: newX, position_y: newY });
+    };
     const handleUp = () => setDraggingNode(null);
+    window.addEventListener('mousemove', handleMove);
     window.addEventListener('mouseup', handleUp);
-    return () => window.removeEventListener('mouseup', handleUp);
-  }, [draggingNode]);
+    return () => {
+      window.removeEventListener('mousemove', handleMove);
+      window.removeEventListener('mouseup', handleUp);
+    };
+  }, [draggingNode, dragOffset.x, dragOffset.y, zoom, updateNode]);
 
   const selectedNode = nodes.find(n => n.node_key === selectedNodeKey);
 
@@ -315,24 +329,6 @@ const FlowBuilder = () => {
     setSelectedNodeKey(nodeKey);
   };
 
-  const handleCanvasMouseMove = useCallback((e: React.MouseEvent) => {
-    if (!draggingNode || !canvasContentRef.current) return;
-
-    const rect = canvasContentRef.current.getBoundingClientRect();
-    const scale = zoom / 100;
-
-    const pointerX = (e.clientX - rect.left) / scale;
-    const pointerY = (e.clientY - rect.top) / scale;
-
-    const newX = Math.max(0, pointerX - dragOffset.x);
-    const newY = Math.max(0, pointerY - dragOffset.y);
-
-    updateNode(draggingNode, { position_x: newX, position_y: newY });
-  }, [draggingNode, dragOffset.x, dragOffset.y, zoom, updateNode]);
-
-  const handleCanvasMouseUp = useCallback(() => {
-    setDraggingNode(null);
-  }, []);
 
   const handleNodeClick = (nodeKey: string) => {
     if (!draggingNode) {
@@ -516,9 +512,6 @@ const FlowBuilder = () => {
           )}
           onDrop={handleCanvasDrop}
           onDragOver={handleCanvasDragOver}
-          onMouseMove={handleCanvasMouseMove}
-          onMouseUp={handleCanvasMouseUp}
-          onMouseLeave={handleCanvasMouseUp}
         >
           {/* Zoom controls */}
           <div className="absolute top-4 left-4 flex items-center gap-1 bg-card border rounded-xl shadow-lg p-1.5 z-10">
@@ -947,30 +940,332 @@ const FlowBuilder = () => {
                         />
                       </div>
                       
-                      {(selectedNode.node_type === 'text-buttons' || selectedNode.node_type === 'template') && (
-                        <div className="space-y-2">
-                          <Label className="text-xs">Message Text</Label>
-                          <Textarea 
-                            className="min-h-[100px] text-sm"
-                            placeholder="Enter your message..."
-                            value={selectedNode.config?.message || ''}
-                            onChange={(e) => updateNode(selectedNode.node_key, { 
-                              config: { ...selectedNode.config, message: e.target.value } 
-                            })}
-                          />
-                          <p className="text-[11px] text-muted-foreground">
-                            Use {'{{first_name}}'} for personalization
-                          </p>
-                        </div>
+                      {/* Text + Buttons node */}
+                      {selectedNode.node_type === 'text-buttons' && (
+                        <>
+                          <div className="space-y-2">
+                            <Label className="text-xs">Message Text</Label>
+                            <Textarea 
+                              className="min-h-[100px] text-sm"
+                              placeholder="Enter your message..."
+                              value={selectedNode.config?.message || ''}
+                              onChange={(e) => updateNode(selectedNode.node_key, { 
+                                config: { ...selectedNode.config, message: e.target.value } 
+                              })}
+                            />
+                            <p className="text-[11px] text-muted-foreground">
+                              Use {'{{first_name}}'} for personalization
+                            </p>
+                          </div>
+                          <div className="space-y-2">
+                            <Label className="text-xs">Buttons</Label>
+                            {(selectedNode.config?.buttons || []).map((btn: string, idx: number) => (
+                              <div key={idx} className="flex gap-2">
+                                <Input
+                                  value={btn}
+                                  placeholder={`Button ${idx + 1}`}
+                                  onChange={(e) => {
+                                    const newButtons = [...(selectedNode.config?.buttons || [])];
+                                    newButtons[idx] = e.target.value;
+                                    updateNode(selectedNode.node_key, { config: { ...selectedNode.config, buttons: newButtons } });
+                                  }}
+                                  className="text-sm"
+                                />
+                                <Button variant="ghost" size="icon" className="h-9 w-9 shrink-0" onClick={() => {
+                                  const newButtons = (selectedNode.config?.buttons || []).filter((_: string, i: number) => i !== idx);
+                                  updateNode(selectedNode.node_key, { config: { ...selectedNode.config, buttons: newButtons } });
+                                }}>
+                                  <Trash2 className="w-3.5 h-3.5 text-destructive" />
+                                </Button>
+                              </div>
+                            ))}
+                            {(selectedNode.config?.buttons?.length || 0) < 3 && (
+                              <Button variant="outline" size="sm" className="w-full gap-1.5 text-xs" onClick={() => {
+                                const newButtons = [...(selectedNode.config?.buttons || []), ''];
+                                updateNode(selectedNode.node_key, { config: { ...selectedNode.config, buttons: newButtons } });
+                              }}>
+                                <Plus className="w-3.5 h-3.5" /> Add Button
+                              </Button>
+                            )}
+                            <p className="text-[10px] text-muted-foreground">Max 3 buttons allowed by WhatsApp</p>
+                          </div>
+                        </>
                       )}
 
+                      {/* List Message node */}
+                      {selectedNode.node_type === 'list-message' && (
+                        <>
+                          <div className="space-y-2">
+                            <Label className="text-xs">Header</Label>
+                            <Input
+                              placeholder="List header..."
+                              value={selectedNode.config?.header || ''}
+                              onChange={(e) => updateNode(selectedNode.node_key, { config: { ...selectedNode.config, header: e.target.value } })}
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label className="text-xs">Body Text</Label>
+                            <Textarea
+                              className="min-h-[80px] text-sm"
+                              placeholder="List body message..."
+                              value={selectedNode.config?.body || ''}
+                              onChange={(e) => updateNode(selectedNode.node_key, { config: { ...selectedNode.config, body: e.target.value } })}
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label className="text-xs">Button Label</Label>
+                            <Input
+                              placeholder="View Options"
+                              value={selectedNode.config?.button_label || ''}
+                              onChange={(e) => updateNode(selectedNode.node_key, { config: { ...selectedNode.config, button_label: e.target.value } })}
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label className="text-xs">List Items</Label>
+                            {(selectedNode.config?.items || []).map((item: any, idx: number) => (
+                              <div key={idx} className="flex gap-2">
+                                <div className="flex-1 space-y-1">
+                                  <Input
+                                    value={item.title || ''}
+                                    placeholder={`Item ${idx + 1} title`}
+                                    onChange={(e) => {
+                                      const newItems = [...(selectedNode.config?.items || [])];
+                                      newItems[idx] = { ...newItems[idx], title: e.target.value };
+                                      updateNode(selectedNode.node_key, { config: { ...selectedNode.config, items: newItems } });
+                                    }}
+                                    className="text-sm"
+                                  />
+                                  <Input
+                                    value={item.description || ''}
+                                    placeholder="Description (optional)"
+                                    onChange={(e) => {
+                                      const newItems = [...(selectedNode.config?.items || [])];
+                                      newItems[idx] = { ...newItems[idx], description: e.target.value };
+                                      updateNode(selectedNode.node_key, { config: { ...selectedNode.config, items: newItems } });
+                                    }}
+                                    className="text-xs"
+                                  />
+                                </div>
+                                <Button variant="ghost" size="icon" className="h-9 w-9 shrink-0" onClick={() => {
+                                  const newItems = (selectedNode.config?.items || []).filter((_: any, i: number) => i !== idx);
+                                  updateNode(selectedNode.node_key, { config: { ...selectedNode.config, items: newItems } });
+                                }}>
+                                  <Trash2 className="w-3.5 h-3.5 text-destructive" />
+                                </Button>
+                              </div>
+                            ))}
+                            {(selectedNode.config?.items?.length || 0) < 10 && (
+                              <Button variant="outline" size="sm" className="w-full gap-1.5 text-xs" onClick={() => {
+                                const newItems = [...(selectedNode.config?.items || []), { title: '', description: '' }];
+                                updateNode(selectedNode.node_key, { config: { ...selectedNode.config, items: newItems } });
+                              }}>
+                                <Plus className="w-3.5 h-3.5" /> Add Item
+                              </Button>
+                            )}
+                            <p className="text-[10px] text-muted-foreground">Max 10 items allowed</p>
+                          </div>
+                        </>
+                      )}
+
+                      {/* Media node */}
+                      {selectedNode.node_type === 'media' && (
+                        <>
+                          <div className="space-y-2">
+                            <Label className="text-xs">Media Type</Label>
+                            <Select 
+                              value={selectedNode.config?.media_type || 'image'}
+                              onValueChange={(val) => updateNode(selectedNode.node_key, { config: { ...selectedNode.config, media_type: val } })}
+                            >
+                              <SelectTrigger><SelectValue /></SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="image">Image</SelectItem>
+                                <SelectItem value="video">Video</SelectItem>
+                                <SelectItem value="audio">Audio</SelectItem>
+                                <SelectItem value="sticker">Sticker</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div className="space-y-2">
+                            <Label className="text-xs">Media URL</Label>
+                            <Input
+                              placeholder="https://example.com/image.jpg"
+                              value={selectedNode.config?.media_url || ''}
+                              onChange={(e) => updateNode(selectedNode.node_key, { config: { ...selectedNode.config, media_url: e.target.value } })}
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label className="text-xs">Caption (optional)</Label>
+                            <Textarea
+                              className="min-h-[60px] text-sm"
+                              placeholder="Add a caption..."
+                              value={selectedNode.config?.caption || ''}
+                              onChange={(e) => updateNode(selectedNode.node_key, { config: { ...selectedNode.config, caption: e.target.value } })}
+                            />
+                          </div>
+                        </>
+                      )}
+
+                      {/* Document node */}
+                      {selectedNode.node_type === 'document' && (
+                        <>
+                          <div className="space-y-2">
+                            <Label className="text-xs">Document URL</Label>
+                            <Input
+                              placeholder="https://example.com/doc.pdf"
+                              value={selectedNode.config?.document_url || ''}
+                              onChange={(e) => updateNode(selectedNode.node_key, { config: { ...selectedNode.config, document_url: e.target.value } })}
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label className="text-xs">Filename</Label>
+                            <Input
+                              placeholder="brochure.pdf"
+                              value={selectedNode.config?.filename || ''}
+                              onChange={(e) => updateNode(selectedNode.node_key, { config: { ...selectedNode.config, filename: e.target.value } })}
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label className="text-xs">Caption (optional)</Label>
+                            <Textarea
+                              className="min-h-[60px] text-sm"
+                              placeholder="Add a caption..."
+                              value={selectedNode.config?.caption || ''}
+                              onChange={(e) => updateNode(selectedNode.node_key, { config: { ...selectedNode.config, caption: e.target.value } })}
+                            />
+                          </div>
+                        </>
+                      )}
+
+                      {/* Template node */}
+                      {selectedNode.node_type === 'template' && (
+                        <>
+                          <div className="space-y-2">
+                            <Label className="text-xs">Template Name</Label>
+                            <Input
+                              placeholder="hello_world"
+                              value={selectedNode.config?.template_name || ''}
+                              onChange={(e) => updateNode(selectedNode.node_key, { config: { ...selectedNode.config, template_name: e.target.value } })}
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label className="text-xs">Language</Label>
+                            <Select 
+                              value={selectedNode.config?.language || 'en'}
+                              onValueChange={(val) => updateNode(selectedNode.node_key, { config: { ...selectedNode.config, language: val } })}
+                            >
+                              <SelectTrigger><SelectValue /></SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="en">English</SelectItem>
+                                <SelectItem value="es">Spanish</SelectItem>
+                                <SelectItem value="pt_BR">Portuguese (BR)</SelectItem>
+                                <SelectItem value="hi">Hindi</SelectItem>
+                                <SelectItem value="ar">Arabic</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div className="space-y-2">
+                            <Label className="text-xs">Message Preview</Label>
+                            <Textarea
+                              className="min-h-[80px] text-sm"
+                              placeholder="Template message preview..."
+                              value={selectedNode.config?.message || ''}
+                              onChange={(e) => updateNode(selectedNode.node_key, { config: { ...selectedNode.config, message: e.target.value } })}
+                            />
+                          </div>
+                        </>
+                      )}
+
+                      {/* Condition node */}
+                      {selectedNode.node_type === 'condition' && (
+                        <>
+                          <div className="space-y-2">
+                            <Label className="text-xs">Condition Field</Label>
+                            <Select
+                              value={selectedNode.config?.field || 'message'}
+                              onValueChange={(val) => updateNode(selectedNode.node_key, { config: { ...selectedNode.config, field: val } })}
+                            >
+                              <SelectTrigger><SelectValue /></SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="message">Message Text</SelectItem>
+                                <SelectItem value="contact_name">Contact Name</SelectItem>
+                                <SelectItem value="tag">Contact Tag</SelectItem>
+                                <SelectItem value="attribute">Custom Attribute</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div className="space-y-2">
+                            <Label className="text-xs">Operator</Label>
+                            <Select
+                              value={selectedNode.config?.operator || 'contains'}
+                              onValueChange={(val) => updateNode(selectedNode.node_key, { config: { ...selectedNode.config, operator: val } })}
+                            >
+                              <SelectTrigger><SelectValue /></SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="contains">Contains</SelectItem>
+                                <SelectItem value="equals">Equals</SelectItem>
+                                <SelectItem value="starts_with">Starts with</SelectItem>
+                                <SelectItem value="not_contains">Does not contain</SelectItem>
+                                <SelectItem value="is_empty">Is empty</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div className="space-y-2">
+                            <Label className="text-xs">Value</Label>
+                            <Input
+                              placeholder="Match value..."
+                              value={selectedNode.config?.value || ''}
+                              onChange={(e) => updateNode(selectedNode.node_key, { config: { ...selectedNode.config, value: e.target.value } })}
+                            />
+                          </div>
+                        </>
+                      )}
+
+                      {/* Webhook node */}
+                      {selectedNode.node_type === 'webhook' && (
+                        <>
+                          <div className="space-y-2">
+                            <Label className="text-xs">URL</Label>
+                            <Input
+                              placeholder="https://api.example.com/webhook"
+                              value={selectedNode.config?.url || ''}
+                              onChange={(e) => updateNode(selectedNode.node_key, { config: { ...selectedNode.config, url: e.target.value } })}
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label className="text-xs">Method</Label>
+                            <Select
+                              value={selectedNode.config?.method || 'POST'}
+                              onValueChange={(val) => updateNode(selectedNode.node_key, { config: { ...selectedNode.config, method: val } })}
+                            >
+                              <SelectTrigger><SelectValue /></SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="GET">GET</SelectItem>
+                                <SelectItem value="POST">POST</SelectItem>
+                                <SelectItem value="PUT">PUT</SelectItem>
+                                <SelectItem value="PATCH">PATCH</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div className="space-y-2">
+                            <Label className="text-xs">Headers (JSON)</Label>
+                            <Textarea
+                              className="min-h-[60px] text-sm font-mono"
+                              placeholder='{"Authorization": "Bearer ..."}'
+                              value={selectedNode.config?.headers || ''}
+                              onChange={(e) => updateNode(selectedNode.node_key, { config: { ...selectedNode.config, headers: e.target.value } })}
+                            />
+                          </div>
+                        </>
+                      )}
+
+                      {/* Delay node */}
                       {selectedNode.node_type === 'delay' && (
                         <div className="grid grid-cols-2 gap-3">
                           <div className="space-y-2">
                             <Label className="text-xs">Duration</Label>
                             <Input 
                               type="number" 
-                              defaultValue={selectedNode.config?.duration || 5}
+                              value={selectedNode.config?.duration || 5}
                               onChange={(e) => updateNode(selectedNode.node_key, {
                                 config: { ...selectedNode.config, duration: parseInt(e.target.value) }
                               })}
@@ -978,10 +1273,11 @@ const FlowBuilder = () => {
                           </div>
                           <div className="space-y-2">
                             <Label className="text-xs">Unit</Label>
-                            <Select defaultValue={selectedNode.config?.unit || 'seconds'}>
-                              <SelectTrigger>
-                                <SelectValue />
-                              </SelectTrigger>
+                            <Select 
+                              value={selectedNode.config?.unit || 'seconds'}
+                              onValueChange={(val) => updateNode(selectedNode.node_key, { config: { ...selectedNode.config, unit: val } })}
+                            >
+                              <SelectTrigger><SelectValue /></SelectTrigger>
                               <SelectContent>
                                 <SelectItem value="seconds">Seconds</SelectItem>
                                 <SelectItem value="minutes">Minutes</SelectItem>
@@ -992,19 +1288,178 @@ const FlowBuilder = () => {
                         </div>
                       )}
 
+                      {/* Set Attribute node */}
+                      {selectedNode.node_type === 'set-attribute' && (
+                        <>
+                          <div className="space-y-2">
+                            <Label className="text-xs">Attribute Name</Label>
+                            <Input
+                              placeholder="e.g., lead_status"
+                              value={selectedNode.config?.attribute || ''}
+                              onChange={(e) => updateNode(selectedNode.node_key, { config: { ...selectedNode.config, attribute: e.target.value } })}
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label className="text-xs">Value</Label>
+                            <Input
+                              placeholder="e.g., qualified"
+                              value={selectedNode.config?.value || ''}
+                              onChange={(e) => updateNode(selectedNode.node_key, { config: { ...selectedNode.config, value: e.target.value } })}
+                            />
+                          </div>
+                        </>
+                      )}
+
+                      {/* Add/Remove Tag node */}
+                      {selectedNode.node_type === 'add-tag' && (
+                        <>
+                          <div className="space-y-2">
+                            <Label className="text-xs">Action</Label>
+                            <Select
+                              value={selectedNode.config?.action || 'add'}
+                              onValueChange={(val) => updateNode(selectedNode.node_key, { config: { ...selectedNode.config, action: val } })}
+                            >
+                              <SelectTrigger><SelectValue /></SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="add">Add Tag</SelectItem>
+                                <SelectItem value="remove">Remove Tag</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div className="space-y-2">
+                            <Label className="text-xs">Tag Name</Label>
+                            <Input
+                              placeholder="e.g., hot-lead"
+                              value={selectedNode.config?.tag || ''}
+                              onChange={(e) => updateNode(selectedNode.node_key, { config: { ...selectedNode.config, tag: e.target.value } })}
+                            />
+                          </div>
+                        </>
+                      )}
+
+                      {/* Assign Agent node */}
                       {selectedNode.node_type === 'assign-agent' && (
                         <div className="space-y-2">
                           <Label className="text-xs">Assignment Strategy</Label>
-                          <Select defaultValue={selectedNode.config?.strategy || 'round_robin'}>
-                            <SelectTrigger>
-                              <SelectValue />
-                            </SelectTrigger>
+                          <Select 
+                            value={selectedNode.config?.strategy || 'round_robin'}
+                            onValueChange={(val) => updateNode(selectedNode.node_key, { config: { ...selectedNode.config, strategy: val } })}
+                          >
+                            <SelectTrigger><SelectValue /></SelectTrigger>
                             <SelectContent>
                               <SelectItem value="round_robin">Round Robin</SelectItem>
                               <SelectItem value="least_busy">Least Busy</SelectItem>
                               <SelectItem value="specific">Specific Agent</SelectItem>
                             </SelectContent>
                           </Select>
+                        </div>
+                      )}
+
+                      {/* Notify Team node */}
+                      {selectedNode.node_type === 'notify-team' && (
+                        <>
+                          <div className="space-y-2">
+                            <Label className="text-xs">Notification Message</Label>
+                            <Textarea
+                              className="min-h-[80px] text-sm"
+                              placeholder="Alert: New lead requires attention..."
+                              value={selectedNode.config?.message || ''}
+                              onChange={(e) => updateNode(selectedNode.node_key, { config: { ...selectedNode.config, message: e.target.value } })}
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label className="text-xs">Channel</Label>
+                            <Select
+                              value={selectedNode.config?.channel || 'inbox'}
+                              onValueChange={(val) => updateNode(selectedNode.node_key, { config: { ...selectedNode.config, channel: val } })}
+                            >
+                              <SelectTrigger><SelectValue /></SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="inbox">Inbox</SelectItem>
+                                <SelectItem value="email">Email</SelectItem>
+                                <SelectItem value="webhook">Webhook</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </>
+                      )}
+
+                      {/* Switch / Random Split / Business Hours / Timeout / Create Ticket / Add Segment */}
+                      {selectedNode.node_type === 'switch' && (
+                        <div className="space-y-2">
+                          <Label className="text-xs">Variable to Switch On</Label>
+                          <Input
+                            placeholder="e.g., {{button_reply}}"
+                            value={selectedNode.config?.variable || ''}
+                            onChange={(e) => updateNode(selectedNode.node_key, { config: { ...selectedNode.config, variable: e.target.value } })}
+                          />
+                          <p className="text-[10px] text-muted-foreground">Each output branch maps to a possible value</p>
+                        </div>
+                      )}
+
+                      {selectedNode.node_type === 'timeout' && (
+                        <div className="grid grid-cols-2 gap-3">
+                          <div className="space-y-2">
+                            <Label className="text-xs">Timeout</Label>
+                            <Input
+                              type="number"
+                              value={selectedNode.config?.timeout || 60}
+                              onChange={(e) => updateNode(selectedNode.node_key, { config: { ...selectedNode.config, timeout: parseInt(e.target.value) } })}
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label className="text-xs">Unit</Label>
+                            <Select
+                              value={selectedNode.config?.unit || 'minutes'}
+                              onValueChange={(val) => updateNode(selectedNode.node_key, { config: { ...selectedNode.config, unit: val } })}
+                            >
+                              <SelectTrigger><SelectValue /></SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="seconds">Seconds</SelectItem>
+                                <SelectItem value="minutes">Minutes</SelectItem>
+                                <SelectItem value="hours">Hours</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
+                      )}
+
+                      {selectedNode.node_type === 'create-ticket' && (
+                        <>
+                          <div className="space-y-2">
+                            <Label className="text-xs">Ticket Subject</Label>
+                            <Input
+                              placeholder="Support request from {{contact_name}}"
+                              value={selectedNode.config?.subject || ''}
+                              onChange={(e) => updateNode(selectedNode.node_key, { config: { ...selectedNode.config, subject: e.target.value } })}
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label className="text-xs">Priority</Label>
+                            <Select
+                              value={selectedNode.config?.priority || 'medium'}
+                              onValueChange={(val) => updateNode(selectedNode.node_key, { config: { ...selectedNode.config, priority: val } })}
+                            >
+                              <SelectTrigger><SelectValue /></SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="low">Low</SelectItem>
+                                <SelectItem value="medium">Medium</SelectItem>
+                                <SelectItem value="high">High</SelectItem>
+                                <SelectItem value="urgent">Urgent</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </>
+                      )}
+
+                      {selectedNode.node_type === 'add-segment' && (
+                        <div className="space-y-2">
+                          <Label className="text-xs">Segment Name</Label>
+                          <Input
+                            placeholder="e.g., VIP Customers"
+                            value={selectedNode.config?.segment || ''}
+                            onChange={(e) => updateNode(selectedNode.node_key, { config: { ...selectedNode.config, segment: e.target.value } })}
+                          />
                         </div>
                       )}
                     </div>

@@ -99,13 +99,25 @@ export function usePlanGate(): PlanGateResult {
   const teamLimit = getTeamMemberLimit(currentPlan);
   const teamCount = members.length;
 
+  // Enhanced feature check: also consider entitlements features list from DB
+  const hasFeatureCheck = (key: string) => {
+    // First check if the plan tier itself unlocks the feature
+    if (isFeatureAvailable(currentPlan, key)) return true;
+    // Also check if the entitlement explicitly enables the feature
+    if (entitlements?.features?.includes(key)) return true;
+    return false;
+  };
+
   return {
     currentPlan,
     canInviteMembers: teamCount < teamLimit,
     teamMemberLimit: teamLimit,
     teamMemberCount: teamCount,
-    hasFeature: (key: string) => isFeatureAvailable(currentPlan, key),
-    requiredPlanFor: (key: string) => getUpgradePlanFor(currentPlan, key),
+    hasFeature: hasFeatureCheck,
+    requiredPlanFor: (key: string) => {
+      if (hasFeatureCheck(key)) return null;
+      return getUpgradePlanFor(currentPlan, key);
+    },
     nextPlan: getNextPlan(currentPlan),
     planLabel: getPlanLabel(currentPlan),
     loading: isLoading,
