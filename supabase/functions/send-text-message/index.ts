@@ -2,7 +2,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
 
 const WHATSAPP_API_VERSION = 'v21.0';
@@ -50,14 +50,32 @@ Deno.serve(async (req) => {
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     const token = authHeader.replace('Bearer ', '');
-    const { data: userData, error: userError } = await supabaseAuth.auth.getUser(token);
-    if (userError || !userData?.user) {
+    
+    // Use getClaims for signing-keys compatibility, fallback to getUser
+    let userId: string;
+    try {
+      const { data: claimsData, error: claimsError } = await supabaseAuth.auth.getClaims(token);
+      if (!claimsError && claimsData?.claims?.sub) {
+        userId = claimsData.claims.sub;
+      } else {
+        // Fallback to getUser
+        const { data: userData, error: userError } = await supabaseAuth.auth.getUser(token);
+        if (userError || !userData?.user) {
+          console.error('Auth failed:', claimsError?.message || userError?.message);
+          return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+            status: 401,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+        userId = userData.user.id;
+      }
+    } catch (authErr: any) {
+      console.error('Auth exception:', authErr.message);
       return new Response(JSON.stringify({ error: 'Unauthorized' }), {
         status: 401,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
-    const userId = userData.user.id;
 
     const body: SendMessageRequest = await req.json();
     const { tenant_id, phone_number_id, to_wa_id, type = 'text', text, media_url, contact_name, conversation_id } = body;

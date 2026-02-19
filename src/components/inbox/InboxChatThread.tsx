@@ -1066,7 +1066,7 @@ export function InboxChatThread({
                       : "h-11 w-11"
                   )}
                   onClick={handleSend}
-                  disabled={!messageText.trim() && !isOutside24hWindow}
+                  disabled={!messageText.trim() || isOutside24hWindow}
                 >
                   {messageText.trim() ? (
                     <Send className={cn(isMobile ? "h-5 w-5" : "h-4 w-4")} />

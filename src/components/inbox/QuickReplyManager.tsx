@@ -168,7 +168,7 @@ export function QuickReplyManager({ onSelectReply, isMobile = false }: QuickRepl
                         <p className="text-sm font-medium">{reply.label}</p>
                         <p className="text-xs text-muted-foreground line-clamp-2 mt-0.5">{reply.text}</p>
                       </div>
-                      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <div className="flex items-center gap-1 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
                         <Button 
                           variant="ghost" size="icon" className="h-7 w-7"
                           onClick={() => startEdit(reply)}
