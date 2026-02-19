@@ -1865,16 +1865,44 @@ async function sendFormQuestion(
     return r.wamid;
 
   } else if (field.type === 'year') {
-    // Year selector — send as numbered list of years
+    // Year selector — send as WhatsApp interactive list (dropdown)
     const currentYear = new Date().getFullYear();
     const years = Array.from({ length: 10 }, (_, i) => currentYear + i);
-    let body = `${prefix}*${field.label}*${req}\n\n📅 _Reply with the year:_\n\n`;
-    years.forEach((y, i) => { body += `*${i + 1}.* ${y}\n`; });
-    const r = await sendWAText(metaPhoneId, accessToken, recipientWaId, body.trim());
-    if (r.wamid) {
-      await supabase.from('messages').insert({ tenant_id: tenantId, conversation_id: conversationId, direction: 'outbound', type: 'text', text: body.trim(), wamid: r.wamid, status: 'sent', sent_at: new Date().toISOString(), is_auto_reply: true });
+    const rows = years.map((y, idx) => ({
+      id: `year_${field.id.substring(0, 30)}_${idx}`,
+      title: String(y),
+      description: '',
+    }));
+    const payload = {
+      messaging_product: 'whatsapp', recipient_type: 'individual', to: recipientWaId,
+      type: 'interactive',
+      interactive: {
+        type: 'list',
+        body: { text: `${prefix}*${field.label}*${req}\n\n📅 _Select a year:_`.substring(0, 1024) },
+        action: { button: 'Select Year', sections: [{ title: 'Years', rows }] },
+      },
+    };
+    const resp = await fetch(`https://graph.facebook.com/v21.0/${metaPhoneId}/messages`, {
+      method: 'POST', headers: { 'Authorization': `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    const result = await resp.json();
+    const wamid = result.messages?.[0]?.id;
+    if (wamid) {
+      const displayText = `${prefix}*${field.label}*${req}\n\n📅 Select a year:\n${years.map(y => `• ${y}`).join('\n')}`;
+      await supabase.from('messages').insert({ tenant_id: tenantId, conversation_id: conversationId, direction: 'outbound', type: 'interactive', text: displayText, wamid, status: 'sent', sent_at: new Date().toISOString(), is_auto_reply: true });
+    } else {
+      // Fallback to numbered text if list fails
+      console.error('Year list failed, fallback:', JSON.stringify(result));
+      let body = `${prefix}*${field.label}*${req}\n\n📅 _Reply with the number:_\n\n`;
+      years.forEach((y, i) => { body += `*${i + 1}.* ${y}\n`; });
+      const fallback = await sendWAText(metaPhoneId, accessToken, recipientWaId, body.trim());
+      if (fallback.wamid) {
+        await supabase.from('messages').insert({ tenant_id: tenantId, conversation_id: conversationId, direction: 'outbound', type: 'text', text: body.trim(), wamid: fallback.wamid, status: 'sent', sent_at: new Date().toISOString(), is_auto_reply: true });
+      }
+      return fallback.wamid;
     }
-    return r.wamid;
+    return wamid;
 
   } else {
     // Text input fallback
@@ -2002,30 +2030,46 @@ async function handleActiveFormSession(
     }
   }
 
-  // Year field validation — match by number index or year value
-  if (currentField.type === 'year' && !isInteractive) {
-    const typed = answer.trim();
-    const numMatch = parseInt(typed, 10);
+  // Year field validation — handle interactive list selection or typed input
+  if (currentField.type === 'year') {
     const currentYear = new Date().getFullYear();
     const years = Array.from({ length: 10 }, (_, i) => currentYear + i);
-    
-    if (numMatch >= 1 && numMatch <= 10) {
-      answer = String(years[numMatch - 1]);
-      answerLabel = answer;
-    } else if (years.includes(numMatch)) {
-      answer = String(numMatch);
-      answerLabel = answer;
-    } else {
-      const { data: phone } = await supabase.from('phone_numbers')
-        .select('phone_number_id, waba_account:waba_accounts!inner(encrypted_access_token)')
-        .eq('id', phoneNumberId).maybeSingle();
-      if (phone?.phone_number_id && phone.waba_account?.encrypted_access_token) {
-        const msg = `⚠️ Please reply with a year number (1-10) or the year (e.g. ${currentYear})`;
-        await sendWAText(phone.phone_number_id, phone.waba_account.encrypted_access_token, ev.from_wa_id, msg);
-        
-        await sendFormQuestion(supabase, phone.phone_number_id, phone.waba_account.encrypted_access_token, ev.from_wa_id, tenantId, conversationId, currentField, session.current_field_index + 1, visibleFields.length);
+
+    if (isInteractive) {
+      // Interactive list reply: id = "year_{fieldId}_{index}"
+      const parts = answer.split('_');
+      const idx = parseInt(parts[parts.length - 1], 10);
+      if (!isNaN(idx) && idx >= 0 && idx < years.length) {
+        answer = String(years[idx]);
+        answerLabel = answer;
+      } else {
+        // Try title match
+        const yearNum = parseInt(answer, 10);
+        if (years.includes(yearNum)) {
+          answer = String(yearNum);
+          answerLabel = answer;
+        }
       }
-      return true;
+    } else {
+      const typed = answer.trim();
+      const numMatch = parseInt(typed, 10);
+      if (numMatch >= 1 && numMatch <= 10) {
+        answer = String(years[numMatch - 1]);
+        answerLabel = answer;
+      } else if (years.includes(numMatch)) {
+        answer = String(numMatch);
+        answerLabel = answer;
+      } else {
+        const { data: phone } = await supabase.from('phone_numbers')
+          .select('phone_number_id, waba_account:waba_accounts!inner(encrypted_access_token)')
+          .eq('id', phoneNumberId).maybeSingle();
+        if (phone?.phone_number_id && phone.waba_account?.encrypted_access_token) {
+          const msg = `⚠️ Please select a year from the list or reply with a year (e.g. ${currentYear})`;
+          await sendWAText(phone.phone_number_id, phone.waba_account.encrypted_access_token, ev.from_wa_id, msg);
+          await sendFormQuestion(supabase, phone.phone_number_id, phone.waba_account.encrypted_access_token, ev.from_wa_id, tenantId, conversationId, currentField, session.current_field_index + 1, visibleFields.length);
+        }
+        return true;
+      }
     }
   }
 
