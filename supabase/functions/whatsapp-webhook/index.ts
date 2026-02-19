@@ -711,6 +711,11 @@ async function processInboundMessage(
       formSessionHandled = await handleActiveFormSession(supabase, tenantId, phoneNumberId, conversationId, contactId, ev);
       if (formSessionHandled) {
         console.log('Message consumed by active form session');
+        // Mark inbound message as form response so bell notification is suppressed
+        supabase.from('messages').update({ metadata: { is_form_response: true } })
+          .eq('tenant_id', tenantId).eq('conversation_id', conversationId)
+          .eq('direction', 'inbound').eq('wamid', ev.wamid)
+          .then(() => {});
       }
     } catch (e) {
       console.error('Form session handler error:', e);
@@ -1704,9 +1709,14 @@ async function sendBuilderFormMessages(
   const delaySec = schema.delay_seconds || rule.trigger_config?.delay_seconds || 0;
   if (delaySec > 0) await new Promise(r => setTimeout(r, delaySec * 1000));
 
-  // Send intro
-  const introMessage = schema.intro_message || rule.form_variables?.intro_message;
+// Auto-detect customer name for {{first_name}} substitution
+  const contactName = ev.contact_name || '';
+  const firstName = contactName.split(' ')[0] || '';
+
+  // Send intro (replace {{first_name}} placeholder)
+  let introMessage = schema.intro_message || rule.form_variables?.intro_message;
   if (introMessage) {
+    introMessage = introMessage.replace(/\{\{first_name\}\}/gi, firstName || 'there');
     const r = await sendWAText(metaPhoneId, accessToken, recipientWaId, introMessage);
     if (r.wamid) {
       await supabase.from('messages').insert({
@@ -1714,22 +1724,41 @@ async function sendBuilderFormMessages(
         type: 'text', text: introMessage, wamid: r.wamid, status: 'sent',
         sent_at: new Date().toISOString(), is_auto_reply: true,
       });
-      await new Promise(r => setTimeout(r, 800));
+    }
+  }
+
+  // Auto-fill name field if available
+  const initialAnswers: Record<string, any> = {};
+  if (firstName) {
+    const nameField = visibleFields.find((f: any) =>
+      f.type === 'text' && /^(full\s*name|name|first\s*name)$/i.test(f.label)
+    );
+    if (nameField) {
+      initialAnswers[nameField.id] = { label: nameField.label, value: contactName || firstName, displayValue: contactName || firstName, fieldType: 'text' };
     }
   }
 
   // Create session with 24h expiry
+  const startIndex = Object.keys(initialAnswers).length > 0
+    ? visibleFields.findIndex((f: any) => initialAnswers[f.id]) === 0 ? 1 : 0
+    : 0;
   const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
   const { data: session, error: sessErr } = await supabase.from('form_sessions').insert({
     tenant_id: tenantId, contact_id: contactId, conversation_id: conversationId,
     form_rule_id: rule.id, form_version_id: rule.form_version_id,
-    current_field_index: 0, answers: {}, status: 'active',
+    current_field_index: startIndex, answers: initialAnswers, status: 'active',
     expires_at: expiresAt,
   }).select('id').single();
   if (sessErr) { console.error('Session create failed:', sessErr); return { success: false, error: 'session_create_failed' }; }
 
-  // Send first question
-  const wamid = await sendFormQuestion(supabase, metaPhoneId, accessToken, recipientWaId, tenantId, conversationId, visibleFields[0], 1, visibleFields.length);
+  // If name was auto-filled, tell user and start from next field
+  if (startIndex > 0 && firstName) {
+    const autoMsg = `👋 Hi *${contactName || firstName}*! I've noted your name. Let's continue...`;
+    await sendWAText(metaPhoneId, accessToken, recipientWaId, autoMsg);
+  }
+
+  // Send first question (skipping auto-filled ones)
+  const wamid = await sendFormQuestion(supabase, metaPhoneId, accessToken, recipientWaId, tenantId, conversationId, visibleFields[startIndex], startIndex + 1, visibleFields.length);
   console.log('Interactive form session started:', session.id, 'expires:', expiresAt);
   return { success: true, messageId: wamid };
 }
@@ -1771,14 +1800,19 @@ async function sendFormQuestion(
     return wamid;
 
   } else if (field.options?.length > 3 && field.options.length <= 10 && choiceTypes.includes(field.type)) {
-    // List (4-10)
+    // List (4-10) — with fallback to numbered text if list fails
+    const rows = field.options.slice(0, 10).map((opt: any, idx: number) => ({
+      id: `form_${field.id.substring(0, 30)}_${idx}`,
+      title: (opt.label || opt.value).substring(0, 24),
+      description: '',
+    }));
     const payload = {
       messaging_product: 'whatsapp', recipient_type: 'individual', to: recipientWaId,
       type: 'interactive',
       interactive: {
         type: 'list',
-        body: { text: `${prefix}*${field.label}*${req}` },
-        action: { button: 'Select Option', sections: [{ title: field.label.substring(0, 24), rows: field.options.slice(0, 10).map((opt: any) => ({ id: `form_${field.id}_${opt.value}`, title: (opt.label || opt.value).substring(0, 24) })) }] },
+        body: { text: `${prefix}*${field.label}*${req}`.substring(0, 1024) },
+        action: { button: 'Select Option', sections: [{ title: 'Options', rows }] },
       },
     };
     const resp = await fetch(`https://graph.facebook.com/v21.0/${metaPhoneId}/messages`, {
@@ -1790,7 +1824,17 @@ async function sendFormQuestion(
     if (wamid) {
       const displayText = `${prefix}*${field.label}*${req}\n\n${field.options.map((o: any) => `• ${o.label}`).join('\n')}`;
       await supabase.from('messages').insert({ tenant_id: tenantId, conversation_id: conversationId, direction: 'outbound', type: 'interactive', text: displayText, wamid, status: 'sent', sent_at: new Date().toISOString(), is_auto_reply: true });
-    } else { console.error('List message failed:', JSON.stringify(result)); }
+    } else {
+      // List message failed — fallback to numbered text
+      console.error('List message failed, using numbered fallback:', JSON.stringify(result));
+      let body = `${prefix}*${field.label}*${req}\n\n_Choose by replying with the number:_\n\n`;
+      field.options.forEach((opt: any, i: number) => { body += `*${i + 1}.* ${opt.label || opt.value}\n`; });
+      const fallback = await sendWAText(metaPhoneId, accessToken, recipientWaId, body.trim());
+      if (fallback.wamid) {
+        await supabase.from('messages').insert({ tenant_id: tenantId, conversation_id: conversationId, direction: 'outbound', type: 'text', text: body.trim(), wamid: fallback.wamid, status: 'sent', sent_at: new Date().toISOString(), is_auto_reply: true });
+      }
+      return fallback.wamid;
+    }
     return wamid;
 
   } else if (field.options?.length > 10 && choiceTypes.includes(field.type)) {
@@ -1868,7 +1912,7 @@ async function handleActiveFormSession(
 ): Promise<boolean> {
   const { data: session } = await supabase.from('form_sessions')
     .select('*').eq('tenant_id', tenantId).eq('contact_id', contactId)
-    .eq('status', 'active').gt('expires_at', new Date().toISOString())
+    .in('status', ['active', 'review']).gt('expires_at', new Date().toISOString())
     .order('created_at', { ascending: false }).limit(1).maybeSingle();
   if (!session) return false;
 
@@ -1896,9 +1940,18 @@ async function handleActiveFormSession(
       answer = parts.length >= 3 ? parts.slice(2).join('_') : raw.button_reply.title;
       answerLabel = raw.button_reply.title || answer;
     } else if (raw?.list_reply) {
-      const parts = (raw.list_reply.id || '').split('_');
-      answer = parts.length >= 3 ? parts.slice(2).join('_') : raw.list_reply.title;
-      answerLabel = raw.list_reply.title || answer;
+      const listId = raw.list_reply.id || '';
+      const parts = listId.split('_');
+      const lastPart = parts[parts.length - 1];
+      // Check if last part is a numeric index (from our indexed list IDs)
+      const idx = parseInt(lastPart, 10);
+      if (!isNaN(idx) && currentField.options?.length > idx) {
+        answer = currentField.options[idx].value;
+        answerLabel = currentField.options[idx].label || answer;
+      } else {
+        answer = parts.length >= 3 ? parts.slice(2).join('_') : raw.list_reply.title;
+        answerLabel = raw.list_reply.title || answer;
+      }
     }
   }
 
@@ -1942,7 +1995,7 @@ async function handleActiveFormSession(
             sent_at: new Date().toISOString(), is_auto_reply: true,
           });
         }
-        await new Promise(r => setTimeout(r, 500));
+        
         await sendFormQuestion(supabase, phone.phone_number_id, phone.waba_account.encrypted_access_token, ev.from_wa_id, tenantId, conversationId, currentField, session.current_field_index + 1, visibleFields.length);
       }
       return true;
@@ -1969,7 +2022,7 @@ async function handleActiveFormSession(
       if (phone?.phone_number_id && phone.waba_account?.encrypted_access_token) {
         const msg = `⚠️ Please reply with a year number (1-10) or the year (e.g. ${currentYear})`;
         await sendWAText(phone.phone_number_id, phone.waba_account.encrypted_access_token, ev.from_wa_id, msg);
-        await new Promise(r => setTimeout(r, 500));
+        
         await sendFormQuestion(supabase, phone.phone_number_id, phone.waba_account.encrypted_access_token, ev.from_wa_id, tenantId, conversationId, currentField, session.current_field_index + 1, visibleFields.length);
       }
       return true;
@@ -2140,7 +2193,6 @@ async function handleActiveFormSession(
       .select('phone_number_id, waba_account:waba_accounts!inner(encrypted_access_token)')
       .eq('id', phoneNumberId).maybeSingle();
     if (phone?.phone_number_id && phone.waba_account?.encrypted_access_token) {
-      await new Promise(r => setTimeout(r, 500));
       await sendFormQuestion(supabase, phone.phone_number_id, phone.waba_account.encrypted_access_token, ev.from_wa_id, tenantId, conversationId, visibleFields[nextIndex], nextIndex + 1, visibleFields.length);
     }
   }
