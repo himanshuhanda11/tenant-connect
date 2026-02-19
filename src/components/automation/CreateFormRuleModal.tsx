@@ -819,6 +819,20 @@ export function CreateFormRuleModal({ open, onOpenChange, editingRule, createRul
                   <p className="text-xs sm:text-sm text-muted-foreground">Use an existing template or build a custom form</p>
                 </div>
 
+                {/* Intro Message – first field */}
+                <div className="space-y-3">
+                  <Label className="text-sm font-semibold">Intro Message</Label>
+                  <Textarea
+                    value={introMessage}
+                    onChange={(e) => setIntroMessage(e.target.value)}
+                    placeholder="Hi! I'd like to help you better. Please fill out this quick form..."
+                    className="h-20 resize-none"
+                  />
+                  <p className="text-xs text-muted-foreground">Sent before the form (optional)</p>
+                </div>
+
+                <Separator className="my-2" />
+
                 {/* Mode Switcher */}
                 <div className="grid grid-cols-2 gap-2 p-1 bg-muted rounded-xl">
                   <button
@@ -908,17 +922,6 @@ export function CreateFormRuleModal({ open, onOpenChange, editingRule, createRul
                 )}
 
                 <Separator className="my-4" />
-
-                <div className="space-y-3">
-                  <Label className="text-sm font-semibold">Optional Intro Message</Label>
-                  <Textarea
-                    value={introMessage}
-                    onChange={(e) => setIntroMessage(e.target.value)}
-                    placeholder="Hi! I'd like to help you better. Please fill out this quick form..."
-                    className="h-20 resize-none"
-                  />
-                  <p className="text-xs text-muted-foreground">Sent before the form (optional)</p>
-                </div>
 
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
