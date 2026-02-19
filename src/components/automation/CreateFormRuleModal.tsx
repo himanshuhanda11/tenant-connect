@@ -349,7 +349,7 @@ export function CreateFormRuleModal({ open, onOpenChange, editingRule }: CreateF
           stop_on_free_text: stopOnFreeText,
           delay_seconds: delaySeconds,
         },
-        form_id: finalFormId || null,
+        form_id: formMode === 'template' ? (finalFormId || null) : null,
         form_version_id: finalVersionId,
         form_template_name: formMode === 'builder' ? builderFormName : null,
         form_variables: {
