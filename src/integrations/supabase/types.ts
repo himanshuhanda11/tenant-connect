@@ -3969,6 +3969,67 @@ export type Database = {
           },
         ]
       }
+      message_sequences: {
+        Row: {
+          created_at: string
+          id: string
+          is_synced: boolean
+          message: string
+          phone_number_id: string
+          sort_order: number
+          synced_at: string | null
+          tenant_id: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_synced?: boolean
+          message: string
+          phone_number_id: string
+          sort_order?: number
+          synced_at?: string | null
+          tenant_id: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_synced?: boolean
+          message?: string
+          phone_number_id?: string
+          sort_order?: number
+          synced_at?: string | null
+          tenant_id?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "message_sequences_phone_number_id_fkey"
+            columns: ["phone_number_id"]
+            isOneToOne: false
+            referencedRelation: "phone_numbers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "message_sequences_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "platform_workspace_directory"
+            referencedColumns: ["workspace_id"]
+          },
+          {
+            foreignKeyName: "message_sequences_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       messages: {
         Row: {
           context_message_id: string | null

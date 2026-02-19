@@ -263,8 +263,111 @@ Deno.serve(async (req) => {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
 
+    } else if (action === 'get_ice_breakers') {
+      // Fetch current ice breakers from WhatsApp Business Profile
+      const response = await fetch(
+        `${WHATSAPP_API_BASE}/${phone_number_id}/whatsapp_business_profile?fields=ice_breakers`,
+        {
+          headers: { 'Authorization': `Bearer ${accessToken}` }
+        }
+      );
+
+      const data = await response.json();
+      console.log('Ice breakers GET response:', JSON.stringify(data));
+
+      if (!response.ok) {
+        return new Response(JSON.stringify({ 
+          error: 'Failed to fetch ice breakers',
+          details: data.error?.message || 'Unknown error'
+        }), {
+          status: response.status,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      const profile = data.data?.[0] || {};
+      return new Response(JSON.stringify({ 
+        success: true, 
+        ice_breakers: profile.ice_breakers || [] 
+      }), {
+        status: 200,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+
+    } else if (action === 'set_ice_breakers') {
+      // Set ice breakers on WhatsApp Business Profile
+      const { ice_breakers } = body;
+      
+      if (!Array.isArray(ice_breakers)) {
+        return new Response(JSON.stringify({ error: 'ice_breakers array is required' }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      // WhatsApp allows up to 4 ice breakers
+      if (ice_breakers.length > 4) {
+        return new Response(JSON.stringify({ error: 'Maximum 4 ice breakers allowed' }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      const payload = {
+        messaging_product: 'whatsapp',
+        ice_breakers: ice_breakers.map((ib: { title: string; message: string }) => ({
+          call_to_actions: [{
+            type: 'TEXT',
+            title: ib.title,
+            // The message the user sends when tapping
+          }],
+          // Simplified format - title is what user sees, message is auto-reply context
+        })),
+      };
+
+      // Use the simpler ice_breakers format
+      const simplePayload = {
+        messaging_product: 'whatsapp',
+        ice_breakers: ice_breakers.map((ib: { title: string }) => ib.title),
+      };
+
+      console.log('Ice breakers SET payload:', JSON.stringify(simplePayload));
+
+      const response = await fetch(
+        `${WHATSAPP_API_BASE}/${phone_number_id}/whatsapp_business_profile`,
+        {
+          method: 'POST',
+          headers: { 
+            'Authorization': `Bearer ${accessToken}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(simplePayload)
+        }
+      );
+
+      const data = await response.json();
+      console.log('Ice breakers SET response:', JSON.stringify(data));
+
+      if (!response.ok) {
+        return new Response(JSON.stringify({ 
+          error: 'Failed to set ice breakers',
+          details: data.error?.message || 'Unknown error'
+        }), {
+          status: response.status,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      return new Response(JSON.stringify({ 
+        success: true, 
+        message: 'Ice breakers updated on Meta successfully' 
+      }), {
+        status: 200,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+
     } else {
-      return new Response(JSON.stringify({ error: 'Invalid action. Use "get" or "update"' }), {
+      return new Response(JSON.stringify({ error: 'Invalid action. Use "get", "update", "get_ice_breakers", or "set_ice_breakers"' }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
