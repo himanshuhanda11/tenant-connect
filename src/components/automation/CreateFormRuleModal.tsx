@@ -49,7 +49,6 @@ import {
   Ban,
   RefreshCcw,
 } from 'lucide-react';
-import { useFormRules } from '@/hooks/useFormRules';
 import { useTemplates } from '@/hooks/useTemplates';
 import { 
   FORM_RULE_TRIGGER_OPTIONS, 
@@ -70,6 +69,9 @@ interface CreateFormRuleModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   editingRule?: FormRule | null;
+  createRule: (data: Partial<FormRule>) => Promise<FormRule | null>;
+  updateRule: (id: string, data: Partial<FormRule>) => Promise<boolean>;
+  onSaved?: () => void;
 }
 
 const STEPS = [
@@ -115,8 +117,7 @@ const EXTENDED_TRIGGER_OPTIONS = [
   },
 ];
 
-export function CreateFormRuleModal({ open, onOpenChange, editingRule }: CreateFormRuleModalProps) {
-  const { createRule, updateRule } = useFormRules();
+export function CreateFormRuleModal({ open, onOpenChange, editingRule, createRule, updateRule, onSaved }: CreateFormRuleModalProps) {
   const { templates } = useTemplates();
   const { currentTenant } = useTenant();
   const [saving, setSaving] = useState(false);
@@ -373,6 +374,7 @@ export function CreateFormRuleModal({ open, onOpenChange, editingRule }: CreateF
       } else {
         await createRule(ruleData);
       }
+      onSaved?.();
       onOpenChange(false);
     } finally {
       setSaving(false);
