@@ -23,11 +23,12 @@ export function TenantProvider({ children }: { children: React.ReactNode }) {
   const [currentTenant, setCurrentTenantState] = useState<TenantWithRole | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const fetchTenants = async () => {
-    // Important: keep loading=true while we resolve tenant memberships.
-    // This prevents route guards (DashboardLayout) from redirecting based on empty state
-    // during the brief window after auth restores the session.
-    setLoading(true);
+  const fetchTenants = async (showSpinner = false) => {
+    // Only show loading spinner when explicitly requested (initial load).
+    // Silent refreshes (e.g. token refresh on tab switch) keep the UI mounted.
+    if (showSpinner) {
+      setLoading(true);
+    }
 
     if (!user) {
       setTenants([]);
@@ -91,14 +92,10 @@ export function TenantProvider({ children }: { children: React.ReactNode }) {
   };
 
   useEffect(() => {
-    // When auth state changes, re-fetch tenants.
-    // Only show loading spinner on initial load (no tenant yet).
-    // On subsequent refreshes (e.g. token refresh on tab switch),
-    // keep showing current data to avoid unmounting the entire UI.
-    if (!currentTenant) {
-      setLoading(true);
-    }
-    fetchTenants();
+    // Show spinner only on initial load (no tenant yet).
+    // Subsequent user/token changes refresh silently to preserve UI state (modals, wizards).
+    const isInitialLoad = !currentTenant;
+    fetchTenants(isInitialLoad);
   }, [user]);
 
   const setCurrentTenant = (tenant: TenantWithRole | null) => {
