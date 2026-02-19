@@ -1496,6 +1496,13 @@ async function sendFormRuleTemplate(
       .maybeSingle();
     template = tmpl;
   }
+
+  // If no WhatsApp template found, check for builder-mode form (form_version_id)
+  if (!template && rule.form_version_id) {
+    console.log('No WA template found, using builder-mode form version:', rule.form_version_id);
+    return await sendBuilderFormMessages(supabase, rule, tenantId, phoneNumberId, conversationId, contactId, recipientWaId);
+  }
+
   if (!template) {
     return { success: false, error: 'no_template_linked' };
   }
@@ -1639,6 +1646,128 @@ async function sendFormRuleTemplate(
   }).eq('id', conversationId);
 
   return { success: true, messageId: wamid };
+}
+
+// Handle builder-mode forms (form_version_id based)
+async function sendBuilderFormMessages(
+  supabase: any,
+  rule: any,
+  tenantId: string,
+  phoneNumberId: string,
+  conversationId: string,
+  contactId: string,
+  recipientWaId: string
+): Promise<{ success: boolean; messageId?: string; error?: string }> {
+  const { data: formVersion, error: fvErr } = await supabase
+    .from('form_versions')
+    .select('id, schema_json')
+    .eq('id', rule.form_version_id)
+    .maybeSingle();
+
+  if (fvErr || !formVersion?.schema_json) {
+    console.error('Failed to fetch form version:', fvErr);
+    return { success: false, error: 'form_version_not_found' };
+  }
+
+  const schema = formVersion.schema_json;
+  const introMessage = schema.intro_message || rule.form_variables?.intro_message;
+  const delaySec = schema.delay_seconds || rule.trigger_config?.delay_seconds || 0;
+
+  const { data: phone } = await supabase
+    .from('phone_numbers')
+    .select('phone_number_id, waba_account:waba_accounts!inner(encrypted_access_token)')
+    .eq('id', phoneNumberId)
+    .maybeSingle();
+
+  if (!phone?.phone_number_id || !phone.waba_account?.encrypted_access_token) {
+    return { success: false, error: 'phone_or_token_not_found' };
+  }
+
+  const accessToken = phone.waba_account.encrypted_access_token;
+  const metaPhoneId = phone.phone_number_id;
+
+  if (delaySec > 0) {
+    await new Promise(resolve => setTimeout(resolve, delaySec * 1000));
+  }
+
+  let lastWamid: string | undefined;
+
+  if (introMessage) {
+    const introResp = await fetch(
+      `https://graph.facebook.com/v21.0/${metaPhoneId}/messages`,
+      {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          messaging_product: 'whatsapp', recipient_type: 'individual', to: recipientWaId,
+          type: 'text', text: { body: introMessage },
+        }),
+      }
+    );
+
+    if (introResp.ok) {
+      const introResult = await introResp.json();
+      lastWamid = introResult.messages?.[0]?.id;
+      await supabase.from('messages').insert({
+        tenant_id: tenantId, conversation_id: conversationId, direction: 'outbound',
+        type: 'text', text: introMessage, wamid: lastWamid, status: 'sent',
+        sent_at: new Date().toISOString(), is_auto_reply: true,
+      });
+      await new Promise(resolve => setTimeout(resolve, 500));
+    } else {
+      console.error('Intro message send failed:', await introResp.text());
+    }
+  }
+
+  const fields = (schema.fields || []).filter((f: any) =>
+    !['hidden', 'calculated', 'lead_score', 'tag_assignment'].includes(f.type)
+  );
+
+  if (fields.length > 0) {
+    let formText = '';
+    fields.forEach((field: any, idx: number) => {
+      formText += `*${idx + 1}. ${field.label}*${field.required ? ' _(required)_' : ''}\n`;
+      if (field.options?.length > 0) {
+        field.options.forEach((opt: any) => { formText += `   • ${opt.label}\n`; });
+      }
+      formText += '\n';
+    });
+    formText += '_Please reply with your answers numbered (1. ... 2. ... etc.)_';
+
+    const formResp = await fetch(
+      `https://graph.facebook.com/v21.0/${metaPhoneId}/messages`,
+      {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          messaging_product: 'whatsapp', recipient_type: 'individual', to: recipientWaId,
+          type: 'text', text: { body: formText.trim() },
+        }),
+      }
+    );
+
+    if (formResp.ok) {
+      const formResult = await formResp.json();
+      lastWamid = formResult.messages?.[0]?.id;
+      await supabase.from('messages').insert({
+        tenant_id: tenantId, conversation_id: conversationId, direction: 'outbound',
+        type: 'text', text: formText.trim(), wamid: lastWamid, status: 'sent',
+        sent_at: new Date().toISOString(), is_auto_reply: true,
+      });
+    } else {
+      const errBody = await formResp.text();
+      console.error('Form message send failed:', errBody);
+      return { success: false, error: `form_send_failed: ${errBody}` };
+    }
+  }
+
+  await supabase.from('conversations').update({
+    last_message_at: new Date().toISOString(),
+    last_message_preview: `📋 Form: ${rule.name}`,
+  }).eq('id', conversationId);
+
+  console.log('Builder form sent successfully for rule:', rule.name);
+  return { success: true, messageId: lastWamid };
 }
 
 // Log form rule execution
