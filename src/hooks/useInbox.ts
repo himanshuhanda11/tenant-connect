@@ -108,6 +108,13 @@ export function useInboxConversations(view: InboxView, filters: InboxFilters) {
     // Only show loading spinner on initial load, not background refreshes
     if (!isBackground) setLoading(true);
     try {
+      // Check if user is an agent (not owner/admin)
+      const { data: roleName } = await supabase.rpc('get_user_role_name', {
+        p_tenant_id: currentTenant.id,
+        p_user_id: user?.id || '',
+      });
+      const isAgent = roleName === 'agent';
+
       let query = supabase
         .from('conversations')
         .select(`
@@ -119,19 +126,21 @@ export function useInboxConversations(view: InboxView, filters: InboxFilters) {
         .eq('tenant_id', currentTenant.id)
         .order('last_message_at', { ascending: false, nullsFirst: false });
 
+      // Agent visibility: only see unassigned OR assigned/claimed to self
+      if (isAgent && user?.id) {
+        query = query.or(`assigned_to.is.null,assigned_to.eq.${user.id},claimed_by.eq.${user.id}`);
+      }
+
       // Apply filters based on queue model (matches useInboxQueues spec)
       if (filters.status && filters.status !== 'all') {
         const dbStatus = filters.status === 'pending' ? 'open' : filters.status;
         query = query.eq('status', dbStatus);
       }
       if (filters.assignment === 'unassigned') {
-        // Unassigned: assigned_to null AND claimed_at null AND not closed
         query = query.is('assigned_to', null).is('claimed_at', null).neq('status', 'closed');
       } else if (filters.assignment === 'assigned_pending' && user?.id) {
-        // Assigned to me but NOT yet claimed (pending handling)
         query = query.eq('assigned_to', user.id).is('claimed_at', null).neq('status', 'closed');
       } else if (filters.assignment === 'mine' && user?.id) {
-        // Mine (Claimed): claimed_by = me AND not closed
         query = query.eq('claimed_by', user.id).not('claimed_at', 'is', null).neq('status', 'closed');
       }
       if (filters.priority && filters.priority !== 'all') {
