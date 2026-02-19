@@ -456,7 +456,7 @@ export function AppSidebar() {
                 </div>
               </div>
             </div>
-            <DropdownMenuItem onClick={() => navigate('/settings')} className="gap-2 py-1.5 rounded-md text-[12px]">
+            <DropdownMenuItem onClick={() => navigate('/settings?section=profile')} className="gap-2 py-1.5 rounded-md text-[12px]">
               <User className="w-3.5 h-3.5 text-muted-foreground" /> My Profile
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => navigate('/settings')} className="gap-2 py-1.5 rounded-md text-[12px]">

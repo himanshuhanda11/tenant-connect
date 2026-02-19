@@ -15,6 +15,7 @@ import {
   Phone,
   Bot,
   Palette,
+  UserCircle,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useTenant } from '@/contexts/TenantContext';
@@ -28,6 +29,7 @@ interface SettingsSection {
 }
 
 const settingsSections: SettingsSection[] = [
+  { id: 'profile', label: 'My Profile', icon: UserCircle },
   { id: 'workspace', label: 'Workspace', icon: Building2 },
   { id: 'whatsapp', label: 'WhatsApp Number', icon: Phone },
   { id: 'messaging', label: 'Messaging', icon: MessageSquare },
@@ -45,7 +47,7 @@ const settingsSections: SettingsSection[] = [
   { id: 'advanced', label: 'Advanced', icon: Settings2 },
 ];
 
-const agentSections = ['appearance'];
+const agentSections = ['profile', 'appearance'];
 
 interface SettingsSidebarProps {
   activeSection: string;
