@@ -270,7 +270,59 @@ export function useTeams() {
     }
   };
 
-  return { teams, loading, refetch: fetchTeams, createTeam, updateTeam, deleteTeam };
+  const addTeamMember = async (teamId: string, agentId: string): Promise<boolean> => {
+    if (!currentTenant?.id) return false;
+    try {
+      const { error } = await supabase
+        .from('team_members')
+        .insert({ team_id: teamId, agent_id: agentId, tenant_id: currentTenant.id });
+      if (error) throw error;
+      toast.success('Member added to team');
+      await fetchTeams();
+      return true;
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to add member');
+      return false;
+    }
+  };
+
+  const removeTeamMember = async (teamId: string, agentId: string): Promise<boolean> => {
+    if (!currentTenant?.id) return false;
+    try {
+      const { error } = await supabase
+        .from('team_members')
+        .delete()
+        .eq('team_id', teamId)
+        .eq('agent_id', agentId)
+        .eq('tenant_id', currentTenant.id);
+      if (error) throw error;
+      toast.success('Member removed from team');
+      await fetchTeams();
+      return true;
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to remove member');
+      return false;
+    }
+  };
+
+  const getTeamMembers = async (teamId: string) => {
+    if (!currentTenant?.id) return [];
+    const { data } = await supabase
+      .from('team_members')
+      .select(`
+        *,
+        agent:agents!team_members_agent_id_fkey(
+          id, display_name, user_id, is_active,
+          profile:profiles!agents_user_id_fkey(id, email, full_name, avatar_url)
+        )
+      `)
+      .eq('team_id', teamId)
+      .eq('tenant_id', currentTenant.id)
+      .eq('is_active', true);
+    return data || [];
+  };
+
+  return { teams, loading, refetch: fetchTeams, createTeam, updateTeam, deleteTeam, addTeamMember, removeTeamMember, getTeamMembers };
 }
 
 // ============================================
