@@ -1664,6 +1664,23 @@ async function sendBuilderFormMessages(
   supabase: any, rule: any, tenantId: string, phoneNumberId: string,
   conversationId: string, contactId: string, recipientWaId: string
 ): Promise<{ success: boolean; messageId?: string; error?: string }> {
+  // Check for existing active session for this contact (prevent duplicates)
+  const { data: existingSession } = await supabase.from('form_sessions')
+    .select('id, status, expires_at').eq('tenant_id', tenantId).eq('contact_id', contactId)
+    .eq('form_rule_id', rule.id).eq('status', 'active')
+    .gt('expires_at', new Date().toISOString())
+    .maybeSingle();
+
+  if (existingSession) {
+    console.log('Active form session already exists for this contact:', existingSession.id);
+    return { success: true, messageId: 'session_exists' };
+  }
+
+  // Cancel any expired sessions
+  await supabase.from('form_sessions').update({ status: 'expired' })
+    .eq('tenant_id', tenantId).eq('contact_id', contactId)
+    .eq('status', 'active').lt('expires_at', new Date().toISOString());
+
   const { data: formVersion, error: fvErr } = await supabase
     .from('form_versions').select('id, schema_json').eq('id', rule.form_version_id).maybeSingle();
   if (fvErr || !formVersion?.schema_json) {
@@ -1701,17 +1718,19 @@ async function sendBuilderFormMessages(
     }
   }
 
-  // Create session
+  // Create session with 24h expiry
+  const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
   const { data: session, error: sessErr } = await supabase.from('form_sessions').insert({
     tenant_id: tenantId, contact_id: contactId, conversation_id: conversationId,
     form_rule_id: rule.id, form_version_id: rule.form_version_id,
     current_field_index: 0, answers: {}, status: 'active',
+    expires_at: expiresAt,
   }).select('id').single();
   if (sessErr) { console.error('Session create failed:', sessErr); return { success: false, error: 'session_create_failed' }; }
 
   // Send first question
   const wamid = await sendFormQuestion(supabase, metaPhoneId, accessToken, recipientWaId, tenantId, conversationId, visibleFields[0], 1, visibleFields.length);
-  console.log('Interactive form session started:', session.id);
+  console.log('Interactive form session started:', session.id, 'expires:', expiresAt);
   return { success: true, messageId: wamid };
 }
 
@@ -1808,31 +1827,98 @@ async function handleActiveFormSession(
     .order('created_at', { ascending: false }).limit(1).maybeSingle();
   if (!session) return false;
 
-  console.log('Active form session:', session.id, 'field:', session.current_field_index);
+  console.log('Active form session:', session.id, 'field_index:', session.current_field_index);
 
   const { data: fv } = await supabase.from('form_versions').select('schema_json').eq('id', session.form_version_id).maybeSingle();
   if (!fv?.schema_json) return false;
 
-  const visibleFields = (fv.schema_json.fields || []).filter((f: any) =>
+  const allFields = fv.schema_json.fields || [];
+  const visibleFields = allFields.filter((f: any) =>
     !['hidden', 'calculated', 'lead_score', 'tag_assignment'].includes(f.type)
   );
   const currentField = visibleFields[session.current_field_index];
   if (!currentField) return false;
 
-  // Extract answer
+  // ─── Extract answer from interactive or text ───
   let answer = ev.text || '';
-  if (ev.msg_type === 'interactive') {
+  let answerLabel = answer;
+  const isInteractive = ev.msg_type === 'interactive' || ev.msg_type === 'button';
+  
+  if (isInteractive) {
     const raw = ev.raw?.message?.interactive;
     if (raw?.button_reply) {
       const parts = (raw.button_reply.id || '').split('_');
       answer = parts.length >= 3 ? parts.slice(2).join('_') : raw.button_reply.title;
+      answerLabel = raw.button_reply.title || answer;
     } else if (raw?.list_reply) {
       const parts = (raw.list_reply.id || '').split('_');
       answer = parts.length >= 3 ? parts.slice(2).join('_') : raw.list_reply.title;
+      answerLabel = raw.list_reply.title || answer;
     }
   }
 
-  const updatedAnswers = { ...session.answers, [currentField.id]: { label: currentField.label, value: answer } };
+  // ─── Validate answer ───
+  const fieldHasOptions = currentField.options?.length > 0 && ['select', 'radio'].includes(currentField.type);
+  
+  if (fieldHasOptions && !isInteractive) {
+    // User typed free text instead of clicking a button/list option
+    // Check if their text matches any option label/value (case-insensitive)
+    const typed = answer.trim().toLowerCase();
+    const matchedOption = currentField.options.find((opt: any) =>
+      opt.label?.toLowerCase() === typed || opt.value?.toLowerCase() === typed
+    );
+    
+    if (matchedOption) {
+      answer = matchedOption.value;
+      answerLabel = matchedOption.label;
+    } else {
+      // Invalid answer — send fallback, don't advance
+      const { data: phone } = await supabase.from('phone_numbers')
+        .select('phone_number_id, waba_account:waba_accounts!inner(encrypted_access_token)')
+        .eq('id', phoneNumberId).maybeSingle();
+      if (phone?.phone_number_id && phone.waba_account?.encrypted_access_token) {
+        const fallbackMsg = `⚠️ Please choose from the options provided. Tap the button or select from the list above.`;
+        const r = await sendWAText(phone.phone_number_id, phone.waba_account.encrypted_access_token, ev.from_wa_id, fallbackMsg);
+        if (r.wamid) {
+          await supabase.from('messages').insert({
+            tenant_id: tenantId, conversation_id: conversationId, direction: 'outbound',
+            type: 'text', text: fallbackMsg, wamid: r.wamid, status: 'sent',
+            sent_at: new Date().toISOString(), is_auto_reply: true,
+          });
+        }
+        // Re-send the question
+        await new Promise(r => setTimeout(r, 500));
+        await sendFormQuestion(supabase, phone.phone_number_id, phone.waba_account.encrypted_access_token, ev.from_wa_id, tenantId, conversationId, currentField, session.current_field_index + 1, visibleFields.length);
+      }
+      return true; // Consumed the message but didn't advance
+    }
+  }
+
+  // Basic type validation for text fields
+  if (currentField.type === 'email' && answer && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(answer)) {
+    const { data: phone } = await supabase.from('phone_numbers')
+      .select('phone_number_id, waba_account:waba_accounts!inner(encrypted_access_token)')
+      .eq('id', phoneNumberId).maybeSingle();
+    if (phone?.phone_number_id && phone.waba_account?.encrypted_access_token) {
+      const msg = '⚠️ That doesn\'t look like a valid email. Please try again:';
+      await sendWAText(phone.phone_number_id, phone.waba_account.encrypted_access_token, ev.from_wa_id, msg);
+    }
+    return true;
+  }
+
+  if (currentField.required && !answer.trim()) {
+    const { data: phone } = await supabase.from('phone_numbers')
+      .select('phone_number_id, waba_account:waba_accounts!inner(encrypted_access_token)')
+      .eq('id', phoneNumberId).maybeSingle();
+    if (phone?.phone_number_id && phone.waba_account?.encrypted_access_token) {
+      const msg = '⚠️ This field is required. Please provide an answer:';
+      await sendWAText(phone.phone_number_id, phone.waba_account.encrypted_access_token, ev.from_wa_id, msg);
+    }
+    return true;
+  }
+
+  // ─── Store answer and advance ───
+  const updatedAnswers = { ...session.answers, [currentField.id]: { label: currentField.label, value: answer, displayValue: answerLabel, fieldType: currentField.type } };
   const nextIndex = session.current_field_index + 1;
   const isComplete = nextIndex >= visibleFields.length;
 
@@ -1851,16 +1937,8 @@ async function handleActiveFormSession(
   const metaPhoneId = phone.phone_number_id;
 
   if (isComplete) {
-    const successMsg = fv.schema_json.settings?.successMessage || 'Thank you for your response! ✅';
-    const r = await sendWAText(metaPhoneId, accessToken, ev.from_wa_id, successMsg);
-    if (r.wamid) {
-      await supabase.from('messages').insert({
-        tenant_id: tenantId, conversation_id: conversationId, direction: 'outbound',
-        type: 'text', text: successMsg, wamid: r.wamid, status: 'sent',
-        sent_at: new Date().toISOString(), is_auto_reply: true,
-      });
-    }
-    console.log('Form completed:', session.id, JSON.stringify(updatedAnswers));
+    // ─── FORM COMPLETION ENGINE ───
+    await handleFormCompletion(supabase, tenantId, phoneNumberId, conversationId, contactId, ev.from_wa_id, session, updatedAnswers, allFields, fv.schema_json, metaPhoneId, accessToken);
   } else {
     await new Promise(r => setTimeout(r, 500));
     await sendFormQuestion(supabase, metaPhoneId, accessToken, ev.from_wa_id, tenantId, conversationId, visibleFields[nextIndex], nextIndex + 1, visibleFields.length);
@@ -1868,6 +1946,193 @@ async function handleActiveFormSession(
   return true;
 }
 
+// ─── Form Completion Engine ───
+async function handleFormCompletion(
+  supabase: any, tenantId: string, phoneNumberId: string,
+  conversationId: string, contactId: string, recipientWaId: string,
+  session: any, answers: Record<string, any>, allFields: any[], schema: any,
+  metaPhoneId: string, accessToken: string
+) {
+  try {
+    console.log('Form completion engine starting for session:', session.id);
+
+    // 1. Calculate lead score from lead_score fields
+    let totalScore = 0;
+    const scoreBreakdown: Record<string, number> = {};
+    
+    for (const field of allFields) {
+      if (field.type === 'lead_score' && field.leadScoreRules) {
+        for (const rule of field.leadScoreRules) {
+          // Check if any answered field matches a scoring rule
+          for (const [fieldId, ansData] of Object.entries(answers)) {
+            const ans = ansData as any;
+            if (ans.value === rule.answer || ans.displayValue === rule.answer) {
+              totalScore += rule.points || 0;
+              scoreBreakdown[ans.label] = (scoreBreakdown[ans.label] || 0) + (rule.points || 0);
+            }
+          }
+        }
+      }
+    }
+
+    // Score based on answer values matching option scores
+    for (const field of allFields.filter((f: any) => f.options?.length > 0)) {
+      const ansData = answers[field.id] as any;
+      if (!ansData) continue;
+      const matchedOpt = field.options.find((o: any) => o.value === ansData.value);
+      if (matchedOpt?.score) {
+        totalScore += matchedOpt.score;
+        scoreBreakdown[field.label] = (scoreBreakdown[field.label] || 0) + matchedOpt.score;
+      }
+    }
+
+    // 2. Determine qualification from score thresholds
+    const thresholds = schema.leadScoreThresholds || { hot: 80, warm: 50, cold: 0 };
+    let qualification = 'cold';
+    if (totalScore >= thresholds.hot) qualification = 'hot';
+    else if (totalScore >= thresholds.warm) qualification = 'warm';
+
+    const isQualified = qualification === 'hot' || qualification === 'warm';
+
+    console.log(`Lead score: ${totalScore}, qualification: ${qualification}, qualified: ${isQualified}`);
+
+    // 3. Collect tags from tag_assignment fields
+    const tagsToApply: string[] = [];
+    for (const field of allFields) {
+      if (field.type === 'tag_assignment' && field.tagRules) {
+        for (const rule of field.tagRules) {
+          for (const [, ansData] of Object.entries(answers)) {
+            const ans = ansData as any;
+            if (ans.value === rule.answer || ans.displayValue === rule.answer) {
+              tagsToApply.push(rule.tag);
+            }
+          }
+        }
+      }
+    }
+
+    // Also collect tags from option-level tag configs
+    for (const field of allFields.filter((f: any) => f.options?.length > 0)) {
+      const ansData = answers[field.id] as any;
+      if (!ansData) continue;
+      const matchedOpt = field.options.find((o: any) => o.value === ansData.value);
+      if (matchedOpt?.tag) {
+        tagsToApply.push(matchedOpt.tag);
+      }
+    }
+
+    // Add qualification tag
+    tagsToApply.push(isQualified ? 'Qualified Lead' : 'Not Qualified');
+    if (qualification === 'hot') tagsToApply.push('Hot Lead');
+
+    // 4. Apply tags to contact
+    for (const tagName of tagsToApply) {
+      try {
+        // Find or create tag
+        let { data: tag } = await supabase.from('tags')
+          .select('id').eq('tenant_id', tenantId).eq('name', tagName).maybeSingle();
+        
+        if (!tag) {
+          const { data: newTag } = await supabase.from('tags').insert({
+            tenant_id: tenantId, name: tagName, tag_type: 'automation',
+            color: isQualified ? '#22c55e' : '#ef4444', status: 'active', apply_to: 'contacts',
+          }).select('id').single();
+          tag = newTag;
+        }
+        
+        if (tag?.id) {
+          await supabase.from('contact_tags').upsert({
+            tenant_id: tenantId, contact_id: contactId, tag_id: tag.id,
+          }, { onConflict: 'contact_id,tag_id', ignoreDuplicates: true });
+        }
+      } catch (tagErr) {
+        console.error('Tag apply error:', tagErr);
+      }
+    }
+
+    // 5. Store form submission
+    const submissionData: Record<string, any> = {};
+    for (const [fieldId, ansData] of Object.entries(answers)) {
+      const ans = ansData as any;
+      submissionData[ans.label] = ans.displayValue || ans.value;
+    }
+
+    await supabase.from('form_submissions').insert({
+      tenant_id: tenantId,
+      form_id: session.form_rule_id, // Link to rule
+      form_version_id: session.form_version_id,
+      contact_id: contactId,
+      conversation_id: conversationId,
+      data_json: submissionData,
+      lead_score: totalScore,
+      tags: tagsToApply,
+      status: 'completed',
+      submitted_at: new Date().toISOString(),
+    }).then(({ error }: any) => {
+      if (error) console.error('Form submission save error:', error);
+      else console.log('Form submission saved');
+    });
+
+    // 6. Update contact with lead status
+    await supabase.from('contacts').update({
+      lead_status: isQualified ? 'qualified' : 'new',
+      segment: qualification,
+      priority_level: qualification === 'hot' ? 'high' : qualification === 'warm' ? 'normal' : 'low',
+    }).eq('id', contactId);
+
+    // 7. Auto-assign counselor if qualified (via routing rules)
+    if (isQualified) {
+      try {
+        const { data: routeResult } = await supabase.rpc('smeksh_auto_route_conversation', {
+          p_workspace_id: tenantId,
+          p_conversation_id: conversationId,
+          p_trigger_event: 'new_conversation',
+          p_only_if_unassigned: true,
+        });
+        console.log('Auto-assign on qualification:', JSON.stringify(routeResult));
+      } catch (routeErr) {
+        console.error('Auto-assign error:', routeErr);
+      }
+    }
+
+    // 8. Send completion message with summary
+    const successMsg = schema.settings?.successMessage || 'Thank you for your response! ✅';
+    let summaryMsg = `${successMsg}\n\n`;
+    summaryMsg += `📊 *Your Summary:*\n`;
+    for (const [, ansData] of Object.entries(answers)) {
+      const ans = ansData as any;
+      summaryMsg += `• *${ans.label}:* ${ans.displayValue || ans.value}\n`;
+    }
+    if (totalScore > 0) {
+      summaryMsg += `\n⭐ Lead Score: ${totalScore} (${qualification.toUpperCase()})`;
+    }
+    if (isQualified) {
+      summaryMsg += `\n\n✅ You've been qualified! A counselor will be in touch shortly.`;
+    }
+
+    const r = await sendWAText(metaPhoneId, accessToken, recipientWaId, summaryMsg.trim());
+    if (r.wamid) {
+      await supabase.from('messages').insert({
+        tenant_id: tenantId, conversation_id: conversationId, direction: 'outbound',
+        type: 'text', text: summaryMsg.trim(), wamid: r.wamid, status: 'sent',
+        sent_at: new Date().toISOString(), is_auto_reply: true,
+      });
+    }
+
+    // Update conversation preview
+    await supabase.from('conversations').update({
+      last_message_at: new Date().toISOString(),
+      last_message_preview: `✅ Form completed (Score: ${totalScore})`,
+    }).eq('id', conversationId);
+
+    console.log('Form completion engine done. Score:', totalScore, 'Tags:', tagsToApply.join(', '));
+  } catch (err) {
+    console.error('handleFormCompletion error:', err);
+    // Still send basic success message
+    const successMsg = schema.settings?.successMessage || 'Thank you for your response! ✅';
+    await sendWAText(metaPhoneId, accessToken, recipientWaId, successMsg);
+  }
+}
 // Log form rule execution
 async function logFormRuleExecution(
   supabase: any, tenantId: string, ruleId: string, contactId: string,
