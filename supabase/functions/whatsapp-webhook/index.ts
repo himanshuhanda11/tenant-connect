@@ -1872,15 +1872,49 @@ async function sendFormQuestion(
     return r.wamid;
 
   } else if (field.type === 'year') {
-    // Year selector — 2010 to 2030 as numbered text list (21 items, too many for WhatsApp list max 10)
-    const years = Array.from({ length: 21 }, (_, i) => 2010 + i); // 2010-2030
-    let body = `${prefix}*${field.label}*${req}\n\n📅 _Reply with the number or year:_\n\n`;
-    years.forEach((y, i) => { body += `*${i + 1}.* ${y}\n`; });
-    const r = await sendWAText(metaPhoneId, accessToken, recipientWaId, body.trim());
-    if (r.wamid) {
-      await supabase.from('messages').insert({ tenant_id: tenantId, conversation_id: conversationId, direction: 'outbound', type: 'text', text: body.trim(), wamid: r.wamid, status: 'sent', sent_at: new Date().toISOString(), is_auto_reply: true });
+    // Year selector — 2010 to 2030 using WhatsApp interactive list with multiple sections
+    const years = Array.from({ length: 21 }, (_, i) => 2010 + i);
+    // Split into sections of 10 (WhatsApp max per section)
+    const sections: { title: string; rows: { id: string; title: string }[] }[] = [];
+    for (let i = 0; i < years.length; i += 10) {
+      const chunk = years.slice(i, i + 10);
+      sections.push({
+        title: `${chunk[0]} – ${chunk[chunk.length - 1]}`,
+        rows: chunk.map((y, idx) => ({
+          id: `year_${field.id.substring(0, 30)}_${i + idx}`,
+          title: String(y),
+        })),
+      });
     }
-    return r.wamid;
+    const payload = {
+      messaging_product: 'whatsapp', recipient_type: 'individual', to: recipientWaId,
+      type: 'interactive',
+      interactive: {
+        type: 'list',
+        body: { text: `${prefix}*${field.label}*${req}\n\n📅 _Select your year:_`.substring(0, 1024) },
+        action: { button: 'Select Year', sections },
+      },
+    };
+    const resp = await fetch(`https://graph.facebook.com/v21.0/${metaPhoneId}/messages`, {
+      method: 'POST', headers: { 'Authorization': `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    const result = await resp.json();
+    const wamid = result.messages?.[0]?.id;
+    if (wamid) {
+      const displayText = `${prefix}*${field.label}*${req}\n\n📅 Select your year (2010–2030)`;
+      await supabase.from('messages').insert({ tenant_id: tenantId, conversation_id: conversationId, direction: 'outbound', type: 'interactive', text: displayText, wamid, status: 'sent', sent_at: new Date().toISOString(), is_auto_reply: true });
+    } else {
+      // Fallback to text
+      console.error('Year list message failed:', JSON.stringify(result));
+      let body = `${prefix}*${field.label}*${req}\n\n📅 _Reply with a year (2010–2030):_`;
+      const fallback = await sendWAText(metaPhoneId, accessToken, recipientWaId, body);
+      if (fallback.wamid) {
+        await supabase.from('messages').insert({ tenant_id: tenantId, conversation_id: conversationId, direction: 'outbound', type: 'text', text: body, wamid: fallback.wamid, status: 'sent', sent_at: new Date().toISOString(), is_auto_reply: true });
+      }
+      return fallback.wamid;
+    }
+    return wamid;
 
   } else {
     // Text input fallback
@@ -1947,16 +1981,23 @@ async function handleActiveFormSession(
       answerLabel = raw.button_reply.title || answer;
     } else if (raw?.list_reply) {
       const listId = raw.list_reply.id || '';
-      const parts = listId.split('_');
-      const lastPart = parts[parts.length - 1];
-      // Check if last part is a numeric index (from our indexed list IDs)
-      const idx = parseInt(lastPart, 10);
-      if (!isNaN(idx) && currentField.options?.length > idx) {
-        answer = currentField.options[idx].value;
-        answerLabel = currentField.options[idx].label || answer;
+      const listTitle = raw.list_reply.title || '';
+      // Year field: IDs are like year_fieldId_idx
+      if (listId.startsWith('year_')) {
+        // The title IS the year value
+        answer = listTitle;
+        answerLabel = listTitle;
       } else {
-        answer = parts.length >= 3 ? parts.slice(2).join('_') : raw.list_reply.title;
-        answerLabel = raw.list_reply.title || answer;
+        const parts = listId.split('_');
+        const lastPart = parts[parts.length - 1];
+        const idx = parseInt(lastPart, 10);
+        if (!isNaN(idx) && currentField.options?.length > idx) {
+          answer = currentField.options[idx].value;
+          answerLabel = currentField.options[idx].label || answer;
+        } else {
+          answer = parts.length >= 3 ? parts.slice(2).join('_') : listTitle;
+          answerLabel = listTitle || answer;
+        }
       }
     }
   }
@@ -2093,7 +2134,11 @@ async function handleActiveFormSession(
     const years = Array.from({ length: 21 }, (_, i) => 2010 + i);
     const typed = answer.trim();
     const numMatch = parseInt(typed, 10);
-    if (years.includes(numMatch)) {
+    if (isInteractive && years.includes(numMatch)) {
+      // Selected from interactive list — already a valid year
+      answer = String(numMatch);
+      answerLabel = answer;
+    } else if (years.includes(numMatch)) {
       answer = String(numMatch);
       answerLabel = answer;
     } else if (numMatch >= 1 && numMatch <= years.length) {
@@ -2104,7 +2149,7 @@ async function handleActiveFormSession(
         .select('phone_number_id, waba_account:waba_accounts!inner(encrypted_access_token)')
         .eq('id', phoneNumberId).maybeSingle();
       if (phone?.phone_number_id && phone.waba_account?.encrypted_access_token) {
-        await sendWAText(phone.phone_number_id, phone.waba_account.encrypted_access_token, ev.from_wa_id, `⚠️ Please reply with a year between 2010 and 2030.`);
+        await sendWAText(phone.phone_number_id, phone.waba_account.encrypted_access_token, ev.from_wa_id, `⚠️ Please select a year between 2010 and 2030.`);
         await sendFormQuestion(supabase, phone.phone_number_id, phone.waba_account.encrypted_access_token, ev.from_wa_id, tenantId, conversationId, currentField, session.current_field_index + 1, visibleFields.length);
       }
       return true;
