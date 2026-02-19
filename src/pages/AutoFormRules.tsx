@@ -80,7 +80,7 @@ const triggerColorMap: Record<string, string> = {
 };
 
 export default function AutoFormRules() {
-  const { rules, loading, toggleRule, deleteRule, duplicateRule } = useFormRules();
+  const { rules, loading, toggleRule, deleteRule, duplicateRule, createRule, updateRule, fetchRules } = useFormRules();
   const { hasFeature, currentPlan, requiredPlanFor } = usePlanGate();
   const autoformsLocked = !hasFeature('autoforms');
   const [upgradeOpen, setUpgradeOpen] = useState(false);
@@ -394,6 +394,9 @@ export default function AutoFormRules() {
           }
         }}
         editingRule={editingRule}
+        createRule={createRule}
+        updateRule={updateRule}
+        onSaved={fetchRules}
       />
 
       {/* Delete Confirmation */}
