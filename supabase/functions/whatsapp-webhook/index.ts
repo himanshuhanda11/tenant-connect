@@ -1978,7 +1978,8 @@ async function handleActiveFormSession(
     !['hidden', 'calculated', 'lead_score', 'tag_assignment'].includes(f.type)
   );
   const currentField = visibleFields[session.current_field_index];
-  if (!currentField) return false;
+  // Don't bail out if we're in review mode — currentField may be past the end
+  if (!currentField && session.status !== 'review' && !session.awaiting_edit) return false;
 
   // ─── Extract answer from interactive or text ───
   let answer = ev.text || '';
