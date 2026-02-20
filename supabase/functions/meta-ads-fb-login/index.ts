@@ -75,7 +75,12 @@ Deno.serve(async (req) => {
 
     const longLivedToken = exchangeData.access_token;
 
-    // Fetch ad accounts
+    // Debug: check granted permissions
+    const permsRes = await fetch(`https://graph.facebook.com/v21.0/me/permissions?access_token=${longLivedToken}`);
+    const permsData = await permsRes.json();
+    console.log('Granted permissions:', JSON.stringify(permsData.data || []));
+
+    // Fetch ad accounts — try with the token; if ads_read isn't granted, return empty
     const adAccountsRes = await fetch(
       `https://graph.facebook.com/v21.0/me/adaccounts?fields=id,name,account_status,currency,timezone_name&access_token=${longLivedToken}`
     );
@@ -83,9 +88,8 @@ Deno.serve(async (req) => {
 
     if (adAccountsData.error) {
       console.error('Ad accounts fetch error:', adAccountsData.error);
-      return new Response(JSON.stringify({ error: `Failed to fetch ad accounts: ${adAccountsData.error.message}` }), {
-        status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+      // Don't fail entirely — return empty ad accounts with the error info
+      console.log('Continuing without ad accounts due to permission error');
     }
 
     // Fetch Facebook pages
@@ -118,6 +122,8 @@ Deno.serve(async (req) => {
         category: page.category,
         accessToken: page.access_token,
       })),
+      permissions: permsData.data || [],
+      adAccountsError: adAccountsData.error?.message || null,
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });

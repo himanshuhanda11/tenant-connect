@@ -449,7 +449,7 @@ export default function MetaAdsSetup() {
                             setIsFbLoading(false);
                           }
                         })();
-                      }, { scope: 'ads_read,pages_show_list' });
+                      }, { scope: 'ads_read,pages_show_list,business_management' });
                     } catch (err: any) {
                       console.error('FB.login error:', err);
                       toast.error(err.message || 'Failed to open Facebook login');
