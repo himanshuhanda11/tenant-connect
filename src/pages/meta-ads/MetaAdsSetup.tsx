@@ -372,7 +372,7 @@ export default function MetaAdsSetup() {
         {/* Meta Ads Connect Card */}
         {!fbConnected && (
           <Card className="mb-6 border-blue-200 bg-blue-50/50 dark:bg-blue-950/20 dark:border-blue-800">
-            <CardContent className="p-6 space-y-5">
+            <CardContent className="flex items-center justify-between p-6">
               <div className="flex items-center gap-4">
                 <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-[#1877F2]">
                   <Facebook className="h-6 w-6 text-white" />
@@ -380,190 +380,86 @@ export default function MetaAdsSetup() {
                 <div>
                   <h3 className="font-semibold text-lg">Connect Meta Ads</h3>
                   <p className="text-sm text-muted-foreground">
-                    Choose a method to link your Ad Accounts & Pages
+                    Login to automatically fetch your Ad Accounts & Pages
                   </p>
                 </div>
               </div>
-
-              {/* Option 1: Facebook SDK Login */}
-              <div className="rounded-lg border p-4 space-y-3">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h4 className="font-medium text-sm">Option 1: Login with Facebook</h4>
-                    <p className="text-xs text-muted-foreground">
-                      Authenticate directly with your Facebook account
-                    </p>
+              <div className="flex items-center gap-3">
+                {isFbLoading && (
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Connecting...
                   </div>
-                  <Button
-                    className="bg-[#1877F2] hover:bg-[#166FE5] text-white gap-2 h-9 px-4 text-sm"
-                    disabled={isFbLoading}
-                    onClick={async () => {
-                      if (!currentTenant?.id) {
-                        toast.error('No workspace selected');
-                        return;
-                      }
-                      if (!window.FB) {
-                        toast.error('Facebook SDK not loaded. Please refresh the page.');
-                        return;
-                      }
-                      setIsFbLoading(true);
-                      try {
-                        window.FB.login((response: any) => {
-                          if (response.status !== 'connected' || !response.authResponse?.accessToken) {
-                            toast.error('Facebook login was cancelled or failed');
-                            setIsFbLoading(false);
-                            return;
-                          }
-                          (async () => {
-                            try {
-                              const { data: { session } } = await supabase.auth.getSession();
-                              if (!session) throw new Error('Not authenticated');
-                              const res = await fetch(
-                                `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/meta-ads-fb-login`,
-                                {
-                                  method: 'POST',
-                                  headers: {
-                                    Authorization: `Bearer ${session.access_token}`,
-                                    'Content-Type': 'application/json',
-                                  },
-                                  body: JSON.stringify({
-                                    accessToken: response.authResponse.accessToken,
-                                    tenantId: currentTenant.id,
-                                  }),
-                                }
-                              );
-                              const data = await res.json();
-                              if (!res.ok) throw new Error(data.error || 'Failed to process Facebook login');
-                              setLongLivedToken(data.longLivedToken || '');
-                              setAdAccounts(data.adAccounts || []);
-                              setPages(data.pages || []);
-                              setFbConnected(true);
-                              if (data.adAccounts?.length === 1) {
-                                setFormData(prev => ({ ...prev, adAccountId: data.adAccounts[0].id, adAccountName: data.adAccounts[0].name }));
+                )}
+                <Button
+                  className="bg-[#1877F2] hover:bg-[#166FE5] text-white gap-2 h-10 px-5"
+                  disabled={isFbLoading}
+                  onClick={async () => {
+                    if (!currentTenant?.id) {
+                      toast.error('No workspace selected');
+                      return;
+                    }
+                    if (!window.FB) {
+                      toast.error('Facebook SDK not loaded. Please refresh the page.');
+                      return;
+                    }
+                    setIsFbLoading(true);
+                    try {
+                      window.FB.login((response: any) => {
+                        if (response.status !== 'connected' || !response.authResponse?.accessToken) {
+                          toast.error('Facebook login was cancelled or failed');
+                          setIsFbLoading(false);
+                          return;
+                        }
+                        (async () => {
+                          try {
+                            const { data: { session } } = await supabase.auth.getSession();
+                            if (!session) throw new Error('Not authenticated');
+                            const res = await fetch(
+                              `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/meta-ads-fb-login`,
+                              {
+                                method: 'POST',
+                                headers: {
+                                  Authorization: `Bearer ${session.access_token}`,
+                                  'Content-Type': 'application/json',
+                                },
+                                body: JSON.stringify({
+                                  accessToken: response.authResponse.accessToken,
+                                  tenantId: currentTenant.id,
+                                }),
                               }
-                              if (data.pages?.length === 1) {
-                                setFormData(prev => ({ ...prev, pageId: data.pages[0].id, pageName: data.pages[0].name }));
-                              }
-                              toast.success(`Connected! Found ${data.adAccounts?.length || 0} ad account(s) and ${data.pages?.length || 0} page(s).`);
-                            } catch (err: any) {
-                              console.error('Meta Ads FB login error:', err);
-                              toast.error(err.message || 'Failed to process Facebook login');
-                            } finally {
-                              setIsFbLoading(false);
+                            );
+                            const data = await res.json();
+                            if (!res.ok) throw new Error(data.error || 'Failed to process Facebook login');
+                            setLongLivedToken(data.longLivedToken || '');
+                            setAdAccounts(data.adAccounts || []);
+                            setPages(data.pages || []);
+                            setFbConnected(true);
+                            if (data.adAccounts?.length === 1) {
+                              setFormData(prev => ({ ...prev, adAccountId: data.adAccounts[0].id, adAccountName: data.adAccounts[0].name }));
                             }
-                          })();
-                        }, { scope: 'ads_read,pages_show_list' });
-                      } catch (err: any) {
-                        console.error('FB.login error:', err);
-                        toast.error(err.message || 'Failed to open Facebook login');
-                        setIsFbLoading(false);
-                      }
-                    }}
-                  >
-                    {isFbLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Facebook className="h-4 w-4" />}
-                    Login with Facebook
-                  </Button>
-                </div>
-                <p className="text-xs text-muted-foreground italic">
-                  Requires <strong>ads_read</strong> & <strong>pages_show_list</strong> permissions approved via Meta App Review.
-                </p>
-              </div>
-
-              {/* Option 2: Manual Access Token */}
-              <div className="rounded-lg border p-4 space-y-3">
-                <div>
-                  <h4 className="font-medium text-sm">Option 2: Paste Access Token</h4>
-                  <p className="text-xs text-muted-foreground">
-                    Generate a token from{' '}
-                    <a
-                      href="https://developers.facebook.com/tools/explorer/"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="underline text-primary"
-                    >
-                      Graph API Explorer
-                    </a>
-                    {' '}with <strong>ads_read</strong> & <strong>pages_show_list</strong> permissions
-                  </p>
-                </div>
-                <div className="flex gap-2">
-                  <Input
-                    placeholder="Paste your access token here..."
-                    value={manualToken}
-                    onChange={(e) => setManualToken(e.target.value)}
-                    className="font-mono text-xs"
-                  />
-                  <Button
-                    onClick={handleManualTokenSubmit}
-                    disabled={isManualLoading || !manualToken.trim()}
-                    variant="outline"
-                    className="shrink-0"
-                  >
-                    {isManualLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Connect'}
-                  </Button>
-                </div>
-              </div>
-
-              {/* Option 3: Use platform system token (admin only) */}
-              <div className="rounded-lg border border-dashed p-4 space-y-3">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h4 className="font-medium text-sm flex items-center gap-1.5">
-                      <Shield className="h-3.5 w-3.5" />
-                      Quick Connect (Platform Admin)
-                    </h4>
-                    <p className="text-xs text-muted-foreground">
-                      Uses the platform's system user token — only for your own accounts
-                    </p>
-                  </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    disabled={isFbLoading}
-                    onClick={async () => {
-                      if (!currentTenant?.id) {
-                        toast.error('No workspace selected');
-                        return;
-                      }
-                      setIsFbLoading(true);
-                      try {
-                        const { data: { session } } = await supabase.auth.getSession();
-                        if (!session) throw new Error('Not authenticated');
-                        const res = await fetch(
-                          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/meta-ads-connect`,
-                          {
-                            method: 'POST',
-                            headers: {
-                              Authorization: `Bearer ${session.access_token}`,
-                              'Content-Type': 'application/json',
-                            },
-                            body: JSON.stringify({ tenantId: currentTenant.id }),
+                            if (data.pages?.length === 1) {
+                              setFormData(prev => ({ ...prev, pageId: data.pages[0].id, pageName: data.pages[0].name }));
+                            }
+                            toast.success(`Connected! Found ${data.adAccounts?.length || 0} ad account(s) and ${data.pages?.length || 0} page(s).`);
+                          } catch (err: any) {
+                            console.error('Meta Ads FB login error:', err);
+                            toast.error(err.message || 'Failed to process Facebook login');
+                          } finally {
+                            setIsFbLoading(false);
                           }
-                        );
-                        const data = await res.json();
-                        if (!res.ok) throw new Error(data.error || 'Failed to connect');
-                        setLongLivedToken(data.accessToken || '');
-                        setAdAccounts(data.adAccounts || []);
-                        setPages(data.pages || []);
-                        setFbConnected(true);
-                        if (data.adAccounts?.length === 1) {
-                          setFormData(prev => ({ ...prev, adAccountId: data.adAccounts[0].id, adAccountName: data.adAccounts[0].name }));
-                        }
-                        if (data.pages?.length === 1) {
-                          setFormData(prev => ({ ...prev, pageId: data.pages[0].id, pageName: data.pages[0].name }));
-                        }
-                        toast.success(`Connected! Found ${data.adAccounts?.length || 0} ad account(s) and ${data.pages?.length || 0} page(s).`);
-                      } catch (err: any) {
-                        console.error('Meta Ads connect error:', err);
-                        toast.error(err.message || 'Failed to connect');
-                      } finally {
-                        setIsFbLoading(false);
-                      }
-                    }}
-                  >
-                    Quick Connect
-                  </Button>
-                </div>
+                        })();
+                      }, { scope: 'ads_read,pages_show_list' });
+                    } catch (err: any) {
+                      console.error('FB.login error:', err);
+                      toast.error(err.message || 'Failed to open Facebook login');
+                      setIsFbLoading(false);
+                    }
+                  }}
+                >
+                  <Facebook className="h-4 w-4" />
+                  Login with Facebook
+                </Button>
               </div>
             </CardContent>
           </Card>
