@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -10,21 +10,26 @@ import {
   DialogTitle,
   DialogDescription,
 } from '@/components/ui/dialog';
-import { Plus, Pencil, Trash2, MessageSquareText, Save, X } from 'lucide-react';
+import { Plus, Pencil, Trash2, MessageSquareText, Save, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
+import { useTenant } from '@/contexts/TenantContext';
+import { toast } from 'sonner';
 
 export interface QuickReply {
   id: string;
   label: string;
   text: string;
+  sort_order?: number;
 }
 
-const DEFAULT_REPLIES: QuickReply[] = [
-  { id: '1', label: 'Thanks', text: 'Thank you for reaching out!' },
-  { id: '2', label: 'Looking into it', text: "I'll look into this and get back to you shortly." },
-  { id: '3', label: 'Anything else?', text: 'Is there anything else I can help you with?' },
-  { id: '4', label: 'Follow up', text: 'Just following up on our previous conversation. Any updates?' },
-  { id: '5', label: 'Welcome', text: 'Welcome! How can I assist you today?' },
+const DEFAULT_REPLIES: Omit<QuickReply, 'id'>[] = [
+  { label: 'Thanks', text: 'Thank you for reaching out!' },
+  { label: 'Looking into it', text: "I'll look into this and get back to you shortly." },
+  { label: 'Anything else?', text: 'Is there anything else I can help you with?' },
+  { label: 'Follow up', text: 'Just following up on our previous conversation. Any updates?' },
+  { label: 'Welcome', text: 'Welcome! How can I assist you today?' },
 ];
 
 interface QuickReplyManagerProps {
@@ -33,12 +38,73 @@ interface QuickReplyManagerProps {
 }
 
 export function QuickReplyManager({ onSelectReply, isMobile = false }: QuickReplyManagerProps) {
-  const [replies, setReplies] = useState<QuickReply[]>(DEFAULT_REPLIES);
+  const { user } = useAuth();
+  const { currentTenant } = useTenant();
+  const [replies, setReplies] = useState<QuickReply[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [showManager, setShowManager] = useState(false);
   const [editLabel, setEditLabel] = useState('');
   const [editText, setEditText] = useState('');
   const [isAdding, setIsAdding] = useState(false);
+
+  const tenantId = currentTenant?.id;
+  const userId = user?.id;
+
+  // Load quick replies from database
+  const loadReplies = useCallback(async () => {
+    if (!tenantId || !userId) return;
+    try {
+      const { data, error } = await supabase
+        .from('quick_replies')
+        .select('id, label, text, sort_order')
+        .eq('tenant_id', tenantId)
+        .eq('user_id', userId)
+        .order('sort_order', { ascending: true });
+
+      if (error) throw error;
+
+      if (data && data.length > 0) {
+        setReplies(data.map(r => ({ id: r.id, label: r.label, text: r.text, sort_order: r.sort_order })));
+      } else {
+        // Seed default replies for first-time users
+        await seedDefaults();
+      }
+    } catch (err) {
+      console.error('Failed to load quick replies:', err);
+    } finally {
+      setLoading(false);
+    }
+  }, [tenantId, userId]);
+
+  const seedDefaults = async () => {
+    if (!tenantId || !userId) return;
+    try {
+      const rows = DEFAULT_REPLIES.map((r, i) => ({
+        tenant_id: tenantId,
+        user_id: userId,
+        label: r.label,
+        text: r.text,
+        sort_order: i,
+      }));
+      const { data, error } = await supabase
+        .from('quick_replies')
+        .insert(rows)
+        .select('id, label, text, sort_order');
+
+      if (error) throw error;
+      if (data) {
+        setReplies(data.map(r => ({ id: r.id, label: r.label, text: r.text, sort_order: r.sort_order })));
+      }
+    } catch (err) {
+      console.error('Failed to seed default replies:', err);
+    }
+  };
+
+  useEffect(() => {
+    loadReplies();
+  }, [loadReplies]);
 
   const startEdit = (reply: QuickReply) => {
     setEditingId(reply.id);
@@ -54,25 +120,68 @@ export function QuickReplyManager({ onSelectReply, isMobile = false }: QuickRepl
     setEditText('');
   };
 
-  const saveEdit = () => {
-    if (!editLabel.trim() || !editText.trim()) return;
-    if (isAdding) {
-      setReplies(prev => [...prev, { id: Date.now().toString(), label: editLabel, text: editText }]);
-      setIsAdding(false);
-    } else if (editingId) {
-      setReplies(prev => prev.map(r => r.id === editingId ? { ...r, label: editLabel, text: editText } : r));
-      setEditingId(null);
-    }
-    setEditLabel('');
-    setEditText('');
-  };
+  const saveEdit = async () => {
+    if (!editLabel.trim() || !editText.trim() || !tenantId || !userId) return;
+    setSaving(true);
+    try {
+      if (isAdding) {
+        const { data, error } = await supabase
+          .from('quick_replies')
+          .insert({
+            tenant_id: tenantId,
+            user_id: userId,
+            label: editLabel.trim(),
+            text: editText.trim(),
+            sort_order: replies.length,
+          })
+          .select('id, label, text, sort_order')
+          .single();
 
-  const deleteReply = (id: string) => {
-    setReplies(prev => prev.filter(r => r.id !== id));
-    if (editingId === id) {
-      setEditingId(null);
+        if (error) throw error;
+        if (data) {
+          setReplies(prev => [...prev, { id: data.id, label: data.label, text: data.text, sort_order: data.sort_order }]);
+        }
+        setIsAdding(false);
+        toast.success('Quick reply added');
+      } else if (editingId) {
+        const { error } = await supabase
+          .from('quick_replies')
+          .update({ label: editLabel.trim(), text: editText.trim() })
+          .eq('id', editingId);
+
+        if (error) throw error;
+        setReplies(prev => prev.map(r => r.id === editingId ? { ...r, label: editLabel.trim(), text: editText.trim() } : r));
+        setEditingId(null);
+        toast.success('Quick reply updated');
+      }
+    } catch (err) {
+      console.error('Failed to save quick reply:', err);
+      toast.error('Failed to save quick reply');
+    } finally {
+      setSaving(false);
       setEditLabel('');
       setEditText('');
+    }
+  };
+
+  const deleteReply = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from('quick_replies')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+      setReplies(prev => prev.filter(r => r.id !== id));
+      if (editingId === id) {
+        setEditingId(null);
+        setEditLabel('');
+        setEditText('');
+      }
+      toast.success('Quick reply deleted');
+    } catch (err) {
+      console.error('Failed to delete quick reply:', err);
+      toast.error('Failed to delete quick reply');
     }
   };
 
@@ -91,17 +200,23 @@ export function QuickReplyManager({ onSelectReply, isMobile = false }: QuickRepl
           <MessageSquareText className="h-3 w-3" />
           Quick:
         </span>
-        {replies.slice(0, isMobile ? 2 : 4).map((reply) => (
-          <Button 
-            key={reply.id}
-            variant="outline" 
-            size="sm" 
-            className="h-6 text-xs rounded-full border-border/60 hover:border-primary/40 hover:bg-primary/5 transition-colors"
-            onClick={() => onSelectReply(reply.text)}
-          >
-            {reply.label}
-          </Button>
-        ))}
+        {loading ? (
+          <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" />
+        ) : (
+          <>
+            {replies.slice(0, isMobile ? 2 : 4).map((reply) => (
+              <Button 
+                key={reply.id}
+                variant="outline" 
+                size="sm" 
+                className="h-6 text-xs rounded-full border-border/60 hover:border-primary/40 hover:bg-primary/5 transition-colors"
+                onClick={() => onSelectReply(reply.text)}
+              >
+                {reply.label}
+              </Button>
+            ))}
+          </>
+        )}
         <Button 
           variant="ghost" 
           size="sm" 
@@ -154,8 +269,8 @@ export function QuickReplyManager({ onSelectReply, isMobile = false }: QuickRepl
                         rows={2}
                       />
                       <div className="flex gap-2">
-                        <Button size="sm" className="h-7 text-xs gap-1" onClick={saveEdit}>
-                          <Save className="h-3 w-3" /> Save
+                        <Button size="sm" className="h-7 text-xs gap-1" onClick={saveEdit} disabled={saving}>
+                          {saving ? <Loader2 className="h-3 w-3 animate-spin" /> : <Save className="h-3 w-3" />} Save
                         </Button>
                         <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={cancelEdit}>
                           Cancel
@@ -204,8 +319,8 @@ export function QuickReplyManager({ onSelectReply, isMobile = false }: QuickRepl
                     rows={2}
                   />
                   <div className="flex gap-2">
-                    <Button size="sm" className="h-7 text-xs gap-1" onClick={saveEdit}>
-                      <Save className="h-3 w-3" /> Save
+                    <Button size="sm" className="h-7 text-xs gap-1" onClick={saveEdit} disabled={saving}>
+                      {saving ? <Loader2 className="h-3 w-3 animate-spin" /> : <Save className="h-3 w-3" />} Save
                     </Button>
                     <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={cancelEdit}>
                       Cancel
