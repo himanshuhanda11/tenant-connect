@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Input } from '@/components/ui/input';
-import { Checkbox } from '@/components/ui/checkbox';
+import { Switch } from '@/components/ui/switch';
 import {
   Megaphone,
   CheckCircle2,
@@ -28,12 +28,13 @@ import {
   RefreshCw,
   AlertCircle,
   Trash2,
+  Lock,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useTenant } from '@/contexts/TenantContext';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
 
 declare global {
   interface Window {
@@ -112,6 +113,48 @@ export default function MetaAdsSetup() {
     enabled: !!currentTenant?.id,
   });
 
+  // Fetch CTWA tracking setting
+  const settingsQuery = useQuery({
+    queryKey: ['meta-ads-settings', currentTenant?.id],
+    queryFn: async () => {
+      if (!currentTenant?.id) return null;
+      const { data, error } = await supabase
+        .from('smeksh_meta_ads_settings')
+        .select('id, tracking_enabled')
+        .eq('workspace_id', currentTenant.id)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!currentTenant?.id,
+  });
+
+  const trackingEnabled = settingsQuery.data?.tracking_enabled ?? false;
+
+  // Toggle CTWA tracking
+  const toggleTrackingMutation = useMutation({
+    mutationFn: async (enabled: boolean) => {
+      if (!currentTenant?.id) throw new Error('No workspace');
+      if (settingsQuery.data?.id) {
+        const { error } = await supabase
+          .from('smeksh_meta_ads_settings')
+          .update({ tracking_enabled: enabled })
+          .eq('id', settingsQuery.data.id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from('smeksh_meta_ads_settings')
+          .insert([{ workspace_id: currentTenant.id, tracking_enabled: enabled }]);
+        if (error) throw error;
+      }
+    },
+    onSuccess: (_, enabled) => {
+      queryClient.invalidateQueries({ queryKey: ['meta-ads-settings'] });
+      toast.success(enabled ? 'Click-to-WhatsApp tracking enabled' : 'Click-to-WhatsApp tracking disabled');
+    },
+    onError: (err: Error) => toast.error(err.message || 'Failed to update tracking'),
+  });
+
   const phoneNumbers = phoneNumbersQuery.data || [];
   const existingAccounts = existingAccountQuery.data || [];
   const hasExistingConnection = existingAccounts.length > 0;
@@ -148,14 +191,12 @@ export default function MetaAdsSetup() {
     if (!currentTenant?.id) return;
     setIsDisconnecting(true);
     try {
-      // Deactivate all Meta ad accounts for this workspace
       const { error } = await supabase
         .from('smeksh_meta_ad_accounts')
         .update({ is_active: false, status: 'disconnected' as const })
         .eq('workspace_id', currentTenant.id);
       if (error) throw error;
 
-      // Reset local state
       setFbConnected(false);
       setAdAccounts([]);
       setPages([]);
@@ -164,7 +205,6 @@ export default function MetaAdsSetup() {
       setAdAccountsError(null);
       setFormData({ adAccountId: '', adAccountName: '', pageId: '', pageName: '', phoneNumberId: '', phoneDisplay: '' });
       
-      // Invalidate queries so the page reflects the disconnected state
       queryClient.invalidateQueries({ queryKey: ['meta-ad-accounts'] });
       
       toast.success('Meta Ads disconnected. You can reconnect anytime.');
@@ -184,7 +224,6 @@ export default function MetaAdsSetup() {
     setAdAccountsError(data.adAccountsError || null);
     setFbConnected(true);
 
-    // Auto-select if only one option
     if (data.adAccounts?.length === 1) {
       setFormData(prev => ({
         ...prev,
@@ -352,6 +391,20 @@ export default function MetaAdsSetup() {
     }
   };
 
+  // Read-only display component for connected sections
+  const ReadOnlyField = ({ icon: Icon, label, value, iconColor }: { icon: any; label: string; value: string; iconColor?: string }) => (
+    <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/40 border border-muted">
+      <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-muted">
+        <Icon className={cn("h-4 w-4", iconColor || "text-muted-foreground")} />
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="text-xs text-muted-foreground">{label}</p>
+        <p className="font-medium text-sm truncate">{value}</p>
+      </div>
+      <Lock className="h-3.5 w-3.5 text-muted-foreground/50" />
+    </div>
+  );
+
   return (
     <DashboardLayout>
       <div className="p-4 sm:p-6 max-w-4xl mx-auto space-y-5">
@@ -368,7 +421,7 @@ export default function MetaAdsSetup() {
           </div>
         </div>
 
-        {/* Already connected notice */}
+        {/* Already connected notice with disconnect */}
         {hasExistingConnection && fbConnected && (
           <Alert className="border-emerald-200 bg-emerald-50 dark:bg-emerald-950/30">
             <CheckCircle2 className="h-4 w-4 text-emerald-600" />
@@ -393,7 +446,53 @@ export default function MetaAdsSetup() {
           </Alert>
         )}
 
-        {/* Step 1: Connect with Facebook */}
+        {/* CTWA Tracking Toggle — only visible when connected */}
+        {hasExistingConnection && fbConnected && (
+          <Card className="border-0 shadow-lg">
+            <CardContent className="py-4 px-4 sm:px-6">
+              <div className="flex items-center justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  <div className={cn(
+                    "flex items-center justify-center w-10 h-10 rounded-xl",
+                    trackingEnabled
+                      ? "bg-emerald-100 dark:bg-emerald-900/50"
+                      : "bg-muted"
+                  )}>
+                    <Zap className={cn(
+                      "h-5 w-5",
+                      trackingEnabled ? "text-emerald-600" : "text-muted-foreground"
+                    )} />
+                  </div>
+                  <div>
+                    <Label className="text-sm sm:text-base font-semibold">Click-to-WhatsApp Tracking</Label>
+                    <p className="text-xs sm:text-sm text-muted-foreground">
+                      {trackingEnabled
+                        ? 'Tracking is active — leads from Meta Ads are being attributed'
+                        : 'Tracking is off — no lead attribution from Meta Ads'}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <Badge className={cn(
+                    "text-xs",
+                    trackingEnabled
+                      ? "bg-emerald-100 text-emerald-700"
+                      : "bg-muted text-muted-foreground"
+                  )}>
+                    {trackingEnabled ? 'ON' : 'OFF'}
+                  </Badge>
+                  <Switch
+                    checked={trackingEnabled}
+                    onCheckedChange={(checked) => toggleTrackingMutation.mutate(checked)}
+                    disabled={toggleTrackingMutation.isPending}
+                  />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Step 1: Connect with Facebook — only show if NOT connected */}
         {!fbConnected && (
           <Card className="border-2 border-dashed border-blue-300 dark:border-blue-700 shadow-lg">
             <CardHeader className="pb-3">
@@ -466,40 +565,40 @@ export default function MetaAdsSetup() {
           </Card>
         )}
 
-        {/* Post-Login: All selections visible at once */}
+        {/* Post-Login sections */}
         {fbConnected && (
           <>
-            {/* Connection Status Bar - only show for fresh login (not existing) */}
+            {/* Connection Status Bar - only for fresh login */}
             {!hasExistingConnection && (
-            <Alert className="border-emerald-200 bg-emerald-50 dark:bg-emerald-950/30">
-              <CheckCircle2 className="h-4 w-4 text-emerald-600" />
-              <AlertDescription className="text-emerald-700 dark:text-emerald-300 flex flex-col sm:flex-row sm:items-center gap-2">
-                <span>
-                  <strong>Connected to Facebook!</strong> Found <strong>{adAccounts.length}</strong> ad account(s) and <strong>{pages.length}</strong> page(s).
-                </span>
-                <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="gap-1 text-xs h-7 w-fit"
-                    onClick={() => {
-                      setFbConnected(false);
-                      setAdAccounts([]);
-                      setPages([]);
-                      setLongLivedToken('');
-                      setFormData(prev => ({ ...prev, adAccountId: '', adAccountName: '', pageId: '', pageName: '' }));
-                    }}
-                  >
-                    <RefreshCw className="h-3 w-3" />
-                    Re-login
-                  </Button>
-                </div>
-              </AlertDescription>
-            </Alert>
+              <Alert className="border-emerald-200 bg-emerald-50 dark:bg-emerald-950/30">
+                <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+                <AlertDescription className="text-emerald-700 dark:text-emerald-300 flex flex-col sm:flex-row sm:items-center gap-2">
+                  <span>
+                    <strong>Connected to Facebook!</strong> Found <strong>{adAccounts.length}</strong> ad account(s) and <strong>{pages.length}</strong> page(s).
+                  </span>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="gap-1 text-xs h-7 w-fit"
+                      onClick={() => {
+                        setFbConnected(false);
+                        setAdAccounts([]);
+                        setPages([]);
+                        setLongLivedToken('');
+                        setFormData(prev => ({ ...prev, adAccountId: '', adAccountName: '', pageId: '', pageName: '' }));
+                      }}
+                    >
+                      <RefreshCw className="h-3 w-3" />
+                      Re-login
+                    </Button>
+                  </div>
+                </AlertDescription>
+              </Alert>
             )}
 
             {/* Permissions Info */}
-            {permissions.length > 0 && (
+            {permissions.length > 0 && !hasExistingConnection && (
               <Card className="border-0 shadow-sm bg-muted/30">
                 <CardContent className="py-3 px-4">
                   <div className="flex items-center gap-2 mb-2">
@@ -525,7 +624,7 @@ export default function MetaAdsSetup() {
               </Card>
             )}
 
-            {adAccountsError && (
+            {adAccountsError && !hasExistingConnection && (
               <Alert className="border-amber-200 bg-amber-50 dark:bg-amber-950/30">
                 <AlertCircle className="h-4 w-4 text-amber-600" />
                 <AlertDescription className="text-amber-700 dark:text-amber-300 text-sm">
@@ -534,251 +633,292 @@ export default function MetaAdsSetup() {
               </Alert>
             )}
 
-            {/* Step 2: Select Ad Account */}
-            <Card className="border-0 shadow-lg">
-              <CardHeader className="pb-3">
-                <CardTitle className="flex items-center gap-2 text-base">
-                  <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-primary text-primary-foreground text-sm font-bold">1</div>
-                  <Building2 className="h-4 w-4 text-primary" />
-                  Select Ad Account
-                  {formData.adAccountId && <Check className="h-4 w-4 text-emerald-600 ml-auto" />}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {adAccounts.length > 0 ? (
-                  <div className="space-y-2">
-                    {adAccounts.map((acc) => (
-                      <div
-                        key={acc.id}
-                        className={cn(
-                          'flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer transition-all hover:border-primary/50',
-                          formData.adAccountId === acc.id
-                            ? 'border-primary bg-primary/5'
-                            : 'border-transparent bg-muted/40'
-                        )}
-                        onClick={() => setFormData(prev => ({ ...prev, adAccountId: acc.id, adAccountName: acc.name }))}
-                      >
-                        <div className={cn(
-                          'flex items-center justify-center w-5 h-5 rounded-full border-2',
-                          formData.adAccountId === acc.id ? 'border-primary bg-primary' : 'border-muted-foreground/40'
-                        )}>
-                          {formData.adAccountId === acc.id && <Check className="h-3 w-3 text-primary-foreground" />}
-                        </div>
-                        <Building2 className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                        <div className="flex-1 min-w-0">
-                          <p className="font-medium text-sm truncate">{acc.name || acc.id}</p>
-                          <p className="text-xs text-muted-foreground">{acc.id}</p>
-                        </div>
-                        <div className="flex items-center gap-2 flex-shrink-0">
-                          {acc.currency && <Badge variant="secondary" className="text-xs">{acc.currency}</Badge>}
-                          {acc.timezone && <span className="text-xs text-muted-foreground hidden sm:inline">{acc.timezone}</span>}
-                          {getAccountStatusBadge(acc.status)}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="space-y-3">
-                    <p className="text-sm text-muted-foreground">No ad accounts found via API. Enter your Ad Account ID manually:</p>
-                    <Input
-                      placeholder="act_123456789"
-                      value={formData.adAccountId}
-                      onChange={(e) => setFormData(prev => ({ ...prev, adAccountId: e.target.value.trim() }))}
-                      className="h-10"
-                    />
-                    <Input
-                      placeholder="Ad Account Name (optional)"
-                      value={formData.adAccountName}
-                      onChange={(e) => setFormData(prev => ({ ...prev, adAccountName: e.target.value }))}
-                      className="h-10"
-                    />
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* Step 3: Select Facebook Page */}
-            <Card className="border-0 shadow-lg">
-              <CardHeader className="pb-3">
-                <CardTitle className="flex items-center gap-2 text-base">
-                  <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-primary text-primary-foreground text-sm font-bold">2</div>
-                  <FileText className="h-4 w-4 text-primary" />
-                  Select Facebook Page
-                  <span className="text-xs text-muted-foreground font-normal">(optional)</span>
-                  {formData.pageId && <Check className="h-4 w-4 text-emerald-600 ml-auto" />}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {pages.length > 0 ? (
-                  <div className="space-y-2">
-                    {pages.map((page) => (
-                      <div
-                        key={page.id}
-                        className={cn(
-                          'flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer transition-all hover:border-primary/50',
-                          formData.pageId === page.id
-                            ? 'border-primary bg-primary/5'
-                            : 'border-transparent bg-muted/40'
-                        )}
-                        onClick={() => setFormData(prev => ({ ...prev, pageId: page.id, pageName: page.name }))}
-                      >
-                        <div className={cn(
-                          'flex items-center justify-center w-5 h-5 rounded-full border-2',
-                          formData.pageId === page.id ? 'border-primary bg-primary' : 'border-muted-foreground/40'
-                        )}>
-                          {formData.pageId === page.id && <Check className="h-3 w-3 text-primary-foreground" />}
-                        </div>
-                        <Globe className="h-4 w-4 text-blue-500 flex-shrink-0" />
-                        <div className="flex-1 min-w-0">
-                          <p className="font-medium text-sm truncate">{page.name}</p>
-                          <p className="text-xs text-muted-foreground">ID: {page.id}</p>
-                        </div>
-                        {page.category && <Badge variant="secondary" className="text-xs flex-shrink-0">{page.category}</Badge>}
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="space-y-3">
-                    <p className="text-sm text-muted-foreground">No pages found via API. Enter your Page ID manually:</p>
-                    <Input
-                      placeholder="123456789012345"
-                      value={formData.pageId}
-                      onChange={(e) => setFormData(prev => ({ ...prev, pageId: e.target.value.trim() }))}
-                      className="h-10"
-                    />
-                    <Input
-                      placeholder="Page Name (optional)"
-                      value={formData.pageName}
-                      onChange={(e) => setFormData(prev => ({ ...prev, pageName: e.target.value }))}
-                      className="h-10"
-                    />
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* Step 4: Link WhatsApp Number */}
-            <Card className="border-0 shadow-lg">
-              <CardHeader className="pb-3">
-                <CardTitle className="flex items-center gap-2 text-base">
-                  <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-primary text-primary-foreground text-sm font-bold">3</div>
-                  <Phone className="h-4 w-4 text-primary" />
-                  Link WhatsApp Number
-                  <span className="text-xs text-muted-foreground font-normal">(optional)</span>
-                  {formData.phoneNumberId && <Check className="h-4 w-4 text-emerald-600 ml-auto" />}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {phoneNumbers.length > 0 ? (
-                  <div className="space-y-2">
-                    {phoneNumbers.map((phone) => (
-                      <div
-                        key={phone.id}
-                        className={cn(
-                          'flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer transition-all hover:border-primary/50',
-                          formData.phoneNumberId === phone.id
-                            ? 'border-primary bg-primary/5'
-                            : 'border-transparent bg-muted/40'
-                        )}
-                        onClick={() => setFormData(prev => ({ ...prev, phoneNumberId: phone.id, phoneDisplay: phone.display_number || '' }))}
-                      >
-                        <div className={cn(
-                          'flex items-center justify-center w-5 h-5 rounded-full border-2',
-                          formData.phoneNumberId === phone.id ? 'border-primary bg-primary' : 'border-muted-foreground/40'
-                        )}>
-                          {formData.phoneNumberId === phone.id && <Check className="h-3 w-3 text-primary-foreground" />}
-                        </div>
-                        <Phone className="h-4 w-4 text-emerald-500 flex-shrink-0" />
-                        <div className="flex-1 min-w-0">
-                          <p className="font-medium text-sm">{phone.display_number || phone.phone_number_id}</p>
-                        </div>
-                        {phone.quality_rating === 'GREEN' && (
-                          <Badge className="bg-emerald-100 text-emerald-700 text-xs">Active</Badge>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <Alert>
-                    <Info className="h-4 w-4" />
-                    <AlertDescription className="text-sm">
-                      No WhatsApp numbers connected to this workspace yet.
-                      Connect a WhatsApp number first from the WABA settings.
-                    </AlertDescription>
-                  </Alert>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* Summary & Complete */}
-            <Card className="border-0 shadow-lg border-t-4 border-t-primary">
-              <CardHeader className="pb-3">
-                <CardTitle className="flex items-center gap-2 text-base">
-                  <Sparkles className="h-4 w-4 text-primary" />
-                  Setup Summary
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-3 text-sm">
-                  <div className="flex items-center justify-between">
-                    <span className="text-muted-foreground flex items-center gap-2">
-                      <Building2 className="h-3.5 w-3.5" /> Ad Account
-                    </span>
-                    <span className="font-medium">
-                      {formData.adAccountName || formData.adAccountId || <span className="text-muted-foreground italic">Not selected</span>}
-                    </span>
-                  </div>
-                  <Separator />
-                  <div className="flex items-center justify-between">
-                    <span className="text-muted-foreground flex items-center gap-2">
-                      <FileText className="h-3.5 w-3.5" /> Facebook Page
-                    </span>
-                    <span className="font-medium">
-                      {formData.pageName || formData.pageId || <span className="text-muted-foreground italic">Not selected</span>}
-                    </span>
-                  </div>
-                  <Separator />
-                  <div className="flex items-center justify-between">
-                    <span className="text-muted-foreground flex items-center gap-2">
-                      <Phone className="h-3.5 w-3.5" /> WhatsApp Number
-                    </span>
-                    <span className="font-medium">
-                      {formData.phoneDisplay || phoneNumbers.find(p => p.id === formData.phoneNumberId)?.display_number || <span className="text-muted-foreground italic">Not selected</span>}
-                    </span>
-                  </div>
-                  <Separator />
-                  <div className="flex items-center justify-between">
-                    <span className="text-muted-foreground flex items-center gap-2">
-                      <Zap className="h-3.5 w-3.5" /> Live Sync
-                    </span>
-                    <Badge variant={longLivedToken ? 'default' : 'secondary'}>
-                      {longLivedToken ? 'Enabled' : 'Manual only'}
+            {/* ===== CONNECTED: Read-only sections ===== */}
+            {hasExistingConnection ? (
+              <Card className="border-0 shadow-lg">
+                <CardHeader className="pb-3">
+                  <CardTitle className="flex items-center gap-2 text-base">
+                    <Shield className="h-4 w-4 text-primary" />
+                    Connected Configuration
+                    <Badge variant="secondary" className="text-xs gap-1 ml-auto">
+                      <Lock className="h-3 w-3" /> Read-only
                     </Badge>
-                  </div>
-                </div>
+                  </CardTitle>
+                  <CardDescription className="text-xs">
+                    Disconnect from Facebook above to change these settings
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <ReadOnlyField
+                    icon={Building2}
+                    label="Ad Account"
+                    value={formData.adAccountName || formData.adAccountId || 'Not set'}
+                    iconColor="text-primary"
+                  />
+                  <ReadOnlyField
+                    icon={Globe}
+                    label="Facebook Page"
+                    value={formData.pageName || formData.pageId || 'Not selected'}
+                    iconColor="text-blue-500"
+                  />
+                  <ReadOnlyField
+                    icon={Phone}
+                    label="WhatsApp Number"
+                    value={formData.phoneDisplay || phoneNumbers.find(p => p.id === formData.phoneNumberId)?.display_number || 'Not selected'}
+                    iconColor="text-emerald-500"
+                  />
+                </CardContent>
+              </Card>
+            ) : (
+              /* ===== NOT YET SAVED: Editable sections ===== */
+              <>
+                {/* Step 2: Select Ad Account */}
+                <Card className="border-0 shadow-lg">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="flex items-center gap-2 text-base">
+                      <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-primary text-primary-foreground text-sm font-bold">1</div>
+                      <Building2 className="h-4 w-4 text-primary" />
+                      Select Ad Account
+                      {formData.adAccountId && <Check className="h-4 w-4 text-emerald-600 ml-auto" />}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    {adAccounts.length > 0 ? (
+                      <div className="space-y-2">
+                        {adAccounts.map((acc) => (
+                          <div
+                            key={acc.id}
+                            className={cn(
+                              'flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer transition-all hover:border-primary/50',
+                              formData.adAccountId === acc.id
+                                ? 'border-primary bg-primary/5'
+                                : 'border-transparent bg-muted/40'
+                            )}
+                            onClick={() => setFormData(prev => ({ ...prev, adAccountId: acc.id, adAccountName: acc.name }))}
+                          >
+                            <div className={cn(
+                              'flex items-center justify-center w-5 h-5 rounded-full border-2',
+                              formData.adAccountId === acc.id ? 'border-primary bg-primary' : 'border-muted-foreground/40'
+                            )}>
+                              {formData.adAccountId === acc.id && <Check className="h-3 w-3 text-primary-foreground" />}
+                            </div>
+                            <Building2 className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                            <div className="flex-1 min-w-0">
+                              <p className="font-medium text-sm truncate">{acc.name || acc.id}</p>
+                              <p className="text-xs text-muted-foreground">{acc.id}</p>
+                            </div>
+                            <div className="flex items-center gap-2 flex-shrink-0">
+                              {acc.currency && <Badge variant="secondary" className="text-xs">{acc.currency}</Badge>}
+                              {acc.timezone && <span className="text-xs text-muted-foreground hidden sm:inline">{acc.timezone}</span>}
+                              {getAccountStatusBadge(acc.status)}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="space-y-3">
+                        <p className="text-sm text-muted-foreground">No ad accounts found via API. Enter your Ad Account ID manually:</p>
+                        <Input
+                          placeholder="act_123456789"
+                          value={formData.adAccountId}
+                          onChange={(e) => setFormData(prev => ({ ...prev, adAccountId: e.target.value.trim() }))}
+                          className="h-10"
+                        />
+                        <Input
+                          placeholder="Ad Account Name (optional)"
+                          value={formData.adAccountName}
+                          onChange={(e) => setFormData(prev => ({ ...prev, adAccountName: e.target.value }))}
+                          className="h-10"
+                        />
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
 
-                <Alert className="border-blue-200 bg-blue-50 dark:bg-blue-950/30">
-                  <Shield className="h-4 w-4 text-blue-600" />
-                  <AlertDescription className="text-blue-700 dark:text-blue-300 text-xs sm:text-sm">
-                    <strong>Privacy:</strong> AIREATRO only reads ad performance data and lead events. We never create, modify, or manage your ads.
-                  </AlertDescription>
-                </Alert>
+                {/* Step 3: Select Facebook Page */}
+                <Card className="border-0 shadow-lg">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="flex items-center gap-2 text-base">
+                      <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-primary text-primary-foreground text-sm font-bold">2</div>
+                      <FileText className="h-4 w-4 text-primary" />
+                      Select Facebook Page
+                      <span className="text-xs text-muted-foreground font-normal">(optional)</span>
+                      {formData.pageId && <Check className="h-4 w-4 text-emerald-600 ml-auto" />}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    {pages.length > 0 ? (
+                      <div className="space-y-2">
+                        {pages.map((page) => (
+                          <div
+                            key={page.id}
+                            className={cn(
+                              'flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer transition-all hover:border-primary/50',
+                              formData.pageId === page.id
+                                ? 'border-primary bg-primary/5'
+                                : 'border-transparent bg-muted/40'
+                            )}
+                            onClick={() => setFormData(prev => ({ ...prev, pageId: page.id, pageName: page.name }))}
+                          >
+                            <div className={cn(
+                              'flex items-center justify-center w-5 h-5 rounded-full border-2',
+                              formData.pageId === page.id ? 'border-primary bg-primary' : 'border-muted-foreground/40'
+                            )}>
+                              {formData.pageId === page.id && <Check className="h-3 w-3 text-primary-foreground" />}
+                            </div>
+                            <Globe className="h-4 w-4 text-blue-500 flex-shrink-0" />
+                            <div className="flex-1 min-w-0">
+                              <p className="font-medium text-sm truncate">{page.name}</p>
+                              <p className="text-xs text-muted-foreground">ID: {page.id}</p>
+                            </div>
+                            {page.category && <Badge variant="secondary" className="text-xs flex-shrink-0">{page.category}</Badge>}
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="space-y-3">
+                        <p className="text-sm text-muted-foreground">No pages found via API. Enter your Page ID manually:</p>
+                        <Input
+                          placeholder="123456789012345"
+                          value={formData.pageId}
+                          onChange={(e) => setFormData(prev => ({ ...prev, pageId: e.target.value.trim() }))}
+                          className="h-10"
+                        />
+                        <Input
+                          placeholder="Page Name (optional)"
+                          value={formData.pageName}
+                          onChange={(e) => setFormData(prev => ({ ...prev, pageName: e.target.value }))}
+                          className="h-10"
+                        />
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
 
-                <Button
-                  onClick={handleComplete}
-                  disabled={!canComplete || isConnecting}
-                  className="w-full gap-2 h-12 text-base shadow-lg shadow-primary/25"
-                  size="lg"
-                >
-                  {isConnecting ? (
-                    <Loader2 className="h-5 w-5 animate-spin" />
-                  ) : (
-                    <CheckCircle2 className="h-5 w-5" />
-                  )}
-                  Enable Click-to-WhatsApp Tracking
-                </Button>
-              </CardContent>
-            </Card>
+                {/* Step 4: Link WhatsApp Number */}
+                <Card className="border-0 shadow-lg">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="flex items-center gap-2 text-base">
+                      <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-primary text-primary-foreground text-sm font-bold">3</div>
+                      <Phone className="h-4 w-4 text-primary" />
+                      Link WhatsApp Number
+                      <span className="text-xs text-muted-foreground font-normal">(optional)</span>
+                      {formData.phoneNumberId && <Check className="h-4 w-4 text-emerald-600 ml-auto" />}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    {phoneNumbers.length > 0 ? (
+                      <div className="space-y-2">
+                        {phoneNumbers.map((phone) => (
+                          <div
+                            key={phone.id}
+                            className={cn(
+                              'flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer transition-all hover:border-primary/50',
+                              formData.phoneNumberId === phone.id
+                                ? 'border-primary bg-primary/5'
+                                : 'border-transparent bg-muted/40'
+                            )}
+                            onClick={() => setFormData(prev => ({ ...prev, phoneNumberId: phone.id, phoneDisplay: phone.display_number || '' }))}
+                          >
+                            <div className={cn(
+                              'flex items-center justify-center w-5 h-5 rounded-full border-2',
+                              formData.phoneNumberId === phone.id ? 'border-primary bg-primary' : 'border-muted-foreground/40'
+                            )}>
+                              {formData.phoneNumberId === phone.id && <Check className="h-3 w-3 text-primary-foreground" />}
+                            </div>
+                            <Phone className="h-4 w-4 text-emerald-500 flex-shrink-0" />
+                            <div className="flex-1 min-w-0">
+                              <p className="font-medium text-sm">{phone.display_number || phone.phone_number_id}</p>
+                            </div>
+                            {phone.quality_rating === 'GREEN' && (
+                              <Badge className="bg-emerald-100 text-emerald-700 text-xs">Active</Badge>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <Alert>
+                        <Info className="h-4 w-4" />
+                        <AlertDescription className="text-sm">
+                          No WhatsApp numbers connected to this workspace yet.
+                          Connect a WhatsApp number first from the WABA settings.
+                        </AlertDescription>
+                      </Alert>
+                    )}
+                  </CardContent>
+                </Card>
+
+                {/* Summary & Complete */}
+                <Card className="border-0 shadow-lg border-t-4 border-t-primary">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="flex items-center gap-2 text-base">
+                      <Sparkles className="h-4 w-4 text-primary" />
+                      Setup Summary
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="space-y-3 text-sm">
+                      <div className="flex items-center justify-between">
+                        <span className="text-muted-foreground flex items-center gap-2">
+                          <Building2 className="h-3.5 w-3.5" /> Ad Account
+                        </span>
+                        <span className="font-medium">
+                          {formData.adAccountName || formData.adAccountId || <span className="text-muted-foreground italic">Not selected</span>}
+                        </span>
+                      </div>
+                      <Separator />
+                      <div className="flex items-center justify-between">
+                        <span className="text-muted-foreground flex items-center gap-2">
+                          <FileText className="h-3.5 w-3.5" /> Facebook Page
+                        </span>
+                        <span className="font-medium">
+                          {formData.pageName || formData.pageId || <span className="text-muted-foreground italic">Not selected</span>}
+                        </span>
+                      </div>
+                      <Separator />
+                      <div className="flex items-center justify-between">
+                        <span className="text-muted-foreground flex items-center gap-2">
+                          <Phone className="h-3.5 w-3.5" /> WhatsApp Number
+                        </span>
+                        <span className="font-medium">
+                          {formData.phoneDisplay || phoneNumbers.find(p => p.id === formData.phoneNumberId)?.display_number || <span className="text-muted-foreground italic">Not selected</span>}
+                        </span>
+                      </div>
+                      <Separator />
+                      <div className="flex items-center justify-between">
+                        <span className="text-muted-foreground flex items-center gap-2">
+                          <Zap className="h-3.5 w-3.5" /> Live Sync
+                        </span>
+                        <Badge variant={longLivedToken ? 'default' : 'secondary'}>
+                          {longLivedToken ? 'Enabled' : 'Manual only'}
+                        </Badge>
+                      </div>
+                    </div>
+
+                    <Alert className="border-blue-200 bg-blue-50 dark:bg-blue-950/30">
+                      <Shield className="h-4 w-4 text-blue-600" />
+                      <AlertDescription className="text-blue-700 dark:text-blue-300 text-xs sm:text-sm">
+                        <strong>Privacy:</strong> AIREATRO only reads ad performance data and lead events. We never create, modify, or manage your ads.
+                      </AlertDescription>
+                    </Alert>
+
+                    <Button
+                      onClick={handleComplete}
+                      disabled={!canComplete || isConnecting}
+                      className="w-full gap-2 h-12 text-base shadow-lg shadow-primary/25"
+                      size="lg"
+                    >
+                      {isConnecting ? (
+                        <Loader2 className="h-5 w-5 animate-spin" />
+                      ) : (
+                        <CheckCircle2 className="h-5 w-5" />
+                      )}
+                      Enable Click-to-WhatsApp Tracking
+                    </Button>
+                  </CardContent>
+                </Card>
+              </>
+            )}
           </>
         )}
       </div>
