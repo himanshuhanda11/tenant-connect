@@ -107,3 +107,6 @@ verify_jwt = false
 
 [functions.meta-refresh-assets]
 verify_jwt = false
+
+[functions.meta-ads-sync]
+verify_jwt = false
