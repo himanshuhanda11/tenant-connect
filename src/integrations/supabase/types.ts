@@ -7929,6 +7929,7 @@ export type Database = {
           cpl: number | null
           created_at: string
           ctr: number | null
+          draft_id: string | null
           end_date: string | null
           id: string
           impressions: number | null
@@ -7937,6 +7938,7 @@ export type Database = {
           meta_ad_id: string | null
           meta_adset_id: string | null
           meta_campaign_id: string
+          meta_creative_id: string | null
           raw_meta_data: Json | null
           spend_amount: number | null
           spend_currency: string | null
@@ -7959,6 +7961,7 @@ export type Database = {
           cpl?: number | null
           created_at?: string
           ctr?: number | null
+          draft_id?: string | null
           end_date?: string | null
           id?: string
           impressions?: number | null
@@ -7967,6 +7970,7 @@ export type Database = {
           meta_ad_id?: string | null
           meta_adset_id?: string | null
           meta_campaign_id: string
+          meta_creative_id?: string | null
           raw_meta_data?: Json | null
           spend_amount?: number | null
           spend_currency?: string | null
@@ -7989,6 +7993,7 @@ export type Database = {
           cpl?: number | null
           created_at?: string
           ctr?: number | null
+          draft_id?: string | null
           end_date?: string | null
           id?: string
           impressions?: number | null
@@ -7997,6 +8002,7 @@ export type Database = {
           meta_ad_id?: string | null
           meta_adset_id?: string | null
           meta_campaign_id?: string
+          meta_creative_id?: string | null
           raw_meta_data?: Json | null
           spend_amount?: number | null
           spend_currency?: string | null
@@ -8011,6 +8017,13 @@ export type Database = {
             columns: ["ad_account_id"]
             isOneToOne: false
             referencedRelation: "smeksh_meta_ad_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "smeksh_meta_ad_campaigns_draft_id_fkey"
+            columns: ["draft_id"]
+            isOneToOne: false
+            referencedRelation: "smeksh_meta_campaign_drafts"
             referencedColumns: ["id"]
           },
           {
@@ -8403,6 +8416,8 @@ export type Database = {
           meta_ad_id: string | null
           meta_adset_id: string | null
           meta_campaign_id: string | null
+          meta_creative_id: string | null
+          meta_lead_form_id: string | null
           objective: string | null
           optimization_goal: string | null
           page_id: string | null
@@ -8411,7 +8426,12 @@ export type Database = {
           pixel_name: string | null
           placements: string | null
           primary_text: string | null
+          publish_completed_at: string | null
           publish_error: string | null
+          publish_error_code: string | null
+          publish_log: Json | null
+          publish_started_at: string | null
+          publish_status: string | null
           published_at: string | null
           schedule_end: string | null
           schedule_start: string | null
@@ -8477,6 +8497,8 @@ export type Database = {
           meta_ad_id?: string | null
           meta_adset_id?: string | null
           meta_campaign_id?: string | null
+          meta_creative_id?: string | null
+          meta_lead_form_id?: string | null
           objective?: string | null
           optimization_goal?: string | null
           page_id?: string | null
@@ -8485,7 +8507,12 @@ export type Database = {
           pixel_name?: string | null
           placements?: string | null
           primary_text?: string | null
+          publish_completed_at?: string | null
           publish_error?: string | null
+          publish_error_code?: string | null
+          publish_log?: Json | null
+          publish_started_at?: string | null
+          publish_status?: string | null
           published_at?: string | null
           schedule_end?: string | null
           schedule_start?: string | null
@@ -8551,6 +8578,8 @@ export type Database = {
           meta_ad_id?: string | null
           meta_adset_id?: string | null
           meta_campaign_id?: string | null
+          meta_creative_id?: string | null
+          meta_lead_form_id?: string | null
           objective?: string | null
           optimization_goal?: string | null
           page_id?: string | null
@@ -8559,7 +8588,12 @@ export type Database = {
           pixel_name?: string | null
           placements?: string | null
           primary_text?: string | null
+          publish_completed_at?: string | null
           publish_error?: string | null
+          publish_error_code?: string | null
+          publish_log?: Json | null
+          publish_started_at?: string | null
+          publish_status?: string | null
           published_at?: string | null
           schedule_end?: string | null
           schedule_start?: string | null

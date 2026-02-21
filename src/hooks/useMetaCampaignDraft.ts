@@ -3,7 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useTenant } from '@/contexts/TenantContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
-import type { MetaCampaignDraft, MetaCampaignType } from '@/types/meta-campaign';
+import type { MetaCampaignDraft, MetaCampaignType, PublishResult } from '@/types/meta-campaign';
 import { CAMPAIGN_TYPE_CONFIG, DEFAULT_LEAD_FORM_QUESTIONS } from '@/types/meta-campaign';
 
 const AUTOSAVE_DELAY = 2000;
@@ -287,6 +287,47 @@ export function useMetaCampaignDraft(draftId?: string) {
     };
   }, []);
 
+  const publishToMeta = useCallback(async (): Promise<PublishResult> => {
+    if (!currentTenant?.id || !savedDraftId) {
+      return { success: false, error: 'Draft not saved yet' };
+    }
+    
+    // Save latest state first
+    await saveDraft(true);
+    
+    const { data, error } = await supabase.functions.invoke('meta-publish-bundle', {
+      body: { draftId: savedDraftId, tenantId: currentTenant.id },
+    });
+
+    if (error) {
+      return { success: false, error: error.message || 'Failed to call publish function' };
+    }
+
+    // Update local draft with returned IDs
+    if (data?.success) {
+      setDraft(prev => ({
+        ...prev,
+        meta_campaign_id: data.meta_campaign_id,
+        meta_adset_id: data.meta_adset_id,
+        meta_creative_id: data.meta_creative_id,
+        meta_ad_id: data.meta_ad_id,
+        meta_lead_form_id: data.meta_lead_form_id,
+        publish_status: 'published',
+        publish_log: data.log,
+        status: 'published',
+      }));
+    } else {
+      setDraft(prev => ({
+        ...prev,
+        publish_status: 'error',
+        publish_error: data?.error,
+        publish_log: data?.log,
+      }));
+    }
+
+    return data as PublishResult;
+  }, [currentTenant?.id, savedDraftId, saveDraft]);
+
   return {
     draft,
     updateDraft,
@@ -298,5 +339,6 @@ export function useMetaCampaignDraft(draftId?: string) {
     goToStep,
     nextStep,
     prevStep,
+    publishToMeta,
   };
 }

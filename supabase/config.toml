@@ -98,3 +98,12 @@ verify_jwt = false
 
 [functions.ai-prompt-engine]
 verify_jwt = false
+
+[functions.meta-publish-bundle]
+verify_jwt = false
+
+[functions.meta-targeting-search]
+verify_jwt = false
+
+[functions.meta-refresh-assets]
+verify_jwt = false
