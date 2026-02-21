@@ -37,6 +37,7 @@ import {
   MousePointerClick,
   Filter,
   Inbox,
+  Plus,
 } from 'lucide-react';
 import { useMetaAdAccounts } from '@/hooks/useMetaAdAccounts';
 import { AddCampaignDialog } from '@/components/meta-ads/AddCampaignDialog';
@@ -107,6 +108,12 @@ export default function MetaAdsManager() {
             </div>
           </div>
           <div className="flex items-center gap-2 sm:gap-3">
+            <Button asChild size="sm" className="gap-1.5 shadow-lg shadow-primary/25">
+              <Link to="/meta-ads/create">
+                <Plus className="h-4 w-4" />
+                Create Campaign
+              </Link>
+            </Button>
             {isConnected && connectedAccounts[0] && (
               <AddCampaignDialog
                 adAccountId={connectedAccounts[0].id}

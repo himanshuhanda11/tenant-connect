@@ -121,6 +121,7 @@ import MetaAdsAnalytics from "./pages/meta-ads/MetaAdsAnalytics";
 import MetaAdsAttribution from "./pages/meta-ads/MetaAdsAttribution";
 import MetaAdsAutomations from "./pages/meta-ads/MetaAdsAutomations";
 import MetaAdsSettings from "./pages/meta-ads/MetaAdsSettings";
+import CreateMetaCampaign from "./pages/meta-ads/CreateMetaCampaign";
 import Install from "./pages/Install";
 import SeoDashboard from "./pages/developer/SeoDashboard";
 import AdminLayout from "./pages/admin/AdminLayout";
@@ -204,6 +205,7 @@ const App = () => (
               <Route path="/meta-ads/attribution" element={<MetaAdsAttribution />} />
               <Route path="/meta-ads/automations" element={<MetaAdsAutomations />} />
               <Route path="/meta-ads/settings" element={<MetaAdsSettings />} />
+              <Route path="/meta-ads/create" element={<CreateMetaCampaign />} />
               <Route path="/billing" element={<Billing />} />
               <Route path="/add-ons" element={<WorkspaceAddOns />} />
               <Route path="/app/integrations" element={<IntegrationsHub />} />

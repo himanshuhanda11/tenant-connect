@@ -1,0 +1,227 @@
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Slider } from '@/components/ui/slider';
+import { Badge } from '@/components/ui/badge';
+import { Switch } from '@/components/ui/switch';
+import { Users, MapPin, Target, Calendar, Crosshair } from 'lucide-react';
+import type { MetaCampaignDraft } from '@/types/meta-campaign';
+import { CAMPAIGN_TYPE_CONFIG } from '@/types/meta-campaign';
+
+interface StepAdSetProps {
+  draft: MetaCampaignDraft;
+  updateDraft: (updates: Partial<MetaCampaignDraft>) => void;
+}
+
+const OPTIMIZATION_GOALS: Record<string, { value: string; label: string; description: string }[]> = {
+  ctwa: [
+    { value: 'CONVERSATIONS', label: 'Conversations', description: 'Maximize WhatsApp conversations' },
+    { value: 'LINK_CLICKS', label: 'Link Clicks', description: 'Maximize ad clicks' },
+    { value: 'IMPRESSIONS', label: 'Impressions', description: 'Maximize ad reach' },
+  ],
+  website_traffic: [
+    { value: 'LINK_CLICKS', label: 'Link Clicks', description: 'Maximize visits to your website' },
+    { value: 'LANDING_PAGE_VIEWS', label: 'Landing Page Views', description: 'Maximize actual page loads' },
+    { value: 'IMPRESSIONS', label: 'Impressions', description: 'Show to as many people as possible' },
+  ],
+  form_leads: [
+    { value: 'LEAD_GENERATION', label: 'Leads', description: 'Maximize form submissions' },
+    { value: 'QUALITY_LEAD', label: 'Quality Leads', description: 'Focus on higher quality leads' },
+    { value: 'LINK_CLICKS', label: 'Link Clicks', description: 'Maximize clicks to form' },
+  ],
+};
+
+export function StepAdSet({ draft, updateDraft }: StepAdSetProps) {
+  const config = CAMPAIGN_TYPE_CONFIG[draft.campaign_type];
+  const goals = OPTIMIZATION_GOALS[draft.campaign_type] || OPTIMIZATION_GOALS.ctwa;
+
+  return (
+    <div className="space-y-6">
+      {/* Ad Set Name & Optimization */}
+      <Card className="border-0 shadow-md">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base">Ad Set Configuration</CardTitle>
+          <CardDescription>Define targeting, optimization, and scheduling</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-1.5">
+            <Label className="text-xs">Ad Set Name *</Label>
+            <Input
+              value={draft.adset_name || ''}
+              onChange={e => updateDraft({ adset_name: e.target.value })}
+              placeholder="e.g. UAE Women 25-44"
+              className="h-10"
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-1.5">
+              <Label className="text-xs flex items-center gap-1.5">
+                <Target className="h-3 w-3 text-muted-foreground" />
+                Optimization Goal
+              </Label>
+              <Select
+                value={draft.optimization_goal || config.optimizationGoal}
+                onValueChange={v => updateDraft({ optimization_goal: v })}
+              >
+                <SelectTrigger className="h-10"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {goals.map(g => (
+                    <SelectItem key={g.value} value={g.value}>
+                      <div>
+                        <span>{g.label}</span>
+                        <span className="text-muted-foreground text-xs ml-2">— {g.description}</span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">Bid Strategy</Label>
+              <Select value={draft.bid_strategy || 'lowest_cost'} onValueChange={v => updateDraft({ bid_strategy: v })}>
+                <SelectTrigger className="h-10"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="lowest_cost">Lowest Cost</SelectItem>
+                  <SelectItem value="cost_cap">Cost Cap</SelectItem>
+                  <SelectItem value="bid_cap">Bid Cap</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Audience Targeting */}
+      <Card className="border-0 shadow-md">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base flex items-center gap-2">
+            <Users className="h-4 w-4 text-primary" />
+            Audience
+          </CardTitle>
+          <CardDescription>Define who sees your ads</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-5">
+          {/* Age */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <Label className="text-xs">Age Range</Label>
+              <Badge variant="outline" className="text-xs">
+                {draft.age_min || 18} — {draft.age_max || 65}+
+              </Badge>
+            </div>
+            <div className="px-1">
+              <Slider
+                value={[draft.age_min || 18, draft.age_max || 65]}
+                min={13}
+                max={65}
+                step={1}
+                onValueChange={([min, max]) => updateDraft({ age_min: min, age_max: max })}
+              />
+            </div>
+          </div>
+
+          {/* Gender */}
+          <div className="space-y-1.5">
+            <Label className="text-xs">Gender</Label>
+            <Select
+              value={draft.genders?.[0] || 'all'}
+              onValueChange={v => updateDraft({ genders: v === 'all' ? [] : [v] })}
+            >
+              <SelectTrigger className="h-10"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Genders</SelectItem>
+                <SelectItem value="male">Male</SelectItem>
+                <SelectItem value="female">Female</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Locations placeholder */}
+          <div className="space-y-1.5">
+            <Label className="text-xs flex items-center gap-1.5">
+              <MapPin className="h-3 w-3 text-muted-foreground" />
+              Locations
+            </Label>
+            <Input
+              placeholder="Type countries or cities (e.g. UAE, Dubai, Saudi Arabia)"
+              className="h-10"
+              onChange={e => {
+                const val = e.target.value;
+                updateDraft({
+                  locations: val ? val.split(',').map(s => ({ name: s.trim() })) : [],
+                });
+              }}
+              value={(draft.locations as { name: string }[] || []).map(l => l.name).join(', ')}
+            />
+            <p className="text-[10px] text-muted-foreground">Comma-separated list of target locations</p>
+          </div>
+
+          {/* Interests placeholder */}
+          <div className="space-y-1.5">
+            <Label className="text-xs flex items-center gap-1.5">
+              <Crosshair className="h-3 w-3 text-muted-foreground" />
+              Interests
+            </Label>
+            <Input
+              placeholder="e.g. Fashion, Technology, Travel"
+              className="h-10"
+              onChange={e => {
+                const val = e.target.value;
+                updateDraft({
+                  interests: val ? val.split(',').map(s => ({ name: s.trim() })) : [],
+                });
+              }}
+              value={(draft.interests as { name: string }[] || []).map(i => i.name).join(', ')}
+            />
+            <p className="text-[10px] text-muted-foreground">Comma-separated list of interest categories</p>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Placements & Schedule */}
+      <Card className="border-0 shadow-md">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base flex items-center gap-2">
+            <Calendar className="h-4 w-4 text-primary" />
+            Placements & Schedule
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <Label className="text-xs">Advantage+ Placements</Label>
+              <p className="text-[10px] text-muted-foreground mt-0.5">Let Meta optimize where your ads show</p>
+            </div>
+            <Switch
+              checked={draft.placements === 'automatic'}
+              onCheckedChange={v => updateDraft({ placements: v ? 'automatic' : 'manual' })}
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-1.5">
+              <Label className="text-xs">Start Date</Label>
+              <Input
+                type="datetime-local"
+                value={draft.schedule_start?.slice(0, 16) || ''}
+                onChange={e => updateDraft({ schedule_start: e.target.value ? new Date(e.target.value).toISOString() : undefined })}
+                className="h-10"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">End Date (optional)</Label>
+              <Input
+                type="datetime-local"
+                value={draft.schedule_end?.slice(0, 16) || ''}
+                onChange={e => updateDraft({ schedule_end: e.target.value ? new Date(e.target.value).toISOString() : undefined })}
+                className="h-10"
+              />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
