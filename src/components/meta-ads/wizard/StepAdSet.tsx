@@ -8,7 +8,8 @@ import { Switch } from '@/components/ui/switch';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Users, MapPin, Target, Calendar, Crosshair, Globe, LayoutGrid } from 'lucide-react';
 import type { MetaCampaignDraft } from '@/types/meta-campaign';
-import { CAMPAIGN_TYPE_CONFIG, LANGUAGE_OPTIONS, MANUAL_PLACEMENT_OPTIONS } from '@/types/meta-campaign';
+import { CAMPAIGN_TYPE_CONFIG, MANUAL_PLACEMENT_OPTIONS } from '@/types/meta-campaign';
+import { TargetingSearchInput } from './TargetingSearchInput';
 
 interface StepAdSetProps {
   draft: MetaCampaignDraft;
@@ -158,90 +159,67 @@ export function StepAdSet({ draft, updateDraft }: StepAdSetProps) {
             </div>
           )}
 
-          {/* Languages */}
-          <div className="space-y-1.5">
-            <Label className="text-xs flex items-center gap-1.5">
-              <Globe className="h-3 w-3 text-muted-foreground" />
-              Languages
-            </Label>
-            <Select
-              value={draft.languages?.[0] || 'all'}
-              onValueChange={v => {
-                if (v === 'all') {
-                  updateDraft({ languages: [] });
-                } else {
-                  const current = draft.languages || [];
-                  if (!current.includes(v)) {
-                    updateDraft({ languages: [...current, v] });
-                  }
-                }
-              }}
-            >
-              <SelectTrigger className="h-10"><SelectValue placeholder="All Languages" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Languages</SelectItem>
-                {LANGUAGE_OPTIONS.map(lang => (
-                  <SelectItem key={lang.value} value={lang.value}>{lang.label}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {(draft.languages?.length ?? 0) > 0 && (
-              <div className="flex flex-wrap gap-1.5 mt-1">
-                {draft.languages!.map(lang => {
-                  const label = LANGUAGE_OPTIONS.find(l => l.value === lang)?.label || lang;
-                  return (
-                    <Badge
-                      key={lang}
-                      variant="secondary"
-                      className="text-[10px] cursor-pointer hover:bg-destructive/10 hover:text-destructive"
-                      onClick={() => updateDraft({ languages: draft.languages!.filter(l => l !== lang) })}
-                    >
-                      {label} ×
-                    </Badge>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-
-          {/* Locations */}
+          {/* Locations - Search from Meta API */}
           <div className="space-y-1.5">
             <Label className="text-xs flex items-center gap-1.5">
               <MapPin className="h-3 w-3 text-muted-foreground" />
               Locations
             </Label>
-            <Input
-              placeholder="Type countries or cities (e.g. UAE, Dubai, Saudi Arabia)"
-              className="h-10"
-              onChange={e => {
-                const val = e.target.value;
-                updateDraft({
-                  locations: val ? val.split(',').map(s => ({ name: s.trim() })) : [],
-                });
-              }}
-              value={(draft.locations as { name: string }[] || []).map(l => l.name).join(', ')}
-            />
-            <p className="text-[10px] text-muted-foreground">Comma-separated list of target locations</p>
+            {draft.ad_account_id ? (
+              <TargetingSearchInput
+                searchType="geo"
+                adAccountId={draft.ad_account_id}
+                selectedItems={(draft.locations as any[]) || []}
+                onChange={items => updateDraft({ locations: items })}
+                placeholder="Search countries, cities, regions..."
+              />
+            ) : (
+              <p className="text-xs text-muted-foreground p-3 border rounded-lg bg-muted/30">
+                Connect an Ad Account in Step 1 to search locations
+              </p>
+            )}
           </div>
 
-          {/* Interests */}
+          {/* Languages - Search from Meta API */}
+          <div className="space-y-1.5">
+            <Label className="text-xs flex items-center gap-1.5">
+              <Globe className="h-3 w-3 text-muted-foreground" />
+              Languages
+            </Label>
+            {draft.ad_account_id ? (
+              <TargetingSearchInput
+                searchType="locale"
+                adAccountId={draft.ad_account_id}
+                selectedItems={(draft.languages as any[] || []).map(l => typeof l === 'string' ? { key: l, name: l } : l)}
+                onChange={items => updateDraft({ languages: items as any })}
+                placeholder="Search languages..."
+              />
+            ) : (
+              <p className="text-xs text-muted-foreground p-3 border rounded-lg bg-muted/30">
+                Connect an Ad Account in Step 1 to search languages
+              </p>
+            )}
+          </div>
+
+          {/* Interests - Search from Meta API */}
           <div className="space-y-1.5">
             <Label className="text-xs flex items-center gap-1.5">
               <Crosshair className="h-3 w-3 text-muted-foreground" />
               Interests
             </Label>
-            <Input
-              placeholder="e.g. Fashion, Technology, Travel"
-              className="h-10"
-              onChange={e => {
-                const val = e.target.value;
-                updateDraft({
-                  interests: val ? val.split(',').map(s => ({ name: s.trim() })) : [],
-                });
-              }}
-              value={(draft.interests as { name: string }[] || []).map(i => i.name).join(', ')}
-            />
-            <p className="text-[10px] text-muted-foreground">Comma-separated list of interest categories</p>
+            {draft.ad_account_id ? (
+              <TargetingSearchInput
+                searchType="interests"
+                adAccountId={draft.ad_account_id}
+                selectedItems={(draft.interests as any[]) || []}
+                onChange={items => updateDraft({ interests: items })}
+                placeholder="Search interests (e.g. Fashion, Travel)..."
+              />
+            ) : (
+              <p className="text-xs text-muted-foreground p-3 border rounded-lg bg-muted/30">
+                Connect an Ad Account in Step 1 to search interests
+              </p>
+            )}
           </div>
         </CardContent>
       </Card>

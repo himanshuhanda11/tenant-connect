@@ -11,6 +11,18 @@ const AUTOSAVE_DELAY = 2000;
 export function useMetaCampaignDraft(draftId?: string) {
   const { currentTenant } = useTenant();
   const { user } = useAuth();
+  // Generate default names
+  const now = new Date();
+  const dateStr = now.toISOString().slice(0, 10);
+  const defaultCampaignName = `Campaign ${dateStr}`;
+  const defaultAdsetName = `Ad Set ${dateStr}`;
+  const defaultAdName = `Ad ${dateStr}`;
+  // Default schedule_start to now (rounded to next hour)
+  const startDate = new Date(now);
+  startDate.setMinutes(0, 0, 0);
+  startDate.setHours(startDate.getHours() + 1);
+  const defaultScheduleStart = startDate.toISOString();
+
   const [draft, setDraft] = useState<MetaCampaignDraft>({
     workspace_id: '',
     campaign_type: 'ctwa',
@@ -28,6 +40,10 @@ export function useMetaCampaignDraft(draftId?: string) {
     manual_placements: [],
     lead_form_type: 'more_volume',
     lead_form_questions: [...DEFAULT_LEAD_FORM_QUESTIONS],
+    campaign_name: defaultCampaignName,
+    adset_name: defaultAdsetName,
+    ad_name: defaultAdName,
+    schedule_start: defaultScheduleStart,
   });
   const [isSaving, setIsSaving] = useState(false);
   const [isLoading, setIsLoading] = useState(!!draftId);
