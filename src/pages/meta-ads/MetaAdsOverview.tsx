@@ -32,9 +32,9 @@ import {
   MousePointerClick,
   LinkIcon,
   Inbox,
+  Plus,
 } from 'lucide-react';
 import { useMetaAdAccounts } from '@/hooks/useMetaAdAccounts';
-import { AddCampaignDialog } from '@/components/meta-ads/AddCampaignDialog';
 import { formatDistanceToNow } from 'date-fns';
 
 export default function MetaAdsOverview() {
@@ -121,10 +121,12 @@ export default function MetaAdsOverview() {
           </div>
           <div className="flex items-center gap-2 sm:gap-3">
             {isConnected && connectedAccounts[0] && (
-              <AddCampaignDialog
-                adAccountId={connectedAccounts[0].id}
-                onSuccess={refetch}
-              />
+              <Button size="sm" className="gap-1.5" asChild>
+                <a href="https://aireatro.com/meta-ads/create" target="_blank" rel="noopener noreferrer">
+                  <Plus className="h-4 w-4" />
+                  Add Campaign
+                </a>
+              </Button>
             )}
             <Button
               variant="outline"
