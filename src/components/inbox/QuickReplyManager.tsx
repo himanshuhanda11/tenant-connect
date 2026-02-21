@@ -54,7 +54,11 @@ export function QuickReplyManager({ onSelectReply, isMobile = false }: QuickRepl
 
   // Load quick replies from database
   const loadReplies = useCallback(async () => {
-    if (!tenantId || !userId) return;
+    if (!tenantId || !userId) {
+      setLoading(false);
+      return;
+    }
+    setLoading(true);
     try {
       const { data, error } = await supabase
         .from('quick_replies')
@@ -63,27 +67,31 @@ export function QuickReplyManager({ onSelectReply, isMobile = false }: QuickRepl
         .eq('user_id', userId)
         .order('sort_order', { ascending: true });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Quick replies load error:', error);
+        throw error;
+      }
 
       if (data && data.length > 0) {
         setReplies(data.map(r => ({ id: r.id, label: r.label, text: r.text, sort_order: r.sort_order })));
       } else {
         // Seed default replies for first-time users
-        await seedDefaults();
+        await seedDefaultsForUser(tenantId, userId);
       }
     } catch (err) {
       console.error('Failed to load quick replies:', err);
+      // Fallback to local defaults so UI still works
+      setReplies(DEFAULT_REPLIES.map((r, i) => ({ ...r, id: `local-${i}` })));
     } finally {
       setLoading(false);
     }
   }, [tenantId, userId]);
 
-  const seedDefaults = async () => {
-    if (!tenantId || !userId) return;
+  const seedDefaultsForUser = async (tid: string, uid: string) => {
     try {
       const rows = DEFAULT_REPLIES.map((r, i) => ({
-        tenant_id: tenantId,
-        user_id: userId,
+        tenant_id: tid,
+        user_id: uid,
         label: r.label,
         text: r.text,
         sort_order: i,
@@ -93,12 +101,18 @@ export function QuickReplyManager({ onSelectReply, isMobile = false }: QuickRepl
         .insert(rows)
         .select('id, label, text, sort_order');
 
-      if (error) throw error;
+      if (error) {
+        console.error('Seed quick replies error:', error);
+        // Fallback to local defaults
+        setReplies(DEFAULT_REPLIES.map((r, i) => ({ ...r, id: `local-${i}` })));
+        return;
+      }
       if (data) {
         setReplies(data.map(r => ({ id: r.id, label: r.label, text: r.text, sort_order: r.sort_order })));
       }
     } catch (err) {
       console.error('Failed to seed default replies:', err);
+      setReplies(DEFAULT_REPLIES.map((r, i) => ({ ...r, id: `local-${i}` })));
     }
   };
 
