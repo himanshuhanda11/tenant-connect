@@ -40,7 +40,6 @@ import {
   Plus,
 } from 'lucide-react';
 import { useMetaAdAccounts } from '@/hooks/useMetaAdAccounts';
-import { AddCampaignDialog } from '@/components/meta-ads/AddCampaignDialog';
 import { cn } from '@/lib/utils';
 
 export default function MetaAdsManager() {
@@ -114,12 +113,6 @@ export default function MetaAdsManager() {
                 Create Campaign
               </Link>
             </Button>
-            {isConnected && connectedAccounts[0] && (
-              <AddCampaignDialog
-                adAccountId={connectedAccounts[0].id}
-                onSuccess={refetch}
-              />
-            )}
             <Button
               variant="outline"
               size="sm"
