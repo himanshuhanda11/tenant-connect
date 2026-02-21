@@ -4,7 +4,7 @@ import { useTenant } from '@/contexts/TenantContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import type { MetaCampaignDraft, MetaCampaignType } from '@/types/meta-campaign';
-import { CAMPAIGN_TYPE_CONFIG } from '@/types/meta-campaign';
+import { CAMPAIGN_TYPE_CONFIG, DEFAULT_LEAD_FORM_QUESTIONS } from '@/types/meta-campaign';
 
 const AUTOSAVE_DELAY = 2000;
 
@@ -23,6 +23,11 @@ export function useMetaCampaignDraft(draftId?: string) {
     age_max: 65,
     buying_type: 'AUCTION',
     special_ad_categories: [],
+    cbo_enabled: true,
+    languages: [],
+    manual_placements: [],
+    lead_form_type: 'more_volume',
+    lead_form_questions: [...DEFAULT_LEAD_FORM_QUESTIONS],
   });
   const [isSaving, setIsSaving] = useState(false);
   const [isLoading, setIsLoading] = useState(!!draftId);
@@ -73,6 +78,8 @@ export function useMetaCampaignDraft(draftId?: string) {
           next.whatsapp_phone_display = undefined;
           next.whatsapp_message = undefined;
           next.whatsapp_welcome_message = undefined;
+          next.flow_id = undefined;
+          next.flow_name = undefined;
         }
         if (updates.campaign_type !== 'website_traffic') {
           next.destination_url = undefined;
@@ -80,6 +87,15 @@ export function useMetaCampaignDraft(draftId?: string) {
         }
         if (updates.campaign_type !== 'form_leads') {
           next.instant_form_id = undefined;
+          next.lead_form_questions = [...DEFAULT_LEAD_FORM_QUESTIONS];
+          next.lead_form_privacy_url = undefined;
+          next.lead_form_thankyou_title = undefined;
+          next.lead_form_thankyou_body = undefined;
+        } else {
+          // Set default lead form questions when switching to form_leads
+          if (!prev.lead_form_questions?.length) {
+            next.lead_form_questions = [...DEFAULT_LEAD_FORM_QUESTIONS];
+          }
         }
       }
       return next;
@@ -107,6 +123,7 @@ export function useMetaCampaignDraft(draftId?: string) {
         page_name: draft.page_name || null,
         instagram_account_id: draft.instagram_account_id || null,
         pixel_id: draft.pixel_id || null,
+        pixel_name: draft.pixel_name || null,
         whatsapp_phone_id: draft.whatsapp_phone_id || null,
         whatsapp_phone_display: draft.whatsapp_phone_display || null,
         campaign_name: draft.campaign_name || null,
@@ -116,15 +133,18 @@ export function useMetaCampaignDraft(draftId?: string) {
         daily_budget: draft.daily_budget || null,
         lifetime_budget: draft.lifetime_budget || null,
         budget_type: draft.budget_type || 'daily',
+        cbo_enabled: draft.cbo_enabled ?? true,
         adset_name: draft.adset_name || null,
         targeting: draft.targeting || {},
         age_min: draft.age_min ?? 18,
         age_max: draft.age_max ?? 65,
         genders: draft.genders || [],
+        languages: draft.languages || [],
         locations: draft.locations || [],
         interests: draft.interests || [],
         custom_audiences: draft.custom_audiences || [],
         placements: draft.placements || 'automatic',
+        manual_placements: draft.manual_placements || [],
         optimization_goal: draft.optimization_goal || null,
         bid_strategy: draft.bid_strategy || 'lowest_cost',
         schedule_start: draft.schedule_start || null,
@@ -142,6 +162,20 @@ export function useMetaCampaignDraft(draftId?: string) {
         instant_form_id: draft.instant_form_id || null,
         whatsapp_message: draft.whatsapp_message || null,
         whatsapp_welcome_message: draft.whatsapp_welcome_message || null,
+        flow_id: draft.flow_id || null,
+        flow_name: draft.flow_name || null,
+        utm_source: draft.utm_source || null,
+        utm_medium: draft.utm_medium || null,
+        utm_campaign: draft.utm_campaign || null,
+        utm_content: draft.utm_content || null,
+        utm_term: draft.utm_term || null,
+        lead_form_type: draft.lead_form_type || 'more_volume',
+        lead_form_questions: draft.lead_form_questions || [],
+        lead_form_privacy_url: draft.lead_form_privacy_url || null,
+        lead_form_thankyou_title: draft.lead_form_thankyou_title || null,
+        lead_form_thankyou_body: draft.lead_form_thankyou_body || null,
+        lead_form_thankyou_cta: draft.lead_form_thankyou_cta || null,
+        lead_form_thankyou_url: draft.lead_form_thankyou_url || null,
         status: draft.status || 'draft',
         last_autosaved_at: new Date().toISOString(),
       };
@@ -170,30 +204,52 @@ export function useMetaCampaignDraft(draftId?: string) {
 
   const validateStep = useCallback((step: number): { valid: boolean; errors: string[] } => {
     const errors: string[] = [];
-    const config = CAMPAIGN_TYPE_CONFIG[draft.campaign_type];
 
     switch (step) {
       case 1: // Assets
         if (!draft.ad_account_id) errors.push('Select an Ad Account');
         if (!draft.page_id) errors.push('Select a Facebook Page');
         if (draft.campaign_type === 'ctwa' && !draft.whatsapp_phone_id) {
-          errors.push('Select a WhatsApp number for Click-to-WhatsApp campaigns');
+          errors.push('WhatsApp number is required for Click-to-WhatsApp campaigns');
         }
         break;
       case 2: // Objective
         if (!draft.campaign_name?.trim()) errors.push('Enter a campaign name');
         if (!draft.daily_budget && !draft.lifetime_budget) errors.push('Set a budget');
         if (draft.daily_budget && draft.daily_budget < 1) errors.push('Daily budget must be at least $1');
+        if (draft.lifetime_budget && draft.lifetime_budget < 1) errors.push('Lifetime budget must be at least $1');
         break;
       case 3: // Ad Set
         if (!draft.adset_name?.trim()) errors.push('Enter an ad set name');
+        if (draft.placements === 'manual' && (!draft.manual_placements || draft.manual_placements.length === 0)) {
+          errors.push('Select at least one placement for manual mode');
+        }
         break;
       case 4: // Creative
         if (!draft.ad_name?.trim()) errors.push('Enter an ad name');
         if (!draft.primary_text?.trim()) errors.push('Enter primary text');
         if (!draft.headline?.trim()) errors.push('Enter a headline');
-        if (draft.campaign_type === 'website_traffic' && !draft.destination_url?.trim()) {
-          errors.push('Enter a destination URL for Website Traffic campaigns');
+        if (draft.campaign_type === 'website_traffic') {
+          if (!draft.destination_url?.trim()) {
+            errors.push('Destination URL is required for Website Traffic campaigns');
+          } else {
+            try {
+              new URL(draft.destination_url);
+            } catch {
+              errors.push('Destination URL must be a valid URL (include https://)');
+            }
+          }
+        }
+        if (draft.campaign_type === 'form_leads') {
+          if (!draft.lead_form_privacy_url?.trim()) {
+            errors.push('Privacy policy URL is required for Lead Form campaigns');
+          }
+          const contactFields = (draft.lead_form_questions || []).filter(
+            q => ['PHONE', 'EMAIL', 'FULL_NAME'].includes(q.field)
+          );
+          if (contactFields.length === 0) {
+            errors.push('Add at least one contact field (Name, Phone, or Email)');
+          }
         }
         break;
     }
