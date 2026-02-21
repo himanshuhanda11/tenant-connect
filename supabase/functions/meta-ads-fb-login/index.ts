@@ -75,28 +75,27 @@ Deno.serve(async (req) => {
 
     const longLivedToken = exchangeData.access_token;
 
-    // Debug: check granted permissions
-    const permsRes = await fetch(`https://graph.facebook.com/v21.0/me/permissions?access_token=${longLivedToken}`);
-    const permsData = await permsRes.json();
-    console.log('Granted permissions:', JSON.stringify(permsData.data || []));
+    // Fetch permissions, ad accounts, pages, businesses in parallel
+    const [permsRes, adAccountsRes, pagesRes, businessesRes] = await Promise.all([
+      fetch(`https://graph.facebook.com/v21.0/me/permissions?access_token=${longLivedToken}`),
+      fetch(`https://graph.facebook.com/v21.0/me/adaccounts?fields=id,name,account_status,currency,timezone_name&access_token=${longLivedToken}`),
+      fetch(`https://graph.facebook.com/v21.0/me/accounts?fields=id,name,category,access_token,instagram_business_account{id,username,name,profile_picture_url}&access_token=${longLivedToken}`),
+      fetch(`https://graph.facebook.com/v21.0/me/businesses?fields=id,name&access_token=${longLivedToken}`),
+    ]);
 
-    // Fetch ad accounts — try with the token; if ads_read isn't granted, return empty
-    const adAccountsRes = await fetch(
-      `https://graph.facebook.com/v21.0/me/adaccounts?fields=id,name,account_status,currency,timezone_name&access_token=${longLivedToken}`
-    );
-    const adAccountsData = await adAccountsRes.json();
+    const [permsData, adAccountsData, pagesData, businessesData] = await Promise.all([
+      permsRes.json(),
+      adAccountsRes.json(),
+      pagesRes.json(),
+      businessesRes.json(),
+    ]);
+
+    console.log('Granted permissions:', JSON.stringify(permsData.data || []));
 
     if (adAccountsData.error) {
       console.error('Ad accounts fetch error:', adAccountsData.error);
-      // Don't fail entirely — return empty ad accounts with the error info
       console.log('Continuing without ad accounts due to permission error');
     }
-
-    // Fetch Facebook pages
-    const pagesRes = await fetch(
-      `https://graph.facebook.com/v21.0/me/accounts?fields=id,name,category,access_token&access_token=${longLivedToken}`
-    );
-    const pagesData = await pagesRes.json();
 
     if (pagesData.error) {
       console.error('Pages fetch error:', pagesData.error);
@@ -105,7 +104,34 @@ Deno.serve(async (req) => {
       });
     }
 
-    console.log(`FB Login: fetched ${adAccountsData.data?.length || 0} ad accounts, ${pagesData.data?.length || 0} pages for tenant ${tenantId}`);
+    // Extract Instagram accounts from pages
+    const instagramAccounts: any[] = [];
+    for (const page of (pagesData.data || [])) {
+      if (page.instagram_business_account) {
+        const ig = page.instagram_business_account;
+        instagramAccounts.push({
+          id: ig.id,
+          username: ig.username || '',
+          name: ig.name || '',
+          profilePictureUrl: ig.profile_picture_url || '',
+          linkedPageId: page.id,
+          linkedPageName: page.name,
+        });
+      }
+    }
+
+    // Extract businesses
+    const businesses = (businessesData.data || []).map((b: any) => ({
+      id: b.id,
+      name: b.name,
+    }));
+
+    if (businessesData.error) {
+      console.error('Businesses fetch error:', businessesData.error);
+      // Non-fatal, continue
+    }
+
+    console.log(`FB Login: fetched ${adAccountsData.data?.length || 0} ad accounts, ${pagesData.data?.length || 0} pages, ${instagramAccounts.length} IG accounts, ${businesses.length} businesses for tenant ${tenantId}`);
 
     return new Response(JSON.stringify({
       longLivedToken,
@@ -122,6 +148,8 @@ Deno.serve(async (req) => {
         category: page.category,
         accessToken: page.access_token,
       })),
+      instagramAccounts,
+      businesses,
       permissions: permsData.data || [],
       adAccountsError: adAccountsData.error?.message || null,
     }), {
