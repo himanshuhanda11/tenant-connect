@@ -8355,6 +8355,192 @@ export type Database = {
           },
         ]
       }
+      smeksh_meta_campaign_drafts: {
+        Row: {
+          ad_account_id: string | null
+          ad_name: string | null
+          adset_name: string | null
+          age_max: number | null
+          age_min: number | null
+          bid_strategy: string | null
+          budget_type: string | null
+          buying_type: string | null
+          call_to_action: string | null
+          campaign_name: string | null
+          campaign_type: string
+          created_at: string
+          created_by: string | null
+          creative_type: string | null
+          current_step: number
+          custom_audiences: Json | null
+          daily_budget: number | null
+          description: string | null
+          destination_url: string | null
+          display_link: string | null
+          genders: string[] | null
+          headline: string | null
+          id: string
+          instagram_account_id: string | null
+          instant_form_id: string | null
+          interests: Json | null
+          last_autosaved_at: string | null
+          lifetime_budget: number | null
+          locations: Json | null
+          media_type: string | null
+          media_url: string | null
+          meta_ad_id: string | null
+          meta_adset_id: string | null
+          meta_campaign_id: string | null
+          objective: string | null
+          optimization_goal: string | null
+          page_id: string | null
+          page_name: string | null
+          pixel_id: string | null
+          placements: string | null
+          primary_text: string | null
+          publish_error: string | null
+          published_at: string | null
+          schedule_end: string | null
+          schedule_start: string | null
+          special_ad_categories: string[] | null
+          status: string
+          targeting: Json | null
+          updated_at: string
+          whatsapp_message: string | null
+          whatsapp_phone_display: string | null
+          whatsapp_phone_id: string | null
+          whatsapp_welcome_message: string | null
+          workspace_id: string
+        }
+        Insert: {
+          ad_account_id?: string | null
+          ad_name?: string | null
+          adset_name?: string | null
+          age_max?: number | null
+          age_min?: number | null
+          bid_strategy?: string | null
+          budget_type?: string | null
+          buying_type?: string | null
+          call_to_action?: string | null
+          campaign_name?: string | null
+          campaign_type?: string
+          created_at?: string
+          created_by?: string | null
+          creative_type?: string | null
+          current_step?: number
+          custom_audiences?: Json | null
+          daily_budget?: number | null
+          description?: string | null
+          destination_url?: string | null
+          display_link?: string | null
+          genders?: string[] | null
+          headline?: string | null
+          id?: string
+          instagram_account_id?: string | null
+          instant_form_id?: string | null
+          interests?: Json | null
+          last_autosaved_at?: string | null
+          lifetime_budget?: number | null
+          locations?: Json | null
+          media_type?: string | null
+          media_url?: string | null
+          meta_ad_id?: string | null
+          meta_adset_id?: string | null
+          meta_campaign_id?: string | null
+          objective?: string | null
+          optimization_goal?: string | null
+          page_id?: string | null
+          page_name?: string | null
+          pixel_id?: string | null
+          placements?: string | null
+          primary_text?: string | null
+          publish_error?: string | null
+          published_at?: string | null
+          schedule_end?: string | null
+          schedule_start?: string | null
+          special_ad_categories?: string[] | null
+          status?: string
+          targeting?: Json | null
+          updated_at?: string
+          whatsapp_message?: string | null
+          whatsapp_phone_display?: string | null
+          whatsapp_phone_id?: string | null
+          whatsapp_welcome_message?: string | null
+          workspace_id: string
+        }
+        Update: {
+          ad_account_id?: string | null
+          ad_name?: string | null
+          adset_name?: string | null
+          age_max?: number | null
+          age_min?: number | null
+          bid_strategy?: string | null
+          budget_type?: string | null
+          buying_type?: string | null
+          call_to_action?: string | null
+          campaign_name?: string | null
+          campaign_type?: string
+          created_at?: string
+          created_by?: string | null
+          creative_type?: string | null
+          current_step?: number
+          custom_audiences?: Json | null
+          daily_budget?: number | null
+          description?: string | null
+          destination_url?: string | null
+          display_link?: string | null
+          genders?: string[] | null
+          headline?: string | null
+          id?: string
+          instagram_account_id?: string | null
+          instant_form_id?: string | null
+          interests?: Json | null
+          last_autosaved_at?: string | null
+          lifetime_budget?: number | null
+          locations?: Json | null
+          media_type?: string | null
+          media_url?: string | null
+          meta_ad_id?: string | null
+          meta_adset_id?: string | null
+          meta_campaign_id?: string | null
+          objective?: string | null
+          optimization_goal?: string | null
+          page_id?: string | null
+          page_name?: string | null
+          pixel_id?: string | null
+          placements?: string | null
+          primary_text?: string | null
+          publish_error?: string | null
+          published_at?: string | null
+          schedule_end?: string | null
+          schedule_start?: string | null
+          special_ad_categories?: string[] | null
+          status?: string
+          targeting?: Json | null
+          updated_at?: string
+          whatsapp_message?: string | null
+          whatsapp_phone_display?: string | null
+          whatsapp_phone_id?: string | null
+          whatsapp_welcome_message?: string | null
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "smeksh_meta_campaign_drafts_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "platform_workspace_directory"
+            referencedColumns: ["workspace_id"]
+          },
+          {
+            foreignKeyName: "smeksh_meta_campaign_drafts_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       smeksh_phone_number_access: {
         Row: {
           created_at: string
