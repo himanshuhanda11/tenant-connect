@@ -267,7 +267,7 @@ export default function MetaAdsOverview() {
                 </div>
               </div>
               <div className="text-xl sm:text-3xl font-bold">
-                {avgCPL > 0 ? `$${avgCPL.toFixed(2)}` : '—'}
+                {avgCPL > 0 ? `${campaigns[0]?.spend_currency || 'USD'} ${avgCPL.toFixed(2)}` : '—'}
               </div>
               <p className="text-xs sm:text-sm text-muted-foreground mt-1">Cost per Lead</p>
             </CardContent>
@@ -320,7 +320,7 @@ export default function MetaAdsOverview() {
                 <div className="min-w-0">
                   <p className="text-xs sm:text-sm text-muted-foreground">Total Spend</p>
                   <p className="text-xl sm:text-2xl font-bold">
-                    {totalSpend > 0 ? `$${totalSpend.toFixed(2)}` : '—'}
+                    {totalSpend > 0 ? `${campaigns[0]?.spend_currency || 'USD'} ${totalSpend.toFixed(2)}` : '—'}
                   </p>
                 </div>
               </div>
@@ -368,7 +368,7 @@ export default function MetaAdsOverview() {
                         {campaign.status}
                       </Badge>
                       <span className="text-sm font-semibold text-muted-foreground">
-                        ${(campaign.spend_amount || 0).toFixed(2)}
+                        {campaign.spend_currency || 'USD'} {(campaign.spend_amount || 0).toFixed(2)}
                       </span>
                     </div>
                   </div>

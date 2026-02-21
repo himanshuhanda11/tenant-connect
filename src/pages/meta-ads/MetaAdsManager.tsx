@@ -178,7 +178,7 @@ export default function MetaAdsManager() {
                 <DollarSign className="h-4 w-4 sm:h-5 sm:w-5 text-amber-600" />
               </div>
               <div className="min-w-0">
-                <p className="text-lg sm:text-2xl font-bold">${totals.spend.toFixed(2)}</p>
+                <p className="text-lg sm:text-2xl font-bold">{campaigns[0]?.spend_currency || 'USD'} {totals.spend.toFixed(2)}</p>
                 <p className="text-[10px] sm:text-xs text-muted-foreground">Total Spend</p>
               </div>
             </CardContent>
@@ -256,10 +256,10 @@ export default function MetaAdsManager() {
                           <span className="font-bold text-primary">{campaign.leads_count || 0}</span>
                         </TableCell>
                         <TableCell className="text-right font-medium">
-                          {cpl > 0 ? `$${cpl.toFixed(2)}` : '—'}
+                          {cpl > 0 ? `${campaign.spend_currency || 'USD'} ${cpl.toFixed(2)}` : '—'}
                         </TableCell>
                         <TableCell className="text-right font-medium">
-                          ${(campaign.spend_amount || 0).toFixed(2)}
+                          {campaign.spend_currency || 'USD'} {(campaign.spend_amount || 0).toFixed(2)}
                         </TableCell>
                         <TableCell>
                           <DropdownMenu>

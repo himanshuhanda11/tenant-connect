@@ -547,16 +547,13 @@ export default function MetaAdsSetup() {
                       <Shield className="h-3 w-3" /> Granted Permissions
                     </p>
                     <div className="flex flex-wrap gap-1.5">
-                      {REQUIRED_SCOPES.map(scope => {
-                        const granted = (connectedAccount?.scopes_granted as string[] || []).includes(scope);
-                        return (
-                          <Badge key={scope} variant={granted ? 'default' : 'secondary'}
-                            className={cn("text-xs", granted ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700")}>
-                            {granted ? <Check className="h-3 w-3 mr-1" /> : <AlertCircle className="h-3 w-3 mr-1" />}
-                            {scope}
-                          </Badge>
-                        );
-                      })}
+                      {(connectedAccount?.scopes_granted as string[] || []).map((scope: string) => (
+                        <Badge key={scope} variant="default"
+                          className="text-xs bg-emerald-100 text-emerald-700">
+                          <Check className="h-3 w-3 mr-1" />
+                          {scope}
+                        </Badge>
+                      ))}
                     </div>
                   </div>
                 )}
@@ -634,13 +631,19 @@ export default function MetaAdsSetup() {
                       <span className="text-sm font-medium">Granted Permissions</span>
                     </div>
                     <div className="flex flex-wrap gap-1.5">
-                      {permissions.map((p: any, i: number) => (
-                        <Badge key={i} variant={p.status === 'granted' ? 'default' : 'secondary'}
-                          className={cn('text-xs', p.status === 'granted' ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700')}>
-                          {p.status === 'granted' ? <Check className="h-3 w-3 mr-1" /> : <AlertCircle className="h-3 w-3 mr-1" />}
+                      {permissions.filter((p: any) => p.status === 'granted').map((p: any, i: number) => (
+                        <Badge key={i} variant="default"
+                          className="text-xs bg-emerald-100 text-emerald-700">
+                          <Check className="h-3 w-3 mr-1" />
                           {p.permission}
                         </Badge>
                       ))}
+                      {permissions.filter((p: any) => p.status !== 'granted').length > 0 && (
+                        <Badge variant="secondary" className="text-xs bg-amber-100 text-amber-700">
+                          <AlertCircle className="h-3 w-3 mr-1" />
+                          {permissions.filter((p: any) => p.status !== 'granted').length} not granted (not required for Ads)
+                        </Badge>
+                      )}
                     </div>
                     {missingScopes.length > 0 && (
                       <p className="text-xs text-amber-600 mt-2">⚠️ Missing: {missingScopes.join(', ')} — some features may be limited.</p>
