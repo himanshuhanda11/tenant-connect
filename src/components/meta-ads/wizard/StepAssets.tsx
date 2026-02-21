@@ -1,9 +1,9 @@
+import { useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
-import { Building2, FileText, Instagram, Radio, Phone, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { Building2, FileText, Instagram, Phone, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { useMetaAdAccounts } from '@/hooks/useMetaAdAccounts';
 import type { MetaCampaignDraft, MetaCampaignType } from '@/types/meta-campaign';
 import { CAMPAIGN_TYPE_CONFIG } from '@/types/meta-campaign';
@@ -20,6 +20,31 @@ export function StepAssets({ draft, updateDraft }: StepAssetsProps) {
   const account = connectedAccounts[0];
 
   const needsWhatsApp = draft.campaign_type === 'ctwa';
+
+  // Auto-populate draft with connected account data
+  useEffect(() => {
+    if (account && !draft.ad_account_id) {
+      const updates: Partial<MetaCampaignDraft> = {
+        ad_account_id: account.id,
+      };
+      if (account.facebook_page_id) {
+        updates.page_id = account.facebook_page_id;
+        updates.page_name = account.facebook_page_name || undefined;
+      }
+      if (account.instagram_account_id) {
+        updates.instagram_account_id = account.instagram_account_id;
+      }
+      if (account.whatsapp_phone_number_id) {
+        updates.whatsapp_phone_id = account.whatsapp_phone_number_id;
+        updates.whatsapp_phone_display = account.whatsapp_display_number || undefined;
+      }
+      if (account.pixel_id) {
+        updates.pixel_id = account.pixel_id;
+        updates.pixel_name = account.pixel_name || undefined;
+      }
+      updateDraft(updates);
+    }
+  }, [account, draft.ad_account_id, updateDraft]);
 
   return (
     <div className="space-y-6">
