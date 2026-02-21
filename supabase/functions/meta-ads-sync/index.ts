@@ -15,11 +15,14 @@ Deno.serve(async (req) => {
     }
 
     const userClient = getUserClient(req);
-    const { data: { user }, error: userError } = await userClient.auth.getUser(token);
-    if (userError || !user) {
-      console.error('Auth error:', userError?.message);
+    
+    // Use getClaims for ES256 token compatibility
+    const { data: claimsData, error: claimsError } = await userClient.auth.getClaims(token);
+    if (claimsError || !claimsData?.claims?.sub) {
+      console.error('Auth error:', claimsError?.message);
       return json({ error: 'Invalid token' }, 401);
     }
+    const user = { id: claimsData.claims.sub as string };
 
     const supabase = getAdminClient();
 
