@@ -75,6 +75,7 @@ export default function MetaAdsSetup() {
   const [manualToken, setManualToken] = useState('');
   const [isManualLoading, setIsManualLoading] = useState(false);
   const [isDisconnecting, setIsDisconnecting] = useState(false);
+  const [businesses, setBusinesses] = useState<{ id: string; name: string }[]>([]);
   const [formData, setFormData] = useState({
     adAccountId: '', adAccountName: '', pageId: '', pageName: '',
     phoneNumberId: '', phoneDisplay: '',
@@ -249,9 +250,15 @@ export default function MetaAdsSetup() {
         instagramUsername: prev.instagramUsername || ig.username,
       }));
     }
-    // Auto-populate Business from first business
+    // Store businesses for selector and auto-match by workspace name
     if (data.businesses?.length > 0) {
-      const biz = data.businesses[0];
+      setBusinesses(data.businesses);
+      const workspaceName = currentTenant?.name?.toLowerCase() || '';
+      // Try to match business by workspace name
+      const matched = data.businesses.find((b: any) => 
+        b.name.toLowerCase().includes(workspaceName) || workspaceName.includes(b.name.toLowerCase())
+      );
+      const biz = matched || data.businesses[0];
       setFormData(prev => ({
         ...prev,
         businessId: prev.businessId || biz.id,
@@ -616,9 +623,15 @@ export default function MetaAdsSetup() {
                 <CheckCircle2 className="h-4 w-4 text-emerald-600" />
                 <AlertDescription className="text-emerald-700 dark:text-emerald-300 flex flex-col sm:flex-row sm:items-center gap-2">
                   <span><strong>Connected!</strong> Found {adAccounts.length} ad account(s), {pages.length} page(s).</span>
-                  <Button variant="outline" size="sm" className="gap-1 text-xs h-7 w-fit" onClick={() => { setFbConnected(false); setAdAccounts([]); setPages([]); setLongLivedToken(''); }}>
-                    <RefreshCw className="h-3 w-3" /> Re-login
-                  </Button>
+                  <div className="flex items-center gap-2">
+                    <Button size="sm" className="bg-[#1877F2] hover:bg-[#166FE5] text-white gap-1.5 text-xs h-8" onClick={handleFbLogin} disabled={isFbLoading}>
+                      {isFbLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Facebook className="h-3.5 w-3.5" />}
+                      Re-login Facebook
+                    </Button>
+                    <Button variant="outline" size="sm" className="gap-1 text-xs h-7 w-fit" onClick={() => { setFbConnected(false); setAdAccounts([]); setPages([]); setLongLivedToken(''); }}>
+                      <RefreshCw className="h-3 w-3" /> Reset
+                    </Button>
+                  </div>
                 </AlertDescription>
               </Alert>
 
@@ -778,12 +791,32 @@ export default function MetaAdsSetup() {
                     <Label className="text-sm flex items-center gap-1.5">
                       <Building2 className="h-3.5 w-3.5 text-blue-600" /> Business
                     </Label>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      <Input placeholder="Business ID" value={formData.businessId}
-                        onChange={(e) => setFormData(prev => ({ ...prev, businessId: e.target.value.trim() }))} />
-                      <Input placeholder="Business Name (optional)" value={formData.businessName}
-                        onChange={(e) => setFormData(prev => ({ ...prev, businessName: e.target.value }))} />
-                    </div>
+                    {businesses.length > 0 ? (
+                      <div className="space-y-2">
+                        {businesses.map((biz) => (
+                          <div key={biz.id}
+                            className={cn('flex items-center gap-3 p-3 rounded-xl border-2 cursor-pointer transition-all hover:border-primary/50',
+                              formData.businessId === biz.id ? 'border-primary bg-primary/5' : 'border-transparent bg-muted/40')}
+                            onClick={() => setFormData(prev => ({ ...prev, businessId: biz.id, businessName: biz.name }))}>
+                            <div className={cn('flex items-center justify-center w-5 h-5 rounded-full border-2',
+                              formData.businessId === biz.id ? 'border-primary bg-primary' : 'border-muted-foreground/40')}>
+                              {formData.businessId === biz.id && <Check className="h-3 w-3 text-primary-foreground" />}
+                            </div>
+                            <div>
+                              <p className="text-sm font-medium">{biz.name}</p>
+                              <p className="text-xs text-muted-foreground">{biz.id}</p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <Input placeholder="Business ID" value={formData.businessId}
+                          onChange={(e) => setFormData(prev => ({ ...prev, businessId: e.target.value.trim() }))} />
+                        <Input placeholder="Business Name (optional)" value={formData.businessName}
+                          onChange={(e) => setFormData(prev => ({ ...prev, businessName: e.target.value }))} />
+                      </div>
+                    )}
                   </div>
                 </CardContent>
               </Card>
