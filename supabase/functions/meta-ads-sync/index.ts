@@ -1,9 +1,4 @@
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
-};
+import { getAdminClient, getUserClient, corsHeaders, json } from '../_shared/supabase.ts';
 
 const GRAPH_API_VERSION = 'v21.0';
 
@@ -13,30 +8,17 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const authHeader = req.headers.get('Authorization');
-    if (!authHeader) {
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-        status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
-
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
-
-    const token = authHeader.replace('Bearer ', '');
-    const { data: { user }, error: userError } = await supabase.auth.getUser(token);
+    const userClient = getUserClient(req);
+    const { data: { user }, error: userError } = await userClient.auth.getUser();
     if (userError || !user) {
-      return new Response(JSON.stringify({ error: 'Invalid token' }), {
-        status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+      return json({ error: 'Invalid token' }, 401);
     }
+
+    const supabase = getAdminClient();
 
     const { tenantId } = await req.json();
     if (!tenantId) {
-      return new Response(JSON.stringify({ error: 'Missing tenantId' }), {
-        status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+      return json({ error: 'Missing tenantId' }, 400);
     }
 
     // Verify tenant membership
@@ -48,9 +30,7 @@ Deno.serve(async (req) => {
       .single();
 
     if (!membership) {
-      return new Response(JSON.stringify({ error: 'Not a member of this workspace' }), {
-        status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+      return json({ error: 'Not a member of this workspace' }, 403);
     }
 
     // Get connected ad accounts for this workspace
@@ -63,9 +43,7 @@ Deno.serve(async (req) => {
 
     if (accError) throw accError;
     if (!adAccounts || adAccounts.length === 0) {
-      return new Response(JSON.stringify({ error: 'No connected ad accounts found', synced: 0 }), {
-        status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+      return json({ error: 'No connected ad accounts found', synced: 0 });
     }
 
     let totalSynced = 0;
@@ -81,6 +59,20 @@ Deno.serve(async (req) => {
       }
 
       try {
+        // Fetch ad account currency from Meta
+        let accountCurrency = 'USD';
+        try {
+          const accInfoRes = await fetch(
+            `https://graph.facebook.com/${GRAPH_API_VERSION}/${metaAccountId}?fields=currency&access_token=${accessToken}`
+          );
+          const accInfo = await accInfoRes.json();
+          if (accInfo.currency) {
+            accountCurrency = accInfo.currency;
+          }
+        } catch (currErr) {
+          console.warn(`Could not fetch currency for ${metaAccountId}, defaulting to USD`);
+        }
+
         // Fetch campaigns from Meta Graph API
         const campaignsUrl = `https://graph.facebook.com/${GRAPH_API_VERSION}/${metaAccountId}/campaigns?fields=id,name,objective,status,start_time,stop_time&limit=100&access_token=${accessToken}`;
         const campaignsRes = await fetch(campaignsUrl);
@@ -90,7 +82,6 @@ Deno.serve(async (req) => {
           console.error(`Campaigns fetch error for ${metaAccountId}:`, campaignsData.error);
           errors.push(`Account ${metaAccountId}: ${campaignsData.error.message}`);
 
-          // Update account sync error
           await supabase
             .from('smeksh_meta_ad_accounts')
             .update({ sync_error: campaignsData.error.message, updated_at: new Date().toISOString() })
@@ -99,7 +90,7 @@ Deno.serve(async (req) => {
         }
 
         const campaigns = campaignsData.data || [];
-        console.log(`Found ${campaigns.length} campaigns for ${metaAccountId}`);
+        console.log(`Found ${campaigns.length} campaigns for ${metaAccountId} (currency: ${accountCurrency})`);
 
         // Fetch insights for each campaign (last 30 days)
         for (const campaign of campaigns) {
@@ -116,7 +107,6 @@ Deno.serve(async (req) => {
               a.action_type === 'onsite_conversion.messaging_first_reply'
             );
 
-            // Map campaign status
             let status: string = 'paused';
             if (campaign.status === 'ACTIVE') status = 'active';
             else if (campaign.status === 'PAUSED') status = 'paused';
@@ -145,7 +135,7 @@ Deno.serve(async (req) => {
                 impressions,
                 clicks,
                 spend_amount: spend,
-                spend_currency: 'USD',
+                spend_currency: accountCurrency,
                 leads_count: leads,
                 conversations_started: conversations,
                 ctr,
@@ -162,9 +152,7 @@ Deno.serve(async (req) => {
 
             if (upsertError) {
               console.error(`Upsert error for campaign ${campaign.id}:`, upsertError);
-              // If unique constraint doesn't exist, try insert/update manually
               if (upsertError.code === '42P10' || upsertError.message?.includes('unique')) {
-                // Try finding existing record
                 const { data: existing } = await supabase
                   .from('smeksh_meta_ad_campaigns')
                   .select('id')
@@ -182,6 +170,7 @@ Deno.serve(async (req) => {
                       impressions,
                       clicks,
                       spend_amount: spend,
+                      spend_currency: accountCurrency,
                       leads_count: leads,
                       conversations_started: conversations,
                       ctr, cpc, cpl,
@@ -200,7 +189,7 @@ Deno.serve(async (req) => {
                       campaign_objective: campaign.objective || null,
                       status,
                       impressions, clicks, spend_amount: spend,
-                      spend_currency: 'USD',
+                      spend_currency: accountCurrency,
                       leads_count: leads, conversations_started: conversations,
                       ctr, cpc, cpl,
                       start_date: campaign.start_time ? campaign.start_time.split('T')[0] : null,
@@ -230,19 +219,15 @@ Deno.serve(async (req) => {
       }
     }
 
-    return new Response(JSON.stringify({
+    return json({
       success: true,
       synced: totalSynced,
       accounts: adAccounts.length,
       errors: errors.length > 0 ? errors : undefined,
-    }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
 
   } catch (error: any) {
     console.error('meta-ads-sync error:', error);
-    return new Response(JSON.stringify({ error: error.message || 'Internal server error' }), {
-      status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
+    return json({ error: error.message || 'Internal server error' }, 500);
   }
 });
