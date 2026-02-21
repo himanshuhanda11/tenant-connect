@@ -3,6 +3,9 @@ import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { useTemplates } from '@/hooks/useTemplates';
+import { useTags } from '@/hooks/useTags';
+import { useAutomationWorkflows } from '@/hooks/useAutomationWorkflows';
 import { Switch } from '@/components/ui/switch';
 import {
   Dialog,
@@ -116,6 +119,9 @@ export default function MetaAdsAutomations() {
   const { campaigns, connectedAccounts } = useMetaAdAccounts();
   const { members } = useTeamMembers();
   const { teams } = useTeams();
+  const { templates } = useTemplates();
+  const { tags } = useTags();
+  const { workflows } = useAutomationWorkflows();
   
   const [automations, setAutomations] = useState<DbAutomation[]>([]);
   const [loading, setLoading] = useState(true);
@@ -134,8 +140,11 @@ export default function MetaAdsAutomations() {
   const [formAssignAgent, setFormAssignAgent] = useState('');
   const [formAssignTeam, setFormAssignTeam] = useState('');
   const [formSendTemplate, setFormSendTemplate] = useState(true);
+  const [formSelectedTemplateId, setFormSelectedTemplateId] = useState('');
   const [formAddTag, setFormAddTag] = useState(false);
+  const [formSelectedTagId, setFormSelectedTagId] = useState('');
   const [formStartWorkflow, setFormStartWorkflow] = useState(false);
+  const [formSelectedWorkflowId, setFormSelectedWorkflowId] = useState('');
 
   const fetchAutomations = useCallback(async () => {
     if (!currentTenant?.id) return;
@@ -164,23 +173,48 @@ export default function MetaAdsAutomations() {
     setFormAssignAgent('');
     setFormAssignTeam('');
     setFormSendTemplate(true);
+    setFormSelectedTemplateId('');
     setFormAddTag(false);
+    setFormSelectedTagId('');
     setFormStartWorkflow(false);
+    setFormSelectedWorkflowId('');
   };
 
   const buildActions = () => {
     const actions: Record<string, unknown>[] = [];
-    if (formSendTemplate) actions.push({ type: 'send_template', label: 'Send Welcome' });
-    if (formAddTag) actions.push({ type: 'add_tag', label: 'Add Meta Lead Tag' });
+    if (formSendTemplate) {
+      const tpl = templates.find(t => t.id === formSelectedTemplateId);
+      actions.push({ type: 'send_template', label: tpl ? `Send: ${tpl.name}` : 'Send Welcome Template', template_id: formSelectedTemplateId || null, template_name: tpl?.name || null });
+    }
+    if (formAddTag) {
+      const tag = tags.find(t => t.id === formSelectedTagId);
+      actions.push({ type: 'add_tag', label: tag ? `Tag: ${tag.name}` : 'Add Meta Lead Tag', tag_id: formSelectedTagId || null, tag_name: tag?.name || null });
+    }
     if (formAssignAgent && formAssignAgent !== 'none') actions.push({ type: 'assign_agent', label: 'Assign Agent', agent_id: formAssignAgent });
     if (formAssignTeam && formAssignTeam !== 'none') actions.push({ type: 'assign_team', label: 'Assign Team', team_id: formAssignTeam });
-    if (formStartWorkflow) actions.push({ type: 'start_workflow', label: 'Start Workflow' });
+    if (formStartWorkflow) {
+      const wf = workflows.find(w => w.id === formSelectedWorkflowId);
+      actions.push({ type: 'start_workflow', label: wf ? `Workflow: ${wf.name}` : 'Start Workflow', workflow_id: formSelectedWorkflowId || null, workflow_name: wf?.name || null });
+    }
     return actions;
   };
 
   const handleSaveAutomation = async () => {
     if (!currentTenant?.id || !formName.trim()) {
       toast.error('Please provide a name');
+      return;
+    }
+    // Validate selections
+    if (formSendTemplate && !formSelectedTemplateId) {
+      toast.error('Please select a template for the "Send Template" action');
+      return;
+    }
+    if (formAddTag && !formSelectedTagId) {
+      toast.error('Please select a tag for the "Add Tag" action');
+      return;
+    }
+    if (formStartWorkflow && !formSelectedWorkflowId) {
+      toast.error('Please select a workflow for the "Start Workflow" action');
       return;
     }
     setSaving(true);
@@ -364,40 +398,114 @@ export default function MetaAdsAutomations() {
       <div className="space-y-3">
         <Label className="text-sm font-semibold">Actions</Label>
 
-        <div className="flex items-center space-x-3 p-2.5 rounded-lg border">
-          <Checkbox
-            id="action-template"
-            checked={formSendTemplate}
-            onCheckedChange={(v) => setFormSendTemplate(!!v)}
-          />
-          <Label htmlFor="action-template" className="flex items-center gap-2 cursor-pointer text-xs sm:text-sm">
-            <MessageSquare className="h-3.5 w-3.5 text-muted-foreground" />
-            Send Welcome Template
-          </Label>
+        {/* Send Template Action */}
+        <div className="rounded-lg border overflow-hidden">
+          <div className="flex items-center space-x-3 p-2.5">
+            <Checkbox
+              id="action-template"
+              checked={formSendTemplate}
+              onCheckedChange={(v) => { setFormSendTemplate(!!v); if (!v) setFormSelectedTemplateId(''); }}
+            />
+            <Label htmlFor="action-template" className="flex items-center gap-2 cursor-pointer text-xs sm:text-sm">
+              <MessageSquare className="h-3.5 w-3.5 text-muted-foreground" />
+              Send Template Message
+            </Label>
+          </div>
+          {formSendTemplate && (
+            <div className="px-3 pb-3 pt-0">
+              <Select value={formSelectedTemplateId} onValueChange={setFormSelectedTemplateId}>
+                <SelectTrigger className="h-8 text-xs">
+                  <SelectValue placeholder="Select a WhatsApp template…" />
+                </SelectTrigger>
+                <SelectContent>
+                  {templates.filter(t => t.status === 'APPROVED').length > 0 ? (
+                    templates.filter(t => t.status === 'APPROVED').map(t => (
+                      <SelectItem key={t.id} value={t.id}>
+                        <span className="truncate">{t.name}</span>
+                        <Badge variant="secondary" className="ml-2 text-[10px]">{t.category}</Badge>
+                      </SelectItem>
+                    ))
+                  ) : (
+                    <SelectItem value="__none" disabled>No approved templates found</SelectItem>
+                  )}
+                </SelectContent>
+              </Select>
+              {!formSelectedTemplateId && <p className="text-[11px] text-amber-600 mt-1">⚠ Please select a template</p>}
+            </div>
+          )}
         </div>
 
-        <div className="flex items-center space-x-3 p-2.5 rounded-lg border">
-          <Checkbox
-            id="action-tag"
-            checked={formAddTag}
-            onCheckedChange={(v) => setFormAddTag(!!v)}
-          />
-          <Label htmlFor="action-tag" className="flex items-center gap-2 cursor-pointer text-xs sm:text-sm">
-            <Tag className="h-3.5 w-3.5 text-muted-foreground" />
-            Add "Meta Lead" Tag
-          </Label>
+        {/* Add Tag Action */}
+        <div className="rounded-lg border overflow-hidden">
+          <div className="flex items-center space-x-3 p-2.5">
+            <Checkbox
+              id="action-tag"
+              checked={formAddTag}
+              onCheckedChange={(v) => { setFormAddTag(!!v); if (!v) setFormSelectedTagId(''); }}
+            />
+            <Label htmlFor="action-tag" className="flex items-center gap-2 cursor-pointer text-xs sm:text-sm">
+              <Tag className="h-3.5 w-3.5 text-muted-foreground" />
+              Add Tag to Lead
+            </Label>
+          </div>
+          {formAddTag && (
+            <div className="px-3 pb-3 pt-0">
+              <Select value={formSelectedTagId} onValueChange={setFormSelectedTagId}>
+                <SelectTrigger className="h-8 text-xs">
+                  <SelectValue placeholder="Select a tag…" />
+                </SelectTrigger>
+                <SelectContent>
+                  {tags.length > 0 ? (
+                    tags.map(t => (
+                      <SelectItem key={t.id} value={t.id}>
+                        <span className="truncate">{t.name}</span>
+                      </SelectItem>
+                    ))
+                  ) : (
+                    <SelectItem value="__none" disabled>No tags found – create one in Tags page</SelectItem>
+                  )}
+                </SelectContent>
+              </Select>
+              {!formSelectedTagId && <p className="text-[11px] text-amber-600 mt-1">⚠ Please select a tag</p>}
+            </div>
+          )}
         </div>
 
-        <div className="flex items-center space-x-3 p-2.5 rounded-lg border">
-          <Checkbox
-            id="action-workflow"
-            checked={formStartWorkflow}
-            onCheckedChange={(v) => setFormStartWorkflow(!!v)}
-          />
-          <Label htmlFor="action-workflow" className="flex items-center gap-2 cursor-pointer text-xs sm:text-sm">
-            <GitBranch className="h-3.5 w-3.5 text-muted-foreground" />
-            Start Automation Workflow
-          </Label>
+        {/* Start Workflow Action */}
+        <div className="rounded-lg border overflow-hidden">
+          <div className="flex items-center space-x-3 p-2.5">
+            <Checkbox
+              id="action-workflow"
+              checked={formStartWorkflow}
+              onCheckedChange={(v) => { setFormStartWorkflow(!!v); if (!v) setFormSelectedWorkflowId(''); }}
+            />
+            <Label htmlFor="action-workflow" className="flex items-center gap-2 cursor-pointer text-xs sm:text-sm">
+              <GitBranch className="h-3.5 w-3.5 text-muted-foreground" />
+              Start Automation Workflow
+            </Label>
+          </div>
+          {formStartWorkflow && (
+            <div className="px-3 pb-3 pt-0">
+              <Select value={formSelectedWorkflowId} onValueChange={setFormSelectedWorkflowId}>
+                <SelectTrigger className="h-8 text-xs">
+                  <SelectValue placeholder="Select a workflow…" />
+                </SelectTrigger>
+                <SelectContent>
+                  {workflows.filter(w => w.status === 'active' || w.status === 'draft').length > 0 ? (
+                    workflows.filter(w => w.status === 'active' || w.status === 'draft').map(w => (
+                      <SelectItem key={w.id} value={w.id}>
+                        <span className="truncate">{w.name}</span>
+                        <Badge variant="secondary" className="ml-2 text-[10px]">{w.status}</Badge>
+                      </SelectItem>
+                    ))
+                  ) : (
+                    <SelectItem value="__none" disabled>No workflows found – create one in Automations</SelectItem>
+                  )}
+                </SelectContent>
+              </Select>
+              {!formSelectedWorkflowId && <p className="text-[11px] text-amber-600 mt-1">⚠ Please select a workflow</p>}
+            </div>
+          )}
         </div>
       </div>
 
