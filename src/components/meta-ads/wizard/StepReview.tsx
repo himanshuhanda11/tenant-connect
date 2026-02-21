@@ -1,10 +1,9 @@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { CheckCircle2, AlertCircle, Info, DollarSign, Users, Target, PenLine, Megaphone } from 'lucide-react';
+import { CheckCircle2, AlertCircle, Info, DollarSign, Users, PenLine, Zap, Link2, Workflow, ShieldCheck, ClipboardList } from 'lucide-react';
 import type { MetaCampaignDraft } from '@/types/meta-campaign';
-import { CAMPAIGN_TYPE_CONFIG, CALL_TO_ACTION_OPTIONS } from '@/types/meta-campaign';
+import { CAMPAIGN_TYPE_CONFIG, CALL_TO_ACTION_OPTIONS, LANGUAGE_OPTIONS } from '@/types/meta-campaign';
 import { cn } from '@/lib/utils';
 
 interface StepReviewProps {
@@ -37,6 +36,12 @@ export function StepReview({ draft, validateStep }: StepReviewProps) {
 
   const ctaLabel = CALL_TO_ACTION_OPTIONS[draft.campaign_type]
     ?.find(c => c.value === draft.call_to_action)?.label || draft.call_to_action;
+
+  const langLabels = (draft.languages || [])
+    .map(l => LANGUAGE_OPTIONS.find(lo => lo.value === l)?.label || l)
+    .join(', ');
+
+  const hasUtm = draft.utm_source || draft.utm_medium || draft.utm_campaign;
 
   return (
     <div className="space-y-6">
@@ -75,6 +80,11 @@ export function StepReview({ draft, validateStep }: StepReviewProps) {
               <CardDescription className="flex items-center gap-2 mt-0.5">
                 <Badge variant="outline" className="text-[10px]">{config.label}</Badge>
                 <span className="text-xs">{config.objective}</span>
+                {draft.cbo_enabled && (
+                  <Badge variant="secondary" className="text-[9px] gap-0.5">
+                    <Zap className="h-2.5 w-2.5" /> CBO
+                  </Badge>
+                )}
               </CardDescription>
             </div>
           </div>
@@ -93,16 +103,17 @@ export function StepReview({ draft, validateStep }: StepReviewProps) {
           </CardHeader>
           <CardContent className="divide-y">
             <ReviewRow label="Buying Type" value={draft.buying_type} />
-            <ReviewRow label="Budget Type" value={draft.budget_type === 'daily' ? 'Daily' : 'Lifetime'} />
-            <ReviewRow
-              label="Budget"
-              value={draft.budget_type === 'daily'
+            <ReviewRow label="Budget" value={
+              draft.budget_type === 'daily'
                 ? draft.daily_budget ? `$${draft.daily_budget}/day` : undefined
-                : draft.lifetime_budget ? `$${draft.lifetime_budget}` : undefined
-              }
-            />
+                : draft.lifetime_budget ? `$${draft.lifetime_budget} lifetime` : undefined
+            } />
+            <ReviewRow label="CBO" value={draft.cbo_enabled ? 'Advantage+ (ON)' : 'ABO (OFF)'} />
             <ReviewRow label="Optimization" value={draft.optimization_goal} />
             <ReviewRow label="Bid Strategy" value={draft.bid_strategy?.replace('_', ' ')} />
+            {(draft.special_ad_categories?.length ?? 0) > 0 && (
+              <ReviewRow label="Special Category" value={draft.special_ad_categories![0]} />
+            )}
           </CardContent>
         </Card>
 
@@ -118,11 +129,12 @@ export function StepReview({ draft, validateStep }: StepReviewProps) {
             <ReviewRow label="Ad Set" value={draft.adset_name} />
             <ReviewRow label="Age" value={`${draft.age_min || 18} — ${draft.age_max || 65}+`} />
             <ReviewRow label="Gender" value={draft.genders?.length ? draft.genders[0] : 'All'} />
+            <ReviewRow label="Languages" value={langLabels || 'All'} />
             <ReviewRow
               label="Locations"
               value={(draft.locations as { name: string }[] || []).map(l => l.name).join(', ') || 'All'}
             />
-            <ReviewRow label="Placements" value={draft.placements === 'automatic' ? 'Advantage+' : 'Manual'} />
+            <ReviewRow label="Placements" value={draft.placements === 'automatic' ? 'Advantage+' : `Manual (${(draft.manual_placements || []).length})`} />
           </CardContent>
         </Card>
 
@@ -144,13 +156,54 @@ export function StepReview({ draft, validateStep }: StepReviewProps) {
               <ReviewRow label="Destination URL" value={draft.destination_url} />
             )}
             {draft.campaign_type === 'ctwa' && (
-              <ReviewRow label="WhatsApp Welcome" value={draft.whatsapp_welcome_message} />
-            )}
-            {draft.campaign_type === 'form_leads' && (
-              <ReviewRow label="Instant Form ID" value={draft.instant_form_id} />
+              <>
+                <ReviewRow label="WhatsApp Greeting" value={draft.whatsapp_welcome_message} />
+                {draft.flow_id && (
+                  <ReviewRow label="Post-Click Flow" value={draft.flow_name || draft.flow_id} icon={<Workflow className="h-3 w-3" />} />
+                )}
+              </>
             )}
           </CardContent>
         </Card>
+
+        {/* Lead Form (form_leads only) */}
+        {draft.campaign_type === 'form_leads' && (
+          <Card className="border-0 shadow-md md:col-span-2">
+            <CardHeader className="pb-1">
+              <CardTitle className="text-sm flex items-center gap-1.5">
+                <ClipboardList className="h-3.5 w-3.5 text-primary" />
+                Lead Form
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="divide-y">
+              <ReviewRow label="Form Type" value={draft.lead_form_type === 'higher_intent' ? 'Higher Intent' : 'More Volume'} />
+              <ReviewRow label="Questions" value={`${(draft.lead_form_questions || []).length} fields`} />
+              <ReviewRow label="Privacy Policy" value={draft.lead_form_privacy_url} icon={<ShieldCheck className="h-3 w-3" />} />
+              {draft.lead_form_thankyou_title && (
+                <ReviewRow label="Thank You Title" value={draft.lead_form_thankyou_title} />
+              )}
+            </CardContent>
+          </Card>
+        )}
+
+        {/* UTM (if set) */}
+        {hasUtm && (
+          <Card className="border-0 shadow-md md:col-span-2">
+            <CardHeader className="pb-1">
+              <CardTitle className="text-sm flex items-center gap-1.5">
+                <Link2 className="h-3.5 w-3.5 text-primary" />
+                UTM Tracking
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="divide-y">
+              {draft.utm_source && <ReviewRow label="Source" value={draft.utm_source} />}
+              {draft.utm_medium && <ReviewRow label="Medium" value={draft.utm_medium} />}
+              {draft.utm_campaign && <ReviewRow label="Campaign" value={draft.utm_campaign} />}
+              {draft.utm_content && <ReviewRow label="Content" value={draft.utm_content} />}
+              {draft.utm_term && <ReviewRow label="Term" value={draft.utm_term} />}
+            </CardContent>
+          </Card>
+        )}
       </div>
 
       <Alert className="border-blue-200 bg-blue-50 dark:bg-blue-950/30">

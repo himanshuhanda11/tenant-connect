@@ -8368,6 +8368,7 @@ export type Database = {
           call_to_action: string | null
           campaign_name: string | null
           campaign_type: string
+          cbo_enabled: boolean | null
           created_at: string
           created_by: string | null
           creative_type: string | null
@@ -8377,15 +8378,26 @@ export type Database = {
           description: string | null
           destination_url: string | null
           display_link: string | null
+          flow_id: string | null
+          flow_name: string | null
           genders: string[] | null
           headline: string | null
           id: string
           instagram_account_id: string | null
           instant_form_id: string | null
           interests: Json | null
+          languages: string[] | null
           last_autosaved_at: string | null
+          lead_form_privacy_url: string | null
+          lead_form_questions: Json | null
+          lead_form_thankyou_body: string | null
+          lead_form_thankyou_cta: string | null
+          lead_form_thankyou_title: string | null
+          lead_form_thankyou_url: string | null
+          lead_form_type: string | null
           lifetime_budget: number | null
           locations: Json | null
+          manual_placements: Json | null
           media_type: string | null
           media_url: string | null
           meta_ad_id: string | null
@@ -8396,6 +8408,7 @@ export type Database = {
           page_id: string | null
           page_name: string | null
           pixel_id: string | null
+          pixel_name: string | null
           placements: string | null
           primary_text: string | null
           publish_error: string | null
@@ -8406,6 +8419,11 @@ export type Database = {
           status: string
           targeting: Json | null
           updated_at: string
+          utm_campaign: string | null
+          utm_content: string | null
+          utm_medium: string | null
+          utm_source: string | null
+          utm_term: string | null
           whatsapp_message: string | null
           whatsapp_phone_display: string | null
           whatsapp_phone_id: string | null
@@ -8424,6 +8442,7 @@ export type Database = {
           call_to_action?: string | null
           campaign_name?: string | null
           campaign_type?: string
+          cbo_enabled?: boolean | null
           created_at?: string
           created_by?: string | null
           creative_type?: string | null
@@ -8433,15 +8452,26 @@ export type Database = {
           description?: string | null
           destination_url?: string | null
           display_link?: string | null
+          flow_id?: string | null
+          flow_name?: string | null
           genders?: string[] | null
           headline?: string | null
           id?: string
           instagram_account_id?: string | null
           instant_form_id?: string | null
           interests?: Json | null
+          languages?: string[] | null
           last_autosaved_at?: string | null
+          lead_form_privacy_url?: string | null
+          lead_form_questions?: Json | null
+          lead_form_thankyou_body?: string | null
+          lead_form_thankyou_cta?: string | null
+          lead_form_thankyou_title?: string | null
+          lead_form_thankyou_url?: string | null
+          lead_form_type?: string | null
           lifetime_budget?: number | null
           locations?: Json | null
+          manual_placements?: Json | null
           media_type?: string | null
           media_url?: string | null
           meta_ad_id?: string | null
@@ -8452,6 +8482,7 @@ export type Database = {
           page_id?: string | null
           page_name?: string | null
           pixel_id?: string | null
+          pixel_name?: string | null
           placements?: string | null
           primary_text?: string | null
           publish_error?: string | null
@@ -8462,6 +8493,11 @@ export type Database = {
           status?: string
           targeting?: Json | null
           updated_at?: string
+          utm_campaign?: string | null
+          utm_content?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+          utm_term?: string | null
           whatsapp_message?: string | null
           whatsapp_phone_display?: string | null
           whatsapp_phone_id?: string | null
@@ -8480,6 +8516,7 @@ export type Database = {
           call_to_action?: string | null
           campaign_name?: string | null
           campaign_type?: string
+          cbo_enabled?: boolean | null
           created_at?: string
           created_by?: string | null
           creative_type?: string | null
@@ -8489,15 +8526,26 @@ export type Database = {
           description?: string | null
           destination_url?: string | null
           display_link?: string | null
+          flow_id?: string | null
+          flow_name?: string | null
           genders?: string[] | null
           headline?: string | null
           id?: string
           instagram_account_id?: string | null
           instant_form_id?: string | null
           interests?: Json | null
+          languages?: string[] | null
           last_autosaved_at?: string | null
+          lead_form_privacy_url?: string | null
+          lead_form_questions?: Json | null
+          lead_form_thankyou_body?: string | null
+          lead_form_thankyou_cta?: string | null
+          lead_form_thankyou_title?: string | null
+          lead_form_thankyou_url?: string | null
+          lead_form_type?: string | null
           lifetime_budget?: number | null
           locations?: Json | null
+          manual_placements?: Json | null
           media_type?: string | null
           media_url?: string | null
           meta_ad_id?: string | null
@@ -8508,6 +8556,7 @@ export type Database = {
           page_id?: string | null
           page_name?: string | null
           pixel_id?: string | null
+          pixel_name?: string | null
           placements?: string | null
           primary_text?: string | null
           publish_error?: string | null
@@ -8518,6 +8567,11 @@ export type Database = {
           status?: string
           targeting?: Json | null
           updated_at?: string
+          utm_campaign?: string | null
+          utm_content?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+          utm_term?: string | null
           whatsapp_message?: string | null
           whatsapp_phone_display?: string | null
           whatsapp_phone_id?: string | null

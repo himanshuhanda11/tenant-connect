@@ -5,9 +5,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Slider } from '@/components/ui/slider';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
-import { Users, MapPin, Target, Calendar, Crosshair } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Users, MapPin, Target, Calendar, Crosshair, Globe, LayoutGrid } from 'lucide-react';
 import type { MetaCampaignDraft } from '@/types/meta-campaign';
-import { CAMPAIGN_TYPE_CONFIG } from '@/types/meta-campaign';
+import { CAMPAIGN_TYPE_CONFIG, LANGUAGE_OPTIONS, MANUAL_PLACEMENT_OPTIONS } from '@/types/meta-campaign';
 
 interface StepAdSetProps {
   draft: MetaCampaignDraft;
@@ -35,6 +36,15 @@ const OPTIMIZATION_GOALS: Record<string, { value: string; label: string; descrip
 export function StepAdSet({ draft, updateDraft }: StepAdSetProps) {
   const config = CAMPAIGN_TYPE_CONFIG[draft.campaign_type];
   const goals = OPTIMIZATION_GOALS[draft.campaign_type] || OPTIMIZATION_GOALS.ctwa;
+  const isRestricted = (draft.special_ad_categories || []).some(c => ['CREDIT', 'EMPLOYMENT', 'HOUSING'].includes(c));
+
+  const togglePlacement = (placement: string) => {
+    const current = draft.manual_placements || [];
+    const next = current.includes(placement)
+      ? current.filter(p => p !== placement)
+      : [...current, placement];
+    updateDraft({ manual_placements: next });
+  };
 
   return (
     <div className="space-y-6">
@@ -107,38 +117,94 @@ export function StepAdSet({ draft, updateDraft }: StepAdSetProps) {
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <Label className="text-xs">Age Range</Label>
-              <Badge variant="outline" className="text-xs">
-                {draft.age_min || 18} — {draft.age_max || 65}+
-              </Badge>
+              {isRestricted ? (
+                <Badge variant="outline" className="text-[10px] border-amber-200 text-amber-700 bg-amber-50">
+                  Restricted by Special Ad Category
+                </Badge>
+              ) : (
+                <Badge variant="outline" className="text-xs">
+                  {draft.age_min || 18} — {draft.age_max || 65}+
+                </Badge>
+              )}
             </div>
-            <div className="px-1">
-              <Slider
-                value={[draft.age_min || 18, draft.age_max || 65]}
-                min={13}
-                max={65}
-                step={1}
-                onValueChange={([min, max]) => updateDraft({ age_min: min, age_max: max })}
-              />
-            </div>
+            {!isRestricted && (
+              <div className="px-1">
+                <Slider
+                  value={[draft.age_min || 18, draft.age_max || 65]}
+                  min={13}
+                  max={65}
+                  step={1}
+                  onValueChange={([min, max]) => updateDraft({ age_min: min, age_max: max })}
+                />
+              </div>
+            )}
           </div>
 
           {/* Gender */}
+          {!isRestricted && (
+            <div className="space-y-1.5">
+              <Label className="text-xs">Gender</Label>
+              <Select
+                value={draft.genders?.[0] || 'all'}
+                onValueChange={v => updateDraft({ genders: v === 'all' ? [] : [v] })}
+              >
+                <SelectTrigger className="h-10"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Genders</SelectItem>
+                  <SelectItem value="male">Male</SelectItem>
+                  <SelectItem value="female">Female</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
+          {/* Languages */}
           <div className="space-y-1.5">
-            <Label className="text-xs">Gender</Label>
+            <Label className="text-xs flex items-center gap-1.5">
+              <Globe className="h-3 w-3 text-muted-foreground" />
+              Languages
+            </Label>
             <Select
-              value={draft.genders?.[0] || 'all'}
-              onValueChange={v => updateDraft({ genders: v === 'all' ? [] : [v] })}
+              value={draft.languages?.[0] || 'all'}
+              onValueChange={v => {
+                if (v === 'all') {
+                  updateDraft({ languages: [] });
+                } else {
+                  const current = draft.languages || [];
+                  if (!current.includes(v)) {
+                    updateDraft({ languages: [...current, v] });
+                  }
+                }
+              }}
             >
-              <SelectTrigger className="h-10"><SelectValue /></SelectTrigger>
+              <SelectTrigger className="h-10"><SelectValue placeholder="All Languages" /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Genders</SelectItem>
-                <SelectItem value="male">Male</SelectItem>
-                <SelectItem value="female">Female</SelectItem>
+                <SelectItem value="all">All Languages</SelectItem>
+                {LANGUAGE_OPTIONS.map(lang => (
+                  <SelectItem key={lang.value} value={lang.value}>{lang.label}</SelectItem>
+                ))}
               </SelectContent>
             </Select>
+            {(draft.languages?.length ?? 0) > 0 && (
+              <div className="flex flex-wrap gap-1.5 mt-1">
+                {draft.languages!.map(lang => {
+                  const label = LANGUAGE_OPTIONS.find(l => l.value === lang)?.label || lang;
+                  return (
+                    <Badge
+                      key={lang}
+                      variant="secondary"
+                      className="text-[10px] cursor-pointer hover:bg-destructive/10 hover:text-destructive"
+                      onClick={() => updateDraft({ languages: draft.languages!.filter(l => l !== lang) })}
+                    >
+                      {label} ×
+                    </Badge>
+                  );
+                })}
+              </div>
+            )}
           </div>
 
-          {/* Locations placeholder */}
+          {/* Locations */}
           <div className="space-y-1.5">
             <Label className="text-xs flex items-center gap-1.5">
               <MapPin className="h-3 w-3 text-muted-foreground" />
@@ -158,7 +224,7 @@ export function StepAdSet({ draft, updateDraft }: StepAdSetProps) {
             <p className="text-[10px] text-muted-foreground">Comma-separated list of target locations</p>
           </div>
 
-          {/* Interests placeholder */}
+          {/* Interests */}
           <div className="space-y-1.5">
             <Label className="text-xs flex items-center gap-1.5">
               <Crosshair className="h-3 w-3 text-muted-foreground" />
@@ -199,6 +265,27 @@ export function StepAdSet({ draft, updateDraft }: StepAdSetProps) {
               onCheckedChange={v => updateDraft({ placements: v ? 'automatic' : 'manual' })}
             />
           </div>
+
+          {/* Manual Placements */}
+          {draft.placements === 'manual' && (
+            <div className="space-y-2 p-3 rounded-lg border bg-muted/30">
+              <Label className="text-xs flex items-center gap-1.5">
+                <LayoutGrid className="h-3 w-3 text-muted-foreground" />
+                Manual Placements *
+              </Label>
+              <div className="grid grid-cols-2 gap-2">
+                {MANUAL_PLACEMENT_OPTIONS.map(p => (
+                  <label key={p.value} className="flex items-center gap-2 text-xs cursor-pointer">
+                    <Checkbox
+                      checked={(draft.manual_placements || []).includes(p.value)}
+                      onCheckedChange={() => togglePlacement(p.value)}
+                    />
+                    {p.label}
+                  </label>
+                ))}
+              </div>
+            </div>
+          )}
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1.5">

@@ -5,9 +5,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { DollarSign, Info, Tag } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
+import { DollarSign, Info, Tag, AlertTriangle, Zap } from 'lucide-react';
 import type { MetaCampaignDraft } from '@/types/meta-campaign';
-import { CAMPAIGN_TYPE_CONFIG } from '@/types/meta-campaign';
+import { CAMPAIGN_TYPE_CONFIG, SPECIAL_AD_CATEGORY_WARNINGS } from '@/types/meta-campaign';
 
 interface StepObjectiveProps {
   draft: MetaCampaignDraft;
@@ -24,6 +25,8 @@ const SPECIAL_AD_CATEGORIES = [
 
 export function StepObjective({ draft, updateDraft }: StepObjectiveProps) {
   const config = CAMPAIGN_TYPE_CONFIG[draft.campaign_type];
+  const selectedCategory = draft.special_ad_categories?.[0] || 'NONE';
+  const categoryWarning = SPECIAL_AD_CATEGORY_WARNINGS[selectedCategory];
 
   return (
     <div className="space-y-6">
@@ -67,13 +70,14 @@ export function StepObjective({ draft, updateDraft }: StepObjectiveProps) {
             </div>
           </div>
 
+          {/* Special Ad Categories */}
           <div className="space-y-1.5">
             <Label className="text-xs flex items-center gap-1.5">
               <Tag className="h-3 w-3 text-muted-foreground" />
               Special Ad Categories
             </Label>
             <Select
-              value={(draft.special_ad_categories?.[0]) || 'NONE'}
+              value={selectedCategory}
               onValueChange={v => updateDraft({ special_ad_categories: v === 'NONE' ? [] : [v] })}
             >
               <SelectTrigger className="h-10"><SelectValue /></SelectTrigger>
@@ -83,7 +87,40 @@ export function StepObjective({ draft, updateDraft }: StepObjectiveProps) {
                 ))}
               </SelectContent>
             </Select>
+            {categoryWarning && (
+              <Alert className="border-amber-200 bg-amber-50 dark:bg-amber-950/30 mt-2">
+                <AlertTriangle className="h-4 w-4 text-amber-600" />
+                <AlertDescription className="text-xs text-amber-700 dark:text-amber-300">
+                  {categoryWarning}
+                </AlertDescription>
+              </Alert>
+            )}
           </div>
+
+          {/* CBO Toggle */}
+          <div className="flex items-center justify-between p-3 rounded-lg border bg-muted/30">
+            <div className="flex items-center gap-2">
+              <Zap className="h-4 w-4 text-primary" />
+              <div>
+                <Label className="text-xs font-medium">Advantage Campaign Budget (CBO)</Label>
+                <p className="text-[10px] text-muted-foreground mt-0.5">
+                  Let Meta automatically distribute budget across ad sets for best results
+                </p>
+              </div>
+            </div>
+            <Switch
+              checked={draft.cbo_enabled ?? true}
+              onCheckedChange={v => updateDraft({ cbo_enabled: v })}
+            />
+          </div>
+          {!draft.cbo_enabled && (
+            <Alert className="border-blue-200 bg-blue-50 dark:bg-blue-950/30">
+              <Info className="h-4 w-4 text-blue-600" />
+              <AlertDescription className="text-xs text-blue-700 dark:text-blue-300">
+                With ABO (Ad Set Budget Optimization), you'll control budget at the ad set level instead of campaign level.
+              </AlertDescription>
+            </Alert>
+          )}
         </CardContent>
       </Card>
 

@@ -5,10 +5,13 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
-import { Image, Video, LayoutGrid, PenLine, Link as LinkIcon, MessageSquare, Info } from 'lucide-react';
+import { Image, Video, LayoutGrid, PenLine, Link as LinkIcon, MessageSquare, Info, AlertTriangle } from 'lucide-react';
 import type { MetaCampaignDraft, MetaCampaignType } from '@/types/meta-campaign';
 import { CALL_TO_ACTION_OPTIONS, CAMPAIGN_TYPE_CONFIG } from '@/types/meta-campaign';
 import { cn } from '@/lib/utils';
+import { CtwaFlowSelector } from './creative/CtwaFlowSelector';
+import { UtmBuilder } from './creative/UtmBuilder';
+import { LeadFormBuilder } from './creative/LeadFormBuilder';
 
 interface StepCreativeProps {
   draft: MetaCampaignDraft;
@@ -24,6 +27,16 @@ const CREATIVE_TYPES = [
 export function StepCreative({ draft, updateDraft }: StepCreativeProps) {
   const config = CAMPAIGN_TYPE_CONFIG[draft.campaign_type];
   const ctaOptions = CALL_TO_ACTION_OPTIONS[draft.campaign_type];
+
+  // URL validation for website traffic
+  const urlError = draft.campaign_type === 'website_traffic' && draft.destination_url?.trim()
+    ? (() => {
+        try { new URL(draft.destination_url!); return null; } catch { return 'Invalid URL format'; }
+      })()
+    : null;
+
+  // Pixel warning for website traffic
+  const showPixelWarning = draft.campaign_type === 'website_traffic' && !draft.pixel_id;
 
   return (
     <div className="space-y-6">
@@ -143,103 +156,110 @@ export function StepCreative({ draft, updateDraft }: StepCreativeProps) {
         </CardContent>
       </Card>
 
-      {/* Type-specific fields */}
-      {draft.campaign_type === 'website_traffic' && (
-        <Card className="border-0 shadow-md">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base flex items-center gap-2">
-              <LinkIcon className="h-4 w-4 text-primary" />
-              Destination
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-1.5">
-              <Label className="text-xs">Website URL *</Label>
-              <Input
-                value={draft.destination_url || ''}
-                onChange={e => updateDraft({ destination_url: e.target.value })}
-                placeholder="https://example.com/landing-page"
-                className="h-10"
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label className="text-xs">Display Link</Label>
-              <Input
-                value={draft.display_link || ''}
-                onChange={e => updateDraft({ display_link: e.target.value })}
-                placeholder="example.com"
-                className="h-10"
-              />
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
+      {/* === CTWA-specific === */}
       {draft.campaign_type === 'ctwa' && (
-        <Card className="border-0 shadow-md">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base flex items-center gap-2">
-              <MessageSquare className="h-4 w-4 text-primary" />
-              WhatsApp Message
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-1.5">
-              <Label className="text-xs">Welcome Message</Label>
-              <Textarea
-                value={draft.whatsapp_welcome_message || ''}
-                onChange={e => updateDraft({ whatsapp_welcome_message: e.target.value })}
-                placeholder="Hi! Thanks for reaching out. How can we help?"
-                rows={2}
-              />
-              <p className="text-[10px] text-muted-foreground">
-                Shown to the user when they open your WhatsApp chat from the ad.
-              </p>
-            </div>
-            <div className="space-y-1.5">
-              <Label className="text-xs">Pre-filled Message</Label>
-              <Input
-                value={draft.whatsapp_message || ''}
-                onChange={e => updateDraft({ whatsapp_message: e.target.value })}
-                placeholder="I'm interested in your summer sale!"
-                className="h-10"
-              />
-              <p className="text-[10px] text-muted-foreground">
-                Pre-filled in the user's WhatsApp input field.
-              </p>
-            </div>
-          </CardContent>
-        </Card>
+        <>
+          <Card className="border-0 shadow-md">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base flex items-center gap-2">
+                <MessageSquare className="h-4 w-4 text-primary" />
+                WhatsApp Message
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-1.5">
+                <Label className="text-xs">Greeting / Welcome Message</Label>
+                <Textarea
+                  value={draft.whatsapp_welcome_message || ''}
+                  onChange={e => updateDraft({ whatsapp_welcome_message: e.target.value })}
+                  placeholder="Hi! Thanks for reaching out. How can we help?"
+                  rows={2}
+                />
+                <p className="text-[10px] text-muted-foreground">
+                  Shown to the user when they open your WhatsApp chat from the ad.
+                </p>
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs">Pre-filled Message</Label>
+                <Input
+                  value={draft.whatsapp_message || ''}
+                  onChange={e => updateDraft({ whatsapp_message: e.target.value })}
+                  placeholder="I'm interested in your summer sale!"
+                  className="h-10"
+                />
+                <p className="text-[10px] text-muted-foreground">
+                  Pre-filled in the user's WhatsApp input field.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Flow Selector */}
+          <CtwaFlowSelector draft={draft} updateDraft={updateDraft} />
+
+          {/* UTM Tracking */}
+          <UtmBuilder draft={draft} updateDraft={updateDraft} title="Click Attribution (UTM)" />
+        </>
       )}
 
-      {draft.campaign_type === 'form_leads' && (
-        <Card className="border-0 shadow-md">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base flex items-center gap-2">
-              📋 Instant Form
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-1.5">
-              <Label className="text-xs">Instant Form ID</Label>
-              <Input
-                value={draft.instant_form_id || ''}
-                onChange={e => updateDraft({ instant_form_id: e.target.value })}
-                placeholder="Form ID from Meta Lead Ads"
-                className="h-10"
-              />
-              <p className="text-[10px] text-muted-foreground">
-                Create your instant form in Meta Ads Manager first, then paste the Form ID here.
-              </p>
-            </div>
-            <Alert className="border-blue-200 bg-blue-50 dark:bg-blue-950/30">
-              <Info className="h-4 w-4 text-blue-600" />
-              <AlertDescription className="text-xs text-blue-700 dark:text-blue-300">
-                Form Leads campaigns require an Instant Form created via Meta Ads Manager. AIREATRO will sync submitted leads automatically.
+      {/* === Website Traffic-specific === */}
+      {draft.campaign_type === 'website_traffic' && (
+        <>
+          <Card className="border-0 shadow-md">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base flex items-center gap-2">
+                <LinkIcon className="h-4 w-4 text-primary" />
+                Destination
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-1.5">
+                <Label className="text-xs">Website URL *</Label>
+                <Input
+                  value={draft.destination_url || ''}
+                  onChange={e => updateDraft({ destination_url: e.target.value })}
+                  placeholder="https://example.com/landing-page"
+                  className={cn("h-10", urlError && "border-destructive")}
+                />
+                {urlError && (
+                  <p className="text-[10px] text-destructive">{urlError}</p>
+                )}
+                {draft.destination_url && !urlError && (
+                  <p className="text-[10px] text-muted-foreground">
+                    Domain: <span className="font-medium">{(() => { try { return new URL(draft.destination_url).hostname; } catch { return '—'; } })()}</span>
+                  </p>
+                )}
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs">Display Link</Label>
+                <Input
+                  value={draft.display_link || ''}
+                  onChange={e => updateDraft({ display_link: e.target.value })}
+                  placeholder="example.com"
+                  className="h-10"
+                />
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Pixel Warning (non-blocking) */}
+          {showPixelWarning && (
+            <Alert className="border-amber-200 bg-amber-50 dark:bg-amber-950/30">
+              <AlertTriangle className="h-4 w-4 text-amber-600" />
+              <AlertDescription className="text-xs text-amber-700 dark:text-amber-300">
+                No Meta Pixel selected. Without a pixel, conversion tracking won't work. You can add a pixel in Meta Ads Setup.
               </AlertDescription>
             </Alert>
-          </CardContent>
-        </Card>
+          )}
+
+          {/* UTM Builder */}
+          <UtmBuilder draft={draft} updateDraft={updateDraft} title="UTM Tracking Parameters" />
+        </>
+      )}
+
+      {/* === Form Leads-specific === */}
+      {draft.campaign_type === 'form_leads' && (
+        <LeadFormBuilder draft={draft} updateDraft={updateDraft} />
       )}
     </div>
   );
