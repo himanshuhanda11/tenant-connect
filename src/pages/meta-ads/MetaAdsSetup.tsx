@@ -27,6 +27,7 @@ import {
   Zap,
   RefreshCw,
   AlertCircle,
+  Trash2,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
@@ -70,6 +71,7 @@ export default function MetaAdsSetup() {
   const [showManualToken, setShowManualToken] = useState(false);
   const [manualToken, setManualToken] = useState('');
   const [isManualLoading, setIsManualLoading] = useState(false);
+  const [isDisconnecting, setIsDisconnecting] = useState(false);
   const [formData, setFormData] = useState({
     adAccountId: '',
     adAccountName: '',
@@ -111,6 +113,25 @@ export default function MetaAdsSetup() {
   });
 
   const phoneNumbers = phoneNumbersQuery.data || [];
+  const existingAccounts = existingAccountQuery.data || [];
+  const hasExistingConnection = existingAccounts.length > 0;
+
+  // If already connected, show connected state on mount
+  useEffect(() => {
+    if (hasExistingConnection && !fbConnected) {
+      const acc = existingAccounts[0];
+      setFbConnected(true);
+      setFormData(prev => ({
+        ...prev,
+        adAccountId: acc.meta_account_id || '',
+        adAccountName: acc.meta_account_name || '',
+        pageId: acc.facebook_page_id || '',
+        pageName: acc.facebook_page_name || '',
+        phoneNumberId: acc.whatsapp_phone_number_id || prev.phoneNumberId || '',
+        phoneDisplay: acc.whatsapp_display_number || prev.phoneDisplay || '',
+      }));
+    }
+  }, [hasExistingConnection, existingAccounts]);
 
   // Auto-select single phone number
   useEffect(() => {
@@ -122,6 +143,38 @@ export default function MetaAdsSetup() {
       }));
     }
   }, [phoneNumbers, formData.phoneNumberId]);
+
+  const handleDisconnect = async () => {
+    if (!currentTenant?.id) return;
+    setIsDisconnecting(true);
+    try {
+      // Deactivate all Meta ad accounts for this workspace
+      const { error } = await supabase
+        .from('smeksh_meta_ad_accounts')
+        .update({ is_active: false, status: 'disconnected' as const })
+        .eq('workspace_id', currentTenant.id);
+      if (error) throw error;
+
+      // Reset local state
+      setFbConnected(false);
+      setAdAccounts([]);
+      setPages([]);
+      setPermissions([]);
+      setLongLivedToken('');
+      setAdAccountsError(null);
+      setFormData({ adAccountId: '', adAccountName: '', pageId: '', pageName: '', phoneNumberId: '', phoneDisplay: '' });
+      
+      // Invalidate queries so the page reflects the disconnected state
+      queryClient.invalidateQueries({ queryKey: ['meta-ad-accounts'] });
+      
+      toast.success('Meta Ads disconnected. You can reconnect anytime.');
+    } catch (err: any) {
+      console.error('Disconnect error:', err);
+      toast.error(err.message || 'Failed to disconnect');
+    } finally {
+      setIsDisconnecting(false);
+    }
+  };
 
   const processMetaResponse = (data: any) => {
     setLongLivedToken(data.longLivedToken || '');
@@ -316,12 +369,26 @@ export default function MetaAdsSetup() {
         </div>
 
         {/* Already connected notice */}
-        {(existingAccountQuery.data?.length || 0) > 0 && (
+        {hasExistingConnection && fbConnected && (
           <Alert className="border-emerald-200 bg-emerald-50 dark:bg-emerald-950/30">
             <CheckCircle2 className="h-4 w-4 text-emerald-600" />
             <AlertDescription className="text-emerald-700 dark:text-emerald-300">
-              You already have {existingAccountQuery.data?.length} connected Meta Ad account(s).
-              You can add another one below or re-login to update.
+              <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                <span>
+                  <strong>Connected!</strong> Account: <strong>{existingAccounts[0]?.meta_account_name || existingAccounts[0]?.meta_account_id}</strong>
+                  {existingAccounts[0]?.facebook_page_name && <> · Page: <strong>{existingAccounts[0].facebook_page_name}</strong></>}
+                </span>
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  className="gap-1 text-xs h-7 w-fit"
+                  disabled={isDisconnecting}
+                  onClick={handleDisconnect}
+                >
+                  {isDisconnecting ? <Loader2 className="h-3 w-3 animate-spin" /> : <Trash2 className="h-3 w-3" />}
+                  Disconnect
+                </Button>
+              </div>
             </AlertDescription>
           </Alert>
         )}
@@ -402,30 +469,34 @@ export default function MetaAdsSetup() {
         {/* Post-Login: All selections visible at once */}
         {fbConnected && (
           <>
-            {/* Connection Status Bar */}
+            {/* Connection Status Bar - only show for fresh login (not existing) */}
+            {!hasExistingConnection && (
             <Alert className="border-emerald-200 bg-emerald-50 dark:bg-emerald-950/30">
               <CheckCircle2 className="h-4 w-4 text-emerald-600" />
               <AlertDescription className="text-emerald-700 dark:text-emerald-300 flex flex-col sm:flex-row sm:items-center gap-2">
                 <span>
                   <strong>Connected to Facebook!</strong> Found <strong>{adAccounts.length}</strong> ad account(s) and <strong>{pages.length}</strong> page(s).
                 </span>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="gap-1 text-xs h-7 w-fit"
-                  onClick={() => {
-                    setFbConnected(false);
-                    setAdAccounts([]);
-                    setPages([]);
-                    setLongLivedToken('');
-                    setFormData({ adAccountId: '', adAccountName: '', pageId: '', pageName: '', phoneNumberId: formData.phoneNumberId, phoneDisplay: formData.phoneDisplay });
-                  }}
-                >
-                  <RefreshCw className="h-3 w-3" />
-                  Re-login
-                </Button>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="gap-1 text-xs h-7 w-fit"
+                    onClick={() => {
+                      setFbConnected(false);
+                      setAdAccounts([]);
+                      setPages([]);
+                      setLongLivedToken('');
+                      setFormData(prev => ({ ...prev, adAccountId: '', adAccountName: '', pageId: '', pageName: '' }));
+                    }}
+                  >
+                    <RefreshCw className="h-3 w-3" />
+                    Re-login
+                  </Button>
+                </div>
               </AlertDescription>
             </Alert>
+            )}
 
             {/* Permissions Info */}
             {permissions.length > 0 && (
