@@ -76,6 +76,7 @@ export default function MetaAdsSetup() {
   const [isManualLoading, setIsManualLoading] = useState(false);
   const [isDisconnecting, setIsDisconnecting] = useState(false);
   const [businesses, setBusinesses] = useState<{ id: string; name: string }[]>([]);
+  const [instagramAccounts, setInstagramAccounts] = useState<{ id: string; username: string; name: string; profilePictureUrl: string; linkedPageName: string }[]>([]);
   const [formData, setFormData] = useState({
     adAccountId: '', adAccountName: '', pageId: '', pageName: '',
     phoneNumberId: '', phoneDisplay: '',
@@ -241,8 +242,9 @@ export default function MetaAdsSetup() {
     if (data.pages?.length === 1) {
       setFormData(prev => ({ ...prev, pageId: data.pages[0].id, pageName: data.pages[0].name }));
     }
-    // Auto-populate Instagram from first linked IG account
+    // Store Instagram accounts for selector and auto-populate first
     if (data.instagramAccounts?.length > 0) {
+      setInstagramAccounts(data.instagramAccounts);
       const ig = data.instagramAccounts[0];
       setFormData(prev => ({
         ...prev,
@@ -772,10 +774,33 @@ export default function MetaAdsSetup() {
                       <Label className="text-sm flex items-center gap-1.5">
                         <Instagram className="h-3.5 w-3.5 text-pink-500" /> Instagram Account
                       </Label>
-                      <Input placeholder="Instagram Account ID" value={formData.instagramAccountId}
-                        onChange={(e) => setFormData(prev => ({ ...prev, instagramAccountId: e.target.value.trim() }))} />
-                      <Input placeholder="@username" value={formData.instagramUsername}
-                        onChange={(e) => setFormData(prev => ({ ...prev, instagramUsername: e.target.value.replace('@', '') }))} />
+                      {instagramAccounts.length > 0 ? (
+                        <div className="space-y-2">
+                          {instagramAccounts.map((ig) => (
+                            <div key={ig.id}
+                              className={cn('flex items-center gap-3 p-3 rounded-xl border-2 cursor-pointer transition-all hover:border-primary/50',
+                                formData.instagramAccountId === ig.id ? 'border-primary bg-primary/5' : 'border-transparent bg-muted/40')}
+                              onClick={() => setFormData(prev => ({ ...prev, instagramAccountId: ig.id, instagramUsername: ig.username }))}>
+                              <div className={cn('flex items-center justify-center w-5 h-5 rounded-full border-2',
+                                formData.instagramAccountId === ig.id ? 'border-primary bg-primary' : 'border-muted-foreground/40')}>
+                                {formData.instagramAccountId === ig.id && <Check className="h-3 w-3 text-primary-foreground" />}
+                              </div>
+                              <Instagram className="h-4 w-4 text-pink-500 flex-shrink-0" />
+                              <div className="flex-1 min-w-0">
+                                <p className="font-medium text-sm truncate">@{ig.username || ig.name}</p>
+                                <p className="text-xs text-muted-foreground">ID: {ig.id}{ig.linkedPageName ? ` · ${ig.linkedPageName}` : ''}</p>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="space-y-2">
+                          <Input placeholder="Instagram Account ID" value={formData.instagramAccountId}
+                            onChange={(e) => setFormData(prev => ({ ...prev, instagramAccountId: e.target.value.trim() }))} />
+                          <Input placeholder="@username" value={formData.instagramUsername}
+                            onChange={(e) => setFormData(prev => ({ ...prev, instagramUsername: e.target.value.replace('@', '') }))} />
+                        </div>
+                      )}
                     </div>
                     <div className="space-y-2">
                       <Label className="text-sm flex items-center gap-1.5">
