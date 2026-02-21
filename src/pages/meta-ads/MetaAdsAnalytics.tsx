@@ -201,7 +201,7 @@ export default function MetaAdsAnalytics() {
                             </div>
                           </div>
                           <div className="w-24 text-right">
-                            <span className="text-sm font-medium">${(campaign.spend_amount || 0).toFixed(2)}</span>
+                            <span className="text-sm font-medium">{campaign.spend_currency || 'USD'} {(campaign.spend_amount || 0).toFixed(2)}</span>
                             <p className="text-xs text-muted-foreground">spend</p>
                           </div>
                         </div>
@@ -320,7 +320,7 @@ export default function MetaAdsAnalytics() {
                       <DollarSign className="h-6 w-6 text-white" />
                     </div>
                     <div>
-                      <p className="text-3xl font-bold">${totalSpend.toFixed(2)}</p>
+                      <p className="text-3xl font-bold">{campaigns[0]?.spend_currency || 'USD'} {totalSpend.toFixed(2)}</p>
                       <p className="text-sm text-muted-foreground">Total Spend</p>
                     </div>
                   </div>
