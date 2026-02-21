@@ -7719,11 +7719,15 @@ export type Database = {
       smeksh_meta_ad_accounts: {
         Row: {
           access_token_encrypted: string | null
+          business_id: string | null
+          business_name: string | null
           connected_by: string | null
           created_at: string
           facebook_page_id: string | null
           facebook_page_name: string | null
           id: string
+          instagram_account_id: string | null
+          instagram_username: string | null
           is_active: boolean
           last_synced_at: string | null
           meta_access_token: string | null
@@ -7731,6 +7735,9 @@ export type Database = {
           meta_account_name: string | null
           meta_user_id: string | null
           meta_user_name: string | null
+          pixel_id: string | null
+          pixel_name: string | null
+          scopes_granted: string[] | null
           setup_data: Json | null
           status: Database["public"]["Enums"]["smeksh_meta_connection_status"]
           sync_error: string | null
@@ -7742,11 +7749,15 @@ export type Database = {
         }
         Insert: {
           access_token_encrypted?: string | null
+          business_id?: string | null
+          business_name?: string | null
           connected_by?: string | null
           created_at?: string
           facebook_page_id?: string | null
           facebook_page_name?: string | null
           id?: string
+          instagram_account_id?: string | null
+          instagram_username?: string | null
           is_active?: boolean
           last_synced_at?: string | null
           meta_access_token?: string | null
@@ -7754,6 +7765,9 @@ export type Database = {
           meta_account_name?: string | null
           meta_user_id?: string | null
           meta_user_name?: string | null
+          pixel_id?: string | null
+          pixel_name?: string | null
+          scopes_granted?: string[] | null
           setup_data?: Json | null
           status?: Database["public"]["Enums"]["smeksh_meta_connection_status"]
           sync_error?: string | null
@@ -7765,11 +7779,15 @@ export type Database = {
         }
         Update: {
           access_token_encrypted?: string | null
+          business_id?: string | null
+          business_name?: string | null
           connected_by?: string | null
           created_at?: string
           facebook_page_id?: string | null
           facebook_page_name?: string | null
           id?: string
+          instagram_account_id?: string | null
+          instagram_username?: string | null
           is_active?: boolean
           last_synced_at?: string | null
           meta_access_token?: string | null
@@ -7777,6 +7795,9 @@ export type Database = {
           meta_account_name?: string | null
           meta_user_id?: string | null
           meta_user_name?: string | null
+          pixel_id?: string | null
+          pixel_name?: string | null
+          scopes_granted?: string[] | null
           setup_data?: Json | null
           status?: Database["public"]["Enums"]["smeksh_meta_connection_status"]
           sync_error?: string | null
