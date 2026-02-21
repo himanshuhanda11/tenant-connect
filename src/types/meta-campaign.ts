@@ -86,13 +86,46 @@ export interface MetaCampaignDraft {
   lead_form_thankyou_cta?: string;
   lead_form_thankyou_url?: string;
   
+  // Meta IDs (returned after publish)
+  meta_campaign_id?: string;
+  meta_adset_id?: string;
+  meta_creative_id?: string;
+  meta_ad_id?: string;
+  meta_lead_form_id?: string;
+  
   // Status
   status?: string;
+  publish_status?: string;
   publish_error?: string;
+  publish_error_code?: string;
+  publish_log?: PublishStep[];
+  publish_started_at?: string;
+  publish_completed_at?: string;
   
   created_at?: string;
   updated_at?: string;
   last_autosaved_at?: string;
+}
+
+export interface PublishStep {
+  step: string;
+  status: 'pending' | 'success' | 'error';
+  meta_id?: string;
+  error?: string;
+  error_code?: string;
+}
+
+export interface PublishResult {
+  success: boolean;
+  meta_campaign_id?: string;
+  meta_adset_id?: string;
+  meta_creative_id?: string;
+  meta_ad_id?: string;
+  meta_lead_form_id?: string;
+  error?: string;
+  error_code?: string;
+  error_help?: string;
+  log?: PublishStep[];
 }
 
 export const CAMPAIGN_TYPE_CONFIG: Record<MetaCampaignType, {
