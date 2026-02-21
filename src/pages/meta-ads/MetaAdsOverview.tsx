@@ -183,7 +183,10 @@ export default function MetaAdsOverview() {
                     <CheckCircle2 className="h-3 w-3 mr-1" />
                     Connected
                   </Badge>
-                  <Button variant="outline" size="sm" className="text-xs sm:text-sm h-8 sm:h-9 gap-1.5 sm:gap-2" onClick={() => window.open('https://adsmanager.facebook.com', '_blank', 'noopener,noreferrer')}>
+                  <Button variant="outline" size="sm" className="text-xs sm:text-sm h-8 sm:h-9 gap-1.5 sm:gap-2" onClick={() => {
+                    const actId = connectedAccount.meta_account_id?.replace('act_', '');
+                    window.open(`https://www.facebook.com/adsmanager/manage/campaigns?act=${actId}`, '_blank', 'noopener,noreferrer');
+                  }}>
                     <span className="hidden xs:inline">Open</span> Ads Manager
                     <ExternalLink className="h-3 w-3" />
                   </Button>
@@ -394,7 +397,7 @@ export default function MetaAdsOverview() {
                     </Link>
                   </Button>
                 )}
-                <Button variant="outline" className="gap-2" onClick={() => window.open('https://adsmanager.facebook.com', '_blank', 'noopener,noreferrer')}>
+                <Button variant="outline" className="gap-2" onClick={() => window.open('https://www.facebook.com/adsmanager/manage/campaigns', '_blank', 'noopener,noreferrer')}>
                   Open Ads Manager
                   <ExternalLink className="h-3.5 w-3.5" />
                 </Button>

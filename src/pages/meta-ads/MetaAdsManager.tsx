@@ -130,7 +130,7 @@ export default function MetaAdsManager() {
               <RefreshCw className={`h-3.5 w-3.5 sm:h-4 sm:w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
               Sync
             </Button>
-            <Button variant="outline" size="sm" className="gap-1.5 text-xs sm:text-sm" onClick={() => window.open('https://adsmanager.facebook.com', '_blank', 'noopener,noreferrer')}>
+            <Button variant="outline" size="sm" className="gap-1.5 text-xs sm:text-sm" onClick={() => window.open('https://www.facebook.com/adsmanager/manage/campaigns', '_blank', 'noopener,noreferrer')}>
               <span className="hidden xs:inline">Open</span> Meta Ads
               <ExternalLink className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
             </Button>
