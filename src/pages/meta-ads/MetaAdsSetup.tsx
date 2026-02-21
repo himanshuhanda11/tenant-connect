@@ -240,7 +240,25 @@ export default function MetaAdsSetup() {
     if (data.pages?.length === 1) {
       setFormData(prev => ({ ...prev, pageId: data.pages[0].id, pageName: data.pages[0].name }));
     }
-    toast.success(`Found ${data.adAccounts?.length || 0} ad account(s) and ${data.pages?.length || 0} page(s).`);
+    // Auto-populate Instagram from first linked IG account
+    if (data.instagramAccounts?.length > 0) {
+      const ig = data.instagramAccounts[0];
+      setFormData(prev => ({
+        ...prev,
+        instagramAccountId: prev.instagramAccountId || ig.id,
+        instagramUsername: prev.instagramUsername || ig.username,
+      }));
+    }
+    // Auto-populate Business from first business
+    if (data.businesses?.length > 0) {
+      const biz = data.businesses[0];
+      setFormData(prev => ({
+        ...prev,
+        businessId: prev.businessId || biz.id,
+        businessName: prev.businessName || biz.name,
+      }));
+    }
+    toast.success(`Found ${data.adAccounts?.length || 0} ad account(s), ${data.pages?.length || 0} page(s), ${data.instagramAccounts?.length || 0} IG account(s).`);
   };
 
   const handleFbLogin = async () => {
@@ -429,12 +447,10 @@ export default function MetaAdsSetup() {
                     </div>
                   </div>
                   <div className="flex items-center gap-2 flex-wrap">
-                    {(connectionStatus === 'expired' || connectionStatus === 'missing_scopes') && (
-                      <Button size="sm" onClick={handleFbLogin} disabled={isFbLoading} className="gap-1.5 text-xs h-8">
-                        {isFbLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RefreshCw className="h-3.5 w-3.5" />}
-                        Reconnect
-                      </Button>
-                    )}
+                    <Button size="sm" className="bg-[#1877F2] hover:bg-[#166FE5] text-white gap-1.5 text-xs h-8" onClick={handleFbLogin} disabled={isFbLoading}>
+                      {isFbLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Facebook className="h-3.5 w-3.5" />}
+                      {connectionStatus === 'expired' || connectionStatus === 'missing_scopes' ? 'Reconnect Facebook' : 'Re-login Facebook'}
+                    </Button>
                     <Button variant="outline" size="sm" onClick={handleRefreshAssets} disabled={isRefreshing} className="gap-1.5 text-xs h-8">
                       {isRefreshing ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RefreshCw className="h-3.5 w-3.5" />}
                       Refresh Assets
