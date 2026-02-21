@@ -12,6 +12,7 @@ import { cn } from '@/lib/utils';
 import { CtwaFlowSelector } from './creative/CtwaFlowSelector';
 import { UtmBuilder } from './creative/UtmBuilder';
 import { LeadFormBuilder } from './creative/LeadFormBuilder';
+import { MediaUploader } from './MediaUploader';
 
 interface StepCreativeProps {
   draft: MetaCampaignDraft;
@@ -82,19 +83,13 @@ export function StepCreative({ draft, updateDraft }: StepCreativeProps) {
             </div>
           </div>
 
-          {/* Media */}
-          <div className="space-y-1.5">
-            <Label className="text-xs">Media URL</Label>
-            <Input
-              value={draft.media_url || ''}
-              onChange={e => updateDraft({ media_url: e.target.value })}
-              placeholder="https://example.com/image.jpg"
-              className="h-10"
-            />
-            <p className="text-[10px] text-muted-foreground">
-              Paste a public URL to your image or video. Recommended: 1080×1080 for feed, 1080×1920 for stories.
-            </p>
-          </div>
+          {/* Media Upload */}
+          <MediaUploader
+            mediaUrl={draft.media_url}
+            mediaType={draft.media_type}
+            onMediaChange={(url, type) => updateDraft({ media_url: url, media_type: type })}
+            onMediaRemove={() => updateDraft({ media_url: undefined, media_type: undefined })}
+          />
         </CardContent>
       </Card>
 
