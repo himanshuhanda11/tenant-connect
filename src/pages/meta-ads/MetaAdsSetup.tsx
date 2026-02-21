@@ -7,14 +7,13 @@ import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
-import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
 import { Input } from '@/components/ui/input';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   Megaphone,
   CheckCircle2,
   ArrowRight,
-  ArrowLeft,
   Building2,
   FileText,
   Phone,
@@ -24,6 +23,10 @@ import {
   Info,
   Check,
   Facebook,
+  Globe,
+  Zap,
+  RefreshCw,
+  AlertCircle,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
@@ -52,31 +55,18 @@ interface MetaPage {
   accessToken: string;
 }
 
-interface SetupStep {
-  id: number;
-  title: string;
-  description: string;
-  icon: React.ComponentType<{ className?: string }>;
-}
-
-const SETUP_STEPS: SetupStep[] = [
-  { id: 1, title: 'Ad Account', description: 'Select or enter your Meta Ad Account', icon: Building2 },
-  { id: 2, title: 'Facebook Page', description: 'Select or enter your Facebook Page', icon: FileText },
-  { id: 3, title: 'WhatsApp Number', description: 'Link your WhatsApp Business number', icon: Phone },
-  { id: 4, title: 'Finalize', description: 'Review and enable tracking', icon: CheckCircle2 },
-];
-
 export default function MetaAdsSetup() {
   const navigate = useNavigate();
   const { currentTenant } = useTenant();
   const queryClient = useQueryClient();
-  const [currentStep, setCurrentStep] = useState(1);
   const [isConnecting, setIsConnecting] = useState(false);
   const [isFbLoading, setIsFbLoading] = useState(false);
   const [fbConnected, setFbConnected] = useState(false);
   const [longLivedToken, setLongLivedToken] = useState('');
   const [adAccounts, setAdAccounts] = useState<MetaAdAccount[]>([]);
   const [pages, setPages] = useState<MetaPage[]>([]);
+  const [permissions, setPermissions] = useState<any[]>([]);
+  const [adAccountsError, setAdAccountsError] = useState<string | null>(null);
   const [showManualToken, setShowManualToken] = useState(false);
   const [manualToken, setManualToken] = useState('');
   const [isManualLoading, setIsManualLoading] = useState(false);
@@ -121,97 +111,94 @@ export default function MetaAdsSetup() {
   });
 
   const phoneNumbers = phoneNumbersQuery.data || [];
-  const progress = (currentStep / SETUP_STEPS.length) * 100;
 
-  // Callback for the <fb:login-button> onlogin event
-  const checkLoginState = () => {
+  // Auto-select single phone number
+  useEffect(() => {
+    if (phoneNumbers.length === 1 && !formData.phoneNumberId) {
+      setFormData(prev => ({
+        ...prev,
+        phoneNumberId: phoneNumbers[0].id,
+        phoneDisplay: phoneNumbers[0].display_number || '',
+      }));
+    }
+  }, [phoneNumbers, formData.phoneNumberId]);
+
+  const processMetaResponse = (data: any) => {
+    setLongLivedToken(data.longLivedToken || '');
+    setAdAccounts(data.adAccounts || []);
+    setPages(data.pages || []);
+    setPermissions(data.permissions || []);
+    setAdAccountsError(data.adAccountsError || null);
+    setFbConnected(true);
+
+    // Auto-select if only one option
+    if (data.adAccounts?.length === 1) {
+      setFormData(prev => ({
+        ...prev,
+        adAccountId: data.adAccounts[0].id,
+        adAccountName: data.adAccounts[0].name,
+      }));
+    }
+    if (data.pages?.length === 1) {
+      setFormData(prev => ({
+        ...prev,
+        pageId: data.pages[0].id,
+        pageName: data.pages[0].name,
+      }));
+    }
+
+    toast.success(`Connected! Found ${data.adAccounts?.length || 0} ad account(s) and ${data.pages?.length || 0} page(s).`);
+  };
+
+  const handleFbLogin = async () => {
+    if (!currentTenant?.id) {
+      toast.error('No workspace selected');
+      return;
+    }
     if (!window.FB) {
       toast.error('Facebook SDK not loaded. Please refresh the page.');
       return;
     }
-
     setIsFbLoading(true);
-
-    window.FB.getLoginStatus((response: any) => {
-      if (response.status === 'connected' && response.authResponse) {
-        const { accessToken } = response.authResponse;
-        fetchMetaData(accessToken);
-      } else {
-        setIsFbLoading(false);
-        toast.error('Facebook login was cancelled or failed.');
-      }
-    });
-  };
-
-  // Expose checkLoginState globally so the fb:login-button onlogin can call it
-  (window as any).checkLoginState = checkLoginState;
-
-  // Re-parse FB XFBML when component mounts or fbConnected changes
-  useEffect(() => {
-    if (window.FB && !fbConnected) {
-      window.FB.XFBML.parse();
-    }
-    return () => {
-      delete (window as any).checkLoginState;
-    };
-  }, [fbConnected]);
-
-  const fetchMetaData = async (shortLivedToken: string) => {
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        toast.error('You must be logged in');
-        setIsFbLoading(false);
-        return;
-      }
-
-      const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/meta-ads-fb-login`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${session.access_token}`,
-          },
-          body: JSON.stringify({
-            accessToken: shortLivedToken,
-            tenantId: currentTenant?.id,
-          }),
+      window.FB.login((response: any) => {
+        if (response.status !== 'connected' || !response.authResponse?.accessToken) {
+          toast.error('Facebook login was cancelled or failed');
+          setIsFbLoading(false);
+          return;
         }
-      );
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to fetch Meta data');
-      }
-
-      setLongLivedToken(data.longLivedToken);
-      setAdAccounts(data.adAccounts || []);
-      setPages(data.pages || []);
-      setFbConnected(true);
-
-      // Auto-select if only one option
-      if (data.adAccounts?.length === 1) {
-        setFormData(prev => ({
-          ...prev,
-          adAccountId: data.adAccounts[0].id,
-          adAccountName: data.adAccounts[0].name,
-        }));
-      }
-      if (data.pages?.length === 1) {
-        setFormData(prev => ({
-          ...prev,
-          pageId: data.pages[0].id,
-          pageName: data.pages[0].name,
-        }));
-      }
-
-      toast.success(`Found ${data.adAccounts?.length || 0} ad account(s) and ${data.pages?.length || 0} page(s)`);
+        (async () => {
+          try {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session) throw new Error('Not authenticated');
+            const res = await fetch(
+              `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/meta-ads-fb-login`,
+              {
+                method: 'POST',
+                headers: {
+                  Authorization: `Bearer ${session.access_token}`,
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                  accessToken: response.authResponse.accessToken,
+                  tenantId: currentTenant.id,
+                }),
+              }
+            );
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || 'Failed to process Facebook login');
+            processMetaResponse(data);
+          } catch (err: any) {
+            console.error('Meta Ads FB login error:', err);
+            toast.error(err.message || 'Failed to process Facebook login');
+          } finally {
+            setIsFbLoading(false);
+          }
+        })();
+      }, { scope: 'ads_read,pages_show_list,business_management', auth_type: 'reauthorize' });
     } catch (err: any) {
-      console.error('Failed to fetch Meta data:', err);
-      toast.error(err.message || 'Failed to fetch Meta data');
-    } finally {
+      console.error('FB.login error:', err);
+      toast.error(err.message || 'Failed to open Facebook login');
       setIsFbLoading(false);
     }
   };
@@ -225,12 +212,10 @@ export default function MetaAdsSetup() {
       toast.error('No workspace selected');
       return;
     }
-
     setIsManualLoading(true);
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) throw new Error('Not authenticated');
-
       const res = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/meta-ads-fb-login`,
         {
@@ -247,28 +232,7 @@ export default function MetaAdsSetup() {
       );
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to process token');
-
-      setLongLivedToken(data.longLivedToken);
-      setAdAccounts(data.adAccounts || []);
-      setPages(data.pages || []);
-      setFbConnected(true);
-
-      if (data.adAccounts?.length === 1) {
-        setFormData(prev => ({
-          ...prev,
-          adAccountId: data.adAccounts[0].id,
-          adAccountName: data.adAccounts[0].name,
-        }));
-      }
-      if (data.pages?.length === 1) {
-        setFormData(prev => ({
-          ...prev,
-          pageId: data.pages[0].id,
-          pageName: data.pages[0].name,
-        }));
-      }
-
-      toast.success(`Connected! Found ${data.adAccounts?.length || 0} ad account(s) and ${data.pages?.length || 0} page(s).`);
+      processMetaResponse(data);
     } catch (err: any) {
       console.error('Manual token error:', err);
       toast.error(err.message || 'Failed to process token');
@@ -277,21 +241,13 @@ export default function MetaAdsSetup() {
     }
   };
 
-  const handleNext = () => {
-    if (currentStep < SETUP_STEPS.length) {
-      setCurrentStep(currentStep + 1);
-    }
-  };
-
-  const handleBack = () => {
-    if (currentStep > 1) {
-      setCurrentStep(currentStep - 1);
-    }
-  };
-
   const handleComplete = async () => {
     if (!currentTenant?.id) {
       toast.error('No workspace selected');
+      return;
+    }
+    if (!formData.adAccountId) {
+      toast.error('Please select an Ad Account');
       return;
     }
 
@@ -305,9 +261,9 @@ export default function MetaAdsSetup() {
           workspace_id: currentTenant.id,
           meta_account_id: formData.adAccountId,
           meta_account_name: formData.adAccountName || null,
-          facebook_page_id: formData.pageId,
+          facebook_page_id: formData.pageId || null,
           facebook_page_name: formData.pageName || null,
-          whatsapp_phone_number_id: formData.phoneNumberId,
+          whatsapp_phone_number_id: formData.phoneNumberId || null,
           whatsapp_display_number: formData.phoneDisplay || phoneNumbers.find(p => p.id === formData.phoneNumberId)?.display_number || null,
           meta_access_token: longLivedToken || null,
           status: 'connected' as const,
@@ -332,481 +288,428 @@ export default function MetaAdsSetup() {
     }
   };
 
-  const canProceed = () => {
-    switch (currentStep) {
-      case 1: return !!formData.adAccountId;
-      case 2: return !!formData.pageId;
-      case 3: return !!formData.phoneNumberId;
-      case 4: return true;
-      default: return false;
+  const canComplete = !!formData.adAccountId;
+
+  const getAccountStatusBadge = (status: number) => {
+    switch (status) {
+      case 1: return <Badge className="bg-emerald-100 text-emerald-700 text-xs">Active</Badge>;
+      case 2: return <Badge className="bg-amber-100 text-amber-700 text-xs">Disabled</Badge>;
+      case 3: return <Badge className="bg-red-100 text-red-700 text-xs">Unsettled</Badge>;
+      default: return <Badge variant="secondary" className="text-xs">Unknown</Badge>;
     }
   };
 
   return (
     <DashboardLayout>
-      <div className="p-6 max-w-4xl mx-auto">
+      <div className="p-4 sm:p-6 max-w-4xl mx-auto space-y-5">
         {/* Header */}
-        <div className="flex items-center gap-4 mb-8">
-          <div className="flex items-center justify-center w-14 h-14 rounded-2xl bg-primary shadow-lg">
-            <Megaphone className="h-7 w-7 text-primary-foreground" />
+        <div className="flex items-center gap-4">
+          <div className="flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-primary shadow-lg">
+            <Megaphone className="h-6 w-6 sm:h-7 sm:w-7 text-primary-foreground" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold tracking-tight">Connect Meta Ads</h1>
-            <p className="text-muted-foreground">
-              Set up Click-to-WhatsApp ad tracking in a few simple steps
+            <h1 className="text-xl sm:text-2xl font-bold tracking-tight">Connect Meta Ads</h1>
+            <p className="text-sm text-muted-foreground">
+              Link your ad accounts, pages & WhatsApp for Click-to-WhatsApp tracking
             </p>
           </div>
         </div>
 
         {/* Already connected notice */}
         {(existingAccountQuery.data?.length || 0) > 0 && (
-          <Alert className="mb-6 border-emerald-200 bg-emerald-50 dark:bg-emerald-950/30">
+          <Alert className="border-emerald-200 bg-emerald-50 dark:bg-emerald-950/30">
             <CheckCircle2 className="h-4 w-4 text-emerald-600" />
             <AlertDescription className="text-emerald-700 dark:text-emerald-300">
-              You already have {existingAccountQuery.data?.length} connected Meta Ad account(s). 
-              You can add another one below.
+              You already have {existingAccountQuery.data?.length} connected Meta Ad account(s).
+              You can add another one below or re-login to update.
             </AlertDescription>
           </Alert>
         )}
 
-        {/* Meta Ads Connect Card */}
+        {/* Step 1: Connect with Facebook */}
         {!fbConnected && (
-          <Card className="mb-6 border-blue-200 bg-blue-50/50 dark:bg-blue-950/20 dark:border-blue-800">
-            <CardContent className="flex items-center justify-between p-6">
-              <div className="flex items-center gap-4">
-                <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-[#1877F2]">
-                  <Facebook className="h-6 w-6 text-white" />
-                </div>
-                <div>
-                  <h3 className="font-semibold text-lg">Connect Meta Ads</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Login to automatically fetch your Ad Accounts & Pages
-                  </p>
-                </div>
+          <Card className="border-2 border-dashed border-blue-300 dark:border-blue-700 shadow-lg">
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-[#1877F2] text-white text-sm font-bold">1</div>
+                Login with Facebook
+              </CardTitle>
+              <CardDescription>
+                Connect your Facebook account to automatically fetch all your Ad Accounts, Pages, and permissions
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+                <Button
+                  className="bg-[#1877F2] hover:bg-[#166FE5] text-white gap-2 h-12 px-6 text-base w-full sm:w-auto"
+                  disabled={isFbLoading}
+                  onClick={handleFbLogin}
+                >
+                  {isFbLoading ? (
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                  ) : (
+                    <Facebook className="h-5 w-5" />
+                  )}
+                  {isFbLoading ? 'Connecting...' : 'Login with Facebook'}
+                </Button>
+                <span className="text-xs text-muted-foreground">
+                  Permissions requested: <strong>ads_read</strong>, <strong>pages_show_list</strong>, <strong>business_management</strong>
+                </span>
               </div>
-              <div className="flex items-center gap-3">
-                {isFbLoading && (
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    Connecting...
+
+              <Separator />
+
+              <div>
+                <button
+                  className="text-sm text-primary hover:underline flex items-center gap-1"
+                  onClick={() => setShowManualToken(!showManualToken)}
+                >
+                  <Zap className="h-3.5 w-3.5" />
+                  {showManualToken ? 'Hide manual token entry' : 'Or enter access token manually'}
+                </button>
+                {showManualToken && (
+                  <div className="mt-3 space-y-3 p-4 rounded-lg bg-muted/50 border">
+                    <Label className="text-sm">Long-Lived Access Token</Label>
+                    <Input
+                      placeholder="Paste your Meta access token here..."
+                      value={manualToken}
+                      onChange={(e) => setManualToken(e.target.value)}
+                      className="h-10 font-mono text-xs"
+                    />
+                    <Button
+                      onClick={handleManualTokenSubmit}
+                      disabled={isManualLoading || !manualToken.trim()}
+                      size="sm"
+                      className="gap-2"
+                    >
+                      {isManualLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowRight className="h-4 w-4" />}
+                      Fetch Accounts
+                    </Button>
+                    <p className="text-xs text-muted-foreground">
+                      Get a token from{' '}
+                      <a href="https://developers.facebook.com/tools/explorer/" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+                        Graph API Explorer
+                      </a>{' '}
+                      with ads_read and pages_show_list permissions.
+                    </p>
                   </div>
                 )}
-                <Button
-                  className="bg-[#1877F2] hover:bg-[#166FE5] text-white gap-2 h-10 px-5"
-                  disabled={isFbLoading}
-                  onClick={async () => {
-                    if (!currentTenant?.id) {
-                      toast.error('No workspace selected');
-                      return;
-                    }
-                    if (!window.FB) {
-                      toast.error('Facebook SDK not loaded. Please refresh the page.');
-                      return;
-                    }
-                    setIsFbLoading(true);
-                    try {
-                      window.FB.login((response: any) => {
-                        if (response.status !== 'connected' || !response.authResponse?.accessToken) {
-                          toast.error('Facebook login was cancelled or failed');
-                          setIsFbLoading(false);
-                          return;
-                        }
-                        (async () => {
-                          try {
-                            const { data: { session } } = await supabase.auth.getSession();
-                            if (!session) throw new Error('Not authenticated');
-                            const res = await fetch(
-                              `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/meta-ads-fb-login`,
-                              {
-                                method: 'POST',
-                                headers: {
-                                  Authorization: `Bearer ${session.access_token}`,
-                                  'Content-Type': 'application/json',
-                                },
-                                body: JSON.stringify({
-                                  accessToken: response.authResponse.accessToken,
-                                  tenantId: currentTenant.id,
-                                }),
-                              }
-                            );
-                            const data = await res.json();
-                            if (!res.ok) throw new Error(data.error || 'Failed to process Facebook login');
-                            setLongLivedToken(data.longLivedToken || '');
-                            setAdAccounts(data.adAccounts || []);
-                            setPages(data.pages || []);
-                            setFbConnected(true);
-                            if (data.adAccounts?.length === 1) {
-                              setFormData(prev => ({ ...prev, adAccountId: data.adAccounts[0].id, adAccountName: data.adAccounts[0].name }));
-                            }
-                            if (data.pages?.length === 1) {
-                              setFormData(prev => ({ ...prev, pageId: data.pages[0].id, pageName: data.pages[0].name }));
-                            }
-                            toast.success(`Connected! Found ${data.adAccounts?.length || 0} ad account(s) and ${data.pages?.length || 0} page(s).`);
-                          } catch (err: any) {
-                            console.error('Meta Ads FB login error:', err);
-                            toast.error(err.message || 'Failed to process Facebook login');
-                          } finally {
-                            setIsFbLoading(false);
-                          }
-                        })();
-                      }, { scope: 'ads_read,pages_show_list,business_management', auth_type: 'reauthorize' });
-                    } catch (err: any) {
-                      console.error('FB.login error:', err);
-                      toast.error(err.message || 'Failed to open Facebook login');
-                      setIsFbLoading(false);
-                    }
-                  }}
-                >
-                  <Facebook className="h-4 w-4" />
-                  Login with Facebook
-                </Button>
               </div>
             </CardContent>
           </Card>
         )}
 
+        {/* Post-Login: All selections visible at once */}
         {fbConnected && (
-          <Alert className="mb-6 border-blue-200 bg-blue-50 dark:bg-blue-950/30">
-            <CheckCircle2 className="h-4 w-4 text-blue-600" />
-            <AlertDescription className="text-blue-700 dark:text-blue-300">
-              <strong>Connected to Facebook!</strong> Found {adAccounts.length} ad account(s) and {pages.length} page(s). 
-              Select your preferences below.
-            </AlertDescription>
-          </Alert>
-        )}
+          <>
+            {/* Connection Status Bar */}
+            <Alert className="border-emerald-200 bg-emerald-50 dark:bg-emerald-950/30">
+              <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+              <AlertDescription className="text-emerald-700 dark:text-emerald-300 flex flex-col sm:flex-row sm:items-center gap-2">
+                <span>
+                  <strong>Connected to Facebook!</strong> Found <strong>{adAccounts.length}</strong> ad account(s) and <strong>{pages.length}</strong> page(s).
+                </span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="gap-1 text-xs h-7 w-fit"
+                  onClick={() => {
+                    setFbConnected(false);
+                    setAdAccounts([]);
+                    setPages([]);
+                    setLongLivedToken('');
+                    setFormData({ adAccountId: '', adAccountName: '', pageId: '', pageName: '', phoneNumberId: formData.phoneNumberId, phoneDisplay: formData.phoneDisplay });
+                  }}
+                >
+                  <RefreshCw className="h-3 w-3" />
+                  Re-login
+                </Button>
+              </AlertDescription>
+            </Alert>
 
-        {/* Progress */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium">Step {currentStep} of {SETUP_STEPS.length}</span>
-            <span className="text-sm text-muted-foreground">{Math.round(progress)}% complete</span>
-          </div>
-          <Progress value={progress} className="h-2" />
-        </div>
-
-        {/* Steps Indicator */}
-        <div className="flex items-center justify-between mb-8">
-          {SETUP_STEPS.map((step, idx) => {
-            const StepIcon = step.icon;
-            const isCompleted = currentStep > step.id;
-            const isCurrent = currentStep === step.id;
-            
-            return (
-              <div key={step.id} className="flex items-center">
-                <div className="flex flex-col items-center">
-                  <div className={cn(
-                    "flex items-center justify-center w-10 h-10 rounded-full border-2 transition-all",
-                    isCompleted && "bg-primary border-primary",
-                    isCurrent && "border-primary bg-primary/10",
-                    !isCompleted && !isCurrent && "border-muted-foreground/30"
-                  )}>
-                    {isCompleted ? (
-                      <Check className="h-5 w-5 text-primary-foreground" />
-                    ) : (
-                      <StepIcon className={cn(
-                        "h-5 w-5",
-                        isCurrent ? "text-primary" : "text-muted-foreground"
-                      )} />
-                    )}
+            {/* Permissions Info */}
+            {permissions.length > 0 && (
+              <Card className="border-0 shadow-sm bg-muted/30">
+                <CardContent className="py-3 px-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Shield className="h-4 w-4 text-primary" />
+                    <span className="text-sm font-medium">Granted Permissions</span>
                   </div>
-                  <span className={cn(
-                    "text-xs mt-2 text-center max-w-[80px]",
-                    isCurrent ? "text-primary font-medium" : "text-muted-foreground"
-                  )}>
-                    {step.title}
-                  </span>
-                </div>
-                {idx < SETUP_STEPS.length - 1 && (
-                  <div className={cn(
-                    "w-full h-0.5 mx-2 mt-[-20px]",
-                    isCompleted ? "bg-primary" : "bg-muted"
-                  )} style={{ minWidth: '40px' }} />
-                )}
-              </div>
-            );
-          })}
-        </div>
+                  <div className="flex flex-wrap gap-1.5">
+                    {permissions.map((p: any, i: number) => (
+                      <Badge
+                        key={i}
+                        variant={p.status === 'granted' ? 'default' : 'secondary'}
+                        className={cn(
+                          'text-xs',
+                          p.status === 'granted' ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'
+                        )}
+                      >
+                        {p.status === 'granted' ? <Check className="h-3 w-3 mr-1" /> : <AlertCircle className="h-3 w-3 mr-1" />}
+                        {p.permission}
+                      </Badge>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
-        {/* Step Content */}
-        <Card className="border-0 shadow-lg">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              {(() => {
-                const CurrentIcon = SETUP_STEPS[currentStep - 1].icon;
-                return <CurrentIcon className="h-5 w-5 text-primary" />;
-              })()}
-              {SETUP_STEPS[currentStep - 1].title}
-            </CardTitle>
-            <CardDescription>{SETUP_STEPS[currentStep - 1].description}</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            {/* Step 1: Ad Account */}
-            {currentStep === 1 && (
-              <div className="space-y-4">
+            {adAccountsError && (
+              <Alert className="border-amber-200 bg-amber-50 dark:bg-amber-950/30">
+                <AlertCircle className="h-4 w-4 text-amber-600" />
+                <AlertDescription className="text-amber-700 dark:text-amber-300 text-sm">
+                  <strong>Ad Accounts Warning:</strong> {adAccountsError}. You can still enter an Ad Account ID manually below.
+                </AlertDescription>
+              </Alert>
+            )}
+
+            {/* Step 2: Select Ad Account */}
+            <Card className="border-0 shadow-lg">
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-base">
+                  <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-primary text-primary-foreground text-sm font-bold">1</div>
+                  <Building2 className="h-4 w-4 text-primary" />
+                  Select Ad Account
+                  {formData.adAccountId && <Check className="h-4 w-4 text-emerald-600 ml-auto" />}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
                 {adAccounts.length > 0 ? (
-                  <>
-                    <Label>Select Ad Account</Label>
-                    <Select
-                      value={formData.adAccountId}
-                      onValueChange={(value) => {
-                        const acc = adAccounts.find(a => a.id === value);
-                        setFormData(prev => ({
-                          ...prev,
-                          adAccountId: value,
-                          adAccountName: acc?.name || '',
-                        }));
-                      }}
-                    >
-                      <SelectTrigger className="h-12">
-                        <SelectValue placeholder="Choose an ad account" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {adAccounts.map((acc) => (
-                          <SelectItem key={acc.id} value={acc.id}>
-                            <div className="flex items-center gap-3">
-                              <Building2 className="h-4 w-4 text-muted-foreground" />
-                              <span>{acc.name || acc.id}</span>
-                              {acc.currency && (
-                                <Badge variant="secondary" className="text-xs">
-                                  {acc.currency}
-                                </Badge>
-                              )}
-                            </div>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </>
+                  <div className="space-y-2">
+                    {adAccounts.map((acc) => (
+                      <div
+                        key={acc.id}
+                        className={cn(
+                          'flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer transition-all hover:border-primary/50',
+                          formData.adAccountId === acc.id
+                            ? 'border-primary bg-primary/5'
+                            : 'border-transparent bg-muted/40'
+                        )}
+                        onClick={() => setFormData(prev => ({ ...prev, adAccountId: acc.id, adAccountName: acc.name }))}
+                      >
+                        <div className={cn(
+                          'flex items-center justify-center w-5 h-5 rounded-full border-2',
+                          formData.adAccountId === acc.id ? 'border-primary bg-primary' : 'border-muted-foreground/40'
+                        )}>
+                          {formData.adAccountId === acc.id && <Check className="h-3 w-3 text-primary-foreground" />}
+                        </div>
+                        <Building2 className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-sm truncate">{acc.name || acc.id}</p>
+                          <p className="text-xs text-muted-foreground">{acc.id}</p>
+                        </div>
+                        <div className="flex items-center gap-2 flex-shrink-0">
+                          {acc.currency && <Badge variant="secondary" className="text-xs">{acc.currency}</Badge>}
+                          {acc.timezone && <span className="text-xs text-muted-foreground hidden sm:inline">{acc.timezone}</span>}
+                          {getAccountStatusBadge(acc.status)}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 ) : (
-                  <>
-                    <Label>Meta Ad Account ID</Label>
+                  <div className="space-y-3">
+                    <p className="text-sm text-muted-foreground">No ad accounts found via API. Enter your Ad Account ID manually:</p>
                     <Input
                       placeholder="act_123456789"
                       value={formData.adAccountId}
                       onChange={(e) => setFormData(prev => ({ ...prev, adAccountId: e.target.value.trim() }))}
-                      className="h-12"
+                      className="h-10"
                     />
-                    <Label>Ad Account Name (optional)</Label>
                     <Input
-                      placeholder="My Business Ad Account"
+                      placeholder="Ad Account Name (optional)"
                       value={formData.adAccountName}
                       onChange={(e) => setFormData(prev => ({ ...prev, adAccountName: e.target.value }))}
-                      className="h-12"
+                      className="h-10"
                     />
-                    <Alert className="border-blue-200 bg-blue-50 dark:bg-blue-950/30">
-                      <Info className="h-4 w-4 text-blue-600" />
-                      <AlertDescription className="text-blue-700 dark:text-blue-300">
-                        Find your Ad Account ID in <strong>Meta Business Suite → Settings → Ad Accounts</strong>. 
-                        It starts with <code className="bg-blue-100 dark:bg-blue-900 px-1 rounded">act_</code>.
-                        Or use <strong>Login with Facebook</strong> above to auto-detect.
-                      </AlertDescription>
-                    </Alert>
-                  </>
+                  </div>
                 )}
+              </CardContent>
+            </Card>
 
-                {formData.adAccountId && (
-                  <Alert className="border-emerald-200 bg-emerald-50 dark:bg-emerald-950/30">
-                    <CheckCircle2 className="h-4 w-4 text-emerald-600" />
-                    <AlertDescription className="text-emerald-700 dark:text-emerald-300">
-                      Ad account selected: <strong>{formData.adAccountName || formData.adAccountId}</strong>
-                    </AlertDescription>
-                  </Alert>
-                )}
-              </div>
-            )}
-
-            {/* Step 2: Facebook Page */}
-            {currentStep === 2 && (
-              <div className="space-y-4">
+            {/* Step 3: Select Facebook Page */}
+            <Card className="border-0 shadow-lg">
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-base">
+                  <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-primary text-primary-foreground text-sm font-bold">2</div>
+                  <FileText className="h-4 w-4 text-primary" />
+                  Select Facebook Page
+                  <span className="text-xs text-muted-foreground font-normal">(optional)</span>
+                  {formData.pageId && <Check className="h-4 w-4 text-emerald-600 ml-auto" />}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
                 {pages.length > 0 ? (
-                  <>
-                    <Label>Select Facebook Page</Label>
-                    <Select
-                      value={formData.pageId}
-                      onValueChange={(value) => {
-                        const page = pages.find(p => p.id === value);
-                        setFormData(prev => ({
-                          ...prev,
-                          pageId: value,
-                          pageName: page?.name || '',
-                        }));
-                      }}
-                    >
-                      <SelectTrigger className="h-12">
-                        <SelectValue placeholder="Choose a Facebook page" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {pages.map((page) => (
-                          <SelectItem key={page.id} value={page.id}>
-                            <div className="flex items-center gap-3">
-                              <FileText className="h-4 w-4 text-muted-foreground" />
-                              <span>{page.name}</span>
-                              {page.category && (
-                                <Badge variant="secondary" className="text-xs">
-                                  {page.category}
-                                </Badge>
-                              )}
-                            </div>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </>
+                  <div className="space-y-2">
+                    {pages.map((page) => (
+                      <div
+                        key={page.id}
+                        className={cn(
+                          'flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer transition-all hover:border-primary/50',
+                          formData.pageId === page.id
+                            ? 'border-primary bg-primary/5'
+                            : 'border-transparent bg-muted/40'
+                        )}
+                        onClick={() => setFormData(prev => ({ ...prev, pageId: page.id, pageName: page.name }))}
+                      >
+                        <div className={cn(
+                          'flex items-center justify-center w-5 h-5 rounded-full border-2',
+                          formData.pageId === page.id ? 'border-primary bg-primary' : 'border-muted-foreground/40'
+                        )}>
+                          {formData.pageId === page.id && <Check className="h-3 w-3 text-primary-foreground" />}
+                        </div>
+                        <Globe className="h-4 w-4 text-blue-500 flex-shrink-0" />
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-sm truncate">{page.name}</p>
+                          <p className="text-xs text-muted-foreground">ID: {page.id}</p>
+                        </div>
+                        {page.category && <Badge variant="secondary" className="text-xs flex-shrink-0">{page.category}</Badge>}
+                      </div>
+                    ))}
+                  </div>
                 ) : (
-                  <>
-                    <Label>Facebook Page ID</Label>
+                  <div className="space-y-3">
+                    <p className="text-sm text-muted-foreground">No pages found via API. Enter your Page ID manually:</p>
                     <Input
                       placeholder="123456789012345"
                       value={formData.pageId}
                       onChange={(e) => setFormData(prev => ({ ...prev, pageId: e.target.value.trim() }))}
-                      className="h-12"
+                      className="h-10"
                     />
-                    <Label>Page Name (optional)</Label>
                     <Input
-                      placeholder="My Business Page"
+                      placeholder="Page Name (optional)"
                       value={formData.pageName}
                       onChange={(e) => setFormData(prev => ({ ...prev, pageName: e.target.value }))}
-                      className="h-12"
+                      className="h-10"
                     />
-                    <Alert className="border-blue-200 bg-blue-50 dark:bg-blue-950/30">
-                      <Info className="h-4 w-4 text-blue-600" />
-                      <AlertDescription className="text-blue-700 dark:text-blue-300">
-                        Find your Page ID in <strong>Facebook Page → About → Page ID</strong>.
-                        Or use <strong>Login with Facebook</strong> above to auto-detect.
-                      </AlertDescription>
-                    </Alert>
-                  </>
+                  </div>
                 )}
-              </div>
-            )}
+              </CardContent>
+            </Card>
 
-            {/* Step 3: Link WhatsApp Number */}
-            {currentStep === 3 && (
-              <div className="space-y-4">
-                <Label>Select WhatsApp Business Number</Label>
-                <Select
-                  value={formData.phoneNumberId}
-                  onValueChange={(value) => {
-                    const phone = phoneNumbers.find(p => p.id === value);
-                    setFormData(prev => ({ ...prev, phoneNumberId: value, phoneDisplay: phone?.display_number || '' }));
-                  }}
-                >
-                  <SelectTrigger className="h-12">
-                    <SelectValue placeholder="Choose a WhatsApp number" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {phoneNumbers.length > 0 ? phoneNumbers.map((phone) => (
-                      <SelectItem key={phone.id} value={phone.id}>
-                        <div className="flex items-center gap-3">
-                          <Phone className="h-4 w-4 text-muted-foreground" />
-                          <span>{phone.display_number || phone.phone_number_id}</span>
-                          {phone.quality_rating === 'GREEN' && (
-                            <Badge variant="secondary" className="text-xs bg-emerald-100 text-emerald-700">
-                              Active
-                            </Badge>
-                          )}
+            {/* Step 4: Link WhatsApp Number */}
+            <Card className="border-0 shadow-lg">
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-base">
+                  <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-primary text-primary-foreground text-sm font-bold">3</div>
+                  <Phone className="h-4 w-4 text-primary" />
+                  Link WhatsApp Number
+                  <span className="text-xs text-muted-foreground font-normal">(optional)</span>
+                  {formData.phoneNumberId && <Check className="h-4 w-4 text-emerald-600 ml-auto" />}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {phoneNumbers.length > 0 ? (
+                  <div className="space-y-2">
+                    {phoneNumbers.map((phone) => (
+                      <div
+                        key={phone.id}
+                        className={cn(
+                          'flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer transition-all hover:border-primary/50',
+                          formData.phoneNumberId === phone.id
+                            ? 'border-primary bg-primary/5'
+                            : 'border-transparent bg-muted/40'
+                        )}
+                        onClick={() => setFormData(prev => ({ ...prev, phoneNumberId: phone.id, phoneDisplay: phone.display_number || '' }))}
+                      >
+                        <div className={cn(
+                          'flex items-center justify-center w-5 h-5 rounded-full border-2',
+                          formData.phoneNumberId === phone.id ? 'border-primary bg-primary' : 'border-muted-foreground/40'
+                        )}>
+                          {formData.phoneNumberId === phone.id && <Check className="h-3 w-3 text-primary-foreground" />}
                         </div>
-                      </SelectItem>
-                    )) : (
-                      <SelectItem value="__none__" disabled>
-                        No WhatsApp numbers found
-                      </SelectItem>
-                    )}
-                  </SelectContent>
-                </Select>
+                        <Phone className="h-4 w-4 text-emerald-500 flex-shrink-0" />
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-sm">{phone.display_number || phone.phone_number_id}</p>
+                        </div>
+                        {phone.quality_rating === 'GREEN' && (
+                          <Badge className="bg-emerald-100 text-emerald-700 text-xs">Active</Badge>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <Alert>
+                    <Info className="h-4 w-4" />
+                    <AlertDescription className="text-sm">
+                      No WhatsApp numbers connected to this workspace yet.
+                      Connect a WhatsApp number first from the WABA settings.
+                    </AlertDescription>
+                  </Alert>
+                )}
+              </CardContent>
+            </Card>
 
-                <Alert>
-                  <Info className="h-4 w-4" />
-                  <AlertDescription>
-                    This number must be connected to AIREATRO and linked to your Meta Business account.
-                  </AlertDescription>
-                </Alert>
-              </div>
-            )}
-
-            {/* Step 4: Finalize */}
-            {currentStep === 4 && (
-              <div className="space-y-6">
-                <div className="p-4 rounded-xl bg-muted/50 space-y-4">
-                  <h4 className="font-medium flex items-center gap-2">
-                    <Sparkles className="h-4 w-4 text-primary" />
-                    Setup Summary
-                  </h4>
-                  <div className="space-y-3 text-sm">
-                    <div className="flex items-center justify-between">
-                      <span className="text-muted-foreground">Ad Account</span>
-                      <span className="font-medium">{formData.adAccountName || formData.adAccountId}</span>
-                    </div>
-                    <Separator />
-                    <div className="flex items-center justify-between">
-                      <span className="text-muted-foreground">Facebook Page</span>
-                      <span className="font-medium">{formData.pageName || formData.pageId}</span>
-                    </div>
-                    <Separator />
-                    <div className="flex items-center justify-between">
-                      <span className="text-muted-foreground">WhatsApp Number</span>
-                      <span className="font-medium">
-                        {formData.phoneDisplay || phoneNumbers.find(p => p.id === formData.phoneNumberId)?.display_number}
-                      </span>
-                    </div>
-                    <Separator />
-                    <div className="flex items-center justify-between">
-                      <span className="text-muted-foreground">Live Sync</span>
-                      <Badge variant={longLivedToken ? 'default' : 'secondary'}>
-                        {longLivedToken ? 'Enabled (via Facebook Login)' : 'Manual entry only'}
-                      </Badge>
-                    </div>
+            {/* Summary & Complete */}
+            <Card className="border-0 shadow-lg border-t-4 border-t-primary">
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-base">
+                  <Sparkles className="h-4 w-4 text-primary" />
+                  Setup Summary
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-3 text-sm">
+                  <div className="flex items-center justify-between">
+                    <span className="text-muted-foreground flex items-center gap-2">
+                      <Building2 className="h-3.5 w-3.5" /> Ad Account
+                    </span>
+                    <span className="font-medium">
+                      {formData.adAccountName || formData.adAccountId || <span className="text-muted-foreground italic">Not selected</span>}
+                    </span>
+                  </div>
+                  <Separator />
+                  <div className="flex items-center justify-between">
+                    <span className="text-muted-foreground flex items-center gap-2">
+                      <FileText className="h-3.5 w-3.5" /> Facebook Page
+                    </span>
+                    <span className="font-medium">
+                      {formData.pageName || formData.pageId || <span className="text-muted-foreground italic">Not selected</span>}
+                    </span>
+                  </div>
+                  <Separator />
+                  <div className="flex items-center justify-between">
+                    <span className="text-muted-foreground flex items-center gap-2">
+                      <Phone className="h-3.5 w-3.5" /> WhatsApp Number
+                    </span>
+                    <span className="font-medium">
+                      {formData.phoneDisplay || phoneNumbers.find(p => p.id === formData.phoneNumberId)?.display_number || <span className="text-muted-foreground italic">Not selected</span>}
+                    </span>
+                  </div>
+                  <Separator />
+                  <div className="flex items-center justify-between">
+                    <span className="text-muted-foreground flex items-center gap-2">
+                      <Zap className="h-3.5 w-3.5" /> Live Sync
+                    </span>
+                    <Badge variant={longLivedToken ? 'default' : 'secondary'}>
+                      {longLivedToken ? 'Enabled' : 'Manual only'}
+                    </Badge>
                   </div>
                 </div>
 
-                <Alert className="border-emerald-200 bg-emerald-50 dark:bg-emerald-950/30">
-                  <Shield className="h-4 w-4 text-emerald-600" />
-                  <AlertDescription className="text-emerald-700 dark:text-emerald-300">
-                    <strong>Privacy Notice:</strong> AIREATRO will only read ad performance data and lead events. 
-                    We do not create, modify, or manage your ads. All advertising remains in Meta Ads Manager.
+                <Alert className="border-blue-200 bg-blue-50 dark:bg-blue-950/30">
+                  <Shield className="h-4 w-4 text-blue-600" />
+                  <AlertDescription className="text-blue-700 dark:text-blue-300 text-xs sm:text-sm">
+                    <strong>Privacy:</strong> AIREATRO only reads ad performance data and lead events. We never create, modify, or manage your ads.
                   </AlertDescription>
                 </Alert>
-              </div>
-            )}
-          </CardContent>
-        </Card>
 
-        {/* Navigation */}
-        <div className="flex items-center justify-between mt-6">
-          <Button
-            variant="outline"
-            onClick={handleBack}
-            disabled={currentStep === 1}
-            className="gap-2"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Back
-          </Button>
-
-          {currentStep === SETUP_STEPS.length ? (
-            <Button
-              onClick={handleComplete}
-              disabled={!canProceed() || isConnecting}
-              className="gap-2 shadow-lg shadow-primary/25"
-            >
-              {isConnecting ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <CheckCircle2 className="h-4 w-4" />
-              )}
-              Enable Click-to-WhatsApp Tracking
-            </Button>
-          ) : (
-            <Button
-              onClick={handleNext}
-              disabled={!canProceed()}
-              className="gap-2"
-            >
-              Continue
-              <ArrowRight className="h-4 w-4" />
-            </Button>
-          )}
-        </div>
+                <Button
+                  onClick={handleComplete}
+                  disabled={!canComplete || isConnecting}
+                  className="w-full gap-2 h-12 text-base shadow-lg shadow-primary/25"
+                  size="lg"
+                >
+                  {isConnecting ? (
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                  ) : (
+                    <CheckCircle2 className="h-5 w-5" />
+                  )}
+                  Enable Click-to-WhatsApp Tracking
+                </Button>
+              </CardContent>
+            </Card>
+          </>
+        )}
       </div>
     </DashboardLayout>
   );
