@@ -403,36 +403,49 @@ export default function MetaAdsAttribution() {
         <Card className="border-0 shadow-lg">
           <CardHeader className="px-4 sm:px-6">
             <CardTitle className="text-base sm:text-lg">Attribution Preview</CardTitle>
-            <CardDescription className="text-xs sm:text-sm">See how a sample lead would be attributed</CardDescription>
+            <CardDescription className="text-xs sm:text-sm">See how a sample lead would be attributed based on your active rules</CardDescription>
           </CardHeader>
           <CardContent className="px-4 sm:px-6">
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4">
-              <div className="flex-1 p-3 sm:p-4 rounded-xl bg-muted/50 border">
-                <p className="text-xs sm:text-sm text-muted-foreground mb-1">Incoming Lead</p>
-                <p className="font-medium text-sm sm:text-base">+971 50 123 4567</p>
-                <p className="text-xs text-muted-foreground mt-1">Clicked Ad 2 days ago • Campaign: Summer Sale</p>
+            {activeRules.length === 0 ? (
+              <div className="text-center py-6 text-muted-foreground">
+                <Info className="h-8 w-8 mx-auto mb-2 opacity-40" />
+                <p className="text-sm">No active rules. Create a rule to see attribution preview.</p>
               </div>
-              <ArrowRight className="h-5 w-5 sm:h-6 sm:w-6 text-primary rotate-90 sm:rotate-0 mx-auto" />
-              <div className="flex-1 p-3 sm:p-4 rounded-xl bg-primary/5 border border-primary/20">
-                <p className="text-xs sm:text-sm text-muted-foreground mb-1">Attribution Result</p>
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="text-xs text-muted-foreground">Source:</span>
-                    <Badge className="text-xs">{activeRules[0]?.set_source || 'Meta Ads'}</Badge>
-                  </div>
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="text-xs text-muted-foreground">Tags:</span>
-                    {(activeRules[0]?.set_tags || ['Meta Lead', 'Paid']).map(tag => (
-                      <Badge key={tag} variant="secondary" className="text-xs">{tag}</Badge>
-                    ))}
-                  </div>
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="text-xs text-muted-foreground">Campaign:</span>
-                    <span className="text-xs sm:text-sm font-medium">Summer Sale</span>
+            ) : (
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4">
+                <div className="flex-1 p-3 sm:p-4 rounded-xl bg-muted/50 border">
+                  <p className="text-xs sm:text-sm text-muted-foreground mb-1">Incoming Lead</p>
+                  <p className="font-medium text-sm sm:text-base">New Contact</p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Source matches: <Badge variant="outline" className="text-[10px] capitalize">{activeRules[0].source_type.replace('_', ' ')}</Badge>
+                  </p>
+                </div>
+                <ArrowRight className="h-5 w-5 sm:h-6 sm:w-6 text-primary rotate-90 sm:rotate-0 mx-auto" />
+                <div className="flex-1 p-3 sm:p-4 rounded-xl bg-primary/5 border border-primary/20">
+                  <p className="text-xs sm:text-sm text-muted-foreground mb-1">Attribution Result (Rule: {activeRules[0].name})</p>
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-xs text-muted-foreground">Source:</span>
+                      <Badge className="text-xs">{activeRules[0].set_source || activeRules[0].source_type.replace('_', ' ')}</Badge>
+                    </div>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-xs text-muted-foreground">Tags:</span>
+                      {(activeRules[0].set_tags && activeRules[0].set_tags.length > 0) ? (
+                        activeRules[0].set_tags.map(tag => (
+                          <Badge key={tag} variant="secondary" className="text-xs">{tag}</Badge>
+                        ))
+                      ) : (
+                        <span className="text-xs text-muted-foreground italic">No tags configured</span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-xs text-muted-foreground">Window:</span>
+                      <span className="text-xs sm:text-sm font-medium">{WINDOW_LABELS[activeRules[0].attribution_window] || activeRules[0].attribution_window}</span>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
+            )}
           </CardContent>
         </Card>
       </div>
