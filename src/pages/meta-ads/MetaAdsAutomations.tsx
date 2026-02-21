@@ -86,34 +86,28 @@ const TEMPLATE_AUTOMATIONS = [
     name: 'Quick Response Welcome',
     description: 'Instantly greet ad leads with a personalized welcome message',
     trigger_type: 'new_lead',
-    actions: [{ type: 'send_template', label: 'Send Welcome' }],
+    defaultActions: ['send_template'],
   },
   {
     id: 't2',
     name: 'Lead Tagging & Assignment',
     description: 'Auto-tag and assign leads based on campaign to a team via round-robin',
     trigger_type: 'first_message',
-    actions: [
-      { type: 'add_tag', label: 'Add Tag' },
-      { type: 'assign_team', label: 'Round Robin Assignment' },
-    ],
+    defaultActions: ['add_tag', 'assign_team'],
   },
   {
     id: 't3',
     name: 'Direct Agent Assignment',
     description: 'Assign all ad leads directly to a specific agent instantly',
     trigger_type: 'new_lead',
-    actions: [{ type: 'assign_agent', label: 'Assign to Agent' }],
+    defaultActions: ['assign_agent'],
   },
   {
     id: 't4',
     name: 'Campaign-Specific Workflow',
     description: 'Trigger a specific automation workflow when leads come from a chosen campaign',
     trigger_type: 'ad_click',
-    actions: [
-      { type: 'add_tag', label: 'Campaign Tag' },
-      { type: 'start_workflow', label: 'Start Workflow' },
-    ],
+    defaultActions: ['add_tag', 'start_workflow'],
   },
 ];
 
@@ -127,9 +121,12 @@ export default function MetaAdsAutomations() {
   const [loading, setLoading] = useState(true);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [installingId, setInstallingId] = useState<string | null>(null);
 
-  // Form state
+  // Template configure dialog
+  const [templateDialogOpen, setTemplateDialogOpen] = useState(false);
+  const [selectedTemplate, setSelectedTemplate] = useState<typeof TEMPLATE_AUTOMATIONS[0] | null>(null);
+
+  // Shared form state (used by both Create and Template dialogs)
   const [formName, setFormName] = useState('');
   const [formDescription, setFormDescription] = useState('');
   const [formTrigger, setFormTrigger] = useState('new_lead');
@@ -181,7 +178,7 @@ export default function MetaAdsAutomations() {
     return actions;
   };
 
-  const handleCreate = async () => {
+  const handleSaveAutomation = async () => {
     if (!currentTenant?.id || !formName.trim()) {
       toast.error('Please provide a name');
       return;
@@ -214,6 +211,8 @@ export default function MetaAdsAutomations() {
       if (error) throw error;
       toast.success('Automation created successfully');
       setShowCreateDialog(false);
+      setTemplateDialogOpen(false);
+      setSelectedTemplate(null);
       resetForm();
       await fetchAutomations();
     } catch (err: any) {
@@ -252,34 +251,23 @@ export default function MetaAdsAutomations() {
     }
   };
 
-  const handleUseTemplate = async (template: typeof TEMPLATE_AUTOMATIONS[0]) => {
-    if (!currentTenant?.id) return;
-    setInstallingId(template.id);
-    try {
-      const adAccountId = connectedAccounts[0]?.id || null;
-      const { error } = await supabase
-        .from('smeksh_meta_ad_automations')
-        .insert({
-          workspace_id: currentTenant.id,
-          name: template.name,
-          description: template.description,
-          trigger_type: template.trigger_type,
-          trigger_ad_account_id: adAccountId,
-          trigger_campaign_ids: null,
-          trigger_conditions: {},
-          actions: template.actions as unknown as any,
-          is_active: true,
-        });
-
-      if (error) throw error;
-      toast.success(`"${template.name}" installed & activated`);
-      await fetchAutomations();
-    } catch (err: any) {
-      console.error('Install template error:', err);
-      toast.error(err.message || 'Failed to install template');
-    } finally {
-      setInstallingId(null);
+  const handleOpenTemplateConfig = (template: typeof TEMPLATE_AUTOMATIONS[0]) => {
+    resetForm();
+    setFormName(template.name);
+    setFormDescription(template.description);
+    setFormTrigger(template.trigger_type);
+    setFormSendTemplate(template.defaultActions.includes('send_template'));
+    setFormAddTag(template.defaultActions.includes('add_tag'));
+    setFormStartWorkflow(template.defaultActions.includes('start_workflow'));
+    // Pre-select assign_team or assign_agent based on template defaults
+    if (template.defaultActions.includes('assign_team')) {
+      setFormAssignTeam(teams.length > 0 ? teams[0].id : '');
     }
+    if (template.defaultActions.includes('assign_agent')) {
+      setFormAssignAgent(members.length > 0 ? (members[0].user_id || members[0].id) : '');
+    }
+    setSelectedTemplate(template);
+    setTemplateDialogOpen(true);
   };
 
   const toggleCampaign = (campaignId: string) => {
@@ -300,6 +288,164 @@ export default function MetaAdsAutomations() {
     }
     return (action.label as string) || type;
   };
+
+  // Shared form fields component to avoid duplication
+  const AutomationFormFields = ({ showNameField = true }: { showNameField?: boolean }) => (
+    <div className="space-y-4">
+      {showNameField && (
+        <>
+          <div className="space-y-2">
+            <Label className="text-sm">Automation Name *</Label>
+            <Input
+              placeholder="e.g., Welcome New Ad Leads"
+              value={formName}
+              onChange={e => setFormName(e.target.value)}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label className="text-sm">Description</Label>
+            <Textarea
+              placeholder="What does this automation do?"
+              rows={2}
+              value={formDescription}
+              onChange={e => setFormDescription(e.target.value)}
+            />
+          </div>
+        </>
+      )}
+
+      <div className="space-y-2">
+        <Label className="text-sm">Trigger</Label>
+        <Select value={formTrigger} onValueChange={setFormTrigger}>
+          <SelectTrigger>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="new_lead">New Lead from Meta Ad</SelectItem>
+            <SelectItem value="first_message">First Message After Ad Click</SelectItem>
+            <SelectItem value="ad_click">Ad Click (Immediate)</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* Campaign Targeting */}
+      <div className="space-y-2">
+        <Label className="text-sm flex items-center gap-2">
+          <Target className="h-3.5 w-3.5" />
+          Target Specific Campaigns
+        </Label>
+        <p className="text-xs text-muted-foreground">Leave empty to apply to all campaigns</p>
+        {campaigns.length > 0 ? (
+          <div className="space-y-2 max-h-36 overflow-y-auto border rounded-lg p-2">
+            {campaigns.map(campaign => (
+              <div key={campaign.id} className="flex items-center space-x-3 p-2 rounded-lg hover:bg-muted/50">
+                <Checkbox
+                  id={`camp-${campaign.id}`}
+                  checked={formCampaignIds.includes(campaign.id)}
+                  onCheckedChange={() => toggleCampaign(campaign.id)}
+                />
+                <Label htmlFor={`camp-${campaign.id}`} className="cursor-pointer text-xs sm:text-sm flex-1">
+                  <span className="font-medium">{campaign.campaign_name}</span>
+                  <Badge variant="secondary" className="ml-2 text-[10px]">{campaign.status}</Badge>
+                </Label>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="text-xs text-muted-foreground italic p-2 border rounded-lg">
+            No campaigns synced yet. Sync your Meta Ads data first.
+          </p>
+        )}
+      </div>
+
+      <Separator />
+
+      {/* Actions */}
+      <div className="space-y-3">
+        <Label className="text-sm font-semibold">Actions</Label>
+
+        <div className="flex items-center space-x-3 p-2.5 rounded-lg border">
+          <Checkbox
+            id="action-template"
+            checked={formSendTemplate}
+            onCheckedChange={(v) => setFormSendTemplate(!!v)}
+          />
+          <Label htmlFor="action-template" className="flex items-center gap-2 cursor-pointer text-xs sm:text-sm">
+            <MessageSquare className="h-3.5 w-3.5 text-muted-foreground" />
+            Send Welcome Template
+          </Label>
+        </div>
+
+        <div className="flex items-center space-x-3 p-2.5 rounded-lg border">
+          <Checkbox
+            id="action-tag"
+            checked={formAddTag}
+            onCheckedChange={(v) => setFormAddTag(!!v)}
+          />
+          <Label htmlFor="action-tag" className="flex items-center gap-2 cursor-pointer text-xs sm:text-sm">
+            <Tag className="h-3.5 w-3.5 text-muted-foreground" />
+            Add "Meta Lead" Tag
+          </Label>
+        </div>
+
+        <div className="flex items-center space-x-3 p-2.5 rounded-lg border">
+          <Checkbox
+            id="action-workflow"
+            checked={formStartWorkflow}
+            onCheckedChange={(v) => setFormStartWorkflow(!!v)}
+          />
+          <Label htmlFor="action-workflow" className="flex items-center gap-2 cursor-pointer text-xs sm:text-sm">
+            <GitBranch className="h-3.5 w-3.5 text-muted-foreground" />
+            Start Automation Workflow
+          </Label>
+        </div>
+      </div>
+
+      <Separator />
+
+      {/* Direct Assignment */}
+      <div className="space-y-3">
+        <Label className="text-sm font-semibold flex items-center gap-2">
+          <UserPlus className="h-3.5 w-3.5" />
+          Assign Leads To
+        </Label>
+
+        <div className="space-y-2">
+          <Label className="text-xs text-muted-foreground">Assign to a specific Agent</Label>
+          <Select value={formAssignAgent} onValueChange={(v) => { setFormAssignAgent(v); if (v && v !== 'none') setFormAssignTeam(''); }}>
+            <SelectTrigger>
+              <SelectValue placeholder="Select agent (optional)" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="none">— No specific agent —</SelectItem>
+              {members.map(m => (
+                <SelectItem key={m.id} value={m.user_id || m.id}>
+                  {m.display_name || m.profile?.full_name || m.profile?.email || 'Agent'}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="space-y-2">
+          <Label className="text-xs text-muted-foreground">Or assign to a Team Group (round-robin)</Label>
+          <Select value={formAssignTeam} onValueChange={(v) => { setFormAssignTeam(v); if (v && v !== 'none') setFormAssignAgent(''); }}>
+            <SelectTrigger>
+              <SelectValue placeholder="Select team (optional)" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="none">— No team —</SelectItem>
+              {teams.map(t => (
+                <SelectItem key={t.id} value={t.id}>
+                  {t.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+    </div>
+  );
 
   return (
     <DashboardLayout>
@@ -380,7 +526,7 @@ export default function MetaAdsAutomations() {
               <div className="text-center py-8 text-muted-foreground">
                 <Zap className="h-10 w-10 mx-auto mb-3 opacity-30" />
                 <p className="font-medium">No automations yet</p>
-                <p className="text-sm mt-1">Create one or install a ready-made template below</p>
+                <p className="text-sm mt-1">Create one or configure a ready-made template below</p>
               </div>
             ) : (
               automations.map((automation) => {
@@ -388,7 +534,6 @@ export default function MetaAdsAutomations() {
                 const TriggerIcon = triggerInfo.icon;
                 const actions = (automation.actions || []) as Record<string, unknown>[];
 
-                // Find targeted campaign names
                 const targetedCampaigns = (automation.trigger_campaign_ids || [])
                   .map(cid => campaigns.find(c => c.id === cid)?.campaign_name)
                   .filter(Boolean);
@@ -438,34 +583,38 @@ export default function MetaAdsAutomations() {
                       </div>
 
                       {targetedCampaigns.length > 0 && (
-                        <div className="flex items-center gap-1.5 mt-1.5">
-                          <Target className="h-3 w-3 text-muted-foreground" />
-                          <span className="text-[10px] sm:text-xs text-muted-foreground truncate">
-                            Campaigns: {targetedCampaigns.join(', ')}
-                          </span>
+                        <div className="flex items-center gap-1 mt-1.5 flex-wrap">
+                          <Target className="h-3 w-3 text-muted-foreground flex-shrink-0" />
+                          {targetedCampaigns.slice(0, 2).map((name, i) => (
+                            <Badge key={i} variant="secondary" className="text-[10px]">{name}</Badge>
+                          ))}
+                          {targetedCampaigns.length > 2 && (
+                            <Badge variant="secondary" className="text-[10px]">+{targetedCampaigns.length - 2}</Badge>
+                          )}
                         </div>
                       )}
+
+                      <div className="flex items-center gap-3 mt-1.5 text-xs text-muted-foreground">
+                        <span>{automation.executions_count || 0} runs</span>
+                        {automation.last_executed_at && (
+                          <span>Last: {new Date(automation.last_executed_at).toLocaleDateString()}</span>
+                        )}
+                      </div>
                     </div>
 
-                    <div className="flex items-center justify-between sm:justify-end gap-3 sm:gap-4 mt-2 sm:mt-0 pt-2 sm:pt-0 border-t sm:border-0">
-                      <div className="text-left sm:text-right">
-                        <p className="text-base sm:text-lg font-bold">{automation.executions_count || 0}</p>
-                        <p className="text-xs text-muted-foreground">executions</p>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Switch
-                          checked={automation.is_active}
-                          onCheckedChange={() => handleToggle(automation.id, automation.is_active)}
-                        />
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 text-destructive hover:text-destructive"
-                          onClick={() => handleDelete(automation.id)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
+                    <div className="flex items-center gap-2 ml-auto sm:ml-0 flex-shrink-0">
+                      <Switch
+                        checked={automation.is_active}
+                        onCheckedChange={() => handleToggle(automation.id, automation.is_active)}
+                      />
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-destructive hover:bg-destructive/10"
+                        onClick={() => handleDelete(automation.id)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
                     </div>
                   </div>
                 );
@@ -481,14 +630,13 @@ export default function MetaAdsAutomations() {
               <Sparkles className="h-4 w-4 sm:h-5 sm:w-5 text-amber-500" />
               Ready-Made Templates
             </CardTitle>
-            <CardDescription className="text-xs sm:text-sm">One-click install — instantly creates & activates the automation</CardDescription>
+            <CardDescription className="text-xs sm:text-sm">Choose a template, configure campaigns & assignments, then activate</CardDescription>
           </CardHeader>
           <CardContent className="px-4 sm:px-6">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
               {TEMPLATE_AUTOMATIONS.map((template) => {
                 const triggerInfo = TRIGGER_LABELS[template.trigger_type] || { label: template.trigger_type, icon: Zap };
                 const TriggerIcon = triggerInfo.icon;
-                const isInstalling = installingId === template.id;
 
                 return (
                   <div
@@ -503,12 +651,18 @@ export default function MetaAdsAutomations() {
                     </div>
                     <p className="text-xs text-muted-foreground mb-2 sm:mb-3 line-clamp-2">{template.description}</p>
                     <div className="flex items-center gap-1 sm:gap-2 flex-wrap mb-3">
-                      {template.actions.map((action, idx) => {
-                        const ActionIcon = ACTION_ICONS[action.type] || Zap;
+                      {template.defaultActions.map((actionType, idx) => {
+                        const ActionIcon = ACTION_ICONS[actionType] || Zap;
+                        const actionLabel = actionType === 'send_template' ? 'Send Welcome'
+                          : actionType === 'add_tag' ? 'Add Tag'
+                          : actionType === 'assign_agent' ? 'Assign Agent'
+                          : actionType === 'assign_team' ? 'Round Robin'
+                          : actionType === 'start_workflow' ? 'Start Workflow'
+                          : actionType;
                         return (
                           <Badge key={idx} variant="secondary" className="text-[10px] sm:text-xs">
                             <ActionIcon className="h-2.5 w-2.5 sm:h-3 sm:w-3 mr-0.5 sm:mr-1" />
-                            <span className="truncate max-w-[80px] sm:max-w-none">{action.label}</span>
+                            <span className="truncate max-w-[80px] sm:max-w-none">{actionLabel}</span>
                           </Badge>
                         );
                       })}
@@ -517,15 +671,10 @@ export default function MetaAdsAutomations() {
                       variant="outline"
                       size="sm"
                       className="w-full gap-1.5 sm:gap-2 h-8 text-xs sm:text-sm"
-                      disabled={isInstalling}
-                      onClick={() => handleUseTemplate(template)}
+                      onClick={() => handleOpenTemplateConfig(template)}
                     >
-                      {isInstalling ? (
-                        <Loader2 className="h-3 w-3 animate-spin" />
-                      ) : (
-                        <CheckCircle2 className="h-3 w-3" />
-                      )}
-                      {isInstalling ? 'Installing...' : 'Install & Activate'}
+                      <Sparkles className="h-3 w-3" />
+                      Configure & Activate
                     </Button>
                   </div>
                 );
@@ -544,163 +693,39 @@ export default function MetaAdsAutomations() {
               Set up automated actions for your Meta Ad leads
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label className="text-sm">Automation Name *</Label>
-              <Input
-                placeholder="e.g., Welcome New Ad Leads"
-                value={formName}
-                onChange={e => setFormName(e.target.value)}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label className="text-sm">Description</Label>
-              <Textarea
-                placeholder="What does this automation do?"
-                rows={2}
-                value={formDescription}
-                onChange={e => setFormDescription(e.target.value)}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label className="text-sm">Trigger</Label>
-              <Select value={formTrigger} onValueChange={setFormTrigger}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="new_lead">New Lead from Meta Ad</SelectItem>
-                  <SelectItem value="first_message">First Message After Ad Click</SelectItem>
-                  <SelectItem value="ad_click">Ad Click (Immediate)</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Campaign Targeting */}
-            <div className="space-y-2">
-              <Label className="text-sm flex items-center gap-2">
-                <Target className="h-3.5 w-3.5" />
-                Target Specific Campaigns
-              </Label>
-              <p className="text-xs text-muted-foreground">Leave empty to apply to all campaigns</p>
-              {campaigns.length > 0 ? (
-                <div className="space-y-2 max-h-36 overflow-y-auto border rounded-lg p-2">
-                  {campaigns.map(campaign => (
-                    <div key={campaign.id} className="flex items-center space-x-3 p-2 rounded-lg hover:bg-muted/50">
-                      <Checkbox
-                        id={`camp-${campaign.id}`}
-                        checked={formCampaignIds.includes(campaign.id)}
-                        onCheckedChange={() => toggleCampaign(campaign.id)}
-                      />
-                      <Label htmlFor={`camp-${campaign.id}`} className="cursor-pointer text-xs sm:text-sm flex-1">
-                        <span className="font-medium">{campaign.campaign_name}</span>
-                        <Badge variant="secondary" className="ml-2 text-[10px]">{campaign.status}</Badge>
-                      </Label>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-xs text-muted-foreground italic p-2 border rounded-lg">
-                  No campaigns synced yet. Sync your Meta Ads data first.
-                </p>
-              )}
-            </div>
-
-            <Separator />
-
-            {/* Actions */}
-            <div className="space-y-3">
-              <Label className="text-sm font-semibold">Actions</Label>
-
-              <div className="flex items-center space-x-3 p-2.5 rounded-lg border">
-                <Checkbox
-                  id="action-template"
-                  checked={formSendTemplate}
-                  onCheckedChange={(v) => setFormSendTemplate(!!v)}
-                />
-                <Label htmlFor="action-template" className="flex items-center gap-2 cursor-pointer text-xs sm:text-sm">
-                  <MessageSquare className="h-3.5 w-3.5 text-muted-foreground" />
-                  Send Welcome Template
-                </Label>
-              </div>
-
-              <div className="flex items-center space-x-3 p-2.5 rounded-lg border">
-                <Checkbox
-                  id="action-tag"
-                  checked={formAddTag}
-                  onCheckedChange={(v) => setFormAddTag(!!v)}
-                />
-                <Label htmlFor="action-tag" className="flex items-center gap-2 cursor-pointer text-xs sm:text-sm">
-                  <Tag className="h-3.5 w-3.5 text-muted-foreground" />
-                  Add "Meta Lead" Tag
-                </Label>
-              </div>
-
-              <div className="flex items-center space-x-3 p-2.5 rounded-lg border">
-                <Checkbox
-                  id="action-workflow"
-                  checked={formStartWorkflow}
-                  onCheckedChange={(v) => setFormStartWorkflow(!!v)}
-                />
-                <Label htmlFor="action-workflow" className="flex items-center gap-2 cursor-pointer text-xs sm:text-sm">
-                  <GitBranch className="h-3.5 w-3.5 text-muted-foreground" />
-                  Start Automation Workflow
-                </Label>
-              </div>
-            </div>
-
-            <Separator />
-
-            {/* Direct Assignment */}
-            <div className="space-y-3">
-              <Label className="text-sm font-semibold flex items-center gap-2">
-                <UserPlus className="h-3.5 w-3.5" />
-                Assign Leads To
-              </Label>
-
-              <div className="space-y-2">
-                <Label className="text-xs text-muted-foreground">Assign to a specific Agent</Label>
-                <Select value={formAssignAgent} onValueChange={(v) => { setFormAssignAgent(v); if (v) setFormAssignTeam(''); }}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select agent (optional)" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">— No specific agent —</SelectItem>
-                    {members.map(m => (
-                      <SelectItem key={m.id} value={m.user_id || m.id}>
-                        {m.display_name || m.profile?.full_name || m.profile?.email || 'Agent'}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label className="text-xs text-muted-foreground">Or assign to a Team Group (round-robin)</Label>
-                <Select value={formAssignTeam} onValueChange={(v) => { setFormAssignTeam(v); if (v) setFormAssignAgent(''); }}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select team (optional)" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">— No team —</SelectItem>
-                    {teams.map(t => (
-                      <SelectItem key={t.id} value={t.id}>
-                        {t.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-          </div>
+          <AutomationFormFields showNameField={true} />
           <DialogFooter className="flex-col sm:flex-row gap-2 sm:gap-0">
             <Button variant="outline" onClick={() => setShowCreateDialog(false)} className="w-full sm:w-auto">
               Cancel
             </Button>
-            <Button onClick={handleCreate} disabled={saving} className="gap-2 w-full sm:w-auto">
+            <Button onClick={handleSaveAutomation} disabled={saving} className="gap-2 w-full sm:w-auto">
               {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
               {saving ? 'Creating...' : 'Create Automation'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Template Configure Dialog */}
+      <Dialog open={templateDialogOpen} onOpenChange={(open) => { setTemplateDialogOpen(open); if (!open) setSelectedTemplate(null); }}>
+        <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto mx-4">
+          <DialogHeader>
+            <DialogTitle className="text-base sm:text-lg flex items-center gap-2">
+              <Sparkles className="h-4 w-4 text-amber-500" />
+              Configure: {selectedTemplate?.name}
+            </DialogTitle>
+            <DialogDescription className="text-xs sm:text-sm">
+              {selectedTemplate?.description}. Choose which campaigns to target and who to assign leads to.
+            </DialogDescription>
+          </DialogHeader>
+          <AutomationFormFields showNameField={true} />
+          <DialogFooter className="flex-col sm:flex-row gap-2 sm:gap-0">
+            <Button variant="outline" onClick={() => { setTemplateDialogOpen(false); setSelectedTemplate(null); }} className="w-full sm:w-auto">
+              Cancel
+            </Button>
+            <Button onClick={handleSaveAutomation} disabled={saving} className="gap-2 w-full sm:w-auto">
+              {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
+              {saving ? 'Activating...' : 'Activate Automation'}
             </Button>
           </DialogFooter>
         </DialogContent>
