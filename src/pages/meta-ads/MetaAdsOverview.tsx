@@ -1,5 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
+import { useTenant } from '@/contexts/TenantContext';
+import { toast } from 'sonner';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { QuickGuide, quickGuides } from '@/components/help/QuickGuide';
@@ -36,12 +39,43 @@ import { formatDistanceToNow } from 'date-fns';
 
 export default function MetaAdsOverview() {
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const { currentTenant } = useTenant();
   const { accounts, connectedAccounts, campaigns, isConnected, isLoading, refetch } = useMetaAdAccounts();
 
-  const handleRefresh = async () => {
+  // Auto-sync on first load if connected but no campaigns
+  useEffect(() => {
+    if (isConnected && campaigns.length === 0 && !isLoading && currentTenant?.id) {
+      handleSync();
+    }
+  }, [isConnected, campaigns.length, isLoading, currentTenant?.id]);
+
+  const handleSync = async () => {
+    if (!currentTenant?.id) return;
     setIsRefreshing(true);
-    await refetch();
-    setIsRefreshing(false);
+    try {
+      const { data, error } = await supabase.functions.invoke('meta-ads-sync', {
+        body: { tenantId: currentTenant.id },
+      });
+
+      if (error) {
+        console.error('Sync error:', error);
+        toast.error('Failed to sync Meta Ads data');
+      } else if (data?.error) {
+        console.error('Sync data error:', data.error);
+        toast.error(data.error);
+      } else {
+        toast.success(`Synced ${data?.synced || 0} campaigns from Meta`);
+        if (data?.errors?.length) {
+          console.warn('Sync warnings:', data.errors);
+        }
+      }
+      await refetch();
+    } catch (err) {
+      console.error('Sync exception:', err);
+      toast.error('Failed to sync ad data');
+    } finally {
+      setIsRefreshing(false);
+    }
   };
 
   // Compute real stats from campaigns
@@ -95,7 +129,7 @@ export default function MetaAdsOverview() {
             <Button
               variant="outline"
               size="sm"
-              onClick={handleRefresh}
+              onClick={handleSync}
               disabled={isRefreshing}
               className="gap-1.5 text-xs sm:text-sm"
             >
