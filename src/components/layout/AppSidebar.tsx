@@ -56,7 +56,7 @@ const metaAdsMenuItems: MenuItem[] = [
   { title: 'Lead Analytics', url: '/meta-ads/analytics', icon: BarChart3, key: 'meta-ads-analytics', isNew: true, docUrl: '/help/meta-ads' },
   { title: 'Attribution', url: '/meta-ads/attribution', icon: Route, key: 'meta-ads-attribution', docUrl: '/help/meta-ads' },
   { title: 'Automations', url: '/meta-ads/automations', icon: Workflow, key: 'meta-ads-automations', docUrl: '/help/meta-ads' },
-  { title: 'Settings', url: '/meta-ads/settings', icon: Cog, key: 'meta-ads-settings', docUrl: '/help/meta-ads' },
+  { title: 'Ads Settings', url: '/meta-ads/settings', icon: Cog, key: 'meta-ads-settings', docUrl: '/help/meta-ads' },
 ];
 
 const teamMenuItems: MenuItem[] = [
