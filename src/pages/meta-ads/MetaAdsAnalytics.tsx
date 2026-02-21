@@ -139,7 +139,7 @@ export default function MetaAdsAnalytics() {
                   <DollarSign className="h-5 w-5 text-amber-600" />
                 </div>
               </div>
-              <div className="text-2xl font-bold">{costPerLead > 0 ? `$${costPerLead.toFixed(2)}` : '—'}</div>
+              <div className="text-2xl font-bold">{costPerLead > 0 ? `${campaigns[0]?.spend_currency || 'USD'} ${costPerLead.toFixed(2)}` : '—'}</div>
               <p className="text-sm text-muted-foreground">Cost per Lead</p>
             </CardContent>
           </Card>
