@@ -8,9 +8,16 @@ Deno.serve(async (req) => {
   }
 
   try {
+    const authHeader = req.headers.get('Authorization') ?? '';
+    const token = authHeader.replace('Bearer ', '');
+    if (!token) {
+      return json({ error: 'Missing authorization' }, 401);
+    }
+
     const userClient = getUserClient(req);
-    const { data: { user }, error: userError } = await userClient.auth.getUser();
+    const { data: { user }, error: userError } = await userClient.auth.getUser(token);
     if (userError || !user) {
+      console.error('Auth error:', userError?.message);
       return json({ error: 'Invalid token' }, 401);
     }
 
