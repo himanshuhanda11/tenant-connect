@@ -197,13 +197,13 @@ export function InboxConversationListV2({
       </div>
 
       {/* Filter Chips */}
-      <div className="flex-shrink-0 px-3 py-2 border-b border-border/30 flex items-center gap-1.5 overflow-x-auto">
+      <div className="flex-shrink-0 px-3 py-2 border-b border-border/30 flex items-center gap-1.5 overflow-x-auto scrollbar-none">
         {Object.entries(DATE_FILTER_LABELS).map(([key, label]) => (
           <button
             key={key}
             onClick={() => setDateFilter(key as DateFilter)}
             className={cn(
-              "px-2.5 py-1 rounded-full text-[11px] font-medium whitespace-nowrap transition-all",
+              "px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all flex-shrink-0",
               dateFilter === key
                 ? "bg-primary text-primary-foreground shadow-sm"
                 : "bg-muted/60 text-muted-foreground hover:bg-muted hover:text-foreground"
@@ -401,7 +401,7 @@ function ConversationRow({
             {/* Follow-up indicator */}
             {conversation.next_followup_at && (
               <Badge variant="outline" className="text-[9px] px-1 py-0 h-3.5 border-amber-200 bg-amber-50 text-amber-700">
-                F/U {formatTimestamp(conversation.next_followup_at)}
+                F/U {format(new Date(conversation.next_followup_at), 'MMM d, h:mm a')}
               </Badge>
             )}
 
