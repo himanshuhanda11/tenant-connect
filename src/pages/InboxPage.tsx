@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { InboxConversationList } from '@/components/inbox/InboxConversationList';
@@ -21,17 +21,47 @@ import { ArrowLeft, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
+// Map routes to inbox CRM views
+const ROUTE_VIEW_MAP: Record<string, { view: InboxView; crmFilter?: string }> = {
+  '/inbox': { view: 'all' },
+  '/inbox/mine': { view: 'mine' },
+  '/inbox/new-today': { view: 'all', crmFilter: 'new_today' },
+  '/inbox/followup-today': { view: 'all', crmFilter: 'followup_today' },
+  '/inbox/overdue': { view: 'all', crmFilter: 'overdue' },
+  '/inbox/converted': { view: 'all', crmFilter: 'converted' },
+  '/inbox/junk': { view: 'all', crmFilter: 'junk' },
+};
+
 export default function InboxPage() {
   const { id: conversationId } = useParams<{ id?: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
   const { user } = useAuth();
   const isMobile = useIsMobile();
   
-  const [view, setView] = useState<InboxView>('all');
+  // Determine view from current route
+  const routeConfig = ROUTE_VIEW_MAP[location.pathname] || ROUTE_VIEW_MAP['/inbox'];
+  const [view, setView] = useState<InboxView>(routeConfig.view);
   const [filters, setFilters] = useState<InboxFilters>({});
+  const [crmFilter, setCrmFilter] = useState<string | undefined>(routeConfig.crmFilter);
   const [selectedId, setSelectedId] = useState<string | null>(conversationId || null);
   
   const [showContextPanel, setShowContextPanel] = useState(false);
+
+  // Update view when route changes
+  useEffect(() => {
+    const config = ROUTE_VIEW_MAP[location.pathname];
+    if (config) {
+      setView(config.view);
+      setCrmFilter(config.crmFilter);
+      if (config.view === 'mine') {
+        setFilters({ assignment: 'mine' });
+      } else {
+        setFilters(INBOX_VIEW_CONFIG[config.view]?.filter || {});
+      }
+    }
+  }, [location.pathname]);
+  
 
   // Hooks
   const { conversations, loading: loadingConversations, refetch } = useInboxConversations(view, filters);
