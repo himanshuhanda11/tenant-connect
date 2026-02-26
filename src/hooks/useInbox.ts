@@ -61,6 +61,10 @@ function mapConversation(row: any): InboxConversation {
       full_name: row.assigned_agent.full_name || row.assigned_agent.display_name,
       avatar_url: row.assigned_agent.avatar_url,
     } : undefined,
+    assigner: row.assigner ? {
+      id: row.assigner.id,
+      full_name: row.assigner.full_name,
+    } : undefined,
     phone_number_status: row.phone_number?.status || undefined,
   };
 }

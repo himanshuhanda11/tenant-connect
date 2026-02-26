@@ -13,8 +13,8 @@ interface CRMStatusBadgeProps {
 export function CRMStatusBadge({ status, size = 'sm', className, agentName }: CRMStatusBadgeProps) {
   const config = CRM_STATUS_CONFIG[status as CRMStatus] || CRM_STATUS_CONFIG.new;
   
-  // For "assigned" status, append agent name if available
-  const displayLabel = status === 'assigned' && agentName
+  // Show who assigned/transferred this lead
+  const displayLabel = agentName
     ? `Assigned by ${agentName}`
     : config.label;
   

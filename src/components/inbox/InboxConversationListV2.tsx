@@ -62,9 +62,7 @@ const getCountryFlag = (countryCode?: string) => {
 const formatTimestamp = (dateStr?: string) => {
   if (!dateStr) return '';
   const date = new Date(dateStr);
-  if (isToday(date)) return format(date, 'h:mm a');
-  if (isYesterday(date)) return 'Yesterday';
-  return format(date, 'MMM d');
+  return formatDistanceToNow(date, { addSuffix: true });
 };
 
 const groupByDate = (conversations: InboxConversation[]) => {
@@ -197,7 +195,7 @@ export function InboxConversationListV2({
       </div>
 
       {/* Filter Chips */}
-      <div className="flex-shrink-0 px-3 py-2.5 border-b border-border/30 flex items-center gap-2 overflow-x-auto" style={{ minHeight: '44px' }}>
+      <div className="flex-shrink-0 px-3 py-2 border-b border-border/30 flex items-center gap-1.5 overflow-x-auto scrollbar-none" style={{ minHeight: '40px' }}>
         {Object.entries(DATE_FILTER_LABELS).map(([key, label]) => (
           <button
             key={key}
@@ -393,12 +391,12 @@ function ConversationRow({
 
           {/* Row 3: Status + Agent + Tags */}
           <div className="flex items-center gap-1.5 mt-1 flex-wrap">
-            {/* CRM Status */}
+            {/* CRM Status with assigner info */}
             {conversation.crm_status && (
               <CRMStatusBadge 
                 status={conversation.crm_status} 
                 size="sm" 
-                agentName={conversation.assigner?.full_name || conversation.assigned_agent?.full_name}
+                agentName={conversation.assigner?.full_name}
               />
             )}
 
