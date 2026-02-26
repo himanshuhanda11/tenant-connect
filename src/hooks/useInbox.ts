@@ -643,7 +643,7 @@ export function useInboxActions() {
         if (error) throw error;
         const result = data as any;
         if (result?.ok === false) {
-          toast.error(result.reason === 'forbidden' ? 'Only admins can assign' : 'Failed to assign');
+          toast.error(result.reason === 'forbidden' ? 'You are not a member of this workspace' : 'Failed to assign');
           return;
         }
       } else {
@@ -674,7 +674,7 @@ export function useInboxActions() {
       if (error) throw error;
       const result = data as any;
       if (result?.ok === false) {
-        toast.error(result.reason === 'forbidden' ? 'Only admins can transfer' : 'Failed to transfer');
+        toast.error(result.reason === 'forbidden' ? 'You are not a member of this workspace' : 'Failed to transfer');
         return;
       }
       toast.success('Conversation transferred');
