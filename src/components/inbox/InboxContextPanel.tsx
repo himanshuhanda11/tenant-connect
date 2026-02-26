@@ -488,7 +488,26 @@ export function InboxContextPanel({
                     <div className="flex-1 pb-4">
                       <p className="text-sm">
                         {event.event_type === 'assigned' && (
-                          <>Assigned to <strong>{event.actor?.full_name}</strong></>
+                          <>
+                            {(event.details as any)?.action === 'transferred' ? (
+                              <>
+                                <strong>{event.actor?.full_name}</strong> transferred from{' '}
+                                <strong>{event.from_agent?.full_name || 'Unassigned'}</strong> → <strong>{event.to_agent?.full_name || 'Unknown'}</strong>
+                              </>
+                            ) : (event.details as any)?.action === 'claimed_on_reply' || (event.details as any)?.action === 'claimed' ? (
+                              <>
+                                <strong>{event.to_agent?.full_name || event.actor?.full_name}</strong>{' '}
+                                {(event.details as any)?.action === 'claimed_on_reply' ? 'claimed on reply' : 'claimed this conversation'}
+                              </>
+                            ) : event.from_agent?.full_name ? (
+                              <>
+                                <strong>{event.actor?.full_name}</strong> reassigned from{' '}
+                                <strong>{event.from_agent.full_name}</strong> → <strong>{event.to_agent?.full_name}</strong>
+                              </>
+                            ) : (
+                              <>Assigned to <strong>{event.to_agent?.full_name || event.actor?.full_name}</strong></>
+                            )}
+                          </>
                         )}
                         {event.event_type === 'tag_added' && (
                           <>Tag <strong>"{event.tag_name}"</strong> added</>
@@ -500,12 +519,14 @@ export function InboxContextPanel({
                           <>Status changed to <strong>{event.new_value}</strong></>
                         )}
                         {event.event_type === 'intervened' && (
-                          <><strong>{event.actor?.full_name}</strong> took over</>
+                          <>
+                            <strong>{event.actor?.full_name}</strong> took over from{' '}
+                            <strong>{event.from_agent?.full_name || 'previous agent'}</strong>
+                          </>
                         )}
                       </p>
                       <p className="text-xs text-muted-foreground">
                         {format(new Date(event.created_at), 'MMM d, h:mm a')}
-                        {event.actor?.full_name && ` • ${event.actor.full_name}`}
                       </p>
                     </div>
                   </div>
