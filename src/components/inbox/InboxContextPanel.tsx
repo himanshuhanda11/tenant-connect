@@ -8,6 +8,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { LeadQualificationPanel } from './LeadQualificationPanel';
+import { InboxCRMOverview } from './InboxCRMOverview';
 import { Separator } from '@/components/ui/separator';
 import {
   User,
@@ -29,7 +30,8 @@ import {
   AlertTriangle,
   Bot,
   Hand,
-  ExternalLink
+  ExternalLink,
+  Target,
 } from 'lucide-react';
 import { format, formatDistanceToNow } from 'date-fns';
 import { InboxConversation, ConversationEvent, InternalNote, PRIORITY_CONFIG } from '@/types/inbox';
@@ -56,7 +58,7 @@ export function InboxContextPanel({
   availableTags: passedTags,
   isMobile = false,
 }: InboxContextPanelProps) {
-  const [activeTab, setActiveTab] = useState('contact');
+  const [activeTab, setActiveTab] = useState('overview');
   const [newNote, setNewNote] = useState('');
   const [tagSearch, setTagSearch] = useState('');
 
@@ -129,28 +131,36 @@ export function InboxContextPanel({
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col">
-        <TabsList className="mx-4 mt-2 grid grid-cols-6 h-9">
-          <TabsTrigger value="contact" className="px-2">
+        <TabsList className="mx-3 mt-2 grid grid-cols-7 h-9">
+          <TabsTrigger value="overview" className="px-1.5">
+            <Target className="h-4 w-4" />
+          </TabsTrigger>
+          <TabsTrigger value="contact" className="px-1.5">
             <User className="h-4 w-4" />
           </TabsTrigger>
-          <TabsTrigger value="lead" className="px-2">
+          <TabsTrigger value="lead" className="px-1.5">
             <Zap className="h-4 w-4" />
           </TabsTrigger>
-          <TabsTrigger value="tags" className="px-2">
+          <TabsTrigger value="tags" className="px-1.5">
             <Tag className="h-4 w-4" />
           </TabsTrigger>
-          <TabsTrigger value="automation" className="px-2">
+          <TabsTrigger value="automation" className="px-1.5">
             <Bot className="h-4 w-4" />
           </TabsTrigger>
-          <TabsTrigger value="notes" className="px-2">
+          <TabsTrigger value="notes" className="px-1.5">
             <FileText className="h-4 w-4" />
           </TabsTrigger>
-          <TabsTrigger value="history" className="px-2">
+          <TabsTrigger value="history" className="px-1.5">
             <History className="h-4 w-4" />
           </TabsTrigger>
         </TabsList>
 
         <ScrollArea className="flex-1">
+          {/* CRM Overview Tab */}
+          <TabsContent value="overview" className="m-0">
+            <InboxCRMOverview conversation={conversation} />
+          </TabsContent>
+
           {/* Contact Tab */}
           <TabsContent value="contact" className="m-0 p-4 space-y-4">
             <div className="space-y-3">
