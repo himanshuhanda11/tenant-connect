@@ -257,13 +257,13 @@ export default function InboxPage() {
   return (
     <DashboardLayout>
       <TooltipProvider>
-        <div className="flex overflow-hidden absolute inset-0">
+        <div className="flex h-full w-full overflow-hidden">
           {/* Left: Conversation List */}
           <motion.div
             initial={{ opacity: 0, x: -12 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.2 }}
-            className="w-[340px] xl:w-[380px] flex-shrink-0 flex-grow-0 z-10"
+            className="w-[340px] xl:w-[380px] flex-shrink-0 flex-grow-0 h-full"
           >
             <InboxConversationListV2
               conversations={conversations}
