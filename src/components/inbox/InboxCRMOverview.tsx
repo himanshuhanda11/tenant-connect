@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { CRMStatusDropdown } from './CRMStatusDropdown';
 import {
   Phone,
@@ -56,7 +55,7 @@ export function InboxCRMOverview({ conversation, onStatusChanged }: InboxCRMOver
   ];
 
   return (
-    <ScrollArea className="h-full">
+    <div className="h-full overflow-auto">
       <div className="p-4 space-y-5">
         {/* Status Section */}
         <div className="space-y-2.5">
@@ -194,7 +193,7 @@ export function InboxCRMOverview({ conversation, onStatusChanged }: InboxCRMOver
           </div>
         </div>
       </div>
-    </ScrollArea>
+    </div>
   );
 }
 
