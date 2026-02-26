@@ -407,28 +407,28 @@ function ConversationRow({
 
             {/* Assigned agent */}
             {conversation.assigned_to && (
-              <span className={cn(
-                "text-[10px] ml-auto flex items-center gap-0.5",
+              <Badge variant="outline" className={cn(
+                "text-[9px] px-1.5 py-0 h-4 flex items-center gap-1 ml-auto",
                 conversation.assigned_to === currentUserId
-                  ? "text-primary font-medium"
-                  : "text-muted-foreground"
+                  ? "border-primary/30 bg-primary/5 text-primary font-semibold"
+                  : "border-border bg-muted/50 text-muted-foreground"
               )}>
                 {conversation.assigned_agent?.avatar_url ? (
-                  <Avatar className="h-3.5 w-3.5">
+                  <Avatar className="h-3 w-3">
                     <AvatarImage src={conversation.assigned_agent.avatar_url} />
-                    <AvatarFallback className="text-[7px]">
+                    <AvatarFallback className="text-[6px]">
                       {conversation.assigned_agent.full_name?.[0]}
                     </AvatarFallback>
                   </Avatar>
                 ) : null}
                 {conversation.assigned_to === currentUserId
                   ? 'You'
-                  : conversation.assigned_agent?.full_name?.split(' ')[0] || 'Agent'}
-              </span>
+                  : conversation.assigned_agent?.full_name || 'Agent'}
+              </Badge>
             )}
             {!conversation.assigned_to && (
-              <Badge variant="outline" className="text-[9px] px-1 py-0 h-3.5 border-blue-200 bg-blue-50 text-blue-600 font-semibold ml-auto">
-                NEW
+              <Badge variant="outline" className="text-[9px] px-1.5 py-0 h-4 border-blue-200 bg-blue-50 text-blue-600 font-semibold ml-auto">
+                Unassigned
               </Badge>
             )}
           </div>
