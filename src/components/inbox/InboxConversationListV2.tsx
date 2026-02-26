@@ -398,7 +398,7 @@ function ConversationRow({
               <CRMStatusBadge 
                 status={conversation.crm_status} 
                 size="sm" 
-                agentName={conversation.assigned_to === currentUserId ? 'You' : conversation.assigned_agent?.full_name}
+                agentName={conversation.assigner?.full_name || conversation.assigned_agent?.full_name}
               />
             )}
 
@@ -426,8 +426,8 @@ function ConversationRow({
                   </Avatar>
                 ) : null}
                 {conversation.assigned_to === currentUserId
-                  ? 'Assigned by You'
-                  : `Assigned by ${conversation.assigned_agent?.full_name || 'Agent'}`}
+                  ? 'You'
+                  : conversation.assigned_agent?.full_name || 'Agent'}
               </Badge>
             )}
             {!conversation.assigned_to && (

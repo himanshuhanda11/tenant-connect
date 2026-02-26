@@ -128,6 +128,7 @@ export function useInboxConversations(view: InboxView, filters: InboxFilters) {
           *,
           contact:contacts(id, name, first_name, wa_id, profile_picture_url, opt_out, language),
           assigned_agent:profiles!conversations_assigned_to_fkey(id, full_name, avatar_url),
+          assigner:profiles!conversations_assigned_by_fkey(id, full_name),
           phone_number:phone_numbers(id, status)
         `)
         .eq('tenant_id', currentTenant.id)
