@@ -376,7 +376,7 @@ function ConversationRow({
               )}
             </div>
             <span className={cn(
-              "text-[10px] flex-shrink-0",
+              "text-[11px] flex-shrink-0",
               hasUnread ? "text-primary font-semibold" : "text-muted-foreground"
             )}>
               {formatTimestamp(conversation.last_message_at || conversation.created_at)}
