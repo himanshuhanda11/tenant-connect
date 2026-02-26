@@ -399,13 +399,19 @@ function ConversationCard({
 
           {/* Row 3: CRM Status + Assignment label */}
           <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
-            {/* CRM Status badge with assigned by/to */}
+            {/* CRM Status badge */}
             {conversation.crm_status && (
               <CRMStatusBadge 
                 status={conversation.crm_status} 
                 size="sm" 
-                customLabel={assignLabel}
               />
+            )}
+
+            {/* Assigned by/to label */}
+            {assignLabel && (
+              <span className="text-[10px] text-muted-foreground truncate max-w-[140px]">
+                {assignLabel}
+              </span>
             )}
 
             {/* Agent badge */}
