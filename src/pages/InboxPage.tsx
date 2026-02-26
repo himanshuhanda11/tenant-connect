@@ -263,7 +263,7 @@ export default function InboxPage() {
             initial={{ opacity: 0, x: -12 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.2 }}
-            className="w-[300px] xl:w-[340px] flex-shrink-0 flex-grow-0"
+            className="w-[340px] xl:w-[380px] flex-shrink-0 flex-grow-0 overflow-hidden"
           >
             <InboxConversationListV2
               conversations={conversations}
