@@ -143,7 +143,7 @@ export function InboxConversationListV2({
 
   return (
     <div className={cn(
-      "flex flex-col h-full bg-card border-r border-border/50",
+      "flex flex-col h-full bg-card border-r border-border/50 overflow-hidden",
       isMobile && "border-r-0"
     )}>
       {/* Header */}
@@ -188,14 +188,14 @@ export function InboxConversationListV2({
       </div>
 
       {/* Filter Chips */}
-      <div className="flex-shrink-0 border-b border-border/30 overflow-x-auto scrollbar-none">
-        <div className="flex items-center gap-2 px-4 py-2.5 w-max min-w-full">
+      <div className="flex-shrink-0 border-b border-border/30">
+        <div className="flex items-center gap-1.5 px-3 py-2.5 flex-wrap">
           {Object.entries(DATE_FILTER_LABELS).map(([key, label]) => (
             <button
               key={key}
               onClick={() => setDateFilter(key as DateFilter)}
               className={cn(
-                "px-4 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all flex-shrink-0",
+                "px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all flex-shrink-0",
                 dateFilter === key
                   ? "bg-primary text-primary-foreground shadow-sm"
                   : "bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground border border-border/40"
@@ -234,7 +234,7 @@ export function InboxConversationListV2({
       </div>
 
       {/* Conversation List */}
-      <ScrollArea className="flex-1">
+      <div className="flex-1 overflow-y-auto overflow-x-hidden">
         {loading ? (
           <div className="p-3 space-y-2">
             {[...Array(6)].map((_, i) => (
@@ -257,7 +257,7 @@ export function InboxConversationListV2({
             </p>
           </div>
         ) : (
-          <div className="px-2 py-1">
+          <div className="px-2 py-1 overflow-hidden">
             <AnimatePresence mode="popLayout">
               {groups.map((group) => (
                 <div key={group.label}>
@@ -293,7 +293,7 @@ export function InboxConversationListV2({
             </AnimatePresence>
           </div>
         )}
-      </ScrollArea>
+      </div>
     </div>
   );
 }
@@ -337,7 +337,7 @@ function ConversationCard({
     <div
       onClick={() => onSelect(conversation.id)}
       className={cn(
-        "group rounded-xl px-3 py-3 cursor-pointer transition-all duration-150",
+        "group rounded-xl px-3 py-3 cursor-pointer transition-all duration-150 overflow-hidden",
         "border border-border/30 hover:border-border/60",
         "hover:shadow-sm",
         isSelected
@@ -398,7 +398,7 @@ function ConversationCard({
           )}
 
           {/* Row 3: CRM Status + Assignment + Agent */}
-          <div className="flex items-center gap-2 mt-1.5 overflow-hidden">
+          <div className="flex items-center gap-1.5 mt-1.5 min-w-0">
             {/* CRM Status badge */}
             {conversation.crm_status && (
               <CRMStatusBadge 
@@ -409,16 +409,16 @@ function ConversationCard({
 
             {/* Assigned by/to label */}
             {assignLabel && (
-              <span className="text-[11px] text-muted-foreground truncate">
+              <span className="text-[10px] text-muted-foreground truncate min-w-0 flex-1">
                 {assignLabel}
               </span>
             )}
 
             {/* Agent name with blue dot */}
             {agentDisplayName && (
-              <span className="flex items-center gap-1 text-[11px] text-muted-foreground flex-shrink-0">
+              <span className="flex items-center gap-1 text-[10px] text-muted-foreground flex-shrink-0 max-w-[70px]">
                 <span className="w-1.5 h-1.5 rounded-full bg-blue-500 inline-block flex-shrink-0" />
-                <span className="truncate max-w-[80px]">{agentDisplayName}</span>
+                <span className="truncate">{agentDisplayName}</span>
               </span>
             )}
           </div>
