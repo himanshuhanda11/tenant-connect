@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useLocation, useNavigate, Link } from 'react-router-dom';
-import { LayoutDashboard, Users, Settings, LogOut, ChevronDown, ChevronRight, Plus, Inbox, Contact, Phone, FileText, Send, Zap, CreditCard, Shield, UsersRound, Route, Clock, ScrollText, Tag, ListFilter, HelpCircle, Megaphone, BarChart3, Link2, Target, Workflow, Cog, Building2, TrendingUp, Headphones, Check, Puzzle, PanelLeftClose, PanelLeft, User, ChevronUp, ExternalLink } from 'lucide-react';
+import { LayoutDashboard, Users, Settings, LogOut, ChevronDown, ChevronRight, Plus, Inbox, Contact, Phone, FileText, Send, Zap, CreditCard, Shield, UsersRound, Route, Clock, ScrollText, Tag, ListFilter, HelpCircle, Megaphone, BarChart3, Link2, Target, Workflow, Cog, Building2, TrendingUp, Headphones, Check, Puzzle, PanelLeftClose, PanelLeft, User, ChevronUp, ExternalLink, AlertTriangle, Ban } from 'lucide-react';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from '@/components/ui/sidebar';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
@@ -35,11 +35,20 @@ interface MenuGroup {
 
 const mainMenuItems: MenuItem[] = [
   { title: 'Dashboard', url: '/dashboard', icon: LayoutDashboard, key: 'dashboard' },
-  { title: 'Inbox', url: '/inbox', icon: Inbox, badge: 0, key: 'inbox', docUrl: '/help/inbox' },
   { title: 'Contacts', url: '/contacts', icon: Contact, key: 'contacts', docUrl: '/help/contacts-tags' },
-  { title: 'Qualified Leads', url: '/qualified-leads', icon: Target, key: 'qualified-leads', isNew: true },
   { title: 'Tags', url: '/tags', icon: Tag, key: 'tags', docUrl: '/help/contacts-tags' },
   { title: 'Attributes', url: '/user-attributes', icon: ListFilter, key: 'user-attributes', docUrl: '/help/contacts-tags' },
+];
+
+const inboxMenuItems: MenuItem[] = [
+  { title: 'Dashboard', url: '/inbox/dashboard', icon: BarChart3, key: 'inbox-dashboard' },
+  { title: 'All Inbox', url: '/inbox', icon: Inbox, key: 'inbox-all', docUrl: '/help/inbox' },
+  { title: 'My Inbox', url: '/inbox/mine', icon: User, key: 'inbox-mine' },
+  { title: 'New Today', url: '/inbox/new-today', icon: Plus, key: 'inbox-new-today' },
+  { title: 'Follow-up Today', url: '/inbox/followup-today', icon: Clock, key: 'inbox-followup' },
+  { title: 'Overdue', url: '/inbox/overdue', icon: AlertTriangle, key: 'inbox-overdue' },
+  { title: 'Converted', url: '/inbox/converted', icon: Check, key: 'inbox-converted' },
+  { title: 'Junk', url: '/inbox/junk', icon: Ban, key: 'inbox-junk' },
 ];
 
 const growthMenuItems: MenuItem[] = [
@@ -111,10 +120,15 @@ export function AppSidebar() {
 
   const isAgent = currentRole === 'agent';
   const filteredMainMenuItems = isAgent
-    ? mainMenuItems.filter(i => ['inbox', 'contacts', 'tags'].includes(i.key))
+    ? mainMenuItems.filter(i => ['contacts', 'tags'].includes(i.key))
     : mainMenuItems;
 
+  const filteredInboxMenuItems = isAgent
+    ? inboxMenuItems.filter(i => ['inbox-all', 'inbox-mine', 'inbox-followup', 'inbox-overdue'].includes(i.key))
+    : inboxMenuItems;
+
   const menuGroups: MenuGroup[] = [
+    { label: 'Inbox', icon: Inbox, items: filteredInboxMenuItems, defaultOpen: true },
     ...(isAgent ? [] : [{ label: 'Channels', icon: Phone, items: channelMenuItems }]),
     ...(isAgent ? [] : [{ label: 'Growth', icon: TrendingUp, items: growthMenuItems }]),
     ...(isAgent ? [] : [{ label: 'Meta Ads', icon: Megaphone, items: metaAdsMenuItems }]),

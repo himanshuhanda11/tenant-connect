@@ -75,6 +75,14 @@ export interface InboxConversation {
   sla_breached: boolean;
   created_at: string;
   updated_at: string;
+  // CRM fields
+  crm_status?: string;
+  next_followup_at?: string;
+  last_contacted_at?: string;
+  lead_score?: number;
+  country_interest?: string;
+  junk_reason?: string;
+  followup_notes?: string;
   // Joined data
   contact?: {
     id: string;

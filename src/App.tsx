@@ -31,6 +31,7 @@ import TeamSLA from "./pages/team/TeamSLA";
 import TeamAudit from "./pages/team/TeamAudit";
 import Settings from "./pages/Settings";
 import InboxPage from "./pages/InboxPage";
+import InboxCRMDashboard from "./pages/inbox/InboxCRMDashboard";
 import Contacts from "./pages/Contacts";
 import ContactSegments from "./pages/ContactSegments";
 import ContactImports from "./pages/ContactImports";
@@ -163,6 +164,13 @@ const App = () => (
               <Route path="/select-workspace" element={<SelectWorkspace />} />
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/inbox" element={<InboxPage />} />
+              <Route path="/inbox/dashboard" element={<InboxCRMDashboard />} />
+              <Route path="/inbox/mine" element={<InboxPage />} />
+              <Route path="/inbox/new-today" element={<InboxPage />} />
+              <Route path="/inbox/followup-today" element={<InboxPage />} />
+              <Route path="/inbox/overdue" element={<InboxPage />} />
+              <Route path="/inbox/converted" element={<InboxPage />} />
+              <Route path="/inbox/junk" element={<InboxPage />} />
               <Route path="/inbox/:id" element={<InboxPage />} />
               <Route path="/contacts" element={<Contacts />} />
               <Route path="/qualified-leads" element={<QualifiedLeads />} />

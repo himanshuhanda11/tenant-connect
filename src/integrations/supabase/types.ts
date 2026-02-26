@@ -2386,20 +2386,27 @@ export type Database = {
           claimed_at: string | null
           claimed_by: string | null
           contact_id: string
+          country_interest: string | null
           created_at: string
+          crm_status: string | null
           first_response_at: string | null
+          followup_notes: string | null
           id: string
           intervened_at: string | null
           intervened_by: string | null
           is_intervened: boolean | null
+          junk_reason: string | null
+          last_contacted_at: string | null
           last_inbound_at: string | null
           last_message_at: string | null
           last_message_id: string | null
           last_message_preview: string | null
           last_opened_at: string | null
           last_opened_by: string | null
+          lead_score: number | null
           locked_at: string | null
           locked_by: string | null
+          next_followup_at: string | null
           phone_number_id: string | null
           priority: string | null
           sla_breached: boolean | null
@@ -2417,20 +2424,27 @@ export type Database = {
           claimed_at?: string | null
           claimed_by?: string | null
           contact_id: string
+          country_interest?: string | null
           created_at?: string
+          crm_status?: string | null
           first_response_at?: string | null
+          followup_notes?: string | null
           id?: string
           intervened_at?: string | null
           intervened_by?: string | null
           is_intervened?: boolean | null
+          junk_reason?: string | null
+          last_contacted_at?: string | null
           last_inbound_at?: string | null
           last_message_at?: string | null
           last_message_id?: string | null
           last_message_preview?: string | null
           last_opened_at?: string | null
           last_opened_by?: string | null
+          lead_score?: number | null
           locked_at?: string | null
           locked_by?: string | null
+          next_followup_at?: string | null
           phone_number_id?: string | null
           priority?: string | null
           sla_breached?: boolean | null
@@ -2448,20 +2462,27 @@ export type Database = {
           claimed_at?: string | null
           claimed_by?: string | null
           contact_id?: string
+          country_interest?: string | null
           created_at?: string
+          crm_status?: string | null
           first_response_at?: string | null
+          followup_notes?: string | null
           id?: string
           intervened_at?: string | null
           intervened_by?: string | null
           is_intervened?: boolean | null
+          junk_reason?: string | null
+          last_contacted_at?: string | null
           last_inbound_at?: string | null
           last_message_at?: string | null
           last_message_id?: string | null
           last_message_preview?: string | null
           last_opened_at?: string | null
           last_opened_by?: string | null
+          lead_score?: number | null
           locked_at?: string | null
           locked_by?: string | null
+          next_followup_at?: string | null
           phone_number_id?: string | null
           priority?: string | null
           sla_breached?: boolean | null
@@ -4164,6 +4185,71 @@ export type Database = {
             columns: ["category_id"]
             isOneToOne: false
             referencedRelation: "guide_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      inbox_activity_logs: {
+        Row: {
+          action: string
+          actor_id: string | null
+          conversation_id: string
+          created_at: string
+          details: Json | null
+          id: string
+          new_value: string | null
+          old_value: string | null
+          tenant_id: string
+        }
+        Insert: {
+          action: string
+          actor_id?: string | null
+          conversation_id: string
+          created_at?: string
+          details?: Json | null
+          id?: string
+          new_value?: string | null
+          old_value?: string | null
+          tenant_id: string
+        }
+        Update: {
+          action?: string
+          actor_id?: string | null
+          conversation_id?: string
+          created_at?: string
+          details?: Json | null
+          id?: string
+          new_value?: string | null
+          old_value?: string | null
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inbox_activity_logs_actor_id_fkey"
+            columns: ["actor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inbox_activity_logs_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inbox_activity_logs_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "platform_workspace_directory"
+            referencedColumns: ["workspace_id"]
+          },
+          {
+            foreignKeyName: "inbox_activity_logs_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
             referencedColumns: ["id"]
           },
         ]
@@ -12192,6 +12278,21 @@ export type Database = {
         }
         Returns: boolean
       }
+      inbox_agent_performance: {
+        Args: { p_tenant_id: string }
+        Returns: {
+          agent_id: string
+          agent_name: string
+          assigned_count: number
+          converted_count: number
+          overdue_count: number
+          pending_count: number
+        }[]
+      }
+      inbox_crm_dashboard_stats: {
+        Args: { p_tenant_id: string }
+        Returns: Json
+      }
       increment_automation_rate_limit: {
         Args: {
           p_contact_id: string
@@ -12487,6 +12588,17 @@ export type Database = {
       update_campaign_progress: {
         Args: { p_campaign_id: string }
         Returns: undefined
+      }
+      update_crm_status: {
+        Args: {
+          p_conversation_id: string
+          p_followup_at?: string
+          p_followup_notes?: string
+          p_junk_reason?: string
+          p_new_status: string
+          p_tenant_id: string
+        }
+        Returns: Json
       }
       upsert_contact_inbox_summary:
         | {

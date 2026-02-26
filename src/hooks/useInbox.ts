@@ -40,6 +40,13 @@ function mapConversation(row: any): InboxConversation {
     sla_breached: row.sla_breached || false,
     created_at: row.created_at,
     updated_at: row.updated_at,
+    crm_status: row.crm_status || 'new',
+    next_followup_at: row.next_followup_at,
+    last_contacted_at: row.last_contacted_at,
+    lead_score: row.lead_score || 0,
+    country_interest: row.country_interest,
+    junk_reason: row.junk_reason,
+    followup_notes: row.followup_notes,
     contact: row.contact ? {
       id: row.contact.id,
       name: row.contact.name,
