@@ -98,6 +98,10 @@ export interface InboxConversation {
     full_name?: string;
     avatar_url?: string;
   };
+  assigner?: {
+    id: string;
+    full_name?: string;
+  };
   tags?: Array<{
     id: string;
     name: string;

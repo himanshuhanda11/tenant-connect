@@ -2382,6 +2382,7 @@ export type Database = {
       conversations: {
         Row: {
           assigned_at: string | null
+          assigned_by: string | null
           assigned_to: string | null
           claimed_at: string | null
           claimed_by: string | null
@@ -2420,6 +2421,7 @@ export type Database = {
         }
         Insert: {
           assigned_at?: string | null
+          assigned_by?: string | null
           assigned_to?: string | null
           claimed_at?: string | null
           claimed_by?: string | null
@@ -2458,6 +2460,7 @@ export type Database = {
         }
         Update: {
           assigned_at?: string | null
+          assigned_by?: string | null
           assigned_to?: string | null
           claimed_at?: string | null
           claimed_by?: string | null
@@ -2495,6 +2498,13 @@ export type Database = {
           version?: number
         }
         Relationships: [
+          {
+            foreignKeyName: "conversations_assigned_by_fkey"
+            columns: ["assigned_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "conversations_assigned_to_fkey"
             columns: ["assigned_to"]
