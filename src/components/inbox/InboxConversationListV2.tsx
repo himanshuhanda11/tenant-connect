@@ -393,14 +393,20 @@ function ConversationRow({
           <div className="flex items-center gap-1.5 mt-1 flex-wrap">
             {/* CRM Status with assigner info */}
             {conversation.crm_status && (() => {
-              const assignerName = conversation.assigner?.full_name 
-                || conversation.assigned_agent?.full_name 
-                || undefined;
+              // If I'm the assigned agent → show who assigned it to me
+              // If I'm admin/owner → show who it's assigned to
+              const isMyAssignment = conversation.assigned_to === currentUserId;
+              let badgeLabel: string | undefined;
+              if (isMyAssignment && conversation.assigner?.full_name) {
+                badgeLabel = `Assigned by ${conversation.assigner.full_name}`;
+              } else if (!isMyAssignment && conversation.assigned_agent?.full_name) {
+                badgeLabel = `Assigned to ${conversation.assigned_agent.full_name}`;
+              }
               return (
                 <CRMStatusBadge 
                   status={conversation.crm_status} 
                   size="sm" 
-                  agentName={assignerName}
+                  customLabel={badgeLabel}
                 />
               );
             })()}

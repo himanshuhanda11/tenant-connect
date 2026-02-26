@@ -7,16 +7,16 @@ interface CRMStatusBadgeProps {
   status: string;
   size?: 'sm' | 'md';
   className?: string;
+  customLabel?: string;
+  /** @deprecated Use customLabel instead */
   agentName?: string;
 }
 
-export function CRMStatusBadge({ status, size = 'sm', className, agentName }: CRMStatusBadgeProps) {
+export function CRMStatusBadge({ status, size = 'sm', className, customLabel, agentName }: CRMStatusBadgeProps) {
   const config = CRM_STATUS_CONFIG[status as CRMStatus] || CRM_STATUS_CONFIG.new;
   
-  // Show "Assigned by [Name]" when status is assigned and agent name available
-  const displayLabel = (status === 'assigned' || status === 'contacted') && agentName
-    ? `Assigned by ${agentName}`
-    : config.label;
+  // Use custom label if provided, otherwise fall back to config label
+  const displayLabel = customLabel || config.label;
   
   return (
     <Badge 
