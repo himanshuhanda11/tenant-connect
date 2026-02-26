@@ -195,7 +195,8 @@ export function InboxConversationListV2({
       </div>
 
       {/* Filter Chips */}
-      <div className="flex-shrink-0 px-3 py-2 border-b border-border/30 flex items-center gap-1.5 overflow-x-auto scrollbar-none" style={{ minHeight: '40px' }}>
+      <div className="flex-shrink-0 border-b border-border/30 overflow-x-auto scrollbar-none">
+        <div className="flex items-center gap-1.5 px-3 py-2 w-max min-w-full" style={{ minHeight: '40px' }}>
         {Object.entries(DATE_FILTER_LABELS).map(([key, label]) => (
           <button
             key={key}
@@ -237,6 +238,7 @@ export function InboxConversationListV2({
             ))}
           </DropdownMenuContent>
         </DropdownMenu>
+          </div>
       </div>
 
       {/* Conversation List */}
