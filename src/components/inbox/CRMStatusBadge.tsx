@@ -15,7 +15,7 @@ export function CRMStatusBadge({ status, size = 'sm', className, agentName }: CR
   
   // For "assigned" status, append agent name if available
   const displayLabel = status === 'assigned' && agentName
-    ? `Assigned to ${agentName}`
+    ? `Assigned by ${agentName}`
     : config.label;
   
   return (

@@ -197,7 +197,7 @@ export function InboxConversationListV2({
       </div>
 
       {/* Filter Chips */}
-      <div className="flex-shrink-0 px-3 py-2 border-b border-border/30 flex items-center gap-1.5 overflow-x-auto scrollbar-none">
+      <div className="flex-shrink-0 px-3 py-2.5 border-b border-border/30 flex items-center gap-2 overflow-x-auto" style={{ minHeight: '44px' }}>
         {Object.entries(DATE_FILTER_LABELS).map(([key, label]) => (
           <button
             key={key}
@@ -426,8 +426,8 @@ function ConversationRow({
                   </Avatar>
                 ) : null}
                 {conversation.assigned_to === currentUserId
-                  ? 'Assigned to You'
-                  : `Assigned to ${conversation.assigned_agent?.full_name || 'Agent'}`}
+                  ? 'Assigned by You'
+                  : `Assigned by ${conversation.assigned_agent?.full_name || 'Agent'}`}
               </Badge>
             )}
             {!conversation.assigned_to && (
