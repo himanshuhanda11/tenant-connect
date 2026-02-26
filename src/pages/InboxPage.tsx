@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import { InboxConversationList } from '@/components/inbox/InboxConversationList';
+import { InboxConversationListV2 } from '@/components/inbox/InboxConversationListV2';
 import { InboxChatThread } from '@/components/inbox/InboxChatThread';
 import { InboxContextPanel } from '@/components/inbox/InboxContextPanel';
 import { 
@@ -20,6 +20,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { ArrowLeft, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { motion, AnimatePresence } from 'framer-motion';
 
 // Map routes to inbox CRM views
 const ROUTE_VIEW_MAP: Record<string, { view: InboxView; crmFilter?: string }> = {
@@ -39,16 +40,13 @@ export default function InboxPage() {
   const { user } = useAuth();
   const isMobile = useIsMobile();
   
-  // Determine view from current route
   const routeConfig = ROUTE_VIEW_MAP[location.pathname] || ROUTE_VIEW_MAP['/inbox'];
   const [view, setView] = useState<InboxView>(routeConfig.view);
   const [filters, setFilters] = useState<InboxFilters>({});
   const [crmFilter, setCrmFilter] = useState<string | undefined>(routeConfig.crmFilter);
   const [selectedId, setSelectedId] = useState<string | null>(conversationId || null);
-  
   const [showContextPanel, setShowContextPanel] = useState(false);
 
-  // Update view when route changes
   useEffect(() => {
     const config = ROUTE_VIEW_MAP[location.pathname];
     if (config) {
@@ -61,7 +59,6 @@ export default function InboxPage() {
       }
     }
   }, [location.pathname]);
-  
 
   // Hooks
   const { conversations, loading: loadingConversations, refetch } = useInboxConversations(view, filters);
@@ -72,10 +69,8 @@ export default function InboxPage() {
   const actions = useInboxActions();
   const { unreadNewCount, clearNotifications } = useInboxNotification();
 
-  // Get selected conversation - refresh when conversations update
   const selectedConversation = conversations.find(c => c.id === selectedId) || null;
 
-  // Compute viewer name from locked_by (soft lock)
   const viewerName = (() => {
     if (!selectedConversation) return null;
     const conv = selectedConversation as any;
@@ -85,241 +80,192 @@ export default function InboxPage() {
     return agent?.full_name || 'Another agent';
   })();
 
-  // Listen for inbox updates
   useEffect(() => {
-    const handleUpdate = () => {
-      refetch();
-      refetchMessages();
-    };
-
+    const handleUpdate = () => { refetch(); refetchMessages(); };
     const handleMessage = (e: Event) => {
       const detail = (e as CustomEvent).detail;
-      if (detail?.conversationId === selectedId && detail?.message) {
-        addMessage(detail.message);
-      }
+      if (detail?.conversationId === selectedId && detail?.message) addMessage(detail.message);
     };
-
     window.addEventListener('inbox-update', handleUpdate);
     window.addEventListener('inbox-message', handleMessage);
-    
     return () => {
       window.removeEventListener('inbox-update', handleUpdate);
       window.removeEventListener('inbox-message', handleMessage);
     };
   }, [selectedId, refetch, refetchMessages, addMessage]);
 
-  // Handle URL changes
   useEffect(() => {
-    if (conversationId && conversationId !== selectedId) {
-      setSelectedId(conversationId);
-    }
+    if (conversationId && conversationId !== selectedId) setSelectedId(conversationId);
   }, [conversationId]);
 
-  // Handle selection
-  // Handle selection — call open_conversation RPC
   const handleSelect = (id: string) => {
     setSelectedId(id);
     navigate(`/inbox/${id}`, { replace: true });
     actions.markAsRead(id);
-    // Never auto-claim on open — only claim when agent actually replies
     actions.openConversation(id, false);
   };
 
-  // Handle back navigation on mobile
   const handleBack = () => {
     setSelectedId(null);
     navigate('/inbox', { replace: true });
     setShowContextPanel(false);
   };
 
-  // Handle view change
   const handleViewChange = (newView: InboxView) => {
     setView(newView);
     setFilters(INBOX_VIEW_CONFIG[newView].filter);
   };
 
-  // Action handlers with proper types
   const handleSetStatus = useCallback((status: ConversationStatus) => {
-    if (selectedId) {
-      actions.setConversationStatus(selectedId, status);
-    }
+    if (selectedId) actions.setConversationStatus(selectedId, status);
   }, [selectedId, actions]);
 
   const handleAssign = useCallback((profileId: string | null) => {
-    if (selectedId) {
-      actions.assignConversation(selectedId, profileId);
-    }
+    if (selectedId) actions.assignConversation(selectedId, profileId);
   }, [selectedId, actions]);
 
   const handleSetIntervene = useCallback((intervene: boolean) => {
-    if (selectedId) {
-      actions.setInterveneMode(selectedId, intervene);
-    }
+    if (selectedId) actions.setInterveneMode(selectedId, intervene);
   }, [selectedId, actions]);
 
   const handleAddTag = useCallback((tagId: string) => {
-    if (selectedId && tagId) {
-      actions.addTag(selectedId, tagId);
-    }
+    if (selectedId && tagId) actions.addTag(selectedId, tagId);
   }, [selectedId, actions]);
 
   const handleRemoveTag = useCallback((tagId: string) => {
-    if (selectedId) {
-      actions.removeTag(selectedId, tagId);
-    }
+    if (selectedId) actions.removeTag(selectedId, tagId);
   }, [selectedId, actions]);
 
   const handleSendMessage = useCallback((msg: { text?: string; template?: string; media?: File }) => {
-    if (selectedId) {
-      actions.sendMessage(selectedId, msg);
-    }
+    if (selectedId) actions.sendMessage(selectedId, msg);
   }, [selectedId, actions]);
 
   const handleClaim = useCallback(() => {
-    if (selectedId) {
-      actions.claimConversation(selectedId);
-    }
+    if (selectedId) actions.claimConversation(selectedId);
   }, [selectedId, actions]);
 
   const handleIntervene = useCallback(() => {
-    if (selectedId) {
-      actions.interveneConversation(selectedId);
-    }
+    if (selectedId) actions.interveneConversation(selectedId);
   }, [selectedId, actions]);
 
   const handleTransfer = useCallback((profileId: string, resetClaim: boolean) => {
-    if (selectedId) {
-      actions.transferConversation(selectedId, profileId, resetClaim);
-    }
+    if (selectedId) actions.transferConversation(selectedId, profileId, resetClaim);
   }, [selectedId, actions]);
 
-  // Toggle context panel on mobile
-  const toggleContextPanel = () => {
-    setShowContextPanel(!showContextPanel);
-  };
+  const toggleContextPanel = () => setShowContextPanel(!showContextPanel);
 
-  // Keyboard shortcuts (desktop only)
+  // Keyboard shortcuts
   useEffect(() => {
     if (isMobile) return;
-
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Don't trigger if typing in input
-      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
-        return;
-      }
-
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
       const currentIndex = conversations.findIndex(c => c.id === selectedId);
-
       switch (e.key) {
-        case 'j': // Next conversation
-          if (currentIndex < conversations.length - 1) {
-            handleSelect(conversations[currentIndex + 1].id);
-          }
+        case 'j':
+          if (currentIndex < conversations.length - 1) handleSelect(conversations[currentIndex + 1].id);
           break;
-        case 'k': // Previous conversation
-          if (currentIndex > 0) {
-            handleSelect(conversations[currentIndex - 1].id);
-          }
+        case 'k':
+          if (currentIndex > 0) handleSelect(conversations[currentIndex - 1].id);
           break;
-        case 'e': // Set pending
-          handleSetStatus('pending');
-          break;
-        case 'c': // Close
-          handleSetStatus('closed');
-          break;
-        case 't': // Open tag picker
-          // Implemented in chat thread
-          break;
+        case 'e': handleSetStatus('pending'); break;
+        case 'c': handleSetStatus('closed'); break;
       }
     };
-
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [conversations, selectedId, handleSetStatus, isMobile]);
 
-  // Mobile: Show only conversation list or chat thread
+  // Mobile
   if (isMobile) {
     return (
       <DashboardLayout>
         <TooltipProvider>
           <div className="fixed inset-0 top-12 z-20 flex flex-col bg-background">
-            {/* Mobile: Show list when no conversation selected */}
-            {!selectedId ? (
-              <InboxConversationList
-                conversations={conversations}
-                selectedId={selectedId}
-                onSelect={handleSelect}
-                view={view}
-                onViewChange={handleViewChange}
-                filters={filters}
-                onFiltersChange={setFilters}
-                loading={loadingConversations}
-                isMobile={true}
-                currentUserId={user?.id}
-                unreadNewCount={unreadNewCount}
-                onClearNotifications={clearNotifications}
-              />
-            ) : showContextPanel ? (
-              /* Mobile: Show context panel */
-              <div className="flex flex-col h-full bg-background">
-                <div className="h-14 border-b flex items-center gap-2 px-4 bg-card flex-shrink-0">
-                  <Button variant="ghost" size="icon" onClick={toggleContextPanel}>
-                    <ArrowLeft className="h-5 w-5" />
-                  </Button>
-                  <span className="font-semibold">Contact Details</span>
-                </div>
-                <div className="flex-1 overflow-hidden">
-                  <InboxContextPanel
-                    conversation={selectedConversation}
-                    events={events}
-                    notes={notes}
-                    onAddNote={addNote}
-                    onAddTag={handleAddTag}
-                    onRemoveTag={handleRemoveTag}
-                    availableTags={actions.availableTags}
+            <AnimatePresence mode="wait">
+              {!selectedId ? (
+                <motion.div key="list" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="h-full">
+                  <InboxConversationListV2
+                    conversations={conversations}
+                    selectedId={selectedId}
+                    onSelect={handleSelect}
+                    view={view}
+                    onViewChange={handleViewChange}
+                    filters={filters}
+                    onFiltersChange={setFilters}
+                    loading={loadingConversations}
                     isMobile={true}
+                    currentUserId={user?.id}
+                    unreadNewCount={unreadNewCount}
+                    onClearNotifications={clearNotifications}
                   />
-                </div>
-              </div>
-            ) : (
-              /* Mobile: Show chat thread with back button */
-              <InboxChatThread
-                conversation={selectedConversation}
-                messages={messages}
-                events={events}
-                typingUsers={typingUsers}
-                onSendMessage={handleSendMessage}
-                onAssign={handleAssign}
-                onSetStatus={handleSetStatus}
-                onSetIntervene={handleSetIntervene}
-                onAddTag={handleAddTag}
-                onClaim={handleClaim}
-                onIntervene={handleIntervene}
-                onTransfer={handleTransfer}
-                onTyping={setTyping}
-                loading={loadingMessages}
-                availableTags={actions.availableTags}
-                teamMembers={actions.teamMembers}
-                isMobile={true}
-                onBack={handleBack}
-                onShowInfo={toggleContextPanel}
-                viewerName={viewerName}
-              />
-            )}
+                </motion.div>
+              ) : showContextPanel ? (
+                <motion.div key="context" initial={{ x: '100%' }} animate={{ x: 0 }} exit={{ x: '100%' }} transition={{ type: 'spring', damping: 25 }} className="flex flex-col h-full bg-background">
+                  <div className="h-14 border-b flex items-center gap-2 px-4 bg-card flex-shrink-0">
+                    <Button variant="ghost" size="icon" onClick={toggleContextPanel}>
+                      <ArrowLeft className="h-5 w-5" />
+                    </Button>
+                    <span className="font-semibold">Contact Details</span>
+                  </div>
+                  <div className="flex-1 overflow-hidden">
+                    <InboxContextPanel
+                      conversation={selectedConversation}
+                      events={events}
+                      notes={notes}
+                      onAddNote={addNote}
+                      onAddTag={handleAddTag}
+                      onRemoveTag={handleRemoveTag}
+                      availableTags={actions.availableTags}
+                      isMobile={true}
+                    />
+                  </div>
+                </motion.div>
+              ) : (
+                <motion.div key="chat" initial={{ x: '100%' }} animate={{ x: 0 }} exit={{ x: '100%' }} transition={{ type: 'spring', damping: 25 }} className="h-full">
+                  <InboxChatThread
+                    conversation={selectedConversation}
+                    messages={messages}
+                    events={events}
+                    typingUsers={typingUsers}
+                    onSendMessage={handleSendMessage}
+                    onAssign={handleAssign}
+                    onSetStatus={handleSetStatus}
+                    onSetIntervene={handleSetIntervene}
+                    onAddTag={handleAddTag}
+                    onClaim={handleClaim}
+                    onIntervene={handleIntervene}
+                    onTransfer={handleTransfer}
+                    onTyping={setTyping}
+                    loading={loadingMessages}
+                    availableTags={actions.availableTags}
+                    teamMembers={actions.teamMembers}
+                    isMobile={true}
+                    onBack={handleBack}
+                    onShowInfo={toggleContextPanel}
+                    viewerName={viewerName}
+                  />
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         </TooltipProvider>
       </DashboardLayout>
     );
   }
 
-  // Desktop view
+  // Desktop 3-Panel
   return (
     <DashboardLayout>
       <TooltipProvider>
         <div className="flex overflow-hidden -m-3 sm:-m-4 md:-m-6 lg:-m-8 w-[calc(100%+1.5rem)] sm:w-[calc(100%+2rem)] md:w-[calc(100%+3rem)] lg:w-[calc(100%+4rem)] h-[calc(100vh-3rem-1.5rem)] sm:h-[calc(100vh-3.5rem-2rem)] md:h-[calc(100vh-3.5rem-3rem)] lg:h-[calc(100vh-3.5rem-4rem)]">
           {/* Left: Conversation List */}
-          <div className="w-72 xl:w-80 flex-shrink-0 flex-grow-0">
-            <InboxConversationList
+          <motion.div
+            initial={{ opacity: 0, x: -12 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.2 }}
+            className="w-[300px] xl:w-[340px] flex-shrink-0 flex-grow-0"
+          >
+            <InboxConversationListV2
               conversations={conversations}
               selectedId={selectedId}
               onSelect={handleSelect}
@@ -332,10 +278,15 @@ export default function InboxPage() {
               unreadNewCount={unreadNewCount}
               onClearNotifications={clearNotifications}
             />
-          </div>
+          </motion.div>
 
           {/* Center: Chat Thread */}
-          <div className="flex-1 min-w-0 overflow-hidden">
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.2, delay: 0.05 }}
+            className="flex-1 min-w-0 overflow-hidden"
+          >
             <InboxChatThread
               conversation={selectedConversation}
               messages={messages}
@@ -355,10 +306,15 @@ export default function InboxPage() {
               teamMembers={actions.teamMembers}
               viewerName={viewerName}
             />
-          </div>
+          </motion.div>
 
           {/* Right: Context Panel */}
-          <div className="w-72 xl:w-80 flex-shrink-0 flex-grow-0">
+          <motion.div
+            initial={{ opacity: 0, x: 12 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.2, delay: 0.1 }}
+            className="w-[300px] xl:w-[340px] flex-shrink-0 flex-grow-0"
+          >
             <InboxContextPanel
               conversation={selectedConversation}
               events={events}
@@ -368,7 +324,7 @@ export default function InboxPage() {
               onRemoveTag={handleRemoveTag}
               availableTags={actions.availableTags}
             />
-          </div>
+          </motion.div>
         </div>
       </TooltipProvider>
     </DashboardLayout>
