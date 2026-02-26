@@ -257,13 +257,10 @@ export default function InboxPage() {
   return (
     <DashboardLayout>
       <TooltipProvider>
-        <div className="flex h-full w-full overflow-hidden">
+        <div className="absolute inset-0 flex overflow-hidden">
           {/* Left: Conversation List */}
-          <motion.div
-            initial={{ opacity: 0, x: -12 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.2 }}
-            className="w-[340px] xl:w-[380px] flex-shrink-0 flex-grow-0 h-full"
+          <div
+            className="w-[340px] xl:w-[380px] flex-shrink-0 h-full"
           >
             <InboxConversationListV2
               conversations={conversations}
@@ -278,7 +275,7 @@ export default function InboxPage() {
               unreadNewCount={unreadNewCount}
               onClearNotifications={clearNotifications}
             />
-          </motion.div>
+          </div>
 
           {/* Center: Chat Thread */}
           <motion.div
