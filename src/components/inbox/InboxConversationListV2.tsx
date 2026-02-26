@@ -422,8 +422,8 @@ function ConversationRow({
                   </Avatar>
                 ) : null}
                 {conversation.assigned_to === currentUserId
-                  ? 'You'
-                  : conversation.assigned_agent?.full_name || 'Agent'}
+                  ? 'Assigned to You'
+                  : `Assigned to ${conversation.assigned_agent?.full_name || 'Agent'}`}
               </Badge>
             )}
             {!conversation.assigned_to && (
