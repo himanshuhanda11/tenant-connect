@@ -414,24 +414,11 @@ function ConversationCard({
               </span>
             )}
 
-            {/* Agent badge */}
-            {agentDisplayName ? (
-              <Badge 
-                variant="outline" 
-                className={cn(
-                  "text-[11px] px-2 py-0.5 h-auto rounded-full font-medium flex items-center gap-1.5",
-                  conversation.assigned_to === currentUserId
-                    ? "border-primary/30 bg-primary/5 text-primary"
-                    : "border-border/50 bg-muted/40 text-muted-foreground"
-                )}
-              >
-                <span className="w-1.5 h-1.5 rounded-full bg-blue-500 flex-shrink-0" />
-                {agentDisplayName}
-              </Badge>
-            ) : (
-              <Badge variant="outline" className="text-[11px] px-2 py-0.5 h-auto rounded-full font-medium border-border/50 bg-muted/30 text-muted-foreground">
-                Unassigned
-              </Badge>
+            {/* Agent name (subtle, no badge) */}
+            {agentDisplayName && (
+              <span className="text-[10px] text-muted-foreground">
+                · {agentDisplayName}
+              </span>
             )}
 
             {/* More button */}
