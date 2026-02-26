@@ -46,10 +46,10 @@ type DateFilter = 'all' | 'today' | 'yesterday' | 'last_7_days';
 type StatusFilter = 'all' | 'new' | 'contacted' | 'follow_up_required' | 'qualified' | 'converted' | 'junk';
 
 const DATE_FILTER_LABELS: Record<DateFilter, string> = {
-  all: 'All Time',
+  all: 'All',
   today: 'Today',
   yesterday: 'Yesterday',
-  last_7_days: 'Last 7 Days',
+  last_7_days: 'Last 7d',
 };
 
 // Country flag emoji from code
@@ -392,13 +392,18 @@ function ConversationRow({
           {/* Row 3: Status + Agent + Tags */}
           <div className="flex items-center gap-1.5 mt-1 flex-wrap">
             {/* CRM Status with assigner info */}
-            {conversation.crm_status && (
-              <CRMStatusBadge 
-                status={conversation.crm_status} 
-                size="sm" 
-                agentName={conversation.assigner?.full_name}
-              />
-            )}
+            {conversation.crm_status && (() => {
+              const assignerName = conversation.assigner?.full_name 
+                || conversation.assigned_agent?.full_name 
+                || undefined;
+              return (
+                <CRMStatusBadge 
+                  status={conversation.crm_status} 
+                  size="sm" 
+                  agentName={assignerName}
+                />
+              );
+            })()}
 
             {/* Follow-up indicator */}
             {conversation.next_followup_at && (
