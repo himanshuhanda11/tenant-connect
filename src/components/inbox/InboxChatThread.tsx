@@ -54,6 +54,7 @@ import {
   Shield,
   ArrowRightLeft,
   UserPlus,
+  CheckCircle,
 } from 'lucide-react';
 import { format, formatDistanceToNow, differenceInHours } from 'date-fns';
 import { InboxConversation, InboxMessage, WAStatus, ConversationEvent, STATUS_CONFIG, PRIORITY_CONFIG, ConversationStatus } from '@/types/inbox';
@@ -750,7 +751,31 @@ export function InboxChatThread({
                     {event.event_type === 'assigned' && (
                       <span className="flex items-center gap-1.5">
                         <User className="h-3 w-3" />
-                        Assigned to {event.actor?.full_name}
+                        {(event.details as any)?.action === 'transferred' ? (
+                          <>
+                            {event.actor?.full_name || 'System'} transferred from{' '}
+                            <strong>{event.from_agent?.full_name || 'Unassigned'}</strong> → <strong>{event.to_agent?.full_name || 'Unknown'}</strong>
+                          </>
+                        ) : (event.details as any)?.action === 'claimed_on_reply' ? (
+                          <>
+                            <strong>{event.to_agent?.full_name || event.actor?.full_name}</strong> claimed on reply
+                          </>
+                        ) : (event.details as any)?.action === 'claimed' ? (
+                          <>
+                            <strong>{event.to_agent?.full_name || event.actor?.full_name}</strong> claimed this conversation
+                          </>
+                        ) : (
+                          <>
+                            {event.from_agent?.full_name ? (
+                              <>
+                                {event.actor?.full_name || 'System'} reassigned from{' '}
+                                <strong>{event.from_agent.full_name}</strong> → <strong>{event.to_agent?.full_name || 'Unknown'}</strong>
+                              </>
+                            ) : (
+                              <>Assigned to <strong>{event.to_agent?.full_name || event.actor?.full_name}</strong></>
+                            )}
+                          </>
+                        )}
                       </span>
                     )}
                     {event.event_type === 'tag_added' && (
@@ -762,7 +787,14 @@ export function InboxChatThread({
                     {event.event_type === 'intervened' && (
                       <span className="flex items-center gap-1.5">
                         <Hand className="h-3 w-3" />
-                        {event.actor?.full_name} took over
+                        <strong>{event.actor?.full_name}</strong> took over from{' '}
+                        {event.from_agent?.full_name || 'previous agent'}
+                      </span>
+                    )}
+                    {event.event_type === 'status_changed' && (
+                      <span className="flex items-center gap-1.5">
+                        <CheckCircle className="h-3 w-3" />
+                        Status changed to {event.new_value}
                       </span>
                     )}
                   </span>

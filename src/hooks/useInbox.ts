@@ -432,24 +432,67 @@ export function useInboxMessages(conversationId: string | null) {
   return { messages, loading, error, refetch: fetchMessages, addMessage };
 }
 
-// Events - keep simple for now, fetch from DB if table exists
-let eventsStore: ConversationEvent[] = [];
-
+// Events - fetch from smeksh_conversation_events table with profile joins
 export function useConversationEvents(conversationId: string | null) {
   const [events, setEvents] = useState<ConversationEvent[]>([]);
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
+  const fetchEvents = useCallback(async () => {
     if (!conversationId) {
       setEvents([]);
       return;
     }
-    const conversationEvents = eventsStore.filter(e => e.conversation_id === conversationId);
-    setEvents(conversationEvents);
+    setLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('smeksh_conversation_events')
+        .select(`
+          id, tenant_id, conversation_id, contact_id, event_type,
+          actor_profile_id, actor_type, message_id,
+          from_assigned_to, to_assigned_to,
+          team_id, tag_id, tag_name, tag_reason,
+          automation_workflow_id, campaign_id, ctwa_lead_id,
+          old_value, new_value, details, created_at,
+          actor:profiles!smeksh_conversation_events_actor_profile_id_fkey(id, full_name, avatar_url),
+          from_agent:profiles!smeksh_conversation_events_from_assigned_to_fkey(id, full_name),
+          to_agent:profiles!smeksh_conversation_events_to_assigned_to_fkey(id, full_name)
+        `)
+        .eq('conversation_id', conversationId)
+        .order('created_at', { ascending: true });
+
+      if (error) throw error;
+      setEvents((data || []) as unknown as ConversationEvent[]);
+    } catch (err) {
+      console.error('Failed to fetch events:', err);
+      setEvents([]);
+    } finally {
+      setLoading(false);
+    }
   }, [conversationId]);
 
+  useEffect(() => {
+    fetchEvents();
+  }, [fetchEvents]);
+
+  // Listen for realtime updates
+  useEffect(() => {
+    if (!conversationId) return;
+    const channel = supabase
+      .channel(`events-${conversationId}`)
+      .on('postgres_changes', {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'smeksh_conversation_events',
+        filter: `conversation_id=eq.${conversationId}`,
+      }, () => {
+        fetchEvents();
+      })
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
+  }, [conversationId, fetchEvents]);
+
   const addEvent = useCallback((event: ConversationEvent) => {
-    eventsStore = [...eventsStore, event];
     setEvents(prev => [...prev, event]);
   }, []);
 

@@ -132,6 +132,14 @@ export interface ConversationEvent {
     full_name?: string;
     avatar_url?: string;
   };
+  from_agent?: {
+    id: string;
+    full_name?: string;
+  };
+  to_agent?: {
+    id: string;
+    full_name?: string;
+  };
 }
 
 export interface InternalNote {
