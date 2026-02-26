@@ -7,10 +7,16 @@ interface CRMStatusBadgeProps {
   status: string;
   size?: 'sm' | 'md';
   className?: string;
+  agentName?: string;
 }
 
-export function CRMStatusBadge({ status, size = 'sm', className }: CRMStatusBadgeProps) {
+export function CRMStatusBadge({ status, size = 'sm', className, agentName }: CRMStatusBadgeProps) {
   const config = CRM_STATUS_CONFIG[status as CRMStatus] || CRM_STATUS_CONFIG.new;
+  
+  // For "assigned" status, append agent name if available
+  const displayLabel = status === 'assigned' && agentName
+    ? `Assigned to ${agentName}`
+    : config.label;
   
   return (
     <Badge 
@@ -23,8 +29,8 @@ export function CRMStatusBadge({ status, size = 'sm', className }: CRMStatusBadg
         className
       )}
     >
-      <span className={cn("w-1.5 h-1.5 rounded-full mr-1.5 inline-block", config.dotColor)} />
-      {config.label}
+      <span className={cn("w-1.5 h-1.5 rounded-full mr-1.5 inline-block flex-shrink-0", config.dotColor)} />
+      <span className="truncate max-w-[120px]">{displayLabel}</span>
     </Badge>
   );
 }

@@ -395,7 +395,11 @@ function ConversationRow({
           <div className="flex items-center gap-1.5 mt-1 flex-wrap">
             {/* CRM Status */}
             {conversation.crm_status && (
-              <CRMStatusBadge status={conversation.crm_status} size="sm" />
+              <CRMStatusBadge 
+                status={conversation.crm_status} 
+                size="sm" 
+                agentName={conversation.assigned_to === currentUserId ? 'You' : conversation.assigned_agent?.full_name}
+              />
             )}
 
             {/* Follow-up indicator */}
