@@ -397,8 +397,17 @@ function ConversationCard({
             </p>
           )}
 
-          {/* Row 3: Agent badge + more */}
-          <div className="flex items-center gap-1.5 mt-2">
+          {/* Row 3: CRM Status + Assignment label */}
+          <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
+            {/* CRM Status badge with assigned by/to */}
+            {conversation.crm_status && (
+              <CRMStatusBadge 
+                status={conversation.crm_status} 
+                size="sm" 
+                customLabel={assignLabel}
+              />
+            )}
+
             {/* Agent badge */}
             {agentDisplayName ? (
               <Badge 
