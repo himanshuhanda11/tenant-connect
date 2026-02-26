@@ -130,8 +130,8 @@ export function InboxContextPanel({
       </div>
 
       {/* Tabs */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col">
-        <TabsList className="mx-3 mt-2 grid grid-cols-7 h-9">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col min-h-0 overflow-hidden">
+        <TabsList className="mx-3 mt-2 grid grid-cols-7 h-9 flex-shrink-0">
           <TabsTrigger value="overview" className="px-1.5">
             <Target className="h-4 w-4" />
           </TabsTrigger>
@@ -155,7 +155,7 @@ export function InboxContextPanel({
           </TabsTrigger>
         </TabsList>
 
-        <ScrollArea className="flex-1">
+        <ScrollArea className="flex-1 min-h-0">
           {/* CRM Overview Tab */}
           <TabsContent value="overview" className="m-0">
             <InboxCRMOverview conversation={conversation} />

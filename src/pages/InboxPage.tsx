@@ -180,7 +180,7 @@ export default function InboxPage() {
     return (
       <DashboardLayout>
         <TooltipProvider>
-          <div className="fixed inset-0 top-12 z-20 flex flex-col bg-background">
+          <div className="fixed inset-0 top-12 z-20 flex flex-col bg-background overflow-hidden">
             <AnimatePresence mode="wait">
               {!selectedId ? (
                 <motion.div key="list" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="h-full">
@@ -257,7 +257,7 @@ export default function InboxPage() {
   return (
     <DashboardLayout>
       <TooltipProvider>
-        <div className="flex overflow-hidden -m-3 sm:-m-4 md:-m-6 lg:-m-8 w-[calc(100%+1.5rem)] sm:w-[calc(100%+2rem)] md:w-[calc(100%+3rem)] lg:w-[calc(100%+4rem)] h-[calc(100vh-3rem-1.5rem)] sm:h-[calc(100vh-3.5rem-2rem)] md:h-[calc(100vh-3.5rem-3rem)] lg:h-[calc(100vh-3.5rem-4rem)]">
+        <div className="flex overflow-hidden absolute inset-0">
           {/* Left: Conversation List */}
           <motion.div
             initial={{ opacity: 0, x: -12 }}
