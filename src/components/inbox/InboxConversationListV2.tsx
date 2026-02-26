@@ -397,8 +397,8 @@ function ConversationCard({
             </p>
           )}
 
-          {/* Row 3: CRM Status + Assignment label */}
-          <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
+          {/* Row 3: CRM Status + Assignment + Agent */}
+          <div className="flex items-center gap-2 mt-1.5 overflow-hidden">
             {/* CRM Status badge */}
             {conversation.crm_status && (
               <CRMStatusBadge 
@@ -409,22 +409,18 @@ function ConversationCard({
 
             {/* Assigned by/to label */}
             {assignLabel && (
-              <span className="text-[10px] text-muted-foreground truncate max-w-[140px]">
+              <span className="text-[11px] text-muted-foreground truncate">
                 {assignLabel}
               </span>
             )}
 
-            {/* Agent name (subtle, no badge) */}
+            {/* Agent name with blue dot */}
             {agentDisplayName && (
-              <span className="text-[10px] text-muted-foreground">
-                · {agentDisplayName}
+              <span className="flex items-center gap-1 text-[11px] text-muted-foreground flex-shrink-0">
+                <span className="w-1.5 h-1.5 rounded-full bg-blue-500 inline-block flex-shrink-0" />
+                <span className="truncate max-w-[80px]">{agentDisplayName}</span>
               </span>
             )}
-
-            {/* More button */}
-            <button className="ml-auto opacity-0 group-hover:opacity-100 transition-opacity h-6 w-6 rounded-full flex items-center justify-center hover:bg-muted/60 text-muted-foreground">
-              <MoreHorizontal className="h-3.5 w-3.5" />
-            </button>
           </div>
         </div>
       </div>
