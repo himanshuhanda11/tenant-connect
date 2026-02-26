@@ -35,13 +35,16 @@ interface MenuGroup {
 
 const mainMenuItems: MenuItem[] = [
   { title: 'Dashboard', url: '/dashboard', icon: LayoutDashboard, key: 'dashboard' },
+];
+
+const crmMenuItems: MenuItem[] = [
   { title: 'Contacts', url: '/contacts', icon: Contact, key: 'contacts', docUrl: '/help/contacts-tags' },
   { title: 'Tags', url: '/tags', icon: Tag, key: 'tags', docUrl: '/help/contacts-tags' },
   { title: 'Attributes', url: '/user-attributes', icon: ListFilter, key: 'user-attributes', docUrl: '/help/contacts-tags' },
 ];
 
 const inboxMenuItems: MenuItem[] = [
-  { title: 'Dashboard', url: '/inbox/dashboard', icon: BarChart3, key: 'inbox-dashboard' },
+  { title: 'Overview', url: '/inbox/dashboard', icon: BarChart3, key: 'inbox-dashboard' },
   { title: 'All Inbox', url: '/inbox', icon: Inbox, key: 'inbox-all', docUrl: '/help/inbox' },
   { title: 'My Inbox', url: '/inbox/mine', icon: User, key: 'inbox-mine' },
   { title: 'New Today', url: '/inbox/new-today', icon: Plus, key: 'inbox-new-today' },
@@ -120,15 +123,20 @@ export function AppSidebar() {
 
   const isAgent = currentRole === 'agent';
   const filteredMainMenuItems = isAgent
-    ? mainMenuItems.filter(i => ['contacts', 'tags'].includes(i.key))
+    ? mainMenuItems
     : mainMenuItems;
 
   const filteredInboxMenuItems = isAgent
     ? inboxMenuItems.filter(i => ['inbox-all', 'inbox-mine', 'inbox-followup', 'inbox-overdue'].includes(i.key))
     : inboxMenuItems;
 
+  const filteredCrmMenuItems = isAgent
+    ? crmMenuItems.filter(i => ['contacts', 'tags'].includes(i.key))
+    : crmMenuItems;
+
   const menuGroups: MenuGroup[] = [
     { label: 'Inbox', icon: Inbox, items: filteredInboxMenuItems, defaultOpen: true },
+    { label: 'CRM', icon: Contact, items: filteredCrmMenuItems },
     ...(isAgent ? [] : [{ label: 'Channels', icon: Phone, items: channelMenuItems }]),
     ...(isAgent ? [] : [{ label: 'Growth', icon: TrendingUp, items: growthMenuItems }]),
     ...(isAgent ? [] : [{ label: 'Meta Ads', icon: Megaphone, items: metaAdsMenuItems }]),
