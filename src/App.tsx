@@ -123,6 +123,7 @@ import MetaAdsAttribution from "./pages/meta-ads/MetaAdsAttribution";
 import MetaAdsAutomations from "./pages/meta-ads/MetaAdsAutomations";
 import MetaAdsSettings from "./pages/meta-ads/MetaAdsSettings";
 import CreateMetaCampaign from "./pages/meta-ads/CreateMetaCampaign";
+import LeadFormsPage from "./pages/LeadFormsPage";
 import Install from "./pages/Install";
 import SeoDashboard from "./pages/developer/SeoDashboard";
 import AdminLayout from "./pages/admin/AdminLayout";
@@ -208,6 +209,7 @@ const App = () => (
               <Route path="/team/audit" element={<TeamAudit />} />
               <Route path="/meta-ads" element={<MetaAdsOverview />} />
               <Route path="/meta-ads/setup" element={<MetaAdsSetup />} />
+              <Route path="/lead-forms" element={<LeadFormsPage />} />
               <Route path="/meta-ads/manager" element={<MetaAdsManager />} />
               <Route path="/meta-ads/analytics" element={<MetaAdsAnalytics />} />
               <Route path="/meta-ads/attribution" element={<MetaAdsAttribution />} />

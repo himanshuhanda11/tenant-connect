@@ -4388,6 +4388,186 @@ export type Database = {
           },
         ]
       }
+      lead_events: {
+        Row: {
+          ad_id: string | null
+          contact_id: string | null
+          conversation_id: string | null
+          created_at: string
+          error_text: string | null
+          form_id: string | null
+          id: string
+          lead_id: string | null
+          message_id: string | null
+          normalized_data: Json | null
+          page_id: string | null
+          processing_duration_ms: number | null
+          raw_payload: Json
+          rule_id: string | null
+          status: string
+          tenant_id: string | null
+        }
+        Insert: {
+          ad_id?: string | null
+          contact_id?: string | null
+          conversation_id?: string | null
+          created_at?: string
+          error_text?: string | null
+          form_id?: string | null
+          id?: string
+          lead_id?: string | null
+          message_id?: string | null
+          normalized_data?: Json | null
+          page_id?: string | null
+          processing_duration_ms?: number | null
+          raw_payload?: Json
+          rule_id?: string | null
+          status?: string
+          tenant_id?: string | null
+        }
+        Update: {
+          ad_id?: string | null
+          contact_id?: string | null
+          conversation_id?: string | null
+          created_at?: string
+          error_text?: string | null
+          form_id?: string | null
+          id?: string
+          lead_id?: string | null
+          message_id?: string | null
+          normalized_data?: Json | null
+          page_id?: string | null
+          processing_duration_ms?: number | null
+          raw_payload?: Json
+          rule_id?: string | null
+          status?: string
+          tenant_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lead_events_rule_id_fkey"
+            columns: ["rule_id"]
+            isOneToOne: false
+            referencedRelation: "lead_form_rules"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lead_events_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "platform_workspace_directory"
+            referencedColumns: ["workspace_id"]
+          },
+          {
+            foreignKeyName: "lead_events_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      lead_form_rules: {
+        Row: {
+          assign_to_team_id: string | null
+          assign_to_user_id: string | null
+          assignment_mode: string
+          created_at: string
+          enabled: boolean
+          execution_count: number
+          field_mapping: Json
+          flow_id: string | null
+          flow_trigger_keyword: string | null
+          form_id: string
+          id: string
+          junk_filter_enabled: boolean
+          last_executed_at: string | null
+          name: string
+          page_id: string
+          phone_number_id: string | null
+          reply_mode: string
+          template_id: string | null
+          tenant_id: string
+          trigger_type: string
+          updated_at: string
+        }
+        Insert: {
+          assign_to_team_id?: string | null
+          assign_to_user_id?: string | null
+          assignment_mode?: string
+          created_at?: string
+          enabled?: boolean
+          execution_count?: number
+          field_mapping?: Json
+          flow_id?: string | null
+          flow_trigger_keyword?: string | null
+          form_id: string
+          id?: string
+          junk_filter_enabled?: boolean
+          last_executed_at?: string | null
+          name: string
+          page_id: string
+          phone_number_id?: string | null
+          reply_mode?: string
+          template_id?: string | null
+          tenant_id: string
+          trigger_type?: string
+          updated_at?: string
+        }
+        Update: {
+          assign_to_team_id?: string | null
+          assign_to_user_id?: string | null
+          assignment_mode?: string
+          created_at?: string
+          enabled?: boolean
+          execution_count?: number
+          field_mapping?: Json
+          flow_id?: string | null
+          flow_trigger_keyword?: string | null
+          form_id?: string
+          id?: string
+          junk_filter_enabled?: boolean
+          last_executed_at?: string | null
+          name?: string
+          page_id?: string
+          phone_number_id?: string | null
+          reply_mode?: string
+          template_id?: string | null
+          tenant_id?: string
+          trigger_type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lead_form_rules_phone_number_id_fkey"
+            columns: ["phone_number_id"]
+            isOneToOne: false
+            referencedRelation: "phone_numbers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lead_form_rules_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "templates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lead_form_rules_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "platform_workspace_directory"
+            referencedColumns: ["workspace_id"]
+          },
+          {
+            foreignKeyName: "lead_form_rules_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lead_form_submissions: {
         Row: {
           contact_id: string | null
@@ -4873,6 +5053,129 @@ export type Database = {
           },
           {
             foreignKeyName: "messages_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      meta_lead_forms: {
+        Row: {
+          created_at: string
+          form_id: string
+          form_name: string | null
+          id: string
+          is_webhook_subscribed: boolean
+          last_lead_at: string | null
+          last_sync_at: string | null
+          lead_count: number
+          page_id: string
+          page_name: string | null
+          status: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          form_id: string
+          form_name?: string | null
+          id?: string
+          is_webhook_subscribed?: boolean
+          last_lead_at?: string | null
+          last_sync_at?: string | null
+          lead_count?: number
+          page_id: string
+          page_name?: string | null
+          status?: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          form_id?: string
+          form_name?: string | null
+          id?: string
+          is_webhook_subscribed?: boolean
+          last_lead_at?: string | null
+          last_sync_at?: string | null
+          lead_count?: number
+          page_id?: string
+          page_name?: string | null
+          status?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "meta_lead_forms_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "platform_workspace_directory"
+            referencedColumns: ["workspace_id"]
+          },
+          {
+            foreignKeyName: "meta_lead_forms_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      meta_webhook_subscriptions: {
+        Row: {
+          created_at: string
+          event_count_24h: number
+          failure_count_24h: number
+          id: string
+          is_subscribed: boolean
+          last_error: string | null
+          last_event_at: string | null
+          page_id: string
+          page_name: string | null
+          subscribed_at: string | null
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          event_count_24h?: number
+          failure_count_24h?: number
+          id?: string
+          is_subscribed?: boolean
+          last_error?: string | null
+          last_event_at?: string | null
+          page_id: string
+          page_name?: string | null
+          subscribed_at?: string | null
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          event_count_24h?: number
+          failure_count_24h?: number
+          id?: string
+          is_subscribed?: boolean
+          last_error?: string | null
+          last_event_at?: string | null
+          page_id?: string
+          page_name?: string | null
+          subscribed_at?: string | null
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "meta_webhook_subscriptions_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "platform_workspace_directory"
+            referencedColumns: ["workspace_id"]
+          },
+          {
+            foreignKeyName: "meta_webhook_subscriptions_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
