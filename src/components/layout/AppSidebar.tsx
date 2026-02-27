@@ -64,6 +64,7 @@ const growthMenuItems: MenuItem[] = [
 const metaAdsMenuItems: MenuItem[] = [
   { title: 'Overview', url: '/meta-ads', icon: Megaphone, key: 'meta-ads-overview', docUrl: '/help/meta-ads' },
   { title: 'Setup', url: '/meta-ads/setup', icon: Link2, key: 'meta-ads-setup', docUrl: '/help/meta-ads' },
+  { title: 'Lead Forms', url: '/lead-forms', icon: FileText, key: 'lead-forms', isNew: true },
   { title: 'Ads Manager', url: '/meta-ads/manager', icon: Target, key: 'meta-ads-manager', docUrl: '/help/meta-ads' },
   { title: 'Lead Analytics', url: '/meta-ads/analytics', icon: BarChart3, key: 'meta-ads-analytics', isNew: true, docUrl: '/help/meta-ads' },
   { title: 'Attribution', url: '/meta-ads/attribution', icon: Route, key: 'meta-ads-attribution', docUrl: '/help/meta-ads' },
