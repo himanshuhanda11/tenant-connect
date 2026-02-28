@@ -14,6 +14,64 @@ export type Database = {
   }
   public: {
     Tables: {
+      agent_sessions: {
+        Row: {
+          created_at: string
+          duration_minutes: number | null
+          id: string
+          ip_address: string | null
+          session_end: string | null
+          session_start: string
+          tenant_id: string
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          duration_minutes?: number | null
+          id?: string
+          ip_address?: string | null
+          session_end?: string | null
+          session_start?: string
+          tenant_id: string
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          duration_minutes?: number | null
+          id?: string
+          ip_address?: string | null
+          session_end?: string | null
+          session_start?: string
+          tenant_id?: string
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_sessions_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "platform_workspace_directory"
+            referencedColumns: ["workspace_id"]
+          },
+          {
+            foreignKeyName: "agent_sessions_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agent_sessions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       agents: {
         Row: {
           created_at: string
@@ -12359,6 +12417,28 @@ export type Database = {
         }
         Returns: number
       }
+      agent_performance_stats: {
+        Args: { p_days?: number; p_tenant_id: string }
+        Returns: {
+          agent_email: string
+          agent_id: string
+          agent_name: string
+          avatar_url: string
+          avg_daily_hours: number
+          avg_response_minutes: number
+          chats_assigned: number
+          chats_opened: number
+          chats_replied: number
+          conversations_claimed: number
+          conversations_converted: number
+          current_open_chats: number
+          is_online: boolean
+          last_login_at: string
+          leads_clicked: number
+          total_hours_worked: number
+          total_sessions: number
+        }[]
+      }
       assign_conversation: {
         Args: {
           p_assigned_to: string
@@ -12796,6 +12876,8 @@ export type Database = {
           refunds: number
         }[]
       }
+      record_agent_login: { Args: { p_tenant_id: string }; Returns: string }
+      record_agent_logout: { Args: { p_tenant_id: string }; Returns: undefined }
       schedule_automation_job: {
         Args: {
           p_contact_id: string

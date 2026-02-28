@@ -6,6 +6,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useTenant } from '@/contexts/TenantContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Loader2 } from 'lucide-react';
+import { useAgentSessionTracker } from '@/hooks/useAgentPerformance';
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -18,6 +19,9 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   const [onboardingChecked, setOnboardingChecked] = useState(false);
   // Track user id to avoid re-running onboarding check on token refreshes
   const [checkedUserId, setCheckedUserId] = useState<string | null>(null);
+
+  // Track agent login/logout sessions
+  useAgentSessionTracker();
 
   // Check onboarding status — only once per unique user id
   useEffect(() => {

@@ -13,6 +13,7 @@ import { useTeamStats, useTeams, useTeamMembers, useRoles } from '@/hooks/useTea
 import { TeamGuideCard } from '@/components/team/TeamGuideCard';
 import { TeamBreadcrumb } from '@/components/team/TeamBreadcrumb';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { AgentPerformanceTable } from '@/components/team/AgentPerformanceTable';
 
 const TeamOverview = () => {
   const { stats, loading: statsLoading } = useTeamStats();
@@ -321,6 +322,9 @@ const TeamOverview = () => {
             </CardContent>
           </Card>
         </div>
+
+        {/* Agent Performance Dashboard */}
+        <AgentPerformanceTable />
 
         {/* Pro Tips */}
         <Card className="border-dashed">
