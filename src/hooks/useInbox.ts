@@ -153,7 +153,8 @@ export function useInboxConversations(view: InboxView, filters: InboxFilters) {
       } else if (filters.assignment === 'assigned_pending' && user?.id) {
         query = query.eq('assigned_to', user.id).is('claimed_at', null).neq('status', 'closed');
       } else if (filters.assignment === 'mine' && user?.id) {
-        query = query.eq('claimed_by', user.id).not('claimed_at', 'is', null).neq('status', 'closed');
+        // Show conversations assigned to OR claimed by the current user
+        query = query.or(`assigned_to.eq.${user.id},claimed_by.eq.${user.id}`).neq('status', 'closed');
       }
       if (filters.priority && filters.priority !== 'all') {
         query = query.eq('priority', filters.priority);
