@@ -48,6 +48,8 @@ export default defineConfig(({ mode }) => ({
       workbox: {
         maximumFileSizeToCacheInBytes: 5 * 1024 * 1024, // 5 MB limit
         globPatterns: ["**/*.{js,css,html,ico,png,svg,woff2}"],
+        // Never cache API/Supabase requests
+        navigateFallbackDenylist: [/^\/rest\//, /^\/auth\//, /^\/functions\//],
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
@@ -60,7 +62,15 @@ export default defineConfig(({ mode }) => ({
               },
             },
           },
+          {
+            // Ensure Supabase API calls always go to network
+            urlPattern: /^https:\/\/.*\.supabase\.co\/.*/i,
+            handler: "NetworkOnly",
+          },
         ],
+        // Force new service worker to activate immediately
+        skipWaiting: true,
+        clientsClaim: true,
       },
     }),
   ].filter(Boolean),
