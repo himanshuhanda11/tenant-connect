@@ -513,42 +513,107 @@ export function useConversationEvents(conversationId: string | null) {
 }
 
 // Notes - keep simple for now
-let notesStore: InternalNote[] = [];
-
 export function useInternalNotes(conversationId: string | null) {
+  const { currentTenant } = useTenant();
+  const { user } = useAuth();
   const [notes, setNotes] = useState<InternalNote[]>([]);
   const [loading, setLoading] = useState(false);
 
+  // Fetch notes from DB
   useEffect(() => {
-    if (!conversationId) {
+    if (!conversationId || !currentTenant?.id) {
       setNotes([]);
       return;
     }
-    const conversationNotes = notesStore.filter(n => n.conversation_id === conversationId);
-    setNotes(conversationNotes);
-  }, [conversationId]);
 
-  const addNote = useCallback(async (body: string, mentions: string[] = []) => {
-    if (!conversationId || !body.trim()) return;
+    const fetchNotes = async () => {
+      setLoading(true);
+      try {
+        const { data, error } = await supabase
+          .from('smeksh_internal_notes')
+          .select('*, author:profiles!smeksh_internal_notes_author_profile_id_fkey(id, full_name, avatar_url)')
+          .eq('conversation_id', conversationId)
+          .eq('tenant_id', currentTenant.id)
+          .order('created_at', { ascending: false });
 
-    const newNote: InternalNote = {
-      id: `n-${Date.now()}`,
-      tenant_id: '1',
-      conversation_id: conversationId,
-      author_profile_id: 'current',
-      visibility: 'internal',
-      body: body.trim(),
-      mentions_profile_ids: mentions,
-      attachments: [],
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      author: { id: 'current', full_name: 'You' },
+        if (error) throw error;
+
+        setNotes(
+          (data || []).map((n: any) => ({
+            id: n.id,
+            tenant_id: n.tenant_id,
+            conversation_id: n.conversation_id,
+            author_profile_id: n.author_profile_id,
+            visibility: n.visibility || 'internal',
+            body: n.body,
+            mentions_profile_ids: n.mentions_profile_ids || [],
+            attachments: n.attachments || [],
+            created_at: n.created_at,
+            updated_at: n.updated_at,
+            author: n.author
+              ? { id: n.author.id, full_name: n.author.full_name, avatar_url: n.author.avatar_url }
+              : undefined,
+          }))
+        );
+      } catch (err) {
+        console.error('Error fetching notes:', err);
+      } finally {
+        setLoading(false);
+      }
     };
 
-    notesStore = [...notesStore, newNote];
-    setNotes(prev => [...prev, newNote]);
-    toast.success('Note added successfully');
-  }, [conversationId]);
+    fetchNotes();
+  }, [conversationId, currentTenant?.id]);
+
+  const addNote = useCallback(async (body: string, mentions: string[] = []) => {
+    if (!conversationId || !body.trim() || !currentTenant?.id || !user?.id) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('smeksh_internal_notes')
+        .insert({
+          tenant_id: currentTenant.id,
+          conversation_id: conversationId,
+          author_profile_id: user.id,
+          body: body.trim(),
+          mentions_profile_ids: mentions,
+          visibility: 'internal',
+        })
+        .select('*, author:profiles!smeksh_internal_notes_author_profile_id_fkey(id, full_name, avatar_url)')
+        .single();
+
+      if (error) throw error;
+
+      if (data) {
+        const newNote: InternalNote = {
+          id: data.id,
+          tenant_id: data.tenant_id,
+          conversation_id: data.conversation_id,
+          author_profile_id: data.author_profile_id,
+          visibility: data.visibility || 'internal',
+          body: data.body,
+          mentions_profile_ids: data.mentions_profile_ids || [],
+          attachments: (Array.isArray(data.attachments) ? data.attachments : []) as unknown[],
+          created_at: data.created_at,
+          updated_at: data.updated_at,
+          author: (data as any).author
+            ? { id: (data as any).author.id, full_name: (data as any).author.full_name, avatar_url: (data as any).author.avatar_url }
+            : undefined,
+        };
+        setNotes(prev => [newNote, ...prev]);
+      }
+
+      toast.success('Note added');
+
+      // If there are mentions, notify them (future: push notification / in-app)
+      if (mentions.length > 0) {
+        toast.info(`${mentions.length} team member(s) mentioned`);
+      }
+    } catch (err) {
+      console.error('Error adding note:', err);
+      toast.error('Failed to add note');
+    }
+  }, [conversationId, currentTenant?.id, user?.id]);
 
   return { notes, loading, addNote };
 }
