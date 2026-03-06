@@ -593,7 +593,7 @@ export function useInternalNotes(conversationId: string | null) {
           visibility: data.visibility || 'internal',
           body: data.body,
           mentions_profile_ids: data.mentions_profile_ids || [],
-          attachments: data.attachments || [],
+          attachments: (Array.isArray(data.attachments) ? data.attachments : []) as unknown[],
           created_at: data.created_at,
           updated_at: data.updated_at,
           author: (data as any).author
