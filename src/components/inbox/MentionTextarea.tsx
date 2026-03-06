@@ -177,7 +177,6 @@ export function MentionTextarea({
         placeholder={placeholder}
         className={className}
         onBlur={() => {
-          // Delay hiding so click on dropdown item registers
           setTimeout(() => setShowDropdown(false), 200);
         }}
       />
@@ -185,7 +184,7 @@ export function MentionTextarea({
       {showDropdown && filteredMembers.length > 0 && (
         <div
           ref={dropdownRef}
-          className="absolute bottom-full left-0 mb-1 w-full max-h-48 overflow-y-auto bg-popover border border-border rounded-lg shadow-lg z-50"
+          className="absolute top-full left-0 mt-1 w-full max-h-40 overflow-y-auto bg-popover border border-border rounded-lg shadow-lg z-50"
         >
           {filteredMembers.map((member, index) => (
             <button
@@ -200,14 +199,14 @@ export function MentionTextarea({
                 insertMention(member);
               }}
             >
-              <Avatar className="h-6 w-6">
+              <Avatar className="h-6 w-6 flex-shrink-0">
                 <AvatarImage src={member.avatar_url || undefined} />
                 <AvatarFallback className="text-[10px] bg-primary/10 text-primary">
                   {getInitials(member.full_name)}
                 </AvatarFallback>
               </Avatar>
               <div className="flex-1 min-w-0">
-                <p className="font-medium truncate">{member.full_name}</p>
+                <p className="font-medium truncate text-foreground">{member.full_name}</p>
                 <p className="text-xs text-muted-foreground truncate">{member.email}</p>
               </div>
             </button>
