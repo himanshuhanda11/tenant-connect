@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { MentionTextarea } from './MentionTextarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { LeadQualificationPanel } from './LeadQualificationPanel';
@@ -60,6 +61,7 @@ export function InboxContextPanel({
 }: InboxContextPanelProps) {
   const [activeTab, setActiveTab] = useState('overview');
   const [newNote, setNewNote] = useState('');
+  const [mentionIds, setMentionIds] = useState<string[]>([]);
   const [tagSearch, setTagSearch] = useState('');
 
   const getInitials = (name?: string) => {
@@ -67,10 +69,15 @@ export function InboxContextPanel({
     return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
   };
 
+  const handleMentionsChange = useCallback((ids: string[]) => {
+    setMentionIds(ids);
+  }, []);
+
   const handleAddNote = () => {
     if (!newNote.trim()) return;
-    onAddNote(newNote, []);
+    onAddNote(newNote, mentionIds);
     setNewNote('');
+    setMentionIds([]);
   };
 
   if (!conversation) {
@@ -422,10 +429,11 @@ export function InboxContextPanel({
               </h4>
 
               <div className="space-y-2">
-                <Textarea
-                  placeholder="Write an internal note... Use @mention to notify teammates"
+                <MentionTextarea
+                  placeholder="Write an internal note... Type @ to mention teammates"
                   value={newNote}
-                  onChange={(e) => setNewNote(e.target.value)}
+                  onChange={setNewNote}
+                  onMentionsChange={handleMentionsChange}
                   className="min-h-[80px] resize-none"
                 />
                 <Button size="sm" onClick={handleAddNote} disabled={!newNote.trim()}>
