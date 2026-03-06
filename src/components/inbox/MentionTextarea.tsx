@@ -20,13 +20,13 @@ interface MentionTextareaProps {
   onMentionsChange?: (mentionIds: string[]) => void;
 }
 
-export function MentionTextarea({
+export const MentionTextarea = forwardRef<HTMLTextAreaElement, MentionTextareaProps>(({
   value,
   onChange,
   placeholder,
   className,
   onMentionsChange,
-}: MentionTextareaProps) {
+}, _ref) => {
   const { currentTenant } = useTenant();
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
   const [showDropdown, setShowDropdown] = useState(false);
