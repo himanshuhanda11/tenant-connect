@@ -835,13 +835,91 @@ export function InboxChatThread({
                       : "bg-card/95 backdrop-blur-sm border border-border/40 rounded-bl-sm shadow-sm hover:shadow-md transition-shadow"
                   )}>
                     {/* Media (WhatsApp-style previews) */}
-                    {message.media_url && message.message_type !== 'text' && message.message_type !== 'template' && (
+                    {(message.media_url || message.media_path) && message.message_type !== 'text' && message.message_type !== 'template' && (
                       <MessageMedia message={message} isOutbound={isOutbound} />
                     )}
+
+                    {/* Location message */}
+                    {message.message_type === 'location' && (
+                      <div className={cn(
+                        "flex items-center gap-2 p-2.5 rounded-xl mb-1",
+                        isOutbound ? "bg-primary-foreground/10" : "bg-muted/50"
+                      )}>
+                        <span className="text-lg">📍</span>
+                        <div className="text-sm">
+                          <p className="font-medium">{(message.payload as any)?.name || 'Location'}</p>
+                          {(message.payload as any)?.address && (
+                            <p className="text-xs text-muted-foreground">{(message.payload as any).address}</p>
+                          )}
+                          {(message.payload as any)?.latitude && (
+                            <a
+                              href={`https://maps.google.com/?q=${(message.payload as any).latitude},${(message.payload as any).longitude}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-xs text-primary underline"
+                            >
+                              Open in Maps
+                            </a>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Contact card message */}
+                    {message.message_type === 'contact' && (
+                      <div className={cn(
+                        "flex items-center gap-2 p-2.5 rounded-xl mb-1",
+                        isOutbound ? "bg-primary-foreground/10" : "bg-muted/50"
+                      )}>
+                        <User className="h-5 w-5" />
+                        <div className="text-sm">
+                          <p className="font-medium">
+                            {(message.payload as any)?.contacts?.[0]?.name?.formatted_name || 'Contact'}
+                          </p>
+                          {(message.payload as any)?.contacts?.[0]?.phones?.[0]?.phone && (
+                            <p className="text-xs text-muted-foreground">
+                              {(message.payload as any).contacts[0].phones[0].phone}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Interactive message (buttons/lists) */}
+                    {message.message_type === 'interactive' && (
+                      <div className="space-y-1">
+                        {message.body_text && (
+                          <p className="text-sm whitespace-pre-wrap leading-relaxed">{message.body_text}</p>
+                        )}
+                        {(message.payload as any)?.button_reply?.title && (
+                          <div className={cn(
+                            "inline-block px-3 py-1.5 rounded-lg text-xs font-medium",
+                            isOutbound ? "bg-primary-foreground/15" : "bg-primary/10 text-primary"
+                          )}>
+                            {(message.payload as any).button_reply.title}
+                          </div>
+                        )}
+                        {(message.payload as any)?.list_reply?.title && (
+                          <div className={cn(
+                            "inline-block px-3 py-1.5 rounded-lg text-xs font-medium",
+                            isOutbound ? "bg-primary-foreground/15" : "bg-primary/10 text-primary"
+                          )}>
+                            {(message.payload as any).list_reply.title}
+                          </div>
+                        )}
+                      </div>
+                    )}
                     
-                    {/* Text — skip if media component already renders caption */}
-                    {message.body_text && (message.message_type === 'text' || message.message_type === 'template' || !message.media_url) && (
+                    {/* Text — skip if media component already renders caption, or interactive already rendered */}
+                    {message.body_text && message.message_type !== 'interactive' && (message.message_type === 'text' || message.message_type === 'template' || (!message.media_url && !message.media_path)) && (
                       <p className="text-sm whitespace-pre-wrap leading-relaxed">{message.body_text}</p>
+                    )}
+
+                    {/* Fallback for unknown types with no body */}
+                    {!message.body_text && !message.media_url && !message.media_path && message.message_type !== 'location' && message.message_type !== 'contact' && message.message_type !== 'interactive' && message.message_type !== 'system' && (
+                      <p className="text-sm italic text-muted-foreground">
+                        [{message.message_type} message]
+                      </p>
                     )}
 
                     {/* Template indicator */}
