@@ -17,7 +17,7 @@ export function MessageMedia({ message, isOutbound }: MessageMediaProps) {
   const fileName = (message as any).media_filename || (payload as any)?.filename || (payload as any)?.file_name || undefined;
   const fileSize = (message as any).media_size_bytes || (payload as any)?.file_size || undefined;
 
-  if (!media_url && !media_path) return null;
+  if (!media_url && !media_path && !media_bucket) return null;
 
   const commonProps = {
     mediaBucket: media_bucket || undefined,
