@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, forwardRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
@@ -197,9 +197,9 @@ export function InboxCRMOverview({ conversation, onStatusChanged }: InboxCRMOver
   );
 }
 
-function InfoRow({ icon, label, value, highlight }: { icon: React.ReactNode; label: string; value: string; highlight?: boolean }) {
-  return (
-    <div className="flex items-center justify-between text-sm">
+const InfoRow = forwardRef<HTMLDivElement, { icon: React.ReactNode; label: string; value: string; highlight?: boolean }>(
+  ({ icon, label, value, highlight }, ref) => (
+    <div ref={ref} className="flex items-center justify-between text-sm">
       <div className="flex items-center gap-2 text-muted-foreground">
         {icon}
         <span className="text-xs">{label}</span>
@@ -211,5 +211,6 @@ function InfoRow({ icon, label, value, highlight }: { icon: React.ReactNode; lab
         {value}
       </span>
     </div>
-  );
-}
+  )
+);
+InfoRow.displayName = 'InfoRow';
