@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -10,7 +10,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from '@/components/ui/dialog';
-import { Plus, Pencil, Trash2, MessageSquareText, Save, Loader2 } from 'lucide-react';
+import { Plus, Pencil, Trash2, MessageSquareText, Save, Loader2, GripVertical } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -48,6 +48,8 @@ export function QuickReplyManager({ onSelectReply, isMobile = false }: QuickRepl
   const [editLabel, setEditLabel] = useState('');
   const [editText, setEditText] = useState('');
   const [isAdding, setIsAdding] = useState(false);
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
+  const dragIndexRef = useRef<number | null>(null);
 
   const tenantId = currentTenant?.id;
   const userId = user?.id;
@@ -75,12 +77,10 @@ export function QuickReplyManager({ onSelectReply, isMobile = false }: QuickRepl
       if (data && data.length > 0) {
         setReplies(data.map(r => ({ id: r.id, label: r.label, text: r.text, sort_order: r.sort_order })));
       } else {
-        // Seed default replies for first-time users
         await seedDefaultsForUser(tenantId, userId);
       }
     } catch (err) {
       console.error('Failed to load quick replies:', err);
-      // Fallback to local defaults so UI still works
       setReplies(DEFAULT_REPLIES.map((r, i) => ({ ...r, id: `local-${i}` })));
     } finally {
       setLoading(false);
@@ -103,7 +103,6 @@ export function QuickReplyManager({ onSelectReply, isMobile = false }: QuickRepl
 
       if (error) {
         console.error('Seed quick replies error:', error);
-        // Fallback to local defaults
         setReplies(DEFAULT_REPLIES.map((r, i) => ({ ...r, id: `local-${i}` })));
         return;
       }
@@ -206,6 +205,58 @@ export function QuickReplyManager({ onSelectReply, isMobile = false }: QuickRepl
     setEditText('');
   };
 
+  // Drag and drop handlers
+  const handleDragStart = (index: number) => {
+    dragIndexRef.current = index;
+  };
+
+  const handleDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    setDragOverIndex(index);
+  };
+
+  const handleDragLeave = () => {
+    setDragOverIndex(null);
+  };
+
+  const handleDrop = async (e: React.DragEvent, dropIndex: number) => {
+    e.preventDefault();
+    setDragOverIndex(null);
+    const fromIndex = dragIndexRef.current;
+    dragIndexRef.current = null;
+    if (fromIndex === null || fromIndex === dropIndex) return;
+
+    const updated = [...replies];
+    const [moved] = updated.splice(fromIndex, 1);
+    updated.splice(dropIndex, 0, moved);
+    setReplies(updated);
+
+    // Persist new sort_order to DB
+    const updates = updated.map((r, i) => ({ id: r.id, sort_order: i }));
+    try {
+      await Promise.all(
+        updates
+          .filter(u => !u.id.startsWith('local-'))
+          .map(u =>
+            supabase
+              .from('quick_replies')
+              .update({ sort_order: u.sort_order })
+              .eq('id', u.id)
+          )
+      );
+    } catch (err) {
+      console.error('Failed to save order:', err);
+      toast.error('Failed to save order');
+    }
+  };
+
+  const handleDragEnd = () => {
+    dragIndexRef.current = null;
+    setDragOverIndex(null);
+  };
+
+  const visibleCount = isMobile ? 2 : 4;
+
   return (
     <>
       {/* Inline Quick Replies Bar */}
@@ -218,7 +269,7 @@ export function QuickReplyManager({ onSelectReply, isMobile = false }: QuickRepl
           <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" />
         ) : (
           <>
-            {replies.slice(0, isMobile ? 2 : 4).map((reply) => (
+            {replies.slice(0, visibleCount).map((reply) => (
               <Button 
                 key={reply.id}
                 variant="outline" 
@@ -229,6 +280,11 @@ export function QuickReplyManager({ onSelectReply, isMobile = false }: QuickRepl
                 {reply.label}
               </Button>
             ))}
+            {replies.length > visibleCount && (
+              <span className="text-[10px] text-muted-foreground">
+                +{replies.length - visibleCount} more
+              </span>
+            )}
           </>
         )}
         <Button 
@@ -251,22 +307,44 @@ export function QuickReplyManager({ onSelectReply, isMobile = false }: QuickRepl
               Quick Replies
             </DialogTitle>
             <DialogDescription>
-              Create and manage your quick reply shortcuts. These are personal to your account.
+              Drag to reorder — top {visibleCount} appear in the quick bar.
             </DialogDescription>
           </DialogHeader>
 
           <ScrollArea className="max-h-[350px] pr-2">
-            <div className="space-y-2">
-              {replies.map((reply) => (
+            <div className="space-y-1">
+              {replies.map((reply, index) => (
                 <div
                   key={reply.id}
+                  draggable={!editingId && !isAdding}
+                  onDragStart={() => handleDragStart(index)}
+                  onDragOver={(e) => handleDragOver(e, index)}
+                  onDragLeave={handleDragLeave}
+                  onDrop={(e) => handleDrop(e, index)}
+                  onDragEnd={handleDragEnd}
                   className={cn(
-                    "group flex items-start gap-2 p-3 rounded-xl border transition-colors",
+                    "group flex items-start gap-2 p-3 rounded-xl border transition-all",
                     editingId === reply.id 
                       ? "border-primary/30 bg-primary/5" 
-                      : "border-border/50 hover:border-border hover:bg-muted/30"
+                      : "border-border/50 hover:border-border hover:bg-muted/30",
+                    dragOverIndex === index && "border-primary/50 bg-primary/10 scale-[1.02]",
+                    index < visibleCount && "relative",
                   )}
                 >
+                  {/* Drag handle */}
+                  {!editingId && !isAdding && (
+                    <div className="flex flex-col items-center gap-0.5 pt-0.5 cursor-grab active:cursor-grabbing shrink-0">
+                      <GripVertical className="h-4 w-4 text-muted-foreground/50" />
+                    </div>
+                  )}
+
+                  {/* Visible badge */}
+                  {index < visibleCount && !editingId && !isAdding && (
+                    <span className="absolute -top-1.5 -left-1.5 bg-primary text-primary-foreground text-[9px] font-bold rounded-full h-4 w-4 flex items-center justify-center">
+                      {index + 1}
+                    </span>
+                  )}
+
                   {editingId === reply.id ? (
                     <div className="flex-1 space-y-2">
                       <Input 
