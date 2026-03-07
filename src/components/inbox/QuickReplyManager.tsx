@@ -281,9 +281,14 @@ export function QuickReplyManager({ onSelectReply, isMobile = false }: QuickRepl
               </Button>
             ))}
             {replies.length > visibleCount && (
-              <span className="text-[10px] text-muted-foreground">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-6 text-[10px] text-muted-foreground hover:text-primary px-1.5"
+                onClick={() => setShowManager(true)}
+              >
                 +{replies.length - visibleCount} more
-              </span>
+              </Button>
             )}
           </>
         )}
@@ -371,7 +376,13 @@ export function QuickReplyManager({ onSelectReply, isMobile = false }: QuickRepl
                     </div>
                   ) : (
                     <>
-                      <div className="flex-1 min-w-0">
+                      <div
+                        className="flex-1 min-w-0 cursor-pointer rounded-lg p-1 -m-1 hover:bg-muted/50 transition-colors"
+                        onClick={() => {
+                          onSelectReply(reply.text);
+                          setShowManager(false);
+                        }}
+                      >
                         <p className="text-sm font-medium">{reply.label}</p>
                         <p className="text-xs text-muted-foreground line-clamp-2 mt-0.5">{reply.text}</p>
                       </div>
