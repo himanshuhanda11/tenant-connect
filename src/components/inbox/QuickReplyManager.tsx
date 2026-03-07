@@ -281,9 +281,14 @@ export function QuickReplyManager({ onSelectReply, isMobile = false }: QuickRepl
               </Button>
             ))}
             {replies.length > visibleCount && (
-              <span className="text-[10px] text-muted-foreground">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-6 text-[10px] text-muted-foreground hover:text-primary px-1.5"
+                onClick={() => setShowManager(true)}
+              >
                 +{replies.length - visibleCount} more
-              </span>
+              </Button>
             )}
           </>
         )}
