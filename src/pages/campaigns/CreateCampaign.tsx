@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useEffect, useMemo, useState } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -47,13 +47,16 @@ import {
   Zap
 } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { 
-  CampaignGoal, 
-  CampaignType, 
+import {
+  CampaignGoal,
+  CampaignType,
   CampaignWizardState,
   CAMPAIGN_GOAL_CONFIG,
   CAMPAIGN_TYPE_CONFIG
 } from '@/types/campaign';
+import { useTenant } from '@/contexts/TenantContext';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 const STEPS = [
   { id: 1, title: 'Basics', icon: Settings },
@@ -63,37 +66,63 @@ const STEPS = [
   { id: 5, title: 'Review', icon: CheckCircle },
 ];
 
-const MOCK_PHONE_NUMBERS = [
-  { id: 'p1', display: '+971 50 123 4567', name: 'Main Business' },
-  { id: 'p2', display: '+971 50 987 6543', name: 'Support Line' },
-];
+interface PhoneNumberOption {
+  id: string;
+  display_number: string | null;
+  verified_name: string | null;
+  status: string | null;
+  quality_rating: string | null;
+}
 
-const MOCK_TEMPLATES = [
-  { id: 't1', name: 'summer_sale_promo', category: 'MARKETING', status: 'APPROVED', language: 'en' },
-  { id: 't2', name: 'order_confirmation', category: 'UTILITY', status: 'APPROVED', language: 'en' },
-  { id: 't3', name: 'welcome_message', category: 'MARKETING', status: 'APPROVED', language: 'en' },
-  { id: 't4', name: 'payment_reminder', category: 'UTILITY', status: 'APPROVED', language: 'en' },
-];
+interface TemplateOption {
+  id: string;
+  name: string;
+  category: string | null;
+  status: string | null;
+  language: string | null;
+}
 
-const MOCK_SEGMENTS = [
-  { id: 's1', name: 'VIP Customers', count: 450 },
-  { id: 's2', name: 'New Leads (7 days)', count: 230 },
-  { id: 's3', name: 'Inactive 30 Days', count: 890 },
-  { id: 's4', name: 'CTWA Leads', count: 156 },
-];
+interface SegmentOption {
+  id: string;
+  name: string;
+  contact_count: number | null;
+}
 
-const MOCK_TAGS = [
-  { id: 'tag1', name: 'VIP', color: '#10b981' },
-  { id: 'tag2', name: 'Hot Lead', color: '#f59e0b' },
-  { id: 'tag3', name: 'Opted-out', color: '#ef4444' },
-  { id: 'tag4', name: 'Customer', color: '#3b82f6' },
-];
+interface TagOption {
+  id: string;
+  name: string;
+  color: string | null;
+}
+
+interface SelectedContactOption {
+  id: string;
+  name: string | null;
+  wa_id: string | null;
+}
 
 export default function CreateCampaign() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const { currentTenant } = useTenant();
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
+  const [isLoadingOptions, setIsLoadingOptions] = useState(false);
+  const [phoneNumbers, setPhoneNumbers] = useState<PhoneNumberOption[]>([]);
+  const [templates, setTemplates] = useState<TemplateOption[]>([]);
+  const [segments, setSegments] = useState<SegmentOption[]>([]);
+  const [tags, setTags] = useState<TagOption[]>([]);
+  const [selectedContactsPreview, setSelectedContactsPreview] = useState<SelectedContactOption[]>([]);
+
+  const preselectedContactIds = useMemo(() => {
+    const raw = searchParams.get('contacts') || '';
+    return raw
+      .split(',')
+      .map((id) => id.trim())
+      .filter(Boolean);
+  }, [searchParams]);
+
+  const preselectedCountParam = Number(searchParams.get('count') || '0');
+
   const [wizard, setWizard] = useState<CampaignWizardState>({
     step: 1,
     basics: {
@@ -109,11 +138,12 @@ export default function CreateCampaign() {
       variables: {},
     },
     audience: {
-      source: 'segments',
+      source: preselectedContactIds.length > 0 ? 'contacts' : 'segments',
       include_segments: [],
       exclude_segments: [],
       include_tags: [],
       exclude_tags: [],
+      selected_contacts: preselectedContactIds,
       exclude_recent_days: 0,
       estimated_count: 0,
     },
@@ -133,6 +163,93 @@ export default function CreateCampaign() {
       winner_metric: 'reply_rate',
     },
   });
+
+  useEffect(() => {
+    const fetchOptions = async () => {
+      if (!currentTenant?.id) return;
+      setIsLoadingOptions(true);
+
+      const [phoneRes, templateRes, segmentRes, tagRes] = await Promise.all([
+        supabase
+          .from('phone_numbers')
+          .select('id, display_number, verified_name, status, quality_rating, is_default')
+          .eq('tenant_id', currentTenant.id)
+          .order('is_default', { ascending: false })
+          .order('created_at', { ascending: false }),
+        supabase
+          .from('templates')
+          .select('id, name, category, status, language')
+          .eq('tenant_id', currentTenant.id)
+          .eq('status', 'APPROVED')
+          .order('updated_at', { ascending: false }),
+        supabase
+          .from('smeksh_segments')
+          .select('id, name, contact_count')
+          .eq('workspace_id', currentTenant.id)
+          .order('updated_at', { ascending: false }),
+        supabase
+          .from('tags')
+          .select('id, name, color')
+          .eq('tenant_id', currentTenant.id)
+          .order('name'),
+      ]);
+
+      if (phoneRes.error || templateRes.error || segmentRes.error || tagRes.error) {
+        console.error('Create broadcast options load error', {
+          phoneError: phoneRes.error,
+          templateError: templateRes.error,
+          segmentError: segmentRes.error,
+          tagError: tagRes.error,
+        });
+        toast.error('Failed to load broadcast options');
+      }
+
+      setPhoneNumbers((phoneRes.data || []) as PhoneNumberOption[]);
+      setTemplates((templateRes.data || []) as TemplateOption[]);
+      setSegments((segmentRes.data || []) as SegmentOption[]);
+      setTags((tagRes.data || []) as TagOption[]);
+      setIsLoadingOptions(false);
+    };
+
+    fetchOptions();
+  }, [currentTenant?.id]);
+
+  useEffect(() => {
+    const fetchSelectedContacts = async () => {
+      if (!currentTenant?.id || preselectedContactIds.length === 0) {
+        setSelectedContactsPreview([]);
+        return;
+      }
+
+      const { data, error } = await supabase
+        .from('contacts')
+        .select('id, name, wa_id')
+        .eq('tenant_id', currentTenant.id)
+        .in('id', preselectedContactIds);
+
+      if (error) {
+        console.error('Failed to load selected contacts', error);
+        return;
+      }
+
+      setSelectedContactsPreview((data || []) as SelectedContactOption[]);
+    };
+
+    fetchSelectedContacts();
+  }, [currentTenant?.id, preselectedContactIds]);
+
+  useEffect(() => {
+    if (preselectedContactIds.length === 0) return;
+
+    setWizard((prev) => ({
+      ...prev,
+      audience: {
+        ...prev.audience,
+        source: 'contacts',
+        selected_contacts: preselectedContactIds,
+      },
+    }));
+  }, [preselectedContactIds]);
 
   const updateBasics = (field: string, value: string) => {
     setWizard(prev => ({
@@ -169,7 +286,7 @@ export default function CreateCampaign() {
       case 2:
         return wizard.message.template_id;
       case 3:
-        return wizard.audience.include_segments.length > 0 || wizard.audience.include_tags.length > 0;
+        return wizard.audience.include_segments.length > 0 || wizard.audience.include_tags.length > 0 || wizard.audience.selected_contacts.length > 0;
       case 4:
         return true;
       default:
@@ -218,11 +335,20 @@ export default function CreateCampaign() {
   };
 
   const estimatedAudience = () => {
+    const selectedContactsCount = wizard.audience.selected_contacts.length > 0
+      ? wizard.audience.selected_contacts.length
+      : preselectedContactIds.length > 0
+        ? Math.max(preselectedCountParam, preselectedContactIds.length)
+        : 0;
+
+    if (selectedContactsCount > 0) return selectedContactsCount;
+
     let count = 0;
-    wizard.audience.include_segments.forEach(id => {
-      const seg = MOCK_SEGMENTS.find(s => s.id === id);
-      if (seg) count += seg.count;
+    wizard.audience.include_segments.forEach((id) => {
+      const seg = segments.find((s) => s.id === id);
+      if (seg?.contact_count) count += seg.contact_count;
     });
+
     return count > 0 ? count : 0;
   };
 
@@ -323,14 +449,21 @@ export default function CreateCampaign() {
                         <SelectValue placeholder="Select phone number" />
                       </SelectTrigger>
                       <SelectContent>
-                        {MOCK_PHONE_NUMBERS.map(phone => (
-                          <SelectItem key={phone.id} value={phone.id}>
-                            <div className="flex items-center gap-2">
-                              <Phone className="h-4 w-4 text-green-600" />
-                              {phone.display} - {phone.name}
-                            </div>
-                          </SelectItem>
-                        ))}
+                        {isLoadingOptions ? (
+                          <SelectItem value="loading" disabled>Loading numbers...</SelectItem>
+                        ) : phoneNumbers.length === 0 ? (
+                          <SelectItem value="none" disabled>No connected WhatsApp numbers</SelectItem>
+                        ) : (
+                          phoneNumbers.map((phone) => (
+                            <SelectItem key={phone.id} value={phone.id}>
+                              <span className="inline-flex items-center gap-2">
+                                <Phone className="h-4 w-4 text-primary" />
+                                <span>{phone.display_number || 'Unknown number'}</span>
+                                {phone.verified_name ? <span className="text-muted-foreground">• {phone.verified_name}</span> : null}
+                              </span>
+                            </SelectItem>
+                          ))
+                        )}
                       </SelectContent>
                     </Select>
                   </div>
@@ -357,39 +490,44 @@ export default function CreateCampaign() {
                   <div className="space-y-2">
                     <Label>Select Template *</Label>
                     <div className="space-y-2">
-                      {MOCK_TEMPLATES.filter(t => t.status === 'APPROVED').map(template => (
-                        <div
-                          key={template.id}
-                          className={`p-4 border rounded-lg cursor-pointer transition-all hover:border-primary/50 flex items-center justify-between
-                            ${wizard.message.template_id === template.id ? 'border-primary bg-primary/5 ring-1 ring-primary' : ''}`}
-                          onClick={() => {
-                            updateMessage('template_id', template.id);
-                            updateMessage('template_name', template.name);
-                            updateMessage('template_category', template.category);
-                          }}
-                        >
-                          <div className="flex items-center gap-3">
-                            <div className={`w-10 h-10 rounded-lg flex items-center justify-center
-                              ${template.category === 'MARKETING' ? 'bg-purple-100' : 'bg-blue-100'}`}>
-                              <FileText className={`h-5 w-5 ${template.category === 'MARKETING' ? 'text-purple-600' : 'text-blue-600'}`} />
-                            </div>
-                            <div>
-                              <p className="font-medium">{template.name}</p>
-                              <div className="flex items-center gap-2 mt-1">
-                                <Badge variant="outline" className="text-xs">
-                                  {template.category}
-                                </Badge>
-                                <Badge variant="outline" className="text-xs bg-green-50 text-green-700">
-                                  Approved
-                                </Badge>
+                      {templates.length === 0 ? (
+                        <div className="p-4 border rounded-lg text-sm text-muted-foreground">
+                          No approved templates found.
+                        </div>
+                      ) : (
+                        templates.map((template) => (
+                          <div
+                            key={template.id}
+                            className={`p-4 border rounded-lg cursor-pointer transition-all hover:border-primary/50 flex items-center justify-between
+                              ${wizard.message.template_id === template.id ? 'border-primary bg-primary/5 ring-1 ring-primary' : ''}`}
+                            onClick={() => {
+                              updateMessage('template_id', template.id);
+                              updateMessage('template_name', template.name);
+                              updateMessage('template_category', template.category || '');
+                            }}
+                          >
+                            <div className="flex items-center gap-3">
+                              <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center">
+                                <FileText className="h-5 w-5 text-primary" />
+                              </div>
+                              <div>
+                                <p className="font-medium">{template.name}</p>
+                                <div className="flex items-center gap-2 mt-1">
+                                  <Badge variant="outline" className="text-xs">
+                                    {template.category || 'GENERAL'}
+                                  </Badge>
+                                  <Badge variant="outline" className="text-xs">
+                                    Approved
+                                  </Badge>
+                                </div>
                               </div>
                             </div>
+                            {wizard.message.template_id === template.id && (
+                              <CheckCircle className="h-5 w-5 text-primary" />
+                            )}
                           </div>
-                          {wizard.message.template_id === template.id && (
-                            <CheckCircle className="h-5 w-5 text-primary" />
-                          )}
-                        </div>
-                      ))}
+                        ))
+                      )}
                     </div>
                   </div>
 
@@ -451,6 +589,26 @@ export default function CreateCampaign() {
                   <CardDescription>Select who will receive this campaign</CardDescription>
                 </div>
 
+                {wizard.audience.selected_contacts.length > 0 && (
+                  <Card className="bg-primary/5 border-primary/20">
+                    <CardContent className="pt-4 space-y-2">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <Users className="h-4 w-4 text-primary" />
+                          <span className="font-medium">Selected from Contacts</span>
+                        </div>
+                        <Badge>{wizard.audience.selected_contacts.length}</Badge>
+                      </div>
+                      {selectedContactsPreview.length > 0 && (
+                        <p className="text-sm text-muted-foreground truncate">
+                          {selectedContactsPreview.slice(0, 5).map((c) => c.name || c.wa_id || c.id).join(', ')}
+                          {selectedContactsPreview.length > 5 ? ` +${selectedContactsPreview.length - 5} more` : ''}
+                        </p>
+                      )}
+                    </CardContent>
+                  </Card>
+                )}
+
                 <div className="grid md:grid-cols-2 gap-6">
                   {/* Include */}
                   <div className="space-y-4">
@@ -463,46 +621,51 @@ export default function CreateCampaign() {
 
                     <div className="space-y-2">
                       <p className="text-sm text-muted-foreground">Segments</p>
-                      {MOCK_SEGMENTS.map(segment => (
-                        <div
-                          key={segment.id}
-                          className={`p-3 border rounded-lg cursor-pointer transition-all flex items-center justify-between
-                            ${wizard.audience.include_segments.includes(segment.id) ? 'border-green-500 bg-green-50' : 'hover:border-green-300'}`}
-                          onClick={() => toggleSegment(segment.id, 'include')}
-                        >
-                          <div className="flex items-center gap-2">
-                            <Target className="h-4 w-4 text-muted-foreground" />
-                            <span className="text-sm">{segment.name}</span>
+                      {segments.length === 0 ? (
+                        <div className="p-3 border rounded-lg text-sm text-muted-foreground">No saved segments yet</div>
+                      ) : (
+                        segments.map((segment) => (
+                          <div
+                            key={segment.id}
+                            className={`p-3 border rounded-lg cursor-pointer transition-all flex items-center justify-between
+                              ${wizard.audience.include_segments.includes(segment.id) ? 'border-primary bg-primary/5' : 'hover:border-primary/50'}`}
+                            onClick={() => toggleSegment(segment.id, 'include')}
+                          >
+                            <div className="flex items-center gap-2">
+                              <Target className="h-4 w-4 text-muted-foreground" />
+                              <span className="text-sm">{segment.name}</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Badge variant="secondary" className="text-xs">
+                                {(segment.contact_count || 0).toLocaleString()}
+                              </Badge>
+                              {wizard.audience.include_segments.includes(segment.id) && (
+                                <CheckCircle className="h-4 w-4 text-primary" />
+                              )}
+                            </div>
                           </div>
-                          <div className="flex items-center gap-2">
-                            <Badge variant="secondary" className="text-xs">
-                              {segment.count.toLocaleString()}
-                            </Badge>
-                            {wizard.audience.include_segments.includes(segment.id) && (
-                              <CheckCircle className="h-4 w-4 text-green-600" />
-                            )}
-                          </div>
-                        </div>
-                      ))}
+                        ))
+                      )}
                     </div>
 
                     <div className="space-y-2">
                       <p className="text-sm text-muted-foreground">Tags</p>
                       <div className="flex flex-wrap gap-2">
-                        {MOCK_TAGS.filter(t => t.name !== 'Opted-out').map(tag => (
-                          <Badge
-                            key={tag.id}
-                            variant={wizard.audience.include_tags.includes(tag.id) ? 'default' : 'outline'}
-                            className="cursor-pointer"
-                            onClick={() => toggleTag(tag.id, 'include')}
-                          >
-                            <div 
-                              className="w-2 h-2 rounded-full mr-1" 
-                              style={{ backgroundColor: tag.color }} 
-                            />
-                            {tag.name}
-                          </Badge>
-                        ))}
+                        {tags.length === 0 ? (
+                          <span className="text-sm text-muted-foreground">No tags available</span>
+                        ) : (
+                          tags.map((tag) => (
+                            <Badge
+                              key={tag.id}
+                              variant={wizard.audience.include_tags.includes(tag.id) ? 'default' : 'outline'}
+                              className="cursor-pointer"
+                              onClick={() => toggleTag(tag.id, 'include')}
+                            >
+                              <div className="w-2 h-2 rounded-full mr-1" style={{ backgroundColor: tag.color || 'hsl(var(--muted-foreground))' }} />
+                              {tag.name}
+                            </Badge>
+                          ))
+                        )}
                       </div>
                     </div>
                   </div>
@@ -542,16 +705,20 @@ export default function CreateCampaign() {
                     <div className="space-y-2">
                       <p className="text-sm text-muted-foreground">Exclude Tags</p>
                       <div className="flex flex-wrap gap-2">
-                        {MOCK_TAGS.map(tag => (
-                          <Badge
-                            key={tag.id}
-                            variant={wizard.audience.exclude_tags.includes(tag.id) ? 'destructive' : 'outline'}
-                            className="cursor-pointer"
-                            onClick={() => toggleTag(tag.id, 'exclude')}
-                          >
-                            {tag.name}
-                          </Badge>
-                        ))}
+                        {tags.length === 0 ? (
+                          <span className="text-sm text-muted-foreground">No tags available</span>
+                        ) : (
+                          tags.map((tag) => (
+                            <Badge
+                              key={tag.id}
+                              variant={wizard.audience.exclude_tags.includes(tag.id) ? 'destructive' : 'outline'}
+                              className="cursor-pointer"
+                              onClick={() => toggleTag(tag.id, 'exclude')}
+                            >
+                              {tag.name}
+                            </Badge>
+                          ))
+                        )}
                       </div>
                     </div>
                   </div>
@@ -569,8 +736,8 @@ export default function CreateCampaign() {
                         </div>
                       </div>
                       <div className="text-right text-sm">
-                        <p className="text-green-600">+{wizard.audience.include_segments.length} segments included</p>
-                        <p className="text-red-600">-{wizard.audience.exclude_tags.length} tags excluded</p>
+                        <p className="text-muted-foreground">{wizard.audience.selected_contacts.length} contacts selected</p>
+                        <p className="text-muted-foreground">{wizard.audience.include_segments.length} segments included</p>
                       </div>
                     </div>
                   </CardContent>
@@ -760,7 +927,7 @@ export default function CreateCampaign() {
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Phone</span>
                         <span className="font-medium">
-                          {MOCK_PHONE_NUMBERS.find(p => p.id === wizard.basics.phone_number_id)?.display || '—'}
+                          {phoneNumbers.find((p) => p.id === wizard.basics.phone_number_id)?.display_number || '—'}
                         </span>
                       </div>
                     </CardContent>
@@ -798,8 +965,12 @@ export default function CreateCampaign() {
                         <span className="font-medium text-primary">{estimatedAudience().toLocaleString()}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-muted-foreground">Segments</span>
-                        <span className="font-medium">{wizard.audience.include_segments.length} included</span>
+                        <span className="text-muted-foreground">Audience Source</span>
+                        <span className="font-medium">
+                          {wizard.audience.selected_contacts.length > 0
+                            ? `${wizard.audience.selected_contacts.length} selected contacts`
+                            : `${wizard.audience.include_segments.length} segments included`}
+                        </span>
                       </div>
                     </CardContent>
                   </Card>
