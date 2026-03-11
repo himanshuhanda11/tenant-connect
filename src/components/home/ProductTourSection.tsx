@@ -91,7 +91,7 @@ export default function ProductTourSection() {
   const [activeTab, setActiveTab] = useState('inbox');
   const [isPlaying, setIsPlaying] = useState(true);
   const [progress, setProgress] = useState(0);
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const intervalRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const AUTOPLAY_DURATION = 6000; // 6 seconds per tab
   const PROGRESS_INTERVAL = 50;
