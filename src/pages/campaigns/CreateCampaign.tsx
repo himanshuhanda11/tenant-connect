@@ -490,39 +490,44 @@ export default function CreateCampaign() {
                   <div className="space-y-2">
                     <Label>Select Template *</Label>
                     <div className="space-y-2">
-                      {MOCK_TEMPLATES.filter(t => t.status === 'APPROVED').map(template => (
-                        <div
-                          key={template.id}
-                          className={`p-4 border rounded-lg cursor-pointer transition-all hover:border-primary/50 flex items-center justify-between
-                            ${wizard.message.template_id === template.id ? 'border-primary bg-primary/5 ring-1 ring-primary' : ''}`}
-                          onClick={() => {
-                            updateMessage('template_id', template.id);
-                            updateMessage('template_name', template.name);
-                            updateMessage('template_category', template.category);
-                          }}
-                        >
-                          <div className="flex items-center gap-3">
-                            <div className={`w-10 h-10 rounded-lg flex items-center justify-center
-                              ${template.category === 'MARKETING' ? 'bg-purple-100' : 'bg-blue-100'}`}>
-                              <FileText className={`h-5 w-5 ${template.category === 'MARKETING' ? 'text-purple-600' : 'text-blue-600'}`} />
-                            </div>
-                            <div>
-                              <p className="font-medium">{template.name}</p>
-                              <div className="flex items-center gap-2 mt-1">
-                                <Badge variant="outline" className="text-xs">
-                                  {template.category}
-                                </Badge>
-                                <Badge variant="outline" className="text-xs bg-green-50 text-green-700">
-                                  Approved
-                                </Badge>
+                      {templates.length === 0 ? (
+                        <div className="p-4 border rounded-lg text-sm text-muted-foreground">
+                          No approved templates found.
+                        </div>
+                      ) : (
+                        templates.map((template) => (
+                          <div
+                            key={template.id}
+                            className={`p-4 border rounded-lg cursor-pointer transition-all hover:border-primary/50 flex items-center justify-between
+                              ${wizard.message.template_id === template.id ? 'border-primary bg-primary/5 ring-1 ring-primary' : ''}`}
+                            onClick={() => {
+                              updateMessage('template_id', template.id);
+                              updateMessage('template_name', template.name);
+                              updateMessage('template_category', template.category || '');
+                            }}
+                          >
+                            <div className="flex items-center gap-3">
+                              <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center">
+                                <FileText className="h-5 w-5 text-primary" />
+                              </div>
+                              <div>
+                                <p className="font-medium">{template.name}</p>
+                                <div className="flex items-center gap-2 mt-1">
+                                  <Badge variant="outline" className="text-xs">
+                                    {template.category || 'GENERAL'}
+                                  </Badge>
+                                  <Badge variant="outline" className="text-xs">
+                                    Approved
+                                  </Badge>
+                                </div>
                               </div>
                             </div>
+                            {wizard.message.template_id === template.id && (
+                              <CheckCircle className="h-5 w-5 text-primary" />
+                            )}
                           </div>
-                          {wizard.message.template_id === template.id && (
-                            <CheckCircle className="h-5 w-5 text-primary" />
-                          )}
-                        </div>
-                      ))}
+                        ))
+                      )}
                     </div>
                   </div>
 
