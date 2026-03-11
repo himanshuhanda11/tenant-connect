@@ -273,37 +273,36 @@ export default function CampaignAudienceBuilder({
     fetchExtras();
   }, [currentTenant?.id]);
 
-  // Estimate audience count
   const estimateAudience = useCallback(async () => {
     if (!currentTenant?.id) return;
 
-    // If direct contacts selected, count is just that
-    if (filters.selected_contacts.length > 0) {
+    const hasAdvancedFilters =
+      filters.include_segments.length > 0 ||
+      filters.exclude_segments.length > 0 ||
+      filters.include_tags.length > 0 ||
+      filters.exclude_tags.length > 0 ||
+      filters.assigned_agent !== '' ||
+      filters.lead_states.length > 0 ||
+      filters.crm_statuses.length > 0 ||
+      filters.mau_statuses.length > 0 ||
+      filters.priorities.length > 0 ||
+      filters.date_from !== '' ||
+      filters.date_to !== '' ||
+      filters.meta_campaign_source !== '' ||
+      filters.flow_source !== '' ||
+      filters.contact_source !== '' ||
+      filters.attributes.some((a) => a.key && a.value) ||
+      filters.is_unreplied !== 'all' ||
+      filters.exclude_recent_days > 0;
+
+    // Keep imported direct contacts only when no advanced filter is active
+    if (filters.selected_contacts.length > 0 && !hasAdvancedFilters) {
       onEstimatedCountChange(filters.selected_contacts.length);
       return;
     }
 
     setIsEstimating(true);
     try {
-      const params: Record<string, unknown> = {
-        p_tenant_id: currentTenant.id,
-        p_limit: 1,
-        p_offset: 0,
-      };
-
-      if (filters.lead_states.length > 0) params.p_lead_states = filters.lead_states;
-      if (filters.assigned_agent) params.p_assigned_to = filters.assigned_agent;
-      if (filters.date_from) params.p_date_from = filters.date_from;
-      if (filters.date_to) params.p_date_to = filters.date_to;
-      if (filters.is_unreplied === 'yes') params.p_is_unreplied = true;
-      if (filters.is_unreplied === 'no') params.p_is_unreplied = false;
-      if (filters.include_tags.length > 0) params.p_tag_ids = filters.include_tags;
-      if (filters.attributes.length > 0) {
-        const validAttrs = filters.attributes.filter((a) => a.key && a.value);
-        if (validAttrs.length > 0) params.p_attributes = JSON.stringify(validAttrs);
-      }
-
-      // Build a count query on contacts table with matching filters
       let query = supabase
         .from('contacts')
         .select('id', { count: 'exact', head: true })
@@ -313,37 +312,31 @@ export default function CampaignAudienceBuilder({
       if (filters.mau_statuses.length > 0) query = query.in('mau_status', filters.mau_statuses as any);
       if (filters.priorities.length > 0) query = query.in('priority_level', filters.priorities as any);
       if (filters.lead_states.length > 0) query = query.in('lead_status', filters.lead_states as any);
+      if (filters.crm_statuses.length > 0) query = query.in('deal_stage', filters.crm_statuses as any);
       if (filters.assigned_agent) query = query.eq('assigned_agent_id', filters.assigned_agent);
       if (filters.contact_source) query = query.eq('source', filters.contact_source);
-      if (filters.date_from) query = query.gte('created_at', filters.date_from);
-      if (filters.date_to) query = query.lte('created_at', filters.date_to);
+      if (filters.flow_source) query = query.eq('automation_flow', filters.flow_source);
       if (filters.meta_campaign_source) query = query.eq('campaign_source', filters.meta_campaign_source);
+      if (filters.date_from) query = query.gte('created_at', `${filters.date_from}T00:00:00`);
+      if (filters.date_to) query = query.lt('created_at', `${filters.date_to}T23:59:59.999`);
 
-      // Segment-based count
-      let segmentCount = 0;
+      let segmentCount: number | null = null;
       if (filters.include_segments.length > 0) {
-        filters.include_segments.forEach((id) => {
-          const seg = segments.find((s) => s.id === id);
-          if (seg?.contact_count) segmentCount += seg.contact_count;
-        });
+        segmentCount = filters.include_segments.reduce((total, id) => {
+          const segment = segments.find((s) => s.id === id);
+          return total + (segment?.contact_count || 0);
+        }, 0);
       }
 
-      const { count } = await query;
-      const filterCount = count || 0;
+      const { count, error } = await query;
+      if (error) throw error;
 
-      // Use the larger of segment count vs filter count, or sum if both active
-      const hasFilters = filters.assigned_agent || filters.lead_states.length > 0 || 
-        filters.mau_statuses.length > 0 || filters.priorities.length > 0 ||
-        filters.date_from || filters.contact_source || filters.meta_campaign_source;
+      const filteredCount = count || 0;
 
-      if (segmentCount > 0 && hasFilters) {
-        onEstimatedCountChange(Math.min(segmentCount, filterCount));
-      } else if (segmentCount > 0) {
-        onEstimatedCountChange(segmentCount);
-      } else if (hasFilters || filters.include_tags.length > 0) {
-        onEstimatedCountChange(filterCount);
+      if (segmentCount !== null) {
+        onEstimatedCountChange(filteredCount > 0 ? Math.min(segmentCount, filteredCount) : segmentCount);
       } else {
-        onEstimatedCountChange(filterCount);
+        onEstimatedCountChange(filteredCount);
       }
     } catch (err) {
       console.error('Audience estimation error:', err);
