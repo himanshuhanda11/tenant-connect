@@ -29,6 +29,7 @@ export default function Contacts() {
     page: crmPage,
     setPage: setCrmPage,
     pageSize: crmPageSize,
+    totalCount: crmTotalCount,
     fetchContacts: fetchCrmContacts,
     resetFilters: resetCrmFilters,
   } = useContactsCrmSearch();
