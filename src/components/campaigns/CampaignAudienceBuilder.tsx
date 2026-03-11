@@ -376,7 +376,7 @@ export default function CampaignAudienceBuilder({
         .eq('tenant_id', currentTenant.id);
 
       if (filters.opt_in_only) {
-        query = query.or('opt_in_status.eq.true,and(opt_in_status.is.null,opt_out.eq.false)');
+        query = query.eq('opt_out', false);
       }
       if (filters.mau_statuses.length > 0) query = query.in('mau_status', filters.mau_statuses as any);
       if (filters.priorities.length > 0) query = query.in('priority_level', filters.priorities as any);
