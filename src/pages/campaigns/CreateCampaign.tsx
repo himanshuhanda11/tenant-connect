@@ -296,13 +296,9 @@ export default function CreateCampaign() {
       case 2:
         return wizard.message.template_id;
       case 3:
-        return wizard.audience.include_segments.length > 0 || wizard.audience.include_tags.length > 0 || wizard.audience.selected_contacts.length > 0;
-      case 4:
-        return true;
-      default:
-        return true;
-    }
-  };
+        return audienceEstimatedCount > 0 || audienceFilters.selected_contacts.length > 0 || 
+               audienceFilters.include_segments.length > 0 || audienceFilters.include_tags.length > 0 ||
+               audienceFilters.assigned_agent !== '' || audienceFilters.lead_states.length > 0;
 
   const handleNext = () => {
     if (currentStep < 5) {
