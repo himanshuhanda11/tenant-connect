@@ -621,27 +621,31 @@ export default function CreateCampaign() {
 
                     <div className="space-y-2">
                       <p className="text-sm text-muted-foreground">Segments</p>
-                      {MOCK_SEGMENTS.map(segment => (
-                        <div
-                          key={segment.id}
-                          className={`p-3 border rounded-lg cursor-pointer transition-all flex items-center justify-between
-                            ${wizard.audience.include_segments.includes(segment.id) ? 'border-green-500 bg-green-50' : 'hover:border-green-300'}`}
-                          onClick={() => toggleSegment(segment.id, 'include')}
-                        >
-                          <div className="flex items-center gap-2">
-                            <Target className="h-4 w-4 text-muted-foreground" />
-                            <span className="text-sm">{segment.name}</span>
+                      {segments.length === 0 ? (
+                        <div className="p-3 border rounded-lg text-sm text-muted-foreground">No saved segments yet</div>
+                      ) : (
+                        segments.map((segment) => (
+                          <div
+                            key={segment.id}
+                            className={`p-3 border rounded-lg cursor-pointer transition-all flex items-center justify-between
+                              ${wizard.audience.include_segments.includes(segment.id) ? 'border-primary bg-primary/5' : 'hover:border-primary/50'}`}
+                            onClick={() => toggleSegment(segment.id, 'include')}
+                          >
+                            <div className="flex items-center gap-2">
+                              <Target className="h-4 w-4 text-muted-foreground" />
+                              <span className="text-sm">{segment.name}</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Badge variant="secondary" className="text-xs">
+                                {(segment.contact_count || 0).toLocaleString()}
+                              </Badge>
+                              {wizard.audience.include_segments.includes(segment.id) && (
+                                <CheckCircle className="h-4 w-4 text-primary" />
+                              )}
+                            </div>
                           </div>
-                          <div className="flex items-center gap-2">
-                            <Badge variant="secondary" className="text-xs">
-                              {segment.count.toLocaleString()}
-                            </Badge>
-                            {wizard.audience.include_segments.includes(segment.id) && (
-                              <CheckCircle className="h-4 w-4 text-green-600" />
-                            )}
-                          </div>
-                        </div>
-                      ))}
+                        ))
+                      )}
                     </div>
 
                     <div className="space-y-2">
