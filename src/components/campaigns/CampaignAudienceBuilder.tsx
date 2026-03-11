@@ -226,14 +226,19 @@ function AudienceFilterSection({
   onOpenChange,
   children,
 }: AudienceFilterSectionProps) {
+  const [internalOpen, setInternalOpen] = useState(true);
   const isControlled = typeof isOpen === 'boolean';
+  const resolvedOpen = isControlled ? Boolean(isOpen) : internalOpen;
+
+  const handleOpenChange = (nextOpen: boolean) => {
+    if (!isControlled) {
+      setInternalOpen(nextOpen);
+    }
+    onOpenChange?.(nextOpen);
+  };
 
   return (
-    <Collapsible
-      defaultOpen={isControlled ? undefined : true}
-      open={isControlled ? isOpen : undefined}
-      onOpenChange={onOpenChange}
-    >
+    <Collapsible open={resolvedOpen} onOpenChange={handleOpenChange}>
       <CollapsibleTrigger className="w-full">
         <div className="flex items-center justify-between p-3 rounded-lg hover:bg-muted/50 transition-colors group">
           <div className="flex items-center gap-3">
@@ -247,7 +252,7 @@ function AudienceFilterSection({
               </Badge>
             )}
           </div>
-          {isOpen ? (
+          {resolvedOpen ? (
             <ChevronDown className="h-4 w-4 text-muted-foreground" />
           ) : (
             <ChevronRight className="h-4 w-4 text-muted-foreground" />
