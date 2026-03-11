@@ -56,16 +56,72 @@ import {
 import { format, formatDistanceToNow } from 'date-fns';
 import { 
   Campaign, 
-  MOCK_CAMPAIGNS, 
   CAMPAIGN_STATUS_CONFIG,
   CampaignStatus 
 } from '@/types/campaign';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useCampaigns } from '@/hooks/useCampaigns';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function CampaignsList() {
   const navigate = useNavigate();
-  const [campaigns] = useState<Campaign[]>(MOCK_CAMPAIGNS);
+  const { data: dbCampaigns, isLoading } = useCampaigns();
+  
+  const campaigns: Campaign[] = (dbCampaigns || []).map(c => ({
+    id: c.id,
+    tenant_id: c.tenant_id,
+    name: c.name,
+    description: c.description || undefined,
+    campaign_type: (c.campaign_type as Campaign['campaign_type']) || 'broadcast',
+    goal: (c.goal as Campaign['goal']) || undefined,
+    status: c.status as CampaignStatus,
+    template_id: c.template_id,
+    template_variables: c.template_variables as Record<string, unknown> | undefined,
+    header_media_url: c.header_media_url || undefined,
+    header_media_type: c.header_media_type || undefined,
+    phone_number_id: c.phone_number_id,
+    audience_source: c.audience_source || undefined,
+    audience_config: c.audience_config as Record<string, unknown> | undefined,
+    include_segments: c.include_segments || undefined,
+    exclude_segments: c.exclude_segments || undefined,
+    include_tags: c.include_tags || undefined,
+    exclude_tags: c.exclude_tags || undefined,
+    target_tags: c.target_tags || undefined,
+    total_recipients: c.total_recipients || undefined,
+    timezone: c.timezone || undefined,
+    business_hours_only: c.business_hours_only || undefined,
+    quiet_hours_start: c.quiet_hours_start || undefined,
+    quiet_hours_end: c.quiet_hours_end || undefined,
+    messages_per_minute: c.messages_per_minute || undefined,
+    max_per_hour: c.max_per_hour || undefined,
+    max_per_day: c.max_per_day || undefined,
+    frequency_cap_days: c.frequency_cap_days || undefined,
+    is_ab_test: c.is_ab_test || undefined,
+    ab_variant: c.ab_variant || undefined,
+    ab_parent_id: c.ab_parent_id || undefined,
+    ab_split_ratio: c.ab_split_ratio || undefined,
+    ab_winner_metric: c.ab_winner_metric || undefined,
+    conversion_tag_id: c.conversion_tag_id || undefined,
+    conversion_count: c.conversion_count || undefined,
+    queued_count: c.queued_count || undefined,
+    processing_count: c.processing_count || undefined,
+    sent_count: c.sent_count || undefined,
+    delivered_count: c.delivered_count || undefined,
+    read_count: c.read_count || undefined,
+    replied_count: c.replied_count || undefined,
+    failed_count: c.failed_count || undefined,
+    skipped_count: c.skipped_count || undefined,
+    scheduled_at: c.scheduled_at || undefined,
+    started_at: c.started_at || undefined,
+    completed_at: c.completed_at || undefined,
+    paused_at: c.paused_at || undefined,
+    cancelled_at: c.cancelled_at || undefined,
+    created_at: c.created_at,
+    updated_at: c.updated_at,
+    created_by: c.created_by || undefined,
+    error_message: c.error_message || undefined,
+  }));
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [viewMode, setViewMode] = useState<'table' | 'cards'>('table');
