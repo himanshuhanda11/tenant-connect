@@ -84,10 +84,67 @@ export default function CampaignDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('overview');
+  const { data: dbCampaigns = [], isLoading } = useCampaigns();
   
-  // Find campaign from mock data
-  const campaign = MOCK_CAMPAIGNS.find(c => c.id === id) || MOCK_CAMPAIGNS[0];
+  const dbCampaign = dbCampaigns.find(c => c.id === id);
   
+  if (isLoading) {
+    return (
+      <DashboardLayout>
+        <div className="flex items-center justify-center py-20">
+          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  if (!dbCampaign) {
+    return (
+      <DashboardLayout>
+        <div className="flex flex-col items-center justify-center py-20 text-center">
+          <Send className="h-12 w-12 text-muted-foreground mb-4" />
+          <h2 className="text-lg font-semibold">Campaign not found</h2>
+          <p className="text-sm text-muted-foreground mt-1">This campaign may have been deleted.</p>
+          <Button className="mt-4" onClick={() => navigate('/campaigns')}>
+            <ArrowLeft className="h-4 w-4 mr-2" /> Back to Campaigns
+          </Button>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  const campaign: Campaign = {
+    id: dbCampaign.id,
+    tenant_id: dbCampaign.tenant_id,
+    name: dbCampaign.name,
+    description: dbCampaign.description || undefined,
+    campaign_type: (dbCampaign.campaign_type as Campaign['campaign_type']) || 'broadcast',
+    goal: (dbCampaign.goal as Campaign['goal']) || undefined,
+    status: (dbCampaign.status === 'running' ? 'sending' : dbCampaign.status) as CampaignStatus,
+    template_id: dbCampaign.template_id,
+    phone_number_id: dbCampaign.phone_number_id,
+    total_recipients: dbCampaign.total_recipients || undefined,
+    queued_count: dbCampaign.queued_count || undefined,
+    processing_count: dbCampaign.processing_count || undefined,
+    sent_count: dbCampaign.sent_count || undefined,
+    delivered_count: dbCampaign.delivered_count || undefined,
+    read_count: dbCampaign.read_count || undefined,
+    replied_count: dbCampaign.replied_count || undefined,
+    failed_count: dbCampaign.failed_count || undefined,
+    skipped_count: dbCampaign.skipped_count || undefined,
+    conversion_count: dbCampaign.conversion_count || undefined,
+    scheduled_at: dbCampaign.scheduled_at || undefined,
+    started_at: dbCampaign.started_at || undefined,
+    completed_at: dbCampaign.completed_at || undefined,
+    paused_at: dbCampaign.paused_at || undefined,
+    cancelled_at: dbCampaign.cancelled_at || undefined,
+    created_at: dbCampaign.created_at,
+    updated_at: dbCampaign.updated_at,
+    created_by: dbCampaign.created_by || undefined,
+    error_message: dbCampaign.error_message || undefined,
+    is_ab_test: dbCampaign.is_ab_test || undefined,
+  };
+
   const statusConfig = CAMPAIGN_STATUS_CONFIG[campaign.status];
   
   const getProgressPercentage = () => {
