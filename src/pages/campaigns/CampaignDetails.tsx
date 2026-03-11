@@ -43,10 +43,11 @@ import {
 } from 'lucide-react';
 import { format, formatDistanceToNow } from 'date-fns';
 import { 
-  MOCK_CAMPAIGNS, 
   CAMPAIGN_STATUS_CONFIG, 
-  Campaign 
+  Campaign,
+  CampaignStatus
 } from '@/types/campaign';
+import { useCampaigns } from '@/hooks/useCampaigns';
 import { 
   LineChart, 
   Line, 
