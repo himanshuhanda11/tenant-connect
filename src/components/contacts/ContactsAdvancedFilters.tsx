@@ -267,7 +267,7 @@ export function ContactsAdvancedFilters({
                 Combine filters to find specific contacts
               </p>
             </div>
-            <ScrollArea className="h-[400px] sm:h-[460px]">
+            <ScrollArea className="max-h-[60vh]">
               <div className="p-4 space-y-5">
                 {/* Lead State (CRM) */}
                 <div className="space-y-3">
