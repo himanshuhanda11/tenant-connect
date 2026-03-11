@@ -55,7 +55,7 @@ const inboxMenuItems: MenuItem[] = [
 ];
 
 const growthMenuItems: MenuItem[] = [
-  { title: 'Campaigns', url: '/campaigns', icon: Send, key: 'campaigns', docUrl: '/help/campaigns' },
+  { title: 'Broadcast', url: '/campaigns', icon: Send, key: 'campaigns', docUrl: '/help/campaigns' },
   { title: 'Automation', url: '/automation', icon: Zap, key: 'automation', docUrl: '/help/automation' },
   { title: 'Form Rules', url: '/automation/form-rules', icon: FileText, key: 'form-rules', isNew: true, docUrl: '/help/form-rules' },
   { title: 'Flows', url: '/flows', icon: Workflow, key: 'flows', docUrl: '/help/automation' },

@@ -60,6 +60,7 @@ export function useContactsCrmSearch() {
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState<CrmSearchFilters>(DEFAULT_CRM_FILTERS);
   const [page, setPage] = useState(0);
+  const [totalCount, setTotalCount] = useState(0);
   const pageSize = 50;
 
   const fetchContacts = useCallback(async () => {
@@ -91,18 +92,36 @@ export function useContactsCrmSearch() {
         if (validAttrs.length > 0) params.p_attributes = JSON.stringify(validAttrs);
       }
 
-      const { data, error } = await (supabase as any).rpc('contacts_crm_search', params);
+      // Fetch contacts and count in parallel
+      const [dataResult, countResult] = await Promise.all([
+        (supabase as any).rpc('contacts_crm_search', params),
+        supabase
+          .from('contact_inbox_summary')
+          .select('contact_id', { count: 'exact', head: true })
+          .eq('tenant_id', currentTenant.id),
+      ]);
 
-      if (error) throw error;
+      if (dataResult.error) throw dataResult.error;
 
       // Parse tags/attributes from jsonb
-      const parsed: CrmContact[] = (data || []).map((row: any) => ({
+      const parsed: CrmContact[] = (dataResult.data || []).map((row: any) => ({
         ...row,
         tags: typeof row.tags === 'string' ? JSON.parse(row.tags) : (row.tags || []),
         attributes: typeof row.attributes === 'string' ? JSON.parse(row.attributes) : (row.attributes || {}),
       }));
 
       setContacts(parsed);
+      
+      // Use exact count from count query, fallback to estimating from results
+      if (countResult.count !== null && countResult.count !== undefined) {
+        setTotalCount(countResult.count);
+      } else {
+        // If we get a full page, there's probably more
+        const estimatedTotal = parsed.length === pageSize 
+          ? (page + 2) * pageSize  // At least one more page
+          : page * pageSize + parsed.length;
+        setTotalCount(estimatedTotal);
+      }
     } catch (error) {
       console.error('Error in contacts_crm_search:', error);
       toast.error('Failed to load contacts');
@@ -151,6 +170,7 @@ export function useContactsCrmSearch() {
     page,
     setPage,
     pageSize,
+    totalCount,
     fetchContacts,
     resetFilters,
   };
