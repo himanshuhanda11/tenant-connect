@@ -283,24 +283,6 @@ export default function CampaignAudienceBuilder({
   const [metaCampaigns, setMetaCampaigns] = useState<MetaCampaignOption[]>([]);
   const [isEstimating, setIsEstimating] = useState(false);
 
-  // Section open state
-  const [openSections, setOpenSections] = useState<Record<string, boolean>>({
-    direct: filters.selected_contacts.length > 0,
-    segments: true,
-    tags: true,
-    agent: false,
-    lead: false,
-    date: false,
-    source: false,
-    attributes: false,
-    meta: false,
-    flow: false,
-    exclusions: true,
-  });
-
-  const setSectionOpen = (key: string, isOpen: boolean) =>
-    setOpenSections((prev) => ({ ...prev, [key]: isOpen }));
-
   // Fetch agents, flows, meta campaigns
   useEffect(() => {
     if (!currentTenant?.id) return;
