@@ -1,25 +1,39 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { AdminStatusBadge } from '@/components/admin/AdminStatusBadge';
-import { Zap, PauseCircle } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Zap, PauseCircle, Send } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
-
-const MOCK_CAMPAIGNS = [
-  { id: '1', name: 'Summer Sale 2025', status: 'active', sent: 12400, delivered: 11800, created_at: new Date().toISOString() },
-  { id: '2', name: 'Onboarding Drip', status: 'paused', sent: 3200, delivered: 3100, created_at: new Date().toISOString() },
-  { id: '3', name: 'Re-engagement', status: 'completed', sent: 8900, delivered: 8500, created_at: new Date().toISOString() },
-];
+import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 
 interface CampaignsTabProps {
   isSuperAdmin: boolean;
+  workspaceId?: string;
 }
 
-export function CampaignsTab({ isSuperAdmin }: CampaignsTabProps) {
+export function CampaignsTab({ isSuperAdmin, workspaceId }: CampaignsTabProps) {
   const [pauseAllDialog, setPauseAllDialog] = useState(false);
+
+  const { data: campaigns = [], isLoading } = useQuery({
+    queryKey: ['admin-campaigns', workspaceId],
+    queryFn: async () => {
+      if (!workspaceId) return [];
+      const { data, error } = await supabase
+        .from('campaigns')
+        .select('id, name, status, sent_count, delivered_count, created_at')
+        .eq('tenant_id', workspaceId)
+        .order('created_at', { ascending: false })
+        .limit(20);
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!workspaceId,
+  });
 
   return (
     <>
@@ -31,37 +45,50 @@ export function CampaignsTab({ isSuperAdmin }: CampaignsTabProps) {
             </div>
             Campaigns
           </CardTitle>
-          {isSuperAdmin && (
+          {isSuperAdmin && campaigns.length > 0 && (
             <Button variant="destructive" size="sm" className="rounded-xl text-xs" onClick={() => setPauseAllDialog(true)}>
               <PauseCircle className="h-3.5 w-3.5 mr-1" /> Pause All Campaigns
             </Button>
           )}
         </CardHeader>
         <CardContent className="p-0">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Campaign</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Sent</TableHead>
-                <TableHead>Delivered</TableHead>
-                <TableHead>Created</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {MOCK_CAMPAIGNS.map(c => (
-                <TableRow key={c.id}>
-                  <TableCell className="font-medium text-sm">{c.name}</TableCell>
-                  <TableCell>
-                    <AdminStatusBadge status={c.status === 'active' ? 'active' : c.status === 'paused' ? 'paused' : 'connected'} />
-                  </TableCell>
-                  <TableCell className="text-sm tabular-nums">{c.sent.toLocaleString()}</TableCell>
-                  <TableCell className="text-sm tabular-nums">{c.delivered.toLocaleString()}</TableCell>
-                  <TableCell className="text-xs text-muted-foreground">{new Date(c.created_at).toLocaleDateString()}</TableCell>
+          {isLoading ? (
+            <div className="p-4 space-y-3">
+              <Skeleton className="h-8 w-full" />
+              <Skeleton className="h-8 w-full" />
+              <Skeleton className="h-8 w-full" />
+            </div>
+          ) : campaigns.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-8 text-center px-4">
+              <Send className="h-8 w-8 text-muted-foreground mb-2" />
+              <p className="text-sm text-muted-foreground">No campaigns for this workspace</p>
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Campaign</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Sent</TableHead>
+                  <TableHead>Delivered</TableHead>
+                  <TableHead>Created</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {campaigns.map(c => (
+                  <TableRow key={c.id}>
+                    <TableCell className="font-medium text-sm">{c.name}</TableCell>
+                    <TableCell>
+                      <AdminStatusBadge status={c.status === 'sending' ? 'active' : c.status === 'paused' ? 'paused' : 'connected'} />
+                    </TableCell>
+                    <TableCell className="text-sm tabular-nums">{(c.sent_count || 0).toLocaleString()}</TableCell>
+                    <TableCell className="text-sm tabular-nums">{(c.delivered_count || 0).toLocaleString()}</TableCell>
+                    <TableCell className="text-xs text-muted-foreground">{new Date(c.created_at).toLocaleDateString()}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
         </CardContent>
       </Card>
 
