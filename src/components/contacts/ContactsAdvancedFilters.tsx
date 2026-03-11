@@ -195,53 +195,78 @@ export function ContactsAdvancedFilters({
   const hasFilters = activeFilters.length > 0 || !!filters.search;
 
   return (
-    <div className="space-y-3 px-4 sm:px-6 py-4 border-b bg-muted/30">
-      <div className="flex items-center gap-3 flex-wrap">
+    <div className="space-y-3 px-3 sm:px-6 py-3 sm:py-4 border-b bg-muted/30">
+      {/* Row 1: Search + Filter Button + Quick Date */}
+      <div className="flex items-center gap-2 flex-wrap">
         {/* Search */}
-        <div className="relative flex-1 min-w-[200px] max-w-lg">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <div className="relative flex-1 min-w-[180px] max-w-md">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search by name, phone, email, or tag..."
+            placeholder="Search name, phone, tag..."
             value={filters.search || ''}
             onChange={(e) => updateFilter('search', e.target.value || undefined)}
-            className="pl-10 h-10 bg-background border-muted-foreground/20 focus:border-primary transition-colors"
+            className="pl-9 h-9 bg-background border-muted-foreground/20 focus:border-primary transition-colors text-sm"
           />
           {filters.search && (
             <Button
               variant="ghost"
               size="icon"
-              className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 hover:bg-muted"
+              className="absolute right-1 top-1/2 -translate-y-1/2 h-6 w-6 hover:bg-muted"
               onClick={() => updateFilter('search', undefined)}
             >
-              <X className="h-3.5 w-3.5" />
+              <X className="h-3 w-3" />
             </Button>
           )}
         </div>
 
-        {/* Add Filter */}
+        {/* Inline Date Filters */}
+        <div className="hidden sm:flex items-center gap-2">
+          <div className="flex items-center gap-1.5 bg-background border rounded-lg px-2 h-9">
+            <Calendar className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+            <Input
+              type="date"
+              value={filters.createdDateFrom || ''}
+              onChange={(e) => updateFilter('createdDateFrom', e.target.value || undefined)}
+              className="h-7 border-0 p-0 text-xs w-[120px] bg-transparent focus-visible:ring-0"
+              placeholder="From"
+            />
+          </div>
+          <span className="text-xs text-muted-foreground">to</span>
+          <div className="flex items-center gap-1.5 bg-background border rounded-lg px-2 h-9">
+            <Input
+              type="date"
+              value={filters.createdDateTo || ''}
+              onChange={(e) => updateFilter('createdDateTo', e.target.value || undefined)}
+              className="h-7 border-0 p-0 text-xs w-[120px] bg-transparent focus-visible:ring-0"
+              placeholder="To"
+            />
+          </div>
+        </div>
+
+        {/* All Filters Popover */}
         <Popover open={showAddFilter} onOpenChange={setShowAddFilter}>
           <PopoverTrigger asChild>
-            <Button variant="outline" className="gap-2 h-10 border-dashed">
-              <SlidersHorizontal className="h-4 w-4" />
-              Filters
+            <Button variant="outline" size="sm" className="gap-1.5 h-9 border-dashed">
+              <SlidersHorizontal className="h-3.5 w-3.5" />
+              <span className="hidden xs:inline">Filters</span>
               {activeFilters.length > 0 && (
-                <Badge variant="secondary" className="ml-1 h-5 px-1.5 text-xs">
+                <Badge variant="secondary" className="ml-0.5 h-5 px-1.5 text-xs bg-primary/10 text-primary">
                   {activeFilters.length}
                 </Badge>
               )}
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="w-[420px] p-0" align="start">
-            <div className="p-4 border-b bg-muted/50">
-              <h4 className="font-semibold flex items-center gap-2">
+          <PopoverContent className="w-[380px] sm:w-[420px] p-0" align="start" sideOffset={8}>
+            <div className="p-3 border-b bg-muted/50">
+              <h4 className="font-semibold text-sm flex items-center gap-2">
                 <Filter className="h-4 w-4" />
                 Advanced Filters
               </h4>
-              <p className="text-xs text-muted-foreground mt-1">
-                Combine multiple filters to find specific contacts
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Combine filters to find specific contacts
               </p>
             </div>
-            <ScrollArea className="h-[460px]">
+            <ScrollArea className="h-[400px] sm:h-[460px]">
               <div className="p-4 space-y-5">
                 {/* Lead State (CRM) */}
                 <div className="space-y-3">
@@ -510,8 +535,8 @@ export function ContactsAdvancedFilters({
 
                 <Separator />
 
-                {/* Date Filters */}
-                <div className="space-y-3">
+                {/* Date Filters (also in popover for mobile) */}
+                <div className="sm:hidden space-y-3">
                   <div className="flex items-center gap-2">
                     <Calendar className="h-4 w-4 text-muted-foreground" />
                     <Label className="text-sm font-medium">Date Range</Label>
@@ -536,6 +561,7 @@ export function ContactsAdvancedFilters({
                       />
                     </div>
                   </div>
+                  <Separator />
                 </div>
 
                 {/* Attribute Filters */}
@@ -607,12 +633,12 @@ export function ContactsAdvancedFilters({
         {/* Quick Actions */}
         {hasFilters && (
           <>
-            <Button variant="outline" className="gap-2 h-10" onClick={onSaveAsSegment}>
-              <Save className="h-4 w-4" />
+            <Button variant="outline" size="sm" className="gap-1.5 h-9 hidden sm:flex" onClick={onSaveAsSegment}>
+              <Save className="h-3.5 w-3.5" />
               Save Segment
             </Button>
-            <Button variant="ghost" className="gap-2 h-10" onClick={onReset}>
-              <RotateCcw className="h-4 w-4" />
+            <Button variant="ghost" size="sm" className="gap-1.5 h-9" onClick={onReset}>
+              <RotateCcw className="h-3.5 w-3.5" />
               Reset
             </Button>
           </>
