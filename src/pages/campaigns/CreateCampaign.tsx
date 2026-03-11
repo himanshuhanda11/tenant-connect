@@ -113,6 +113,11 @@ export default function CreateCampaign() {
   const [segments, setSegments] = useState<SegmentOption[]>([]);
   const [tags, setTags] = useState<TagOption[]>([]);
   const [selectedContactsPreview, setSelectedContactsPreview] = useState<SelectedContactOption[]>([]);
+  const [audienceFilters, setAudienceFilters] = useState<AudienceFilters>({
+    ...DEFAULT_AUDIENCE_FILTERS,
+    selected_contacts: [],
+  });
+  const [audienceEstimatedCount, setAudienceEstimatedCount] = useState(0);
 
   const preselectedContactIds = useMemo(() => {
     const raw = searchParams.get('contacts') || '';
