@@ -16,7 +16,6 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import {
   Filter,
@@ -257,7 +256,11 @@ export function ContactsAdvancedFilters({
               )}
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="w-[380px] sm:w-[420px] p-0" align="start" sideOffset={8}>
+          <PopoverContent
+            className="w-[380px] sm:w-[420px] p-0 max-h-[80vh] overflow-hidden flex flex-col"
+            align="start"
+            sideOffset={8}
+          >
             <div className="p-3 border-b bg-muted/50">
               <h4 className="font-semibold text-sm flex items-center gap-2">
                 <Filter className="h-4 w-4" />
@@ -267,8 +270,8 @@ export function ContactsAdvancedFilters({
                 Combine filters to find specific contacts
               </p>
             </div>
-            <div className="overflow-y-auto max-h-[55vh]">
-              <div className="p-4 space-y-5">
+            <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain">
+              <div className="p-4 pb-6 space-y-5">
                 {/* Lead State (CRM) */}
                 <div className="space-y-3">
                   <div className="flex items-center gap-2">
