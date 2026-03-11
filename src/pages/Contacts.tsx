@@ -335,6 +335,10 @@ export default function Contacts() {
               onSelectAll={handleSelectAll}
               inboxSummaries={inboxSummaries}
             />
+
+            <div className="hidden md:block px-4 pb-4">
+              <QuickGuide {...quickGuides.contacts} />
+            </div>
           </div>
         </div>
 
