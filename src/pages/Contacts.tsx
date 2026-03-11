@@ -81,8 +81,8 @@ export default function Contacts() {
   }, [currentTenant?.id]);
 
   useEffect(() => {
-    setViewCounts({ all: crmContacts.length });
-  }, [crmContacts.length]);
+    setViewCounts({ all: crmTotalCount });
+  }, [crmTotalCount]);
 
   // Convert CRM contacts to Contact shape for table/drawer compatibility
   const contactsForTable = useMemo((): Contact[] => {
