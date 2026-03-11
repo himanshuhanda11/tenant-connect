@@ -64,6 +64,7 @@ interface ContactsBulkActionsBarProps {
 
 export function ContactsBulkActionsBar({
   selectedCount,
+  selectedContactIds = [],
   onClearSelection,
   onAddTag,
   onRemoveTag,
@@ -76,8 +77,17 @@ export function ContactsBulkActionsBar({
   availableAgents,
   availableSegments,
 }: ContactsBulkActionsBarProps) {
+  const navigate = useNavigate();
   const [showOptOutDialog, setShowOptOutDialog] = useState(false);
   const [showDeletionDialog, setShowDeletionDialog] = useState(false);
+
+  const handleBroadcast = () => {
+    // Navigate to broadcast creation with selected contact IDs
+    const params = new URLSearchParams();
+    params.set('contacts', selectedContactIds.join(','));
+    params.set('count', selectedCount.toString());
+    navigate(`/campaigns/create?${params.toString()}`);
+  };
 
   if (selectedCount === 0) return null;
 
