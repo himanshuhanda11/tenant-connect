@@ -257,9 +257,10 @@ export function ContactsAdvancedFilters({
             </Button>
           </PopoverTrigger>
           <PopoverContent
-            className="w-[380px] sm:w-[420px] p-0 max-h-[80vh] overflow-hidden flex flex-col"
+            className="w-[95vw] max-w-[420px] p-0 h-[82vh] max-h-[680px] overflow-hidden flex flex-col"
             align="start"
             sideOffset={8}
+            collisionPadding={12}
           >
             <div className="p-3 border-b bg-muted/50">
               <h4 className="font-semibold text-sm flex items-center gap-2">
@@ -271,7 +272,7 @@ export function ContactsAdvancedFilters({
               </p>
             </div>
             <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain">
-              <div className="p-4 pb-6 space-y-5">
+              <div className="p-4 pb-12 space-y-5">
                 {/* Lead State (CRM) */}
                 <div className="space-y-3">
                   <div className="flex items-center gap-2">
