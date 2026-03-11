@@ -212,8 +212,8 @@ interface AudienceFilterSectionProps {
   icon: ElementType;
   title: string;
   badge?: number | string;
-  isOpen: boolean;
-  onOpenChange: (isOpen: boolean) => void;
+  isOpen?: boolean;
+  onOpenChange?: (isOpen: boolean) => void;
   children: ReactNode;
 }
 
@@ -226,8 +226,14 @@ function AudienceFilterSection({
   onOpenChange,
   children,
 }: AudienceFilterSectionProps) {
+  const isControlled = typeof isOpen === 'boolean';
+
   return (
-    <Collapsible open={isOpen} onOpenChange={onOpenChange}>
+    <Collapsible
+      defaultOpen={isControlled ? undefined : true}
+      open={isControlled ? isOpen : undefined}
+      onOpenChange={onOpenChange}
+    >
       <CollapsibleTrigger className="w-full">
         <div className="flex items-center justify-between p-3 rounded-lg hover:bg-muted/50 transition-colors group">
           <div className="flex items-center gap-3">
