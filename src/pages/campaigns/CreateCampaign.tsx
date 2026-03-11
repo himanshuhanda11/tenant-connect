@@ -651,20 +651,21 @@ export default function CreateCampaign() {
                     <div className="space-y-2">
                       <p className="text-sm text-muted-foreground">Tags</p>
                       <div className="flex flex-wrap gap-2">
-                        {MOCK_TAGS.filter(t => t.name !== 'Opted-out').map(tag => (
-                          <Badge
-                            key={tag.id}
-                            variant={wizard.audience.include_tags.includes(tag.id) ? 'default' : 'outline'}
-                            className="cursor-pointer"
-                            onClick={() => toggleTag(tag.id, 'include')}
-                          >
-                            <div 
-                              className="w-2 h-2 rounded-full mr-1" 
-                              style={{ backgroundColor: tag.color }} 
-                            />
-                            {tag.name}
-                          </Badge>
-                        ))}
+                        {tags.length === 0 ? (
+                          <span className="text-sm text-muted-foreground">No tags available</span>
+                        ) : (
+                          tags.map((tag) => (
+                            <Badge
+                              key={tag.id}
+                              variant={wizard.audience.include_tags.includes(tag.id) ? 'default' : 'outline'}
+                              className="cursor-pointer"
+                              onClick={() => toggleTag(tag.id, 'include')}
+                            >
+                              <div className="w-2 h-2 rounded-full mr-1" style={{ backgroundColor: tag.color || 'hsl(var(--muted-foreground))' }} />
+                              {tag.name}
+                            </Badge>
+                          ))
+                        )}
                       </div>
                     </div>
                   </div>
