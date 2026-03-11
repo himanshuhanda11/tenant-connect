@@ -57,6 +57,7 @@ import {
 import { useTenant } from '@/contexts/TenantContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import CampaignAudienceBuilder, { AudienceFilters, DEFAULT_AUDIENCE_FILTERS } from '@/components/campaigns/CampaignAudienceBuilder';
 
 const STEPS = [
   { id: 1, title: 'Basics', icon: Settings },
@@ -112,6 +113,11 @@ export default function CreateCampaign() {
   const [segments, setSegments] = useState<SegmentOption[]>([]);
   const [tags, setTags] = useState<TagOption[]>([]);
   const [selectedContactsPreview, setSelectedContactsPreview] = useState<SelectedContactOption[]>([]);
+  const [audienceFilters, setAudienceFilters] = useState<AudienceFilters>({
+    ...DEFAULT_AUDIENCE_FILTERS,
+    selected_contacts: [],
+  });
+  const [audienceEstimatedCount, setAudienceEstimatedCount] = useState(0);
 
   const preselectedContactIds = useMemo(() => {
     const raw = searchParams.get('contacts') || '';
@@ -249,6 +255,10 @@ export default function CreateCampaign() {
         selected_contacts: preselectedContactIds,
       },
     }));
+    setAudienceFilters((prev) => ({
+      ...prev,
+      selected_contacts: preselectedContactIds,
+    }));
   }, [preselectedContactIds]);
 
   const updateBasics = (field: string, value: string) => {
@@ -286,7 +296,9 @@ export default function CreateCampaign() {
       case 2:
         return wizard.message.template_id;
       case 3:
-        return wizard.audience.include_segments.length > 0 || wizard.audience.include_tags.length > 0 || wizard.audience.selected_contacts.length > 0;
+        return audienceEstimatedCount > 0 || audienceFilters.selected_contacts.length > 0 || 
+               audienceFilters.include_segments.length > 0 || audienceFilters.include_tags.length > 0 ||
+               audienceFilters.assigned_agent !== '' || audienceFilters.lead_states.length > 0;
       case 4:
         return true;
       default:
@@ -334,23 +346,7 @@ export default function CreateCampaign() {
     }
   };
 
-  const estimatedAudience = () => {
-    const selectedContactsCount = wizard.audience.selected_contacts.length > 0
-      ? wizard.audience.selected_contacts.length
-      : preselectedContactIds.length > 0
-        ? Math.max(preselectedCountParam, preselectedContactIds.length)
-        : 0;
-
-    if (selectedContactsCount > 0) return selectedContactsCount;
-
-    let count = 0;
-    wizard.audience.include_segments.forEach((id) => {
-      const seg = segments.find((s) => s.id === id);
-      if (seg?.contact_count) count += seg.contact_count;
-    });
-
-    return count > 0 ? count : 0;
-  };
+  const estimatedAudience = () => audienceEstimatedCount;
 
   return (
     <DashboardLayout>
@@ -583,166 +579,16 @@ export default function CreateCampaign() {
 
             {/* Step 3: Audience */}
             {currentStep === 3 && (
-              <div className="space-y-6">
-                <div>
-                  <CardTitle className="mb-2">Target Audience</CardTitle>
-                  <CardDescription>Select who will receive this campaign</CardDescription>
-                </div>
-
-                {wizard.audience.selected_contacts.length > 0 && (
-                  <Card className="bg-primary/5 border-primary/20">
-                    <CardContent className="pt-4 space-y-2">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <Users className="h-4 w-4 text-primary" />
-                          <span className="font-medium">Selected from Contacts</span>
-                        </div>
-                        <Badge>{wizard.audience.selected_contacts.length}</Badge>
-                      </div>
-                      {selectedContactsPreview.length > 0 && (
-                        <p className="text-sm text-muted-foreground truncate">
-                          {selectedContactsPreview.slice(0, 5).map((c) => c.name || c.wa_id || c.id).join(', ')}
-                          {selectedContactsPreview.length > 5 ? ` +${selectedContactsPreview.length - 5} more` : ''}
-                        </p>
-                      )}
-                    </CardContent>
-                  </Card>
-                )}
-
-                <div className="grid md:grid-cols-2 gap-6">
-                  {/* Include */}
-                  <div className="space-y-4">
-                    <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center">
-                        <Plus className="h-4 w-4 text-green-600" />
-                      </div>
-                      <Label className="text-base">Include</Label>
-                    </div>
-
-                    <div className="space-y-2">
-                      <p className="text-sm text-muted-foreground">Segments</p>
-                      {segments.length === 0 ? (
-                        <div className="p-3 border rounded-lg text-sm text-muted-foreground">No saved segments yet</div>
-                      ) : (
-                        segments.map((segment) => (
-                          <div
-                            key={segment.id}
-                            className={`p-3 border rounded-lg cursor-pointer transition-all flex items-center justify-between
-                              ${wizard.audience.include_segments.includes(segment.id) ? 'border-primary bg-primary/5' : 'hover:border-primary/50'}`}
-                            onClick={() => toggleSegment(segment.id, 'include')}
-                          >
-                            <div className="flex items-center gap-2">
-                              <Target className="h-4 w-4 text-muted-foreground" />
-                              <span className="text-sm">{segment.name}</span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <Badge variant="secondary" className="text-xs">
-                                {(segment.contact_count || 0).toLocaleString()}
-                              </Badge>
-                              {wizard.audience.include_segments.includes(segment.id) && (
-                                <CheckCircle className="h-4 w-4 text-primary" />
-                              )}
-                            </div>
-                          </div>
-                        ))
-                      )}
-                    </div>
-
-                    <div className="space-y-2">
-                      <p className="text-sm text-muted-foreground">Tags</p>
-                      <div className="flex flex-wrap gap-2">
-                        {tags.length === 0 ? (
-                          <span className="text-sm text-muted-foreground">No tags available</span>
-                        ) : (
-                          tags.map((tag) => (
-                            <Badge
-                              key={tag.id}
-                              variant={wizard.audience.include_tags.includes(tag.id) ? 'default' : 'outline'}
-                              className="cursor-pointer"
-                              onClick={() => toggleTag(tag.id, 'include')}
-                            >
-                              <div className="w-2 h-2 rounded-full mr-1" style={{ backgroundColor: tag.color || 'hsl(var(--muted-foreground))' }} />
-                              {tag.name}
-                            </Badge>
-                          ))
-                        )}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Exclude */}
-                  <div className="space-y-4">
-                    <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center">
-                        <X className="h-4 w-4 text-red-600" />
-                      </div>
-                      <Label className="text-base">Exclude</Label>
-                    </div>
-
-                    <div className="space-y-2">
-                      <p className="text-sm text-muted-foreground">Safety Exclusions</p>
-                      <div className="space-y-2">
-                        <div className="p-3 border rounded-lg bg-red-50 border-red-200 flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <Shield className="h-4 w-4 text-red-600" />
-                            <span className="text-sm">Opted-out contacts</span>
-                          </div>
-                          <Badge className="bg-red-100 text-red-700">Auto-excluded</Badge>
-                        </div>
-                        <div className="p-3 border rounded-lg flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <Clock className="h-4 w-4 text-muted-foreground" />
-                            <span className="text-sm">Messaged in last 24h</span>
-                          </div>
-                          <Switch 
-                            checked={wizard.audience.exclude_recent_days > 0}
-                            onCheckedChange={(checked) => updateAudience('exclude_recent_days', checked ? 1 : 0)}
-                          />
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <p className="text-sm text-muted-foreground">Exclude Tags</p>
-                      <div className="flex flex-wrap gap-2">
-                        {tags.length === 0 ? (
-                          <span className="text-sm text-muted-foreground">No tags available</span>
-                        ) : (
-                          tags.map((tag) => (
-                            <Badge
-                              key={tag.id}
-                              variant={wizard.audience.exclude_tags.includes(tag.id) ? 'destructive' : 'outline'}
-                              className="cursor-pointer"
-                              onClick={() => toggleTag(tag.id, 'exclude')}
-                            >
-                              {tag.name}
-                            </Badge>
-                          ))
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Audience Summary */}
-                <Card className="bg-primary/5 border-primary/20">
-                  <CardContent className="pt-4">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <Users className="h-8 w-8 text-primary" />
-                        <div>
-                          <p className="text-sm text-muted-foreground">Estimated Audience</p>
-                          <p className="text-2xl font-bold">{estimatedAudience().toLocaleString()}</p>
-                        </div>
-                      </div>
-                      <div className="text-right text-sm">
-                        <p className="text-muted-foreground">{wizard.audience.selected_contacts.length} contacts selected</p>
-                        <p className="text-muted-foreground">{wizard.audience.include_segments.length} segments included</p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
+              <CampaignAudienceBuilder
+                wizard={wizard}
+                segments={segments}
+                tags={tags}
+                selectedContactsPreview={selectedContactsPreview}
+                audienceFilters={audienceFilters}
+                onFiltersChange={setAudienceFilters}
+                estimatedCount={audienceEstimatedCount}
+                onEstimatedCountChange={setAudienceEstimatedCount}
+              />
             )}
 
             {/* Step 4: Delivery */}
@@ -962,14 +808,20 @@ export default function CreateCampaign() {
                     <CardContent className="text-sm space-y-2">
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Total Recipients</span>
-                        <span className="font-medium text-primary">{estimatedAudience().toLocaleString()}</span>
+                        <span className="font-medium text-primary">{audienceEstimatedCount.toLocaleString()}</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Audience Source</span>
                         <span className="font-medium">
-                          {wizard.audience.selected_contacts.length > 0
-                            ? `${wizard.audience.selected_contacts.length} selected contacts`
-                            : `${wizard.audience.include_segments.length} segments included`}
+                          {audienceFilters.selected_contacts.length > 0
+                            ? `${audienceFilters.selected_contacts.length} selected contacts`
+                            : audienceFilters.include_segments.length > 0
+                              ? `${audienceFilters.include_segments.length} segments`
+                              : audienceFilters.lead_states.length > 0
+                                ? `${audienceFilters.lead_states.join(', ')} leads`
+                                : audienceFilters.assigned_agent
+                                  ? 'By agent'
+                                  : 'All matching contacts'}
                         </span>
                       </div>
                     </CardContent>
