@@ -489,39 +489,6 @@ export default function CampaignAudienceBuilder({
     return count;
   };
 
-  const FilterSection = ({ id, icon: Icon, title, badge, children }: {
-    id: string;
-    icon: React.ElementType;
-    title: string;
-    badge?: number | string;
-    children: React.ReactNode;
-  }) => (
-    <Collapsible open={openSections[id]} onOpenChange={() => toggleSection(id)}>
-      <CollapsibleTrigger className="w-full">
-        <div className="flex items-center justify-between p-3 rounded-lg hover:bg-muted/50 transition-colors group">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center group-hover:bg-primary/10 transition-colors">
-              <Icon className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
-            </div>
-            <span className="text-sm font-medium">{title}</span>
-            {badge !== undefined && badge !== 0 && (
-              <Badge variant="secondary" className="text-xs h-5 px-1.5">
-                {badge}
-              </Badge>
-            )}
-          </div>
-          {openSections[id] ? (
-            <ChevronDown className="h-4 w-4 text-muted-foreground" />
-          ) : (
-            <ChevronRight className="h-4 w-4 text-muted-foreground" />
-          )}
-        </div>
-      </CollapsibleTrigger>
-      <CollapsibleContent>
-        <div className="px-3 pb-3 pt-1 ml-11 space-y-3">{children}</div>
-      </CollapsibleContent>
-    </Collapsible>
-  );
 
   return (
     <div className="space-y-5">
