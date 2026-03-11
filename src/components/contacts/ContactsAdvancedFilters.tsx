@@ -615,7 +615,7 @@ export function ContactsAdvancedFilters({
                   </>
                 )}
               </div>
-            </ScrollArea>
+            </div>
             {hasFilters && (
               <div className="p-3 border-t bg-muted/30 flex items-center justify-between">
                 <Button variant="ghost" size="sm" onClick={onReset} className="gap-1.5">
