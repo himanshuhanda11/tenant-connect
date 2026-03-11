@@ -563,7 +563,13 @@ export default function CampaignAudienceBuilder({
       <div className="grid lg:grid-cols-[1fr,320px] gap-5">
         {/* Left: Filters */}
         <Card className="overflow-hidden">
-          <div className="max-h-[60vh] overflow-y-auto">
+          <div
+            className="overflow-y-auto pr-1"
+            style={{
+              maxHeight: 'min(68vh, var(--radix-popover-content-available-height, 68vh))',
+              scrollbarGutter: 'stable',
+            }}
+          >
             <div className="divide-y divide-border">
               {/* Segments */}
               <FilterSection
