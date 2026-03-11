@@ -736,8 +736,8 @@ export default function CreateCampaign() {
                         </div>
                       </div>
                       <div className="text-right text-sm">
-                        <p className="text-green-600">+{wizard.audience.include_segments.length} segments included</p>
-                        <p className="text-red-600">-{wizard.audience.exclude_tags.length} tags excluded</p>
+                        <p className="text-muted-foreground">{wizard.audience.selected_contacts.length} contacts selected</p>
+                        <p className="text-muted-foreground">{wizard.audience.include_segments.length} segments included</p>
                       </div>
                     </div>
                   </CardContent>
