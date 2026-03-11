@@ -493,7 +493,7 @@ export default function CampaignAudienceBuilder({
       <div className="grid lg:grid-cols-[1fr,320px] gap-5">
         {/* Left: Filters */}
         <Card className="overflow-hidden">
-          <ScrollArea className="max-h-[520px]">
+          <div className="max-h-[60vh] overflow-y-auto">
             <div className="divide-y divide-border">
               {/* Segments */}
               <FilterSection
@@ -930,7 +930,7 @@ export default function CampaignAudienceBuilder({
                 </div>
               </FilterSection>
             </div>
-          </ScrollArea>
+          </div>
         </Card>
 
         {/* Right: Audience Summary */}
