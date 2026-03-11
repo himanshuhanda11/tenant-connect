@@ -255,6 +255,10 @@ export default function CreateCampaign() {
         selected_contacts: preselectedContactIds,
       },
     }));
+    setAudienceFilters((prev) => ({
+      ...prev,
+      selected_contacts: preselectedContactIds,
+    }));
   }, [preselectedContactIds]);
 
   const updateBasics = (field: string, value: string) => {
