@@ -500,7 +500,9 @@ export default function CampaignAudienceBuilder({
                 badge={filters.include_segments.length}
               >
                 {segments.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">No saved segments</p>
+                  <div className="rounded-lg border border-dashed p-3 text-sm text-muted-foreground">
+                    No saved segments found for this workspace yet.
+                  </div>
                 ) : (
                   <div className="space-y-1.5">
                     {segments.map((seg) => (
