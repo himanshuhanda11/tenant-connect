@@ -773,12 +773,7 @@ export default function CampaignAudienceBuilder({
                       <SelectItem value="all">All Flows</SelectItem>
                       {flows.map((f) => (
                         <SelectItem key={f.id} value={f.id}>
-                          <div className="flex items-center gap-2">
-                            {f.name}
-                            <Badge variant="outline" className="text-[10px] h-4">
-                              {f.status}
-                            </Badge>
-                          </div>
+                          {f.name} ({f.status})
                         </SelectItem>
                       ))}
                     </SelectContent>
