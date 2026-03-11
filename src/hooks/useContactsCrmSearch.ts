@@ -96,8 +96,8 @@ export function useContactsCrmSearch() {
       const [dataResult, countResult] = await Promise.all([
         (supabase as any).rpc('contacts_crm_search', params),
         supabase
-          .from('contact_inbox_summary')
-          .select('contact_id', { count: 'exact', head: true })
+          .from('contacts')
+          .select('id', { count: 'exact', head: true })
           .eq('tenant_id', currentTenant.id),
       ]);
 
