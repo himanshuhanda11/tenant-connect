@@ -298,9 +298,6 @@ export default function Contacts() {
         {/* Main Content */}
         <div className="flex-1 flex flex-col min-w-0 overflow-hidden bg-muted/10">
 
-          <div className="hidden md:block px-4 pt-4">
-            <QuickGuide {...quickGuides.contacts} />
-          </div>
 
           <ContactsHeader
             totalCount={totalCount}
