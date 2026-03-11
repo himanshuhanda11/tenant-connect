@@ -501,6 +501,8 @@ export default function CampaignAudienceBuilder({
   };
 
 
+  const FilterSection = AudienceFilterSection;
+
   return (
     <div className="space-y-5">
       {/* Header */}
