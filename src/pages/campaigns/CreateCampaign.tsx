@@ -57,6 +57,7 @@ import {
 import { useTenant } from '@/contexts/TenantContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import CampaignAudienceBuilder, { AudienceFilters, DEFAULT_AUDIENCE_FILTERS } from '@/components/campaigns/CampaignAudienceBuilder';
 
 const STEPS = [
   { id: 1, title: 'Basics', icon: Settings },
