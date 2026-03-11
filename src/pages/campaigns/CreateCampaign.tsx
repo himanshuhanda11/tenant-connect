@@ -965,8 +965,12 @@ export default function CreateCampaign() {
                         <span className="font-medium text-primary">{estimatedAudience().toLocaleString()}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-muted-foreground">Segments</span>
-                        <span className="font-medium">{wizard.audience.include_segments.length} included</span>
+                        <span className="text-muted-foreground">Audience Source</span>
+                        <span className="font-medium">
+                          {wizard.audience.selected_contacts.length > 0
+                            ? `${wizard.audience.selected_contacts.length} selected contacts`
+                            : `${wizard.audience.include_segments.length} segments included`}
+                        </span>
                       </div>
                     </CardContent>
                   </Card>
