@@ -927,7 +927,7 @@ export default function CreateCampaign() {
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Phone</span>
                         <span className="font-medium">
-                          {MOCK_PHONE_NUMBERS.find(p => p.id === wizard.basics.phone_number_id)?.display || '—'}
+                          {phoneNumbers.find((p) => p.id === wizard.basics.phone_number_id)?.display_number || '—'}
                         </span>
                       </div>
                     </CardContent>
