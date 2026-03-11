@@ -48,6 +48,7 @@ import { useNavigate } from 'react-router-dom';
 
 interface ContactsBulkActionsBarProps {
   selectedCount: number;
+  selectedContactIds?: string[];
   onClearSelection: () => void;
   onAddTag: (tagId: string) => void;
   onRemoveTag: (tagId: string) => void;
