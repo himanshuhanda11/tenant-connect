@@ -181,6 +181,73 @@ export const DEFAULT_AUDIENCE_FILTERS: AudienceFilters = {
   opt_in_only: true,
 };
 
+const parseLocalDate = (dateValue: string): Date | null => {
+  if (!dateValue) return null;
+  const [year, month, day] = dateValue.split('-').map(Number);
+  if (!year || !month || !day) return null;
+  return new Date(year, month - 1, day);
+};
+
+const getLocalDayStartUtc = (dateValue: string): string | null => {
+  const date = parseLocalDate(dateValue);
+  if (!date) return null;
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate(), 0, 0, 0, 0).toISOString();
+};
+
+const getLocalDayEndExclusiveUtc = (dateValue: string): string | null => {
+  const date = parseLocalDate(dateValue);
+  if (!date) return null;
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate() + 1, 0, 0, 0, 0).toISOString();
+};
+
+interface AudienceFilterSectionProps {
+  id: string;
+  icon: ElementType;
+  title: string;
+  badge?: number | string;
+  isOpen: boolean;
+  onOpenChange: (isOpen: boolean) => void;
+  children: ReactNode;
+}
+
+function AudienceFilterSection({
+  id,
+  icon: Icon,
+  title,
+  badge,
+  isOpen,
+  onOpenChange,
+  children,
+}: AudienceFilterSectionProps) {
+  return (
+    <Collapsible open={isOpen} onOpenChange={onOpenChange}>
+      <CollapsibleTrigger className="w-full">
+        <div className="flex items-center justify-between p-3 rounded-lg hover:bg-muted/50 transition-colors group">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center group-hover:bg-primary/10 transition-colors">
+              <Icon className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
+            </div>
+            <span className="text-sm font-medium">{title}</span>
+            {badge !== undefined && badge !== 0 && (
+              <Badge variant="secondary" className="text-xs h-5 px-1.5">
+                {badge}
+              </Badge>
+            )}
+          </div>
+          {isOpen ? (
+            <ChevronDown className="h-4 w-4 text-muted-foreground" />
+          ) : (
+            <ChevronRight className="h-4 w-4 text-muted-foreground" />
+          )}
+        </div>
+      </CollapsibleTrigger>
+      <CollapsibleContent id={`${id}-content`}>
+        <div className="px-3 pb-3 pt-1 ml-11 space-y-3">{children}</div>
+      </CollapsibleContent>
+    </Collapsible>
+  );
+}
+
 export default function CampaignAudienceBuilder({
   wizard,
   segments,
