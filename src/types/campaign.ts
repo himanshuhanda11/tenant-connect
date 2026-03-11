@@ -171,11 +171,12 @@ export interface CampaignWizardState {
     header_media_url?: string;
   };
   audience: {
-    source: 'segments' | 'tags' | 'csv' | 'ctwa';
+    source: 'segments' | 'tags' | 'csv' | 'ctwa' | 'contacts';
     include_segments: string[];
     exclude_segments: string[];
     include_tags: string[];
     exclude_tags: string[];
+    selected_contacts: string[];
     exclude_recent_days: number;
     csv_file?: File;
     estimated_count: number;
