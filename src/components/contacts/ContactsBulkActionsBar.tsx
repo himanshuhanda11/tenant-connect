@@ -40,12 +40,15 @@ import {
   FolderPlus,
   CheckCircle,
   ChevronDown,
+  Send,
 } from 'lucide-react';
 import { Segment } from '@/types/segment';
 import { cn } from '@/lib/utils';
+import { useNavigate } from 'react-router-dom';
 
 interface ContactsBulkActionsBarProps {
   selectedCount: number;
+  selectedContactIds?: string[];
   onClearSelection: () => void;
   onAddTag: (tagId: string) => void;
   onRemoveTag: (tagId: string) => void;
@@ -61,6 +64,7 @@ interface ContactsBulkActionsBarProps {
 
 export function ContactsBulkActionsBar({
   selectedCount,
+  selectedContactIds = [],
   onClearSelection,
   onAddTag,
   onRemoveTag,
@@ -73,8 +77,17 @@ export function ContactsBulkActionsBar({
   availableAgents,
   availableSegments,
 }: ContactsBulkActionsBarProps) {
+  const navigate = useNavigate();
   const [showOptOutDialog, setShowOptOutDialog] = useState(false);
   const [showDeletionDialog, setShowDeletionDialog] = useState(false);
+
+  const handleBroadcast = () => {
+    // Navigate to broadcast creation with selected contact IDs
+    const params = new URLSearchParams();
+    params.set('contacts', selectedContactIds.join(','));
+    params.set('count', selectedCount.toString());
+    navigate(`/campaigns/create?${params.toString()}`);
+  };
 
   if (selectedCount === 0) return null;
 
@@ -169,7 +182,17 @@ export function ContactsBulkActionsBar({
             </DropdownMenuContent>
           </DropdownMenu>
 
-          {/* Add to Segment */}
+          {/* Broadcast */}
+          <Button
+            variant="ghost"
+            size="sm"
+            className="gap-2 text-background hover:text-background hover:bg-background/10 bg-primary/20"
+            onClick={handleBroadcast}
+          >
+            <Send className="h-4 w-4" />
+            Broadcast
+          </Button>
+
           {availableSegments.length > 0 && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>

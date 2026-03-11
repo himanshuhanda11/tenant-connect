@@ -29,6 +29,7 @@ export default function Contacts() {
     page: crmPage,
     setPage: setCrmPage,
     pageSize: crmPageSize,
+    totalCount: crmTotalCount,
     fetchContacts: fetchCrmContacts,
     resetFilters: resetCrmFilters,
   } = useContactsCrmSearch();
@@ -80,8 +81,8 @@ export default function Contacts() {
   }, [currentTenant?.id]);
 
   useEffect(() => {
-    setViewCounts({ all: crmContacts.length });
-  }, [crmContacts.length]);
+    setViewCounts({ all: crmTotalCount });
+  }, [crmTotalCount]);
 
   // Convert CRM contacts to Contact shape for table/drawer compatibility
   const contactsForTable = useMemo((): Contact[] => {
@@ -289,7 +290,7 @@ export default function Contacts() {
     toast.success(`Segment "${name}" saved`);
   };
 
-  const totalCount = crmContacts.length;
+  const totalCount = crmTotalCount;
 
   return (
     <DashboardLayout>
@@ -354,6 +355,7 @@ export default function Contacts() {
 
       <ContactsBulkActionsBar
         selectedCount={selectedContactIds.length}
+        selectedContactIds={selectedContactIds}
         onClearSelection={() => setSelectedContactIds([])}
         onAddTag={handleBulkAddTag}
         onRemoveTag={handleBulkRemoveTag}
