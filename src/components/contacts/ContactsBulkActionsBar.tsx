@@ -182,7 +182,17 @@ export function ContactsBulkActionsBar({
             </DropdownMenuContent>
           </DropdownMenu>
 
-          {/* Add to Segment */}
+          {/* Broadcast */}
+          <Button
+            variant="ghost"
+            size="sm"
+            className="gap-2 text-background hover:text-background hover:bg-background/10 bg-primary/20"
+            onClick={handleBroadcast}
+          >
+            <Send className="h-4 w-4" />
+            Broadcast
+          </Button>
+
           {availableSegments.length > 0 && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
