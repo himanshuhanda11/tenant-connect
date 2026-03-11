@@ -290,7 +290,7 @@ export default function Contacts() {
     toast.success(`Segment "${name}" saved`);
   };
 
-  const totalCount = crmContacts.length;
+  const totalCount = crmTotalCount;
 
   return (
     <DashboardLayout>
