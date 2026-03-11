@@ -705,16 +705,20 @@ export default function CreateCampaign() {
                     <div className="space-y-2">
                       <p className="text-sm text-muted-foreground">Exclude Tags</p>
                       <div className="flex flex-wrap gap-2">
-                        {MOCK_TAGS.map(tag => (
-                          <Badge
-                            key={tag.id}
-                            variant={wizard.audience.exclude_tags.includes(tag.id) ? 'destructive' : 'outline'}
-                            className="cursor-pointer"
-                            onClick={() => toggleTag(tag.id, 'exclude')}
-                          >
-                            {tag.name}
-                          </Badge>
-                        ))}
+                        {tags.length === 0 ? (
+                          <span className="text-sm text-muted-foreground">No tags available</span>
+                        ) : (
+                          tags.map((tag) => (
+                            <Badge
+                              key={tag.id}
+                              variant={wizard.audience.exclude_tags.includes(tag.id) ? 'destructive' : 'outline'}
+                              className="cursor-pointer"
+                              onClick={() => toggleTag(tag.id, 'exclude')}
+                            >
+                              {tag.name}
+                            </Badge>
+                          ))
+                        )}
                       </div>
                     </div>
                   </div>
