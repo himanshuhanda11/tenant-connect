@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useEffect, useMemo, useState } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -47,13 +47,16 @@ import {
   Zap
 } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { 
-  CampaignGoal, 
-  CampaignType, 
+import {
+  CampaignGoal,
+  CampaignType,
   CampaignWizardState,
   CAMPAIGN_GOAL_CONFIG,
   CAMPAIGN_TYPE_CONFIG
 } from '@/types/campaign';
+import { useTenant } from '@/contexts/TenantContext';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 const STEPS = [
   { id: 1, title: 'Basics', icon: Settings },
@@ -63,37 +66,63 @@ const STEPS = [
   { id: 5, title: 'Review', icon: CheckCircle },
 ];
 
-const MOCK_PHONE_NUMBERS = [
-  { id: 'p1', display: '+971 50 123 4567', name: 'Main Business' },
-  { id: 'p2', display: '+971 50 987 6543', name: 'Support Line' },
-];
+interface PhoneNumberOption {
+  id: string;
+  display_number: string | null;
+  verified_name: string | null;
+  status: string | null;
+  quality_rating: string | null;
+}
 
-const MOCK_TEMPLATES = [
-  { id: 't1', name: 'summer_sale_promo', category: 'MARKETING', status: 'APPROVED', language: 'en' },
-  { id: 't2', name: 'order_confirmation', category: 'UTILITY', status: 'APPROVED', language: 'en' },
-  { id: 't3', name: 'welcome_message', category: 'MARKETING', status: 'APPROVED', language: 'en' },
-  { id: 't4', name: 'payment_reminder', category: 'UTILITY', status: 'APPROVED', language: 'en' },
-];
+interface TemplateOption {
+  id: string;
+  name: string;
+  category: string | null;
+  status: string | null;
+  language: string | null;
+}
 
-const MOCK_SEGMENTS = [
-  { id: 's1', name: 'VIP Customers', count: 450 },
-  { id: 's2', name: 'New Leads (7 days)', count: 230 },
-  { id: 's3', name: 'Inactive 30 Days', count: 890 },
-  { id: 's4', name: 'CTWA Leads', count: 156 },
-];
+interface SegmentOption {
+  id: string;
+  name: string;
+  contact_count: number | null;
+}
 
-const MOCK_TAGS = [
-  { id: 'tag1', name: 'VIP', color: '#10b981' },
-  { id: 'tag2', name: 'Hot Lead', color: '#f59e0b' },
-  { id: 'tag3', name: 'Opted-out', color: '#ef4444' },
-  { id: 'tag4', name: 'Customer', color: '#3b82f6' },
-];
+interface TagOption {
+  id: string;
+  name: string;
+  color: string | null;
+}
+
+interface SelectedContactOption {
+  id: string;
+  name: string | null;
+  wa_id: string | null;
+}
 
 export default function CreateCampaign() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const { currentTenant } = useTenant();
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
+  const [isLoadingOptions, setIsLoadingOptions] = useState(false);
+  const [phoneNumbers, setPhoneNumbers] = useState<PhoneNumberOption[]>([]);
+  const [templates, setTemplates] = useState<TemplateOption[]>([]);
+  const [segments, setSegments] = useState<SegmentOption[]>([]);
+  const [tags, setTags] = useState<TagOption[]>([]);
+  const [selectedContactsPreview, setSelectedContactsPreview] = useState<SelectedContactOption[]>([]);
+
+  const preselectedContactIds = useMemo(() => {
+    const raw = searchParams.get('contacts') || '';
+    return raw
+      .split(',')
+      .map((id) => id.trim())
+      .filter(Boolean);
+  }, [searchParams]);
+
+  const preselectedCountParam = Number(searchParams.get('count') || '0');
+
   const [wizard, setWizard] = useState<CampaignWizardState>({
     step: 1,
     basics: {
@@ -109,11 +138,12 @@ export default function CreateCampaign() {
       variables: {},
     },
     audience: {
-      source: 'segments',
+      source: preselectedContactIds.length > 0 ? 'contacts' : 'segments',
       include_segments: [],
       exclude_segments: [],
       include_tags: [],
       exclude_tags: [],
+      selected_contacts: preselectedContactIds,
       exclude_recent_days: 0,
       estimated_count: 0,
     },
@@ -133,6 +163,93 @@ export default function CreateCampaign() {
       winner_metric: 'reply_rate',
     },
   });
+
+  useEffect(() => {
+    const fetchOptions = async () => {
+      if (!currentTenant?.id) return;
+      setIsLoadingOptions(true);
+
+      const [phoneRes, templateRes, segmentRes, tagRes] = await Promise.all([
+        supabase
+          .from('phone_numbers')
+          .select('id, display_number, verified_name, status, quality_rating, is_default')
+          .eq('tenant_id', currentTenant.id)
+          .order('is_default', { ascending: false })
+          .order('created_at', { ascending: false }),
+        supabase
+          .from('templates')
+          .select('id, name, category, status, language')
+          .eq('tenant_id', currentTenant.id)
+          .eq('status', 'APPROVED')
+          .order('updated_at', { ascending: false }),
+        supabase
+          .from('smeksh_segments')
+          .select('id, name, contact_count')
+          .eq('workspace_id', currentTenant.id)
+          .order('updated_at', { ascending: false }),
+        supabase
+          .from('tags')
+          .select('id, name, color')
+          .eq('tenant_id', currentTenant.id)
+          .order('name'),
+      ]);
+
+      if (phoneRes.error || templateRes.error || segmentRes.error || tagRes.error) {
+        console.error('Create broadcast options load error', {
+          phoneError: phoneRes.error,
+          templateError: templateRes.error,
+          segmentError: segmentRes.error,
+          tagError: tagRes.error,
+        });
+        toast.error('Failed to load broadcast options');
+      }
+
+      setPhoneNumbers((phoneRes.data || []) as PhoneNumberOption[]);
+      setTemplates((templateRes.data || []) as TemplateOption[]);
+      setSegments((segmentRes.data || []) as SegmentOption[]);
+      setTags((tagRes.data || []) as TagOption[]);
+      setIsLoadingOptions(false);
+    };
+
+    fetchOptions();
+  }, [currentTenant?.id]);
+
+  useEffect(() => {
+    const fetchSelectedContacts = async () => {
+      if (!currentTenant?.id || preselectedContactIds.length === 0) {
+        setSelectedContactsPreview([]);
+        return;
+      }
+
+      const { data, error } = await supabase
+        .from('contacts')
+        .select('id, name, wa_id')
+        .eq('tenant_id', currentTenant.id)
+        .in('id', preselectedContactIds);
+
+      if (error) {
+        console.error('Failed to load selected contacts', error);
+        return;
+      }
+
+      setSelectedContactsPreview((data || []) as SelectedContactOption[]);
+    };
+
+    fetchSelectedContacts();
+  }, [currentTenant?.id, preselectedContactIds]);
+
+  useEffect(() => {
+    if (preselectedContactIds.length === 0) return;
+
+    setWizard((prev) => ({
+      ...prev,
+      audience: {
+        ...prev.audience,
+        source: 'contacts',
+        selected_contacts: preselectedContactIds,
+      },
+    }));
+  }, [preselectedContactIds]);
 
   const updateBasics = (field: string, value: string) => {
     setWizard(prev => ({
