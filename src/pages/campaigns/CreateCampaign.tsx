@@ -808,14 +808,20 @@ export default function CreateCampaign() {
                     <CardContent className="text-sm space-y-2">
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Total Recipients</span>
-                        <span className="font-medium text-primary">{estimatedAudience().toLocaleString()}</span>
+                        <span className="font-medium text-primary">{audienceEstimatedCount.toLocaleString()}</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Audience Source</span>
                         <span className="font-medium">
-                          {wizard.audience.selected_contacts.length > 0
-                            ? `${wizard.audience.selected_contacts.length} selected contacts`
-                            : `${wizard.audience.include_segments.length} segments included`}
+                          {audienceFilters.selected_contacts.length > 0
+                            ? `${audienceFilters.selected_contacts.length} selected contacts`
+                            : audienceFilters.include_segments.length > 0
+                              ? `${audienceFilters.include_segments.length} segments`
+                              : audienceFilters.lead_states.length > 0
+                                ? `${audienceFilters.lead_states.join(', ')} leads`
+                                : audienceFilters.assigned_agent
+                                  ? 'By agent'
+                                  : 'All matching contacts'}
                         </span>
                       </div>
                     </CardContent>
