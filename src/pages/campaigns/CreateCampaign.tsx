@@ -335,11 +335,20 @@ export default function CreateCampaign() {
   };
 
   const estimatedAudience = () => {
+    const selectedContactsCount = wizard.audience.selected_contacts.length > 0
+      ? wizard.audience.selected_contacts.length
+      : preselectedContactIds.length > 0
+        ? Math.max(preselectedCountParam, preselectedContactIds.length)
+        : 0;
+
+    if (selectedContactsCount > 0) return selectedContactsCount;
+
     let count = 0;
-    wizard.audience.include_segments.forEach(id => {
-      const seg = MOCK_SEGMENTS.find(s => s.id === id);
-      if (seg) count += seg.count;
+    wizard.audience.include_segments.forEach((id) => {
+      const seg = segments.find((s) => s.id === id);
+      if (seg?.contact_count) count += seg.contact_count;
     });
+
     return count > 0 ? count : 0;
   };
 
