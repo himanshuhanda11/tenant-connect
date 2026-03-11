@@ -40,9 +40,11 @@ import {
   FolderPlus,
   CheckCircle,
   ChevronDown,
+  Send,
 } from 'lucide-react';
 import { Segment } from '@/types/segment';
 import { cn } from '@/lib/utils';
+import { useNavigate } from 'react-router-dom';
 
 interface ContactsBulkActionsBarProps {
   selectedCount: number;
