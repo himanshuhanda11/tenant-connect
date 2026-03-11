@@ -235,7 +235,7 @@ export default function CampaignAudienceBuilder({
           .order('name'),
         (supabase as any)
           .from('smeksh_meta_ad_campaigns')
-          .select('id, name, status')
+          .select('id, campaign_name, status')
           .eq('workspace_id', currentTenant.id)
           .order('created_at', { ascending: false })
           .limit(50),
@@ -261,7 +261,13 @@ export default function CampaignAudienceBuilder({
       }
 
       setFlows((flowRes.data || []) as FlowOption[]);
-      setMetaCampaigns((metaRes.data || []) as MetaCampaignOption[]);
+      setMetaCampaigns(
+        ((metaRes.data || []) as Array<{ id: string; campaign_name: string; status: string | null }>).map((item) => ({
+          id: item.id,
+          name: item.campaign_name,
+          status: item.status,
+        }))
+      );
     };
 
     fetchExtras();
