@@ -75,7 +75,7 @@ export default function CampaignsList() {
     description: c.description || undefined,
     campaign_type: (c.campaign_type as Campaign['campaign_type']) || 'broadcast',
     goal: (c.goal as Campaign['goal']) || undefined,
-    status: c.status as CampaignStatus,
+    status: (c.status === 'running' ? 'sending' : c.status) as CampaignStatus,
     template_id: c.template_id,
     template_variables: c.template_variables as Record<string, unknown> | undefined,
     header_media_url: c.header_media_url || undefined,
