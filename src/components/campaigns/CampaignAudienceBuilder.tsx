@@ -930,7 +930,7 @@ export default function CampaignAudienceBuilder({
                 </div>
               </FilterSection>
             </div>
-          </ScrollArea>
+          </div>
         </Card>
 
         {/* Right: Audience Summary */}
