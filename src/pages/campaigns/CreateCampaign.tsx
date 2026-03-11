@@ -286,7 +286,7 @@ export default function CreateCampaign() {
       case 2:
         return wizard.message.template_id;
       case 3:
-        return wizard.audience.include_segments.length > 0 || wizard.audience.include_tags.length > 0;
+        return wizard.audience.include_segments.length > 0 || wizard.audience.include_tags.length > 0 || wizard.audience.selected_contacts.length > 0;
       case 4:
         return true;
       default:
