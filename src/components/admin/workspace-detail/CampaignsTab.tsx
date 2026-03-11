@@ -79,7 +79,7 @@ export function CampaignsTab({ isSuperAdmin, workspaceId }: CampaignsTabProps) {
                   <TableRow key={c.id}>
                     <TableCell className="font-medium text-sm">{c.name}</TableCell>
                     <TableCell>
-                      <AdminStatusBadge status={c.status === 'sending' ? 'active' : c.status === 'paused' ? 'paused' : 'connected'} />
+                      <AdminStatusBadge status={c.status === 'running' ? 'active' : c.status === 'paused' ? 'paused' : 'connected'} />
                     </TableCell>
                     <TableCell className="text-sm tabular-nums">{(c.sent_count || 0).toLocaleString()}</TableCell>
                     <TableCell className="text-sm tabular-nums">{(c.delivered_count || 0).toLocaleString()}</TableCell>

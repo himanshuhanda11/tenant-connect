@@ -12,7 +12,7 @@ export function CampaignsPanel() {
   const navigate = useNavigate();
   const { data: campaigns = [], isLoading } = useCampaigns();
 
-  const activeCampaigns = campaigns.filter(c => c.status === 'sending' || c.status === 'scheduled').length;
+  const activeCampaigns = campaigns.filter(c => c.status === 'running' || c.status === 'scheduled').length;
   const totalSent = campaigns.reduce((sum, c) => sum + (c.sent_count || 0), 0);
   const totalDelivered = campaigns.reduce((sum, c) => sum + (c.delivered_count || 0), 0);
   const blockRate = totalSent > 0 ? ((totalSent - totalDelivered) / totalSent * 100) : 0;
