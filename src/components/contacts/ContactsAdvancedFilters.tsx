@@ -257,10 +257,11 @@ export function ContactsAdvancedFilters({
             </Button>
           </PopoverTrigger>
           <PopoverContent
-            className="w-[95vw] max-w-[420px] p-0 h-[82vh] max-h-[680px] overflow-hidden flex flex-col"
+            className="w-[95vw] max-w-[420px] p-0 overflow-hidden flex flex-col"
             align="start"
             sideOffset={8}
             collisionPadding={12}
+            style={{ maxHeight: 'min(680px, calc(var(--radix-popover-content-available-height, 80vh) - 8px))' }}
           >
             <div className="p-3 border-b bg-muted/50">
               <h4 className="font-semibold text-sm flex items-center gap-2">
