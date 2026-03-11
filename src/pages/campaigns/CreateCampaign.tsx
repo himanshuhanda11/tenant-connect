@@ -449,14 +449,21 @@ export default function CreateCampaign() {
                         <SelectValue placeholder="Select phone number" />
                       </SelectTrigger>
                       <SelectContent>
-                        {MOCK_PHONE_NUMBERS.map(phone => (
-                          <SelectItem key={phone.id} value={phone.id}>
-                            <div className="flex items-center gap-2">
-                              <Phone className="h-4 w-4 text-green-600" />
-                              {phone.display} - {phone.name}
-                            </div>
-                          </SelectItem>
-                        ))}
+                        {isLoadingOptions ? (
+                          <SelectItem value="loading" disabled>Loading numbers...</SelectItem>
+                        ) : phoneNumbers.length === 0 ? (
+                          <SelectItem value="none" disabled>No connected WhatsApp numbers</SelectItem>
+                        ) : (
+                          phoneNumbers.map((phone) => (
+                            <SelectItem key={phone.id} value={phone.id}>
+                              <span className="inline-flex items-center gap-2">
+                                <Phone className="h-4 w-4 text-primary" />
+                                <span>{phone.display_number || 'Unknown number'}</span>
+                                {phone.verified_name ? <span className="text-muted-foreground">• {phone.verified_name}</span> : null}
+                              </span>
+                            </SelectItem>
+                          ))
+                        )}
                       </SelectContent>
                     </Select>
                   </div>
