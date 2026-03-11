@@ -355,6 +355,7 @@ export default function Contacts() {
 
       <ContactsBulkActionsBar
         selectedCount={selectedContactIds.length}
+        selectedContactIds={selectedContactIds}
         onClearSelection={() => setSelectedContactIds([])}
         onAddTag={handleBulkAddTag}
         onRemoveTag={handleBulkRemoveTag}
