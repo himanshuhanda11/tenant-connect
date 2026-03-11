@@ -585,9 +585,10 @@ export default function CampaignAudienceBuilder({
                 ) : (
                   <div className="space-y-1.5">
                     {segments.map((seg) => (
-                      <div
+                      <button
                         key={seg.id}
-                        className={`flex items-center justify-between p-2.5 rounded-lg border cursor-pointer transition-all text-sm
+                        type="button"
+                        className={`w-full flex items-center justify-between p-2.5 rounded-lg border transition-all text-sm text-left
                           ${filters.include_segments.includes(seg.id)
                             ? 'border-primary bg-primary/5 ring-1 ring-primary/20'
                             : 'hover:border-muted-foreground/30'
@@ -603,7 +604,7 @@ export default function CampaignAudienceBuilder({
                             <CheckCircle className="h-4 w-4 text-primary" />
                           )}
                         </div>
-                      </div>
+                      </button>
                     ))}
                   </div>
                 )}
