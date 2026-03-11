@@ -221,24 +221,25 @@ export function ContactsAdvancedFilters({
 
         {/* Inline Date Filters */}
         <div className="hidden sm:flex items-center gap-2">
-          <div className="flex items-center gap-1.5 bg-background border rounded-lg px-2 h-9">
-            <Calendar className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+          <div className="flex items-center gap-2 bg-background border rounded-lg px-3 h-9">
+            <Calendar className="h-4 w-4 text-primary shrink-0" />
+            <span className="text-xs text-muted-foreground whitespace-nowrap">From</span>
             <Input
               type="date"
               value={filters.createdDateFrom || ''}
               onChange={(e) => updateFilter('createdDateFrom', e.target.value || undefined)}
-              className="h-7 border-0 p-0 text-xs w-[120px] bg-transparent focus-visible:ring-0"
-              placeholder="From"
+              className="h-7 border-0 p-0 text-xs w-[130px] bg-transparent focus-visible:ring-0"
             />
           </div>
-          <span className="text-xs text-muted-foreground">to</span>
-          <div className="flex items-center gap-1.5 bg-background border rounded-lg px-2 h-9">
+          <span className="text-xs text-muted-foreground font-medium">→</span>
+          <div className="flex items-center gap-2 bg-background border rounded-lg px-3 h-9">
+            <Calendar className="h-4 w-4 text-primary shrink-0" />
+            <span className="text-xs text-muted-foreground whitespace-nowrap">To</span>
             <Input
               type="date"
               value={filters.createdDateTo || ''}
               onChange={(e) => updateFilter('createdDateTo', e.target.value || undefined)}
-              className="h-7 border-0 p-0 text-xs w-[120px] bg-transparent focus-visible:ring-0"
-              placeholder="To"
+              className="h-7 border-0 p-0 text-xs w-[130px] bg-transparent focus-visible:ring-0"
             />
           </div>
         </div>
@@ -266,7 +267,7 @@ export function ContactsAdvancedFilters({
                 Combine filters to find specific contacts
               </p>
             </div>
-            <ScrollArea className="h-[400px] sm:h-[460px]">
+            <ScrollArea className="max-h-[60vh]">
               <div className="p-4 space-y-5">
                 {/* Lead State (CRM) */}
                 <div className="space-y-3">
