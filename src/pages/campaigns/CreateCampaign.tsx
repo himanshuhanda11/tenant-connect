@@ -299,6 +299,12 @@ export default function CreateCampaign() {
         return audienceEstimatedCount > 0 || audienceFilters.selected_contacts.length > 0 || 
                audienceFilters.include_segments.length > 0 || audienceFilters.include_tags.length > 0 ||
                audienceFilters.assigned_agent !== '' || audienceFilters.lead_states.length > 0;
+      case 4:
+        return true;
+      default:
+        return true;
+    }
+  };
 
   const handleNext = () => {
     if (currentStep < 5) {
