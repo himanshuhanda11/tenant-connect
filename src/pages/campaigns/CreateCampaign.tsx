@@ -589,6 +589,26 @@ export default function CreateCampaign() {
                   <CardDescription>Select who will receive this campaign</CardDescription>
                 </div>
 
+                {wizard.audience.selected_contacts.length > 0 && (
+                  <Card className="bg-primary/5 border-primary/20">
+                    <CardContent className="pt-4 space-y-2">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <Users className="h-4 w-4 text-primary" />
+                          <span className="font-medium">Selected from Contacts</span>
+                        </div>
+                        <Badge>{wizard.audience.selected_contacts.length}</Badge>
+                      </div>
+                      {selectedContactsPreview.length > 0 && (
+                        <p className="text-sm text-muted-foreground truncate">
+                          {selectedContactsPreview.slice(0, 5).map((c) => c.name || c.wa_id || c.id).join(', ')}
+                          {selectedContactsPreview.length > 5 ? ` +${selectedContactsPreview.length - 5} more` : ''}
+                        </p>
+                      )}
+                    </CardContent>
+                  </Card>
+                )}
+
                 <div className="grid md:grid-cols-2 gap-6">
                   {/* Include */}
                   <div className="space-y-4">
