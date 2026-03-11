@@ -188,6 +188,13 @@ const parseLocalDate = (dateValue: string): Date | null => {
   return new Date(year, month - 1, day);
 };
 
+const formatDateInputValue = (date: Date): string => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
 const getLocalDayStartUtc = (dateValue: string): string | null => {
   const date = parseLocalDate(dateValue);
   if (!date) return null;
