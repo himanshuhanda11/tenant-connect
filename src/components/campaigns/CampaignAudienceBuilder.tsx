@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState, type ElementType, type ReactNode } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -181,6 +181,91 @@ export const DEFAULT_AUDIENCE_FILTERS: AudienceFilters = {
   opt_in_only: true,
 };
 
+const parseLocalDate = (dateValue: string): Date | null => {
+  if (!dateValue) return null;
+  const [year, month, day] = dateValue.split('-').map(Number);
+  if (!year || !month || !day) return null;
+  return new Date(year, month - 1, day);
+};
+
+const formatDateInputValue = (date: Date): string => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
+const getLocalDayStartUtc = (dateValue: string): string | null => {
+  const date = parseLocalDate(dateValue);
+  if (!date) return null;
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate(), 0, 0, 0, 0).toISOString();
+};
+
+const getLocalDayEndExclusiveUtc = (dateValue: string): string | null => {
+  const date = parseLocalDate(dateValue);
+  if (!date) return null;
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate() + 1, 0, 0, 0, 0).toISOString();
+};
+
+interface AudienceFilterSectionProps {
+  id: string;
+  icon: ElementType;
+  title: string;
+  badge?: number | string;
+  isOpen?: boolean;
+  onOpenChange?: (isOpen: boolean) => void;
+  children: ReactNode;
+}
+
+function AudienceFilterSection({
+  id,
+  icon: Icon,
+  title,
+  badge,
+  isOpen,
+  onOpenChange,
+  children,
+}: AudienceFilterSectionProps) {
+  const [internalOpen, setInternalOpen] = useState(true);
+  const isControlled = typeof isOpen === 'boolean';
+  const resolvedOpen = isControlled ? Boolean(isOpen) : internalOpen;
+
+  const handleOpenChange = (nextOpen: boolean) => {
+    if (!isControlled) {
+      setInternalOpen(nextOpen);
+    }
+    onOpenChange?.(nextOpen);
+  };
+
+  return (
+    <Collapsible open={resolvedOpen} onOpenChange={handleOpenChange}>
+      <CollapsibleTrigger className="w-full">
+        <div className="flex items-center justify-between p-3 rounded-lg hover:bg-muted/50 transition-colors group">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center group-hover:bg-primary/10 transition-colors">
+              <Icon className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
+            </div>
+            <span className="text-sm font-medium">{title}</span>
+            {badge !== undefined && badge !== 0 && (
+              <Badge variant="secondary" className="text-xs h-5 px-1.5">
+                {badge}
+              </Badge>
+            )}
+          </div>
+          {resolvedOpen ? (
+            <ChevronDown className="h-4 w-4 text-muted-foreground" />
+          ) : (
+            <ChevronRight className="h-4 w-4 text-muted-foreground" />
+          )}
+        </div>
+      </CollapsibleTrigger>
+      <CollapsibleContent id={`${id}-content`}>
+        <div className="px-3 pb-3 pt-1 ml-11 space-y-3">{children}</div>
+      </CollapsibleContent>
+    </Collapsible>
+  );
+}
+
 export default function CampaignAudienceBuilder({
   wizard,
   segments,
@@ -197,24 +282,6 @@ export default function CampaignAudienceBuilder({
   const [flows, setFlows] = useState<FlowOption[]>([]);
   const [metaCampaigns, setMetaCampaigns] = useState<MetaCampaignOption[]>([]);
   const [isEstimating, setIsEstimating] = useState(false);
-
-  // Section open state
-  const [openSections, setOpenSections] = useState<Record<string, boolean>>({
-    direct: filters.selected_contacts.length > 0,
-    segments: true,
-    tags: true,
-    agent: false,
-    lead: false,
-    date: false,
-    source: false,
-    attributes: false,
-    meta: false,
-    flow: false,
-    exclusions: true,
-  });
-
-  const toggleSection = (key: string) =>
-    setOpenSections((p) => ({ ...p, [key]: !p[key] }));
 
   // Fetch agents, flows, meta campaigns
   useEffect(() => {
@@ -308,7 +375,9 @@ export default function CampaignAudienceBuilder({
         .select('id', { count: 'exact', head: true })
         .eq('tenant_id', currentTenant.id);
 
-      if (filters.opt_in_only) query = query.eq('opt_in_status', true);
+      if (filters.opt_in_only) {
+        query = query.or('opt_in_status.eq.true,and(opt_in_status.is.null,opt_out.eq.false)');
+      }
       if (filters.mau_statuses.length > 0) query = query.in('mau_status', filters.mau_statuses as any);
       if (filters.priorities.length > 0) query = query.in('priority_level', filters.priorities as any);
       if (filters.lead_states.length > 0) query = query.in('lead_status', filters.lead_states as any);
@@ -317,15 +386,32 @@ export default function CampaignAudienceBuilder({
       if (filters.contact_source) query = query.eq('source', filters.contact_source);
       if (filters.flow_source) query = query.eq('automation_flow', filters.flow_source);
       if (filters.meta_campaign_source) query = query.eq('campaign_source', filters.meta_campaign_source);
-      if (filters.date_from) query = query.gte('created_at', `${filters.date_from}T00:00:00`);
-      if (filters.date_to) query = query.lt('created_at', `${filters.date_to}T23:59:59.999`);
+
+      const selectedSegments = segments.filter((segment) => filters.include_segments.includes(segment.id));
+      const selectedSegmentNames = selectedSegments.map((segment) => segment.name).filter(Boolean);
+      if (selectedSegmentNames.length > 0) {
+        query = query.in('segment', selectedSegmentNames);
+      }
+
+      let normalizedDateFrom = filters.date_from;
+      let normalizedDateTo = filters.date_to;
+      const fromDate = parseLocalDate(filters.date_from);
+      const toDate = parseLocalDate(filters.date_to);
+
+      if (fromDate && toDate && fromDate.getTime() > toDate.getTime()) {
+        normalizedDateFrom = formatDateInputValue(toDate);
+        normalizedDateTo = formatDateInputValue(fromDate);
+      }
+
+      const fromBoundaryUtc = getLocalDayStartUtc(normalizedDateFrom);
+      const toBoundaryUtc = getLocalDayEndExclusiveUtc(normalizedDateTo);
+
+      if (fromBoundaryUtc) query = query.gte('created_at', fromBoundaryUtc);
+      if (toBoundaryUtc) query = query.lt('created_at', toBoundaryUtc);
 
       let segmentCount: number | null = null;
       if (filters.include_segments.length > 0) {
-        segmentCount = filters.include_segments.reduce((total, id) => {
-          const segment = segments.find((s) => s.id === id);
-          return total + (segment?.contact_count || 0);
-        }, 0);
+        segmentCount = selectedSegments.reduce((total, segment) => total + (segment.contact_count || 0), 0);
       }
 
       const { count, error } = await query;
@@ -396,39 +482,8 @@ export default function CampaignAudienceBuilder({
     return count;
   };
 
-  const FilterSection = ({ id, icon: Icon, title, badge, children }: {
-    id: string;
-    icon: React.ElementType;
-    title: string;
-    badge?: number | string;
-    children: React.ReactNode;
-  }) => (
-    <Collapsible open={openSections[id]} onOpenChange={() => toggleSection(id)}>
-      <CollapsibleTrigger className="w-full">
-        <div className="flex items-center justify-between p-3 rounded-lg hover:bg-muted/50 transition-colors group">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center group-hover:bg-primary/10 transition-colors">
-              <Icon className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
-            </div>
-            <span className="text-sm font-medium">{title}</span>
-            {badge !== undefined && badge !== 0 && (
-              <Badge variant="secondary" className="text-xs h-5 px-1.5">
-                {badge}
-              </Badge>
-            )}
-          </div>
-          {openSections[id] ? (
-            <ChevronDown className="h-4 w-4 text-muted-foreground" />
-          ) : (
-            <ChevronRight className="h-4 w-4 text-muted-foreground" />
-          )}
-        </div>
-      </CollapsibleTrigger>
-      <CollapsibleContent>
-        <div className="px-3 pb-3 pt-1 ml-11 space-y-3">{children}</div>
-      </CollapsibleContent>
-    </Collapsible>
-  );
+
+  const FilterSection = AudienceFilterSection;
 
   return (
     <div className="space-y-5">
@@ -490,7 +545,13 @@ export default function CampaignAudienceBuilder({
       <div className="grid lg:grid-cols-[1fr,320px] gap-5">
         {/* Left: Filters */}
         <Card className="overflow-hidden">
-          <div className="max-h-[60vh] overflow-y-auto">
+          <div
+            className="overflow-y-auto pr-1"
+            style={{
+              maxHeight: 'min(68vh, var(--radix-popover-content-available-height, 68vh))',
+              scrollbarGutter: 'stable',
+            }}
+          >
             <div className="divide-y divide-border">
               {/* Segments */}
               <FilterSection
@@ -506,9 +567,10 @@ export default function CampaignAudienceBuilder({
                 ) : (
                   <div className="space-y-1.5">
                     {segments.map((seg) => (
-                      <div
+                      <button
                         key={seg.id}
-                        className={`flex items-center justify-between p-2.5 rounded-lg border cursor-pointer transition-all text-sm
+                        type="button"
+                        className={`w-full flex items-center justify-between p-2.5 rounded-lg border transition-all text-sm text-left
                           ${filters.include_segments.includes(seg.id)
                             ? 'border-primary bg-primary/5 ring-1 ring-primary/20'
                             : 'hover:border-muted-foreground/30'
@@ -524,7 +586,7 @@ export default function CampaignAudienceBuilder({
                             <CheckCircle className="h-4 w-4 text-primary" />
                           )}
                         </div>
-                      </div>
+                      </button>
                     ))}
                   </div>
                 )}
