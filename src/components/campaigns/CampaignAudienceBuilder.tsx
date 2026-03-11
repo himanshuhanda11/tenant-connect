@@ -287,8 +287,8 @@ export default function CampaignAudienceBuilder({
     exclusions: true,
   });
 
-  const toggleSection = (key: string) =>
-    setOpenSections((p) => ({ ...p, [key]: !p[key] }));
+  const setSectionOpen = (key: string, isOpen: boolean) =>
+    setOpenSections((prev) => ({ ...prev, [key]: isOpen }));
 
   // Fetch agents, flows, meta campaigns
   useEffect(() => {
@@ -382,7 +382,9 @@ export default function CampaignAudienceBuilder({
         .select('id', { count: 'exact', head: true })
         .eq('tenant_id', currentTenant.id);
 
-      if (filters.opt_in_only) query = query.eq('opt_in_status', true);
+      if (filters.opt_in_only) {
+        query = query.or('opt_in_status.eq.true,and(opt_in_status.is.null,opt_out.eq.false)');
+      }
       if (filters.mau_statuses.length > 0) query = query.in('mau_status', filters.mau_statuses as any);
       if (filters.priorities.length > 0) query = query.in('priority_level', filters.priorities as any);
       if (filters.lead_states.length > 0) query = query.in('lead_status', filters.lead_states as any);
@@ -391,15 +393,32 @@ export default function CampaignAudienceBuilder({
       if (filters.contact_source) query = query.eq('source', filters.contact_source);
       if (filters.flow_source) query = query.eq('automation_flow', filters.flow_source);
       if (filters.meta_campaign_source) query = query.eq('campaign_source', filters.meta_campaign_source);
-      if (filters.date_from) query = query.gte('created_at', `${filters.date_from}T00:00:00`);
-      if (filters.date_to) query = query.lt('created_at', `${filters.date_to}T23:59:59.999`);
+
+      const selectedSegments = segments.filter((segment) => filters.include_segments.includes(segment.id));
+      const selectedSegmentNames = selectedSegments.map((segment) => segment.name).filter(Boolean);
+      if (selectedSegmentNames.length > 0) {
+        query = query.in('segment', selectedSegmentNames);
+      }
+
+      let normalizedDateFrom = filters.date_from;
+      let normalizedDateTo = filters.date_to;
+      const fromDate = parseLocalDate(filters.date_from);
+      const toDate = parseLocalDate(filters.date_to);
+
+      if (fromDate && toDate && fromDate.getTime() > toDate.getTime()) {
+        normalizedDateFrom = formatDateInputValue(toDate);
+        normalizedDateTo = formatDateInputValue(fromDate);
+      }
+
+      const fromBoundaryUtc = getLocalDayStartUtc(normalizedDateFrom);
+      const toBoundaryUtc = getLocalDayEndExclusiveUtc(normalizedDateTo);
+
+      if (fromBoundaryUtc) query = query.gte('created_at', fromBoundaryUtc);
+      if (toBoundaryUtc) query = query.lt('created_at', toBoundaryUtc);
 
       let segmentCount: number | null = null;
       if (filters.include_segments.length > 0) {
-        segmentCount = filters.include_segments.reduce((total, id) => {
-          const segment = segments.find((s) => s.id === id);
-          return total + (segment?.contact_count || 0);
-        }, 0);
+        segmentCount = selectedSegments.reduce((total, segment) => total + (segment.contact_count || 0), 0);
       }
 
       const { count, error } = await query;
