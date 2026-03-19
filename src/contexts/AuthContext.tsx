@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
+import { signInWithManagedGoogle } from '@/lib/auth/googleOAuth';
 import type { Profile } from '@/types/tenant';
 
 interface AuthContextType {
@@ -153,16 +154,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const signInWithGoogle = async () => {
-    const redirectUrl = `${window.location.origin}/auth/callback?next=/select-workspace`;
-
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: redirectUrl,
+    const { error } = await signInWithManagedGoogle({
+      nextPath: '/select-workspace',
+      extraParams: {
+        prompt: 'select_account',
       },
     });
 
-    return { error: error as Error | null };
+    return { error: error ?? null };
   };
 
   const signOut = async () => {
