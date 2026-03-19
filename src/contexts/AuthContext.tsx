@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
+import { signInWithManagedGoogle } from '@/lib/auth/googleOAuth';
 import type { Profile } from '@/types/tenant';
 
 interface AuthContextType {
