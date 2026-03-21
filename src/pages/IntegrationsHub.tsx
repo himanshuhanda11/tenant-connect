@@ -191,7 +191,31 @@ export default function IntegrationsHub() {
           />
         </div>
 
-        {/* Integrations Grid */}
+        {/* Connected Integrations with Sub-Menus */}
+        {connectedIntegrations.length > 0 && activeFilter !== 'connected' && (
+          <div className="mb-8">
+            <h2 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
+              <Activity className="w-5 h-5 text-primary" />
+              Active Integrations
+              <Badge variant="secondary">{connectedIntegrations.length}</Badge>
+            </h2>
+            <div className="grid md:grid-cols-2 gap-4">
+              {connectedIntegrations.map((integration) => (
+                <ConnectedIntegrationCard
+                  key={integration.id}
+                  integration={integration}
+                />
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* All Integrations Grid */}
+        <div className="mb-2">
+          <h2 className="text-lg font-semibold text-foreground mb-4">
+            {activeFilter === 'connected' ? 'Connected Integrations' : 'All Integrations'}
+          </h2>
+        </div>
         {isLoading ? (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {[...Array(8)].map((_, i) => (
@@ -230,24 +254,6 @@ export default function IntegrationsHub() {
             ))}
           </div>
         )}
-
-        {/* Quick Stats */}
-        {connectedCount > 0 && (
-          <div className="mt-8 p-4 bg-muted/30 rounded-xl border">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <Activity className="w-5 h-5 text-primary" />
-                <div>
-                  <p className="text-sm font-medium">Integration Health</p>
-                  <p className="text-xs text-muted-foreground">
-                    {connectedCount} active integrations
-                  </p>
-                </div>
-              </div>
-              <Button variant="ghost" size="sm" onClick={() => navigate('/integrations/events')}>
-                View All Events
-              </Button>
-            </div>
           </div>
         )}
 
