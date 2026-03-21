@@ -93,16 +93,16 @@
     --input: 222 20% 16%;
     --ring: 142 70% 45%;
 
-    /* Dark sidebar — layered dark, not pure black */
-    --sidebar-background: 222 30% 8%;
+    /* Dark sidebar — rich layered dark */
+    --sidebar-background: 222 35% 6%;
     --sidebar-foreground: 210 10% 82%;
     --sidebar-primary: 142 70% 45%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 222 25% 13%;
+    --sidebar-accent: 222 30% 11%;
     --sidebar-accent-foreground: 210 10% 95%;
-    --sidebar-border: 222 25% 14%;
+    --sidebar-border: 222 28% 12%;
     --sidebar-ring: 142 70% 45%;
-    --sidebar-muted: 222 20% 12%;
+    --sidebar-muted: 222 25% 9%;
 
     --shadow-xs: 0 1px 2px 0 hsl(0 0% 0% / 0.15);
     --shadow-sm: 0 1px 3px 0 hsl(0 0% 0% / 0.2), 0 1px 2px -1px hsl(0 0% 0% / 0.15);
