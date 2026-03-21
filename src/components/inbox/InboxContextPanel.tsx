@@ -142,12 +142,15 @@ export function InboxContextPanel({
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col min-h-0 overflow-hidden">
-        <TabsList className="mx-3 mt-2 grid grid-cols-7 h-9 flex-shrink-0">
+        <TabsList className="mx-3 mt-2 grid grid-cols-8 h-9 flex-shrink-0">
           <TabsTrigger value="overview" className="px-1.5">
             <Target className="h-4 w-4" />
           </TabsTrigger>
           <TabsTrigger value="contact" className="px-1.5">
             <User className="h-4 w-4" />
+          </TabsTrigger>
+          <TabsTrigger value="shopify" className="px-1.5">
+            <ShoppingBag className="h-4 w-4" />
           </TabsTrigger>
           <TabsTrigger value="lead" className="px-1.5">
             <Zap className="h-4 w-4" />
