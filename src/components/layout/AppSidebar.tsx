@@ -445,12 +445,12 @@ export function AppSidebar() {
       </SidebarContent>
 
       {/* ── Footer ── */}
-      <SidebarFooter className="px-2.5 py-2.5 border-t border-sidebar-border/40">
+      <SidebarFooter className="px-3 py-3 border-t border-sidebar-border/50">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <button className={cn(
-              "w-full flex items-center gap-2 rounded-lg transition-all group hover:bg-sidebar-accent/50",
-              isCollapsed ? "p-1.5 justify-center" : "px-2 py-1.5"
+              "w-full flex items-center gap-2.5 rounded-xl transition-all duration-200 group hover:bg-sidebar-accent",
+              isCollapsed ? "p-1.5 justify-center" : "px-2.5 py-2"
             )}>
               <div className={cn(
                 "flex items-center justify-center rounded-full font-bold text-white text-[10px] flex-shrink-0",
