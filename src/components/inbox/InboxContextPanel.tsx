@@ -175,6 +175,14 @@ export function InboxContextPanel({
             <InboxCRMOverview conversation={conversation} />
           </TabsContent>
 
+          {/* Shopify Tab */}
+          <TabsContent value="shopify" className="m-0">
+            <ShopifyContextTab
+              conversationId={conversation.id}
+              onInsertReply={onInsertReply}
+            />
+          </TabsContent>
+
           {/* Contact Tab */}
           <TabsContent value="contact" className="m-0 p-4 space-y-4">
             <div className="space-y-3">
