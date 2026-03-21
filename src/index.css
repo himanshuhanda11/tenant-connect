@@ -38,16 +38,16 @@
 
     --radius: 0.625rem;
 
-    /* Sidebar — soft neutral with separation */
-    --sidebar-background: 210 20% 99%;
+    /* Sidebar — elevated surface with clear separation */
+    --sidebar-background: 210 25% 97%;
     --sidebar-foreground: 220 25% 12%;
     --sidebar-primary: 142 70% 45%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 214 18% 94%;
+    --sidebar-accent: 210 20% 93%;
     --sidebar-accent-foreground: 220 25% 10%;
-    --sidebar-border: 214 16% 91%;
+    --sidebar-border: 214 20% 88%;
     --sidebar-ring: 142 70% 45%;
-    --sidebar-muted: 214 14% 96%;
+    --sidebar-muted: 210 18% 95%;
 
     /* Custom tokens */
     --success: 142 70% 45%;
