@@ -341,7 +341,7 @@ export function AppSidebar() {
 
       <SidebarContent ref={sidebarScrollRef} className="px-3 py-3.5 overflow-y-auto">
         {/* ── Workspace Switcher ── */}
-        <div className="mb-3">
+        <div className="mb-3.5">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button className={cn(
