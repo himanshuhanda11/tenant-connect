@@ -27,23 +27,16 @@ function useShopifyTable<T>(
     queryFn: async () => {
       if (!storeId) return { data: [] as T[], count: 0 };
 
-      let query = supabase
-        .from(table as any)
+      const from = page * pageSize;
+      const to = (page + 1) * pageSize - 1;
+
+      // Build query with explicit typing to avoid deep instantiation
+      const { data, error, count } = await supabase
+        .from(table)
         .select('*', { count: 'exact' })
-        .eq('store_id', storeId)
-        .range(page * pageSize, (page + 1) * pageSize - 1)
-        .order('created_at', { ascending: false });
-
-      if (search && searchColumns.length > 0) {
-        const orFilter = searchColumns.map(col => `${col}.ilike.%${search}%`).join(',');
-        query = query.or(orFilter);
-      }
-
-      if (status) {
-        query = query.eq('status' as any, status);
-      }
-
-      const { data, error, count } = await query;
+        .eq('store_id' as string, storeId)
+        .range(from, to)
+        .order('created_at' as string, { ascending: false });
       if (error) throw error;
       return { data: (data || []) as T[], count: count || 0 };
     },
