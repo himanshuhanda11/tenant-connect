@@ -134,6 +134,8 @@ export default function IntegrationDetail() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { integrationsWithStatus, disconnect, isDisconnecting } = useIntegrations();
+  const { log: auditLog } = useIntegrationAudit();
+  const { canDisconnect, canEditSettings } = useIntegrationPermissions();
 
   const [isMappingModalOpen, setIsMappingModalOpen] = useState(false);
   const [editingMapping, setEditingMapping] = useState<EventMapping | undefined>();
