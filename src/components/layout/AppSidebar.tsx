@@ -345,9 +345,9 @@ export function AppSidebar() {
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button className={cn(
-                "w-full flex items-center gap-2.5 rounded-lg transition-all duration-150 group",
-                "hover:bg-sidebar-accent/50",
-                isCollapsed ? "p-1.5 justify-center" : "px-2.5 py-2"
+                "w-full flex items-center gap-2.5 rounded-xl transition-all duration-200 group",
+                "hover:bg-sidebar-accent",
+                isCollapsed ? "p-1.5 justify-center" : "px-2.5 py-2.5"
               )}>
                 <div className={cn(
                   "flex items-center justify-center rounded-lg font-bold text-white text-xs flex-shrink-0",
