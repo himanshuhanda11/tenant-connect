@@ -201,18 +201,18 @@ export function AppSidebar() {
                   to={item.url}
                   end={item.url === '/dashboard'}
                   className={cn(
-                    "flex items-center justify-center p-2 rounded-lg transition-all duration-150",
+                    "flex items-center justify-center p-2.5 rounded-lg transition-all duration-150",
                     isActive
-                      ? "bg-primary/15 text-primary"
-                      : "text-sidebar-foreground/50 hover:text-sidebar-foreground hover:bg-sidebar-accent/60"
+                      ? "bg-primary/12 text-primary shadow-sm"
+                      : "text-sidebar-foreground/50 hover:text-sidebar-foreground hover:bg-sidebar-accent/70"
                   )}
                   activeClassName=""
                 >
-                  <item.icon className="h-4 w-4" />
+                  <item.icon className={cn("h-[18px] w-[18px]", isActive && "text-primary")} />
                 </NavLink>
               </SidebarMenuButton>
             </TooltipTrigger>
-            <TooltipContent side="right" className="text-xs">{item.title}</TooltipContent>
+            <TooltipContent side="right" className="text-xs font-medium">{item.title}</TooltipContent>
           </Tooltip>
         </SidebarMenuItem>
       );
@@ -225,22 +225,29 @@ export function AppSidebar() {
             to={item.url}
             end={item.url === '/dashboard'}
             className={cn(
-              "group/menuitem flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg text-[13px] font-medium transition-all duration-150",
+              "group/menuitem relative flex items-center gap-3 px-3 py-2.5 rounded-[10px] text-[13.5px] font-medium transition-all duration-150",
               isActive
-                ? "bg-primary/10 text-primary"
-                : "text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent/50"
+                ? "bg-primary/10 text-primary shadow-sm"
+                : "text-sidebar-foreground/65 hover:text-sidebar-foreground hover:bg-sidebar-accent/60"
             )}
             activeClassName=""
           >
-            <item.icon className={cn("h-3.5 w-3.5 flex-shrink-0", isActive ? "text-primary" : "text-sidebar-foreground/40")} />
-            <span className="flex-1 truncate">{item.title}</span>
+            {/* Left accent bar for active state */}
+            {isActive && (
+              <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-[60%] rounded-r-full bg-primary" />
+            )}
+            <item.icon className={cn(
+              "h-4 w-4 flex-shrink-0 transition-colors duration-150",
+              isActive ? "text-primary" : "text-sidebar-foreground/40"
+            )} />
+            <span className="flex-1 truncate tracking-[-0.01em]">{item.title}</span>
             {item.isNew && (
-              <span className="text-[9px] font-bold uppercase tracking-wider text-primary bg-primary/10 px-1.5 py-0.5 rounded">
+              <span className="text-[9px] font-bold uppercase tracking-wider text-primary bg-primary/10 px-1.5 py-0.5 rounded-md">
                 new
               </span>
             )}
             {item.badge !== undefined && item.badge > 0 && (
-              <Badge variant="destructive" className="h-4 min-w-[16px] px-1 text-[10px] rounded-full">
+              <Badge variant="destructive" className="h-[18px] min-w-[18px] px-1 text-[10px] rounded-full">
                 {item.badge}
               </Badge>
             )}
@@ -250,10 +257,10 @@ export function AppSidebar() {
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={(e) => e.stopPropagation()}
-                className="opacity-0 group-hover/menuitem:opacity-100 transition-opacity p-0.5 rounded hover:bg-sidebar-accent/80"
+                className="opacity-0 group-hover/menuitem:opacity-100 transition-opacity duration-150 p-0.5 rounded-md hover:bg-sidebar-accent/80"
                 title={`${item.title} docs`}
               >
-                <ExternalLink className="h-3 w-3 text-sidebar-foreground/40 hover:text-primary" />
+                <ExternalLink className="h-3 w-3 text-sidebar-foreground/35 hover:text-primary" />
               </a>
             )}
           </NavLink>
