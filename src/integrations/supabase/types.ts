@@ -6700,6 +6700,292 @@ export type Database = {
           },
         ]
       }
+      shopify_automation_rules: {
+        Row: {
+          actions: Json
+          conditions: Json
+          cooldown_minutes: number | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          is_active: boolean
+          max_executions_per_contact: number | null
+          name: string
+          stats_conversions: number
+          stats_executions: number
+          store_id: string
+          tenant_id: string
+          trigger_event: string
+          updated_at: string
+        }
+        Insert: {
+          actions?: Json
+          conditions?: Json
+          cooldown_minutes?: number | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          max_executions_per_contact?: number | null
+          name: string
+          stats_conversions?: number
+          stats_executions?: number
+          store_id: string
+          tenant_id: string
+          trigger_event: string
+          updated_at?: string
+        }
+        Update: {
+          actions?: Json
+          conditions?: Json
+          cooldown_minutes?: number | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          max_executions_per_contact?: number | null
+          name?: string
+          stats_conversions?: number
+          stats_executions?: number
+          store_id?: string
+          tenant_id?: string
+          trigger_event?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shopify_automation_rules_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shopify_automation_rules_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "connected_stores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shopify_automation_rules_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "platform_workspace_directory"
+            referencedColumns: ["workspace_id"]
+          },
+          {
+            foreignKeyName: "shopify_automation_rules_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      shopify_cart_recovery_logs: {
+        Row: {
+          action_taken: string
+          cart_value: number | null
+          channel: string | null
+          checkout_id: string | null
+          created_at: string
+          customer_email: string | null
+          customer_phone: string | null
+          discount_code_used: string | null
+          error_message: string | null
+          id: string
+          metadata: Json | null
+          recovered_value: number | null
+          rule_id: string | null
+          status: string
+          store_id: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          action_taken: string
+          cart_value?: number | null
+          channel?: string | null
+          checkout_id?: string | null
+          created_at?: string
+          customer_email?: string | null
+          customer_phone?: string | null
+          discount_code_used?: string | null
+          error_message?: string | null
+          id?: string
+          metadata?: Json | null
+          recovered_value?: number | null
+          rule_id?: string | null
+          status: string
+          store_id: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          action_taken?: string
+          cart_value?: number | null
+          channel?: string | null
+          checkout_id?: string | null
+          created_at?: string
+          customer_email?: string | null
+          customer_phone?: string | null
+          discount_code_used?: string | null
+          error_message?: string | null
+          id?: string
+          metadata?: Json | null
+          recovered_value?: number | null
+          rule_id?: string | null
+          status?: string
+          store_id?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shopify_cart_recovery_logs_checkout_id_fkey"
+            columns: ["checkout_id"]
+            isOneToOne: false
+            referencedRelation: "shopify_abandoned_checkouts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shopify_cart_recovery_logs_rule_id_fkey"
+            columns: ["rule_id"]
+            isOneToOne: false
+            referencedRelation: "shopify_cart_recovery_rules"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shopify_cart_recovery_logs_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "connected_stores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shopify_cart_recovery_logs_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "platform_workspace_directory"
+            referencedColumns: ["workspace_id"]
+          },
+          {
+            foreignKeyName: "shopify_cart_recovery_logs_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      shopify_cart_recovery_rules: {
+        Row: {
+          actions: Json
+          conditions: Json
+          created_at: string
+          created_by: string | null
+          delay_minutes: number
+          description: string | null
+          discount_code: string | null
+          discount_type: string | null
+          discount_value: number | null
+          id: string
+          is_active: boolean
+          max_attempts: number
+          min_cart_value: number | null
+          name: string
+          priority: number
+          stats_recovered: number
+          stats_revenue_recovered: number
+          stats_triggered: number
+          store_id: string
+          tenant_id: string
+          trigger_type: string
+          updated_at: string
+        }
+        Insert: {
+          actions?: Json
+          conditions?: Json
+          created_at?: string
+          created_by?: string | null
+          delay_minutes?: number
+          description?: string | null
+          discount_code?: string | null
+          discount_type?: string | null
+          discount_value?: number | null
+          id?: string
+          is_active?: boolean
+          max_attempts?: number
+          min_cart_value?: number | null
+          name: string
+          priority?: number
+          stats_recovered?: number
+          stats_revenue_recovered?: number
+          stats_triggered?: number
+          store_id: string
+          tenant_id: string
+          trigger_type: string
+          updated_at?: string
+        }
+        Update: {
+          actions?: Json
+          conditions?: Json
+          created_at?: string
+          created_by?: string | null
+          delay_minutes?: number
+          description?: string | null
+          discount_code?: string | null
+          discount_type?: string | null
+          discount_value?: number | null
+          id?: string
+          is_active?: boolean
+          max_attempts?: number
+          min_cart_value?: number | null
+          name?: string
+          priority?: number
+          stats_recovered?: number
+          stats_revenue_recovered?: number
+          stats_triggered?: number
+          store_id?: string
+          tenant_id?: string
+          trigger_type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shopify_cart_recovery_rules_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shopify_cart_recovery_rules_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "connected_stores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shopify_cart_recovery_rules_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "platform_workspace_directory"
+            referencedColumns: ["workspace_id"]
+          },
+          {
+            foreignKeyName: "shopify_cart_recovery_rules_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       shopify_collections: {
         Row: {
           collection_type: string | null
@@ -7147,6 +7433,85 @@ export type Database = {
           },
           {
             foreignKeyName: "shopify_products_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      shopify_sales_analytics: {
+        Row: {
+          agent_resolved: number | null
+          ai_resolved: number | null
+          avg_response_minutes: number | null
+          cart_to_purchase: number | null
+          carts_recovered: number | null
+          chat_to_cart: number | null
+          created_at: string
+          id: string
+          revenue_from_chat: number | null
+          revenue_recovered: number | null
+          snapshot_date: string
+          store_id: string
+          tenant_id: string
+          top_agents: Json | null
+          top_products: Json | null
+          total_conversations: number | null
+        }
+        Insert: {
+          agent_resolved?: number | null
+          ai_resolved?: number | null
+          avg_response_minutes?: number | null
+          cart_to_purchase?: number | null
+          carts_recovered?: number | null
+          chat_to_cart?: number | null
+          created_at?: string
+          id?: string
+          revenue_from_chat?: number | null
+          revenue_recovered?: number | null
+          snapshot_date: string
+          store_id: string
+          tenant_id: string
+          top_agents?: Json | null
+          top_products?: Json | null
+          total_conversations?: number | null
+        }
+        Update: {
+          agent_resolved?: number | null
+          ai_resolved?: number | null
+          avg_response_minutes?: number | null
+          cart_to_purchase?: number | null
+          carts_recovered?: number | null
+          chat_to_cart?: number | null
+          created_at?: string
+          id?: string
+          revenue_from_chat?: number | null
+          revenue_recovered?: number | null
+          snapshot_date?: string
+          store_id?: string
+          tenant_id?: string
+          top_agents?: Json | null
+          top_products?: Json | null
+          total_conversations?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shopify_sales_analytics_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "connected_stores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shopify_sales_analytics_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "platform_workspace_directory"
+            referencedColumns: ["workspace_id"]
+          },
+          {
+            foreignKeyName: "shopify_sales_analytics_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
