@@ -236,6 +236,9 @@ const App = () => (
               <Route path="/app/integrations/shopify/:storeId/webhooks" element={<ShopifyWebhooks />} />
               <Route path="/app/integrations/shopify/:storeId/settings" element={<ShopifySettings />} />
               <Route path="/app/integrations/shopify/:storeId/data" element={<ShopifyDataExplorer />} />
+              <Route path="/app/integrations/shopify/:storeId/recovery" element={<ShopifyCartRecovery />} />
+              <Route path="/app/integrations/shopify/:storeId/analytics" element={<ShopifyAnalytics />} />
+              <Route path="/app/integrations/shopify/:storeId/automations" element={<ShopifyAutomations />} />
               <Route path="/app/integrations/:key" element={<IntegrationDetail />} />
               <Route path="/settings" element={<Settings />} />
               <Route path="/privacy-policy" element={<PrivacyPolicy />} />
