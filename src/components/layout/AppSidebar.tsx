@@ -416,23 +416,23 @@ export function AppSidebar() {
         {/* ── Main Nav ── */}
         <SidebarGroup>
           <SidebarGroupContent>
-            <SidebarMenu className="space-y-0.5">
+            <SidebarMenu className="space-y-1">
               {filteredMainMenuItems.map(item => renderMenuItem(item))}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
 
-        {!isCollapsed && <div className="mx-2 my-2 border-b border-sidebar-border/30" />}
+        {!isCollapsed && <div className="mx-3 my-2.5 border-b border-sidebar-border/40" />}
 
         {/* ── Collapsible Groups ── */}
         {menuGroups.map(group => renderCollapsibleGroup(group))}
 
-        {!isCollapsed && <div className="mx-2 my-2 border-b border-sidebar-border/30" />}
+        {!isCollapsed && <div className="mx-3 my-2.5 border-b border-sidebar-border/40" />}
 
         {/* ── Platform ── */}
-        <SidebarGroup className="mt-1">
+        <SidebarGroup className="mt-1.5">
           {!isCollapsed && (
-            <SidebarGroupLabel className="text-sidebar-foreground/30 text-[10px] uppercase tracking-wider px-2.5 mb-0.5">
+            <SidebarGroupLabel className="text-sidebar-foreground/35 text-[10px] font-semibold uppercase tracking-[0.06em] px-3 mb-1">
               Platform
             </SidebarGroupLabel>
           )}
