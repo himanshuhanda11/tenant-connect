@@ -125,6 +125,13 @@ import MetaAdsSettings from "./pages/meta-ads/MetaAdsSettings";
 import CreateMetaCampaign from "./pages/meta-ads/CreateMetaCampaign";
 import LeadFormsPage from "./pages/LeadFormsPage";
 import Install from "./pages/Install";
+import ShopifyOverview from "./pages/shopify/ShopifyOverview";
+import ShopifyConnect from "./pages/shopify/ShopifyConnect";
+import ShopifyStoreDetail from "./pages/shopify/ShopifyStoreDetail";
+import ShopifySyncCenter from "./pages/shopify/ShopifySyncCenter";
+import ShopifyWebhooks from "./pages/shopify/ShopifyWebhooks";
+import ShopifySettings from "./pages/shopify/ShopifySettings";
+import ShopifyDataExplorer from "./pages/shopify/ShopifyDataExplorer";
 import SeoDashboard from "./pages/developer/SeoDashboard";
 import AdminLayout from "./pages/admin/AdminLayout";
 import AdminOverview from "./pages/admin/AdminOverview";
@@ -219,6 +226,13 @@ const App = () => (
               <Route path="/billing" element={<Billing />} />
               <Route path="/add-ons" element={<WorkspaceAddOns />} />
               <Route path="/app/integrations" element={<IntegrationsHub />} />
+              <Route path="/app/integrations/shopify" element={<ShopifyOverview />} />
+              <Route path="/app/integrations/shopify/connect" element={<ShopifyConnect />} />
+              <Route path="/app/integrations/shopify/:storeId" element={<ShopifyStoreDetail />} />
+              <Route path="/app/integrations/shopify/:storeId/sync" element={<ShopifySyncCenter />} />
+              <Route path="/app/integrations/shopify/:storeId/webhooks" element={<ShopifyWebhooks />} />
+              <Route path="/app/integrations/shopify/:storeId/settings" element={<ShopifySettings />} />
+              <Route path="/app/integrations/shopify/:storeId/data" element={<ShopifyDataExplorer />} />
               <Route path="/app/integrations/:key" element={<IntegrationDetail />} />
               <Route path="/settings" element={<Settings />} />
               <Route path="/privacy-policy" element={<PrivacyPolicy />} />
