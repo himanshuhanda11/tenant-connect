@@ -1949,6 +1949,100 @@ export type Database = {
           },
         ]
       }
+      connected_stores: {
+        Row: {
+          access_token_encrypted: string | null
+          app_embed_enabled: boolean | null
+          created_at: string
+          created_by: string | null
+          id: string
+          installed_at: string | null
+          last_synced_at: string | null
+          platform: string
+          refresh_token_encrypted: string | null
+          scopes: string[] | null
+          shopify_shop_id: string | null
+          status: Database["public"]["Enums"]["shopify_store_status"]
+          store_currency: string | null
+          store_domain: string
+          store_email: string | null
+          store_name: string | null
+          store_plan: string | null
+          store_timezone: string | null
+          tenant_id: string
+          updated_at: string
+          webhooks_registered: boolean | null
+        }
+        Insert: {
+          access_token_encrypted?: string | null
+          app_embed_enabled?: boolean | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          installed_at?: string | null
+          last_synced_at?: string | null
+          platform?: string
+          refresh_token_encrypted?: string | null
+          scopes?: string[] | null
+          shopify_shop_id?: string | null
+          status?: Database["public"]["Enums"]["shopify_store_status"]
+          store_currency?: string | null
+          store_domain: string
+          store_email?: string | null
+          store_name?: string | null
+          store_plan?: string | null
+          store_timezone?: string | null
+          tenant_id: string
+          updated_at?: string
+          webhooks_registered?: boolean | null
+        }
+        Update: {
+          access_token_encrypted?: string | null
+          app_embed_enabled?: boolean | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          installed_at?: string | null
+          last_synced_at?: string | null
+          platform?: string
+          refresh_token_encrypted?: string | null
+          scopes?: string[] | null
+          shopify_shop_id?: string | null
+          status?: Database["public"]["Enums"]["shopify_store_status"]
+          store_currency?: string | null
+          store_domain?: string
+          store_email?: string | null
+          store_name?: string | null
+          store_plan?: string | null
+          store_timezone?: string | null
+          tenant_id?: string
+          updated_at?: string
+          webhooks_registered?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "connected_stores_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "connected_stores_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "platform_workspace_directory"
+            referencedColumns: ["workspace_id"]
+          },
+          {
+            foreignKeyName: "connected_stores_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       contact_attributes: {
         Row: {
           contact_id: string
@@ -2430,6 +2524,114 @@ export type Database = {
           },
           {
             foreignKeyName: "conversation_notes_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      conversation_shopify_links: {
+        Row: {
+          conversation_id: string
+          created_at: string
+          id: string
+          linked_by: string | null
+          match_confidence: number | null
+          match_source:
+            | Database["public"]["Enums"]["shopify_match_source"]
+            | null
+          shopify_checkout_record_id: string | null
+          shopify_customer_record_id: string | null
+          shopify_order_record_id: string | null
+          store_id: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          conversation_id: string
+          created_at?: string
+          id?: string
+          linked_by?: string | null
+          match_confidence?: number | null
+          match_source?:
+            | Database["public"]["Enums"]["shopify_match_source"]
+            | null
+          shopify_checkout_record_id?: string | null
+          shopify_customer_record_id?: string | null
+          shopify_order_record_id?: string | null
+          store_id: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          conversation_id?: string
+          created_at?: string
+          id?: string
+          linked_by?: string | null
+          match_confidence?: number | null
+          match_source?:
+            | Database["public"]["Enums"]["shopify_match_source"]
+            | null
+          shopify_checkout_record_id?: string | null
+          shopify_customer_record_id?: string | null
+          shopify_order_record_id?: string | null
+          store_id?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "conversation_shopify_links_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conversation_shopify_links_linked_by_fkey"
+            columns: ["linked_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conversation_shopify_links_shopify_checkout_record_id_fkey"
+            columns: ["shopify_checkout_record_id"]
+            isOneToOne: false
+            referencedRelation: "shopify_abandoned_checkouts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conversation_shopify_links_shopify_customer_record_id_fkey"
+            columns: ["shopify_customer_record_id"]
+            isOneToOne: false
+            referencedRelation: "shopify_customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conversation_shopify_links_shopify_order_record_id_fkey"
+            columns: ["shopify_order_record_id"]
+            isOneToOne: false
+            referencedRelation: "shopify_orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conversation_shopify_links_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "connected_stores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conversation_shopify_links_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "platform_workspace_directory"
+            referencedColumns: ["workspace_id"]
+          },
+          {
+            foreignKeyName: "conversation_shopify_links_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
@@ -6404,6 +6606,773 @@ export type Database = {
         }
         Relationships: []
       }
+      shopify_abandoned_checkouts: {
+        Row: {
+          abandoned_at: string | null
+          cart_value: number | null
+          checkout_token: string | null
+          checkout_url: string | null
+          created_at: string
+          currency: string | null
+          customer_json: Json | null
+          email: string | null
+          id: string
+          line_items_json: Json | null
+          phone: string | null
+          raw_json: Json | null
+          recovery_source: string | null
+          recovery_status:
+            | Database["public"]["Enums"]["shopify_recovery_status"]
+            | null
+          shopify_checkout_id: string
+          store_id: string
+          synced_at: string | null
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          abandoned_at?: string | null
+          cart_value?: number | null
+          checkout_token?: string | null
+          checkout_url?: string | null
+          created_at?: string
+          currency?: string | null
+          customer_json?: Json | null
+          email?: string | null
+          id?: string
+          line_items_json?: Json | null
+          phone?: string | null
+          raw_json?: Json | null
+          recovery_source?: string | null
+          recovery_status?:
+            | Database["public"]["Enums"]["shopify_recovery_status"]
+            | null
+          shopify_checkout_id: string
+          store_id: string
+          synced_at?: string | null
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          abandoned_at?: string | null
+          cart_value?: number | null
+          checkout_token?: string | null
+          checkout_url?: string | null
+          created_at?: string
+          currency?: string | null
+          customer_json?: Json | null
+          email?: string | null
+          id?: string
+          line_items_json?: Json | null
+          phone?: string | null
+          raw_json?: Json | null
+          recovery_source?: string | null
+          recovery_status?:
+            | Database["public"]["Enums"]["shopify_recovery_status"]
+            | null
+          shopify_checkout_id?: string
+          store_id?: string
+          synced_at?: string | null
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shopify_abandoned_checkouts_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "connected_stores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shopify_abandoned_checkouts_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "platform_workspace_directory"
+            referencedColumns: ["workspace_id"]
+          },
+          {
+            foreignKeyName: "shopify_abandoned_checkouts_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      shopify_collections: {
+        Row: {
+          collection_type: string | null
+          created_at: string
+          description_html: string | null
+          handle: string | null
+          id: string
+          image_url: string | null
+          raw_json: Json | null
+          shopify_collection_id: string
+          store_id: string
+          synced_at: string | null
+          tenant_id: string
+          title: string | null
+          updated_at: string
+        }
+        Insert: {
+          collection_type?: string | null
+          created_at?: string
+          description_html?: string | null
+          handle?: string | null
+          id?: string
+          image_url?: string | null
+          raw_json?: Json | null
+          shopify_collection_id: string
+          store_id: string
+          synced_at?: string | null
+          tenant_id: string
+          title?: string | null
+          updated_at?: string
+        }
+        Update: {
+          collection_type?: string | null
+          created_at?: string
+          description_html?: string | null
+          handle?: string | null
+          id?: string
+          image_url?: string | null
+          raw_json?: Json | null
+          shopify_collection_id?: string
+          store_id?: string
+          synced_at?: string | null
+          tenant_id?: string
+          title?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shopify_collections_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "connected_stores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shopify_collections_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "platform_workspace_directory"
+            referencedColumns: ["workspace_id"]
+          },
+          {
+            foreignKeyName: "shopify_collections_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      shopify_customers: {
+        Row: {
+          accepts_marketing: boolean | null
+          created_at: string
+          default_address: Json | null
+          email: string | null
+          first_name: string | null
+          full_name: string | null
+          id: string
+          last_name: string | null
+          last_order_at: string | null
+          last_order_id: string | null
+          note: string | null
+          orders_count: number | null
+          phone: string | null
+          raw_json: Json | null
+          shopify_customer_id: string
+          state: string | null
+          store_id: string
+          synced_at: string | null
+          tags: string[] | null
+          tenant_id: string
+          total_spent: number | null
+          updated_at: string
+          verified_email: boolean | null
+        }
+        Insert: {
+          accepts_marketing?: boolean | null
+          created_at?: string
+          default_address?: Json | null
+          email?: string | null
+          first_name?: string | null
+          full_name?: string | null
+          id?: string
+          last_name?: string | null
+          last_order_at?: string | null
+          last_order_id?: string | null
+          note?: string | null
+          orders_count?: number | null
+          phone?: string | null
+          raw_json?: Json | null
+          shopify_customer_id: string
+          state?: string | null
+          store_id: string
+          synced_at?: string | null
+          tags?: string[] | null
+          tenant_id: string
+          total_spent?: number | null
+          updated_at?: string
+          verified_email?: boolean | null
+        }
+        Update: {
+          accepts_marketing?: boolean | null
+          created_at?: string
+          default_address?: Json | null
+          email?: string | null
+          first_name?: string | null
+          full_name?: string | null
+          id?: string
+          last_name?: string | null
+          last_order_at?: string | null
+          last_order_id?: string | null
+          note?: string | null
+          orders_count?: number | null
+          phone?: string | null
+          raw_json?: Json | null
+          shopify_customer_id?: string
+          state?: string | null
+          store_id?: string
+          synced_at?: string | null
+          tags?: string[] | null
+          tenant_id?: string
+          total_spent?: number | null
+          updated_at?: string
+          verified_email?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shopify_customers_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "connected_stores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shopify_customers_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "platform_workspace_directory"
+            referencedColumns: ["workspace_id"]
+          },
+          {
+            foreignKeyName: "shopify_customers_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      shopify_orders: {
+        Row: {
+          billing_address: Json | null
+          cancel_reason: string | null
+          cancelled_at: string | null
+          closed_at: string | null
+          created_at: string
+          currency: string | null
+          customer_json: Json | null
+          email: string | null
+          financial_status: string | null
+          fulfillment_status: string | null
+          fulfillments_json: Json | null
+          id: string
+          line_items_json: Json | null
+          order_name: string | null
+          order_number: string | null
+          phone: string | null
+          processed_at: string | null
+          raw_json: Json | null
+          shipping_address: Json | null
+          shopify_customer_id: string | null
+          shopify_order_id: string
+          store_id: string
+          subtotal_price: number | null
+          synced_at: string | null
+          tags: string[] | null
+          tenant_id: string
+          total_discounts: number | null
+          total_price: number | null
+          tracking_json: Json | null
+          updated_at: string
+        }
+        Insert: {
+          billing_address?: Json | null
+          cancel_reason?: string | null
+          cancelled_at?: string | null
+          closed_at?: string | null
+          created_at?: string
+          currency?: string | null
+          customer_json?: Json | null
+          email?: string | null
+          financial_status?: string | null
+          fulfillment_status?: string | null
+          fulfillments_json?: Json | null
+          id?: string
+          line_items_json?: Json | null
+          order_name?: string | null
+          order_number?: string | null
+          phone?: string | null
+          processed_at?: string | null
+          raw_json?: Json | null
+          shipping_address?: Json | null
+          shopify_customer_id?: string | null
+          shopify_order_id: string
+          store_id: string
+          subtotal_price?: number | null
+          synced_at?: string | null
+          tags?: string[] | null
+          tenant_id: string
+          total_discounts?: number | null
+          total_price?: number | null
+          tracking_json?: Json | null
+          updated_at?: string
+        }
+        Update: {
+          billing_address?: Json | null
+          cancel_reason?: string | null
+          cancelled_at?: string | null
+          closed_at?: string | null
+          created_at?: string
+          currency?: string | null
+          customer_json?: Json | null
+          email?: string | null
+          financial_status?: string | null
+          fulfillment_status?: string | null
+          fulfillments_json?: Json | null
+          id?: string
+          line_items_json?: Json | null
+          order_name?: string | null
+          order_number?: string | null
+          phone?: string | null
+          processed_at?: string | null
+          raw_json?: Json | null
+          shipping_address?: Json | null
+          shopify_customer_id?: string | null
+          shopify_order_id?: string
+          store_id?: string
+          subtotal_price?: number | null
+          synced_at?: string | null
+          tags?: string[] | null
+          tenant_id?: string
+          total_discounts?: number | null
+          total_price?: number | null
+          tracking_json?: Json | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shopify_orders_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "connected_stores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shopify_orders_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "platform_workspace_directory"
+            referencedColumns: ["workspace_id"]
+          },
+          {
+            foreignKeyName: "shopify_orders_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      shopify_product_variants: {
+        Row: {
+          barcode: string | null
+          compare_at_price: number | null
+          created_at: string
+          id: string
+          image_url: string | null
+          inventory_policy: string | null
+          inventory_quantity: number | null
+          price: number | null
+          product_id: string
+          raw_json: Json | null
+          requires_shipping: boolean | null
+          shopify_variant_id: string
+          sku: string | null
+          store_id: string
+          synced_at: string | null
+          taxable: boolean | null
+          title: string | null
+          updated_at: string
+        }
+        Insert: {
+          barcode?: string | null
+          compare_at_price?: number | null
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          inventory_policy?: string | null
+          inventory_quantity?: number | null
+          price?: number | null
+          product_id: string
+          raw_json?: Json | null
+          requires_shipping?: boolean | null
+          shopify_variant_id: string
+          sku?: string | null
+          store_id: string
+          synced_at?: string | null
+          taxable?: boolean | null
+          title?: string | null
+          updated_at?: string
+        }
+        Update: {
+          barcode?: string | null
+          compare_at_price?: number | null
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          inventory_policy?: string | null
+          inventory_quantity?: number | null
+          price?: number | null
+          product_id?: string
+          raw_json?: Json | null
+          requires_shipping?: boolean | null
+          shopify_variant_id?: string
+          sku?: string | null
+          store_id?: string
+          synced_at?: string | null
+          taxable?: boolean | null
+          title?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shopify_product_variants_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "shopify_products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shopify_product_variants_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "connected_stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      shopify_products: {
+        Row: {
+          collections_cache: string[] | null
+          created_at: string
+          description_html: string | null
+          featured_image_url: string | null
+          handle: string | null
+          id: string
+          product_type: string | null
+          published_at: string | null
+          raw_json: Json | null
+          shopify_product_id: string
+          status: string | null
+          store_id: string
+          synced_at: string | null
+          tags: string[] | null
+          tenant_id: string
+          title: string | null
+          updated_at: string
+          vendor: string | null
+        }
+        Insert: {
+          collections_cache?: string[] | null
+          created_at?: string
+          description_html?: string | null
+          featured_image_url?: string | null
+          handle?: string | null
+          id?: string
+          product_type?: string | null
+          published_at?: string | null
+          raw_json?: Json | null
+          shopify_product_id: string
+          status?: string | null
+          store_id: string
+          synced_at?: string | null
+          tags?: string[] | null
+          tenant_id: string
+          title?: string | null
+          updated_at?: string
+          vendor?: string | null
+        }
+        Update: {
+          collections_cache?: string[] | null
+          created_at?: string
+          description_html?: string | null
+          featured_image_url?: string | null
+          handle?: string | null
+          id?: string
+          product_type?: string | null
+          published_at?: string | null
+          raw_json?: Json | null
+          shopify_product_id?: string
+          status?: string | null
+          store_id?: string
+          synced_at?: string | null
+          tags?: string[] | null
+          tenant_id?: string
+          title?: string | null
+          updated_at?: string
+          vendor?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shopify_products_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "connected_stores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shopify_products_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "platform_workspace_directory"
+            referencedColumns: ["workspace_id"]
+          },
+          {
+            foreignKeyName: "shopify_products_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      shopify_sync_jobs: {
+        Row: {
+          created_at: string
+          error_log: string | null
+          finished_at: string | null
+          id: string
+          items_failed: number | null
+          items_processed: number | null
+          job_type: Database["public"]["Enums"]["shopify_sync_job_type"]
+          last_cursor: string | null
+          metadata: Json | null
+          resource_type: string | null
+          started_at: string | null
+          status: Database["public"]["Enums"]["shopify_sync_status"] | null
+          store_id: string
+          tenant_id: string
+          triggered_by: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          error_log?: string | null
+          finished_at?: string | null
+          id?: string
+          items_failed?: number | null
+          items_processed?: number | null
+          job_type: Database["public"]["Enums"]["shopify_sync_job_type"]
+          last_cursor?: string | null
+          metadata?: Json | null
+          resource_type?: string | null
+          started_at?: string | null
+          status?: Database["public"]["Enums"]["shopify_sync_status"] | null
+          store_id: string
+          tenant_id: string
+          triggered_by?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          error_log?: string | null
+          finished_at?: string | null
+          id?: string
+          items_failed?: number | null
+          items_processed?: number | null
+          job_type?: Database["public"]["Enums"]["shopify_sync_job_type"]
+          last_cursor?: string | null
+          metadata?: Json | null
+          resource_type?: string | null
+          started_at?: string | null
+          status?: Database["public"]["Enums"]["shopify_sync_status"] | null
+          store_id?: string
+          tenant_id?: string
+          triggered_by?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shopify_sync_jobs_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "connected_stores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shopify_sync_jobs_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "platform_workspace_directory"
+            referencedColumns: ["workspace_id"]
+          },
+          {
+            foreignKeyName: "shopify_sync_jobs_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shopify_sync_jobs_triggered_by_fkey"
+            columns: ["triggered_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      shopify_sync_logs: {
+        Row: {
+          context: Json | null
+          created_at: string
+          id: string
+          job_id: string
+          level: Database["public"]["Enums"]["shopify_log_level"] | null
+          message: string
+          store_id: string
+        }
+        Insert: {
+          context?: Json | null
+          created_at?: string
+          id?: string
+          job_id: string
+          level?: Database["public"]["Enums"]["shopify_log_level"] | null
+          message: string
+          store_id: string
+        }
+        Update: {
+          context?: Json | null
+          created_at?: string
+          id?: string
+          job_id?: string
+          level?: Database["public"]["Enums"]["shopify_log_level"] | null
+          message?: string
+          store_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shopify_sync_logs_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "shopify_sync_jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shopify_sync_logs_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "connected_stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      shopify_webhook_events: {
+        Row: {
+          created_at: string
+          error_message: string | null
+          event_id: string | null
+          headers: Json | null
+          id: string
+          payload: Json | null
+          processed_at: string | null
+          processing_status:
+            | Database["public"]["Enums"]["shopify_webhook_status"]
+            | null
+          received_at: string
+          retry_count: number | null
+          shop_domain: string | null
+          signature_valid: boolean | null
+          source: string | null
+          store_id: string
+          tenant_id: string
+          topic: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          error_message?: string | null
+          event_id?: string | null
+          headers?: Json | null
+          id?: string
+          payload?: Json | null
+          processed_at?: string | null
+          processing_status?:
+            | Database["public"]["Enums"]["shopify_webhook_status"]
+            | null
+          received_at?: string
+          retry_count?: number | null
+          shop_domain?: string | null
+          signature_valid?: boolean | null
+          source?: string | null
+          store_id: string
+          tenant_id: string
+          topic: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          error_message?: string | null
+          event_id?: string | null
+          headers?: Json | null
+          id?: string
+          payload?: Json | null
+          processed_at?: string | null
+          processing_status?:
+            | Database["public"]["Enums"]["shopify_webhook_status"]
+            | null
+          received_at?: string
+          retry_count?: number | null
+          shop_domain?: string | null
+          signature_valid?: boolean | null
+          source?: string | null
+          store_id?: string
+          tenant_id?: string
+          topic?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shopify_webhook_events_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "connected_stores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shopify_webhook_events_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "platform_workspace_directory"
+            referencedColumns: ["workspace_id"]
+          },
+          {
+            foreignKeyName: "shopify_webhook_events_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       sla_settings: {
         Row: {
           after_hours_auto_reply: boolean
@@ -9691,6 +10660,93 @@ export type Database = {
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      store_settings: {
+        Row: {
+          ai_enabled: boolean | null
+          brand_settings: Json | null
+          business_hours_enabled: boolean | null
+          business_hours_json: Json | null
+          created_at: string
+          default_agent_id: string | null
+          default_team: string | null
+          id: string
+          localization: Json | null
+          page_targeting: Json | null
+          show_on_cart: boolean | null
+          show_on_checkout: boolean | null
+          show_on_collection: boolean | null
+          show_on_home: boolean | null
+          show_on_product: boolean | null
+          store_id: string
+          trigger_rules: Json | null
+          updated_at: string
+          whatsapp_enabled: boolean | null
+          widget_enabled: boolean | null
+          widget_pages: string[] | null
+        }
+        Insert: {
+          ai_enabled?: boolean | null
+          brand_settings?: Json | null
+          business_hours_enabled?: boolean | null
+          business_hours_json?: Json | null
+          created_at?: string
+          default_agent_id?: string | null
+          default_team?: string | null
+          id?: string
+          localization?: Json | null
+          page_targeting?: Json | null
+          show_on_cart?: boolean | null
+          show_on_checkout?: boolean | null
+          show_on_collection?: boolean | null
+          show_on_home?: boolean | null
+          show_on_product?: boolean | null
+          store_id: string
+          trigger_rules?: Json | null
+          updated_at?: string
+          whatsapp_enabled?: boolean | null
+          widget_enabled?: boolean | null
+          widget_pages?: string[] | null
+        }
+        Update: {
+          ai_enabled?: boolean | null
+          brand_settings?: Json | null
+          business_hours_enabled?: boolean | null
+          business_hours_json?: Json | null
+          created_at?: string
+          default_agent_id?: string | null
+          default_team?: string | null
+          id?: string
+          localization?: Json | null
+          page_targeting?: Json | null
+          show_on_cart?: boolean | null
+          show_on_checkout?: boolean | null
+          show_on_collection?: boolean | null
+          show_on_home?: boolean | null
+          show_on_product?: boolean | null
+          store_id?: string
+          trigger_rules?: Json | null
+          updated_at?: string
+          whatsapp_enabled?: boolean | null
+          widget_enabled?: boolean | null
+          widget_pages?: string[] | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "store_settings_default_agent_id_fkey"
+            columns: ["default_agent_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "store_settings_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: true
+            referencedRelation: "connected_stores"
             referencedColumns: ["id"]
           },
         ]
@@ -13194,6 +14250,47 @@ export type Database = {
         | "done"
         | "failed"
         | "cancelled"
+      shopify_log_level: "info" | "warning" | "error"
+      shopify_match_source:
+        | "email"
+        | "phone"
+        | "manual"
+        | "cookie"
+        | "order_lookup"
+        | "checkout_lookup"
+        | "ai_inferred"
+      shopify_recovery_status:
+        | "new"
+        | "contacted"
+        | "recovered"
+        | "expired"
+        | "ignored"
+      shopify_store_status:
+        | "pending"
+        | "connected"
+        | "disconnected"
+        | "error"
+        | "uninstalled"
+      shopify_sync_job_type:
+        | "initial_sync"
+        | "products_sync"
+        | "collections_sync"
+        | "customers_sync"
+        | "orders_sync"
+        | "abandoned_checkouts_sync"
+        | "webhook_replay"
+      shopify_sync_status:
+        | "queued"
+        | "running"
+        | "completed"
+        | "failed"
+        | "partial"
+      shopify_webhook_status:
+        | "received"
+        | "processing"
+        | "processed"
+        | "failed"
+        | "ignored"
       smeksh_ab_status:
         | "draft"
         | "running"
@@ -13698,6 +14795,53 @@ export const Constants = {
         "done",
         "failed",
         "cancelled",
+      ],
+      shopify_log_level: ["info", "warning", "error"],
+      shopify_match_source: [
+        "email",
+        "phone",
+        "manual",
+        "cookie",
+        "order_lookup",
+        "checkout_lookup",
+        "ai_inferred",
+      ],
+      shopify_recovery_status: [
+        "new",
+        "contacted",
+        "recovered",
+        "expired",
+        "ignored",
+      ],
+      shopify_store_status: [
+        "pending",
+        "connected",
+        "disconnected",
+        "error",
+        "uninstalled",
+      ],
+      shopify_sync_job_type: [
+        "initial_sync",
+        "products_sync",
+        "collections_sync",
+        "customers_sync",
+        "orders_sync",
+        "abandoned_checkouts_sync",
+        "webhook_replay",
+      ],
+      shopify_sync_status: [
+        "queued",
+        "running",
+        "completed",
+        "failed",
+        "partial",
+      ],
+      shopify_webhook_status: [
+        "received",
+        "processing",
+        "processed",
+        "failed",
+        "ignored",
       ],
       smeksh_ab_status: [
         "draft",
