@@ -81,7 +81,15 @@ export default function IntegrationsHub() {
   }, [integrationsWithStatus, activeFilter, searchQuery]);
 
   const handleConnect = (integration: IntegrationCatalog) => {
-    // Use specialized modal for Razorpay
+    if (!canConnect) {
+      toast({
+        title: 'Permission Denied',
+        description: 'Only owners and admins can connect integrations.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     if (integration.key === 'razorpay') {
       setIsRazorpayModalOpen(true);
       return;
@@ -99,6 +107,9 @@ export default function IntegrationsHub() {
       credentials,
     }, {
       onSuccess: () => {
+        auditLog('integration.connected', 'integration', selectedIntegration.key, {
+          integration_name: selectedIntegration.name,
+        });
         toast({
           title: 'Integration Connected',
           description: `${selectedIntegration.name} has been connected successfully.`,
@@ -114,7 +125,8 @@ export default function IntegrationsHub() {
     });
   };
 
-  const connectedCount = integrationsWithStatus.filter(i => i.isConnected).length;
+  const connectedIntegrations = integrationsWithStatus.filter(i => i.isConnected);
+  const connectedCount = connectedIntegrations.length;
 
   return (
     <DashboardLayout>
