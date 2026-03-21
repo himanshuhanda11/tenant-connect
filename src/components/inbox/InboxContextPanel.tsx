@@ -49,6 +49,7 @@ interface InboxContextPanelProps {
   onRemoveTag: (tagId: string) => void;
   availableTags?: Array<{ id: string; name: string; color: string }>;
   isMobile?: boolean;
+  onInsertReply?: (text: string) => void;
 }
 
 export function InboxContextPanel({
