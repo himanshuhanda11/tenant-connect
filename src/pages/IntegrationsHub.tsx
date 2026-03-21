@@ -254,8 +254,6 @@ export default function IntegrationsHub() {
             ))}
           </div>
         )}
-          </div>
-        )}
 
         {/* Connect Modal */}
         <ConnectIntegrationModal
