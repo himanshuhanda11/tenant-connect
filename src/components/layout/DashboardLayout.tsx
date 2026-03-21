@@ -87,14 +87,14 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   }
   return (
     <SidebarProvider>
-      <div className="min-h-screen flex w-full bg-muted/30">
+      <div className="min-h-screen flex w-full bg-background">
         <AppSidebar />
         <main className="flex-1 flex flex-col min-w-0 w-full">
-          <header className="h-12 sm:h-14 flex items-center gap-2 sm:gap-4 px-3 sm:px-4 border-b border-border bg-background/80 backdrop-blur-sm sticky top-0 z-10">
-            <SidebarTrigger className="text-muted-foreground hover:text-foreground" />
+          <header className="h-12 sm:h-14 flex items-center gap-2 sm:gap-4 px-3 sm:px-4 border-b border-border/60 bg-background/90 backdrop-blur-md sticky top-0 z-10 shadow-xs">
+            <SidebarTrigger className="text-muted-foreground hover:text-foreground transition-colors duration-150" />
             <div className="flex-1" />
           </header>
-          <div className="flex-1 overflow-hidden relative">
+          <div className="flex-1 overflow-hidden relative bg-muted/20">
             {children}
           </div>
         </main>

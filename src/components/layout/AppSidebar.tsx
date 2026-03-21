@@ -445,7 +445,7 @@ export function AppSidebar() {
       </SidebarContent>
 
       {/* ── Footer ── */}
-      <SidebarFooter className="px-2 py-2 border-t border-sidebar-border/30">
+      <SidebarFooter className="px-2.5 py-2.5 border-t border-sidebar-border/40">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <button className={cn(
