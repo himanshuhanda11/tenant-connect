@@ -39,6 +39,8 @@ export default function IntegrationsHub() {
   const { hasFeature, currentPlan, requiredPlanFor } = usePlanGate();
   const integrationsLocked = !hasFeature('integrations');
   const [upgradeOpen, setUpgradeOpen] = useState(false);
+  const { log: auditLog } = useIntegrationAudit();
+  const { canConnect, canDisconnect } = useIntegrationPermissions();
 
   // Calculate counts for filters
   const counts = useMemo(() => {
