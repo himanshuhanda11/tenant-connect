@@ -319,7 +319,7 @@ export function AppSidebar() {
   const userColor = profile?.full_name || user?.email ? getAvatarColor(profile?.full_name || user?.email || '') : 'from-blue-400 to-indigo-500';
 
   return (
-    <Sidebar className={cn("border-r border-sidebar-border bg-sidebar transition-all duration-200", isCollapsed ? "w-[56px]" : "w-[220px]")} collapsible="icon">
+    <Sidebar collapsible="icon">
       {/* ── Header ── */}
       <SidebarHeader className="px-3 py-3.5 border-b border-sidebar-border/40">
         <div className="flex items-center justify-between">
