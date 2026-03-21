@@ -226,6 +226,13 @@ const App = () => (
               <Route path="/billing" element={<Billing />} />
               <Route path="/add-ons" element={<WorkspaceAddOns />} />
               <Route path="/app/integrations" element={<IntegrationsHub />} />
+              <Route path="/app/integrations/shopify" element={<ShopifyOverview />} />
+              <Route path="/app/integrations/shopify/connect" element={<ShopifyConnect />} />
+              <Route path="/app/integrations/shopify/:storeId" element={<ShopifyStoreDetail />} />
+              <Route path="/app/integrations/shopify/:storeId/sync" element={<ShopifySyncCenter />} />
+              <Route path="/app/integrations/shopify/:storeId/webhooks" element={<ShopifyWebhooks />} />
+              <Route path="/app/integrations/shopify/:storeId/settings" element={<ShopifySettings />} />
+              <Route path="/app/integrations/shopify/:storeId/data" element={<ShopifyDataExplorer />} />
               <Route path="/app/integrations/:key" element={<IntegrationDetail />} />
               <Route path="/settings" element={<Settings />} />
               <Route path="/privacy-policy" element={<PrivacyPolicy />} />
