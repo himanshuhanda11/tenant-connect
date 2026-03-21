@@ -427,7 +427,7 @@ export function AppSidebar() {
         {/* ── Collapsible Groups ── */}
         {menuGroups.map(group => renderCollapsibleGroup(group))}
 
-        {!isCollapsed && <div className="mx-3 my-2.5 border-b border-sidebar-border/40" />}
+        {!isCollapsed && <div className="mx-3 my-3 border-b border-sidebar-border/30" />}
 
         {/* ── Platform ── */}
         <SidebarGroup className="mt-1.5">
