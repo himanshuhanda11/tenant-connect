@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react';
+import { ShopifyContextTab } from './shopify/ShopifyContextTab';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -33,6 +34,7 @@ import {
   Hand,
   ExternalLink,
   Target,
+  ShoppingBag,
 } from 'lucide-react';
 import { format, formatDistanceToNow } from 'date-fns';
 import { InboxConversation, ConversationEvent, InternalNote, PRIORITY_CONFIG } from '@/types/inbox';
@@ -47,6 +49,7 @@ interface InboxContextPanelProps {
   onRemoveTag: (tagId: string) => void;
   availableTags?: Array<{ id: string; name: string; color: string }>;
   isMobile?: boolean;
+  onInsertReply?: (text: string) => void;
 }
 
 export function InboxContextPanel({
@@ -58,6 +61,7 @@ export function InboxContextPanel({
   onRemoveTag,
   availableTags: passedTags,
   isMobile = false,
+  onInsertReply,
 }: InboxContextPanelProps) {
   const [activeTab, setActiveTab] = useState('overview');
   const [newNote, setNewNote] = useState('');
@@ -138,12 +142,15 @@ export function InboxContextPanel({
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col min-h-0 overflow-hidden">
-        <TabsList className="mx-3 mt-2 grid grid-cols-7 h-9 flex-shrink-0">
+        <TabsList className="mx-3 mt-2 grid grid-cols-8 h-9 flex-shrink-0">
           <TabsTrigger value="overview" className="px-1.5">
             <Target className="h-4 w-4" />
           </TabsTrigger>
           <TabsTrigger value="contact" className="px-1.5">
             <User className="h-4 w-4" />
+          </TabsTrigger>
+          <TabsTrigger value="shopify" className="px-1.5">
+            <ShoppingBag className="h-4 w-4" />
           </TabsTrigger>
           <TabsTrigger value="lead" className="px-1.5">
             <Zap className="h-4 w-4" />
@@ -166,6 +173,14 @@ export function InboxContextPanel({
           {/* CRM Overview Tab */}
           <TabsContent value="overview" className="m-0">
             <InboxCRMOverview conversation={conversation} />
+          </TabsContent>
+
+          {/* Shopify Tab */}
+          <TabsContent value="shopify" className="m-0">
+            <ShopifyContextTab
+              conversationId={conversation.id}
+              onInsertReply={onInsertReply}
+            />
           </TabsContent>
 
           {/* Contact Tab */}
