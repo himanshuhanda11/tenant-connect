@@ -416,7 +416,7 @@ export function AppSidebar() {
         {/* ── Main Nav ── */}
         <SidebarGroup>
           <SidebarGroupContent>
-            <SidebarMenu className="space-y-1">
+            <SidebarMenu className="space-y-0.5">
               {filteredMainMenuItems.map(item => renderMenuItem(item))}
             </SidebarMenu>
           </SidebarGroupContent>
