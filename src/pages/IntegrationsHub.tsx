@@ -1,15 +1,18 @@
 import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Puzzle, Activity, BookOpen, Settings } from 'lucide-react';
+import { Puzzle, Activity, BookOpen, Settings, ShieldAlert } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { IntegrationCard } from '@/components/integrations/IntegrationCard';
+import { ConnectedIntegrationCard } from '@/components/integrations/ConnectedIntegrationCard';
 import { IntegrationFilters } from '@/components/integrations/IntegrationFilters';
 import { ConnectIntegrationModal } from '@/components/integrations/ConnectIntegrationModal';
 import { RazorpayConnectModal } from '@/components/integrations/RazorpayConnectModal';
 import { QuickGuide, quickGuides } from '@/components/help/QuickGuide';
 import { useIntegrations } from '@/hooks/useIntegrations';
+import { useIntegrationAudit } from '@/hooks/useIntegrationAudit';
+import { useIntegrationPermissions } from '@/hooks/useIntegrationPermissions';
 import { useToast } from '@/hooks/use-toast';
 import type { IntegrationCatalog, IntegrationCategory } from '@/types/integration';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -36,6 +39,8 @@ export default function IntegrationsHub() {
   const { hasFeature, currentPlan, requiredPlanFor } = usePlanGate();
   const integrationsLocked = !hasFeature('integrations');
   const [upgradeOpen, setUpgradeOpen] = useState(false);
+  const { log: auditLog } = useIntegrationAudit();
+  const { canConnect, canDisconnect } = useIntegrationPermissions();
 
   // Calculate counts for filters
   const counts = useMemo(() => {
@@ -76,7 +81,15 @@ export default function IntegrationsHub() {
   }, [integrationsWithStatus, activeFilter, searchQuery]);
 
   const handleConnect = (integration: IntegrationCatalog) => {
-    // Use specialized modal for Razorpay
+    if (!canConnect) {
+      toast({
+        title: 'Permission Denied',
+        description: 'Only owners and admins can connect integrations.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     if (integration.key === 'razorpay') {
       setIsRazorpayModalOpen(true);
       return;
@@ -94,6 +107,9 @@ export default function IntegrationsHub() {
       credentials,
     }, {
       onSuccess: () => {
+        auditLog('integration.connected', 'integration', selectedIntegration.key, {
+          integration_name: selectedIntegration.name,
+        });
         toast({
           title: 'Integration Connected',
           description: `${selectedIntegration.name} has been connected successfully.`,
@@ -109,7 +125,8 @@ export default function IntegrationsHub() {
     });
   };
 
-  const connectedCount = integrationsWithStatus.filter(i => i.isConnected).length;
+  const connectedIntegrations = integrationsWithStatus.filter(i => i.isConnected);
+  const connectedCount = connectedIntegrations.length;
 
   return (
     <DashboardLayout>
@@ -174,7 +191,31 @@ export default function IntegrationsHub() {
           />
         </div>
 
-        {/* Integrations Grid */}
+        {/* Connected Integrations with Sub-Menus */}
+        {connectedIntegrations.length > 0 && activeFilter !== 'connected' && (
+          <div className="mb-8">
+            <h2 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
+              <Activity className="w-5 h-5 text-primary" />
+              Active Integrations
+              <Badge variant="secondary">{connectedIntegrations.length}</Badge>
+            </h2>
+            <div className="grid md:grid-cols-2 gap-4">
+              {connectedIntegrations.map((integration) => (
+                <ConnectedIntegrationCard
+                  key={integration.id}
+                  integration={integration}
+                />
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* All Integrations Grid */}
+        <div className="mb-2">
+          <h2 className="text-lg font-semibold text-foreground mb-4">
+            {activeFilter === 'connected' ? 'Connected Integrations' : 'All Integrations'}
+          </h2>
+        </div>
         {isLoading ? (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {[...Array(8)].map((_, i) => (
@@ -211,26 +252,6 @@ export default function IntegrationsHub() {
                 onViewEvents={() => navigate(`/app/integrations/${integration.key}?tab=events`)}
               />
             ))}
-          </div>
-        )}
-
-        {/* Quick Stats */}
-        {connectedCount > 0 && (
-          <div className="mt-8 p-4 bg-muted/30 rounded-xl border">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <Activity className="w-5 h-5 text-primary" />
-                <div>
-                  <p className="text-sm font-medium">Integration Health</p>
-                  <p className="text-xs text-muted-foreground">
-                    {connectedCount} active integrations
-                  </p>
-                </div>
-              </div>
-              <Button variant="ghost" size="sm" onClick={() => navigate('/integrations/events')}>
-                View All Events
-              </Button>
-            </div>
           </div>
         )}
 

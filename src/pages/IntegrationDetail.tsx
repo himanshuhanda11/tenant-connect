@@ -43,6 +43,8 @@ import { EventActionMappingModal, EventMapping } from '@/components/integrations
 import { IntegrationOverview } from '@/components/integrations/IntegrationOverview';
 import { ProFeaturesPanel, ProConfig } from '@/components/integrations/ProFeaturesPanel';
 import { useIntegrations } from '@/hooks/useIntegrations';
+import { useIntegrationAudit } from '@/hooks/useIntegrationAudit';
+import { useIntegrationPermissions } from '@/hooks/useIntegrationPermissions';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 
@@ -134,6 +136,8 @@ export default function IntegrationDetail() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { integrationsWithStatus, disconnect, isDisconnecting } = useIntegrations();
+  const { log: auditLog } = useIntegrationAudit();
+  const { canDisconnect, canEditSettings } = useIntegrationPermissions();
 
   const [isMappingModalOpen, setIsMappingModalOpen] = useState(false);
   const [editingMapping, setEditingMapping] = useState<EventMapping | undefined>();
@@ -197,7 +201,12 @@ export default function IntegrationDetail() {
   };
 
   const handleDisconnect = () => {
+    if (!canDisconnect) {
+      toast({ title: 'Permission Denied', description: 'Only owners and admins can disconnect integrations.', variant: 'destructive' });
+      return;
+    }
     disconnect(key);
+    auditLog('integration.disconnected', 'integration', key, { integration_name: integration.name });
     toast({ title: 'Disconnected', description: `${integration.name} has been disconnected.` });
     navigate('/app/integrations');
   };
