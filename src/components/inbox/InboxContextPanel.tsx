@@ -34,6 +34,7 @@ import {
   Hand,
   ExternalLink,
   Target,
+  ShoppingBag,
 } from 'lucide-react';
 import { format, formatDistanceToNow } from 'date-fns';
 import { InboxConversation, ConversationEvent, InternalNote, PRIORITY_CONFIG } from '@/types/inbox';
