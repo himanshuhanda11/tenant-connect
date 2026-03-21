@@ -88,6 +88,9 @@ export default function ShopifyStoreDetail() {
     { label: 'Sync Center', icon: RefreshCw, path: `/app/integrations/shopify/${storeId}/sync` },
     { label: 'Webhooks', icon: Webhook, path: `/app/integrations/shopify/${storeId}/webhooks` },
     { label: 'Data Explorer', icon: Database, path: `/app/integrations/shopify/${storeId}/data` },
+    { label: 'Cart Recovery', icon: Activity, path: `/app/integrations/shopify/${storeId}/recovery` },
+    { label: 'Automations', icon: Activity, path: `/app/integrations/shopify/${storeId}/automations` },
+    { label: 'Analytics', icon: Activity, path: `/app/integrations/shopify/${storeId}/analytics` },
     { label: 'Settings', icon: Settings, path: `/app/integrations/shopify/${storeId}/settings` },
   ];
 
