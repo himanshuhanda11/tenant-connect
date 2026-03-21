@@ -201,7 +201,12 @@ export default function IntegrationDetail() {
   };
 
   const handleDisconnect = () => {
+    if (!canDisconnect) {
+      toast({ title: 'Permission Denied', description: 'Only owners and admins can disconnect integrations.', variant: 'destructive' });
+      return;
+    }
     disconnect(key);
+    auditLog('integration.disconnected', 'integration', key, { integration_name: integration.name });
     toast({ title: 'Disconnected', description: `${integration.name} has been disconnected.` });
     navigate('/app/integrations');
   };
