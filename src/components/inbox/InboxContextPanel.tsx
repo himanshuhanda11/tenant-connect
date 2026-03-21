@@ -61,6 +61,7 @@ export function InboxContextPanel({
   onRemoveTag,
   availableTags: passedTags,
   isMobile = false,
+  onInsertReply,
 }: InboxContextPanelProps) {
   const [activeTab, setActiveTab] = useState('overview');
   const [newNote, setNewNote] = useState('');
