@@ -319,27 +319,27 @@ export function AppSidebar() {
   const userColor = profile?.full_name || user?.email ? getAvatarColor(profile?.full_name || user?.email || '') : 'from-blue-400 to-indigo-500';
 
   return (
-    <Sidebar className={cn("border-r border-sidebar-border/50 bg-sidebar transition-all duration-200", isCollapsed ? "w-[56px]" : "w-[216px]")} collapsible="icon">
+    <Sidebar className={cn("border-r border-sidebar-border bg-sidebar transition-all duration-200", isCollapsed ? "w-[56px]" : "w-[220px]")} collapsible="icon">
       {/* ── Header ── */}
-      <SidebarHeader className="px-3 py-3 border-b border-sidebar-border/30">
+      <SidebarHeader className="px-3 py-3.5 border-b border-sidebar-border/40">
         <div className="flex items-center justify-between">
-          <Link to="/" className="hover:opacity-80 transition-opacity">
+          <Link to="/" className="hover:opacity-80 transition-opacity duration-150">
             <img src={aireatroLogo} alt="AiReatro" className={cn("w-auto transition-all duration-200", isCollapsed ? "h-7" : "h-9")} />
           </Link>
           {!isCollapsed && (
-            <Button variant="ghost" size="icon" onClick={toggleSidebar} className="h-6 w-6 rounded-md text-sidebar-foreground/30 hover:text-sidebar-foreground/60 hover:bg-sidebar-accent/50">
+            <Button variant="ghost" size="icon" onClick={toggleSidebar} className="h-7 w-7 rounded-lg text-sidebar-foreground/30 hover:text-sidebar-foreground/60 hover:bg-sidebar-accent/60 transition-all duration-150">
               <PanelLeftClose className="w-3.5 h-3.5" />
             </Button>
           )}
         </div>
         {isCollapsed && (
-          <Button variant="ghost" size="icon" onClick={toggleSidebar} className="w-full h-6 mt-1.5 rounded-md text-sidebar-foreground/30 hover:text-sidebar-foreground/60 hover:bg-sidebar-accent/50">
+          <Button variant="ghost" size="icon" onClick={toggleSidebar} className="w-full h-7 mt-2 rounded-lg text-sidebar-foreground/30 hover:text-sidebar-foreground/60 hover:bg-sidebar-accent/60 transition-all duration-150">
             <PanelLeft className="w-3.5 h-3.5" />
           </Button>
         )}
       </SidebarHeader>
 
-      <SidebarContent ref={sidebarScrollRef} className="px-2 py-3">
+      <SidebarContent ref={sidebarScrollRef} className="px-2.5 py-3">
         {/* ── Workspace Switcher ── */}
         <div className="mb-3">
           <DropdownMenu>
