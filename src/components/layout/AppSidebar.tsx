@@ -430,9 +430,9 @@ export function AppSidebar() {
         {!isCollapsed && <div className="mx-3 my-3 border-b border-sidebar-border/30" />}
 
         {/* ── Platform ── */}
-        <SidebarGroup className="mt-1.5">
+        <SidebarGroup className="mt-2">
           {!isCollapsed && (
-            <SidebarGroupLabel className="text-sidebar-foreground/35 text-[10px] font-semibold uppercase tracking-[0.06em] px-3 mb-1">
+            <SidebarGroupLabel className="text-sidebar-foreground/30 text-[10px] font-semibold uppercase tracking-[0.08em] px-3 mb-1.5">
               Platform
             </SidebarGroupLabel>
           )}
