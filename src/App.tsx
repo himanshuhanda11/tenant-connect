@@ -132,6 +132,9 @@ import ShopifySyncCenter from "./pages/shopify/ShopifySyncCenter";
 import ShopifyWebhooks from "./pages/shopify/ShopifyWebhooks";
 import ShopifySettings from "./pages/shopify/ShopifySettings";
 import ShopifyDataExplorer from "./pages/shopify/ShopifyDataExplorer";
+import ShopifyCartRecovery from "./pages/shopify/ShopifyCartRecovery";
+import ShopifyAnalytics from "./pages/shopify/ShopifyAnalytics";
+import ShopifyAutomations from "./pages/shopify/ShopifyAutomations";
 import SeoDashboard from "./pages/developer/SeoDashboard";
 import AdminLayout from "./pages/admin/AdminLayout";
 import AdminOverview from "./pages/admin/AdminOverview";
@@ -233,6 +236,9 @@ const App = () => (
               <Route path="/app/integrations/shopify/:storeId/webhooks" element={<ShopifyWebhooks />} />
               <Route path="/app/integrations/shopify/:storeId/settings" element={<ShopifySettings />} />
               <Route path="/app/integrations/shopify/:storeId/data" element={<ShopifyDataExplorer />} />
+              <Route path="/app/integrations/shopify/:storeId/recovery" element={<ShopifyCartRecovery />} />
+              <Route path="/app/integrations/shopify/:storeId/analytics" element={<ShopifyAnalytics />} />
+              <Route path="/app/integrations/shopify/:storeId/automations" element={<ShopifyAutomations />} />
               <Route path="/app/integrations/:key" element={<IntegrationDetail />} />
               <Route path="/settings" element={<Settings />} />
               <Route path="/privacy-policy" element={<PrivacyPolicy />} />
