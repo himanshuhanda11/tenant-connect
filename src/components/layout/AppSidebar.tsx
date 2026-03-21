@@ -321,19 +321,19 @@ export function AppSidebar() {
   return (
     <Sidebar collapsible="icon">
       {/* ── Header ── */}
-      <SidebarHeader className="px-3 py-3.5 border-b border-sidebar-border/40">
+      <SidebarHeader className="px-3 py-4 border-b border-sidebar-border/50">
         <div className="flex items-center justify-between">
-          <Link to="/" className="hover:opacity-80 transition-opacity duration-150">
+          <Link to="/" className="hover:opacity-80 transition-opacity duration-200">
             <img src={aireatroLogo} alt="AiReatro" className={cn("w-auto transition-all duration-200", isCollapsed ? "h-7" : "h-9")} />
           </Link>
           {!isCollapsed && (
-            <Button variant="ghost" size="icon" onClick={toggleSidebar} className="h-7 w-7 rounded-lg text-sidebar-foreground/30 hover:text-sidebar-foreground/60 hover:bg-sidebar-accent/60 transition-all duration-150">
+            <Button variant="ghost" size="icon" onClick={toggleSidebar} className="h-7 w-7 rounded-xl text-sidebar-foreground/25 hover:text-sidebar-foreground/50 hover:bg-sidebar-accent transition-all duration-200">
               <PanelLeftClose className="w-3.5 h-3.5" />
             </Button>
           )}
         </div>
         {isCollapsed && (
-          <Button variant="ghost" size="icon" onClick={toggleSidebar} className="w-full h-7 mt-2 rounded-lg text-sidebar-foreground/30 hover:text-sidebar-foreground/60 hover:bg-sidebar-accent/60 transition-all duration-150">
+          <Button variant="ghost" size="icon" onClick={toggleSidebar} className="w-full h-7 mt-2.5 rounded-xl text-sidebar-foreground/25 hover:text-sidebar-foreground/50 hover:bg-sidebar-accent transition-all duration-200">
             <PanelLeft className="w-3.5 h-3.5" />
           </Button>
         )}
