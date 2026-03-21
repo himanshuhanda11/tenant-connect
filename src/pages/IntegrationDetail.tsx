@@ -43,6 +43,8 @@ import { EventActionMappingModal, EventMapping } from '@/components/integrations
 import { IntegrationOverview } from '@/components/integrations/IntegrationOverview';
 import { ProFeaturesPanel, ProConfig } from '@/components/integrations/ProFeaturesPanel';
 import { useIntegrations } from '@/hooks/useIntegrations';
+import { useIntegrationAudit } from '@/hooks/useIntegrationAudit';
+import { useIntegrationPermissions } from '@/hooks/useIntegrationPermissions';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 
