@@ -201,10 +201,10 @@ export function AppSidebar() {
                   to={item.url}
                   end={item.url === '/dashboard'}
                   className={cn(
-                    "flex items-center justify-center p-2.5 rounded-lg transition-all duration-150",
+                    "flex items-center justify-center p-2.5 rounded-xl transition-all duration-200",
                     isActive
-                      ? "bg-primary/12 text-primary shadow-sm"
-                      : "text-sidebar-foreground/50 hover:text-sidebar-foreground hover:bg-sidebar-accent/70"
+                      ? "bg-primary/15 text-primary shadow-[0_0_0_1px_hsl(var(--primary)/0.2)]"
+                      : "text-sidebar-foreground/45 hover:text-sidebar-foreground hover:bg-sidebar-accent"
                   )}
                   activeClassName=""
                 >
@@ -225,24 +225,24 @@ export function AppSidebar() {
             to={item.url}
             end={item.url === '/dashboard'}
             className={cn(
-              "group/menuitem relative flex items-center gap-3 px-3 py-2.5 rounded-[10px] text-[13.5px] font-medium transition-all duration-150",
+              "group/menuitem relative flex items-center gap-3 px-3 py-[11px] rounded-xl text-[13px] font-medium transition-all duration-200 ease-out",
               isActive
-                ? "bg-primary/10 text-primary shadow-sm"
-                : "text-sidebar-foreground/65 hover:text-sidebar-foreground hover:bg-sidebar-accent/60"
+                ? "bg-primary/12 text-primary shadow-[inset_0_0_0_1px_hsl(var(--primary)/0.15)] font-semibold"
+                : "text-sidebar-foreground/55 hover:text-sidebar-foreground hover:bg-sidebar-accent"
             )}
             activeClassName=""
           >
             {/* Left accent bar for active state */}
             {isActive && (
-              <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-[60%] rounded-r-full bg-primary" />
+              <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-[55%] rounded-r-full bg-primary shadow-[0_0_6px_hsl(var(--primary)/0.4)]" />
             )}
             <item.icon className={cn(
-              "h-4 w-4 flex-shrink-0 transition-colors duration-150",
-              isActive ? "text-primary" : "text-sidebar-foreground/40"
+              "h-[16px] w-[16px] flex-shrink-0 transition-colors duration-200",
+              isActive ? "text-primary" : "text-sidebar-foreground/35 group-hover/menuitem:text-sidebar-foreground/60"
             )} />
-            <span className="flex-1 truncate tracking-[-0.01em]">{item.title}</span>
+            <span className="flex-1 truncate tracking-[-0.01em] leading-none">{item.title}</span>
             {item.isNew && (
-              <span className="text-[9px] font-bold uppercase tracking-wider text-primary bg-primary/10 px-1.5 py-0.5 rounded-md">
+              <span className="text-[8px] font-bold uppercase tracking-wider text-primary bg-primary/10 px-1.5 py-0.5 rounded-md leading-none">
                 new
               </span>
             )}
@@ -257,10 +257,10 @@ export function AppSidebar() {
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={(e) => e.stopPropagation()}
-                className="opacity-0 group-hover/menuitem:opacity-100 transition-opacity duration-150 p-0.5 rounded-md hover:bg-sidebar-accent/80"
+                className="opacity-0 group-hover/menuitem:opacity-100 transition-opacity duration-200 p-0.5 rounded-md hover:bg-sidebar-accent"
                 title={`${item.title} docs`}
               >
-                <ExternalLink className="h-3 w-3 text-sidebar-foreground/35 hover:text-primary" />
+                <ExternalLink className="h-3 w-3 text-sidebar-foreground/30 hover:text-primary" />
               </a>
             )}
           </NavLink>
