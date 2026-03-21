@@ -276,9 +276,9 @@ export function AppSidebar() {
 
     if (isCollapsed) {
       return (
-        <SidebarGroup key={group.label} className="mt-1">
+        <SidebarGroup key={group.label} className="mt-1.5">
           <SidebarGroupContent>
-            <SidebarMenu className="space-y-0.5">
+            <SidebarMenu className="space-y-1">
               {group.items.slice(0, 3).map(item => renderMenuItem(item))}
             </SidebarMenu>
           </SidebarGroupContent>
@@ -292,18 +292,18 @@ export function AppSidebar() {
           <SidebarGroup>
             <CollapsibleTrigger asChild>
               <button className={cn(
-                "w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-[11px] font-semibold uppercase tracking-wider transition-all duration-150",
+                "w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[11px] font-semibold uppercase tracking-[0.06em] transition-all duration-150",
                 hasActiveItem
                   ? "text-primary"
-                  : "text-sidebar-foreground/40 hover:text-sidebar-foreground/60"
+                  : "text-sidebar-foreground/40 hover:text-sidebar-foreground/65 hover:bg-sidebar-accent/40"
               )}>
-                <group.icon className="h-3 w-3" />
+                <group.icon className="h-3.5 w-3.5" />
                 <span className="flex-1 text-left">{group.label}</span>
-                <ChevronRight className={cn("w-3 h-3 transition-transform duration-150", isOpen && "rotate-90")} />
+                <ChevronRight className={cn("w-3 h-3 transition-transform duration-200 ease-out", isOpen && "rotate-90")} />
               </button>
             </CollapsibleTrigger>
-            <CollapsibleContent className="animate-accordion-down">
-              <SidebarGroupContent className="mt-0.5 ml-2 pl-2.5 border-l border-sidebar-border/40">
+            <CollapsibleContent className="animate-accordion-down data-[state=closed]:animate-accordion-up">
+              <SidebarGroupContent className="mt-1 ml-2 pl-3 border-l-[1.5px] border-sidebar-border/50">
                 <SidebarMenu className="space-y-0.5">
                   {group.items.map(item => renderMenuItem(item, true))}
                 </SidebarMenu>
