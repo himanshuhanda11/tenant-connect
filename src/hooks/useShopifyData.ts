@@ -16,75 +16,69 @@ interface DataQueryParams {
   pageSize?: number;
 }
 
-function useShopifyTable<T>(
+async function fetchShopifyTable<T>(
   table: string,
-  queryKey: string,
-  { storeId, search, status, page = 0, pageSize = 25 }: DataQueryParams,
+  { storeId, search, page = 0, pageSize = 25 }: DataQueryParams,
   searchColumns: string[] = []
-) {
-  return useQuery({
-    queryKey: [queryKey, storeId, search, status, page],
-    queryFn: async () => {
-      if (!storeId) return { data: [] as T[], count: 0 };
+): Promise<{ data: T[]; count: number }> {
+  if (!storeId) return { data: [], count: 0 };
 
-      const from = page * pageSize;
-      const to = (page + 1) * pageSize - 1;
+  const from = page * pageSize;
+  const to = (page + 1) * pageSize - 1;
 
-      // Build query with explicit typing to avoid deep instantiation
-      const { data, error, count } = await supabase
-        .from(table)
-        .select('*', { count: 'exact' })
-        .eq('store_id' as string, storeId)
-        .range(from, to)
-        .order('created_at' as string, { ascending: false });
-      if (error) throw error;
-      return { data: (data || []) as T[], count: count || 0 };
-    },
-    enabled: !!storeId,
-  });
+  let query = (supabase as any)
+    .from(table)
+    .select('*', { count: 'exact' })
+    .eq('store_id', storeId)
+    .range(from, to)
+    .order('created_at', { ascending: false });
+
+  if (search && searchColumns.length > 0) {
+    const orFilter = searchColumns.map(col => `${col}.ilike.%${search}%`).join(',');
+    query = query.or(orFilter);
+  }
+
+  const { data, error, count } = await query;
+  if (error) throw error;
+  return { data: (data || []) as T[], count: count || 0 };
 }
 
 export function useShopifyProducts(params: DataQueryParams) {
-  return useShopifyTable<ShopifyProduct>(
-    'shopify_products',
-    'shopify-products',
-    params,
-    ['title', 'handle', 'vendor']
-  );
+  return useQuery({
+    queryKey: ['shopify-products', params.storeId, params.search, params.status, params.page],
+    queryFn: () => fetchShopifyTable<ShopifyProduct>('shopify_products', params, ['title', 'handle', 'vendor']),
+    enabled: !!params.storeId,
+  });
 }
 
 export function useShopifyCollections(params: DataQueryParams) {
-  return useShopifyTable<ShopifyCollection>(
-    'shopify_collections',
-    'shopify-collections',
-    params,
-    ['title', 'handle']
-  );
+  return useQuery({
+    queryKey: ['shopify-collections', params.storeId, params.search, params.page],
+    queryFn: () => fetchShopifyTable<ShopifyCollection>('shopify_collections', params, ['title', 'handle']),
+    enabled: !!params.storeId,
+  });
 }
 
 export function useShopifyCustomers(params: DataQueryParams) {
-  return useShopifyTable<ShopifyCustomer>(
-    'shopify_customers',
-    'shopify-customers',
-    params,
-    ['email', 'phone', 'first_name', 'last_name']
-  );
+  return useQuery({
+    queryKey: ['shopify-customers', params.storeId, params.search, params.page],
+    queryFn: () => fetchShopifyTable<ShopifyCustomer>('shopify_customers', params, ['email', 'phone', 'first_name', 'last_name']),
+    enabled: !!params.storeId,
+  });
 }
 
 export function useShopifyOrders(params: DataQueryParams) {
-  return useShopifyTable<ShopifyOrder>(
-    'shopify_orders',
-    'shopify-orders',
-    params,
-    ['order_number', 'order_name', 'email']
-  );
+  return useQuery({
+    queryKey: ['shopify-orders', params.storeId, params.search, params.status, params.page],
+    queryFn: () => fetchShopifyTable<ShopifyOrder>('shopify_orders', params, ['order_number', 'order_name', 'email']),
+    enabled: !!params.storeId,
+  });
 }
 
 export function useShopifyAbandonedCheckouts(params: DataQueryParams) {
-  return useShopifyTable<ShopifyAbandonedCheckout>(
-    'shopify_abandoned_checkouts',
-    'shopify-abandoned-checkouts',
-    params,
-    ['email', 'phone']
-  );
+  return useQuery({
+    queryKey: ['shopify-abandoned-checkouts', params.storeId, params.search, params.page],
+    queryFn: () => fetchShopifyTable<ShopifyAbandonedCheckout>('shopify_abandoned_checkouts', params, ['email', 'phone']),
+    enabled: !!params.storeId,
+  });
 }
