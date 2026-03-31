@@ -406,17 +406,18 @@ export function InboxChatThread({
                   <a
                     href={(() => {
                       const name = conversation.contact?.name || conversation.contact?.first_name || 'there';
+                      const biz = (conversation as any).phone_number?.verified_name || 'our company';
                       const templates = [
-                        `Hi ${name}! 👋 Thank you for your enquiry about the Europe Work Permit. We are Paradise Migration Service — one of the most genuine & registered recruitment companies in Dubai. We'd love to assist you with your dream of working in Europe. How can we help you today?`,
-                        `Hello ${name}! 🌍 We received your enquiry regarding the Europe Work Permit program. As a fully registered and trusted recruitment agency based in Dubai, Paradise Migration Service is here to guide you every step of the way. Shall we schedule a quick consultation?`,
-                        `Dear ${name}, thank you for showing interest in our Europe Work Permit services! 🇪🇺 Paradise Migration Service is a licensed recruitment company in Dubai with a proven track record. We'd be happy to discuss the best opportunities available for you.`,
-                        `Hi ${name}! 🙌 Great to hear about your interest in working in Europe. Paradise Migration Service is among the most trusted & government-registered recruitment firms in Dubai. Let us help you explore the right visa and job options. When is a good time to talk?`,
-                        `Hello ${name}! ✈️ Thanks for reaching out about the Europe Work Permit. Paradise Migration Service is a fully registered recruitment agency in Dubai, and we specialize in placing candidates across Europe. We'd love to understand your profile and guide you further!`,
-                        `Hi ${name}! 🌟 We're excited about your interest in the Europe Work Permit program. Paradise Migration Service — a certified and genuine recruitment company in Dubai — has helped hundreds of professionals like you. Let's get started on your journey!`,
-                        `Dear ${name}, welcome to Paradise Migration Service! 🏢 As a registered recruitment agency in Dubai, we're delighted you've enquired about the Europe Work Permit. Our team will provide you with genuine guidance and transparent processing. How may we assist you?`,
-                        `Hi ${name}! 💼 Thank you for your enquiry. Paradise Migration Service is a licensed and reputed recruitment firm in Dubai specializing in Europe Work Permits. We believe in 100% transparency and genuine placements. Ready to take the next step?`,
-                        `Hello ${name}! 🤝 Your interest in the Europe Work Permit means a lot to us. Paradise Migration Service — registered and operating from Dubai — is committed to providing authentic recruitment services. Let's connect and discuss your eligibility!`,
-                        `Hi ${name}! 🚀 Welcome aboard! We noticed your enquiry about working in Europe. Paradise Migration Service is a government-registered recruitment company in Dubai, and we're here to make your European career dreams a reality. What questions do you have?`,
+                        `Hi ${name}! 👋 Thank you for your enquiry. We are ${biz} — a trusted and registered company. We'd love to assist you. How can we help you today?`,
+                        `Hello ${name}! 🌍 We received your enquiry. As a fully registered and trusted agency, ${biz} is here to guide you every step of the way. Shall we schedule a quick consultation?`,
+                        `Dear ${name}, thank you for showing interest in our services! 🇪🇺 ${biz} has a proven track record. We'd be happy to discuss the best opportunities available for you.`,
+                        `Hi ${name}! 🙌 Great to hear from you. ${biz} is among the most trusted & registered firms. Let us help you explore the right options. When is a good time to talk?`,
+                        `Hello ${name}! ✈️ Thanks for reaching out. ${biz} is a fully registered agency, and we specialize in helping people like you. We'd love to understand your needs and guide you further!`,
+                        `Hi ${name}! 🌟 We're excited about your interest. ${biz} — a certified and genuine company — has helped hundreds of clients. Let's get started on your journey!`,
+                        `Dear ${name}, welcome to ${biz}! 🏢 We're delighted you've reached out. Our team will provide you with genuine guidance and transparent service. How may we assist you?`,
+                        `Hi ${name}! 💼 Thank you for your enquiry. ${biz} is a licensed and reputed firm. We believe in 100% transparency and genuine service. Ready to take the next step?`,
+                        `Hello ${name}! 🤝 Your interest means a lot to us. ${biz} is committed to providing authentic and professional services. Let's connect and discuss how we can help!`,
+                        `Hi ${name}! 🚀 Welcome aboard! ${biz} is here to help you achieve your goals. What questions do you have for us?`,
                       ];
                       const randomMsg = templates[Math.floor(Math.random() * templates.length)];
                       return `https://wa.me/${conversation.contact?.wa_id}?text=${encodeURIComponent(randomMsg)}`;
