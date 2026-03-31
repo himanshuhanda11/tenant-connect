@@ -498,23 +498,20 @@ export function InboxChatThread({
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-56">
-                  <div className="px-2 py-1.5 text-xs font-medium text-muted-foreground">Assignment</div>
-                  <DropdownMenuItem onClick={() => user?.id && onAssign(user.id)}>
-                    <User className="h-4 w-4 mr-2" /> Assign to me
+                  <div className="px-2 py-1.5 text-xs font-medium text-muted-foreground">Status</div>
+                  <DropdownMenuItem onClick={() => onSetStatus('open')}>
+                    <span className="w-2 h-2 rounded-full bg-green-500 mr-2" /> Open
                   </DropdownMenuItem>
-                  {teamMembers.map(member => (
-                    <DropdownMenuItem 
-                      key={member.id} 
-                      onClick={() => onAssign(member.id)}
-                      className={conversation.assigned_to === member.id ? 'bg-muted' : ''}
-                    >
-                      <User className="h-4 w-4 mr-2" />
-                      {member.full_name}
-                      {conversation.assigned_to === member.id && <Check className="h-3 w-3 ml-auto" />}
-                    </DropdownMenuItem>
-                  ))}
-                  <DropdownMenuItem onClick={() => onAssign(null)}>
-                    <X className="h-4 w-4 mr-2" /> Unassign
+                  <DropdownMenuItem onClick={() => onSetStatus('pending')}>
+                    <span className="w-2 h-2 rounded-full bg-amber-500 mr-2" /> Pending
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => onSetStatus('closed')}>
+                    <span className="w-2 h-2 rounded-full bg-muted-foreground mr-2" /> Close
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => setShowTemplates(true)}>
+                    <FileText className="h-4 w-4 mr-2" />
+                    Send Template
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -522,49 +519,22 @@ export function InboxChatThread({
           </div>
         </div>
 
-        {/* Row 2: Status Bar with ownership actions + badges (Desktop only) */}
+        {/* Row 2: Action Bar (Desktop only) */}
         {!isMobile && (
-          <div className="h-11 px-5 flex items-center gap-2 bg-muted/40 backdrop-blur-sm border-t border-border/40 overflow-x-auto">
-            {/* === Ownership Action Buttons === */}
-            
-            {/* Claim: show if not claimed AND (unassigned OR assigned to me) */}
-            {!conversation.claimed_at && (!conversation.assigned_to || conversation.assigned_to === user?.id) && onClaim && (
-              <Button
-                variant="default"
-                size="sm"
-                className="h-7 text-xs gap-1"
-                onClick={onClaim}
-              >
-                <Hand className="h-3.5 w-3.5" /> Claim
-              </Button>
-            )}
-
-            {/* Intervene: show if claimed/assigned by someone else */}
-            {((conversation.claimed_by && conversation.claimed_by !== user?.id) ||
-              (conversation.assigned_to && conversation.assigned_to !== user?.id && !conversation.claimed_at)) && onIntervene && (
-              <Button
-                variant="outline"
-                size="sm"
-                className="h-7 text-xs gap-1 border-amber-300 text-amber-700 hover:bg-amber-50"
-                onClick={onIntervene}
-              >
-                <Shield className="h-3.5 w-3.5" /> Intervene
-              </Button>
-            )}
-
-            {/* Assign (admin/owner): opens agent picker */}
+          <div className="h-10 px-5 flex items-center gap-2 bg-muted/40 backdrop-blur-sm border-t border-border/40 flex-shrink-0">
+            {/* Transfer / Assign — single unified dropdown */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="sm" className="h-7 text-xs gap-1 text-muted-foreground hover:text-foreground">
-                  <UserPlus className="h-3.5 w-3.5" /> Assign
+                  <ArrowRightLeft className="h-3.5 w-3.5" /> Transfer
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="start" className="w-52">
-                <div className="px-2 py-1.5 text-xs font-medium text-muted-foreground">Assign to agent (no claim)</div>
+                <div className="px-2 py-1.5 text-xs font-medium text-muted-foreground">Assign / Transfer to</div>
                 {teamMembers.map(member => (
                   <DropdownMenuItem
                     key={member.id}
-                    onClick={() => onAssign(member.id)}
+                    onClick={() => onTransfer ? onTransfer(member.id, false) : onAssign(member.id)}
                     className={conversation.assigned_to === member.id ? 'bg-muted' : ''}
                   >
                     <User className="h-4 w-4 mr-2" />
@@ -579,49 +549,12 @@ export function InboxChatThread({
               </DropdownMenuContent>
             </DropdownMenu>
 
-            {/* Transfer (admin/owner): reroute + optional reset claim */}
-            {onTransfer && (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="sm" className="h-7 text-xs gap-1 text-muted-foreground hover:text-foreground">
-                    <ArrowRightLeft className="h-3.5 w-3.5" /> Transfer
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="start" className="w-52">
-                  <div className="px-2 py-1.5 text-xs font-medium text-muted-foreground">Transfer & keep claim</div>
-                  {teamMembers.filter(m => m.id !== conversation.assigned_to).map(member => (
-                    <DropdownMenuItem
-                      key={member.id}
-                      onClick={() => onTransfer(member.id, false)}
-                    >
-                      <User className="h-4 w-4 mr-2" />
-                      {member.full_name}
-                    </DropdownMenuItem>
-                  ))}
-                  <DropdownMenuSeparator />
-                  <div className="px-2 py-1.5 text-xs font-medium text-muted-foreground">Transfer & reset claim</div>
-                  {teamMembers.filter(m => m.id !== conversation.assigned_to).map(member => (
-                    <DropdownMenuItem
-                      key={`reset-${member.id}`}
-                      onClick={() => onTransfer(member.id, true)}
-                    >
-                      <ArrowRightLeft className="h-4 w-4 mr-2" />
-                      {member.full_name} <span className="ml-auto text-xs text-muted-foreground">reset</span>
-                    </DropdownMenuItem>
-                  ))}
-                </DropdownMenuContent>
-              </DropdownMenu>
-            )}
-
-            <div className="h-5 w-px bg-border" />
+            <div className="h-5 w-px bg-border/60" />
 
             {/* AI Intent & Health */}
-            <div className="flex items-center gap-2 pr-3 border-r border-border/40">
-              <IntentBadge intent={aiIntent} />
-              <HealthDot health={aiHealth} />
-            </div>
-            
-            
+            <IntentBadge intent={aiIntent} />
+            <HealthDot health={aiHealth} />
+
             {/* SLA Timer */}
             <SLATimer
               firstResponseDue={conversation.sla_first_response_due}
@@ -664,7 +597,7 @@ export function InboxChatThread({
               </DropdownMenu>
             </div>
             
-            <div className="h-5 w-px bg-border" />
+            <div className="h-5 w-px bg-border/60" />
             
             {/* Status Dropdown */}
             <DropdownMenu>
