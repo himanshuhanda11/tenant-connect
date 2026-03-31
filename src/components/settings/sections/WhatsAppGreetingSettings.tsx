@@ -104,7 +104,7 @@ export function WhatsAppGreetingSettings() {
                 {templates.filter(t => t.is_active).length} active · {templates.filter(t => !t.is_active).length} disabled
               </CardDescription>
             </div>
-            {templates.length === 0 && (
+            {templates.length === 0 && !isLoading && (
               <Button
                 variant="outline"
                 size="sm"
