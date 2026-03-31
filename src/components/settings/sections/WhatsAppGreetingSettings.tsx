@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { MessageSquare, Plus, Trash2, Edit2, Check, X, Power, PowerOff, Sparkles } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -23,6 +23,15 @@ export function WhatsAppGreetingSettings() {
   const [newMessage, setNewMessage] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editText, setEditText] = useState('');
+  const [seeded, setSeeded] = useState(false);
+
+  // Auto-seed defaults when visiting for the first time with no templates
+  useEffect(() => {
+    if (!isLoading && templates.length === 0 && !seeded) {
+      setSeeded(true);
+      seedDefaults.mutate();
+    }
+  }, [isLoading, templates.length]);
 
   const handleAdd = () => {
     if (!newMessage.trim()) return;
@@ -104,7 +113,7 @@ export function WhatsAppGreetingSettings() {
                 {templates.filter(t => t.is_active).length} active · {templates.filter(t => !t.is_active).length} disabled
               </CardDescription>
             </div>
-            {templates.length === 0 && (
+            {templates.length === 0 && !isLoading && (
               <Button
                 variant="outline"
                 size="sm"

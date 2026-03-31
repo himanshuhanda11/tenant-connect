@@ -320,88 +320,68 @@ export function InboxChatThread({
 
   return (
     <div className="flex flex-col h-full w-full bg-background overflow-hidden min-h-0">
-      {/* Header - Premium Glassmorphism Design */}
-      <div className="border-b border-border/60 bg-card/90 backdrop-blur-md shadow-sm flex-shrink-0">
-        {/* Row 1: Contact Info */}
-         <div className={cn(
-          "flex items-center justify-between",
-          isMobile ? "h-14 px-2 gap-1" : "h-16 px-5"
+      {/* Header */}
+      <div className="border-b border-border bg-card flex-shrink-0">
+        {/* Main row: Contact + Actions */}
+        <div className={cn(
+          "flex items-center justify-between gap-2",
+          isMobile ? "h-14 px-3" : "h-14 px-4"
         )}>
-          <div className="flex items-center gap-3 min-w-0 flex-1">
-            {/* Back button for mobile */}
+          {/* Left: Back + Avatar + Info */}
+          <div className="flex items-center gap-2.5 min-w-0 flex-1">
             {isMobile && onBack && (
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                onClick={onBack}
-                className="h-9 w-9 text-gray-600 hover:bg-gray-100 flex-shrink-0"
-              >
-                <ArrowLeft className="h-5 w-5" />
+              <Button variant="ghost" size="icon" onClick={onBack} className="h-8 w-8 flex-shrink-0">
+                <ArrowLeft className="h-4 w-4" />
               </Button>
             )}
-            
-            {/* Avatar with online indicator */}
             <div className="relative flex-shrink-0">
-              <Avatar className={cn(
-                "border-2 border-primary/20 ring-2 ring-primary/10",
-                isMobile ? "h-10 w-10" : "h-11 w-11"
-              )}>
+              <Avatar className="h-9 w-9 border border-border">
                 <AvatarImage src={conversation.contact?.profile_picture_url || undefined} />
-                <AvatarFallback className="bg-gradient-to-br from-primary/80 to-primary text-white font-semibold">
+                <AvatarFallback className="bg-primary/10 text-primary text-sm font-semibold">
                   {getInitials(conversation.contact?.name)}
                 </AvatarFallback>
               </Avatar>
-              {/* Online indicator */}
-              <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full" />
+              <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-green-500 border-2 border-card rounded-full" />
             </div>
-            
-            <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-2">
-                <h3 className={cn(
-                  "font-semibold text-gray-900 truncate",
-                  isMobile ? "text-base" : "text-lg"
-                )}>
+            <div className="min-w-0">
+              <div className="flex items-center gap-1.5">
+                <h3 className="font-semibold text-sm text-foreground truncate">
                   {conversation.contact?.name || conversation.contact?.wa_id}
                 </h3>
-                {!isMobile && (
-                  <Badge 
-                    variant="outline" 
-                    className={cn(
-                      "text-xs font-medium",
-                      conversation.status === 'open' && "bg-green-50 text-green-700 border-green-200",
-                      conversation.status === 'pending' && "bg-amber-50 text-amber-700 border-amber-200",
-                      conversation.status === 'closed' && "bg-gray-50 text-gray-600 border-gray-200"
-                    )}
-                  >
-                    {STATUS_CONFIG[conversation.status].label}
-                  </Badge>
-                )}
+                <Badge 
+                  variant="outline" 
+                  className={cn(
+                    "text-[10px] px-1.5 py-0 h-4 font-medium",
+                    conversation.status === 'open' && "bg-green-50 text-green-700 border-green-200 dark:bg-green-950 dark:text-green-400 dark:border-green-800",
+                    conversation.status === 'pending' && "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950 dark:text-amber-400 dark:border-amber-800",
+                    conversation.status === 'closed' && "bg-muted text-muted-foreground border-border"
+                  )}
+                >
+                  {STATUS_CONFIG[conversation.status].label}
+                </Badge>
               </div>
-              <div className="flex items-center gap-2 text-sm text-gray-500">
-                <Phone className="h-3 w-3" />
+              <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                 <a
                   href={`https://wa.me/${conversation.contact?.wa_id}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="truncate hover:text-primary hover:underline transition-colors cursor-pointer"
-                  title="Open in WhatsApp"
+                  className="hover:text-primary transition-colors"
                 >
                   +{conversation.contact?.wa_id}
                 </a>
-                {!isMobile && conversation.assigned_agent && (
+                {conversation.assigned_agent && !isMobile && (
                   <>
-                    <span className="text-gray-300">•</span>
-                    <User className="h-3 w-3" />
-                    <span>{conversation.assigned_agent.full_name}</span>
+                    <span>·</span>
+                    <span className="truncate">{conversation.assigned_agent.full_name}</span>
                   </>
                 )}
               </div>
             </div>
           </div>
 
-          {/* Right side actions */}
+          {/* Right: Action buttons */}
           <div className="flex items-center gap-1 flex-shrink-0">
-            {/* Open in WhatsApp button */}
+            {/* Open in WhatsApp */}
             {conversation.contact?.wa_id && (
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -414,168 +394,56 @@ export function InboxChatThread({
                     })()}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-green-500 text-white hover:bg-green-600 transition-colors shadow-sm"
+                    className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-[11px] font-medium bg-green-500 text-white hover:bg-green-600 transition-colors"
                   >
-                    <svg viewBox="0 0 24 24" className="h-4 w-4 fill-current">
+                    <svg viewBox="0 0 24 24" className="h-3.5 w-3.5 fill-current">
                       <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
                     </svg>
-                    Open in Whatsapp
+                    WhatsApp
                   </a>
                 </TooltipTrigger>
-                <TooltipContent>Send pre-filled welcome message via WhatsApp</TooltipContent>
+                <TooltipContent>Open in WhatsApp with greeting</TooltipContent>
               </Tooltip>
-            )}
-            {/* Call button */}
-            {!isMobile && (
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button variant="ghost" size="icon" className="h-9 w-9 text-gray-500 hover:text-primary hover:bg-primary/5">
-                    <Phone className="h-4 w-4" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>Call contact</TooltipContent>
-              </Tooltip>
-            )}
-            
-            {isMobile && onShowInfo && (
-              <Button 
-                variant="ghost" 
-                size="icon"
-                onClick={onShowInfo}
-                className="h-9 w-9 text-gray-500 hover:bg-gray-100"
-              >
-                <Info className="h-5 w-5" />
-              </Button>
-            )}
-            
-            {isMobile && (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button 
-                    variant="ghost" 
-                    size="icon" 
-                    className="h-9 w-9 text-gray-500 hover:bg-gray-100"
-                  >
-                    <MoreVertical className="h-5 w-5" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={() => onSetStatus('open')}>
-                    <span className="w-2 h-2 rounded-full bg-green-500 mr-2" />
-                    Mark as Open
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => onSetStatus('pending')}>
-                    <span className="w-2 h-2 rounded-full bg-amber-500 mr-2" />
-                    Mark as Pending
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => onSetStatus('closed')}>
-                    <span className="w-2 h-2 rounded-full bg-gray-400 mr-2" />
-                    Close
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => setShowTemplates(true)}>
-                    <FileText className="h-4 w-4 mr-2" />
-                    Send Template
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
             )}
 
+            {/* Transfer */}
             {!isMobile && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="h-9 w-9 text-gray-500 hover:bg-gray-100">
-                    <MoreVertical className="h-4 w-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56">
-                  <div className="px-2 py-1.5 text-xs font-medium text-muted-foreground">Status</div>
-                  <DropdownMenuItem onClick={() => onSetStatus('open')}>
-                    <span className="w-2 h-2 rounded-full bg-green-500 mr-2" /> Open
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => onSetStatus('pending')}>
-                    <span className="w-2 h-2 rounded-full bg-amber-500 mr-2" /> Pending
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => onSetStatus('closed')}>
-                    <span className="w-2 h-2 rounded-full bg-muted-foreground mr-2" /> Close
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => setShowTemplates(true)}>
-                    <FileText className="h-4 w-4 mr-2" />
-                    Send Template
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            )}
-          </div>
-        </div>
-
-        {/* Row 2: Action Bar (Desktop only) */}
-        {!isMobile && (
-          <div className="h-10 px-5 flex items-center gap-2 bg-muted/40 backdrop-blur-sm border-t border-border/40 flex-shrink-0">
-            {/* Transfer / Assign — single unified dropdown */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm" className="h-7 text-xs gap-1 text-muted-foreground hover:text-foreground">
-                  <ArrowRightLeft className="h-3.5 w-3.5" /> Transfer
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" className="w-52">
-                <div className="px-2 py-1.5 text-xs font-medium text-muted-foreground">Assign / Transfer to</div>
-                {teamMembers.map(member => (
-                  <DropdownMenuItem
-                    key={member.id}
-                    onClick={() => onTransfer ? onTransfer(member.id, false) : onAssign(member.id)}
-                    className={conversation.assigned_to === member.id ? 'bg-muted' : ''}
-                  >
-                    <User className="h-4 w-4 mr-2" />
-                    {member.full_name}
-                    {conversation.assigned_to === member.id && <Check className="h-3 w-3 ml-auto" />}
-                  </DropdownMenuItem>
-                ))}
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => onAssign(null)}>
-                  <X className="h-4 w-4 mr-2" /> Unassign
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-
-            <div className="h-5 w-px bg-border/60" />
-
-            {/* AI Intent & Health */}
-            <IntentBadge intent={aiIntent} />
-            <HealthDot health={aiHealth} />
-
-            {/* SLA Timer */}
-            <SLATimer
-              firstResponseDue={conversation.sla_first_response_due}
-              firstResponseAt={conversation.first_response_at}
-              slaBreached={conversation.sla_breached}
-              createdAt={conversation.created_at}
-            />
-            
-            <div className="flex-1" />
-            
-            {/* Tags */}
-            <div className="flex items-center gap-1.5">
-              {conversation.tags?.slice(0, 3).map(tag => (
-                <Badge 
-                  key={tag.id}
-                  variant="outline"
-                  className="text-xs font-medium"
-                  style={{ backgroundColor: `${tag.color}15`, color: tag.color, borderColor: `${tag.color}30` }}
-                >
-                  {tag.name}
-                </Badge>
-              ))}
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="sm" className="h-7 px-2 text-muted-foreground hover:text-foreground">
-                    <Tag className="h-3.5 w-3.5" />
+                  <Button variant="ghost" size="sm" className="h-7 text-xs gap-1 text-muted-foreground">
+                    <ArrowRightLeft className="h-3 w-3" /> Transfer
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-48">
-                  <div className="px-2 py-1.5 text-xs font-medium text-muted-foreground">Add Tag</div>
+                  {teamMembers.map(member => (
+                    <DropdownMenuItem
+                      key={member.id}
+                      onClick={() => onTransfer ? onTransfer(member.id, false) : onAssign(member.id)}
+                      className={conversation.assigned_to === member.id ? 'bg-muted' : ''}
+                    >
+                      <User className="h-3.5 w-3.5 mr-2" />
+                      {member.full_name}
+                      {conversation.assigned_to === member.id && <Check className="h-3 w-3 ml-auto" />}
+                    </DropdownMenuItem>
+                  ))}
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => onAssign(null)}>
+                    <X className="h-3.5 w-3.5 mr-2" /> Unassign
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
+
+            {/* Tags */}
+            {!isMobile && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground">
+                    <Tag className="h-3.5 w-3.5" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-44">
+                  <div className="px-2 py-1 text-xs font-medium text-muted-foreground">Add Tag</div>
                   {availableTags
                     .filter(tag => !conversation.tags?.some(t => t.id === tag.id))
                     .map(tag => (
@@ -586,18 +454,23 @@ export function InboxChatThread({
                     ))}
                 </DropdownMenuContent>
               </DropdownMenu>
-            </div>
-            
-            <div className="h-5 w-px bg-border/60" />
-            
-            {/* Status Dropdown */}
+            )}
+
+            {isMobile && onShowInfo && (
+              <Button variant="ghost" size="icon" onClick={onShowInfo} className="h-8 w-8">
+                <Info className="h-4 w-4" />
+              </Button>
+            )}
+
+            {/* More menu (status + templates) */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm" className="h-7 text-xs gap-1 border-border">
-                  Status <ChevronDown className="h-3 w-3" />
+                <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground">
+                  <MoreVertical className="h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
+              <DropdownMenuContent align="end" className="w-48">
+                <div className="px-2 py-1 text-xs font-medium text-muted-foreground">Status</div>
                 <DropdownMenuItem onClick={() => onSetStatus('open')}>
                   <span className="w-2 h-2 rounded-full bg-green-500 mr-2" /> Open
                 </DropdownMenuItem>
@@ -607,8 +480,38 @@ export function InboxChatThread({
                 <DropdownMenuItem onClick={() => onSetStatus('closed')}>
                   <span className="w-2 h-2 rounded-full bg-muted-foreground mr-2" /> Close
                 </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => setShowTemplates(true)}>
+                  <FileText className="h-3.5 w-3.5 mr-2" /> Send Template
+                </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
+          </div>
+        </div>
+
+        {/* Compact info bar: Tags + SLA + Intent (desktop only) */}
+        {!isMobile && (conversation.tags?.length > 0 || conversation.sla_first_response_due) && (
+          <div className="h-8 px-4 flex items-center gap-2 border-t border-border/50 bg-muted/30">
+            {conversation.tags?.slice(0, 4).map(tag => (
+              <Badge 
+                key={tag.id}
+                variant="outline"
+                className="text-[10px] h-4 px-1.5 py-0 font-medium"
+                style={{ backgroundColor: `${tag.color}10`, color: tag.color, borderColor: `${tag.color}30` }}
+              >
+                {tag.name}
+              </Badge>
+            ))}
+            {conversation.tags?.length > 0 && <div className="h-3 w-px bg-border" />}
+            <IntentBadge intent={aiIntent} />
+            <HealthDot health={aiHealth} />
+            <div className="flex-1" />
+            <SLATimer
+              firstResponseDue={conversation.sla_first_response_due}
+              firstResponseAt={conversation.first_response_at}
+              slaBreached={conversation.sla_breached}
+              createdAt={conversation.created_at}
+            />
           </div>
         )}
       </div>
