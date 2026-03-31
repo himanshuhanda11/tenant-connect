@@ -18,6 +18,7 @@ import { NotificationSettings } from '@/components/settings/sections/Notificatio
 import { AdvancedSettings } from '@/components/settings/sections/AdvancedSettings';
 import { AutoReplySettings } from '@/components/settings/sections/AutoReplySettings';
 import { AppearanceSettings } from '@/components/settings/sections/AppearanceSettings';
+import { WhatsAppGreetingSettings } from '@/components/settings/sections/WhatsAppGreetingSettings';
 import { useTenant } from '@/contexts/TenantContext';
 
 export default function Settings() {
