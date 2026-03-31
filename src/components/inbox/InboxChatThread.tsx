@@ -55,6 +55,7 @@ import {
   ArrowRightLeft,
   UserPlus,
   CheckCircle,
+  ExternalLink,
 } from 'lucide-react';
 import { format, formatDistanceToNow, differenceInHours } from 'date-fns';
 import { InboxConversation, InboxMessage, WAStatus, ConversationEvent, STATUS_CONFIG, PRIORITY_CONFIG, ConversationStatus } from '@/types/inbox';
@@ -376,7 +377,15 @@ export function InboxChatThread({
               </div>
               <div className="flex items-center gap-2 text-sm text-gray-500">
                 <Phone className="h-3 w-3" />
-                <span className="truncate">+{conversation.contact?.wa_id}</span>
+                <a
+                  href={`https://wa.me/${conversation.contact?.wa_id}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="truncate hover:text-primary hover:underline transition-colors cursor-pointer"
+                  title="Open in WhatsApp"
+                >
+                  +{conversation.contact?.wa_id}
+                </a>
                 {!isMobile && conversation.assigned_agent && (
                   <>
                     <span className="text-gray-300">•</span>
@@ -390,6 +399,28 @@ export function InboxChatThread({
 
           {/* Right side actions */}
           <div className="flex items-center gap-1 flex-shrink-0">
+            {/* Open in WhatsApp button */}
+            {conversation.contact?.wa_id && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-9 w-9 text-green-600 hover:text-green-700 hover:bg-green-50"
+                    asChild
+                  >
+                    <a
+                      href={`https://wa.me/${conversation.contact.wa_id}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      <ExternalLink className="h-4 w-4" />
+                    </a>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Open in WhatsApp</TooltipContent>
+              </Tooltip>
+            )}
             {/* Call button */}
             {!isMobile && (
               <Tooltip>
