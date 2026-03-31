@@ -317,9 +317,9 @@ export function InboxChatThread({
   }
 
   return (
-    <div className="flex flex-col h-full w-full bg-background overflow-hidden">
+    <div className="flex flex-col h-full w-full bg-background overflow-hidden min-h-0">
       {/* Header - Premium Glassmorphism Design */}
-      <div className="border-b border-border/60 bg-card/90 backdrop-blur-md shadow-sm">
+      <div className="border-b border-border/60 bg-card/90 backdrop-blur-md shadow-sm flex-shrink-0">
         {/* Row 1: Contact Info */}
          <div className={cn(
           "flex items-center justify-between",
@@ -767,7 +767,7 @@ export function InboxChatThread({
       {/* Messages Area - Premium immersive background */}
         <ScrollArea 
         className={cn(
-          "flex-1",
+          "flex-1 min-h-0",
           isMobile ? "p-2" : "p-4"
         )} 
         ref={scrollRef}
@@ -1053,7 +1053,7 @@ export function InboxChatThread({
 
       {/* Composer - Premium glassmorphism */}
       <div className={cn(
-        "border-t border-border/40 bg-card/70 backdrop-blur-xl",
+        "border-t border-border/40 bg-card/70 backdrop-blur-xl flex-shrink-0",
         isMobile ? "p-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))]" : "p-4"
       )}>
         <div className={cn(

@@ -257,10 +257,10 @@ export default function InboxPage() {
   return (
     <DashboardLayout>
       <TooltipProvider>
-        <div className="absolute inset-0 flex overflow-hidden">
+        <div className="absolute inset-0 flex overflow-hidden min-h-0">
           {/* Left: Conversation List */}
           <div
-            className="w-[340px] xl:w-[380px] flex-shrink-0 h-full"
+            className="w-[340px] xl:w-[380px] flex-shrink-0 h-full min-h-0"
           >
             <InboxConversationListV2
               conversations={conversations}
@@ -282,7 +282,7 @@ export default function InboxPage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.2, delay: 0.05 }}
-            className="flex-1 min-w-0 overflow-hidden"
+            className="flex-1 min-w-0 min-h-0 overflow-hidden"
           >
             <InboxChatThread
               conversation={selectedConversation}
