@@ -399,6 +399,28 @@ export function InboxChatThread({
 
           {/* Right side actions */}
           <div className="flex items-center gap-1 flex-shrink-0">
+            {/* Open in WhatsApp button */}
+            {conversation.contact?.wa_id && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-9 w-9 text-green-600 hover:text-green-700 hover:bg-green-50"
+                    asChild
+                  >
+                    <a
+                      href={`https://wa.me/${conversation.contact.wa_id}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      <ExternalLink className="h-4 w-4" />
+                    </a>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Open in WhatsApp</TooltipContent>
+              </Tooltip>
+            )}
             {/* Call button */}
             {!isMobile && (
               <Tooltip>
