@@ -282,7 +282,7 @@ export default function InboxPage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.2, delay: 0.05 }}
-            className="flex-1 min-w-0 overflow-hidden"
+            className="flex-1 min-w-0 min-h-0 overflow-hidden"
           >
             <InboxChatThread
               conversation={selectedConversation}
