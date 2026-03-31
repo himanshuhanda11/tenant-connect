@@ -23,8 +23,16 @@ export function WhatsAppGreetingSettings() {
   const [newMessage, setNewMessage] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editText, setEditText] = useState('');
+  const [seeded, setSeeded] = useState(false);
 
-  const handleAdd = () => {
+  // Auto-seed defaults when visiting for the first time with no templates
+  useEffect(() => {
+    if (!isLoading && templates.length === 0 && !seeded) {
+      setSeeded(true);
+      seedDefaults.mutate();
+    }
+  }, [isLoading, templates.length]);
+
     if (!newMessage.trim()) return;
     addTemplate.mutate(newMessage.trim());
     setNewMessage('');
