@@ -767,7 +767,7 @@ export function InboxChatThread({
       {/* Messages Area - Premium immersive background */}
         <ScrollArea 
         className={cn(
-          "flex-1",
+          "flex-1 min-h-0",
           isMobile ? "p-2" : "p-4"
         )} 
         ref={scrollRef}
