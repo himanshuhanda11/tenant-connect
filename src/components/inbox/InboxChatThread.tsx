@@ -55,6 +55,7 @@ import {
   ArrowRightLeft,
   UserPlus,
   CheckCircle,
+  ExternalLink,
 } from 'lucide-react';
 import { format, formatDistanceToNow, differenceInHours } from 'date-fns';
 import { InboxConversation, InboxMessage, WAStatus, ConversationEvent, STATUS_CONFIG, PRIORITY_CONFIG, ConversationStatus } from '@/types/inbox';
