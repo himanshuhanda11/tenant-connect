@@ -45,6 +45,7 @@ const settingsSections: SettingsSection[] = [
   { id: 'developer', label: 'Developer', icon: Code, badge: 'API' },
   { id: 'notifications', label: 'Notifications', icon: Bell },
   { id: 'appearance', label: 'Appearance', icon: Palette },
+  { id: 'greetings', label: 'WhatsApp Greetings', icon: HandMetal },
   { id: 'advanced', label: 'Advanced', icon: Settings2 },
 ];
 
