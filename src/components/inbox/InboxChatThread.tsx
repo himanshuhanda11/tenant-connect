@@ -1016,10 +1016,28 @@ export function InboxChatThread({
               <p className="text-sm font-semibold text-muted-foreground">Supervisor Mode</p>
               <p className="text-xs text-muted-foreground mt-1">You're observing this conversation</p>
             </div>
+          ) : isOutside24hWindow ? (
+            /* Outside 24h window — show template-only composer */
+            <div className="flex flex-col items-center gap-3 py-4">
+              <div className="flex items-center gap-2 text-amber-600">
+                <AlertCircle className="h-4 w-4" />
+                <span className="text-sm font-medium">24-hour messaging window has closed</span>
+              </div>
+              <p className="text-xs text-muted-foreground text-center max-w-sm">
+                You can only send approved templates to re-engage this contact
+              </p>
+              <Button 
+                onClick={() => setShowTemplates(true)}
+                className="gap-2 bg-primary hover:bg-primary/90"
+              >
+                <FileText className="h-4 w-4" />
+                Send Template Message
+              </Button>
+            </div>
           ) : (
             <>
               <div className="flex items-end gap-2">
-                {/* AI Assistant Button - Premium Robot */}
+                {/* AI Assistant Button */}
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button 
@@ -1048,7 +1066,7 @@ export function InboxChatThread({
                   <TooltipContent>AI Assistant</TooltipContent>
                 </Tooltip>
 
-                {/* Attachment Button - Dropdown with options */}
+                {/* Attachment Button */}
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button 
@@ -1085,7 +1103,7 @@ export function InboxChatThread({
                 
                 <div className="flex-1 relative">
                   <Textarea
-                    placeholder={isOutside24hWindow ? "Select template..." : "Type a message"}
+                    placeholder="Type a message"
                     value={messageText}
                     onChange={(e) => {
                       setMessageText(e.target.value);
@@ -1093,7 +1111,6 @@ export function InboxChatThread({
                     }}
                     onKeyDown={handleKeyDown}
                     onBlur={() => onTyping?.(false)}
-                    disabled={isOutside24hWindow}
                     className={cn(
                       "resize-none",
                       isMobile 
@@ -1106,7 +1123,6 @@ export function InboxChatThread({
                     "absolute bottom-1 flex items-center gap-1",
                     isMobile ? "right-1" : "right-2 bottom-2"
                   )}>
-                    {/* Emoji Picker */}
                     <Popover open={showEmojiPicker} onOpenChange={setShowEmojiPicker}>
                       <PopoverTrigger asChild>
                         <Button 
@@ -1144,7 +1160,7 @@ export function InboxChatThread({
                   </Tooltip>
                 )}
 
-                {/* Send button - WhatsApp green circle on mobile */}
+                {/* Send button */}
                 <Button 
                   size="icon" 
                   className={cn(
@@ -1153,7 +1169,7 @@ export function InboxChatThread({
                       : "h-11 w-11"
                   )}
                   onClick={handleSend}
-                  disabled={!messageText.trim() || isOutside24hWindow}
+                  disabled={!messageText.trim()}
                 >
                   {messageText.trim() ? (
                     <Send className={cn(isMobile ? "h-5 w-5" : "h-4 w-4")} />
@@ -1163,7 +1179,7 @@ export function InboxChatThread({
                 </Button>
               </div>
 
-              {/* Quick Replies - editable by agents */}
+              {/* Quick Replies */}
               <QuickReplyManager 
                 onSelectReply={(text) => setMessageText(text)} 
                 isMobile={isMobile}
