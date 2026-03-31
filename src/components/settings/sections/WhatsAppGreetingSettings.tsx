@@ -33,6 +33,7 @@ export function WhatsAppGreetingSettings() {
     }
   }, [isLoading, templates.length]);
 
+  const handleAdd = () => {
     if (!newMessage.trim()) return;
     addTemplate.mutate(newMessage.trim());
     setNewMessage('');
