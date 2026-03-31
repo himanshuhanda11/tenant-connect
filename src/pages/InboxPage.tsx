@@ -260,7 +260,7 @@ export default function InboxPage() {
         <div className="absolute inset-0 flex overflow-hidden min-h-0">
           {/* Left: Conversation List */}
           <div
-            className="w-[340px] xl:w-[380px] flex-shrink-0 h-full min-h-0"
+            className="w-[280px] xl:w-[320px] flex-shrink-0 h-full min-h-0"
           >
             <InboxConversationListV2
               conversations={conversations}
