@@ -1053,7 +1053,7 @@ export function InboxChatThread({
 
       {/* Composer - Premium glassmorphism */}
       <div className={cn(
-        "border-t border-border/40 bg-card/70 backdrop-blur-xl",
+        "border-t border-border/40 bg-card/70 backdrop-blur-xl flex-shrink-0",
         isMobile ? "p-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))]" : "p-4"
       )}>
         <div className={cn(
