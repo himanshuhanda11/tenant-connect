@@ -16,6 +16,7 @@ import {
   Bot,
   Palette,
   UserCircle,
+  HandMetal,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useTenant } from '@/contexts/TenantContext';
