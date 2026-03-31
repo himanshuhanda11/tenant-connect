@@ -498,23 +498,20 @@ export function InboxChatThread({
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-56">
-                  <div className="px-2 py-1.5 text-xs font-medium text-muted-foreground">Assignment</div>
-                  <DropdownMenuItem onClick={() => user?.id && onAssign(user.id)}>
-                    <User className="h-4 w-4 mr-2" /> Assign to me
+                  <div className="px-2 py-1.5 text-xs font-medium text-muted-foreground">Status</div>
+                  <DropdownMenuItem onClick={() => onSetStatus('open')}>
+                    <span className="w-2 h-2 rounded-full bg-green-500 mr-2" /> Open
                   </DropdownMenuItem>
-                  {teamMembers.map(member => (
-                    <DropdownMenuItem 
-                      key={member.id} 
-                      onClick={() => onAssign(member.id)}
-                      className={conversation.assigned_to === member.id ? 'bg-muted' : ''}
-                    >
-                      <User className="h-4 w-4 mr-2" />
-                      {member.full_name}
-                      {conversation.assigned_to === member.id && <Check className="h-3 w-3 ml-auto" />}
-                    </DropdownMenuItem>
-                  ))}
-                  <DropdownMenuItem onClick={() => onAssign(null)}>
-                    <X className="h-4 w-4 mr-2" /> Unassign
+                  <DropdownMenuItem onClick={() => onSetStatus('pending')}>
+                    <span className="w-2 h-2 rounded-full bg-amber-500 mr-2" /> Pending
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => onSetStatus('closed')}>
+                    <span className="w-2 h-2 rounded-full bg-muted-foreground mr-2" /> Close
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => setShowTemplates(true)}>
+                    <FileText className="h-4 w-4 mr-2" />
+                    Send Template
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
