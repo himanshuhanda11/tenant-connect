@@ -17,6 +17,18 @@ const TenantContext = createContext<TenantContextType | undefined>(undefined);
 
 const CURRENT_TENANT_KEY = 'whatsapp-isv-current-tenant';
 
+const normalizeTenantRole = (membershipRole: string | null | undefined, assignedBaseRole?: string | null): TenantRole => {
+  if (assignedBaseRole === 'owner' || assignedBaseRole === 'admin' || assignedBaseRole === 'manager' || assignedBaseRole === 'agent') {
+    return assignedBaseRole;
+  }
+
+  if (membershipRole === 'owner' || membershipRole === 'admin' || membershipRole === 'manager' || membershipRole === 'agent') {
+    return membershipRole;
+  }
+
+  return 'agent';
+};
+
 export function TenantProvider({ children }: { children: React.ReactNode }) {
   const { user } = useAuth();
   const [tenants, setTenants] = useState<TenantWithRole[]>([]);
@@ -56,11 +68,23 @@ export function TenantProvider({ children }: { children: React.ReactNode }) {
 
       if (error) throw error;
 
+      const { data: assignedRoles } = await supabase
+        .from('user_roles')
+        .select('tenant_id, roles(base_role)')
+        .eq('user_id', user.id);
+
+      const assignedRoleMap = new Map<string, string | null>();
+
+      (assignedRoles || []).forEach((assignment: any) => {
+        const relatedRole = Array.isArray(assignment.roles) ? assignment.roles[0] : assignment.roles;
+        assignedRoleMap.set(assignment.tenant_id, relatedRole?.base_role ?? null);
+      });
+
       const tenantsWithRoles: TenantWithRole[] = (memberships || [])
         .filter(m => m.tenants)
         .map(m => ({
           ...(m.tenants as unknown as Tenant),
-          role: m.role as TenantRole
+          role: normalizeTenantRole(m.role, assignedRoleMap.get((m.tenants as Tenant).id))
         }));
 
       setTenants(tenantsWithRoles);
@@ -69,7 +93,7 @@ export function TenantProvider({ children }: { children: React.ReactNode }) {
       if (tenantsWithRoles.length === 1) {
         // Only update state if the tenant id actually changed to avoid unnecessary re-renders
         setCurrentTenantState(prev => {
-          if (prev?.id === tenantsWithRoles[0].id) return prev;
+          if (prev?.id === tenantsWithRoles[0].id && prev?.role === tenantsWithRoles[0].role) return prev;
           localStorage.setItem(CURRENT_TENANT_KEY, tenantsWithRoles[0].id);
           return tenantsWithRoles[0];
         });
@@ -80,7 +104,7 @@ export function TenantProvider({ children }: { children: React.ReactNode }) {
           const savedTenant = tenantsWithRoles.find(t => t.id === savedTenantId);
           if (savedTenant) {
             setCurrentTenantState(prev => {
-              if (prev?.id === savedTenant.id) return prev;
+              if (prev?.id === savedTenant.id && prev?.role === savedTenant.role) return prev;
               return savedTenant;
             });
           } else {

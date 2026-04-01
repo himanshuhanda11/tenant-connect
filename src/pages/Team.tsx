@@ -27,6 +27,7 @@ const inviteSchema = z.object({
 });
 
 type InviteFormData = z.infer<typeof inviteSchema>;
+type MembershipRole = Extract<TenantRole, 'owner' | 'admin' | 'agent'>;
 
 interface MemberWithProfile {
   id: string;
@@ -39,6 +40,7 @@ interface MemberWithProfile {
 const roleConfig: Record<TenantRole, { icon: React.ComponentType<{className?: string}>, color: string, label: string }> = {
   owner: { icon: Crown, color: 'bg-warning/20 text-warning border-warning/30', label: 'Owner' },
   admin: { icon: Shield, color: 'bg-info/20 text-info border-info/30', label: 'Admin' },
+  manager: { icon: Users, color: 'bg-primary/10 text-primary border-primary/20', label: 'Manager' },
   agent: { icon: UserCog, color: 'bg-muted text-muted-foreground border-border', label: 'Agent' },
 };
 
@@ -57,7 +59,7 @@ export default function Team() {
     defaultValues: { email: '', role: 'agent' },
   });
 
-  const canManageTeam = currentRole === 'owner' || currentRole === 'admin';
+  const canManageTeam = currentRole === 'owner' || currentRole === 'admin' || currentRole === 'manager';
 
   useEffect(() => {
     if (currentTenant) fetchMembers();
@@ -116,7 +118,7 @@ export default function Team() {
     }
   };
 
-  const handleRoleChange = async (memberId: string, newRole: TenantRole) => {
+  const handleRoleChange = async (memberId: string, newRole: MembershipRole) => {
     const { error } = await supabase.from('tenant_members').update({ role: newRole }).eq('id', memberId);
     if (error) { toast.error('Failed to update role'); return; }
     toast.success('Role updated');

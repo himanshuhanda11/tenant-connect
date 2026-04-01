@@ -12,6 +12,18 @@ import { Loader2, Eye, EyeOff, MessageSquare, Shield, Zap, Users } from 'lucide-
 import { toast } from 'sonner';
 import aireatroLogo from '@/assets/aireatro-logo.png';
 
+const resolveWorkspaceRole = (membershipRole?: string | null, assignedBaseRole?: string | null) => {
+  if (assignedBaseRole === 'owner' || assignedBaseRole === 'admin' || assignedBaseRole === 'manager' || assignedBaseRole === 'agent') {
+    return assignedBaseRole;
+  }
+
+  if (membershipRole === 'owner' || membershipRole === 'admin' || membershipRole === 'manager' || membershipRole === 'agent') {
+    return membershipRole;
+  }
+
+  return 'agent';
+};
+
 export default function Login() {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
@@ -61,10 +73,26 @@ export default function Login() {
         // Check if user is an agent — redirect directly to inbox
         const { data: memberships } = await supabase
           .from('tenant_members')
-          .select('role')
+          .select('tenant_id, role')
           .eq('user_id', user.id);
 
-        const isAgentOnly = memberships && memberships.length > 0 && memberships.every(m => m.role === 'agent');
+        const { data: assignedRoles } = await supabase
+          .from('user_roles')
+          .select('tenant_id, roles(base_role)')
+          .eq('user_id', user.id);
+
+        const assignedRoleMap = new Map<string, string | null>();
+
+        (assignedRoles || []).forEach((assignment: any) => {
+          const relatedRole = Array.isArray(assignment.roles) ? assignment.roles[0] : assignment.roles;
+          assignedRoleMap.set(assignment.tenant_id, relatedRole?.base_role ?? null);
+        });
+
+        const resolvedRoles = (memberships || []).map((membership: any) =>
+          resolveWorkspaceRole(membership.role, assignedRoleMap.get(membership.tenant_id))
+        );
+
+        const isAgentOnly = resolvedRoles.length > 0 && resolvedRoles.every(role => role === 'agent');
         
         if (isAgentOnly) {
           navigate('/inbox', { replace: true });
