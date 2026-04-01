@@ -68,10 +68,15 @@ export function TenantProvider({ children }: { children: React.ReactNode }) {
 
       if (error) throw error;
 
-      const { data: assignedRoles } = await supabase
+      const { data: assignedRoles, error: rolesError } = await supabase
         .from('user_roles')
-        .select('tenant_id, roles(base_role)')
+        .select('tenant_id, role_id, roles(base_role)')
         .eq('user_id', user.id);
+
+      if (rolesError) {
+        console.error('Error fetching user_roles:', rolesError);
+      }
+      console.log('[TenantContext] assignedRoles raw:', JSON.stringify(assignedRoles));
 
       const assignedRoleMap = new Map<string, string | null>();
 
