@@ -64,7 +64,7 @@ export function WhatsAppGreetingSettings() {
           WhatsApp Greeting Messages
         </h2>
         <p className="text-sm text-muted-foreground mt-1">
-          Manage the pre-filled greeting messages sent when agents click "Open in WhatsApp". Use <code className="bg-muted px-1 rounded text-xs">{'{{name}}'}</code> for customer name and <code className="bg-muted px-1 rounded text-xs">{'{{biz}}'}</code> for your business profile name.
+          Manage the pre-filled greeting messages sent when agents click "Open in WhatsApp". Use <code className="bg-muted px-1 rounded text-xs">{'{{name}}'}</code> for customer name, <code className="bg-muted px-1 rounded text-xs">{'{{biz}}'}</code> for your business profile name, and <code className="bg-muted px-1 rounded text-xs">{'{{agent_name}}'}</code> for the agent's profile name.
         </p>
       </div>
 
