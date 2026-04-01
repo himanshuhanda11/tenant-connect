@@ -234,6 +234,96 @@ export function ProfileSettings() {
         </CardContent>
       </Card>
 
+      {/* Personal Auto-Reply */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-base">
+            <MessageSquare className="w-4 h-4" /> Personal Auto-Reply
+          </CardTitle>
+          <CardDescription>Set your own greeting and away messages for assigned chats</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {loadingAutoReply ? (
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Loader2 className="w-4 h-4 animate-spin" /> Loading...
+            </div>
+          ) : (
+            <>
+              <div className="space-y-2">
+                <Label htmlFor="personalGreeting">Personal Greeting Message</Label>
+                <Textarea
+                  id="personalGreeting"
+                  value={personalGreeting}
+                  onChange={(e) => setPersonalGreeting(e.target.value)}
+                  placeholder="Hi {{name}}! This is {{agent_name}}, how can I help you today?"
+                  rows={3}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Use <code className="bg-muted px-1 rounded">{'{{name}}'}</code> for customer name, <code className="bg-muted px-1 rounded">{'{{agent_name}}'}</code> for your name, <code className="bg-muted px-1 rounded">{'{{biz}}'}</code> for business name
+                </p>
+              </div>
+
+              <Separator />
+
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label className="flex items-center gap-2">
+                    <Clock className="w-4 h-4 text-muted-foreground" /> Away Mode
+                  </Label>
+                  <p className="text-sm text-muted-foreground">Auto-reply when you're away from your desk</p>
+                </div>
+                <Switch checked={awayEnabled} onCheckedChange={setAwayEnabled} />
+              </div>
+
+              {awayEnabled && (
+                <div className="space-y-2">
+                  <Label htmlFor="awayMessage">Away Message</Label>
+                  <Textarea
+                    id="awayMessage"
+                    value={awayMessage}
+                    onChange={(e) => setAwayMessage(e.target.value)}
+                    placeholder="Hi! I'm currently away. I'll get back to you as soon as possible."
+                    rows={3}
+                  />
+                </div>
+              )}
+
+              <div className="flex justify-end">
+                <Button
+                  onClick={async () => {
+                    if (!user?.id || !currentTenant?.id) return;
+                    setSavingAutoReply(true);
+                    try {
+                      const { error } = await supabase
+                        .from('agents')
+                        .update({
+                          personal_greeting: personalGreeting || null,
+                          away_message: awayMessage || null,
+                          away_enabled: awayEnabled,
+                        })
+                        .eq('user_id', user.id)
+                        .eq('tenant_id', currentTenant.id);
+                      if (error) throw error;
+                      toast.success('Auto-reply settings saved');
+                    } catch (err) {
+                      console.error('Save auto-reply error:', err);
+                      toast.error('Failed to save auto-reply settings');
+                    } finally {
+                      setSavingAutoReply(false);
+                    }
+                  }}
+                  disabled={savingAutoReply}
+                  size="sm"
+                >
+                  {savingAutoReply ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
+                  Save Auto-Reply
+                </Button>
+              </div>
+            </>
+          )}
+        </CardContent>
+      </Card>
+
       {/* Change Password */}
       <Card>
         <CardHeader>
