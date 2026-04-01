@@ -12,6 +12,14 @@ import { NavLink } from '@/components/NavLink';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTenant } from '@/contexts/TenantContext';
 import { usePhoneNumbers } from '@/hooks/usePhoneNumbers';
+import {
+  META_ADS_ANY_PERMISSIONS,
+  META_ADS_ATTRIBUTION_PERMISSIONS,
+  META_ADS_AUTOMATION_PERMISSIONS,
+  META_ADS_CONNECT_PERMISSIONS,
+  META_ADS_VIEW_PERMISSIONS,
+  useCurrentRolePermissions,
+} from '@/hooks/useCurrentRolePermissions';
 import { sidebarDescriptions } from '@/data/sidebarDescriptions';
 import { cn } from '@/lib/utils';
 import aireatroLogo from '@/assets/aireatro-logo.png';
@@ -117,6 +125,7 @@ export function AppSidebar() {
   const { state, toggleSidebar } = useSidebar();
   const isCollapsed = state === 'collapsed';
   const { phoneNumbers } = usePhoneNumbers();
+  const { hasAnyPermission } = useCurrentRolePermissions();
 
   const channelMenuItems: MenuItem[] = [
     { title: 'WhatsApp', url: '/phone-numbers', icon: Phone, key: 'phone-numbers', docUrl: '/help/phone-numbers' },
@@ -124,6 +133,25 @@ export function AppSidebar() {
   ];
 
   const isAgent = currentRole === 'agent';
+  const filteredMetaAdsMenuItems = metaAdsMenuItems.filter((item) => {
+    switch (item.key) {
+      case 'meta-ads-overview':
+      case 'meta-ads-manager':
+      case 'meta-ads-analytics':
+      case 'lead-forms':
+        return hasAnyPermission(META_ADS_VIEW_PERMISSIONS);
+      case 'meta-ads-setup':
+      case 'meta-ads-settings':
+        return hasAnyPermission(META_ADS_CONNECT_PERMISSIONS);
+      case 'meta-ads-attribution':
+        return hasAnyPermission(META_ADS_ATTRIBUTION_PERMISSIONS);
+      case 'meta-ads-automations':
+        return hasAnyPermission(META_ADS_AUTOMATION_PERMISSIONS);
+      default:
+        return hasAnyPermission(META_ADS_ANY_PERMISSIONS);
+    }
+  });
+
   const filteredMainMenuItems = isAgent
     ? mainMenuItems
     : mainMenuItems;
@@ -141,7 +169,7 @@ export function AppSidebar() {
     { label: 'CRM', icon: Contact, items: filteredCrmMenuItems },
     ...(isAgent ? [] : [{ label: 'Channels', icon: Phone, items: channelMenuItems }]),
     ...(isAgent ? [] : [{ label: 'Growth', icon: TrendingUp, items: growthMenuItems }]),
-    ...(isAgent ? [] : [{ label: 'Meta Ads', icon: Megaphone, items: metaAdsMenuItems }]),
+    ...(isAgent || filteredMetaAdsMenuItems.length === 0 ? [] : [{ label: 'Meta Ads', icon: Megaphone, items: filteredMetaAdsMenuItems }]),
     ...(isAgent ? [] : [{ label: 'Team', icon: Users, items: teamMenuItems }]),
   ];
 
