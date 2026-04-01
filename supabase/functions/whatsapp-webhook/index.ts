@@ -2571,26 +2571,33 @@ async function handleMetaAdAutomations(
   // Determine which internal campaign IDs match the referral data
   let matchedInternalCampaignIds: string[] = [];
   if (referral) {
-    // The referral contains source_id (Meta's ad ID) or headline
-    const sourceId = referral.source_id || referral.headline || '';
-    const sourceUrl = referral.source_url || '';
+    // The referral source_id is typically a Meta Ad ID (not campaign ID)
+    const sourceId = referral.source_id || '';
     
-    // Look up campaigns by meta_campaign_id, meta_ad_id, or meta_adset_id
+    // Look up campaigns — also check raw_meta_data.ad_ids for ad-level matching
     const { data: matchedCampaigns } = await supabase
       .from('smeksh_meta_ad_campaigns')
-      .select('id, meta_campaign_id, meta_ad_id, meta_adset_id')
+      .select('id, meta_campaign_id, meta_ad_id, meta_adset_id, raw_meta_data')
       .eq('workspace_id', tenantId);
 
-    if (matchedCampaigns) {
+    if (matchedCampaigns && sourceId) {
       matchedInternalCampaignIds = matchedCampaigns
-        .filter((c: any) => 
-          c.meta_campaign_id === sourceId || 
-          c.meta_ad_id === sourceId ||
-          c.meta_adset_id === sourceId ||
-          sourceUrl.includes(c.meta_campaign_id || '__none__') ||
-          sourceUrl.includes(c.meta_ad_id || '__none__')
-        )
+        .filter((c: any) => {
+          // Direct match on campaign/ad/adset IDs
+          if (c.meta_campaign_id === sourceId) return true;
+          if (c.meta_ad_id === sourceId) return true;
+          if (c.meta_adset_id === sourceId) return true;
+          // Check ad_ids array stored in raw_meta_data (from sync)
+          const adIds: string[] = c.raw_meta_data?.ad_ids || [];
+          if (adIds.includes(sourceId)) return true;
+          // Check adset_ids
+          const adsetIds: string[] = c.raw_meta_data?.adset_ids || [];
+          if (adsetIds.includes(sourceId)) return true;
+          return false;
+        })
         .map((c: any) => c.id);
+      
+      console.log(`Meta ad referral source_id=${sourceId}, matched ${matchedInternalCampaignIds.length} campaign(s)`);
     }
   }
 
