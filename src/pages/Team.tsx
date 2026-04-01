@@ -27,6 +27,7 @@ const inviteSchema = z.object({
 });
 
 type InviteFormData = z.infer<typeof inviteSchema>;
+type MembershipRole = Extract<TenantRole, 'owner' | 'admin' | 'agent'>;
 
 interface MemberWithProfile {
   id: string;
@@ -117,7 +118,7 @@ export default function Team() {
     }
   };
 
-  const handleRoleChange = async (memberId: string, newRole: TenantRole) => {
+  const handleRoleChange = async (memberId: string, newRole: MembershipRole) => {
     const { error } = await supabase.from('tenant_members').update({ role: newRole }).eq('id', memberId);
     if (error) { toast.error('Failed to update role'); return; }
     toast.success('Role updated');
