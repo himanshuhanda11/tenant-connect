@@ -19,7 +19,7 @@ import {
 import { 
   Shield, Plus, Edit, Trash2, Eye, Check, X,
   MessageSquare, Users, FileText, Send, Zap, 
-  Link2, CreditCard, Lock, Phone, UsersRound
+  Link2, CreditCard, Lock, Phone, UsersRound, Megaphone
 } from 'lucide-react';
 import { useRoles } from '@/hooks/useTeam';
 import { TeamBreadcrumb } from '@/components/team/TeamBreadcrumb';
