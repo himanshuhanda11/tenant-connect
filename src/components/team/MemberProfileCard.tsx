@@ -193,8 +193,12 @@ export function MemberProfileCard({
               <h3 className="font-semibold text-sm truncate leading-tight">{displayName}</h3>
               <p className="text-xs text-muted-foreground truncate mt-0.5">{email}</p>
               <div className="flex items-center gap-1.5 mt-2">
-                <Badge variant="outline" className="text-[10px] px-2 py-0 h-5 font-medium">
-                  {member.role || 'Agent'}
+                <Badge 
+                  variant="outline" 
+                  className="text-[10px] px-2 py-0 h-5 font-medium"
+                  style={member._role_color ? { borderColor: member._role_color, color: member._role_color } : {}}
+                >
+                  {member._role_name || member.role || 'Agent'}
                 </Badge>
                 <Badge
                   variant="secondary"
