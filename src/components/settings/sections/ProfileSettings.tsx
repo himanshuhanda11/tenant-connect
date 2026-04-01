@@ -5,13 +5,17 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
-import { User, Mail, Lock, Camera, Save, Loader2 } from 'lucide-react';
+import { Textarea } from '@/components/ui/textarea';
+import { Switch } from '@/components/ui/switch';
+import { User, Mail, Lock, Camera, Save, Loader2, MessageSquare, Clock } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useTenant } from '@/contexts/TenantContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
 export function ProfileSettings() {
   const { user, profile } = useAuth();
+  const { currentTenant } = useTenant();
   const [fullName, setFullName] = useState('');
   const [avatarUrl, setAvatarUrl] = useState('');
   const [saving, setSaving] = useState(false);
@@ -22,12 +26,46 @@ export function ProfileSettings() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [changingPassword, setChangingPassword] = useState(false);
 
+  // Agent auto-reply
+  const [personalGreeting, setPersonalGreeting] = useState('');
+  const [awayMessage, setAwayMessage] = useState('');
+  const [awayEnabled, setAwayEnabled] = useState(false);
+  const [savingAutoReply, setSavingAutoReply] = useState(false);
+  const [loadingAutoReply, setLoadingAutoReply] = useState(true);
+
   useEffect(() => {
     if (profile) {
       setFullName(profile.full_name || '');
       setAvatarUrl(profile.avatar_url || '');
     }
   }, [profile]);
+
+  // Load agent auto-reply settings
+  useEffect(() => {
+    if (!user?.id || !currentTenant?.id) {
+      setLoadingAutoReply(false);
+      return;
+    }
+    (async () => {
+      try {
+        const { data } = await supabase
+          .from('agents')
+          .select('personal_greeting, away_message, away_enabled')
+          .eq('user_id', user.id)
+          .eq('tenant_id', currentTenant.id)
+          .maybeSingle();
+        if (data) {
+          setPersonalGreeting(data.personal_greeting || '');
+          setAwayMessage(data.away_message || '');
+          setAwayEnabled(data.away_enabled || false);
+        }
+      } catch (e) {
+        console.error('Failed to load auto-reply settings:', e);
+      } finally {
+        setLoadingAutoReply(false);
+      }
+    })();
+  }, [user?.id, currentTenant?.id]);
 
   const getInitials = () => {
     if (fullName) {
@@ -193,6 +231,96 @@ export function ProfileSettings() {
               Save Changes
             </Button>
           </div>
+        </CardContent>
+      </Card>
+
+      {/* Personal Auto-Reply */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-base">
+            <MessageSquare className="w-4 h-4" /> Personal Auto-Reply
+          </CardTitle>
+          <CardDescription>Set your own greeting and away messages for assigned chats</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {loadingAutoReply ? (
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Loader2 className="w-4 h-4 animate-spin" /> Loading...
+            </div>
+          ) : (
+            <>
+              <div className="space-y-2">
+                <Label htmlFor="personalGreeting">Personal Greeting Message</Label>
+                <Textarea
+                  id="personalGreeting"
+                  value={personalGreeting}
+                  onChange={(e) => setPersonalGreeting(e.target.value)}
+                  placeholder="Hi {{name}}! This is {{agent_name}}, how can I help you today?"
+                  rows={3}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Use <code className="bg-muted px-1 rounded">{'{{name}}'}</code> for customer name, <code className="bg-muted px-1 rounded">{'{{agent_name}}'}</code> for your name, <code className="bg-muted px-1 rounded">{'{{biz}}'}</code> for business name
+                </p>
+              </div>
+
+              <Separator />
+
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label className="flex items-center gap-2">
+                    <Clock className="w-4 h-4 text-muted-foreground" /> Away Mode
+                  </Label>
+                  <p className="text-sm text-muted-foreground">Auto-reply when you're away from your desk</p>
+                </div>
+                <Switch checked={awayEnabled} onCheckedChange={setAwayEnabled} />
+              </div>
+
+              {awayEnabled && (
+                <div className="space-y-2">
+                  <Label htmlFor="awayMessage">Away Message</Label>
+                  <Textarea
+                    id="awayMessage"
+                    value={awayMessage}
+                    onChange={(e) => setAwayMessage(e.target.value)}
+                    placeholder="Hi! I'm currently away. I'll get back to you as soon as possible."
+                    rows={3}
+                  />
+                </div>
+              )}
+
+              <div className="flex justify-end">
+                <Button
+                  onClick={async () => {
+                    if (!user?.id || !currentTenant?.id) return;
+                    setSavingAutoReply(true);
+                    try {
+                      const { error } = await supabase
+                        .from('agents')
+                        .update({
+                          personal_greeting: personalGreeting || null,
+                          away_message: awayMessage || null,
+                          away_enabled: awayEnabled,
+                        })
+                        .eq('user_id', user.id)
+                        .eq('tenant_id', currentTenant.id);
+                      if (error) throw error;
+                      toast.success('Auto-reply settings saved');
+                    } catch (err) {
+                      console.error('Save auto-reply error:', err);
+                      toast.error('Failed to save auto-reply settings');
+                    } finally {
+                      setSavingAutoReply(false);
+                    }
+                  }}
+                  disabled={savingAutoReply}
+                  size="sm"
+                >
+                  {savingAutoReply ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
+                  Save Auto-Reply
+                </Button>
+              </div>
+            </>
+          )}
         </CardContent>
       </Card>
 
