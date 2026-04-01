@@ -39,12 +39,16 @@ import {
   Inbox,
   Plus,
 } from 'lucide-react';
+import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
+import { useTenant } from '@/contexts/TenantContext';
 import { useMetaAdAccounts } from '@/hooks/useMetaAdAccounts';
 import { cn } from '@/lib/utils';
 
 export default function MetaAdsManager() {
   const [searchQuery, setSearchQuery] = useState('');
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const { currentTenant } = useTenant();
   const { campaigns, connectedAccounts, isConnected, isLoading, refetch } = useMetaAdAccounts();
 
   const filteredCampaigns = campaigns.filter(campaign =>
@@ -53,9 +57,33 @@ export default function MetaAdsManager() {
   );
 
   const handleRefresh = async () => {
+    if (!currentTenant?.id) {
+      toast.error('No workspace selected');
+      return;
+    }
+
     setIsRefreshing(true);
-    await refetch();
-    setIsRefreshing(false);
+
+    try {
+      const { data, error } = await supabase.functions.invoke('meta-ads-sync', {
+        body: { tenantId: currentTenant.id },
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      if (data?.error) {
+        throw new Error(data.error);
+      }
+
+      await refetch();
+      toast.success(data?.synced ? `Synced ${data.synced} campaign${data.synced === 1 ? '' : 's'}` : 'Meta Ads synced');
+    } catch (error: any) {
+      toast.error(error?.message || 'Meta Ads sync failed');
+    } finally {
+      setIsRefreshing(false);
+    }
   };
 
   const getStatusBadge = (status: string) => {
