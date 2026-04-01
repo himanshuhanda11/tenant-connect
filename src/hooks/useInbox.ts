@@ -66,6 +66,7 @@ function mapConversation(row: any): InboxConversation {
       full_name: row.assigner.full_name,
     } : undefined,
     phone_number_status: row.phone_number?.status || undefined,
+    phone_number_verified_name: row.phone_number?.verified_name || undefined,
   };
 }
 
@@ -133,7 +134,7 @@ export function useInboxConversations(view: InboxView, filters: InboxFilters) {
           contact:contacts(id, name, first_name, wa_id, profile_picture_url, opt_out, language),
           assigned_agent:profiles!conversations_assigned_to_fkey(id, full_name, avatar_url),
           assigner:profiles!conversations_assigned_by_fkey(id, full_name),
-          phone_number:phone_numbers(id, status)
+          phone_number:phone_numbers(id, status, verified_name)
         `)
         .eq('tenant_id', currentTenant.id)
         .order('last_message_at', { ascending: false, nullsFirst: false });
