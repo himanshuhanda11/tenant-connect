@@ -68,10 +68,15 @@ export function TenantProvider({ children }: { children: React.ReactNode }) {
 
       if (error) throw error;
 
-      const { data: assignedRoles } = await supabase
+      const { data: assignedRoles, error: rolesError } = await supabase
         .from('user_roles')
-        .select('tenant_id, roles(base_role)')
+        .select('tenant_id, role_id, roles(base_role)')
         .eq('user_id', user.id);
+
+      if (rolesError) {
+        console.error('Error fetching user_roles:', rolesError);
+      }
+      console.log('[TenantContext] assignedRoles raw:', JSON.stringify(assignedRoles));
 
       const assignedRoleMap = new Map<string, string | null>();
 
@@ -82,10 +87,16 @@ export function TenantProvider({ children }: { children: React.ReactNode }) {
 
       const tenantsWithRoles: TenantWithRole[] = (memberships || [])
         .filter(m => m.tenants)
-        .map(m => ({
-          ...(m.tenants as unknown as Tenant),
-          role: normalizeTenantRole(m.role, assignedRoleMap.get((m.tenants as Tenant).id))
-        }));
+        .map(m => {
+          const tenantId = (m.tenants as unknown as Tenant).id;
+          const assignedBase = assignedRoleMap.get(tenantId);
+          const resolved = normalizeTenantRole(m.role, assignedBase);
+          console.log(`[TenantContext] tenant=${tenantId} membershipRole=${m.role} assignedBase=${assignedBase} resolved=${resolved}`);
+          return {
+            ...(m.tenants as unknown as Tenant),
+            role: resolved
+          };
+        });
 
       setTenants(tenantsWithRoles);
 
