@@ -87,10 +87,16 @@ export function TenantProvider({ children }: { children: React.ReactNode }) {
 
       const tenantsWithRoles: TenantWithRole[] = (memberships || [])
         .filter(m => m.tenants)
-        .map(m => ({
-          ...(m.tenants as unknown as Tenant),
-          role: normalizeTenantRole(m.role, assignedRoleMap.get((m.tenants as Tenant).id))
-        }));
+        .map(m => {
+          const tenantId = (m.tenants as unknown as Tenant).id;
+          const assignedBase = assignedRoleMap.get(tenantId);
+          const resolved = normalizeTenantRole(m.role, assignedBase);
+          console.log(`[TenantContext] tenant=${tenantId} membershipRole=${m.role} assignedBase=${assignedBase} resolved=${resolved}`);
+          return {
+            ...(m.tenants as unknown as Tenant),
+            role: resolved
+          };
+        });
 
       setTenants(tenantsWithRoles);
 
