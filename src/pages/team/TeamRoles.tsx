@@ -321,7 +321,6 @@ const TeamRoles = () => {
                     </Button>
                     <Button size="sm" onClick={handleSavePermissions} disabled={saving}>
                       {saving ? 'Saving...' : 'Save Changes'}
-                      Save Changes
                     </Button>
                   </div>
                 )}
