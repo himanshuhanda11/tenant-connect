@@ -113,6 +113,7 @@ export interface InboxConversation {
     reason?: string;
   };
   phone_number_status?: string;
+  phone_number_verified_name?: string;
   lead_stage?: 'new' | 'qualifying' | 'qualified' | 'needs_agent' | 'unqualified';
 }
 
