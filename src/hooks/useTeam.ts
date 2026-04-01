@@ -183,8 +183,6 @@ export function useTeamMembers() {
                     ? 'admin'
                     : roleData.base_role === 'owner'
                       ? 'owner'
-                      : roleData.base_role === 'manager'
-                        ? 'manager'
                         : 'agent'
               })
               .eq('tenant_id', currentTenant.id)
