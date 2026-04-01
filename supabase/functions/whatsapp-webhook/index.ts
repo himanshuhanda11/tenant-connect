@@ -2607,22 +2607,60 @@ async function handleMetaAdAutomations(
       .eq('workspace_id', tenantId);
 
     if (matchedCampaigns && sourceId) {
+      const getIdVariants = (campaign: any): string[] => {
+        const directIds = [campaign.meta_campaign_id, campaign.meta_ad_id, campaign.meta_adset_id];
+        const adIds = Array.isArray(campaign.raw_meta_data?.ad_ids) ? campaign.raw_meta_data.ad_ids : [];
+        const adsetIds = Array.isArray(campaign.raw_meta_data?.adset_ids) ? campaign.raw_meta_data.adset_ids : [];
+
+        return [...directIds, ...adIds, ...adsetIds].filter(
+          (value): value is string => typeof value === 'string' && value.length > 0
+        );
+      };
+
+      const sharedPrefixLength = (a: string, b: string) => {
+        let idx = 0;
+        const max = Math.min(a.length, b.length);
+        while (idx < max && a[idx] === b[idx]) idx += 1;
+        return idx;
+      };
+
       matchedInternalCampaignIds = matchedCampaigns
-        .filter((c: any) => {
-          // Direct match on campaign/ad/adset IDs
-          if (c.meta_campaign_id === sourceId) return true;
-          if (c.meta_ad_id === sourceId) return true;
-          if (c.meta_adset_id === sourceId) return true;
-          // Check ad_ids array stored in raw_meta_data (from sync)
-          const adIds: string[] = c.raw_meta_data?.ad_ids || [];
-          if (adIds.includes(sourceId)) return true;
-          // Check adset_ids
-          const adsetIds: string[] = c.raw_meta_data?.adset_ids || [];
-          if (adsetIds.includes(sourceId)) return true;
-          return false;
-        })
-        .map((c: any) => c.id);
-      
+        .filter((campaign: any) => getIdVariants(campaign).some((id) => id === sourceId))
+        .map((campaign: any) => campaign.id);
+
+      // Fallback: Meta sometimes sends a CTWA source_id that is very close to the campaign ID,
+      // while synced ad_ids can be empty. If no exact match exists, use the single strongest
+      // prefix match only when it is unique and strong enough to be safe.
+      if (matchedInternalCampaignIds.length === 0) {
+        const scoredCandidates = matchedCampaigns
+          .map((campaign: any) => {
+            const bestScore = getIdVariants(campaign).reduce(
+              (maxScore, id) => Math.max(maxScore, sharedPrefixLength(id, sourceId)),
+              0
+            );
+
+            return {
+              id: campaign.id,
+              meta_campaign_id: campaign.meta_campaign_id,
+              bestScore,
+            };
+          })
+          .filter((campaign: any) => campaign.bestScore >= 12)
+          .sort((a: any, b: any) => b.bestScore - a.bestScore);
+
+        if (scoredCandidates.length > 0) {
+          const topScore = scoredCandidates[0].bestScore;
+          const topCandidates = scoredCandidates.filter((campaign: any) => campaign.bestScore === topScore);
+
+          if (topCandidates.length === 1) {
+            matchedInternalCampaignIds = [topCandidates[0].id];
+            console.log(
+              `Meta ad fallback matched source_id=${sourceId} to campaign ${topCandidates[0].meta_campaign_id} with prefix score ${topScore}`
+            );
+          }
+        }
+      }
+
       console.log(`Meta ad referral source_id=${sourceId}, matched ${matchedInternalCampaignIds.length} campaign(s) out of ${matchedCampaigns.length} total`);
       
       // If no match found, log all campaign IDs and ad_ids for debugging
