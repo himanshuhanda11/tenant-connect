@@ -2888,7 +2888,8 @@ async function executeMetaAdAction(
   conversationId: string,
   contactId: string,
   recipientWaId: string,
-  action: any
+  action: any,
+  automation?: any
 ) {
   switch (action.type) {
     case 'assign_agent': {
