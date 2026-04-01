@@ -91,6 +91,7 @@ const settingsMenuItems: MenuItem[] = [
 const roleConfig: Record<string, { color: string }> = {
   owner: { color: 'text-amber-500' },
   admin: { color: 'text-blue-500' },
+  manager: { color: 'text-primary' },
   agent: { color: 'text-emerald-500' },
 };
 

@@ -2,7 +2,7 @@ import { useTenant } from '@/contexts/TenantContext';
 import type { TenantRole } from '@/types/tenant';
 
 const ADMIN_ROLES: TenantRole[] = ['owner', 'admin'];
-const MANAGER_ROLES: TenantRole[] = ['owner', 'admin', 'agent'];
+const MANAGER_ROLES: TenantRole[] = ['owner', 'admin', 'manager'];
 
 export function useIntegrationPermissions() {
   const { currentRole } = useTenant();
