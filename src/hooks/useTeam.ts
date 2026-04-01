@@ -506,25 +506,37 @@ export function useRoles() {
 
   const updateRole = async (id: string, updates: Partial<Role>, permissionIds?: string[]): Promise<boolean> => {
     try {
-      const { error } = await supabase
-        .from('roles')
-        .update(updates)
-        .eq('id', id);
-      
-      if (error) {
-        console.error('Update role error:', error);
-        throw error;
+      // Only update role fields if there are actual updates
+      const hasUpdates = Object.keys(updates).length > 0;
+      if (hasUpdates) {
+        const { error } = await supabase
+          .from('roles')
+          .update(updates)
+          .eq('id', id);
+        
+        if (error) {
+          console.error('Update role error:', error);
+          throw error;
+        }
       }
 
       if (permissionIds !== undefined) {
         // Clear existing permissions
-        await supabase.from('role_permissions').delete().eq('role_id', id);
+        const { error: delError } = await supabase.from('role_permissions').delete().eq('role_id', id);
+        if (delError) {
+          console.error('Delete permissions error:', delError);
+          throw delError;
+        }
         
         // Add new permissions
         if (permissionIds.length > 0) {
-          await supabase
+          const { error: insertError } = await supabase
             .from('role_permissions')
             .insert(permissionIds.map(pid => ({ role_id: id, permission_id: pid })));
+          if (insertError) {
+            console.error('Insert permissions error:', insertError);
+            throw insertError;
+          }
         }
       }
 
