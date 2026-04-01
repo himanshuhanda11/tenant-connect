@@ -74,6 +74,8 @@ export type Database = {
       }
       agents: {
         Row: {
+          away_enabled: boolean
+          away_message: string | null
           created_at: string
           display_name: string | null
           id: string
@@ -83,6 +85,7 @@ export type Database = {
           last_active_at: string | null
           max_open_chats: number | null
           notes: string | null
+          personal_greeting: string | null
           presence: string | null
           role: string | null
           skills: string[] | null
@@ -94,6 +97,8 @@ export type Database = {
           weight: number
         }
         Insert: {
+          away_enabled?: boolean
+          away_message?: string | null
           created_at?: string
           display_name?: string | null
           id?: string
@@ -103,6 +108,7 @@ export type Database = {
           last_active_at?: string | null
           max_open_chats?: number | null
           notes?: string | null
+          personal_greeting?: string | null
           presence?: string | null
           role?: string | null
           skills?: string[] | null
@@ -114,6 +120,8 @@ export type Database = {
           weight?: number
         }
         Update: {
+          away_enabled?: boolean
+          away_message?: string | null
           created_at?: string
           display_name?: string | null
           id?: string
@@ -123,6 +131,7 @@ export type Database = {
           last_active_at?: string | null
           max_open_chats?: number | null
           notes?: string | null
+          personal_greeting?: string | null
           presence?: string | null
           role?: string | null
           skills?: string[] | null
