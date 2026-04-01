@@ -567,6 +567,16 @@ async function processInboundMessage(
     }
   }
 
+  // ─── Meta Ad Automations (CTWA) ───
+  // If this is a Click-to-WhatsApp ad message, run matching ad automations
+  if (isNewConversation) {
+    try {
+      await handleMetaAdAutomations(supabase, tenantId, phoneNumberId, conversationId, contactId, ev);
+    } catch (e) {
+      console.error('Meta ad automation error:', e);
+    }
+  }
+
   // Build preview text for sidebar
   const msgType = mapMessageType(ev.msg_type);
   const previewText = ev.text 
@@ -2531,4 +2541,353 @@ async function logFormRuleExecution(
       message_id: messageId || null, trigger_data: {},
     });
   } catch (err) { console.error('Failed to log form rule execution:', err); }
+}
+
+// ─── Meta Ad Automations Handler ───
+// Checks if incoming message is from a CTWA ad, finds matching automations, and executes actions
+async function handleMetaAdAutomations(
+  supabase: any,
+  tenantId: string,
+  phoneNumberId: string,
+  conversationId: string,
+  contactId: string,
+  ev: NormalizedEvent & { kind: 'inbound_message' }
+) {
+  // Extract referral data (present in CTWA messages)
+  const referral = ev.raw?.message?.referral || ev.raw?.value?.contacts?.[0]?.referral;
+  
+  // Fetch all active automations for this workspace
+  const { data: automations, error: autoErr } = await supabase
+    .from('smeksh_meta_ad_automations')
+    .select('*')
+    .eq('workspace_id', tenantId)
+    .eq('is_active', true);
+
+  if (autoErr || !automations || automations.length === 0) {
+    console.log('Meta ad automations: none active');
+    return;
+  }
+
+  // Determine which internal campaign IDs match the referral data
+  let matchedInternalCampaignIds: string[] = [];
+  if (referral) {
+    // The referral source_id is typically a Meta Ad ID (not campaign ID)
+    const sourceId = referral.source_id || '';
+    
+    // Look up campaigns — also check raw_meta_data.ad_ids for ad-level matching
+    const { data: matchedCampaigns } = await supabase
+      .from('smeksh_meta_ad_campaigns')
+      .select('id, meta_campaign_id, meta_ad_id, meta_adset_id, raw_meta_data')
+      .eq('workspace_id', tenantId);
+
+    if (matchedCampaigns && sourceId) {
+      matchedInternalCampaignIds = matchedCampaigns
+        .filter((c: any) => {
+          // Direct match on campaign/ad/adset IDs
+          if (c.meta_campaign_id === sourceId) return true;
+          if (c.meta_ad_id === sourceId) return true;
+          if (c.meta_adset_id === sourceId) return true;
+          // Check ad_ids array stored in raw_meta_data (from sync)
+          const adIds: string[] = c.raw_meta_data?.ad_ids || [];
+          if (adIds.includes(sourceId)) return true;
+          // Check adset_ids
+          const adsetIds: string[] = c.raw_meta_data?.adset_ids || [];
+          if (adsetIds.includes(sourceId)) return true;
+          return false;
+        })
+        .map((c: any) => c.id);
+      
+      console.log(`Meta ad referral source_id=${sourceId}, matched ${matchedInternalCampaignIds.length} campaign(s)`);
+    }
+  }
+
+  // Filter automations based on trigger type and campaign targeting
+  for (const automation of automations) {
+    // Check trigger type
+    const triggerMatch = checkMetaAdTrigger(automation, ev, referral);
+    if (!triggerMatch) continue;
+
+    // Check campaign targeting
+    const targetCampaignIds: string[] = automation.trigger_campaign_ids || [];
+    if (targetCampaignIds.length > 0) {
+      // Automation targets specific campaigns — check if any match
+      const hasMatch = referral 
+        ? targetCampaignIds.some((tid: string) => matchedInternalCampaignIds.includes(tid))
+        : false;
+      if (!hasMatch) {
+        console.log(`Meta ad automation "${automation.name}": campaign filter didn't match`);
+        continue;
+      }
+    }
+    // If targetCampaignIds is empty, automation applies to all campaigns
+
+    console.log(`Meta ad automation "${automation.name}" triggered`);
+
+    // Execute actions
+    const actions = (automation.actions || []) as any[];
+    for (const action of actions) {
+      try {
+        await executeMetaAdAction(supabase, tenantId, phoneNumberId, conversationId, contactId, ev.from_wa_id, action);
+      } catch (actionErr) {
+        console.error(`Meta ad action "${action.type}" error:`, actionErr);
+      }
+    }
+
+    // Update execution count
+    await supabase
+      .from('smeksh_meta_ad_automations')
+      .update({ 
+        executions_count: (automation.executions_count || 0) + 1,
+        last_executed_at: new Date().toISOString(),
+      })
+      .eq('id', automation.id);
+  }
+}
+
+function checkMetaAdTrigger(
+  automation: any,
+  ev: NormalizedEvent & { kind: 'inbound_message' },
+  referral: any
+): boolean {
+  switch (automation.trigger_type) {
+    case 'new_lead':
+      // Any new conversation (with or without referral)
+      return true;
+    case 'first_message':
+      // First message — always true for new conversations
+      return true;
+    case 'ad_click':
+      // Only if referral data is present (CTWA click)
+      return !!referral;
+    default:
+      return true;
+  }
+}
+
+async function executeMetaAdAction(
+  supabase: any,
+  tenantId: string,
+  phoneNumberId: string,
+  conversationId: string,
+  contactId: string,
+  recipientWaId: string,
+  action: any
+) {
+  switch (action.type) {
+    case 'assign_agent': {
+      if (!action.agent_id) return;
+      // Assign conversation to specific agent
+      const { error } = await supabase
+        .from('conversations')
+        .update({ 
+          assigned_to: action.agent_id,
+          assigned_at: new Date().toISOString(),
+          status: 'open',
+        })
+        .eq('id', conversationId)
+        .eq('tenant_id', tenantId)
+        .is('assigned_to', null); // Only if unassigned
+      
+      if (!error) {
+        console.log(`Meta ad: assigned conversation to agent ${action.agent_id}`);
+        await supabase.from('smeksh_conversation_events').insert({
+          tenant_id: tenantId,
+          conversation_id: conversationId,
+          event_type: 'assigned',
+          actor_type: 'system',
+          details: { action: 'meta_ad_automation', assigned_to: action.agent_id },
+        });
+      }
+      break;
+    }
+
+    case 'assign_team': {
+      if (!action.team_id) return;
+      // Use round-robin to pick an agent from the team
+      const { data: profileId } = await supabase.rpc('smeksh_pick_profile_round_robin', {
+        p_workspace_id: tenantId,
+        p_team_id: action.team_id,
+        p_only_online: false,
+      });
+
+      if (profileId) {
+        const { error } = await supabase
+          .from('conversations')
+          .update({ 
+            assigned_to: profileId,
+            assigned_at: new Date().toISOString(),
+            status: 'open',
+          })
+          .eq('id', conversationId)
+          .eq('tenant_id', tenantId)
+          .is('assigned_to', null);
+
+        if (!error) {
+          console.log(`Meta ad: assigned to agent ${profileId} via team round-robin`);
+          await supabase.from('smeksh_conversation_events').insert({
+            tenant_id: tenantId,
+            conversation_id: conversationId,
+            event_type: 'assigned',
+            actor_type: 'system',
+            details: { action: 'meta_ad_automation', team_id: action.team_id, assigned_to: profileId, strategy: 'round_robin' },
+          });
+        }
+      } else {
+        console.log(`Meta ad: no available agent in team ${action.team_id}`);
+      }
+      break;
+    }
+
+    case 'assign_agents_roundrobin': {
+      const agentIds: string[] = action.agent_ids || [];
+      if (agentIds.length < 2) return;
+
+      // Simple round-robin using automation's execution count
+      // Get current state from a lightweight counter
+      const { data: autoData } = await supabase
+        .from('smeksh_meta_ad_automations')
+        .select('executions_count')
+        .eq('workspace_id', tenantId)
+        .single();
+      
+      const idx = (autoData?.executions_count || 0) % agentIds.length;
+      const selectedAgent = agentIds[idx];
+
+      const { error } = await supabase
+        .from('conversations')
+        .update({ 
+          assigned_to: selectedAgent,
+          assigned_at: new Date().toISOString(),
+          status: 'open',
+        })
+        .eq('id', conversationId)
+        .eq('tenant_id', tenantId)
+        .is('assigned_to', null);
+
+      if (!error) {
+        console.log(`Meta ad: assigned to agent ${selectedAgent} via multi-agent round-robin (index ${idx})`);
+        await supabase.from('smeksh_conversation_events').insert({
+          tenant_id: tenantId,
+          conversation_id: conversationId,
+          event_type: 'assigned',
+          actor_type: 'system',
+          details: { action: 'meta_ad_automation', assigned_to: selectedAgent, strategy: 'multi_agent_roundrobin', agent_ids: agentIds },
+        });
+      }
+      break;
+    }
+
+    case 'send_template': {
+      if (!action.template_id) return;
+      
+      // Get template
+      const { data: template } = await supabase
+        .from('templates')
+        .select('id, name, language, components_json')
+        .eq('id', action.template_id)
+        .eq('tenant_id', tenantId)
+        .maybeSingle();
+
+      if (!template) {
+        console.log(`Meta ad: template ${action.template_id} not found`);
+        return;
+      }
+
+      // Get phone number's Meta ID and access token
+      const { data: phone } = await supabase
+        .from('phone_numbers')
+        .select('phone_number_id, waba_account:waba_accounts!inner(encrypted_access_token)')
+        .eq('id', phoneNumberId)
+        .maybeSingle();
+
+      if (!phone?.phone_number_id || !phone.waba_account?.encrypted_access_token) {
+        console.log('Meta ad: phone or token not found for template send');
+        return;
+      }
+
+      const templatePayload: any = {
+        messaging_product: 'whatsapp',
+        recipient_type: 'individual',
+        to: recipientWaId,
+        type: 'template',
+        template: {
+          name: template.name,
+          language: { code: template.language || 'en' },
+        },
+      };
+
+      const resp = await fetch(
+        `https://graph.facebook.com/v21.0/${phone.phone_number_id}/messages`,
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${phone.waba_account.encrypted_access_token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(templatePayload),
+        }
+      );
+
+      if (resp.ok) {
+        const result = await resp.json();
+        const wamid = result.messages?.[0]?.id;
+        
+        // Store outbound message
+        await supabase.from('messages').insert({
+          tenant_id: tenantId,
+          conversation_id: conversationId,
+          direction: 'outbound',
+          type: 'template',
+          text: `Template: ${template.name}`,
+          wamid,
+          status: 'sent',
+          sent_at: new Date().toISOString(),
+          is_auto_reply: true,
+          metadata: { meta_ad_automation: true, template_name: template.name },
+        });
+        console.log(`Meta ad: sent template "${template.name}" to ${recipientWaId}`);
+      } else {
+        const errBody = await resp.text();
+        console.error(`Meta ad: template send failed:`, errBody);
+      }
+      break;
+    }
+
+    case 'add_tag': {
+      if (!action.tag_id) return;
+      // Add tag to contact
+      const { error } = await supabase
+        .from('contact_tags')
+        .upsert(
+          { contact_id: contactId, tag_id: action.tag_id, tenant_id: tenantId },
+          { onConflict: 'contact_id,tag_id' }
+        );
+      if (!error) {
+        console.log(`Meta ad: tagged contact with tag ${action.tag_id}`);
+      }
+      break;
+    }
+
+    case 'start_workflow': {
+      if (!action.workflow_id) return;
+      // Create a scheduled job for the workflow
+      const { error } = await supabase
+        .from('automation_scheduled_jobs')
+        .insert({
+          tenant_id: tenantId,
+          workflow_id: action.workflow_id,
+          conversation_id: conversationId,
+          contact_id: contactId,
+          execute_at: new Date().toISOString(),
+          payload: { trigger: 'meta_ad_automation' },
+        });
+      if (!error) {
+        console.log(`Meta ad: queued workflow ${action.workflow_id}`);
+      }
+      break;
+    }
+
+    default:
+      console.log(`Meta ad: unknown action type "${action.type}"`);
+  }
 }
