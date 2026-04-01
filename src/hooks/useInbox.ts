@@ -66,6 +66,7 @@ function mapConversation(row: any): InboxConversation {
       full_name: row.assigner.full_name,
     } : undefined,
     phone_number_status: row.phone_number?.status || undefined,
+    phone_number_verified_name: row.phone_number?.verified_name || undefined,
   };
 }
 
