@@ -48,13 +48,31 @@ import { cn } from '@/lib/utils';
 export default function MetaAdsManager() {
   const [searchQuery, setSearchQuery] = useState('');
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 10;
   const { currentTenant } = useTenant();
   const { campaigns, connectedAccounts, isConnected, isLoading, refetch } = useMetaAdAccounts();
 
-  const filteredCampaigns = campaigns.filter(campaign =>
+  // Sort: active first, then by name
+  const sortedCampaigns = [...campaigns].sort((a, b) => {
+    if (a.status === 'active' && b.status !== 'active') return -1;
+    if (a.status !== 'active' && b.status === 'active') return 1;
+    return a.campaign_name.localeCompare(b.campaign_name);
+  });
+
+  const filteredCampaigns = sortedCampaigns.filter(campaign =>
     campaign.campaign_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     campaign.ad_name?.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  const totalPages = Math.max(1, Math.ceil(filteredCampaigns.length / pageSize));
+  const paginatedCampaigns = filteredCampaigns.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+
+  // Reset to page 1 when search changes
+  const handleSearch = (value: string) => {
+    setSearchQuery(value);
+    setCurrentPage(1);
+  };
 
   const handleRefresh = async () => {
     if (!currentTenant?.id) {
