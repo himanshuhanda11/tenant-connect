@@ -131,24 +131,27 @@ export default function Login() {
   const handleEmailLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!email.trim() || !password.trim()) {
-      setError('Please enter your email and password');
+    const identifier = email.trim();
+    if (!identifier || !password.trim()) {
+      setError('Please enter your email/username and password');
       return;
     }
 
     setIsLoading(true);
     setError(null);
 
+    // If input doesn't contain @, treat as username and append @team.local
+    const loginEmail = identifier.includes('@') ? identifier : `${identifier}@team.local`;
+
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
-        email: email.trim(),
+        email: loginEmail,
         password,
       });
 
       if (error) {
-        // Generic error message for security
         if (error.message.includes('Invalid login credentials')) {
-          setError('Invalid email or password. Please try again.');
+          setError('Invalid email/username or password. Please try again.');
         } else if (error.message.includes('Email not confirmed')) {
           setError('Please verify your email before signing in.');
         } else {
@@ -158,7 +161,6 @@ export default function Login() {
         return;
       }
 
-      // Success - auth state change will handle redirect
       if (data.user) {
         toast.success('Welcome back!');
       }
@@ -350,18 +352,18 @@ export default function Login() {
               {/* Email/Password Form */}
               <form onSubmit={handleEmailLogin} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
+                  <Label htmlFor="email">Email or Username</Label>
                   <Input
                     ref={emailInputRef}
                     id="email"
-                    type="email"
-                    placeholder="you@company.com"
+                    type="text"
+                    placeholder="you@company.com or username"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     className="h-11"
                     disabled={isLoading || isGoogleLoading}
                     required
-                    autoComplete="email"
+                    autoComplete="username"
                   />
                 </div>
 

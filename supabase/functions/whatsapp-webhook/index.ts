@@ -2556,6 +2556,8 @@ async function handleMetaAdAutomations(
   // Extract referral data (present in CTWA messages)
   const referral = ev.raw?.message?.referral || ev.raw?.value?.contacts?.[0]?.referral;
   
+  console.log(`Meta ad automations check: referral=${referral ? JSON.stringify({ source_id: referral.source_id, source_type: referral.source_type, source_url: referral.source_url }) : 'none'}`);
+
   // Fetch all active automations for this workspace
   const { data: automations, error: autoErr } = await supabase
     .from('smeksh_meta_ad_automations')
@@ -2573,6 +2575,7 @@ async function handleMetaAdAutomations(
   if (referral) {
     // The referral source_id is typically a Meta Ad ID (not campaign ID)
     const sourceId = referral.source_id || '';
+    const sourceUrl = referral.source_url || '';
     
     // Look up campaigns — also check raw_meta_data.ad_ids for ad-level matching
     const { data: matchedCampaigns } = await supabase
@@ -2597,7 +2600,18 @@ async function handleMetaAdAutomations(
         })
         .map((c: any) => c.id);
       
-      console.log(`Meta ad referral source_id=${sourceId}, matched ${matchedInternalCampaignIds.length} campaign(s)`);
+      console.log(`Meta ad referral source_id=${sourceId}, matched ${matchedInternalCampaignIds.length} campaign(s) out of ${matchedCampaigns.length} total`);
+      
+      // If no match found, log all campaign IDs and ad_ids for debugging
+      if (matchedInternalCampaignIds.length === 0) {
+        console.log(`Meta ad: no campaign match for source_id=${sourceId}. Available campaigns:`, 
+          matchedCampaigns.map((c: any) => ({ 
+            id: c.id, 
+            meta_campaign_id: c.meta_campaign_id,
+            ad_ids: c.raw_meta_data?.ad_ids || [] 
+          }))
+        );
+      }
     }
   }
 
