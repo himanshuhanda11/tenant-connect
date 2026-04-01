@@ -137,7 +137,35 @@ export function useTeamMembers() {
     await updateMember(id, { is_active: true, status: 'active' });
   };
 
-  return { members, loading, error, refetch: fetchMembers, updateMember, disableMember, enableMember };
+  const deleteMember = async (id: string) => {
+    try {
+      const member = members.find(m => m.id === id);
+      if (!member) return;
+
+      // Remove agent record
+      const { error } = await supabase
+        .from('agents')
+        .delete()
+        .eq('id', id);
+      if (error) throw error;
+
+      // Remove tenant membership
+      if (member.user_id) {
+        await supabase
+          .from('tenant_members')
+          .delete()
+          .eq('user_id', member.user_id)
+          .eq('tenant_id', currentTenant?.id);
+      }
+
+      toast.success('Member removed from workspace');
+      fetchMembers();
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to remove member');
+    }
+  };
+
+  return { members, loading, error, refetch: fetchMembers, updateMember, disableMember, enableMember, deleteMember };
 }
 
 // ============================================
