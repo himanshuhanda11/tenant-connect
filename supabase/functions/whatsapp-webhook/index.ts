@@ -2844,7 +2844,7 @@ async function handleMetaAdAutomations(
     const actions = (automation.actions || []) as any[];
     for (const action of actions) {
       try {
-        await executeMetaAdAction(supabase, tenantId, phoneNumberId, conversationId, contactId, ev.from_wa_id, action);
+        await executeMetaAdAction(supabase, tenantId, phoneNumberId, conversationId, contactId, ev.from_wa_id, action, automation);
       } catch (actionErr) {
         console.error(`Meta ad action "${action.type}" error:`, actionErr);
       }
@@ -2888,7 +2888,8 @@ async function executeMetaAdAction(
   conversationId: string,
   contactId: string,
   recipientWaId: string,
-  action: any
+  action: any,
+  automation?: any
 ) {
   switch (action.type) {
     case 'assign_agent': {
@@ -2985,14 +2986,9 @@ async function executeMetaAdAction(
         break;
       }
 
-      // Simple round-robin using automation's execution count
-      const { data: autoData } = await supabase
-        .from('smeksh_meta_ad_automations')
-        .select('executions_count')
-        .eq('workspace_id', tenantId)
-        .single();
-      
-      const idx = (autoData?.executions_count || 0) % agentIds.length;
+      // Simple round-robin using this specific automation's execution count
+      const currentCount = automation?.executions_count || 0;
+      const idx = currentCount % agentIds.length;
       const selectedAgent = agentIds[idx];
 
       const { error } = await supabase
