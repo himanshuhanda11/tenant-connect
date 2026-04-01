@@ -2920,6 +2920,19 @@ async function executeMetaAdAction(
 
     case 'assign_team': {
       if (!action.team_id) return;
+      // Check if conversation is already assigned (prevents duplicate webhook from advancing cursor)
+      const { data: convCheck } = await supabase
+        .from('conversations')
+        .select('assigned_to')
+        .eq('id', conversationId)
+        .eq('tenant_id', tenantId)
+        .maybeSingle();
+      
+      if (convCheck?.assigned_to) {
+        console.log(`Meta ad: conversation already assigned to ${convCheck.assigned_to}, skipping team round-robin`);
+        break;
+      }
+
       // Use round-robin to pick an agent from the team
       const { data: profileId } = await supabase.rpc('smeksh_pick_profile_round_robin', {
         p_workspace_id: tenantId,
