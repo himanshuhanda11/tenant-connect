@@ -57,7 +57,7 @@ export default function Settings() {
 
   return (
     <DashboardLayout>
-      <div className="flex flex-col lg:flex-row h-full -m-4 sm:-m-6">
+      <div className="flex flex-col lg:flex-row h-full -m-4 sm:-m-6 overflow-hidden">
         <SettingsSidebar activeSection={activeSection} onSectionChange={setActiveSection} />
         
         <div className="flex-1 flex flex-col min-h-0 w-full">
