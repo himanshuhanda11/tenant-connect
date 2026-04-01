@@ -15,6 +15,7 @@ import { toast } from 'sonner';
 
 export function ProfileSettings() {
   const { user, profile } = useAuth();
+  const { currentTenant } = useTenant();
   const [fullName, setFullName] = useState('');
   const [avatarUrl, setAvatarUrl] = useState('');
   const [saving, setSaving] = useState(false);
@@ -25,12 +26,46 @@ export function ProfileSettings() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [changingPassword, setChangingPassword] = useState(false);
 
+  // Agent auto-reply
+  const [personalGreeting, setPersonalGreeting] = useState('');
+  const [awayMessage, setAwayMessage] = useState('');
+  const [awayEnabled, setAwayEnabled] = useState(false);
+  const [savingAutoReply, setSavingAutoReply] = useState(false);
+  const [loadingAutoReply, setLoadingAutoReply] = useState(true);
+
   useEffect(() => {
     if (profile) {
       setFullName(profile.full_name || '');
       setAvatarUrl(profile.avatar_url || '');
     }
   }, [profile]);
+
+  // Load agent auto-reply settings
+  useEffect(() => {
+    if (!user?.id || !currentTenant?.id) {
+      setLoadingAutoReply(false);
+      return;
+    }
+    (async () => {
+      try {
+        const { data } = await supabase
+          .from('agents')
+          .select('personal_greeting, away_message, away_enabled')
+          .eq('user_id', user.id)
+          .eq('tenant_id', currentTenant.id)
+          .maybeSingle();
+        if (data) {
+          setPersonalGreeting(data.personal_greeting || '');
+          setAwayMessage(data.away_message || '');
+          setAwayEnabled(data.away_enabled || false);
+        }
+      } catch (e) {
+        console.error('Failed to load auto-reply settings:', e);
+      } finally {
+        setLoadingAutoReply(false);
+      }
+    })();
+  }, [user?.id, currentTenant?.id]);
 
   const getInitials = () => {
     if (fullName) {
