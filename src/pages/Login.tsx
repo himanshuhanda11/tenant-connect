@@ -352,18 +352,18 @@ export default function Login() {
               {/* Email/Password Form */}
               <form onSubmit={handleEmailLogin} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
+                  <Label htmlFor="email">Email or Username</Label>
                   <Input
                     ref={emailInputRef}
                     id="email"
-                    type="email"
-                    placeholder="you@company.com"
+                    type="text"
+                    placeholder="you@company.com or username"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     className="h-11"
                     disabled={isLoading || isGoogleLoading}
                     required
-                    autoComplete="email"
+                    autoComplete="username"
                   />
                 </div>
 
