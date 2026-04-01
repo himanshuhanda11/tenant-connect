@@ -71,7 +71,7 @@ export function MemberProfileCard({
   const openEditDrawer = () => {
     setEditName(displayName);
     setEditEmail(email);
-    setEditRole(member.role || 'agent');
+    setEditRole(member._role_id || '');
     setEditNotes(member.notes || '');
     setEditSkills(member.skills || []);
     setEditLanguages(member.languages || []);
@@ -81,13 +81,16 @@ export function MemberProfileCard({
   const handleSaveAll = async () => {
     setLoading(true);
     try {
+      // Find the selected role to get base_role for agents table
+      const selectedRoleObj = roles.find(r => r.id === editRole);
       await onUpdate(member.id, {
         display_name: editName.trim(),
-        role: editRole,
+        role: selectedRoleObj?.name || selectedRoleObj?.base_role || member.role,
         notes: editNotes,
         skills: editSkills,
         languages: editLanguages,
-      });
+        _new_role_id: editRole || undefined,
+      } as any);
       if (member.user_id) {
         await supabase.from('profiles').update({
           full_name: editName.trim(),
@@ -190,8 +193,12 @@ export function MemberProfileCard({
               <h3 className="font-semibold text-sm truncate leading-tight">{displayName}</h3>
               <p className="text-xs text-muted-foreground truncate mt-0.5">{email}</p>
               <div className="flex items-center gap-1.5 mt-2">
-                <Badge variant="outline" className="text-[10px] px-2 py-0 h-5 font-medium">
-                  {member.role || 'Agent'}
+                <Badge 
+                  variant="outline" 
+                  className="text-[10px] px-2 py-0 h-5 font-medium"
+                  style={member._role_color ? { borderColor: member._role_color, color: member._role_color } : {}}
+                >
+                  {member._role_name || member.role || 'Agent'}
                 </Badge>
                 <Badge
                   variant="secondary"
@@ -319,14 +326,14 @@ export function MemberProfileCard({
               <Label className="text-xs">Role</Label>
               <Select value={editRole} onValueChange={setEditRole}>
                 <SelectTrigger>
-                  <SelectValue />
+                  <SelectValue placeholder="Select a role" />
                 </SelectTrigger>
                 <SelectContent position="popper" className="z-[9999]">
                   {roles.map(role => (
-                    <SelectItem key={role.id} value={role.base_role}>
+                    <SelectItem key={role.id} value={role.id}>
                       <div className="flex items-center gap-2">
                         <div className="w-2 h-2 rounded-full" style={{ backgroundColor: role.color }} />
-                        {role.name}
+                        {role.name} <span className="text-muted-foreground text-xs">({role.base_role})</span>
                       </div>
                     </SelectItem>
                   ))}
