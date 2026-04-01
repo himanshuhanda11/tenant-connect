@@ -14,16 +14,16 @@ export interface GreetingTemplate {
 }
 
 const DEFAULT_TEMPLATES = [
-  `Hi {{name}}! 👋 This is {{agent_name}} from {{biz}}. Thank you for your enquiry — we're a trusted and registered company. How can we help you today?`,
-  `Hello {{name}}! 🌍 This is {{agent_name}} at {{biz}}. We received your enquiry. As a fully registered and trusted agency, we're here to guide you every step of the way. Shall we schedule a quick consultation?`,
-  `Dear {{name}}, thank you for showing interest! 🇪🇺 I'm {{agent_name}} from {{biz}} — we have a proven track record. We'd be happy to discuss the best opportunities available for you.`,
-  `Hi {{name}}! 🙌 This is {{agent_name}} from {{biz}} — one of the most trusted & registered firms. Let us help you explore the right options. When is a good time to talk?`,
-  `Hello {{name}}! ✈️ Thanks for reaching out. I'm {{agent_name}} from {{biz}}, a fully registered agency. We specialize in helping people like you. Let's discuss your needs!`,
-  `Hi {{name}}! 🌟 I'm {{agent_name}} at {{biz}} — a certified and genuine company that has helped hundreds of clients. Let's get started on your journey!`,
-  `Dear {{name}}, welcome to {{biz}}! 🏢 I'm {{agent_name}}, and I'm delighted you've reached out. Our team will provide genuine guidance and transparent service. How may we assist you?`,
-  `Hi {{name}}! 💼 This is {{agent_name}} from {{biz}}, a licensed and reputed firm. We believe in 100% transparency and genuine service. Ready to take the next step?`,
-  `Hello {{name}}! 🤝 I'm {{agent_name}} from {{biz}}. Your interest means a lot to us. We're committed to providing authentic and professional services. Let's connect!`,
-  `Hi {{name}}! 🚀 Welcome aboard! I'm {{agent_name}} from {{biz}} — here to help you achieve your goals. What questions do you have for us?`,
+  `Hi {{name}}! 👋 This is {{agent_name}} from {{biz}}. Thank you for reaching out — we'd love to assist you. How can we help you today?`,
+  `Hello {{name}}! 🌟 I'm {{agent_name}} from {{biz}}. We received your enquiry and would be happy to guide you. Shall we schedule a quick call to discuss?`,
+  `Dear {{name}}, thank you for your interest! I'm {{agent_name}} from {{biz}}. We'd be glad to assist you — please let us know how we can help.`,
+  `Hi {{name}}! 🙌 This is {{agent_name}} at {{biz}}. Great to hear from you! Let us know your requirements and we'll guide you right away.`,
+  `Hello {{name}}! ✈️ I'm {{agent_name}} from {{biz}}. Thanks for connecting with us — we're here to provide you the best service. When is a good time to talk?`,
+  `Hi {{name}}! 💼 This is {{agent_name}} from {{biz}}. We appreciate your enquiry and look forward to assisting you. How may we help?`,
+  `Dear {{name}}, welcome to {{biz}}! 🏢 I'm {{agent_name}} — our team is ready to assist you with genuine and professional service. What can we do for you?`,
+  `Hi {{name}}! 🤝 I'm {{agent_name}} from {{biz}}. Your enquiry is important to us — let's connect and discuss how we can support you.`,
+  `Hello {{name}}! 🚀 This is {{agent_name}} at {{biz}}. We're excited to help you get started. Feel free to share your requirements!`,
+  `Hi {{name}}! 😊 Thanks for reaching out to {{biz}}. I'm {{agent_name}} and I'll personally assist you. Let me know how I can help!`,
 ];
 
 export function useGreetingTemplates() {
