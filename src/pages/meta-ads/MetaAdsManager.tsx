@@ -48,13 +48,31 @@ import { cn } from '@/lib/utils';
 export default function MetaAdsManager() {
   const [searchQuery, setSearchQuery] = useState('');
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 10;
   const { currentTenant } = useTenant();
   const { campaigns, connectedAccounts, isConnected, isLoading, refetch } = useMetaAdAccounts();
 
-  const filteredCampaigns = campaigns.filter(campaign =>
+  // Sort: active first, then by name
+  const sortedCampaigns = [...campaigns].sort((a, b) => {
+    if (a.status === 'active' && b.status !== 'active') return -1;
+    if (a.status !== 'active' && b.status === 'active') return 1;
+    return a.campaign_name.localeCompare(b.campaign_name);
+  });
+
+  const filteredCampaigns = sortedCampaigns.filter(campaign =>
     campaign.campaign_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     campaign.ad_name?.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  const totalPages = Math.max(1, Math.ceil(filteredCampaigns.length / pageSize));
+  const paginatedCampaigns = filteredCampaigns.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+
+  // Reset to page 1 when search changes
+  const handleSearch = (value: string) => {
+    setSearchQuery(value);
+    setCurrentPage(1);
+  };
 
   const handleRefresh = async () => {
     if (!currentTenant?.id) {
@@ -213,7 +231,7 @@ export default function MetaAdsManager() {
             <Input
               placeholder="Search campaigns..."
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(e) => handleSearch(e.target.value)}
               className="pl-10 h-10"
             />
           </div>
@@ -242,7 +260,7 @@ export default function MetaAdsManager() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredCampaigns.map((campaign) => {
+                  {paginatedCampaigns.map((campaign) => {
                     const ctr = (campaign.impressions || 0) > 0 ? ((campaign.clicks || 0) / (campaign.impressions || 1)) * 100 : 0;
                     const cpl = (campaign.leads_count || 0) > 0 ? (campaign.spend_amount || 0) / (campaign.leads_count || 1) : 0;
                     return (
@@ -317,6 +335,36 @@ export default function MetaAdsManager() {
                   })}
                 </TableBody>
               </Table>
+
+              {/* Pagination */}
+              {totalPages > 1 && (
+                <div className="flex items-center justify-between px-4 py-3 border-t border-border/50">
+                  <p className="text-sm text-muted-foreground">
+                    Showing {(currentPage - 1) * pageSize + 1}–{Math.min(currentPage * pageSize, filteredCampaigns.length)} of {filteredCampaigns.length}
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                      disabled={currentPage === 1}
+                    >
+                      Previous
+                    </Button>
+                    <span className="text-sm font-medium px-2">
+                      {currentPage} / {totalPages}
+                    </span>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                      disabled={currentPage === totalPages}
+                    >
+                      Next
+                    </Button>
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
         ) : (
