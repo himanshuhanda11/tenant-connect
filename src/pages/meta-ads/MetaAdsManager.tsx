@@ -260,7 +260,7 @@ export default function MetaAdsManager() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredCampaigns.map((campaign) => {
+                  {paginatedCampaigns.map((campaign) => {
                     const ctr = (campaign.impressions || 0) > 0 ? ((campaign.clicks || 0) / (campaign.impressions || 1)) * 100 : 0;
                     const cpl = (campaign.leads_count || 0) > 0 ? (campaign.spend_amount || 0) / (campaign.leads_count || 1) : 0;
                     return (
