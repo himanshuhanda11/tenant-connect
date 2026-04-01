@@ -326,14 +326,14 @@ export function MemberProfileCard({
               <Label className="text-xs">Role</Label>
               <Select value={editRole} onValueChange={setEditRole}>
                 <SelectTrigger>
-                  <SelectValue />
+                  <SelectValue placeholder="Select a role" />
                 </SelectTrigger>
                 <SelectContent position="popper" className="z-[9999]">
                   {roles.map(role => (
-                    <SelectItem key={role.id} value={role.base_role}>
+                    <SelectItem key={role.id} value={role.id}>
                       <div className="flex items-center gap-2">
                         <div className="w-2 h-2 rounded-full" style={{ backgroundColor: role.color }} />
-                        {role.name}
+                        {role.name} <span className="text-muted-foreground text-xs">({role.base_role})</span>
                       </div>
                     </SelectItem>
                   ))}
