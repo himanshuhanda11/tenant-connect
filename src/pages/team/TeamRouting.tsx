@@ -379,16 +379,6 @@ const TeamRouting = () => {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   <div className="space-y-3 p-4 border rounded-xl">
                     <div className="flex items-center gap-2">
-                      <Activity className="h-5 w-5 text-primary" />
-                      <Label className="font-medium">Max Open Chats</Label>
-                    </div>
-                    <Input type="number" defaultValue={10} />
-                    <p className="text-xs text-muted-foreground">
-                      Won't assign more conversations if agent reaches this limit
-                    </p>
-                  </div>
-                  <div className="space-y-3 p-4 border rounded-xl">
-                    <div className="flex items-center gap-2">
                       <Clock className="h-5 w-5 text-primary" />
                       <Label className="font-medium">Auto-Reassign Timeout</Label>
                     </div>

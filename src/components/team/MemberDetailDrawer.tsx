@@ -304,17 +304,7 @@ const MemberDetailDrawer = ({ memberId, onClose }: MemberDetailDrawerProps) => {
               </Select>
             </div>
 
-            <div className="space-y-2">
-              <Label>Max Open Chats</Label>
-              <Input
-                type="number"
-                value={formData.max_open_chats || 10}
-                onChange={(e) => setFormData({ ...formData, max_open_chats: parseInt(e.target.value) })}
-              />
-              <p className="text-xs text-muted-foreground">
-                Won't be assigned new chats when this limit is reached
-              </p>
-            </div>
+
 
             <div className="space-y-2">
               <Label>Working Hours</Label>
