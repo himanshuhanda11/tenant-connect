@@ -389,7 +389,12 @@ export function InboxChatThread({
                     href={(() => {
                       const name = conversation.contact?.name || conversation.contact?.first_name || 'there';
                       const biz = (conversation as any).phone_number?.verified_name || 'our company';
-                      const agentName = viewerName || user?.user_metadata?.full_name || 'our team';
+                      // Use assigned agent's name if available, otherwise fall back to viewer's name
+                      const assignedAgent = conversation.assigned_to
+                        ? teamMembers.find(m => m.user_id === conversation.assigned_to || m.id === conversation.assigned_to)
+                        : null;
+                      const agentName = assignedAgent?.display_name || assignedAgent?.profiles?.full_name 
+                        || viewerName || user?.user_metadata?.full_name || 'our team';
                       const randomMsg = getRandomMessage(name, biz, agentName);
                       return `https://wa.me/${conversation.contact?.wa_id}?text=${encodeURIComponent(randomMsg)}`;
                     })()}
