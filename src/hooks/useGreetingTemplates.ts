@@ -104,7 +104,10 @@ export function useGreetingTemplates() {
       queryClient.invalidateQueries({ queryKey: ['greeting-templates', tenantId] });
       toast.success('Default templates added');
     },
-    onError: () => toast.error('Failed to seed templates'),
+    onError: (err: any) => {
+      console.error('Seed templates error:', err);
+      toast.error('Failed to seed templates: ' + (err?.message || 'Unknown error'));
+    },
   });
 
   // Get a random active template with variables replaced
