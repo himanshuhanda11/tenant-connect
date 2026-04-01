@@ -44,10 +44,11 @@ Deno.serve(async (req) => {
 
     const userId = newUser.user.id;
 
-    // 4. Update profile full_name
+    // 4. Update profile full_name and mark onboarding complete
     await admin.from("profiles").update({
       full_name: fullName || email.split("@")[0],
       email,
+      onboarding_step: "completed",
     }).eq("id", userId);
 
     // 5. Add as tenant member

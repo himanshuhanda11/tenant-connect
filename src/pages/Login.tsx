@@ -60,14 +60,26 @@ export default function Login() {
           .eq('id', user.id)
           .maybeSingle();
 
-        // Check onboarding status first
+        // Check onboarding status — but skip for team members who already belong to a tenant
         if (profile?.onboarding_step !== 'completed') {
-          if (profile?.onboarding_step === 'org_done') {
-            navigate('/onboarding/password', { replace: true });
+          const { data: existingMembership } = await supabase
+            .from('tenant_members')
+            .select('id')
+            .eq('user_id', user.id)
+            .limit(1)
+            .maybeSingle();
+
+          if (existingMembership) {
+            // Team member — auto-complete onboarding
+            await supabase.from('profiles').update({ onboarding_step: 'completed' }).eq('id', user.id);
           } else {
-            navigate('/onboarding/org', { replace: true });
+            if (profile?.onboarding_step === 'org_done') {
+              navigate('/onboarding/password', { replace: true });
+            } else {
+              navigate('/onboarding/org', { replace: true });
+            }
+            return;
           }
-          return;
         }
 
         // Check if user is an agent — redirect directly to inbox
