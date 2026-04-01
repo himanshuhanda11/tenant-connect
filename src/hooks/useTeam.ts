@@ -133,14 +133,57 @@ export function useTeamMembers() {
     fetchMembers();
   }, [fetchMembers]);
 
-  const updateMember = async (id: string, updates: Partial<TeamMember>) => {
+  const updateMember = async (id: string, updates: Partial<TeamMember> & { _new_role_id?: string }) => {
     try {
+      const roleId = updates._new_role_id;
+      const { _new_role_id, ...agentUpdates } = updates as any;
+
       const { error } = await supabase
         .from('agents')
-        .update(updates)
+        .update(agentUpdates)
         .eq('id', id);
       
       if (error) throw error;
+
+      // If a role_id was provided, update user_roles and tenant_members
+      if (roleId && currentTenant?.id) {
+        // Find the member to get user_id
+        const member = members.find(m => m.id === id);
+        if (member?.user_id) {
+          // Get role details
+          const { data: roleData } = await supabase
+            .from('roles')
+            .select('base_role')
+            .eq('id', roleId)
+            .single();
+
+          // Upsert user_roles
+          const { data: existing } = await supabase
+            .from('user_roles')
+            .select('id')
+            .eq('tenant_id', currentTenant.id)
+            .eq('user_id', member.user_id)
+            .maybeSingle();
+
+          if (existing) {
+            await supabase.from('user_roles')
+              .update({ role_id: roleId })
+              .eq('id', existing.id);
+          } else {
+            await supabase.from('user_roles')
+              .insert({ tenant_id: currentTenant.id, user_id: member.user_id, role_id: roleId });
+          }
+
+          // Update tenant_members role
+          if (roleData?.base_role) {
+            await supabase.from('tenant_members')
+              .update({ role: roleData.base_role === 'admin' ? 'admin' : roleData.base_role === 'owner' ? 'owner' : 'agent' })
+              .eq('tenant_id', currentTenant.id)
+              .eq('user_id', member.user_id);
+          }
+        }
+      }
+
       toast.success('Member updated');
       fetchMembers();
     } catch (err: any) {
