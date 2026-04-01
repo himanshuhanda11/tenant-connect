@@ -567,6 +567,16 @@ async function processInboundMessage(
     }
   }
 
+  // ─── Meta Ad Automations (CTWA) ───
+  // If this is a Click-to-WhatsApp ad message, run matching ad automations
+  if (isNewConversation) {
+    try {
+      await handleMetaAdAutomations(supabase, tenantId, phoneNumberId, conversationId, contactId, ev);
+    } catch (e) {
+      console.error('Meta ad automation error:', e);
+    }
+  }
+
   // Build preview text for sidebar
   const msgType = mapMessageType(ev.msg_type);
   const previewText = ev.text 
