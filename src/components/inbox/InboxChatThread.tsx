@@ -1081,7 +1081,20 @@ export function InboxChatThread({
 
               {/* Quick Replies */}
               <QuickReplyManager 
-                onSelectReply={(text) => setMessageText(text)} 
+                onSelectReply={(text) => {
+                  const contactName = conversation?.contact?.name || conversation?.contact?.first_name || 'there';
+                  const biz = conversation?.phone_number_verified_name || 'our company';
+                  const assignedAgent = conversation?.assigned_to
+                    ? teamMembers.find(m => m.id === conversation.assigned_to)
+                    : null;
+                  const agentName = assignedAgent?.full_name 
+                    || viewerName || user?.user_metadata?.full_name || 'our team';
+                  const resolved = text
+                    .replace(/\{\{name\}\}/gi, contactName)
+                    .replace(/\{\{agent_name\}\}/gi, agentName)
+                    .replace(/\{\{biz\}\}/gi, biz);
+                  setMessageText(resolved);
+                }} 
                 isMobile={isMobile}
               />
             </>
