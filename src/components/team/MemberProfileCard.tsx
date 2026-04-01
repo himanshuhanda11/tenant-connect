@@ -71,7 +71,7 @@ export function MemberProfileCard({
   const openEditDrawer = () => {
     setEditName(displayName);
     setEditEmail(email);
-    setEditRole(member.role || 'agent');
+    setEditRole(member._role_id || '');
     setEditNotes(member.notes || '');
     setEditSkills(member.skills || []);
     setEditLanguages(member.languages || []);
