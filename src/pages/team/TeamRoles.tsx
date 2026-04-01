@@ -317,7 +317,7 @@ const TeamRoles = () => {
                           <div className="flex items-center gap-3">
                             <div
                               className="w-2.5 h-2.5 rounded-full flex-shrink-0 ring-2 ring-offset-2 ring-offset-background"
-                              style={{ backgroundColor: role.color, ringColor: role.color }}
+                              style={{ backgroundColor: role.color }}
                             />
                             <div className="flex-1 min-w-0">
                               <p className={cn("font-medium text-sm truncate", isSelected && "text-primary")}>
