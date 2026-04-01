@@ -110,19 +110,21 @@ export function useGreetingTemplates() {
     },
   });
 
-  // Get a random active template with variables replaced
-  const getRandomMessage = (contactName: string, businessName: string, agentName?: string): string => {
+  // Get the primary (first) active greeting template with variables replaced
+  const getGreetingMessage = (contactName: string, businessName: string, agentName?: string): string => {
     const agent = agentName || 'our team';
     const activeTemplates = templates.filter(t => t.is_active);
     const replace = (msg: string) =>
       msg.replace(/\{\{name\}\}/g, contactName).replace(/\{\{biz\}\}/g, businessName).replace(/\{\{agent_name\}\}/g, agent);
     if (activeTemplates.length === 0) {
-      const fallback = DEFAULT_TEMPLATES[Math.floor(Math.random() * DEFAULT_TEMPLATES.length)];
-      return replace(fallback);
+      return replace(DEFAULT_TEMPLATES[0]);
     }
-    const picked = activeTemplates[Math.floor(Math.random() * activeTemplates.length)];
-    return replace(picked.message_text);
+    // Always use the first active template (lowest sort_order) for consistency
+    return replace(activeTemplates[0].message_text);
   };
+
+  // Keep backward compat alias
+  const getRandomMessage = getGreetingMessage;
 
   return {
     templates,
