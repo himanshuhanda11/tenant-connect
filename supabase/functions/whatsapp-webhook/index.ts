@@ -440,20 +440,43 @@ async function processInboundMessage(
   ev: NormalizedEvent & { kind: 'inbound_message' },
   accessToken: string | null
 ) {
+  // Determine lead source from referral data (CTWA ads, organic, etc.)
+  const referralData = ev.raw?.message?.referral || ev.raw?.value?.contacts?.[0]?.referral;
+  const contactSource = referralData?.source_type === 'ad' ? 'meta_ads' 
+    : referralData ? 'referral' 
+    : 'organic';
+  const campaignSourceId = referralData?.source_id || null;
+  const campaignSourceUrl = referralData?.source_url || null;
+
   // Upsert contact
+  const contactPayload: any = {
+    tenant_id: tenantId,
+    wa_id: ev.from_wa_id,
+    name: ev.contact_name || null,
+    last_seen: new Date().toISOString(),
+  };
+
+  // Only set source fields on first contact creation (don't overwrite existing source)
+  const { data: existingContactCheck } = await supabase
+    .from('contacts')
+    .select('id, source')
+    .eq('tenant_id', tenantId)
+    .eq('wa_id', ev.from_wa_id)
+    .maybeSingle();
+
+  if (!existingContactCheck) {
+    // New contact — set source
+    contactPayload.source = contactSource;
+    contactPayload.campaign_source = campaignSourceId;
+  } else if (!existingContactCheck.source && referralData) {
+    // Existing contact with no source — update it
+    contactPayload.source = contactSource;
+    contactPayload.campaign_source = campaignSourceId;
+  }
+
   const { data: contact, error: contactError } = await supabase
     .from('contacts')
-    .upsert(
-      {
-        tenant_id: tenantId,
-        wa_id: ev.from_wa_id,
-        name: ev.contact_name || null,
-        last_seen: new Date().toISOString(),
-      },
-      {
-        onConflict: 'tenant_id,wa_id',
-      }
-    )
+    .upsert(contactPayload, { onConflict: 'tenant_id,wa_id' })
     .select('id')
     .maybeSingle();
 
