@@ -388,7 +388,7 @@ export function InboxChatThread({
                   <a
                     href={(() => {
                       const name = conversation.contact?.name || conversation.contact?.first_name || 'there';
-                      const biz = (conversation as any).phone_number?.verified_name || 'our company';
+                      const biz = conversation.phone_number_verified_name || currentTenant?.name || 'our company';
                       // Use assigned agent's name if available, otherwise fall back to viewer's name
                       const assignedAgent = conversation.assigned_to
                         ? teamMembers.find(m => m.id === conversation.assigned_to)
