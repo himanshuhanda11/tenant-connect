@@ -231,7 +231,7 @@ export default function MetaAdsManager() {
             <Input
               placeholder="Search campaigns..."
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(e) => handleSearch(e.target.value)}
               className="pl-10 h-10"
             />
           </div>
