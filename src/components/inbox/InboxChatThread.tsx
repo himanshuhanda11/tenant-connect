@@ -389,7 +389,8 @@ export function InboxChatThread({
                     href={(() => {
                       const name = conversation.contact?.name || conversation.contact?.first_name || 'there';
                       const biz = (conversation as any).phone_number?.verified_name || 'our company';
-                      const randomMsg = getRandomMessage(name, biz);
+                      const agentName = viewerName || user?.user_metadata?.full_name || 'our team';
+                      const randomMsg = getRandomMessage(name, biz, agentName);
                       return `https://wa.me/${conversation.contact?.wa_id}?text=${encodeURIComponent(randomMsg)}`;
                     })()}
                     target="_blank"

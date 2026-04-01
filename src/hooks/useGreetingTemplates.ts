@@ -14,16 +14,16 @@ export interface GreetingTemplate {
 }
 
 const DEFAULT_TEMPLATES = [
-  `Hi {{name}}! 👋 Thank you for your enquiry. We are {{biz}} — a trusted and registered company. We'd love to assist you. How can we help you today?`,
-  `Hello {{name}}! 🌍 We received your enquiry. As a fully registered and trusted agency, {{biz}} is here to guide you every step of the way. Shall we schedule a quick consultation?`,
-  `Dear {{name}}, thank you for showing interest in our services! 🇪🇺 {{biz}} has a proven track record. We'd be happy to discuss the best opportunities available for you.`,
-  `Hi {{name}}! 🙌 Great to hear from you. {{biz}} is among the most trusted & registered firms. Let us help you explore the right options. When is a good time to talk?`,
-  `Hello {{name}}! ✈️ Thanks for reaching out. {{biz}} is a fully registered agency, and we specialize in helping people like you. We'd love to understand your needs and guide you further!`,
-  `Hi {{name}}! 🌟 We're excited about your interest. {{biz}} — a certified and genuine company — has helped hundreds of clients. Let's get started on your journey!`,
-  `Dear {{name}}, welcome to {{biz}}! 🏢 We're delighted you've reached out. Our team will provide you with genuine guidance and transparent service. How may we assist you?`,
-  `Hi {{name}}! 💼 Thank you for your enquiry. {{biz}} is a licensed and reputed firm. We believe in 100% transparency and genuine service. Ready to take the next step?`,
-  `Hello {{name}}! 🤝 Your interest means a lot to us. {{biz}} is committed to providing authentic and professional services. Let's connect and discuss how we can help!`,
-  `Hi {{name}}! 🚀 Welcome aboard! {{biz}} is here to help you achieve your goals. What questions do you have for us?`,
+  `Hi {{name}}! 👋 This is {{agent_name}} from {{biz}}. Thank you for your enquiry — we're a trusted and registered company. How can we help you today?`,
+  `Hello {{name}}! 🌍 This is {{agent_name}} at {{biz}}. We received your enquiry. As a fully registered and trusted agency, we're here to guide you every step of the way. Shall we schedule a quick consultation?`,
+  `Dear {{name}}, thank you for showing interest! 🇪🇺 I'm {{agent_name}} from {{biz}} — we have a proven track record. We'd be happy to discuss the best opportunities available for you.`,
+  `Hi {{name}}! 🙌 This is {{agent_name}} from {{biz}} — one of the most trusted & registered firms. Let us help you explore the right options. When is a good time to talk?`,
+  `Hello {{name}}! ✈️ Thanks for reaching out. I'm {{agent_name}} from {{biz}}, a fully registered agency. We specialize in helping people like you. Let's discuss your needs!`,
+  `Hi {{name}}! 🌟 I'm {{agent_name}} at {{biz}} — a certified and genuine company that has helped hundreds of clients. Let's get started on your journey!`,
+  `Dear {{name}}, welcome to {{biz}}! 🏢 I'm {{agent_name}}, and I'm delighted you've reached out. Our team will provide genuine guidance and transparent service. How may we assist you?`,
+  `Hi {{name}}! 💼 This is {{agent_name}} from {{biz}}, a licensed and reputed firm. We believe in 100% transparency and genuine service. Ready to take the next step?`,
+  `Hello {{name}}! 🤝 I'm {{agent_name}} from {{biz}}. Your interest means a lot to us. We're committed to providing authentic and professional services. Let's connect!`,
+  `Hi {{name}}! 🚀 Welcome aboard! I'm {{agent_name}} from {{biz}} — here to help you achieve your goals. What questions do you have for us?`,
 ];
 
 export function useGreetingTemplates() {
