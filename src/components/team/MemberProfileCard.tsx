@@ -81,13 +81,16 @@ export function MemberProfileCard({
   const handleSaveAll = async () => {
     setLoading(true);
     try {
+      // Find the selected role to get base_role for agents table
+      const selectedRoleObj = roles.find(r => r.id === editRole);
       await onUpdate(member.id, {
         display_name: editName.trim(),
-        role: editRole,
+        role: selectedRoleObj?.name || selectedRoleObj?.base_role || member.role,
         notes: editNotes,
         skills: editSkills,
         languages: editLanguages,
-      });
+        _new_role_id: editRole || undefined,
+      } as any);
       if (member.user_id) {
         await supabase.from('profiles').update({
           full_name: editName.trim(),
