@@ -108,9 +108,12 @@ export function usePlanGate(): PlanGateResult {
     return false;
   };
 
+  // Block invites while loading to prevent bypassing limits
+  const canInvite = isLoading ? false : teamCount < teamLimit;
+
   return {
     currentPlan,
-    canInviteMembers: teamCount < teamLimit,
+    canInviteMembers: canInvite,
     teamMemberLimit: teamLimit,
     teamMemberCount: teamCount,
     hasFeature: hasFeatureCheck,
