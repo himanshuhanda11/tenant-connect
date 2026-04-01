@@ -2986,14 +2986,9 @@ async function executeMetaAdAction(
         break;
       }
 
-      // Simple round-robin using automation's execution count
-      const { data: autoData } = await supabase
-        .from('smeksh_meta_ad_automations')
-        .select('executions_count')
-        .eq('workspace_id', tenantId)
-        .single();
-      
-      const idx = (autoData?.executions_count || 0) % agentIds.length;
+      // Simple round-robin using this specific automation's execution count
+      const currentCount = automation?.executions_count || 0;
+      const idx = currentCount % agentIds.length;
       const selectedAgent = agentIds[idx];
 
       const { error } = await supabase
