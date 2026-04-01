@@ -43,7 +43,17 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         .maybeSingle();
 
       if (profile && profile.onboarding_step !== 'completed') {
-        if (profile.onboarding_step === 'pending' || profile.onboarding_step === 'google_done') {
+        // Check if user is a team member — skip onboarding for them
+        const { data: membership } = await supabase
+          .from('tenant_members')
+          .select('id')
+          .eq('user_id', user.id)
+          .limit(1)
+          .maybeSingle();
+
+        if (membership) {
+          await supabase.from('profiles').update({ onboarding_step: 'completed' }).eq('id', user.id);
+        } else if (profile.onboarding_step === 'pending' || profile.onboarding_step === 'google_done') {
           navigate('/onboarding/org');
         } else if (profile.onboarding_step === 'org_done') {
           navigate('/onboarding/password');
