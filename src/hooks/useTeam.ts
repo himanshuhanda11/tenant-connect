@@ -32,6 +32,17 @@ export function useTeamMembers() {
         .order('created_at', { ascending: false });
 
       if (fetchError) throw fetchError;
+
+      // Fetch user_roles with role details for this tenant
+      const { data: userRolesData } = await supabase
+        .from('user_roles')
+        .select('user_id, role_id, roles(id, name, base_role, color)')
+        .eq('tenant_id', currentTenant.id);
+
+      const userRoleMap = (userRolesData || []).reduce((acc, ur) => {
+        acc[ur.user_id] = ur;
+        return acc;
+      }, {} as Record<string, any>);
       
       // Get open conversations count per agent
       const { data: convCounts } = await supabase
@@ -46,16 +57,24 @@ export function useTeamMembers() {
         return acc;
       }, {} as Record<string, number>);
 
-      const enrichedMembers = (data || []).map(m => ({
-        ...m,
-        status: m.status || 'active',
-        presence: m.presence || 'offline',
-        languages: m.languages || [],
-        skills: m.skills || [],
-        timezone: m.timezone || 'UTC',
-        max_open_chats: m.max_open_chats || 10,
-        open_conversations_count: countMap[m.user_id] || 0,
-      })) as TeamMember[];
+      const enrichedMembers = (data || []).map(m => {
+        const userRole = userRoleMap[m.user_id];
+        return {
+          ...m,
+          status: m.status || 'active',
+          presence: m.presence || 'offline',
+          languages: m.languages || [],
+          skills: m.skills || [],
+          timezone: m.timezone || 'UTC',
+          max_open_chats: m.max_open_chats || 10,
+          open_conversations_count: countMap[m.user_id] || 0,
+          // Attach resolved role info
+          _role_id: userRole?.role_id || null,
+          _role_name: userRole?.roles?.name || null,
+          _role_base: userRole?.roles?.base_role || m.role || 'agent',
+          _role_color: userRole?.roles?.color || null,
+        };
+      }) as TeamMember[];
 
       // Fetch pending invites and merge as virtual members
       const { data: pendingInvites } = await supabase
