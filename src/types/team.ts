@@ -18,7 +18,8 @@ export type PermissionCategory =
   | 'billing' 
   | 'security' 
   | 'phone_numbers' 
-  | 'team';
+  | 'team'
+  | 'meta_ads';
 
 export type AuditAction = 
   | 'login' | 'logout' | 'invite_sent' | 'invite_accepted'

@@ -36,6 +36,7 @@ const CATEGORY_ICONS: Record<PermissionCategory, React.ReactNode> = {
   security: <Lock className="h-4 w-4" />,
   phone_numbers: <Phone className="h-4 w-4" />,
   team: <UsersRound className="h-4 w-4" />,
+  meta_ads: <Megaphone className="h-4 w-4" />,
 };
 
 const CATEGORY_LABELS: Record<PermissionCategory, string> = {
@@ -49,6 +50,7 @@ const CATEGORY_LABELS: Record<PermissionCategory, string> = {
   security: 'Security',
   phone_numbers: 'Phone Numbers',
   team: 'Team',
+  meta_ads: 'Meta Ads',
 };
 
 const TeamRoles = () => {
