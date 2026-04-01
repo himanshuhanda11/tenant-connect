@@ -94,7 +94,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
             <SidebarTrigger className="text-muted-foreground hover:text-foreground transition-colors duration-150" />
             <div className="flex-1" />
           </header>
-          <div className="flex-1 overflow-hidden relative bg-muted/20">
+          <div className="flex-1 overflow-auto relative bg-muted/20">
             {children}
           </div>
         </main>
