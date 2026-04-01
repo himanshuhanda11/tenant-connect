@@ -107,21 +107,25 @@ const InviteMemberModal = ({ open, onOpenChange }: InviteMemberModalProps) => {
     <>
       <div className="space-y-2">
         <Label className="text-sm">Role</Label>
-        <Select value={roleId} onValueChange={setRoleId} disabled={!canInviteMembers}>
-          <SelectTrigger className="touch-manipulation">
-            <SelectValue placeholder="Select a role" />
-          </SelectTrigger>
-          <SelectContent>
-            {roles.map(role => (
-              <SelectItem key={role.id} value={role.id}>
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full" style={{ backgroundColor: role.color }} />
-                  {role.name}
-                </div>
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        {roles.length === 0 ? (
+          <p className="text-xs text-muted-foreground py-2">No roles found. Create roles in Settings → Roles first.</p>
+        ) : (
+          <Select value={roleId} onValueChange={setRoleId} disabled={!canInviteMembers}>
+            <SelectTrigger className="touch-manipulation">
+              <SelectValue placeholder="Select a role" />
+            </SelectTrigger>
+            <SelectContent position="popper" side="bottom" align="start" className="z-[9999] max-h-60" sideOffset={4}>
+              {roles.map(role => (
+                <SelectItem key={role.id} value={role.id}>
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full" style={{ backgroundColor: role.color }} />
+                    {role.name}
+                  </div>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
       </div>
 
       <div className="space-y-2">
