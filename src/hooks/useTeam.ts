@@ -177,7 +177,14 @@ export function useTeamMembers() {
           // Update tenant_members role
           if (roleData?.base_role) {
             await supabase.from('tenant_members')
-              .update({ role: roleData.base_role === 'admin' ? 'admin' : roleData.base_role === 'owner' ? 'owner' : 'agent' })
+              .update({
+                role:
+                  roleData.base_role === 'admin'
+                    ? 'admin'
+                    : roleData.base_role === 'owner'
+                      ? 'owner'
+                        : 'agent'
+              })
               .eq('tenant_id', currentTenant.id)
               .eq('user_id', member.user_id);
           }

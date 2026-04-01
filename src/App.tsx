@@ -136,6 +136,13 @@ import ShopifyCartRecovery from "./pages/shopify/ShopifyCartRecovery";
 import ShopifyAnalytics from "./pages/shopify/ShopifyAnalytics";
 import ShopifyAutomations from "./pages/shopify/ShopifyAutomations";
 import SeoDashboard from "./pages/developer/SeoDashboard";
+import { RequirePermission } from "@/components/auth/RequirePermission";
+import {
+  META_ADS_ATTRIBUTION_PERMISSIONS,
+  META_ADS_AUTOMATION_PERMISSIONS,
+  META_ADS_CONNECT_PERMISSIONS,
+  META_ADS_VIEW_PERMISSIONS,
+} from "@/hooks/useCurrentRolePermissions";
 import AdminLayout from "./pages/admin/AdminLayout";
 import AdminOverview from "./pages/admin/AdminOverview";
 import AdminWorkspaces from "./pages/admin/AdminWorkspaces";
@@ -217,15 +224,15 @@ const App = () => (
               <Route path="/team/routing" element={<TeamRouting />} />
               <Route path="/team/sla" element={<TeamSLA />} />
               <Route path="/team/audit" element={<TeamAudit />} />
-              <Route path="/meta-ads" element={<MetaAdsOverview />} />
-              <Route path="/meta-ads/setup" element={<MetaAdsSetup />} />
-              <Route path="/lead-forms" element={<LeadFormsPage />} />
-              <Route path="/meta-ads/manager" element={<MetaAdsManager />} />
-              <Route path="/meta-ads/analytics" element={<MetaAdsAnalytics />} />
-              <Route path="/meta-ads/attribution" element={<MetaAdsAttribution />} />
-              <Route path="/meta-ads/automations" element={<MetaAdsAutomations />} />
-              <Route path="/meta-ads/settings" element={<MetaAdsSettings />} />
-              <Route path="/meta-ads/create" element={<CreateMetaCampaign />} />
+              <Route path="/meta-ads" element={<RequirePermission anyOf={META_ADS_VIEW_PERMISSIONS}><MetaAdsOverview /></RequirePermission>} />
+              <Route path="/meta-ads/setup" element={<RequirePermission anyOf={META_ADS_CONNECT_PERMISSIONS}><MetaAdsSetup /></RequirePermission>} />
+              <Route path="/lead-forms" element={<RequirePermission anyOf={META_ADS_VIEW_PERMISSIONS}><LeadFormsPage /></RequirePermission>} />
+              <Route path="/meta-ads/manager" element={<RequirePermission anyOf={META_ADS_VIEW_PERMISSIONS}><MetaAdsManager /></RequirePermission>} />
+              <Route path="/meta-ads/analytics" element={<RequirePermission anyOf={META_ADS_VIEW_PERMISSIONS}><MetaAdsAnalytics /></RequirePermission>} />
+              <Route path="/meta-ads/attribution" element={<RequirePermission anyOf={META_ADS_ATTRIBUTION_PERMISSIONS}><MetaAdsAttribution /></RequirePermission>} />
+              <Route path="/meta-ads/automations" element={<RequirePermission anyOf={META_ADS_AUTOMATION_PERMISSIONS}><MetaAdsAutomations /></RequirePermission>} />
+              <Route path="/meta-ads/settings" element={<RequirePermission anyOf={META_ADS_CONNECT_PERMISSIONS}><MetaAdsSettings /></RequirePermission>} />
+              <Route path="/meta-ads/create" element={<RequirePermission anyOf={['meta_ads.manage']}><CreateMetaCampaign /></RequirePermission>} />
               <Route path="/billing" element={<Billing />} />
               <Route path="/add-ons" element={<WorkspaceAddOns />} />
               <Route path="/app/integrations" element={<IntegrationsHub />} />
