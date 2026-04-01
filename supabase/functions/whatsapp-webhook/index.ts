@@ -2844,7 +2844,7 @@ async function handleMetaAdAutomations(
     const actions = (automation.actions || []) as any[];
     for (const action of actions) {
       try {
-        await executeMetaAdAction(supabase, tenantId, phoneNumberId, conversationId, contactId, ev.from_wa_id, action);
+        await executeMetaAdAction(supabase, tenantId, phoneNumberId, conversationId, contactId, ev.from_wa_id, action, automation);
       } catch (actionErr) {
         console.error(`Meta ad action "${action.type}" error:`, actionErr);
       }
