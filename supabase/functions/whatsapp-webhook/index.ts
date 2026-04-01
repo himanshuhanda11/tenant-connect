@@ -1102,7 +1102,140 @@ async function handleAutoReply(
   }
 }
 
-// Check if current time is within business hours
+// ─── Agent Personal Auto-Reply Handler ───
+async function handleAgentAutoReply(
+  supabase: any,
+  tenantId: string,
+  phoneNumberId: string,
+  conversationId: string,
+  contactId: string,
+  ev: NormalizedEvent & { kind: 'inbound_message' }
+): Promise<boolean> {
+  try {
+    // 1. Check if conversation is assigned to an agent
+    const { data: conv } = await supabase
+      .from('conversations')
+      .select('assigned_to')
+      .eq('id', conversationId)
+      .maybeSingle();
+
+    if (!conv?.assigned_to) return false;
+
+    // 2. Get the assigned agent's auto-reply settings
+    const { data: agent } = await supabase
+      .from('agents')
+      .select('personal_greeting, away_message, away_enabled, display_name, user_id')
+      .eq('user_id', conv.assigned_to)
+      .eq('tenant_id', tenantId)
+      .maybeSingle();
+
+    if (!agent) return false;
+
+    // Only send if agent has away mode enabled
+    if (!agent.away_enabled || !agent.away_message) return false;
+
+    let replyText = agent.away_message;
+
+    // 3. Cooldown: don't send agent auto-reply more than once per 4 hours
+    const cooldownCutoff = new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString();
+    const { data: recentAgentReply } = await supabase
+      .from('messages')
+      .select('id')
+      .eq('conversation_id', conversationId)
+      .eq('direction', 'outbound')
+      .eq('is_auto_reply', true)
+      .gte('created_at', cooldownCutoff)
+      .limit(1)
+      .maybeSingle();
+
+    if (recentAgentReply) {
+      console.log('Agent auto-reply skipped: within cooldown');
+      return false;
+    }
+
+    // 4. Replace placeholders
+    const { data: contact } = await supabase
+      .from('contacts')
+      .select('name, wa_id')
+      .eq('id', contactId)
+      .maybeSingle();
+
+    const { data: phoneNum } = await supabase
+      .from('phone_numbers')
+      .select('phone_number_id, verified_name, waba_account:waba_accounts!inner(encrypted_access_token)')
+      .eq('id', phoneNumberId)
+      .maybeSingle();
+
+    if (!phoneNum?.phone_number_id || !phoneNum.waba_account?.encrypted_access_token) {
+      console.error('Agent auto-reply: phone number or token not found');
+      return false;
+    }
+
+    const contactName = contact?.name || ev.contact_name || 'there';
+    const agentName = agent.display_name || 'our team';
+    const bizName = phoneNum.verified_name || 'our company';
+
+    replyText = replyText
+      .replace(/\{\{name\}\}/g, contactName)
+      .replace(/\{\{agent_name\}\}/g, agentName)
+      .replace(/\{\{biz\}\}/g, bizName);
+
+    // 5. Send via WhatsApp API
+    const waResp = await fetch(
+      `https://graph.facebook.com/v21.0/${phoneNum.phone_number_id}/messages`,
+      {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${phoneNum.waba_account.encrypted_access_token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          messaging_product: 'whatsapp',
+          recipient_type: 'individual',
+          to: ev.from_wa_id,
+          type: 'text',
+          text: { body: replyText },
+        }),
+      }
+    );
+
+    const waResult = await waResp.json();
+    if (!waResp.ok) {
+      console.error('Agent auto-reply WhatsApp API error:', JSON.stringify(waResult));
+      return false;
+    }
+
+    const wamid = waResult.messages?.[0]?.id;
+    const now = new Date().toISOString();
+
+    // 6. Store message
+    await supabase.from('messages').insert({
+      tenant_id: tenantId,
+      conversation_id: conversationId,
+      direction: 'outbound',
+      type: 'text',
+      text: replyText,
+      wamid,
+      status: 'sent',
+      sent_at: now,
+      is_auto_reply: true,
+      sender_id: conv.assigned_to,
+    });
+
+    await supabase.from('conversations').update({
+      last_message_at: now,
+      last_message_preview: replyText.substring(0, 100),
+    }).eq('id', conversationId);
+
+    console.log(`Agent away auto-reply sent to ${ev.from_wa_id}: "${replyText.substring(0, 50)}..."`);
+    return true;
+  } catch (err) {
+    console.error('handleAgentAutoReply error:', err);
+    return false;
+  }
+}
+
+
 function checkBusinessHours(settings: any): boolean {
   try {
     // Parse timezone offset
