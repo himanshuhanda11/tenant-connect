@@ -75,24 +75,50 @@ const TeamMembers = () => {
 
         {/* Stat Pills */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          {[
-            { label: 'Total', value: members.length, icon: Users, color: 'text-primary' },
-            { label: 'Online', value: onlineCount, icon: () => <div className="w-2.5 h-2.5 rounded-full bg-green-500 animate-pulse" />, color: 'text-green-600' },
-            { label: 'Pending', value: pendingInvites.length, icon: Mail, color: 'text-amber-600' },
-            { label: 'Active', value: statusCounts.active, icon: Users, color: 'text-emerald-600' },
-          ].map((stat) => (
-            <Card key={stat.label} className="rounded-2xl border-border/50 hover:shadow-sm transition-shadow">
-              <CardContent className="p-4 flex items-center justify-between">
-                <div>
-                  <p className="text-xs text-muted-foreground font-medium">{stat.label}</p>
-                  <p className={`text-xl font-bold mt-0.5 ${stat.color}`}>{stat.value}</p>
-                </div>
-                <div className="h-9 w-9 rounded-xl bg-muted/60 flex items-center justify-center">
-                  {typeof stat.icon === 'function' ? <stat.icon /> : <stat.icon className="h-4 w-4 text-muted-foreground" />}
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+          <Card className="rounded-2xl border-border/50 hover:shadow-sm transition-shadow">
+            <CardContent className="p-4 flex items-center justify-between">
+              <div>
+                <p className="text-xs text-muted-foreground font-medium">Total</p>
+                <p className="text-xl font-bold text-primary mt-0.5">{members.length}</p>
+              </div>
+              <div className="h-9 w-9 rounded-xl bg-muted/60 flex items-center justify-center">
+                <Users className="h-4 w-4 text-muted-foreground" />
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="rounded-2xl border-border/50 hover:shadow-sm transition-shadow">
+            <CardContent className="p-4 flex items-center justify-between">
+              <div>
+                <p className="text-xs text-muted-foreground font-medium">Online</p>
+                <p className="text-xl font-bold text-green-600 mt-0.5">{onlineCount}</p>
+              </div>
+              <div className="h-9 w-9 rounded-xl bg-muted/60 flex items-center justify-center">
+                <div className="w-2.5 h-2.5 rounded-full bg-green-500 animate-pulse" />
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="rounded-2xl border-border/50 hover:shadow-sm transition-shadow">
+            <CardContent className="p-4 flex items-center justify-between">
+              <div>
+                <p className="text-xs text-muted-foreground font-medium">Pending</p>
+                <p className="text-xl font-bold text-amber-600 mt-0.5">{pendingInvites.length}</p>
+              </div>
+              <div className="h-9 w-9 rounded-xl bg-muted/60 flex items-center justify-center">
+                <Mail className="h-4 w-4 text-muted-foreground" />
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="rounded-2xl border-border/50 hover:shadow-sm transition-shadow">
+            <CardContent className="p-4 flex items-center justify-between">
+              <div>
+                <p className="text-xs text-muted-foreground font-medium">Active</p>
+                <p className="text-xl font-bold text-emerald-600 mt-0.5">{statusCounts.active}</p>
+              </div>
+              <div className="h-9 w-9 rounded-xl bg-muted/60 flex items-center justify-center">
+                <Users className="h-4 w-4 text-muted-foreground" />
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
         {/* Pending Invites */}
