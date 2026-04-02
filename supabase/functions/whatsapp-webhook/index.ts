@@ -1138,12 +1138,25 @@ async function handleAgentAutoReply(
       .eq('tenant_id', tenantId)
       .maybeSingle();
 
-    const tz = settings?.timezone || agent.timezone || 'Asia/Dubai';
+    const rawTz = settings?.timezone || agent.timezone || 'Asia/Dubai';
     const bhStart = settings?.business_hours_start || '09:00';
     const bhEnd = settings?.business_hours_end || '18:00';
 
-    // Calculate current time in workspace timezone
-    const nowLocal = new Date().toLocaleString('en-US', { timeZone: tz, hour12: false });
+    // Convert UTC offset format (e.g. "UTC+5.5") to minutes, or use IANA timezone
+    let currentMinutesOfDay: number;
+    const utcOffsetMatch = rawTz.match(/^UTC([+-]?)(\d+(?:\.\d+)?)$/i);
+    if (utcOffsetMatch) {
+      const sign = utcOffsetMatch[1] === '-' ? -1 : 1;
+      const offsetHours = parseFloat(utcOffsetMatch[2]);
+      const nowUTC = new Date();
+      const totalMinutes = nowUTC.getUTCHours() * 60 + nowUTC.getUTCMinutes() + sign * offsetHours * 60;
+      currentMinutesOfDay = ((totalMinutes % 1440) + 1440) % 1440;
+    } else {
+      // Valid IANA timezone
+      const nowLocal = new Date().toLocaleString('en-US', { timeZone: rawTz, hour12: false });
+      const timeParts = nowLocal.split(', ')[1]?.split(':') || [];
+      currentMinutesOfDay = (parseInt(timeParts[0] || '0') * 60) + parseInt(timeParts[1] || '0');
+    }
     const timeParts = nowLocal.split(', ')[1]?.split(':') || [];
     const currentMinutes = (parseInt(timeParts[0] || '0') * 60) + parseInt(timeParts[1] || '0');
     const startMinutes = bhStart.split(':').reduce((h: string, m: string) => parseInt(h) * 60 + parseInt(m));
