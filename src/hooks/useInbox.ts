@@ -55,6 +55,8 @@ function mapConversation(row: any): InboxConversation {
       profile_picture_url: row.contact.profile_picture_url,
       opt_out: row.contact.opt_out,
       language: row.contact.language,
+      source: row.contact.source,
+      campaign_source: row.contact.campaign_source,
     } : undefined,
     assigned_agent: row.assigned_agent ? {
       id: row.assigned_agent.id,
@@ -131,7 +133,7 @@ export function useInboxConversations(view: InboxView, filters: InboxFilters) {
         .from('conversations')
         .select(`
           *,
-          contact:contacts(id, name, first_name, wa_id, profile_picture_url, opt_out, language),
+          contact:contacts(id, name, first_name, wa_id, profile_picture_url, opt_out, language, source, campaign_source),
           assigned_agent:profiles!conversations_assigned_to_fkey(id, full_name, avatar_url),
           assigner:profiles!conversations_assigned_by_fkey(id, full_name),
           phone_number:phone_numbers(id, status, verified_name)

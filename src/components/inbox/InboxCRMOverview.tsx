@@ -126,7 +126,7 @@ export function InboxCRMOverview({ conversation, onStatusChanged }: InboxCRMOver
             {conversation.country_interest && (
               <InfoRow icon={<MapPin className="h-3.5 w-3.5" />} label="Country Interest" value={conversation.country_interest} />
             )}
-            <InfoRow icon={<Globe className="h-3.5 w-3.5" />} label="Source" value={conversation.source?.replace(/_/g, ' ') || 'Direct'} />
+            <InfoRow icon={<Globe className="h-3.5 w-3.5" />} label="Source" value={(conversation.contact?.source || conversation.source)?.replace(/_/g, ' ') || 'Direct'} />
             {conversation.contact?.language && (
               <InfoRow icon={<Globe className="h-3.5 w-3.5" />} label="Language" value={conversation.contact.language.toUpperCase()} />
             )}
