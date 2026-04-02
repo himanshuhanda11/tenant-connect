@@ -767,7 +767,7 @@ async function processInboundMessage(
 
     // Skip auto-reply/AI/form-rules if form session handled the message
     if (!formSessionHandled) {
-        // Agent personal auto-reply — only for assigned conversations
+      // Agent personal auto-reply — only for assigned conversations
       (async () => {
         try {
           await handleAgentAutoReply(supabase, tenantId, phoneNumberId, conversationId, contactId, ev);
