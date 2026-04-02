@@ -15,6 +15,8 @@ import {
 
 // Map DB row to InboxConversation type
 function mapConversation(row: any): InboxConversation {
+  const attributedSource = row.contact?.source || (row.contact?.campaign_source ? 'meta_ads' : undefined);
+
   return {
     id: row.id,
     tenant_id: row.tenant_id,
@@ -34,7 +36,7 @@ function mapConversation(row: any): InboxConversation {
     is_intervened: row.is_intervened || false,
     intervened_by: row.intervened_by,
     intervened_at: row.intervened_at,
-    source: row.source,
+    source: attributedSource || row.source,
     first_response_at: row.first_response_at,
     sla_first_response_due: row.sla_first_response_due,
     sla_breached: row.sla_breached || false,
