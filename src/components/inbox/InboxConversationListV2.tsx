@@ -145,7 +145,21 @@ export function InboxConversationListV2({
     return result;
   }, [conversations, searchQuery, dateFilter, statusFilter, assignmentFilter]);
 
-  const groups = useMemo(() => groupByDate(filteredConversations), [filteredConversations]);
+  const PAGE_SIZE = 25;
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+
+  // Reset visible count when filters change
+  const filterKey = `${searchQuery}-${dateFilter}-${statusFilter}-${assignmentFilter}`;
+  const [prevFilterKey, setPrevFilterKey] = useState(filterKey);
+  if (filterKey !== prevFilterKey) {
+    setVisibleCount(PAGE_SIZE);
+    setPrevFilterKey(filterKey);
+  }
+
+  const paginatedConversations = useMemo(() => filteredConversations.slice(0, visibleCount), [filteredConversations, visibleCount]);
+  const hasMore = filteredConversations.length > visibleCount;
+
+  const groups = useMemo(() => groupByDate(paginatedConversations), [paginatedConversations]);
   const totalUnread = conversations.reduce((sum, c) => sum + c.unread_count, 0);
 
   return (
@@ -179,7 +193,7 @@ export function InboxConversationListV2({
           </Button>
         </div>
         <p className="text-xs text-muted-foreground mb-3">
-          {filteredConversations.length} conversations{totalUnread > 0 && ` · ${totalUnread} unread`}
+          {filteredConversations.length} conversations{hasMore ? ` · Showing ${visibleCount}` : ''}{totalUnread > 0 && ` · ${totalUnread} unread`}
         </p>
 
         {/* Search */}
@@ -326,6 +340,20 @@ export function InboxConversationListV2({
                 </div>
               ))}
             </AnimatePresence>
+
+            {/* Load More */}
+            {hasMore && (
+              <div className="px-3 py-4 flex justify-center">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setVisibleCount(prev => prev + PAGE_SIZE)}
+                  className="w-full text-xs font-medium"
+                >
+                  Load more ({filteredConversations.length - visibleCount} remaining)
+                </Button>
+              </div>
+            )}
           </div>
         )}
       </div>
