@@ -1131,25 +1131,38 @@ async function handleAgentAutoReply(
 
     if (!agent) return false;
 
-    // Only send if agent has away mode enabled
-    if (!agent.away_enabled || !agent.away_message) return false;
+    // Determine which message to send:
+    // - If away_enabled + away_message → send away message
+    // - Else if personal_greeting exists → send greeting (first time only)
+    let replyText: string | null = null;
+    let replyType: 'away' | 'greeting' = 'away';
 
-    let replyText = agent.away_message;
+    if (agent.away_enabled && agent.away_message) {
+      replyText = agent.away_message;
+      replyType = 'away';
+    } else if (agent.personal_greeting) {
+      replyText = agent.personal_greeting;
+      replyType = 'greeting';
+    }
 
-    // 3. Cooldown: don't send agent auto-reply more than once per 4 hours
-    const cooldownCutoff = new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString();
+    if (!replyText) return false;
+
+    // 3. Cooldown: check only THIS agent's auto-replies on this conversation (4h for away, 24h for greeting)
+    const cooldownHours = replyType === 'away' ? 4 : 24;
+    const cooldownCutoff = new Date(Date.now() - cooldownHours * 60 * 60 * 1000).toISOString();
     const { data: recentAgentReply } = await supabase
       .from('messages')
       .select('id')
       .eq('conversation_id', conversationId)
       .eq('direction', 'outbound')
       .eq('is_auto_reply', true)
+      .eq('sender_id', conv.assigned_to)
       .gte('created_at', cooldownCutoff)
       .limit(1)
       .maybeSingle();
 
     if (recentAgentReply) {
-      console.log('Agent auto-reply skipped: within cooldown');
+      console.log(`Agent ${replyType} auto-reply skipped: within ${cooldownHours}h cooldown`);
       return false;
     }
 
@@ -1227,7 +1240,7 @@ async function handleAgentAutoReply(
       last_message_preview: replyText.substring(0, 100),
     }).eq('id', conversationId);
 
-    console.log(`Agent away auto-reply sent to ${ev.from_wa_id}: "${replyText.substring(0, 50)}..."`);
+    console.log(`Agent ${replyType} auto-reply sent to ${ev.from_wa_id}: "${replyText.substring(0, 50)}..."`);
     return true;
   } catch (err) {
     console.error('handleAgentAutoReply error:', err);
