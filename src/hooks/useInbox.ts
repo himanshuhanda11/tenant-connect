@@ -55,6 +55,8 @@ function mapConversation(row: any): InboxConversation {
       profile_picture_url: row.contact.profile_picture_url,
       opt_out: row.contact.opt_out,
       language: row.contact.language,
+      source: row.contact.source,
+      campaign_source: row.contact.campaign_source,
     } : undefined,
     assigned_agent: row.assigned_agent ? {
       id: row.assigned_agent.id,
