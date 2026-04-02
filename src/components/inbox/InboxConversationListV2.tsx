@@ -246,7 +246,7 @@ export function InboxConversationListV2({
               <DropdownMenuItem onClick={() => setStatusFilter('all')}>
                 {statusFilter === 'all' && '✓ '}All Statuses
               </DropdownMenuItem>
-              {(['new', 'contacted', 'follow_up_required', 'qualified', 'converted', 'junk'] as StatusFilter[]).map(s => (
+              {(['new', 'contacted', 'follow_up_required', 'qualified', 'converted', 'junk', 'unassigned'] as StatusFilter[]).map(s => (
                 <DropdownMenuItem key={s} onClick={() => setStatusFilter(s)}>
                   {statusFilter === s && '✓ '}{s.replace(/_/g, ' ')}
                 </DropdownMenuItem>
