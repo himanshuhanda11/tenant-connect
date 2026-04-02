@@ -43,7 +43,7 @@ interface InboxConversationListV2Props {
 }
 
 type DateFilter = 'all' | 'today' | 'yesterday' | 'last_7_days';
-type StatusFilter = 'all' | 'new' | 'contacted' | 'follow_up_required' | 'qualified' | 'converted' | 'junk';
+type StatusFilter = 'all' | 'new' | 'contacted' | 'follow_up_required' | 'qualified' | 'converted' | 'junk' | 'unassigned';
 
 const DATE_FILTER_LABELS: Record<DateFilter, string> = {
   all: 'All',
@@ -132,7 +132,9 @@ export function InboxConversationListV2({
       });
     }
 
-    if (statusFilter !== 'all') {
+    if (statusFilter === 'unassigned') {
+      result = result.filter(c => !c.assigned_to);
+    } else if (statusFilter !== 'all') {
       result = result.filter(c => c.crm_status === statusFilter);
     }
 
@@ -244,7 +246,7 @@ export function InboxConversationListV2({
               <DropdownMenuItem onClick={() => setStatusFilter('all')}>
                 {statusFilter === 'all' && '✓ '}All Statuses
               </DropdownMenuItem>
-              {(['new', 'contacted', 'follow_up_required', 'qualified', 'converted', 'junk'] as StatusFilter[]).map(s => (
+              {(['new', 'contacted', 'follow_up_required', 'qualified', 'converted', 'junk', 'unassigned'] as StatusFilter[]).map(s => (
                 <DropdownMenuItem key={s} onClick={() => setStatusFilter(s)}>
                   {statusFilter === s && '✓ '}{s.replace(/_/g, ' ')}
                 </DropdownMenuItem>
