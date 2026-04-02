@@ -131,7 +131,7 @@ export function useInboxConversations(view: InboxView, filters: InboxFilters) {
         .from('conversations')
         .select(`
           *,
-          contact:contacts(id, name, first_name, wa_id, profile_picture_url, opt_out, language),
+          contact:contacts(id, name, first_name, wa_id, profile_picture_url, opt_out, language, source, campaign_source),
           assigned_agent:profiles!conversations_assigned_to_fkey(id, full_name, avatar_url),
           assigner:profiles!conversations_assigned_by_fkey(id, full_name),
           phone_number:phone_numbers(id, status, verified_name)

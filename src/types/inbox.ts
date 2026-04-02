@@ -92,6 +92,8 @@ export interface InboxConversation {
     profile_picture_url?: string;
     opt_out?: boolean;
     language?: string;
+    source?: string;
+    campaign_source?: string;
   };
   assigned_agent?: {
     id: string;
