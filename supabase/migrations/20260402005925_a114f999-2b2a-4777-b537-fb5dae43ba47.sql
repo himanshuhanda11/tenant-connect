@@ -1,0 +1,1 @@
+UPDATE auto_reply_settings SET timezone = 'Asia/Dubai' WHERE tenant_id = '9deb12bb-d8a5-464a-862f-387e096642b8';
