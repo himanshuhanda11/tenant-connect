@@ -1157,11 +1157,9 @@ async function handleAgentAutoReply(
       const timeParts = nowLocal.split(', ')[1]?.split(':') || [];
       currentMinutesOfDay = (parseInt(timeParts[0] || '0') * 60) + parseInt(timeParts[1] || '0');
     }
-    const timeParts = nowLocal.split(', ')[1]?.split(':') || [];
-    const currentMinutes = (parseInt(timeParts[0] || '0') * 60) + parseInt(timeParts[1] || '0');
     const startMinutes = bhStart.split(':').reduce((h: string, m: string) => parseInt(h) * 60 + parseInt(m));
     const endMinutes = bhEnd.split(':').reduce((h: string, m: string) => parseInt(h) * 60 + parseInt(m));
-    const isOfficeHours = currentMinutes >= startMinutes && currentMinutes < endMinutes;
+    const isOfficeHours = currentMinutesOfDay >= startMinutes && currentMinutesOfDay < endMinutes;
 
     // Determine which message to send:
     // - Office hours → personal_greeting
