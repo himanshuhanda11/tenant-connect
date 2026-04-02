@@ -340,6 +340,20 @@ export function InboxConversationListV2({
                 </div>
               ))}
             </AnimatePresence>
+
+            {/* Load More */}
+            {hasMore && (
+              <div className="px-3 py-4 flex justify-center">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setVisibleCount(prev => prev + PAGE_SIZE)}
+                  className="w-full text-xs font-medium"
+                >
+                  Load more ({filteredConversations.length - visibleCount} remaining)
+                </Button>
+              </div>
+            )}
           </div>
         )}
       </div>
