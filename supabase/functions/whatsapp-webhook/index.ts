@@ -1124,7 +1124,7 @@ async function handleAgentAutoReply(
     // 2. Get the assigned agent's auto-reply settings
     const { data: agent } = await supabase
       .from('agents')
-      .select('personal_greeting, away_message, away_enabled, display_name, user_id')
+      .select('personal_greeting, away_message, away_enabled, display_name, user_id, timezone')
       .eq('user_id', conv.assigned_to)
       .eq('tenant_id', tenantId)
       .maybeSingle();
@@ -1180,13 +1180,19 @@ async function handleAgentAutoReply(
     // 3. Cooldown: check only THIS agent's auto-replies on this conversation (4h for away, 24h for greeting)
     const cooldownHours = replyType === 'away' ? 4 : 24;
     const cooldownCutoff = new Date(Date.now() - cooldownHours * 60 * 60 * 1000).toISOString();
+    const agentReplyMetadata = {
+      auto_reply_scope: 'agent_profile',
+      auto_reply_type: replyType,
+      agent_user_id: conv.assigned_to,
+    };
+
     const { data: recentAgentReply } = await supabase
       .from('messages')
       .select('id')
       .eq('conversation_id', conversationId)
       .eq('direction', 'outbound')
       .eq('is_auto_reply', true)
-      .eq('sender_id', conv.assigned_to)
+      .contains('metadata', agentReplyMetadata)
       .gte('created_at', cooldownCutoff)
       .limit(1)
       .maybeSingle();
@@ -1262,7 +1268,7 @@ async function handleAgentAutoReply(
       status: 'sent',
       sent_at: now,
       is_auto_reply: true,
-      sender_id: conv.assigned_to,
+      metadata: agentReplyMetadata,
     });
 
     await supabase.from('conversations').update({
