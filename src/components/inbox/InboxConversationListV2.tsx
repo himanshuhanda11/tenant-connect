@@ -104,6 +104,7 @@ export function InboxConversationListV2({
   const [searchQuery, setSearchQuery] = useState('');
   const [dateFilter, setDateFilter] = useState<DateFilter>('all');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
+  const [assignmentFilter, setAssignmentFilter] = useState<'all' | 'unassigned' | 'assigned'>('all');
 
   const filteredConversations = useMemo(() => {
     let result = conversations;
@@ -135,8 +136,14 @@ export function InboxConversationListV2({
       result = result.filter(c => c.crm_status === statusFilter);
     }
 
+    if (assignmentFilter === 'unassigned') {
+      result = result.filter(c => !c.assigned_to);
+    } else if (assignmentFilter === 'assigned') {
+      result = result.filter(c => !!c.assigned_to);
+    }
+
     return result;
-  }, [conversations, searchQuery, dateFilter, statusFilter]);
+  }, [conversations, searchQuery, dateFilter, statusFilter, assignmentFilter]);
 
   const groups = useMemo(() => groupByDate(filteredConversations), [filteredConversations]);
   const totalUnread = conversations.reduce((sum, c) => sum + c.unread_count, 0);
@@ -228,6 +235,34 @@ export function InboxConversationListV2({
                   {statusFilter === s && '✓ '}{s.replace(/_/g, ' ')}
                 </DropdownMenuItem>
               ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+          {/* Assignment filter */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button className={cn(
+                "flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all flex-shrink-0 border",
+                assignmentFilter !== 'all'
+                  ? "bg-primary/10 text-primary border-primary/30"
+                  : "bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground border-border/40"
+              )}>
+                <SlidersHorizontal className="h-3 w-3" />
+                {assignmentFilter === 'unassigned' ? 'Unassigned' : assignmentFilter === 'assigned' ? 'Assigned' : 'Assignment'}
+                <ChevronDown className="h-3 w-3" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="w-44">
+              <DropdownMenuLabel className="text-xs">Filter by Assignment</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => setAssignmentFilter('all')}>
+                {assignmentFilter === 'all' && '✓ '}All
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setAssignmentFilter('unassigned')}>
+                {assignmentFilter === 'unassigned' && '✓ '}Unassigned
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setAssignmentFilter('assigned')}>
+                {assignmentFilter === 'assigned' && '✓ '}Assigned
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
