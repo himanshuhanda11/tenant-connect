@@ -242,7 +242,7 @@ export function InboxContextPanel({
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-muted-foreground">Source</span>
                   <Badge variant="outline" className="capitalize">
-                    {conversation.source?.replace('_', ' ') || 'Direct'}
+                    {(conversation.contact?.source || conversation.source)?.replace(/_/g, ' ') || 'Direct'}
                   </Badge>
                 </div>
                 {conversation.source === 'meta_ads' && (
