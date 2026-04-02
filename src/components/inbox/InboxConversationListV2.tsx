@@ -104,6 +104,7 @@ export function InboxConversationListV2({
   const [searchQuery, setSearchQuery] = useState('');
   const [dateFilter, setDateFilter] = useState<DateFilter>('all');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
+  const [assignmentFilter, setAssignmentFilter] = useState<'all' | 'unassigned' | 'assigned'>('all');
 
   const filteredConversations = useMemo(() => {
     let result = conversations;
