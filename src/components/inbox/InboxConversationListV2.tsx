@@ -193,7 +193,7 @@ export function InboxConversationListV2({
           </Button>
         </div>
         <p className="text-xs text-muted-foreground mb-3">
-          {filteredConversations.length} conversations{totalUnread > 0 && ` · ${totalUnread} unread`}
+          {filteredConversations.length} conversations{hasMore ? ` · Showing ${visibleCount}` : ''}{totalUnread > 0 && ` · ${totalUnread} unread`}
         </p>
 
         {/* Search */}
