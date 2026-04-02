@@ -136,8 +136,14 @@ export function InboxConversationListV2({
       result = result.filter(c => c.crm_status === statusFilter);
     }
 
+    if (assignmentFilter === 'unassigned') {
+      result = result.filter(c => !c.assigned_to);
+    } else if (assignmentFilter === 'assigned') {
+      result = result.filter(c => !!c.assigned_to);
+    }
+
     return result;
-  }, [conversations, searchQuery, dateFilter, statusFilter]);
+  }, [conversations, searchQuery, dateFilter, statusFilter, assignmentFilter]);
 
   const groups = useMemo(() => groupByDate(filteredConversations), [filteredConversations]);
   const totalUnread = conversations.reduce((sum, c) => sum + c.unread_count, 0);
