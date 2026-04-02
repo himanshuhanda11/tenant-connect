@@ -1131,18 +1131,37 @@ async function handleAgentAutoReply(
 
     if (!agent) return false;
 
-    // Determine which message to send:
-    // - If away_enabled + away_message → send away message
-    // - Else if personal_greeting exists → send greeting (first time only)
-    let replyText: string | null = null;
-    let replyType: 'away' | 'greeting' = 'away';
+    // 2b. Fetch workspace business hours + timezone to decide greeting vs away
+    const { data: settings } = await supabase
+      .from('auto_reply_settings')
+      .select('business_hours_start, business_hours_end, timezone')
+      .eq('tenant_id', tenantId)
+      .maybeSingle();
 
-    if (agent.away_enabled && agent.away_message) {
-      replyText = agent.away_message;
-      replyType = 'away';
-    } else if (agent.personal_greeting) {
+    const tz = settings?.timezone || agent.timezone || 'Asia/Dubai';
+    const bhStart = settings?.business_hours_start || '09:00';
+    const bhEnd = settings?.business_hours_end || '18:00';
+
+    // Calculate current time in workspace timezone
+    const nowLocal = new Date().toLocaleString('en-US', { timeZone: tz, hour12: false });
+    const timeParts = nowLocal.split(', ')[1]?.split(':') || [];
+    const currentMinutes = (parseInt(timeParts[0] || '0') * 60) + parseInt(timeParts[1] || '0');
+    const startMinutes = bhStart.split(':').reduce((h: string, m: string) => parseInt(h) * 60 + parseInt(m));
+    const endMinutes = bhEnd.split(':').reduce((h: string, m: string) => parseInt(h) * 60 + parseInt(m));
+    const isOfficeHours = currentMinutes >= startMinutes && currentMinutes < endMinutes;
+
+    // Determine which message to send:
+    // - Office hours → personal_greeting
+    // - Outside office hours → away_message (if available)
+    let replyText: string | null = null;
+    let replyType: 'away' | 'greeting' = 'greeting';
+
+    if (isOfficeHours && agent.personal_greeting) {
       replyText = agent.personal_greeting;
       replyType = 'greeting';
+    } else if (!isOfficeHours && agent.away_message) {
+      replyText = agent.away_message;
+      replyType = 'away';
     }
 
     if (!replyText) return false;
