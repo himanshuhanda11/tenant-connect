@@ -139,9 +139,21 @@ export function useInboxConversations(view: InboxView, filters: InboxFilters) {
         .eq('tenant_id', currentTenant.id)
         .order('last_message_at', { ascending: false, nullsFirst: false });
 
-      // Agent visibility: only see unassigned OR assigned/claimed to self
+      // Agent visibility: only see assigned/claimed to self, 
+      // plus unassigned leads created AFTER the agent was added
       if (isAgent && user?.id) {
-        query = query.or(`assigned_to.is.null,assigned_to.eq.${user.id},claimed_by.eq.${user.id}`);
+        const { data: agentRecord } = await supabase
+          .from('agents')
+          .select('created_at')
+          .eq('tenant_id', currentTenant.id)
+          .eq('user_id', user.id)
+          .maybeSingle();
+
+        const agentCreatedAt = agentRecord?.created_at || new Date().toISOString();
+
+        query = query.or(
+          `assigned_to.eq.${user.id},claimed_by.eq.${user.id},and(assigned_to.is.null,created_at.gte.${agentCreatedAt})`
+        );
       }
 
       // Apply filters based on queue model (matches useInboxQueues spec)
