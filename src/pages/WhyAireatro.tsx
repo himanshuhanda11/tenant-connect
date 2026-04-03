@@ -234,6 +234,17 @@ export default function WhyAireatro() {
                 Book a Demo
               </Button>
             </div>
+            {/* Download PDF */}
+            <div className="mt-4">
+              <a
+                href="/Aireatro-USP-Brochure.pdf"
+                download="Aireatro-USP-Brochure.pdf"
+                className="inline-flex items-center gap-2 text-sm text-emerald-600 hover:text-emerald-700 font-medium transition-colors"
+              >
+                <Download className="h-4 w-4" />
+                Download USP Brochure (PDF)
+              </a>
+            </div>
             {/* Stats row */}
             <div className="flex flex-wrap justify-center gap-8 sm:gap-12 mt-12 pt-8 border-t border-gray-200">
               {[
