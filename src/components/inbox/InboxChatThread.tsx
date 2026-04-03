@@ -976,150 +976,7 @@ export function InboxChatThread({
             </div>
           ) : (
             <>
-              <div className="flex items-end gap-2">
-                {/* AI Assistant Button */}
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button 
-                      variant={showAISuggestions ? "default" : "ghost"} 
-                      size="icon" 
-                      className={cn(
-                        "flex-shrink-0 relative overflow-hidden rounded-xl",
-                        isMobile ? "h-10 w-10" : "h-11 w-11",
-                        showAISuggestions 
-                          ? "bg-gradient-to-br from-primary via-primary/90 to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-lg shadow-primary/25 ring-2 ring-primary/20" 
-                          : "hover:bg-primary/5 hover:ring-2 hover:ring-primary/10"
-                      )}
-                      onClick={() => setShowAISuggestions(!showAISuggestions)}
-                    >
-                      <img 
-                        src={inboxAiAssistant} 
-                        alt="AI Assistant" 
-                        className={cn(
-                          "object-contain transition-all duration-300",
-                          isMobile ? "h-7 w-7" : "h-7 w-7",
-                          showAISuggestions ? "brightness-0 invert scale-110 drop-shadow-md" : "drop-shadow-sm"
-                        )} 
-                      />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>AI Assistant</TooltipContent>
-                </Tooltip>
-
-                {/* Attachment Button */}
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button 
-                      variant="ghost" 
-                      size="icon" 
-                      className={cn(
-                        "flex-shrink-0",
-                        isMobile ? "h-10 w-10" : "h-11 w-11"
-                      )}
-                    >
-                      <Paperclip className={cn(isMobile ? "h-5 w-5" : "h-4 w-4", "text-muted-foreground")} />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="start" className="w-48">
-                    <DropdownMenuItem onClick={() => handleAttachmentClick('image/*')}>
-                      <ImageIcon className="h-4 w-4 mr-2 text-blue-500" />
-                      Image
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => handleAttachmentClick('video/*')}>
-                      <Video className="h-4 w-4 mr-2 text-red-500" />
-                      Video
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => handleAttachmentClick('.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx')}>
-                      <File className="h-4 w-4 mr-2 text-amber-500" />
-                      Document
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={() => handleAttachmentClick('image/*', true)}>
-                      <Camera className="h-4 w-4 mr-2 text-green-500" />
-                      Camera
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-                
-                <div className="flex-1 relative">
-                  <Textarea
-                    placeholder="Type a message"
-                    value={messageText}
-                    onChange={(e) => {
-                      setMessageText(e.target.value);
-                      if (onTyping && e.target.value.length > 0) onTyping(true);
-                    }}
-                    onKeyDown={handleKeyDown}
-                    onBlur={() => onTyping?.(false)}
-                    className={cn(
-                      "resize-none",
-                      isMobile 
-                        ? "min-h-[40px] max-h-24 pr-12 rounded-full py-2 px-4" 
-                        : "min-h-[44px] max-h-32 pr-20"
-                    )}
-                    rows={1}
-                  />
-                  <div className={cn(
-                    "absolute bottom-1 flex items-center gap-1",
-                    isMobile ? "right-1" : "right-2 bottom-2"
-                  )}>
-                    <Popover open={showEmojiPicker} onOpenChange={setShowEmojiPicker}>
-                      <PopoverTrigger asChild>
-                        <Button 
-                          variant="ghost" 
-                          size="icon" 
-                          className={cn(isMobile ? "h-8 w-8" : "h-7 w-7")}
-                        >
-                          <Smile className={cn(isMobile ? "h-5 w-5" : "h-4 w-4", "text-muted-foreground hover:text-foreground")} />
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent 
-                        side="top" 
-                        align="end" 
-                        className="w-auto p-0 border-0"
-                      >
-                        <EmojiPicker 
-                          onEmojiClick={handleEmojiClick}
-                          width={isMobile ? 280 : 350}
-                          height={400}
-                        />
-                      </PopoverContent>
-                    </Popover>
-                  </div>
-                </div>
-
-                {/* Template button */}
-                {!isMobile && (
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button variant="outline" size="icon" className="h-11 w-11" onClick={() => setShowTemplates(true)}>
-                        <FileText className="h-4 w-4" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>Send Template</TooltipContent>
-                  </Tooltip>
-                )}
-
-                {/* Send button */}
-                <Button 
-                  size="icon" 
-                  className={cn(
-                    isMobile 
-                      ? "h-10 w-10 rounded-full bg-primary hover:bg-primary/90" 
-                      : "h-11 w-11"
-                  )}
-                  onClick={handleSend}
-                  disabled={!messageText.trim()}
-                >
-                  {messageText.trim() ? (
-                    <Send className={cn(isMobile ? "h-5 w-5" : "h-4 w-4")} />
-                  ) : (
-                    <Mic className={cn(isMobile ? "h-5 w-5" : "h-4 w-4")} />
-                  )}
-                </Button>
-              </div>
-
-              {/* Quick Replies */}
+              {/* Quick Replies - Above composer */}
               <QuickReplyManager 
                 onSelectReply={(text) => {
                   const contactName = conversation?.contact?.name || conversation?.contact?.first_name || 'there';
@@ -1137,6 +994,161 @@ export function InboxChatThread({
                 }} 
                 isMobile={isMobile}
               />
+
+              {/* Composer Row */}
+              <div className="flex items-end gap-1.5">
+                {/* AI Assistant Button */}
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button 
+                      variant={showAISuggestions ? "default" : "ghost"} 
+                      size="icon" 
+                      className={cn(
+                        "flex-shrink-0 rounded-full transition-all duration-200",
+                        isMobile ? "h-10 w-10" : "h-10 w-10",
+                        showAISuggestions 
+                          ? "bg-gradient-to-br from-primary to-primary/80 shadow-md shadow-primary/20 ring-1 ring-primary/30" 
+                          : "hover:bg-muted"
+                      )}
+                      onClick={() => setShowAISuggestions(!showAISuggestions)}
+                    >
+                      <img 
+                        src={inboxAiAssistant} 
+                        alt="AI Assistant" 
+                        className={cn(
+                          "object-contain transition-all duration-300",
+                          "h-6 w-6",
+                          showAISuggestions ? "brightness-0 invert scale-110" : "drop-shadow-sm"
+                        )} 
+                      />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>AI Assistant</TooltipContent>
+                </Tooltip>
+
+                {/* Main input container with integrated actions */}
+                <div className={cn(
+                  "flex-1 flex items-end rounded-2xl border bg-card transition-all duration-200",
+                  "border-border/60 focus-within:border-primary/40 focus-within:ring-1 focus-within:ring-primary/10",
+                  "shadow-sm"
+                )}>
+                  {/* Attachment Button */}
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="flex-shrink-0 h-10 w-10 rounded-full hover:bg-muted/60 ml-0.5"
+                      >
+                        <Plus className="h-5 w-5 text-muted-foreground" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="start" className="w-48">
+                      <DropdownMenuItem onClick={() => handleAttachmentClick('image/*')}>
+                        <ImageIcon className="h-4 w-4 mr-2 text-blue-500" />
+                        Image
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => handleAttachmentClick('video/*')}>
+                        <Video className="h-4 w-4 mr-2 text-red-500" />
+                        Video
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => handleAttachmentClick('.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx')}>
+                        <File className="h-4 w-4 mr-2 text-amber-500" />
+                        Document
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={() => handleAttachmentClick('image/*', true)}>
+                        <Camera className="h-4 w-4 mr-2 text-green-500" />
+                        Camera
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+
+                  {/* Text input */}
+                  <Textarea
+                    placeholder="Type a message..."
+                    value={messageText}
+                    onChange={(e) => {
+                      setMessageText(e.target.value);
+                      if (onTyping && e.target.value.length > 0) onTyping(true);
+                    }}
+                    onKeyDown={handleKeyDown}
+                    onBlur={() => onTyping?.(false)}
+                    className={cn(
+                      "resize-none border-0 bg-transparent shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 px-1",
+                      isMobile 
+                        ? "min-h-[40px] max-h-24 py-2.5 text-sm" 
+                        : "min-h-[40px] max-h-32 py-2.5"
+                    )}
+                    rows={1}
+                  />
+
+                  {/* Inline actions */}
+                  <div className="flex items-center gap-0.5 pr-1 pb-1">
+                    {/* Emoji */}
+                    <Popover open={showEmojiPicker} onOpenChange={setShowEmojiPicker}>
+                      <PopoverTrigger asChild>
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="h-8 w-8 rounded-full hover:bg-muted/60"
+                        >
+                          <Smile className="h-[18px] w-[18px] text-muted-foreground" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent 
+                        side="top" 
+                        align="end" 
+                        className="w-auto p-0 border-0"
+                      >
+                        <EmojiPicker 
+                          onEmojiClick={handleEmojiClick}
+                          width={isMobile ? 280 : 350}
+                          height={400}
+                        />
+                      </PopoverContent>
+                    </Popover>
+
+                    {/* Template button */}
+                    {!isMobile && (
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            className="h-8 w-8 rounded-full hover:bg-muted/60"
+                            onClick={() => setShowTemplates(true)}
+                          >
+                            <FileText className="h-[18px] w-[18px] text-muted-foreground" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>Send Template</TooltipContent>
+                      </Tooltip>
+                    )}
+                  </div>
+                </div>
+
+                {/* Send / Mic button */}
+                <Button 
+                  size="icon" 
+                  className={cn(
+                    "flex-shrink-0 rounded-full transition-all duration-200",
+                    "h-10 w-10",
+                    messageText.trim() 
+                      ? "bg-primary hover:bg-primary/90 shadow-md shadow-primary/20" 
+                      : "bg-muted hover:bg-muted/80 text-muted-foreground"
+                  )}
+                  variant={messageText.trim() ? "default" : "secondary"}
+                  onClick={handleSend}
+                  disabled={!messageText.trim()}
+                >
+                  {messageText.trim() ? (
+                    <Send className="h-[18px] w-[18px]" />
+                  ) : (
+                    <Mic className="h-5 w-5" />
+                  )}
+                </Button>
+              </div>
             </>
           )}
         </div>
