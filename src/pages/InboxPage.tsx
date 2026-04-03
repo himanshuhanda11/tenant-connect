@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -64,6 +65,19 @@ export default function InboxPage() {
 
   // Hooks
   const { conversations, loading: loadingConversations, refetch } = useInboxConversations(view, filters);
+
+  // Apply CRM filter client-side for follow_up / junk views
+  const filteredConversations = useMemo(() => {
+    if (!crmFilter) return conversations;
+    if (crmFilter === 'follow_up') {
+      return conversations.filter(c => c.next_followup_at && c.crm_status !== 'converted' && c.crm_status !== 'junk');
+    }
+    if (crmFilter === 'junk') {
+      return conversations.filter(c => c.crm_status === 'junk' || c.crm_status === 'not_interested');
+    }
+    return conversations;
+  }, [conversations, crmFilter]);
+
   const { messages, loading: loadingMessages, addMessage, refetch: refetchMessages } = useInboxMessages(selectedId);
   const { events, addEvent } = useConversationEvents(selectedId);
   const { notes, addNote } = useInternalNotes(selectedId);
