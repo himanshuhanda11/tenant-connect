@@ -255,7 +255,11 @@ export function AutoReplySettings() {
       </div>
 
       <Tabs defaultValue="general">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-3 h-auto">
+          <TabsTrigger value="general" className="text-xs sm:text-sm py-2">General</TabsTrigger>
+          <TabsTrigger value="keywords" className="text-xs sm:text-sm py-2">Keywords</TabsTrigger>
+          <TabsTrigger value="ai" className="text-xs sm:text-sm py-2">AI Reply</TabsTrigger>
+        </TabsList>
           <TabsTrigger value="general">General</TabsTrigger>
           <TabsTrigger value="keywords">Keywords</TabsTrigger>
           <TabsTrigger value="ai">AI Auto-Reply</TabsTrigger>

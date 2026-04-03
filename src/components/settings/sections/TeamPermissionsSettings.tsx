@@ -149,23 +149,25 @@ export function TeamPermissionsSettings() {
 
               <div className="space-y-4">
                 <Label>Permission Matrix</Label>
-                <div className="border rounded-lg overflow-hidden">
-                  <div className="grid grid-cols-5 gap-0 bg-muted/50 p-3 text-sm font-medium border-b">
-                    <div>Permission</div>
-                    <div className="text-center">Admin</div>
-                    <div className="text-center">Manager</div>
-                    <div className="text-center">Agent</div>
-                    <div className="text-center">Viewer</div>
-                  </div>
-                  {permissions.slice(0, 5).map((p) => (
-                    <div key={p.id} className="grid grid-cols-5 gap-0 p-3 text-sm border-b last:border-0">
-                      <div className="text-muted-foreground">{p.label}</div>
-                      <div className="flex justify-center"><Checkbox defaultChecked /></div>
-                      <div className="flex justify-center"><Checkbox defaultChecked /></div>
-                      <div className="flex justify-center"><Checkbox defaultChecked={p.id.includes('view')} /></div>
-                      <div className="flex justify-center"><Checkbox defaultChecked={p.id.includes('view')} disabled /></div>
+                <div className="border rounded-lg overflow-x-auto">
+                  <div className="min-w-[480px]">
+                    <div className="grid grid-cols-5 gap-0 bg-muted/50 p-3 text-sm font-medium border-b">
+                      <div>Permission</div>
+                      <div className="text-center">Admin</div>
+                      <div className="text-center">Manager</div>
+                      <div className="text-center">Agent</div>
+                      <div className="text-center">Viewer</div>
                     </div>
-                  ))}
+                    {permissions.slice(0, 5).map((p) => (
+                      <div key={p.id} className="grid grid-cols-5 gap-0 p-3 text-sm border-b last:border-0">
+                        <div className="text-muted-foreground">{p.label}</div>
+                        <div className="flex justify-center"><Checkbox defaultChecked /></div>
+                        <div className="flex justify-center"><Checkbox defaultChecked /></div>
+                        <div className="flex justify-center"><Checkbox defaultChecked={p.id.includes('view')} /></div>
+                        <div className="flex justify-center"><Checkbox defaultChecked={p.id.includes('view')} disabled /></div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
             </CardContent>
