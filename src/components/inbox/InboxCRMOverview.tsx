@@ -102,7 +102,7 @@ export function InboxCRMOverview({ conversation, onStatusChanged }: InboxCRMOver
           <div className="space-y-2">
             <InfoRow icon={<Calendar className="h-3.5 w-3.5" />} label="Created" value={conversation.created_at ? formatDistanceToNow(new Date(conversation.created_at), { addSuffix: true }) : '—'} />
             <InfoRow icon={<Clock className="h-3.5 w-3.5" />} label="Last Message" value={conversation.last_message_at ? formatDistanceToNow(new Date(conversation.last_message_at), { addSuffix: true }) : '—'} />
-            <InfoRow icon={<PhoneCall className="h-3.5 w-3.5" />} label="Last Contacted" value={conversation.last_contacted_at ? formatDistanceToNow(new Date(conversation.last_contacted_at), { addSuffix: true }) : 'Never'} />
+            <InfoRow icon={<PhoneCall className="h-3.5 w-3.5" />} label="Last Contacted" value={conversation.last_contacted_at ? formatDistanceToNow(new Date(conversation.last_contacted_at), { addSuffix: true }) : conversation.last_message_at ? formatDistanceToNow(new Date(conversation.last_message_at), { addSuffix: true }) : '—'} />
             {conversation.next_followup_at && (
               <InfoRow
                 icon={<CalendarClock className="h-3.5 w-3.5" />}
