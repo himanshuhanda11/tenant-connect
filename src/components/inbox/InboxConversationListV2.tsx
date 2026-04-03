@@ -234,7 +234,7 @@ export function InboxConversationListV2({
                   : "bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground border-border/40"
               )}>
                 <SlidersHorizontal className="h-3 w-3" />
-                {statusFilter !== 'all' ? statusFilter.replace(/_/g, ' ') : 'Status'}
+                {statusFilter !== 'all' ? statusFilter.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : 'Status'}
                 <ChevronDown className="h-3 w-3" />
               </button>
             </DropdownMenuTrigger>
