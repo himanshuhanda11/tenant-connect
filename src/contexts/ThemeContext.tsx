@@ -235,14 +235,15 @@ function applyPalette(root: HTMLElement, palette: ThemePalette) {
   root.style.setProperty('--border', palette.border);
   root.style.setProperty('--input', palette.input);
   root.style.setProperty('--ring', palette.ring);
-  root.style.setProperty('--sidebar-background', palette.sidebarBackground);
-  root.style.setProperty('--sidebar-foreground', palette.sidebarForeground);
-  root.style.setProperty('--sidebar-primary', palette.sidebarPrimary);
-  root.style.setProperty('--sidebar-primary-foreground', palette.sidebarPrimaryForeground);
-  root.style.setProperty('--sidebar-accent', palette.sidebarAccent);
-  root.style.setProperty('--sidebar-accent-foreground', palette.sidebarAccentForeground);
-  root.style.setProperty('--sidebar-border', palette.sidebarBorder);
-  root.style.setProperty('--sidebar-ring', palette.sidebarPrimary);
+  // Keep app sidebar on a fixed premium dark palette for consistent contrast
+  root.style.setProperty('--sidebar-background', '240 10% 4%');
+  root.style.setProperty('--sidebar-foreground', '240 5% 84%');
+  root.style.setProperty('--sidebar-primary', '234 89% 74%');
+  root.style.setProperty('--sidebar-primary-foreground', '0 0% 100%');
+  root.style.setProperty('--sidebar-accent', '240 6% 12%');
+  root.style.setProperty('--sidebar-accent-foreground', '0 0% 98%');
+  root.style.setProperty('--sidebar-border', '240 6% 17%');
+  root.style.setProperty('--sidebar-ring', '234 89% 74%');
 }
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
