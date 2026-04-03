@@ -12173,6 +12173,7 @@ export type Database = {
           slug: string
           suspended_at: string | null
           suspended_reason: string | null
+          timezone: string
           updated_at: string
         }
         Insert: {
@@ -12185,6 +12186,7 @@ export type Database = {
           slug: string
           suspended_at?: string | null
           suspended_reason?: string | null
+          timezone?: string
           updated_at?: string
         }
         Update: {
@@ -12197,6 +12199,7 @@ export type Database = {
           slug?: string
           suspended_at?: string | null
           suspended_reason?: string | null
+          timezone?: string
           updated_at?: string
         }
         Relationships: []
@@ -14092,6 +14095,7 @@ export type Database = {
           slug: string
           suspended_at: string | null
           suspended_reason: string | null
+          timezone: string
           updated_at: string
         }
         SetofOptions: {
@@ -14109,6 +14113,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      detect_timezone_from_phone: { Args: { phone: string }; Returns: string }
       get_platform_role: { Args: { _user_id: string }; Returns: string }
       get_team_workload: {
         Args: { p_team_id: string; p_tenant_id: string }
