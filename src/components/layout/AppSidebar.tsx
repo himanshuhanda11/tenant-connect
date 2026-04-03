@@ -176,7 +176,7 @@ export function AppSidebar() {
     : settingsMenuItems;
 
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>(() => ({
-    'Meta Ads': true,
+    'Inbox': true,
     'Team': location.pathname.startsWith('/team'),
   }));
 
