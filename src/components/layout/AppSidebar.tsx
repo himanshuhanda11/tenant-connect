@@ -490,13 +490,14 @@ export function AppSidebar() {
         {/* ── Main Nav ── */}
         <SidebarGroup>
           <SidebarGroupContent>
-            <SidebarMenu className="space-y-0.5">
+            <SidebarMenu className={cn("space-y-0.5", isCollapsed && "flex flex-col items-center")}>
               {filteredMainMenuItems.map(item => renderMenuItem(item))}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
 
         {!isCollapsed && <div className="mx-3 my-2 border-b border-sidebar-border/40" />}
+        {isCollapsed && <div className="mx-1 my-1 border-b border-sidebar-border/20" />}
 
         {/* ── Collapsible Groups ── */}
         {menuGroups.map(group => renderCollapsibleGroup(group))}
