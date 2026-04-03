@@ -235,9 +235,22 @@ export function InboxContextPanel({
             </TabsContent>
 
             {/* ===== CONTACT DETAILS ===== */}
-            <TabsContent value="contact" className="m-0 p-4 space-y-4">
-              <PanelSection title="Contact Info" icon={<User className="h-3 w-3" />}>
-                <div className="space-y-0.5">
+            <TabsContent value="contact" className="m-0 p-4 space-y-5">
+              {/* Contact Card */}
+              <div className="rounded-xl border bg-gradient-to-b from-muted/40 to-transparent p-3.5">
+                <div className="flex items-center gap-3 mb-3">
+                  <Avatar className="h-10 w-10 ring-2 ring-primary/10">
+                    <AvatarImage src={conversation.contact?.profile_picture_url || undefined} />
+                    <AvatarFallback className="bg-primary/10 text-primary text-sm font-semibold">
+                      {getInitials(conversation.contact?.name)}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-semibold truncate">{conversation.contact?.name || 'Unknown'}</p>
+                    <p className="text-[11px] text-muted-foreground">WhatsApp Contact</p>
+                  </div>
+                </div>
+                <div className="space-y-0.5 pl-0.5">
                   <InfoRow icon={<Phone className="h-3.5 w-3.5" />} label="Phone" value={`+${conversation.contact?.wa_id || '—'}`} copyable />
                   {conversation.contact?.language && (
                     <InfoRow icon={<Globe className="h-3.5 w-3.5" />} label="Language" value={conversation.contact.language.toUpperCase()} />
@@ -249,16 +262,17 @@ export function InboxContextPanel({
                         <Shield className="h-3.5 w-3.5" />
                         <span className="text-xs">Marketing</span>
                       </div>
-                      <Badge variant={conversation.contact.opt_out ? "destructive" : "secondary"} className="text-[10px] h-5">
+                      <Badge variant={conversation.contact.opt_out ? "destructive" : "secondary"} className="text-[10px] h-5 font-medium">
                         {conversation.contact.opt_out ? 'Opted Out' : 'Opted In'}
                       </Badge>
                     </div>
                   )}
                 </div>
-              </PanelSection>
+              </div>
 
               <Separator />
 
+              {/* Stats */}
               <PanelSection title="Conversation Stats" icon={<MessageSquare className="h-3 w-3" />}>
                 <div className="grid grid-cols-2 gap-2">
                   <StatCard
@@ -276,15 +290,33 @@ export function InboxContextPanel({
 
               <Separator />
 
+              {/* Source & Attribution Card */}
               <PanelSection title="Source & Attribution" icon={<Globe className="h-3 w-3" />}>
-                <div className="space-y-0.5">
-                  <InfoRow
-                    icon={<ArrowRight className="h-3.5 w-3.5" />}
-                    label="Source"
-                    value={(conversation.contact?.source || conversation.source)?.replace(/_/g, ' ') || 'Direct'}
-                  />
+                <div className="rounded-lg border bg-muted/20 p-3 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-muted-foreground">Source</span>
+                    <Badge variant="outline" className="text-[10px] h-5 capitalize font-medium bg-background">
+                      {(conversation.contact?.source || conversation.source)?.replace(/_/g, ' ') || 'Direct'}
+                    </Badge>
+                  </div>
                   {conversation.contact?.campaign_source && (
-                    <InfoRow icon={<Zap className="h-3.5 w-3.5" />} label="Campaign" value={conversation.contact.campaign_source} />
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-muted-foreground">Campaign</span>
+                      <span className="text-xs font-medium text-foreground/80 truncate max-w-[55%] text-right">
+                        {conversation.contact.campaign_source}
+                      </span>
+                    </div>
+                  )}
+                  {conversation.country_interest && (
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-muted-foreground">Country</span>
+                      <span className="text-xs font-medium text-foreground/80">
+                        {conversation.country_interest}
+                      </span>
+                    </div>
+                  )}
+                  {!conversation.contact?.campaign_source && !conversation.country_interest && (
+                    <p className="text-[11px] text-muted-foreground/60 text-center py-1">No additional attribution data</p>
                   )}
                 </div>
               </PanelSection>
