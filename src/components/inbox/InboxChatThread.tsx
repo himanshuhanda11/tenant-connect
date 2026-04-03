@@ -901,9 +901,9 @@ export function InboxChatThread({
         accept="image/*,video/*,audio/*,.pdf,.doc,.docx,.xls,.xlsx"
       />
 
-      {/* AI Reply Suggestions Panel - Collapsible */}
+      {/* AI Reply Suggestions Panel */}
       {!isSupervisorMode && showAISuggestions && (
-        <div className="px-4 py-2 border-t bg-gradient-to-r from-primary/5 via-primary/3 to-transparent">
+        <div className="border-t border-primary/10 bg-gradient-to-b from-primary/[0.03] to-transparent">
           <AIReplySuggestions
             messages={messages}
             onSelectSuggestion={(text) => {
