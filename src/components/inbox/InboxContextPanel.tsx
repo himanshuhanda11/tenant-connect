@@ -207,7 +207,8 @@ export function InboxContextPanel({
 
         {/* Tabs — with tooltips for icon-only */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col min-h-0 overflow-hidden">
-          <TabsList className="mx-2 mt-2 grid grid-cols-8 h-9 shrink-0 bg-muted/50">
+          <div className={cn("mx-2 mt-2 shrink-0", isMobile && "overflow-x-auto scrollbar-hide")}>
+            <TabsList className={cn("grid grid-cols-8 h-9 bg-muted/50", isMobile && "min-w-[360px]")}>
             {TAB_ITEMS.map(tab => (
               <Tooltip key={tab.value}>
                 <TooltipTrigger asChild>
