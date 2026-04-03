@@ -231,7 +231,7 @@ export function AppSidebar() {
                     "flex items-center justify-center p-2.5 rounded-lg transition-all duration-200 ease-in-out",
                     isActive
                       ? "bg-white/[0.08] text-white shadow-[inset_0_0_0_1px_rgba(255,255,255,0.06)]"
-                      : "text-sidebar-foreground hover:text-white hover:bg-white/[0.04]"
+                      : "text-white/55 hover:text-white hover:bg-white/[0.04]"
                   )}
                   activeClassName=""
                 >
@@ -255,7 +255,7 @@ export function AppSidebar() {
               "group/menuitem relative flex items-center gap-3 px-3 py-[9px] rounded-lg text-[14px] font-medium transition-all duration-200 ease-in-out",
               isActive
                 ? "bg-white/[0.07] text-white backdrop-blur-sm shadow-[inset_0_0_0_1px_rgba(255,255,255,0.06),0_0_12px_-3px_rgba(129,140,248,0.15)]"
-                : "text-sidebar-foreground hover:text-white hover:bg-white/[0.04]"
+                : "text-white/70 hover:text-white hover:bg-white/[0.04]"
             )}
             activeClassName=""
           >
@@ -265,7 +265,7 @@ export function AppSidebar() {
             )}
             <item.icon className={cn(
               "h-4 w-4 flex-shrink-0 transition-all duration-200 ease-in-out",
-              isActive ? "text-indigo-400" : "text-sidebar-foreground group-hover/menuitem:text-white/70 group-hover/menuitem:-translate-y-[1px]"
+              isActive ? "text-indigo-400" : "text-white/50 group-hover/menuitem:text-white/70 group-hover/menuitem:-translate-y-[1px]"
             )} />
             <span className="flex-1 truncate tracking-[-0.01em] leading-none">{item.title}</span>
             {item.isNew && (
@@ -321,8 +321,8 @@ export function AppSidebar() {
               <button className={cn(
                 "w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[10px] font-semibold uppercase tracking-[0.1em] transition-all duration-200 ease-in-out",
                 hasActiveItem
-                  ? "text-indigo-400/80"
-                  : "text-sidebar-foreground/40 hover:text-sidebar-foreground/70"
+                  ? "text-indigo-300"
+                  : "text-white/50 hover:text-white/70"
               )}>
                 <span className="flex-1 text-left">{group.label}</span>
                 <ChevronRight className={cn("w-3 h-3 transition-transform duration-200 ease-in-out", isOpen && "rotate-90")} strokeWidth={1.5} />
@@ -463,7 +463,7 @@ export function AppSidebar() {
         {/* ── Platform ── */}
         <SidebarGroup className="mt-1">
           {!isCollapsed && (
-            <SidebarGroupLabel className="text-sidebar-foreground/35 text-[10px] font-semibold uppercase tracking-[0.1em] px-3 mb-1">
+            <SidebarGroupLabel className="text-white/40 text-[10px] font-semibold uppercase tracking-[0.1em] px-3 mb-1">
               Platform
             </SidebarGroupLabel>
           )}
@@ -497,7 +497,7 @@ export function AppSidebar() {
                     <p className="text-[12px] font-medium text-white/85 truncate">
                       {profile?.full_name || 'User'}
                     </p>
-                    <p className="text-[10px] text-sidebar-foreground/50 truncate">
+                    <p className="text-[10px] text-white/45 truncate">
                       {user?.email}
                     </p>
                   </div>
