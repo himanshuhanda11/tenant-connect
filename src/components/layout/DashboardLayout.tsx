@@ -1,12 +1,31 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
+import { SidebarProvider, useSidebar } from '@/components/ui/sidebar';
 import { AppSidebar } from './AppSidebar';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTenant } from '@/contexts/TenantContext';
 import { supabase } from '@/integrations/supabase/client';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Menu, X } from 'lucide-react';
 import { useAgentSessionTracker } from '@/hooks/useAgentPerformance';
+
+function MobileHeader() {
+  const { toggleSidebar, state } = useSidebar();
+  const isOpen = state === 'expanded';
+
+  return (
+    <header className="h-12 sm:h-14 flex items-center gap-3 px-3 sm:px-4 border-b border-border/60 bg-background/95 backdrop-blur-md sticky top-0 z-30 shadow-xs">
+      <button
+        onClick={toggleSidebar}
+        className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-primary/10 hover:bg-primary/20 text-primary font-medium text-xs sm:text-sm transition-all duration-200 active:scale-95"
+        aria-label={isOpen ? 'Close menu' : 'Open menu'}
+      >
+        {isOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
+        <span className="sm:inline">Menu</span>
+      </button>
+      <div className="flex-1" />
+    </header>
+  );
+}
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -100,10 +119,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       <div className="min-h-screen flex w-full bg-background">
         <AppSidebar />
         <main className="flex-1 flex flex-col min-w-0 w-full">
-          <header className="h-11 sm:h-14 flex items-center gap-2 sm:gap-4 px-2 sm:px-4 border-b border-border/60 bg-background/95 backdrop-blur-md sticky top-0 z-30 shadow-xs">
-            <SidebarTrigger className="h-8 w-8 sm:h-9 sm:w-9 text-muted-foreground hover:text-foreground transition-colors duration-150" />
-            <div className="flex-1" />
-          </header>
+          <MobileHeader />
           <div className="flex-1 overflow-auto relative bg-muted/20">
             {children}
           </div>
