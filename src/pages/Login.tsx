@@ -166,38 +166,51 @@ export default function Login() {
     setIsLoading(true);
     setError(null);
 
-    // If input doesn't contain @, treat as username and append @team.local
     const loginEmail = identifier.includes('@') ? identifier : `${identifier}@team.local`;
 
-    try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email: loginEmail,
-        password,
-      });
+    const MAX_RETRIES = 3;
+    for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
+      try {
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email: loginEmail,
+          password,
+        });
 
-      if (error) {
-        if (error.message.includes('Invalid login credentials')) {
-          setError('Invalid email/username or password. Please try again.');
-        } else if (error.message.includes('Email not confirmed')) {
-          setError('Please verify your email before signing in.');
-        } else {
-          throw error;
+        if (error) {
+          // Retryable server errors
+          if ((error.message.includes('timeout') || error.message.includes('504') || error.message.includes('500') || error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) && attempt < MAX_RETRIES - 1) {
+            console.warn(`Login attempt ${attempt + 1} failed, retrying...`, error.message);
+            await new Promise(r => setTimeout(r, 1500 * (attempt + 1)));
+            continue;
+          }
+
+          if (error.message.includes('Invalid login credentials')) {
+            setError('Invalid email/username or password. Please try again.');
+          } else if (error.message.includes('Email not confirmed')) {
+            setError('Please verify your email before signing in.');
+          } else {
+            setError('Server is busy. Please wait a moment and try again.');
+          }
+          setIsLoading(false);
+          return;
+        }
+
+        if (data.user) {
+          toast.success('Welcome back!');
         }
         setIsLoading(false);
         return;
+      } catch (err: any) {
+        if (attempt < MAX_RETRIES - 1) {
+          console.warn(`Login attempt ${attempt + 1} failed with exception, retrying...`);
+          await new Promise(r => setTimeout(r, 1500 * (attempt + 1)));
+          continue;
+        }
+        console.error('Email login error:', err);
+        setError('Server is temporarily unavailable. Please try again in a few seconds.');
       }
-
-      if (data.user) {
-        toast.success('Welcome back!');
-        // Auth state change will trigger redirect via useEffect
-      }
-    } catch (err: any) {
-      console.error('Email login error:', err);
-      toast.error('Network error. Please try again.');
-      setError('Something went wrong. Please try again.');
-    } finally {
-      setIsLoading(false);
     }
+    setIsLoading(false);
   };
 
   // Show loading while checking auth
