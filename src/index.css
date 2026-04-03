@@ -38,16 +38,16 @@
 
     --radius: 0.625rem;
 
-    /* Sidebar — obsidian dark premium */
-    --sidebar-background: 240 10% 4%;
-    --sidebar-foreground: 240 4% 75%;
-    --sidebar-primary: 234 89% 74%;
+    /* Sidebar — deep dark green premium */
+    --sidebar-background: 160 25% 7%;
+    --sidebar-foreground: 160 8% 75%;
+    --sidebar-primary: 142 70% 50%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 6% 12%;
+    --sidebar-accent: 160 18% 12%;
     --sidebar-accent-foreground: 0 0% 98%;
-    --sidebar-border: 240 6% 17%;
-    --sidebar-ring: 234 89% 74%;
-    --sidebar-muted: 240 6% 10%;
+    --sidebar-border: 160 15% 16%;
+    --sidebar-ring: 142 70% 50%;
+    --sidebar-muted: 160 15% 10%;
 
     /* Custom tokens */
     --success: 142 70% 45%;
@@ -93,16 +93,16 @@
     --input: 222 20% 16%;
     --ring: 142 70% 45%;
 
-    /* Dark sidebar — obsidian premium */
-    --sidebar-background: 240 10% 4%;
-    --sidebar-foreground: 240 4% 75%;
-    --sidebar-primary: 234 89% 74%;
+    /* Dark sidebar — deep dark green premium */
+    --sidebar-background: 160 25% 7%;
+    --sidebar-foreground: 160 8% 75%;
+    --sidebar-primary: 142 70% 50%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 6% 12%;
+    --sidebar-accent: 160 18% 12%;
     --sidebar-accent-foreground: 0 0% 98%;
-    --sidebar-border: 240 6% 17%;
-    --sidebar-ring: 234 89% 74%;
-    --sidebar-muted: 240 6% 10%;
+    --sidebar-border: 160 15% 16%;
+    --sidebar-ring: 142 70% 50%;
+    --sidebar-muted: 160 15% 10%;
 
     --shadow-xs: 0 1px 2px 0 hsl(0 0% 0% / 0.15);
     --shadow-sm: 0 1px 3px 0 hsl(0 0% 0% / 0.2), 0 1px 2px -1px hsl(0 0% 0% / 0.15);
