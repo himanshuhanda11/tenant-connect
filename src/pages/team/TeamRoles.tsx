@@ -159,7 +159,7 @@ const TeamRoles = () => {
 
   return (
     <DashboardLayout>
-      <div className="p-4 sm:p-6 space-y-5 max-w-7xl mx-auto">
+      <div className="space-y-5 max-w-7xl mx-auto">
         <TeamBreadcrumb currentPage="Roles & Permissions" />
 
         {/* Header */}
