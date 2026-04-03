@@ -260,11 +260,19 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     return () => mql.removeEventListener('change', handler);
   }, []);
 
-  const resolvedMode = appearance.mode === 'system' ? systemMode : appearance.mode;
+  // When no workspace is loaded (login/signup pages), always use light mode
+  const resolvedMode = !currentTenant
+    ? 'light'
+    : appearance.mode === 'system'
+      ? systemMode
+      : appearance.mode;
 
   // Fetch workspace appearance
   useEffect(() => {
-    if (!currentTenant) return;
+    if (!currentTenant) {
+      setAppearanceState(defaultAppearance);
+      return;
+    }
     
     supabase
       .from('workspace_appearance')

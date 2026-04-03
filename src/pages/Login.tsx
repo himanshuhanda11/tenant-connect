@@ -53,64 +53,69 @@ export default function Login() {
       if (authLoading) return;
       
       if (user) {
-        // User exists, check their status
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('onboarding_step')
-          .eq('id', user.id)
-          .maybeSingle();
-
-        // Check onboarding status — but skip for team members who already belong to a tenant
-        if (profile?.onboarding_step !== 'completed') {
-          const { data: existingMembership } = await supabase
-            .from('tenant_members')
-            .select('id')
-            .eq('user_id', user.id)
-            .limit(1)
+        try {
+          // User exists, check their status
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('onboarding_step')
+            .eq('id', user.id)
             .maybeSingle();
 
-          if (existingMembership) {
-            // Team member — auto-complete onboarding
-            await supabase.from('profiles').update({ onboarding_step: 'completed' }).eq('id', user.id);
-          } else {
-            if (profile?.onboarding_step === 'org_done') {
-              navigate('/onboarding/password', { replace: true });
+          // Check onboarding status — but skip for team members who already belong to a tenant
+          if (profile?.onboarding_step !== 'completed') {
+            const { data: existingMembership } = await supabase
+              .from('tenant_members')
+              .select('id')
+              .eq('user_id', user.id)
+              .limit(1)
+              .maybeSingle();
+
+            if (existingMembership) {
+              // Team member — auto-complete onboarding
+              await supabase.from('profiles').update({ onboarding_step: 'completed' }).eq('id', user.id);
             } else {
-              navigate('/onboarding/org', { replace: true });
+              if (profile?.onboarding_step === 'org_done') {
+                navigate('/onboarding/password', { replace: true });
+              } else {
+                navigate('/onboarding/org', { replace: true });
+              }
+              return;
             }
-            return;
           }
-        }
 
-        // Check if user is an agent — redirect directly to inbox
-        const { data: memberships } = await supabase
-          .from('tenant_members')
-          .select('tenant_id, role')
-          .eq('user_id', user.id);
+          // Check if user is an agent — redirect directly to inbox
+          const { data: memberships } = await supabase
+            .from('tenant_members')
+            .select('tenant_id, role')
+            .eq('user_id', user.id);
 
-        const { data: assignedRoles } = await supabase
-          .from('user_roles')
-          .select('tenant_id, roles(base_role)')
-          .eq('user_id', user.id);
+          const { data: assignedRoles } = await supabase
+            .from('user_roles')
+            .select('tenant_id, roles(base_role)')
+            .eq('user_id', user.id);
 
-        const assignedRoleMap = new Map<string, string | null>();
+          const assignedRoleMap = new Map<string, string | null>();
 
-        (assignedRoles || []).forEach((assignment: any) => {
-          const relatedRole = Array.isArray(assignment.roles) ? assignment.roles[0] : assignment.roles;
-          assignedRoleMap.set(assignment.tenant_id, relatedRole?.base_role ?? null);
-        });
+          (assignedRoles || []).forEach((assignment: any) => {
+            const relatedRole = Array.isArray(assignment.roles) ? assignment.roles[0] : assignment.roles;
+            assignedRoleMap.set(assignment.tenant_id, relatedRole?.base_role ?? null);
+          });
 
-        const resolvedRoles = (memberships || []).map((membership: any) =>
-          resolveWorkspaceRole(membership.role, assignedRoleMap.get(membership.tenant_id))
-        );
+          const resolvedRoles = (memberships || []).map((membership: any) =>
+            resolveWorkspaceRole(membership.role, assignedRoleMap.get(membership.tenant_id))
+          );
 
-        const isAgentOnly = resolvedRoles.length > 0 && resolvedRoles.every(role => role === 'agent');
-        
-        if (isAgentOnly) {
-          navigate('/inbox', { replace: true });
-        } else {
-          // Onboarding complete - go to workspace selector
-          navigate('/select-workspace', { replace: true });
+          const isAgentOnly = resolvedRoles.length > 0 && resolvedRoles.every(role => role === 'agent');
+          
+          if (isAgentOnly) {
+            navigate('/inbox', { replace: true });
+          } else {
+            navigate('/select-workspace', { replace: true });
+          }
+        } catch (err) {
+          console.error('Auth status check failed:', err);
+          // Fall through to show login form instead of infinite spinner
+          setIsCheckingAuth(false);
         }
       } else {
         setIsCheckingAuth(false);
@@ -175,11 +180,13 @@ export default function Login() {
 
       if (data.user) {
         toast.success('Welcome back!');
+        // Auth state change will trigger redirect via useEffect
       }
     } catch (err: any) {
       console.error('Email login error:', err);
       toast.error('Network error. Please try again.');
       setError('Something went wrong. Please try again.');
+    } finally {
       setIsLoading(false);
     }
   };
