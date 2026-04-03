@@ -160,8 +160,8 @@ const TeamAudit = () => {
               <div className="space-y-2">
                 <label className="text-sm font-medium">Action</label>
                 <Select 
-                  value={filters.action || ''} 
-                  onValueChange={(v) => setFilters({ ...filters, action: v || undefined })}
+                  value={filters.action || 'all'} 
+                  onValueChange={(v) => setFilters({ ...filters, action: v === 'all' ? undefined : v })}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="All actions" />
