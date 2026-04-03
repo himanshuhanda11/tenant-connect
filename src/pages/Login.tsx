@@ -175,11 +175,13 @@ export default function Login() {
 
       if (data.user) {
         toast.success('Welcome back!');
+        // Auth state change will trigger redirect via useEffect
       }
     } catch (err: any) {
       console.error('Email login error:', err);
       toast.error('Network error. Please try again.');
       setError('Something went wrong. Please try again.');
+    } finally {
       setIsLoading(false);
     }
   };
