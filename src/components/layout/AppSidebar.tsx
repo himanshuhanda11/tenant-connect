@@ -321,7 +321,7 @@ export function AppSidebar() {
 
     return (
       <div key={group.label} ref={hasActiveItem ? activeGroupRef : undefined}>
-        <Collapsible open={isOpen} onOpenChange={() => toggleGroup(group.label)} className="mt-1">
+        <Collapsible open={isOpen} onOpenChange={() => toggleGroup(group.label)} className="mt-1.5 pt-1.5 border-t border-sidebar-border/30 first:border-t-0 first:pt-0">
           <SidebarGroup>
            <CollapsibleTrigger asChild>
               <button className={cn(
