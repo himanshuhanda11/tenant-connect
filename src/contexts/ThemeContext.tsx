@@ -304,21 +304,20 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     const palette = resolvedMode === 'dark' ? themeDef.dark : themeDef.light;
     applyPalette(root, palette);
 
-    // Apply custom sidebar color override
+    // Keep the sidebar premium-dark even when a workspace sidebar color is configured.
+    // Reuse the chosen color only as an accent hue while preserving readable contrast.
     if (appearance.sidebar_color) {
-      const hex = appearance.sidebar_color;
-      // Convert hex to HSL for CSS variables
-      const hsl = hexToHsl(hex);
+      const hsl = hexToHsl(appearance.sidebar_color);
       if (hsl) {
-        const [h, s, l] = hsl;
-        const hslStr = `${h} ${s}% ${l}%`;
-        root.style.setProperty('--sidebar-background', hslStr);
-        // Derive sidebar foreground based on luminance
-        const fgLight = l < 50;
-        root.style.setProperty('--sidebar-foreground', fgLight ? `${h} 10% 95%` : `${h} 20% 10%`);
-        root.style.setProperty('--sidebar-accent', fgLight ? `${h} ${Math.min(s + 10, 100)}% ${Math.min(l + 8, 100)}%` : `${h} 10% ${Math.max(l - 5, 0)}%`);
-        root.style.setProperty('--sidebar-accent-foreground', fgLight ? `${h} 10% 95%` : `${h} 20% 10%`);
-        root.style.setProperty('--sidebar-border', fgLight ? `${h} ${Math.min(s, 30)}% ${Math.min(l + 12, 100)}%` : `${h} 10% ${Math.max(l - 8, 0)}%`);
+        const [h, s] = hsl;
+        root.style.setProperty('--sidebar-background', `${h} ${Math.min(Math.max(s, 4), 18)}% 4%`);
+        root.style.setProperty('--sidebar-foreground', `${h} 8% 84%`);
+        root.style.setProperty('--sidebar-primary', `${h} ${Math.min(Math.max(s, 45), 90)}% 74%`);
+        root.style.setProperty('--sidebar-primary-foreground', '0 0% 100%');
+        root.style.setProperty('--sidebar-accent', `${h} ${Math.min(Math.max(s, 8), 24)}% 12%`);
+        root.style.setProperty('--sidebar-accent-foreground', '0 0% 98%');
+        root.style.setProperty('--sidebar-border', `${h} ${Math.min(Math.max(s, 6), 20)}% 17%`);
+        root.style.setProperty('--sidebar-ring', `${h} ${Math.min(Math.max(s, 45), 90)}% 74%`);
       }
     }
 
