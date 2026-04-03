@@ -354,11 +354,10 @@ export function InboxChatThread({
                   className={cn(
                     "text-[10px] px-1.5 py-0 h-4 font-medium",
                     conversation.status === 'open' && "bg-green-50 text-green-700 border-green-200 dark:bg-green-950 dark:text-green-400 dark:border-green-800",
-                    conversation.status === 'pending' && "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950 dark:text-amber-400 dark:border-amber-800",
                     conversation.status === 'closed' && "bg-muted text-muted-foreground border-border"
                   )}
                 >
-                  {STATUS_CONFIG[conversation.status].label}
+                  {conversation.status === 'open' ? 'Open' : conversation.status === 'closed' ? 'Resolved' : STATUS_CONFIG[conversation.status].label}
                 </Badge>
               </div>
               <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
@@ -483,11 +482,8 @@ export function InboxChatThread({
                 <DropdownMenuItem onClick={() => onSetStatus('open')} className="gap-2 rounded-md">
                   <span className="w-2 h-2 rounded-full bg-green-500" /> Open
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => onSetStatus('pending')} className="gap-2 rounded-md">
-                  <span className="w-2 h-2 rounded-full bg-amber-500" /> Pending
-                </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => onSetStatus('closed')} className="gap-2 rounded-md">
-                  <span className="w-2 h-2 rounded-full bg-muted-foreground" /> Close
+                  <span className="w-2 h-2 rounded-full bg-muted-foreground" /> Resolved
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={() => setShowTemplates(true)} className="gap-2 rounded-md">

@@ -102,7 +102,7 @@ export function InboxCRMOverview({ conversation, onStatusChanged }: InboxCRMOver
           <div className="space-y-2">
             <InfoRow icon={<Calendar className="h-3.5 w-3.5" />} label="Created" value={conversation.created_at ? formatDistanceToNow(new Date(conversation.created_at), { addSuffix: true }) : '—'} />
             <InfoRow icon={<Clock className="h-3.5 w-3.5" />} label="Last Message" value={conversation.last_message_at ? formatDistanceToNow(new Date(conversation.last_message_at), { addSuffix: true }) : '—'} />
-            <InfoRow icon={<PhoneCall className="h-3.5 w-3.5" />} label="Last Contacted" value={conversation.last_contacted_at ? formatDistanceToNow(new Date(conversation.last_contacted_at), { addSuffix: true }) : 'Never'} />
+            <InfoRow icon={<PhoneCall className="h-3.5 w-3.5" />} label="Last Contacted" value={conversation.last_contacted_at ? formatDistanceToNow(new Date(conversation.last_contacted_at), { addSuffix: true }) : conversation.last_message_at ? formatDistanceToNow(new Date(conversation.last_message_at), { addSuffix: true }) : '—'} />
             {conversation.next_followup_at && (
               <InfoRow
                 icon={<CalendarClock className="h-3.5 w-3.5" />}
@@ -169,27 +169,31 @@ export function InboxCRMOverview({ conversation, onStatusChanged }: InboxCRMOver
             Quick Actions
           </h4>
           <div className="grid grid-cols-2 gap-1.5">
-            {quickActions.map(action => (
-              <Button
-                key={action.status}
-                variant={action.variant as any || "outline"}
-                size="sm"
-                className="h-8 text-[11px] justify-start gap-1.5"
-                onClick={() => {
-                  // For follow-up and junk, the CRMStatusDropdown handles the dialogs
-                  // For direct statuses, update immediately
-                  if (action.status !== 'follow_up_required' && action.status !== 'junk') {
-                    updateStatus(conversation.id, action.status).then(ok => {
-                      if (ok) onStatusChanged?.();
-                    });
-                  }
-                }}
-                disabled={conversation.crm_status === action.status}
-              >
-                {action.icon}
-                {action.label}
-              </Button>
-            ))}
+            {quickActions.map(action => {
+              const isCurrentStatus = conversation.crm_status === action.status;
+              return (
+                <Button
+                  key={action.status}
+                  variant={isCurrentStatus ? "default" : action.variant as any || "outline"}
+                  size="sm"
+                  className={cn(
+                    "h-8 text-[11px] justify-start gap-1.5",
+                    isCurrentStatus && "ring-2 ring-primary/30"
+                  )}
+                  onClick={() => {
+                    if (action.status !== 'follow_up_required' && action.status !== 'junk') {
+                      updateStatus(conversation.id, action.status).then(ok => {
+                        if (ok) onStatusChanged?.();
+                      });
+                    }
+                  }}
+                  disabled={isCurrentStatus}
+                >
+                  {action.icon}
+                  {isCurrentStatus ? '✓ ' : ''}{action.label}
+                </Button>
+              );
+            })}
           </div>
         </div>
       </div>
