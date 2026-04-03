@@ -94,14 +94,12 @@ export default function Login() {
           const { data: memberships } = await supabase
             .from('tenant_members')
             .select('tenant_id, role')
-            .eq('user_id', user.id)
-            .abortSignal(AbortSignal.timeout(6000));
+            .eq('user_id', user.id);
 
           const { data: assignedRoles } = await supabase
             .from('user_roles')
             .select('tenant_id, roles(base_role)')
-            .eq('user_id', user.id)
-            .abortSignal(AbortSignal.timeout(6000));
+            .eq('user_id', user.id);
 
           const assignedRoleMap = new Map<string, string | null>();
 
