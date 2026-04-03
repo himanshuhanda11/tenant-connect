@@ -482,11 +482,8 @@ export function InboxChatThread({
                 <DropdownMenuItem onClick={() => onSetStatus('open')} className="gap-2 rounded-md">
                   <span className="w-2 h-2 rounded-full bg-green-500" /> Open
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => onSetStatus('pending')} className="gap-2 rounded-md">
-                  <span className="w-2 h-2 rounded-full bg-amber-500" /> Pending
-                </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => onSetStatus('closed')} className="gap-2 rounded-md">
-                  <span className="w-2 h-2 rounded-full bg-muted-foreground" /> Close
+                  <span className="w-2 h-2 rounded-full bg-muted-foreground" /> Resolved
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={() => setShowTemplates(true)} className="gap-2 rounded-md">

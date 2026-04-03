@@ -169,27 +169,31 @@ export function InboxCRMOverview({ conversation, onStatusChanged }: InboxCRMOver
             Quick Actions
           </h4>
           <div className="grid grid-cols-2 gap-1.5">
-            {quickActions.map(action => (
-              <Button
-                key={action.status}
-                variant={action.variant as any || "outline"}
-                size="sm"
-                className="h-8 text-[11px] justify-start gap-1.5"
-                onClick={() => {
-                  // For follow-up and junk, the CRMStatusDropdown handles the dialogs
-                  // For direct statuses, update immediately
-                  if (action.status !== 'follow_up_required' && action.status !== 'junk') {
-                    updateStatus(conversation.id, action.status).then(ok => {
-                      if (ok) onStatusChanged?.();
-                    });
-                  }
-                }}
-                disabled={conversation.crm_status === action.status}
-              >
-                {action.icon}
-                {action.label}
-              </Button>
-            ))}
+            {quickActions.map(action => {
+              const isCurrentStatus = conversation.crm_status === action.status;
+              return (
+                <Button
+                  key={action.status}
+                  variant={isCurrentStatus ? "default" : action.variant as any || "outline"}
+                  size="sm"
+                  className={cn(
+                    "h-8 text-[11px] justify-start gap-1.5",
+                    isCurrentStatus && "ring-2 ring-primary/30"
+                  )}
+                  onClick={() => {
+                    if (action.status !== 'follow_up_required' && action.status !== 'junk') {
+                      updateStatus(conversation.id, action.status).then(ok => {
+                        if (ok) onStatusChanged?.();
+                      });
+                    }
+                  }}
+                  disabled={isCurrentStatus}
+                >
+                  {action.icon}
+                  {isCurrentStatus ? '✓ ' : ''}{action.label}
+                </Button>
+              );
+            })}
           </div>
         </div>
       </div>
