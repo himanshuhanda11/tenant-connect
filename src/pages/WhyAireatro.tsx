@@ -1,14 +1,16 @@
 import React from 'react';
 import { Helmet } from 'react-helmet-async';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import {
   ArrowRight, CheckCircle2, Zap, Users, Bot, Send,
   BarChart3, Shield, Sparkles, Phone, Target,
-  Layers, HeartHandshake,
+  Layers, HeartHandshake, Download, ChevronRight, Home,
 } from 'lucide-react';
+import Navbar from '@/components/layout/Navbar';
+import Footer from '@/components/layout/Footer';
 
 import uspFreeApi from '@/assets/usp-free-api.jpg';
 import uspTeamInbox from '@/assets/usp-team-inbox.jpg';
@@ -195,11 +197,25 @@ export default function WhyAireatro() {
         <meta name="description" content="Discover why 2,000+ businesses choose Aireatro. Free WhatsApp API, AI automation, team inbox, bulk campaigns & full Meta Ads tracking. Zero monthly fees." />
       </Helmet>
 
+      <Navbar />
+
       <div className="min-h-screen bg-white">
+        {/* ── BREADCRUMBS ── */}
+        <div className="max-w-5xl mx-auto px-4 pt-4 pb-2">
+          <nav className="flex items-center gap-1.5 text-sm text-gray-500">
+            <Link to="/" className="flex items-center gap-1 hover:text-gray-900 transition-colors">
+              <Home className="h-3.5 w-3.5" />
+              <span>Home</span>
+            </Link>
+            <ChevronRight className="h-3.5 w-3.5 text-gray-300" />
+            <span className="text-gray-900 font-medium">Why Aireatro</span>
+          </nav>
+        </div>
+
         {/* ── HERO ── */}
         <section className="relative overflow-hidden bg-gradient-to-b from-emerald-50/80 via-white to-white">
           <div className="absolute inset-0 opacity-30" style={{ backgroundImage: 'radial-gradient(circle at 20% 50%, rgba(16,185,129,0.08) 0%, transparent 50%), radial-gradient(circle at 80% 20%, rgba(59,130,246,0.06) 0%, transparent 50%)' }} />
-          <div className="relative max-w-5xl mx-auto px-4 py-16 sm:py-24 text-center">
+          <div className="relative max-w-5xl mx-auto px-4 py-12 sm:py-20 text-center">
             <Badge className="bg-emerald-100 text-emerald-700 border-emerald-200 text-xs font-semibold px-3 py-1 rounded-full mb-6">
               OFFICIAL WHATSAPP CLOUD API PARTNER
             </Badge>
@@ -217,6 +233,17 @@ export default function WhyAireatro() {
               <Button size="lg" variant="outline" className="rounded-xl text-sm font-semibold px-8 border-gray-300 text-gray-700 hover:bg-gray-50" onClick={() => navigate('/contact')}>
                 Book a Demo
               </Button>
+            </div>
+            {/* Download PDF */}
+            <div className="mt-4">
+              <a
+                href="/Aireatro-USP-Brochure.pdf"
+                download="Aireatro-USP-Brochure.pdf"
+                className="inline-flex items-center gap-2 text-sm text-emerald-600 hover:text-emerald-700 font-medium transition-colors"
+              >
+                <Download className="h-4 w-4" />
+                Download USP Brochure (PDF)
+              </a>
             </div>
             {/* Stats row */}
             <div className="flex flex-wrap justify-center gap-8 sm:gap-12 mt-12 pt-8 border-t border-gray-200">
@@ -360,6 +387,8 @@ export default function WhyAireatro() {
           </div>
         </section>
       </div>
+
+      <Footer />
     </>
   );
 }
