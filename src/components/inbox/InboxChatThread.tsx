@@ -412,49 +412,50 @@ export function InboxChatThread({
               </Tooltip>
             )}
 
-            {/* Transfer */}
+            {/* Transfer - desktop only */}
             {!isMobile && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="sm" className="h-7 text-xs gap-1 text-muted-foreground">
+                  <Button variant="ghost" size="sm" className="h-7 text-xs gap-1 text-muted-foreground hover:text-foreground">
                     <ArrowRightLeft className="h-3 w-3" /> Transfer
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuContent align="end" className="w-52 p-1">
+                  <div className="px-2 py-1.5 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Transfer to</div>
                   {teamMembers.map(member => (
                     <DropdownMenuItem
                       key={member.id}
                       onClick={() => onTransfer ? onTransfer(member.id, false) : onAssign(member.id)}
-                      className={conversation.assigned_to === member.id ? 'bg-muted' : ''}
+                      className={cn("gap-2 rounded-md", conversation.assigned_to === member.id && 'bg-primary/5')}
                     >
-                      <User className="h-3.5 w-3.5 mr-2" />
-                      {member.full_name}
-                      {conversation.assigned_to === member.id && <Check className="h-3 w-3 ml-auto" />}
+                      <User className="h-3.5 w-3.5" />
+                      <span className="flex-1">{member.full_name}</span>
+                      {conversation.assigned_to === member.id && <Check className="h-3 w-3 text-primary" />}
                     </DropdownMenuItem>
                   ))}
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => onAssign(null)}>
-                    <X className="h-3.5 w-3.5 mr-2" /> Unassign
+                  <DropdownMenuItem onClick={() => onAssign(null)} className="gap-2 rounded-md text-muted-foreground">
+                    <X className="h-3.5 w-3.5" /> Unassign
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             )}
 
-            {/* Tags */}
+            {/* Tags - desktop only */}
             {!isMobile && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground">
+                  <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-foreground">
                     <Tag className="h-3.5 w-3.5" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-44">
-                  <div className="px-2 py-1 text-xs font-medium text-muted-foreground">Add Tag</div>
+                <DropdownMenuContent align="end" className="w-44 p-1">
+                  <div className="px-2 py-1.5 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Add Tag</div>
                   {availableTags
                     .filter(tag => !conversation.tags?.some(t => t.id === tag.id))
                     .map(tag => (
-                      <DropdownMenuItem key={tag.id} onClick={() => onAddTag(tag.id)}>
-                        <span className="w-2 h-2 rounded-full mr-2" style={{ backgroundColor: tag.color }} />
+                      <DropdownMenuItem key={tag.id} onClick={() => onAddTag(tag.id)} className="gap-2 rounded-md">
+                        <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: tag.color }} />
                         {tag.name}
                       </DropdownMenuItem>
                     ))}
@@ -463,33 +464,72 @@ export function InboxChatThread({
             )}
 
             {isMobile && onShowInfo && (
-              <Button variant="ghost" size="icon" onClick={onShowInfo} className="h-8 w-8">
+              <Button variant="ghost" size="icon" onClick={onShowInfo} className="h-8 w-8 text-muted-foreground">
                 <Info className="h-4 w-4" />
               </Button>
             )}
 
-            {/* More menu (status + templates) */}
+            {/* More menu — includes transfer & tags on mobile */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground">
+                <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-foreground">
                   <MoreVertical className="h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48">
-                <div className="px-2 py-1 text-xs font-medium text-muted-foreground">Status</div>
-                <DropdownMenuItem onClick={() => onSetStatus('open')}>
-                  <span className="w-2 h-2 rounded-full bg-green-500 mr-2" /> Open
+              <DropdownMenuContent align="end" className="w-52 p-1">
+                {/* Status section */}
+                <div className="px-2 py-1.5 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Status</div>
+                <DropdownMenuItem onClick={() => onSetStatus('open')} className="gap-2 rounded-md">
+                  <span className="w-2 h-2 rounded-full bg-green-500" /> Open
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => onSetStatus('pending')}>
-                  <span className="w-2 h-2 rounded-full bg-amber-500 mr-2" /> Pending
+                <DropdownMenuItem onClick={() => onSetStatus('pending')} className="gap-2 rounded-md">
+                  <span className="w-2 h-2 rounded-full bg-amber-500" /> Pending
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => onSetStatus('closed')}>
-                  <span className="w-2 h-2 rounded-full bg-muted-foreground mr-2" /> Close
+                <DropdownMenuItem onClick={() => onSetStatus('closed')} className="gap-2 rounded-md">
+                  <span className="w-2 h-2 rounded-full bg-muted-foreground" /> Close
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => setShowTemplates(true)}>
-                  <FileText className="h-3.5 w-3.5 mr-2" /> Send Template
+                <DropdownMenuItem onClick={() => setShowTemplates(true)} className="gap-2 rounded-md">
+                  <FileText className="h-3.5 w-3.5" /> Send Template
                 </DropdownMenuItem>
+
+                {/* Transfer — mobile only */}
+                {isMobile && teamMembers.length > 0 && (
+                  <>
+                    <DropdownMenuSeparator />
+                    <div className="px-2 py-1.5 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Transfer to</div>
+                    {teamMembers.map(member => (
+                      <DropdownMenuItem
+                        key={member.id}
+                        onClick={() => onTransfer ? onTransfer(member.id, false) : onAssign(member.id)}
+                        className={cn("gap-2 rounded-md", conversation.assigned_to === member.id && 'bg-primary/5')}
+                      >
+                        <User className="h-3.5 w-3.5" />
+                        <span className="flex-1">{member.full_name}</span>
+                        {conversation.assigned_to === member.id && <Check className="h-3 w-3 text-primary" />}
+                      </DropdownMenuItem>
+                    ))}
+                    <DropdownMenuItem onClick={() => onAssign(null)} className="gap-2 rounded-md text-muted-foreground">
+                      <X className="h-3.5 w-3.5" /> Unassign
+                    </DropdownMenuItem>
+                  </>
+                )}
+
+                {/* Tags — mobile only */}
+                {isMobile && availableTags.filter(tag => !conversation.tags?.some(t => t.id === tag.id)).length > 0 && (
+                  <>
+                    <DropdownMenuSeparator />
+                    <div className="px-2 py-1.5 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Add Tag</div>
+                    {availableTags
+                      .filter(tag => !conversation.tags?.some(t => t.id === tag.id))
+                      .map(tag => (
+                        <DropdownMenuItem key={tag.id} onClick={() => onAddTag(tag.id)} className="gap-2 rounded-md">
+                          <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: tag.color }} />
+                          {tag.name}
+                        </DropdownMenuItem>
+                      ))}
+                  </>
+                )}
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
