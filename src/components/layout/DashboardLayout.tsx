@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useEffect, useState, useRef } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { SidebarProvider, useSidebar } from '@/components/ui/sidebar';
 import { AppSidebar } from './AppSidebar';
 import { useAuth } from '@/contexts/AuthContext';
@@ -25,6 +25,14 @@ function MobileHeader() {
       <div className="flex-1" />
     </header>
   );
+}
+
+function ScrollToTop() {
+  const location = useLocation();
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [location.pathname]);
+  return null;
 }
 
 interface DashboardLayoutProps {
@@ -120,6 +128,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         <AppSidebar />
         <main className="flex-1 flex flex-col min-w-0 w-full">
           <MobileHeader />
+          <ScrollToTop />
           <div className="flex-1 overflow-auto relative bg-muted/20 p-4 sm:p-6 lg:p-8">
             {children}
           </div>
