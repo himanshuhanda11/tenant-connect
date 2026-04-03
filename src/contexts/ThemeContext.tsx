@@ -308,7 +308,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     if (appearance.sidebar_color) {
       const hsl = hexToHsl(appearance.sidebar_color);
       if (hsl) {
-        const [h, s] = hsl;
+        const [h, s, l] = hsl;
         if (resolvedMode === 'dark') {
           root.style.setProperty('--sidebar-background', `${h} ${Math.min(Math.max(s, 4), 18)}% 4%`);
           root.style.setProperty('--sidebar-foreground', `${h} 8% 84%`);
