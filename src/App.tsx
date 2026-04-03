@@ -114,6 +114,7 @@ import ClickToWhatsApp from "./pages/ClickToWhatsApp";
 import WhyWhatsAppMarketing from "./pages/WhyWhatsAppMarketing";
 import FreeWhatsAppApiLifetime from "./pages/FreeWhatsAppApiLifetime";
 import DocsViewer from "./pages/DocsViewer";
+import WhyAireatro from "./pages/WhyAireatro";
 import NotFound from "./pages/NotFound";
 import MetaAdsOverview from "./pages/meta-ads/MetaAdsOverview";
 import MetaAdsSetup from "./pages/meta-ads/MetaAdsSetup";
@@ -307,6 +308,7 @@ const App = () => (
               <Route path="/whatsapp-business-api" element={<WhatsAppBusinessApi />} />
               <Route path="/click-to-whatsapp" element={<ClickToWhatsApp />} />
               <Route path="/why-whatsapp-marketing" element={<WhyWhatsAppMarketing />} />
+              <Route path="/why-aireatro" element={<WhyAireatro />} />
               <Route path="/free-whatsapp-api-lifetime" element={<FreeWhatsAppApiLifetime />} />
               <Route path="/install" element={<Install />} />
               <Route path="/developer/seo" element={<SeoDashboard />} />
