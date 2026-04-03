@@ -333,7 +333,7 @@ export function AppSidebar() {
                 <group.icon className={cn(
                   "w-4 h-4 flex-shrink-0 transition-colors duration-200",
                   hasActiveItem ? "text-sidebar-primary" : "text-sidebar-foreground/50"
-                )} strokeWidth={1.5} />
+                )} />
                 <span className="flex-1 text-left">{group.label}</span>
                 <ChevronRight className={cn("w-3 h-3 transition-transform duration-200 ease-in-out", isOpen && "rotate-90")} strokeWidth={1.5} />
               </button>
