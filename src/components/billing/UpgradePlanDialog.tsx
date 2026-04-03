@@ -139,12 +139,29 @@ export function UpgradePlanDialog({ open, onOpenChange, currentPlanId }: Upgrade
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Sparkles className="w-5 h-5 text-primary" />
-            Upgrade Workspace Plan
+            {isTopPlan ? 'You\'re on the Business Plan' : 'Upgrade Workspace Plan'}
           </DialogTitle>
           <DialogDescription>
-            Plan applies to this workspace only. Includes 1 WhatsApp phone number.
+            {isTopPlan
+              ? 'You\'re already on the highest plan. You can add extra capacity via add-ons.'
+              : 'Plan applies to this workspace only. Includes 1 WhatsApp phone number.'}
           </DialogDescription>
         </DialogHeader>
+
+        {isTopPlan ? (
+          <div className="flex flex-col items-center text-center py-8 gap-4">
+            <div className="w-14 h-14 rounded-full bg-amber-100 dark:bg-amber-500/15 flex items-center justify-center">
+              <Building2 className="w-7 h-7 text-amber-600 dark:text-amber-400" />
+            </div>
+            <p className="text-sm text-muted-foreground max-w-sm">
+              You have full access to all features. Need more capacity? Check out add-ons for extra team seats, flows, or AI credits.
+            </p>
+            <Button variant="outline" onClick={() => onOpenChange(false)} className="gap-2">
+              Got it
+            </Button>
+          </div>
+        ) : (
+          <>
 
         {/* Billing cycle toggle */}
         <div className="flex items-center justify-between p-3 rounded-xl bg-muted/50 border border-border/50">
