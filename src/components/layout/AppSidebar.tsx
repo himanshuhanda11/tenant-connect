@@ -413,7 +413,7 @@ export function AppSidebar() {
         )}
       </SidebarHeader>
 
-      <SidebarContent ref={sidebarScrollRef} className={cn("py-3 overflow-y-auto", isCollapsed ? "px-1.5" : "px-3")}>
+      <SidebarContent ref={sidebarScrollRef} className={cn("py-2 overflow-y-auto scrollbar-thin scrollbar-thumb-sidebar-border/30 scrollbar-track-transparent", isCollapsed ? "px-1" : "px-3")}>
         {/* ── Workspace Switcher ── */}
         <div className="mb-3">
           <DropdownMenu>
