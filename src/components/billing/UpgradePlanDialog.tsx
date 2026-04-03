@@ -277,6 +277,8 @@ export function UpgradePlanDialog({ open, onOpenChange, currentPlanId }: Upgrade
         <p className="text-xs text-muted-foreground text-center mt-2">
           Add-ons (extra team seats, flows, AI credits) can be added after upgrading.
         </p>
+        </>
+        )}
       </DialogContent>
     </Dialog>
   );
