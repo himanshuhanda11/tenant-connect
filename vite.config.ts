@@ -15,6 +15,10 @@ export default defineConfig(({ mode }) => ({
     mode === "development" && componentTagger(),
     VitePWA({
       registerType: "autoUpdate",
+      devOptions: {
+        enabled: false,
+      },
+      selfDestroying: true,
       includeAssets: ["favicon.png", "favicon.ico", "robots.txt"],
       manifest: {
         name: "AiReatro Communications",
@@ -46,31 +50,9 @@ export default defineConfig(({ mode }) => ({
         ],
       },
       workbox: {
-        maximumFileSizeToCacheInBytes: 5 * 1024 * 1024, // 5 MB limit
-        globPatterns: ["**/*.{js,css,html,ico,png,svg,woff2}"],
-        // Never cache API or OAuth bridge requests
-        navigateFallbackDenylist: [/^\/rest\//, /^\/auth\//, /^\/functions\//, /^\/~oauth/],
-        runtimeCaching: [
-          {
-            urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
-            handler: "CacheFirst",
-            options: {
-              cacheName: "google-fonts-cache",
-              expiration: {
-                maxEntries: 10,
-                maxAgeSeconds: 60 * 60 * 24 * 365, // 1 year
-              },
-            },
-          },
-          {
-            // Ensure Supabase API calls always go to network
-            urlPattern: /^https:\/\/.*\.supabase\.co\/.*/i,
-            handler: "NetworkOnly",
-          },
-        ],
-        // Force new service worker to activate immediately
-        skipWaiting: true,
-        clientsClaim: true,
+        // Disable all caching - service worker will self-destruct
+        globPatterns: [],
+        navigateFallback: null,
       },
     }),
   ].filter(Boolean),
