@@ -167,7 +167,7 @@ const TeamAudit = () => {
                     <SelectValue placeholder="All actions" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All actions</SelectItem>
+                    <SelectItem value="all">All actions</SelectItem>
                     {uniqueActions.map(action => (
                       <SelectItem key={action} value={action}>
                         {ACTION_LABELS[action as AuditAction] || action}
