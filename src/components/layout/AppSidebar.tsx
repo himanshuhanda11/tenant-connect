@@ -239,21 +239,23 @@ export function AppSidebar() {
                   to={item.url}
                   end={item.url === '/dashboard'}
                   className={cn(
-                    "flex items-center justify-center p-2.5 rounded-lg transition-all duration-200 ease-in-out",
+                    "relative flex items-center justify-center w-9 h-9 mx-auto rounded-xl transition-all duration-200 ease-in-out",
                     isActive
-                      ? "bg-sidebar-accent text-sidebar-accent-foreground shadow-sm"
-                      : "text-sidebar-foreground/70 hover:text-sidebar-accent-foreground hover:bg-sidebar-accent/70"
+                      ? "bg-sidebar-primary/15 text-sidebar-primary shadow-sm ring-1 ring-sidebar-primary/20"
+                      : "text-sidebar-foreground/60 hover:text-sidebar-primary hover:bg-sidebar-accent/80"
                   )}
                   activeClassName=""
                 >
-                  <item.icon className={cn(
-                    "h-[18px] w-[18px] transition-all duration-200",
-                    isActive ? "text-sidebar-primary" : "text-sidebar-foreground/80"
-                  )} />
+                  <item.icon className="h-[18px] w-[18px]" strokeWidth={isActive ? 2 : 1.5} />
+                  {item.badge !== undefined && item.badge > 0 && (
+                    <span className="absolute -top-1 -right-1 h-4 min-w-[16px] px-1 text-[9px] font-bold rounded-full bg-sidebar-primary text-white flex items-center justify-center shadow-sm">
+                      {item.badge}
+                    </span>
+                  )}
                 </NavLink>
               </SidebarMenuButton>
             </TooltipTrigger>
-            <TooltipContent side="right" className="text-xs font-medium bg-popover text-popover-foreground border-border">
+            <TooltipContent side="right" sideOffset={8} className="text-xs font-medium bg-popover text-popover-foreground border-border shadow-lg">
               {item.title}
             </TooltipContent>
           </Tooltip>
