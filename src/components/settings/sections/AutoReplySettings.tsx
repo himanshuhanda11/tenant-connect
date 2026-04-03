@@ -260,10 +260,6 @@ export function AutoReplySettings() {
           <TabsTrigger value="keywords" className="text-xs sm:text-sm py-2">Keywords</TabsTrigger>
           <TabsTrigger value="ai" className="text-xs sm:text-sm py-2">AI Reply</TabsTrigger>
         </TabsList>
-          <TabsTrigger value="general">General</TabsTrigger>
-          <TabsTrigger value="keywords">Keywords</TabsTrigger>
-          <TabsTrigger value="ai">AI Auto-Reply</TabsTrigger>
-        </TabsList>
 
         {/* General Auto-Reply */}
         <TabsContent value="general" className="space-y-6 mt-6">

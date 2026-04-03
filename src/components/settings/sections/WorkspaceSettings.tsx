@@ -220,10 +220,6 @@ export function WorkspaceSettings() {
           <TabsTrigger value="whatsapp" className="text-xs sm:text-sm py-2">WhatsApp</TabsTrigger>
           <TabsTrigger value="advanced" className="text-xs sm:text-sm py-2">Advanced</TabsTrigger>
         </TabsList>
-          <TabsTrigger value="general">General</TabsTrigger>
-          <TabsTrigger value="whatsapp">WhatsApp Profile</TabsTrigger>
-          <TabsTrigger value="advanced">Advanced</TabsTrigger>
-        </TabsList>
 
         <TabsContent value="general" className="space-y-6 mt-6">
           <Card>
