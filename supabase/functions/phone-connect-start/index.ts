@@ -59,9 +59,10 @@ Deno.serve(async (req) => {
     }
 
     // Auto-detect and set workspace timezone from phone country code
-    const { data: tzData } = await admin.rpc('detect_timezone_from_phone', { phone: phoneE164 }).single();
-    if (tzData) {
-      await admin.from("tenants").update({ timezone: tzData }).eq("id", workspaceId);
+    const { data: tzData } = await admin.rpc('detect_timezone_from_phone', { phone: phoneE164 });
+    const detectedTz = typeof tzData === 'string' ? tzData : 'UTC';
+    if (detectedTz && detectedTz !== 'UTC') {
+      await admin.from("tenants").update({ timezone: detectedTz }).eq("id", workspaceId);
     }
 
     // Audit log
