@@ -291,9 +291,9 @@ export function AppSidebar() {
               </span>
             )}
             {item.badge !== undefined && item.badge > 0 && (
-              <Badge variant="destructive" className="h-[18px] min-w-[18px] px-1 text-[10px] rounded-full">
+              <span className="h-[18px] min-w-[18px] px-1.5 text-[10px] font-semibold rounded-full inline-flex items-center justify-center bg-sidebar-primary/15 text-sidebar-primary border border-sidebar-primary/20">
                 {item.badge}
-              </Badge>
+              </span>
             )}
             {item.docUrl && (
               <a
