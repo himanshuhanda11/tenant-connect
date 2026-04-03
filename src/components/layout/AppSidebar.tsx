@@ -235,7 +235,7 @@ export function AppSidebar() {
                   )}
                   activeClassName=""
                 >
-                  <item.icon className={cn("h-[18px] w-[18px] transition-all duration-200", isActive && "text-white")} strokeWidth={1.5} />
+                  <item.icon className={cn("h-[18px] w-[18px] transition-all duration-200", isActive && "text-white")} />
                 </NavLink>
               </SidebarMenuButton>
             </TooltipTrigger>
