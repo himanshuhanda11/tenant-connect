@@ -114,6 +114,7 @@ import ClickToWhatsApp from "./pages/ClickToWhatsApp";
 import WhyWhatsAppMarketing from "./pages/WhyWhatsAppMarketing";
 import FreeWhatsAppApiLifetime from "./pages/FreeWhatsAppApiLifetime";
 import DocsViewer from "./pages/DocsViewer";
+import WhyAireatro from "./pages/WhyAireatro";
 import NotFound from "./pages/NotFound";
 import MetaAdsOverview from "./pages/meta-ads/MetaAdsOverview";
 import MetaAdsSetup from "./pages/meta-ads/MetaAdsSetup";
