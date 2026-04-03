@@ -141,14 +141,14 @@ const TeamAudit = () => {
               <div className="space-y-2">
                 <label className="text-sm font-medium">Member</label>
                 <Select 
-                  value={filters.userId || ''} 
-                  onValueChange={(v) => setFilters({ ...filters, userId: v || undefined })}
+                  value={filters.userId || 'all'} 
+                  onValueChange={(v) => setFilters({ ...filters, userId: v === 'all' ? undefined : v })}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="All members" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All members</SelectItem>
+                    <SelectItem value="all">All members</SelectItem>
                     {members.map(m => (
                       <SelectItem key={m.id} value={m.user_id}>
                         {m.display_name || m.profile?.full_name || m.profile?.email}
@@ -160,14 +160,14 @@ const TeamAudit = () => {
               <div className="space-y-2">
                 <label className="text-sm font-medium">Action</label>
                 <Select 
-                  value={filters.action || ''} 
-                  onValueChange={(v) => setFilters({ ...filters, action: v || undefined })}
+                  value={filters.action || 'all'} 
+                  onValueChange={(v) => setFilters({ ...filters, action: v === 'all' ? undefined : v })}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="All actions" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All actions</SelectItem>
+                    <SelectItem value="all">All actions</SelectItem>
                     {uniqueActions.map(action => (
                       <SelectItem key={action} value={action}>
                         {ACTION_LABELS[action as AuditAction] || action}
