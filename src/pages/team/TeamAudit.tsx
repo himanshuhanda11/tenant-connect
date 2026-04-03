@@ -148,7 +148,7 @@ const TeamAudit = () => {
                     <SelectValue placeholder="All members" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All members</SelectItem>
+                    <SelectItem value="all">All members</SelectItem>
                     {members.map(m => (
                       <SelectItem key={m.id} value={m.user_id}>
                         {m.display_name || m.profile?.full_name || m.profile?.email}
