@@ -43,7 +43,7 @@ interface InboxConversationListV2Props {
 }
 
 type DateFilter = 'all' | 'today' | 'yesterday' | 'last_7_days';
-type StatusFilter = 'all' | 'new' | 'contacted' | 'follow_up_required' | 'qualified' | 'converted' | 'junk' | 'unassigned';
+type StatusFilter = 'all' | 'new' | 'assigned' | 'contacted' | 'follow_up_required' | 'call_scheduled' | 'documents_pending' | 'qualified' | 'converted' | 'not_interested' | 'junk';
 
 const DATE_FILTER_LABELS: Record<DateFilter, string> = {
   all: 'All',
