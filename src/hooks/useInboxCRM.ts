@@ -28,7 +28,7 @@ export const JUNK_REASONS = [
   { value: 'wrong_inquiry', label: 'Wrong Inquiry' },
 ];
 
-export type InboxCRMView = 'dashboard' | 'all' | 'mine' | 'new_today' | 'followup_today' | 'overdue' | 'converted' | 'junk';
+export type InboxCRMView = 'dashboard' | 'all' | 'mine' | 'unassigned' | 'open' | 'follow_up' | 'resolved' | 'spam';
 
 export interface DashboardStats {
   new_today: number;

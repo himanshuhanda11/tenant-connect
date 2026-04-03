@@ -16,10 +16,10 @@ import {
 import { cn } from '@/lib/utils';
 
 const statCards = [
-  { key: 'new_today', label: 'New Today', icon: Inbox, gradient: 'from-blue-500 to-blue-600', bgGlow: 'bg-blue-500/10', link: '/inbox/new-today' },
-  { key: 'followup_today', label: 'Follow-up Today', icon: CalendarClock, gradient: 'from-amber-500 to-orange-500', bgGlow: 'bg-amber-500/10', link: '/inbox/followup-today' },
-  { key: 'overdue', label: 'Overdue', icon: AlertTriangle, gradient: 'from-red-500 to-rose-500', bgGlow: 'bg-red-500/10', link: '/inbox/overdue' },
-  { key: 'converted_month', label: 'Converted', icon: CheckCircle2, gradient: 'from-emerald-500 to-green-500', bgGlow: 'bg-emerald-500/10', link: '/inbox/converted' },
+  { key: 'new_today', label: 'New Today', icon: Inbox, gradient: 'from-blue-500 to-blue-600', bgGlow: 'bg-blue-500/10', link: '/inbox/open' },
+  { key: 'followup_today', label: 'Follow-up', icon: CalendarClock, gradient: 'from-amber-500 to-orange-500', bgGlow: 'bg-amber-500/10', link: '/inbox/follow-up' },
+  { key: 'overdue', label: 'Overdue', icon: AlertTriangle, gradient: 'from-red-500 to-rose-500', bgGlow: 'bg-red-500/10', link: '/inbox/follow-up' },
+  { key: 'converted_month', label: 'Resolved', icon: CheckCircle2, gradient: 'from-emerald-500 to-green-500', bgGlow: 'bg-emerald-500/10', link: '/inbox/resolved' },
 ] as const;
 
 export default function InboxCRMDashboard() {

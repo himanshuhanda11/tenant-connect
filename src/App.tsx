@@ -185,11 +185,11 @@ const App = () => (
               <Route path="/inbox" element={<InboxPage />} />
               <Route path="/inbox/dashboard" element={<InboxCRMDashboard />} />
               <Route path="/inbox/mine" element={<InboxPage />} />
-              <Route path="/inbox/new-today" element={<InboxPage />} />
-              <Route path="/inbox/followup-today" element={<InboxPage />} />
-              <Route path="/inbox/overdue" element={<InboxPage />} />
-              <Route path="/inbox/converted" element={<InboxPage />} />
-              <Route path="/inbox/junk" element={<InboxPage />} />
+              <Route path="/inbox/unassigned" element={<InboxPage />} />
+              <Route path="/inbox/open" element={<InboxPage />} />
+              <Route path="/inbox/follow-up" element={<InboxPage />} />
+              <Route path="/inbox/resolved" element={<InboxPage />} />
+              <Route path="/inbox/spam" element={<InboxPage />} />
               <Route path="/inbox/:id" element={<InboxPage />} />
               <Route path="/contacts" element={<Contacts />} />
               <Route path="/qualified-leads" element={<QualifiedLeads />} />

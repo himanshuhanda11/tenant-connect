@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -26,11 +27,11 @@ import { motion, AnimatePresence } from 'framer-motion';
 const ROUTE_VIEW_MAP: Record<string, { view: InboxView; crmFilter?: string }> = {
   '/inbox': { view: 'all' },
   '/inbox/mine': { view: 'mine' },
-  '/inbox/new-today': { view: 'all', crmFilter: 'new_today' },
-  '/inbox/followup-today': { view: 'all', crmFilter: 'followup_today' },
-  '/inbox/overdue': { view: 'all', crmFilter: 'overdue' },
-  '/inbox/converted': { view: 'all', crmFilter: 'converted' },
-  '/inbox/junk': { view: 'all', crmFilter: 'junk' },
+  '/inbox/unassigned': { view: 'unassigned' },
+  '/inbox/open': { view: 'all' },
+  '/inbox/follow-up': { view: 'all', crmFilter: 'follow_up' },
+  '/inbox/resolved': { view: 'closed' },
+  '/inbox/spam': { view: 'all', crmFilter: 'junk' },
 };
 
 export default function InboxPage() {
@@ -54,6 +55,8 @@ export default function InboxPage() {
       setCrmFilter(config.crmFilter);
       if (config.view === 'mine') {
         setFilters({ assignment: 'mine' });
+      } else if (config.view === 'unassigned') {
+        setFilters({ assignment: 'unassigned' });
       } else {
         setFilters(INBOX_VIEW_CONFIG[config.view]?.filter || {});
       }
@@ -62,6 +65,19 @@ export default function InboxPage() {
 
   // Hooks
   const { conversations, loading: loadingConversations, refetch } = useInboxConversations(view, filters);
+
+  // Apply CRM filter client-side for follow_up / junk views
+  const filteredConversations = useMemo(() => {
+    if (!crmFilter) return conversations;
+    if (crmFilter === 'follow_up') {
+      return conversations.filter(c => c.next_followup_at && c.crm_status !== 'converted' && c.crm_status !== 'junk');
+    }
+    if (crmFilter === 'junk') {
+      return conversations.filter(c => c.crm_status === 'junk' || c.crm_status === 'not_interested');
+    }
+    return conversations;
+  }, [conversations, crmFilter]);
+
   const { messages, loading: loadingMessages, addMessage, refetch: refetchMessages } = useInboxMessages(selectedId);
   const { events, addEvent } = useConversationEvents(selectedId);
   const { notes, addNote } = useInternalNotes(selectedId);
@@ -69,7 +85,7 @@ export default function InboxPage() {
   const actions = useInboxActions();
   const { unreadNewCount, clearNotifications } = useInboxNotification();
 
-  const selectedConversation = conversations.find(c => c.id === selectedId) || null;
+  const selectedConversation = filteredConversations.find(c => c.id === selectedId) || null;
 
   const viewerName = (() => {
     if (!selectedConversation) return null;
@@ -159,13 +175,13 @@ export default function InboxPage() {
     if (isMobile) return;
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
-      const currentIndex = conversations.findIndex(c => c.id === selectedId);
+      const currentIndex = filteredConversations.findIndex(c => c.id === selectedId);
       switch (e.key) {
         case 'j':
-          if (currentIndex < conversations.length - 1) handleSelect(conversations[currentIndex + 1].id);
+          if (currentIndex < filteredConversations.length - 1) handleSelect(filteredConversations[currentIndex + 1].id);
           break;
         case 'k':
-          if (currentIndex > 0) handleSelect(conversations[currentIndex - 1].id);
+          if (currentIndex > 0) handleSelect(filteredConversations[currentIndex - 1].id);
           break;
         case 'e': handleSetStatus('pending'); break;
         case 'c': handleSetStatus('closed'); break;
@@ -173,7 +189,7 @@ export default function InboxPage() {
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [conversations, selectedId, handleSetStatus, isMobile]);
+  }, [filteredConversations, selectedId, handleSetStatus, isMobile]);
 
   // Mobile
   if (isMobile) {
@@ -185,7 +201,7 @@ export default function InboxPage() {
               {!selectedId ? (
                 <motion.div key="list" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="h-full">
                   <InboxConversationListV2
-                    conversations={conversations}
+                    conversations={filteredConversations}
                     selectedId={selectedId}
                     onSelect={handleSelect}
                     view={view}
@@ -263,7 +279,7 @@ export default function InboxPage() {
             className="w-[280px] xl:w-[320px] flex-shrink-0 h-full min-h-0"
           >
             <InboxConversationListV2
-              conversations={conversations}
+              conversations={filteredConversations}
               selectedId={selectedId}
               onSelect={handleSelect}
               view={view}
