@@ -26,11 +26,11 @@ import { motion, AnimatePresence } from 'framer-motion';
 const ROUTE_VIEW_MAP: Record<string, { view: InboxView; crmFilter?: string }> = {
   '/inbox': { view: 'all' },
   '/inbox/mine': { view: 'mine' },
-  '/inbox/new-today': { view: 'all', crmFilter: 'new_today' },
-  '/inbox/followup-today': { view: 'all', crmFilter: 'followup_today' },
-  '/inbox/overdue': { view: 'all', crmFilter: 'overdue' },
-  '/inbox/converted': { view: 'all', crmFilter: 'converted' },
-  '/inbox/junk': { view: 'all', crmFilter: 'junk' },
+  '/inbox/unassigned': { view: 'unassigned' },
+  '/inbox/open': { view: 'all', crmFilter: 'open' },
+  '/inbox/follow-up': { view: 'all', crmFilter: 'follow_up' },
+  '/inbox/resolved': { view: 'closed' },
+  '/inbox/spam': { view: 'all', crmFilter: 'junk' },
 };
 
 export default function InboxPage() {
