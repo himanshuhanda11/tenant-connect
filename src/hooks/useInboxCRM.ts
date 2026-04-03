@@ -37,6 +37,7 @@ export interface DashboardStats {
   converted_month: number;
   total_open: number;
   unassigned: number;
+  workspace_timezone?: string;
 }
 
 export interface AgentPerformance {
@@ -46,6 +47,9 @@ export interface AgentPerformance {
   converted_count: number;
   pending_count: number;
   overdue_count: number;
+  today_opened: number;
+  today_replied: number;
+  total_today_assigned: number;
 }
 
 export function useInboxCRMStats() {
