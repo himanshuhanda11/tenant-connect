@@ -235,14 +235,15 @@ function applyPalette(root: HTMLElement, palette: ThemePalette) {
   root.style.setProperty('--border', palette.border);
   root.style.setProperty('--input', palette.input);
   root.style.setProperty('--ring', palette.ring);
-  root.style.setProperty('--sidebar-background', palette.sidebarBackground);
-  root.style.setProperty('--sidebar-foreground', palette.sidebarForeground);
-  root.style.setProperty('--sidebar-primary', palette.sidebarPrimary);
-  root.style.setProperty('--sidebar-primary-foreground', palette.sidebarPrimaryForeground);
-  root.style.setProperty('--sidebar-accent', palette.sidebarAccent);
-  root.style.setProperty('--sidebar-accent-foreground', palette.sidebarAccentForeground);
-  root.style.setProperty('--sidebar-border', palette.sidebarBorder);
-  root.style.setProperty('--sidebar-ring', palette.sidebarPrimary);
+  // Keep app sidebar on a fixed premium dark palette for consistent contrast
+  root.style.setProperty('--sidebar-background', '240 10% 4%');
+  root.style.setProperty('--sidebar-foreground', '240 5% 84%');
+  root.style.setProperty('--sidebar-primary', '234 89% 74%');
+  root.style.setProperty('--sidebar-primary-foreground', '0 0% 100%');
+  root.style.setProperty('--sidebar-accent', '240 6% 12%');
+  root.style.setProperty('--sidebar-accent-foreground', '0 0% 98%');
+  root.style.setProperty('--sidebar-border', '240 6% 17%');
+  root.style.setProperty('--sidebar-ring', '234 89% 74%');
 }
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
@@ -303,21 +304,20 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     const palette = resolvedMode === 'dark' ? themeDef.dark : themeDef.light;
     applyPalette(root, palette);
 
-    // Apply custom sidebar color override
+    // Keep the sidebar premium-dark even when a workspace sidebar color is configured.
+    // Reuse the chosen color only as an accent hue while preserving readable contrast.
     if (appearance.sidebar_color) {
-      const hex = appearance.sidebar_color;
-      // Convert hex to HSL for CSS variables
-      const hsl = hexToHsl(hex);
+      const hsl = hexToHsl(appearance.sidebar_color);
       if (hsl) {
-        const [h, s, l] = hsl;
-        const hslStr = `${h} ${s}% ${l}%`;
-        root.style.setProperty('--sidebar-background', hslStr);
-        // Derive sidebar foreground based on luminance
-        const fgLight = l < 50;
-        root.style.setProperty('--sidebar-foreground', fgLight ? `${h} 10% 95%` : `${h} 20% 10%`);
-        root.style.setProperty('--sidebar-accent', fgLight ? `${h} ${Math.min(s + 10, 100)}% ${Math.min(l + 8, 100)}%` : `${h} 10% ${Math.max(l - 5, 0)}%`);
-        root.style.setProperty('--sidebar-accent-foreground', fgLight ? `${h} 10% 95%` : `${h} 20% 10%`);
-        root.style.setProperty('--sidebar-border', fgLight ? `${h} ${Math.min(s, 30)}% ${Math.min(l + 12, 100)}%` : `${h} 10% ${Math.max(l - 8, 0)}%`);
+        const [h, s] = hsl;
+        root.style.setProperty('--sidebar-background', `${h} ${Math.min(Math.max(s, 4), 18)}% 4%`);
+        root.style.setProperty('--sidebar-foreground', `${h} 8% 84%`);
+        root.style.setProperty('--sidebar-primary', `${h} ${Math.min(Math.max(s, 45), 90)}% 74%`);
+        root.style.setProperty('--sidebar-primary-foreground', '0 0% 100%');
+        root.style.setProperty('--sidebar-accent', `${h} ${Math.min(Math.max(s, 8), 24)}% 12%`);
+        root.style.setProperty('--sidebar-accent-foreground', '0 0% 98%');
+        root.style.setProperty('--sidebar-border', `${h} ${Math.min(Math.max(s, 6), 20)}% 17%`);
+        root.style.setProperty('--sidebar-ring', `${h} ${Math.min(Math.max(s, 45), 90)}% 74%`);
       }
     }
 
