@@ -27,6 +27,9 @@ export function UpgradePrompt({
   const requiredLabel = getPlanLabel(requiredPlan);
   const currentLabel = getPlanLabel(currentPlan);
 
+  // If already on the highest plan (business), don't show upgrade prompt
+  if (currentPlan === 'business') return null;
+
   return (
     <Card className={cn(
       'border-primary/20 bg-gradient-to-br from-primary/5 to-primary/[0.02]',

@@ -38,6 +38,7 @@ export function UpgradePlanDialog({ open, onOpenChange, currentPlanId }: Upgrade
   const [isYearly, setIsYearly] = useState(false);
   const [loading, setLoading] = useState(false);
 
+  const isTopPlan = currentPlanId === 'business';
   const upgradePlans = (plans ?? []).filter(p => p.id !== 'free');
   const formatINR = (val: number) => `₹${val.toLocaleString('en-IN')}`;
 
