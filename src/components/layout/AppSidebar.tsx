@@ -255,7 +255,7 @@ export function AppSidebar() {
               "group/menuitem relative flex items-center gap-3 px-3 py-[9px] rounded-lg text-[14px] font-medium transition-all duration-200 ease-in-out",
               isActive
                 ? "bg-white/[0.07] text-white backdrop-blur-sm shadow-[inset_0_0_0_1px_rgba(255,255,255,0.06),0_0_12px_-3px_rgba(129,140,248,0.15)]"
-                : "text-sidebar-foreground hover:text-white hover:bg-white/[0.04]"
+                : "text-white/60 hover:text-white hover:bg-white/[0.04]"
             )}
             activeClassName=""
           >
