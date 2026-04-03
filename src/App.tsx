@@ -308,6 +308,7 @@ const App = () => (
               <Route path="/whatsapp-business-api" element={<WhatsAppBusinessApi />} />
               <Route path="/click-to-whatsapp" element={<ClickToWhatsApp />} />
               <Route path="/why-whatsapp-marketing" element={<WhyWhatsAppMarketing />} />
+              <Route path="/why-aireatro" element={<WhyAireatro />} />
               <Route path="/free-whatsapp-api-lifetime" element={<FreeWhatsAppApiLifetime />} />
               <Route path="/install" element={<Install />} />
               <Route path="/developer/seo" element={<SeoDashboard />} />
