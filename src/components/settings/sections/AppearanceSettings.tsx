@@ -127,7 +127,6 @@ export function AppearanceSettings() {
               return (
                 <button
                   key={opt.value}
-                  disabled={!canEdit}
                   onClick={() => setAppearance({ mode: opt.value })}
                   className={cn(
                     "flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all",
