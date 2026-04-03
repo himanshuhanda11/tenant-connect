@@ -504,14 +504,14 @@ export function AppSidebar() {
         {!isCollapsed && <div className="mx-3 my-3 border-b border-sidebar-border/50" />}
 
         {/* ── Platform ── */}
-        <SidebarGroup className="mt-1">
+        <SidebarGroup className={cn("mt-1", isCollapsed && "border-t border-sidebar-border/20 pt-1.5")}>
           {!isCollapsed && (
             <SidebarGroupLabel className="text-sidebar-foreground/60 text-[10px] font-semibold uppercase tracking-[0.1em] px-3 mb-1">
               Platform
             </SidebarGroupLabel>
           )}
           <SidebarGroupContent>
-            <SidebarMenu className="space-y-0.5">
+            <SidebarMenu className={cn("space-y-0.5", isCollapsed && "flex flex-col items-center")}>
               {filteredSettingsMenuItems.map(item => renderMenuItem(item))}
             </SidebarMenu>
           </SidebarGroupContent>
