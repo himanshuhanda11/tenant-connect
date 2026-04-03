@@ -53,6 +53,12 @@ export default function Login() {
       if (authLoading) return;
       
       if (user) {
+        // Safety timeout — if DB queries hang, show the login form after 8s
+        const safetyTimer = setTimeout(() => {
+          console.warn('Auth check timed out, showing login form');
+          setIsCheckingAuth(false);
+        }, 8000);
+
         try {
           // User exists, check their status
           const { data: profile } = await supabase
@@ -74,6 +80,7 @@ export default function Login() {
               // Team member — auto-complete onboarding
               await supabase.from('profiles').update({ onboarding_step: 'completed' }).eq('id', user.id);
             } else {
+              clearTimeout(safetyTimer);
               if (profile?.onboarding_step === 'org_done') {
                 navigate('/onboarding/password', { replace: true });
               } else {
@@ -107,6 +114,7 @@ export default function Login() {
 
           const isAgentOnly = resolvedRoles.length > 0 && resolvedRoles.every(role => role === 'agent');
           
+          clearTimeout(safetyTimer);
           if (isAgentOnly) {
             navigate('/inbox', { replace: true });
           } else {
@@ -114,6 +122,7 @@ export default function Login() {
           }
         } catch (err) {
           console.error('Auth status check failed:', err);
+          clearTimeout(safetyTimer);
           // Fall through to show login form instead of infinite spinner
           setIsCheckingAuth(false);
         }
