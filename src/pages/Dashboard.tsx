@@ -133,7 +133,7 @@ export default function Dashboard() {
         {/* ═══════════════════════════════════════════════
             SECTION 2: STATUS STRIP — API / Quality / Quota
         ═══════════════════════════════════════════════ */}
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {/* WhatsApp API Status */}
           <div className="rounded-xl border border-border/40 bg-card p-3 sm:p-4 shadow-sm">
             <p className="text-[10px] sm:text-[11px] text-muted-foreground font-medium mb-1.5">WhatsApp API</p>
@@ -158,6 +158,13 @@ export default function Dashboard() {
             )}>
               {primaryPhone?.qualityRating === 'green' ? 'High' : primaryPhone?.qualityRating === 'yellow' ? 'Medium' : primaryPhone?.qualityRating === 'red' ? 'Low' : 'N/A'}
             </Badge>
+          </div>
+
+          {/* Messaging Limit */}
+          <div className="rounded-xl border border-border/40 bg-card p-3 sm:p-4 shadow-sm">
+            <p className="text-[10px] sm:text-[11px] text-muted-foreground font-medium mb-1.5">Msg Limit / Day</p>
+            <p className="text-lg sm:text-xl font-bold text-foreground leading-none">{primaryPhone?.messagingLimit || 'N/A'}</p>
+            <p className="text-[10px] text-muted-foreground mt-1">WhatsApp tier</p>
           </div>
 
           {/* Credits / Quota */}
