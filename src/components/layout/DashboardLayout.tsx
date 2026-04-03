@@ -7,6 +7,7 @@ import { useTenant } from '@/contexts/TenantContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Loader2, Menu, X } from 'lucide-react';
 import { useAgentSessionTracker } from '@/hooks/useAgentPerformance';
+import aireatroLogo from '@/assets/aireatro-logo.png';
 
 function MobileHeader() {
   const { toggleSidebar, state } = useSidebar();
@@ -16,11 +17,11 @@ function MobileHeader() {
     <header className="h-12 sm:h-14 flex items-center gap-3 px-3 sm:px-4 border-b border-border/60 bg-background/95 backdrop-blur-md sticky top-0 z-30 shadow-xs">
       <button
         onClick={toggleSidebar}
-        className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-primary/10 hover:bg-primary/20 text-primary font-medium text-xs sm:text-sm transition-all duration-200 active:scale-95"
+        className="inline-flex items-center gap-2.5 px-2.5 py-1.5 rounded-xl bg-card hover:bg-accent border border-border/50 shadow-sm transition-all duration-200 active:scale-95"
         aria-label={isOpen ? 'Close menu' : 'Open menu'}
       >
-        {isOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
-        <span className="sm:inline">Menu</span>
+        <img src={aireatroLogo} alt="Aireatro" className="h-5 w-5 rounded object-contain" />
+        {isOpen ? <X className="h-4 w-4 text-muted-foreground" /> : <Menu className="h-4 w-4 text-muted-foreground" />}
       </button>
       <div className="flex-1" />
     </header>
