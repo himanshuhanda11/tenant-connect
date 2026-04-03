@@ -4,41 +4,23 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { MentionTextarea } from './MentionTextarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { LeadQualificationPanel } from './LeadQualificationPanel';
 import { InboxCRMOverview } from './InboxCRMOverview';
 import { Separator } from '@/components/ui/separator';
+import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '@/components/ui/tooltip';
 import {
-  User,
-  Tag,
-  Zap,
-  FileText,
-  Megaphone,
-  History,
-  Plus,
-  X,
-  Phone,
-  Mail,
-  Globe,
-  Calendar,
-  Clock,
-  MessageSquare,
-  Send,
-  CheckCircle,
-  AlertTriangle,
-  Bot,
-  Hand,
-  ExternalLink,
-  Target,
-  ShoppingBag,
+  User, Tag, Zap, FileText, History, Plus, X,
+  Phone, Globe, Calendar, Clock, MessageSquare,
+  CheckCircle, Hand, Bot, Share2, Copy, ShoppingBag, Target,
+  Shield, Star, ArrowRight, Workflow,
 } from 'lucide-react';
 import { format, formatDistanceToNow } from 'date-fns';
 import { InboxConversation, ConversationEvent, InternalNote, PRIORITY_CONFIG } from '@/types/inbox';
 import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
 
 interface InboxContextPanelProps {
   conversation: InboxConversation | null;
@@ -52,16 +34,67 @@ interface InboxContextPanelProps {
   onInsertReply?: (text: string) => void;
 }
 
+// Section wrapper for consistent spacing and labels
+function PanelSection({ title, icon, children, className }: { title: string; icon?: React.ReactNode; children: React.ReactNode; className?: string }) {
+  return (
+    <div className={cn("space-y-2.5", className)}>
+      <div className="flex items-center gap-1.5">
+        {icon && <span className="text-muted-foreground">{icon}</span>}
+        <h4 className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{title}</h4>
+      </div>
+      {children}
+    </div>
+  );
+}
+
+// Compact info row
+function InfoRow({ icon, label, value, highlight, copyable }: { icon: React.ReactNode; label: string; value: string; highlight?: boolean; copyable?: boolean }) {
+  return (
+    <div className="flex items-center justify-between py-1 group">
+      <div className="flex items-center gap-2 text-muted-foreground">
+        {icon}
+        <span className="text-xs">{label}</span>
+      </div>
+      <div className="flex items-center gap-1">
+        <span className={cn(
+          "text-xs text-right max-w-[55%] truncate",
+          highlight ? "text-destructive font-medium" : "text-foreground/80"
+        )}>
+          {value}
+        </span>
+        {copyable && (
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-5 w-5 opacity-0 group-hover:opacity-100 transition-opacity"
+            onClick={() => { navigator.clipboard.writeText(value); toast.success('Copied!'); }}
+          >
+            <Copy className="h-3 w-3" />
+          </Button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// Stat card
+function StatCard({ value, label, icon }: { value: string | number; label: string; icon: React.ReactNode }) {
+  return (
+    <div className="flex items-center gap-2.5 p-2.5 rounded-lg bg-muted/40 border border-border/50">
+      <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary shrink-0">
+        {icon}
+      </div>
+      <div className="min-w-0">
+        <p className="text-base font-bold leading-none">{value}</p>
+        <p className="text-[10px] text-muted-foreground mt-0.5">{label}</p>
+      </div>
+    </div>
+  );
+}
+
 export function InboxContextPanel({
-  conversation,
-  events,
-  notes,
-  onAddNote,
-  onAddTag,
-  onRemoveTag,
-  availableTags: passedTags,
-  isMobile = false,
-  onInsertReply,
+  conversation, events, notes, onAddNote, onAddTag, onRemoveTag,
+  availableTags: passedTags, isMobile = false, onInsertReply,
 }: InboxContextPanelProps) {
   const [activeTab, setActiveTab] = useState('overview');
   const [newNote, setNewNote] = useState('');
@@ -73,9 +106,7 @@ export function InboxContextPanel({
     return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
   };
 
-  const handleMentionsChange = useCallback((ids: string[]) => {
-    setMentionIds(ids);
-  }, []);
+  const handleMentionsChange = useCallback((ids: string[]) => setMentionIds(ids), []);
 
   const handleAddNote = () => {
     if (!newNote.trim()) return;
@@ -84,21 +115,37 @@ export function InboxContextPanel({
     setMentionIds([]);
   };
 
+  const handleShare = () => {
+    const contactName = conversation?.contact?.name || 'Unknown';
+    const phone = conversation?.contact?.wa_id || '';
+    const status = conversation?.crm_status || 'new';
+    const shareText = `Lead: ${contactName}\nPhone: +${phone}\nStatus: ${status.replace(/_/g, ' ')}\nLink: ${window.location.href}`;
+
+    if (navigator.share) {
+      navigator.share({ title: `Lead: ${contactName}`, text: shareText }).catch(() => {});
+    } else {
+      navigator.clipboard.writeText(shareText);
+      toast.success('Lead details copied to clipboard');
+    }
+  };
+
   if (!conversation) {
     return (
       <div className={cn(
         "border-l bg-card flex items-center justify-center h-full",
         isMobile ? "w-full" : "w-full overflow-hidden"
       )}>
-        <div className="text-center text-muted-foreground p-4">
-          <User className="h-12 w-12 mx-auto mb-3 opacity-30" />
-          <p className="text-sm">Select a conversation to view details</p>
+        <div className="text-center text-muted-foreground p-6">
+          <div className="h-14 w-14 rounded-2xl bg-muted/60 flex items-center justify-center mx-auto mb-3">
+            <User className="h-7 w-7 opacity-30" />
+          </div>
+          <p className="text-sm font-medium">No conversation selected</p>
+          <p className="text-xs text-muted-foreground/60 mt-1">Select a chat to view details</p>
         </div>
       </div>
     );
   }
 
-  // Use passed tags or default
   const availableTags = passedTags || [
     { id: 't1', name: 'VIP', color: '#FFD700' },
     { id: 't2', name: 'Pricing', color: '#3B82F6' },
@@ -107,468 +154,408 @@ export function InboxContextPanel({
     { id: 't5', name: 'Follow-up', color: '#8B5CF6' },
   ];
 
-  const filteredTags = availableTags.filter(t => 
+  const filteredTags = availableTags.filter(t =>
     t.name.toLowerCase().includes(tagSearch.toLowerCase()) &&
     !conversation.tags?.some(ct => ct.id === t.id)
   );
 
+  const TAB_ITEMS = [
+    { value: 'overview', icon: Target, label: 'CRM' },
+    { value: 'contact', icon: User, label: 'Contact' },
+    { value: 'shopify', icon: ShoppingBag, label: 'Shopify' },
+    { value: 'lead', icon: Zap, label: 'Lead' },
+    { value: 'tags', icon: Tag, label: 'Tags' },
+    { value: 'automation', icon: Workflow, label: 'Automation' },
+    { value: 'notes', icon: FileText, label: 'Notes' },
+    { value: 'history', icon: History, label: 'History' },
+  ];
+
   return (
-    <div className={cn(
-      "border-l bg-card flex flex-col h-full",
-      isMobile ? "w-full border-l-0" : "w-full overflow-hidden"
-    )}>
-      {/* Contact Header */}
-      <div className="p-4 border-b">
-        <div className="flex items-center gap-3">
-          <Avatar className="h-12 w-12">
-            <AvatarImage src={conversation.contact?.profile_picture_url || undefined} />
-            <AvatarFallback className="bg-primary/10 text-primary text-lg">
-              {getInitials(conversation.contact?.name)}
-            </AvatarFallback>
-          </Avatar>
-          <div className="flex-1 min-w-0">
-            <h3 className="font-semibold truncate">
-              {conversation.contact?.name || 'Unknown'}
-            </h3>
-            <p className="text-sm text-muted-foreground">
-              +{conversation.contact?.wa_id}
-            </p>
+    <TooltipProvider delayDuration={300}>
+      <div className={cn(
+        "border-l bg-card flex flex-col h-full",
+        isMobile ? "w-full border-l-0" : "w-full overflow-hidden"
+      )}>
+        {/* Contact Header — Premium compact */}
+        <div className="p-3 border-b bg-gradient-to-b from-muted/30 to-transparent">
+          <div className="flex items-center gap-3">
+            <Avatar className="h-11 w-11 ring-2 ring-primary/10">
+              <AvatarImage src={conversation.contact?.profile_picture_url || undefined} />
+              <AvatarFallback className="bg-primary/10 text-primary font-semibold">
+                {getInitials(conversation.contact?.name)}
+              </AvatarFallback>
+            </Avatar>
+            <div className="flex-1 min-w-0">
+              <h3 className="font-semibold text-sm truncate">
+                {conversation.contact?.name || 'Unknown'}
+              </h3>
+              <p className="text-xs text-muted-foreground flex items-center gap-1">
+                <Phone className="h-3 w-3" />
+                +{conversation.contact?.wa_id}
+              </p>
+            </div>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={handleShare}>
+                  <Share2 className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Share lead details</TooltipContent>
+            </Tooltip>
           </div>
-          <Button variant="ghost" size="icon" className="h-8 w-8">
-            <ExternalLink className="h-4 w-4" />
-          </Button>
         </div>
-      </div>
 
-      {/* Tabs */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col min-h-0 overflow-hidden">
-        <TabsList className="mx-3 mt-2 grid grid-cols-8 h-9 flex-shrink-0">
-          <TabsTrigger value="overview" className="px-1.5">
-            <Target className="h-4 w-4" />
-          </TabsTrigger>
-          <TabsTrigger value="contact" className="px-1.5">
-            <User className="h-4 w-4" />
-          </TabsTrigger>
-          <TabsTrigger value="shopify" className="px-1.5">
-            <ShoppingBag className="h-4 w-4" />
-          </TabsTrigger>
-          <TabsTrigger value="lead" className="px-1.5">
-            <Zap className="h-4 w-4" />
-          </TabsTrigger>
-          <TabsTrigger value="tags" className="px-1.5">
-            <Tag className="h-4 w-4" />
-          </TabsTrigger>
-          <TabsTrigger value="automation" className="px-1.5">
-            <Bot className="h-4 w-4" />
-          </TabsTrigger>
-          <TabsTrigger value="notes" className="px-1.5">
-            <FileText className="h-4 w-4" />
-          </TabsTrigger>
-          <TabsTrigger value="history" className="px-1.5">
-            <History className="h-4 w-4" />
-          </TabsTrigger>
-        </TabsList>
-
-        <ScrollArea className="flex-1 min-h-0">
-          {/* CRM Overview Tab */}
-          <TabsContent value="overview" className="m-0">
-            <InboxCRMOverview conversation={conversation} />
-          </TabsContent>
-
-          {/* Shopify Tab */}
-          <TabsContent value="shopify" className="m-0">
-            <ShopifyContextTab
-              conversationId={conversation.id}
-              onInsertReply={onInsertReply}
-            />
-          </TabsContent>
-
-          {/* Contact Tab */}
-          <TabsContent value="contact" className="m-0 p-4 space-y-4">
-            <div className="space-y-3">
-              <h4 className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                Contact Details
-              </h4>
-
-              <div className="space-y-2">
-                <div className="flex items-center gap-2 text-sm">
-                  <Phone className="h-4 w-4 text-muted-foreground" />
-                  <span>+{conversation.contact?.wa_id}</span>
-                </div>
-                {conversation.contact?.language && (
-                  <div className="flex items-center gap-2 text-sm">
-                    <Globe className="h-4 w-4 text-muted-foreground" />
-                    <span>{conversation.contact.language.toUpperCase()}</span>
-                  </div>
-                )}
-                <div className="flex items-center gap-2 text-sm">
-                  <Calendar className="h-4 w-4 text-muted-foreground" />
-                  <span>Created {formatDistanceToNow(new Date(conversation.created_at), { addSuffix: true })}</span>
-                </div>
-              </div>
-            </div>
-
-            <Separator />
-
-            <div className="space-y-3">
-              <h4 className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                Conversation Stats
-              </h4>
-
-              <div className="grid grid-cols-2 gap-3">
-                <Card className="bg-muted/50">
-                  <CardContent className="p-3">
-                    <p className="text-2xl font-bold">12</p>
-                    <p className="text-xs text-muted-foreground">Messages</p>
-                  </CardContent>
-                </Card>
-                <Card className="bg-muted/50">
-                  <CardContent className="p-3">
-                    <p className="text-2xl font-bold">2m</p>
-                    <p className="text-xs text-muted-foreground">Avg Response</p>
-                  </CardContent>
-                </Card>
-              </div>
-            </div>
-
-            <Separator />
-
-            <div className="space-y-3">
-              <h4 className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                Source & Attribution
-              </h4>
-
-              <div className="space-y-2">
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-muted-foreground">Source</span>
-                  <Badge variant="outline" className="capitalize">
-                    {(conversation.contact?.source || conversation.source)?.replace(/_/g, ' ') || 'Direct'}
-                  </Badge>
-                </div>
-                {(conversation.contact?.source || conversation.source) === 'meta_ads' && (
-                  <>
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-muted-foreground">Campaign</span>
-                      <span className="text-right">Summer Sale 2025</span>
-                    </div>
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-muted-foreground">Ad</span>
-                      <span className="text-right">Promo Banner</span>
-                    </div>
-                  </>
-                )}
-              </div>
-            </div>
-
-            <Separator />
-
-            <div className="space-y-3">
-              <h4 className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                Preferences
-              </h4>
-
-              <div className="space-y-2">
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-muted-foreground">Opt-in Status</span>
-                  <Badge variant={conversation.contact?.opt_out ? "destructive" : "secondary"}>
-                    {conversation.contact?.opt_out ? 'Opted Out' : 'Opted In'}
-                  </Badge>
-                </div>
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-muted-foreground">Priority</span>
-                  <Badge 
-                    variant="outline"
-                    className={cn(
-                      PRIORITY_CONFIG[conversation.priority || 'normal'].bgColor,
-                      PRIORITY_CONFIG[conversation.priority || 'normal'].color,
-                      "border-0"
-                    )}
+        {/* Tabs — with tooltips for icon-only */}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col min-h-0 overflow-hidden">
+          <TabsList className="mx-2 mt-2 grid grid-cols-8 h-9 shrink-0 bg-muted/50">
+            {TAB_ITEMS.map(tab => (
+              <Tooltip key={tab.value}>
+                <TooltipTrigger asChild>
+                  <TabsTrigger
+                    value={tab.value}
+                    className="px-1 data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all duration-150"
                   >
-                    {PRIORITY_CONFIG[conversation.priority || 'normal'].label}
-                  </Badge>
+                    <tab.icon className="h-3.5 w-3.5" />
+                  </TabsTrigger>
+                </TooltipTrigger>
+                <TooltipContent side="bottom" className="text-xs">{tab.label}</TooltipContent>
+              </Tooltip>
+            ))}
+          </TabsList>
+
+          <ScrollArea className="flex-1 min-h-0">
+            {/* ===== CRM OVERVIEW ===== */}
+            <TabsContent value="overview" className="m-0">
+              <InboxCRMOverview conversation={conversation} />
+            </TabsContent>
+
+            {/* ===== SHOPIFY ===== */}
+            <TabsContent value="shopify" className="m-0">
+              <ShopifyContextTab conversationId={conversation.id} onInsertReply={onInsertReply} />
+            </TabsContent>
+
+            {/* ===== CONTACT DETAILS ===== */}
+            <TabsContent value="contact" className="m-0 p-4 space-y-4">
+              <PanelSection title="Contact Info" icon={<User className="h-3 w-3" />}>
+                <div className="space-y-0.5">
+                  <InfoRow icon={<Phone className="h-3.5 w-3.5" />} label="Phone" value={`+${conversation.contact?.wa_id || '—'}`} copyable />
+                  {conversation.contact?.language && (
+                    <InfoRow icon={<Globe className="h-3.5 w-3.5" />} label="Language" value={conversation.contact.language.toUpperCase()} />
+                  )}
+                  <InfoRow icon={<Calendar className="h-3.5 w-3.5" />} label="First Seen" value={formatDistanceToNow(new Date(conversation.created_at), { addSuffix: true })} />
+                  {conversation.contact?.opt_out !== undefined && (
+                    <div className="flex items-center justify-between py-1">
+                      <div className="flex items-center gap-2 text-muted-foreground">
+                        <Shield className="h-3.5 w-3.5" />
+                        <span className="text-xs">Marketing</span>
+                      </div>
+                      <Badge variant={conversation.contact.opt_out ? "destructive" : "secondary"} className="text-[10px] h-5">
+                        {conversation.contact.opt_out ? 'Opted Out' : 'Opted In'}
+                      </Badge>
+                    </div>
+                  )}
                 </div>
-              </div>
-            </div>
-          </TabsContent>
+              </PanelSection>
 
-          {/* Lead Qualification Tab */}
-          <TabsContent value="lead" className="m-0">
-            <LeadQualificationPanel
-              contactId={conversation.contact_id || null}
-              conversationId={conversation.id}
-              isMobile={isMobile}
-            />
-          </TabsContent>
+              <Separator />
 
-          {/* Tags Tab */}
-          <TabsContent value="tags" className="m-0 p-4 space-y-4">
-            <div className="space-y-3">
-              <h4 className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                Applied Tags
-              </h4>
+              <PanelSection title="Conversation Stats" icon={<MessageSquare className="h-3 w-3" />}>
+                <div className="grid grid-cols-2 gap-2">
+                  <StatCard
+                    value={conversation.unread_count || 0}
+                    label="Unread"
+                    icon={<MessageSquare className="h-4 w-4" />}
+                  />
+                  <StatCard
+                    value={conversation.priority ? PRIORITY_CONFIG[conversation.priority].label : 'Normal'}
+                    label="Priority"
+                    icon={<Star className="h-4 w-4" />}
+                  />
+                </div>
+              </PanelSection>
 
-              <div className="flex flex-wrap gap-2">
-                {conversation.tags?.map(tag => (
-                  <Badge 
-                    key={tag.id}
-                    variant="secondary"
-                    className="flex items-center gap-1 pr-1"
-                    style={{ backgroundColor: `${tag.color}20`, color: tag.color }}
-                  >
-                    {tag.name}
-                    <Button 
-                      variant="ghost" 
-                      size="icon" 
-                      className="h-4 w-4 p-0 hover:bg-transparent"
-                      onClick={() => onRemoveTag(tag.id)}
-                    >
-                      <X className="h-3 w-3" />
-                    </Button>
-                  </Badge>
-                ))}
-                {(!conversation.tags || conversation.tags.length === 0) && (
-                  <span className="text-sm text-muted-foreground">No tags applied</span>
-                )}
-              </div>
-            </div>
+              <Separator />
 
-            <Separator />
+              <PanelSection title="Source & Attribution" icon={<Globe className="h-3 w-3" />}>
+                <div className="space-y-0.5">
+                  <InfoRow
+                    icon={<ArrowRight className="h-3.5 w-3.5" />}
+                    label="Source"
+                    value={(conversation.contact?.source || conversation.source)?.replace(/_/g, ' ') || 'Direct'}
+                  />
+                  {conversation.contact?.campaign_source && (
+                    <InfoRow icon={<Zap className="h-3.5 w-3.5" />} label="Campaign" value={conversation.contact.campaign_source} />
+                  )}
+                </div>
+              </PanelSection>
+            </TabsContent>
 
-            <div className="space-y-3">
-              <h4 className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                Add Tags
-              </h4>
-
-              <Input
-                placeholder="Search tags..."
-                value={tagSearch}
-                onChange={(e) => setTagSearch(e.target.value)}
-                className="h-8"
+            {/* ===== LEAD QUALIFICATION ===== */}
+            <TabsContent value="lead" className="m-0">
+              <LeadQualificationPanel
+                contactId={conversation.contact_id || null}
+                conversationId={conversation.id}
+                isMobile={isMobile}
               />
+            </TabsContent>
 
-              <div className="flex flex-wrap gap-2">
-                {filteredTags.map(tag => (
-                  <Badge 
-                    key={tag.id}
-                    variant="outline"
-                    className="cursor-pointer hover:bg-muted"
-                    onClick={() => onAddTag(tag.id)}
-                  >
-                    <Plus className="h-3 w-3 mr-1" />
-                    {tag.name}
-                  </Badge>
-                ))}
-              </div>
-            </div>
-
-            <Separator />
-
-            <div className="space-y-3">
-              <h4 className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                Tag History
-              </h4>
-
-              <div className="space-y-2 text-sm">
-                {events
-                  .filter(e => e.event_type === 'tag_added' || e.event_type === 'tag_removed')
-                  .slice(0, 5)
-                  .map(event => (
-                    <div key={event.id} className="flex items-center gap-2 text-muted-foreground">
-                      <Tag className="h-3 w-3" />
-                      <span>
-                        {event.event_type === 'tag_added' ? 'Added' : 'Removed'} "{event.tag_name}"
-                      </span>
-                      <span className="ml-auto text-xs">
-                        {formatDistanceToNow(new Date(event.created_at), { addSuffix: true })}
-                      </span>
-                    </div>
+            {/* ===== TAGS ===== */}
+            <TabsContent value="tags" className="m-0 p-4 space-y-4">
+              <PanelSection title="Applied Tags" icon={<Tag className="h-3 w-3" />}>
+                <div className="flex flex-wrap gap-1.5">
+                  {conversation.tags?.map(tag => (
+                    <Badge
+                      key={tag.id}
+                      variant="secondary"
+                      className="flex items-center gap-1 pr-1 text-xs h-6"
+                      style={{ backgroundColor: `${tag.color}15`, color: tag.color, borderColor: `${tag.color}30` }}
+                    >
+                      <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: tag.color }} />
+                      {tag.name}
+                      <button
+                        className="ml-0.5 hover:bg-black/10 rounded-full p-0.5 transition-colors"
+                        onClick={() => onRemoveTag(tag.id)}
+                      >
+                        <X className="h-2.5 w-2.5" />
+                      </button>
+                    </Badge>
                   ))}
-              </div>
-            </div>
-          </TabsContent>
+                  {(!conversation.tags || conversation.tags.length === 0) && (
+                    <span className="text-xs text-muted-foreground italic">No tags applied</span>
+                  )}
+                </div>
+              </PanelSection>
 
-          {/* Automation Tab */}
-          <TabsContent value="automation" className="m-0 p-4 space-y-4">
-            <div className="space-y-3">
-              <div className="text-sm text-muted-foreground">
-                No bot configured. Automation rules can be managed in Settings.
-              </div>
-            </div>
+              <Separator />
 
-            <Separator />
-
-            <div className="space-y-3">
-              <h4 className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                Active Workflows
-              </h4>
-
-              <Card className="border-dashed">
-                <CardContent className="p-3 text-center text-muted-foreground text-sm">
-                  No active workflows
-                </CardContent>
-              </Card>
-            </div>
-
-            <Separator />
-
-            <div className="space-y-3">
-              <h4 className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                Recent Automations
-              </h4>
-
-              <div className="space-y-2 text-sm">
-                {events
-                  .filter(e => e.event_type === 'automation_ran')
-                  .slice(0, 5)
-                  .map(event => (
-                    <div key={event.id} className="flex items-center gap-2 text-muted-foreground">
-                      <Zap className="h-3 w-3" />
-                      <span className="truncate">{event.automation_workflow_id || 'Workflow'}</span>
-                      <span className="ml-auto text-xs">
-                        {formatDistanceToNow(new Date(event.created_at), { addSuffix: true })}
-                      </span>
-                    </div>
+              <PanelSection title="Add Tags">
+                <Input
+                  placeholder="Search tags..."
+                  value={tagSearch}
+                  onChange={(e) => setTagSearch(e.target.value)}
+                  className="h-8 text-xs"
+                />
+                <div className="flex flex-wrap gap-1.5 mt-2">
+                  {filteredTags.map(tag => (
+                    <Badge
+                      key={tag.id}
+                      variant="outline"
+                      className="cursor-pointer hover:bg-primary/5 transition-colors text-xs h-6"
+                      onClick={() => onAddTag(tag.id)}
+                    >
+                      <Plus className="h-3 w-3 mr-0.5" />
+                      {tag.name}
+                    </Badge>
                   ))}
-                {events.filter(e => e.event_type === 'automation_ran').length === 0 && (
-                  <div className="text-muted-foreground">No recent automations</div>
-                )}
-              </div>
-            </div>
-          </TabsContent>
+                  {filteredTags.length === 0 && (
+                    <span className="text-xs text-muted-foreground italic">No matching tags</span>
+                  )}
+                </div>
+              </PanelSection>
 
-          {/* Notes Tab */}
-          <TabsContent value="notes" className="m-0 p-4 space-y-4">
-            <div className="space-y-3">
-              <h4 className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                Add Note
-              </h4>
+              <Separator />
 
-              <div className="space-y-2">
+              <PanelSection title="Tag History">
+                <div className="space-y-1.5">
+                  {events
+                    .filter(e => e.event_type === 'tag_added' || e.event_type === 'tag_removed')
+                    .slice(0, 5)
+                    .map(event => (
+                      <div key={event.id} className="flex items-center gap-2 text-xs text-muted-foreground py-0.5">
+                        <div className={cn(
+                          "h-5 w-5 rounded-full flex items-center justify-center shrink-0",
+                          event.event_type === 'tag_added' ? "bg-green-100 text-green-600" : "bg-red-100 text-red-600"
+                        )}>
+                          {event.event_type === 'tag_added' ? <Plus className="h-2.5 w-2.5" /> : <X className="h-2.5 w-2.5" />}
+                        </div>
+                        <span className="truncate flex-1">
+                          {event.event_type === 'tag_added' ? 'Added' : 'Removed'} <strong>"{event.tag_name}"</strong>
+                        </span>
+                        <span className="text-[10px] shrink-0">
+                          {formatDistanceToNow(new Date(event.created_at), { addSuffix: true })}
+                        </span>
+                      </div>
+                    ))}
+                  {events.filter(e => e.event_type === 'tag_added' || e.event_type === 'tag_removed').length === 0 && (
+                    <span className="text-xs text-muted-foreground italic">No tag changes</span>
+                  )}
+                </div>
+              </PanelSection>
+            </TabsContent>
+
+            {/* ===== AUTOMATION ===== */}
+            <TabsContent value="automation" className="m-0 p-4 space-y-4">
+              <PanelSection title="Active Workflows" icon={<Workflow className="h-3 w-3" />}>
+                <div className="rounded-lg border border-dashed border-border/60 p-4 text-center">
+                  <Workflow className="h-8 w-8 mx-auto text-muted-foreground/30 mb-2" />
+                  <p className="text-xs text-muted-foreground">No active workflows</p>
+                  <p className="text-[10px] text-muted-foreground/60 mt-0.5">Workflows trigger automatically</p>
+                </div>
+              </PanelSection>
+
+              <Separator />
+
+              <PanelSection title="Recent Automations" icon={<Zap className="h-3 w-3" />}>
+                <div className="space-y-1.5">
+                  {events
+                    .filter(e => e.event_type === 'automation_ran')
+                    .slice(0, 5)
+                    .map(event => (
+                      <div key={event.id} className="flex items-center gap-2 text-xs py-1 px-2 rounded-md bg-muted/30">
+                        <div className="h-5 w-5 rounded-full bg-violet-100 text-violet-600 flex items-center justify-center shrink-0">
+                          <Zap className="h-2.5 w-2.5" />
+                        </div>
+                        <span className="truncate flex-1 text-foreground/80">
+                          {(event.details as any)?.workflow_name || 'Workflow executed'}
+                        </span>
+                        <span className="text-[10px] text-muted-foreground shrink-0">
+                          {formatDistanceToNow(new Date(event.created_at), { addSuffix: true })}
+                        </span>
+                      </div>
+                    ))}
+                  {events.filter(e => e.event_type === 'automation_ran').length === 0 && (
+                    <span className="text-xs text-muted-foreground italic">No recent automations</span>
+                  )}
+                </div>
+              </PanelSection>
+            </TabsContent>
+
+            {/* ===== NOTES ===== */}
+            <TabsContent value="notes" className="m-0 p-4 space-y-4">
+              <PanelSection title="Add Note" icon={<FileText className="h-3 w-3" />}>
                 <MentionTextarea
-                  placeholder="Write an internal note... Type @ to mention teammates"
+                  placeholder="Write a note... Type @ to mention"
                   value={newNote}
                   onChange={setNewNote}
                   onMentionsChange={handleMentionsChange}
-                  className="min-h-[80px] resize-none"
+                  className="min-h-[70px] resize-none text-sm"
                 />
-                <Button size="sm" onClick={handleAddNote} disabled={!newNote.trim()}>
-                  <Plus className="h-4 w-4 mr-1" />
+                <Button size="sm" onClick={handleAddNote} disabled={!newNote.trim()} className="h-7 text-xs">
+                  <Plus className="h-3.5 w-3.5 mr-1" />
                   Add Note
                 </Button>
-              </div>
-            </div>
+              </PanelSection>
 
-            <Separator />
+              <Separator />
 
-            <div className="space-y-3">
-              <h4 className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                Notes ({notes.length})
-              </h4>
-
-              <div className="space-y-3">
-                {notes.map(note => (
-                  <Card key={note.id} className="bg-yellow-50 border-yellow-200">
-                    <CardContent className="p-3">
-                      <div className="flex items-start gap-2">
-                        <Avatar className="h-6 w-6">
-                          <AvatarFallback className="text-xs bg-yellow-200">
+              <PanelSection title={`Notes (${notes.length})`}>
+                <div className="space-y-2">
+                  {notes.map(note => (
+                    <div key={note.id} className="rounded-lg bg-amber-50/80 border border-amber-200/60 p-2.5">
+                      <div className="flex items-center gap-2 mb-1.5">
+                        <Avatar className="h-5 w-5">
+                          <AvatarFallback className="text-[9px] bg-amber-200/80 font-medium">
                             {getInitials(note.author?.full_name)}
                           </AvatarFallback>
                         </Avatar>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2">
-                            <span className="text-sm font-medium">{note.author?.full_name}</span>
-                            <span className="text-xs text-muted-foreground">
-                              {formatDistanceToNow(new Date(note.created_at), { addSuffix: true })}
-                            </span>
+                        <span className="text-xs font-medium">{note.author?.full_name || 'Unknown'}</span>
+                        <span className="text-[10px] text-muted-foreground ml-auto">
+                          {formatDistanceToNow(new Date(note.created_at), { addSuffix: true })}
+                        </span>
+                      </div>
+                      <p className="text-xs text-foreground/80 leading-relaxed">{note.body}</p>
+                    </div>
+                  ))}
+                  {notes.length === 0 && (
+                    <div className="text-center py-6">
+                      <FileText className="h-8 w-8 mx-auto text-muted-foreground/20 mb-2" />
+                      <p className="text-xs text-muted-foreground">No notes yet</p>
+                    </div>
+                  )}
+                </div>
+              </PanelSection>
+            </TabsContent>
+
+            {/* ===== HISTORY TIMELINE ===== */}
+            <TabsContent value="history" className="m-0 p-4">
+              <PanelSection title="Activity Timeline" icon={<History className="h-3 w-3" />}>
+                <div className="space-y-0">
+                  {events.map((event, idx) => {
+                    const isLast = idx === events.length - 1;
+                    const eventIcon = getEventIcon(event.event_type);
+                    const eventColor = getEventColor(event.event_type);
+                    return (
+                      <div key={event.id} className="flex gap-2.5">
+                        <div className="flex flex-col items-center">
+                          <div className={cn(
+                            "w-7 h-7 rounded-full flex items-center justify-center shrink-0",
+                            eventColor
+                          )}>
+                            {eventIcon}
                           </div>
-                          <p className="text-sm mt-1">{note.body}</p>
+                          {!isLast && <div className="w-px flex-1 bg-border/60 my-0.5" />}
+                        </div>
+                        <div className={cn("flex-1 min-w-0", !isLast && "pb-3")}>
+                          <p className="text-xs leading-relaxed">
+                            {renderEventText(event)}
+                          </p>
+                          <p className="text-[10px] text-muted-foreground mt-0.5">
+                            {format(new Date(event.created_at), 'MMM d, h:mm a')}
+                          </p>
                         </div>
                       </div>
-                    </CardContent>
-                  </Card>
-                ))}
-                {notes.length === 0 && (
-                  <div className="text-sm text-muted-foreground text-center py-4">
-                    No notes yet
-                  </div>
-                )}
-              </div>
-            </div>
-          </TabsContent>
-
-          {/* History Tab */}
-          <TabsContent value="history" className="m-0 p-4 space-y-4">
-            <div className="space-y-3">
-              <h4 className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                Activity Timeline
-              </h4>
-
-              <div className="space-y-3">
-                {events.map(event => (
-                  <div key={event.id} className="flex gap-3">
-                    <div className="flex flex-col items-center">
-                      <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center">
-                        {event.event_type === 'assigned' && <User className="h-4 w-4" />}
-                        {event.event_type === 'tag_added' && <Tag className="h-4 w-4" />}
-                        {event.event_type === 'tag_removed' && <Tag className="h-4 w-4" />}
-                        {event.event_type === 'status_changed' && <CheckCircle className="h-4 w-4" />}
-                        {event.event_type === 'intervened' && <Hand className="h-4 w-4" />}
-                        {event.event_type === 'automation_ran' && <Zap className="h-4 w-4" />}
-                      </div>
-                      <div className="w-px h-full bg-border" />
+                    );
+                  })}
+                  {events.length === 0 && (
+                    <div className="text-center py-6">
+                      <History className="h-8 w-8 mx-auto text-muted-foreground/20 mb-2" />
+                      <p className="text-xs text-muted-foreground">No activity yet</p>
                     </div>
-                    <div className="flex-1 pb-4">
-                      <p className="text-sm">
-                        {event.event_type === 'assigned' && (
-                          <>
-                            {(event.details as any)?.action === 'transferred' ? (
-                              <>
-                                <strong>{event.actor?.full_name}</strong> transferred from{' '}
-                                <strong>{event.from_agent?.full_name || 'Unassigned'}</strong> → <strong>{event.to_agent?.full_name || 'Unknown'}</strong>
-                              </>
-                            ) : (event.details as any)?.action === 'claimed_on_reply' || (event.details as any)?.action === 'claimed' ? (
-                              <>
-                                <strong>{event.to_agent?.full_name || event.actor?.full_name}</strong>{' '}
-                                {(event.details as any)?.action === 'claimed_on_reply' ? 'claimed on reply' : 'claimed this conversation'}
-                              </>
-                            ) : event.from_agent?.full_name ? (
-                              <>
-                                <strong>{event.actor?.full_name}</strong> reassigned from{' '}
-                                <strong>{event.from_agent.full_name}</strong> → <strong>{event.to_agent?.full_name}</strong>
-                              </>
-                            ) : (
-                              <>Assigned to <strong>{event.to_agent?.full_name || event.actor?.full_name}</strong></>
-                            )}
-                          </>
-                        )}
-                        {event.event_type === 'tag_added' && (
-                          <>Tag <strong>"{event.tag_name}"</strong> added</>
-                        )}
-                        {event.event_type === 'tag_removed' && (
-                          <>Tag <strong>"{event.tag_name}"</strong> removed</>
-                        )}
-                        {event.event_type === 'status_changed' && (
-                          <>Status changed to <strong>{event.new_value}</strong></>
-                        )}
-                        {event.event_type === 'intervened' && (
-                          <>
-                            <strong>{event.actor?.full_name}</strong> took over from{' '}
-                            <strong>{event.from_agent?.full_name || 'previous agent'}</strong>
-                          </>
-                        )}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {format(new Date(event.created_at), 'MMM d, h:mm a')}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </TabsContent>
-        </ScrollArea>
-      </Tabs>
-    </div>
+                  )}
+                </div>
+              </PanelSection>
+            </TabsContent>
+          </ScrollArea>
+        </Tabs>
+      </div>
+    </TooltipProvider>
   );
+}
+
+function getEventIcon(type: string) {
+  const cls = "h-3 w-3";
+  switch (type) {
+    case 'assigned': case 'unassigned': return <User className={cls} />;
+    case 'tag_added': case 'tag_removed': return <Tag className={cls} />;
+    case 'status_changed': return <CheckCircle className={cls} />;
+    case 'intervened': return <Hand className={cls} />;
+    case 'automation_ran': return <Zap className={cls} />;
+    case 'note_added': return <FileText className={cls} />;
+    default: return <Clock className={cls} />;
+  }
+}
+
+function getEventColor(type: string) {
+  switch (type) {
+    case 'assigned': return 'bg-blue-100 text-blue-600';
+    case 'unassigned': return 'bg-slate-100 text-slate-500';
+    case 'tag_added': return 'bg-green-100 text-green-600';
+    case 'tag_removed': return 'bg-red-100 text-red-500';
+    case 'status_changed': return 'bg-amber-100 text-amber-600';
+    case 'intervened': return 'bg-orange-100 text-orange-600';
+    case 'automation_ran': return 'bg-violet-100 text-violet-600';
+    default: return 'bg-muted text-muted-foreground';
+  }
+}
+
+function renderEventText(event: ConversationEvent) {
+  switch (event.event_type) {
+    case 'assigned':
+      if ((event.details as any)?.action === 'transferred') {
+        return <><strong>{event.actor?.full_name}</strong> transferred from <strong>{event.from_agent?.full_name || 'Unassigned'}</strong> → <strong>{event.to_agent?.full_name || 'Unknown'}</strong></>;
+      }
+      if ((event.details as any)?.action === 'claimed_on_reply' || (event.details as any)?.action === 'claimed') {
+        return <><strong>{event.to_agent?.full_name || event.actor?.full_name}</strong> {(event.details as any)?.action === 'claimed_on_reply' ? 'claimed on reply' : 'claimed this conversation'}</>;
+      }
+      if (event.from_agent?.full_name) {
+        return <><strong>{event.actor?.full_name}</strong> reassigned from <strong>{event.from_agent.full_name}</strong> → <strong>{event.to_agent?.full_name}</strong></>;
+      }
+      return <>Assigned to <strong>{event.to_agent?.full_name || event.actor?.full_name}</strong></>;
+    case 'tag_added': return <>Tag <strong>"{event.tag_name}"</strong> added</>;
+    case 'tag_removed': return <>Tag <strong>"{event.tag_name}"</strong> removed</>;
+    case 'status_changed': return <>Status → <strong>{event.new_value?.replace(/_/g, ' ')}</strong></>;
+    case 'intervened': return <><strong>{event.actor?.full_name}</strong> took over from <strong>{event.from_agent?.full_name || 'previous agent'}</strong></>;
+    case 'automation_ran': return <>Automation <strong>{(event.details as any)?.workflow_name || 'workflow'}</strong> executed</>;
+    default: return <>{event.event_type.replace(/_/g, ' ')}</>;
+  }
 }
