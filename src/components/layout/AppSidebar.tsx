@@ -383,9 +383,9 @@ export function AppSidebar() {
   return (
     <Sidebar collapsible="icon">
       {/* ── Header ── */}
-      <SidebarHeader className="px-4 py-4 border-b border-sidebar-border">
-        <div className="flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-2.5 hover:opacity-90 transition-opacity duration-200">
+      <SidebarHeader className={cn("border-b border-sidebar-border", isCollapsed ? "px-2 py-3" : "px-4 py-4")}>
+        <div className={cn("flex items-center", isCollapsed ? "justify-center" : "justify-between")}>
+          <Link to="/" className={cn("flex items-center hover:opacity-90 transition-opacity duration-200", isCollapsed ? "justify-center" : "gap-2.5")}>
             <img src={aireatroLogo} alt="AiReatro" className={cn("w-auto transition-all duration-200", isCollapsed ? "h-6" : "h-7")} />
             {!isCollapsed && (
               <span className="inline-flex items-center px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wider text-sidebar-primary bg-sidebar-primary/10 rounded-full border border-sidebar-primary/20">
@@ -400,9 +400,16 @@ export function AppSidebar() {
           )}
         </div>
         {isCollapsed && (
-          <Button variant="ghost" size="icon" onClick={toggleSidebar} className="w-full h-7 mt-2 rounded-lg text-sidebar-foreground/50 hover:text-sidebar-accent-foreground hover:bg-sidebar-accent/70 transition-all duration-200">
-            <PanelLeft className="w-3.5 h-3.5" strokeWidth={1.5} />
-          </Button>
+          <Tooltip delayDuration={0}>
+            <TooltipTrigger asChild>
+              <Button variant="ghost" size="icon" onClick={toggleSidebar} className="w-9 h-9 mx-auto mt-2 rounded-xl text-sidebar-foreground/40 hover:text-sidebar-primary hover:bg-sidebar-accent/80 transition-all duration-200">
+                <PanelLeft className="w-4 h-4" strokeWidth={1.5} />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="right" sideOffset={8} className="text-xs font-medium">
+              Expand sidebar
+            </TooltipContent>
+          </Tooltip>
         )}
       </SidebarHeader>
 
