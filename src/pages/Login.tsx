@@ -65,8 +65,7 @@ export default function Login() {
             .from('profiles')
             .select('onboarding_step')
             .eq('id', user.id)
-            .maybeSingle()
-            .abortSignal(AbortSignal.timeout(6000));
+            .maybeSingle();
 
           // Check onboarding status — but skip for team members who already belong to a tenant
           if (profile?.onboarding_step !== 'completed') {
