@@ -27,7 +27,7 @@ const ROUTE_VIEW_MAP: Record<string, { view: InboxView; crmFilter?: string }> = 
   '/inbox': { view: 'all' },
   '/inbox/mine': { view: 'mine' },
   '/inbox/unassigned': { view: 'unassigned' },
-  '/inbox/open': { view: 'all', crmFilter: 'open' },
+  '/inbox/open': { view: 'all' },
   '/inbox/follow-up': { view: 'all', crmFilter: 'follow_up' },
   '/inbox/resolved': { view: 'closed' },
   '/inbox/spam': { view: 'all', crmFilter: 'junk' },
@@ -54,6 +54,8 @@ export default function InboxPage() {
       setCrmFilter(config.crmFilter);
       if (config.view === 'mine') {
         setFilters({ assignment: 'mine' });
+      } else if (config.view === 'unassigned') {
+        setFilters({ assignment: 'unassigned' });
       } else {
         setFilters(INBOX_VIEW_CONFIG[config.view]?.filter || {});
       }
