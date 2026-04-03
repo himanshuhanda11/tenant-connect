@@ -28,7 +28,7 @@ const ROUTE_VIEW_MAP: Record<string, { view: InboxView; crmFilter?: string }> = 
   '/inbox': { view: 'all' },
   '/inbox/mine': { view: 'mine' },
   '/inbox/unassigned': { view: 'unassigned' },
-  '/inbox/open': { view: 'all' },
+  '/inbox/open': { view: 'all', crmFilter: 'open' },
   '/inbox/follow-up': { view: 'all', crmFilter: 'follow_up' },
   '/inbox/resolved': { view: 'closed' },
   '/inbox/spam': { view: 'all', crmFilter: 'junk' },
