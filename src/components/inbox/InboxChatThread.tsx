@@ -998,33 +998,25 @@ export function InboxChatThread({
 
               {/* Composer Row */}
               <div className="flex items-end gap-1.5">
-                {/* AI Assistant Button */}
+                {/* AI Button - Premium text badge */}
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button 
-                      variant={showAISuggestions ? "default" : "ghost"} 
-                      size="icon" 
+                      variant="ghost" 
+                      size="sm" 
                       className={cn(
-                        "flex-shrink-0 rounded-full transition-all duration-200",
-                        isMobile ? "h-10 w-10" : "h-10 w-10",
+                        "flex-shrink-0 rounded-full px-3 h-10 font-semibold text-xs tracking-wide transition-all duration-200 gap-1.5",
                         showAISuggestions 
-                          ? "bg-gradient-to-br from-primary to-primary/80 shadow-md shadow-primary/20 ring-1 ring-primary/30" 
-                          : "hover:bg-muted"
+                          ? "bg-gradient-to-r from-primary to-emerald-500 text-white shadow-md shadow-primary/25 hover:shadow-lg hover:shadow-primary/30" 
+                          : "bg-muted/60 text-muted-foreground hover:bg-primary/10 hover:text-primary"
                       )}
                       onClick={() => setShowAISuggestions(!showAISuggestions)}
                     >
-                      <img 
-                        src={inboxAiAssistant} 
-                        alt="AI Assistant" 
-                        className={cn(
-                          "object-contain transition-all duration-300",
-                          "h-6 w-6",
-                          showAISuggestions ? "brightness-0 invert scale-110" : "drop-shadow-sm"
-                        )} 
-                      />
+                      <Sparkles className="h-3.5 w-3.5" />
+                      AI
                     </Button>
                   </TooltipTrigger>
-                  <TooltipContent>AI Assistant</TooltipContent>
+                  <TooltipContent>AI Reply Suggestions</TooltipContent>
                 </Tooltip>
 
                 {/* Main input container with integrated actions */}
