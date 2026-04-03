@@ -38,16 +38,16 @@
 
     --radius: 0.625rem;
 
-    /* Sidebar — elevated surface with clear separation */
-    --sidebar-background: 210 25% 97%;
-    --sidebar-foreground: 220 25% 12%;
-    --sidebar-primary: 142 70% 45%;
+    /* Sidebar — obsidian dark premium */
+    --sidebar-background: 240 10% 4%;
+    --sidebar-foreground: 240 5% 65%;
+    --sidebar-primary: 234 89% 74%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 210 20% 93%;
-    --sidebar-accent-foreground: 220 25% 10%;
-    --sidebar-border: 214 20% 88%;
-    --sidebar-ring: 142 70% 45%;
-    --sidebar-muted: 210 18% 95%;
+    --sidebar-accent: 240 6% 10%;
+    --sidebar-accent-foreground: 0 0% 98%;
+    --sidebar-border: 240 6% 15%;
+    --sidebar-ring: 234 89% 74%;
+    --sidebar-muted: 240 6% 8%;
 
     /* Custom tokens */
     --success: 142 70% 45%;
