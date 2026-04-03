@@ -304,20 +304,28 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     const palette = resolvedMode === 'dark' ? themeDef.dark : themeDef.light;
     applyPalette(root, palette);
 
-    // Keep the sidebar premium-dark even when a workspace sidebar color is configured.
-    // Reuse the chosen color only as an accent hue while preserving readable contrast.
+    // Custom sidebar color override — adapt to current mode
     if (appearance.sidebar_color) {
       const hsl = hexToHsl(appearance.sidebar_color);
       if (hsl) {
         const [h, s] = hsl;
-        root.style.setProperty('--sidebar-background', `${h} ${Math.min(Math.max(s, 4), 18)}% 4%`);
-        root.style.setProperty('--sidebar-foreground', `${h} 8% 84%`);
-        root.style.setProperty('--sidebar-primary', `${h} ${Math.min(Math.max(s, 45), 90)}% 74%`);
-        root.style.setProperty('--sidebar-primary-foreground', '0 0% 100%');
-        root.style.setProperty('--sidebar-accent', `${h} ${Math.min(Math.max(s, 8), 24)}% 12%`);
-        root.style.setProperty('--sidebar-accent-foreground', '0 0% 98%');
-        root.style.setProperty('--sidebar-border', `${h} ${Math.min(Math.max(s, 6), 20)}% 17%`);
-        root.style.setProperty('--sidebar-ring', `${h} ${Math.min(Math.max(s, 45), 90)}% 74%`);
+        if (resolvedMode === 'dark') {
+          root.style.setProperty('--sidebar-background', `${h} ${Math.min(Math.max(s, 4), 18)}% 4%`);
+          root.style.setProperty('--sidebar-foreground', `${h} 8% 84%`);
+          root.style.setProperty('--sidebar-primary', `${h} ${Math.min(Math.max(s, 45), 90)}% 74%`);
+          root.style.setProperty('--sidebar-primary-foreground', '0 0% 100%');
+          root.style.setProperty('--sidebar-accent', `${h} ${Math.min(Math.max(s, 8), 24)}% 12%`);
+          root.style.setProperty('--sidebar-accent-foreground', '0 0% 98%');
+          root.style.setProperty('--sidebar-border', `${h} ${Math.min(Math.max(s, 6), 20)}% 17%`);
+        } else {
+          root.style.setProperty('--sidebar-background', `${h} ${Math.min(s, 30)}% 98%`);
+          root.style.setProperty('--sidebar-foreground', `${h} 15% 15%`);
+          root.style.setProperty('--sidebar-primary', `${h} ${s}% ${Math.min(l || 45, 45)}%`);
+          root.style.setProperty('--sidebar-primary-foreground', '0 0% 100%');
+          root.style.setProperty('--sidebar-accent', `${h} ${Math.min(s, 20)}% 93%`);
+          root.style.setProperty('--sidebar-accent-foreground', `${h} 15% 12%`);
+          root.style.setProperty('--sidebar-border', `${h} 12% 90%`);
+        }
       }
     }
 
