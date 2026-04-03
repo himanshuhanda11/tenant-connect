@@ -10,7 +10,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from '@/components/ui/dialog';
-import { Plus, Pencil, Trash2, MessageSquareText, Save, Loader2, GripVertical } from 'lucide-react';
+import { Plus, Pencil, Trash2, MessageSquareText, Save, Loader2, GripVertical, Zap } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
