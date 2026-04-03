@@ -10,7 +10,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from '@/components/ui/dialog';
-import { Plus, Pencil, Trash2, MessageSquareText, Save, Loader2, GripVertical } from 'lucide-react';
+import { Plus, Pencil, Trash2, MessageSquareText, Save, Loader2, GripVertical, Zap } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -260,10 +260,9 @@ export function QuickReplyManager({ onSelectReply, isMobile = false }: QuickRepl
   return (
     <>
       {/* Inline Quick Replies Bar */}
-      <div className="flex items-center gap-2 mt-2 flex-wrap">
-        <span className="text-xs text-muted-foreground flex items-center gap-1">
-          <MessageSquareText className="h-3 w-3" />
-          Quick:
+      <div className="flex items-center gap-1.5 mb-1.5 overflow-x-auto scrollbar-none">
+        <span className="text-[11px] text-muted-foreground/70 flex items-center gap-1 shrink-0 font-medium uppercase tracking-wider">
+          <Zap className="h-3 w-3" />
         </span>
         {loading ? (
           <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" />
@@ -274,7 +273,7 @@ export function QuickReplyManager({ onSelectReply, isMobile = false }: QuickRepl
                 key={reply.id}
                 variant="outline" 
                 size="sm" 
-                className="h-6 text-xs rounded-full border-border/60 hover:border-primary/40 hover:bg-primary/5 transition-colors"
+                className="h-7 text-xs rounded-lg border-border/40 bg-card hover:bg-primary/5 hover:border-primary/30 hover:text-primary transition-all duration-200 shrink-0 font-medium shadow-sm"
                 onClick={() => onSelectReply(reply.text)}
               >
                 {reply.label}
@@ -284,10 +283,10 @@ export function QuickReplyManager({ onSelectReply, isMobile = false }: QuickRepl
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-6 text-[10px] text-muted-foreground hover:text-primary px-1.5"
+                className="h-7 text-[11px] text-muted-foreground hover:text-primary px-2 shrink-0"
                 onClick={() => setShowManager(true)}
               >
-                +{replies.length - visibleCount} more
+                +{replies.length - visibleCount}
               </Button>
             )}
           </>
@@ -295,11 +294,10 @@ export function QuickReplyManager({ onSelectReply, isMobile = false }: QuickRepl
         <Button 
           variant="ghost" 
           size="sm" 
-          className="h-6 text-xs text-primary hover:bg-primary/5 gap-1"
+          className="h-7 text-[11px] text-muted-foreground/60 hover:text-primary gap-1 shrink-0 ml-auto"
           onClick={() => setShowManager(true)}
         >
           <Pencil className="h-3 w-3" />
-          Edit
         </Button>
       </div>
 
