@@ -321,15 +321,19 @@ export function AppSidebar() {
 
     return (
       <div key={group.label} ref={hasActiveItem ? activeGroupRef : undefined}>
-        <Collapsible open={isOpen} onOpenChange={() => toggleGroup(group.label)} className="mt-1">
+        <Collapsible open={isOpen} onOpenChange={() => toggleGroup(group.label)} className="mt-1.5 pt-1.5 border-t border-sidebar-border/30 first:border-t-0 first:pt-0">
           <SidebarGroup>
-            <CollapsibleTrigger asChild>
+           <CollapsibleTrigger asChild>
               <button className={cn(
-                "w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[10px] font-semibold uppercase tracking-[0.1em] transition-all duration-200 ease-in-out",
+                "w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-[11px] font-semibold uppercase tracking-[0.08em] transition-all duration-200 ease-in-out border border-transparent",
                 hasActiveItem
-                  ? "text-sidebar-primary"
-                  : "text-sidebar-foreground/60 hover:text-sidebar-foreground"
+                  ? "text-sidebar-primary bg-sidebar-primary/5 border-sidebar-primary/15"
+                  : "text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent/40"
               )}>
+                <group.icon className={cn(
+                  "w-4 h-4 flex-shrink-0 transition-colors duration-200",
+                  hasActiveItem ? "text-sidebar-primary" : "text-sidebar-foreground/50"
+                )} />
                 <span className="flex-1 text-left">{group.label}</span>
                 <ChevronRight className={cn("w-3 h-3 transition-transform duration-200 ease-in-out", isOpen && "rotate-90")} strokeWidth={1.5} />
               </button>
@@ -459,7 +463,7 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
 
-        {!isCollapsed && <div className="mx-3 my-3 border-b border-sidebar-border/50" />}
+        {!isCollapsed && <div className="mx-3 my-2 border-b border-sidebar-border/40" />}
 
         {/* ── Collapsible Groups ── */}
         {menuGroups.map(group => renderCollapsibleGroup(group))}
