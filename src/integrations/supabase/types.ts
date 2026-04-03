@@ -14169,6 +14169,7 @@ export type Database = {
         Args: { p_tenant_id: string }
         Returns: Json
       }
+      inbox_sidebar_counts: { Args: { p_tenant_id: string }; Returns: Json }
       increment_automation_rate_limit: {
         Args: {
           p_contact_id: string
