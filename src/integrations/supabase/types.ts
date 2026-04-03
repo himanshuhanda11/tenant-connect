@@ -14160,6 +14160,9 @@ export type Database = {
           converted_count: number
           overdue_count: number
           pending_count: number
+          today_opened: number
+          today_replied: number
+          total_today_assigned: number
         }[]
       }
       inbox_crm_dashboard_stats: {
