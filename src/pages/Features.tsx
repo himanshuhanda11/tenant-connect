@@ -270,7 +270,7 @@ export default function Features() {
               <Link to="/signup">Start Free Trial</Link>
             </Button>
             <Button size="lg" variant="outline" asChild>
-              <Link to="/contact">Talk to Sales</Link>
+              <Link to="/contact">Contact Us</Link>
             </Button>
           </div>
         </div>

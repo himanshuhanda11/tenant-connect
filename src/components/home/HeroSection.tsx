@@ -61,7 +61,7 @@ export default function HeroSection() {
                   className="h-12 sm:h-14 px-6 sm:px-8 text-sm sm:text-base border-border hover:bg-muted" 
                   onClick={() => navigate('/contact')}
                 >
-                  Book Demo
+                  Start Free
                 </Button>
               </div>
 

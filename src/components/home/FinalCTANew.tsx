@@ -56,7 +56,7 @@ export default function FinalCTANew() {
                 className="h-12 sm:h-14 lg:h-16 px-6 sm:px-8 lg:px-10 text-sm sm:text-base lg:text-lg border border-background/20 text-background hover:bg-background/10 font-semibold rounded-xl transition-colors"
                 onClick={() => navigate('/contact')}
               >
-                Book a Demo
+                Start Free
               </button>
             </div>
 

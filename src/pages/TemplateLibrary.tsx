@@ -656,7 +656,7 @@ export default function TemplateLibrary() {
               className="h-12 sm:h-14 px-6 sm:px-8 border-white/30 text-white hover:bg-white/10 text-sm sm:text-base" 
               onClick={() => navigate('/contact')}
             >
-              Talk to Sales
+              Contact Us
             </Button>
           </div>
         </div>

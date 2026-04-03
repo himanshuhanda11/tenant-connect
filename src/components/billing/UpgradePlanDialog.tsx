@@ -242,7 +242,7 @@ export function UpgradePlanDialog({ open, onOpenChange, currentPlanId }: Upgrade
                   ) : isCurrent ? (
                     'Current Plan'
                   ) : plan.is_custom ? (
-                    <>Talk to Sales</>
+                    <>Contact Us</>
                   ) : (
                     <>
                       <CreditCard className="w-3.5 h-3.5" />

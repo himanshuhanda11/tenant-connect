@@ -109,7 +109,7 @@ export default function ContactsFeature() {
               <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mb-8">Build rich customer profiles, create smart segments, and deliver personalized experiences at scale.</p>
               <div className="flex flex-col sm:flex-row gap-4">
                 <Button size="lg" className="h-14 px-8 bg-gradient-to-r from-green-500 to-emerald-600 shadow-lg shadow-green-500/20" onClick={() => navigate('/signup')}>Start Free Trial<ArrowRight className="w-5 h-5 ml-2" /></Button>
-                <Button size="lg" variant="outline" className="h-14 px-8" onClick={() => navigate('/contact')}>Book a Demo</Button>
+                <Button size="lg" variant="outline" className="h-14 px-8" onClick={() => navigate('/contact')}>Start Free</Button>
               </div>
             </div>
             <div className="w-full max-w-sm lg:max-w-md shrink-0">
@@ -221,7 +221,7 @@ export default function ContactsFeature() {
               <ArrowRight className="w-5 h-5 ml-2" />
             </Button>
             <Button size="lg" variant="outline" className="h-14 px-8 border-white/30 text-white hover:bg-white/10" onClick={() => navigate('/contact')}>
-              Talk to Sales
+              Contact Us
             </Button>
           </div>
         </div>

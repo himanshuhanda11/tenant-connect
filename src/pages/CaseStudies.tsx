@@ -347,7 +347,7 @@ export default function CaseStudies() {
                 View Case Studies <ArrowRight className="w-5 h-5 ml-2" />
               </Button>
               <Button size="lg" variant="outline" className="h-14 px-8 text-lg border-slate-300" onClick={() => navigate('/contact')}>
-                Talk to Sales
+                Contact Us
               </Button>
             </div>
             <p className="text-sm text-muted-foreground mt-8">
@@ -700,17 +700,17 @@ export default function CaseStudies() {
         </div>
       </section>
 
-      {/* Demo Case Study CTA */}
+      {/* Case Study CTA */}
       <section className="py-12 bg-white border-b border-slate-100">
         <div className="container mx-auto px-4">
           <div className="max-w-3xl mx-auto text-center">
             <FileText className="w-12 h-12 text-primary mx-auto mb-4" />
             <h3 className="text-xl font-bold text-slate-900 mb-2">Don&apos;t see your industry yet?</h3>
             <p className="text-slate-600 mb-6">
-              Explore a demo case study built with real-world data and workflows.
+              Explore a case study built with real-world data and workflows.
             </p>
             <Button variant="outline" size="lg" onClick={() => navigate('/contact')}>
-              View Demo Case Study <ChevronRight className="w-4 h-4 ml-2" />
+              View Case Study <ChevronRight className="w-4 h-4 ml-2" />
             </Button>
           </div>
         </div>
@@ -727,11 +727,11 @@ export default function CaseStudies() {
             Want Similar Results for Your Business?
           </h2>
           <p className="text-xl text-white/80 mb-10 max-w-2xl mx-auto">
-            Start with a demo or explore a live workspace to see AiReatro in action.
+            Start free or explore a live workspace to see AiReatro in action.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button size="lg" className="h-14 px-10 text-lg bg-white text-primary hover:bg-white/90 shadow-xl" onClick={() => navigate('/contact')}>
-              Book a Demo
+              Start Free
             </Button>
             <Button size="lg" variant="outline" className="h-14 px-10 text-lg border-white/30 text-white hover:bg-white/10" onClick={() => navigate('/signup')}>
               Start Free Trial

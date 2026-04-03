@@ -151,7 +151,7 @@ export default function BlogPost() {
                     <ArrowRight className="w-4 h-4 ml-2" />
                   </Button>
                   <Button size="lg" variant="outline" onClick={() => navigate('/contact')}>
-                    Talk to Sales
+                    Contact Us
                   </Button>
                 </div>
               </CardContent>

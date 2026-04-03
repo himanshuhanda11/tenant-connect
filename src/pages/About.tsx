@@ -106,7 +106,7 @@ export default function About() {
                   </Link>
                 </Button>
                 <Button size="lg" variant="outline" className="h-12 sm:h-14 px-6 sm:px-8 text-sm sm:text-base border-border" asChild>
-                  <Link to="/contact">Book a Demo</Link>
+                  <Link to="/contact">Start Free</Link>
                 </Button>
               </div>
               
@@ -423,7 +423,7 @@ export default function About() {
               className="h-12 sm:h-14 px-8 sm:px-10 text-sm sm:text-lg border border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/10 font-medium rounded-xl transition-colors"
               onClick={() => window.location.href = '/contact'}
             >
-              Book a Demo
+              Start Free
             </button>
           </div>
           <p className="text-xs sm:text-sm text-primary-foreground/60">

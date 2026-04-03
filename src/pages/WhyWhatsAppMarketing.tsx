@@ -218,7 +218,7 @@ const WhyWhatsAppMarketing = () => {
                   className="h-14 px-8 text-base border-2 border-border text-foreground hover:bg-muted"
                   onClick={() => navigate('/contact')}
                 >
-                  Talk to Sales
+                  Contact Us
                 </Button>
               </div>
               
@@ -482,7 +482,7 @@ const WhyWhatsAppMarketing = () => {
                 className="h-14 px-8 text-base border-2 border-foreground/30 text-foreground hover:bg-muted font-medium"
                 onClick={() => navigate('/contact')}
               >
-                Talk to Sales
+                Contact Us
               </Button>
             </div>
             

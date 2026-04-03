@@ -606,7 +606,7 @@ export default function FreeWhatsAppApiLifetime() {
                   asChild
                 >
                   <Link to="/contact">
-                    Talk to Sales
+                    Contact Us
                   </Link>
                 </Button>
               </div>
