@@ -322,7 +322,7 @@ export function AppSidebar() {
                 "w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[10px] font-semibold uppercase tracking-[0.1em] transition-all duration-200 ease-in-out",
                 hasActiveItem
                   ? "text-indigo-300"
-                  : "text-white/45 hover:text-white/65"
+                  : "text-white/50 hover:text-white/70"
               )}>
                 <span className="flex-1 text-left">{group.label}</span>
                 <ChevronRight className={cn("w-3 h-3 transition-transform duration-200 ease-in-out", isOpen && "rotate-90")} strokeWidth={1.5} />
