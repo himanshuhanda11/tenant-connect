@@ -70,7 +70,7 @@ export function WorkspaceSettings() {
     defaultValues: {
       name: currentTenant?.name || '',
       industry: '',
-      timezone: 'UTC',
+      timezone: (currentTenant as any)?.timezone || 'UTC',
       language: 'English',
       address: '',
       description: '',
