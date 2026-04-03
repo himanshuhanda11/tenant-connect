@@ -239,21 +239,23 @@ export function AppSidebar() {
                   to={item.url}
                   end={item.url === '/dashboard'}
                   className={cn(
-                    "flex items-center justify-center p-2.5 rounded-lg transition-all duration-200 ease-in-out",
+                    "relative flex items-center justify-center w-9 h-9 mx-auto rounded-xl transition-all duration-200 ease-in-out",
                     isActive
-                      ? "bg-sidebar-accent text-sidebar-accent-foreground shadow-sm"
-                      : "text-sidebar-foreground/70 hover:text-sidebar-accent-foreground hover:bg-sidebar-accent/70"
+                      ? "bg-sidebar-primary/15 text-sidebar-primary shadow-sm ring-1 ring-sidebar-primary/20"
+                      : "text-sidebar-foreground/60 hover:text-sidebar-primary hover:bg-sidebar-accent/80"
                   )}
                   activeClassName=""
                 >
-                  <item.icon className={cn(
-                    "h-[18px] w-[18px] transition-all duration-200",
-                    isActive ? "text-sidebar-primary" : "text-sidebar-foreground/80"
-                  )} />
+                  <item.icon className="h-[18px] w-[18px]" />
+                  {item.badge !== undefined && item.badge > 0 && (
+                    <span className="absolute -top-1 -right-1 h-4 min-w-[16px] px-1 text-[9px] font-bold rounded-full bg-sidebar-primary text-white flex items-center justify-center shadow-sm">
+                      {item.badge}
+                    </span>
+                  )}
                 </NavLink>
               </SidebarMenuButton>
             </TooltipTrigger>
-            <TooltipContent side="right" className="text-xs font-medium bg-popover text-popover-foreground border-border">
+            <TooltipContent side="right" sideOffset={8} className="text-xs font-medium bg-popover text-popover-foreground border-border shadow-lg">
               {item.title}
             </TooltipContent>
           </Tooltip>
@@ -320,10 +322,23 @@ export function AppSidebar() {
 
     if (isCollapsed) {
       return (
-        <SidebarGroup key={group.label} className="mt-2">
+        <SidebarGroup key={group.label} className="mt-1 py-1.5 border-t border-sidebar-border/20">
+          <Tooltip delayDuration={0}>
+            <TooltipTrigger asChild>
+              <div className="flex items-center justify-center mb-1">
+                <group.icon className={cn(
+                  "h-3 w-3",
+                  hasActiveItem ? "text-sidebar-primary" : "text-sidebar-foreground/30"
+                )} />
+              </div>
+            </TooltipTrigger>
+            <TooltipContent side="right" sideOffset={8} className="text-[10px] font-semibold uppercase tracking-wider bg-popover text-popover-foreground border-border shadow-lg">
+              {group.label}
+            </TooltipContent>
+          </Tooltip>
           <SidebarGroupContent>
-            <SidebarMenu className="space-y-1">
-              {group.items.slice(0, 3).map(item => renderMenuItem(item))}
+            <SidebarMenu className="space-y-0.5 flex flex-col items-center">
+              {group.items.map(item => renderMenuItem(item))}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
@@ -368,9 +383,9 @@ export function AppSidebar() {
   return (
     <Sidebar collapsible="icon">
       {/* ── Header ── */}
-      <SidebarHeader className="px-4 py-4 border-b border-sidebar-border">
-        <div className="flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-2.5 hover:opacity-90 transition-opacity duration-200">
+      <SidebarHeader className={cn("border-b border-sidebar-border", isCollapsed ? "px-2 py-3" : "px-4 py-4")}>
+        <div className={cn("flex items-center", isCollapsed ? "justify-center" : "justify-between")}>
+          <Link to="/" className={cn("flex items-center hover:opacity-90 transition-opacity duration-200", isCollapsed ? "justify-center" : "gap-2.5")}>
             <img src={aireatroLogo} alt="AiReatro" className={cn("w-auto transition-all duration-200", isCollapsed ? "h-6" : "h-7")} />
             {!isCollapsed && (
               <span className="inline-flex items-center px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wider text-sidebar-primary bg-sidebar-primary/10 rounded-full border border-sidebar-primary/20">
@@ -385,21 +400,28 @@ export function AppSidebar() {
           )}
         </div>
         {isCollapsed && (
-          <Button variant="ghost" size="icon" onClick={toggleSidebar} className="w-full h-7 mt-2 rounded-lg text-sidebar-foreground/50 hover:text-sidebar-accent-foreground hover:bg-sidebar-accent/70 transition-all duration-200">
-            <PanelLeft className="w-3.5 h-3.5" strokeWidth={1.5} />
-          </Button>
+          <Tooltip delayDuration={0}>
+            <TooltipTrigger asChild>
+              <Button variant="ghost" size="icon" onClick={toggleSidebar} className="w-9 h-9 mx-auto mt-2 rounded-xl text-sidebar-foreground/40 hover:text-sidebar-primary hover:bg-sidebar-accent/80 transition-all duration-200">
+                <PanelLeft className="w-4 h-4" strokeWidth={1.5} />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="right" sideOffset={8} className="text-xs font-medium">
+              Expand sidebar
+            </TooltipContent>
+          </Tooltip>
         )}
       </SidebarHeader>
 
-      <SidebarContent ref={sidebarScrollRef} className="px-3 py-3 overflow-y-auto">
+      <SidebarContent ref={sidebarScrollRef} className={cn("py-3 overflow-y-auto", isCollapsed ? "px-1.5" : "px-3")}>
         {/* ── Workspace Switcher ── */}
         <div className="mb-3">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button className={cn(
-                "w-full flex items-center gap-2.5 rounded-lg transition-all duration-200 ease-in-out group",
+                "w-full flex items-center rounded-xl transition-all duration-200 ease-in-out group",
                 "hover:bg-sidebar-accent/70",
-                isCollapsed ? "p-1.5 justify-center" : "px-3 py-2.5"
+                isCollapsed ? "p-1 justify-center" : "gap-2.5 px-3 py-2.5"
               )}>
                 <div className={cn(
                   "flex items-center justify-center rounded-lg font-bold text-white text-xs flex-shrink-0",
@@ -468,13 +490,14 @@ export function AppSidebar() {
         {/* ── Main Nav ── */}
         <SidebarGroup>
           <SidebarGroupContent>
-            <SidebarMenu className="space-y-0.5">
+            <SidebarMenu className={cn("space-y-0.5", isCollapsed && "flex flex-col items-center")}>
               {filteredMainMenuItems.map(item => renderMenuItem(item))}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
 
         {!isCollapsed && <div className="mx-3 my-2 border-b border-sidebar-border/40" />}
+        {isCollapsed && <div className="mx-1 my-1 border-b border-sidebar-border/20" />}
 
         {/* ── Collapsible Groups ── */}
         {menuGroups.map(group => renderCollapsibleGroup(group))}
@@ -482,14 +505,14 @@ export function AppSidebar() {
         {!isCollapsed && <div className="mx-3 my-3 border-b border-sidebar-border/50" />}
 
         {/* ── Platform ── */}
-        <SidebarGroup className="mt-1">
+        <SidebarGroup className={cn("mt-1", isCollapsed && "border-t border-sidebar-border/20 pt-1.5")}>
           {!isCollapsed && (
             <SidebarGroupLabel className="text-sidebar-foreground/60 text-[10px] font-semibold uppercase tracking-[0.1em] px-3 mb-1">
               Platform
             </SidebarGroupLabel>
           )}
           <SidebarGroupContent>
-            <SidebarMenu className="space-y-0.5">
+            <SidebarMenu className={cn("space-y-0.5", isCollapsed && "flex flex-col items-center")}>
               {filteredSettingsMenuItems.map(item => renderMenuItem(item))}
             </SidebarMenu>
           </SidebarGroupContent>
@@ -497,13 +520,14 @@ export function AppSidebar() {
       </SidebarContent>
 
       {/* ── Footer — Floating tile ── */}
-      <SidebarFooter className="px-3 py-3 border-t border-sidebar-border">
+      <SidebarFooter className={cn("py-3 border-t border-sidebar-border", isCollapsed ? "px-1.5" : "px-3")}>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <button className={cn(
-              "w-full flex items-center gap-2.5 rounded-lg transition-all duration-200 ease-in-out group",
-              "bg-sidebar-accent/40 hover:bg-sidebar-accent/70 border border-sidebar-border/70 shadow-[0_2px_8px_-2px_hsl(var(--sidebar-background)/0.35)]",
-              isCollapsed ? "p-2 justify-center" : "px-3 py-2.5"
+              "w-full flex items-center rounded-xl transition-all duration-200 ease-in-out group",
+              isCollapsed
+                ? "justify-center p-1 hover:bg-sidebar-accent/70"
+                : "gap-2.5 px-3 py-2.5 bg-sidebar-accent/40 hover:bg-sidebar-accent/70 border border-sidebar-border/70 shadow-[0_2px_8px_-2px_hsl(var(--sidebar-background)/0.35)]"
             )}>
               <div className={cn(
                 "flex items-center justify-center rounded-full font-bold text-white text-[10px] flex-shrink-0",
