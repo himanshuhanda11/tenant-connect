@@ -53,13 +53,20 @@ export default function Login() {
       if (authLoading) return;
       
       if (user) {
+        // Safety timeout — if DB queries hang, show the login form after 8s
+        const safetyTimer = setTimeout(() => {
+          console.warn('Auth check timed out, showing login form');
+          setIsCheckingAuth(false);
+        }, 8000);
+
         try {
           // User exists, check their status
           const { data: profile } = await supabase
             .from('profiles')
             .select('onboarding_step')
             .eq('id', user.id)
-            .maybeSingle();
+            .maybeSingle()
+            .abortSignal(AbortSignal.timeout(6000));
 
           // Check onboarding status — but skip for team members who already belong to a tenant
           if (profile?.onboarding_step !== 'completed') {
@@ -68,12 +75,14 @@ export default function Login() {
               .select('id')
               .eq('user_id', user.id)
               .limit(1)
-              .maybeSingle();
+              .maybeSingle()
+              .abortSignal(AbortSignal.timeout(6000));
 
             if (existingMembership) {
               // Team member — auto-complete onboarding
               await supabase.from('profiles').update({ onboarding_step: 'completed' }).eq('id', user.id);
             } else {
+              clearTimeout(safetyTimer);
               if (profile?.onboarding_step === 'org_done') {
                 navigate('/onboarding/password', { replace: true });
               } else {
@@ -87,12 +96,14 @@ export default function Login() {
           const { data: memberships } = await supabase
             .from('tenant_members')
             .select('tenant_id, role')
-            .eq('user_id', user.id);
+            .eq('user_id', user.id)
+            .abortSignal(AbortSignal.timeout(6000));
 
           const { data: assignedRoles } = await supabase
             .from('user_roles')
             .select('tenant_id, roles(base_role)')
-            .eq('user_id', user.id);
+            .eq('user_id', user.id)
+            .abortSignal(AbortSignal.timeout(6000));
 
           const assignedRoleMap = new Map<string, string | null>();
 
@@ -107,6 +118,7 @@ export default function Login() {
 
           const isAgentOnly = resolvedRoles.length > 0 && resolvedRoles.every(role => role === 'agent');
           
+          clearTimeout(safetyTimer);
           if (isAgentOnly) {
             navigate('/inbox', { replace: true });
           } else {
@@ -114,6 +126,7 @@ export default function Login() {
           }
         } catch (err) {
           console.error('Auth status check failed:', err);
+          clearTimeout(safetyTimer);
           // Fall through to show login form instead of infinite spinner
           setIsCheckingAuth(false);
         }
