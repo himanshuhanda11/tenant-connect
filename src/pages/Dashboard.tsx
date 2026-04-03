@@ -125,9 +125,29 @@ export default function Dashboard() {
             <h1 className="text-lg sm:text-xl font-bold text-foreground">{greeting}, {displayName} 👋</h1>
             <p className="text-xs sm:text-sm text-muted-foreground">Here's what's happening in <span className="font-semibold text-foreground">{currentTenant?.name}</span></p>
           </div>
-          <Button variant="outline" size="sm" onClick={refetch} className="h-8 rounded-xl text-xs gap-1.5 border-border/40">
-            <RefreshCw className={cn("h-3.5 w-3.5", loading && "animate-spin")} /> Refresh
-          </Button>
+          <div className="flex items-center gap-2">
+            {billing?.planName && (
+              <Badge
+                className={cn(
+                  "text-[10px] sm:text-xs font-semibold rounded-full px-2.5 py-1 border cursor-pointer hover:opacity-90 transition-opacity",
+                  billing.planName.toLowerCase() === 'free'
+                    ? "bg-muted text-muted-foreground border-border/50"
+                    : billing.planName.toLowerCase() === 'basic'
+                    ? "bg-blue-100 dark:bg-blue-500/15 text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-500/20"
+                    : billing.planName.toLowerCase() === 'pro'
+                    ? "bg-purple-100 dark:bg-purple-500/15 text-purple-600 dark:text-purple-400 border-purple-200 dark:border-purple-500/20"
+                    : "bg-amber-100 dark:bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-200 dark:border-amber-500/20"
+                )}
+                onClick={() => navigate('/billing')}
+              >
+                <Sparkles className="h-3 w-3 mr-1" />
+                {billing.planName} Plan
+              </Badge>
+            )}
+            <Button variant="outline" size="sm" onClick={refetch} className="h-8 rounded-xl text-xs gap-1.5 border-border/40">
+              <RefreshCw className={cn("h-3.5 w-3.5", loading && "animate-spin")} /> Refresh
+            </Button>
+          </div>
         </div>
 
         {/* ═══════════════════════════════════════════════
