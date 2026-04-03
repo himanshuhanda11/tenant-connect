@@ -265,7 +265,7 @@ export function AppSidebar() {
             )}
             <item.icon className={cn(
               "h-4 w-4 flex-shrink-0 transition-all duration-200 ease-in-out",
-              isActive ? "text-indigo-400" : "text-white/45 group-hover/menuitem:text-white/70 group-hover/menuitem:-translate-y-[1px]"
+              isActive ? "text-indigo-400" : "text-white/50 group-hover/menuitem:text-white/70 group-hover/menuitem:-translate-y-[1px]"
             )} />
             <span className="flex-1 truncate tracking-[-0.01em] leading-none">{item.title}</span>
             {item.isNew && (
