@@ -104,7 +104,9 @@ function SidebarColorPicker({ canEdit }: { canEdit: boolean }) {
 export function AppearanceSettings() {
   const { appearance, setAppearance, saving } = useTheme();
   const { currentRole } = useTenant();
-  const canEdit = currentRole === 'owner' || currentRole === 'admin';
+  const isOwnerOrAdmin = currentRole === 'owner' || currentRole === 'admin';
+  // Everyone can toggle light/dark mode; only owner/admin can change theme, density, etc.
+  const canEdit = isOwnerOrAdmin;
 
   return (
     <div className="space-y-6">
@@ -125,7 +127,6 @@ export function AppearanceSettings() {
               return (
                 <button
                   key={opt.value}
-                  disabled={!canEdit}
                   onClick={() => setAppearance({ mode: opt.value })}
                   className={cn(
                     "flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all",
