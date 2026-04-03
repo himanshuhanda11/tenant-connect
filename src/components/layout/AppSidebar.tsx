@@ -247,16 +247,14 @@ export function AppSidebar() {
                   activeClassName=""
                 >
                   <item.icon className="h-[18px] w-[18px]" />
-                  {item.badge !== undefined && item.badge > 0 && (
-                    <span className="absolute -top-1 -right-1 h-4 min-w-[16px] px-1 text-[9px] font-bold rounded-full bg-sidebar-primary text-white flex items-center justify-center shadow-sm">
-                      {item.badge}
-                    </span>
-                  )}
                 </NavLink>
               </SidebarMenuButton>
             </TooltipTrigger>
             <TooltipContent side="right" sideOffset={8} className="text-xs font-medium bg-popover text-popover-foreground border-border shadow-lg">
               {item.title}
+              {item.badge !== undefined && item.badge > 0 && (
+                <span className="ml-1.5 text-sidebar-primary font-semibold">({item.badge})</span>
+              )}
             </TooltipContent>
           </Tooltip>
         </SidebarMenuItem>
