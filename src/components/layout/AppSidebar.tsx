@@ -98,16 +98,16 @@ const settingsMenuItems: MenuItem[] = [
 
 const roleConfig: Record<string, { color: string }> = {
   owner: { color: 'text-amber-400' },
-  admin: { color: 'text-indigo-400' },
+  admin: { color: 'text-emerald-400' },
   manager: { color: 'text-sidebar-primary' },
   agent: { color: 'text-emerald-400' },
 };
 
 const getAvatarColor = (name: string): string => {
   const colors = [
-    'from-indigo-500 to-violet-600',
     'from-emerald-500 to-teal-600',
-    'from-blue-500 to-indigo-600',
+    'from-emerald-500 to-teal-600',
+    'from-teal-500 to-cyan-600',
     'from-violet-500 to-purple-600',
     'from-rose-500 to-pink-600',
     'from-amber-500 to-orange-600',
@@ -254,22 +254,22 @@ export function AppSidebar() {
             className={cn(
               "group/menuitem relative flex items-center gap-3 px-3 py-[9px] rounded-lg text-[14px] font-medium transition-all duration-200 ease-in-out",
               isActive
-                ? "bg-white/[0.07] text-white backdrop-blur-sm shadow-[inset_0_0_0_1px_rgba(255,255,255,0.06),0_0_12px_-3px_rgba(129,140,248,0.15)]"
+                ? "bg-white/[0.07] text-white backdrop-blur-sm shadow-[inset_0_0_0_1px_rgba(255,255,255,0.06),0_0_12px_-3px_rgba(52,211,153,0.15)]"
                 : "text-white/70 hover:text-white hover:bg-white/[0.04]"
             )}
             activeClassName=""
           >
             {/* Left accent bar for active state */}
             {isActive && (
-              <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[2px] h-[60%] rounded-r-full bg-indigo-400 shadow-[0_0_8px_rgba(129,140,248,0.5)]" />
+              <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[2px] h-[60%] rounded-r-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.5)]" />
             )}
             <item.icon className={cn(
               "h-4 w-4 flex-shrink-0 transition-all duration-200 ease-in-out",
-              isActive ? "text-indigo-400" : "text-white/50 group-hover/menuitem:text-white/70 group-hover/menuitem:-translate-y-[1px]"
+              isActive ? "text-emerald-400" : "text-white/50 group-hover/menuitem:text-white/70 group-hover/menuitem:-translate-y-[1px]"
             )} />
             <span className="flex-1 truncate tracking-[-0.01em] leading-none">{item.title}</span>
             {item.isNew && (
-              <span className="text-[8px] font-bold uppercase tracking-wider text-indigo-300 bg-indigo-500/15 px-1.5 py-0.5 rounded-md leading-none border border-indigo-500/20">
+              <span className="text-[8px] font-bold uppercase tracking-wider text-emerald-300 bg-emerald-500/15 px-1.5 py-0.5 rounded-md leading-none border border-emerald-500/20">
                 new
               </span>
             )}
@@ -287,7 +287,7 @@ export function AppSidebar() {
                 className="opacity-0 group-hover/menuitem:opacity-100 transition-opacity duration-200 p-0.5 rounded-md hover:bg-white/[0.06]"
                 title={`${item.title} docs`}
               >
-                <ExternalLink className="h-3 w-3 text-sidebar-foreground hover:text-indigo-400" strokeWidth={1.5} />
+                <ExternalLink className="h-3 w-3 text-sidebar-foreground hover:text-emerald-400" strokeWidth={1.5} />
               </a>
             )}
           </NavLink>
@@ -321,7 +321,7 @@ export function AppSidebar() {
               <button className={cn(
                 "w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[10px] font-semibold uppercase tracking-[0.1em] transition-all duration-200 ease-in-out",
                 hasActiveItem
-                  ? "text-indigo-300"
+                  ? "text-emerald-300"
                   : "text-white/50 hover:text-white/70"
               )}>
                 <span className="flex-1 text-left">{group.label}</span>
@@ -341,8 +341,8 @@ export function AppSidebar() {
     );
   };
 
-  const workspaceColor = currentTenant?.name ? getAvatarColor(currentTenant.name) : 'from-indigo-500 to-violet-600';
-  const userColor = profile?.full_name || user?.email ? getAvatarColor(profile?.full_name || user?.email || '') : 'from-indigo-500 to-violet-600';
+  const workspaceColor = currentTenant?.name ? getAvatarColor(currentTenant.name) : 'from-emerald-500 to-teal-600';
+  const userColor = profile?.full_name || user?.email ? getAvatarColor(profile?.full_name || user?.email || '') : 'from-emerald-500 to-teal-600';
 
   return (
     <Sidebar collapsible="icon">
@@ -352,7 +352,7 @@ export function AppSidebar() {
           <Link to="/" className="flex items-center gap-2.5 hover:opacity-90 transition-opacity duration-200">
             <img src={aireatroLogo} alt="AiReatro" className={cn("w-auto transition-all duration-200", isCollapsed ? "h-6" : "h-7")} />
             {!isCollapsed && (
-              <span className="inline-flex items-center px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wider text-indigo-300 bg-indigo-500/15 rounded-full border border-indigo-500/20">
+              <span className="inline-flex items-center px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wider text-emerald-300 bg-emerald-500/15 rounded-full border border-emerald-500/20">
                 Pro
               </span>
             )}
@@ -418,7 +418,7 @@ export function AppSidebar() {
                       onClick={() => setCurrentTenant(tenant)}
                       className={cn(
                         "flex items-center gap-2.5 p-2 rounded-lg cursor-pointer text-white/80 hover:text-white focus:text-white focus:bg-white/[0.06]",
-                        isSelected && "bg-indigo-500/10"
+                        isSelected && "bg-emerald-500/10"
                       )}
                     >
                       <div className={cn("flex items-center justify-center w-7 h-7 rounded-lg font-bold text-white text-[10px]", `bg-gradient-to-br ${tenantColor}`)}>
@@ -428,7 +428,7 @@ export function AppSidebar() {
                         <p className="text-[12px] font-medium truncate">{tenant.name}</p>
                         <p className={cn("text-[10px] capitalize", roleConfig[tenant.role]?.color || "text-white/40")}>{tenant.role}</p>
                       </div>
-                      {isSelected && <Check className="w-3.5 h-3.5 text-indigo-400" strokeWidth={1.5} />}
+                      {isSelected && <Check className="w-3.5 h-3.5 text-emerald-400" strokeWidth={1.5} />}
                     </DropdownMenuItem>
                   );
                 })}
