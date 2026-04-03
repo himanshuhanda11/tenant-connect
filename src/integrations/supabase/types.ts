@@ -14478,25 +14478,15 @@ export type Database = {
         }
         Returns: Json
       }
-      upsert_contact_inbox_summary:
-        | {
-            Args: {
-              p_contact_id: string
-              p_conversation_id?: string
-              p_phone_number_id: string
-              p_tenant_id: string
-            }
-            Returns: undefined
-          }
-        | {
-            Args: {
-              p_contact_id: string
-              p_conversation_id?: string
-              p_phone_number_id: string
-              p_tenant_id: string
-            }
-            Returns: undefined
-          }
+      upsert_contact_inbox_summary: {
+        Args: {
+          p_contact_id: string
+          p_conversation_id?: string
+          p_phone_number_id: string
+          p_tenant_id: string
+        }
+        Returns: undefined
+      }
       users_share_tenant: {
         Args: { user_a: string; user_b: string }
         Returns: boolean
