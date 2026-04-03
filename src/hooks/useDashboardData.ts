@@ -304,15 +304,22 @@ export function useDashboardData(filters: DashboardFilters) {
       // Phone numbers health
       const { data: phones } = await supabase
         .from('phone_numbers')
-        .select('id, display_number, verified_name, quality_rating, status')
+        .select('id, display_number, verified_name, quality_rating, status, messaging_limit')
         .eq('tenant_id', currentTenant.id);
+
+      const LIMIT_LABELS: Record<string, string> = {
+        TIER_1K: '1K/day',
+        TIER_10K: '10K/day',
+        TIER_100K: '100K/day',
+        TIER_UNLIMITED: 'Unlimited',
+      };
 
       setPhoneHealth((phones || []).map(p => ({
         id: p.id,
         displayName: p.verified_name || 'Unnamed',
         phoneNumber: p.display_number,
         qualityRating: (p.quality_rating?.toLowerCase() || 'unknown') as any,
-        messagingLimit: '10K/day',
+        messagingLimit: LIMIT_LABELS[p.messaging_limit || ''] || 'Unknown',
         webhookHealth: 'healthy',
         needsAction: p.quality_rating === 'RED' || p.status !== 'connected',
         actionReason: p.quality_rating === 'RED' ? 'Low quality rating' : undefined,
