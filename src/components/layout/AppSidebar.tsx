@@ -491,14 +491,15 @@ export function AppSidebar() {
         {!isCollapsed && <div className="mx-3 my-3 border-b border-sidebar-border/50" />}
 
         {/* ── Platform ── */}
-        <SidebarGroup className={cn("mt-1", isCollapsed && "border-t border-sidebar-border/20 pt-1.5")}>
+        <SidebarGroup className={cn("mt-1", isCollapsed && "pt-1")}>
           {!isCollapsed && (
             <SidebarGroupLabel className="text-sidebar-foreground/60 text-[10px] font-semibold uppercase tracking-[0.1em] px-3 mb-1">
               Platform
             </SidebarGroupLabel>
           )}
+          {isCollapsed && <div className="mx-auto w-6 border-t border-sidebar-border/20 mb-1" />}
           <SidebarGroupContent>
-            <SidebarMenu className={cn("space-y-0.5", isCollapsed && "flex flex-col items-center")}>
+            <SidebarMenu className={cn("space-y-0.5", isCollapsed && "flex flex-col items-center space-y-1")}>
               {filteredSettingsMenuItems.map(item => renderMenuItem(item))}
             </SidebarMenu>
           </SidebarGroupContent>
