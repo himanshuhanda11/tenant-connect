@@ -132,9 +132,7 @@ export function InboxConversationListV2({
       });
     }
 
-    if (statusFilter === 'unassigned') {
-      result = result.filter(c => !c.assigned_to);
-    } else if (statusFilter !== 'all') {
+    if (statusFilter !== 'all') {
       result = result.filter(c => c.crm_status === statusFilter);
     }
 
