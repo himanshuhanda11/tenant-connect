@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useLocation, useNavigate, Link } from 'react-router-dom';
-import { LayoutDashboard, Users, Settings, LogOut, ChevronDown, ChevronRight, Plus, Inbox, Contact, Phone, FileText, Send, Zap, CreditCard, Shield, UsersRound, Route, Clock, ScrollText, Tag, ListFilter, HelpCircle, Megaphone, BarChart3, Link2, Target, Workflow, Cog, Building2, TrendingUp, Headphones, Check, Puzzle, PanelLeftClose, PanelLeft, User, ChevronUp, ExternalLink, AlertTriangle, Ban } from 'lucide-react';
+import { LayoutDashboard, Users, Settings, LogOut, ChevronDown, ChevronRight, Plus, Inbox, Contact, Phone, FileText, Send, Zap, CreditCard, Shield, UsersRound, Route, Clock, ScrollText, Tag, ListFilter, HelpCircle, Megaphone, BarChart3, Link2, Target, Workflow, Cog, Building2, TrendingUp, Headphones, Check, Puzzle, PanelLeftClose, PanelLeft, User, ChevronUp, ExternalLink, AlertTriangle, Ban, UserX, MessageCircle, CalendarClock, CheckCircle2, ShieldBan } from 'lucide-react';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from '@/components/ui/sidebar';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
@@ -12,6 +12,7 @@ import { NavLink } from '@/components/NavLink';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTenant } from '@/contexts/TenantContext';
 import { usePhoneNumbers } from '@/hooks/usePhoneNumbers';
+import { useInboxSidebarCounts } from '@/hooks/useInboxSidebarCounts';
 import {
   META_ADS_ANY_PERMISSIONS,
   META_ADS_ATTRIBUTION_PERMISSIONS,
@@ -55,11 +56,11 @@ const inboxMenuItems: MenuItem[] = [
   { title: 'Overview', url: '/inbox/dashboard', icon: BarChart3, key: 'inbox-dashboard' },
   { title: 'All Inbox', url: '/inbox', icon: Inbox, key: 'inbox-all', docUrl: '/help/inbox' },
   { title: 'My Inbox', url: '/inbox/mine', icon: User, key: 'inbox-mine' },
-  { title: 'New Today', url: '/inbox/new-today', icon: Plus, key: 'inbox-new-today' },
-  { title: 'Follow-up Today', url: '/inbox/followup-today', icon: Clock, key: 'inbox-followup' },
-  { title: 'Overdue', url: '/inbox/overdue', icon: AlertTriangle, key: 'inbox-overdue' },
-  { title: 'Converted', url: '/inbox/converted', icon: Check, key: 'inbox-converted' },
-  { title: 'Junk', url: '/inbox/junk', icon: Ban, key: 'inbox-junk' },
+  { title: 'Unassigned', url: '/inbox/unassigned', icon: UserX, key: 'inbox-unassigned' },
+  { title: 'Open', url: '/inbox/open', icon: MessageCircle, key: 'inbox-open' },
+  { title: 'Follow Up', url: '/inbox/follow-up', icon: CalendarClock, key: 'inbox-followup' },
+  { title: 'Resolved', url: '/inbox/resolved', icon: CheckCircle2, key: 'inbox-resolved' },
+  { title: 'Spam', url: '/inbox/spam', icon: ShieldBan, key: 'inbox-spam' },
 ];
 
 const growthMenuItems: MenuItem[] = [
@@ -155,7 +156,7 @@ export function AppSidebar() {
   const filteredMainMenuItems = mainMenuItems;
 
   const filteredInboxMenuItems = isAgent
-    ? inboxMenuItems.filter(i => ['inbox-all', 'inbox-mine', 'inbox-followup', 'inbox-overdue'].includes(i.key))
+    ? inboxMenuItems.filter(i => ['inbox-all', 'inbox-mine', 'inbox-unassigned', 'inbox-open', 'inbox-followup'].includes(i.key))
     : inboxMenuItems;
 
   const filteredCrmMenuItems = isAgent
