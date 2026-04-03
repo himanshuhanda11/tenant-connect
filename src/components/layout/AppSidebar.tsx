@@ -239,21 +239,21 @@ export function AppSidebar() {
                   to={item.url}
                   end={item.url === '/dashboard'}
                   className={cn(
-                    "relative flex items-center justify-center w-9 h-9 mx-auto rounded-xl transition-all duration-200 ease-in-out",
+                    "relative flex h-10 w-10 items-center justify-center rounded-2xl border border-transparent p-0 transition-all duration-200 ease-out",
                     isActive
-                      ? "bg-sidebar-primary/15 text-sidebar-primary shadow-sm ring-1 ring-sidebar-primary/20"
-                      : "text-sidebar-foreground/60 hover:text-sidebar-primary hover:bg-sidebar-accent/80"
+                      ? "bg-sidebar-accent text-sidebar-primary shadow-[inset_0_0_0_1px_hsl(var(--sidebar-border))] ring-1 ring-sidebar-primary/15"
+                      : "text-sidebar-foreground/65 hover:border-sidebar-border/60 hover:bg-sidebar-accent/75 hover:text-sidebar-accent-foreground"
                   )}
                   activeClassName=""
                 >
-                  <item.icon className="h-[18px] w-[18px]" />
+                  <item.icon className="h-[18px] w-[18px] shrink-0" />
                 </NavLink>
               </SidebarMenuButton>
             </TooltipTrigger>
-            <TooltipContent side="right" sideOffset={8} className="text-xs font-medium bg-popover text-popover-foreground border-border shadow-lg">
+            <TooltipContent side="right" sideOffset={8} className="border-border bg-popover text-xs font-medium text-popover-foreground shadow-lg">
               {item.title}
               {item.badge !== undefined && item.badge > 0 && (
-                <span className="ml-1.5 text-sidebar-primary font-semibold">({item.badge})</span>
+                <span className="ml-1.5 font-semibold text-sidebar-primary">({item.badge})</span>
               )}
             </TooltipContent>
           </Tooltip>
@@ -276,22 +276,22 @@ export function AppSidebar() {
             activeClassName=""
           >
             {isActive && (
-              <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[2px] h-[60%] rounded-r-full bg-sidebar-primary" />
+              <span className="absolute left-0 top-1/2 h-[60%] w-[2px] -translate-y-1/2 rounded-r-full bg-sidebar-primary" />
             )}
             <item.icon className={cn(
               "h-4 w-4 flex-shrink-0 transition-all duration-200 ease-in-out",
               isActive
                 ? "text-sidebar-primary"
-                : "text-sidebar-foreground/70 group-hover/menuitem:text-sidebar-accent-foreground group-hover/menuitem:-translate-y-[1px]"
+                : "text-sidebar-foreground/70 group-hover/menuitem:-translate-y-[1px] group-hover/menuitem:text-sidebar-accent-foreground"
             )} />
             <span className="flex-1 truncate tracking-[-0.01em] leading-none">{item.title}</span>
             {item.isNew && (
-              <span className="text-[8px] font-bold uppercase tracking-wider text-sidebar-primary bg-sidebar-primary/10 px-1.5 py-0.5 rounded-md leading-none border border-sidebar-primary/20">
+              <span className="rounded-md border border-sidebar-primary/20 bg-sidebar-primary/10 px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-wider text-sidebar-primary leading-none">
                 new
               </span>
             )}
             {item.badge !== undefined && item.badge > 0 && (
-              <span className="h-[18px] min-w-[18px] px-1.5 text-[10px] font-semibold rounded-full inline-flex items-center justify-center bg-sidebar-primary/15 text-sidebar-primary border border-sidebar-primary/20">
+              <span className="inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-full border border-sidebar-primary/20 bg-sidebar-primary/15 px-1.5 text-[10px] font-semibold text-sidebar-primary">
                 {item.badge}
               </span>
             )}
@@ -301,7 +301,7 @@ export function AppSidebar() {
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={(e) => e.stopPropagation()}
-                className="opacity-0 group-hover/menuitem:opacity-100 transition-opacity duration-200 p-0.5 rounded-md hover:bg-sidebar-accent"
+                className="rounded-md p-0.5 opacity-0 transition-opacity duration-200 hover:bg-sidebar-accent group-hover/menuitem:opacity-100"
                 title={`${item.title} docs`}
               >
                 <ExternalLink className="h-3 w-3 text-sidebar-foreground/70 hover:text-sidebar-primary" strokeWidth={1.5} />
@@ -320,10 +320,10 @@ export function AppSidebar() {
 
     if (isCollapsed) {
       return (
-        <SidebarGroup key={group.label} className="py-1">
-          <div className="mx-auto w-6 border-t border-sidebar-border/20 mb-1" />
+        <SidebarGroup key={group.label} className="py-1.5">
+          <div className="mx-auto mb-1.5 w-7 border-t border-sidebar-border/20" />
           <SidebarGroupContent>
-            <SidebarMenu className="space-y-1 flex flex-col items-center">
+            <SidebarMenu className="flex flex-col items-center space-y-1.5">
               {group.items.map(item => renderMenuItem(item))}
             </SidebarMenu>
           </SidebarGroupContent>
@@ -333,7 +333,7 @@ export function AppSidebar() {
 
     return (
       <div key={group.label} ref={hasActiveItem ? activeGroupRef : undefined}>
-        <Collapsible open={isOpen} onOpenChange={() => toggleGroup(group.label)} className="mt-1.5 pt-1.5 border-t border-sidebar-border/30 first:border-t-0 first:pt-0">
+        <Collapsible open={isOpen} onOpenChange={() => toggleGroup(group.label)} className="mt-1.5 border-t border-sidebar-border/30 pt-1.5 first:border-t-0 first:pt-0">
           <SidebarGroup>
            <CollapsibleTrigger asChild>
               <button className={cn(
@@ -369,7 +369,7 @@ export function AppSidebar() {
   return (
     <Sidebar collapsible="icon">
       {/* ── Header ── */}
-      <SidebarHeader className={cn("border-b border-sidebar-border", isCollapsed ? "px-2 py-3" : "px-4 py-4")}>
+      <SidebarHeader className={cn("shrink-0 border-b border-sidebar-border", isCollapsed ? "px-1.5 py-3.5" : "px-4 py-4")}>
         <div className={cn("flex items-center", isCollapsed ? "justify-center" : "justify-between")}>
           <Link to="/" className={cn("flex items-center hover:opacity-90 transition-opacity duration-200", isCollapsed ? "justify-center" : "gap-2.5")}>
             <img src={aireatroLogo} alt="AiReatro" className={cn("w-auto transition-all duration-200", isCollapsed ? "h-6" : "h-7")} />
@@ -388,8 +388,8 @@ export function AppSidebar() {
         {isCollapsed && (
           <Tooltip delayDuration={0}>
             <TooltipTrigger asChild>
-              <Button variant="ghost" size="icon" onClick={toggleSidebar} className="w-9 h-9 mx-auto mt-2 rounded-xl text-sidebar-foreground/40 hover:text-sidebar-primary hover:bg-sidebar-accent/80 transition-all duration-200">
-                <PanelLeft className="w-4 h-4" strokeWidth={1.5} />
+              <Button variant="ghost" size="icon" onClick={toggleSidebar} className="mx-auto mt-2.5 h-10 w-10 rounded-2xl text-sidebar-foreground/40 transition-all duration-200 hover:bg-sidebar-accent/80 hover:text-sidebar-primary">
+                <PanelLeft className="h-4 w-4" strokeWidth={1.5} />
               </Button>
             </TooltipTrigger>
             <TooltipContent side="right" sideOffset={8} className="text-xs font-medium">
@@ -399,111 +399,121 @@ export function AppSidebar() {
         )}
       </SidebarHeader>
 
-      <SidebarContent ref={sidebarScrollRef} className={cn("py-2 overflow-y-auto", isCollapsed ? "px-0.5 scrollbar-none" : "px-3 scrollbar-thin scrollbar-thumb-sidebar-border/30 scrollbar-track-transparent")}>
-        {/* ── Workspace Switcher ── */}
-        <div className="mb-3">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <button className={cn(
-                "w-full flex items-center rounded-xl transition-all duration-200 ease-in-out group",
-                "hover:bg-sidebar-accent/70",
-                isCollapsed ? "p-1 justify-center" : "gap-2.5 px-3 py-2.5"
-              )}>
-                <div className={cn(
-                  "flex items-center justify-center rounded-lg font-bold text-white text-xs flex-shrink-0",
-                  `bg-gradient-to-br ${workspaceColor}`,
-                  isCollapsed ? "w-7 h-7" : "w-8 h-8"
-                )}>
-                  {currentTenant?.name?.slice(0, 1).toUpperCase() || <Building2 className="w-4 h-4" />}
-                </div>
-                {!isCollapsed && (
-                  <>
-                    <div className="flex-1 min-w-0 text-left">
-                      <p className="text-[12px] font-semibold text-sidebar-foreground truncate">
-                        {currentTenant?.name || 'Select'}
-                      </p>
-                      {currentRole && (
-                        <p className={cn("text-[10px] font-medium capitalize", roleConfig[currentRole]?.color || "text-sidebar-foreground") }>
-                          {currentRole}
-                        </p>
-                      )}
-                    </div>
-                    <ChevronDown className="w-3 h-3 text-sidebar-foreground/50 group-hover:text-sidebar-foreground" strokeWidth={1.5} />
-                  </>
-                )}
-              </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="w-64 p-1.5 bg-popover shadow-2xl border border-border text-popover-foreground">
-              <div className="px-2 py-1.5 mb-1">
-                <p className="text-[10px] font-semibold text-popover-foreground/60 uppercase tracking-wider">Switch Workspace</p>
-              </div>
-              <div className="max-h-[240px] overflow-y-auto space-y-0.5">
-                {tenants.map(tenant => {
-                  const isSelected = currentTenant?.id === tenant.id;
-                  const tenantColor = getAvatarColor(tenant.name);
-                  return (
-                    <DropdownMenuItem
-                      key={tenant.id}
-                      onClick={() => setCurrentTenant(tenant)}
-                      className={cn(
-                        "flex items-center gap-2.5 p-2 rounded-lg cursor-pointer text-popover-foreground/85 hover:text-popover-foreground focus:text-popover-foreground focus:bg-accent",
-                        isSelected && "bg-sidebar-primary/10 text-popover-foreground"
-                      )}
-                    >
-                      <div className={cn("flex items-center justify-center w-7 h-7 rounded-lg font-bold text-white text-[10px]", `bg-gradient-to-br ${tenantColor}`)}>
-                        {tenant.name.slice(0, 1).toUpperCase()}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-[12px] font-medium truncate">{tenant.name}</p>
-                        <p className={cn("text-[10px] capitalize", roleConfig[tenant.role]?.color || "text-popover-foreground/60")}>{tenant.role}</p>
-                      </div>
-                      {isSelected && <Check className="w-3.5 h-3.5 text-sidebar-primary" strokeWidth={1.5} />}
-                    </DropdownMenuItem>
-                  );
-                })}
-              </div>
-              <DropdownMenuSeparator className="my-1 bg-border" />
-              <DropdownMenuItem onClick={() => navigate('/select-workspace')} className="gap-2.5 p-2 rounded-lg text-popover-foreground/70 hover:text-popover-foreground focus:text-popover-foreground focus:bg-accent">
-                <div className="w-7 h-7 rounded-lg border border-dashed border-border flex items-center justify-center">
-                  <Plus className="w-3 h-3" strokeWidth={1.5} />
-                </div>
-                <span className="text-[12px]">Create or Switch</span>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-
-        {/* ── Main Nav ── */}
-        <SidebarGroup className={isCollapsed ? "py-0" : ""}>
-          <SidebarGroupContent>
-            <SidebarMenu className={cn("space-y-0.5", isCollapsed && "flex flex-col items-center space-y-1")}>
-              {filteredMainMenuItems.map(item => renderMenuItem(item))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-
-        {!isCollapsed && <div className="mx-3 my-2 border-b border-sidebar-border/40" />}
-        {isCollapsed && <div className="mx-auto w-6 my-1 border-b border-sidebar-border/20" />}
-
-        {/* ── Collapsible Groups ── */}
-        {menuGroups.map(group => renderCollapsibleGroup(group))}
-
-        {!isCollapsed && <div className="mx-3 my-3 border-b border-sidebar-border/50" />}
-
-        {/* ── Platform ── */}
-        <SidebarGroup className={cn("mt-1", isCollapsed && "pt-1")}>
-          {!isCollapsed && (
-            <SidebarGroupLabel className="text-sidebar-foreground/60 text-[10px] font-semibold uppercase tracking-[0.1em] px-3 mb-1">
-              Platform
-            </SidebarGroupLabel>
+      <SidebarContent className="overflow-hidden">
+        <div
+          ref={sidebarScrollRef}
+          className={cn(
+            "flex min-h-0 flex-1 flex-col overflow-y-auto overflow-x-hidden overscroll-contain",
+            isCollapsed
+              ? "px-1.5 py-2.5 scrollbar-thin scrollbar-thumb-sidebar-border/25 scrollbar-track-transparent"
+              : "px-3 py-2 scrollbar-thin scrollbar-thumb-sidebar-border/30 scrollbar-track-transparent"
           )}
-          {isCollapsed && <div className="mx-auto w-6 border-t border-sidebar-border/20 mb-1" />}
-          <SidebarGroupContent>
-            <SidebarMenu className={cn("space-y-0.5", isCollapsed && "flex flex-col items-center space-y-1")}>
-              {filteredSettingsMenuItems.map(item => renderMenuItem(item))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+        >
+          {/* ── Workspace Switcher ── */}
+          <div className={cn("mb-3", isCollapsed && "mb-2")}>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className={cn(
+                  "w-full flex items-center rounded-xl transition-all duration-200 ease-in-out group",
+                  "hover:bg-sidebar-accent/70",
+                  isCollapsed ? "justify-center p-1.5" : "gap-2.5 px-3 py-2.5"
+                )}>
+                  <div className={cn(
+                    "flex items-center justify-center rounded-lg font-bold text-white text-xs flex-shrink-0",
+                    `bg-gradient-to-br ${workspaceColor}`,
+                    isCollapsed ? "h-9 w-9 rounded-xl" : "w-8 h-8"
+                  )}>
+                    {currentTenant?.name?.slice(0, 1).toUpperCase() || <Building2 className="w-4 h-4" />}
+                  </div>
+                  {!isCollapsed && (
+                    <>
+                      <div className="flex-1 min-w-0 text-left">
+                        <p className="text-[12px] font-semibold text-sidebar-foreground truncate">
+                          {currentTenant?.name || 'Select'}
+                        </p>
+                        {currentRole && (
+                          <p className={cn("text-[10px] font-medium capitalize", roleConfig[currentRole]?.color || "text-sidebar-foreground") }>
+                            {currentRole}
+                          </p>
+                        )}
+                      </div>
+                      <ChevronDown className="w-3 h-3 text-sidebar-foreground/50 group-hover:text-sidebar-foreground" strokeWidth={1.5} />
+                    </>
+                  )}
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="w-64 p-1.5 bg-popover shadow-2xl border border-border text-popover-foreground">
+                <div className="px-2 py-1.5 mb-1">
+                  <p className="text-[10px] font-semibold text-popover-foreground/60 uppercase tracking-wider">Switch Workspace</p>
+                </div>
+                <div className="max-h-[240px] overflow-y-auto space-y-0.5">
+                  {tenants.map(tenant => {
+                    const isSelected = currentTenant?.id === tenant.id;
+                    const tenantColor = getAvatarColor(tenant.name);
+                    return (
+                      <DropdownMenuItem
+                        key={tenant.id}
+                        onClick={() => setCurrentTenant(tenant)}
+                        className={cn(
+                          "flex items-center gap-2.5 p-2 rounded-lg cursor-pointer text-popover-foreground/85 hover:text-popover-foreground focus:text-popover-foreground focus:bg-accent",
+                          isSelected && "bg-sidebar-primary/10 text-popover-foreground"
+                        )}
+                      >
+                        <div className={cn("flex items-center justify-center w-7 h-7 rounded-lg font-bold text-white text-[10px]", `bg-gradient-to-br ${tenantColor}`)}>
+                          {tenant.name.slice(0, 1).toUpperCase()}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-[12px] font-medium truncate">{tenant.name}</p>
+                          <p className={cn("text-[10px] capitalize", roleConfig[tenant.role]?.color || "text-popover-foreground/60")}>{tenant.role}</p>
+                        </div>
+                        {isSelected && <Check className="w-3.5 h-3.5 text-sidebar-primary" strokeWidth={1.5} />}
+                      </DropdownMenuItem>
+                    );
+                  })}
+                </div>
+                <DropdownMenuSeparator className="my-1 bg-border" />
+                <DropdownMenuItem onClick={() => navigate('/select-workspace')} className="gap-2.5 p-2 rounded-lg text-popover-foreground/70 hover:text-popover-foreground focus:text-popover-foreground focus:bg-accent">
+                  <div className="w-7 h-7 rounded-lg border border-dashed border-border flex items-center justify-center">
+                    <Plus className="w-3 h-3" strokeWidth={1.5} />
+                  </div>
+                  <span className="text-[12px]">Create or Switch</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+
+          {/* ── Main Nav ── */}
+          <SidebarGroup className={isCollapsed ? "py-0" : ""}>
+            <SidebarGroupContent>
+              <SidebarMenu className={cn("space-y-0.5", isCollapsed && "flex flex-col items-center space-y-1.5")}>
+                {filteredMainMenuItems.map(item => renderMenuItem(item))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+
+          {!isCollapsed && <div className="mx-3 my-2 border-b border-sidebar-border/40" />}
+          {isCollapsed && <div className="mx-auto my-1.5 w-7 border-b border-sidebar-border/20" />}
+
+          {/* ── Collapsible Groups ── */}
+          {menuGroups.map(group => renderCollapsibleGroup(group))}
+
+          {!isCollapsed && <div className="mx-3 my-3 border-b border-sidebar-border/50" />}
+
+          {/* ── Platform ── */}
+          <SidebarGroup className={cn("mt-1", isCollapsed && "pt-1.5")}>
+            {!isCollapsed && (
+              <SidebarGroupLabel className="text-sidebar-foreground/60 text-[10px] font-semibold uppercase tracking-[0.1em] px-3 mb-1">
+                Platform
+              </SidebarGroupLabel>
+            )}
+            {isCollapsed && <div className="mx-auto mb-1.5 w-7 border-t border-sidebar-border/20" />}
+            <SidebarGroupContent>
+              <SidebarMenu className={cn("space-y-0.5", isCollapsed && "flex flex-col items-center space-y-1.5")}>
+                {filteredSettingsMenuItems.map(item => renderMenuItem(item))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        </div>
       </SidebarContent>
 
       {/* ── Footer — Floating tile ── */}
