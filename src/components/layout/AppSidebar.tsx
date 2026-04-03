@@ -97,20 +97,20 @@ const settingsMenuItems: MenuItem[] = [
 ];
 
 const roleConfig: Record<string, { color: string }> = {
-  owner: { color: 'text-amber-500' },
-  admin: { color: 'text-blue-500' },
-  manager: { color: 'text-primary' },
-  agent: { color: 'text-emerald-500' },
+  owner: { color: 'text-amber-400' },
+  admin: { color: 'text-indigo-400' },
+  manager: { color: 'text-sidebar-primary' },
+  agent: { color: 'text-emerald-400' },
 };
 
 const getAvatarColor = (name: string): string => {
   const colors = [
-    'from-emerald-400 to-teal-500',
-    'from-blue-400 to-indigo-500',
-    'from-violet-400 to-purple-500',
-    'from-rose-400 to-pink-500',
-    'from-amber-400 to-orange-500',
-    'from-cyan-400 to-sky-500',
+    'from-indigo-500 to-violet-600',
+    'from-emerald-500 to-teal-600',
+    'from-blue-500 to-indigo-600',
+    'from-violet-500 to-purple-600',
+    'from-rose-500 to-pink-600',
+    'from-amber-500 to-orange-600',
   ];
   let hash = 0;
   for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
@@ -152,9 +152,7 @@ export function AppSidebar() {
     }
   });
 
-  const filteredMainMenuItems = isAgent
-    ? mainMenuItems
-    : mainMenuItems;
+  const filteredMainMenuItems = mainMenuItems;
 
   const filteredInboxMenuItems = isAgent
     ? inboxMenuItems.filter(i => ['inbox-all', 'inbox-mine', 'inbox-followup', 'inbox-overdue'].includes(i.key))
@@ -230,18 +228,18 @@ export function AppSidebar() {
                   to={item.url}
                   end={item.url === '/dashboard'}
                   className={cn(
-                    "flex items-center justify-center p-2.5 rounded-xl transition-all duration-200",
+                    "flex items-center justify-center p-2.5 rounded-lg transition-all duration-200 ease-in-out",
                     isActive
-                      ? "bg-primary/15 text-primary shadow-[0_0_0_1px_hsl(var(--primary)/0.2)]"
-                      : "text-sidebar-foreground/45 hover:text-sidebar-foreground hover:bg-sidebar-accent"
+                      ? "bg-white/[0.08] text-white shadow-[inset_0_0_0_1px_rgba(255,255,255,0.06)]"
+                      : "text-sidebar-foreground hover:text-white hover:bg-white/[0.04]"
                   )}
                   activeClassName=""
                 >
-                  <item.icon className={cn("h-[18px] w-[18px]", isActive && "text-primary")} />
+                  <item.icon className={cn("h-[18px] w-[18px] transition-all duration-200", isActive && "text-white")} strokeWidth={1.5} />
                 </NavLink>
               </SidebarMenuButton>
             </TooltipTrigger>
-            <TooltipContent side="right" className="text-xs font-medium">{item.title}</TooltipContent>
+            <TooltipContent side="right" className="text-xs font-medium bg-[#18181b] text-white border-[#27272a]">{item.title}</TooltipContent>
           </Tooltip>
         </SidebarMenuItem>
       );
@@ -254,24 +252,24 @@ export function AppSidebar() {
             to={item.url}
             end={item.url === '/dashboard'}
             className={cn(
-              "group/menuitem relative flex items-center gap-3 px-3 py-[11px] rounded-xl text-[13px] font-medium transition-all duration-200 ease-out",
+              "group/menuitem relative flex items-center gap-3 px-3 py-[9px] rounded-lg text-[14px] font-medium transition-all duration-200 ease-in-out",
               isActive
-                ? "bg-primary/12 text-primary shadow-[inset_0_0_0_1px_hsl(var(--primary)/0.15)] font-semibold"
-                : "text-sidebar-foreground/55 hover:text-sidebar-foreground hover:bg-sidebar-accent"
+                ? "bg-white/[0.07] text-white backdrop-blur-sm shadow-[inset_0_0_0_1px_rgba(255,255,255,0.06),0_0_12px_-3px_rgba(129,140,248,0.15)]"
+                : "text-sidebar-foreground hover:text-white hover:bg-white/[0.04]"
             )}
             activeClassName=""
           >
             {/* Left accent bar for active state */}
             {isActive && (
-              <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-[55%] rounded-r-full bg-primary shadow-[0_0_6px_hsl(var(--primary)/0.4)]" />
+              <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[2px] h-[60%] rounded-r-full bg-indigo-400 shadow-[0_0_8px_rgba(129,140,248,0.5)]" />
             )}
             <item.icon className={cn(
-              "h-[16px] w-[16px] flex-shrink-0 transition-colors duration-200",
-              isActive ? "text-primary" : "text-sidebar-foreground/35 group-hover/menuitem:text-sidebar-foreground/60"
-            )} />
+              "h-4 w-4 flex-shrink-0 transition-all duration-200 ease-in-out",
+              isActive ? "text-indigo-400" : "text-sidebar-foreground group-hover/menuitem:text-white/70 group-hover/menuitem:-translate-y-[1px]"
+            )} strokeWidth={1.5} />
             <span className="flex-1 truncate tracking-[-0.01em] leading-none">{item.title}</span>
             {item.isNew && (
-              <span className="text-[8px] font-bold uppercase tracking-wider text-primary bg-primary/10 px-1.5 py-0.5 rounded-md leading-none">
+              <span className="text-[8px] font-bold uppercase tracking-wider text-indigo-300 bg-indigo-500/15 px-1.5 py-0.5 rounded-md leading-none border border-indigo-500/20">
                 new
               </span>
             )}
@@ -286,10 +284,10 @@ export function AppSidebar() {
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={(e) => e.stopPropagation()}
-                className="opacity-0 group-hover/menuitem:opacity-100 transition-opacity duration-200 p-0.5 rounded-md hover:bg-sidebar-accent"
+                className="opacity-0 group-hover/menuitem:opacity-100 transition-opacity duration-200 p-0.5 rounded-md hover:bg-white/[0.06]"
                 title={`${item.title} docs`}
               >
-                <ExternalLink className="h-3 w-3 text-sidebar-foreground/30 hover:text-primary" />
+                <ExternalLink className="h-3 w-3 text-sidebar-foreground hover:text-indigo-400" strokeWidth={1.5} />
               </a>
             )}
           </NavLink>
@@ -307,7 +305,7 @@ export function AppSidebar() {
       return (
         <SidebarGroup key={group.label} className="mt-2">
           <SidebarGroupContent>
-            <SidebarMenu className="space-y-1.5">
+            <SidebarMenu className="space-y-1">
               {group.items.slice(0, 3).map(item => renderMenuItem(item))}
             </SidebarMenu>
           </SidebarGroupContent>
@@ -317,22 +315,21 @@ export function AppSidebar() {
 
     return (
       <div key={group.label} ref={hasActiveItem ? activeGroupRef : undefined}>
-        <Collapsible open={isOpen} onOpenChange={() => toggleGroup(group.label)} className="mt-1.5">
+        <Collapsible open={isOpen} onOpenChange={() => toggleGroup(group.label)} className="mt-1">
           <SidebarGroup>
             <CollapsibleTrigger asChild>
               <button className={cn(
-                "w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-[11px] font-semibold uppercase tracking-[0.08em] transition-all duration-200",
+                "w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[10px] font-semibold uppercase tracking-[0.1em] transition-all duration-200 ease-in-out",
                 hasActiveItem
-                  ? "text-primary bg-primary/5"
-                  : "text-sidebar-foreground/35 hover:text-sidebar-foreground/55 hover:bg-sidebar-accent/50"
+                  ? "text-indigo-400/80"
+                  : "text-sidebar-foreground/40 hover:text-sidebar-foreground/70"
               )}>
-                <group.icon className="h-3.5 w-3.5" />
                 <span className="flex-1 text-left">{group.label}</span>
-                <ChevronRight className={cn("w-3 h-3 transition-transform duration-250 ease-out", isOpen && "rotate-90")} />
+                <ChevronRight className={cn("w-3 h-3 transition-transform duration-200 ease-in-out", isOpen && "rotate-90")} strokeWidth={1.5} />
               </button>
             </CollapsibleTrigger>
             <CollapsibleContent className="animate-accordion-down data-[state=closed]:animate-accordion-up">
-              <SidebarGroupContent className="mt-1.5 ml-2 pl-3 border-l-[1.5px] border-sidebar-border/40">
+              <SidebarGroupContent className="mt-0.5">
                 <SidebarMenu className="space-y-0.5">
                   {group.items.map(item => renderMenuItem(item, true))}
                 </SidebarMenu>
@@ -344,39 +341,44 @@ export function AppSidebar() {
     );
   };
 
-  const workspaceColor = currentTenant?.name ? getAvatarColor(currentTenant.name) : 'from-emerald-400 to-teal-500';
-  const userColor = profile?.full_name || user?.email ? getAvatarColor(profile?.full_name || user?.email || '') : 'from-blue-400 to-indigo-500';
+  const workspaceColor = currentTenant?.name ? getAvatarColor(currentTenant.name) : 'from-indigo-500 to-violet-600';
+  const userColor = profile?.full_name || user?.email ? getAvatarColor(profile?.full_name || user?.email || '') : 'from-indigo-500 to-violet-600';
 
   return (
     <Sidebar collapsible="icon">
       {/* ── Header ── */}
-      <SidebarHeader className="px-3 py-4 border-b border-sidebar-border/50">
+      <SidebarHeader className="px-4 py-4 border-b border-sidebar-border">
         <div className="flex items-center justify-between">
-          <Link to="/" className="hover:opacity-80 transition-opacity duration-200">
-            <img src={aireatroLogo} alt="AiReatro" className={cn("w-auto transition-all duration-200", isCollapsed ? "h-7" : "h-9")} />
+          <Link to="/" className="flex items-center gap-2.5 hover:opacity-90 transition-opacity duration-200">
+            <img src={aireatroLogo} alt="AiReatro" className={cn("w-auto transition-all duration-200", isCollapsed ? "h-6" : "h-7")} />
+            {!isCollapsed && (
+              <span className="inline-flex items-center px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wider text-indigo-300 bg-indigo-500/15 rounded-full border border-indigo-500/20">
+                Pro
+              </span>
+            )}
           </Link>
           {!isCollapsed && (
-            <Button variant="ghost" size="icon" onClick={toggleSidebar} className="h-7 w-7 rounded-xl text-sidebar-foreground/25 hover:text-sidebar-foreground/50 hover:bg-sidebar-accent transition-all duration-200">
-              <PanelLeftClose className="w-3.5 h-3.5" />
+            <Button variant="ghost" size="icon" onClick={toggleSidebar} className="h-7 w-7 rounded-lg text-sidebar-foreground/30 hover:text-white/60 hover:bg-white/[0.04] transition-all duration-200">
+              <PanelLeftClose className="w-3.5 h-3.5" strokeWidth={1.5} />
             </Button>
           )}
         </div>
         {isCollapsed && (
-          <Button variant="ghost" size="icon" onClick={toggleSidebar} className="w-full h-7 mt-2.5 rounded-xl text-sidebar-foreground/25 hover:text-sidebar-foreground/50 hover:bg-sidebar-accent transition-all duration-200">
-            <PanelLeft className="w-3.5 h-3.5" />
+          <Button variant="ghost" size="icon" onClick={toggleSidebar} className="w-full h-7 mt-2 rounded-lg text-sidebar-foreground/30 hover:text-white/60 hover:bg-white/[0.04] transition-all duration-200">
+            <PanelLeft className="w-3.5 h-3.5" strokeWidth={1.5} />
           </Button>
         )}
       </SidebarHeader>
 
-      <SidebarContent ref={sidebarScrollRef} className="px-3 py-3.5 overflow-y-auto">
+      <SidebarContent ref={sidebarScrollRef} className="px-3 py-3 overflow-y-auto">
         {/* ── Workspace Switcher ── */}
-        <div className="mb-3.5">
+        <div className="mb-3">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button className={cn(
-                "w-full flex items-center gap-2.5 rounded-xl transition-all duration-200 group",
-                "hover:bg-sidebar-accent",
-                isCollapsed ? "p-1.5 justify-center" : "px-2.5 py-2.5"
+                "w-full flex items-center gap-2.5 rounded-lg transition-all duration-200 ease-in-out group",
+                "hover:bg-white/[0.04]",
+                isCollapsed ? "p-1.5 justify-center" : "px-3 py-2.5"
               )}>
                 <div className={cn(
                   "flex items-center justify-center rounded-lg font-bold text-white text-xs flex-shrink-0",
@@ -388,23 +390,23 @@ export function AppSidebar() {
                 {!isCollapsed && (
                   <>
                     <div className="flex-1 min-w-0 text-left">
-                      <p className="text-[12px] font-semibold text-sidebar-foreground truncate">
+                      <p className="text-[12px] font-semibold text-white/90 truncate">
                         {currentTenant?.name || 'Select'}
                       </p>
                       {currentRole && (
-                        <p className={cn("text-[10px] font-medium capitalize", roleConfig[currentRole]?.color || "text-muted-foreground")}>
+                        <p className={cn("text-[10px] font-medium capitalize", roleConfig[currentRole]?.color || "text-sidebar-foreground")}>
                           {currentRole}
                         </p>
                       )}
                     </div>
-                    <ChevronDown className="w-3 h-3 text-sidebar-foreground/30" />
+                    <ChevronDown className="w-3 h-3 text-sidebar-foreground/40 group-hover:text-white/40" strokeWidth={1.5} />
                   </>
                 )}
               </button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="w-64 p-1.5 bg-popover shadow-xl border border-border">
+            <DropdownMenuContent align="start" className="w-64 p-1.5 bg-[#18181b] shadow-2xl border border-[#27272a] text-white">
               <div className="px-2 py-1.5 mb-1">
-                <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Switch Workspace</p>
+                <p className="text-[10px] font-semibold text-white/40 uppercase tracking-wider">Switch Workspace</p>
               </div>
               <div className="max-h-[240px] overflow-y-auto space-y-0.5">
                 {tenants.map(tenant => {
@@ -415,28 +417,28 @@ export function AppSidebar() {
                       key={tenant.id}
                       onClick={() => setCurrentTenant(tenant)}
                       className={cn(
-                        "flex items-center gap-2.5 p-2 rounded-lg cursor-pointer",
-                        isSelected && "bg-primary/10"
+                        "flex items-center gap-2.5 p-2 rounded-lg cursor-pointer text-white/80 hover:text-white focus:text-white focus:bg-white/[0.06]",
+                        isSelected && "bg-indigo-500/10"
                       )}
                     >
                       <div className={cn("flex items-center justify-center w-7 h-7 rounded-lg font-bold text-white text-[10px]", `bg-gradient-to-br ${tenantColor}`)}>
                         {tenant.name.slice(0, 1).toUpperCase()}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-[12px] font-medium text-popover-foreground truncate">{tenant.name}</p>
-                        <p className={cn("text-[10px] capitalize", roleConfig[tenant.role]?.color || "text-muted-foreground")}>{tenant.role}</p>
+                        <p className="text-[12px] font-medium truncate">{tenant.name}</p>
+                        <p className={cn("text-[10px] capitalize", roleConfig[tenant.role]?.color || "text-white/40")}>{tenant.role}</p>
                       </div>
-                      {isSelected && <Check className="w-3.5 h-3.5 text-primary" />}
+                      {isSelected && <Check className="w-3.5 h-3.5 text-indigo-400" strokeWidth={1.5} />}
                     </DropdownMenuItem>
                   );
                 })}
               </div>
-              <DropdownMenuSeparator className="my-1" />
-              <DropdownMenuItem onClick={() => navigate('/select-workspace')} className="gap-2.5 p-2 rounded-lg">
-                <div className="w-7 h-7 rounded-lg border border-dashed border-muted-foreground/30 flex items-center justify-center">
-                  <Plus className="w-3 h-3 text-muted-foreground" />
+              <DropdownMenuSeparator className="my-1 bg-[#27272a]" />
+              <DropdownMenuItem onClick={() => navigate('/select-workspace')} className="gap-2.5 p-2 rounded-lg text-white/50 hover:text-white focus:text-white focus:bg-white/[0.06]">
+                <div className="w-7 h-7 rounded-lg border border-dashed border-white/15 flex items-center justify-center">
+                  <Plus className="w-3 h-3" strokeWidth={1.5} />
                 </div>
-                <span className="text-[12px] text-muted-foreground">Create or Switch</span>
+                <span className="text-[12px]">Create or Switch</span>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -451,17 +453,17 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
 
-        {!isCollapsed && <div className="mx-3 my-3 border-b border-sidebar-border/30" />}
+        {!isCollapsed && <div className="mx-3 my-3 border-b border-sidebar-border/50" />}
 
         {/* ── Collapsible Groups ── */}
         {menuGroups.map(group => renderCollapsibleGroup(group))}
 
-        {!isCollapsed && <div className="mx-3 my-3 border-b border-sidebar-border/30" />}
+        {!isCollapsed && <div className="mx-3 my-3 border-b border-sidebar-border/50" />}
 
         {/* ── Platform ── */}
-        <SidebarGroup className="mt-2">
+        <SidebarGroup className="mt-1">
           {!isCollapsed && (
-            <SidebarGroupLabel className="text-sidebar-foreground/30 text-[10px] font-semibold uppercase tracking-[0.08em] px-3 mb-1.5">
+            <SidebarGroupLabel className="text-sidebar-foreground/35 text-[10px] font-semibold uppercase tracking-[0.1em] px-3 mb-1">
               Platform
             </SidebarGroupLabel>
           )}
@@ -473,62 +475,63 @@ export function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
 
-      {/* ── Footer ── */}
-      <SidebarFooter className="px-3 py-3 border-t border-sidebar-border/50">
+      {/* ── Footer — Floating tile ── */}
+      <SidebarFooter className="px-3 py-3 border-t border-sidebar-border">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <button className={cn(
-              "w-full flex items-center gap-2.5 rounded-xl transition-all duration-200 group hover:bg-sidebar-accent",
-              isCollapsed ? "p-1.5 justify-center" : "px-2.5 py-2"
+              "w-full flex items-center gap-2.5 rounded-lg transition-all duration-200 ease-in-out group",
+              "bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.06] shadow-[0_2px_8px_-2px_rgba(0,0,0,0.3)]",
+              isCollapsed ? "p-2 justify-center" : "px-3 py-2.5"
             )}>
               <div className={cn(
                 "flex items-center justify-center rounded-full font-bold text-white text-[10px] flex-shrink-0",
                 `bg-gradient-to-br ${userColor}`,
-                isCollapsed ? "w-7 h-7" : "w-7 h-7"
+                "w-7 h-7"
               )}>
                 {getInitials(profile?.full_name ?? null, user?.email ?? '')}
               </div>
               {!isCollapsed && (
                 <>
                   <div className="flex-1 min-w-0 text-left">
-                    <p className="text-[12px] font-medium text-sidebar-foreground truncate">
+                    <p className="text-[12px] font-medium text-white/85 truncate">
                       {profile?.full_name || 'User'}
                     </p>
-                    <p className="text-[10px] text-sidebar-foreground/40 truncate">
+                    <p className="text-[10px] text-sidebar-foreground/50 truncate">
                       {user?.email}
                     </p>
                   </div>
-                  <ChevronUp className="w-3 h-3 text-sidebar-foreground/30" />
+                  <ChevronUp className="w-3 h-3 text-sidebar-foreground/30 group-hover:text-white/40" strokeWidth={1.5} />
                 </>
               )}
             </button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="start" side="top" className="w-56 p-1.5 bg-popover shadow-xl border border-border mb-1">
-            <div className="px-2 py-2 mb-1 bg-accent/50 rounded-lg">
+          <DropdownMenuContent align="start" side="top" className="w-56 p-1.5 bg-[#18181b] shadow-2xl border border-[#27272a] text-white mb-1">
+            <div className="px-2 py-2 mb-1 bg-white/[0.04] rounded-lg">
               <div className="flex items-center gap-2">
                 <div className={cn("w-8 h-8 rounded-full font-bold text-white text-[10px] flex items-center justify-center", `bg-gradient-to-br ${userColor}`)}>
                   {getInitials(profile?.full_name ?? null, user?.email ?? '')}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-[12px] font-semibold text-popover-foreground truncate">{profile?.full_name || 'User'}</p>
-                  <p className="text-[10px] text-muted-foreground truncate">{user?.email}</p>
+                  <p className="text-[12px] font-semibold text-white/90 truncate">{profile?.full_name || 'User'}</p>
+                  <p className="text-[10px] text-white/40 truncate">{user?.email}</p>
                 </div>
               </div>
             </div>
-            <DropdownMenuItem onClick={() => navigate('/settings?section=profile')} className="gap-2 py-1.5 rounded-md text-[12px]">
-              <User className="w-3.5 h-3.5 text-muted-foreground" /> My Profile
+            <DropdownMenuItem onClick={() => navigate('/settings?section=profile')} className="gap-2 py-1.5 rounded-md text-[12px] text-white/70 hover:text-white focus:text-white focus:bg-white/[0.06]">
+              <User className="w-3.5 h-3.5" strokeWidth={1.5} /> My Profile
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => navigate('/settings')} className="gap-2 py-1.5 rounded-md text-[12px]">
-              <Settings className="w-3.5 h-3.5 text-muted-foreground" /> Settings
+            <DropdownMenuItem onClick={() => navigate('/settings')} className="gap-2 py-1.5 rounded-md text-[12px] text-white/70 hover:text-white focus:text-white focus:bg-white/[0.06]">
+              <Settings className="w-3.5 h-3.5" strokeWidth={1.5} /> Settings
             </DropdownMenuItem>
-            <DropdownMenuItem asChild className="gap-2 py-1.5 rounded-md text-[12px]">
+            <DropdownMenuItem asChild className="gap-2 py-1.5 rounded-md text-[12px] text-white/70 hover:text-white focus:text-white focus:bg-white/[0.06]">
               <a href="/help" target="_blank" rel="noopener noreferrer">
-                <Headphones className="w-3.5 h-3.5 text-muted-foreground" /> Help
+                <Headphones className="w-3.5 h-3.5" strokeWidth={1.5} /> Help
               </a>
             </DropdownMenuItem>
-            <DropdownMenuSeparator className="my-1" />
-            <DropdownMenuItem onClick={handleSignOut} className="gap-2 py-1.5 rounded-md text-[12px] text-destructive focus:text-destructive">
-              <LogOut className="w-3.5 h-3.5" /> Sign out
+            <DropdownMenuSeparator className="my-1 bg-[#27272a]" />
+            <DropdownMenuItem onClick={handleSignOut} className="gap-2 py-1.5 rounded-md text-[12px] text-red-400 focus:text-red-400 focus:bg-red-500/10">
+              <LogOut className="w-3.5 h-3.5" strokeWidth={1.5} /> Sign out
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
