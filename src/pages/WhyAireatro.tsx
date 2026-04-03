@@ -339,6 +339,25 @@ export default function WhyAireatro() {
           </div>
         </section>
 
+        {/* ── MID-PAGE CTA ── */}
+        <section className="bg-gradient-to-r from-emerald-600 to-teal-500 py-12 sm:py-16">
+          <div className="max-w-4xl mx-auto px-4 text-center">
+            <h2 className="text-xl sm:text-3xl font-bold text-white">Ready to 10x Your WhatsApp Revenue?</h2>
+            <p className="text-emerald-100 mt-2 text-sm sm:text-base max-w-lg mx-auto">
+              Get started in under 2 minutes. No credit card required. No monthly fees.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-3 justify-center mt-6">
+              <Button size="lg" className="rounded-xl text-sm font-semibold px-8 gap-2 bg-white text-emerald-700 hover:bg-emerald-50 shadow-lg" onClick={() => navigate('/signup')}>
+                Start Free Now <ArrowRight className="h-4 w-4" />
+              </Button>
+              <Button size="lg" variant="outline" className="rounded-xl text-sm font-semibold px-8 border-white/30 text-white hover:bg-white/10" onClick={() => navigate('/contact')}>
+                Schedule a Demo
+              </Button>
+            </div>
+            <p className="text-emerald-200 text-xs mt-4">✓ Free forever &nbsp;·&nbsp; ✓ No setup fees &nbsp;·&nbsp; ✓ Cancel anytime</p>
+          </div>
+        </section>
+
         {/* ── COMPARISON TABLE ── */}
         <section className="bg-gray-50 border-t border-gray-200">
           <div className="max-w-4xl mx-auto px-4 py-14 sm:py-20">
@@ -386,6 +405,16 @@ export default function WhyAireatro() {
             </div>
           </div>
         </section>
+      </div>
+
+      {/* Sticky mobile CTA */}
+      <div className="fixed bottom-0 left-0 right-0 z-50 sm:hidden bg-white/95 backdrop-blur border-t border-gray-200 px-4 py-3 flex gap-2">
+        <Button className="flex-1 rounded-xl text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white gap-1.5" onClick={() => navigate('/signup')}>
+          Start Free <ArrowRight className="h-3.5 w-3.5" />
+        </Button>
+        <Button variant="outline" className="rounded-xl text-xs font-semibold border-gray-300 text-gray-700 px-4" onClick={() => navigate('/contact')}>
+          Demo
+        </Button>
       </div>
 
       <Footer />
