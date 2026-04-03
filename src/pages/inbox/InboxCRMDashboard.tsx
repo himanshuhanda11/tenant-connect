@@ -33,7 +33,7 @@ export default function InboxCRMDashboard() {
   return (
     <DashboardLayout>
       <TooltipProvider>
-        <div className={cn("space-y-5 animate-fade-in", isMobile ? "p-4 pb-24" : "p-6 max-w-6xl mx-auto")}>
+        <div className={cn("space-y-5 animate-fade-in", isMobile ? "pb-24" : "max-w-6xl mx-auto")}>
           {/* Header */}
           <div className="flex items-center justify-between">
             <div>
