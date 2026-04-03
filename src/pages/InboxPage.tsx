@@ -85,7 +85,7 @@ export default function InboxPage() {
   const actions = useInboxActions();
   const { unreadNewCount, clearNotifications } = useInboxNotification();
 
-  const selectedConversation = conversations.find(c => c.id === selectedId) || null;
+  const selectedConversation = filteredConversations.find(c => c.id === selectedId) || null;
 
   const viewerName = (() => {
     if (!selectedConversation) return null;
@@ -175,13 +175,13 @@ export default function InboxPage() {
     if (isMobile) return;
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
-      const currentIndex = conversations.findIndex(c => c.id === selectedId);
+      const currentIndex = filteredConversations.findIndex(c => c.id === selectedId);
       switch (e.key) {
         case 'j':
-          if (currentIndex < conversations.length - 1) handleSelect(conversations[currentIndex + 1].id);
+          if (currentIndex < filteredConversations.length - 1) handleSelect(filteredConversations[currentIndex + 1].id);
           break;
         case 'k':
-          if (currentIndex > 0) handleSelect(conversations[currentIndex - 1].id);
+          if (currentIndex > 0) handleSelect(filteredConversations[currentIndex - 1].id);
           break;
         case 'e': handleSetStatus('pending'); break;
         case 'c': handleSetStatus('closed'); break;
@@ -189,7 +189,7 @@ export default function InboxPage() {
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [conversations, selectedId, handleSetStatus, isMobile]);
+  }, [filteredConversations, selectedId, handleSetStatus, isMobile]);
 
   // Mobile
   if (isMobile) {
@@ -201,7 +201,7 @@ export default function InboxPage() {
               {!selectedId ? (
                 <motion.div key="list" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="h-full">
                   <InboxConversationListV2
-                    conversations={conversations}
+                    conversations={filteredConversations}
                     selectedId={selectedId}
                     onSelect={handleSelect}
                     view={view}
@@ -279,7 +279,7 @@ export default function InboxPage() {
             className="w-[280px] xl:w-[320px] flex-shrink-0 h-full min-h-0"
           >
             <InboxConversationListV2
-              conversations={conversations}
+              conversations={filteredConversations}
               selectedId={selectedId}
               onSelect={handleSelect}
               view={view}
