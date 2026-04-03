@@ -186,9 +186,11 @@ export function StatusRow({
           {addOns.length > 0 && (
             <p className="text-xs text-muted-foreground mt-0.5">+{addOns.length} add-ons</p>
           )}
-          <Button size="sm" variant="outline" className="mt-2 h-7 text-xs font-semibold rounded-lg">
-            Upgrade <ChevronRight className="h-3 w-3 ml-0.5" />
-          </Button>
+          {planName?.toLowerCase() !== 'business' && (
+            <Button size="sm" variant="outline" className="mt-2 h-7 text-xs font-semibold rounded-lg">
+              Upgrade <ChevronRight className="h-3 w-3 ml-0.5" />
+            </Button>
+          )}
         </CardContent>
       </Card>
     </div>

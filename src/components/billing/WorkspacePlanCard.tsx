@@ -81,6 +81,7 @@ export function WorkspacePlanCard() {
   const planId = entitlements?.plan_id ?? (subscription?.plan_id?.replace('plan_', '') ?? 'free');
   const meta = planMeta[planId] ?? planMeta.free;
   const limits = entitlements?.limits ?? subscription?.plan?.limits_json;
+  const isTopPlan = planId === 'business';
 
   const goAddOns = () => navigate('/add-ons');
 
@@ -106,9 +107,11 @@ export function WorkspacePlanCard() {
                 <Plus className="w-3.5 h-3.5" />
                 Add-ons
               </Button>
-              <Button onClick={() => setUpgradeOpen(true)} className="gap-2">
-                Upgrade <ArrowRight className="w-3.5 h-3.5" />
-              </Button>
+              {!isTopPlan && (
+                <Button onClick={() => setUpgradeOpen(true)} className="gap-2">
+                  Upgrade <ArrowRight className="w-3.5 h-3.5" />
+                </Button>
+              )}
             </div>
           </div>
         </CardHeader>
