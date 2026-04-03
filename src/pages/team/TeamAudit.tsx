@@ -141,8 +141,8 @@ const TeamAudit = () => {
               <div className="space-y-2">
                 <label className="text-sm font-medium">Member</label>
                 <Select 
-                  value={filters.userId || ''} 
-                  onValueChange={(v) => setFilters({ ...filters, userId: v || undefined })}
+                  value={filters.userId || 'all'} 
+                  onValueChange={(v) => setFilters({ ...filters, userId: v === 'all' ? undefined : v })}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="All members" />
