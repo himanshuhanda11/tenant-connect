@@ -155,7 +155,7 @@ export function AppearanceSettings() {
           <CardDescription>Select a color theme for your workspace</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-4 sm:grid-cols-5 gap-3">
+          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
             {THEMES.map(theme => {
               const active = appearance.theme === theme.id;
               return (
