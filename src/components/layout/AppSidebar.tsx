@@ -463,7 +463,7 @@ export function AppSidebar() {
         {/* ── Platform ── */}
         <SidebarGroup className="mt-1">
           {!isCollapsed && (
-            <SidebarGroupLabel className="text-sidebar-foreground/35 text-[10px] font-semibold uppercase tracking-[0.1em] px-3 mb-1">
+            <SidebarGroupLabel className="text-white/40 text-[10px] font-semibold uppercase tracking-[0.1em] px-3 mb-1">
               Platform
             </SidebarGroupLabel>
           )}
