@@ -215,10 +215,10 @@ export function WorkspaceSettings() {
   return (
     <div className="space-y-6">
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="general">General</TabsTrigger>
-          <TabsTrigger value="whatsapp">WhatsApp Profile</TabsTrigger>
-          <TabsTrigger value="advanced">Advanced</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-3 h-auto">
+          <TabsTrigger value="general" className="text-xs sm:text-sm py-2">General</TabsTrigger>
+          <TabsTrigger value="whatsapp" className="text-xs sm:text-sm py-2">WhatsApp</TabsTrigger>
+          <TabsTrigger value="advanced" className="text-xs sm:text-sm py-2">Advanced</TabsTrigger>
         </TabsList>
 
         <TabsContent value="general" className="space-y-6 mt-6">
