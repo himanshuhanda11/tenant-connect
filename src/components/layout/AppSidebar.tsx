@@ -231,7 +231,7 @@ export function AppSidebar() {
                     "flex items-center justify-center p-2.5 rounded-lg transition-all duration-200 ease-in-out",
                     isActive
                       ? "bg-white/[0.08] text-white shadow-[inset_0_0_0_1px_rgba(255,255,255,0.06)]"
-                      : "text-white/50 hover:text-white hover:bg-white/[0.04]"
+                      : "text-white/55 hover:text-white hover:bg-white/[0.04]"
                   )}
                   activeClassName=""
                 >
