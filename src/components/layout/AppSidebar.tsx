@@ -319,26 +319,12 @@ export function AppSidebar() {
     const hasActiveItem = isGroupActive(group.items);
 
     if (isCollapsed) {
-      // Show only first 4 items in collapsed mode to prevent overflow
-      const collapsedItems = group.items.slice(0, 4);
       return (
-        <SidebarGroup key={group.label} className="mt-0.5 py-1 border-t border-sidebar-border/15">
-          <Tooltip delayDuration={0}>
-            <TooltipTrigger asChild>
-              <div className="flex items-center justify-center py-1 mb-0.5 cursor-default">
-                <group.icon className={cn(
-                  "h-3 w-3 transition-colors duration-200",
-                  hasActiveItem ? "text-sidebar-primary" : "text-sidebar-foreground/25"
-                )} />
-              </div>
-            </TooltipTrigger>
-            <TooltipContent side="right" sideOffset={8} className="text-[10px] font-semibold uppercase tracking-wider bg-popover text-popover-foreground border-border shadow-lg">
-              {group.label}
-            </TooltipContent>
-          </Tooltip>
+        <SidebarGroup key={group.label} className="py-1">
+          <div className="mx-auto w-6 border-t border-sidebar-border/20 mb-1" />
           <SidebarGroupContent>
-            <SidebarMenu className="space-y-0.5 flex flex-col items-center">
-              {collapsedItems.map(item => renderMenuItem(item))}
+            <SidebarMenu className="space-y-1 flex flex-col items-center">
+              {group.items.map(item => renderMenuItem(item))}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
