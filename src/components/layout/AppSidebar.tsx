@@ -536,7 +536,7 @@ export function AppSidebar() {
               </a>
             </DropdownMenuItem>
             <DropdownMenuSeparator className="my-1 bg-border" />
-            <DropdownMenuItem onClick={handleSignOut} className="gap-2 py-1.5 rounded-md text-[12px] text-red-400 focus:text-red-400 focus:bg-red-500/10">
+            <DropdownMenuItem onClick={handleSignOut} className="gap-2 py-1.5 rounded-md text-[12px] text-destructive focus:text-destructive focus:bg-destructive/10">
               <LogOut className="w-3.5 h-3.5" strokeWidth={1.5} /> Sign out
             </DropdownMenuItem>
           </DropdownMenuContent>
