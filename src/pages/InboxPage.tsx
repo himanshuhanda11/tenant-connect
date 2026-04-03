@@ -69,8 +69,14 @@ export default function InboxPage() {
   // Apply CRM filter client-side for follow_up / junk views
   const filteredConversations = useMemo(() => {
     if (!crmFilter) return conversations;
+    if (crmFilter === 'open') {
+      return conversations.filter(c => c.status !== 'closed' && c.crm_status !== 'junk' && c.crm_status !== 'not_interested');
+    }
     if (crmFilter === 'follow_up') {
-      return conversations.filter(c => c.next_followup_at && c.crm_status !== 'converted' && c.crm_status !== 'junk');
+      return conversations.filter(c => 
+        (c.next_followup_at || c.crm_status === 'follow_up_required') && 
+        c.crm_status !== 'converted' && c.crm_status !== 'junk'
+      );
     }
     if (crmFilter === 'junk') {
       return conversations.filter(c => c.crm_status === 'junk' || c.crm_status === 'not_interested');
