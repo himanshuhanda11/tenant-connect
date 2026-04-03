@@ -322,10 +322,23 @@ export function AppSidebar() {
 
     if (isCollapsed) {
       return (
-        <SidebarGroup key={group.label} className="mt-2">
+        <SidebarGroup key={group.label} className="mt-1 py-1.5 border-t border-sidebar-border/20">
+          <Tooltip delayDuration={0}>
+            <TooltipTrigger asChild>
+              <div className="flex items-center justify-center mb-1">
+                <group.icon className={cn(
+                  "h-3 w-3",
+                  hasActiveItem ? "text-sidebar-primary" : "text-sidebar-foreground/30"
+                )} />
+              </div>
+            </TooltipTrigger>
+            <TooltipContent side="right" sideOffset={8} className="text-[10px] font-semibold uppercase tracking-wider bg-popover text-popover-foreground border-border shadow-lg">
+              {group.label}
+            </TooltipContent>
+          </Tooltip>
           <SidebarGroupContent>
-            <SidebarMenu className="space-y-1">
-              {group.items.slice(0, 3).map(item => renderMenuItem(item))}
+            <SidebarMenu className="space-y-0.5 flex flex-col items-center">
+              {group.items.map(item => renderMenuItem(item))}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
