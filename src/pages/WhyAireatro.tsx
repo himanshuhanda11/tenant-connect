@@ -213,51 +213,70 @@ export default function WhyAireatro() {
         </div>
 
         {/* ── HERO ── */}
-        <section className="relative overflow-hidden bg-gradient-to-b from-emerald-50/80 via-white to-white">
-          <div className="absolute inset-0 opacity-30" style={{ backgroundImage: 'radial-gradient(circle at 20% 50%, rgba(16,185,129,0.08) 0%, transparent 50%), radial-gradient(circle at 80% 20%, rgba(59,130,246,0.06) 0%, transparent 50%)' }} />
-          <div className="relative max-w-5xl mx-auto px-4 py-12 sm:py-20 text-center">
-            <Badge className="bg-emerald-100 text-emerald-700 border-emerald-200 text-xs font-semibold px-3 py-1 rounded-full mb-6">
-              OFFICIAL WHATSAPP CLOUD API PARTNER
-            </Badge>
-            <h1 className="text-3xl sm:text-5xl lg:text-6xl font-bold text-gray-900 tracking-tight leading-tight">
-              Take Your Business to the
-              <span className="bg-gradient-to-r from-emerald-600 to-teal-500 bg-clip-text text-transparent"> Next Level</span>
-            </h1>
-            <p className="mt-5 text-base sm:text-lg text-gray-600 max-w-2xl mx-auto leading-relaxed">
-              Everything you need to sell, support, and grow on WhatsApp — with AI automation, team inbox, and bulk campaigns. <strong className="text-gray-900">Zero monthly fees.</strong>
-            </p>
-            <div className="flex flex-col sm:flex-row gap-3 justify-center mt-8">
-              <Button size="lg" className="rounded-xl text-sm font-semibold px-8 gap-2 bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg shadow-emerald-200" onClick={() => navigate('/signup')}>
-                Start Free — No Card Needed <ArrowRight className="h-4 w-4" />
-              </Button>
-              <Button size="lg" variant="outline" className="rounded-xl text-sm font-semibold px-8 border-gray-300 text-gray-700 hover:bg-gray-50" onClick={() => navigate('/contact')}>
-                Start Free
-              </Button>
-            </div>
-            {/* Download PDF */}
-            <div className="mt-4">
+        <section className="relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-emerald-950">
+          {/* Premium background effects */}
+          <div className="absolute inset-0">
+            <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-emerald-500/10 rounded-full blur-[120px]" />
+            <div className="absolute bottom-0 right-1/4 w-[400px] h-[400px] bg-teal-500/8 rounded-full blur-[100px]" />
+            <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:60px_60px]" />
+          </div>
+          
+          <div className="relative max-w-6xl mx-auto px-4 py-16 sm:py-24 lg:py-28">
+            <div className="text-center max-w-4xl mx-auto">
+              {/* Badge */}
+              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 backdrop-blur-sm mb-8">
+                <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                <span className="text-emerald-300 text-xs font-semibold tracking-wider uppercase">Official WhatsApp Cloud API Partner</span>
+              </div>
+              
+              {/* Title */}
+              <h1 className="text-4xl sm:text-5xl lg:text-7xl font-bold tracking-tight leading-[1.1] mb-6">
+                <span className="text-white">Take Your Business</span>
+                <br />
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-teal-300 to-cyan-400">to the Next Level</span>
+              </h1>
+              
+              {/* Subtitle */}
+              <p className="text-base sm:text-lg lg:text-xl text-slate-400 max-w-2xl mx-auto leading-relaxed mb-10">
+                Everything you need to sell, support & grow on WhatsApp — AI automation, team inbox, and bulk campaigns. <span className="text-white font-semibold">Zero monthly fees.</span>
+              </p>
+              
+              {/* CTA Buttons */}
+              <div className="flex flex-col sm:flex-row gap-3 justify-center mb-6">
+                <Button size="lg" className="rounded-xl text-sm font-semibold px-8 gap-2 bg-gradient-to-r from-emerald-500 to-teal-400 hover:from-emerald-400 hover:to-teal-300 text-slate-950 shadow-lg shadow-emerald-500/25 border-0 h-12" onClick={() => navigate('/signup')}>
+                  Start Free — No Card Needed <ArrowRight className="h-4 w-4" />
+                </Button>
+                <Button size="lg" variant="outline" className="rounded-xl text-sm font-semibold px-8 border-slate-700 text-slate-200 hover:bg-slate-800 hover:text-white h-12" onClick={() => navigate('/contact')}>
+                  Start Free
+                </Button>
+              </div>
+              
+              {/* Download PDF */}
               <a
                 href="/Aireatro-USP-Brochure.pdf"
                 download="Aireatro-USP-Brochure.pdf"
-                className="inline-flex items-center gap-2 text-sm text-emerald-600 hover:text-emerald-700 font-medium transition-colors"
+                className="inline-flex items-center gap-2 text-sm text-emerald-400/80 hover:text-emerald-300 font-medium transition-colors"
               >
                 <Download className="h-4 w-4" />
                 Download USP Brochure (PDF)
               </a>
             </div>
+            
             {/* Stats row */}
-            <div className="flex flex-wrap justify-center gap-8 sm:gap-12 mt-12 pt-8 border-t border-gray-200">
-              {[
-                { value: '2,000+', label: 'Businesses' },
-                { value: '₹0', label: 'Monthly fee' },
-                { value: '< 30 min', label: 'Setup time' },
-                { value: '98%', label: 'Open rate' },
-              ].map(s => (
-                <div key={s.label} className="text-center">
-                  <p className="text-2xl sm:text-3xl font-bold text-gray-900">{s.value}</p>
-                  <p className="text-xs text-gray-500 mt-0.5">{s.label}</p>
-                </div>
-              ))}
+            <div className="mt-16 pt-10 border-t border-slate-800/80">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-8">
+                {[
+                  { value: '2,000+', label: 'Businesses Trust Us' },
+                  { value: '₹0', label: 'Monthly Platform Fee' },
+                  { value: '< 30 min', label: 'Setup Time' },
+                  { value: '98%', label: 'Message Open Rate' },
+                ].map(s => (
+                  <div key={s.label} className="text-center">
+                    <p className="text-3xl sm:text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-b from-white to-slate-300">{s.value}</p>
+                    <p className="text-xs text-slate-500 mt-1.5 uppercase tracking-wider font-medium">{s.label}</p>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </section>

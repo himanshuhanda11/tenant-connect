@@ -58,6 +58,12 @@ Deno.serve(async (req) => {
       return json({ error: error.message }, 409);
     }
 
+    // Auto-detect and set workspace timezone from phone country code
+    const { data: tzData } = await admin.rpc('detect_timezone_from_phone', { phone: phoneE164 }).single();
+    if (tzData) {
+      await admin.from("tenants").update({ timezone: tzData }).eq("id", workspaceId);
+    }
+
     // Audit log
     await admin
       .from("audit_logs")
