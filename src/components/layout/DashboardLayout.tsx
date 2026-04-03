@@ -19,7 +19,7 @@ function MobileHeader() {
         className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-card hover:bg-accent border border-border/50 shadow-sm transition-all duration-200 active:scale-95"
         aria-label={isOpen ? 'Close menu' : 'Open menu'}
       >
-        {isOpen ? <X className="h-4 w-4 text-foreground" /> : <Menu className="h-4 w-4 text-foreground" />}
+        <Menu className="h-4 w-4 text-foreground" />
         <span className="text-xs font-medium text-foreground">Menu</span>
       </button>
       <div className="flex-1" />
