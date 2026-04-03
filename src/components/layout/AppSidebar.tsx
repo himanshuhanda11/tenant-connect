@@ -246,7 +246,7 @@ export function AppSidebar() {
                   )}
                   activeClassName=""
                 >
-                  <item.icon className="h-[18px] w-[18px]" strokeWidth={isActive ? 2 : 1.5} />
+                  <item.icon className="h-[18px] w-[18px]" />
                   {item.badge !== undefined && item.badge > 0 && (
                     <span className="absolute -top-1 -right-1 h-4 min-w-[16px] px-1 text-[9px] font-bold rounded-full bg-sidebar-primary text-white flex items-center justify-center shadow-sm">
                       {item.badge}
