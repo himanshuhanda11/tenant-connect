@@ -43,7 +43,7 @@ interface InboxConversationListV2Props {
 }
 
 type DateFilter = 'all' | 'today' | 'yesterday' | 'last_7_days';
-type StatusFilter = 'all' | 'new' | 'contacted' | 'follow_up_required' | 'qualified' | 'converted' | 'junk' | 'unassigned';
+type StatusFilter = 'all' | 'new' | 'assigned' | 'contacted' | 'follow_up_required' | 'call_scheduled' | 'documents_pending' | 'qualified' | 'converted' | 'not_interested' | 'junk';
 
 const DATE_FILTER_LABELS: Record<DateFilter, string> = {
   all: 'All',
@@ -132,9 +132,7 @@ export function InboxConversationListV2({
       });
     }
 
-    if (statusFilter === 'unassigned') {
-      result = result.filter(c => !c.assigned_to);
-    } else if (statusFilter !== 'all') {
+    if (statusFilter !== 'all') {
       result = result.filter(c => c.crm_status === statusFilter);
     }
 
@@ -236,21 +234,29 @@ export function InboxConversationListV2({
                   : "bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground border-border/40"
               )}>
                 <SlidersHorizontal className="h-3 w-3" />
-                {statusFilter !== 'all' ? statusFilter.replace(/_/g, ' ') : 'Status'}
+                {statusFilter !== 'all' ? statusFilter.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : 'Status'}
                 <ChevronDown className="h-3 w-3" />
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start" className="w-48">
-              <DropdownMenuLabel className="text-xs">Filter by Status</DropdownMenuLabel>
+              <DropdownMenuLabel className="text-xs">Filter by Lead Status</DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={() => setStatusFilter('all')}>
                 {statusFilter === 'all' && '✓ '}All Statuses
               </DropdownMenuItem>
-              {(['new', 'contacted', 'follow_up_required', 'qualified', 'converted', 'junk', 'unassigned'] as StatusFilter[]).map(s => (
-                <DropdownMenuItem key={s} onClick={() => setStatusFilter(s)}>
-                  {statusFilter === s && '✓ '}{s.replace(/_/g, ' ')}
-                </DropdownMenuItem>
-              ))}
+              {(['new', 'assigned', 'contacted', 'follow_up_required', 'call_scheduled', 'documents_pending', 'qualified', 'converted', 'not_interested', 'junk'] as StatusFilter[]).map(s => {
+                const labels: Record<string, string> = {
+                  new: 'New', assigned: 'Assigned', contacted: 'Contacted',
+                  follow_up_required: 'Follow-up Required', call_scheduled: 'Call Scheduled',
+                  documents_pending: 'Documents Pending', qualified: 'Qualified',
+                  converted: 'Converted', not_interested: 'Not Interested', junk: 'Junk',
+                };
+                return (
+                  <DropdownMenuItem key={s} onClick={() => setStatusFilter(s)}>
+                    {statusFilter === s && '✓ '}{labels[s] || s}
+                  </DropdownMenuItem>
+                );
+              })}
             </DropdownMenuContent>
           </DropdownMenu>
           {/* Assignment filter */}
