@@ -126,6 +126,7 @@ export function AppSidebar() {
   const { state, toggleSidebar } = useSidebar();
   const isCollapsed = state === 'collapsed';
   const { phoneNumbers } = usePhoneNumbers();
+  const { counts: sidebarCounts } = useInboxSidebarCounts();
   const { hasAnyPermission } = useCurrentRolePermissions();
 
   const channelMenuItems: MenuItem[] = [
@@ -155,9 +156,18 @@ export function AppSidebar() {
 
   const filteredMainMenuItems = mainMenuItems;
 
+  const inboxWithCounts = inboxMenuItems.map(item => {
+    const badgeMap: Record<string, number> = {
+      'inbox-unassigned': sidebarCounts.unassigned,
+      'inbox-open': sidebarCounts.open,
+      'inbox-followup': sidebarCounts.follow_up,
+    };
+    return badgeMap[item.key] !== undefined ? { ...item, badge: badgeMap[item.key] } : item;
+  });
+
   const filteredInboxMenuItems = isAgent
-    ? inboxMenuItems.filter(i => ['inbox-all', 'inbox-mine', 'inbox-unassigned', 'inbox-open', 'inbox-followup'].includes(i.key))
-    : inboxMenuItems;
+    ? inboxWithCounts.filter(i => ['inbox-all', 'inbox-mine', 'inbox-unassigned', 'inbox-open', 'inbox-followup'].includes(i.key))
+    : inboxWithCounts;
 
   const filteredCrmMenuItems = isAgent
     ? crmMenuItems.filter(i => ['contacts', 'tags'].includes(i.key))
