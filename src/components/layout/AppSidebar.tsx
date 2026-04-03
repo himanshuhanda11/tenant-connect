@@ -497,7 +497,7 @@ export function AppSidebar() {
                     <p className="text-[12px] font-medium text-white/85 truncate">
                       {profile?.full_name || 'User'}
                     </p>
-                    <p className="text-[10px] text-sidebar-foreground/50 truncate">
+                    <p className="text-[10px] text-white/45 truncate">
                       {user?.email}
                     </p>
                   </div>
