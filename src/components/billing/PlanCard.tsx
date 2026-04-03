@@ -139,7 +139,7 @@ export function PlanCard({ plan, isCurrentPlan, isYearly, isRecommended, onSelec
           disabled={isCurrentPlan}
           onClick={() => onSelect(plan)}
         >
-          {isCurrentPlan ? 'Current Plan' : isCustomPrice ? 'Talk to Sales' : 'Upgrade'}
+          {isCurrentPlan ? 'Current Plan' : isCustomPrice ? 'Contact Us' : 'Upgrade'}
           {!isCurrentPlan && <ArrowRight className="w-3.5 h-3.5" />}
         </Button>
       </CardContent>

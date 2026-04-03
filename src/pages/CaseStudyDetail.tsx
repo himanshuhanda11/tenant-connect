@@ -646,7 +646,7 @@ export default function CaseStudyDetail() {
               <p className="text-slate-600 mb-6">See how AiReatro can transform your WhatsApp operations</p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Button size="lg" onClick={() => navigate('/contact')}>
-                  Book a Demo <ArrowRight className="w-4 h-4 ml-2" />
+                  Start Free <ArrowRight className="w-4 h-4 ml-2" />
                 </Button>
                 <Button size="lg" variant="outline" onClick={() => navigate('/case-studies')}>
                   View More Case Studies

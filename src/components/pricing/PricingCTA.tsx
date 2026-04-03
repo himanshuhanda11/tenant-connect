@@ -30,7 +30,7 @@ export default function PricingCTA() {
             className="h-12 px-8 border-2 border-white/60 text-white hover:bg-white/10 hover:text-white font-semibold rounded-xl"
             onClick={() => navigate('/contact')}
           >
-            Talk to Sales
+            Contact Us
           </Button>
         </div>
         <p className="text-xs text-white/60 mt-4">

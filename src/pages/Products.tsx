@@ -179,7 +179,7 @@ export default function Products() {
                   <ArrowRight className="w-5 h-5 ml-2" />
                 </Button>
                 <Button size="lg" variant="outline" className="h-14 px-8 border-border text-foreground hover:bg-muted" onClick={() => navigate('/contact')}>
-                  Talk to Sales
+                  Contact Us
                 </Button>
               </div>
             </div>

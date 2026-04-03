@@ -219,7 +219,7 @@ export default function WhatsAppForms() {
                     </Link>
                   </Button>
                   <Button size="lg" variant="outline" className="h-14 px-8 text-base font-medium w-full sm:w-auto" asChild>
-                    <Link to="/contact">Talk to Sales</Link>
+                    <Link to="/contact">Contact Us</Link>
                   </Button>
                 </div>
                 
@@ -604,7 +604,7 @@ export default function WhatsAppForms() {
                     className="h-14 px-8 text-base font-medium border-white/40 text-white hover:bg-white/10 hover:text-white" 
                     asChild
                   >
-                    <Link to="/contact">Talk to Sales</Link>
+                    <Link to="/contact">Contact Us</Link>
                   </Button>
                 </div>
               </div>

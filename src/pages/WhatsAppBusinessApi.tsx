@@ -350,7 +350,7 @@ const WhatsAppBusinessApi = () => {
                   className="h-14 px-8 text-base border-2 border-white/40 bg-white/10 text-white hover:bg-white/20 hover:border-white/60"
                   onClick={() => navigate('/contact')}
                 >
-                  Talk to Sales
+                  Contact Us
                 </Button>
               </div>
               
@@ -750,7 +750,7 @@ const WhatsAppBusinessApi = () => {
                     variant={plan.popular ? 'default' : 'outline'}
                     onClick={() => navigate(plan.name === 'Business' ? '/contact' : '/signup')}
                   >
-                    {plan.name === 'Business' ? 'Talk to Sales' : 'Get Started'}
+                    {plan.name === 'Business' ? 'Contact Us' : 'Get Started'}
                   </Button>
                 </CardContent>
               </Card>
@@ -816,7 +816,7 @@ const WhatsAppBusinessApi = () => {
                 className="h-12 px-8 text-base border-2 border-foreground/30 text-foreground hover:bg-muted font-medium"
                 onClick={() => navigate('/contact')}
               >
-                Talk to Sales
+                Contact Us
               </Button>
             </div>
             <p className="text-sm text-muted-foreground">

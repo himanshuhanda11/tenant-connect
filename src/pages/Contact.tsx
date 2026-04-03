@@ -308,7 +308,7 @@ export default function Contact() {
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="sales">Sales Inquiry</SelectItem>
-                          <SelectItem value="demo">Request a Demo</SelectItem>
+                          <SelectItem value="demo">General Inquiry</SelectItem>
                           <SelectItem value="support">Technical Support</SelectItem>
                           <SelectItem value="billing">Billing Question</SelectItem>
                           <SelectItem value="partnership">Partnership Opportunity</SelectItem>
@@ -400,12 +400,12 @@ export default function Contact() {
                 <Card className="bg-primary/5 border-primary/20">
                   <CardContent className="p-6">
                     <Badge className="mb-3">Popular</Badge>
-                    <h3 className="font-semibold text-foreground mb-2">Schedule a Demo</h3>
+                    <h3 className="font-semibold text-foreground mb-2">Start Free</h3>
                     <p className="text-sm text-muted-foreground mb-4">
-                      See AiReatro in action with a personalized demo from our team.
+                      Get started with AiReatro for free. No credit card required.
                     </p>
                     <Button className="w-full" onClick={() => window.location.href = '/signup'}>
-                      Book Demo
+                      Start Free
                     </Button>
                   </CardContent>
                 </Card>

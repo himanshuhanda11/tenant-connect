@@ -38,7 +38,7 @@ const heatmapNodes = [
   { name: 'Welcome Message', views: 10000, dropoff: 5 },
   { name: 'Product Interest', views: 9500, dropoff: 12 },
   { name: 'Pricing Info', views: 8360, dropoff: 8 },
-  { name: 'Book Demo', views: 7691, dropoff: 23 },
+  { name: 'Start Free', views: 7691, dropoff: 23 },
   { name: 'Confirmation', views: 5922, dropoff: 0 },
 ];
 

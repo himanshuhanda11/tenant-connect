@@ -231,7 +231,7 @@ export default function WhyAireatro() {
                 Start Free — No Card Needed <ArrowRight className="h-4 w-4" />
               </Button>
               <Button size="lg" variant="outline" className="rounded-xl text-sm font-semibold px-8 border-gray-300 text-gray-700 hover:bg-gray-50" onClick={() => navigate('/contact')}>
-                Book a Demo
+                Start Free
               </Button>
             </div>
             {/* Download PDF */}
@@ -351,7 +351,7 @@ export default function WhyAireatro() {
                 Start Free Now <ArrowRight className="h-4 w-4" />
               </Button>
               <Button size="lg" variant="outline" className="rounded-xl text-sm font-semibold px-8 border-white/30 text-white hover:bg-white/10" onClick={() => navigate('/contact')}>
-                Schedule a Demo
+                Start Free
               </Button>
             </div>
             <p className="text-emerald-200 text-xs mt-4">✓ Free forever &nbsp;·&nbsp; ✓ No setup fees &nbsp;·&nbsp; ✓ Cancel anytime</p>
@@ -400,7 +400,7 @@ export default function WhyAireatro() {
                 Create Free Account <ArrowRight className="h-4 w-4" />
               </Button>
               <Button size="lg" variant="outline" className="rounded-xl text-sm font-semibold px-8 border-gray-300 text-gray-700 hover:bg-gray-50" onClick={() => navigate('/contact')}>
-                Talk to Sales
+                Contact Us
               </Button>
             </div>
           </div>
