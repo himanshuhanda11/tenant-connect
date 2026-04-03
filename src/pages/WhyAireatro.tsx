@@ -1,14 +1,16 @@
 import React from 'react';
 import { Helmet } from 'react-helmet-async';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import {
   ArrowRight, CheckCircle2, Zap, Users, Bot, Send,
   BarChart3, Shield, Sparkles, Phone, Target,
-  Layers, HeartHandshake,
+  Layers, HeartHandshake, Download, ChevronRight, Home,
 } from 'lucide-react';
+import Navbar from '@/components/layout/Navbar';
+import Footer from '@/components/layout/Footer';
 
 import uspFreeApi from '@/assets/usp-free-api.jpg';
 import uspTeamInbox from '@/assets/usp-team-inbox.jpg';
