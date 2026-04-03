@@ -519,13 +519,14 @@ export function AppSidebar() {
       </SidebarContent>
 
       {/* ── Footer — Floating tile ── */}
-      <SidebarFooter className="px-3 py-3 border-t border-sidebar-border">
+      <SidebarFooter className={cn("py-3 border-t border-sidebar-border", isCollapsed ? "px-1.5" : "px-3")}>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <button className={cn(
-              "w-full flex items-center gap-2.5 rounded-lg transition-all duration-200 ease-in-out group",
-              "bg-sidebar-accent/40 hover:bg-sidebar-accent/70 border border-sidebar-border/70 shadow-[0_2px_8px_-2px_hsl(var(--sidebar-background)/0.35)]",
-              isCollapsed ? "p-2 justify-center" : "px-3 py-2.5"
+              "w-full flex items-center rounded-xl transition-all duration-200 ease-in-out group",
+              isCollapsed
+                ? "justify-center p-1 hover:bg-sidebar-accent/70"
+                : "gap-2.5 px-3 py-2.5 bg-sidebar-accent/40 hover:bg-sidebar-accent/70 border border-sidebar-border/70 shadow-[0_2px_8px_-2px_hsl(var(--sidebar-background)/0.35)]"
             )}>
               <div className={cn(
                 "flex items-center justify-center rounded-full font-bold text-white text-[10px] flex-shrink-0",
