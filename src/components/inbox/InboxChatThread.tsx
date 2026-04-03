@@ -321,11 +321,11 @@ export function InboxChatThread({
   return (
     <div className="flex flex-col h-full w-full bg-background overflow-hidden min-h-0">
       {/* Header */}
-      <div className="border-b border-border bg-card flex-shrink-0">
+      <div className="border-b border-border bg-card/95 backdrop-blur-sm flex-shrink-0">
         {/* Main row: Contact + Actions */}
         <div className={cn(
           "flex items-center justify-between gap-2",
-          isMobile ? "h-14 px-3" : "h-14 px-4"
+          isMobile ? "h-[56px] px-2" : "h-14 px-4"
         )}>
           {/* Left: Back + Avatar + Info */}
           <div className="flex items-center gap-2.5 min-w-0 flex-1">
