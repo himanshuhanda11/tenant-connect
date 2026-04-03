@@ -74,8 +74,7 @@ export default function Login() {
               .select('id')
               .eq('user_id', user.id)
               .limit(1)
-              .maybeSingle()
-              .abortSignal(AbortSignal.timeout(6000));
+              .maybeSingle();
 
             if (existingMembership) {
               // Team member — auto-complete onboarding
