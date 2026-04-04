@@ -8,9 +8,10 @@ import { JsonLd, organizationSchema, websiteSchema, softwareApplicationSchema } 
 import SeoMeta from '@/components/seo/SeoMeta';
 import { lazyWithRetry } from '@/lib/lazyWithRetry';
 
-// Import critical above-the-fold sections eagerly
+// Import critical homepage sections eagerly for preview stability
 import HeroSection from '@/components/home/HeroSection';
 import SocialProofBar from '@/components/home/SocialProofBar';
+import WhyAireatroBento from '@/components/home/WhyAireatroBento';
 
 // Error boundary with retry for lazy loaded components
 interface ErrorBoundaryState {
@@ -54,7 +55,6 @@ const DifferentiatorCards = lazyWithRetry(() => import('@/components/home/Differ
 const AIFlowBuilderSection = lazyWithRetry(() => import('@/components/home/AIFlowBuilderSection'));
 const ProductTourSection = lazyWithRetry(() => import('@/components/home/ProductTourSection'));
 const AICapabilitiesSection = lazyWithRetry(() => import('@/components/home/AICapabilitiesSection'));
-const WhyAireatroBento = lazyWithRetry(() => import('@/components/home/WhyAireatroBento'));
 const MetaAdsAttributionSection = lazyWithRetry(() => import('@/components/home/MetaAdsAttributionSection'));
 const PricingPreview = lazyWithRetry(() => import('@/components/home/PricingPreview'));
 const TestimonialsCarousel = lazyWithRetry(() => import('@/components/home/TestimonialsCarousel'));
