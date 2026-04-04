@@ -59,6 +59,7 @@ export function PlanCard({ plan, isCurrentPlan, isYearly, isRecommended, onSelec
   const price = isYearly ? (plan.price_yearly || plan.price_monthly * 12) : plan.price_monthly;
   const monthlyEquivalent = isYearly ? Math.round(price / 12) : price;
   const isBusiness = plan.name === 'Business';
+  const isFree = plan.name === 'Free';
   const isCustomPrice = isBusiness && plan.price_monthly === 0;
   const savings = isYearly && plan.price_yearly
     ? Math.round((1 - plan.price_yearly / (plan.price_monthly * 12)) * 100)
@@ -70,7 +71,7 @@ export function PlanCard({ plan, isCurrentPlan, isYearly, isRecommended, onSelec
   const formatLimit = (value: number) => value === -1 ? 'Unlimited' : value.toLocaleString();
 
   const features = [
-    { icon: Users, label: 'Team Members', value: formatLimit(limits.max_team_members) },
+    { icon: Users, label: 'Team Members', value: limits.max_team_members === 1 ? '1 (Admin only)' : formatLimit(limits.max_team_members) },
     { icon: Contact, label: 'Contacts', value: formatLimit(limits.max_contacts) },
     { icon: MessageSquare, label: 'Messages/mo', value: limits.monthly_messages === -1 ? 'Pay-per-use' : formatLimit(limits.monthly_messages) },
     { icon: Workflow, label: 'Automations', value: formatLimit(limits.max_automations) },
@@ -128,9 +129,15 @@ export function PlanCard({ plan, isCurrentPlan, isYearly, isRecommended, onSelec
         {/* Price */}
         <div className="text-center mb-5 pb-4 border-b border-border/50">
           {isCustomPrice ? (
-            <div className="text-2xl font-bold bg-gradient-to-r from-amber-500 to-orange-500 bg-clip-text text-transparent">Custom</div>
+            <div>
+              <div className="text-2xl font-bold bg-gradient-to-r from-amber-500 to-orange-500 bg-clip-text text-transparent">Custom Pricing</div>
+              <p className="text-xs text-muted-foreground mt-1">Tailored to your business needs</p>
+            </div>
           ) : price === 0 ? (
-            <div className="text-3xl font-bold">Free</div>
+            <div>
+              <div className="text-3xl font-bold">Free</div>
+              <p className="text-xs text-muted-foreground mt-1">Forever free • No credit card</p>
+            </div>
           ) : (
             <>
               <div className="flex items-baseline justify-center gap-1">
