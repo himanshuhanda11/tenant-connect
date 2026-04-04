@@ -427,11 +427,11 @@ export default function WhyAireatro() {
       </div>
 
       {/* Sticky mobile CTA */}
-      <div className="fixed bottom-0 left-0 right-0 z-50 sm:hidden bg-white/95 backdrop-blur border-t border-gray-200 px-4 py-3 flex gap-2">
-        <Button className="flex-1 rounded-xl text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white gap-1.5" onClick={() => navigate('/signup')}>
+      <div className="fixed bottom-0 left-0 right-0 z-50 sm:hidden bg-background/95 backdrop-blur border-t border-border px-4 py-3 flex gap-2">
+        <Button className="flex-1 rounded-xl text-xs font-semibold bg-primary hover:bg-primary/90 text-primary-foreground gap-1.5" onClick={() => navigate('/signup')}>
           Start Free <ArrowRight className="h-3.5 w-3.5" />
         </Button>
-        <Button variant="outline" className="rounded-xl text-xs font-semibold border-gray-300 text-gray-700 px-4" onClick={() => navigate('/contact')}>
+        <Button variant="outline" className="rounded-xl text-xs font-semibold border-border text-foreground px-4" onClick={() => navigate('/contact')}>
           Demo
         </Button>
       </div>
