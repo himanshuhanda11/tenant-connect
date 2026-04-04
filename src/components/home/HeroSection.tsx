@@ -149,7 +149,7 @@ export default function HeroSection() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: 0.2 }}
               >
-                Automate chats, capture leads, and close sales 24/7 — without hiring more agents. Free lifetime API access, only pay Meta's conversation fees.
+                Automate chats, capture leads, and close sales 24/7 — without hiring more agents. <span className="text-primary font-semibold">Free lifetime API</span> access, only pay Meta's conversation fees.
               </motion.p>
 
               <motion.div
