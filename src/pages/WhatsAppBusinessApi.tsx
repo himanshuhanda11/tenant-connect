@@ -253,8 +253,8 @@ const WhatsAppBusinessApi = () => {
     },
     {
       name: 'Business',
-      price: 'Custom',
-      period: '',
+      price: '₹5,500',
+      period: '/mo',
       description: 'Scale securely with full control',
       features: ['25+ Team Members', 'Unlimited Contacts', 'AI Agent Mode', 'Audit Logs', 'Dedicated Support'],
       popular: false
