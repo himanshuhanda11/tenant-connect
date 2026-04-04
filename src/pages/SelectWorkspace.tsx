@@ -231,6 +231,58 @@ export default function SelectWorkspace() {
     navigate('/login', { replace: true });
   };
 
+  // --- 3-dot menu handlers ---
+  const [renameTarget, setRenameTarget] = useState<WorkspaceEnriched | null>(null);
+  const [renameValue, setRenameValue] = useState('');
+  const [renaming, setRenaming] = useState(false);
+
+  const handleRename = async () => {
+    if (!renameTarget || !renameValue.trim()) return;
+    setRenaming(true);
+    const { error } = await supabase
+      .from('tenants')
+      .update({ name: renameValue.trim() })
+      .eq('id', renameTarget.id);
+    setRenaming(false);
+    if (error) {
+      toast.error('Failed to rename workspace');
+    } else {
+      toast.success('Workspace renamed');
+      setWorkspaces(prev => prev.map(w => w.id === renameTarget.id ? { ...w, name: renameValue.trim() } : w));
+      await refreshTenants();
+    }
+    setRenameTarget(null);
+  };
+
+  const handleManageMembers = (workspace: WorkspaceEnriched) => {
+    const tenant = tenants.find(t => t.id === workspace.id);
+    if (tenant) {
+      setCurrentTenant(tenant);
+      navigate('/team');
+    }
+  };
+
+  const handleSettings = (workspace: WorkspaceEnriched) => {
+    const tenant = tenants.find(t => t.id === workspace.id);
+    if (tenant) {
+      setCurrentTenant(tenant);
+      navigate('/settings');
+    }
+  };
+
+  const [archiveTarget, setArchiveTarget] = useState<WorkspaceEnriched | null>(null);
+  const [archiving, setArchiving] = useState(false);
+
+  const handleArchive = async () => {
+    if (!archiveTarget) return;
+    setArchiving(true);
+    // For now we just remove from local list (no DB archive column yet)
+    setWorkspaces(prev => prev.filter(w => w.id !== archiveTarget.id));
+    toast.success('Workspace hidden from list');
+    setArchiving(false);
+    setArchiveTarget(null);
+  };
+
   const sortLabels: Record<SortOption, string> = {
     recent: 'Recently opened',
     newest: 'Newest first',
