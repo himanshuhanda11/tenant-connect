@@ -42,7 +42,7 @@ const DifferentiatorCards = lazy(() => import('@/components/home/DifferentiatorC
 const AIFlowBuilderSection = lazy(() => import('@/components/home/AIFlowBuilderSection'));
 const ProductTourSection = lazy(() => import('@/components/home/ProductTourSection'));
 const AICapabilitiesSection = lazy(() => import('@/components/home/AICapabilitiesSection'));
-const PowerfulUSPsSection = lazy(() => import('@/components/home/PowerfulUSPsSection'));
+const WhyAireatroBento = lazy(() => import('@/components/home/WhyAireatroBento'));
 const MetaAdsAttributionSection = lazy(() => import('@/components/home/MetaAdsAttributionSection'));
 const PricingPreview = lazy(() => import('@/components/home/PricingPreview'));
 const TestimonialsCarousel = lazy(() => import('@/components/home/TestimonialsCarousel'));
@@ -141,10 +141,10 @@ export default function Index() {
         </Suspense>
       </SectionErrorBoundary>
 
-      {/* 10 Powerful USPs */}
+      {/* Why AiReatro USPs */}
       <SectionErrorBoundary>
         <Suspense fallback={<SectionSkeleton />}>
-          <PowerfulUSPsSection />
+          <WhyAireatroBento />
         </Suspense>
       </SectionErrorBoundary>
 
