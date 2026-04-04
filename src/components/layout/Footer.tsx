@@ -2,6 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Twitter, Linkedin, Youtube, Instagram } from 'lucide-react';
 import aireatroLogo from '@/assets/aireatro-logo.png';
+import metaPartnerLogo from '@/assets/meta-business-partner.png';
 
 export default function Footer() {
   const footerLinks = {
@@ -78,6 +79,9 @@ export default function Footer() {
               <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="w-9 h-9 rounded-lg bg-slate-800 flex items-center justify-center hover:bg-primary transition-colors">
                 <Instagram className="w-4 h-4" />
               </a>
+            </div>
+            <div className="mt-6 p-3 rounded-xl bg-white/5 border border-slate-700/50 inline-flex items-center gap-2">
+              <img src={metaPartnerLogo} alt="Meta Business Partner" className="h-10 sm:h-12 w-auto" />
             </div>
           </div>
 
