@@ -106,7 +106,7 @@ export default function Billing() {
                       plan={plan}
                       isCurrentPlan={currentPlanId === plan.id}
                       isYearly={isYearly}
-                      isRecommended={plan.name === 'Pro'}
+                      isRecommended={currentPlanId !== 'business' && plan.name === 'Pro'}
                       onSelect={handlePlanSelect}
                     />
                   ))}

@@ -64,7 +64,7 @@ const metrics: UsageMetric[] = [
   },
 ];
 
-export function UsagePrediction() {
+export function UsagePrediction({ currentPlan = 'free' }: { currentPlan?: string }) {
   const daysRemaining = 12;
   const billingDate = 'January 26, 2026';
 
@@ -191,14 +191,14 @@ export function UsagePrediction() {
             })}
           </div>
 
-          {/* Upgrade CTA */}
-          {willExceed && (
+          {/* Upgrade CTA — hidden if already on Business */}
+          {willExceed && currentPlan !== 'business' && (
             <div className="mt-6 p-4 rounded-xl bg-gradient-to-r from-primary/10 to-primary/5 border border-primary/20">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="font-semibold">Upgrade to Pro Plan</p>
+                  <p className="font-semibold">Upgrade Your Plan</p>
                   <p className="text-sm text-muted-foreground">
-                    Get 50,000 messages, 10 team members, and priority support — ₹3,499/mo
+                    Get higher limits for messages, team members, and priority support.
                   </p>
                 </div>
                 <Button className="gap-2 shadow-lg shadow-primary/25">
