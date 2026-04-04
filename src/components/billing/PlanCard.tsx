@@ -129,9 +129,15 @@ export function PlanCard({ plan, isCurrentPlan, isYearly, isRecommended, onSelec
         {/* Price */}
         <div className="text-center mb-5 pb-4 border-b border-border/50">
           {isCustomPrice ? (
-            <div className="text-2xl font-bold bg-gradient-to-r from-amber-500 to-orange-500 bg-clip-text text-transparent">Custom</div>
+            <div>
+              <div className="text-2xl font-bold bg-gradient-to-r from-amber-500 to-orange-500 bg-clip-text text-transparent">Custom Pricing</div>
+              <p className="text-xs text-muted-foreground mt-1">Tailored to your business needs</p>
+            </div>
           ) : price === 0 ? (
-            <div className="text-3xl font-bold">Free</div>
+            <div>
+              <div className="text-3xl font-bold">Free</div>
+              <p className="text-xs text-muted-foreground mt-1">Forever free • No credit card</p>
+            </div>
           ) : (
             <>
               <div className="flex items-baseline justify-center gap-1">
