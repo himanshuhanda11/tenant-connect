@@ -11,17 +11,6 @@ import { TenantProvider } from "@/contexts/TenantContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import ScrollToTop from "@/components/ScrollToTop";
 import Index from "./pages/Index";
-import Login from "./pages/Login";
-import ForgotPassword from "./pages/ForgotPassword";
-import ResetPassword from "./pages/ResetPassword";
-import InviteAccept from "./pages/InviteAccept";
-import SignupPage from "./pages/onboarding/SignupPage";
-import OrganizationPage from "./pages/onboarding/OrganizationPage";
-import PasswordPage from "./pages/onboarding/PasswordPage";
-import AuthCallback from "./pages/AuthCallback";
-import CreateWorkspace from "./pages/CreateWorkspace";
-import SelectWorkspace from "./pages/SelectWorkspace";
-import NotFound from "./pages/NotFound";
 import { RequirePermission } from "@/components/auth/RequirePermission";
 import {
   META_ADS_ATTRIBUTION_PERMISSIONS,
@@ -30,6 +19,17 @@ import {
   META_ADS_VIEW_PERMISSIONS,
 } from "@/hooks/useCurrentRolePermissions";
 
+const Login = lazyWithRetry(() => import("./pages/Login"));
+const ForgotPassword = lazyWithRetry(() => import("./pages/ForgotPassword"));
+const ResetPassword = lazyWithRetry(() => import("./pages/ResetPassword"));
+const InviteAccept = lazyWithRetry(() => import("./pages/InviteAccept"));
+const SignupPage = lazyWithRetry(() => import("./pages/onboarding/SignupPage"));
+const OrganizationPage = lazyWithRetry(() => import("./pages/onboarding/OrganizationPage"));
+const PasswordPage = lazyWithRetry(() => import("./pages/onboarding/PasswordPage"));
+const AuthCallback = lazyWithRetry(() => import("./pages/AuthCallback"));
+const CreateWorkspace = lazyWithRetry(() => import("./pages/CreateWorkspace"));
+const SelectWorkspace = lazyWithRetry(() => import("./pages/SelectWorkspace"));
+const NotFound = lazyWithRetry(() => import("./pages/NotFound"));
 const Dashboard = lazyWithRetry(() => import("./pages/Dashboard"));
 const Settings = lazyWithRetry(() => import("./pages/Settings"));
 const InboxPage = lazyWithRetry(() => import("./pages/InboxPage"));
