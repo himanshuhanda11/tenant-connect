@@ -133,6 +133,26 @@ export default function PricingPreview() {
                     )}
                   </div>
 
+                  {/* Limits summary */}
+                  <div className={cn('grid grid-cols-2 gap-2 mb-5 text-xs', isPro ? 'text-background/60' : 'text-muted-foreground')}>
+                    <div className="flex justify-between">
+                      <span>Members</span>
+                      <span className={cn('font-semibold', isPro ? 'text-background' : 'text-foreground')}>{plan.limits.team_members}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Contacts</span>
+                      <span className={cn('font-semibold', isPro ? 'text-background' : 'text-foreground')}>{plan.limits.contacts === 'unlimited' ? '∞' : plan.limits.contacts.toLocaleString('en-IN')}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Flows</span>
+                      <span className={cn('font-semibold', isPro ? 'text-background' : 'text-foreground')}>{plan.limits.flows === 'unlimited' ? '∞' : plan.limits.flows}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Automations</span>
+                      <span className={cn('font-semibold', isPro ? 'text-background' : 'text-foreground')}>{plan.limits.automations === 'unlimited' ? '∞' : plan.limits.automations}</span>
+                    </div>
+                  </div>
+
                   {/* Divider */}
                   <div className={cn('h-px mb-5', isPro ? 'bg-background/10' : 'bg-border/60')} />
 
