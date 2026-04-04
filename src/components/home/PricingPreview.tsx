@@ -26,9 +26,8 @@ export default function PricingPreview() {
 
   return (
     <section className="relative py-20 sm:py-28 lg:py-36 overflow-hidden">
-      {/* Dark background */}
-      <div className="absolute inset-0 bg-foreground" />
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_0%,hsl(var(--primary)/0.15),transparent)]" />
+      <div className="absolute inset-0 bg-gradient-to-b from-muted/40 via-background to-background" />
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_0%,hsl(var(--primary)/0.06),transparent)]" />
 
       <div className="container mx-auto px-4 relative z-10 max-w-6xl">
         {/* Header */}
