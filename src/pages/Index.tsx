@@ -99,10 +99,7 @@ export default function Index() {
         <HowItWorksSection />
       </SectionErrorBoundary>
 
-      {/* Differentiator Cards */}
-      <SectionErrorBoundary>
-        <DifferentiatorCards />
-      </SectionErrorBoundary>
+      {/* Differentiator Cards removed */}
 
       {/* AI Flow Builder - Center Feature */}
       <SectionErrorBoundary>
