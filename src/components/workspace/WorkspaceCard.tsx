@@ -143,25 +143,25 @@ export default function WorkspaceCard({
           </div>
 
           {/* Actions */}
-          <DropdownMenu>
+          <DropdownMenu modal={false}>
             <DropdownMenuTrigger asChild>
               <Button 
                 variant="ghost" 
                 size="icon" 
-                className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-foreground"
-                onClick={(e) => e.stopPropagation()}
+                className="h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-accent relative z-10"
+                onClick={(e) => { e.stopPropagation(); e.preventDefault(); }}
               >
                 <MoreHorizontal className="w-4 h-4" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
-              {onRename && <DropdownMenuItem onClick={onRename}><Pencil className="w-4 h-4 mr-2" />Rename</DropdownMenuItem>}
-              {onManageMembers && <DropdownMenuItem onClick={onManageMembers}><Users className="w-4 h-4 mr-2" />Members</DropdownMenuItem>}
-              {onSettings && <DropdownMenuItem onClick={onSettings}><Settings className="w-4 h-4 mr-2" />Settings</DropdownMenuItem>}
+            <DropdownMenuContent align="end" className="z-50" onClick={(e) => e.stopPropagation()}>
+              {onRename && <DropdownMenuItem onSelect={(e) => { e.preventDefault(); onRename(); }}><Pencil className="w-4 h-4 mr-2" />Rename</DropdownMenuItem>}
+              {onManageMembers && <DropdownMenuItem onSelect={(e) => { e.preventDefault(); onManageMembers(); }}><Users className="w-4 h-4 mr-2" />Members</DropdownMenuItem>}
+              {onSettings && <DropdownMenuItem onSelect={(e) => { e.preventDefault(); onSettings(); }}><Settings className="w-4 h-4 mr-2" />Settings</DropdownMenuItem>}
               {onArchive && (
                 <>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={onArchive} className="text-destructive"><Archive className="w-4 h-4 mr-2" />Archive</DropdownMenuItem>
+                  <DropdownMenuItem onSelect={(e) => { e.preventDefault(); onArchive(); }} className="text-destructive"><Archive className="w-4 h-4 mr-2" />Archive</DropdownMenuItem>
                 </>
               )}
             </DropdownMenuContent>
