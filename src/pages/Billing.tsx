@@ -9,6 +9,7 @@ import { MessageCreditsCard } from '@/components/billing/MessageCreditsCard';
 import { BillingSettingsForm } from '@/components/billing/BillingSettingsForm';
 import { BillingFAQ } from '@/components/billing/BillingFAQ';
 import { WorkspacePlanCard } from '@/components/billing/WorkspacePlanCard';
+import { InvoiceHistory } from '@/components/billing/InvoiceHistory';
 import { usePlans, useSubscription } from '@/hooks/useBilling';
 import { useEntitlements } from '@/hooks/useEntitlements';
 import { useState } from 'react';
@@ -17,7 +18,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
-import { LayoutDashboard, CreditCard, BarChart3, Settings, Sparkles } from 'lucide-react';
+import { LayoutDashboard, CreditCard, BarChart3, Settings, Sparkles, Receipt } from 'lucide-react';
 import type { Plan } from '@/types/billing';
 
 export default function Billing() {
@@ -48,7 +49,7 @@ export default function Billing() {
               Billing & Subscription
             </h1>
             <p className="text-sm text-muted-foreground">
-              Manage your plan, usage, credits, and invoice settings
+              Manage your plan, usage, invoices, and billing settings
             </p>
           </div>
           {isTopPlan && (
@@ -60,7 +61,7 @@ export default function Billing() {
 
         <Tabs defaultValue="overview" className="space-y-4 sm:space-y-6">
           <div className="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0">
-            <TabsList className="inline-flex w-auto min-w-max sm:grid sm:w-full sm:grid-cols-4 gap-1 bg-muted/50 p-1">
+            <TabsList className="inline-flex w-auto min-w-max sm:grid sm:w-full sm:grid-cols-5 gap-1 bg-muted/50 p-1">
               <TabsTrigger value="overview" className="text-xs sm:text-sm px-3 sm:px-4 gap-1.5 data-[state=active]:shadow-sm">
                 <LayoutDashboard className="h-3.5 w-3.5 hidden sm:block" /> Overview
               </TabsTrigger>
@@ -69,6 +70,9 @@ export default function Billing() {
               </TabsTrigger>
               <TabsTrigger value="usage" className="text-xs sm:text-sm px-3 sm:px-4 gap-1.5 data-[state=active]:shadow-sm">
                 <BarChart3 className="h-3.5 w-3.5 hidden sm:block" /> Usage
+              </TabsTrigger>
+              <TabsTrigger value="invoices" className="text-xs sm:text-sm px-3 sm:px-4 gap-1.5 data-[state=active]:shadow-sm">
+                <Receipt className="h-3.5 w-3.5 hidden sm:block" /> Invoices
               </TabsTrigger>
               <TabsTrigger value="settings" className="text-xs sm:text-sm px-3 sm:px-4 gap-1.5 data-[state=active]:shadow-sm">
                 <Settings className="h-3.5 w-3.5 hidden sm:block" /> Settings
@@ -139,6 +143,11 @@ export default function Billing() {
           {/* Usage Tab */}
           <TabsContent value="usage" className="space-y-5">
             <UsageOverview />
+          </TabsContent>
+
+          {/* Invoices Tab */}
+          <TabsContent value="invoices" className="space-y-5">
+            <InvoiceHistory />
           </TabsContent>
 
           {/* Settings Tab */}
