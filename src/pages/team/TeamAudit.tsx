@@ -16,6 +16,7 @@ import {
   LogIn, LogOut, UserPlus, Shield, Zap, Tag, Users,
   Loader2, Bot, Hand, ArrowRightLeft, RefreshCw
 } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { useAuditLogs, useTeamMembers } from '@/hooks/useTeam';
 import { TeamBreadcrumb } from '@/components/team/TeamBreadcrumb';
 import { format } from 'date-fns';
