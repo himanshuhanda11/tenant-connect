@@ -247,7 +247,7 @@ export default function WhyAireatro() {
                   Start Free — No Card Needed <ArrowRight className="h-4 w-4" />
                 </Button>
                 <Button size="lg" variant="outline" className="rounded-xl text-sm font-semibold px-8 h-12 bg-transparent border-white/30 text-white hover:bg-white/10 hover:text-white" onClick={() => navigate('/contact')}>
-                  Start Free
+                  Contact Us
                 </Button>
               </div>
               
