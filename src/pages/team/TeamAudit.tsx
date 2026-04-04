@@ -16,6 +16,7 @@ import {
   LogIn, LogOut, UserPlus, Shield, Zap, Tag, Users,
   Loader2, Bot, Hand, ArrowRightLeft, RefreshCw
 } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { useAuditLogs, useTeamMembers } from '@/hooks/useTeam';
 import { TeamBreadcrumb } from '@/components/team/TeamBreadcrumb';
 import { format } from 'date-fns';
@@ -130,10 +131,18 @@ const TeamAudit = () => {
               Track all security and activity events
             </p>
           </div>
-          <Button onClick={exportLogs}>
-            <Download className="mr-2 h-4 w-4" />
-            Export CSV
-          </Button>
+          <div className="flex items-center gap-2">
+            <Link to="/help/team">
+              <Button variant="outline" size="sm" className="gap-2">
+                <FileText className="h-4 w-4" />
+                How to Use
+              </Button>
+            </Link>
+            <Button onClick={exportLogs}>
+              <Download className="mr-2 h-4 w-4" />
+              Export CSV
+            </Button>
+          </div>
         </div>
 
         {/* Filters */}
