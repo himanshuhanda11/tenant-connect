@@ -13,7 +13,8 @@ import {
 } from '@/components/ui/select';
 import { 
   FileText, Download, Search, Filter, Calendar,
-  LogIn, LogOut, UserPlus, Shield, Zap, Tag, Users
+  LogIn, LogOut, UserPlus, Shield, Zap, Tag, Users,
+  Loader2, Bot, Hand, ArrowRightLeft, RefreshCw
 } from 'lucide-react';
 import { useAuditLogs, useTeamMembers } from '@/hooks/useTeam';
 import { TeamBreadcrumb } from '@/components/team/TeamBreadcrumb';
@@ -33,6 +34,12 @@ const ACTION_ICONS: Partial<Record<AuditAction, React.ReactNode>> = {
   tag_removed: <Tag className="h-4 w-4" />,
   team_created: <Users className="h-4 w-4" />,
   team_updated: <Users className="h-4 w-4" />,
+  assignment_changed: <ArrowRightLeft className="h-4 w-4" />,
+  'conversation.assigned': <ArrowRightLeft className="h-4 w-4" />,
+  conversation_intervened: <Hand className="h-4 w-4" />,
+  bot_resumed: <Bot className="h-4 w-4" />,
+  conversation_closed: <LogOut className="h-4 w-4" />,
+  conversation_reopened: <RefreshCw className="h-4 w-4" />,
 };
 
 const ACTION_LABELS: Partial<Record<AuditAction, string>> = {
@@ -62,6 +69,9 @@ const ACTION_LABELS: Partial<Record<AuditAction, string>> = {
   conversation_reopened: 'Reopened Conversation',
   waba_connected: 'Connected WABA',
   settings_changed: 'Changed Settings',
+  conversation_intervened: 'Intervened',
+  bot_resumed: 'Bot Resumed',
+  'conversation.assigned': 'Auto-Assigned',
 };
 
 const ACTION_COLORS: Partial<Record<AuditAction, string>> = {
@@ -72,6 +82,14 @@ const ACTION_COLORS: Partial<Record<AuditAction, string>> = {
   member_enabled: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300',
   automation_activated: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300',
   automation_paused: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300',
+  assignment_changed: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300',
+  'conversation.assigned': 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300',
+  conversation_intervened: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300',
+  bot_resumed: 'bg-cyan-100 text-cyan-700 dark:bg-cyan-900/30 dark:text-cyan-300',
+  conversation_closed: 'bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-300',
+  conversation_reopened: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300',
+  tag_added: 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300',
+  tag_removed: 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300',
 };
 
 const TeamAudit = () => {
@@ -92,11 +110,13 @@ const TeamAudit = () => {
       log.user?.email?.toLowerCase().includes(searchLower) ||
       log.user?.full_name?.toLowerCase().includes(searchLower) ||
       log.action.toLowerCase().includes(searchLower) ||
-      log.resource_type?.toLowerCase().includes(searchLower)
+      log.resource_type?.toLowerCase().includes(searchLower) ||
+      (ACTION_LABELS[log.action as AuditAction] || '').toLowerCase().includes(searchLower)
     );
   });
 
-  const uniqueActions = [...new Set(logs.map(l => l.action))];
+  // Build action filter from both existing logs and known action types
+  const uniqueActions = [...new Set(logs.map(l => l.action))].sort();
 
   return (
     <DashboardLayout>
@@ -205,7 +225,10 @@ const TeamAudit = () => {
           </CardHeader>
           <CardContent>
             {loading ? (
-              <div className="text-center py-8 text-muted-foreground">Loading...</div>
+              <div className="flex items-center justify-center py-12 gap-2 text-muted-foreground">
+                <Loader2 className="h-5 w-5 animate-spin" />
+                <span>Loading audit logs...</span>
+              </div>
             ) : filteredLogs.length === 0 ? (
               <div className="text-center py-12">
                 <FileText className="h-12 w-12 mx-auto text-muted-foreground mb-3" />
