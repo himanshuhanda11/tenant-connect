@@ -102,9 +102,10 @@ export default function Index() {
         <HowItWorksSection />
       </SectionErrorBoundary>
 
-      {/* Differentiator Cards removed */}
-
-
+      {/* Awards & Trust */}
+      <SectionErrorBoundary>
+        <AwardsTrustSection />
+      </SectionErrorBoundary>
 
       {/* AI Capabilities */}
       <SectionErrorBoundary>
@@ -124,11 +125,6 @@ export default function Index() {
       {/* WhatsApp Commerce Showcase */}
       <SectionErrorBoundary>
         <WhatsAppShowcaseSection />
-      </SectionErrorBoundary>
-
-      {/* Awards & Trust */}
-      <SectionErrorBoundary>
-        <AwardsTrustSection />
       </SectionErrorBoundary>
 
       {/* Pricing Preview */}
