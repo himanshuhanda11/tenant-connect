@@ -243,7 +243,7 @@ export default function WhyAireatro() {
               
               {/* CTA Buttons */}
               <div className="flex flex-col sm:flex-row gap-3 justify-center mb-6">
-                <Button size="lg" className="rounded-xl text-sm font-semibold px-8 gap-2 bg-gradient-to-r from-emerald-500 to-teal-400 hover:from-emerald-400 hover:to-teal-300 text-slate-950 shadow-lg shadow-emerald-500/25 border-0 h-12" onClick={() => navigate('/signup')}>
+                <Button size="lg" className="rounded-xl text-sm font-semibold px-8 gap-2 bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/25 border-0 h-12" onClick={() => navigate('/signup')}>
                   Start Free — No Card Needed <ArrowRight className="h-4 w-4" />
                 </Button>
                 <Button size="lg" variant="outline" className="rounded-xl text-sm font-semibold px-8 border-slate-700 text-slate-200 hover:bg-slate-800 hover:text-white h-12" onClick={() => navigate('/contact')}>
