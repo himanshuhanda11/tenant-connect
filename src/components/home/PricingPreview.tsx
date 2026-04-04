@@ -26,7 +26,6 @@ export default function PricingPreview() {
   const [isYearly, setIsYearly] = useState(false);
 
   const getPrice = (plan: PricingPlan) => {
-    if (plan.price === 'custom') return null;
     if (plan.price === 0) return 0;
     return isYearly ? Math.round((plan.price as number) * 0.8) : plan.price as number;
   };
