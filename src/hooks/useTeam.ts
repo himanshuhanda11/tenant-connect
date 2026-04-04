@@ -264,19 +264,62 @@ export function useTeams() {
       // Get member counts
       const { data: memberCounts } = await supabase
         .from('team_members')
-        .select('team_id')
+        .select('team_id, agent_id')
         .eq('tenant_id', currentTenant.id)
         .eq('is_active', true);
 
-      const countMap = (memberCounts || []).reduce((acc, m) => {
-        acc[m.team_id] = (acc[m.team_id] || 0) + 1;
-        return acc;
-      }, {} as Record<string, number>);
+      const countMap: Record<string, number> = {};
+      const agentsByTeam: Record<string, string[]> = {};
+      (memberCounts || []).forEach((m) => {
+        countMap[m.team_id] = (countMap[m.team_id] || 0) + 1;
+        if (!agentsByTeam[m.team_id]) agentsByTeam[m.team_id] = [];
+        agentsByTeam[m.team_id].push(m.agent_id);
+      });
 
-      const enrichedTeams = (data || []).map(t => ({
-        ...t,
-        member_count: countMap[t.id] || 0,
-      })) as Team[];
+      // Get open chats count per team (via agents assigned)
+      const allAgentIds = [...new Set((memberCounts || []).map(m => m.agent_id))];
+      let openChatsByAgent: Record<string, number> = {};
+      if (allAgentIds.length > 0) {
+        // Get agent user_ids from agents table
+        const { data: agentRows } = await supabase
+          .from('agents')
+          .select('id, user_id')
+          .in('id', allAgentIds)
+          .eq('tenant_id', currentTenant.id);
+
+        const agentUserIds = (agentRows || []).map(a => a.user_id);
+        const agentIdToUserId: Record<string, string> = {};
+        (agentRows || []).forEach(a => { agentIdToUserId[a.id] = a.user_id; });
+
+        if (agentUserIds.length > 0) {
+          const { data: openChats } = await supabase
+            .from('conversations')
+            .select('assigned_to')
+            .eq('tenant_id', currentTenant.id)
+            .eq('status', 'open')
+            .in('assigned_to', agentUserIds);
+
+          const chatsByUserId: Record<string, number> = {};
+          (openChats || []).forEach(c => {
+            if (c.assigned_to) chatsByUserId[c.assigned_to] = (chatsByUserId[c.assigned_to] || 0) + 1;
+          });
+
+          // Map back to agent_id
+          (agentRows || []).forEach(a => {
+            openChatsByAgent[a.id] = chatsByUserId[a.user_id] || 0;
+          });
+        }
+      }
+
+      const enrichedTeams = (data || []).map(t => {
+        const teamAgentIds = agentsByTeam[t.id] || [];
+        const openCount = teamAgentIds.reduce((sum, aid) => sum + (openChatsByAgent[aid] || 0), 0);
+        return {
+          ...t,
+          member_count: countMap[t.id] || 0,
+          open_chats_count: openCount,
+        };
+      }) as Team[];
 
       setTeams(enrichedTeams);
     } catch (err: any) {
