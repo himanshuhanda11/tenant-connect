@@ -64,7 +64,7 @@ const metrics: UsageMetric[] = [
   },
 ];
 
-export function UsagePrediction() {
+export function UsagePrediction({ currentPlan = 'free' }: { currentPlan?: string }) {
   const daysRemaining = 12;
   const billingDate = 'January 26, 2026';
 
