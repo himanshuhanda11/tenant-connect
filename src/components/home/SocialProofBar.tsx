@@ -26,27 +26,27 @@ export default function SocialProofBar() {
   const duplicatedCompanies = [...companies, ...companies];
 
   return (
-    <section className="py-5 sm:py-6 md:py-8 bg-muted/30 border-y border-border/50 overflow-hidden">
+    <section className="py-4 sm:py-6 md:py-8 bg-muted/30 border-y border-border/50 overflow-hidden">
       <div className="container mx-auto px-4">
-        <p className="text-center text-xs sm:text-sm text-muted-foreground mb-4 sm:mb-6">
+        <p className="text-center text-[10px] sm:text-xs md:text-sm text-muted-foreground tracking-widest mb-3 sm:mb-5">
           TRUSTED BY <span className="font-semibold text-foreground">2,000+</span> BUSINESSES
         </p>
         
         {/* Scrolling Logo Marquee */}
-        <div className="relative mb-6 sm:mb-8">
-          <div className="absolute left-0 top-0 bottom-0 w-12 sm:w-20 md:w-32 bg-gradient-to-r from-muted/30 to-transparent z-10 pointer-events-none" />
-          <div className="absolute right-0 top-0 bottom-0 w-12 sm:w-20 md:w-32 bg-gradient-to-l from-muted/30 to-transparent z-10 pointer-events-none" />
+        <div className="relative mb-4 sm:mb-6">
+          <div className="absolute left-0 top-0 bottom-0 w-8 sm:w-16 md:w-24 bg-gradient-to-r from-muted/30 to-transparent z-10 pointer-events-none" />
+          <div className="absolute right-0 top-0 bottom-0 w-8 sm:w-16 md:w-24 bg-gradient-to-l from-muted/30 to-transparent z-10 pointer-events-none" />
           
           <div className="flex animate-marquee">
             {duplicatedCompanies.map((company, index) => (
               <div 
                 key={`${company.name}-${index}`}
-                className="flex items-center justify-center mx-4 sm:mx-6 md:mx-10 shrink-0"
+                className="flex items-center justify-center mx-3 sm:mx-5 md:mx-8 shrink-0"
               >
                 <img 
                   src={company.logo}
                   alt={company.name}
-                  className="h-7 sm:h-9 md:h-11 w-auto opacity-80 hover:opacity-100 transition-all duration-300 object-contain"
+                  className="h-5 sm:h-8 md:h-10 w-auto opacity-70 hover:opacity-100 transition-all duration-300 object-contain"
                   loading="lazy"
                   decoding="async"
                   onError={(e) => {
@@ -66,12 +66,12 @@ export default function SocialProofBar() {
         </div>
 
         {/* Metrics row */}
-        <div className="flex flex-col xs:flex-row flex-wrap justify-center items-center gap-4 sm:gap-6 md:gap-12">
+        <div className="grid grid-cols-3 gap-2 sm:flex sm:flex-row sm:flex-wrap sm:justify-center sm:items-center sm:gap-6 md:gap-12">
           {metrics.map((metric, index) => (
-            <div key={index} className="flex items-center gap-2 text-center">
-              <metric.icon className={`w-4 h-4 sm:w-5 sm:h-5 ${metric.color}`} />
-              <span className={`text-base sm:text-lg md:text-xl font-bold ${metric.color}`}>{metric.value}</span>
-              <span className="text-xs sm:text-sm text-muted-foreground">{metric.label}</span>
+            <div key={index} className="flex flex-col items-center gap-0.5 sm:flex-row sm:gap-2 text-center">
+              <metric.icon className={`w-3.5 h-3.5 sm:w-5 sm:h-5 ${metric.color}`} />
+              <span className={`text-sm sm:text-lg md:text-xl font-bold leading-tight ${metric.color}`}>{metric.value}</span>
+              <span className="text-[9px] sm:text-sm text-muted-foreground leading-tight">{metric.label}</span>
             </div>
           ))}
         </div>
