@@ -243,7 +243,7 @@ export default function WhyAireatro() {
               
               {/* CTA Buttons */}
               <div className="flex flex-col sm:flex-row gap-3 justify-center mb-6">
-                <Button size="lg" className="rounded-xl text-sm font-semibold px-8 gap-2 bg-gradient-to-r from-emerald-500 to-teal-400 hover:from-emerald-400 hover:to-teal-300 text-slate-950 shadow-lg shadow-emerald-500/25 border-0 h-12" onClick={() => navigate('/signup')}>
+                <Button size="lg" className="rounded-xl text-sm font-semibold px-8 gap-2 bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/25 border-0 h-12" onClick={() => navigate('/signup')}>
                   Start Free — No Card Needed <ArrowRight className="h-4 w-4" />
                 </Button>
                 <Button size="lg" variant="outline" className="rounded-xl text-sm font-semibold px-8 border-slate-700 text-slate-200 hover:bg-slate-800 hover:text-white h-12" onClick={() => navigate('/contact')}>
@@ -366,7 +366,7 @@ export default function WhyAireatro() {
               Get started in under 2 minutes. No credit card required. No monthly fees.
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center mt-6">
-              <Button size="lg" className="rounded-xl text-sm font-semibold px-8 gap-2 bg-white text-emerald-700 hover:bg-emerald-50 shadow-lg" onClick={() => navigate('/signup')}>
+              <Button size="lg" className="rounded-xl text-sm font-semibold px-8 gap-2 bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg" onClick={() => navigate('/signup')}>
                 Start Free Now <ArrowRight className="h-4 w-4" />
               </Button>
               <Button size="lg" variant="outline" className="rounded-xl text-sm font-semibold px-8 border-white/30 text-white hover:bg-white/10" onClick={() => navigate('/contact')}>
@@ -415,10 +415,10 @@ export default function WhyAireatro() {
               Join 2,000+ businesses already using Aireatro to sell more, support faster, and automate smarter on WhatsApp.
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center mt-8">
-              <Button size="lg" className="rounded-xl text-sm font-semibold px-8 gap-2 bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg shadow-emerald-200" onClick={() => navigate('/signup')}>
+              <Button size="lg" className="rounded-xl text-sm font-semibold px-8 gap-2 bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg" onClick={() => navigate('/signup')}>
                 Create Free Account <ArrowRight className="h-4 w-4" />
               </Button>
-              <Button size="lg" variant="outline" className="rounded-xl text-sm font-semibold px-8 border-gray-300 text-gray-700 hover:bg-gray-50" onClick={() => navigate('/contact')}>
+              <Button size="lg" variant="outline" className="rounded-xl text-sm font-semibold px-8 border-border text-foreground hover:bg-muted" onClick={() => navigate('/contact')}>
                 Contact Us
               </Button>
             </div>
@@ -427,11 +427,11 @@ export default function WhyAireatro() {
       </div>
 
       {/* Sticky mobile CTA */}
-      <div className="fixed bottom-0 left-0 right-0 z-50 sm:hidden bg-white/95 backdrop-blur border-t border-gray-200 px-4 py-3 flex gap-2">
-        <Button className="flex-1 rounded-xl text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white gap-1.5" onClick={() => navigate('/signup')}>
+      <div className="fixed bottom-0 left-0 right-0 z-50 sm:hidden bg-background/95 backdrop-blur border-t border-border px-4 py-3 flex gap-2">
+        <Button className="flex-1 rounded-xl text-xs font-semibold bg-primary hover:bg-primary/90 text-primary-foreground gap-1.5" onClick={() => navigate('/signup')}>
           Start Free <ArrowRight className="h-3.5 w-3.5" />
         </Button>
-        <Button variant="outline" className="rounded-xl text-xs font-semibold border-gray-300 text-gray-700 px-4" onClick={() => navigate('/contact')}>
+        <Button variant="outline" className="rounded-xl text-xs font-semibold border-border text-foreground px-4" onClick={() => navigate('/contact')}>
           Demo
         </Button>
       </div>
