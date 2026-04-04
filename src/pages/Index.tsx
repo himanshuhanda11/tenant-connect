@@ -107,6 +107,13 @@ export default function Index() {
       {/* Social Proof - loaded eagerly */}
       <SocialProofBar />
 
+      {/* Why AiReatro USPs - moved right after social proof */}
+      <SectionErrorBoundary>
+        <Suspense fallback={<SectionSkeleton />}>
+          <WhyAireatroBento />
+        </Suspense>
+      </SectionErrorBoundary>
+
       {/* Business Growth Visual */}
       <SectionErrorBoundary>
         <Suspense fallback={<SectionSkeleton />}>
@@ -146,13 +153,6 @@ export default function Index() {
       <SectionErrorBoundary>
         <Suspense fallback={<SectionSkeleton />}>
           <AICapabilitiesSection />
-        </Suspense>
-      </SectionErrorBoundary>
-
-      {/* Why AiReatro USPs */}
-      <SectionErrorBoundary>
-        <Suspense fallback={<SectionSkeleton />}>
-          <WhyAireatroBento />
         </Suspense>
       </SectionErrorBoundary>
 
