@@ -37,17 +37,33 @@ export default function WhyAireatroBento() {
           viewport={{ once: true }}
         >
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-medium mb-4">
-            Why AiReatro
+            Why Growing Teams Choose Aireatro
           </div>
           <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-foreground mb-3">
-            Everything You Need to{' '}
+            Built to Help You{' '}
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-emerald-500">
-              Grow Fast, Spend Less
+              Grow Faster at Lower Cost
             </span>
           </h2>
-          <p className="text-muted-foreground text-sm sm:text-base max-w-xl mx-auto">
-            10 powerful capabilities that help you run your business faster, cheaper, and smarter on WhatsApp.
+          <p className="text-muted-foreground text-sm sm:text-base max-w-2xl mx-auto">
+            From AI replies and team inboxes to campaigns, attribution, CRM, and diagnostics — every capability is designed to increase revenue, save time, and reduce WhatsApp operating cost.
           </p>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 max-w-3xl mx-auto mt-6">
+            {[
+              { value: '5x', label: 'Revenue growth path' },
+              { value: '24/7', label: 'AI replies & qualification' },
+              { value: '₹0', label: 'Monthly platform fee' },
+            ].map((item) => (
+              <div
+                key={item.label}
+                className="rounded-xl border border-border/60 bg-card/70 backdrop-blur-sm px-4 py-3"
+              >
+                <p className="text-lg sm:text-xl font-bold text-foreground">{item.value}</p>
+                <p className="text-xs text-muted-foreground">{item.label}</p>
+              </div>
+            ))}
+          </div>
         </motion.div>
 
         {/* Bento Grid */}
@@ -95,7 +111,7 @@ export default function WhyAireatroBento() {
             className="rounded-xl border-primary/30 text-primary hover:bg-primary/5"
             onClick={() => navigate('/why-aireatro')}
           >
-            See All 10 Reasons in Detail
+            Explore All Platform Advantages
             <ArrowRight className="w-4 h-4 ml-2" />
           </Button>
         </motion.div>
