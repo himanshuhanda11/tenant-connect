@@ -55,8 +55,7 @@ export default function PricingCards({ isAnnual }: PricingCardsProps) {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 max-w-7xl mx-auto items-stretch">
           {pricingPlans.map((plan) => {
             const price = getPrice(plan);
-            const isCustom = plan.price === 'custom';
-            const colors = planColors[plan.id];
+            const isCustom = false;
             const isPro = plan.highlight;
 
             return (
