@@ -12164,8 +12164,12 @@ export type Database = {
       }
       tenants: {
         Row: {
+          billing_address: Json | null
+          billing_email: string | null
           created_at: string
+          enforcement_mode: string | null
           id: string
+          invoice_notes: string | null
           is_suspended: boolean | null
           logo_url: string | null
           name: string
@@ -12173,12 +12177,19 @@ export type Database = {
           slug: string
           suspended_at: string | null
           suspended_reason: string | null
+          tax_id: string | null
           timezone: string
           updated_at: string
+          vat_enabled: boolean | null
+          vat_percentage: number | null
         }
         Insert: {
+          billing_address?: Json | null
+          billing_email?: string | null
           created_at?: string
+          enforcement_mode?: string | null
           id?: string
+          invoice_notes?: string | null
           is_suspended?: boolean | null
           logo_url?: string | null
           name: string
@@ -12186,12 +12197,19 @@ export type Database = {
           slug: string
           suspended_at?: string | null
           suspended_reason?: string | null
+          tax_id?: string | null
           timezone?: string
           updated_at?: string
+          vat_enabled?: boolean | null
+          vat_percentage?: number | null
         }
         Update: {
+          billing_address?: Json | null
+          billing_email?: string | null
           created_at?: string
+          enforcement_mode?: string | null
           id?: string
+          invoice_notes?: string | null
           is_suspended?: boolean | null
           logo_url?: string | null
           name?: string
@@ -12199,8 +12217,11 @@ export type Database = {
           slug?: string
           suspended_at?: string | null
           suspended_reason?: string | null
+          tax_id?: string | null
           timezone?: string
           updated_at?: string
+          vat_enabled?: boolean | null
+          vat_percentage?: number | null
         }
         Relationships: []
       }
@@ -14086,8 +14107,12 @@ export type Database = {
       create_tenant_with_owner: {
         Args: { _name: string; _slug: string }
         Returns: {
+          billing_address: Json | null
+          billing_email: string | null
           created_at: string
+          enforcement_mode: string | null
           id: string
+          invoice_notes: string | null
           is_suspended: boolean | null
           logo_url: string | null
           name: string
@@ -14095,8 +14120,11 @@ export type Database = {
           slug: string
           suspended_at: string | null
           suspended_reason: string | null
+          tax_id: string | null
           timezone: string
           updated_at: string
+          vat_enabled: boolean | null
+          vat_percentage: number | null
         }
         SetofOptions: {
           from: "*"
