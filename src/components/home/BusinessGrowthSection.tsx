@@ -25,6 +25,27 @@ const graphData = [
 
 export default function BusinessGrowthSection() {
   const maxVal = 100;
+  const width = 700;
+  const height = 240;
+  const padX = 40;
+  const padY = 20;
+  const chartW = width - padX * 2;
+  const chartH = height - padY * 2;
+
+  const points = graphData.map((d, i) => ({
+    x: padX + (i / (graphData.length - 1)) * chartW,
+    y: padY + chartH - (d.value / maxVal) * chartH,
+    ...d,
+  }));
+
+  const linePath = points.map((p, i) => {
+    if (i === 0) return `M ${p.x} ${p.y}`;
+    const prev = points[i - 1];
+    const cpx = (prev.x + p.x) / 2;
+    return `C ${cpx} ${prev.y}, ${cpx} ${p.y}, ${p.x} ${p.y}`;
+  }).join(' ');
+
+  const areaPath = `${linePath} L ${points[points.length - 1].x} ${padY + chartH} L ${points[0].x} ${padY + chartH} Z`;
 
   return (
     <section className="py-12 sm:py-16 lg:py-20 bg-background relative overflow-hidden">
@@ -54,9 +75,8 @@ export default function BusinessGrowthSection() {
           </motion.div>
         </div>
 
-        {/* Graph + Stats */}
         <div className="max-w-5xl mx-auto">
-          {/* Graph */}
+          {/* Line Chart */}
           <motion.div
             className="rounded-2xl border border-border/60 bg-card/80 backdrop-blur-sm p-4 sm:p-6 lg:p-8 shadow-lg mb-8"
             initial={{ opacity: 0, y: 30 }}
@@ -75,32 +95,84 @@ export default function BusinessGrowthSection() {
               </div>
             </div>
 
-            {/* Bar chart */}
-            <div className="flex items-end gap-1 sm:gap-2 h-40 sm:h-52 lg:h-60 mt-4">
-              {graphData.map((d, i) => (
-                <div key={d.month} className="flex-1 flex flex-col items-center gap-1 relative group">
-                  {d.label && (
-                    <div className="absolute -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap bg-foreground text-background text-[8px] sm:text-[9px] px-2 py-0.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-10">
-                      {d.label}
-                    </div>
-                  )}
-                  <motion.div
-                    className={`w-full rounded-t-md ${
-                      d.label
-                        ? 'bg-gradient-to-t from-primary to-emerald-400 shadow-lg shadow-primary/20'
-                        : 'bg-gradient-to-t from-primary/60 to-primary/30'
-                    }`}
-                    initial={{ height: 0 }}
-                    whileInView={{ height: `${(d.value / maxVal) * 100}%` }}
-                    viewport={{ once: true }}
-                    transition={{ delay: i * 0.06, duration: 0.5 }}
-                  />
-                  <span className="text-[8px] sm:text-[10px] text-muted-foreground">{d.month}</span>
-                  {d.label && (
-                    <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-                  )}
-                </div>
-              ))}
+            <div className="w-full overflow-x-auto mt-4">
+              <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-auto min-w-[500px]" preserveAspectRatio="xMidYMid meet">
+                <defs>
+                  <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity="0.35" />
+                    <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity="0.02" />
+                  </linearGradient>
+                  <linearGradient id="lineGrad" x1="0" y1="0" x2="1" y2="0">
+                    <stop offset="0%" stopColor="hsl(var(--primary))" />
+                    <stop offset="100%" stopColor="hsl(142 71% 45%)" />
+                  </linearGradient>
+                </defs>
+
+                {/* Grid lines */}
+                {[0, 25, 50, 75, 100].map((v) => {
+                  const y = padY + chartH - (v / maxVal) * chartH;
+                  return (
+                    <g key={v}>
+                      <line x1={padX} y1={y} x2={padX + chartW} y2={y} stroke="hsl(var(--border))" strokeWidth="0.5" strokeDasharray="4 4" />
+                      <text x={padX - 6} y={y + 3} textAnchor="end" className="fill-muted-foreground" fontSize="8">{v}%</text>
+                    </g>
+                  );
+                })}
+
+                {/* Gradient area */}
+                <motion.path
+                  d={areaPath}
+                  fill="url(#areaGrad)"
+                  initial={{ opacity: 0 }}
+                  whileInView={{ opacity: 1 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 1, delay: 0.3 }}
+                />
+
+                {/* Line */}
+                <motion.path
+                  d={linePath}
+                  fill="none"
+                  stroke="url(#lineGrad)"
+                  strokeWidth="2.5"
+                  strokeLinecap="round"
+                  initial={{ pathLength: 0 }}
+                  whileInView={{ pathLength: 1 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 1.5, ease: 'easeOut' }}
+                />
+
+                {/* Data points & labels */}
+                {points.map((p, i) => (
+                  <g key={p.month}>
+                    {/* Month label */}
+                    <text x={p.x} y={padY + chartH + 14} textAnchor="middle" className="fill-muted-foreground" fontSize="9">{p.month}</text>
+
+                    {/* Dot */}
+                    <motion.circle
+                      cx={p.x}
+                      cy={p.y}
+                      r={p.label ? 4.5 : 3}
+                      className={p.label ? 'fill-primary' : 'fill-primary/60'}
+                      stroke={p.label ? 'hsl(var(--background))' : 'none'}
+                      strokeWidth={p.label ? 2 : 0}
+                      initial={{ scale: 0 }}
+                      whileInView={{ scale: 1 }}
+                      viewport={{ once: true }}
+                      transition={{ delay: 0.3 + i * 0.06 }}
+                    />
+
+                    {/* Milestone labels */}
+                    {p.label && (
+                      <g>
+                        <line x1={p.x} y1={p.y - 6} x2={p.x} y2={p.y - 18} stroke="hsl(var(--primary))" strokeWidth="1" strokeDasharray="2 2" />
+                        <rect x={p.x - 40} y={p.y - 32} width="80" height="14" rx="7" className="fill-foreground" />
+                        <text x={p.x} y={p.y - 22} textAnchor="middle" className="fill-background" fontSize="7" fontWeight="600">{p.label}</text>
+                      </g>
+                    )}
+                  </g>
+                ))}
+              </svg>
             </div>
           </motion.div>
 
