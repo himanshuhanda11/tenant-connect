@@ -114,6 +114,7 @@ export default function PricingPreview() {
                       </li>
                     ))}
                   </ul>
+                  <TemplateChargesBlock compact className="mb-4" />
                   <Button
                     className={cn(
                       "w-full h-10 text-sm gap-2 font-semibold",
