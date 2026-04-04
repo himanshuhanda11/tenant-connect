@@ -73,7 +73,7 @@ export function PlanCard({ plan, isCurrentPlan, isYearly, isRecommended, onSelec
   const features = [
     { icon: Users, label: 'Team Members', value: limits.max_team_members === 1 ? '1 (Admin only)' : formatLimit(limits.max_team_members) },
     { icon: Contact, label: 'Contacts', value: formatLimit(limits.max_contacts) },
-    { icon: MessageSquare, label: 'Messages/mo', value: limits.monthly_messages === -1 ? 'Pay-per-use' : formatLimit(limits.monthly_messages) },
+    { icon: MessageSquare, label: 'Campaigns/mo', value: plan.name === 'Free' ? '2' : plan.name === 'Starter' ? '10' : plan.name === 'Growth' ? '30' : 'Unlimited' },
     { icon: Workflow, label: 'Automations', value: formatLimit(limits.max_automations) },
     { icon: Shield, label: 'Audit Logs', value: limits.audit_logs_days > 0 ? `${limits.audit_logs_days} days` : '—' },
     { icon: Zap, label: 'API Access', value: limits.api_access ? 'Yes' : '—' },
