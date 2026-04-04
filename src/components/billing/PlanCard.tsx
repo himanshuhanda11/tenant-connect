@@ -60,7 +60,7 @@ export function PlanCard({ plan, isCurrentPlan, isYearly, isRecommended, onSelec
   const monthlyEquivalent = isYearly ? Math.round(price / 12) : price;
   const isBusiness = plan.name === 'Business';
   const isFree = plan.name === 'Free';
-  const isCustomPrice = isBusiness && plan.price_monthly === 0;
+  const isCustomPrice = false; // Business now has a real price
   const savings = isYearly && plan.price_yearly
     ? Math.round((1 - plan.price_yearly / (plan.price_monthly * 12)) * 100)
     : 0;
