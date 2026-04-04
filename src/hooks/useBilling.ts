@@ -112,11 +112,11 @@ export function useSubscription() {
 
       return {
         ...data,
-        plan_id: `plan_${data.plan_id}`,
+        plan_id: data.plan_id,
         status: data.status as 'active',
         billing_cycle: (data.billing_cycle ?? 'monthly') as 'monthly' | 'yearly',
         plan: {
-          id: `plan_${data.plan_id}`,
+          id: data.plan_id,
           name: planNames[data.plan_id] ?? data.plan_id,
           description: null,
           price_monthly: 0,
