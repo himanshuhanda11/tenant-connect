@@ -133,7 +133,7 @@ const comparisonData = [
   { feature: 'UI / UX Quality', aireatro: 'Stripe-level design', others: 'Cluttered dashboards', aiLevel: 'partial' as const },
   { feature: 'Integration Health', aireatro: 'Auto-monitoring', others: 'Manual checks', aiLevel: 'full' as const },
   { feature: 'Team Operations', aireatro: 'SLA, scorecards, RBAC', others: 'Basic assignment', aiLevel: 'partial' as const },
-  { feature: 'Onboarding Speed', aireatro: '< 30 minutes', others: 'Hours to days', aiLevel: 'full' as const },
+  { feature: 'Onboarding Speed', aireatro: '< 10 minutes', others: 'Hours to days', aiLevel: 'full' as const },
 ];
 
 function variantClasses(variant: UspVariant) {

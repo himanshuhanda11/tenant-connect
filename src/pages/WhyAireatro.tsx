@@ -268,7 +268,7 @@ export default function WhyAireatro() {
                 {[
                   { value: '2,000+', label: 'Businesses Trust Us' },
                   { value: '₹0', label: 'Monthly Platform Fee' },
-                  { value: '< 30 min', label: 'Setup Time' },
+                  { value: '< 10 min', label: 'Setup Time' },
                   { value: '98%', label: 'Message Open Rate' },
                 ].map(s => (
                   <div key={s.label} className="text-center">
