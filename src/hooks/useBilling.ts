@@ -19,7 +19,7 @@ export function usePlans() {
 
       // Map platform_plans to the Plan shape expected by components
       return (data ?? []).map((p: any) => ({
-        id: `plan_${p.id}`,
+        id: p.id,
         name: p.name,
         description: p.tagline ?? null,
         price_monthly: p.price_monthly ?? 0,
