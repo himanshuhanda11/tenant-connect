@@ -104,12 +104,8 @@ export default function Index() {
       {/* Hero Section - loaded eagerly for fast FCP */}
       <HeroSection />
 
-      {/* Social Proof */}
-      <SectionErrorBoundary>
-        <Suspense fallback={<SectionSkeleton />}>
-          <SocialProofBar />
-        </Suspense>
-      </SectionErrorBoundary>
+      {/* Social Proof - loaded eagerly */}
+      <SocialProofBar />
 
       {/* Business Growth Visual */}
       <SectionErrorBoundary>
