@@ -95,8 +95,8 @@ export default function BusinessGrowthSection() {
               </div>
             </div>
 
-            <div className="w-full overflow-x-auto mt-4">
-              <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-auto min-w-[500px]" preserveAspectRatio="xMidYMid meet">
+            <div className="w-full mt-4">
+              <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-auto" preserveAspectRatio="xMidYMid meet">
                 <defs>
                   <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity="0.35" />
@@ -177,7 +177,7 @@ export default function BusinessGrowthSection() {
           </motion.div>
 
           {/* Stat cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="grid grid-cols-3 gap-3 sm:gap-4">
             {stats.map((stat, i) => (
               <motion.div
                 key={stat.label}
