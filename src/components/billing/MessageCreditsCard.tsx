@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Coins, Plus, History, TrendingUp, TrendingDown } from 'lucide-react';
+import { Coins, Plus, History, TrendingUp, TrendingDown, Sparkles } from 'lucide-react';
 import { useMessageCredits } from '@/hooks/useMessageCredits';
 import { supabase } from '@/integrations/supabase/client';
 import { useTenant } from '@/contexts/TenantContext';
@@ -27,7 +27,7 @@ export function MessageCreditsCard() {
         p_amount: amount,
       });
       if (error) throw error;
-      toast.success(`Added ${amount} credits to your workspace`);
+      toast.success(`Added ${amount} credits`);
       invalidate();
       setCustomAmount('');
     } catch (err: any) {
@@ -38,118 +38,83 @@ export function MessageCreditsCard() {
   };
 
   return (
-    <div className="space-y-4">
-      {/* Balance & Top-Up */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle className="flex items-center gap-2">
-                <Coins className="h-5 w-5 text-primary" />
-                Message Credits
-              </CardTitle>
-              <CardDescription>Credits are used for sending template messages via WhatsApp</CardDescription>
-            </div>
-            <div className="text-right">
-              <p className="text-3xl font-bold text-primary">{balance}</p>
-              <p className="text-xs text-muted-foreground">Available credits</p>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {/* Stats */}
-          <div className="grid grid-cols-2 gap-3">
-            <div className="rounded-lg border p-3">
-              <p className="text-xs text-muted-foreground">Total Purchased</p>
-              <p className="text-lg font-semibold flex items-center gap-1">
-                <TrendingUp className="h-4 w-4 text-primary" />
-                {totalPurchased}
-              </p>
-            </div>
-            <div className="rounded-lg border p-3">
-              <p className="text-xs text-muted-foreground">Total Used</p>
-              <p className="text-lg font-semibold flex items-center gap-1">
-                <TrendingDown className="h-4 w-4 text-destructive" />
-                {totalUsed}
-              </p>
-            </div>
-          </div>
-
-          {/* Quick Top-Up */}
+    <Card>
+      <CardHeader>
+        <div className="flex items-center justify-between">
           <div>
-            <p className="text-sm font-medium mb-2">Quick Top-Up</p>
-            <div className="flex flex-wrap gap-2">
-              {PRESET_AMOUNTS.map((amount) => (
-                <Button
-                  key={amount}
-                  variant="outline"
-                  size="sm"
-                  disabled={loading}
-                  onClick={() => handleTopUp(amount)}
-                  className="min-w-[70px]"
-                >
-                  <Plus className="h-3 w-3 mr-1" />
-                  {amount}
-                </Button>
-              ))}
-            </div>
+            <CardTitle className="flex items-center gap-2 text-base">
+              <Coins className="h-4 w-4 text-primary" />
+              Message Credits
+            </CardTitle>
+            <CardDescription className="text-xs">Used for template messages via WhatsApp</CardDescription>
           </div>
-
-          {/* Custom Amount */}
-          <div className="flex gap-2">
-            <Input
-              type="number"
-              min={1}
-              placeholder="Custom amount..."
-              value={customAmount}
-              onChange={(e) => setCustomAmount(e.target.value)}
-              className="max-w-[180px]"
-            />
-            <Button
-              disabled={loading || !customAmount || Number(customAmount) <= 0}
-              onClick={() => handleTopUp(Number(customAmount))}
-            >
-              Add Credits
-            </Button>
+          <div className="text-right">
+            <p className="text-2xl font-bold text-primary">{balance}</p>
+            <p className="text-[10px] text-muted-foreground">available</p>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {/* Stats Row */}
+        <div className="grid grid-cols-2 gap-2">
+          <div className="rounded-lg bg-emerald-500/10 p-2.5">
+            <p className="text-[10px] text-muted-foreground">Purchased</p>
+            <p className="text-sm font-semibold flex items-center gap-1">
+              <TrendingUp className="h-3 w-3 text-emerald-600" />{totalPurchased}
+            </p>
+          </div>
+          <div className="rounded-lg bg-red-500/10 p-2.5">
+            <p className="text-[10px] text-muted-foreground">Used</p>
+            <p className="text-sm font-semibold flex items-center gap-1">
+              <TrendingDown className="h-3 w-3 text-red-600" />{totalUsed}
+            </p>
+          </div>
+        </div>
 
-      {/* Transaction History */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-base">
-            <History className="h-4 w-4" />
-            Credit History
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {transactionsLoading ? (
-            <p className="text-sm text-muted-foreground">Loading...</p>
-          ) : !transactions?.length ? (
-            <p className="text-sm text-muted-foreground">No transactions yet</p>
-          ) : (
-            <div className="space-y-2 max-h-[300px] overflow-y-auto">
-              {transactions.map((tx) => (
-                <div key={tx.id} className="flex items-center justify-between py-2 border-b last:border-0">
+        {/* Quick Top-Up */}
+        <div>
+          <p className="text-xs font-medium mb-2 flex items-center gap-1">
+            <Sparkles className="h-3 w-3" /> Quick Top-Up
+          </p>
+          <div className="flex flex-wrap gap-1.5">
+            {PRESET_AMOUNTS.map((amount) => (
+              <Button key={amount} variant="outline" size="sm" disabled={loading} onClick={() => handleTopUp(amount)} className="h-7 text-xs px-2.5 gap-1">
+                <Plus className="h-2.5 w-2.5" />{amount}
+              </Button>
+            ))}
+          </div>
+        </div>
+
+        {/* Custom */}
+        <div className="flex gap-2">
+          <Input type="number" min={1} placeholder="Custom..." value={customAmount} onChange={(e) => setCustomAmount(e.target.value)} className="h-8 text-xs max-w-[120px]" />
+          <Button size="sm" className="h-8 text-xs" disabled={loading || !customAmount || Number(customAmount) <= 0} onClick={() => handleTopUp(Number(customAmount))}>
+            Add
+          </Button>
+        </div>
+
+        {/* Recent Transactions */}
+        {transactions && transactions.length > 0 && (
+          <div>
+            <p className="text-xs font-medium mb-2 flex items-center gap-1">
+              <History className="h-3 w-3" /> Recent
+            </p>
+            <div className="space-y-1 max-h-[180px] overflow-y-auto">
+              {transactions.slice(0, 5).map((tx) => (
+                <div key={tx.id} className="flex items-center justify-between py-1.5 px-2 rounded-md hover:bg-muted/50 text-xs">
                   <div>
-                    <p className="text-sm font-medium">{tx.description || tx.type}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {format(new Date(tx.created_at), 'MMM d, yyyy HH:mm')}
-                    </p>
+                    <p className="font-medium">{tx.description || tx.type}</p>
+                    <p className="text-[10px] text-muted-foreground">{format(new Date(tx.created_at), 'MMM d, HH:mm')}</p>
                   </div>
-                  <div className="text-right">
-                    <Badge variant={tx.amount > 0 ? 'default' : 'destructive'} className="text-xs">
-                      {tx.amount > 0 ? '+' : ''}{tx.amount}
-                    </Badge>
-                    <p className="text-xs text-muted-foreground mt-0.5">Bal: {tx.balance_after}</p>
-                  </div>
+                  <Badge variant={tx.amount > 0 ? 'default' : 'destructive'} className="text-[10px] px-1.5 py-0 h-4">
+                    {tx.amount > 0 ? '+' : ''}{tx.amount}
+                  </Badge>
                 </div>
               ))}
             </div>
-          )}
-        </CardContent>
-      </Card>
-    </div>
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 }
