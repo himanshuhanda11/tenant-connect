@@ -61,7 +61,7 @@ export default function PricingPreview() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 max-w-6xl mx-auto mb-8">
           {pricingPlans.map((plan) => {
             const price = getPrice(plan);
-            const isCustom = plan.price === 'custom';
+            const isCustom = false;
 
             return (
               <Card key={plan.id} className={cn(
