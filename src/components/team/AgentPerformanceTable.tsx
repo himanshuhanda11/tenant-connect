@@ -164,14 +164,16 @@ export function AgentPerformanceTable() {
             />
             <StatCard
               icon={Reply}
-              label="Total Replies"
+              label="Replies in Period"
               value={totalReplies}
+              subtext={days === 1 ? 'Today only' : `Last ${days} days`}
               color="bg-violet-500/10 text-violet-600"
             />
             <StatCard
               icon={MousePointerClick}
-              label="Chats Opened"
+              label="Opened in Period"
               value={totalOpened}
+              subtext={days === 1 ? 'Viewed today' : `Viewed in ${days} days`}
               color="bg-amber-500/10 text-amber-600"
             />
           </div>
@@ -228,17 +230,17 @@ export function AgentPerformanceTable() {
                   </TooltipTrigger>
                   <TooltipContent>Total hours worked in period</TooltipContent>
                 </Tooltip>
-                <Tooltip>
-                  <TooltipTrigger className="flex items-center gap-1">
-                    <MousePointerClick className="h-3 w-3" /> Opened
-                  </TooltipTrigger>
-                  <TooltipContent>Chats opened / viewed</TooltipContent>
-                </Tooltip>
+                  <Tooltip>
+                    <TooltipTrigger className="flex items-center gap-1">
+                      <MousePointerClick className="h-3 w-3" /> Opened
+                    </TooltipTrigger>
+                    <TooltipContent>Chats viewed in the selected period</TooltipContent>
+                  </Tooltip>
                 <Tooltip>
                   <TooltipTrigger className="flex items-center gap-1">
                     <Reply className="h-3 w-3" /> Replied
                   </TooltipTrigger>
-                  <TooltipContent>Messages sent (excl. auto-replies)</TooltipContent>
+                    <TooltipContent>Human replies sent in the selected period</TooltipContent>
                 </Tooltip>
                 <Tooltip>
                   <TooltipTrigger className="flex items-center gap-1">
@@ -246,7 +248,7 @@ export function AgentPerformanceTable() {
                   </TooltipTrigger>
                   <TooltipContent>Leads claimed / picked up</TooltipContent>
                 </Tooltip>
-                <span className="flex items-center gap-1">
+                  <span className="flex items-center gap-1">
                   <MessageSquare className="h-3 w-3" /> Open
                 </span>
                 <span>Avg Response</span>
@@ -331,7 +333,7 @@ export function AgentPerformanceTable() {
                         {/* Claimed */}
                         <p className="font-mono text-sm">{agent.conversations_claimed}</p>
 
-                        {/* Open Chats */}
+                         {/* Current Queue */}
                         <div className="flex items-center gap-1.5">
                           <span className="font-mono text-sm">{agent.current_open_chats}</span>
                         </div>
@@ -387,7 +389,7 @@ export function AgentPerformanceTable() {
                           </div>
                           <div className="p-2 rounded-lg bg-muted/30">
                             <p className="font-mono text-sm font-bold">{agent.current_open_chats}</p>
-                            <p className="text-[10px] text-muted-foreground">Open</p>
+                            <p className="text-[10px] text-muted-foreground">Queue</p>
                           </div>
                         </div>
 
