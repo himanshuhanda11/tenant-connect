@@ -1,19 +1,11 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Check, ArrowRight, Sparkles, Gift, Rocket, Crown, Building2 } from 'lucide-react';
+import { Check, ArrowRight, Sparkles, Zap, Users, MessageSquare, Bot, Workflow } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Switch } from '@/components/ui/switch';
 import { pricingPlans, type PricingPlan } from '@/data/pricingPlans';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
 import TemplateChargesBlock from '@/components/shared/TemplateChargesBlock';
-
-const planMeta: Record<string, { icon: React.ElementType; accent: string; glow: string; bg: string; borderHover: string }> = {
-  free: { icon: Gift, accent: 'text-muted-foreground', glow: '', bg: 'bg-muted/50', borderHover: 'hover:border-border' },
-  basic: { icon: Rocket, accent: 'text-blue-500', glow: 'shadow-blue-500/5', bg: 'bg-blue-500/10', borderHover: 'hover:border-blue-500/30' },
-  pro: { icon: Crown, accent: 'text-primary', glow: 'shadow-primary/10', bg: 'bg-primary/10', borderHover: 'hover:border-primary/40' },
-  business: { icon: Building2, accent: 'text-amber-500', glow: 'shadow-amber-500/5', bg: 'bg-amber-500/10', borderHover: 'hover:border-amber-500/30' },
-};
 
 export default function PricingPreview() {
   const [isYearly, setIsYearly] = useState(false);
@@ -25,150 +17,143 @@ export default function PricingPreview() {
 
   const fmt = (p: number) => `₹${p.toLocaleString('en-IN')}`;
 
-  return (
-    <section className="relative overflow-hidden isolate">
-      {/* Two-tone background */}
-      <div className="absolute inset-0 bg-gradient-to-b from-muted/30 via-background to-background" />
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-[-200px] left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-primary/[0.04] rounded-full blur-[120px]" />
-      </div>
+  const limitItems = (plan: PricingPlan) => [
+    { icon: Users, label: 'Members', value: plan.limits.team_members },
+    { icon: MessageSquare, label: 'Contacts', value: plan.limits.contacts === 'unlimited' ? '∞' : plan.limits.contacts.toLocaleString('en-IN') },
+    { icon: Workflow, label: 'Flows', value: plan.limits.flows === 'unlimited' ? '∞' : plan.limits.flows },
+    { icon: Bot, label: 'Automations', value: plan.limits.automations === 'unlimited' ? '∞' : plan.limits.automations },
+  ];
 
-      <div className="container mx-auto px-4 relative z-10 max-w-6xl py-16 sm:py-24 lg:py-32">
+  return (
+    <section className="relative py-20 sm:py-28 lg:py-36 overflow-hidden">
+      {/* Dark background */}
+      <div className="absolute inset-0 bg-foreground" />
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_0%,hsl(var(--primary)/0.15),transparent)]" />
+
+      <div className="container mx-auto px-4 relative z-10 max-w-6xl">
         {/* Header */}
         <motion.div
-          className="text-center mb-14 sm:mb-18"
-          initial={{ opacity: 0, y: 24 }}
+          className="text-center mb-16"
+          initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
         >
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-semibold mb-6 tracking-wide uppercase">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/15 border border-primary/25 text-primary text-xs font-semibold mb-5 tracking-wide uppercase">
             <Sparkles className="w-3.5 h-3.5" />
-            Per Workspace Pricing
+            Pricing
           </div>
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-foreground mb-4 tracking-tight leading-tight">
-            Simple, Transparent{' '}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-emerald-500">Pricing</span>
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-background mb-3 tracking-tight">
+            One workspace. One price.
           </h2>
-          <p className="text-muted-foreground text-base sm:text-lg max-w-lg mx-auto leading-relaxed mb-8">
-            1 WhatsApp number per workspace. Scale as you grow.
+          <p className="text-background/50 text-base sm:text-lg max-w-md mx-auto mb-10">
+            No hidden fees. Scale your team, not your bill.
           </p>
 
-          {/* Billing toggle */}
-          <div className="inline-flex items-center gap-3 px-6 py-3 rounded-full bg-card border border-border/60 shadow-sm backdrop-blur-sm">
-            <span className={cn('text-sm transition-colors', !isYearly ? 'text-foreground font-semibold' : 'text-muted-foreground')}>Monthly</span>
-            <Switch checked={isYearly} onCheckedChange={setIsYearly} />
-            <span className={cn('text-sm transition-colors', isYearly ? 'text-foreground font-semibold' : 'text-muted-foreground')}>Yearly</span>
-            {isYearly && (
-              <span className="text-[10px] font-bold text-primary-foreground bg-gradient-to-r from-primary to-emerald-500 px-2.5 py-0.5 rounded-full">-20%</span>
-            )}
+          {/* Toggle */}
+          <div className="inline-flex items-center rounded-full bg-background/[0.08] border border-background/10 p-1">
+            <button
+              onClick={() => setIsYearly(false)}
+              className={cn(
+                'px-5 py-2 rounded-full text-sm font-medium transition-all',
+                !isYearly ? 'bg-primary text-primary-foreground shadow-lg' : 'text-background/50 hover:text-background/80',
+              )}
+            >
+              Monthly
+            </button>
+            <button
+              onClick={() => setIsYearly(true)}
+              className={cn(
+                'px-5 py-2 rounded-full text-sm font-medium transition-all flex items-center gap-1.5',
+                isYearly ? 'bg-primary text-primary-foreground shadow-lg' : 'text-background/50 hover:text-background/80',
+              )}
+            >
+              Yearly
+              <span className={cn(
+                'text-[10px] font-bold px-1.5 py-0.5 rounded-full',
+                isYearly ? 'bg-primary-foreground/20 text-primary-foreground' : 'bg-primary/20 text-primary',
+              )}>
+                -20%
+              </span>
+            </button>
           </div>
         </motion.div>
 
-        {/* Plan Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 lg:gap-4 xl:gap-5 mb-10">
+        {/* Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-3 mb-8">
           {pricingPlans.map((plan, i) => {
             const price = getPrice(plan);
-            const meta = planMeta[plan.id];
-            const Icon = meta.icon;
             const isPro = plan.highlight;
 
             return (
               <motion.div
                 key={plan.id}
                 className={cn(
-                  'group relative flex flex-col rounded-2xl border backdrop-blur-sm transition-all duration-300',
+                  'relative rounded-2xl flex flex-col overflow-hidden transition-all duration-300',
                   isPro
-                    ? 'bg-foreground text-background border-foreground shadow-2xl shadow-primary/15 sm:scale-[1.04] z-10'
-                    : `bg-card/80 border-border/50 ${meta.borderHover} hover:shadow-xl ${meta.glow}`,
+                    ? 'bg-gradient-to-b from-primary/20 to-primary/5 border-2 border-primary/40 shadow-[0_0_40px_-8px_hsl(var(--primary)/0.3)]'
+                    : 'bg-background/[0.05] border border-background/10 hover:border-background/20 hover:bg-background/[0.08]',
                 )}
-                initial={{ opacity: 0, y: 28 }}
+                initial={{ opacity: 0, y: 24 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ delay: i * 0.08 }}
+                transition={{ delay: i * 0.07 }}
               >
-                {/* Popular ribbon */}
+                {/* Badge */}
                 {plan.badge && (
-                  <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 z-10">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-primary-foreground bg-gradient-to-r from-primary to-emerald-500 px-4 py-1.5 rounded-full shadow-lg shadow-primary/30 flex items-center gap-1.5">
-                      <Sparkles className="w-3 h-3" />
-                      {plan.badge}
-                    </span>
+                  <div className="bg-gradient-to-r from-primary to-emerald-500 text-primary-foreground text-[11px] font-bold text-center py-1.5 tracking-wider uppercase">
+                    ⚡ {plan.badge}
                   </div>
                 )}
 
-                <div className="p-6 flex-1 flex flex-col">
-                  {/* Plan header */}
-                  <div className="mb-6">
-                    <div className={cn(
-                      'w-10 h-10 rounded-xl flex items-center justify-center mb-3',
-                      isPro ? 'bg-background/15' : meta.bg,
-                    )}>
-                      <Icon className={cn('w-5 h-5', isPro ? 'text-primary' : meta.accent)} />
-                    </div>
-                    <h3 className={cn('text-lg font-bold mb-0.5', isPro ? 'text-background' : 'text-foreground')}>
-                      {plan.name}
-                    </h3>
-                    <p className={cn('text-xs', isPro ? 'text-background/50' : 'text-muted-foreground')}>
-                      {plan.tagline}
-                    </p>
-                  </div>
+                <div className="p-5 sm:p-6 flex-1 flex flex-col">
+                  {/* Name */}
+                  <h3 className={cn('text-xl font-bold mb-1', isPro ? 'text-primary' : 'text-background')}>
+                    {plan.name}
+                  </h3>
+                  <p className="text-background/40 text-xs mb-5">{plan.tagline}</p>
 
                   {/* Price */}
                   <div className="mb-6">
                     {price === 0 ? (
-                      <div>
-                        <span className={cn('text-4xl font-bold tracking-tight', isPro ? 'text-background' : 'text-foreground')}>Free</span>
-                        <p className={cn('text-xs mt-1', isPro ? 'text-background/40' : 'text-muted-foreground')}>Forever</p>
+                      <div className="flex items-baseline gap-1">
+                        <span className="text-4xl font-extrabold text-background tracking-tight">₹0</span>
+                        <span className="text-background/40 text-sm">/forever</span>
                       </div>
                     ) : (
                       <div>
-                        <span className={cn('text-4xl font-bold tracking-tight', isPro ? 'text-background' : 'text-foreground')}>{fmt(price)}</span>
-                        <span className={cn('text-sm ml-1', isPro ? 'text-background/50' : 'text-muted-foreground')}>/mo</span>
+                        <div className="flex items-baseline gap-1">
+                          <span className="text-4xl font-extrabold text-background tracking-tight">{fmt(price)}</span>
+                          <span className="text-background/40 text-sm">/mo</span>
+                        </div>
                         {isYearly && (
-                          <p className={cn('text-xs mt-1 line-through', isPro ? 'text-background/30' : 'text-muted-foreground/50')}>
-                            {fmt(plan.price as number)}/mo
-                          </p>
+                          <p className="text-background/25 text-xs mt-1 line-through">{fmt(plan.price as number)}/mo</p>
                         )}
                       </div>
                     )}
                   </div>
 
-                  {/* Limits summary */}
-                  <div className={cn('grid grid-cols-2 gap-2 mb-5 text-xs', isPro ? 'text-background/60' : 'text-muted-foreground')}>
-                    <div className="flex justify-between">
-                      <span>Members</span>
-                      <span className={cn('font-semibold', isPro ? 'text-background' : 'text-foreground')}>{plan.limits.team_members}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Contacts</span>
-                      <span className={cn('font-semibold', isPro ? 'text-background' : 'text-foreground')}>{plan.limits.contacts === 'unlimited' ? '∞' : plan.limits.contacts.toLocaleString('en-IN')}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Flows</span>
-                      <span className={cn('font-semibold', isPro ? 'text-background' : 'text-foreground')}>{plan.limits.flows === 'unlimited' ? '∞' : plan.limits.flows}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Automations</span>
-                      <span className={cn('font-semibold', isPro ? 'text-background' : 'text-foreground')}>{plan.limits.automations === 'unlimited' ? '∞' : plan.limits.automations}</span>
-                    </div>
+                  {/* Limits grid */}
+                  <div className="grid grid-cols-2 gap-2.5 mb-5">
+                    {limitItems(plan).map((item) => (
+                      <div key={item.label} className="flex items-center gap-2 bg-background/[0.05] rounded-lg px-3 py-2">
+                        <item.icon className="w-3.5 h-3.5 text-primary/70 shrink-0" />
+                        <div className="flex flex-col">
+                          <span className="text-[10px] text-background/35 leading-none">{item.label}</span>
+                          <span className="text-sm font-bold text-background leading-tight">{item.value}</span>
+                        </div>
+                      </div>
+                    ))}
                   </div>
 
                   {/* Divider */}
-                  <div className={cn('h-px mb-5', isPro ? 'bg-background/10' : 'bg-border/60')} />
+                  <div className="h-px bg-background/10 mb-4" />
 
                   {/* Features */}
-                  <ul className="space-y-3 mb-6 flex-1">
-                    {plan.features.slice(0, 5).map((f, fi) => (
-                      <li key={fi} className="flex items-start gap-2.5 text-sm">
-                        <div className={cn(
-                          'w-4.5 h-4.5 rounded-full flex items-center justify-center shrink-0 mt-0.5',
-                          isPro ? 'bg-primary/20' : 'bg-primary/10',
-                        )}>
-                          <Check className={cn('w-3 h-3', isPro ? 'text-primary' : 'text-primary')} />
-                        </div>
-                        <span className={cn('leading-snug', isPro ? 'text-background/70' : 'text-muted-foreground')}>
-                          {f}
-                        </span>
+                  <ul className="space-y-2.5 mb-5 flex-1">
+                    {plan.features.slice(0, 4).map((f, fi) => (
+                      <li key={fi} className="flex items-start gap-2 text-[13px] text-background/55">
+                        <Check className="w-3.5 h-3.5 text-primary mt-0.5 shrink-0" />
+                        <span className="leading-snug">{f}</span>
                       </li>
                     ))}
                   </ul>
@@ -178,7 +163,7 @@ export default function PricingPreview() {
                   {/* CTA */}
                   {isPro ? (
                     <Button
-                      className="w-full h-11 text-sm font-semibold rounded-xl bg-gradient-to-r from-primary to-emerald-500 text-primary-foreground shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30"
+                      className="w-full h-11 text-sm font-semibold rounded-xl bg-primary text-primary-foreground shadow-lg shadow-primary/30 hover:bg-primary/90"
                       asChild
                     >
                       <Link to="/signup">
@@ -187,15 +172,13 @@ export default function PricingPreview() {
                       </Link>
                     </Button>
                   ) : (
-                    <button
-                      className={cn(
-                        'w-full h-11 text-sm font-semibold rounded-xl border transition-colors',
-                        'border-border/60 text-foreground bg-transparent hover:bg-muted/50',
-                      )}
-                      onClick={() => window.location.href = '/signup'}
+                    <Button
+                      variant="outline"
+                      className="w-full h-11 text-sm font-semibold rounded-xl border-background/15 text-background/80 bg-transparent hover:bg-background/10 hover:text-background"
+                      asChild
                     >
-                      {plan.cta}
-                    </button>
+                      <Link to="/signup">{plan.cta}</Link>
+                    </Button>
                   )}
                 </div>
               </motion.div>
@@ -203,8 +186,8 @@ export default function PricingPreview() {
           })}
         </div>
 
-        <p className="text-center text-xs text-muted-foreground mb-8">
-          + Meta conversation fees (billed separately by Meta)
+        <p className="text-center text-xs text-background/30 mb-8">
+          + Meta conversation fees apply (billed directly by Meta)
         </p>
 
         <motion.div
@@ -213,9 +196,9 @@ export default function PricingPreview() {
           whileInView={{ opacity: 1 }}
           viewport={{ once: true }}
         >
-          <Button variant="outline" className="rounded-xl border-primary/30 text-primary hover:bg-primary/5 px-6" asChild>
+          <Button variant="outline" className="rounded-xl border-primary/30 text-primary hover:bg-primary/10 px-6" asChild>
             <Link to="/pricing">
-              View Full Pricing & Comparison
+              Compare All Plans
               <ArrowRight className="w-4 h-4 ml-2" />
             </Link>
           </Button>
