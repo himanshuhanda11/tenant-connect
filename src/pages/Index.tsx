@@ -18,6 +18,7 @@ import ProductTourSection from '@/components/home/ProductTourSection';
 import AICapabilitiesSection from '@/components/home/AICapabilitiesSection';
 import MetaAdsAttributionSection from '@/components/home/MetaAdsAttributionSection';
 import AdToConversionSection from '@/components/home/AdToConversionSection';
+import WhatsAppShowcaseSection from '@/components/home/WhatsAppShowcaseSection';
 import PricingPreview from '@/components/home/PricingPreview';
 import TestimonialsCarousel from '@/components/home/TestimonialsCarousel';
 import FinalCTANew from '@/components/home/FinalCTANew';
@@ -117,6 +118,11 @@ export default function Index() {
       {/* Ad to Conversion Journey */}
       <SectionErrorBoundary>
         <AdToConversionSection />
+      </SectionErrorBoundary>
+
+      {/* WhatsApp Commerce Showcase */}
+      <SectionErrorBoundary>
+        <WhatsAppShowcaseSection />
       </SectionErrorBoundary>
 
       {/* Pricing Preview */}
