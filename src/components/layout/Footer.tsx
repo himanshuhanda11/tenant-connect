@@ -80,7 +80,7 @@ export default function Footer() {
                 <Instagram className="w-4 h-4" />
               </a>
             </div>
-            <div className="mt-6 p-3 rounded-xl bg-white/5 border border-slate-700/50 inline-flex items-center gap-2">
+            <div className="mt-6 p-3 rounded-xl bg-white border border-slate-600/30 inline-flex items-center gap-2 shadow-sm">
               <img src={metaPartnerLogo} alt="Meta Business Partner" className="h-10 sm:h-12 w-auto" />
             </div>
           </div>
