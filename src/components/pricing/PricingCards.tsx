@@ -56,6 +56,7 @@ export default function PricingCards({ isAnnual }: PricingCardsProps) {
           {pricingPlans.map((plan) => {
             const price = getPrice(plan);
             const isCustom = false;
+            const colors = planColors[plan.id];
             const isPro = plan.highlight;
 
             return (
