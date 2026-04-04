@@ -86,7 +86,7 @@ export function useSubscription() {
         return {
           id: planId,
           tenant_id: currentTenant.id,
-          plan_id: `plan_${planId}`,
+          plan_id: planId,
           stripe_customer_id: null,
           stripe_subscription_id: null,
           status: 'active' as const,
@@ -98,7 +98,7 @@ export function useSubscription() {
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
           plan: {
-            id: `plan_${planId}`,
+            id: planId,
             name: planNames[planId] ?? 'Free',
             description: null,
             price_monthly: 0,
