@@ -1,29 +1,39 @@
 import { lazy, ComponentType } from 'react';
 
-const RELOAD_KEY = 'lazy_retry_reload';
+const CHUNK_ERROR_PATTERNS = [
+  'Failed to fetch dynamically imported module',
+  'Loading chunk',
+  'Loading CSS chunk',
+];
+
+const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+const isChunkError = (error: unknown) => {
+  const message = error instanceof Error ? error.message : String(error ?? '');
+  return CHUNK_ERROR_PATTERNS.some((pattern) => message.includes(pattern));
+};
 
 export function lazyWithRetry<T extends ComponentType<any>>(
-  importFn: () => Promise<{ default: T }>
+  importFn: () => Promise<{ default: T }>,
+  retries = 2
 ) {
-  return lazy(() =>
-    importFn().catch((error) => {
-      const isChunkError =
-        error?.message?.includes('Failed to fetch dynamically imported module') ||
-        error?.message?.includes('Loading chunk') ||
-        error?.message?.includes('Loading CSS chunk') ||
-        error?.name === 'ChunkLoadError';
+  return lazy(async () => {
+    let lastError: unknown;
 
-      if (isChunkError) {
-        const hasReloaded = sessionStorage.getItem(RELOAD_KEY);
-        if (!hasReloaded) {
-          sessionStorage.setItem(RELOAD_KEY, '1');
-          window.location.reload();
-          // Return a never-resolving promise to prevent React from rendering an error
-          return new Promise<{ default: T }>(() => {});
+    for (let attempt = 0; attempt <= retries; attempt += 1) {
+      try {
+        return await importFn();
+      } catch (error) {
+        lastError = error;
+
+        if (!isChunkError(error) || attempt === retries) {
+          throw error;
         }
-        sessionStorage.removeItem(RELOAD_KEY);
+
+        await wait(250 * (attempt + 1));
       }
-      throw error;
-    })
-  );
+    }
+
+    throw lastError instanceof Error ? lastError : new Error('Lazy import failed');
+  });
 }
