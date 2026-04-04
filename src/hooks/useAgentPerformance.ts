@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useTenant } from '@/contexts/TenantContext';
 
@@ -26,25 +26,43 @@ export function useAgentPerformance(days: number = 7) {
   const { currentTenant } = useTenant();
   const [agents, setAgents] = useState<AgentPerformance[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const prevDaysRef = useRef(days);
 
   const fetchPerformance = useCallback(async () => {
     if (!currentTenant?.id) return;
     setLoading(true);
+    setError(null);
 
-    const { data, error } = await supabase.rpc('agent_performance_stats', {
-      p_tenant_id: currentTenant.id,
-      p_days: days,
-    });
+    try {
+      const { data, error: rpcError } = await supabase.rpc('agent_performance_stats', {
+        p_tenant_id: currentTenant.id,
+        p_days: days,
+      });
 
-    if (!error && data) {
-      setAgents(data as AgentPerformance[]);
+      if (rpcError) {
+        console.error('[AgentPerformance] RPC error:', rpcError);
+        setError(rpcError.message);
+        setAgents([]);
+      } else {
+        setAgents((data as AgentPerformance[]) || []);
+      }
+    } catch (err) {
+      console.error('[AgentPerformance] Fetch error:', err);
+      setError('Failed to load performance data');
+      setAgents([]);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   }, [currentTenant?.id, days]);
 
-  useEffect(() => { fetchPerformance(); }, [fetchPerformance]);
+  // Re-fetch whenever tenant or days changes
+  useEffect(() => {
+    fetchPerformance();
+    prevDaysRef.current = days;
+  }, [fetchPerformance]);
 
-  return { agents, loading, refetch: fetchPerformance };
+  return { agents, loading, error, refetch: fetchPerformance };
 }
 
 // Track agent session on login
@@ -54,12 +72,10 @@ export function useAgentSessionTracker() {
   useEffect(() => {
     if (!currentTenant?.id) return;
 
-    // Record login
     supabase.rpc('record_agent_login', { p_tenant_id: currentTenant.id }).then(({ error }) => {
       if (error) console.warn('Failed to record login:', error.message);
     });
 
-    // Record logout on page unload
     const handleUnload = () => {
       supabase.rpc('record_agent_logout', { p_tenant_id: currentTenant.id });
     };
