@@ -520,6 +520,10 @@ export default function SelectWorkspace() {
                         key={workspace.id}
                         workspace={workspace}
                         onSelect={() => handleSelectWorkspace(workspace)}
+                        onRename={() => { setRenameTarget(workspace); setRenameValue(workspace.name); }}
+                        onManageMembers={() => handleManageMembers(workspace)}
+                        onSettings={() => handleSettings(workspace)}
+                        onArchive={() => setArchiveTarget(workspace)}
                       />
                     ))}
                   </div>
