@@ -9,6 +9,11 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
+} from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { toast } from 'sonner';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import {
   DropdownMenu,
@@ -224,6 +229,58 @@ export default function SelectWorkspace() {
     setCurrentTenant(null);
     await signOut();
     navigate('/login', { replace: true });
+  };
+
+  // --- 3-dot menu handlers ---
+  const [renameTarget, setRenameTarget] = useState<WorkspaceEnriched | null>(null);
+  const [renameValue, setRenameValue] = useState('');
+  const [renaming, setRenaming] = useState(false);
+
+  const handleRename = async () => {
+    if (!renameTarget || !renameValue.trim()) return;
+    setRenaming(true);
+    const { error } = await supabase
+      .from('tenants')
+      .update({ name: renameValue.trim() })
+      .eq('id', renameTarget.id);
+    setRenaming(false);
+    if (error) {
+      toast.error('Failed to rename workspace');
+    } else {
+      toast.success('Workspace renamed');
+      setWorkspaces(prev => prev.map(w => w.id === renameTarget.id ? { ...w, name: renameValue.trim() } : w));
+      await refreshTenants();
+    }
+    setRenameTarget(null);
+  };
+
+  const handleManageMembers = (workspace: WorkspaceEnriched) => {
+    const tenant = tenants.find(t => t.id === workspace.id);
+    if (tenant) {
+      setCurrentTenant(tenant);
+      navigate('/team');
+    }
+  };
+
+  const handleSettings = (workspace: WorkspaceEnriched) => {
+    const tenant = tenants.find(t => t.id === workspace.id);
+    if (tenant) {
+      setCurrentTenant(tenant);
+      navigate('/settings');
+    }
+  };
+
+  const [archiveTarget, setArchiveTarget] = useState<WorkspaceEnriched | null>(null);
+  const [archiving, setArchiving] = useState(false);
+
+  const handleArchive = async () => {
+    if (!archiveTarget) return;
+    setArchiving(true);
+    // For now we just remove from local list (no DB archive column yet)
+    setWorkspaces(prev => prev.filter(w => w.id !== archiveTarget.id));
+    toast.success('Workspace hidden from list');
+    setArchiving(false);
+    setArchiveTarget(null);
   };
 
   const sortLabels: Record<SortOption, string> = {
@@ -463,6 +520,10 @@ export default function SelectWorkspace() {
                         key={workspace.id}
                         workspace={workspace}
                         onSelect={() => handleSelectWorkspace(workspace)}
+                        onRename={() => { setRenameTarget(workspace); setRenameValue(workspace.name); }}
+                        onManageMembers={() => handleManageMembers(workspace)}
+                        onSettings={() => handleSettings(workspace)}
+                        onArchive={() => setArchiveTarget(workspace)}
                       />
                     ))}
                   </div>
@@ -500,6 +561,51 @@ export default function SelectWorkspace() {
           onCreateWorkspace={handleCreateWorkspace}
           isCreating={isCreating}
         />
+
+        {/* Rename Dialog */}
+        <Dialog open={!!renameTarget} onOpenChange={(open) => !open && setRenameTarget(null)}>
+          <DialogContent className="max-w-sm">
+            <DialogHeader>
+              <DialogTitle>Rename Workspace</DialogTitle>
+              <DialogDescription>Enter a new name for this workspace.</DialogDescription>
+            </DialogHeader>
+            <div className="space-y-2">
+              <Label htmlFor="rename-input">Workspace name</Label>
+              <Input
+                id="rename-input"
+                value={renameValue}
+                onChange={(e) => setRenameValue(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleRename()}
+              />
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setRenameTarget(null)}>Cancel</Button>
+              <Button onClick={handleRename} disabled={renaming || !renameValue.trim()}>
+                {renaming ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+                Save
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Archive Confirm Dialog */}
+        <Dialog open={!!archiveTarget} onOpenChange={(open) => !open && setArchiveTarget(null)}>
+          <DialogContent className="max-w-sm">
+            <DialogHeader>
+              <DialogTitle>Archive Workspace</DialogTitle>
+              <DialogDescription>
+                Are you sure you want to archive <strong>{archiveTarget?.name}</strong>? It will be hidden from your workspace list.
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setArchiveTarget(null)}>Cancel</Button>
+              <Button variant="destructive" onClick={handleArchive} disabled={archiving}>
+                {archiving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+                Archive
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </TooltipProvider>
   );
