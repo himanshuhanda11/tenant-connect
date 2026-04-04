@@ -72,11 +72,20 @@ export function useAgentSessionTracker() {
   useEffect(() => {
     if (!currentTenant?.id) return;
 
+    // Only record login once per tenant per browser session
+    const sessionKey = `agent_session_${currentTenant.id}`;
+    if (sessionStorage.getItem(sessionKey)) return;
+
+    sessionStorage.setItem(sessionKey, 'active');
     supabase.rpc('record_agent_login', { p_tenant_id: currentTenant.id }).then(({ error }) => {
-      if (error) console.warn('Failed to record login:', error.message);
+      if (error) {
+        console.warn('Failed to record login:', error.message);
+        sessionStorage.removeItem(sessionKey);
+      }
     });
 
     const handleUnload = () => {
+      sessionStorage.removeItem(sessionKey);
       supabase.rpc('record_agent_logout', { p_tenant_id: currentTenant.id });
     };
 
