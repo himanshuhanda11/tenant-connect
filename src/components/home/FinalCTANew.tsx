@@ -82,14 +82,12 @@ export default function FinalCTANew() {
               Start Free
               <ArrowRight className="w-5 h-5 ml-2" />
             </Button>
-            <Button
-              variant="outline"
-              size="lg"
-              className="h-13 sm:h-14 px-8 sm:px-10 text-base font-semibold border-background/20 text-background hover:bg-background/10 rounded-xl transition-colors"
+            <button
+              className="h-13 sm:h-14 px-8 sm:px-10 text-base font-semibold border border-background/30 text-background bg-background/5 hover:bg-background/15 rounded-xl transition-colors"
               onClick={() => navigate('/contact')}
             >
               Contact Us
-            </Button>
+            </button>
           </motion.div>
 
           {/* Perks grid */}

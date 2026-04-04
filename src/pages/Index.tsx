@@ -106,10 +106,6 @@ export default function Index() {
         <AIFlowBuilderSection />
       </SectionErrorBoundary>
 
-      {/* Product Tour */}
-      <SectionErrorBoundary>
-        <ProductTourSection />
-      </SectionErrorBoundary>
 
       {/* AI Capabilities */}
       <SectionErrorBoundary>
