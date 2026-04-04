@@ -475,10 +475,10 @@ export function useRoles() {
   const [loading, setLoading] = useState(true);
   const [permissionsLoading, setPermissionsLoading] = useState(false);
 
-  const fetchRoles = useCallback(async () => {
+  const fetchRoles = useCallback(async (silent = false) => {
     if (!currentTenant?.id) return;
     
-    setLoading(true);
+    if (!silent) setLoading(true);
     try {
       const [rolesRes, permsRes] = await Promise.all([
         supabase
@@ -500,7 +500,7 @@ export function useRoles() {
     } catch (err: any) {
       toast.error('Failed to load roles');
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   }, [currentTenant?.id]);
 
@@ -592,7 +592,7 @@ export function useRoles() {
       }
 
       toast.success('Role updated');
-      await fetchRoles();
+      await fetchRoles(true);
       return true;
     } catch (err: any) {
       console.error('Update role exception:', err);
@@ -619,7 +619,6 @@ export function useRoles() {
   };
 
   const getRolePermissions = async (roleId: string): Promise<string[]> => {
-    setPermissionsLoading(true);
     try {
       const { data, error } = await supabase
         .from('role_permissions')
@@ -635,8 +634,6 @@ export function useRoles() {
     } catch (err: any) {
       toast.error(err.message || 'Failed to load role permissions');
       return [];
-    } finally {
-      setPermissionsLoading(false);
     }
   };
 
