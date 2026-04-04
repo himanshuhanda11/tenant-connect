@@ -51,7 +51,7 @@ const CATEGORY_ORDER: PermissionCategory[] = [
 ];
 
 const TeamRoles = () => {
-  const { roles, permissions, loading, createRole, updateRole, deleteRole, getRolePermissions, refetch } = useRoles();
+  const { roles, permissions, loading, permissionsLoading, createRole, updateRole, deleteRole, getRolePermissions, refetch } = useRoles();
   const [selectedRole, setSelectedRole] = useState<Role | null>(null);
   const [rolePermissions, setRolePermissions] = useState<string[]>([]);
   const [originalPermissions, setOriginalPermissions] = useState<string[]>([]);
@@ -59,6 +59,7 @@ const TeamRoles = () => {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [switchingRole, setSwitchingRole] = useState(false);
   const [viewAsMode, setViewAsMode] = useState(false);
   const [newRole, setNewRole] = useState<{ name: string; description: string; base_role: AppRole; color: string }>({
     name: '', description: '', base_role: 'agent', color: '#6366f1'
@@ -75,9 +76,14 @@ const TeamRoles = () => {
   const categories = Object.keys(permissionsByCategory) as PermissionCategory[];
 
   const loadPermissions = useCallback(async (roleId: string) => {
-    const perms = await getRolePermissions(roleId);
-    setRolePermissions(perms);
-    setOriginalPermissions(perms);
+    setSwitchingRole(true);
+    try {
+      const perms = await getRolePermissions(roleId);
+      setRolePermissions(perms);
+      setOriginalPermissions(perms);
+    } finally {
+      setSwitchingRole(false);
+    }
   }, [getRolePermissions]);
 
   useEffect(() => {
@@ -94,12 +100,14 @@ const TeamRoles = () => {
   }, [roles, selectedRole]);
 
   const handleSelectRole = (role: Role) => {
+    if (role.id === selectedRole?.id) return;
     setSelectedRole(role);
     setViewAsMode(false);
     setActiveCategory('messaging');
   };
 
   const handleTogglePermission = (permId: string) => {
+    if (isOwnerRole || switchingRole || permissionsLoading || saving) return;
     setRolePermissions(prev =>
       prev.includes(permId) ? prev.filter(p => p !== permId) : [...prev, permId]
     );
@@ -156,6 +164,7 @@ const TeamRoles = () => {
   const activePerms = permissionsByCategory[activeCategory] || [];
   const activeCategoryAllEnabled = activePerms.length > 0 && activePerms.every(p => rolePermissions.includes(p.id));
   const isOwnerRole = selectedRole?.is_system && selectedRole?.base_role === 'owner';
+  const isBusy = loading || permissionsLoading || switchingRole || saving;
 
   return (
     <DashboardLayout>
@@ -377,11 +386,12 @@ const TeamRoles = () => {
                     <div className="flex items-center gap-2">
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <Button
+                           <Button
                             variant={viewAsMode ? "default" : "outline"}
                             size="sm"
                             className="gap-1.5 rounded-xl text-xs"
                             onClick={() => setViewAsMode(!viewAsMode)}
+                             disabled={isBusy}
                           >
                             {viewAsMode ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
                             {viewAsMode ? 'Exit Preview' : 'View as Role'}
@@ -391,11 +401,11 @@ const TeamRoles = () => {
                       </Tooltip>
 
                       {hasUnsavedChanges && !isOwnerRole && (
-                        <Button
+                           <Button
                           size="sm"
                           className="gap-1.5 rounded-xl text-xs shadow-lg shadow-primary/20"
                           onClick={handleSavePermissions}
-                          disabled={saving}
+                             disabled={isBusy}
                         >
                           {saving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Save className="h-3.5 w-3.5" />}
                           {saving ? 'Saving...' : 'Save Changes'}
@@ -505,6 +515,7 @@ const TeamRoles = () => {
                             size="sm"
                             className="text-xs h-7 gap-1.5"
                             onClick={() => handleToggleCategoryAll(activeCategory, activePerms)}
+                             disabled={isBusy}
                           >
                             {activeCategoryAllEnabled ? (
                               <>Disable All</>
@@ -551,11 +562,17 @@ const TeamRoles = () => {
                                 <Switch
                                   checked={isEnabled}
                                   onCheckedChange={() => handleTogglePermission(perm.id)}
-                                  disabled={isOwnerRole}
+                                   disabled={isOwnerRole || isBusy}
                                 />
                               </div>
                             );
                           })}
+                          {isBusy && activePerms.length > 0 && (
+                            <div className="flex items-center justify-center gap-2 py-6 text-sm text-muted-foreground">
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                              Syncing permissions...
+                            </div>
+                          )}
                           {activePerms.length === 0 && (
                             <div className="text-center py-12 text-muted-foreground text-sm">
                               No permissions in this category

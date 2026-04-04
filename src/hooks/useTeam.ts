@@ -473,6 +473,7 @@ export function useRoles() {
   const [roles, setRoles] = useState<Role[]>([]);
   const [permissions, setPermissions] = useState<Permission[]>([]);
   const [loading, setLoading] = useState(true);
+  const [permissionsLoading, setPermissionsLoading] = useState(false);
 
   const fetchRoles = useCallback(async () => {
     if (!currentTenant?.id) return;
@@ -618,14 +619,28 @@ export function useRoles() {
   };
 
   const getRolePermissions = async (roleId: string): Promise<string[]> => {
-    const { data } = await supabase
-      .from('role_permissions')
-      .select('permission_id')
-      .eq('role_id', roleId);
-    return (data || []).map(rp => rp.permission_id);
+    setPermissionsLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('role_permissions')
+        .select('permission_id')
+        .eq('role_id', roleId);
+
+      if (error) {
+        console.error('Get role permissions error:', error);
+        throw error;
+      }
+
+      return (data || []).map(rp => rp.permission_id);
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to load role permissions');
+      return [];
+    } finally {
+      setPermissionsLoading(false);
+    }
   };
 
-  return { roles, permissions, loading, refetch: fetchRoles, createRole, updateRole, deleteRole, getRolePermissions };
+  return { roles, permissions, loading, permissionsLoading, refetch: fetchRoles, createRole, updateRole, deleteRole, getRolePermissions };
 }
 
 // ============================================
