@@ -141,10 +141,10 @@ export default function Index() {
         </Suspense>
       </SectionErrorBoundary>
 
-      {/* 10 Powerful USPs */}
+      {/* Why AiReatro USPs */}
       <SectionErrorBoundary>
         <Suspense fallback={<SectionSkeleton />}>
-          <PowerfulUSPsSection />
+          <WhyAireatroBento />
         </Suspense>
       </SectionErrorBoundary>
 
