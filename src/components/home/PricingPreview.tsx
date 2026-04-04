@@ -193,7 +193,6 @@ export default function PricingPreview() {
           className="text-center"
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
-        <motion.div
           className="text-center"
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
