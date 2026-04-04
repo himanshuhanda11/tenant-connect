@@ -171,6 +171,7 @@ const App = () => (
               <ScrollToTop />
               <Routes>
               <Route path="/" element={<Index />} />
+              <Route path="/index" element={<Index />} />
               <Route path="/auth/callback" element={<AuthCallback />} />
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<SignupPage />} />
