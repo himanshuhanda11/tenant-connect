@@ -43,7 +43,6 @@ export default function PricingCards({ isAnnual }: PricingCardsProps) {
   const navigate = useNavigate();
 
   const getPrice = (plan: PricingPlan) => {
-    if (plan.price === 'custom') return null;
     if (plan.price === 0) return 0;
     return isAnnual ? Math.round((plan.price as number) * 0.8) : (plan.price as number);
   };
