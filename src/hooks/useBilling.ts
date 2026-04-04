@@ -82,6 +82,17 @@ export function useSubscription() {
         support_level: (planId === 'business' ? 'priority' : planId === 'pro' ? 'chat' : 'email') as 'email' | 'chat' | 'priority',
       };
 
+      // Fetch real price from platform_plans
+      const { data: ppData } = await supabase
+        .from('platform_plans')
+        .select('price_monthly, price_yearly, tagline')
+        .eq('id', planId)
+        .maybeSingle();
+
+      const realPrice = (ppData as any)?.price_monthly ?? 0;
+      const realYearly = (ppData as any)?.price_yearly ?? 0;
+      const tagline = (ppData as any)?.tagline ?? null;
+
       if (!data) {
         return {
           id: planId,
@@ -100,9 +111,9 @@ export function useSubscription() {
           plan: {
             id: planId,
             name: planNames[planId] ?? 'Free',
-            description: null,
-            price_monthly: 0,
-            price_yearly: 0,
+            description: tagline,
+            price_monthly: realPrice,
+            price_yearly: realYearly,
             is_active: true,
             sort_order: 1,
             limits_json: planLimits,
@@ -118,9 +129,9 @@ export function useSubscription() {
         plan: {
           id: data.plan_id,
           name: planNames[data.plan_id] ?? data.plan_id,
-          description: null,
-          price_monthly: 0,
-          price_yearly: 0,
+          description: tagline,
+          price_monthly: realPrice,
+          price_yearly: realYearly,
           is_active: true,
           sort_order: 1,
           limits_json: planLimits,
