@@ -95,6 +95,20 @@ export default function Index() {
         </Suspense>
       </SectionErrorBoundary>
 
+      {/* Business Growth Visual */}
+      <SectionErrorBoundary>
+        <Suspense fallback={<SectionSkeleton />}>
+          <BusinessGrowthSection />
+        </Suspense>
+      </SectionErrorBoundary>
+
+      {/* How It Works Flow */}
+      <SectionErrorBoundary>
+        <Suspense fallback={<SectionSkeleton />}>
+          <HowItWorksSection />
+        </Suspense>
+      </SectionErrorBoundary>
+
       {/* Differentiator Cards */}
       <SectionErrorBoundary>
         <Suspense fallback={<SectionSkeleton />}>
