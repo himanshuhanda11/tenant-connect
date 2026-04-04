@@ -57,8 +57,8 @@ export default function Footer() {
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-7 gap-8 mb-12">
           {/* Brand */}
           <div className="col-span-2">
-            <Link to="/" className="flex items-center gap-2 mb-4">
-              <img src={aireatroLogo} alt="AiReatro" className="h-10 w-auto" />
+            <Link to="/" className="inline-flex items-center gap-2 mb-4 px-3 py-2 rounded-xl bg-white shadow-md">
+              <img src={aireatroLogo} alt="AiReatro" className="h-12 sm:h-14 w-auto" />
             </Link>
             <p className="text-slate-400 mb-4 max-w-xs text-sm">
               The all-in-one WhatsApp Business API platform for modern businesses. Scale your customer conversations.
