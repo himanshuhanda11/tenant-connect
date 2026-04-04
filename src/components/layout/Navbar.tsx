@@ -183,9 +183,21 @@ export default function Navbar() {
               </DropdownMenuContent>
             </DropdownMenu>
 
-            <Button variant="ghost" asChild>
-              <Link to="/about">About</Link>
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="flex items-center gap-1">
+                  About <ChevronDown className="w-4 h-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="w-48 bg-popover border border-border shadow-xl z-50">
+                <DropdownMenuItem asChild className="cursor-pointer">
+                  <Link to="/about">About Us</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild className="cursor-pointer">
+                  <Link to="/why-aireatro">Why Aireatro</Link>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
 
             <Button variant="ghost" asChild>
               <Link to="/contact">Contact</Link>
