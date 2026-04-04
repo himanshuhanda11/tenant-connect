@@ -415,7 +415,7 @@ export default function WhyAireatro() {
               Join 2,000+ businesses already using Aireatro to sell more, support faster, and automate smarter on WhatsApp.
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center mt-8">
-              <Button size="lg" className="rounded-xl text-sm font-semibold px-8 gap-2 bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg shadow-emerald-200" onClick={() => navigate('/signup')}>
+              <Button size="lg" className="rounded-xl text-sm font-semibold px-8 gap-2 bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg" onClick={() => navigate('/signup')}>
                 Create Free Account <ArrowRight className="h-4 w-4" />
               </Button>
               <Button size="lg" variant="outline" className="rounded-xl text-sm font-semibold px-8 border-gray-300 text-gray-700 hover:bg-gray-50" onClick={() => navigate('/contact')}>
