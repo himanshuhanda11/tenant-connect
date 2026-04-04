@@ -71,7 +71,7 @@ export function PlanCard({ plan, isCurrentPlan, isYearly, isRecommended, onSelec
   const formatLimit = (value: number) => value === -1 ? 'Unlimited' : value.toLocaleString();
 
   const features = [
-    { icon: Users, label: 'Team Members', value: formatLimit(limits.max_team_members) },
+    { icon: Users, label: 'Team Members', value: limits.max_team_members === 1 ? '1 (Admin only)' : formatLimit(limits.max_team_members) },
     { icon: Contact, label: 'Contacts', value: formatLimit(limits.max_contacts) },
     { icon: MessageSquare, label: 'Messages/mo', value: limits.monthly_messages === -1 ? 'Pay-per-use' : formatLimit(limits.monthly_messages) },
     { icon: Workflow, label: 'Automations', value: formatLimit(limits.max_automations) },
