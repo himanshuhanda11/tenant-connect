@@ -193,9 +193,6 @@ export default function PricingPreview() {
           className="text-center"
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
-          className="text-center"
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
           viewport={{ once: true }}
         >
           <Button variant="outline" className="rounded-xl border-primary/30 text-primary hover:bg-primary/10 px-6" asChild>
