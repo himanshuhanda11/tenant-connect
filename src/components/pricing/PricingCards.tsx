@@ -3,6 +3,7 @@ import {
   CheckCircle2, ArrowRight, X, Sparkles,
   Rocket, Crown, Building2, Gift, TrendingUp,
 } from 'lucide-react';
+import TemplateChargesBlock from '@/components/shared/TemplateChargesBlock';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
