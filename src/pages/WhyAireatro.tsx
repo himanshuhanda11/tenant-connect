@@ -369,7 +369,7 @@ export default function WhyAireatro() {
               <Button size="lg" className="rounded-xl text-sm font-semibold px-8 gap-2 bg-background text-foreground hover:bg-background/90 shadow-xl border border-background/80" onClick={() => navigate('/signup')}>
                 Start Free Now <ArrowRight className="h-4 w-4" />
               </Button>
-              <Button size="lg" variant="outline" className="rounded-xl text-sm font-semibold px-8 border-white/30 text-white hover:bg-white/10" onClick={() => navigate('/contact')}>
+              <Button size="lg" variant="outline" className="rounded-xl text-sm font-semibold px-8 bg-background text-foreground border-background shadow-xl hover:bg-background/90" onClick={() => navigate('/contact')}>
                 Contact Us
               </Button>
             </div>
