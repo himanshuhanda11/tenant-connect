@@ -101,10 +101,6 @@ export default function Index() {
 
       {/* Differentiator Cards removed */}
 
-      {/* AI Flow Builder - Center Feature */}
-      <SectionErrorBoundary>
-        <AIFlowBuilderSection />
-      </SectionErrorBoundary>
 
 
       {/* AI Capabilities */}
