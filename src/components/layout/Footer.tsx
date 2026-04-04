@@ -2,6 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Twitter, Linkedin, Youtube, Instagram } from 'lucide-react';
 import aireatroLogo from '@/assets/aireatro-logo.png';
+import metaPartnerLogo from '@/assets/meta-business-partner.png';
 
 export default function Footer() {
   const footerLinks = {
