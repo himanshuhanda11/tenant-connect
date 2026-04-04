@@ -108,11 +108,7 @@ export default function Index() {
       <SocialProofBar />
 
       {/* Why AiReatro USPs - moved right after social proof */}
-      <SectionErrorBoundary>
-        <Suspense fallback={<SectionSkeleton />}>
-          <WhyAireatroBento />
-        </Suspense>
-      </SectionErrorBoundary>
+      <WhyAireatroBento />
 
       {/* Business Growth Visual */}
       <SectionErrorBoundary>

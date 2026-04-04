@@ -22,15 +22,4 @@ async function cleanupLegacyPwaArtifacts() {
 
 void cleanupLegacyPwaArtifacts();
 
-// Recover from stale module URLs after Vite dev-server restart
-window.addEventListener('vite:preloadError', () => {
-  const reloaded = sessionStorage.getItem('vite_preload_reload');
-  if (!reloaded) {
-    sessionStorage.setItem('vite_preload_reload', '1');
-    window.location.reload();
-  } else {
-    sessionStorage.removeItem('vite_preload_reload');
-  }
-});
-
 createRoot(document.getElementById("root")!).render(<App />);
