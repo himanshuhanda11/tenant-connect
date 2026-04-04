@@ -95,7 +95,7 @@ export default function BusinessGrowthSection() {
               </div>
             </div>
 
-            <div className="w-full overflow-x-auto mt-4">
+            <div className="w-full mt-4">
               <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-auto" preserveAspectRatio="xMidYMid meet">
                 <defs>
                   <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
