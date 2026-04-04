@@ -26,9 +26,8 @@ export default function PricingPreview() {
 
   return (
     <section className="relative py-20 sm:py-28 lg:py-36 overflow-hidden">
-      {/* Dark background */}
-      <div className="absolute inset-0 bg-foreground" />
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_0%,hsl(var(--primary)/0.15),transparent)]" />
+      <div className="absolute inset-0 bg-gradient-to-b from-muted/40 via-background to-background" />
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_0%,hsl(var(--primary)/0.06),transparent)]" />
 
       <div className="container mx-auto px-4 relative z-10 max-w-6xl">
         {/* Header */}
@@ -42,20 +41,20 @@ export default function PricingPreview() {
             <Sparkles className="w-3.5 h-3.5" />
             Pricing
           </div>
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-background mb-3 tracking-tight">
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-foreground mb-3 tracking-tight">
             One workspace. One price.
           </h2>
-          <p className="text-background/50 text-base sm:text-lg max-w-md mx-auto mb-10">
+          <p className="text-muted-foreground text-base sm:text-lg max-w-md mx-auto mb-10">
             No hidden fees. Scale your team, not your bill.
           </p>
 
           {/* Toggle */}
-          <div className="inline-flex items-center rounded-full bg-background/[0.08] border border-background/10 p-1">
+          <div className="inline-flex items-center rounded-full bg-muted border border-border p-1">
             <button
               onClick={() => setIsYearly(false)}
               className={cn(
                 'px-5 py-2 rounded-full text-sm font-medium transition-all',
-                !isYearly ? 'bg-primary text-primary-foreground shadow-lg' : 'text-background/50 hover:text-background/80',
+                !isYearly ? 'bg-primary text-primary-foreground shadow-lg' : 'text-muted-foreground hover:text-foreground',
               )}
             >
               Monthly
@@ -64,7 +63,7 @@ export default function PricingPreview() {
               onClick={() => setIsYearly(true)}
               className={cn(
                 'px-5 py-2 rounded-full text-sm font-medium transition-all flex items-center gap-1.5',
-                isYearly ? 'bg-primary text-primary-foreground shadow-lg' : 'text-background/50 hover:text-background/80',
+                isYearly ? 'bg-primary text-primary-foreground shadow-lg' : 'text-muted-foreground hover:text-foreground',
               )}
             >
               Yearly
@@ -90,8 +89,8 @@ export default function PricingPreview() {
                 className={cn(
                   'relative rounded-2xl flex flex-col overflow-hidden transition-all duration-300',
                   isPro
-                    ? 'bg-gradient-to-b from-primary/20 to-primary/5 border-2 border-primary/40 shadow-[0_0_40px_-8px_hsl(var(--primary)/0.3)]'
-                    : 'bg-background/[0.05] border border-background/10 hover:border-background/20 hover:bg-background/[0.08]',
+                    ? 'bg-gradient-to-b from-primary/10 to-primary/[0.03] border-2 border-primary/40 shadow-xl shadow-primary/10'
+                    : 'bg-card border border-border hover:border-primary/20 hover:shadow-lg',
                 )}
                 initial={{ opacity: 0, y: 24 }}
                 whileInView={{ opacity: 1, y: 0 }}
@@ -107,26 +106,26 @@ export default function PricingPreview() {
 
                 <div className="p-5 sm:p-6 flex-1 flex flex-col">
                   {/* Name */}
-                  <h3 className={cn('text-xl font-bold mb-1', isPro ? 'text-primary' : 'text-background')}>
+                  <h3 className={cn('text-xl font-bold mb-1', isPro ? 'text-primary' : 'text-foreground')}>
                     {plan.name}
                   </h3>
-                  <p className="text-background/40 text-xs mb-5">{plan.tagline}</p>
+                  <p className="text-muted-foreground text-xs mb-5">{plan.tagline}</p>
 
                   {/* Price */}
                   <div className="mb-6">
                     {price === 0 ? (
                       <div className="flex items-baseline gap-1">
-                        <span className="text-4xl font-extrabold text-background tracking-tight">₹0</span>
-                        <span className="text-background/40 text-sm">/forever</span>
+                        <span className="text-4xl font-extrabold text-foreground tracking-tight">₹0</span>
+                        <span className="text-muted-foreground text-sm">/forever</span>
                       </div>
                     ) : (
                       <div>
                         <div className="flex items-baseline gap-1">
-                          <span className="text-4xl font-extrabold text-background tracking-tight">{fmt(price)}</span>
-                          <span className="text-background/40 text-sm">/mo</span>
+                          <span className="text-4xl font-extrabold text-foreground tracking-tight">{fmt(price)}</span>
+                          <span className="text-muted-foreground text-sm">/mo</span>
                         </div>
                         {isYearly && (
-                          <p className="text-background/25 text-xs mt-1 line-through">{fmt(plan.price as number)}/mo</p>
+                          <p className="text-muted-foreground/60 text-xs mt-1 line-through">{fmt(plan.price as number)}/mo</p>
                         )}
                       </div>
                     )}
@@ -135,23 +134,23 @@ export default function PricingPreview() {
                   {/* Limits grid */}
                   <div className="grid grid-cols-2 gap-2.5 mb-5">
                     {limitItems(plan).map((item) => (
-                      <div key={item.label} className="flex items-center gap-2 bg-background/[0.05] rounded-lg px-3 py-2">
+                      <div key={item.label} className="flex items-center gap-2 bg-muted/60 rounded-lg px-3 py-2">
                         <item.icon className="w-3.5 h-3.5 text-primary/70 shrink-0" />
                         <div className="flex flex-col">
-                          <span className="text-[10px] text-background/35 leading-none">{item.label}</span>
-                          <span className="text-sm font-bold text-background leading-tight">{item.value}</span>
+                          <span className="text-[10px] text-muted-foreground leading-none">{item.label}</span>
+                          <span className="text-sm font-bold text-foreground leading-tight">{item.value}</span>
                         </div>
                       </div>
                     ))}
                   </div>
 
                   {/* Divider */}
-                  <div className="h-px bg-background/10 mb-4" />
+                  <div className="h-px bg-border mb-4" />
 
                   {/* Features */}
                   <ul className="space-y-2.5 mb-5 flex-1">
                     {plan.features.slice(0, 4).map((f, fi) => (
-                      <li key={fi} className="flex items-start gap-2 text-[13px] text-background/55">
+                      <li key={fi} className="flex items-start gap-2 text-[13px] text-muted-foreground">
                         <Check className="w-3.5 h-3.5 text-primary mt-0.5 shrink-0" />
                         <span className="leading-snug">{f}</span>
                       </li>
@@ -174,7 +173,7 @@ export default function PricingPreview() {
                   ) : (
                     <Button
                       variant="outline"
-                      className="w-full h-11 text-sm font-semibold rounded-xl border-background/15 text-background/80 bg-transparent hover:bg-background/10 hover:text-background"
+                      className="w-full h-11 text-sm font-semibold rounded-xl border-border text-foreground hover:bg-muted"
                       asChild
                     >
                       <Link to="/signup">{plan.cta}</Link>
@@ -186,7 +185,7 @@ export default function PricingPreview() {
           })}
         </div>
 
-        <p className="text-center text-xs text-background/30 mb-8">
+        <p className="text-center text-xs text-muted-foreground mb-8">
           + Meta conversation fees apply (billed directly by Meta)
         </p>
 
