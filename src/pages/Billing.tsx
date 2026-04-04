@@ -25,7 +25,7 @@ export default function Billing() {
   const { data: plans } = usePlans();
   const { data: subscription } = useSubscription();
   const { data: entitlements } = useEntitlements();
-  const currentPlanId = entitlements?.plan_id ?? subscription?.plan_id?.replace('plan_', '') ?? 'free';
+  const currentPlanId = entitlements?.plan_id ?? subscription?.plan_id ?? 'free';
 
   const handlePlanSelect = (plan: Plan) => {
     if (plan.name === 'Business') {

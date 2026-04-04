@@ -1,22 +1,50 @@
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Check, X, Sparkles, Users, Phone, Contact, MessageSquare, Bot, Workflow, Brain, ArrowRight, Crown, Rocket, Gift, Building2 } from 'lucide-react';
+import { Check, Sparkles, Users, Phone, Contact, MessageSquare, Bot, Workflow, ArrowRight, Crown, Rocket, Gift, Building2, Shield, Zap, Globe, HeadphonesIcon } from 'lucide-react';
 import type { Plan } from '@/types/billing';
 import { cn } from '@/lib/utils';
 
-const planIcons: Record<string, React.ReactNode> = {
-  Free: <Gift className="w-5 h-5" />,
-  Basic: <Rocket className="w-5 h-5" />,
-  Pro: <Crown className="w-5 h-5" />,
-  Business: <Building2 className="w-5 h-5" />,
-};
-
-const planAccent: Record<string, string> = {
-  Free: 'bg-slate-100 text-slate-600',
-  Basic: 'bg-blue-100 text-blue-600',
-  Pro: 'bg-primary/10 text-primary',
-  Business: 'bg-amber-100 text-amber-600',
+const planThemes: Record<string, {
+  icon: React.ReactNode;
+  gradient: string;
+  iconBg: string;
+  accentBorder: string;
+  buttonGradient: string;
+  glowColor: string;
+}> = {
+  Free: {
+    icon: <Gift className="w-6 h-6" />,
+    gradient: 'from-slate-500/10 via-slate-400/5 to-transparent',
+    iconBg: 'bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-700 text-slate-600 dark:text-slate-300',
+    accentBorder: 'border-slate-200 dark:border-slate-700',
+    buttonGradient: 'bg-slate-100 hover:bg-slate-200 text-slate-700 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-300',
+    glowColor: 'shadow-slate-200/50',
+  },
+  Basic: {
+    icon: <Rocket className="w-6 h-6" />,
+    gradient: 'from-blue-500/10 via-cyan-400/5 to-transparent',
+    iconBg: 'bg-gradient-to-br from-blue-100 to-cyan-100 dark:from-blue-900/60 dark:to-cyan-900/40 text-blue-600 dark:text-blue-300',
+    accentBorder: 'border-blue-200 dark:border-blue-800',
+    buttonGradient: 'bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white shadow-blue-500/25',
+    glowColor: 'shadow-blue-300/30',
+  },
+  Pro: {
+    icon: <Crown className="w-6 h-6" />,
+    gradient: 'from-violet-500/10 via-purple-400/5 to-transparent',
+    iconBg: 'bg-gradient-to-br from-violet-100 to-purple-100 dark:from-violet-900/60 dark:to-purple-900/40 text-violet-600 dark:text-violet-300',
+    accentBorder: 'border-violet-200 dark:border-violet-800',
+    buttonGradient: 'bg-gradient-to-r from-violet-500 to-purple-500 hover:from-violet-600 hover:to-purple-600 text-white shadow-violet-500/25',
+    glowColor: 'shadow-violet-300/30',
+  },
+  Business: {
+    icon: <Building2 className="w-6 h-6" />,
+    gradient: 'from-amber-500/10 via-orange-400/5 to-transparent',
+    iconBg: 'bg-gradient-to-br from-amber-100 to-orange-100 dark:from-amber-900/60 dark:to-orange-900/40 text-amber-600 dark:text-amber-300',
+    accentBorder: 'border-amber-200 dark:border-amber-800',
+    buttonGradient: 'bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white shadow-amber-500/25',
+    glowColor: 'shadow-amber-300/30',
+  },
 };
 
 interface PlanCardProps {
@@ -32,69 +60,85 @@ export function PlanCard({ plan, isCurrentPlan, isYearly, isRecommended, onSelec
   const monthlyEquivalent = isYearly ? Math.round(price / 12) : price;
   const isBusiness = plan.name === 'Business';
   const isCustomPrice = isBusiness && plan.price_monthly === 0;
-  const savings = isYearly && plan.price_yearly 
+  const savings = isYearly && plan.price_yearly
     ? Math.round((1 - plan.price_yearly / (plan.price_monthly * 12)) * 100)
     : 0;
 
+  const theme = planThemes[plan.name] || planThemes.Free;
   const formatINR = (val: number) => `₹${val.toLocaleString('en-IN')}`;
   const limits = plan.limits_json;
   const formatLimit = (value: number) => value === -1 ? 'Unlimited' : value.toLocaleString();
 
-  const limitItems = [
-    { icon: Users, label: 'Members', value: formatLimit(limits.max_team_members) },
+  const features = [
+    { icon: Users, label: 'Team Members', value: formatLimit(limits.max_team_members) },
     { icon: Contact, label: 'Contacts', value: formatLimit(limits.max_contacts) },
-    { icon: MessageSquare, label: 'Messages', value: formatLimit(limits.monthly_messages) },
-    { icon: Bot, label: 'Automations', value: formatLimit(limits.max_automations) },
+    { icon: MessageSquare, label: 'Messages/mo', value: limits.monthly_messages === -1 ? 'Pay-per-use' : formatLimit(limits.monthly_messages) },
+    { icon: Workflow, label: 'Automations', value: formatLimit(limits.max_automations) },
+    { icon: Shield, label: 'Audit Logs', value: limits.audit_logs_days > 0 ? `${limits.audit_logs_days} days` : '—' },
+    { icon: Zap, label: 'API Access', value: limits.api_access ? 'Yes' : '—' },
+    { icon: HeadphonesIcon, label: 'Support', value: limits.support_level === 'priority' ? 'Priority' : limits.support_level === 'chat' ? 'Live Chat' : 'Email' },
   ];
 
   return (
     <Card className={cn(
-      "relative flex flex-col transition-all duration-300",
-      isRecommended && "border-primary shadow-xl shadow-primary/10 scale-[1.02] ring-1 ring-primary/20",
-      isCurrentPlan && "border-primary/50 bg-primary/[0.02]"
+      "relative flex flex-col overflow-hidden transition-all duration-300 group hover:shadow-xl",
+      theme.accentBorder,
+      isRecommended && "ring-2 ring-violet-500/50 shadow-xl scale-[1.02]",
+      isCurrentPlan && "ring-2 ring-primary/40 shadow-lg",
+      theme.glowColor,
     )}>
+      {/* Top gradient accent */}
+      <div className={cn("absolute inset-0 bg-gradient-to-b opacity-60", theme.gradient)} />
+      
       {isRecommended && (
-        <>
-          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary to-emerald-500" />
-          <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-            <Badge className="bg-gradient-to-r from-primary to-emerald-500 text-primary-foreground gap-1 shadow-lg">
-              <Sparkles className="h-3 w-3" />
-              Recommended
-            </Badge>
-          </div>
-        </>
+        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-violet-500 via-purple-500 to-pink-500" />
       )}
-      
       {isCurrentPlan && (
-        <div className="absolute -top-3 right-4">
-          <Badge variant="outline" className="bg-primary/10 text-primary border-primary/30">
-            Current Plan
-          </Badge>
-        </div>
+        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary via-emerald-400 to-primary" />
       )}
-      
-      <CardHeader className="text-center pb-2 px-3 sm:px-6">
-        <div className={cn('w-10 h-10 rounded-xl mx-auto mb-2 flex items-center justify-center', planAccent[plan.name] || 'bg-muted')}>
-          {planIcons[plan.name] || <Gift className="w-5 h-5" />}
+
+      <div className="relative p-4 sm:p-5 flex flex-col flex-1">
+        {/* Badges */}
+        <div className="flex items-center justify-between mb-3 min-h-[24px]">
+          {isRecommended && (
+            <Badge className="bg-gradient-to-r from-violet-500 to-purple-500 text-white border-0 gap-1 text-[10px] px-2 py-0.5 shadow-lg">
+              <Sparkles className="h-3 w-3" /> Most Popular
+            </Badge>
+          )}
+          {isCurrentPlan && !isRecommended && (
+            <Badge className="bg-gradient-to-r from-primary to-emerald-400 text-white border-0 text-[10px] px-2 py-0.5">
+              ✓ Active
+            </Badge>
+          )}
+          {!isRecommended && !isCurrentPlan && <div />}
         </div>
-        <CardTitle className="text-lg sm:text-xl">{plan.name}</CardTitle>
-        <CardDescription className="text-xs sm:text-sm">{plan.description}</CardDescription>
-      </CardHeader>
-      
-      <CardContent className="flex-1 flex flex-col px-3 sm:px-6">
-        <div className="text-center mb-4 sm:mb-5">
+
+        {/* Icon + Name */}
+        <div className="text-center mb-4">
+          <div className={cn(
+            "w-14 h-14 rounded-2xl mx-auto mb-3 flex items-center justify-center shadow-lg transition-transform group-hover:scale-110",
+            theme.iconBg
+          )}>
+            {theme.icon}
+          </div>
+          <h3 className="text-lg font-bold">{plan.name}</h3>
+          <p className="text-xs text-muted-foreground mt-1">{plan.description}</p>
+        </div>
+
+        {/* Price */}
+        <div className="text-center mb-5 pb-4 border-b border-border/50">
           {isCustomPrice ? (
-            <div className="text-2xl sm:text-3xl font-bold">Custom</div>
+            <div className="text-2xl font-bold bg-gradient-to-r from-amber-500 to-orange-500 bg-clip-text text-transparent">Custom</div>
           ) : price === 0 ? (
-            <div className="text-3xl sm:text-4xl font-bold">Free</div>
+            <div className="text-3xl font-bold">Free</div>
           ) : (
             <>
               <div className="flex items-baseline justify-center gap-1">
-                <span className="text-3xl sm:text-4xl font-bold">{formatINR(monthlyEquivalent)}</span>
-                <span className="text-muted-foreground text-sm">/mo</span>
+                <span className="text-3xl font-bold">{formatINR(monthlyEquivalent)}</span>
+                <span className="text-muted-foreground text-xs">/mo</span>
               </div>
               {isYearly && savings > 0 && (
-                <Badge variant="secondary" className="mt-2 text-xs bg-primary/10 text-primary">
+                <Badge variant="secondary" className="mt-2 text-[10px] bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300 border-0">
                   Save {savings}% yearly
                 </Badge>
               )}
@@ -102,47 +146,35 @@ export function PlanCard({ plan, isCurrentPlan, isYearly, isRecommended, onSelec
           )}
         </div>
 
-        {/* Limits grid */}
-        <div className="grid grid-cols-2 gap-2 mb-4 p-3 rounded-xl bg-muted/40 border border-border/50">
-          {limitItems.map((item, idx) => (
-            <div key={idx} className="flex items-center gap-2">
-              <item.icon className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />
-              <div>
-                <p className="text-[10px] text-muted-foreground">{item.label}</p>
-                <p className="text-xs font-semibold">{item.value}</p>
+        {/* Features list */}
+        <div className="space-y-2.5 flex-1 mb-4">
+          {features.map((feat, idx) => (
+            <div key={idx} className="flex items-center gap-2.5">
+              <div className="w-6 h-6 rounded-lg bg-muted/60 flex items-center justify-center flex-shrink-0">
+                <feat.icon className="w-3.5 h-3.5 text-muted-foreground" />
               </div>
+              <span className="text-xs text-muted-foreground flex-1">{feat.label}</span>
+              <span className="text-xs font-semibold">{feat.value}</span>
             </div>
           ))}
         </div>
-        
-        <div className="space-y-2 sm:space-y-2.5 flex-1">
-          <div className="flex items-center justify-between text-xs sm:text-sm">
-            <span className="text-muted-foreground">API access</span>
-            {limits.api_access ? <Check className="h-4 w-4 text-primary" /> : <X className="h-4 w-4 text-muted-foreground/40" />}
-          </div>
-          <div className="flex items-center justify-between text-xs sm:text-sm">
-            <span className="text-muted-foreground">Audit logs</span>
-            <span className="font-medium">{limits.audit_logs_days > 0 ? `${limits.audit_logs_days}d` : '—'}</span>
-          </div>
-          <div className="flex items-center justify-between text-xs sm:text-sm">
-            <span className="text-muted-foreground">Support</span>
-            <span className="font-medium capitalize">{limits.support_level}</span>
-          </div>
-        </div>
-        
-        <Button 
+
+        {/* CTA Button */}
+        <Button
           className={cn(
-            "w-full mt-4 sm:mt-6 text-sm gap-2 font-semibold",
-            isRecommended && !isCurrentPlan && "bg-gradient-to-r from-primary to-emerald-500 shadow-lg"
+            "w-full font-semibold text-sm gap-2 transition-all",
+            isCurrentPlan
+              ? "bg-muted text-muted-foreground cursor-default"
+              : theme.buttonGradient
           )}
-          variant={isCurrentPlan ? 'outline' : isRecommended ? 'default' : 'secondary'}
+          variant={isCurrentPlan ? 'outline' : 'default'}
           disabled={isCurrentPlan}
           onClick={() => onSelect(plan)}
         >
-          {isCurrentPlan ? 'Current Plan' : isCustomPrice ? 'Contact Us' : 'Upgrade'}
+          {isCurrentPlan ? '✓ Current Plan' : isCustomPrice ? 'Contact Sales' : 'Upgrade'}
           {!isCurrentPlan && <ArrowRight className="w-3.5 h-3.5" />}
         </Button>
-      </CardContent>
+      </div>
     </Card>
   );
 }

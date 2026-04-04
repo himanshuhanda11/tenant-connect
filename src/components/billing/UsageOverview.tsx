@@ -155,7 +155,7 @@ export function UsageOverview() {
           icon={<FileText className="h-4 w-4" />}
           label="Storage Used"
           used={usage?.storage_bytes || 0}
-          limit={1073741824} // 1GB
+          limit={5368709120}
           formatValue={formatBytes}
         />
       </CardContent>
