@@ -1138,15 +1138,15 @@ export function useAuditLogs(filters?: { userId?: string; action?: string; dateF
           id: e.id,
           tenant_id: e.tenant_id,
           user_id: e.actor_profile_id,
-          action: eventActionMap[e.event_type] || e.event_type,
+          action: (eventActionMap[e.event_type] || e.event_type) as AuditLog['action'],
           resource_type: 'conversation',
           resource_id: e.conversation_id,
-          details: e.details || {},
+          details: (e.details || {}) as Record<string, any>,
           ip_address: null,
           user_agent: null,
           created_at: e.created_at,
           user: e.actor_profile_id ? profileMap[e.actor_profile_id] || null : null,
-        }));
+        } as AuditLog));
 
       // Merge and sort by date descending
       const combined = [...auditData, ...mappedEvents]
