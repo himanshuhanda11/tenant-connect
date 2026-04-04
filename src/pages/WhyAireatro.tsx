@@ -366,11 +366,11 @@ export default function WhyAireatro() {
               Get started in under 2 minutes. No credit card required. No monthly fees.
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center mt-6">
-              <Button size="lg" className="rounded-xl text-sm font-semibold px-8 gap-2 bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg" onClick={() => navigate('/signup')}>
+              <Button size="lg" className="rounded-xl text-sm font-semibold px-8 gap-2 bg-background text-foreground hover:bg-background/90 shadow-xl border border-background/80" onClick={() => navigate('/signup')}>
                 Start Free Now <ArrowRight className="h-4 w-4" />
               </Button>
               <Button size="lg" variant="outline" className="rounded-xl text-sm font-semibold px-8 border-white/30 text-white hover:bg-white/10" onClick={() => navigate('/contact')}>
-                Start Free
+                Contact Us
               </Button>
             </div>
             <p className="text-emerald-200 text-xs mt-4">✓ Free forever &nbsp;·&nbsp; ✓ No setup fees &nbsp;·&nbsp; ✓ Cancel anytime</p>
