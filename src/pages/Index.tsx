@@ -120,6 +120,11 @@ export default function Index() {
         <AdToConversionSection />
       </SectionErrorBoundary>
 
+      {/* WhatsApp Commerce Showcase */}
+      <SectionErrorBoundary>
+        <WhatsAppShowcaseSection />
+      </SectionErrorBoundary>
+
       {/* Pricing Preview */}
       <SectionErrorBoundary>
         <PricingPreview />
