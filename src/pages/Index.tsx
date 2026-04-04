@@ -36,6 +36,8 @@ class SectionErrorBoundary extends Component<{ children: ReactNode }, ErrorBound
 
 // Lazy load below-the-fold sections
 const SocialProofBar = lazy(() => import('@/components/home/SocialProofBar'));
+const BusinessGrowthSection = lazy(() => import('@/components/home/BusinessGrowthSection'));
+const HowItWorksSection = lazy(() => import('@/components/home/HowItWorksSection'));
 const DifferentiatorCards = lazy(() => import('@/components/home/DifferentiatorCards'));
 const AIFlowBuilderSection = lazy(() => import('@/components/home/AIFlowBuilderSection'));
 const ProductTourSection = lazy(() => import('@/components/home/ProductTourSection'));
@@ -90,6 +92,20 @@ export default function Index() {
       <SectionErrorBoundary>
         <Suspense fallback={<SectionSkeleton />}>
           <SocialProofBar />
+        </Suspense>
+      </SectionErrorBoundary>
+
+      {/* Business Growth Visual */}
+      <SectionErrorBoundary>
+        <Suspense fallback={<SectionSkeleton />}>
+          <BusinessGrowthSection />
+        </Suspense>
+      </SectionErrorBoundary>
+
+      {/* How It Works Flow */}
+      <SectionErrorBoundary>
+        <Suspense fallback={<SectionSkeleton />}>
+          <HowItWorksSection />
         </Suspense>
       </SectionErrorBoundary>
 
