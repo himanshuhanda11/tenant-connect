@@ -3,6 +3,7 @@ import {
   CheckCircle2, ArrowRight, X, Sparkles,
   Rocket, Crown, Building2, Gift, TrendingUp,
 } from 'lucide-react';
+import TemplateChargesBlock from '@/components/shared/TemplateChargesBlock';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -142,7 +143,10 @@ export default function PricingCards({ isAnnual }: PricingCardsProps) {
                         </div>
                       );
                     })}
-                  </div>
+                    </div>
+
+                    {/* Template Message Charges */}
+                    <TemplateChargesBlock compact className="mb-4" />
 
                   {/* Features — 4-5 high impact bullets */}
                   <div className="space-y-2 flex-1">

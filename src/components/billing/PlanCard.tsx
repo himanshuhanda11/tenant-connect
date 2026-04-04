@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Check, Sparkles, Users, Phone, Contact, MessageSquare, Bot, Workflow, ArrowRight, Crown, Rocket, Gift, Building2, Shield, Zap, Globe, HeadphonesIcon } from 'lucide-react';
 import type { Plan } from '@/types/billing';
 import { cn } from '@/lib/utils';
+import TemplateChargesBlock from '@/components/shared/TemplateChargesBlock';
 
 const planThemes: Record<string, {
   icon: React.ReactNode;
@@ -154,27 +155,7 @@ export function PlanCard({ plan, isCurrentPlan, isYearly, isRecommended, onSelec
         </div>
 
         {/* Template Message Charges */}
-        <div className="mb-4 p-3 rounded-xl bg-muted/30 border border-border/40">
-          <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">Template Message Charges</p>
-          <div className="grid grid-cols-2 gap-1.5 text-xs">
-            <div className="flex items-center justify-between">
-              <span className="text-muted-foreground">Marketing</span>
-              <span className="font-semibold">₹1.09<span className="text-[10px] text-muted-foreground font-normal">/msg</span></span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-muted-foreground">Utility</span>
-              <span className="font-semibold">₹0.145<span className="text-[10px] text-muted-foreground font-normal">/msg</span></span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-muted-foreground">Auth</span>
-              <span className="font-semibold">₹0.145<span className="text-[10px] text-muted-foreground font-normal">/msg</span></span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-muted-foreground">Service</span>
-              <span className="font-semibold text-emerald-600">Free ∞</span>
-            </div>
-          </div>
-        </div>
+        <TemplateChargesBlock compact className="mb-4" />
 
         {/* Features list */}
         <div className="space-y-2.5 flex-1 mb-4">

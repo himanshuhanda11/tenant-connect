@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { pricingPlans, type PricingPlan } from '@/data/pricingPlans';
 import { cn } from '@/lib/utils';
+import TemplateChargesBlock from '@/components/shared/TemplateChargesBlock';
 
 const planIcons: Record<string, React.ReactNode> = {
   free: <Gift className="w-5 h-5" />,
@@ -113,6 +114,7 @@ export default function PricingPreview() {
                       </li>
                     ))}
                   </ul>
+                  <TemplateChargesBlock compact className="mb-4" />
                   <Button
                     className={cn(
                       "w-full h-10 text-sm gap-2 font-semibold",
