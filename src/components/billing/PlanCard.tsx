@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Check, Sparkles, Users, Phone, Contact, MessageSquare, Bot, Workflow, ArrowRight, Crown, Rocket, Gift, Building2, Shield, Zap, Globe, HeadphonesIcon } from 'lucide-react';
 import type { Plan } from '@/types/billing';
 import { cn } from '@/lib/utils';
+import TemplateChargesBlock from '@/components/shared/TemplateChargesBlock';
 
 const planThemes: Record<string, {
   icon: React.ReactNode;
