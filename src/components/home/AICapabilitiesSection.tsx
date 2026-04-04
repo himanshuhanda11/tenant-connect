@@ -132,7 +132,7 @@ export default function AICapabilitiesSection() {
         </div>
 
         {/* Demo Modal */}
-        <Dialog open={!!selectedDemo} onOpenChange={() => setSelectedDemo(null)}>
+        <Dialog open={!!selectedDemo} onOpenChange={() => setSelectedDemo(null)} modal>
           <DialogContent className="max-w-2xl">
             <DialogHeader>
               <DialogTitle className="flex items-center gap-3">

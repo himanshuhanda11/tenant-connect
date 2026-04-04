@@ -1,4 +1,4 @@
-import React, { useEffect, Suspense, lazy, Component, ReactNode, ErrorInfo } from 'react';
+import React, { useEffect, Suspense, Component, ReactNode, ErrorInfo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useAuth } from '@/contexts/AuthContext';
@@ -6,11 +6,13 @@ import Footer from '@/components/layout/Footer';
 import Navbar from '@/components/layout/Navbar';
 import { JsonLd, organizationSchema, websiteSchema, softwareApplicationSchema } from '@/components/seo';
 import SeoMeta from '@/components/seo/SeoMeta';
+import { lazyWithRetry } from '@/lib/lazyWithRetry';
 
-// Import HeroSection eagerly - it's above the fold and critical for FCP
+// Import critical above-the-fold sections eagerly
 import HeroSection from '@/components/home/HeroSection';
+import SocialProofBar from '@/components/home/SocialProofBar';
 
-// Error boundary for lazy loaded components
+// Error boundary with retry for lazy loaded components
 interface ErrorBoundaryState {
   hasError: boolean;
 }
@@ -26,27 +28,37 @@ class SectionErrorBoundary extends Component<{ children: ReactNode }, ErrorBound
     console.error('Section loading error:', error, info);
   }
 
+  handleRetry = () => {
+    this.setState({ hasError: false });
+  };
+
   render() {
     if (this.state.hasError) {
-      return <div className="py-8 text-center text-muted-foreground">Section failed to load</div>;
+      return (
+        <div className="py-8 text-center text-muted-foreground">
+          <p>Section failed to load</p>
+          <button onClick={this.handleRetry} className="mt-2 text-primary underline text-sm">
+            Try again
+          </button>
+        </div>
+      );
     }
     return this.props.children;
   }
 }
 
-// Lazy load below-the-fold sections
-const SocialProofBar = lazy(() => import('@/components/home/SocialProofBar'));
-const BusinessGrowthSection = lazy(() => import('@/components/home/BusinessGrowthSection'));
-const HowItWorksSection = lazy(() => import('@/components/home/HowItWorksSection'));
-const DifferentiatorCards = lazy(() => import('@/components/home/DifferentiatorCards'));
-const AIFlowBuilderSection = lazy(() => import('@/components/home/AIFlowBuilderSection'));
-const ProductTourSection = lazy(() => import('@/components/home/ProductTourSection'));
-const AICapabilitiesSection = lazy(() => import('@/components/home/AICapabilitiesSection'));
-const WhyAireatroBento = lazy(() => import('@/components/home/WhyAireatroBento'));
-const MetaAdsAttributionSection = lazy(() => import('@/components/home/MetaAdsAttributionSection'));
-const PricingPreview = lazy(() => import('@/components/home/PricingPreview'));
-const TestimonialsCarousel = lazy(() => import('@/components/home/TestimonialsCarousel'));
-const FinalCTANew = lazy(() => import('@/components/home/FinalCTANew'));
+// Lazy load below-the-fold sections with retry
+const BusinessGrowthSection = lazyWithRetry(() => import('@/components/home/BusinessGrowthSection'));
+const HowItWorksSection = lazyWithRetry(() => import('@/components/home/HowItWorksSection'));
+const DifferentiatorCards = lazyWithRetry(() => import('@/components/home/DifferentiatorCards'));
+const AIFlowBuilderSection = lazyWithRetry(() => import('@/components/home/AIFlowBuilderSection'));
+const ProductTourSection = lazyWithRetry(() => import('@/components/home/ProductTourSection'));
+const AICapabilitiesSection = lazyWithRetry(() => import('@/components/home/AICapabilitiesSection'));
+const WhyAireatroBento = lazyWithRetry(() => import('@/components/home/WhyAireatroBento'));
+const MetaAdsAttributionSection = lazyWithRetry(() => import('@/components/home/MetaAdsAttributionSection'));
+const PricingPreview = lazyWithRetry(() => import('@/components/home/PricingPreview'));
+const TestimonialsCarousel = lazyWithRetry(() => import('@/components/home/TestimonialsCarousel'));
+const FinalCTANew = lazyWithRetry(() => import('@/components/home/FinalCTANew'));
 
 // Section loading skeleton
 function SectionSkeleton() {
@@ -92,12 +104,8 @@ export default function Index() {
       {/* Hero Section - loaded eagerly for fast FCP */}
       <HeroSection />
 
-      {/* Social Proof */}
-      <SectionErrorBoundary>
-        <Suspense fallback={<SectionSkeleton />}>
-          <SocialProofBar />
-        </Suspense>
-      </SectionErrorBoundary>
+      {/* Social Proof - loaded eagerly */}
+      <SocialProofBar />
 
       {/* Business Growth Visual */}
       <SectionErrorBoundary>
