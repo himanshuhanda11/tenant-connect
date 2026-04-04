@@ -27,7 +27,7 @@ export default function PricingCTA() {
           <Button
             size="lg"
             variant="outline"
-            className="h-12 px-8 border-2 border-white/60 text-white hover:bg-white/10 hover:text-white font-semibold rounded-xl"
+            className="h-12 px-8 border-2 border-white text-white bg-white/15 hover:bg-white/25 hover:text-white font-semibold rounded-xl backdrop-blur-sm"
             onClick={() => navigate('/contact')}
           >
             Contact Us
