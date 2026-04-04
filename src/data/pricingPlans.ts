@@ -125,9 +125,9 @@ export const pricingPlans: PricingPlan[] = [
     id: 'business',
     name: 'Business',
     tagline: 'Scale securely with full control',
-    price: 'custom',
-    billing_cycle: 'custom',
-    cta: 'Talk to Sales',
+    price: 5500,
+    billing_cycle: 'monthly',
+    cta: 'Get Business',
     highlight: false,
     limits: {
       team_members: 25,

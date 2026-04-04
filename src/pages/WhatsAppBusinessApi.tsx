@@ -748,9 +748,9 @@ const WhatsAppBusinessApi = () => {
                   <Button 
                     className={`w-full ${plan.popular ? 'bg-gradient-to-r from-primary to-emerald-600' : ''}`}
                     variant={plan.popular ? 'default' : 'outline'}
-                    onClick={() => navigate(plan.name === 'Business' ? '/contact' : '/signup')}
+                    onClick={() => navigate('/signup')}
                   >
-                    {plan.name === 'Business' ? 'Contact Us' : 'Get Started'}
+                    Get Started
                   </Button>
                 </CardContent>
               </Card>
