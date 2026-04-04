@@ -561,6 +561,51 @@ export default function SelectWorkspace() {
           onCreateWorkspace={handleCreateWorkspace}
           isCreating={isCreating}
         />
+
+        {/* Rename Dialog */}
+        <Dialog open={!!renameTarget} onOpenChange={(open) => !open && setRenameTarget(null)}>
+          <DialogContent className="max-w-sm">
+            <DialogHeader>
+              <DialogTitle>Rename Workspace</DialogTitle>
+              <DialogDescription>Enter a new name for this workspace.</DialogDescription>
+            </DialogHeader>
+            <div className="space-y-2">
+              <Label htmlFor="rename-input">Workspace name</Label>
+              <Input
+                id="rename-input"
+                value={renameValue}
+                onChange={(e) => setRenameValue(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleRename()}
+              />
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setRenameTarget(null)}>Cancel</Button>
+              <Button onClick={handleRename} disabled={renaming || !renameValue.trim()}>
+                {renaming ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+                Save
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Archive Confirm Dialog */}
+        <Dialog open={!!archiveTarget} onOpenChange={(open) => !open && setArchiveTarget(null)}>
+          <DialogContent className="max-w-sm">
+            <DialogHeader>
+              <DialogTitle>Archive Workspace</DialogTitle>
+              <DialogDescription>
+                Are you sure you want to archive <strong>{archiveTarget?.name}</strong>? It will be hidden from your workspace list.
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setArchiveTarget(null)}>Cancel</Button>
+              <Button variant="destructive" onClick={handleArchive} disabled={archiving}>
+                {archiving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+                Archive
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </TooltipProvider>
   );
