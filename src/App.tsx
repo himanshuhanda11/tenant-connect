@@ -17,7 +17,7 @@ import {
   META_ADS_AUTOMATION_PERMISSIONS,
   META_ADS_CONNECT_PERMISSIONS,
   META_ADS_VIEW_PERMISSIONS,
-} from "@/hooks/useCurrentRolePermissions";
+} from "@/lib/metaAdsPermissions";
 
 const Login = lazyWithRetry(() => import("./pages/Login"));
 const ForgotPassword = lazyWithRetry(() => import("./pages/ForgotPassword"));
