@@ -310,6 +310,7 @@ export default function Navbar() {
             <Link to="/pricing" className="block px-4 py-3 text-foreground hover:bg-muted rounded-lg font-medium" onClick={() => setMobileMenuOpen(false)}>Pricing</Link>
             <Link to="/help" className="block px-4 py-3 text-foreground hover:bg-muted rounded-lg font-medium" onClick={() => setMobileMenuOpen(false)}>Help Center</Link>
             <Link to="/about" className="block px-4 py-3 text-foreground hover:bg-muted rounded-lg font-medium" onClick={() => setMobileMenuOpen(false)}>About</Link>
+            <Link to="/why-aireatro" className="block px-4 py-3 text-foreground hover:bg-muted rounded-lg font-medium pl-8" onClick={() => setMobileMenuOpen(false)}>Why Aireatro</Link>
             <Link to="/contact" className="block px-4 py-3 text-foreground hover:bg-muted rounded-lg font-medium" onClick={() => setMobileMenuOpen(false)}>Contact</Link>
             <div className="pt-4 border-t border-border space-y-3">
               <Button variant="outline" className="w-full h-12" onClick={() => { navigate('/login'); setMobileMenuOpen(false); }}>Sign in</Button>
