@@ -51,7 +51,7 @@ const CATEGORY_ORDER: PermissionCategory[] = [
 ];
 
 const TeamRoles = () => {
-  const { roles, permissions, loading, permissionsLoading, createRole, updateRole, deleteRole, getRolePermissions, refetch } = useRoles();
+  const { roles, permissions, loading, createRole, updateRole, deleteRole, getRolePermissions, refetch } = useRoles();
   const [selectedRole, setSelectedRole] = useState<Role | null>(null);
   const [rolePermissions, setRolePermissions] = useState<string[]>([]);
   const [originalPermissions, setOriginalPermissions] = useState<string[]>([]);
@@ -59,7 +59,7 @@ const TeamRoles = () => {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [switchingRole, setSwitchingRole] = useState(false);
+  const [loadingPerms, setLoadingPerms] = useState(false);
   const [viewAsMode, setViewAsMode] = useState(false);
   const [newRole, setNewRole] = useState<{ name: string; description: string; base_role: AppRole; color: string }>({
     name: '', description: '', base_role: 'agent', color: '#6366f1'
@@ -76,38 +76,36 @@ const TeamRoles = () => {
   const categories = Object.keys(permissionsByCategory) as PermissionCategory[];
 
   const loadPermissions = useCallback(async (roleId: string) => {
-    setSwitchingRole(true);
+    setLoadingPerms(true);
     try {
       const perms = await getRolePermissions(roleId);
       setRolePermissions(perms);
       setOriginalPermissions(perms);
     } finally {
-      setSwitchingRole(false);
+      setLoadingPerms(false);
     }
   }, [getRolePermissions]);
 
+  // Auto-select first role on initial load only
+  const selectedRoleId = selectedRole?.id;
   useEffect(() => {
-    if (selectedRole) {
-      loadPermissions(selectedRole.id);
+    if (!selectedRoleId && roles.length > 0) {
+      const first = roles[0];
+      setSelectedRole(first);
+      loadPermissions(first.id);
     }
-  }, [selectedRole, loadPermissions]);
-
-  // Auto-select first role
-  useEffect(() => {
-    if (!selectedRole && roles.length > 0) {
-      setSelectedRole(roles[0]);
-    }
-  }, [roles, selectedRole]);
+  }, [roles, selectedRoleId, loadPermissions]);
 
   const handleSelectRole = (role: Role) => {
     if (role.id === selectedRole?.id) return;
     setSelectedRole(role);
     setViewAsMode(false);
     setActiveCategory('messaging');
+    loadPermissions(role.id);
   };
 
   const handleTogglePermission = (permId: string) => {
-    if (isOwnerRole || switchingRole || permissionsLoading || saving) return;
+    if (isOwnerRole || loadingPerms || saving) return;
     setRolePermissions(prev =>
       prev.includes(permId) ? prev.filter(p => p !== permId) : [...prev, permId]
     );
@@ -164,7 +162,7 @@ const TeamRoles = () => {
   const activePerms = permissionsByCategory[activeCategory] || [];
   const activeCategoryAllEnabled = activePerms.length > 0 && activePerms.every(p => rolePermissions.includes(p.id));
   const isOwnerRole = selectedRole?.is_system && selectedRole?.base_role === 'owner';
-  const isBusy = loading || permissionsLoading || switchingRole || saving;
+  const isBusy = loading || loadingPerms || saving;
 
   return (
     <DashboardLayout>
