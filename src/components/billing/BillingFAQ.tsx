@@ -12,8 +12,8 @@ const faqs = [
     answer: 'AIREATRO charges a monthly or annual subscription fee for access to the platform. This includes team seats, phone number connections, automation workflows, and support. Pricing varies by plan tier.'
   },
   {
-    question: 'Are WhatsApp message charges included?',
-    answer: 'No. WhatsApp conversation fees are billed separately by Meta. Meta charges based on conversation category (marketing, utility, service, authentication) and the destination country. You can view Meta\'s pricing at developers.facebook.com/docs/whatsapp/pricing.'
+    question: 'What are WhatsApp template message charges?',
+    answer: 'Template messages are charged by Meta per message: Marketing ₹1.09, Utility ₹0.145, Authentication ₹0.145. Service conversations are unlimited and free. First 1,000 conversations/month are free across all categories.'
   },
   {
     question: 'What is a team seat?',

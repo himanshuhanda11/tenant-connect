@@ -253,8 +253,8 @@ const WhatsAppBusinessApi = () => {
     },
     {
       name: 'Business',
-      price: 'Custom',
-      period: '',
+      price: '₹5,500',
+      period: '/mo',
       description: 'Scale securely with full control',
       features: ['25+ Team Members', 'Unlimited Contacts', 'AI Agent Mode', 'Audit Logs', 'Dedicated Support'],
       popular: false
@@ -748,9 +748,9 @@ const WhatsAppBusinessApi = () => {
                   <Button 
                     className={`w-full ${plan.popular ? 'bg-gradient-to-r from-primary to-emerald-600' : ''}`}
                     variant={plan.popular ? 'default' : 'outline'}
-                    onClick={() => navigate(plan.name === 'Business' ? '/contact' : '/signup')}
+                    onClick={() => navigate('/signup')}
                   >
-                    {plan.name === 'Business' ? 'Contact Us' : 'Get Started'}
+                    Get Started
                   </Button>
                 </CardContent>
               </Card>

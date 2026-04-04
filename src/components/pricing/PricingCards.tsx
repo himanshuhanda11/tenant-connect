@@ -43,7 +43,6 @@ export default function PricingCards({ isAnnual }: PricingCardsProps) {
   const navigate = useNavigate();
 
   const getPrice = (plan: PricingPlan) => {
-    if (plan.price === 'custom') return null;
     if (plan.price === 0) return 0;
     return isAnnual ? Math.round((plan.price as number) * 0.8) : (plan.price as number);
   };
@@ -56,7 +55,7 @@ export default function PricingCards({ isAnnual }: PricingCardsProps) {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 max-w-7xl mx-auto items-stretch">
           {pricingPlans.map((plan) => {
             const price = getPrice(plan);
-            const isCustom = plan.price === 'custom';
+            const isCustom = false;
             const colors = planColors[plan.id];
             const isPro = plan.highlight;
 
