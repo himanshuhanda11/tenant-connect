@@ -1,85 +1,112 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight, Sparkles, Zap, Shield, HeadphonesIcon } from 'lucide-react';
+import { ArrowRight, Sparkles, Zap, Shield, HeadphonesIcon, CheckCircle2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import homeCtaIllustration from '@/assets/home-cta-illustration.png';
+import { motion } from 'framer-motion';
 
-const benefits = [
-  { icon: Zap, text: 'Free API Lifetime' },
-  { icon: Shield, text: 'No Monthly Fees' },
-  { icon: HeadphonesIcon, text: 'Official Cloud API' },
+const perks = [
+  'Free WhatsApp API — Lifetime',
+  'Zero Platform Fees',
+  'Official Meta Cloud API',
+  'AI Auto-Reply Included',
 ];
 
 export default function FinalCTANew() {
   const navigate = useNavigate();
 
   return (
-    <section className="py-10 sm:py-12 md:py-16 lg:py-20 bg-foreground relative overflow-hidden">
-      {/* Background Elements */}
+    <section className="relative overflow-hidden isolate">
+      {/* Dark-to-primary gradient background */}
+      <div className="absolute inset-0 bg-gradient-to-br from-foreground via-foreground to-[hsl(var(--primary)/0.15)]" />
+
+      {/* Decorative orbs */}
       <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-0 left-1/4 w-48 sm:w-72 lg:w-96 h-48 sm:h-72 lg:h-96 bg-primary/10 rounded-full blur-3xl" />
-        <div className="absolute bottom-0 right-1/4 w-40 sm:w-60 lg:w-80 h-40 sm:h-60 lg:h-80 bg-primary/5 rounded-full blur-3xl" />
-        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:40px_40px] sm:bg-[size:60px_60px]" />
+        <div className="absolute -top-40 -right-40 w-[500px] h-[500px] rounded-full bg-primary/10 blur-[120px]" />
+        <div className="absolute -bottom-32 -left-32 w-[400px] h-[400px] rounded-full bg-emerald-500/8 blur-[100px]" />
+        {/* Grid pattern */}
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:48px_48px]" />
       </div>
 
-      <div className="container mx-auto px-4 relative z-10">
-        <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center max-w-6xl mx-auto">
-          <div className="text-center lg:text-left">
-            <div className="inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-primary/20 border border-primary/30 text-primary text-xs sm:text-sm font-medium mb-6 sm:mb-8">
-              <Sparkles className="w-3.5 sm:w-4 h-3.5 sm:h-4" />
-              Start Growing Today
-            </div>
-            
-            <h2 className="text-2xl xs:text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-background mb-4 sm:mb-6 leading-tight">
-              Get{' '}
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-emerald-400">
-                Free WhatsApp API Lifetime
-              </span>
-              {' '}Access Today
-            </h2>
-            
-            <p className="text-sm sm:text-base lg:text-xl text-background/60 mb-6 sm:mb-8 lg:mb-10 max-w-2xl mx-auto lg:mx-0">
-              No monthly platform fees. No hidden charges. Just pay Meta's conversation fees. Join 2,000+ teams using AiReatro.
-            </p>
+      <div className="container mx-auto px-4 relative z-10 py-16 sm:py-24 lg:py-32">
+        <div className="max-w-3xl mx-auto text-center">
+          {/* Badge */}
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/15 border border-primary/25 text-primary text-xs font-semibold tracking-wide uppercase mb-8"
+          >
+            <Sparkles className="w-3.5 h-3.5" />
+            Start Growing Today
+          </motion.div>
 
-            {/* CTA Buttons */}
-            <div className="flex flex-col xs:flex-row gap-3 sm:gap-4 justify-center lg:justify-start mb-6 sm:mb-8 lg:mb-10">
-              <Button 
-                size="lg" 
-                className="h-12 sm:h-14 lg:h-16 px-6 sm:px-8 lg:px-10 text-sm sm:text-base lg:text-lg bg-gradient-to-r from-primary to-emerald-500 hover:from-primary/90 hover:to-emerald-600 shadow-xl shadow-primary/30 transition-all hover:shadow-2xl hover:shadow-primary/40" 
-                onClick={() => navigate('/signup')}
-              >
-                Start Free Trial
-                <ArrowRight className="w-4 sm:w-5 h-4 sm:h-5 ml-2" />
-              </Button>
-              <button
-                className="h-12 sm:h-14 lg:h-16 px-6 sm:px-8 lg:px-10 text-sm sm:text-base lg:text-lg border border-background/20 text-background hover:bg-background/10 font-semibold rounded-xl transition-colors"
-                onClick={() => navigate('/contact')}
-              >
-                Start Free
-              </button>
-            </div>
+          {/* Headline */}
+          <motion.h2
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.05 }}
+            className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-background leading-[1.1] tracking-tight mb-5"
+          >
+            Ready to{' '}
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-emerald-400 to-teal-300">
+              5x Your Revenue
+            </span>
+            ?
+          </motion.h2>
 
-            {/* Benefits */}
-            <div className="flex flex-wrap justify-center lg:justify-start gap-4 sm:gap-6 lg:gap-8">
-              {benefits.map((benefit, index) => (
-                <div key={index} className="flex items-center gap-1.5 sm:gap-2 text-background/60 text-xs sm:text-sm">
-                  <benefit.icon className="w-4 sm:w-5 h-4 sm:h-5 text-primary" />
-                  <span>{benefit.text}</span>
-                </div>
-              ))}
-            </div>
-          </div>
+          {/* Subtitle */}
+          <motion.p
+            initial={{ opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.1 }}
+            className="text-background/50 text-base sm:text-lg lg:text-xl max-w-xl mx-auto mb-10 leading-relaxed"
+          >
+            Join 2,000+ businesses automating WhatsApp conversations, capturing leads, and growing revenue — all on autopilot.
+          </motion.p>
 
-          {/* Image */}
-          <div className="mt-6 lg:mt-0">
-            <img
-              src={homeCtaIllustration}
-              alt="WhatsApp growth platform"
-              className="w-full max-w-xl mx-auto lg:max-w-none h-auto rounded-2xl shadow-2xl"
-              loading="lazy"
-            />
-          </div>
+          {/* CTA Buttons */}
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.15 }}
+            className="flex flex-col sm:flex-row gap-3 justify-center mb-12"
+          >
+            <Button
+              size="lg"
+              className="h-13 sm:h-14 px-8 sm:px-10 text-base font-semibold bg-gradient-to-r from-primary to-emerald-500 hover:from-primary/90 hover:to-emerald-600 shadow-2xl shadow-primary/30 hover:shadow-primary/50 transition-all duration-300 rounded-xl"
+              onClick={() => navigate('/signup')}
+            >
+              Start Free
+              <ArrowRight className="w-5 h-5 ml-2" />
+            </Button>
+            <Button
+              variant="outline"
+              size="lg"
+              className="h-13 sm:h-14 px-8 sm:px-10 text-base font-semibold border-background/20 text-background hover:bg-background/10 rounded-xl transition-colors"
+              onClick={() => navigate('/contact')}
+            >
+              Contact Us
+            </Button>
+          </motion.div>
+
+          {/* Perks grid */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.25 }}
+            className="flex flex-wrap justify-center gap-x-6 gap-y-3"
+          >
+            {perks.map((perk) => (
+              <div key={perk} className="flex items-center gap-2 text-background/50 text-sm">
+                <CheckCircle2 className="w-4 h-4 text-primary shrink-0" />
+                <span>{perk}</span>
+              </div>
+            ))}
+          </motion.div>
         </div>
       </div>
     </section>
