@@ -89,6 +89,11 @@ export default function Index() {
       {/* Social Proof - loaded eagerly */}
       <SocialProofBar />
 
+      {/* Awards & Trust */}
+      <SectionErrorBoundary>
+        <AwardsTrustSection />
+      </SectionErrorBoundary>
+
       {/* Why AiReatro USPs - moved right after social proof */}
       <WhyAireatroBento />
 
@@ -100,11 +105,6 @@ export default function Index() {
       {/* How It Works Flow */}
       <SectionErrorBoundary>
         <HowItWorksSection />
-      </SectionErrorBoundary>
-
-      {/* Awards & Trust */}
-      <SectionErrorBoundary>
-        <AwardsTrustSection />
       </SectionErrorBoundary>
 
       {/* AI Capabilities */}
