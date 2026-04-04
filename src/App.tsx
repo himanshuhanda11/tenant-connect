@@ -1,7 +1,5 @@
 import { Suspense } from "react";
 import { lazyWithRetry } from "@/lib/lazyWithRetry";
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
@@ -20,6 +18,8 @@ import {
 } from "@/lib/metaAdsPermissions";
 
 const Login = lazyWithRetry(() => import("./pages/Login"));
+const Toaster = lazyWithRetry(() => import("@/components/ui/toaster").then((module) => ({ default: module.Toaster })));
+const Sonner = lazyWithRetry(() => import("@/components/ui/sonner").then((module) => ({ default: module.Toaster })));
 const ForgotPassword = lazyWithRetry(() => import("./pages/ForgotPassword"));
 const ResetPassword = lazyWithRetry(() => import("./pages/ResetPassword"));
 const InviteAccept = lazyWithRetry(() => import("./pages/InviteAccept"));
@@ -173,8 +173,10 @@ const App = () => (
   <HelmetProvider>
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <Toaster />
-        <Sonner />
+        <Suspense fallback={null}>
+          <Toaster />
+          <Sonner />
+        </Suspense>
         <BrowserRouter>
           <AuthProvider>
             <TenantProvider>
