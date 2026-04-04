@@ -22,6 +22,7 @@ import WhatsAppShowcaseSection from '@/components/home/WhatsAppShowcaseSection';
 import PricingPreview from '@/components/home/PricingPreview';
 import TestimonialsCarousel from '@/components/home/TestimonialsCarousel';
 import FinalCTANew from '@/components/home/FinalCTANew';
+import AwardsTrustSection from '@/components/home/AwardsTrustSection';
 
 // Error boundary with retry for lazy loaded components
 interface ErrorBoundaryState {
@@ -123,6 +124,11 @@ export default function Index() {
       {/* WhatsApp Commerce Showcase */}
       <SectionErrorBoundary>
         <WhatsAppShowcaseSection />
+      </SectionErrorBoundary>
+
+      {/* Awards & Trust */}
+      <SectionErrorBoundary>
+        <AwardsTrustSection />
       </SectionErrorBoundary>
 
       {/* Pricing Preview */}
