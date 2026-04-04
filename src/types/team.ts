@@ -30,7 +30,8 @@ export type AuditAction =
   | 'automation_activated' | 'automation_paused' | 'automation_deleted'
   | 'tag_added' | 'tag_removed' | 'assignment_changed'
   | 'conversation_closed' | 'conversation_reopened'
-  | 'waba_connected' | 'settings_changed';
+  | 'waba_connected' | 'settings_changed'
+  | 'conversation_intervened' | 'bot_resumed' | 'conversation.assigned';
 
 export interface Role {
   id: string;

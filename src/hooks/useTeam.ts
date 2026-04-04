@@ -1057,7 +1057,8 @@ export function useAuditLogs(filters?: { userId?: string; action?: string; dateF
     
     setLoading(true);
     try {
-      let query = supabase
+      // Fetch from audit_logs table
+      let auditQuery = supabase
         .from('audit_logs')
         .select(`
           *,
@@ -1068,22 +1069,93 @@ export function useAuditLogs(filters?: { userId?: string; action?: string; dateF
         .limit(500);
 
       if (filters?.userId) {
-        query = query.eq('user_id', filters.userId);
+        auditQuery = auditQuery.eq('user_id', filters.userId);
       }
       if (filters?.action) {
-        query = query.eq('action', filters.action);
+        auditQuery = auditQuery.eq('action', filters.action);
       }
       if (filters?.dateFrom) {
-        query = query.gte('created_at', filters.dateFrom);
+        auditQuery = auditQuery.gte('created_at', filters.dateFrom);
       }
       if (filters?.dateTo) {
-        query = query.lte('created_at', filters.dateTo);
+        auditQuery = auditQuery.lte('created_at', filters.dateTo);
       }
 
-      const { data, error } = await query;
-      if (error) throw error;
-      setLogs(data as AuditLog[]);
+      // Also fetch conversation events for richer activity log
+      let eventsQuery = supabase
+        .from('smeksh_conversation_events')
+        .select('id, tenant_id, conversation_id, event_type, actor_profile_id, details, created_at')
+        .eq('tenant_id', currentTenant.id)
+        .order('created_at', { ascending: false })
+        .limit(300);
+
+      if (filters?.userId) {
+        eventsQuery = eventsQuery.eq('actor_profile_id', filters.userId);
+      }
+      if (filters?.dateFrom) {
+        eventsQuery = eventsQuery.gte('created_at', filters.dateFrom);
+      }
+      if (filters?.dateTo) {
+        eventsQuery = eventsQuery.lte('created_at', filters.dateTo);
+      }
+
+      const [auditRes, eventsRes] = await Promise.all([auditQuery, eventsQuery]);
+
+      if (auditRes.error) throw auditRes.error;
+
+      const auditData = (auditRes.data || []) as AuditLog[];
+
+      // Map conversation events to audit log format
+      const eventActionMap: Record<string, string> = {
+        assigned: 'assignment_changed',
+        intervened: 'conversation_intervened',
+        bot_resumed: 'bot_resumed',
+        closed: 'conversation_closed',
+        reopened: 'conversation_reopened',
+        tagged: 'tag_added',
+        untagged: 'tag_removed',
+      };
+
+      // Get unique actor IDs for profile lookup
+      const actorIds = [...new Set((eventsRes.data || []).map(e => e.actor_profile_id).filter(Boolean))];
+      let profileMap: Record<string, any> = {};
+      if (actorIds.length > 0) {
+        const { data: profiles } = await supabase
+          .from('profiles')
+          .select('id, full_name, email, avatar_url')
+          .in('id', actorIds);
+        profileMap = (profiles || []).reduce((acc, p) => { acc[p.id] = p; return acc; }, {} as Record<string, any>);
+      }
+
+      const mappedEvents: AuditLog[] = (eventsRes.data || [])
+        .filter(e => {
+          const mapped = eventActionMap[e.event_type];
+          if (!mapped) return false;
+          if (filters?.action && mapped !== filters.action) return false;
+          return true;
+        })
+        .map(e => ({
+          id: e.id,
+          tenant_id: e.tenant_id,
+          user_id: e.actor_profile_id,
+          action: (eventActionMap[e.event_type] || e.event_type) as AuditLog['action'],
+          resource_type: 'conversation',
+          resource_id: e.conversation_id,
+          details: (e.details || {}) as Record<string, any>,
+          ip_address: null,
+          user_agent: null,
+          created_at: e.created_at,
+          user: e.actor_profile_id ? profileMap[e.actor_profile_id] || null : null,
+        } as AuditLog));
+
+      // Merge and sort by date descending
+      const combined = [...auditData, ...mappedEvents]
+        .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+        .slice(0, 500);
+
+      setLogs(combined);
     } catch (err: any) {
+      console.error('Audit logs error:', err);
       toast.error('Failed to load audit logs');
     } finally {
       setLoading(false);
