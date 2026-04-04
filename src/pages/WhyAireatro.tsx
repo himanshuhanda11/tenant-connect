@@ -366,11 +366,11 @@ export default function WhyAireatro() {
               Get started in under 2 minutes. No credit card required. No monthly fees.
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center mt-6">
-              <Button size="lg" className="rounded-xl text-sm font-semibold px-8 gap-2 bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg" onClick={() => navigate('/signup')}>
+              <Button size="lg" className="rounded-xl text-sm font-semibold px-8 gap-2 bg-background text-foreground hover:bg-background/90 shadow-xl border border-background/80" onClick={() => navigate('/signup')}>
                 Start Free Now <ArrowRight className="h-4 w-4" />
               </Button>
               <Button size="lg" variant="outline" className="rounded-xl text-sm font-semibold px-8 border-white/30 text-white hover:bg-white/10" onClick={() => navigate('/contact')}>
-                Start Free
+                Contact Us
               </Button>
             </div>
             <p className="text-emerald-200 text-xs mt-4">✓ Free forever &nbsp;·&nbsp; ✓ No setup fees &nbsp;·&nbsp; ✓ Cancel anytime</p>
@@ -405,18 +405,18 @@ export default function WhyAireatro() {
         </section>
 
         {/* ── CTA ── */}
-        <section className="border-t border-gray-200 bg-gradient-to-b from-white to-emerald-50/50">
+        <section className="border-t border-border bg-gradient-to-b from-background to-muted/40">
           <div className="max-w-3xl mx-auto px-4 py-14 sm:py-20 text-center">
-            <div className="inline-flex items-center gap-2 bg-emerald-100 text-emerald-700 rounded-full px-4 py-1.5 text-xs font-semibold mb-5">
+            <div className="inline-flex items-center gap-2 bg-primary/10 text-primary rounded-full px-4 py-1.5 text-xs font-semibold mb-5">
               <Sparkles className="h-3.5 w-3.5" /> Ready to grow?
             </div>
-            <h2 className="text-2xl sm:text-4xl font-bold text-gray-900">Start Free Today — No Credit Card Required</h2>
-            <p className="text-gray-600 mt-3 text-sm sm:text-base max-w-xl mx-auto">
+            <h2 className="text-2xl sm:text-4xl font-bold text-foreground">Start Free Today — No Credit Card Required</h2>
+            <p className="text-muted-foreground mt-3 text-sm sm:text-base max-w-xl mx-auto">
               Join 2,000+ businesses already using Aireatro to sell more, support faster, and automate smarter on WhatsApp.
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center mt-8">
-              <Button size="lg" className="rounded-xl text-sm font-semibold px-8 gap-2 bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg" onClick={() => navigate('/signup')}>
-                Create Free Account <ArrowRight className="h-4 w-4" />
+              <Button size="lg" className="rounded-xl text-sm font-semibold px-8 gap-2 bg-primary text-primary-foreground hover:bg-primary/90 shadow-xl shadow-primary/20 border border-primary" onClick={() => navigate('/signup')}>
+                Start Free <ArrowRight className="h-4 w-4" />
               </Button>
               <Button size="lg" variant="outline" className="rounded-xl text-sm font-semibold px-8 border-border text-foreground hover:bg-muted" onClick={() => navigate('/contact')}>
                 Contact Us
