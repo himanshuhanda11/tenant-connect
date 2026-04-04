@@ -114,6 +114,11 @@ export default function Index() {
         <MetaAdsAttributionSection />
       </SectionErrorBoundary>
 
+      {/* Ad to Conversion Journey */}
+      <SectionErrorBoundary>
+        <AdToConversionSection />
+      </SectionErrorBoundary>
+
       {/* Pricing Preview */}
       <SectionErrorBoundary>
         <PricingPreview />
