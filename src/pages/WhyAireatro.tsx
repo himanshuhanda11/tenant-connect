@@ -182,7 +182,7 @@ const comparisonData = [
   { feature: 'AI Auto-Reply', aireatro: 'Built-in', others: 'Extra cost / None' },
   { feature: 'Flow Diagnostics', aireatro: 'Health scores & fixes', others: 'Not available' },
   { feature: 'Ad Attribution', aireatro: 'End-to-end tracking', others: 'Click only' },
-  { feature: 'Setup Time', aireatro: '< 30 minutes', others: 'Hours to days' },
+  { feature: 'Setup Time', aireatro: '< 10 minutes', others: 'Hours to days' },
   { feature: 'UI/UX Quality', aireatro: 'Premium (Stripe-level)', others: 'Cluttered' },
   { feature: 'Multi-Workspace', aireatro: 'Included', others: 'Enterprise plan only' },
 ];
@@ -268,7 +268,7 @@ export default function WhyAireatro() {
                 {[
                   { value: '2,000+', label: 'Businesses Trust Us' },
                   { value: '₹0', label: 'Monthly Platform Fee' },
-                  { value: '< 30 min', label: 'Setup Time' },
+                  { value: '< 10 min', label: 'Setup Time' },
                   { value: '98%', label: 'Message Open Rate' },
                 ].map(s => (
                   <div key={s.label} className="text-center">

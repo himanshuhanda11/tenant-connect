@@ -7,7 +7,7 @@ import { Link } from 'react-router-dom';
 const stats = [
   { icon: Users, value: '2,000+', label: 'Businesses Trust Us' },
   { icon: Eye, value: '98%', label: 'Message Open Rate' },
-  { icon: Clock, value: '<30 min', label: 'Setup Time' },
+  { icon: Clock, value: '<10 min', label: 'Setup Time' },
   { icon: DollarSign, value: '₹0', label: 'Platform Fee' },
 ];
 
