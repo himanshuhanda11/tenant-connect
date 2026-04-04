@@ -1,178 +1,115 @@
-import React, { useState } from 'react';
-import { 
+import React from 'react';
+import {
   Brain, MessageSquare, Sparkles, Target, TrendingUp, Lightbulb,
-  ArrowRight, Play, X
 } from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import homeAiCapabilities from '@/assets/home-ai-capabilities.png';
+import { motion } from 'framer-motion';
 
-const aiCapabilities = [
+const features = [
   {
     icon: MessageSquare,
-    title: 'AI Reply Suggestions',
-    description: 'Get contextual reply suggestions based on conversation history and customer intent.',
-    demo: 'Watch how AI suggests the perfect response to customer queries in real-time.'
+    title: 'AI Auto-Replies',
+    desc: 'Instantly responds to customer messages with context-aware answers — no manual typing needed.',
+    accent: 'text-blue-500',
+    bg: 'bg-blue-500/10',
   },
   {
     icon: Target,
     title: 'Intent Detection',
-    description: 'Automatically classify incoming messages by intent — support, sales, complaint, etc.',
-    demo: 'See AI categorize 50+ message types with 95% accuracy.'
+    desc: 'Classifies every message as sales, support, or complaint so it reaches the right person.',
+    accent: 'text-orange-500',
+    bg: 'bg-orange-500/10',
   },
   {
     icon: Sparkles,
-    title: 'AI Flow Builder',
-    description: 'Describe your automation in plain English. AI builds the flow for you.',
-    demo: 'Type "Send reminders for unpaid invoices" and watch the magic happen.',
-    badge: 'Pro'
+    title: 'Flow Builder',
+    desc: 'Describe what you want in plain English — AI creates the entire automation workflow.',
+    accent: 'text-primary',
+    bg: 'bg-primary/10',
+    tag: 'Pro',
   },
   {
     icon: TrendingUp,
-    title: 'AI Insights Dashboard',
-    description: 'Predictive analytics, anomaly detection, and actionable recommendations.',
-    demo: 'Discover hidden patterns in your WhatsApp conversations.',
-    badge: 'Pro'
+    title: 'AI Insights',
+    desc: 'Spots trends, flags anomalies, and gives you actionable recommendations automatically.',
+    accent: 'text-emerald-500',
+    bg: 'bg-emerald-500/10',
+    tag: 'Pro',
   },
   {
     icon: Lightbulb,
     title: 'Smart Routing',
-    description: 'AI assigns conversations to the right agent based on skills, language, and workload.',
-    demo: 'See how AI reduces response time by 60%.'
+    desc: 'Assigns conversations to the best agent based on skills, language, and current workload.',
+    accent: 'text-amber-500',
+    bg: 'bg-amber-500/10',
   },
   {
     icon: Brain,
     title: 'Sentiment Analysis',
-    description: 'Detect customer mood in real-time. Escalate frustrated customers automatically.',
-    demo: 'Watch AI flag at-risk customers before they churn.'
+    desc: 'Detects frustrated customers in real-time and escalates them before they churn.',
+    accent: 'text-violet-500',
+    bg: 'bg-violet-500/10',
   },
 ];
 
 export default function AICapabilitiesSection() {
-  const [selectedDemo, setSelectedDemo] = useState<typeof aiCapabilities[0] | null>(null);
-
   return (
-    <section className="py-10 sm:py-12 md:py-16 lg:py-20 bg-gradient-to-b from-muted/30 to-background">
-      <div className="container mx-auto px-4">
-        {/* Header with Image */}
-        <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center max-w-6xl mx-auto mb-10 sm:mb-14">
-          <div className="text-center lg:text-left">
-            <Badge className="mb-3 sm:mb-4 bg-accent text-accent-foreground border-0 text-xs sm:text-sm">
-              <Brain className="w-3 sm:w-3.5 h-3 sm:h-3.5 mr-1 sm:mr-1.5" />
-              AI-Powered
-            </Badge>
-            <h2 className="text-2xl xs:text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-3 sm:mb-4">
-              AI That Actually{' '}
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-emerald-500">
-                Works
-              </span>
-            </h2>
-            <p className="text-sm sm:text-base lg:text-lg text-muted-foreground">
-              Not just buzzwords — real AI features that save hours every day
-            </p>
-          </div>
-          <div className="hidden lg:block">
-            <img
-              src={homeAiCapabilities}
-              alt="AI-powered WhatsApp automation"
-              className="w-full h-auto rounded-2xl shadow-xl"
-              loading="lazy"
-            />
-          </div>
-        </div>
+    <section className="py-14 sm:py-20 lg:py-28 bg-background relative overflow-hidden">
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute top-1/3 -right-40 w-[500px] h-[500px] bg-primary/[0.03] rounded-full blur-[120px]" />
+      </div>
 
-        <div className="grid grid-cols-1 xs:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 max-w-6xl mx-auto mb-8 sm:mb-10">
-          {aiCapabilities.map((item, index) => (
-            <Card 
-              key={index}
-              className="group bg-card border border-border hover:border-primary/30 hover:shadow-xl transition-all duration-300"
-            >
-              <CardContent className="p-4 sm:p-6">
-                <div className="flex items-start justify-between mb-3 sm:mb-4">
-                  <div className="w-10 sm:w-12 h-10 sm:h-12 rounded-lg sm:rounded-xl bg-primary/10 flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform">
-                    <item.icon className="w-5 sm:w-6 h-5 sm:h-6 text-primary" />
+      <div className="container mx-auto px-4 relative z-10 max-w-5xl">
+        {/* Header */}
+        <motion.div
+          className="text-center mb-14 sm:mb-20"
+          initial={{ opacity: 0, y: 24 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+        >
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-medium mb-5 tracking-wide uppercase">
+            <Brain className="w-3.5 h-3.5" />
+            AI-Powered
+          </div>
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-foreground mb-4 tracking-tight">
+            AI That Saves You{' '}
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-emerald-500">
+              Hours Every Day
+            </span>
+          </h2>
+          <p className="text-muted-foreground text-base sm:text-lg max-w-xl mx-auto leading-relaxed">
+            Real features, real results — not just buzzwords.
+          </p>
+        </motion.div>
+
+        {/* 2×3 grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+          {features.map((f, i) => {
+            const Icon = f.icon;
+            return (
+              <motion.div
+                key={f.title}
+                className="group rounded-2xl border border-border/50 bg-card/70 backdrop-blur-sm p-6 hover:shadow-xl hover:border-primary/20 hover:-translate-y-1 transition-all duration-300"
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.07 }}
+              >
+                <div className="flex items-center justify-between mb-4">
+                  <div className={`w-11 h-11 rounded-xl ${f.bg} flex items-center justify-center group-hover:scale-110 transition-transform duration-300`}>
+                    <Icon className={`w-5 h-5 ${f.accent}`} />
                   </div>
-                  {item.badge && (
-                    <Badge className="bg-warning/10 text-warning border-0 text-[10px] sm:text-xs">
-                      {item.badge}
-                    </Badge>
+                  {f.tag && (
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-primary bg-primary/10 px-2 py-0.5 rounded-full">
+                      {f.tag}
+                    </span>
                   )}
                 </div>
-                <h3 className="text-base sm:text-lg font-bold text-foreground mb-1.5 sm:mb-2">
-                  {item.title}
-                </h3>
-                <p className="text-muted-foreground text-xs sm:text-sm leading-relaxed mb-3 sm:mb-4">
-                  {item.description}
-                </p>
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  className="text-primary hover:text-primary/80 hover:bg-accent p-0 h-auto text-xs sm:text-sm"
-                  onClick={() => setSelectedDemo(item)}
-                >
-                  <Play className="w-3.5 sm:w-4 h-3.5 sm:h-4 mr-1 sm:mr-1.5 fill-primary" />
-                  See it in action
-                </Button>
-              </CardContent>
-            </Card>
-          ))}
+                <h3 className="text-base sm:text-lg font-semibold text-foreground mb-2">{f.title}</h3>
+                <p className="text-sm text-muted-foreground leading-relaxed">{f.desc}</p>
+              </motion.div>
+            );
+          })}
         </div>
-
-        <div className="text-center">
-          <Button 
-            size="lg" 
-            className="bg-gradient-to-r from-primary to-emerald-500 hover:from-primary/90 hover:to-emerald-600 shadow-lg shadow-primary/25"
-            onClick={() => setSelectedDemo(aiCapabilities[0])}
-          >
-            <Sparkles className="w-5 h-5 mr-2" />
-            See AI in Action
-          </Button>
-        </div>
-
-        {/* Demo Modal */}
-        <Dialog open={!!selectedDemo} onOpenChange={() => setSelectedDemo(null)} modal>
-          <DialogContent className="max-w-2xl">
-            <DialogHeader>
-              <DialogTitle className="flex items-center gap-3">
-                {selectedDemo && (
-                  <>
-                    <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-                      <selectedDemo.icon className="w-5 h-5 text-primary" />
-                    </div>
-                    {selectedDemo.title}
-                  </>
-                )}
-              </DialogTitle>
-            </DialogHeader>
-            
-            <div className="py-8">
-              <div className="aspect-video bg-muted rounded-xl flex items-center justify-center mb-6">
-                <div className="text-center">
-                  <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
-                    <Play className="w-8 h-8 text-primary fill-primary" />
-                  </div>
-                  <p className="text-muted-foreground">Demo video coming soon</p>
-                </div>
-              </div>
-              
-              <p className="text-muted-foreground text-center">
-                {selectedDemo?.demo}
-              </p>
-            </div>
-
-            <div className="flex justify-center gap-4">
-              <Button variant="outline" onClick={() => setSelectedDemo(null)}>
-                Close
-              </Button>
-              <Button className="bg-gradient-to-r from-primary to-emerald-500">
-                Start Free Trial
-                <ArrowRight className="w-4 h-4 ml-2" />
-              </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
       </div>
     </section>
   );
