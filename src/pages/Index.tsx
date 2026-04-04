@@ -126,6 +126,11 @@ export default function Index() {
         <WhatsAppShowcaseSection />
       </SectionErrorBoundary>
 
+      {/* Awards & Trust */}
+      <SectionErrorBoundary>
+        <AwardsTrustSection />
+      </SectionErrorBoundary>
+
       {/* Pricing Preview */}
       <SectionErrorBoundary>
         <PricingPreview />
