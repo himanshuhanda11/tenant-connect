@@ -117,7 +117,7 @@ export default function Billing() {
                     />
                     <Label htmlFor="billing-toggle" className={`text-xs ${isYearly ? 'font-semibold' : 'text-muted-foreground'}`}>
                       Yearly
-                      <Badge variant="secondary" className="ml-1.5 text-[10px] px-1.5 py-0">-17%</Badge>
+                      <Badge variant="secondary" className="ml-1.5 text-[10px] px-1.5 py-0">-20%</Badge>
                     </Label>
                   </div>
                 </div>
