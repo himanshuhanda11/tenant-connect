@@ -3,6 +3,7 @@ import {
   MousePointerClick, MessageSquare, Users, TrendingUp,
   ArrowRight, DollarSign, Target, Clock,
 } from 'lucide-react';
+import girlWithPhone from '@/assets/girl-with-phone.png';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -51,39 +52,55 @@ export default function MetaAdsAttributionSection() {
           </p>
         </motion.div>
 
-        {/* Funnel — 2x2 grid with numbered cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 mb-12 sm:mb-16">
-          {funnel.map((step, i) => {
-            const Icon = step.icon;
-            return (
-              <motion.div
-                key={step.title}
-                className="group rounded-2xl border border-border/50 bg-card/70 backdrop-blur-sm p-6 hover:shadow-xl hover:border-info/20 hover:-translate-y-0.5 transition-all duration-300"
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.08 }}
-              >
-                <div className="flex items-start gap-4">
-                  {/* Number badge */}
-                  <div className={`w-8 h-8 rounded-full ${step.dot} flex items-center justify-center shrink-0 mt-0.5`}>
-                    <span className="text-xs font-bold text-white">{step.num}</span>
+        {/* Funnel + Girl image layout */}
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 mb-12 sm:mb-16 items-center">
+          {/* Funnel cards — 3 columns */}
+          <div className="lg:col-span-3 grid grid-cols-1 sm:grid-cols-2 gap-5">
+            {funnel.map((step, i) => {
+              const Icon = step.icon;
+              return (
+                <motion.div
+                  key={step.title}
+                  className="group rounded-2xl border border-border/50 bg-card/70 backdrop-blur-sm p-6 hover:shadow-xl hover:border-info/20 hover:-translate-y-0.5 transition-all duration-300"
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: i * 0.08 }}
+                >
+                  <div className="flex items-start gap-4">
+                    <div className={`w-8 h-8 rounded-full ${step.dot} flex items-center justify-center shrink-0 mt-0.5`}>
+                      <span className="text-xs font-bold text-white">{step.num}</span>
+                    </div>
+                    <div className={`w-11 h-11 rounded-xl ${step.bg} flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform duration-300`}>
+                      <Icon className={`w-5 h-5 ${step.accent}`} />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-base sm:text-lg font-semibold text-foreground mb-1">{step.title}</h3>
+                      <p className="text-sm text-muted-foreground leading-relaxed">{step.sub}</p>
+                    </div>
                   </div>
+                </motion.div>
+              );
+            })}
+          </div>
 
-                  {/* Icon */}
-                  <div className={`w-11 h-11 rounded-xl ${step.bg} flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform duration-300`}>
-                    <Icon className={`w-5 h-5 ${step.accent}`} />
-                  </div>
-
-                  {/* Text */}
-                  <div className="flex-1 min-w-0">
-                    <h3 className="text-base sm:text-lg font-semibold text-foreground mb-1">{step.title}</h3>
-                    <p className="text-sm text-muted-foreground leading-relaxed">{step.sub}</p>
-                  </div>
-                </div>
-              </motion.div>
-            );
-          })}
+          {/* Girl with phone — 2 columns */}
+          <motion.div
+            className="lg:col-span-2 flex justify-center"
+            initial={{ opacity: 0, scale: 0.95 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.2 }}
+          >
+            <img
+              src={girlWithPhone}
+              alt="Business professional using WhatsApp on phone"
+              className="max-h-[420px] w-auto object-contain drop-shadow-xl"
+              loading="lazy"
+              width={768}
+              height={896}
+            />
+          </motion.div>
         </div>
 
         {/* Metrics */}

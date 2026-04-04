@@ -126,7 +126,7 @@ export default function AdToConversionSection() {
                 <div className="flex items-center gap-3 mt-3 p-3 rounded-xl bg-primary/[0.06] border border-primary/10">
                   <CheckCircle2 className="w-8 h-8 text-primary shrink-0" />
                   <div>
-                    <p className="text-sm font-bold text-foreground">₹899.00</p>
+                    <p className="text-sm font-bold text-foreground">₹1,499.00</p>
                     <p className="text-[11px] text-muted-foreground">Payment received · Order confirmed</p>
                   </div>
                   <div className="ml-auto">
