@@ -95,10 +95,10 @@ export default function MetaAdsAttributionSection() {
             <img
               src={girlWithPhone}
               alt="Business professional using WhatsApp on phone"
-              className="max-h-[520px] w-auto object-contain drop-shadow-2xl"
+              className="max-h-[600px] w-auto object-contain drop-shadow-2xl"
               loading="lazy"
-              width={768}
-              height={1024}
+              width={1280}
+              height={1920}
             />
           </motion.div>
         </div>
