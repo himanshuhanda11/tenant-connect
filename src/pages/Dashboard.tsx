@@ -321,44 +321,44 @@ export default function Dashboard() {
         {/* ═══════════════════════════════════════════════
             SECTION 6: ACTION CENTER
         ═══════════════════════════════════════════════ */}
-        <div className="rounded-xl border border-border/40 bg-card p-4 shadow-sm">
-          <div className="flex items-center justify-between mb-3">
+        <div className="rounded-lg sm:rounded-xl border border-border/40 bg-card p-3 sm:p-4 shadow-sm">
+          <div className="flex items-center justify-between mb-2 sm:mb-3">
             <div className="flex items-center gap-2">
               <AlertCircle className="h-4 w-4 text-red-500" />
-              <h3 className="text-sm font-bold text-foreground">Action Queue</h3>
+              <h3 className="text-xs sm:text-sm font-bold text-foreground">Action Queue</h3>
             </div>
             {pendingActions.length > 0 && (
-              <Badge className="bg-red-100 dark:bg-red-500/15 text-red-600 dark:text-red-400 border-0 text-[10px] font-semibold rounded-full">
+              <Badge className="bg-red-100 dark:bg-red-500/15 text-red-600 dark:text-red-400 border-0 text-[9px] sm:text-[10px] font-semibold rounded-full">
                 {pendingActions.length} items
               </Badge>
             )}
           </div>
           {pendingActions.length === 0 ? (
-            <div className="flex items-center gap-2 py-3">
-              <CheckCircle2 className="h-5 w-5 text-emerald-500" />
-              <p className="text-sm text-foreground font-medium">All clear — nothing urgent!</p>
+            <div className="flex items-center gap-2 py-2 sm:py-3">
+              <CheckCircle2 className="h-4 w-4 sm:h-5 sm:w-5 text-emerald-500" />
+              <p className="text-xs sm:text-sm text-foreground font-medium">All clear — nothing urgent!</p>
             </div>
           ) : (
-            <div className="space-y-2">
+            <div className="space-y-1.5 sm:space-y-2">
               {pendingActions.map(item => (
                 <button key={item.id} onClick={() => navigate(item.href)}
-                  className="w-full flex items-center gap-3 p-3 rounded-lg border border-border/30 hover:bg-muted/40 transition-colors group text-left"
+                  className="w-full flex items-center gap-2 sm:gap-3 p-2 sm:p-3 rounded-lg border border-border/30 hover:bg-muted/40 transition-colors group text-left active:scale-[0.98]"
                 >
-                  <div className="h-8 w-8 rounded-lg bg-red-100 dark:bg-red-500/15 flex items-center justify-center flex-shrink-0">
-                    <Users className="h-4 w-4 text-red-500" />
+                  <div className="h-7 w-7 sm:h-8 sm:w-8 rounded-lg bg-red-100 dark:bg-red-500/15 flex items-center justify-center flex-shrink-0">
+                    <Users className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-red-500" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-foreground">{item.message}</p>
-                    <p className="text-[11px] text-muted-foreground">
+                    <p className="text-xs sm:text-sm font-medium text-foreground truncate">{item.message}</p>
+                    <p className="text-[10px] sm:text-[11px] text-muted-foreground">
                       {item.priority === 'high' ? 'Waiting for assignment' : 'Needs review'}
                     </p>
                   </div>
-                  <Badge className={cn("text-[9px] border-0 font-semibold rounded-full",
+                  <Badge className={cn("text-[8px] sm:text-[9px] border-0 font-semibold rounded-full hidden sm:inline-flex",
                     item.priority === 'high' ? 'bg-red-100 dark:bg-red-500/15 text-red-600 dark:text-red-400' : 'bg-amber-100 dark:bg-amber-500/15 text-amber-600 dark:text-amber-400'
                   )}>
                     {item.priority === 'high' ? 'Urgent' : 'Pending'}
                   </Badge>
-                  <ChevronRight className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                  <ChevronRight className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground flex-shrink-0" />
                 </button>
               ))}
             </div>
