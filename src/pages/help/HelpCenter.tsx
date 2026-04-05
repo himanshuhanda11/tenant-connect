@@ -201,6 +201,7 @@ export default function HelpCenter() {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
+      <SEO title="Help Center - AiReatro" description="Browse guides, tutorials, and documentation for AiReatro WhatsApp API platform. Find answers to common questions and get started quickly." keywords={["help center", "documentation", "WhatsApp API help", "tutorials"]} canonical="/help" />
       <Navbar />
       
       {/* Hero Section */}
