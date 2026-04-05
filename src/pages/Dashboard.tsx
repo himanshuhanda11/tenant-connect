@@ -115,21 +115,21 @@ export default function Dashboard() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-4 sm:space-y-5 max-w-[1200px] mx-auto px-3 py-4 sm:px-6 sm:py-6 animate-fade-in">
+      <div className="space-y-3 sm:space-y-5 max-w-[1200px] mx-auto px-2 py-3 sm:px-6 sm:py-6 animate-fade-in">
 
         {/* ═══════════════════════════════════════════════
             SECTION 1: HERO — Greeting + Refresh
         ═══════════════════════════════════════════════ */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-lg sm:text-xl font-bold text-foreground">{greeting}, {displayName} 👋</h1>
-            <p className="text-xs sm:text-sm text-muted-foreground">Here's what's happening in <span className="font-semibold text-foreground">{currentTenant?.name}</span></p>
+        <div className="flex items-start sm:items-center justify-between gap-2">
+          <div className="min-w-0">
+            <h1 className="text-base sm:text-xl font-bold text-foreground truncate">{greeting}, {displayName} 👋</h1>
+            <p className="text-[11px] sm:text-sm text-muted-foreground truncate">Here's what's happening in <span className="font-semibold text-foreground">{currentTenant?.name}</span></p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
             {billing?.planName && (
               <Badge
                 className={cn(
-                  "text-[10px] sm:text-xs font-semibold rounded-full px-2.5 py-1 border cursor-pointer hover:opacity-90 transition-opacity",
+                  "text-[9px] sm:text-xs font-semibold rounded-full px-2 py-0.5 sm:py-1 border cursor-pointer hover:opacity-90 transition-opacity hidden xs:inline-flex",
                   billing.planName.toLowerCase() === 'free'
                     ? "bg-muted text-muted-foreground border-border/50"
                     : billing.planName.toLowerCase() === 'basic'
@@ -141,11 +141,12 @@ export default function Dashboard() {
                 onClick={() => navigate('/billing')}
               >
                 <Sparkles className="h-3 w-3 mr-1" />
-                {billing.planName} Plan
+                {billing.planName}
               </Badge>
             )}
-            <Button variant="outline" size="sm" onClick={refetch} className="h-8 rounded-xl text-xs gap-1.5 border-border/40">
-              <RefreshCw className={cn("h-3.5 w-3.5", loading && "animate-spin")} /> Refresh
+            <Button variant="outline" size="sm" onClick={refetch} className="h-7 sm:h-8 rounded-xl text-[10px] sm:text-xs gap-1 sm:gap-1.5 border-border/40 px-2 sm:px-3">
+              <RefreshCw className={cn("h-3 sm:h-3.5 w-3 sm:w-3.5", loading && "animate-spin")} />
+              <span className="hidden sm:inline">Refresh</span>
             </Button>
           </div>
         </div>
