@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { SEO } from '@/components/seo';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import Breadcrumb from '@/components/layout/Breadcrumb';
@@ -6,6 +7,7 @@ import Breadcrumb from '@/components/layout/Breadcrumb';
 export default function PrivacyPolicy() {
   return (
     <div className="min-h-screen bg-background">
+      <SEO title="Privacy Policy - AiReatro" description="Read AiReatro's privacy policy. Learn how we collect, use, and protect your personal data on our WhatsApp API & CRM platform." keywords={["privacy policy", "data protection", "GDPR", "WhatsApp API privacy"]} canonical="/privacy-policy" />
       <Navbar />
       <div className="max-w-4xl mx-auto px-4 py-12">
         <Breadcrumb className="mb-6" />

@@ -1,4 +1,5 @@
 import React from 'react';
+import { SEO } from '@/components/seo';
 import { 
   Users, 
   Tag, 
@@ -95,6 +96,7 @@ export default function ContactsFeature() {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEO title="Contact Management for WhatsApp - AiReatro" description="Manage WhatsApp contacts with custom attributes, tags, segments, and full conversation history. Import, export, and organize your customer database." keywords={["WhatsApp contacts", "contact management", "CRM contacts", "customer database"]} canonical="/features/contacts" />
       <Navbar />
 
       {/* Hero */}

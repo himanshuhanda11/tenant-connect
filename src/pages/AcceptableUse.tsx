@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { SEO } from '@/components/seo';
 import { Shield, CheckCircle2, XCircle, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -55,6 +56,7 @@ export default function AcceptableUse() {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEO title="Acceptable Use Policy - AiReatro" description="AiReatro acceptable use policy for WhatsApp Business API messaging. Understand prohibited activities and compliance requirements." keywords={["acceptable use", "messaging policy", "WhatsApp compliance", "anti-spam"]} canonical="/acceptable-use" />
       <Navbar />
 
       {/* Hero */}

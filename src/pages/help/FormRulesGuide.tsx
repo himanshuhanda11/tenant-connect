@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { SEO } from '@/components/seo';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import Breadcrumb from '@/components/layout/Breadcrumb';
@@ -12,6 +13,7 @@ import { CollapsibleSection } from '@/components/help/CollapsibleSection';
 export default function FormRulesGuide() {
   return (
     <div className="min-h-screen bg-background flex flex-col">
+      <SEO title="Auto-Form Rules Guide - AiReatro Help Center" description="Set up automatic WhatsApp form delivery based on keywords, intent, and ad clicks. No-code form automation with AI detection." keywords={["form rules guide", "auto-form tutorial", "WhatsApp forms help"]} canonical="/help/form-rules" noIndex />
       <Navbar />
 
       <section className="py-8 bg-muted/30 border-b">

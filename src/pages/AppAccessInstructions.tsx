@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { SEO } from '@/components/seo';
 import { CheckCircle, ExternalLink, MessageSquare, Phone, Shield, Users } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -9,6 +10,7 @@ import Breadcrumb from '@/components/layout/Breadcrumb';
 export default function AppAccessInstructions() {
   return (
     <div className="min-h-screen bg-background">
+      <SEO title="App Access Instructions - AiReatro" description="Step-by-step guide to access AiReatro WhatsApp API platform on mobile and desktop. Install as PWA for the best experience." keywords={["app access", "install app", "PWA", "mobile access", "WhatsApp CRM app"]} canonical="/app-access-instructions" />
       <Navbar />
 
       {/* Main Content */}

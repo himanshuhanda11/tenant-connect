@@ -1,4 +1,5 @@
 import React from 'react';
+import { SEO } from '@/components/seo';
 import { BarChart3, PieChart, TrendingUp, Download, Calendar, Eye, ArrowRight, CheckCircle2, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -21,6 +22,7 @@ export default function AnalyticsFeature() {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEO title="WhatsApp Analytics & Reporting - AiReatro" description="Track WhatsApp messaging performance with real-time dashboards. Monitor delivery rates, response times, agent productivity, and campaign ROI." keywords={["WhatsApp analytics", "messaging reports", "campaign analytics", "WhatsApp dashboard"]} canonical="/features/analytics" />
       <Navbar />
       <section className="relative pt-16 pb-10 md:pt-20 md:pb-14 overflow-hidden bg-gradient-to-b from-background to-muted/30">
         <div className="absolute inset-0"><div className="absolute top-20 left-1/4 w-[400px] h-[400px] bg-cyan-500/5 rounded-full blur-[100px]" /></div>

@@ -1,4 +1,5 @@
 import { Link, useNavigate } from 'react-router-dom';
+import { SEO } from '@/components/seo';
 import { 
   Shield, 
   CheckCircle2, 
@@ -86,6 +87,7 @@ export default function Compliance() {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEO title="Compliance & Regulations - AiReatro" description="AiReatro's compliance with GDPR, Meta policies, and WhatsApp Business guidelines. Enterprise-grade data protection and regulatory adherence." keywords={["compliance", "GDPR", "data protection", "WhatsApp regulations", "Meta policies"]} canonical="/compliance" />
       <Navbar />
 
       {/* Hero */}

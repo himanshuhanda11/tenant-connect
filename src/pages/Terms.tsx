@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { SEO } from '@/components/seo';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import Breadcrumb from '@/components/layout/Breadcrumb';
@@ -6,6 +7,7 @@ import Breadcrumb from '@/components/layout/Breadcrumb';
 export default function Terms() {
   return (
     <div className="min-h-screen bg-background">
+      <SEO title="Terms of Service - AiReatro" description="Review AiReatro's terms of service for using our WhatsApp Business API platform, CRM tools, and messaging services." keywords={["terms of service", "terms and conditions", "WhatsApp API terms"]} canonical="/terms" />
       <Navbar />
       <div className="max-w-4xl mx-auto px-4 py-12">
         <Breadcrumb className="mb-6" />

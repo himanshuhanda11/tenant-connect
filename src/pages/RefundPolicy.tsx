@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { SEO } from '@/components/seo';
 import { CreditCard, CheckCircle2, Clock, HelpCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -26,6 +27,7 @@ export default function RefundPolicy() {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEO title="Refund Policy - AiReatro" description="AiReatro refund policy for WhatsApp API subscriptions. Learn about eligibility, timelines, and how to request a refund." keywords={["refund policy", "cancellation", "money back", "WhatsApp API refund"]} canonical="/refund-policy" />
       <Navbar />
 
       {/* Hero */}

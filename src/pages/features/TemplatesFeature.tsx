@@ -1,4 +1,5 @@
 import React from 'react';
+import { SEO } from '@/components/seo';
 import { 
   FileText, 
   CheckCircle, 
@@ -95,6 +96,7 @@ export default function TemplatesFeature() {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEO title="WhatsApp Message Templates - AiReatro" description="Create, manage, and get Meta-approved WhatsApp message templates with AI validation and guided fix flows. 50+ pre-built templates included." keywords={["WhatsApp templates", "message templates", "Meta approval", "template builder"]} canonical="/features/templates" />
       <Navbar />
 
       {/* Hero */}

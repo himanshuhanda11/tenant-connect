@@ -1,4 +1,5 @@
 import React from 'react';
+import { SEO } from '@/components/seo';
 import { Phone, Shield, CheckCircle, Globe, Zap, Settings, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -21,6 +22,7 @@ export default function PhoneNumbersFeature() {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEO title="WhatsApp Phone Number Management - AiReatro" description="Connect and manage multiple WhatsApp Business phone numbers. Monitor quality ratings, verify numbers, and update business profiles." keywords={["WhatsApp phone numbers", "business phone", "number management", "WhatsApp verification"]} canonical="/features/phone-numbers" />
       <Navbar />
       <section className="relative pt-16 pb-10 md:pt-20 md:pb-14 overflow-hidden bg-gradient-to-b from-background to-muted/30">
         <div className="absolute inset-0"><div className="absolute top-20 left-1/4 w-[400px] h-[400px] bg-green-500/5 rounded-full blur-[100px]" /></div>

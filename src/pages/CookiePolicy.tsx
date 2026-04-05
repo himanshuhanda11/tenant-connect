@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { SEO } from '@/components/seo';
 import { Cookie, Settings, BarChart3, Shield, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -47,6 +48,7 @@ export default function CookiePolicy() {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEO title="Cookie Policy - AiReatro" description="Learn how AiReatro uses cookies and similar technologies to improve your experience on our WhatsApp API platform." keywords={["cookie policy", "cookies", "tracking", "WhatsApp platform cookies"]} canonical="/cookie-policy" />
       <Navbar />
 
       {/* Hero */}

@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { SEO } from '@/components/seo';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import { Button } from '@/components/ui/button';
@@ -23,6 +24,7 @@ import { WhatsAppMessagePreview } from '@/components/help/WhatsAppMessagePreview
 export default function InboxGuide() {
   return (
     <div className="min-h-screen bg-background flex flex-col">
+      <SEO title="Inbox Guide - AiReatro Help Center" description="Learn how to use AiReatro's shared WhatsApp inbox. Manage conversations, assign chats, use quick replies, and collaborate with your team." keywords={["inbox guide", "WhatsApp inbox help", "team inbox tutorial"]} canonical="/help/inbox" noIndex />
       <Navbar />
       
       {/* Header */}

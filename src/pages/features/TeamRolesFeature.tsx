@@ -1,4 +1,5 @@
 import React from 'react';
+import { SEO } from '@/components/seo';
 import { Users, Shield, Key, UserCheck, Settings, Lock, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -21,6 +22,7 @@ export default function TeamRolesFeature() {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEO title="Team Roles & Permissions - AiReatro" description="Define custom roles with granular permissions for your WhatsApp team. Control access to conversations, contacts, campaigns, and settings." keywords={["team roles", "permissions", "access control", "WhatsApp team management"]} canonical="/features/team-roles" />
       <Navbar />
       <section className="relative pt-16 pb-10 md:pt-20 md:pb-14 overflow-hidden bg-gradient-to-b from-background to-muted/30">
         <div className="absolute inset-0"><div className="absolute top-20 left-1/4 w-[400px] h-[400px] bg-pink-500/5 rounded-full blur-[100px]" /></div>

@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { SEO } from '@/components/seo';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import Breadcrumb from '@/components/layout/Breadcrumb';
@@ -12,6 +13,7 @@ import { CollapsibleSection } from '@/components/help/CollapsibleSection';
 export default function TeamGuide() {
   return (
     <div className="min-h-screen bg-background flex flex-col">
+      <SEO title="Team Management Guide - AiReatro Help Center" description="Invite team members, assign roles, create groups, and configure routing in AiReatro. Complete team management walkthrough." keywords={["team guide", "team management tutorial", "roles and permissions help"]} canonical="/help/team" noIndex />
       <Navbar />
 
       <section className="py-8 bg-muted/30 border-b">
