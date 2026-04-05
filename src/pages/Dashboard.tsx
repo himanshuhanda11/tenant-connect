@@ -156,20 +156,20 @@ export default function Dashboard() {
         ═══════════════════════════════════════════════ */}
         {/* WhatsApp Not Connected - Full Width Alert */}
         {!hasPhoneConnected && (
-          <div className="rounded-2xl border-2 border-destructive/20 bg-destructive/5 p-5 sm:p-6 flex flex-col sm:flex-row items-start sm:items-center gap-4">
-            <div className="h-12 w-12 rounded-xl bg-destructive/10 flex items-center justify-center flex-shrink-0">
-              <Phone className="h-6 w-6 text-destructive" />
+          <div className="rounded-xl sm:rounded-2xl border-2 border-destructive/20 bg-destructive/5 p-3 sm:p-6 flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4">
+            <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-lg sm:rounded-xl bg-destructive/10 flex items-center justify-center flex-shrink-0">
+              <Phone className="h-5 w-5 sm:h-6 sm:w-6 text-destructive" />
             </div>
             <div className="flex-1 min-w-0">
-              <h3 className="text-sm sm:text-base font-semibold text-foreground">WhatsApp API Not Connected</h3>
-              <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
-                Connect your WhatsApp Business number to start sending messages, run campaigns & automations.
+              <h3 className="text-xs sm:text-base font-semibold text-foreground">WhatsApp API Not Connected</h3>
+              <p className="text-[10px] sm:text-sm text-muted-foreground mt-0.5">
+                Connect your number to start messaging, campaigns & automations.
               </p>
             </div>
-            <Button onClick={() => navigate('/phone-numbers/connect')} className="rounded-xl gap-2 px-5 flex-shrink-0">
-              <MessageSquare className="h-4 w-4" />
+            <Button onClick={() => navigate('/phone-numbers/connect')} size="sm" className="rounded-xl gap-1.5 px-3 sm:px-5 flex-shrink-0 w-full sm:w-auto h-8 sm:h-9 text-xs">
+              <MessageSquare className="h-3.5 w-3.5" />
               Connect Now
-              <ArrowRight className="h-4 w-4" />
+              <ArrowRight className="h-3.5 w-3.5" />
             </Button>
           </div>
         )}
