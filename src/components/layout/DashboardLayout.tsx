@@ -7,6 +7,7 @@ import { useTenant } from '@/contexts/TenantContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Loader2, Menu, X } from 'lucide-react';
 import { useAgentSessionTracker } from '@/hooks/useAgentPerformance';
+import { WhatsAppConnectBanner } from '@/components/dashboard/WhatsAppConnectBanner';
 
 function MobileHeader() {
   const { toggleSidebar, state } = useSidebar();
