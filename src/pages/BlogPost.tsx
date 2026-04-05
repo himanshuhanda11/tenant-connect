@@ -5,7 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
-import SeoMeta from '@/components/seo/SeoMeta';
+import SEO from '@/components/seo/SEO';
 import { getBlogPost, getRelatedPosts, blogPosts } from '@/data/blogPosts';
 
 export default function BlogPost() {
