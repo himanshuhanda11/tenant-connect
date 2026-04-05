@@ -66,7 +66,7 @@ export function WhatsAppConnectBanner() {
           {/* CTA */}
           <Button
             size="sm"
-            onClick={() => navigate('/settings?tab=whatsapp')}
+            onClick={() => navigate('/phone-numbers/connect')}
             className="flex-shrink-0 gap-1.5 rounded-xl text-xs font-semibold px-4"
           >
             <MessageSquare className="h-3.5 w-3.5" />
