@@ -7,6 +7,7 @@ import { useTenant } from '@/contexts/TenantContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Loader2, Menu, X } from 'lucide-react';
 import { useAgentSessionTracker } from '@/hooks/useAgentPerformance';
+import { WhatsAppConnectBanner } from '@/components/dashboard/WhatsAppConnectBanner';
 
 function MobileHeader() {
   const { toggleSidebar, state } = useSidebar();
@@ -129,9 +130,10 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         <main className="flex-1 flex flex-col min-w-0 w-full">
           <MobileHeader />
           <ScrollToTop />
-          <div className="flex-1 overflow-auto relative bg-muted/20 p-4 sm:p-6 lg:p-8">
+          <div className="flex-1 overflow-auto relative bg-muted/20 p-4 sm:p-6 lg:p-8 pb-20">
             {children}
           </div>
+          <WhatsAppConnectBanner />
         </main>
       </div>
     </SidebarProvider>
