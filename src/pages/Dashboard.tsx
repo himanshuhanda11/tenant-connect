@@ -441,35 +441,35 @@ export default function Dashboard() {
         {/* ═══════════════════════════════════════════════
             SECTION 9: BUSINESS PROFILE
         ═══════════════════════════════════════════════ */}
-        <div className="rounded-xl border border-border/40 bg-card p-4 shadow-sm">
-          <div className="flex items-center justify-between mb-3">
+        <div className="rounded-lg sm:rounded-xl border border-border/40 bg-card p-3 sm:p-4 shadow-sm">
+          <div className="flex items-center justify-between mb-2 sm:mb-3">
             <div className="flex items-center gap-2">
-              <ShieldCheck className="h-4 w-4 text-muted-foreground" />
-              <h3 className="text-sm font-bold text-foreground">Business Profile</h3>
+              <ShieldCheck className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground" />
+              <h3 className="text-xs sm:text-sm font-bold text-foreground">Business Profile</h3>
             </div>
-            <button onClick={() => navigate('/settings')} className="text-[11px] text-primary font-medium hover:underline">Edit</button>
+            <button onClick={() => navigate('/settings')} className="text-[10px] sm:text-[11px] text-primary font-medium hover:underline">Edit</button>
           </div>
-          <div className="flex items-center gap-3 mb-3">
-            <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center font-bold text-primary text-sm">
+          <div className="flex items-center gap-2.5 sm:gap-3 mb-2.5 sm:mb-3">
+            <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-lg sm:rounded-xl bg-primary/10 flex items-center justify-center font-bold text-primary text-xs sm:text-sm">
               {currentTenant?.name?.charAt(0) || 'A'}
             </div>
-            <div>
-              <p className="text-sm font-semibold text-foreground">{currentTenant?.name}</p>
+            <div className="min-w-0">
+              <p className="text-xs sm:text-sm font-semibold text-foreground truncate">{currentTenant?.name}</p>
               {primaryPhone?.phoneNumber && (
-                <p className="text-xs text-primary font-medium">{primaryPhone.phoneNumber}</p>
+                <p className="text-[10px] sm:text-xs text-primary font-medium">{primaryPhone.phoneNumber}</p>
               )}
             </div>
           </div>
-          <div className="space-y-2 pt-2 border-t border-border/30">
-            <div className="flex justify-between text-xs">
+          <div className="space-y-1.5 sm:space-y-2 pt-2 border-t border-border/30">
+            <div className="flex justify-between text-[10px] sm:text-xs">
               <span className="text-muted-foreground">Free Service Conversations</span>
               <span className="font-medium text-foreground">Unlimited</span>
             </div>
-            <div className="flex justify-between items-center text-xs">
+            <div className="flex justify-between items-center text-[10px] sm:text-xs">
               <span className="text-muted-foreground">Conversation Credits</span>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5 sm:gap-2">
                 <span className="font-bold text-foreground">₹{creditsBalance.toFixed(2)}</span>
-                <Button size="sm" className="h-6 text-[10px] px-3 rounded-full" onClick={() => navigate('/billing')}>Buy More</Button>
+                <Button size="sm" className="h-5 sm:h-6 text-[9px] sm:text-[10px] px-2 sm:px-3 rounded-full" onClick={() => navigate('/billing')}>Buy More</Button>
               </div>
             </div>
           </div>
