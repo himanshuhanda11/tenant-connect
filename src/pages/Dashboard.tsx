@@ -263,13 +263,13 @@ export default function Dashboard() {
         {/* ═══════════════════════════════════════════════
             SECTION 4: KPI GRID — 6 metrics
         ═══════════════════════════════════════════════ */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3">
           <KpiCard icon={MessageSquare} iconColor="text-teal-500" iconBg="bg-teal-100 dark:bg-teal-500/15" label="Open Chats" value={openChats} onClick={() => navigate('/inbox?status=open')} />
           <KpiCard icon={Users} iconColor="text-blue-500" iconBg="bg-blue-100 dark:bg-blue-500/15" label="New Contacts" value={newLeads7d} onClick={() => navigate('/contacts')} />
-          <KpiCard icon={Bot} iconColor="text-orange-500" iconBg="bg-orange-100 dark:bg-orange-500/15" label="Automation Runs" value={automationRuns} onClick={() => navigate('/automation')} />
-          <KpiCard icon={Send} iconColor="text-violet-500" iconBg="bg-violet-100 dark:bg-violet-500/15" label="Campaigns Sent" value={totalCampaigns} onClick={() => navigate('/campaigns')} />
+          <KpiCard icon={Bot} iconColor="text-orange-500" iconBg="bg-orange-100 dark:bg-orange-500/15" label="Auto Runs" value={automationRuns} onClick={() => navigate('/automation')} />
+          <KpiCard icon={Send} iconColor="text-violet-500" iconBg="bg-violet-100 dark:bg-violet-500/15" label="Campaigns" value={totalCampaigns} onClick={() => navigate('/campaigns')} />
           <KpiCard icon={Timer} iconColor="text-cyan-500" iconBg="bg-cyan-100 dark:bg-cyan-500/15" label="Avg Response" value="3m" />
-          <KpiCard icon={CheckCircle2} iconColor="text-emerald-500" iconBg="bg-emerald-100 dark:bg-emerald-500/15" label="Resolved Today" value={resolvedToday} />
+          <KpiCard icon={CheckCircle2} iconColor="text-emerald-500" iconBg="bg-emerald-100 dark:bg-emerald-500/15" label="Resolved" value={resolvedToday} />
         </div>
 
         {/* ═══════════════════════════════════════════════
