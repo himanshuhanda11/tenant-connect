@@ -174,26 +174,26 @@ export default function Dashboard() {
           </div>
         )}
 
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
           {/* WhatsApp API Status */}
-          <div className="rounded-xl border border-border/40 bg-card p-3 sm:p-4 shadow-sm">
-            <p className="text-[10px] sm:text-[11px] text-muted-foreground font-medium mb-1.5">WhatsApp API</p>
+          <div className="rounded-lg sm:rounded-xl border border-border/40 bg-card p-2.5 sm:p-4 shadow-sm">
+            <p className="text-[9px] sm:text-[11px] text-muted-foreground font-medium mb-1">WhatsApp API</p>
             {isWABAConnected ? (
-              <Badge className="bg-emerald-100 dark:bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-0 text-[10px] sm:text-[11px] font-semibold rounded-full px-2 py-0.5">
+              <Badge className="bg-emerald-100 dark:bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-0 text-[9px] sm:text-[11px] font-semibold rounded-full px-1.5 sm:px-2 py-0.5">
                 ● LIVE
               </Badge>
             ) : (
-              <Badge variant="outline" className="text-[10px] text-destructive border-destructive/30 rounded-full px-2 py-0.5 w-fit">
-                ● Not connected
+              <Badge variant="outline" className="text-[9px] sm:text-[10px] text-destructive border-destructive/30 rounded-full px-1.5 sm:px-2 py-0.5 w-fit">
+                ● Offline
               </Badge>
             )}
-            <p className="text-[10px] text-muted-foreground mt-1 truncate">{primaryPhone?.phoneNumber || ''}</p>
+            <p className="text-[9px] sm:text-[10px] text-muted-foreground mt-1 truncate">{primaryPhone?.phoneNumber || ''}</p>
           </div>
 
           {/* Quality Rating */}
-          <div className="rounded-xl border border-border/40 bg-card p-3 sm:p-4 shadow-sm">
-            <p className="text-[10px] sm:text-[11px] text-muted-foreground font-medium mb-1.5">Quality Rating</p>
-            <Badge className={cn("border-0 text-[10px] sm:text-[11px] font-semibold rounded-full px-2 py-0.5",
+          <div className="rounded-lg sm:rounded-xl border border-border/40 bg-card p-2.5 sm:p-4 shadow-sm">
+            <p className="text-[9px] sm:text-[11px] text-muted-foreground font-medium mb-1">Quality</p>
+            <Badge className={cn("border-0 text-[9px] sm:text-[11px] font-semibold rounded-full px-1.5 sm:px-2 py-0.5",
               primaryPhone?.qualityRating === 'green' ? 'bg-emerald-100 dark:bg-emerald-500/15 text-emerald-600 dark:text-emerald-400' :
               primaryPhone?.qualityRating === 'yellow' ? 'bg-amber-100 dark:bg-amber-500/15 text-amber-600 dark:text-amber-400' :
               primaryPhone?.qualityRating === 'red' ? 'bg-red-100 dark:bg-red-500/15 text-red-600 dark:text-red-400' :
@@ -204,17 +204,17 @@ export default function Dashboard() {
           </div>
 
           {/* Messaging Limit */}
-          <div className="rounded-xl border border-border/40 bg-card p-3 sm:p-4 shadow-sm">
-            <p className="text-[10px] sm:text-[11px] text-muted-foreground font-medium mb-1.5">Msg Limit / Day</p>
-            <p className="text-lg sm:text-xl font-bold text-foreground leading-none">{primaryPhone?.messagingLimit || 'N/A'}</p>
-            <p className="text-[10px] text-muted-foreground mt-1">WhatsApp tier</p>
+          <div className="rounded-lg sm:rounded-xl border border-border/40 bg-card p-2.5 sm:p-4 shadow-sm">
+            <p className="text-[9px] sm:text-[11px] text-muted-foreground font-medium mb-1">Msg Limit</p>
+            <p className="text-base sm:text-xl font-bold text-foreground leading-none">{primaryPhone?.messagingLimit || 'N/A'}</p>
+            <p className="text-[9px] sm:text-[10px] text-muted-foreground mt-0.5">per day</p>
           </div>
 
-          {/* Credits / Quota */}
-          <div className="rounded-xl border border-border/40 bg-card p-3 sm:p-4 shadow-sm">
-            <p className="text-[10px] sm:text-[11px] text-muted-foreground font-medium mb-1">Credits</p>
-            <p className="text-lg sm:text-xl font-bold text-primary leading-none">₹{creditsBalance.toLocaleString()}</p>
-            <p className="text-[10px] text-muted-foreground mt-1 truncate">{primaryPhone?.phoneNumber || ''}</p>
+          {/* Credits */}
+          <div className="rounded-lg sm:rounded-xl border border-border/40 bg-card p-2.5 sm:p-4 shadow-sm">
+            <p className="text-[9px] sm:text-[11px] text-muted-foreground font-medium mb-1">Credits</p>
+            <p className="text-base sm:text-xl font-bold text-primary leading-none">₹{creditsBalance.toLocaleString()}</p>
+            <p className="text-[9px] sm:text-[10px] text-muted-foreground mt-0.5 truncate">{primaryPhone?.phoneNumber || ''}</p>
           </div>
         </div>
 
