@@ -368,20 +368,20 @@ export default function Dashboard() {
         {/* ═══════════════════════════════════════════════
             SECTION 7: CHART — Messages Overview
         ═══════════════════════════════════════════════ */}
-        <div className="rounded-xl border border-border/40 bg-card p-4 shadow-sm">
-          <div className="flex items-center justify-between mb-3">
+        <div className="rounded-lg sm:rounded-xl border border-border/40 bg-card p-3 sm:p-4 shadow-sm">
+          <div className="flex items-center justify-between mb-2 sm:mb-3">
             <div>
-              <h3 className="text-sm font-bold text-foreground">Messages Overview</h3>
-              <p className="text-[11px] text-muted-foreground">Last 7 days</p>
+              <h3 className="text-xs sm:text-sm font-bold text-foreground">Messages Overview</h3>
+              <p className="text-[10px] sm:text-[11px] text-muted-foreground">Last 7 days</p>
             </div>
-            <div className="flex items-center gap-3">
-              <div className="flex items-center gap-1"><div className="h-2 w-2 rounded-full bg-primary" /><span className="text-[10px] text-muted-foreground">Received</span></div>
-              <div className="flex items-center gap-1"><div className="h-2 w-2 rounded-full bg-emerald-500" /><span className="text-[10px] text-muted-foreground">Sent</span></div>
+            <div className="flex items-center gap-2 sm:gap-3">
+              <div className="flex items-center gap-1"><div className="h-1.5 w-1.5 sm:h-2 sm:w-2 rounded-full bg-primary" /><span className="text-[9px] sm:text-[10px] text-muted-foreground">Recv</span></div>
+              <div className="flex items-center gap-1"><div className="h-1.5 w-1.5 sm:h-2 sm:w-2 rounded-full bg-emerald-500" /><span className="text-[9px] sm:text-[10px] text-muted-foreground">Sent</span></div>
             </div>
           </div>
-          <div className="-mx-2">
-            <ResponsiveContainer width="100%" height={170}>
-              <AreaChart data={chartData} margin={{ top: 5, right: 5, left: -25, bottom: 0 }}>
+          <div className="-mx-1 sm:-mx-2">
+            <ResponsiveContainer width="100%" height={140}>
+              <AreaChart data={chartData} margin={{ top: 5, right: 5, left: -30, bottom: 0 }}>
                 <defs>
                   <linearGradient id="rcvGrad" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.2} />
@@ -393,9 +393,9 @@ export default function Dashboard() {
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" strokeOpacity={0.4} vertical={false} />
-                <XAxis dataKey="day" tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }} axisLine={false} tickLine={false} />
-                <Tooltip contentStyle={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '10px', fontSize: '11px' }} />
+                <XAxis dataKey="day" tick={{ fontSize: 9, fill: 'hsl(var(--muted-foreground))' }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fontSize: 9, fill: 'hsl(var(--muted-foreground))' }} axisLine={false} tickLine={false} />
+                <Tooltip contentStyle={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '10px', fontSize: '10px' }} />
                 <Area type="monotone" dataKey="received" stroke="hsl(var(--primary))" strokeWidth={2} fill="url(#rcvGrad)" />
                 <Area type="monotone" dataKey="sent" stroke="#10b981" strokeWidth={2} fill="url(#sntGrad)" />
               </AreaChart>
