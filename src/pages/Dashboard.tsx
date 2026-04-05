@@ -127,22 +127,30 @@ export default function Dashboard() {
           </div>
           <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
             {billing?.planName && (
-              <Badge
-                className={cn(
-                  "text-[9px] sm:text-xs font-semibold rounded-full px-2 py-0.5 sm:py-1 border cursor-pointer hover:opacity-90 transition-opacity hidden xs:inline-flex",
-                  billing.planName.toLowerCase() === 'free'
-                    ? "bg-muted text-muted-foreground border-border/50"
-                    : billing.planName.toLowerCase() === 'basic'
-                    ? "bg-blue-100 dark:bg-blue-500/15 text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-500/20"
-                    : billing.planName.toLowerCase() === 'pro'
-                    ? "bg-purple-100 dark:bg-purple-500/15 text-purple-600 dark:text-purple-400 border-purple-200 dark:border-purple-500/20"
-                    : "bg-amber-100 dark:bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-200 dark:border-amber-500/20"
+              <>
+                <Badge
+                  className={cn(
+                    "font-bold rounded-full border cursor-pointer hover:opacity-90 transition-opacity",
+                    billing.planName.toLowerCase() === 'free'
+                      ? "text-[10px] sm:text-sm px-2.5 sm:px-3 py-0.5 sm:py-1 bg-orange-100 dark:bg-orange-500/15 text-orange-600 dark:text-orange-400 border-orange-300 dark:border-orange-500/30 animate-pulse"
+                      : billing.planName.toLowerCase() === 'basic'
+                      ? "text-[9px] sm:text-xs px-2 py-0.5 sm:py-1 bg-blue-100 dark:bg-blue-500/15 text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-500/20"
+                      : billing.planName.toLowerCase() === 'pro'
+                      ? "text-[9px] sm:text-xs px-2 py-0.5 sm:py-1 bg-purple-100 dark:bg-purple-500/15 text-purple-600 dark:text-purple-400 border-purple-200 dark:border-purple-500/20"
+                      : "text-[9px] sm:text-xs px-2 py-0.5 sm:py-1 bg-amber-100 dark:bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-200 dark:border-amber-500/20"
+                  )}
+                  onClick={() => navigate('/billing')}
+                >
+                  <Sparkles className="h-3 w-3 mr-1" />
+                  {billing.planName} Plan
+                </Badge>
+                {billing.planName.toLowerCase() === 'free' && (
+                  <Button size="sm" onClick={() => navigate('/billing')} className="h-6 sm:h-7 text-[9px] sm:text-[11px] px-2.5 sm:px-3 rounded-full bg-primary hover:bg-primary/90 gap-1 font-semibold">
+                    <ArrowUpRight className="h-3 w-3" />
+                    <span className="hidden sm:inline">Upgrade</span>
+                  </Button>
                 )}
-                onClick={() => navigate('/billing')}
-              >
-                <Sparkles className="h-3 w-3 mr-1" />
-                {billing.planName}
-              </Badge>
+              </>
             )}
             <Button variant="outline" size="sm" onClick={refetch} className="h-7 sm:h-8 rounded-xl text-[10px] sm:text-xs gap-1 sm:gap-1.5 border-border/40 px-2 sm:px-3">
               <RefreshCw className={cn("h-3 sm:h-3.5 w-3 sm:w-3.5", loading && "animate-spin")} />
