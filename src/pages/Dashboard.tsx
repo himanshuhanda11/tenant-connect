@@ -275,45 +275,41 @@ export default function Dashboard() {
         {/* ═══════════════════════════════════════════════
             SECTION 5: INBOX HEALTH
         ═══════════════════════════════════════════════ */}
-        <div className="rounded-xl border border-border/40 bg-card p-4 shadow-sm">
-          <div className="flex items-center justify-between mb-3">
+        <div className="rounded-lg sm:rounded-xl border border-border/40 bg-card p-3 sm:p-4 shadow-sm">
+          <div className="flex items-center justify-between mb-2 sm:mb-3">
             <div className="flex items-center gap-2">
               <Inbox className="h-4 w-4 text-primary" />
-              <h3 className="text-sm font-bold text-foreground">Inbox Health</h3>
+              <h3 className="text-xs sm:text-sm font-bold text-foreground">Inbox Health</h3>
             </div>
-            <button onClick={() => navigate('/inbox')} className="text-[11px] text-primary font-medium flex items-center gap-0.5 hover:underline">
+            <button onClick={() => navigate('/inbox')} className="text-[10px] sm:text-[11px] text-primary font-medium flex items-center gap-0.5 hover:underline">
               View All <ChevronRight className="h-3 w-3" />
             </button>
           </div>
-          {/* Open vs Closed bar */}
-          <div className="flex items-center justify-between text-[11px] text-muted-foreground mb-1.5">
+          <div className="flex items-center justify-between text-[10px] sm:text-[11px] text-muted-foreground mb-1">
             <span>Open vs Closed</span>
             <span className="font-semibold text-foreground">{openConversations} / {closedConversations}</span>
           </div>
-          <Progress value={openConversations + closedConversations > 0 ? (openConversations / (openConversations + closedConversations)) * 100 : 0} className="h-2 mb-3" />
-          {/* Waiting cards */}
-          <div className="grid grid-cols-2 gap-2 mb-3">
-            <div className="rounded-lg bg-amber-50 dark:bg-amber-950/20 border border-amber-200/40 dark:border-amber-500/15 p-3">
-              <p className="text-[10px] text-muted-foreground flex items-center gap-1"><Clock className="h-3 w-3" /> Waiting on Agent</p>
-              <p className="text-xl font-bold text-amber-600 dark:text-amber-400 mt-0.5">{waitingOnAgent}</p>
+          <Progress value={openConversations + closedConversations > 0 ? (openConversations / (openConversations + closedConversations)) * 100 : 0} className="h-1.5 sm:h-2 mb-2.5 sm:mb-3" />
+          <div className="grid grid-cols-2 gap-2 mb-2 sm:mb-3">
+            <div className="rounded-lg bg-amber-50 dark:bg-amber-950/20 border border-amber-200/40 dark:border-amber-500/15 p-2 sm:p-3">
+              <p className="text-[9px] sm:text-[10px] text-muted-foreground flex items-center gap-1"><Clock className="h-3 w-3" /> Waiting Agent</p>
+              <p className="text-lg sm:text-xl font-bold text-amber-600 dark:text-amber-400 mt-0.5">{waitingOnAgent}</p>
             </div>
-            <div className="rounded-lg bg-blue-50 dark:bg-blue-950/20 border border-blue-200/40 dark:border-blue-500/15 p-3">
-              <p className="text-[10px] text-muted-foreground flex items-center gap-1"><MessageCircle className="h-3 w-3" /> Waiting on Customer</p>
-              <p className="text-xl font-bold text-blue-600 dark:text-blue-400 mt-0.5">{waitingOnCustomer}</p>
+            <div className="rounded-lg bg-blue-50 dark:bg-blue-950/20 border border-blue-200/40 dark:border-blue-500/15 p-2 sm:p-3">
+              <p className="text-[9px] sm:text-[10px] text-muted-foreground flex items-center gap-1"><MessageCircle className="h-3 w-3" /> Waiting Customer</p>
+              <p className="text-lg sm:text-xl font-bold text-blue-600 dark:text-blue-400 mt-0.5">{waitingOnCustomer}</p>
             </div>
           </div>
-          {/* Unread */}
-          <div className="flex items-center justify-between py-2 border-t border-border/30">
-            <span className="text-xs text-muted-foreground">Unread messages</span>
-            <Badge className="bg-emerald-100 dark:bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-0 text-[11px] font-semibold rounded-full">{unreadCount}</Badge>
+          <div className="flex items-center justify-between py-1.5 sm:py-2 border-t border-border/30">
+            <span className="text-[10px] sm:text-xs text-muted-foreground">Unread messages</span>
+            <Badge className="bg-emerald-100 dark:bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-0 text-[10px] sm:text-[11px] font-semibold rounded-full">{unreadCount}</Badge>
           </div>
-          {/* Top Tags */}
           {topTags.length > 0 && (
-            <div className="pt-2 border-t border-border/30">
-              <p className="text-[11px] font-medium text-muted-foreground mb-2">Top Tags Driving Volume</p>
-              <div className="flex flex-wrap gap-1.5">
+            <div className="pt-1.5 sm:pt-2 border-t border-border/30">
+              <p className="text-[10px] sm:text-[11px] font-medium text-muted-foreground mb-1.5 sm:mb-2">Top Tags</p>
+              <div className="flex flex-wrap gap-1">
                 {topTags.slice(0, 5).map(tag => (
-                  <span key={tag.name} className="text-[10px] font-medium px-2 py-0.5 rounded-full border" style={{ color: tag.color, borderColor: tag.color + '40', backgroundColor: tag.color + '15' }}>
+                  <span key={tag.name} className="text-[9px] sm:text-[10px] font-medium px-1.5 sm:px-2 py-0.5 rounded-full border" style={{ color: tag.color, borderColor: tag.color + '40', backgroundColor: tag.color + '15' }}>
                     {tag.name} {tag.count}
                   </span>
                 ))}
