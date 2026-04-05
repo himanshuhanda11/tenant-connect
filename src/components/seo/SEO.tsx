@@ -88,7 +88,7 @@ export default function SEO({
       <meta name="theme-color" content="#25D366" />
 
       {/* Google Search Console Verification (placeholder) */}
-      <meta name="google-site-verification" content="YOUR_GOOGLE_VERIFICATION_CODE" />
+      <meta name="google-site-verification" content="g_i2WRtDrHOqK6Eow_8u5M4Mna79p6wH9wpcPztgN9I" />
 
       {children}
     </Helmet>
