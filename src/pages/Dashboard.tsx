@@ -166,7 +166,7 @@ export default function Dashboard() {
                 <Badge variant="outline" className="text-[10px] text-destructive border-destructive/30 rounded-full px-2 py-0.5 w-fit">
                   ● Not connected
                 </Badge>
-                <Button size="sm" onClick={() => setEmbeddedSignupOpen(true)} className="h-6 text-[10px] px-3 rounded-full gap-1">
+                <Button size="sm" onClick={() => navigate('/phone-numbers/connect')} className="h-6 text-[10px] px-3 rounded-full gap-1">
                   Connect Now <ArrowRight className="h-3 w-3" />
                 </Button>
               </div>
