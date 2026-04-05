@@ -250,10 +250,20 @@ export function useInboxConversations(view: InboxView, filters: InboxFilters) {
         (payload) => {
           if (payload.eventType === 'UPDATE') {
             const updated = payload.new as any;
+            
+            // If assigned_to changed, do a full refetch so agent visibility filters are re-applied
+            // This ensures transferred conversations appear/disappear correctly for each agent
             setConversations(prev => {
               const idx = prev.findIndex(c => c.id === updated.id);
+              
+              // Check if assignment changed — triggers full refetch for proper agent filtering
+              if (idx !== -1 && prev[idx].assigned_to !== updated.assigned_to) {
+                fetchConversations(true);
+                return prev;
+              }
+              
               if (idx === -1) {
-                // New conversation we don't have — background fetch
+                // Conversation not in our list — could be newly assigned to us
                 fetchConversations(true);
                 return prev;
               }
@@ -265,6 +275,9 @@ export function useInboxConversations(view: InboxView, filters: InboxFilters) {
                 last_message_at: updated.last_message_at || existing.last_message_at,
                 last_message_preview: updated.last_message_preview || existing.last_message_preview,
                 assigned_to: updated.assigned_to,
+                assigned_at: updated.assigned_at || existing.assigned_at,
+                claimed_by: updated.claimed_by,
+                claimed_at: updated.claimed_at,
                 priority: updated.priority || existing.priority,
                 updated_at: updated.updated_at,
               };
@@ -800,7 +813,7 @@ export function useInboxActions() {
   }, [currentTenant?.id]);
 
   // Transfer conversation via RPC (admin only, optionally resets claim)
-  const transferConversation = useCallback(async (conversationId: string, newAssignedTo: string, resetClaim = false) => {
+  const transferConversation = useCallback(async (conversationId: string, newAssignedTo: string, resetClaim = true) => {
     if (!currentTenant?.id) return;
     try {
       const { data, error } = await supabase.rpc('transfer_conversation', {
