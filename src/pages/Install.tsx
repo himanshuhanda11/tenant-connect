@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { SEO } from '@/components/seo';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Download, Smartphone, Check, Share, MoreVertical, PlusSquare } from 'lucide-react';
@@ -43,6 +44,7 @@ export default function Install() {
     });
 
     return () => {
+      <SEO title="Install AiReatro App - WhatsApp CRM on Any Device" description="Install AiReatro as a native app on Android, iOS, Windows & Mac. Get instant access to your WhatsApp CRM inbox from any device." keywords={["install app", "WhatsApp CRM app", "PWA install", "mobile CRM", "desktop app"]} canonical="/install" />
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
     };
   }, []);

@@ -1,4 +1,5 @@
 import React from 'react';
+import { SEO } from '@/components/seo';
 import { 
   Inbox, 
   Users, 
@@ -95,6 +96,7 @@ export default function InboxFeature() {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEO title="Team Inbox for WhatsApp - AiReatro" description="Shared WhatsApp inbox for teams. Assign chats, collaborate in real-time, use AI-powered replies, and manage all conversations from one dashboard." keywords={["WhatsApp inbox", "shared inbox", "team inbox", "WhatsApp CRM inbox"]} canonical="/features/inbox" />
       <Navbar />
 
       {/* Hero */}

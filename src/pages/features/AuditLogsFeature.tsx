@@ -1,4 +1,5 @@
 import React from 'react';
+import { SEO } from '@/components/seo';
 import { FileText, Shield, Eye, Clock, Download, Lock, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -21,6 +22,7 @@ export default function AuditLogsFeature() {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEO title="Audit Logs & Activity Tracking - AiReatro" description="Complete audit trail for your WhatsApp workspace. Track all user actions, data changes, and security events for compliance and accountability." keywords={["audit logs", "activity tracking", "compliance logs", "security audit"]} canonical="/features/audit-logs" />
       <Navbar />
       <section className="relative pt-16 pb-10 md:pt-20 md:pb-14 overflow-hidden bg-gradient-to-b from-background to-muted/30">
         <div className="absolute inset-0"><div className="absolute top-20 left-1/4 w-[400px] h-[400px] bg-slate-500/5 rounded-full blur-[100px]" /></div>

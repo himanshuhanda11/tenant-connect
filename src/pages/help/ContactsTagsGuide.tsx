@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { SEO } from '@/components/seo';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import { Button } from '@/components/ui/button';
@@ -22,6 +23,7 @@ import { CollapsibleSection } from '@/components/help/CollapsibleSection';
 export default function ContactsTagsGuide() {
   return (
     <div className="min-h-screen bg-background flex flex-col">
+      <SEO title="Contacts & Tags Guide - AiReatro Help Center" description="Manage contacts and tags in AiReatro. Import contacts, create segments, apply tags, and organize your WhatsApp customer database." keywords={["contacts guide", "tags tutorial", "WhatsApp contacts help"]} canonical="/help/contacts-tags" noIndex />
       <Navbar />
       
       {/* Header */}

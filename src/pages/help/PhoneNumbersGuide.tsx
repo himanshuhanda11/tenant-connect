@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { SEO } from '@/components/seo';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import Breadcrumb from '@/components/layout/Breadcrumb';
@@ -12,6 +13,7 @@ import { CollapsibleSection } from '@/components/help/CollapsibleSection';
 export default function PhoneNumbersGuide() {
   return (
     <div className="min-h-screen bg-background flex flex-col">
+      <SEO title="Phone Numbers Guide - AiReatro Help Center" description="Connect and manage WhatsApp Business phone numbers in AiReatro. Verification, quality ratings, and business profile setup." keywords={["phone numbers guide", "WhatsApp number setup", "business phone tutorial"]} canonical="/help/phone-numbers" noIndex />
       <Navbar />
 
       <section className="py-8 bg-muted/30 border-b">

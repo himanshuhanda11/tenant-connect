@@ -1,4 +1,5 @@
 import React from 'react';
+import { SEO } from '@/components/seo';
 import { 
   Bot, 
   Workflow, 
@@ -95,6 +96,7 @@ export default function AutomationFeature() {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEO title="WhatsApp Automation & Workflows - AiReatro" description="Build no-code WhatsApp automation workflows with triggers, conditions, and actions. Auto-reply, auto-assign, drip campaigns, and AI chatbot flows." keywords={["WhatsApp automation", "chatbot", "workflow builder", "auto-reply", "drip campaigns"]} canonical="/features/automation" />
       <Navbar />
 
       {/* Hero */}

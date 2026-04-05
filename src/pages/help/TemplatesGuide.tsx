@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { SEO } from '@/components/seo';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import { Button } from '@/components/ui/button';
@@ -21,6 +22,7 @@ import { WhatsAppMessagePreview } from '@/components/help/WhatsAppMessagePreview
 export default function TemplatesGuide() {
   return (
     <div className="min-h-screen bg-background flex flex-col">
+      <SEO title="Templates Guide - AiReatro Help Center" description="How to create, submit, and manage WhatsApp message templates in AiReatro. Tips for Meta approval and template best practices." keywords={["templates guide", "WhatsApp template help", "message template tutorial"]} canonical="/help/templates" noIndex />
       <Navbar />
       
       {/* Header */}

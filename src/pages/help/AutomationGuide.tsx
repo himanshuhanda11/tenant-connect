@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { SEO } from '@/components/seo';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import { Button } from '@/components/ui/button';
@@ -41,6 +42,7 @@ import { WhatsAppMessagePreview } from '@/components/help/WhatsAppMessagePreview
 export default function AutomationGuide() {
   return (
     <div className="min-h-screen bg-background flex flex-col">
+      <SEO title="Automation Guide - AiReatro Help Center" description="Build WhatsApp automation workflows in AiReatro. Set up triggers, conditions, auto-replies, and drip campaigns step by step." keywords={["automation guide", "workflow tutorial", "WhatsApp chatbot setup"]} canonical="/help/automation" noIndex />
       <Navbar />
       
       {/* Header */}

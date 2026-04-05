@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { SEO } from '@/components/seo';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import Breadcrumb from '@/components/layout/Breadcrumb';
@@ -12,6 +13,7 @@ import { CollapsibleSection } from '@/components/help/CollapsibleSection';
 export default function CampaignsGuide() {
   return (
     <div className="min-h-screen bg-background flex flex-col">
+      <SEO title="Campaigns Guide - AiReatro Help Center" description="Create and send WhatsApp bulk campaigns in AiReatro. Schedule messages, target audiences, and track delivery and read rates." keywords={["campaigns guide", "bulk messaging tutorial", "WhatsApp broadcast help"]} canonical="/help/campaigns" noIndex />
       <Navbar />
 
       <section className="py-8 bg-muted/30 border-b">

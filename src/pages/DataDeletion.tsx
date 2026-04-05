@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { SEO } from '@/components/seo';
 import { Trash2, Mail, Clock, CheckCircle2, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -61,6 +62,7 @@ export default function DataDeletion() {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEO title="Data Deletion Request - AiReatro" description="Request deletion of your personal data from AiReatro. Learn about our data retention policies and how to exercise your right to erasure." keywords={["data deletion", "right to erasure", "GDPR request", "delete account"]} canonical="/data-deletion" />
       <Navbar />
 
       {/* Hero */}

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { SEO } from '@/components/seo';
 import { Link, useNavigate } from 'react-router-dom';
 import Breadcrumb from '@/components/layout/Breadcrumb';
 import Navbar from '@/components/layout/Navbar';
@@ -103,6 +104,7 @@ function FeatureCard({ item, guide }: FeatureCardProps) {
   const colors = categoryColors[item.category] || categoryColors.platform;
   
   return (
+      <SEO title="Help Center - AiReatro" description="Browse guides, tutorials, and documentation for AiReatro WhatsApp API platform. Find answers to common questions and get started quickly." keywords={["help center", "documentation", "WhatsApp API help", "tutorials"]} canonical="/help" />
     <Card className="group h-full hover:shadow-lg hover:border-primary/30 transition-all duration-300">
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between gap-3">

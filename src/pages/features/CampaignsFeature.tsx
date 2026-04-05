@@ -1,4 +1,5 @@
 import React from 'react';
+import { SEO } from '@/components/seo';
 import { 
   Megaphone, 
   Target, 
@@ -95,6 +96,7 @@ export default function CampaignsFeature() {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEO title="WhatsApp Bulk Campaigns - AiReatro" description="Send targeted WhatsApp bulk campaigns with scheduling, A/B testing, and real-time analytics. Reach thousands of customers with approved templates." keywords={["WhatsApp campaigns", "bulk messaging", "WhatsApp broadcast", "mass messaging"]} canonical="/features/campaigns" />
       <Navbar />
 
       {/* Hero */}

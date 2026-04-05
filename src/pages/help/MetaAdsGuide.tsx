@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { SEO } from '@/components/seo';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import { Button } from '@/components/ui/button';
@@ -37,6 +38,7 @@ import { CollapsibleSection } from '@/components/help/CollapsibleSection';
 export default function MetaAdsGuide() {
   return (
     <div className="min-h-screen bg-background flex flex-col">
+      <SEO title="Meta Ads Guide - AiReatro Help Center" description="Connect Meta Ads to AiReatro for Click-to-WhatsApp lead tracking. Set up attribution, view analytics, and automate lead follow-ups." keywords={["Meta Ads guide", "Click-to-WhatsApp ads", "lead tracking tutorial"]} canonical="/help/meta-ads" noIndex />
       <Navbar />
       
       {/* Header */}

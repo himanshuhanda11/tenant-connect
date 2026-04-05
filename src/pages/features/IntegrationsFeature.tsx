@@ -1,4 +1,5 @@
 import React from 'react';
+import { SEO } from '@/components/seo';
 import { 
   Plug, 
   Code, 
@@ -88,6 +89,7 @@ export default function IntegrationsFeature() {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEO title="WhatsApp API Integrations - AiReatro" description="Connect AiReatro with Shopify, Razorpay, Zapier, LeadSquared, and 50+ tools. Automate WhatsApp messaging based on external events." keywords={["WhatsApp integrations", "Shopify WhatsApp", "Zapier WhatsApp", "API integrations"]} canonical="/features/integrations" />
       <Navbar />
 
       {/* Hero */}
