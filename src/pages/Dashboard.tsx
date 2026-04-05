@@ -478,26 +478,26 @@ export default function Dashboard() {
         {/* ═══════════════════════════════════════════════
             SECTION 10: RECENT ACTIVITY
         ═══════════════════════════════════════════════ */}
-        <div className="rounded-xl border border-border/40 bg-card p-4 shadow-sm">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="text-sm font-bold text-foreground">Recent Activity</h3>
-            <button className="text-[11px] text-primary font-medium flex items-center gap-0.5 hover:underline">
+        <div className="rounded-lg sm:rounded-xl border border-border/40 bg-card p-3 sm:p-4 shadow-sm">
+          <div className="flex items-center justify-between mb-2 sm:mb-3">
+            <h3 className="text-xs sm:text-sm font-bold text-foreground">Recent Activity</h3>
+            <button className="text-[10px] sm:text-[11px] text-primary font-medium flex items-center gap-0.5 hover:underline">
               View All <ArrowRight className="h-3 w-3" />
             </button>
           </div>
-          <div className="space-y-0.5">
+          <div className="space-y-0">
             {timelineEvents.map(ev => {
               const Icon = ev.icon;
               return (
-                <div key={ev.id} className="flex items-start gap-3 py-2.5 px-1 rounded-lg hover:bg-muted/30 transition-colors">
-                  <div className={cn("h-8 w-8 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5", ev.bg)}>
-                    <Icon className={cn("h-4 w-4", ev.color)} />
+                <div key={ev.id} className="flex items-start gap-2 sm:gap-3 py-2 px-1 rounded-lg hover:bg-muted/30 transition-colors">
+                  <div className={cn("h-7 w-7 sm:h-8 sm:w-8 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5", ev.bg)}>
+                    <Icon className={cn("h-3.5 w-3.5 sm:h-4 sm:w-4", ev.color)} />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-xs sm:text-sm font-medium text-foreground">{ev.title}</p>
-                    <p className="text-[11px] text-muted-foreground">{ev.sub}</p>
+                    <p className="text-[11px] sm:text-sm font-medium text-foreground truncate">{ev.title}</p>
+                    <p className="text-[10px] sm:text-[11px] text-muted-foreground">{ev.sub}</p>
                   </div>
-                  <span className="text-[10px] text-muted-foreground flex-shrink-0 mt-0.5">
+                  <span className="text-[9px] sm:text-[10px] text-muted-foreground flex-shrink-0 mt-0.5">
                     {formatDistanceToNow(new Date(ev.timestamp), { addSuffix: true })}
                   </span>
                 </div>
