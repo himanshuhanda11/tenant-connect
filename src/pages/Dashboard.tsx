@@ -569,15 +569,15 @@ function QuickActionRow({ icon: Icon, color, bg, title, sub, onClick }: {
   icon: React.ElementType; color: string; bg: string; title: string; sub: string; onClick: () => void;
 }) {
   return (
-    <button onClick={onClick} className="w-full flex items-center gap-3 p-2.5 rounded-lg hover:bg-muted/40 transition-colors text-left group">
-      <div className={cn("h-8 w-8 rounded-lg flex items-center justify-center flex-shrink-0", bg)}>
-        <Icon className={cn("h-4 w-4", color)} />
+    <button onClick={onClick} className="w-full flex items-center gap-2 sm:gap-3 p-2 sm:p-2.5 rounded-lg hover:bg-muted/40 transition-colors text-left group active:scale-[0.98]">
+      <div className={cn("h-7 w-7 sm:h-8 sm:w-8 rounded-md sm:rounded-lg flex items-center justify-center flex-shrink-0", bg)}>
+        <Icon className={cn("h-3.5 w-3.5 sm:h-4 sm:w-4", color)} />
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-xs font-semibold text-foreground">{title}</p>
-        <p className="text-[10px] text-muted-foreground">{sub}</p>
+        <p className="text-[11px] sm:text-xs font-semibold text-foreground">{title}</p>
+        <p className="text-[9px] sm:text-[10px] text-muted-foreground">{sub}</p>
       </div>
-      <ChevronRight className="h-3.5 w-3.5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+      <ChevronRight className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
     </button>
   );
 }
