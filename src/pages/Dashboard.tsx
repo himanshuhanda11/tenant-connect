@@ -222,40 +222,39 @@ export default function Dashboard() {
             SECTION 3: SETUP PROGRESS (show only if incomplete)
         ═══════════════════════════════════════════════ */}
         {setupDone < setupTotal && (
-          <div className="rounded-xl border border-amber-200/60 dark:border-amber-500/20 bg-amber-50/50 dark:bg-amber-950/15 p-4 shadow-sm">
-            <div className="flex items-center gap-2.5 mb-3">
-              <div className="h-8 w-8 rounded-lg bg-amber-100 dark:bg-amber-500/20 flex items-center justify-center">
-                <Gift className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+          <div className="rounded-lg sm:rounded-xl border border-amber-200/60 dark:border-amber-500/20 bg-amber-50/50 dark:bg-amber-950/15 p-3 sm:p-4 shadow-sm">
+            <div className="flex items-center gap-2 mb-2.5 sm:mb-3">
+              <div className="h-7 w-7 sm:h-8 sm:w-8 rounded-lg bg-amber-100 dark:bg-amber-500/20 flex items-center justify-center">
+                <Gift className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-amber-600 dark:text-amber-400" />
               </div>
               <div>
-                <p className="text-sm font-bold text-foreground">Complete steps & win 200 Credits</p>
-                <p className="text-[11px] text-muted-foreground">{setupTotal - setupDone} step{setupTotal - setupDone > 1 ? 's' : ''} left</p>
+                <p className="text-xs sm:text-sm font-bold text-foreground">Complete steps & win 200 Credits</p>
+                <p className="text-[10px] sm:text-[11px] text-muted-foreground">{setupTotal - setupDone} step{setupTotal - setupDone > 1 ? 's' : ''} left</p>
               </div>
             </div>
-            <div className="flex items-center gap-2 sm:gap-3">
+            <div className="flex items-center gap-1.5 sm:gap-3">
               {setupSteps.map((step, i) => (
                 <React.Fragment key={step.id}>
-                  <div className="flex flex-col items-center gap-1 flex-1">
-                    <div className={cn("h-7 w-7 sm:h-8 sm:w-8 rounded-full flex items-center justify-center text-[10px] font-bold",
+                  <div className="flex flex-col items-center gap-0.5 sm:gap-1 flex-1">
+                    <div className={cn("h-6 w-6 sm:h-8 sm:w-8 rounded-full flex items-center justify-center text-[9px] sm:text-[10px] font-bold",
                       step.done ? "bg-emerald-500 text-white" : "border-2 border-muted-foreground/30 text-muted-foreground"
                     )}>
-                      {step.done ? <Check className="h-3.5 w-3.5" /> : i + 1}
+                      {step.done ? <Check className="h-3 w-3" /> : i + 1}
                     </div>
-                    <span className={cn("text-[9px] sm:text-[10px] font-medium text-center leading-tight",
+                    <span className={cn("text-[8px] sm:text-[10px] font-medium text-center leading-tight",
                       step.done ? "text-emerald-600 dark:text-emerald-400" : "text-muted-foreground"
                     )}>{step.title}</span>
                   </div>
                   {i < setupSteps.length - 1 && (
-                    <div className={cn("h-0.5 flex-1 rounded-full -mt-4", step.done ? "bg-emerald-500" : "bg-border")} />
+                    <div className={cn("h-0.5 flex-1 rounded-full -mt-3 sm:-mt-4", step.done ? "bg-emerald-500" : "bg-border")} />
                   )}
                 </React.Fragment>
               ))}
-              {/* Reward */}
-              <div className="flex flex-col items-center gap-1">
-                <div className="h-7 w-7 sm:h-8 sm:w-8 rounded-full bg-amber-100 dark:bg-amber-500/20 flex items-center justify-center">
-                  <Sparkles className="h-3.5 w-3.5 text-amber-600 dark:text-amber-400" />
+              <div className="flex flex-col items-center gap-0.5 sm:gap-1">
+                <div className="h-6 w-6 sm:h-8 sm:w-8 rounded-full bg-amber-100 dark:bg-amber-500/20 flex items-center justify-center">
+                  <Sparkles className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-amber-600 dark:text-amber-400" />
                 </div>
-                <span className="text-[9px] sm:text-[10px] font-bold text-amber-600 dark:text-amber-400">200 Credits</span>
+                <span className="text-[8px] sm:text-[10px] font-bold text-amber-600 dark:text-amber-400">200 Cr</span>
               </div>
             </div>
           </div>
