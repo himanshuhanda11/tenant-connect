@@ -153,6 +153,26 @@ export default function Dashboard() {
         {/* ═══════════════════════════════════════════════
             SECTION 2: STATUS STRIP — API / Quality / Quota
         ═══════════════════════════════════════════════ */}
+        {/* WhatsApp Not Connected - Full Width Alert */}
+        {!hasPhoneConnected && (
+          <div className="rounded-2xl border-2 border-destructive/20 bg-destructive/5 p-5 sm:p-6 flex flex-col sm:flex-row items-start sm:items-center gap-4">
+            <div className="h-12 w-12 rounded-xl bg-destructive/10 flex items-center justify-center flex-shrink-0">
+              <Phone className="h-6 w-6 text-destructive" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <h3 className="text-sm sm:text-base font-semibold text-foreground">WhatsApp API Not Connected</h3>
+              <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
+                Connect your WhatsApp Business number to start sending messages, run campaigns & automations.
+              </p>
+            </div>
+            <Button onClick={() => navigate('/phone-numbers/connect')} className="rounded-xl gap-2 px-5 flex-shrink-0">
+              <MessageSquare className="h-4 w-4" />
+              Connect Now
+              <ArrowRight className="h-4 w-4" />
+            </Button>
+          </div>
+        )}
+
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {/* WhatsApp API Status */}
           <div className="rounded-xl border border-border/40 bg-card p-3 sm:p-4 shadow-sm">
@@ -162,14 +182,9 @@ export default function Dashboard() {
                 ● LIVE
               </Badge>
             ) : (
-              <div className="flex flex-col gap-1.5">
-                <Badge variant="outline" className="text-[10px] text-destructive border-destructive/30 rounded-full px-2 py-0.5 w-fit">
-                  ● Not connected
-                </Badge>
-                <Button size="sm" onClick={() => navigate('/phone-numbers/connect')} className="h-6 text-[10px] px-3 rounded-full gap-1">
-                  Connect Now <ArrowRight className="h-3 w-3" />
-                </Button>
-              </div>
+              <Badge variant="outline" className="text-[10px] text-destructive border-destructive/30 rounded-full px-2 py-0.5 w-fit">
+                ● Not connected
+              </Badge>
             )}
             <p className="text-[10px] text-muted-foreground mt-1 truncate">{primaryPhone?.phoneNumber || ''}</p>
           </div>
