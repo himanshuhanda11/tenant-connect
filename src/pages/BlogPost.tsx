@@ -38,7 +38,14 @@ export default function BlogPost() {
 
   return (
     <div className="min-h-screen bg-background">
-      <SeoMeta route={`/blog/${post.slug}`} fallbackTitle={post.title} fallbackDescription={post.excerpt} />
+      <SEO 
+        title={post.title}
+        description={post.excerpt}
+        keywords={[post.category, 'WhatsApp API', 'AiReatro', ...post.title.split(' ').filter(w => w.length > 4)]}
+        canonical={`/blog/${post.slug}`}
+        ogType="article"
+        ogImage={post.image}
+      />
       <Navbar />
 
       {/* Hero */}
