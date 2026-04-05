@@ -813,7 +813,7 @@ export function useInboxActions() {
   }, [currentTenant?.id]);
 
   // Transfer conversation via RPC (admin only, optionally resets claim)
-  const transferConversation = useCallback(async (conversationId: string, newAssignedTo: string, resetClaim = false) => {
+  const transferConversation = useCallback(async (conversationId: string, newAssignedTo: string, resetClaim = true) => {
     if (!currentTenant?.id) return;
     try {
       const { data, error } = await supabase.rpc('transfer_conversation', {
