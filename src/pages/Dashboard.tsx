@@ -406,34 +406,34 @@ export default function Dashboard() {
         {/* ═══════════════════════════════════════════════
             SECTION 8: AI INSIGHTS + QUICK ACTIONS (side by side on desktop)
         ═══════════════════════════════════════════════ */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4">
           {/* AI Insights */}
-          <div className="rounded-xl border border-border/40 bg-card p-4 shadow-sm">
-            <div className="flex items-center gap-2 mb-3">
-              <Sparkles className="h-4 w-4 text-primary" />
-              <h3 className="text-sm font-bold text-foreground">AI Insights</h3>
+          <div className="rounded-lg sm:rounded-xl border border-border/40 bg-card p-3 sm:p-4 shadow-sm">
+            <div className="flex items-center gap-2 mb-2 sm:mb-3">
+              <Sparkles className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-primary" />
+              <h3 className="text-xs sm:text-sm font-bold text-foreground">AI Insights</h3>
             </div>
-            <div className="space-y-2.5">
+            <div className="space-y-2">
               {openChats > 0 && (
                 <InsightRow icon={MessageSquare} color="text-amber-500" bg="bg-amber-100 dark:bg-amber-500/15"
-                  title="Performance" detail={`${unassigned} unassigned conversation${unassigned !== 1 ? 's' : ''} need attention to maintain zero SLA breaches.`} />
+                  title="Performance" detail={`${unassigned} unassigned chat${unassigned !== 1 ? 's' : ''} need attention.`} />
               )}
               <InsightRow icon={Gauge} color="text-emerald-500" bg="bg-emerald-100 dark:bg-emerald-500/15"
-                title="Lead Engagement" detail="Average response time is 3m; excellent, but ensure this holds as volume scales." />
+                title="Lead Engagement" detail="Avg response 3m — excellent!" />
               <InsightRow icon={Eye} color="text-blue-500" bg="bg-blue-100 dark:bg-blue-500/15"
-                title="Campaign Health" detail={`${totalCampaigns} campaign${totalCampaigns !== 1 ? 's' : ''} sent. Monitor delivery rates for optimal engagement.`} />
+                title="Campaign Health" detail={`${totalCampaigns} campaign${totalCampaigns !== 1 ? 's' : ''} sent.`} />
             </div>
           </div>
 
           {/* Quick Actions */}
-          <div className="rounded-xl border border-border/40 bg-card p-4 shadow-sm">
-            <h3 className="text-sm font-bold text-foreground mb-3">Quick Actions</h3>
-            <div className="space-y-1">
-              <QuickActionRow icon={FileText} color="text-blue-500" bg="bg-blue-100 dark:bg-blue-500/15" title="Template Library" sub="50+ pre-approved templates" onClick={() => navigate('/templates')} />
-              <QuickActionRow icon={Inbox} color="text-rose-500" bg="bg-rose-100 dark:bg-rose-500/15" title="View Inbox" sub="Manage conversations" onClick={() => navigate('/inbox')} />
-              <QuickActionRow icon={Zap} color="text-amber-500" bg="bg-amber-100 dark:bg-amber-500/15" title="Create Flow" sub="Build automation workflows" onClick={() => navigate('/flows/new')} />
-              <QuickActionRow icon={Send} color="text-orange-500" bg="bg-orange-100 dark:bg-orange-500/15" title="Send Campaign" sub="Broadcast to contacts" onClick={() => navigate('/campaigns/create')} />
-              <QuickActionRow icon={FileText} color="text-purple-500" bg="bg-purple-100 dark:bg-purple-500/15" title="Create Template" sub="Design message templates" onClick={() => navigate('/templates?action=create')} />
+          <div className="rounded-lg sm:rounded-xl border border-border/40 bg-card p-3 sm:p-4 shadow-sm">
+            <h3 className="text-xs sm:text-sm font-bold text-foreground mb-2 sm:mb-3">Quick Actions</h3>
+            <div className="space-y-0.5">
+              <QuickActionRow icon={FileText} color="text-blue-500" bg="bg-blue-100 dark:bg-blue-500/15" title="Templates" sub="50+ pre-approved" onClick={() => navigate('/templates')} />
+              <QuickActionRow icon={Inbox} color="text-rose-500" bg="bg-rose-100 dark:bg-rose-500/15" title="Inbox" sub="Manage chats" onClick={() => navigate('/inbox')} />
+              <QuickActionRow icon={Zap} color="text-amber-500" bg="bg-amber-100 dark:bg-amber-500/15" title="Create Flow" sub="Build automations" onClick={() => navigate('/flows/new')} />
+              <QuickActionRow icon={Send} color="text-orange-500" bg="bg-orange-100 dark:bg-orange-500/15" title="Campaign" sub="Broadcast messages" onClick={() => navigate('/campaigns/create')} />
+              <QuickActionRow icon={FileText} color="text-purple-500" bg="bg-purple-100 dark:bg-purple-500/15" title="New Template" sub="Design templates" onClick={() => navigate('/templates?action=create')} />
             </div>
           </div>
         </div>
