@@ -105,7 +105,7 @@ Deno.serve(async (req) => {
             ...pagesData.data.map((page: any) => ({
               id: page.id,
               name: page.name,
-              access_token: systemUserToken || page.access_token || undefined,
+              access_token: page.access_token || undefined,
             })),
           ]);
         }
