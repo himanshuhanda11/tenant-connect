@@ -99,7 +99,19 @@ export function useLeadForms() {
         body: { tenantId: currentTenant.id, action: 'sync_forms' },
       });
       if (error) throw error;
-      toast.success(`Synced ${data?.forms?.length || 0} lead forms`);
+
+      const formsCount = data?.forms?.length || 0;
+      const syncErrors = Array.isArray(data?.errors) ? data.errors : [];
+
+      if (formsCount > 0) {
+        toast.success(`Synced ${formsCount} lead form${formsCount === 1 ? '' : 's'}`);
+      } else if (syncErrors.length > 0) {
+        const firstError = syncErrors[0]?.error || 'Meta could not return lead forms';
+        toast.error(firstError);
+      } else {
+        toast.error(data?.message || 'No lead forms found for the connected Meta pages');
+      }
+
       await fetchForms();
       return data;
     } catch (err: any) {

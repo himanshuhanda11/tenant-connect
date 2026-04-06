@@ -7,6 +7,20 @@ const corsHeaders = {
 
 const GRAPH = 'https://graph.facebook.com/v21.0';
 
+type MetaAccountRow = {
+  meta_access_token: string | null;
+  facebook_page_id: string | null;
+  facebook_page_name: string | null;
+  status: string | null;
+  is_active: boolean | null;
+};
+
+type MetaPage = {
+  id: string;
+  name: string;
+  access_token?: string;
+};
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders });
 
@@ -31,28 +45,74 @@ Deno.serve(async (req) => {
       .eq('tenant_id', tenantId).eq('user_id', user.id).single();
     if (!membership) return json({ error: 'Not a member' }, 403);
 
-    // Get Meta access token
-    const { data: account } = await supabase
+    const { data: accounts, error: accountsError } = await supabase
       .from('smeksh_meta_ad_accounts')
-      .select('meta_access_token, facebook_page_id, facebook_page_name, meta_page_access_token')
+      .select('meta_access_token, facebook_page_id, facebook_page_name, status, is_active')
       .eq('workspace_id', tenantId)
-      .limit(1)
-      .maybeSingle();
+      .eq('is_active', true);
 
-    let accessToken = account?.meta_access_token || Deno.env.get('META_SYSTEM_USER_TOKEN');
+    if (accountsError) {
+      console.error('[meta-sync-lead-forms] Failed to load Meta accounts:', accountsError);
+      return json({ error: 'Failed to load connected Meta accounts' }, 500);
+    }
+
+    const connectedAccounts = ((accounts || []) as MetaAccountRow[]).filter(
+      (account) => account.status === 'connected'
+    );
+
+    const storedPages: MetaPage[] = connectedAccounts
+      .filter((account) => account.facebook_page_id)
+      .map((account) => ({
+        id: account.facebook_page_id as string,
+        name: account.facebook_page_name || 'Untitled Page',
+        access_token: account.meta_access_token || undefined,
+      }));
+
+    let accessToken = connectedAccounts.find((account) => account.meta_access_token)?.meta_access_token
+      || Deno.env.get('META_SYSTEM_USER_TOKEN');
     if (!accessToken) return json({ error: 'No Meta access token configured' }, 400);
 
     if (action === 'sync_forms') {
-      // Get all pages for this workspace
-      const pagesRes = await fetch(`${GRAPH}/me/accounts?fields=id,name,access_token&access_token=${accessToken}`);
-      const pagesData = await pagesRes.json();
-      const pages = pagesData?.data || [];
+      let pages: MetaPage[] = [...storedPages];
+
+      try {
+        const pagesRes = await fetch(`${GRAPH}/me/accounts?fields=id,name,access_token&access_token=${accessToken}`);
+        const pagesData = await pagesRes.json();
+
+        if (!pagesRes.ok || pagesData?.error) {
+          console.error('[meta-sync-lead-forms] Failed to fetch /me/accounts:', pagesData?.error || pagesData);
+        } else if (Array.isArray(pagesData?.data)) {
+          const mergedPages = new Map<string, MetaPage>();
+
+          for (const page of storedPages) {
+            mergedPages.set(page.id, page);
+          }
+
+          for (const page of pagesData.data) {
+            if (!page?.id) continue;
+            mergedPages.set(page.id, {
+              id: page.id,
+              name: page.name || mergedPages.get(page.id)?.name || 'Untitled Page',
+              access_token: page.access_token || mergedPages.get(page.id)?.access_token,
+            });
+          }
+
+          pages = Array.from(mergedPages.values());
+        }
+      } catch (graphError) {
+        console.error('[meta-sync-lead-forms] Error fetching pages from Meta:', graphError);
+      }
 
       if (pages.length === 0) {
-        return json({ pages: [], forms: [], message: 'No pages found' });
+        return json({
+          pages: [],
+          forms: [],
+          message: 'No connected Facebook pages found for this Meta account',
+        });
       }
 
       const allForms: any[] = [];
+      const pageErrors: Array<{ page_id: string; page_name: string; error: string }> = [];
 
       for (const page of pages) {
         const pageAccessToken = page.access_token || accessToken;
@@ -62,6 +122,18 @@ Deno.serve(async (req) => {
             `${GRAPH}/${page.id}/leadgen_forms?fields=id,name,status,created_time,leads_count&access_token=${pageAccessToken}`
           );
           const formsData = await formsRes.json();
+
+          if (!formsRes.ok || formsData?.error) {
+            const errorMessage = formsData?.error?.message || `HTTP ${formsRes.status}`;
+            console.error(`[meta-sync-lead-forms] Failed to fetch forms for page ${page.id}:`, formsData?.error || formsData);
+            pageErrors.push({
+              page_id: page.id,
+              page_name: page.name,
+              error: errorMessage,
+            });
+            continue;
+          }
+
           const forms = formsData?.data || [];
 
           for (const form of forms) {
@@ -73,6 +145,7 @@ Deno.serve(async (req) => {
               form_id: form.id,
               form_name: form.name,
               status: form.status === 'ACTIVE' ? 'active' : 'paused',
+              lead_count: form.leads_count || 0,
               last_sync_at: new Date().toISOString(),
             }, { onConflict: 'tenant_id,form_id' });
 
@@ -95,15 +168,25 @@ Deno.serve(async (req) => {
 
         } catch (err) {
           console.error(`Failed to fetch forms for page ${page.id}:`, err);
+          pageErrors.push({
+            page_id: page.id,
+            page_name: page.name,
+            error: err instanceof Error ? err.message : 'Unknown error',
+          });
         }
       }
 
-      return json({ pages: pages.map((p: any) => ({ id: p.id, name: p.name })), forms: allForms });
+      return json({
+        pages: pages.map((p: MetaPage) => ({ id: p.id, name: p.name })),
+        forms: allForms,
+        errors: pageErrors,
+      });
     }
 
     if (action === 'subscribe_webhook' && pageId) {
       // Subscribe to leadgen webhooks for a specific page
-      const pageToken = account?.meta_page_access_token || accessToken;
+      const matchingAccount = connectedAccounts.find((account) => account.facebook_page_id === pageId);
+      const pageToken = matchingAccount?.meta_access_token || accessToken;
       
       const subRes = await fetch(
         `${GRAPH}/${pageId}/subscribed_apps?subscribed_fields=leadgen&access_token=${pageToken}`,
@@ -111,7 +194,7 @@ Deno.serve(async (req) => {
       );
       const subData = await subRes.json();
 
-      if (subData.success) {
+      if (subRes.ok && subData.success) {
         await supabase.from('meta_webhook_subscriptions').upsert({
           tenant_id: tenantId,
           page_id: pageId,
@@ -125,7 +208,10 @@ Deno.serve(async (req) => {
 
         return json({ success: true, message: 'Webhook subscribed' });
       } else {
-        return json({ success: false, error: subData.error || 'Subscription failed' }, 400);
+        return json({
+          success: false,
+          error: subData?.error?.message || subData?.error || 'Subscription failed',
+        }, 400);
       }
     }
 
@@ -164,7 +250,7 @@ Deno.serve(async (req) => {
 
   } catch (err) {
     console.error('[meta-sync-lead-forms] Error:', err);
-    return json({ error: err.message || 'Internal error' }, 500);
+    return json({ error: err instanceof Error ? err.message : 'Internal error' }, 500);
   }
 });
 
