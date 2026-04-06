@@ -107,7 +107,12 @@ export function useLeadForms() {
         toast.success(`Synced ${formsCount} lead form${formsCount === 1 ? '' : 's'}`);
       } else if (syncErrors.length > 0) {
         const firstError = syncErrors[0]?.error || 'Meta could not return lead forms';
-        toast.error(firstError);
+        // Show longer permission errors as a warning with more context
+        if (firstError.includes('pages_manage_ads') || firstError.includes('permission') || firstError.includes('(#200)')) {
+          toast.error(firstError, { duration: 8000 });
+        } else {
+          toast.error(firstError);
+        }
       } else {
         toast.error(data?.message || 'No lead forms found for the connected Meta pages');
       }
