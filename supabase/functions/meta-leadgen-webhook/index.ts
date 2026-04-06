@@ -78,11 +78,11 @@ Deno.serve(async (req) => {
           status: 'received',
         };
 
-        // Find workspace by page_id
+        // Find workspace by facebook_page_id
         const { data: metaAccounts } = await supabase
           .from('smeksh_meta_ad_accounts')
-          .select('workspace_id, meta_access_token, page_id')
-          .eq('page_id', pageId);
+          .select('workspace_id, meta_access_token, facebook_page_id')
+          .eq('facebook_page_id', pageId);
 
         let tenantId: string | null = null;
         let accessToken: string | null = null;
