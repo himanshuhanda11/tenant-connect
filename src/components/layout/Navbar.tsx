@@ -298,7 +298,7 @@ export default function Navbar() {
               transition={{ duration: 0.25, delay: 0.05 }}
               className="pb-32"
             >
-              <div className="container mx-auto px-5 pt-6 pb-8 space-y-2">
+              <div className="container mx-auto px-5 pt-3 pb-8 space-y-1">
 
                 {/* Expandable sections - Products & Features */}
                 {mobileMenuSections.map((section, sIdx) => (
