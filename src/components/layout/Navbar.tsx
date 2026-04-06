@@ -401,7 +401,7 @@ export default function Navbar() {
                 ))}
 
                 {/* Divider */}
-                <div className="px-4 py-2">
+                <div className="px-4 py-1">
                   <div className="h-px bg-gradient-to-r from-transparent via-border to-transparent" />
                 </div>
 
