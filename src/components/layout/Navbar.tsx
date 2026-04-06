@@ -298,7 +298,7 @@ export default function Navbar() {
               transition={{ duration: 0.25, delay: 0.05 }}
               className="pb-32"
             >
-              <div className="container mx-auto px-5 pt-6 pb-8 space-y-2">
+              <div className="container mx-auto px-5 pt-3 pb-8 space-y-1">
 
                 {/* Expandable sections - Products & Features */}
                 {mobileMenuSections.map((section, sIdx) => (
@@ -311,13 +311,13 @@ export default function Navbar() {
                     <button
                       onClick={() => toggleSection(section.id)}
                       className={cn(
-                        "w-full flex items-center gap-3.5 px-4 py-3.5 rounded-2xl transition-all duration-200",
+                        "w-full flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all duration-200",
                         expandedSection === section.id
                           ? "bg-muted/80 shadow-sm"
                           : "hover:bg-muted/50"
                       )}
                     >
-                      <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center", section.iconBg)}>
+                      <div className={cn("w-8 h-8 rounded-lg flex items-center justify-center", section.iconBg)}>
                         <section.icon className={cn("w-5 h-5", section.iconColor)} />
                       </div>
                       <span className="flex-1 text-left font-semibold text-foreground text-[15px]">{section.label}</span>
@@ -401,7 +401,7 @@ export default function Navbar() {
                 ))}
 
                 {/* Divider */}
-                <div className="px-4 py-2">
+                <div className="px-4 py-1">
                   <div className="h-px bg-gradient-to-r from-transparent via-border to-transparent" />
                 </div>
 
