@@ -34,7 +34,7 @@ Deno.serve(async (req) => {
     // Get Meta access token
     const { data: account } = await supabase
       .from('smeksh_meta_ad_accounts')
-      .select('meta_access_token, page_id, page_name, meta_page_access_token')
+      .select('meta_access_token, facebook_page_id, facebook_page_name, meta_page_access_token')
       .eq('workspace_id', tenantId)
       .limit(1)
       .maybeSingle();
