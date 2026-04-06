@@ -106,180 +106,182 @@ export default function Navbar() {
   ];
 
   return (
-    <header className="border-b border-border/50 bg-background/95 backdrop-blur-md sticky top-0 z-50">
-      <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-        <div className="flex items-center gap-8">
-          <Link to="/" className="flex items-center gap-2">
-            <img src={aireatroLogo} alt="AiReatro" className="h-12 w-auto" />
-          </Link>
+    <>
+      <header className="border-b border-border/50 bg-background/95 backdrop-blur-md sticky top-0 z-50">
+        <div className="container mx-auto px-4 h-16 flex items-center justify-between">
+          <div className="flex items-center gap-8">
+            <Link to="/" className="flex items-center gap-2">
+              <img src={aireatroLogo} alt="AiReatro" className="h-12 w-auto" />
+            </Link>
 
-          <nav className="hidden lg:flex items-center gap-1">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="flex items-center gap-1">
-                  Products <ChevronDown className="w-4 h-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" className="w-72 bg-popover border border-border shadow-xl z-50">
-                <DropdownMenuLabel className="text-xs text-muted-foreground uppercase tracking-wider">WhatsApp Solutions</DropdownMenuLabel>
-                {whatsappProducts.map((item) => (
-                  <DropdownMenuItem key={item.name} asChild className="cursor-pointer">
-                    <Link to={item.href} className="flex items-start gap-3 p-2">
-                      <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center mt-0.5">
-                        <item.icon className="w-4 h-4 text-primary" />
-                      </div>
-                      <div>
-                        <div className="font-medium text-foreground">{item.name}</div>
-                        <div className="text-xs text-muted-foreground">{item.description}</div>
-                      </div>
-                    </Link>
-                  </DropdownMenuItem>
-                ))}
-                <DropdownMenuSeparator />
-                <DropdownMenuItem asChild className="cursor-pointer">
-                  <Link to="/products" className="flex items-center justify-center gap-2 text-primary font-medium">
-                    View All Products
-                  </Link>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="flex items-center gap-1">
-                  Features <ChevronDown className="w-4 h-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" className="w-[520px] bg-popover border border-border shadow-xl z-50 p-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <DropdownMenuLabel className="text-xs text-muted-foreground uppercase tracking-wider px-0 mb-2">Core Features</DropdownMenuLabel>
-                    <div className="space-y-1">
-                      {featuresCore.map((item) => (
-                        <DropdownMenuItem key={item.name} asChild className="cursor-pointer p-0">
-                          <Link to={item.href} className="flex items-start gap-3 p-2 rounded-lg hover:bg-muted">
-                            <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                              <item.icon className="w-4 h-4 text-primary" />
-                            </div>
-                            <div className="min-w-0">
-                              <div className="font-medium text-foreground text-sm">{item.name}</div>
-                              <div className="text-xs text-muted-foreground truncate">{item.description}</div>
-                            </div>
-                          </Link>
-                        </DropdownMenuItem>
-                      ))}
-                    </div>
-                  </div>
-                  <div>
-                    <DropdownMenuLabel className="text-xs text-muted-foreground uppercase tracking-wider px-0 mb-2">Advanced</DropdownMenuLabel>
-                    <div className="space-y-1">
-                      {featuresAdvanced.map((item) => (
-                        <DropdownMenuItem key={item.name} asChild className="cursor-pointer p-0">
-                          <Link to={item.href} className="flex items-start gap-3 p-2 rounded-lg hover:bg-muted">
-                            <div className="w-9 h-9 rounded-lg bg-accent/50 flex items-center justify-center shrink-0">
-                              <item.icon className="w-4 h-4 text-accent-foreground" />
-                            </div>
-                            <div className="min-w-0">
-                              <div className="font-medium text-foreground text-sm">{item.name}</div>
-                              <div className="text-xs text-muted-foreground truncate">{item.description}</div>
-                            </div>
-                          </Link>
-                        </DropdownMenuItem>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-                <DropdownMenuSeparator className="my-3" />
-                <DropdownMenuLabel className="text-xs text-muted-foreground uppercase tracking-wider px-0 mb-2">Enterprise</DropdownMenuLabel>
-                <div className="grid grid-cols-2 gap-2">
-                  {featuresEnterprise.map((item) => (
-                    <DropdownMenuItem key={item.name} asChild className="cursor-pointer p-0">
-                      <Link to={item.href} className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted">
-                        <div className="w-8 h-8 rounded-lg bg-secondary flex items-center justify-center shrink-0">
-                          <item.icon className="w-4 h-4 text-secondary-foreground" />
+            <nav className="hidden lg:flex items-center gap-1">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="flex items-center gap-1">
+                    Products <ChevronDown className="w-4 h-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="w-72 bg-popover border border-border shadow-xl z-50">
+                  <DropdownMenuLabel className="text-xs text-muted-foreground uppercase tracking-wider">WhatsApp Solutions</DropdownMenuLabel>
+                  {whatsappProducts.map((item) => (
+                    <DropdownMenuItem key={item.name} asChild className="cursor-pointer">
+                      <Link to={item.href} className="flex items-start gap-3 p-2">
+                        <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center mt-0.5">
+                          <item.icon className="w-4 h-4 text-primary" />
                         </div>
-                        <div className="min-w-0">
-                          <div className="font-medium text-foreground text-sm">{item.name}</div>
+                        <div>
+                          <div className="font-medium text-foreground">{item.name}</div>
                           <div className="text-xs text-muted-foreground">{item.description}</div>
                         </div>
                       </Link>
                     </DropdownMenuItem>
                   ))}
-                </div>
-              </DropdownMenuContent>
-            </DropdownMenu>
-
-            <Button variant="ghost" asChild>
-              <Link to="/pricing">Pricing</Link>
-            </Button>
-
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="flex items-center gap-1">
-                  Resources <ChevronDown className="w-4 h-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" className="w-48 bg-popover border border-border shadow-xl z-50">
-                {resourceLinks.map((link) => (
-                  <DropdownMenuItem key={link.name} asChild className="cursor-pointer">
-                    <Link to={link.href}>{link.name}</Link>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild className="cursor-pointer">
+                    <Link to="/products" className="flex items-center justify-center gap-2 text-primary font-medium">
+                      View All Products
+                    </Link>
                   </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
+                </DropdownMenuContent>
+              </DropdownMenu>
 
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="flex items-center gap-1">
-                  About <ChevronDown className="w-4 h-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" className="w-48 bg-popover border border-border shadow-xl z-50">
-                <DropdownMenuItem asChild className="cursor-pointer">
-                  <Link to="/about">About Us</Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild className="cursor-pointer">
-                  <Link to="/why-aireatro">Why Aireatro</Link>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="flex items-center gap-1">
+                    Features <ChevronDown className="w-4 h-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="w-[520px] bg-popover border border-border shadow-xl z-50 p-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <DropdownMenuLabel className="text-xs text-muted-foreground uppercase tracking-wider px-0 mb-2">Core Features</DropdownMenuLabel>
+                      <div className="space-y-1">
+                        {featuresCore.map((item) => (
+                          <DropdownMenuItem key={item.name} asChild className="cursor-pointer p-0">
+                            <Link to={item.href} className="flex items-start gap-3 p-2 rounded-lg hover:bg-muted">
+                              <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                                <item.icon className="w-4 h-4 text-primary" />
+                              </div>
+                              <div className="min-w-0">
+                                <div className="font-medium text-foreground text-sm">{item.name}</div>
+                                <div className="text-xs text-muted-foreground truncate">{item.description}</div>
+                              </div>
+                            </Link>
+                          </DropdownMenuItem>
+                        ))}
+                      </div>
+                    </div>
+                    <div>
+                      <DropdownMenuLabel className="text-xs text-muted-foreground uppercase tracking-wider px-0 mb-2">Advanced</DropdownMenuLabel>
+                      <div className="space-y-1">
+                        {featuresAdvanced.map((item) => (
+                          <DropdownMenuItem key={item.name} asChild className="cursor-pointer p-0">
+                            <Link to={item.href} className="flex items-start gap-3 p-2 rounded-lg hover:bg-muted">
+                              <div className="w-9 h-9 rounded-lg bg-accent/50 flex items-center justify-center shrink-0">
+                                <item.icon className="w-4 h-4 text-accent-foreground" />
+                              </div>
+                              <div className="min-w-0">
+                                <div className="font-medium text-foreground text-sm">{item.name}</div>
+                                <div className="text-xs text-muted-foreground truncate">{item.description}</div>
+                              </div>
+                            </Link>
+                          </DropdownMenuItem>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                  <DropdownMenuSeparator className="my-3" />
+                  <DropdownMenuLabel className="text-xs text-muted-foreground uppercase tracking-wider px-0 mb-2">Enterprise</DropdownMenuLabel>
+                  <div className="grid grid-cols-2 gap-2">
+                    {featuresEnterprise.map((item) => (
+                      <DropdownMenuItem key={item.name} asChild className="cursor-pointer p-0">
+                        <Link to={item.href} className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted">
+                          <div className="w-8 h-8 rounded-lg bg-secondary flex items-center justify-center shrink-0">
+                            <item.icon className="w-4 h-4 text-secondary-foreground" />
+                          </div>
+                          <div className="min-w-0">
+                            <div className="font-medium text-foreground text-sm">{item.name}</div>
+                            <div className="text-xs text-muted-foreground">{item.description}</div>
+                          </div>
+                        </Link>
+                      </DropdownMenuItem>
+                    ))}
+                  </div>
+                </DropdownMenuContent>
+              </DropdownMenu>
 
-            <Button variant="ghost" asChild>
-              <Link to="/contact">Contact</Link>
+              <Button variant="ghost" asChild>
+                <Link to="/pricing">Pricing</Link>
+              </Button>
+
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="flex items-center gap-1">
+                    Resources <ChevronDown className="w-4 h-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="w-48 bg-popover border border-border shadow-xl z-50">
+                  {resourceLinks.map((link) => (
+                    <DropdownMenuItem key={link.name} asChild className="cursor-pointer">
+                      <Link to={link.href}>{link.name}</Link>
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="flex items-center gap-1">
+                    About <ChevronDown className="w-4 h-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="w-48 bg-popover border border-border shadow-xl z-50">
+                  <DropdownMenuItem asChild className="cursor-pointer">
+                    <Link to="/about">About Us</Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild className="cursor-pointer">
+                    <Link to="/why-aireatro">Why Aireatro</Link>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+
+              <Button variant="ghost" asChild>
+                <Link to="/contact">Contact</Link>
+              </Button>
+            </nav>
+          </div>
+
+          <div className="hidden lg:flex items-center gap-3">
+            <Button variant="ghost" onClick={() => navigate('/login')}>
+              Sign in
             </Button>
-          </nav>
+            <Button onClick={() => navigate('/signup')} className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 shadow-lg shadow-green-500/20">
+              Get Started
+            </Button>
+          </div>
+
+          {/* Mobile menu button */}
+          <button
+            className="lg:hidden relative z-[70] w-10 h-10 flex items-center justify-center rounded-xl border border-border/60 bg-background/80 backdrop-blur-sm"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            aria-label="Toggle menu"
+          >
+            <AnimatePresence mode="wait">
+              {mobileMenuOpen ? (
+                <motion.div key="close" initial={{ rotate: -90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: 90, opacity: 0 }} transition={{ duration: 0.15 }}>
+                  <X className="w-5 h-5 text-foreground" />
+                </motion.div>
+              ) : (
+                <motion.div key="menu" initial={{ rotate: 90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: -90, opacity: 0 }} transition={{ duration: 0.15 }}>
+                  <Menu className="w-5 h-5 text-foreground" />
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </button>
         </div>
+      </header>
 
-        <div className="hidden lg:flex items-center gap-3">
-          <Button variant="ghost" onClick={() => navigate('/login')}>
-            Sign in
-          </Button>
-          <Button onClick={() => navigate('/signup')} className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 shadow-lg shadow-green-500/20">
-            Get Started
-          </Button>
-        </div>
-
-        {/* Mobile menu button */}
-        <button
-          className="lg:hidden relative z-[60] w-10 h-10 flex items-center justify-center rounded-xl border border-border/60 bg-background/80 backdrop-blur-sm"
-          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          aria-label="Toggle menu"
-        >
-          <AnimatePresence mode="wait">
-            {mobileMenuOpen ? (
-              <motion.div key="close" initial={{ rotate: -90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: 90, opacity: 0 }} transition={{ duration: 0.15 }}>
-                <X className="w-5 h-5 text-foreground" />
-              </motion.div>
-            ) : (
-              <motion.div key="menu" initial={{ rotate: 90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: -90, opacity: 0 }} transition={{ duration: 0.15 }}>
-                <Menu className="w-5 h-5 text-foreground" />
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </button>
-      </div>
-
-      {/* Premium Mobile Menu Overlay */}
+      {/* Mobile Menu - rendered OUTSIDE header to avoid clipping */}
       <AnimatePresence>
         {mobileMenuOpen && (
           <motion.div
@@ -287,14 +289,14 @@ export default function Navbar() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="lg:hidden fixed inset-0 top-16 z-50 bg-background/98 backdrop-blur-xl"
+            className="lg:hidden fixed inset-0 top-[64px] z-[60] bg-background backdrop-blur-xl overflow-y-auto overscroll-contain"
           >
             <motion.div
               initial={{ y: 20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               exit={{ y: 10, opacity: 0 }}
               transition={{ duration: 0.25, delay: 0.05 }}
-              className="h-full overflow-y-auto overscroll-contain pb-32"
+              className="pb-32"
             >
               <div className="container mx-auto px-5 pt-6 pb-8 space-y-2">
 
@@ -463,6 +465,6 @@ export default function Navbar() {
           </motion.div>
         )}
       </AnimatePresence>
-    </header>
+    </>
   );
 }
