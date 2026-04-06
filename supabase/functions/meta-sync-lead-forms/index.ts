@@ -202,6 +202,34 @@ Deno.serve(async (req) => {
             page_name: page.name,
           }, { onConflict: 'tenant_id,page_id' });
 
+          // Auto-subscribe page to leadgen webhooks using the page token
+          try {
+            const subRes = await fetch(
+              `${GRAPH}/${page.id}/subscribed_apps?subscribed_fields=leadgen&access_token=${pageAccessToken}`,
+              { method: 'POST' }
+            );
+            const subData = await subRes.json();
+
+            if (subRes.ok && subData.success) {
+              console.log(`[meta-sync-lead-forms] Auto-subscribed page ${page.id} to leadgen webhooks`);
+              await supabase.from('meta_webhook_subscriptions').upsert({
+                tenant_id: tenantId,
+                page_id: page.id,
+                page_name: page.name,
+                is_subscribed: true,
+                subscribed_at: new Date().toISOString(),
+              }, { onConflict: 'tenant_id,page_id' });
+
+              await supabase.from('meta_lead_forms').update({
+                is_webhook_subscribed: true,
+              }).eq('tenant_id', tenantId).eq('page_id', page.id);
+            } else {
+              console.warn(`[meta-sync-lead-forms] Failed to auto-subscribe page ${page.id}:`, subData?.error || subData);
+            }
+          } catch (subErr) {
+            console.warn(`[meta-sync-lead-forms] Auto-subscribe error for page ${page.id}:`, subErr);
+          }
+
         } catch (err) {
           console.error(`Failed to fetch forms for page ${page.id}:`, err);
           pageErrors.push({
