@@ -248,9 +248,25 @@ Deno.serve(async (req) => {
     }
 
     if (action === 'subscribe_webhook' && pageId) {
-      // Subscribe to leadgen webhooks for a specific page
-      const matchingAccount = connectedAccounts.find((account) => account.facebook_page_id === pageId);
-      const pageToken = matchingAccount?.meta_access_token || accessToken;
+      // Subscribe to leadgen webhooks — MUST use a Page Access Token
+      // First try fetching the page token from /me/accounts
+      let pageToken: string | null = null;
+      try {
+        const pagesRes = await fetch(`${GRAPH}/me/accounts?fields=id,access_token&access_token=${accessToken}`);
+        const pagesData = await pagesRes.json();
+        if (pagesData?.data) {
+          const matchedPage = pagesData.data.find((p: any) => p.id === pageId);
+          if (matchedPage?.access_token) pageToken = matchedPage.access_token;
+        }
+      } catch (e) {
+        console.warn('[meta-sync-lead-forms] Failed to fetch page token for subscribe:', e);
+      }
+      
+      // Fallback to stored token (may not work if it's a user token)
+      if (!pageToken) {
+        const matchingAccount = connectedAccounts.find((account) => account.facebook_page_id === pageId);
+        pageToken = matchingAccount?.meta_access_token || accessToken;
+      }
       
       const subRes = await fetch(
         `${GRAPH}/${pageId}/subscribed_apps?subscribed_fields=leadgen&access_token=${pageToken}`,
