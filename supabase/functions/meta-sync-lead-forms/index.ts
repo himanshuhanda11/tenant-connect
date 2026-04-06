@@ -250,7 +250,7 @@ Deno.serve(async (req) => {
 
   } catch (err) {
     console.error('[meta-sync-lead-forms] Error:', err);
-    return json({ error: err.message || 'Internal error' }, 500);
+    return json({ error: err instanceof Error ? err.message : 'Internal error' }, 500);
   }
 });
 
