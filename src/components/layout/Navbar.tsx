@@ -311,7 +311,7 @@ export default function Navbar() {
                     <button
                       onClick={() => toggleSection(section.id)}
                       className={cn(
-                        "w-full flex items-center gap-3.5 px-4 py-3.5 rounded-2xl transition-all duration-200",
+                        "w-full flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all duration-200",
                         expandedSection === section.id
                           ? "bg-muted/80 shadow-sm"
                           : "hover:bg-muted/50"
