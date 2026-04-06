@@ -84,37 +84,40 @@ Deno.serve(async (req) => {
       }));
 
     const systemUserToken = Deno.env.get('META_SYSTEM_USER_TOKEN') || null;
-    // Prefer the user's OAuth token (has pages_read_engagement granted) over system token
-    // System user tokens often lack page-level permissions like pages_read_engagement
+    // Use the user's OAuth token to call /me/accounts which returns PAGE-specific tokens
+    // The user token itself cannot call /{page_id}/leadgen_forms — only page tokens can
     const userOAuthToken = connectedAccounts.find((account) => account.meta_access_token)?.meta_access_token || null;
     let accessToken = userOAuthToken || systemUserToken || null;
     if (!accessToken) return json({ error: 'No Meta access token configured' }, 400);
 
     if (action === 'sync_forms') {
-      let pages: MetaPage[] = [...storedPages];
+      let pages: MetaPage[] = [];
 
+      // CRITICAL: /me/accounts returns page-specific access tokens
+      // These page tokens are required for /{page_id}/leadgen_forms
       try {
         const pagesRes = await fetch(`${GRAPH}/me/accounts?fields=id,name,access_token&access_token=${accessToken}`);
         const pagesData = await pagesRes.json();
 
         if (!pagesRes.ok || pagesData?.error) {
           console.error('[meta-sync-lead-forms] Failed to fetch /me/accounts:', pagesData?.error || pagesData);
+          // Fall back to stored pages but they won't have page tokens
+          pages = [...storedPages];
         } else if (Array.isArray(pagesData?.data)) {
-          pages = dedupePages([
-            ...storedPages,
-            ...pagesData.data.map((page: any) => ({
-              id: page.id,
-              name: page.name,
-              access_token: page.access_token || undefined,
-            })),
-          ]);
+          pages = pagesData.data.map((page: any) => ({
+            id: page.id,
+            name: page.name,
+            access_token: page.access_token, // This is the PAGE token from Meta
+          })).filter((p: MetaPage) => !!p.access_token);
+          console.log(`[meta-sync-lead-forms] Got ${pages.length} pages with page tokens from /me/accounts`);
         }
       } catch (graphError) {
         console.error('[meta-sync-lead-forms] Error fetching pages from Meta:', graphError);
+        pages = [...storedPages];
       }
 
-      // Use page-specific tokens when available, fall back to user OAuth token
-      pages = dedupePages(pages);
+      // Merge with stored pages (but prefer freshly fetched page tokens)
+      pages = dedupePages([...pages, ...storedPages]);
 
       if (pages.length === 0) {
         return json({
@@ -128,8 +131,16 @@ Deno.serve(async (req) => {
       const pageErrors: Array<{ page_id: string; page_name: string; error: string }> = [];
 
       for (const page of pages) {
-        // Prefer page-specific token, then user OAuth token, then system token
-        const pageAccessToken = page.access_token || accessToken;
+        // MUST use a page-specific token — user tokens cause #210 error
+        const pageAccessToken = page.access_token;
+        if (!pageAccessToken) {
+          pageErrors.push({
+            page_id: page.id,
+            page_name: page.name,
+            error: 'No page access token available. Please reconnect your Facebook account via Meta Ads Setup.',
+          });
+          continue;
+        }
         
         try {
           const formsRes = await fetch(
