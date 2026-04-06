@@ -617,7 +617,7 @@ export default function MetaAdsSetup() {
                 {!fbConnected && (
                   <div className="p-4 sm:p-6 space-y-4">
                     <div className="flex flex-wrap gap-2">
-                      {['ads_read', 'pages_show_list', 'business_management', 'pages_read_engagement'].map(scope => (
+                      {['ads_read', 'pages_show_list', 'business_management', 'pages_read_engagement', 'leads_retrieval', 'pages_manage_ads'].map(scope => (
                         <Badge key={scope} variant="outline" className="text-xs gap-1">
                           <Shield className="h-3 w-3" /> {scope}
                         </Badge>
