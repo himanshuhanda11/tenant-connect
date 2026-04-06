@@ -131,8 +131,16 @@ Deno.serve(async (req) => {
       const pageErrors: Array<{ page_id: string; page_name: string; error: string }> = [];
 
       for (const page of pages) {
-        // Prefer page-specific token, then user OAuth token, then system token
-        const pageAccessToken = page.access_token || accessToken;
+        // MUST use a page-specific token — user tokens cause #210 error
+        const pageAccessToken = page.access_token;
+        if (!pageAccessToken) {
+          pageErrors.push({
+            page_id: page.id,
+            page_name: page.name,
+            error: 'No page access token available. Please reconnect your Facebook account via Meta Ads Setup.',
+          });
+          continue;
+        }
         
         try {
           const formsRes = await fetch(
