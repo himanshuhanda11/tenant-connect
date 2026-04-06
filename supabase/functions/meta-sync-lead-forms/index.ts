@@ -113,12 +113,8 @@ Deno.serve(async (req) => {
         console.error('[meta-sync-lead-forms] Error fetching pages from Meta:', graphError);
       }
 
-      pages = dedupePages(
-        pages.map((page) => ({
-          ...page,
-          access_token: systemUserToken || page.access_token,
-        }))
-      );
+      // Use page-specific tokens when available, fall back to user OAuth token
+      pages = dedupePages(pages);
 
       if (pages.length === 0) {
         return json({
