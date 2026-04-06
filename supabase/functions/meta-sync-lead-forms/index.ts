@@ -211,7 +211,7 @@ Deno.serve(async (req) => {
     if (action === 'subscribe_webhook' && pageId) {
       // Subscribe to leadgen webhooks for a specific page
       const matchingAccount = connectedAccounts.find((account) => account.facebook_page_id === pageId);
-      const pageToken = systemUserToken || matchingAccount?.meta_access_token || accessToken;
+      const pageToken = matchingAccount?.meta_access_token || accessToken;
       
       const subRes = await fetch(
         `${GRAPH}/${pageId}/subscribed_apps?subscribed_fields=leadgen&access_token=${pageToken}`,
