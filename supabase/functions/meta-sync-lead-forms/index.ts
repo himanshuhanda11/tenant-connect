@@ -142,10 +142,21 @@ Deno.serve(async (req) => {
           if (!formsRes.ok || formsData?.error) {
             const errorMessage = formsData?.error?.message || `HTTP ${formsRes.status}`;
             console.error(`[meta-sync-lead-forms] Failed to fetch forms for page ${page.id}:`, formsData?.error || formsData);
+            
+            // Translate common Meta permission errors into friendly messages
+            let friendlyError = errorMessage;
+            if (errorMessage.includes('pages_manage_ads')) {
+              friendlyError = 'Missing pages_manage_ads permission. Please reconnect your Facebook account via Meta Ads Setup and approve all requested permissions (especially "Manage Ads on Pages").';
+            } else if (errorMessage.includes('(#200)')) {
+              friendlyError = 'Insufficient Facebook Page permissions. Reconnect via Meta Ads Setup and grant full Page + Ads access.';
+            } else if (errorMessage.includes('OAuthException') && errorMessage.includes('expired')) {
+              friendlyError = 'Your Facebook token has expired. Please reconnect via Meta Ads Setup.';
+            }
+
             pageErrors.push({
               page_id: page.id,
               page_name: page.name,
-              error: errorMessage,
+              error: friendlyError,
             });
             continue;
           }
