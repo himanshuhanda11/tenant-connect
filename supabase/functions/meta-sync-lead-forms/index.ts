@@ -128,7 +128,8 @@ Deno.serve(async (req) => {
       const pageErrors: Array<{ page_id: string; page_name: string; error: string }> = [];
 
       for (const page of pages) {
-        const pageAccessToken = systemUserToken || page.access_token || accessToken;
+        // Prefer page-specific token, then user OAuth token, then system token
+        const pageAccessToken = page.access_token || accessToken;
         
         try {
           const formsRes = await fetch(
