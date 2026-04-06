@@ -317,7 +317,7 @@ export default function Navbar() {
                           : "hover:bg-muted/50"
                       )}
                     >
-                      <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center", section.iconBg)}>
+                      <div className={cn("w-8 h-8 rounded-lg flex items-center justify-center", section.iconBg)}>
                         <section.icon className={cn("w-5 h-5", section.iconColor)} />
                       </div>
                       <span className="flex-1 text-left font-semibold text-foreground text-[15px]">{section.label}</span>
