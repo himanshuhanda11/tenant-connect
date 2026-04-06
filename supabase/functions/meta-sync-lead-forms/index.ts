@@ -21,6 +21,21 @@ type MetaPage = {
   access_token?: string;
 };
 
+function dedupePages(pages: MetaPage[]) {
+  const mergedPages = new Map<string, MetaPage>();
+
+  for (const page of pages) {
+    if (!page?.id) continue;
+    mergedPages.set(page.id, {
+      id: page.id,
+      name: page.name || mergedPages.get(page.id)?.name || 'Untitled Page',
+      access_token: page.access_token || mergedPages.get(page.id)?.access_token,
+    });
+  }
+
+  return Array.from(mergedPages.values());
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders });
 
@@ -68,8 +83,10 @@ Deno.serve(async (req) => {
         access_token: account.meta_access_token || undefined,
       }));
 
-    let accessToken = connectedAccounts.find((account) => account.meta_access_token)?.meta_access_token
-      || Deno.env.get('META_SYSTEM_USER_TOKEN');
+    const systemUserToken = Deno.env.get('META_SYSTEM_USER_TOKEN') || null;
+    let accessToken = systemUserToken
+      || connectedAccounts.find((account) => account.meta_access_token)?.meta_access_token
+      || null;
     if (!accessToken) return json({ error: 'No Meta access token configured' }, 400);
 
     if (action === 'sync_forms') {
@@ -82,26 +99,25 @@ Deno.serve(async (req) => {
         if (!pagesRes.ok || pagesData?.error) {
           console.error('[meta-sync-lead-forms] Failed to fetch /me/accounts:', pagesData?.error || pagesData);
         } else if (Array.isArray(pagesData?.data)) {
-          const mergedPages = new Map<string, MetaPage>();
-
-          for (const page of storedPages) {
-            mergedPages.set(page.id, page);
-          }
-
-          for (const page of pagesData.data) {
-            if (!page?.id) continue;
-            mergedPages.set(page.id, {
+          pages = dedupePages([
+            ...storedPages,
+            ...pagesData.data.map((page: any) => ({
               id: page.id,
-              name: page.name || mergedPages.get(page.id)?.name || 'Untitled Page',
-              access_token: page.access_token || mergedPages.get(page.id)?.access_token,
-            });
-          }
-
-          pages = Array.from(mergedPages.values());
+              name: page.name,
+              access_token: systemUserToken || page.access_token || undefined,
+            })),
+          ]);
         }
       } catch (graphError) {
         console.error('[meta-sync-lead-forms] Error fetching pages from Meta:', graphError);
       }
+
+      pages = dedupePages(
+        pages.map((page) => ({
+          ...page,
+          access_token: systemUserToken || page.access_token,
+        }))
+      );
 
       if (pages.length === 0) {
         return json({
@@ -115,7 +131,7 @@ Deno.serve(async (req) => {
       const pageErrors: Array<{ page_id: string; page_name: string; error: string }> = [];
 
       for (const page of pages) {
-        const pageAccessToken = page.access_token || accessToken;
+        const pageAccessToken = systemUserToken || page.access_token || accessToken;
         
         try {
           const formsRes = await fetch(
@@ -186,7 +202,7 @@ Deno.serve(async (req) => {
     if (action === 'subscribe_webhook' && pageId) {
       // Subscribe to leadgen webhooks for a specific page
       const matchingAccount = connectedAccounts.find((account) => account.facebook_page_id === pageId);
-      const pageToken = matchingAccount?.meta_access_token || accessToken;
+      const pageToken = systemUserToken || matchingAccount?.meta_access_token || accessToken;
       
       const subRes = await fetch(
         `${GRAPH}/${pageId}/subscribed_apps?subscribed_fields=leadgen&access_token=${pageToken}`,
