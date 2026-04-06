@@ -84,9 +84,10 @@ Deno.serve(async (req) => {
       }));
 
     const systemUserToken = Deno.env.get('META_SYSTEM_USER_TOKEN') || null;
-    let accessToken = systemUserToken
-      || connectedAccounts.find((account) => account.meta_access_token)?.meta_access_token
-      || null;
+    // Prefer the user's OAuth token (has pages_read_engagement granted) over system token
+    // System user tokens often lack page-level permissions like pages_read_engagement
+    const userOAuthToken = connectedAccounts.find((account) => account.meta_access_token)?.meta_access_token || null;
+    let accessToken = userOAuthToken || systemUserToken || null;
     if (!accessToken) return json({ error: 'No Meta access token configured' }, 400);
 
     if (action === 'sync_forms') {
