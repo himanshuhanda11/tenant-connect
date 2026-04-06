@@ -84,9 +84,10 @@ Deno.serve(async (req) => {
       }));
 
     const systemUserToken = Deno.env.get('META_SYSTEM_USER_TOKEN') || null;
-    let accessToken = systemUserToken
-      || connectedAccounts.find((account) => account.meta_access_token)?.meta_access_token
-      || null;
+    // Prefer the user's OAuth token (has pages_read_engagement granted) over system token
+    // System user tokens often lack page-level permissions like pages_read_engagement
+    const userOAuthToken = connectedAccounts.find((account) => account.meta_access_token)?.meta_access_token || null;
+    let accessToken = userOAuthToken || systemUserToken || null;
     if (!accessToken) return json({ error: 'No Meta access token configured' }, 400);
 
     if (action === 'sync_forms') {
@@ -104,7 +105,7 @@ Deno.serve(async (req) => {
             ...pagesData.data.map((page: any) => ({
               id: page.id,
               name: page.name,
-              access_token: systemUserToken || page.access_token || undefined,
+              access_token: page.access_token || undefined,
             })),
           ]);
         }
@@ -112,12 +113,8 @@ Deno.serve(async (req) => {
         console.error('[meta-sync-lead-forms] Error fetching pages from Meta:', graphError);
       }
 
-      pages = dedupePages(
-        pages.map((page) => ({
-          ...page,
-          access_token: systemUserToken || page.access_token,
-        }))
-      );
+      // Use page-specific tokens when available, fall back to user OAuth token
+      pages = dedupePages(pages);
 
       if (pages.length === 0) {
         return json({
@@ -131,7 +128,8 @@ Deno.serve(async (req) => {
       const pageErrors: Array<{ page_id: string; page_name: string; error: string }> = [];
 
       for (const page of pages) {
-        const pageAccessToken = systemUserToken || page.access_token || accessToken;
+        // Prefer page-specific token, then user OAuth token, then system token
+        const pageAccessToken = page.access_token || accessToken;
         
         try {
           const formsRes = await fetch(
@@ -213,7 +211,7 @@ Deno.serve(async (req) => {
     if (action === 'subscribe_webhook' && pageId) {
       // Subscribe to leadgen webhooks for a specific page
       const matchingAccount = connectedAccounts.find((account) => account.facebook_page_id === pageId);
-      const pageToken = systemUserToken || matchingAccount?.meta_access_token || accessToken;
+      const pageToken = matchingAccount?.meta_access_token || accessToken;
       
       const subRes = await fetch(
         `${GRAPH}/${pageId}/subscribed_apps?subscribed_fields=leadgen&access_token=${pageToken}`,
