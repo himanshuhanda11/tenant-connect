@@ -35,7 +35,7 @@ interface MetaPage {
 }
 
 // Required scopes for full functionality
-const REQUIRED_SCOPES = ['ads_read', 'pages_show_list', 'business_management', 'pages_read_engagement', 'leads_retrieval', 'pages_manage_ads'];
+const REQUIRED_SCOPES = ['ads_read', 'pages_show_list', 'business_management', 'pages_read_engagement'];
 
 type ConnectionStatus = 'connected' | 'expired' | 'missing_scopes' | 'disconnected' | 'pending_setup';
 
@@ -299,7 +299,7 @@ export default function MetaAdsSetup() {
             setIsFbLoading(false);
           }
         })();
-      }, { scope: 'ads_read,pages_show_list,business_management,pages_read_engagement,leads_retrieval,pages_manage_ads', auth_type: 'reauthorize' });
+      }, { scope: 'ads_read,pages_show_list,business_management,pages_read_engagement', auth_type: 'reauthorize' });
     } catch (err: any) {
       toast.error(err.message || 'Failed to open Facebook login');
       setIsFbLoading(false);
