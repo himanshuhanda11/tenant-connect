@@ -49,6 +49,10 @@
     --sidebar-ring: 142 70% 50%;
     --sidebar-muted: 160 15% 10%;
 
+    /* Chat bubble — warm soft green */
+    --chat-outbound: 152 35% 40%;
+    --chat-outbound-foreground: 0 0% 100%;
+
     /* Custom tokens */
     --success: 142 70% 45%;
     --success-foreground: 0 0% 100%;
