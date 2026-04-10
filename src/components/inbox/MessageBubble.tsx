@@ -138,7 +138,7 @@ export function MessageBubble({ message }: MessageBubbleProps) {
         <div
           className={cn(
             'flex items-center justify-end gap-1 mt-1',
-            isOutbound ? 'text-primary-foreground/70' : 'text-muted-foreground'
+            isOutbound ? 'text-[hsl(var(--chat-outbound-foreground))]/70' : 'text-muted-foreground'
           )}
         >
           <span className="text-xs">
