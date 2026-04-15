@@ -29,7 +29,6 @@ import SeoEditDrawer from './SeoEditDrawer';
 import { clearSeoCache } from '@/components/seo/SeoMeta';
 import { supabase } from '@/integrations/supabase/client';
 import { PUBLIC_PAGE_ROUTES, getBlogSeoEntries } from '@/data/seoRouteRegistry';
-import { blogPosts } from '@/data/blogPosts';
 
 // SEO Score calculator
 function getSeoScore(meta: any): { score: number; label: string; color: string; icon: typeof CheckCircle } {
@@ -172,7 +171,8 @@ export default function SeoDashboard() {
             <Button
               variant="outline"
               size="sm"
-              onClick={() => {
+              onClick={async () => {
+                const { blogPosts } = await import('@/data/blogPosts');
                 const allEntries = [...PUBLIC_PAGE_ROUTES, ...getBlogSeoEntries(blogPosts)];
                 syncAllPages(allEntries);
               }}
