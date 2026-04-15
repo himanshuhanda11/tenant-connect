@@ -171,7 +171,8 @@ export default function SeoDashboard() {
             <Button
               variant="outline"
               size="sm"
-              onClick={() => {
+              onClick={async () => {
+                const { blogPosts } = await import('@/data/blogPosts');
                 const allEntries = [...PUBLIC_PAGE_ROUTES, ...getBlogSeoEntries(blogPosts)];
                 syncAllPages(allEntries);
               }}
