@@ -75,17 +75,17 @@ export function useBlogs() {
       const slug = generateSlug(blog.title || 'untitled');
       const { data, error } = await supabase
         .from('blogs')
-        .insert({
+        .insert([{
           title: blog.title || 'Untitled Post',
           slug,
           excerpt: blog.excerpt || '',
-          content: blog.content || [],
+          content: (blog.content || []) as any,
           status: 'draft',
           author: blog.author || 'AiReatro Team',
           category: blog.category || 'General',
           tags: blog.tags || [],
           read_time: 0,
-        })
+        }])
         .select()
         .single();
       if (error) throw error;
