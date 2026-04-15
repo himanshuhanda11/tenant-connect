@@ -839,7 +839,14 @@ export default function BlogEditor() {
                                 {block.content}
                               </h2>
                             )}
-                            {block.type === 'paragraph' && <p className="text-sm text-muted-foreground leading-relaxed">{block.content}</p>}
+                            {block.type === 'paragraph' && (
+                              <p className="text-sm text-muted-foreground leading-relaxed" dangerouslySetInnerHTML={{
+                                __html: block.content
+                                  .replace(/\*\*(.+?)\*\*/g, '<strong class="text-foreground">$1</strong>')
+                                  .replace(/\*(.+?)\*/g, '<em>$1</em>')
+                                  .replace(/\[(.+?)\]\((.+?)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer" class="text-primary underline underline-offset-2">$1</a>')
+                              }} />
+                            )}
                             {block.type === 'link' && block.buttonUrl && (
                               <a href={block.buttonUrl} className="text-sm text-primary underline underline-offset-2 inline-flex items-center gap-1">
                                 {block.buttonText || block.buttonUrl}
