@@ -5,6 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
+import SeoMeta from '@/components/seo/SeoMeta';
 import SEO from '@/components/seo/SEO';
 import { getBlogPost, getRelatedPosts, blogPosts } from '@/data/blogPosts';
 
@@ -38,10 +39,15 @@ export default function BlogPost() {
 
   return (
     <div className="min-h-screen bg-background">
+      <SeoMeta 
+        route={`/blog/${post.slug}`}
+        fallbackTitle={post.title}
+        fallbackDescription={post.excerpt}
+      />
       <SEO 
         title={post.title}
         description={post.excerpt}
-        keywords={[post.category, 'WhatsApp API', 'AiReatro', ...post.title.split(' ').filter(w => w.length > 4)]}
+        keywords={[post.category, 'WhatsApp API', 'AiReatro']}
         canonical={`/blog/${post.slug}`}
         ogType="article"
         ogImage={post.image}
