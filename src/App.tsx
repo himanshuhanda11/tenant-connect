@@ -129,6 +129,9 @@ const MetaAdsSettings = lazyWithRetry(() => import("./pages/meta-ads/MetaAdsSett
 const CreateMetaCampaign = lazyWithRetry(() => import("./pages/meta-ads/CreateMetaCampaign"));
 const LeadFormsPage = lazyWithRetry(() => import("./pages/LeadFormsPage"));
 const Install = lazyWithRetry(() => import("./pages/Install"));
+const BlogBuilderDashboard = lazyWithRetry(() => import("./pages/developer/BlogBuilderDashboard"));
+const BlogEditor = lazyWithRetry(() => import("./pages/developer/BlogEditor"));
+const MediaLibraryPage = lazyWithRetry(() => import("./pages/developer/MediaLibraryPage"));
 const ShopifyOverview = lazyWithRetry(() => import("./pages/shopify/ShopifyOverview"));
 const ShopifyConnect = lazyWithRetry(() => import("./pages/shopify/ShopifyConnect"));
 const ShopifyStoreDetail = lazyWithRetry(() => import("./pages/shopify/ShopifyStoreDetail"));
