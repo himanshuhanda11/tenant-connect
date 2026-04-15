@@ -330,6 +330,9 @@ const App = () => (
                     <Route path="/free-whatsapp-api-lifetime" element={<FreeWhatsAppApiLifetime />} />
                     <Route path="/install" element={<Install />} />
                     <Route path="/developer/seo" element={<SeoDashboard />} />
+                    <Route path="/developer/blog-builder" element={<BlogBuilderDashboard />} />
+                    <Route path="/developer/blog-builder/:id" element={<BlogEditor />} />
+                    <Route path="/developer/media" element={<MediaLibraryPage />} />
                     <Route path="/control" element={<AdminLayout />}>
                       <Route index element={<AdminOverview />} />
                       <Route path="workspaces" element={<AdminWorkspaces />} />
