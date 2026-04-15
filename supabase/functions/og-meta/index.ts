@@ -112,9 +112,8 @@ Deno.serve(async (req) => {
     const userAgent = req.headers.get("user-agent");
     const fullUrl = `https://aireatro.com${path}`;
 
-    // Check if this is a crawler request
+    // For non-crawlers, redirect to actual page
     if (!isCrawler(userAgent)) {
-      // Not a crawler, redirect to actual page
       return new Response(null, {
         status: 302,
         headers: {
@@ -160,7 +159,7 @@ Deno.serve(async (req) => {
     let meta: SeoMeta;
 
     if (pageError || !pageData || !pageData.seo_meta?.[0]) {
-      // Use default meta if page not found
+      // Use default meta — NEVER return 4xx to crawlers
       meta = {
         title: "AiReatro - WhatsApp Business API Platform",
         description: "Connect, engage, and grow with WhatsApp Business API. Automate conversations, send campaigns, and manage customer relationships.",
@@ -181,6 +180,7 @@ Deno.serve(async (req) => {
 
     const html = generateMetaHtml(meta, fullUrl);
 
+    // Always return 200 to crawlers — 4xx causes "Blocked due to other 4xx issue" in GSC
     return new Response(html, {
       status: 200,
       headers: {
@@ -191,12 +191,29 @@ Deno.serve(async (req) => {
     });
   } catch (error) {
     console.error("OG Meta Error:", error);
-    return new Response(
-      JSON.stringify({ error: "Internal server error" }),
-      {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
-    );
+    // Even on error, return 200 with default meta to avoid GSC 4xx blocks
+    const fallbackHtml = generateMetaHtml({
+      title: "AiReatro - WhatsApp Business API Platform",
+      description: "Connect, engage, and grow with WhatsApp Business API.",
+      og_title: null,
+      og_description: null,
+      og_image: null,
+      og_type: "website",
+      twitter_card: "summary_large_image",
+      twitter_title: null,
+      twitter_description: null,
+      twitter_image: null,
+      canonical_url: null,
+      robots: "index,follow",
+    }, "https://aireatro.com");
+    
+    return new Response(fallbackHtml, {
+      status: 200,
+      headers: {
+        ...corsHeaders,
+        "Content-Type": "text/html; charset=utf-8",
+        "Cache-Control": "public, max-age=300",
+      },
+    });
   }
 });
