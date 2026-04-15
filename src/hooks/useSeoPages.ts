@@ -46,6 +46,7 @@ export interface SeoPageWithMeta extends SeoPage {
 export function useSeoPages() {
   const [pages, setPages] = useState<SeoPageWithMeta[]>([]);
   const [loading, setLoading] = useState(true);
+  const [syncing, setSyncing] = useState(false);
   const { toast } = useToast();
 
   const fetchPages = useCallback(async () => {
@@ -185,13 +186,92 @@ export function useSeoPages() {
     }
   };
 
+  /**
+   * Sync all known routes into the seo_pages table.
+   * Creates missing pages + seo_meta records without overwriting existing ones.
+   */
+  const syncAllPages = async (entries: Array<{
+    route_path: string;
+    page_key: string;
+    page_name: string;
+    page_type: string;
+    is_public: boolean;
+    fallbackTitle: string;
+    fallbackDescription: string;
+  }>) => {
+    setSyncing(true);
+    let created = 0;
+    let skipped = 0;
+
+    try {
+      // Get existing route_paths
+      const { data: existing } = await supabase
+        .from('seo_pages')
+        .select('route_path');
+      
+      const existingPaths = new Set((existing || []).map(p => p.route_path));
+
+      for (const entry of entries) {
+        if (existingPaths.has(entry.route_path)) {
+          skipped++;
+          continue;
+        }
+
+        const { data: pageData, error: pageError } = await supabase
+          .from('seo_pages')
+          .insert({
+            route_path: entry.route_path,
+            page_key: entry.page_key,
+            page_name: entry.page_name,
+            page_type: entry.page_type,
+            is_public: entry.is_public,
+          })
+          .select()
+          .single();
+
+        if (pageError) {
+          console.error(`Failed to create page ${entry.route_path}:`, pageError);
+          continue;
+        }
+
+        await supabase.from('seo_meta').insert({
+          page_id: pageData.id,
+          title: entry.fallbackTitle,
+          description: entry.fallbackDescription,
+          og_title: entry.fallbackTitle,
+          og_description: entry.fallbackDescription,
+          robots: entry.is_public ? 'index,follow' : 'noindex,nofollow',
+          is_published: true,
+        });
+
+        created++;
+      }
+
+      await fetchPages();
+      toast({
+        title: `Sync Complete`,
+        description: `${created} pages added, ${skipped} already existed.`,
+      });
+    } catch (err: any) {
+      toast({
+        title: 'Sync Failed',
+        description: err.message,
+        variant: 'destructive',
+      });
+    } finally {
+      setSyncing(false);
+    }
+  };
+
   return {
     pages,
     loading,
+    syncing,
     fetchPages,
     createPage,
     updateMeta,
     deletePage,
     generateAiSeo,
+    syncAllPages,
   };
 }
