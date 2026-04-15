@@ -176,7 +176,7 @@ export default function WhatsAppForms() {
 
   return (
     <div className="min-h-screen bg-white">
-      <SeoMeta route="/whatsapp-forms" fallbackTitle="WhatsApp Forms" fallbackDescription="AI-Powered Form Builder for WhatsApp" />
+      <SeoMeta route="/whatsapp-forms" fallbackTitle="WhatsApp Forms — AI-Powered Conversational Form Builder" fallbackDescription="Collect leads, surveys, and feedback directly inside WhatsApp conversations. Build interactive forms with AI-powered field detection and auto-validation." />
       <JsonLd data={[organizationSchema, softwareApplicationSchema, formsPageSchema]} />
       
       <Navbar />

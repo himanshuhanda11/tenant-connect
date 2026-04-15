@@ -307,7 +307,7 @@ export default function CaseStudies() {
 
   return (
     <div className="min-h-screen bg-background">
-      <SeoMeta route="/case-studies" fallbackTitle="Customer Case Studies" fallbackDescription="Real customer success stories with AI WhatsApp automation" />
+      <SeoMeta route="/case-studies" fallbackTitle="Customer Success Stories — AiReatro Case Studies" fallbackDescription="See how businesses increased conversions and streamlined support using AiReatro's WhatsApp API. Real results from real customers across industries." />
       
       {/* JSON-LD Schema */}
       <Helmet>

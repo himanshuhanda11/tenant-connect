@@ -75,7 +75,7 @@ export default function Careers() {
 
   return (
     <div className="min-h-screen bg-background">
-      <SeoMeta route="/careers" fallbackTitle="Careers" fallbackDescription="Join our remote-first team" />
+      <SeoMeta route="/careers" fallbackTitle="Careers at AiReatro — Join Our Remote-First Team" fallbackDescription="Explore open positions at AiReatro. Join a remote-first team building the future of WhatsApp Business automation and AI-powered customer engagement." />
       <Navbar />
 
       {/* Hero - Classic Design */}

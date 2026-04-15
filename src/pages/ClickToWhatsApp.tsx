@@ -166,7 +166,7 @@ const ClickToWhatsApp = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <SeoMeta route="/click-to-whatsapp" fallbackTitle="Click to WhatsApp" fallbackDescription="Turn ads and links into instant WhatsApp conversations" />
+      <SeoMeta route="/click-to-whatsapp" fallbackTitle="Click-to-WhatsApp Ads — Convert Meta Ads into Conversations" fallbackDescription="Turn Facebook and Instagram ads into instant WhatsApp conversations. Track ROI, automate follow-ups, and capture leads with Click-to-WhatsApp campaigns." />
       <JsonLd data={[organizationSchema, softwareApplicationSchema, webPageSchema]} />
       
       <Navbar />

@@ -64,7 +64,7 @@ export default function Security() {
 
   return (
     <div className="min-h-screen bg-background">
-      <SeoMeta route="/security" fallbackTitle="Security" fallbackDescription="Enterprise-Grade Data Protection" />
+      <SeoMeta route="/security" fallbackTitle="Security — Enterprise-Grade Data Protection" fallbackDescription="AiReatro's security practices: end-to-end encryption, GDPR compliance, SOC 2 readiness, role-based access, and audit logging for WhatsApp API data." />
       <Navbar />
 
       {/* Hero - Classic Design */}

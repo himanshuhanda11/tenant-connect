@@ -162,7 +162,7 @@ function FeatureCard({ feature, variant = 'default' }: { feature: typeof coreFea
 export default function Features() {
   return (
     <div className="min-h-screen bg-background">
-      <SeoMeta route="/features" fallbackTitle="Features" fallbackDescription="Complete WhatsApp Business Platform" />
+      <SeoMeta route="/features" fallbackTitle="Features — WhatsApp API Inbox, Automation, Campaigns & More" fallbackDescription="Discover AiReatro's full feature set: shared team inbox, no-code automation, broadcast campaigns, analytics, CRM, and WhatsApp template management." />
       <Navbar />
       
       <PageHero

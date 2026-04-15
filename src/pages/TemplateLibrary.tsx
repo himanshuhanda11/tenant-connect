@@ -107,7 +107,7 @@ export default function TemplateLibrary() {
 
   return (
     <div className="min-h-screen bg-background">
-      <SeoMeta route="/template-library" fallbackTitle="WhatsApp Templates" fallbackDescription="50+ pre-approved message templates" />
+      <SeoMeta route="/template-library" fallbackTitle="WhatsApp Message Template Library — 50+ Ready-to-Use Templates" fallbackDescription="Browse 50+ pre-approved WhatsApp message templates for marketing, support, and transactional use. Copy, customize, and submit for Meta approval instantly." />
       <Navbar />
 
       {/* Hero - White Background */}

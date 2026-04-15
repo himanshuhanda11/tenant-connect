@@ -298,7 +298,7 @@ const WhatsAppBusinessApi = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <SeoMeta route="/whatsapp-business-api" fallbackTitle="WhatsApp Business API" fallbackDescription="Connect to Official WhatsApp Cloud API" />
+      <SeoMeta route="/whatsapp-business-api" fallbackTitle="WhatsApp Business API — Official Cloud API Access" fallbackDescription="Get started with the official WhatsApp Cloud API through AiReatro. Send templates, automate replies, manage contacts, and scale your business messaging." />
       <JsonLd data={[organizationSchema, softwareApplicationSchema, webPageSchema]} />
       
       <Navbar />

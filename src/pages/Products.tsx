@@ -148,7 +148,7 @@ export default function Products() {
 
   return (
     <div className="min-h-screen bg-background">
-      <SeoMeta route="/products" fallbackTitle="Products" fallbackDescription="Complete WhatsApp Business Platform" />
+      <SeoMeta route="/products" fallbackTitle="Products — AiReatro WhatsApp Business Suite" fallbackDescription="Explore AiReatro's product suite: Team Inbox, Flow Builder, Broadcast Campaigns, Lead CRM, WhatsApp Forms, and Meta Ads integration — all in one platform." />
       <JsonLd data={[organizationSchema, softwareApplicationSchema, webPageSchema]} />
 
       <Navbar />

@@ -118,7 +118,7 @@ export default function Help() {
 
   return (
     <div className="min-h-screen bg-background">
-      <SeoMeta route="/help" fallbackTitle="Help Center" fallbackDescription="Guides, tutorials & support" />
+      <SeoMeta route="/help" fallbackTitle="Help Center — AiReatro Guides & Tutorials" fallbackDescription="Browse step-by-step guides for AiReatro's WhatsApp API platform. Learn inbox management, automation setup, campaigns, templates, and team configuration." />
       <Navbar />
 
       {/* Hero - Classic Design */}
