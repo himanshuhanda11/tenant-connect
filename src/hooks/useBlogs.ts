@@ -4,7 +4,7 @@ import { useToast } from '@/hooks/use-toast';
 
 export interface BlogBlock {
   id: string;
-  type: 'heading' | 'paragraph' | 'image' | 'quote' | 'code' | 'list' | 'divider' | 'cta';
+  type: 'heading' | 'paragraph' | 'image' | 'quote' | 'code' | 'list' | 'divider' | 'cta' | 'link';
   content: string;
   level?: number; // for headings: 1,2,3
   items?: string[]; // for lists
