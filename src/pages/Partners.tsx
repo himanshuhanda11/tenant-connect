@@ -160,7 +160,7 @@ export default function Partners() {
 
   return (
     <div className="min-h-screen bg-background">
-      <SeoMeta route="/partners" fallbackTitle="Partner Program" fallbackDescription="Earn up to 30% recurring commission" />
+      <SeoMeta route="/partners" fallbackTitle="Partner Program — Earn 30% Recurring Commission" fallbackDescription="Join AiReatro's partner program and earn up to 30% recurring commission. Resell WhatsApp API solutions, get co-marketing support, and grow your revenue." />
       <Navbar />
       
       {/* Hero - Classic Design */}

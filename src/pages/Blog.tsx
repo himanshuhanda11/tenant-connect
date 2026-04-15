@@ -185,7 +185,7 @@ export default function Blog() {
 
   return (
     <div className="min-h-screen bg-background">
-      <SeoMeta route="/blog" fallbackTitle="Blog" fallbackDescription="WhatsApp Business tips & guides" />
+      <SeoMeta route="/blog" fallbackTitle="AiReatro Blog — WhatsApp Marketing Tips & API Guides" fallbackDescription="Expert tips on WhatsApp Business API, marketing automation, chatbot strategies, and customer engagement. Stay ahead with actionable guides from AiReatro." />
       <Navbar />
 
       {/* Hero - White Background */}

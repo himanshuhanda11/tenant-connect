@@ -71,7 +71,7 @@ const useCases = [
 export default function WorkspacesGuide() {
   return (
     <>
-      <SeoMeta route="/help/workspaces" fallbackTitle="How Workspaces Work" fallbackDescription="Organize your WhatsApp Business messaging" />
+      <SeoMeta route="/help/workspaces" fallbackTitle="How Workspaces Work — AiReatro Guide" fallbackDescription="Learn how to create and manage workspaces in AiReatro. Each workspace maps to one WhatsApp number with its own team, contacts, and automation settings." />
       <Navbar />
       
       <main className="min-h-screen bg-gradient-to-b from-green-50/50 via-white to-white">

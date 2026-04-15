@@ -172,7 +172,7 @@ const WhyWhatsAppMarketing = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <SeoMeta route="/why-whatsapp-marketing" fallbackTitle="Why WhatsApp Marketing" fallbackDescription="Reach customers where they already are" />
+      <SeoMeta route="/why-whatsapp-marketing" fallbackTitle="Why WhatsApp Marketing — 98% Open Rates & Higher Conversions" fallbackDescription="Discover why WhatsApp marketing outperforms email and SMS. 98% open rates, 45% reply rates, and direct customer conversations that drive real revenue." />
       <JsonLd data={[organizationSchema, softwareApplicationSchema, webPageSchema]} />
       
       <Navbar />

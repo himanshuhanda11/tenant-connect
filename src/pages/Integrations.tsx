@@ -562,7 +562,7 @@ export default function Integrations() {
 
   return (
     <div className="min-h-screen bg-background">
-      <SeoMeta route="/integrations" fallbackTitle="Integrations" fallbackDescription="Integrate AiReatro with Shopify, Razorpay, Zapier, and more" />
+      <SeoMeta route="/integrations" fallbackTitle="Integrations — Connect Shopify, Razorpay, Zapier & More" fallbackDescription="Integrate AiReatro with Shopify for cart recovery, Razorpay for payment alerts, Zapier for 5000+ apps, and LeadSquared for CRM sync — all via WhatsApp." />
       <Navbar />
 
       <PageHero

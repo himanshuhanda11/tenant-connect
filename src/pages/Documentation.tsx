@@ -206,7 +206,7 @@ export default function Documentation() {
 
   return (
     <div className="min-h-screen bg-background">
-      <SeoMeta route="/documentation" fallbackTitle="API Documentation" fallbackDescription="Developer docs & SDKs" />
+      <SeoMeta route="/documentation" fallbackTitle="API Documentation — AiReatro Developer Docs" fallbackDescription="Explore AiReatro's developer documentation, REST API reference, webhooks, SDKs, and integration guides for the WhatsApp Cloud API platform." />
 
       <Navbar />
 

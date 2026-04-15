@@ -68,7 +68,7 @@ export default function About() {
 
   return (
     <div className="min-h-screen bg-background">
-      <SeoMeta route="/about" fallbackTitle="About AiReatro" fallbackDescription="AI-powered WhatsApp Cloud API platform" />
+      <SeoMeta route="/about" fallbackTitle="About AiReatro Communications" fallbackDescription="Meet the team behind AiReatro — an AI-powered WhatsApp Cloud API platform helping businesses automate messaging, engage customers, and grow faster." />
       <Navbar />
 
       {/* Hero Section */}

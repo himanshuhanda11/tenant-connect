@@ -161,7 +161,7 @@ export default function Contact() {
 
   return (
     <div className="min-h-screen bg-background">
-      <SeoMeta route="/contact" fallbackTitle="Contact Us" fallbackDescription="Get in touch with AiReatro team" />
+      <SeoMeta route="/contact" fallbackTitle="Contact AiReatro — Talk to Our WhatsApp API Experts" fallbackDescription="Have questions about AiReatro's WhatsApp Business API platform? Reach out to our team for sales inquiries, support, or partnership opportunities." />
       <Navbar />
 
       <PageHero
