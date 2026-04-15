@@ -129,6 +129,9 @@ const MetaAdsSettings = lazyWithRetry(() => import("./pages/meta-ads/MetaAdsSett
 const CreateMetaCampaign = lazyWithRetry(() => import("./pages/meta-ads/CreateMetaCampaign"));
 const LeadFormsPage = lazyWithRetry(() => import("./pages/LeadFormsPage"));
 const Install = lazyWithRetry(() => import("./pages/Install"));
+const BlogBuilderDashboard = lazyWithRetry(() => import("./pages/developer/BlogBuilderDashboard"));
+const BlogEditor = lazyWithRetry(() => import("./pages/developer/BlogEditor"));
+const MediaLibraryPage = lazyWithRetry(() => import("./pages/developer/MediaLibraryPage"));
 const ShopifyOverview = lazyWithRetry(() => import("./pages/shopify/ShopifyOverview"));
 const ShopifyConnect = lazyWithRetry(() => import("./pages/shopify/ShopifyConnect"));
 const ShopifyStoreDetail = lazyWithRetry(() => import("./pages/shopify/ShopifyStoreDetail"));
@@ -327,6 +330,9 @@ const App = () => (
                     <Route path="/free-whatsapp-api-lifetime" element={<FreeWhatsAppApiLifetime />} />
                     <Route path="/install" element={<Install />} />
                     <Route path="/developer/seo" element={<SeoDashboard />} />
+                    <Route path="/developer/blog-builder" element={<BlogBuilderDashboard />} />
+                    <Route path="/developer/blog-builder/:id" element={<BlogEditor />} />
+                    <Route path="/developer/media" element={<MediaLibraryPage />} />
                     <Route path="/control" element={<AdminLayout />}>
                       <Route index element={<AdminOverview />} />
                       <Route path="workspaces" element={<AdminWorkspaces />} />

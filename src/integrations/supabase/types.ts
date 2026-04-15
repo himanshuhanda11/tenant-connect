@@ -1299,6 +1299,96 @@ export type Database = {
           },
         ]
       }
+      blogs: {
+        Row: {
+          author: string | null
+          canonical_url: string | null
+          category: string | null
+          content: Json
+          created_at: string
+          created_by: string | null
+          excerpt: string | null
+          featured_image: string | null
+          id: string
+          image_alt: string | null
+          og_description: string | null
+          og_image: string | null
+          og_title: string | null
+          published_at: string | null
+          read_time: number | null
+          schema_jsonld: Json | null
+          seo_description: string | null
+          seo_keywords: string | null
+          seo_title: string | null
+          slug: string | null
+          status: string
+          tags: string[] | null
+          title: string
+          twitter_description: string | null
+          twitter_image: string | null
+          twitter_title: string | null
+          updated_at: string
+        }
+        Insert: {
+          author?: string | null
+          canonical_url?: string | null
+          category?: string | null
+          content?: Json
+          created_at?: string
+          created_by?: string | null
+          excerpt?: string | null
+          featured_image?: string | null
+          id?: string
+          image_alt?: string | null
+          og_description?: string | null
+          og_image?: string | null
+          og_title?: string | null
+          published_at?: string | null
+          read_time?: number | null
+          schema_jsonld?: Json | null
+          seo_description?: string | null
+          seo_keywords?: string | null
+          seo_title?: string | null
+          slug?: string | null
+          status?: string
+          tags?: string[] | null
+          title?: string
+          twitter_description?: string | null
+          twitter_image?: string | null
+          twitter_title?: string | null
+          updated_at?: string
+        }
+        Update: {
+          author?: string | null
+          canonical_url?: string | null
+          category?: string | null
+          content?: Json
+          created_at?: string
+          created_by?: string | null
+          excerpt?: string | null
+          featured_image?: string | null
+          id?: string
+          image_alt?: string | null
+          og_description?: string | null
+          og_image?: string | null
+          og_title?: string | null
+          published_at?: string | null
+          read_time?: number | null
+          schema_jsonld?: Json | null
+          seo_description?: string | null
+          seo_keywords?: string | null
+          seo_title?: string | null
+          slug?: string | null
+          status?: string
+          tags?: string[] | null
+          title?: string
+          twitter_description?: string | null
+          twitter_image?: string | null
+          twitter_title?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       campaign_analytics: {
         Row: {
           campaign_id: string
@@ -4972,6 +5062,45 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      media_library: {
+        Row: {
+          alt_text: string | null
+          created_at: string
+          file_name: string | null
+          file_size: number | null
+          file_type: string | null
+          file_url: string
+          height: number | null
+          id: string
+          uploaded_by: string | null
+          width: number | null
+        }
+        Insert: {
+          alt_text?: string | null
+          created_at?: string
+          file_name?: string | null
+          file_size?: number | null
+          file_type?: string | null
+          file_url: string
+          height?: number | null
+          id?: string
+          uploaded_by?: string | null
+          width?: number | null
+        }
+        Update: {
+          alt_text?: string | null
+          created_at?: string
+          file_name?: string | null
+          file_size?: number | null
+          file_type?: string | null
+          file_url?: string
+          height?: number | null
+          id?: string
+          uploaded_by?: string | null
+          width?: number | null
+        }
+        Relationships: []
       }
       member_invites: {
         Row: {
