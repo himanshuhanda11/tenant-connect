@@ -165,9 +165,21 @@ export default function SeoDashboard() {
             <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">SEO & Meta Manager</h1>
             <p className="text-muted-foreground mt-1">Control how your pages appear on Google & social media</p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
             <Button variant="outline" size="sm" onClick={() => { clearSeoCache(); fetchPages(); }}>
               <RefreshCw className="h-4 w-4 mr-2" />Clear Cache
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                const allEntries = [...PUBLIC_PAGE_ROUTES, ...getBlogSeoEntries(blogPosts)];
+                syncAllPages(allEntries);
+              }}
+              disabled={syncing}
+            >
+              {syncing ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Download className="h-4 w-4 mr-2" />}
+              {syncing ? 'Syncing...' : 'Sync All Pages'}
             </Button>
             <Button onClick={() => setShowCreateDialog(true)} className="bg-gradient-to-r from-primary to-primary/80 shadow-lg shadow-primary/20">
               <Plus className="h-4 w-4 mr-2" />Add Page
