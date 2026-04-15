@@ -8,6 +8,7 @@ export interface SeoPage {
   route_path: string;
   page_key: string;
   page_name: string;
+  page_type: string;
   is_public: boolean;
   created_at: string;
   updated_at: string;
@@ -83,6 +84,7 @@ export function useSeoPages() {
           route_path: page.route_path!,
           page_key: page.page_key!,
           page_name: page.page_name!,
+          page_type: page.page_type || 'page',
           is_public: page.is_public ?? true,
         })
         .select()
@@ -90,7 +92,6 @@ export function useSeoPages() {
 
       if (error) throw error;
 
-      // Create default meta
       await supabase.from('seo_meta').insert({
         page_id: data.id,
         title: `${page.page_name} - AiReatro`,
@@ -158,6 +159,32 @@ export function useSeoPages() {
     }
   };
 
+  const generateAiSeo = async (pageName: string, routePath: string, pageType: string, currentTitle?: string, currentDescription?: string) => {
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-seo', {
+        body: { pageName, routePath, pageType, currentTitle, currentDescription },
+      });
+
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+
+      return data as {
+        title: string;
+        description: string;
+        keywords: string;
+        og_title: string;
+        og_description: string;
+      };
+    } catch (err: any) {
+      toast({
+        title: 'AI Generation Failed',
+        description: err.message,
+        variant: 'destructive',
+      });
+      return null;
+    }
+  };
+
   return {
     pages,
     loading,
@@ -165,5 +192,6 @@ export function useSeoPages() {
     createPage,
     updateMeta,
     deletePage,
+    generateAiSeo,
   };
 }

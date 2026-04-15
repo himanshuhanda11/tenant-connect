@@ -6592,6 +6592,7 @@ export type Database = {
           is_public: boolean
           page_key: string
           page_name: string
+          page_type: string
           route_path: string
           updated_at: string
         }
@@ -6601,6 +6602,7 @@ export type Database = {
           is_public?: boolean
           page_key: string
           page_name: string
+          page_type?: string
           route_path: string
           updated_at?: string
         }
@@ -6610,6 +6612,7 @@ export type Database = {
           is_public?: boolean
           page_key?: string
           page_name?: string
+          page_type?: string
           route_path?: string
           updated_at?: string
         }
