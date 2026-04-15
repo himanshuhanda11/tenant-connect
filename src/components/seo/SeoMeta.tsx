@@ -132,7 +132,7 @@ export default function SeoMeta({ route, fallbackTitle, fallbackDescription }: S
 
   // Use fallbacks if no meta or still loading
   const title = meta?.title || fallbackTitle || `${SITE_NAME}`;
-  const description = meta?.description || fallbackDescription || 'AI-powered WhatsApp automation platform';
+  const description = meta?.description || fallbackDescription || 'AiReatro is an AI-powered WhatsApp Cloud API platform for team inbox, automation, campaigns, and customer engagement.';
   const fullTitle = title.includes('AiReatro') ? title : `${title} | ${SITE_NAME}`;
   const canonicalUrl = meta?.canonical_url || `${BASE_URL}${route}`;
   const robots = meta?.robots || 'index,follow';
