@@ -28,7 +28,7 @@ import { format } from 'date-fns';
 import SeoEditDrawer from './SeoEditDrawer';
 import { clearSeoCache } from '@/components/seo/SeoMeta';
 import { supabase } from '@/integrations/supabase/client';
-import { PUBLIC_PAGE_ROUTES, getBlogSeoEntries, type SeoRouteEntry } from '@/data/seoRouteRegistry';
+import { PUBLIC_PAGE_ROUTES, getBlogSeoEntries } from '@/data/seoRouteRegistry';
 
 // SEO Score calculator
 function getSeoScore(meta: any): { score: number; label: string; color: string; icon: typeof CheckCircle } {
