@@ -268,7 +268,7 @@ export default function BlogEditor() {
                 placeholder="Blog title..."
                 className="text-3xl font-bold border-none shadow-none px-0 h-auto focus-visible:ring-0 bg-transparent placeholder:text-muted-foreground/30"
               />
-              <p className="text-xs text-muted-foreground/60 font-mono">aireatro.com/blog/{blog.slug || 'slug'}</p>
+              <p className="text-xs text-muted-foreground/60 font-mono">aireatro.com/blog/{blog.slug || 'your-post-slug'}</p>
             </div>
 
             <Separator className="!my-6 opacity-30" />
