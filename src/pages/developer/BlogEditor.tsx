@@ -323,12 +323,83 @@ export default function BlogEditor() {
                     )}
 
                     {block.type === 'paragraph' && (
-                      <Textarea
-                        value={block.content}
-                        onChange={(e) => updateBlock(i, { content: e.target.value })}
-                        placeholder="Write your paragraph... (supports inline links in preview)"
-                        className="min-h-[100px] border-none shadow-none px-0 focus-visible:ring-0 bg-transparent resize-none text-[15px] leading-relaxed"
-                      />
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-1 pb-1 border-b border-border/20">
+                          <span className="text-[10px] text-muted-foreground mr-2">Formatting:</span>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-6 px-2 text-[10px] gap-1 text-muted-foreground hover:text-primary"
+                            onClick={() => {
+                              const textarea = document.getElementById(`para-${block.id}`) as HTMLTextAreaElement;
+                              if (!textarea) return;
+                              const start = textarea.selectionStart;
+                              const end = textarea.selectionEnd;
+                              const selected = block.content.substring(start, end);
+                              const linkText = selected || 'link text';
+                              const before = block.content.substring(0, start);
+                              const after = block.content.substring(end);
+                              updateBlock(i, { content: `${before}[${linkText}](https://example.com)${after}` });
+                            }}
+                          >
+                            <Link2 className="h-3 w-3" />Link
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-6 px-2 text-[10px] gap-1 text-muted-foreground hover:text-primary"
+                            onClick={() => {
+                              const textarea = document.getElementById(`para-${block.id}`) as HTMLTextAreaElement;
+                              if (!textarea) return;
+                              const start = textarea.selectionStart;
+                              const end = textarea.selectionEnd;
+                              const selected = block.content.substring(start, end);
+                              const boldText = selected || 'bold text';
+                              const before = block.content.substring(0, start);
+                              const after = block.content.substring(end);
+                              updateBlock(i, { content: `${before}**${boldText}**${after}` });
+                            }}
+                          >
+                            <strong>B</strong>
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-6 px-2 text-[10px] gap-1 text-muted-foreground hover:text-primary italic"
+                            onClick={() => {
+                              const textarea = document.getElementById(`para-${block.id}`) as HTMLTextAreaElement;
+                              if (!textarea) return;
+                              const start = textarea.selectionStart;
+                              const end = textarea.selectionEnd;
+                              const selected = block.content.substring(start, end);
+                              const italicText = selected || 'italic text';
+                              const before = block.content.substring(0, start);
+                              const after = block.content.substring(end);
+                              updateBlock(i, { content: `${before}*${italicText}*${after}` });
+                            }}
+                          >
+                            I
+                          </Button>
+                        </div>
+                        <Textarea
+                          id={`para-${block.id}`}
+                          value={block.content}
+                          onChange={(e) => updateBlock(i, { content: e.target.value })}
+                          placeholder="Write your paragraph... Use [text](url) for links, **bold**, *italic*"
+                          className="min-h-[100px] border-none shadow-none px-0 focus-visible:ring-0 bg-transparent resize-none text-[15px] leading-relaxed"
+                        />
+                        {block.content && /\[.+?\]\(.+?\)/.test(block.content) && (
+                          <div className="bg-muted/20 rounded-lg p-2.5 text-xs text-muted-foreground">
+                            <span className="font-medium text-foreground text-[10px] uppercase tracking-wider">Preview: </span>
+                            <span dangerouslySetInnerHTML={{
+                              __html: block.content
+                                .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+                                .replace(/\*(.+?)\*/g, '<em>$1</em>')
+                                .replace(/\[(.+?)\]\((.+?)\)/g, '<a href="$2" class="text-primary underline underline-offset-2">$1</a>')
+                            }} />
+                          </div>
+                        )}
+                      </div>
                     )}
 
                     {block.type === 'link' && (
