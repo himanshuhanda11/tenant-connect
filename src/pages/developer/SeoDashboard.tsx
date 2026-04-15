@@ -22,12 +22,14 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Search, Plus, Edit, Trash2, Globe, Lock, CheckCircle, XCircle,
   ExternalLink, RefreshCw, ArrowLeft, Loader2, FileText, Newspaper,
-  TrendingUp, AlertTriangle, Sparkles,
+  TrendingUp, AlertTriangle, Sparkles, Download,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import SeoEditDrawer from './SeoEditDrawer';
 import { clearSeoCache } from '@/components/seo/SeoMeta';
 import { supabase } from '@/integrations/supabase/client';
+import { PUBLIC_PAGE_ROUTES, getBlogSeoEntries } from '@/data/seoRouteRegistry';
+import { blogPosts } from '@/data/blogPosts';
 
 // SEO Score calculator
 function getSeoScore(meta: any): { score: number; label: string; color: string; icon: typeof CheckCircle } {
@@ -49,7 +51,7 @@ function getSeoScore(meta: any): { score: number; label: string; color: string; 
 export default function SeoDashboard() {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
-  const { pages, loading, fetchPages, createPage, deletePage } = useSeoPages();
+  const { pages, loading, syncing, fetchPages, createPage, deletePage, syncAllPages } = useSeoPages();
   const [isAuthorized, setIsAuthorized] = useState<boolean | null>(null);
   
   const [search, setSearch] = useState('');
