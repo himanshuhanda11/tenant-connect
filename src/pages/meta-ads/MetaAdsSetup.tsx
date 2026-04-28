@@ -338,11 +338,22 @@ export default function MetaAdsSetup() {
   useEffect(() => {
     if (autoReauthorizeStarted.current) return;
     if (searchParams.get('reauthorize') !== 'lead_forms') return;
-    if (!currentTenant?.id || !window.FB) return;
+    if (!currentTenant?.id) return;
 
-    autoReauthorizeStarted.current = true;
-    toast.info('Requesting Meta Lead Ads permissions again');
-    handleFbLogin();
+    const startReauthorization = () => {
+      if (autoReauthorizeStarted.current || !window.FB) return false;
+      autoReauthorizeStarted.current = true;
+      toast.info('Requesting Meta Lead Ads permissions again');
+      handleFbLogin();
+      return true;
+    };
+
+    if (startReauthorization()) return;
+    const timer = window.setInterval(() => {
+      if (startReauthorization()) window.clearInterval(timer);
+    }, 300);
+
+    return () => window.clearInterval(timer);
   }, [searchParams, currentTenant?.id]);
 
   const handleManualTokenSubmit = async () => {
