@@ -52,6 +52,10 @@ function friendlyMetaPermissionError(errorMessage: string) {
   return errorMessage;
 }
 
+function isMissingLeadsRetrieval(errorMessage: string) {
+  return errorMessage.includes('leads_retrieval');
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders });
 
@@ -233,7 +237,15 @@ Deno.serve(async (req) => {
                 is_webhook_subscribed: true,
               }).eq('tenant_id', tenantId).eq('page_id', page.id);
             } else {
+              const errorMessage = subData?.error?.message || subData?.error || 'Subscription failed';
               console.warn(`[meta-sync-lead-forms] Failed to auto-subscribe page ${page.id}:`, subData?.error || subData);
+              if (isMissingLeadsRetrieval(errorMessage)) {
+                pageErrors.push({
+                  page_id: page.id,
+                  page_name: page.name,
+                  error: friendlyMetaPermissionError(errorMessage),
+                });
+              }
             }
           } catch (subErr) {
             console.warn(`[meta-sync-lead-forms] Auto-subscribe error for page ${page.id}:`, subErr);
@@ -300,8 +312,10 @@ Deno.serve(async (req) => {
         const errorMessage = subData?.error?.message || subData?.error || 'Subscription failed';
         return json({
           success: false,
+          code: isMissingLeadsRetrieval(errorMessage) ? 'missing_leads_retrieval' : 'meta_subscription_failed',
+          reconnect: isMissingLeadsRetrieval(errorMessage),
           error: friendlyMetaPermissionError(errorMessage),
-        }, 400);
+        }, isMissingLeadsRetrieval(errorMessage) ? 200 : 400);
       }
     }
 
