@@ -274,6 +274,30 @@ export default function MetaAdsSetup() {
     toast.success(`Found ${data.adAccounts?.length || 0} ad account(s), ${data.pages?.length || 0} page(s), ${data.instagramAccounts?.length || 0} IG account(s).`);
   };
 
+  const persistReauthorization = async (data: any) => {
+    if (!currentTenant?.id || !connectedAccount?.id) return;
+
+    const grantedScopes = (data.permissions || [])
+      .filter((p: any) => p.status === 'granted')
+      .map((p: any) => p.permission);
+
+    const { error } = await supabase
+      .from('smeksh_meta_ad_accounts')
+      .update({
+        meta_access_token: data.longLivedToken || connectedAccount.meta_access_token || null,
+        scopes_granted: grantedScopes,
+        status: 'connected' as const,
+        is_active: true,
+      })
+      .eq('id', connectedAccount.id)
+      .eq('workspace_id', currentTenant.id);
+
+    if (error) throw error;
+    queryClient.invalidateQueries({ queryKey: ['meta-ad-accounts'] });
+    queryClient.invalidateQueries({ queryKey: ['meta-ad-accounts-leadforms'] });
+    toast.success('Meta permissions refreshed successfully');
+  };
+
   const handleFbLogin = async () => {
     if (!currentTenant?.id) { toast.error('No workspace selected'); return; }
     if (!window.FB) { toast.error('Facebook SDK not loaded. Please refresh.'); return; }
@@ -297,6 +321,7 @@ export default function MetaAdsSetup() {
             const data = await res.json();
             if (!res.ok) throw new Error(data.error || 'Failed to process Facebook login');
             processMetaResponse(data);
+            if (hasExistingConnection) await persistReauthorization(data);
           } catch (err: any) {
             toast.error(err.message || 'Failed to process Facebook login');
           } finally {
