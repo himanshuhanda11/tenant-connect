@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect, useRef } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -62,8 +62,10 @@ const STATUS_CONFIG: Record<ConnectionStatus, { label: string; color: string; ic
 
 export default function MetaAdsSetup() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { currentTenant } = useTenant();
   const queryClient = useQueryClient();
+  const autoReauthorizeStarted = useRef(false);
   const [isConnecting, setIsConnecting] = useState(false);
   const [isFbLoading, setIsFbLoading] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -307,6 +309,16 @@ export default function MetaAdsSetup() {
       setIsFbLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (autoReauthorizeStarted.current) return;
+    if (searchParams.get('reauthorize') !== 'lead_forms') return;
+    if (!currentTenant?.id || !window.FB) return;
+
+    autoReauthorizeStarted.current = true;
+    toast.info('Requesting Meta Lead Ads permissions again');
+    handleFbLogin();
+  }, [searchParams, currentTenant?.id]);
 
   const handleManualTokenSubmit = async () => {
     if (!manualToken.trim() || !currentTenant?.id) return;
