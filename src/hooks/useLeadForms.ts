@@ -112,10 +112,15 @@ export function useLeadForms() {
 
       const formsCount = data?.forms?.length || 0;
       const syncErrors = Array.isArray(data?.errors) ? data.errors : [];
+      const leadPermissionError = syncErrors.find((item: any) => capturePermissionError(item?.error))?.error;
 
       if (formsCount > 0) {
-        toast.success(`Synced ${formsCount} lead form${formsCount === 1 ? '' : 's'}`);
-        setPermissionError(null);
+        if (leadPermissionError) {
+          toast.error(leadPermissionError, { duration: 8000 });
+        } else {
+          toast.success(`Synced ${formsCount} lead form${formsCount === 1 ? '' : 's'}`);
+          setPermissionError(null);
+        }
       } else if (syncErrors.length > 0) {
         const firstError = syncErrors[0]?.error || 'Meta could not return lead forms';
         capturePermissionError(firstError);
