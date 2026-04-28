@@ -35,10 +35,9 @@ interface MetaPage {
 }
 
 // Required scopes for full functionality
-// pages_manage_ads is required to access Lead Ads forms and lead data
-// pages_show_list is a dependency for pages_manage_ads
-// pages_read_engagement is required for webhook subscriptions
-const REQUIRED_SCOPES = ['ads_read', 'pages_show_list', 'pages_manage_ads', 'business_management', 'pages_read_engagement'];
+// leads_retrieval is required by Meta to subscribe to leadgen webhooks and retrieve Lead Ads leads
+// pages_manage_ads is required to access Lead Ads forms; pages_show_list is a dependency
+const REQUIRED_SCOPES = ['ads_read', 'pages_show_list', 'pages_manage_ads', 'leads_retrieval', 'business_management', 'pages_read_engagement'];
 
 type ConnectionStatus = 'connected' | 'expired' | 'missing_scopes' | 'disconnected' | 'pending_setup';
 
@@ -302,7 +301,7 @@ export default function MetaAdsSetup() {
             setIsFbLoading(false);
           }
         })();
-      }, { scope: 'ads_read,pages_show_list,pages_manage_ads,business_management,pages_read_engagement', auth_type: 'reauthorize' });
+      }, { scope: REQUIRED_SCOPES.join(','), auth_type: 'reauthorize' });
     } catch (err: any) {
       toast.error(err.message || 'Failed to open Facebook login');
       setIsFbLoading(false);
