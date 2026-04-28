@@ -47,6 +47,7 @@ export default function LeadFormsPage() {
   const grantedScopes: string[] = (metaAccount?.scopes_granted as string[]) || [];
   const isConnected = metaAccount?.status === 'connected';
   const hasPageManageAds = grantedScopes.includes('pages_manage_ads');
+  const hasLeadsRetrieval = grantedScopes.includes('leads_retrieval');
   const hasPageReadEngagement = grantedScopes.includes('pages_read_engagement');
   const hasPagesShowList = grantedScopes.includes('pages_show_list');
   const hasPage = !!metaAccount?.facebook_page_id;
@@ -56,10 +57,11 @@ export default function LeadFormsPage() {
     if (!metaAccount) return { type: 'disconnected', message: 'No Meta account connected. Connect your Facebook account to access Lead Ads.' };
     if (isTokenExpired) return { type: 'expired', message: 'Your Meta access token has expired. Please reconnect to refresh it.' };
     if (!hasPageManageAds) return { type: 'missing_scope', message: 'Missing pages_manage_ads permission. This is required to access Lead Ads forms and leads. Please reconnect and approve all requested permissions.' };
+    if (!hasLeadsRetrieval) return { type: 'missing_scope', message: 'Missing leads_retrieval permission. This is required to subscribe Lead Ads webhooks and receive form leads. Please reconnect and approve all requested permissions.' };
     if (!hasPageReadEngagement) return { type: 'missing_scope', message: 'Missing pages_read_engagement permission. Please reconnect and approve all requested permissions.' };
     if (!hasPage) return { type: 'no_page', message: 'No Facebook Page selected. Go to Meta Ads Setup and select a Page.' };
     return null;
-  }, [metaAccount, isTokenExpired, hasPageManageAds, hasPageReadEngagement, hasPage]);
+  }, [metaAccount, isTokenExpired, hasPageManageAds, hasLeadsRetrieval, hasPageReadEngagement, hasPage]);
 
   const stats = [
     { label: 'Connected Forms', value: forms.length, icon: FileText, color: 'text-blue-500' },
@@ -116,7 +118,7 @@ export default function LeadFormsPage() {
                 </div>
                 <div className="h-4 w-px bg-border hidden sm:block" />
                 <div className="flex items-center gap-1.5 flex-wrap">
-                  {['pages_show_list', 'pages_manage_ads', 'pages_read_engagement'].map((scope) => {
+                  {['pages_show_list', 'pages_manage_ads', 'leads_retrieval', 'pages_read_engagement'].map((scope) => {
                     const granted = grantedScopes.includes(scope);
                     return (
                       <Badge key={scope} variant="outline" className={`text-[10px] h-5 ${granted ? 'text-emerald-600 border-emerald-300 bg-emerald-50 dark:bg-emerald-950/30' : 'text-red-600 border-red-300 bg-red-50 dark:bg-red-950/30'}`}>
