@@ -1,3 +1,4 @@
+// @refresh reset
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -5,9 +6,14 @@ import { useToast } from '@/hooks/use-toast';
 export const BLOG_CACHE_EVENT = 'aireatro:blogs-cache-invalidated';
 
 export function invalidateBlogCaches(slug?: string) {
+  if (typeof window === 'undefined') return;
   const payload = { slug, at: new Date().toISOString() };
   window.dispatchEvent(new CustomEvent(BLOG_CACHE_EVENT, { detail: payload }));
-  localStorage.setItem(BLOG_CACHE_EVENT, JSON.stringify(payload));
+  try {
+    localStorage.setItem(BLOG_CACHE_EVENT, JSON.stringify(payload));
+  } catch {
+    // Ignore private browsing/storage failures; the same-tab event already fired.
+  }
   if ('BroadcastChannel' in window) {
     const channel = new BroadcastChannel(BLOG_CACHE_EVENT);
     channel.postMessage(payload);
@@ -88,7 +94,7 @@ export function useBlogs() {
     const onStorage = (event: StorageEvent) => {
       if (event.key === BLOG_CACHE_EVENT) refetch();
     };
-    const channel = 'BroadcastChannel' in window ? new BroadcastChannel(BLOG_CACHE_EVENT) : null;
+    const channel = typeof window !== 'undefined' && 'BroadcastChannel' in window ? new BroadcastChannel(BLOG_CACHE_EVENT) : null;
 
     window.addEventListener(BLOG_CACHE_EVENT, refetch);
     window.addEventListener('storage', onStorage);
