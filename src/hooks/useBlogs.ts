@@ -1,4 +1,3 @@
-// @refresh reset
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -88,25 +87,6 @@ export function useBlogs() {
   }, [toast]);
 
   useEffect(() => { fetchBlogs(); }, [fetchBlogs]);
-
-  useEffect(() => {
-    const refetch = () => fetchBlogs();
-    const onStorage = (event: StorageEvent) => {
-      if (event.key === BLOG_CACHE_EVENT) refetch();
-    };
-    const channel = typeof window !== 'undefined' && 'BroadcastChannel' in window ? new BroadcastChannel(BLOG_CACHE_EVENT) : null;
-
-    window.addEventListener(BLOG_CACHE_EVENT, refetch);
-    window.addEventListener('storage', onStorage);
-    channel?.addEventListener('message', refetch);
-
-    return () => {
-      window.removeEventListener(BLOG_CACHE_EVENT, refetch);
-      window.removeEventListener('storage', onStorage);
-      channel?.removeEventListener('message', refetch);
-      channel?.close();
-    };
-  }, [fetchBlogs]);
 
   const createBlog = async (blog: Partial<Blog>) => {
     try {

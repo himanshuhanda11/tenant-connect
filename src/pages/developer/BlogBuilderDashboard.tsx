@@ -1,4 +1,3 @@
-// @refresh reset
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useBlogs, Blog, getSeoScore } from '@/hooks/useBlogs';
