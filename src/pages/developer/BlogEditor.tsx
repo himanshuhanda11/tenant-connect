@@ -24,6 +24,16 @@ import {
   Settings, BarChart3, Share2,
 } from 'lucide-react';
 
+interface BlogVisibilityCheck {
+  inserted: boolean;
+  published: boolean;
+  publicVisible: boolean;
+  publicListingCount: number;
+  reasons: string[];
+  checkedAt: string;
+  tenantVisibilityNote?: string;
+}
+
 const BLOCK_TYPES = [
   { type: 'heading', label: 'Heading', icon: Type, color: 'text-blue-500' },
   { type: 'paragraph', label: 'Paragraph', icon: AlignLeft, color: 'text-emerald-500' },
@@ -77,6 +87,8 @@ export default function BlogEditor() {
   const [activeTab, setActiveTab] = useState('settings');
   const [uploading, setUploading] = useState(false);
   const [showAddMenu, setShowAddMenu] = useState(false);
+  const [visibilityCheck, setVisibilityCheck] = useState<BlogVisibilityCheck | null>(null);
+  const [checkingVisibility, setCheckingVisibility] = useState(false);
   const autoSaveRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
