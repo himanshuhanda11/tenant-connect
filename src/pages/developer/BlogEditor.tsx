@@ -273,6 +273,17 @@ export default function BlogEditor() {
             <span className="hidden sm:flex items-center gap-1 text-[11px] text-muted-foreground">
               <Clock className="h-3 w-3" />{calculateReadTime(blocks)} min
             </span>
+            <Badge
+              variant="outline"
+              className={`hidden md:inline-flex text-[10px] px-2 py-0.5 ${visibilityCheck?.publicVisible
+                ? 'text-emerald-600 bg-emerald-500/10 border-emerald-500/30'
+                : visibilityCheck?.inserted
+                  ? 'text-amber-600 bg-amber-500/10 border-amber-500/30'
+                  : 'text-red-600 bg-red-500/10 border-red-500/30'
+              }`}
+            >
+              {checkingVisibility ? 'Checking visibility…' : visibilityCheck?.publicVisible ? 'Public on /blog' : visibilityCheck?.inserted ? 'Inserted, hidden' : 'Not inserted'}
+            </Badge>
           </div>
 
           {/* Actions */}
@@ -294,6 +305,10 @@ export default function BlogEditor() {
                 <Eye className="h-3.5 w-3.5" />Publish
               </Button>
             )}
+            <Button variant="outline" size="sm" onClick={() => runVisibilityCheck()} disabled={checkingVisibility} className="h-8 text-xs gap-1">
+              {checkingVisibility ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Globe className="h-3.5 w-3.5" />}
+              Verify
+            </Button>
           </div>
         </div>
       </header>
@@ -303,6 +318,24 @@ export default function BlogEditor() {
         {/* Editor Area */}
         <div className="flex-1 overflow-y-auto">
           <div className="max-w-3xl mx-auto px-6 py-8 space-y-2">
+            {visibilityCheck && (
+              <div className={`rounded-lg border px-4 py-3 text-sm ${visibilityCheck.publicVisible
+                ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-700'
+                : 'border-amber-500/30 bg-amber-500/10 text-amber-700'
+              }`}>
+                <div className="flex flex-wrap items-center gap-2 font-medium">
+                  <span>{visibilityCheck.inserted ? '✓ Inserted' : '✕ Not inserted'}</span>
+                  <span>{visibilityCheck.published ? '✓ Published' : '✕ Not published'}</span>
+                  <span>{visibilityCheck.publicVisible ? '✓ Visible on /blog' : '✕ Hidden from /blog'}</span>
+                  <span className="text-xs opacity-80">Public posts: {visibilityCheck.publicListingCount}</span>
+                </div>
+                {!visibilityCheck.publicVisible && visibilityCheck.reasons.length > 0 && (
+                  <ul className="mt-2 list-disc pl-5 text-xs space-y-1">
+                    {visibilityCheck.reasons.map((reason, index) => <li key={index}>{reason}</li>)}
+                  </ul>
+                )}
+              </div>
+            )}
             {/* Title Input */}
             <div className="space-y-1">
               <Input
