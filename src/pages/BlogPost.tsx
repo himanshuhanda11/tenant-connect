@@ -594,13 +594,13 @@ export default function BlogPost() {
               <Link to="/blog" className="hover:text-primary transition-colors flex items-center gap-1"><ArrowLeft className="w-3.5 h-3.5" />Blog</Link><span className="text-slate-300">/</span><span>{staticPost.category}</span>
             </div>
             <Badge className="mb-4 bg-primary/10 text-primary hover:bg-primary/20 border-0">{staticPost.category}</Badge>
-            <h1 className="text-3xl md:text-4xl lg:text-[2.75rem] font-bold text-slate-900 mb-6 leading-[1.2] tracking-tight">{staticPost.title}</h1>
-            <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground mb-8">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-[2.75rem] font-bold text-slate-900 mb-5 sm:mb-6 leading-[1.18] tracking-tight break-words">{staticPost.title}</h1>
+            <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm text-muted-foreground mb-6 sm:mb-8">
               <div className="flex items-center gap-2"><div className="w-9 h-9 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center"><User className="w-4 h-4 text-primary" /></div><span className="font-medium text-slate-700">{staticPost.author}</span></div>
-              <div className="flex items-center gap-1.5 bg-slate-100 px-3 py-1.5 rounded-full"><Calendar className="w-3.5 h-3.5" />{staticPost.date}</div>
-              <div className="flex items-center gap-1.5 bg-slate-100 px-3 py-1.5 rounded-full"><Clock className="w-3.5 h-3.5" />{staticPost.readTime}</div>
+              <div className="flex items-center gap-1.5 bg-slate-100 px-2.5 sm:px-3 py-1.5 rounded-full"><Calendar className="w-3.5 h-3.5" />{staticPost.date}</div>
+              <div className="flex items-center gap-1.5 bg-slate-100 px-2.5 sm:px-3 py-1.5 rounded-full"><Clock className="w-3.5 h-3.5" />{staticPost.readTime}</div>
             </div>
-            <div className="aspect-video rounded-2xl overflow-hidden shadow-2xl shadow-slate-200/50 mb-10 ring-1 ring-slate-200/50">
+            <div className="aspect-video rounded-xl sm:rounded-2xl overflow-hidden shadow-xl sm:shadow-2xl shadow-slate-200/50 mb-6 sm:mb-10 ring-1 ring-slate-200/50">
               <img src={staticPost.image} alt={staticPost.title} className="w-full h-full object-cover" />
             </div>
           </div></div>
@@ -608,7 +608,7 @@ export default function BlogPost() {
         <section className="py-12 bg-white">
           <div className="container mx-auto px-4"><div className="max-w-3xl mx-auto">
             <article className="prose prose-lg prose-slate max-w-none">
-              {staticPost.content.split('\n\n').map((p, i) => <p key={i} className="text-slate-600 leading-[1.85] mb-6">{p}</p>)}
+              {staticPost.content.split('\n\n').map((p, i) => <p key={i} className="text-base sm:text-[17px] text-slate-600 leading-[1.8] sm:leading-[1.85] mb-5 sm:mb-6 break-words">{p}</p>)}
             </article>
             <WebsiteInternalLinks />
             <div className="bg-slate-50 rounded-2xl p-6 mt-10">
