@@ -56,6 +56,7 @@ interface DBBlog {
   schema_jsonld: any;
   published_at: string | null;
   created_at: string;
+  updated_at?: string;
 }
 
 /* ── Icon mapping for headings ── */
@@ -293,6 +294,39 @@ function TableOfContents({ blocks }: { blocks: BlogBlock[] }) {
   );
 }
 
+function toAbsoluteUrl(path?: string | null) {
+  if (!path) return undefined;
+  return path.startsWith('http') ? path : `https://aireatro.com${path.startsWith('/') ? path : `/${path}`}`;
+}
+
+function buildBlogPostingSchema(post: {
+  title: string;
+  slug: string;
+  excerpt?: string | null;
+  featured_image?: string | null;
+  image?: string;
+  author?: string | null;
+  published_at?: string | null;
+  created_at?: string;
+  updated_at?: string;
+  schema_jsonld?: any;
+}) {
+  if (post.schema_jsonld) return post.schema_jsonld;
+  const url = `https://aireatro.com/blog/${post.slug}`;
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'BlogPosting',
+    headline: post.title,
+    description: post.excerpt || post.title,
+    image: toAbsoluteUrl(post.featured_image || post.image),
+    author: { '@type': 'Organization', name: post.author || 'AiReatro Team' },
+    publisher: { '@type': 'Organization', name: 'AiReatro' },
+    mainEntityOfPage: url,
+    datePublished: post.published_at || post.created_at,
+    dateModified: post.updated_at || post.published_at || post.created_at,
+  };
+}
+
 /* ── Reading Progress Bar ── */
 function ReadingProgress() {
   const [progress, setProgress] = useState(0);
@@ -355,6 +389,7 @@ export default function BlogPost() {
 
   if (dbPost) {
     const shareUrl = `https://aireatro.com/blog/${dbPost.slug}`;
+    const articleSchema = buildBlogPostingSchema(dbPost);
     return (
       <div className="min-h-screen bg-white">
         <ReadingProgress />
@@ -367,9 +402,7 @@ export default function BlogPost() {
           ogType="article"
           ogImage={dbPost.og_image || dbPost.featured_image || undefined}
         />
-        {dbPost.schema_jsonld && (
-          <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(dbPost.schema_jsonld) }} />
-        )}
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema) }} />
         <Navbar />
 
         {/* Hero */}
@@ -503,11 +536,13 @@ export default function BlogPost() {
   if (staticPost) {
     const relPosts = getRelatedPosts(staticPost.slug, staticPost.category);
     const shareUrl = `https://aireatro.com/blog/${staticPost.slug}`;
+    const articleSchema = buildBlogPostingSchema({ ...staticPost, featured_image: staticPost.image, published_at: staticPost.date, author: staticPost.author });
     return (
       <div className="min-h-screen bg-background">
         <ReadingProgress />
         <SeoMeta route={`/blog/${staticPost.slug}`} fallbackTitle={staticPost.title} fallbackDescription={staticPost.excerpt} />
         <SEO title={staticPost.title} description={staticPost.excerpt} keywords={[staticPost.category, 'WhatsApp API', 'AiReatro']} canonical={`/blog/${staticPost.slug}`} ogType="article" ogImage={staticPost.image} />
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema) }} />
         <Navbar />
         <section className="relative pt-8 pb-12 bg-gradient-to-b from-slate-50/50 to-white">
           <div className="container mx-auto px-4"><div className="max-w-4xl mx-auto">
