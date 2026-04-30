@@ -90,6 +90,18 @@ function getHeadingIcon(text: string) {
   return <ArrowRight className="w-6 h-6" />;
 }
 
+function getBlockAnchorId(block: BlogBlock) {
+  const source = block.content || block.id;
+  const slug = source
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, '')
+    .trim()
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-')
+    .slice(0, 72);
+  return slug || block.id;
+}
+
 /** Render markdown-like text: **bold**, *italic*, [text](url) */
 function renderRichText(text: string) {
   const html = text
@@ -143,22 +155,22 @@ function renderTable(content: string) {
 function BlockRenderer({ block, index }: { block: BlogBlock; index: number }) {
   switch (block.type) {
     case 'heading':
-      if (block.level === 1) return <h1 className="text-3xl font-bold text-slate-900 mt-10 mb-4">{block.content}</h1>;
+      if (block.level === 1) return <h1 id={getBlockAnchorId(block)} className="scroll-mt-24 text-3xl font-bold text-slate-900 mt-10 mb-4">{block.content}</h1>;
       if (block.level === 3) return (
-        <div className="flex items-center gap-2.5 mt-8 mb-4">
+        <a id={getBlockAnchorId(block)} href={`#${getBlockAnchorId(block)}`} className="scroll-mt-24 flex items-center gap-2.5 mt-8 mb-4 group">
           <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary flex-shrink-0">
             {getHeadingIcon(block.content)}
           </div>
-          <h3 className="text-xl font-semibold text-slate-900">{block.content}</h3>
-        </div>
+          <h3 className="text-xl font-semibold text-slate-900 group-hover:text-primary transition-colors">{block.content}</h3>
+        </a>
       );
       return (
-        <div className="flex items-center gap-3 mt-14 mb-5 pb-3 border-b border-slate-100">
+        <a id={getBlockAnchorId(block)} href={`#${getBlockAnchorId(block)}`} className="scroll-mt-24 flex items-center gap-3 mt-14 mb-5 pb-3 border-b border-slate-100 group">
           <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center text-primary flex-shrink-0 shadow-sm">
             {getHeadingIcon(block.content)}
           </div>
-          <h2 className="text-2xl md:text-[1.65rem] font-bold text-slate-900 leading-tight">{block.content}</h2>
-        </div>
+          <h2 className="text-2xl md:text-[1.65rem] font-bold text-slate-900 leading-tight group-hover:text-primary transition-colors">{block.content}</h2>
+        </a>
       );
 
     case 'paragraph':
@@ -271,10 +283,10 @@ function TableOfContents({ blocks }: { blocks: BlogBlock[] }) {
       </div>
       <div className="grid sm:grid-cols-2 gap-2">
         {headings.map((h, i) => (
-          <div key={h.id} className="flex items-center gap-2.5 py-1.5 text-sm text-slate-600 hover:text-primary transition-colors cursor-default">
+          <a key={h.id} href={`#${getBlockAnchorId(h)}`} className="flex items-center gap-2.5 py-1.5 text-sm text-slate-600 hover:text-primary transition-colors">
             <span className="w-5 h-5 rounded-md bg-primary/10 text-primary flex items-center justify-center text-xs font-semibold flex-shrink-0">{i + 1}</span>
             <span className="line-clamp-1">{h.content}</span>
-          </div>
+          </a>
         ))}
       </div>
     </div>
