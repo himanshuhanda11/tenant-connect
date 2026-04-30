@@ -294,6 +294,48 @@ function TableOfContents({ blocks }: { blocks: BlogBlock[] }) {
   );
 }
 
+const WEBSITE_INTERNAL_LINKS = [
+  { title: 'WhatsApp Business API', href: '/whatsapp-business-api', description: 'Official API setup, pricing, automation, and CRM use cases.' },
+  { title: 'Features', href: '/features', description: 'Explore Aireatro inbox, campaigns, templates, automations, and analytics.' },
+  { title: 'Pricing', href: '/pricing', description: 'See the zero-monthly-fee model and pay-as-you-grow options.' },
+  { title: 'Why Aireatro', href: '/why-aireatro', description: 'Compare Aireatro’s WhatsApp CRM advantages for growing businesses.' },
+  { title: 'Integrations', href: '/integrations', description: 'Connect ecommerce, ads, CRM, payments, and automation tools.' },
+  { title: 'Template Library', href: '/template-library', description: 'Browse ready-to-use WhatsApp templates for campaigns and support.' },
+  { title: 'Case Studies', href: '/case-studies', description: 'See how teams improve sales, support, and lead handling with WhatsApp.' },
+  { title: 'Security', href: '/security', description: 'Review security, compliance, and safe WhatsApp messaging practices.' },
+  { title: 'Help Center', href: '/help', description: 'Learn how to use inbox, contacts, templates, campaigns, and automation.' },
+  { title: 'Contact Us', href: '/contact', description: 'Get help choosing the right WhatsApp CRM workflow for your business.' },
+];
+
+function WebsiteInternalLinks() {
+  return (
+    <section className="mt-12 rounded-2xl border border-slate-200/80 bg-gradient-to-br from-slate-50 to-white p-6 md:p-8 shadow-sm">
+      <div className="flex items-center justify-between gap-4 mb-5">
+        <div>
+          <p className="text-sm font-semibold text-primary mb-1">Explore Aireatro</p>
+          <h2 className="text-2xl font-bold text-slate-900">Useful pages for your next step</h2>
+        </div>
+        <Globe className="hidden sm:block w-8 h-8 text-primary" />
+      </div>
+      <div className="grid sm:grid-cols-2 gap-3">
+        {WEBSITE_INTERNAL_LINKS.map((link) => (
+          <Link
+            key={link.href}
+            to={link.href}
+            className="group rounded-xl border border-slate-200 bg-white p-4 transition-all hover:border-primary/40 hover:shadow-md hover:shadow-primary/10"
+          >
+            <span className="flex items-center justify-between gap-3 font-semibold text-slate-900 group-hover:text-primary">
+              {link.title}
+              <ArrowRight className="w-4 h-4 flex-shrink-0 transition-transform group-hover:translate-x-1" />
+            </span>
+            <span className="mt-1.5 block text-sm leading-relaxed text-slate-500">{link.description}</span>
+          </Link>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 function toAbsoluteUrl(path?: string | null) {
   if (!path) return undefined;
   return path.startsWith('http') ? path : `https://aireatro.com${path.startsWith('/') ? path : `/${path}`}`;
@@ -456,6 +498,8 @@ export default function BlogPost() {
                 </div>
               )}
 
+              <WebsiteInternalLinks />
+
               {/* Share */}
               <div className="bg-slate-50 rounded-2xl p-6 mt-10">
                 <div className="flex items-center justify-between flex-wrap gap-4">
@@ -566,6 +610,7 @@ export default function BlogPost() {
             <article className="prose prose-lg prose-slate max-w-none">
               {staticPost.content.split('\n\n').map((p, i) => <p key={i} className="text-slate-600 leading-[1.85] mb-6">{p}</p>)}
             </article>
+            <WebsiteInternalLinks />
             <div className="bg-slate-50 rounded-2xl p-6 mt-10">
               <div className="flex items-center justify-between flex-wrap gap-4">
                 <div className="flex items-center gap-2.5"><Share2 className="w-5 h-5 text-slate-400" /><span className="font-semibold text-slate-700">Share this article</span></div>
