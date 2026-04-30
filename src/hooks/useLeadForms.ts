@@ -138,8 +138,7 @@ export function useLeadForms() {
         toast.error(data?.error || 'Subscription failed');
       }
     } catch (err: any) {
-      const message = err?.context?.error || err?.message || 'Unknown error';
-      toast.error(message.includes('leads_retrieval') ? message : `Failed to subscribe webhook: ${message}`, { duration: 8000 });
+      toast.error('Failed to subscribe webhook: ' + (err.message || 'Unknown error'));
     }
   }, [currentTenant, fetchForms]);
 

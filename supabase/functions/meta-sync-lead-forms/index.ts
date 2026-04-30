@@ -36,22 +36,6 @@ function dedupePages(pages: MetaPage[]) {
   return Array.from(mergedPages.values());
 }
 
-function friendlyMetaPermissionError(errorMessage: string) {
-  if (errorMessage.includes('leads_retrieval')) {
-    return 'Missing leads_retrieval permission. Please reconnect Facebook from Meta Ads Setup and approve Lead Access / leads_retrieval permission.';
-  }
-  if (errorMessage.includes('pages_manage_ads')) {
-    return 'Missing pages_manage_ads permission. Please reconnect Facebook from Meta Ads Setup and approve all requested permissions.';
-  }
-  if (errorMessage.includes('(#200)')) {
-    return 'Insufficient Facebook Page permissions. Please reconnect from Meta Ads Setup and grant full Page + Lead Ads access.';
-  }
-  if (errorMessage.includes('OAuthException') && errorMessage.includes('expired')) {
-    return 'Your Facebook token has expired. Please reconnect from Meta Ads Setup.';
-  }
-  return errorMessage;
-}
-
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders });
 
@@ -169,7 +153,14 @@ Deno.serve(async (req) => {
             console.error(`[meta-sync-lead-forms] Failed to fetch forms for page ${page.id}:`, formsData?.error || formsData);
             
             // Translate common Meta permission errors into friendly messages
-            const friendlyError = friendlyMetaPermissionError(errorMessage);
+            let friendlyError = errorMessage;
+            if (errorMessage.includes('pages_manage_ads')) {
+              friendlyError = 'Missing pages_manage_ads permission. Please reconnect your Facebook account via Meta Ads Setup and approve all requested permissions (especially "Manage Ads on Pages").';
+            } else if (errorMessage.includes('(#200)')) {
+              friendlyError = 'Insufficient Facebook Page permissions. Reconnect via Meta Ads Setup and grant full Page + Ads access.';
+            } else if (errorMessage.includes('OAuthException') && errorMessage.includes('expired')) {
+              friendlyError = 'Your Facebook token has expired. Please reconnect via Meta Ads Setup.';
+            }
 
             pageErrors.push({
               page_id: page.id,
@@ -297,10 +288,9 @@ Deno.serve(async (req) => {
 
         return json({ success: true, message: 'Webhook subscribed' });
       } else {
-        const errorMessage = subData?.error?.message || subData?.error || 'Subscription failed';
         return json({
           success: false,
-          error: friendlyMetaPermissionError(errorMessage),
+          error: subData?.error?.message || subData?.error || 'Subscription failed',
         }, 400);
       }
     }
