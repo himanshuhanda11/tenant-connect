@@ -130,8 +130,8 @@ function renderTable(content: string) {
   if (rows.length < 2) return null;
   const [header, ...body] = rows;
   return (
-    <div className="my-8 overflow-x-auto rounded-xl border border-slate-200 shadow-sm">
-      <table className="w-full text-sm">
+    <div className="my-6 sm:my-8 -mx-4 sm:mx-0 overflow-x-auto rounded-none sm:rounded-xl border-y sm:border border-slate-200 shadow-sm">
+      <table className="w-full min-w-[620px] text-sm">
         <thead>
           <tr className="bg-gradient-to-r from-primary/10 to-primary/5">
             {header.map((cell, i) => (
@@ -156,27 +156,27 @@ function renderTable(content: string) {
 function BlockRenderer({ block, index }: { block: BlogBlock; index: number }) {
   switch (block.type) {
     case 'heading':
-      if (block.level === 1) return <h1 id={getBlockAnchorId(block)} className="scroll-mt-24 text-3xl font-bold text-slate-900 mt-10 mb-4">{block.content}</h1>;
+      if (block.level === 1) return <h1 id={getBlockAnchorId(block)} className="scroll-mt-24 text-2xl sm:text-3xl font-bold text-slate-900 mt-8 sm:mt-10 mb-4 break-words">{block.content}</h1>;
       if (block.level === 3) return (
-        <a id={getBlockAnchorId(block)} href={`#${getBlockAnchorId(block)}`} className="scroll-mt-24 flex items-center gap-2.5 mt-8 mb-4 group">
-          <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary flex-shrink-0">
+        <a id={getBlockAnchorId(block)} href={`#${getBlockAnchorId(block)}`} className="scroll-mt-24 flex items-start gap-2.5 mt-7 sm:mt-8 mb-4 group">
+          <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary flex-shrink-0 mt-0.5">
             {getHeadingIcon(block.content)}
           </div>
-          <h3 className="text-xl font-semibold text-slate-900 group-hover:text-primary transition-colors">{block.content}</h3>
+          <h3 className="min-w-0 text-lg sm:text-xl font-semibold text-slate-900 group-hover:text-primary transition-colors break-words">{block.content}</h3>
         </a>
       );
       return (
-        <a id={getBlockAnchorId(block)} href={`#${getBlockAnchorId(block)}`} className="scroll-mt-24 flex items-center gap-3 mt-14 mb-5 pb-3 border-b border-slate-100 group">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center text-primary flex-shrink-0 shadow-sm">
+        <a id={getBlockAnchorId(block)} href={`#${getBlockAnchorId(block)}`} className="scroll-mt-24 flex items-start gap-3 mt-10 sm:mt-14 mb-5 pb-3 border-b border-slate-100 group">
+          <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center text-primary flex-shrink-0 shadow-sm mt-0.5">
             {getHeadingIcon(block.content)}
           </div>
-          <h2 className="text-2xl md:text-[1.65rem] font-bold text-slate-900 leading-tight group-hover:text-primary transition-colors">{block.content}</h2>
+          <h2 className="min-w-0 text-xl sm:text-2xl md:text-[1.65rem] font-bold text-slate-900 leading-tight group-hover:text-primary transition-colors break-words">{block.content}</h2>
         </a>
       );
 
     case 'paragraph':
       if (isTable(block.content)) return renderTable(block.content);
-      return <p className="text-slate-600 leading-[1.85] mb-6 text-[17px]">{renderRichText(block.content)}</p>;
+      return <p className="text-slate-600 leading-[1.8] sm:leading-[1.85] mb-5 sm:mb-6 text-base sm:text-[17px] break-words">{renderRichText(block.content)}</p>;
 
     case 'image':
       return block.imageUrl ? (
