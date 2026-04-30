@@ -283,10 +283,10 @@ function TableOfContents({ blocks }: { blocks: BlogBlock[] }) {
       </div>
       <div className="grid sm:grid-cols-2 gap-2">
         {headings.map((h, i) => (
-          <div key={h.id} className="flex items-center gap-2.5 py-1.5 text-sm text-slate-600 hover:text-primary transition-colors cursor-default">
+          <a key={h.id} href={`#${getBlockAnchorId(h)}`} className="flex items-center gap-2.5 py-1.5 text-sm text-slate-600 hover:text-primary transition-colors">
             <span className="w-5 h-5 rounded-md bg-primary/10 text-primary flex items-center justify-center text-xs font-semibold flex-shrink-0">{i + 1}</span>
             <span className="line-clamp-1">{h.content}</span>
-          </div>
+          </a>
         ))}
       </div>
     </div>
