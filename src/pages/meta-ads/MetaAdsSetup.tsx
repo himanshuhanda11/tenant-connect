@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect, useRef } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -35,10 +35,9 @@ interface MetaPage {
 }
 
 // Required scopes for full functionality
-// pages_manage_ads is required to access Lead Ads forms and lead data
-// pages_show_list is a dependency for pages_manage_ads
-// pages_read_engagement is required for webhook subscriptions
-const REQUIRED_SCOPES = ['ads_read', 'pages_show_list', 'pages_manage_ads', 'business_management', 'pages_read_engagement'];
+// leads_retrieval is required by Meta to subscribe to leadgen webhooks and retrieve Lead Ads leads
+// pages_manage_ads is required to access Lead Ads forms; pages_show_list is a dependency
+const REQUIRED_SCOPES = ['ads_read', 'pages_show_list', 'pages_manage_ads', 'leads_retrieval', 'business_management', 'pages_read_engagement'];
 
 type ConnectionStatus = 'connected' | 'expired' | 'missing_scopes' | 'disconnected' | 'pending_setup';
 
@@ -63,8 +62,10 @@ const STATUS_CONFIG: Record<ConnectionStatus, { label: string; color: string; ic
 
 export default function MetaAdsSetup() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { currentTenant } = useTenant();
   const queryClient = useQueryClient();
+  const autoReauthorizeStarted = useRef(false);
   const [isConnecting, setIsConnecting] = useState(false);
   const [isFbLoading, setIsFbLoading] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -273,6 +274,30 @@ export default function MetaAdsSetup() {
     toast.success(`Found ${data.adAccounts?.length || 0} ad account(s), ${data.pages?.length || 0} page(s), ${data.instagramAccounts?.length || 0} IG account(s).`);
   };
 
+  const persistReauthorization = async (data: any) => {
+    if (!currentTenant?.id || !connectedAccount?.id) return;
+
+    const grantedScopes = (data.permissions || [])
+      .filter((p: any) => p.status === 'granted')
+      .map((p: any) => p.permission);
+
+    const { error } = await supabase
+      .from('smeksh_meta_ad_accounts')
+      .update({
+        meta_access_token: data.longLivedToken || connectedAccount.meta_access_token || null,
+        scopes_granted: grantedScopes,
+        status: 'connected' as const,
+        is_active: true,
+      })
+      .eq('id', connectedAccount.id)
+      .eq('workspace_id', currentTenant.id);
+
+    if (error) throw error;
+    queryClient.invalidateQueries({ queryKey: ['meta-ad-accounts'] });
+    queryClient.invalidateQueries({ queryKey: ['meta-ad-accounts-leadforms'] });
+    toast.success('Meta permissions refreshed successfully');
+  };
+
   const handleFbLogin = async () => {
     if (!currentTenant?.id) { toast.error('No workspace selected'); return; }
     if (!window.FB) { toast.error('Facebook SDK not loaded. Please refresh.'); return; }
@@ -296,18 +321,40 @@ export default function MetaAdsSetup() {
             const data = await res.json();
             if (!res.ok) throw new Error(data.error || 'Failed to process Facebook login');
             processMetaResponse(data);
+            if (hasExistingConnection) await persistReauthorization(data);
           } catch (err: any) {
             toast.error(err.message || 'Failed to process Facebook login');
           } finally {
             setIsFbLoading(false);
           }
         })();
-      }, { scope: 'ads_read,pages_show_list,pages_manage_ads,business_management,pages_read_engagement', auth_type: 'reauthorize' });
+      }, { scope: REQUIRED_SCOPES.join(','), auth_type: 'reauthorize' });
     } catch (err: any) {
       toast.error(err.message || 'Failed to open Facebook login');
       setIsFbLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (autoReauthorizeStarted.current) return;
+    if (searchParams.get('reauthorize') !== 'lead_forms') return;
+    if (!currentTenant?.id) return;
+
+    const startReauthorization = () => {
+      if (autoReauthorizeStarted.current || !window.FB) return false;
+      autoReauthorizeStarted.current = true;
+      toast.info('Requesting Meta Lead Ads permissions again');
+      handleFbLogin();
+      return true;
+    };
+
+    if (startReauthorization()) return;
+    const timer = window.setInterval(() => {
+      if (startReauthorization()) window.clearInterval(timer);
+    }, 300);
+
+    return () => window.clearInterval(timer);
+  }, [searchParams, currentTenant?.id]);
 
   const handleManualTokenSubmit = async () => {
     if (!manualToken.trim() || !currentTenant?.id) return;
