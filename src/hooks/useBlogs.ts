@@ -2,24 +2,6 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
-export const BLOG_CACHE_EVENT = 'aireatro:blogs-cache-invalidated';
-
-export function invalidateBlogCaches(slug?: string) {
-  if (typeof window === 'undefined') return;
-  const payload = { slug, at: new Date().toISOString() };
-  window.dispatchEvent(new CustomEvent(BLOG_CACHE_EVENT, { detail: payload }));
-  try {
-    localStorage.setItem(BLOG_CACHE_EVENT, JSON.stringify(payload));
-  } catch {
-    // Ignore private browsing/storage failures; the same-tab event already fired.
-  }
-  if ('BroadcastChannel' in window) {
-    const channel = new BroadcastChannel(BLOG_CACHE_EVENT);
-    channel.postMessage(payload);
-    channel.close();
-  }
-}
-
 export interface BlogBlock {
   id: string;
   type: 'heading' | 'paragraph' | 'image' | 'quote' | 'code' | 'list' | 'divider' | 'cta' | 'link';
@@ -127,7 +109,6 @@ export function useBlogs() {
         .eq('id', id);
       if (error) throw error;
       await fetchBlogs();
-      if (updates.status === 'published' || updates.status === 'draft') invalidateBlogCaches(updates.slug ?? undefined);
       return true;
     } catch (err: any) {
       toast({ title: 'Failed to update blog', description: err.message, variant: 'destructive' });
@@ -149,47 +130,7 @@ export function useBlogs() {
   };
 
   const publishBlog = async (id: string) => {
-    try {
-      const { count: beforeCount, error: beforeError } = await supabase
-        .from('blogs')
-        .select('id', { count: 'exact', head: true });
-      if (beforeError) throw beforeError;
-
-      const { data: current, error: currentError } = await supabase
-        .from('blogs')
-        .select('slug, status')
-        .eq('id', id)
-        .single();
-      if (currentError) throw currentError;
-
-      const wasAlreadyPublished = current.status === 'published';
-      const success = await updateBlog(id, { status: 'published', published_at: new Date().toISOString() } as any);
-      if (!success) return false;
-
-      const { data: verified, error: verifyError } = await supabase
-        .from('blogs')
-        .select('id, slug, status, published_at')
-        .eq('slug', current.slug)
-        .eq('status', 'published')
-        .maybeSingle();
-      if (verifyError) throw verifyError;
-      if (!verified) throw new Error(`Published blog verification failed for slug: ${current.slug}`);
-
-      const { count: afterCount, error: afterError } = await supabase
-        .from('blogs')
-        .select('id', { count: 'exact', head: true });
-      if (afterError) throw afterError;
-      if (!wasAlreadyPublished && (afterCount ?? 0) < (beforeCount ?? 0)) {
-        throw new Error('Published blog verification failed: total blog count decreased unexpectedly.');
-      }
-
-      invalidateBlogCaches(current.slug ?? undefined);
-      await fetchBlogs();
-      return true;
-    } catch (err: any) {
-      toast({ title: 'Publish verification failed', description: err.message, variant: 'destructive' });
-      return false;
-    }
+    return updateBlog(id, { status: 'published', published_at: new Date().toISOString() } as any);
   };
 
   const unpublishBlog = async (id: string) => {

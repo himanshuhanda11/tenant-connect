@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Calendar, Clock, ArrowRight, User, Search, Tag, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -11,7 +11,6 @@ import SeoMeta from '@/components/seo/SeoMeta';
 import Breadcrumb from '@/components/layout/Breadcrumb';
 import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
-import { BLOG_CACHE_EVENT } from '@/hooks/useBlogs';
 
 interface BlogPost {
   id: string;
@@ -34,8 +33,8 @@ export default function Blog() {
   const [posts, setPosts] = useState<BlogPost[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const fetchPosts = useCallback(async () => {
-      setLoading(true);
+  useEffect(() => {
+    const fetchPosts = async () => {
       const { data, error } = await supabase
         .from('blogs')
         .select('id, title, slug, excerpt, featured_image, status, author, category, read_time, published_at, created_at')
@@ -43,30 +42,9 @@ export default function Blog() {
         .order('published_at', { ascending: false });
       if (!error && data) setPosts(data);
       setLoading(false);
-    }, []);
-
-  useEffect(() => {
+    };
     fetchPosts();
-  }, [fetchPosts]);
-
-  useEffect(() => {
-    const refetch = () => fetchPosts();
-    const onStorage = (event: StorageEvent) => {
-      if (event.key === BLOG_CACHE_EVENT) refetch();
-    };
-    const channel = 'BroadcastChannel' in window ? new BroadcastChannel(BLOG_CACHE_EVENT) : null;
-
-    window.addEventListener(BLOG_CACHE_EVENT, refetch);
-    window.addEventListener('storage', onStorage);
-    channel?.addEventListener('message', refetch);
-
-    return () => {
-      window.removeEventListener(BLOG_CACHE_EVENT, refetch);
-      window.removeEventListener('storage', onStorage);
-      channel?.removeEventListener('message', refetch);
-      channel?.close();
-    };
-  }, [fetchPosts]);
+  }, []);
 
   const categories = ['All', ...Array.from(new Set(posts.map(p => p.category).filter(Boolean)))];
 
