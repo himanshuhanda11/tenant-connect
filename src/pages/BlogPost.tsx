@@ -56,6 +56,7 @@ interface DBBlog {
   schema_jsonld: any;
   published_at: string | null;
   created_at: string;
+  updated_at?: string;
 }
 
 /* ── Icon mapping for headings ── */
@@ -291,6 +292,39 @@ function TableOfContents({ blocks }: { blocks: BlogBlock[] }) {
       </div>
     </div>
   );
+}
+
+function toAbsoluteUrl(path?: string | null) {
+  if (!path) return undefined;
+  return path.startsWith('http') ? path : `https://aireatro.com${path.startsWith('/') ? path : `/${path}`}`;
+}
+
+function buildBlogPostingSchema(post: {
+  title: string;
+  slug: string;
+  excerpt?: string | null;
+  featured_image?: string | null;
+  image?: string;
+  author?: string | null;
+  published_at?: string | null;
+  created_at?: string;
+  updated_at?: string;
+  schema_jsonld?: any;
+}) {
+  if (post.schema_jsonld) return post.schema_jsonld;
+  const url = `https://aireatro.com/blog/${post.slug}`;
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'BlogPosting',
+    headline: post.title,
+    description: post.excerpt || post.title,
+    image: toAbsoluteUrl(post.featured_image || post.image),
+    author: { '@type': 'Organization', name: post.author || 'AiReatro Team' },
+    publisher: { '@type': 'Organization', name: 'AiReatro' },
+    mainEntityOfPage: url,
+    datePublished: post.published_at || post.created_at,
+    dateModified: post.updated_at || post.published_at || post.created_at,
+  };
 }
 
 /* ── Reading Progress Bar ── */
