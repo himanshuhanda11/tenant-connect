@@ -458,21 +458,28 @@ export default function BlogPost() {
 
         {/* Related */}
         {relatedDb.length > 0 && (
-          <section className="py-16 bg-slate-50/50">
+          <section className="py-16 bg-gradient-to-b from-slate-50/80 to-white">
             <div className="container mx-auto px-4">
               <div className="max-w-6xl mx-auto">
-                <h2 className="text-2xl font-bold text-slate-900 mb-8">Related Articles</h2>
-                <div className="grid md:grid-cols-3 gap-6">
+                <div className="flex items-end justify-between gap-4 mb-8">
+                  <div>
+                    <Badge className="mb-3 bg-primary/10 text-primary border-0">Keep reading</Badge>
+                    <h2 className="text-2xl md:text-3xl font-bold text-slate-900">More WhatsApp growth guides</h2>
+                  </div>
+                  <Button variant="outline" className="hidden sm:inline-flex rounded-full" onClick={() => navigate('/blog')}>All articles<ArrowRight className="w-4 h-4 ml-2" /></Button>
+                </div>
+                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {relatedDb.map((rp: any) => (
-                    <Card key={rp.id} className="overflow-hidden border-0 shadow-md hover:shadow-xl transition-all cursor-pointer group rounded-2xl" onClick={() => navigate(`/blog/${rp.slug}`)}>
+                    <Card key={rp.id} className="overflow-hidden border border-slate-200/80 shadow-md hover:shadow-2xl hover:shadow-primary/10 transition-all cursor-pointer group rounded-3xl bg-white" onClick={() => navigate(`/blog/${rp.slug}`)}>
                       {rp.featured_image && (
                         <div className="aspect-video overflow-hidden">
                           <img src={rp.featured_image} alt={rp.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                         </div>
                       )}
                       <CardContent className="p-5">
-                        <Badge className="mb-2 bg-primary/10 text-primary text-xs border-0">{rp.category}</Badge>
+                        <div className="flex items-center gap-2 mb-3"><Badge className="bg-primary/10 text-primary text-xs border-0 rounded-full">{rp.category}</Badge><span className="text-xs text-slate-500">{rp.read_time || 5} min read</span></div>
                         <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors line-clamp-2">{rp.title}</h3>
+                        {rp.excerpt && <p className="text-sm text-slate-500 mt-2 line-clamp-2">{rp.excerpt}</p>}
                       </CardContent>
                     </Card>
                   ))}
