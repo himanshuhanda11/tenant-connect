@@ -156,7 +156,7 @@ export default function Blog() {
           )}
 
           {/* Categories */}
-          <section className="py-8 bg-white sticky top-16 z-40 border-b border-slate-100">
+          <section className="py-6 bg-background/90 sticky top-16 z-40 border-b border-border/60 backdrop-blur-xl">
             <div className="container mx-auto px-4">
               <div className="flex flex-wrap justify-center gap-2">
                 {categories.map((category, index) => (
@@ -164,7 +164,7 @@ export default function Blog() {
                     key={index}
                     variant={selectedCategory === category ? 'default' : 'ghost'}
                     size="sm"
-                    className={`rounded-full ${selectedCategory === category ? '' : 'hover:bg-slate-100'}`}
+                    className={`rounded-full px-4 ${selectedCategory === category ? 'shadow-lg shadow-primary/15' : 'hover:bg-muted'}`}
                     onClick={() => setSelectedCategory(category as string)}
                   >
                     {category}
@@ -175,21 +175,22 @@ export default function Blog() {
           </section>
 
           {/* Posts Grid */}
-          <section className="py-16 bg-white">
+          <section className="py-16 bg-background">
             <div className="container mx-auto px-4">
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
                 {gridPosts.map((post) => (
                   <Card
                     key={post.id}
-                    className="overflow-hidden border-0 shadow-md hover:shadow-xl transition-all duration-300 cursor-pointer group bg-white"
+                    className="overflow-hidden border border-border/60 shadow-md hover:shadow-2xl hover:shadow-primary/10 transition-all duration-300 cursor-pointer group bg-card rounded-3xl"
                     onClick={() => navigate(`/blog/${post.slug}`)}
                   >
-                    <div className="aspect-video overflow-hidden">
+                    <div className="aspect-video overflow-hidden relative">
                       <img
                         src={post.featured_image || defaultImage}
                         alt={post.title}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                       />
+                      <div className="absolute left-4 top-4 rounded-full bg-background/90 px-3 py-1 text-xs font-semibold text-primary shadow-sm backdrop-blur flex items-center gap-1"><MessageSquare className="w-3 h-3" /> Guide</div>
                     </div>
                     <CardContent className="p-6">
                       <div className="flex items-center gap-2 mb-3">
