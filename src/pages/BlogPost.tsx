@@ -218,11 +218,11 @@ function BlockRenderer({ block, index }: { block: BlogBlock; index: number }) {
         );
       }
       return (
-        <div className="my-6 space-y-3">
+        <div className="my-5 sm:my-6 space-y-3">
           {(block.items || []).map((item, i) => (
             <div key={i} className="flex gap-3 items-start group">
               <CheckCircle2 className="w-5 h-5 text-primary flex-shrink-0 mt-0.5 group-hover:scale-110 transition-transform" />
-              <div className="text-slate-600 text-[17px] leading-relaxed flex-1">{renderRichText(item)}</div>
+              <div className="min-w-0 text-slate-600 text-base sm:text-[17px] leading-relaxed flex-1 break-words">{renderRichText(item)}</div>
             </div>
           ))}
         </div>
@@ -251,7 +251,7 @@ function BlockRenderer({ block, index }: { block: BlogBlock; index: number }) {
 
     case 'cta':
       return (
-        <div className="my-12 p-8 md:p-10 rounded-2xl bg-gradient-to-br from-primary/10 via-emerald-50 to-primary/5 border border-primary/10 text-center relative overflow-hidden">
+        <div className="my-10 sm:my-12 p-5 sm:p-8 md:p-10 rounded-2xl bg-gradient-to-br from-primary/10 via-emerald-50 to-primary/5 border border-primary/10 text-center relative overflow-hidden">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(var(--primary-rgb,34,197,94),0.08),transparent_50%)]"></div>
           <div className="relative z-10">
             <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
@@ -259,8 +259,8 @@ function BlockRenderer({ block, index }: { block: BlogBlock; index: number }) {
             </div>
             <h3 className="text-xl md:text-2xl font-bold text-slate-900 mb-3">{block.buttonText || 'Get Started with Aireatro'}</h3>
             <p className="text-slate-500 mb-6 max-w-md mx-auto">Zero monthly fees. Start in under 10 minutes. Scale with confidence.</p>
-            <Link to={block.buttonUrl || '/signup'} className="inline-flex items-center gap-2 px-8 py-3.5 rounded-xl bg-primary text-white font-semibold text-lg shadow-lg shadow-primary/20 hover:bg-primary/90 hover:shadow-xl transition-all">
-              Start Free Trial
+            <Link to={block.buttonUrl || '/signup'} className="inline-flex w-full sm:w-auto items-center justify-center gap-2 px-6 sm:px-8 py-3.5 rounded-xl bg-primary text-white font-semibold text-base sm:text-lg shadow-lg shadow-primary/20 hover:bg-primary/90 hover:shadow-xl transition-all">
+              Start Free
               <ArrowRight className="w-5 h-5" />
             </Link>
           </div>
