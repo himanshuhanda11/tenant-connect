@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, Clock, ArrowRight, User, Search, Tag, Loader2 } from 'lucide-react';
+import { Calendar, Clock, ArrowRight, User, Search, Tag, Loader2, BookOpen, Sparkles, MessageSquare, ShieldCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -58,7 +58,8 @@ export default function Blog() {
   const featuredPost = filteredPosts[0];
   const gridPosts = filteredPosts.slice(1);
 
-  const defaultImage = 'https://images.unsplash.com/photo-1611746872915-64382b5c76da?w=600&h=400&fit=crop';
+  const defaultImage = '/blog-bulk-whatsapp-safe-2026.jpg';
+  const totalReadTime = posts.reduce((sum, post) => sum + (post.read_time || 5), 0);
 
   return (
     <div className="min-h-screen bg-background">
@@ -66,31 +67,35 @@ export default function Blog() {
       <Navbar />
 
       {/* Hero */}
-      <section className="relative pt-16 pb-12 md:pt-20 md:pb-16 bg-white overflow-hidden">
-        <div className="absolute top-10 right-10 w-64 h-64 bg-primary/5 rounded-full blur-3xl" />
-        <div className="absolute bottom-10 left-10 w-80 h-80 bg-primary/3 rounded-full blur-3xl" />
+      <section className="relative pt-16 pb-10 md:pt-20 md:pb-14 bg-gradient-to-b from-slate-950 via-slate-900 to-slate-800 overflow-hidden">
+        <div className="absolute inset-0 bg-[linear-gradient(120deg,rgba(255,255,255,0.08)_0,transparent_30%),radial-gradient(circle_at_80%_20%,rgba(34,197,94,0.22),transparent_32%)]" />
+        <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-background to-transparent" />
         <div className="container mx-auto px-4 relative">
           <Breadcrumb className="mb-6" />
-          <div className="max-w-3xl mx-auto text-center">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 text-primary text-sm font-medium mb-6">
-              <Calendar className="w-4 h-4" />
-              Latest Insights & Tutorials
+          <div className="max-w-5xl mx-auto text-center">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 border border-white/15 text-white text-sm font-medium mb-6 shadow-2xl backdrop-blur">
+              <Sparkles className="w-4 h-4 text-primary" />
+              WhatsApp Growth Library
             </div>
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 leading-tight">
-              <span className="text-slate-900">The AiReatro</span>{' '}
-              <span className="text-primary">Blog</span>
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 leading-tight text-white tracking-tight">
+              Practical WhatsApp API guides for modern teams
             </h1>
-            <p className="text-lg md:text-xl text-slate-600 mb-8">
-              Practical guides, tutorials, and best practices for every WhatsApp Business feature
+            <p className="text-lg md:text-xl text-slate-300 mb-8 max-w-3xl mx-auto">
+              Premium playbooks on WhatsApp API, CRM automation, campaign safety, pricing comparisons, and lead conversion.
             </p>
-            <div className="relative max-w-xl mx-auto">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+            <div className="relative max-w-2xl mx-auto">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
               <Input
                 placeholder="Search articles..."
-                className="h-14 pl-12 pr-4 text-lg bg-white border-2 border-slate-200 shadow-lg rounded-xl focus:border-primary"
+                className="h-14 pl-12 pr-4 text-lg bg-white/95 border-white/20 shadow-2xl rounded-2xl focus:border-primary"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
+            </div>
+            <div className="grid grid-cols-3 gap-3 max-w-2xl mx-auto mt-8">
+              <div className="rounded-2xl border border-white/10 bg-white/10 p-4 backdrop-blur"><BookOpen className="w-5 h-5 text-primary mx-auto mb-2" /><div className="text-2xl font-bold text-white">{posts.length}</div><div className="text-xs text-slate-300">Articles</div></div>
+              <div className="rounded-2xl border border-white/10 bg-white/10 p-4 backdrop-blur"><Clock className="w-5 h-5 text-primary mx-auto mb-2" /><div className="text-2xl font-bold text-white">{totalReadTime}</div><div className="text-xs text-slate-300">Min read</div></div>
+              <div className="rounded-2xl border border-white/10 bg-white/10 p-4 backdrop-blur"><ShieldCheck className="w-5 h-5 text-primary mx-auto mb-2" /><div className="text-2xl font-bold text-white">2026</div><div className="text-xs text-slate-300">Updated</div></div>
             </div>
           </div>
         </div>
@@ -104,25 +109,26 @@ export default function Blog() {
         <>
           {/* Featured Post */}
           {featuredPost && (
-            <section className="py-12 bg-slate-50">
+            <section className="py-12 bg-background">
               <div className="container mx-auto px-4">
                 <Card
-                  className="max-w-5xl mx-auto overflow-hidden border-0 shadow-xl hover:shadow-2xl transition-shadow cursor-pointer group"
+                  className="max-w-6xl mx-auto overflow-hidden border border-border/60 shadow-2xl hover:shadow-primary/10 transition-all cursor-pointer group rounded-3xl bg-card"
                   onClick={() => navigate(`/blog/${featuredPost.slug}`)}
                 >
                   <div className="grid md:grid-cols-2">
-                    <div className="aspect-[4/3] md:aspect-auto overflow-hidden">
+                    <div className="aspect-[4/3] md:aspect-auto overflow-hidden relative">
                       <img
                         src={featuredPost.featured_image || defaultImage}
                         alt={featuredPost.title}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                       />
+                      <div className="absolute inset-0 bg-gradient-to-tr from-slate-950/35 to-transparent" />
                     </div>
-                    <CardContent className="p-8 flex flex-col justify-center bg-white">
-                      <Badge className="w-fit mb-4 bg-primary/10 text-primary hover:bg-primary/20">
-                        Featured • {featuredPost.category || 'General'}
+                    <CardContent className="p-8 md:p-10 flex flex-col justify-center bg-card">
+                      <Badge className="w-fit mb-4 bg-primary/10 text-primary hover:bg-primary/20 border border-primary/15 rounded-full px-3 py-1">
+                        Featured insight • {featuredPost.category || 'General'}
                       </Badge>
-                      <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-4 group-hover:text-primary transition-colors">
+                      <h2 className="text-2xl md:text-4xl font-bold text-foreground mb-4 group-hover:text-primary transition-colors leading-tight">
                         {featuredPost.title}
                       </h2>
                       <p className="text-muted-foreground mb-6 text-lg line-clamp-3">{featuredPost.excerpt}</p>
@@ -150,7 +156,7 @@ export default function Blog() {
           )}
 
           {/* Categories */}
-          <section className="py-8 bg-white sticky top-16 z-40 border-b border-slate-100">
+          <section className="py-6 bg-background/90 sticky top-16 z-40 border-b border-border/60 backdrop-blur-xl">
             <div className="container mx-auto px-4">
               <div className="flex flex-wrap justify-center gap-2">
                 {categories.map((category, index) => (
@@ -158,7 +164,7 @@ export default function Blog() {
                     key={index}
                     variant={selectedCategory === category ? 'default' : 'ghost'}
                     size="sm"
-                    className={`rounded-full ${selectedCategory === category ? '' : 'hover:bg-slate-100'}`}
+                    className={`rounded-full px-4 ${selectedCategory === category ? 'shadow-lg shadow-primary/15' : 'hover:bg-muted'}`}
                     onClick={() => setSelectedCategory(category as string)}
                   >
                     {category}
@@ -169,21 +175,22 @@ export default function Blog() {
           </section>
 
           {/* Posts Grid */}
-          <section className="py-16 bg-white">
+          <section className="py-16 bg-background">
             <div className="container mx-auto px-4">
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
                 {gridPosts.map((post) => (
                   <Card
                     key={post.id}
-                    className="overflow-hidden border-0 shadow-md hover:shadow-xl transition-all duration-300 cursor-pointer group bg-white"
+                    className="overflow-hidden border border-border/60 shadow-md hover:shadow-2xl hover:shadow-primary/10 transition-all duration-300 cursor-pointer group bg-card rounded-3xl"
                     onClick={() => navigate(`/blog/${post.slug}`)}
                   >
-                    <div className="aspect-video overflow-hidden">
+                    <div className="aspect-video overflow-hidden relative">
                       <img
                         src={post.featured_image || defaultImage}
                         alt={post.title}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                       />
+                      <div className="absolute left-4 top-4 rounded-full bg-background/90 px-3 py-1 text-xs font-semibold text-primary shadow-sm backdrop-blur flex items-center gap-1"><MessageSquare className="w-3 h-3" /> Guide</div>
                     </div>
                     <CardContent className="p-6">
                       <div className="flex items-center gap-2 mb-3">
