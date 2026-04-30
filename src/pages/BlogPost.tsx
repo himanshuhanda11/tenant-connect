@@ -205,13 +205,13 @@ function BlockRenderer({ block, index }: { block: BlogBlock; index: number }) {
     case 'list':
       if (block.ordered) {
         return (
-          <div className="my-6 space-y-3">
+          <div className="my-5 sm:my-6 space-y-3">
             {(block.items || []).map((item, i) => (
-              <div key={i} className="flex gap-4 items-start group">
+              <div key={i} className="flex gap-3 sm:gap-4 items-start group">
                 <div className="flex-shrink-0 w-9 h-9 rounded-xl bg-gradient-to-br from-primary to-primary/80 text-white flex items-center justify-center font-bold text-sm shadow-md shadow-primary/20 group-hover:scale-110 transition-transform">
                   {i + 1}
                 </div>
-                <div className="pt-1.5 text-slate-600 text-[17px] leading-relaxed flex-1">{renderRichText(item)}</div>
+                <div className="min-w-0 pt-1.5 text-slate-600 text-base sm:text-[17px] leading-relaxed flex-1 break-words">{renderRichText(item)}</div>
               </div>
             ))}
           </div>
@@ -621,13 +621,13 @@ export default function BlogPost() {
                 </div>
               </div>
             </div>
-            <Card className="mt-12 border-0 bg-gradient-to-br from-primary/10 via-emerald-50 to-primary/5 shadow-lg shadow-primary/5">
-              <CardContent className="p-8 md:p-10 text-center">
-                <h3 className="text-2xl font-bold text-slate-900 mb-3">Ready to transform your WhatsApp messaging?</h3>
+            <Card className="mt-10 sm:mt-12 border-0 bg-gradient-to-br from-primary/10 via-emerald-50 to-primary/5 shadow-lg shadow-primary/5">
+              <CardContent className="p-5 sm:p-8 md:p-10 text-center">
+                <h3 className="text-xl sm:text-2xl font-bold text-slate-900 mb-3">Ready to transform your WhatsApp messaging?</h3>
                 <p className="text-slate-500 mb-6">Start your free trial today and see the difference Aireatro makes.</p>
                 <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                  <Button size="lg" className="rounded-xl shadow-md shadow-primary/20" onClick={() => navigate('/signup')}>Start Free Trial<ArrowRight className="w-4 h-4 ml-2" /></Button>
-                  <Button size="lg" variant="outline" className="rounded-xl" onClick={() => navigate('/contact')}>Contact Us</Button>
+                  <Button size="lg" className="w-full sm:w-auto rounded-xl shadow-md shadow-primary/20" onClick={() => navigate('/signup')}>Start Free<ArrowRight className="w-4 h-4 ml-2" /></Button>
+                  <Button size="lg" variant="outline" className="w-full sm:w-auto rounded-xl" onClick={() => navigate('/contact')}>Contact Us</Button>
                 </div>
               </CardContent>
             </Card>
