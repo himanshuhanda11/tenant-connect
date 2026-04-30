@@ -498,6 +498,8 @@ export default function BlogPost() {
                 </div>
               )}
 
+              <WebsiteInternalLinks />
+
               {/* Share */}
               <div className="bg-slate-50 rounded-2xl p-6 mt-10">
                 <div className="flex items-center justify-between flex-wrap gap-4">
@@ -608,6 +610,7 @@ export default function BlogPost() {
             <article className="prose prose-lg prose-slate max-w-none">
               {staticPost.content.split('\n\n').map((p, i) => <p key={i} className="text-slate-600 leading-[1.85] mb-6">{p}</p>)}
             </article>
+            <WebsiteInternalLinks />
             <div className="bg-slate-50 rounded-2xl p-6 mt-10">
               <div className="flex items-center justify-between flex-wrap gap-4">
                 <div className="flex items-center gap-2.5"><Share2 className="w-5 h-5 text-slate-400" /><span className="font-semibold text-slate-700">Share this article</span></div>
