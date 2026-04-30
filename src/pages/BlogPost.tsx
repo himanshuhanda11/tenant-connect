@@ -389,6 +389,7 @@ export default function BlogPost() {
 
   if (dbPost) {
     const shareUrl = `https://aireatro.com/blog/${dbPost.slug}`;
+    const articleSchema = buildBlogPostingSchema(dbPost);
     return (
       <div className="min-h-screen bg-white">
         <ReadingProgress />
@@ -401,9 +402,7 @@ export default function BlogPost() {
           ogType="article"
           ogImage={dbPost.og_image || dbPost.featured_image || undefined}
         />
-        {dbPost.schema_jsonld && (
-          <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(dbPost.schema_jsonld) }} />
-        )}
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema) }} />
         <Navbar />
 
         {/* Hero */}
@@ -537,11 +536,13 @@ export default function BlogPost() {
   if (staticPost) {
     const relPosts = getRelatedPosts(staticPost.slug, staticPost.category);
     const shareUrl = `https://aireatro.com/blog/${staticPost.slug}`;
+    const articleSchema = buildBlogPostingSchema({ ...staticPost, featured_image: staticPost.image, published_at: staticPost.date, author: staticPost.author });
     return (
       <div className="min-h-screen bg-background">
         <ReadingProgress />
         <SeoMeta route={`/blog/${staticPost.slug}`} fallbackTitle={staticPost.title} fallbackDescription={staticPost.excerpt} />
         <SEO title={staticPost.title} description={staticPost.excerpt} keywords={[staticPost.category, 'WhatsApp API', 'AiReatro']} canonical={`/blog/${staticPost.slug}`} ogType="article" ogImage={staticPost.image} />
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema) }} />
         <Navbar />
         <section className="relative pt-8 pb-12 bg-gradient-to-b from-slate-50/50 to-white">
           <div className="container mx-auto px-4"><div className="max-w-4xl mx-auto">
