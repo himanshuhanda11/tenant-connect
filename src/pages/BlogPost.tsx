@@ -309,23 +309,23 @@ const WEBSITE_INTERNAL_LINKS = [
 
 function WebsiteInternalLinks() {
   return (
-    <section className="mt-12 rounded-2xl border border-slate-200/80 bg-gradient-to-br from-slate-50 to-white p-6 md:p-8 shadow-sm">
-      <div className="flex items-center justify-between gap-4 mb-5">
+    <section className="mt-10 sm:mt-12 rounded-2xl border border-slate-200/80 bg-gradient-to-br from-slate-50 to-white p-4 sm:p-6 md:p-8 shadow-sm">
+      <div className="flex items-start sm:items-center justify-between gap-4 mb-5">
         <div>
           <p className="text-sm font-semibold text-primary mb-1">Explore Aireatro</p>
-          <h2 className="text-2xl font-bold text-slate-900">Useful pages for your next step</h2>
+          <h2 className="text-xl sm:text-2xl font-bold text-slate-900 leading-tight">Useful pages for your next step</h2>
         </div>
         <Globe className="hidden sm:block w-8 h-8 text-primary" />
       </div>
-      <div className="grid sm:grid-cols-2 gap-3">
+      <div className="grid gap-3 sm:grid-cols-2">
         {WEBSITE_INTERNAL_LINKS.map((link) => (
           <Link
             key={link.href}
             to={link.href}
-            className="group rounded-xl border border-slate-200 bg-white p-4 transition-all hover:border-primary/40 hover:shadow-md hover:shadow-primary/10"
+            className="group rounded-xl border border-slate-200 bg-white p-3.5 sm:p-4 transition-all hover:border-primary/40 hover:shadow-md hover:shadow-primary/10"
           >
             <span className="flex items-center justify-between gap-3 font-semibold text-slate-900 group-hover:text-primary">
-              {link.title}
+              <span className="min-w-0 break-words">{link.title}</span>
               <ArrowRight className="w-4 h-4 flex-shrink-0 transition-transform group-hover:translate-x-1" />
             </span>
             <span className="mt-1.5 block text-sm leading-relaxed text-slate-500">{link.description}</span>
