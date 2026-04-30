@@ -2,11 +2,9 @@ import { useLeadForms } from '@/hooks/useLeadForms';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { RefreshCw, Loader2, FileText, Zap, Webhook, MoreHorizontal, Filter, AlertTriangle } from 'lucide-react';
+import { RefreshCw, Loader2, FileText, Zap, Webhook, MoreHorizontal, Filter } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { useState, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -22,10 +20,9 @@ import {
 } from '@/components/ui/select';
 
 export function LeadFormsList() {
-  const { forms, loading, syncForms, subscribeWebhook, testWebhook, permissionError } = useLeadForms();
+  const { forms, loading, syncForms, subscribeWebhook, testWebhook } = useLeadForms();
   const [syncing, setSyncing] = useState(false);
   const [selectedPageId, setSelectedPageId] = useState<string>('all');
-  const navigate = useNavigate();
 
   const handleSync = async () => {
     setSyncing(true);
@@ -56,24 +53,6 @@ export function LeadFormsList() {
 
   return (
     <div className="space-y-4">
-      {permissionError && (
-        <Alert variant="destructive" className="border-destructive/30 bg-destructive/5">
-          <AlertTriangle className="h-4 w-4" />
-          <AlertDescription className="flex flex-col sm:flex-row sm:items-center gap-3">
-            <span className="flex-1 text-sm">{permissionError}</span>
-            <Button
-              size="sm"
-              variant="outline"
-              className="w-fit shrink-0"
-              onClick={() => navigate('/meta-ads/setup?reauthorize=lead_forms')}
-            >
-              <RefreshCw className="h-3.5 w-3.5 mr-1.5" />
-              Auto-Reconnect
-            </Button>
-          </AlertDescription>
-        </Alert>
-      )}
-
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <div className="flex items-center gap-3 flex-wrap">
           <p className="text-sm text-muted-foreground">

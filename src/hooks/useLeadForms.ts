@@ -76,16 +76,6 @@ export function useLeadForms() {
   const { currentTenant } = useTenant();
   const [forms, setForms] = useState<LeadForm[]>([]);
   const [loading, setLoading] = useState(true);
-  const [permissionError, setPermissionError] = useState<string | null>(null);
-
-  const capturePermissionError = useCallback((message?: string | null) => {
-    if (!message) return false;
-    if (message.includes('leads_retrieval') || message.includes('missing_leads_retrieval')) {
-      setPermissionError(message);
-      return true;
-    }
-    return false;
-  }, []);
 
   const fetchForms = useCallback(async () => {
     if (!currentTenant) return;
@@ -112,18 +102,11 @@ export function useLeadForms() {
 
       const formsCount = data?.forms?.length || 0;
       const syncErrors = Array.isArray(data?.errors) ? data.errors : [];
-      const leadPermissionError = syncErrors.find((item: any) => capturePermissionError(item?.error))?.error;
 
       if (formsCount > 0) {
-        if (leadPermissionError) {
-          toast.error(leadPermissionError, { duration: 8000 });
-        } else {
-          toast.success(`Synced ${formsCount} lead form${formsCount === 1 ? '' : 's'}`);
-          setPermissionError(null);
-        }
+        toast.success(`Synced ${formsCount} lead form${formsCount === 1 ? '' : 's'}`);
       } else if (syncErrors.length > 0) {
         const firstError = syncErrors[0]?.error || 'Meta could not return lead forms';
-        capturePermissionError(firstError);
         // Show longer permission errors as a warning with more context
         if (firstError.includes('pages_manage_ads') || firstError.includes('permission') || firstError.includes('(#200)')) {
           toast.error(firstError, { duration: 8000 });
@@ -137,11 +120,9 @@ export function useLeadForms() {
       await fetchForms();
       return data;
     } catch (err: any) {
-      const message = err?.context?.error || err?.message || 'Unknown error';
-      capturePermissionError(message);
-      toast.error('Failed to sync forms: ' + message);
+      toast.error('Failed to sync forms: ' + (err.message || 'Unknown error'));
     }
-  }, [currentTenant, fetchForms, capturePermissionError]);
+  }, [currentTenant, fetchForms]);
 
   const subscribeWebhook = useCallback(async (pageId: string) => {
     if (!currentTenant) return;
@@ -151,20 +132,16 @@ export function useLeadForms() {
       });
       if (error) throw error;
       if (data?.success) {
-        setPermissionError(null);
         toast.success('Webhook subscribed successfully');
         await fetchForms();
       } else {
-        const message = data?.error || 'Subscription failed';
-        capturePermissionError(message);
-        toast.error(message);
+        toast.error(data?.error || 'Subscription failed');
       }
     } catch (err: any) {
       const message = err?.context?.error || err?.message || 'Unknown error';
-      capturePermissionError(message);
       toast.error(message.includes('leads_retrieval') ? message : `Failed to subscribe webhook: ${message}`, { duration: 8000 });
     }
-  }, [currentTenant, fetchForms, capturePermissionError]);
+  }, [currentTenant, fetchForms]);
 
   const testWebhook = useCallback(async (pageId?: string) => {
     if (!currentTenant) return;
@@ -179,7 +156,7 @@ export function useLeadForms() {
     }
   }, [currentTenant]);
 
-  return { forms, loading, syncForms, subscribeWebhook, testWebhook, permissionError, clearPermissionError: () => setPermissionError(null), refetch: fetchForms };
+  return { forms, loading, syncForms, subscribeWebhook, testWebhook, refetch: fetchForms };
 }
 
 export function useLeadFormRules() {
