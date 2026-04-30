@@ -130,8 +130,8 @@ function renderTable(content: string) {
   if (rows.length < 2) return null;
   const [header, ...body] = rows;
   return (
-    <div className="my-8 overflow-x-auto rounded-xl border border-slate-200 shadow-sm">
-      <table className="w-full text-sm">
+    <div className="my-6 sm:my-8 -mx-4 sm:mx-0 overflow-x-auto rounded-none sm:rounded-xl border-y sm:border border-slate-200 shadow-sm">
+      <table className="w-full min-w-[620px] text-sm">
         <thead>
           <tr className="bg-gradient-to-r from-primary/10 to-primary/5">
             {header.map((cell, i) => (
@@ -156,27 +156,27 @@ function renderTable(content: string) {
 function BlockRenderer({ block, index }: { block: BlogBlock; index: number }) {
   switch (block.type) {
     case 'heading':
-      if (block.level === 1) return <h1 id={getBlockAnchorId(block)} className="scroll-mt-24 text-3xl font-bold text-slate-900 mt-10 mb-4">{block.content}</h1>;
+      if (block.level === 1) return <h1 id={getBlockAnchorId(block)} className="scroll-mt-24 text-2xl sm:text-3xl font-bold text-slate-900 mt-8 sm:mt-10 mb-4 break-words">{block.content}</h1>;
       if (block.level === 3) return (
-        <a id={getBlockAnchorId(block)} href={`#${getBlockAnchorId(block)}`} className="scroll-mt-24 flex items-center gap-2.5 mt-8 mb-4 group">
-          <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary flex-shrink-0">
+        <a id={getBlockAnchorId(block)} href={`#${getBlockAnchorId(block)}`} className="scroll-mt-24 flex items-start gap-2.5 mt-7 sm:mt-8 mb-4 group">
+          <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary flex-shrink-0 mt-0.5">
             {getHeadingIcon(block.content)}
           </div>
-          <h3 className="text-xl font-semibold text-slate-900 group-hover:text-primary transition-colors">{block.content}</h3>
+          <h3 className="min-w-0 text-lg sm:text-xl font-semibold text-slate-900 group-hover:text-primary transition-colors break-words">{block.content}</h3>
         </a>
       );
       return (
-        <a id={getBlockAnchorId(block)} href={`#${getBlockAnchorId(block)}`} className="scroll-mt-24 flex items-center gap-3 mt-14 mb-5 pb-3 border-b border-slate-100 group">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center text-primary flex-shrink-0 shadow-sm">
+        <a id={getBlockAnchorId(block)} href={`#${getBlockAnchorId(block)}`} className="scroll-mt-24 flex items-start gap-3 mt-10 sm:mt-14 mb-5 pb-3 border-b border-slate-100 group">
+          <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center text-primary flex-shrink-0 shadow-sm mt-0.5">
             {getHeadingIcon(block.content)}
           </div>
-          <h2 className="text-2xl md:text-[1.65rem] font-bold text-slate-900 leading-tight group-hover:text-primary transition-colors">{block.content}</h2>
+          <h2 className="min-w-0 text-xl sm:text-2xl md:text-[1.65rem] font-bold text-slate-900 leading-tight group-hover:text-primary transition-colors break-words">{block.content}</h2>
         </a>
       );
 
     case 'paragraph':
       if (isTable(block.content)) return renderTable(block.content);
-      return <p className="text-slate-600 leading-[1.85] mb-6 text-[17px]">{renderRichText(block.content)}</p>;
+      return <p className="text-slate-600 leading-[1.8] sm:leading-[1.85] mb-5 sm:mb-6 text-base sm:text-[17px] break-words">{renderRichText(block.content)}</p>;
 
     case 'image':
       return block.imageUrl ? (
@@ -205,24 +205,24 @@ function BlockRenderer({ block, index }: { block: BlogBlock; index: number }) {
     case 'list':
       if (block.ordered) {
         return (
-          <div className="my-6 space-y-3">
+          <div className="my-5 sm:my-6 space-y-3">
             {(block.items || []).map((item, i) => (
-              <div key={i} className="flex gap-4 items-start group">
+              <div key={i} className="flex gap-3 sm:gap-4 items-start group">
                 <div className="flex-shrink-0 w-9 h-9 rounded-xl bg-gradient-to-br from-primary to-primary/80 text-white flex items-center justify-center font-bold text-sm shadow-md shadow-primary/20 group-hover:scale-110 transition-transform">
                   {i + 1}
                 </div>
-                <div className="pt-1.5 text-slate-600 text-[17px] leading-relaxed flex-1">{renderRichText(item)}</div>
+                <div className="min-w-0 pt-1.5 text-slate-600 text-base sm:text-[17px] leading-relaxed flex-1 break-words">{renderRichText(item)}</div>
               </div>
             ))}
           </div>
         );
       }
       return (
-        <div className="my-6 space-y-3">
+        <div className="my-5 sm:my-6 space-y-3">
           {(block.items || []).map((item, i) => (
             <div key={i} className="flex gap-3 items-start group">
               <CheckCircle2 className="w-5 h-5 text-primary flex-shrink-0 mt-0.5 group-hover:scale-110 transition-transform" />
-              <div className="text-slate-600 text-[17px] leading-relaxed flex-1">{renderRichText(item)}</div>
+              <div className="min-w-0 text-slate-600 text-base sm:text-[17px] leading-relaxed flex-1 break-words">{renderRichText(item)}</div>
             </div>
           ))}
         </div>
@@ -251,7 +251,7 @@ function BlockRenderer({ block, index }: { block: BlogBlock; index: number }) {
 
     case 'cta':
       return (
-        <div className="my-12 p-8 md:p-10 rounded-2xl bg-gradient-to-br from-primary/10 via-emerald-50 to-primary/5 border border-primary/10 text-center relative overflow-hidden">
+        <div className="my-10 sm:my-12 p-5 sm:p-8 md:p-10 rounded-2xl bg-gradient-to-br from-primary/10 via-emerald-50 to-primary/5 border border-primary/10 text-center relative overflow-hidden">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(var(--primary-rgb,34,197,94),0.08),transparent_50%)]"></div>
           <div className="relative z-10">
             <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
@@ -259,8 +259,8 @@ function BlockRenderer({ block, index }: { block: BlogBlock; index: number }) {
             </div>
             <h3 className="text-xl md:text-2xl font-bold text-slate-900 mb-3">{block.buttonText || 'Get Started with Aireatro'}</h3>
             <p className="text-slate-500 mb-6 max-w-md mx-auto">Zero monthly fees. Start in under 10 minutes. Scale with confidence.</p>
-            <Link to={block.buttonUrl || '/signup'} className="inline-flex items-center gap-2 px-8 py-3.5 rounded-xl bg-primary text-white font-semibold text-lg shadow-lg shadow-primary/20 hover:bg-primary/90 hover:shadow-xl transition-all">
-              Start Free Trial
+            <Link to={block.buttonUrl || '/signup'} className="inline-flex w-full sm:w-auto items-center justify-center gap-2 px-6 sm:px-8 py-3.5 rounded-xl bg-primary text-white font-semibold text-base sm:text-lg shadow-lg shadow-primary/20 hover:bg-primary/90 hover:shadow-xl transition-all">
+              Start Free
               <ArrowRight className="w-5 h-5" />
             </Link>
           </div>
@@ -309,23 +309,23 @@ const WEBSITE_INTERNAL_LINKS = [
 
 function WebsiteInternalLinks() {
   return (
-    <section className="mt-12 rounded-2xl border border-slate-200/80 bg-gradient-to-br from-slate-50 to-white p-6 md:p-8 shadow-sm">
-      <div className="flex items-center justify-between gap-4 mb-5">
+    <section className="mt-10 sm:mt-12 rounded-2xl border border-slate-200/80 bg-gradient-to-br from-slate-50 to-white p-4 sm:p-6 md:p-8 shadow-sm">
+      <div className="flex items-start sm:items-center justify-between gap-4 mb-5">
         <div>
           <p className="text-sm font-semibold text-primary mb-1">Explore Aireatro</p>
-          <h2 className="text-2xl font-bold text-slate-900">Useful pages for your next step</h2>
+          <h2 className="text-xl sm:text-2xl font-bold text-slate-900 leading-tight">Useful pages for your next step</h2>
         </div>
         <Globe className="hidden sm:block w-8 h-8 text-primary" />
       </div>
-      <div className="grid sm:grid-cols-2 gap-3">
+      <div className="grid gap-3 sm:grid-cols-2">
         {WEBSITE_INTERNAL_LINKS.map((link) => (
           <Link
             key={link.href}
             to={link.href}
-            className="group rounded-xl border border-slate-200 bg-white p-4 transition-all hover:border-primary/40 hover:shadow-md hover:shadow-primary/10"
+            className="group rounded-xl border border-slate-200 bg-white p-3.5 sm:p-4 transition-all hover:border-primary/40 hover:shadow-md hover:shadow-primary/10"
           >
             <span className="flex items-center justify-between gap-3 font-semibold text-slate-900 group-hover:text-primary">
-              {link.title}
+              <span className="min-w-0 break-words">{link.title}</span>
               <ArrowRight className="w-4 h-4 flex-shrink-0 transition-transform group-hover:translate-x-1" />
             </span>
             <span className="mt-1.5 block text-sm leading-relaxed text-slate-500">{link.description}</span>
@@ -448,29 +448,29 @@ export default function BlogPost() {
         <Navbar />
 
         {/* Hero */}
-        <section className="relative pt-8 pb-12 bg-gradient-to-b from-slate-50/50 to-white">
+        <section className="relative pt-5 sm:pt-8 pb-8 sm:pb-12 bg-gradient-to-b from-slate-50/50 to-white">
           <div className="container mx-auto px-4">
             <div className="max-w-4xl mx-auto">
-              <div className="flex items-center gap-2 text-sm text-muted-foreground mb-6">
+              <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4 sm:mb-6 min-w-0">
                 <Link to="/blog" className="hover:text-primary transition-colors flex items-center gap-1"><ArrowLeft className="w-3.5 h-3.5" />Blog</Link>
                 <span className="text-slate-300">/</span>
-                <span>{dbPost.category}</span>
+                <span className="truncate">{dbPost.category}</span>
               </div>
               <Badge className="mb-4 bg-primary/10 text-primary hover:bg-primary/20 border-0 px-3 py-1">{dbPost.category}</Badge>
-              <h1 className="text-3xl md:text-4xl lg:text-[2.75rem] font-bold text-slate-900 mb-6 leading-[1.2] tracking-tight">{dbPost.title}</h1>
-              {dbPost.excerpt && <p className="text-lg text-slate-500 mb-6 leading-relaxed max-w-2xl">{dbPost.excerpt}</p>}
-              <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground mb-8">
+              <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-[2.75rem] font-bold text-slate-900 mb-4 sm:mb-6 leading-[1.18] tracking-tight break-words">{dbPost.title}</h1>
+              {dbPost.excerpt && <p className="text-base sm:text-lg text-slate-500 mb-5 sm:mb-6 leading-relaxed max-w-2xl break-words">{dbPost.excerpt}</p>}
+              <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm text-muted-foreground mb-6 sm:mb-8">
                 {dbPost.author && (
                   <div className="flex items-center gap-2">
                     <div className="w-9 h-9 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center"><User className="w-4 h-4 text-primary" /></div>
                     <div><span className="font-medium text-slate-700">{dbPost.author}</span></div>
                   </div>
                 )}
-                <div className="flex items-center gap-1.5 bg-slate-100 px-3 py-1.5 rounded-full"><Calendar className="w-3.5 h-3.5" />{format(new Date(dbPost.published_at || dbPost.created_at), 'MMM d, yyyy')}</div>
-                <div className="flex items-center gap-1.5 bg-slate-100 px-3 py-1.5 rounded-full"><Clock className="w-3.5 h-3.5" />{dbPost.read_time || 5} min read</div>
+                <div className="flex items-center gap-1.5 bg-slate-100 px-2.5 sm:px-3 py-1.5 rounded-full"><Calendar className="w-3.5 h-3.5" />{format(new Date(dbPost.published_at || dbPost.created_at), 'MMM d, yyyy')}</div>
+                <div className="flex items-center gap-1.5 bg-slate-100 px-2.5 sm:px-3 py-1.5 rounded-full"><Clock className="w-3.5 h-3.5" />{dbPost.read_time || 5} min read</div>
               </div>
               {dbPost.featured_image && (
-                <div className="aspect-video rounded-2xl overflow-hidden shadow-2xl shadow-slate-200/50 mb-10 ring-1 ring-slate-200/50">
+                <div className="aspect-video rounded-xl sm:rounded-2xl overflow-hidden shadow-xl sm:shadow-2xl shadow-slate-200/50 mb-6 sm:mb-10 ring-1 ring-slate-200/50">
                   <img src={dbPost.featured_image} alt={dbPost.image_alt || dbPost.title} className="w-full h-full object-cover" />
                 </div>
               )}
@@ -516,16 +516,16 @@ export default function BlogPost() {
               </div>
 
               {/* CTA */}
-              <Card className="mt-12 border-0 bg-gradient-to-br from-primary/10 via-emerald-50 to-primary/5 shadow-lg shadow-primary/5">
-                <CardContent className="p-8 md:p-10 text-center">
+              <Card className="mt-10 sm:mt-12 border-0 bg-gradient-to-br from-primary/10 via-emerald-50 to-primary/5 shadow-lg shadow-primary/5">
+                <CardContent className="p-5 sm:p-8 md:p-10 text-center">
                   <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
                     <MessageSquare className="w-7 h-7 text-primary" />
                   </div>
-                  <h3 className="text-2xl font-bold text-slate-900 mb-3">Ready to transform your WhatsApp messaging?</h3>
+                  <h3 className="text-xl sm:text-2xl font-bold text-slate-900 mb-3">Ready to transform your WhatsApp messaging?</h3>
                   <p className="text-slate-500 mb-6 max-w-md mx-auto">Start your free trial today and see the difference Aireatro makes.</p>
                   <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                    <Button size="lg" className="rounded-xl shadow-md shadow-primary/20" onClick={() => navigate('/signup')}>Start Free Trial<ArrowRight className="w-4 h-4 ml-2" /></Button>
-                    <Button size="lg" variant="outline" className="rounded-xl" onClick={() => navigate('/contact')}>Contact Us</Button>
+                    <Button size="lg" className="w-full sm:w-auto rounded-xl shadow-md shadow-primary/20" onClick={() => navigate('/signup')}>Start Free<ArrowRight className="w-4 h-4 ml-2" /></Button>
+                    <Button size="lg" variant="outline" className="w-full sm:w-auto rounded-xl" onClick={() => navigate('/contact')}>Contact Us</Button>
                   </div>
                 </CardContent>
               </Card>
@@ -594,13 +594,13 @@ export default function BlogPost() {
               <Link to="/blog" className="hover:text-primary transition-colors flex items-center gap-1"><ArrowLeft className="w-3.5 h-3.5" />Blog</Link><span className="text-slate-300">/</span><span>{staticPost.category}</span>
             </div>
             <Badge className="mb-4 bg-primary/10 text-primary hover:bg-primary/20 border-0">{staticPost.category}</Badge>
-            <h1 className="text-3xl md:text-4xl lg:text-[2.75rem] font-bold text-slate-900 mb-6 leading-[1.2] tracking-tight">{staticPost.title}</h1>
-            <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground mb-8">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-[2.75rem] font-bold text-slate-900 mb-5 sm:mb-6 leading-[1.18] tracking-tight break-words">{staticPost.title}</h1>
+            <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm text-muted-foreground mb-6 sm:mb-8">
               <div className="flex items-center gap-2"><div className="w-9 h-9 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center"><User className="w-4 h-4 text-primary" /></div><span className="font-medium text-slate-700">{staticPost.author}</span></div>
-              <div className="flex items-center gap-1.5 bg-slate-100 px-3 py-1.5 rounded-full"><Calendar className="w-3.5 h-3.5" />{staticPost.date}</div>
-              <div className="flex items-center gap-1.5 bg-slate-100 px-3 py-1.5 rounded-full"><Clock className="w-3.5 h-3.5" />{staticPost.readTime}</div>
+              <div className="flex items-center gap-1.5 bg-slate-100 px-2.5 sm:px-3 py-1.5 rounded-full"><Calendar className="w-3.5 h-3.5" />{staticPost.date}</div>
+              <div className="flex items-center gap-1.5 bg-slate-100 px-2.5 sm:px-3 py-1.5 rounded-full"><Clock className="w-3.5 h-3.5" />{staticPost.readTime}</div>
             </div>
-            <div className="aspect-video rounded-2xl overflow-hidden shadow-2xl shadow-slate-200/50 mb-10 ring-1 ring-slate-200/50">
+            <div className="aspect-video rounded-xl sm:rounded-2xl overflow-hidden shadow-xl sm:shadow-2xl shadow-slate-200/50 mb-6 sm:mb-10 ring-1 ring-slate-200/50">
               <img src={staticPost.image} alt={staticPost.title} className="w-full h-full object-cover" />
             </div>
           </div></div>
@@ -608,7 +608,7 @@ export default function BlogPost() {
         <section className="py-12 bg-white">
           <div className="container mx-auto px-4"><div className="max-w-3xl mx-auto">
             <article className="prose prose-lg prose-slate max-w-none">
-              {staticPost.content.split('\n\n').map((p, i) => <p key={i} className="text-slate-600 leading-[1.85] mb-6">{p}</p>)}
+              {staticPost.content.split('\n\n').map((p, i) => <p key={i} className="text-base sm:text-[17px] text-slate-600 leading-[1.8] sm:leading-[1.85] mb-5 sm:mb-6 break-words">{p}</p>)}
             </article>
             <WebsiteInternalLinks />
             <div className="bg-slate-50 rounded-2xl p-6 mt-10">
@@ -621,13 +621,13 @@ export default function BlogPost() {
                 </div>
               </div>
             </div>
-            <Card className="mt-12 border-0 bg-gradient-to-br from-primary/10 via-emerald-50 to-primary/5 shadow-lg shadow-primary/5">
-              <CardContent className="p-8 md:p-10 text-center">
-                <h3 className="text-2xl font-bold text-slate-900 mb-3">Ready to transform your WhatsApp messaging?</h3>
+            <Card className="mt-10 sm:mt-12 border-0 bg-gradient-to-br from-primary/10 via-emerald-50 to-primary/5 shadow-lg shadow-primary/5">
+              <CardContent className="p-5 sm:p-8 md:p-10 text-center">
+                <h3 className="text-xl sm:text-2xl font-bold text-slate-900 mb-3">Ready to transform your WhatsApp messaging?</h3>
                 <p className="text-slate-500 mb-6">Start your free trial today and see the difference Aireatro makes.</p>
                 <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                  <Button size="lg" className="rounded-xl shadow-md shadow-primary/20" onClick={() => navigate('/signup')}>Start Free Trial<ArrowRight className="w-4 h-4 ml-2" /></Button>
-                  <Button size="lg" variant="outline" className="rounded-xl" onClick={() => navigate('/contact')}>Contact Us</Button>
+                  <Button size="lg" className="w-full sm:w-auto rounded-xl shadow-md shadow-primary/20" onClick={() => navigate('/signup')}>Start Free<ArrowRight className="w-4 h-4 ml-2" /></Button>
+                  <Button size="lg" variant="outline" className="w-full sm:w-auto rounded-xl" onClick={() => navigate('/contact')}>Contact Us</Button>
                 </div>
               </CardContent>
             </Card>
