@@ -448,29 +448,29 @@ export default function BlogPost() {
         <Navbar />
 
         {/* Hero */}
-        <section className="relative pt-8 pb-12 bg-gradient-to-b from-slate-50/50 to-white">
+        <section className="relative pt-5 sm:pt-8 pb-8 sm:pb-12 bg-gradient-to-b from-slate-50/50 to-white">
           <div className="container mx-auto px-4">
             <div className="max-w-4xl mx-auto">
-              <div className="flex items-center gap-2 text-sm text-muted-foreground mb-6">
+              <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4 sm:mb-6 min-w-0">
                 <Link to="/blog" className="hover:text-primary transition-colors flex items-center gap-1"><ArrowLeft className="w-3.5 h-3.5" />Blog</Link>
                 <span className="text-slate-300">/</span>
-                <span>{dbPost.category}</span>
+                <span className="truncate">{dbPost.category}</span>
               </div>
               <Badge className="mb-4 bg-primary/10 text-primary hover:bg-primary/20 border-0 px-3 py-1">{dbPost.category}</Badge>
-              <h1 className="text-3xl md:text-4xl lg:text-[2.75rem] font-bold text-slate-900 mb-6 leading-[1.2] tracking-tight">{dbPost.title}</h1>
-              {dbPost.excerpt && <p className="text-lg text-slate-500 mb-6 leading-relaxed max-w-2xl">{dbPost.excerpt}</p>}
-              <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground mb-8">
+              <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-[2.75rem] font-bold text-slate-900 mb-4 sm:mb-6 leading-[1.18] tracking-tight break-words">{dbPost.title}</h1>
+              {dbPost.excerpt && <p className="text-base sm:text-lg text-slate-500 mb-5 sm:mb-6 leading-relaxed max-w-2xl break-words">{dbPost.excerpt}</p>}
+              <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm text-muted-foreground mb-6 sm:mb-8">
                 {dbPost.author && (
                   <div className="flex items-center gap-2">
                     <div className="w-9 h-9 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center"><User className="w-4 h-4 text-primary" /></div>
                     <div><span className="font-medium text-slate-700">{dbPost.author}</span></div>
                   </div>
                 )}
-                <div className="flex items-center gap-1.5 bg-slate-100 px-3 py-1.5 rounded-full"><Calendar className="w-3.5 h-3.5" />{format(new Date(dbPost.published_at || dbPost.created_at), 'MMM d, yyyy')}</div>
-                <div className="flex items-center gap-1.5 bg-slate-100 px-3 py-1.5 rounded-full"><Clock className="w-3.5 h-3.5" />{dbPost.read_time || 5} min read</div>
+                <div className="flex items-center gap-1.5 bg-slate-100 px-2.5 sm:px-3 py-1.5 rounded-full"><Calendar className="w-3.5 h-3.5" />{format(new Date(dbPost.published_at || dbPost.created_at), 'MMM d, yyyy')}</div>
+                <div className="flex items-center gap-1.5 bg-slate-100 px-2.5 sm:px-3 py-1.5 rounded-full"><Clock className="w-3.5 h-3.5" />{dbPost.read_time || 5} min read</div>
               </div>
               {dbPost.featured_image && (
-                <div className="aspect-video rounded-2xl overflow-hidden shadow-2xl shadow-slate-200/50 mb-10 ring-1 ring-slate-200/50">
+                <div className="aspect-video rounded-xl sm:rounded-2xl overflow-hidden shadow-xl sm:shadow-2xl shadow-slate-200/50 mb-6 sm:mb-10 ring-1 ring-slate-200/50">
                   <img src={dbPost.featured_image} alt={dbPost.image_alt || dbPost.title} className="w-full h-full object-cover" />
                 </div>
               )}
