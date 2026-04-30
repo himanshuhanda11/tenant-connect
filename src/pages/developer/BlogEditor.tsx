@@ -135,11 +135,47 @@ export default function BlogEditor() {
     }
   };
 
+  const runVisibilityCheck = async (slug = blog?.slug) => {
+    if (!slug) return null;
+    setCheckingVisibility(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('blog-visibility-check', { body: { slug } });
+      if (error) throw error;
+      setVisibilityCheck(data as BlogVisibilityCheck);
+      return data as BlogVisibilityCheck;
+    } catch (err: any) {
+      const failed: BlogVisibilityCheck = {
+        inserted: false,
+        published: false,
+        publicVisible: false,
+        publicListingCount: 0,
+        reasons: [err.message || 'Visibility check failed.'],
+        checkedAt: new Date().toISOString(),
+      };
+      setVisibilityCheck(failed);
+      return failed;
+    } finally {
+      setCheckingVisibility(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!blog?.slug) return;
+    runVisibilityCheck(blog.slug);
+  }, [blog?.slug]);
+
   const handlePublish = async () => {
     if (!blog) return;
     await handleSave(false);
     const success = await publishBlog(blog.id);
-    if (success) toast({ title: 'Blog published!' });
+    if (success) {
+      const check = await runVisibilityCheck(blog.slug || undefined);
+      toast({
+        title: check?.publicVisible ? 'Blog published and public' : 'Blog published, visibility needs attention',
+        description: check?.publicVisible ? 'The post is visible in the public blog listing.' : check?.reasons?.join(' '),
+        variant: check?.publicVisible ? 'default' : 'destructive',
+      });
+    }
   };
 
   const handleUnpublish = async () => {
