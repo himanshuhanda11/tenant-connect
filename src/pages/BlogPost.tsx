@@ -329,10 +329,11 @@ export default function BlogPost() {
 
         const { data: related } = await supabase
           .from('blogs')
-          .select('id, title, slug, featured_image, category')
+          .select('id, title, slug, excerpt, featured_image, category, read_time, published_at, created_at')
           .eq('status', 'published')
           .neq('slug', slug || '')
-          .limit(3);
+          .order('published_at', { ascending: false })
+          .limit(6);
         if (related) setRelatedDb(related);
       }
       setLoading(false);
