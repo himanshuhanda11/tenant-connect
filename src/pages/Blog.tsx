@@ -109,25 +109,26 @@ export default function Blog() {
         <>
           {/* Featured Post */}
           {featuredPost && (
-            <section className="py-12 bg-slate-50">
+            <section className="py-12 bg-background">
               <div className="container mx-auto px-4">
                 <Card
-                  className="max-w-5xl mx-auto overflow-hidden border-0 shadow-xl hover:shadow-2xl transition-shadow cursor-pointer group"
+                  className="max-w-6xl mx-auto overflow-hidden border border-border/60 shadow-2xl hover:shadow-primary/10 transition-all cursor-pointer group rounded-3xl bg-card"
                   onClick={() => navigate(`/blog/${featuredPost.slug}`)}
                 >
                   <div className="grid md:grid-cols-2">
-                    <div className="aspect-[4/3] md:aspect-auto overflow-hidden">
+                    <div className="aspect-[4/3] md:aspect-auto overflow-hidden relative">
                       <img
                         src={featuredPost.featured_image || defaultImage}
                         alt={featuredPost.title}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                       />
+                      <div className="absolute inset-0 bg-gradient-to-tr from-slate-950/35 to-transparent" />
                     </div>
-                    <CardContent className="p-8 flex flex-col justify-center bg-white">
-                      <Badge className="w-fit mb-4 bg-primary/10 text-primary hover:bg-primary/20">
-                        Featured • {featuredPost.category || 'General'}
+                    <CardContent className="p-8 md:p-10 flex flex-col justify-center bg-card">
+                      <Badge className="w-fit mb-4 bg-primary/10 text-primary hover:bg-primary/20 border border-primary/15 rounded-full px-3 py-1">
+                        Featured insight • {featuredPost.category || 'General'}
                       </Badge>
-                      <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-4 group-hover:text-primary transition-colors">
+                      <h2 className="text-2xl md:text-4xl font-bold text-foreground mb-4 group-hover:text-primary transition-colors leading-tight">
                         {featuredPost.title}
                       </h2>
                       <p className="text-muted-foreground mb-6 text-lg line-clamp-3">{featuredPost.excerpt}</p>
