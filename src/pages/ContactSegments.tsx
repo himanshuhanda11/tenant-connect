@@ -223,22 +223,79 @@ export default function ContactSegments() {
           </CardHeader>
           <CardContent className="px-3 sm:px-6">
             {loading ? (
-              <div className="space-y-3">
-                {[...Array(3)].map((_, i) => (
-                  <Skeleton key={i} className="h-20 w-full" />
-                ))}
-              </div>
+              <>
+                {/* Mobile skeletons */}
+                <div className="space-y-3 md:hidden">
+                  {[...Array(3)].map((_, i) => (
+                    <div key={i} className="rounded-xl border border-border/60 bg-card p-4 space-y-3">
+                      <div className="flex items-start gap-2.5">
+                        <Skeleton className="h-9 w-9 rounded-lg" />
+                        <div className="flex-1 space-y-2">
+                          <Skeleton className="h-4 w-2/3" />
+                          <Skeleton className="h-3 w-full" />
+                        </div>
+                        <Skeleton className="h-8 w-14 rounded-md" />
+                      </div>
+                      <div className="flex gap-1.5">
+                        <Skeleton className="h-5 w-24 rounded-full" />
+                        <Skeleton className="h-5 w-16 rounded-full" />
+                      </div>
+                      <Skeleton className="h-12 w-full rounded-md" />
+                      <div className="grid grid-cols-4 gap-1.5 pt-3 border-t border-border/60">
+                        {[...Array(4)].map((_, j) => <Skeleton key={j} className="h-9 w-full" />)}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                {/* Desktop skeleton table */}
+                <div className="hidden md:block">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Name</TableHead>
+                        <TableHead>Rules</TableHead>
+                        <TableHead>Contacts</TableHead>
+                        <TableHead>Type</TableHead>
+                        <TableHead>Last Updated</TableHead>
+                        <TableHead className="w-12"></TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {[...Array(4)].map((_, i) => (
+                        <TableRow key={i}>
+                          <TableCell><div className="flex items-center gap-2"><Skeleton className="h-4 w-4" /><Skeleton className="h-4 w-40" /></div></TableCell>
+                          <TableCell><Skeleton className="h-4 w-56" /></TableCell>
+                          <TableCell><Skeleton className="h-5 w-16 rounded-full" /></TableCell>
+                          <TableCell><Skeleton className="h-5 w-14 rounded-full" /></TableCell>
+                          <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+                          <TableCell><Skeleton className="h-8 w-8 rounded-md" /></TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </>
             ) : filteredSegments.length === 0 ? (
               <div className="text-center py-12">
                 <FolderOpen className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                <h3 className="font-semibold text-lg mb-1">No segments found</h3>
+                <h3 className="font-semibold text-lg mb-1">
+                  {searchQuery ? 'No matching segments' : 'No segments yet'}
+                </h3>
                 <p className="text-muted-foreground mb-4 text-sm">
-                  Create segments to save and reuse contact filters
+                  {searchQuery
+                    ? `Nothing matches "${searchQuery}". Try a different search.`
+                    : 'Create segments to save and reuse contact filters'}
                 </p>
-                <Button onClick={() => setShowCreateModal(true)}>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Create Segment
-                </Button>
+                {searchQuery ? (
+                  <Button variant="outline" onClick={() => setSearchQuery('')}>
+                    Clear search
+                  </Button>
+                ) : (
+                  <Button onClick={() => setShowCreateModal(true)}>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Create Segment
+                  </Button>
+                )}
               </div>
             ) : (
               <>
