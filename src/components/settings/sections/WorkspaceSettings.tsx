@@ -49,6 +49,7 @@ export function WorkspaceSettings() {
   const [waProfile, setWaProfile] = useState<any>(null);
   const [waProfileLoading, setWaProfileLoading] = useState(false);
   const [waProfileSaving, setWaProfileSaving] = useState(false);
+  const [contactFeature, setContactFeature] = useState<string | null>(null);
   const [logoUploading, setLogoUploading] = useState(false);
   const [logoUrl, setLogoUrl] = useState('');
 
