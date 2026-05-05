@@ -34,7 +34,8 @@ export default function Dashboard() {
   const {
     loading, kpis, inboxHealth, automations, campaigns, metaAds,
     phoneHealth, contacts, billing, creditsBalance, templatesPending,
-    totalTemplates, messagesReceivedToday, messagesRepliedToday, totalCampaigns, refetch,
+    totalTemplates, messagesReceivedToday, messagesRepliedToday, totalCampaigns,
+    recentActivity, refetch,
   } = useDashboardData(filters);
 
   const displayName = profile?.full_name?.split(' ')[0] || 'there';
