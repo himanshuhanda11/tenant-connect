@@ -458,6 +458,9 @@ export default function BookDemo() {
         </div>
       </section>
 
+      {/* Trusted by businesses */}
+      <SocialProofBar />
+
       {/* Why AiReatro */}
       <section className="py-16 md:py-24 bg-muted/30">
         <div className="container mx-auto px-4 max-w-6xl">
