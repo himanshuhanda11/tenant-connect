@@ -218,6 +218,7 @@ export default function InboxPage() {
                     isMobile={true}
                     currentUserId={user?.id}
                     unreadNewCount={unreadNewCount}
+                    totalCount={totalCount ?? undefined}
                     onClearNotifications={clearNotifications}
                   />
                 </motion.div>
