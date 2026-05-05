@@ -1,8 +1,9 @@
-import { useState, useEffect } from 'react';
-import { 
-  Zap, Filter, MessageSquare, ChevronDown, Clock, Save, PlayCircle, AlertTriangle, X, 
+import { useState, useEffect, useRef } from 'react';
+import { toast } from 'sonner';
+import {
+  Zap, Filter, MessageSquare, ChevronDown, Clock, Save, PlayCircle, AlertTriangle, X,
   Plus, Trash2, GripVertical, ArrowRight, Tag, User, FileText, Send, Edit, Flag,
-  CheckCircle, StickyNote, ClipboardList, Webhook, StopCircle, Timer, Search
+  CheckCircle, StickyNote, ClipboardList, Webhook, StopCircle, Timer, Search, Loader2, Check
 } from 'lucide-react';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
