@@ -1,8 +1,9 @@
-import { useState, useEffect } from 'react';
-import { 
-  Zap, Filter, MessageSquare, ChevronDown, Clock, Save, PlayCircle, AlertTriangle, X, 
+import { useState, useEffect, useRef } from 'react';
+import { toast } from 'sonner';
+import {
+  Zap, Filter, MessageSquare, ChevronDown, Clock, Save, PlayCircle, AlertTriangle, X,
   Plus, Trash2, GripVertical, ArrowRight, Tag, User, FileText, Send, Edit, Flag,
-  CheckCircle, StickyNote, ClipboardList, Webhook, StopCircle, Timer, Search
+  CheckCircle, StickyNote, ClipboardList, Webhook, StopCircle, Timer, Search, Loader2, Check
 } from 'lucide-react';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
@@ -94,9 +95,30 @@ export function WorkflowBuilder({ workflow, open, onOpenChange, onSave }: Workfl
     }
   }, [workflow, open]);
 
+  const nameInputRef = useRef<HTMLInputElement>(null);
+  const [savingMode, setSavingMode] = useState<'draft' | 'activate' | null>(null);
+
+  const validate = (activate: boolean): string | null => {
+    if (!name.trim()) return 'Please enter a workflow name';
+    if (activate && actions.length === 0) return 'Add at least one action before activating';
+    return null;
+  };
+
   const handleSave = async (activate: boolean = false) => {
+    const error = validate(activate);
+    if (error) {
+      toast.error(error);
+      // Scroll the name input into view, accounting for the sticky bottom bar
+      if (!name.trim()) {
+        nameInputRef.current?.focus({ preventScroll: true });
+        nameInputRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+      return;
+    }
+
     setSaving(true);
-    
+    setSavingMode(activate ? 'activate' : 'draft');
+
     // Convert conditions and actions to nodes
     const nodes: Partial<AutomationNode>[] = [
       { type: 'trigger', node_key: 'trigger_1', config: { type: triggerType, ...triggerConfig }, sort_order: 0 },
@@ -116,18 +138,29 @@ export function WorkflowBuilder({ workflow, open, onOpenChange, onSave }: Workfl
       })),
     ];
 
-    const success = await onSave({
-      id: workflow?.id,
-      name,
-      description,
-      trigger_type: triggerType,
-      trigger_config: triggerConfig,
-      status: activate ? 'active' : 'draft',
-      nodes: nodes as AutomationNode[],
-      ...guardrails,
-    });
-    setSaving(false);
-    if (success) onOpenChange(false);
+    try {
+      const success = await onSave({
+        id: workflow?.id,
+        name,
+        description,
+        trigger_type: triggerType,
+        trigger_config: triggerConfig,
+        status: activate ? 'active' : 'draft',
+        nodes: nodes as AutomationNode[],
+        ...guardrails,
+      });
+      if (success) {
+        toast.success(activate ? 'Workflow activated' : 'Draft saved');
+        onOpenChange(false);
+      } else {
+        toast.error('Failed to save workflow');
+      }
+    } catch (e: any) {
+      toast.error(e?.message || 'Failed to save workflow');
+    } finally {
+      setSaving(false);
+      setSavingMode(null);
+    }
   };
 
   const addCondition = (type: ConditionType) => {
@@ -189,11 +222,16 @@ export function WorkflowBuilder({ workflow, open, onOpenChange, onSave }: Workfl
           <div className="flex flex-col xs:flex-row xs:items-center gap-3 xs:gap-4">
             <div className="flex-1 min-w-0">
               <Input
+                ref={nameInputRef}
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="text-base xs:text-lg font-semibold border-none p-0 h-auto focus-visible:ring-0"
-                placeholder="Workflow Name"
+                className={`text-base xs:text-lg font-semibold border-none p-0 h-auto focus-visible:ring-0 ${!name.trim() ? 'placeholder:text-destructive/70' : ''}`}
+                placeholder="Workflow Name *"
+                aria-invalid={!name.trim()}
               />
+              {!name.trim() && (
+                <p className="text-[11px] text-destructive mt-0.5">Name is required</p>
+              )}
               <Input
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
@@ -202,20 +240,41 @@ export function WorkflowBuilder({ workflow, open, onOpenChange, onSave }: Workfl
               />
             </div>
             <div className="hidden xs:flex gap-2 flex-shrink-0">
-              <Button variant="outline" size="sm" onClick={() => handleSave(false)} disabled={saving} className="text-xs xs:text-sm h-9">
-                <Save className="h-4 w-4 mr-2" />
-                Save Draft
+              <Button variant="outline" size="sm" onClick={() => handleSave(false)} disabled={saving} className="text-xs xs:text-sm h-9 min-w-[110px]">
+                {savingMode === 'draft' ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
+                {savingMode === 'draft' ? 'Saving…' : 'Save Draft'}
               </Button>
-              <Button size="sm" onClick={() => handleSave(true)} disabled={saving} className="text-xs xs:text-sm h-9">
-                <PlayCircle className="h-4 w-4 mr-2" />
-                Activate
+              <Button size="sm" onClick={() => handleSave(true)} disabled={saving} className="text-xs xs:text-sm h-9 min-w-[110px]">
+                {savingMode === 'activate' ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <PlayCircle className="h-4 w-4 mr-2" />}
+                {savingMode === 'activate' ? 'Activating…' : 'Activate'}
               </Button>
             </div>
+          </div>
+
+          {/* Mobile step progress / completion indicators */}
+          <div className="xs:hidden mt-3 flex items-center gap-2">
+            {[
+              { key: 'trigger', label: 'Trigger', done: !!triggerType },
+              { key: 'conditions', label: 'Conditions', done: conditions.length > 0, optional: true },
+              { key: 'actions', label: 'Actions', done: actions.length > 0 },
+            ].map((s, i) => (
+              <div key={s.key} className="flex-1 flex flex-col items-center gap-1">
+                <div className={`w-full h-1.5 rounded-full ${s.done ? 'bg-primary' : 'bg-muted'}`} />
+                <div className="flex items-center gap-1 text-[10px] font-medium">
+                  <span className={`inline-flex items-center justify-center w-4 h-4 rounded-full ${s.done ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}`}>
+                    {s.done ? <Check className="h-2.5 w-2.5" /> : i + 1}
+                  </span>
+                  <span className={s.done ? 'text-foreground' : 'text-muted-foreground'}>
+                    {s.label}{s.optional ? '' : ' *'}
+                  </span>
+                </div>
+              </div>
+            ))}
           </div>
         </SheetHeader>
 
         <ScrollArea className="flex-1 overflow-auto">
-          <div className="p-3 xs:p-4 sm:p-6 space-y-4 xs:space-y-5 sm:space-y-6 pb-24 xs:pb-6">
+          <div className="p-3 xs:p-4 sm:p-6 space-y-4 xs:space-y-5 sm:space-y-6 pb-32 xs:pb-6">
             {/* WHEN - Trigger Section */}
             <Card className="border-primary/50">
               <Collapsible defaultOpen>
@@ -814,12 +873,12 @@ export function WorkflowBuilder({ workflow, open, onOpenChange, onSave }: Workfl
         {/* Sticky mobile action bar */}
         <div className="xs:hidden flex-shrink-0 border-t bg-background/95 backdrop-blur px-3 py-2.5 flex items-center gap-2 pb-[calc(0.625rem+env(safe-area-inset-bottom))]">
           <Button variant="outline" size="lg" onClick={() => handleSave(false)} disabled={saving} className="flex-1 h-11">
-            <Save className="h-4 w-4 mr-2" />
-            Draft
+            {savingMode === 'draft' ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
+            {savingMode === 'draft' ? 'Saving…' : 'Draft'}
           </Button>
           <Button size="lg" onClick={() => handleSave(true)} disabled={saving} className="flex-1 h-11">
-            <PlayCircle className="h-4 w-4 mr-2" />
-            Activate
+            {savingMode === 'activate' ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <PlayCircle className="h-4 w-4 mr-2" />}
+            {savingMode === 'activate' ? 'Activating…' : 'Activate'}
           </Button>
         </div>
       </SheetContent>
