@@ -84,6 +84,7 @@ const GuideManager = lazyWithRetry(() =>
 );
 const About = lazyWithRetry(() => import("./pages/About"));
 const Contact = lazyWithRetry(() => import("./pages/Contact"));
+const BookDemo = lazyWithRetry(() => import("./pages/BookDemo"));
 const Blog = lazyWithRetry(() => import("./pages/Blog"));
 const BlogPost = lazyWithRetry(() => import("./pages/BlogPost"));
 const Careers = lazyWithRetry(() => import("./pages/Careers"));
@@ -294,6 +295,8 @@ const App = () => (
                     <Route path="/help/all" element={<HelpCenter />} />
                     <Route path="/about" element={<About />} />
                     <Route path="/contact" element={<Contact />} />
+                    <Route path="/demo" element={<BookDemo />} />
+                    <Route path="/book-demo" element={<BookDemo />} />
                     <Route path="/blog" element={<Blog />} />
                     <Route path="/blog/:slug" element={<BlogPost />} />
                     <Route path="/careers" element={<Careers />} />
