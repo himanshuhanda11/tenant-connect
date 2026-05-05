@@ -12,12 +12,14 @@ Deno.serve(async (req) => {
       return json({ error: "RESEND_API_KEY not configured" }, 500);
     }
 
-    const { type, to, inviteeName, workspaceName, token, appUrl, fullName, email: userEmail } = await req.json();
+    const __body = await req.json();
+    (req as any).__parsed = __body;
+    const { type, to, inviteeName, workspaceName, token, appUrl, fullName, email: userEmail } = __body;
 
     if (!type) {
       return json({ error: "Missing required field: type" }, 400);
     }
-    if (type !== "signup_welcome" && !to) {
+    if (type !== "signup_welcome" && type !== "demo_request" && !to) {
       return json({ error: "Missing required field: to" }, 400);
     }
 
