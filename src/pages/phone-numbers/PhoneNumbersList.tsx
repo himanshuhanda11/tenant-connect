@@ -67,6 +67,7 @@ import {
   WEBHOOK_HEALTH_CONFIG 
 } from '@/types/phoneNumber';
 import { cn } from '@/lib/utils';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface Filters {
   status: NumberStatus | 'all';
