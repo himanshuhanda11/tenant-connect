@@ -1,5 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { z } from 'zod';
+import { format } from 'date-fns';
 import { 
   Mail, 
   Phone, 
@@ -11,7 +13,12 @@ import {
   CheckCircle,
   Building2,
   User,
-  HelpCircle
+  HelpCircle,
+  Calendar as CalendarIcon,
+  Users,
+  Sparkles,
+  PlayCircle,
+  Globe
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -19,6 +26,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import {
   Select,
   SelectContent,
@@ -31,6 +40,7 @@ import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import SeoMeta from '@/components/seo/SeoMeta';
 import PageHero from '@/components/layout/PageHero';
+import { cn } from '@/lib/utils';
 
 const contactSchema = z.object({
   firstName: z.string().trim().min(1, "First name is required").max(50, "First name must be less than 50 characters"),
@@ -39,24 +49,47 @@ const contactSchema = z.object({
   company: z.string().trim().max(100, "Company name must be less than 100 characters").optional(),
   phone: z.string().trim().max(20, "Phone number must be less than 20 characters").optional(),
   subject: z.string().min(1, "Please select a subject"),
+  teamSize: z.string().optional(),
+  preferredDate: z.string().optional(),
+  preferredTime: z.string().optional(),
+  timezone: z.string().optional(),
   message: z.string().trim().min(10, "Message must be at least 10 characters").max(2000, "Message must be less than 2000 characters"),
-});
+}).refine((d) => {
+  if (d.subject === 'walkthrough') return !!d.preferredDate && !!d.preferredTime;
+  return true;
+}, { message: 'Please pick a date and time for your walkthrough', path: ['preferredDate'] });
+
+const TIME_SLOTS = [
+  '10:00 AM', '11:00 AM', '12:00 PM',
+  '01:00 PM', '02:00 PM', '03:00 PM',
+  '04:00 PM', '05:00 PM', '06:00 PM',
+];
 
 type ContactFormData = z.infer<typeof contactSchema>;
 
 export default function Contact() {
+  const [searchParams] = useSearchParams();
+  const isWalkthrough = searchParams.get('intent') === 'walkthrough';
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [errors, setErrors] = useState<Partial<Record<keyof ContactFormData, string>>>({});
+  const browserTz = useMemo(() => {
+    try { return Intl.DateTimeFormat().resolvedOptions().timeZone; } catch { return 'UTC'; }
+  }, []);
+  const [pickedDate, setPickedDate] = useState<Date | undefined>(undefined);
   const [formData, setFormData] = useState<ContactFormData>({
     firstName: '',
     lastName: '',
     email: '',
     company: '',
     phone: '',
-    subject: '',
-    message: '',
+    subject: isWalkthrough ? 'walkthrough' : '',
+    teamSize: '',
+    preferredDate: '',
+    preferredTime: '',
+    timezone: browserTz,
+    message: isWalkthrough ? "I'd like a guided walkthrough of AiReatro for my team." : '',
   });
 
   const contactInfo = [
@@ -165,10 +198,12 @@ export default function Contact() {
       <Navbar />
 
       <PageHero
-        badge={{ icon: MessageCircle, text: "Get in Touch" }}
-        title="Let's Start a"
-        titleHighlight="Conversation"
-        subtitle="Have questions? We'd love to hear from you. Send us a message and we'll respond as soon as possible."
+        badge={{ icon: isWalkthrough ? PlayCircle : MessageCircle, text: isWalkthrough ? "Book a Walkthrough" : "Get in Touch" }}
+        title={isWalkthrough ? "See AiReatro in" : "Let's Start a"}
+        titleHighlight={isWalkthrough ? "Action" : "Conversation"}
+        subtitle={isWalkthrough
+          ? "Tell us about your business and pick a time. Our specialist will give you a tailored 20-minute walkthrough — no slides, just real workflows."
+          : "Have questions? We'd love to hear from you. Send us a message and we'll respond as soon as possible."}
       />
 
       {/* Contact Info Cards */}
@@ -307,17 +342,127 @@ export default function Contact() {
                           <SelectValue placeholder="What can we help you with?" />
                         </SelectTrigger>
                         <SelectContent>
+                          <SelectItem value="walkthrough">Book a Walkthrough</SelectItem>
                           <SelectItem value="sales">Sales Inquiry</SelectItem>
-                          <SelectItem value="demo">General Inquiry</SelectItem>
                           <SelectItem value="support">Technical Support</SelectItem>
                           <SelectItem value="billing">Billing Question</SelectItem>
                           <SelectItem value="partnership">Partnership Opportunity</SelectItem>
                           <SelectItem value="enterprise">Enterprise Plan</SelectItem>
-                          <SelectItem value="other">Other</SelectItem>
+                          <SelectItem value="other">General Inquiry</SelectItem>
                         </SelectContent>
                       </Select>
                       {errors.subject && <p className="text-xs text-destructive">{errors.subject}</p>}
                     </div>
+
+                    {formData.subject === 'walkthrough' && (
+                      <div className="rounded-xl border border-primary/20 bg-primary/5 p-5 space-y-4">
+                        <div className="flex items-center gap-2">
+                          <Sparkles className="w-4 h-4 text-primary" />
+                          <h3 className="text-sm font-semibold text-foreground">Schedule your walkthrough</h3>
+                        </div>
+
+                        <div className="grid md:grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label className="flex items-center gap-1">
+                              <CalendarIcon className="w-3.5 h-3.5" />
+                              Preferred Date <span className="text-destructive">*</span>
+                            </Label>
+                            <Popover>
+                              <PopoverTrigger asChild>
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  className={cn(
+                                    "h-11 w-full justify-start text-left font-normal",
+                                    !pickedDate && "text-muted-foreground",
+                                    errors.preferredDate && "border-destructive"
+                                  )}
+                                >
+                                  <CalendarIcon className="mr-2 h-4 w-4" />
+                                  {pickedDate ? format(pickedDate, "PPP") : <span>Pick a date</span>}
+                                </Button>
+                              </PopoverTrigger>
+                              <PopoverContent className="w-auto p-0" align="start">
+                                <Calendar
+                                  mode="single"
+                                  selected={pickedDate}
+                                  onSelect={(d) => {
+                                    setPickedDate(d);
+                                    handleInputChange('preferredDate', d ? format(d, 'yyyy-MM-dd') : '');
+                                  }}
+                                  disabled={(date) => {
+                                    const today = new Date(); today.setHours(0,0,0,0);
+                                    const max = new Date(); max.setDate(max.getDate() + 60);
+                                    return date < today || date > max || date.getDay() === 0;
+                                  }}
+                                  initialFocus
+                                  className={cn("p-3 pointer-events-auto")}
+                                />
+                              </PopoverContent>
+                            </Popover>
+                            {errors.preferredDate && <p className="text-xs text-destructive">{errors.preferredDate}</p>}
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label className="flex items-center gap-1">
+                              <Clock className="w-3.5 h-3.5" />
+                              Preferred Time <span className="text-destructive">*</span>
+                            </Label>
+                            <Select
+                              value={formData.preferredTime}
+                              onValueChange={(v) => handleInputChange('preferredTime', v)}
+                            >
+                              <SelectTrigger className="h-11">
+                                <SelectValue placeholder="Select a time slot" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {TIME_SLOTS.map((slot) => (
+                                  <SelectItem key={slot} value={slot}>{slot}</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
+
+                        <div className="grid md:grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label className="flex items-center gap-1">
+                              <Globe className="w-3.5 h-3.5" />
+                              Timezone
+                            </Label>
+                            <Input
+                              value={formData.timezone}
+                              onChange={(e) => handleInputChange('timezone', e.target.value)}
+                              className="h-11"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label className="flex items-center gap-1">
+                              <Users className="w-3.5 h-3.5" />
+                              Team Size
+                            </Label>
+                            <Select
+                              value={formData.teamSize}
+                              onValueChange={(v) => handleInputChange('teamSize', v)}
+                            >
+                              <SelectTrigger className="h-11">
+                                <SelectValue placeholder="How big is your team?" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="1-5">1–5</SelectItem>
+                                <SelectItem value="6-20">6–20</SelectItem>
+                                <SelectItem value="21-50">21–50</SelectItem>
+                                <SelectItem value="51-200">51–200</SelectItem>
+                                <SelectItem value="200+">200+</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          We'll confirm the exact slot over email and WhatsApp within a few hours.
+                        </p>
+                      </div>
+                    )}
 
                     <div className="space-y-2">
                       <Label htmlFor="message" className="flex items-center gap-1">
