@@ -103,6 +103,15 @@ export default function BookDemo() {
   const browserTz = useMemo(() => {
     try { return Intl.DateTimeFormat().resolvedOptions().timeZone; } catch { return 'UTC'; }
   }, []);
+  const tzOptions = useMemo(() => {
+    const set = new Set<string>(COMMON_TIMEZONES);
+    if (browserTz) set.add(browserTz);
+    return Array.from(set).sort((a, b) => {
+      if (a === browserTz) return -1;
+      if (b === browserTz) return 1;
+      return a.localeCompare(b);
+    });
+  }, [browserTz]);
   const [pickedDate, setPickedDate] = useState<Date | undefined>();
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
