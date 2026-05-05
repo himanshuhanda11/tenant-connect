@@ -95,9 +95,31 @@ export function WorkflowBuilder({ workflow, open, onOpenChange, onSave }: Workfl
     }
   }, [workflow, open]);
 
+  const nameInputRef = useRef<HTMLInputElement>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const [savingMode, setSavingMode] = useState<'draft' | 'activate' | null>(null);
+
+  const validate = (activate: boolean): string | null => {
+    if (!name.trim()) return 'Please enter a workflow name';
+    if (activate && actions.length === 0) return 'Add at least one action before activating';
+    return null;
+  };
+
   const handleSave = async (activate: boolean = false) => {
+    const error = validate(activate);
+    if (error) {
+      toast.error(error);
+      // Scroll the name input into view, accounting for the sticky bottom bar
+      if (!name.trim()) {
+        nameInputRef.current?.focus({ preventScroll: true });
+        nameInputRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+      return;
+    }
+
     setSaving(true);
-    
+    setSavingMode(activate ? 'activate' : 'draft');
+
     // Convert conditions and actions to nodes
     const nodes: Partial<AutomationNode>[] = [
       { type: 'trigger', node_key: 'trigger_1', config: { type: triggerType, ...triggerConfig }, sort_order: 0 },
@@ -117,18 +139,29 @@ export function WorkflowBuilder({ workflow, open, onOpenChange, onSave }: Workfl
       })),
     ];
 
-    const success = await onSave({
-      id: workflow?.id,
-      name,
-      description,
-      trigger_type: triggerType,
-      trigger_config: triggerConfig,
-      status: activate ? 'active' : 'draft',
-      nodes: nodes as AutomationNode[],
-      ...guardrails,
-    });
-    setSaving(false);
-    if (success) onOpenChange(false);
+    try {
+      const success = await onSave({
+        id: workflow?.id,
+        name,
+        description,
+        trigger_type: triggerType,
+        trigger_config: triggerConfig,
+        status: activate ? 'active' : 'draft',
+        nodes: nodes as AutomationNode[],
+        ...guardrails,
+      });
+      if (success) {
+        toast.success(activate ? 'Workflow activated' : 'Draft saved');
+        onOpenChange(false);
+      } else {
+        toast.error('Failed to save workflow');
+      }
+    } catch (e: any) {
+      toast.error(e?.message || 'Failed to save workflow');
+    } finally {
+      setSaving(false);
+      setSavingMode(null);
+    }
   };
 
   const addCondition = (type: ConditionType) => {
