@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { 
   Search, 
@@ -59,6 +60,7 @@ export function TemplatesListView({
   onFiltersChange
 }: TemplatesListViewProps) {
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
 
   const getInternalStatusBadge = (status: InternalStatus) => {
     switch (status) {
@@ -216,6 +218,78 @@ export function TemplatesListView({
             </Button>
           </div>
         ) : (
+          isMobile ? (
+            <div className="space-y-3">
+              {templates.map((template) => (
+                <div
+                  key={template.id}
+                  className="rounded-xl border border-border/60 bg-card p-4 active:scale-[0.99] transition-transform"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <button onClick={() => onView(template)} className="text-left flex-1 min-w-0">
+                      <p className="font-semibold text-foreground truncate">{template.name}</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">
+                        {format(new Date(template.updated_at), 'MMM d, yyyy')}
+                      </p>
+                    </button>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon" className="-mr-2 -mt-1 h-9 w-9">
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => onView(template)}>
+                          <Eye className="h-4 w-4 mr-2" />View
+                        </DropdownMenuItem>
+                        {canEdit(template) && (
+                          <DropdownMenuItem onClick={() => onEdit(template)}>
+                            <Edit className="h-4 w-4 mr-2" />Edit Draft
+                          </DropdownMenuItem>
+                        )}
+                        {canSubmitToMeta(template) && (
+                          <DropdownMenuItem onClick={() => onSubmitToMeta(template)}>
+                            <Send className="h-4 w-4 mr-2" />Submit to Meta
+                          </DropdownMenuItem>
+                        )}
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem onClick={() => onDuplicate(template)}>
+                          <Copy className="h-4 w-4 mr-2" />Duplicate
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => onArchive(template)}>
+                          <Archive className="h-4 w-4 mr-2" />Archive
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem onClick={() => onDelete(template)} className="text-destructive">
+                          <Trash2 className="h-4 w-4 mr-2" />Delete
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-1.5 mt-3">
+                    {getCategoryBadge(template.category)}
+                    <Badge variant="outline" className="text-[10px]">{template.language.toUpperCase()}</Badge>
+                    {getInternalStatusBadge(template.internal_status)}
+                    {getMetaStatusBadge(template.status)}
+                  </div>
+                  <div className="flex items-center gap-2 mt-3">
+                    <div className="flex-1 h-1.5 bg-muted rounded-full overflow-hidden">
+                      <div
+                        className={`h-full ${
+                          template.template_score >= 80 ? 'bg-green-500' :
+                          template.template_score >= 60 ? 'bg-yellow-500' : 'bg-destructive'
+                        }`}
+                        style={{ width: `${template.template_score}%` }}
+                      />
+                    </div>
+                    <span className="text-[10px] text-muted-foreground tabular-nums">
+                      Score {template.template_score}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
@@ -309,6 +383,7 @@ export function TemplatesListView({
               </TableBody>
             </Table>
           </div>
+          )
         )}
       </CardContent>
     </Card>
