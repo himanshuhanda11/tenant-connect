@@ -593,7 +593,7 @@ export function WorkflowBuilder({ workflow, open, onOpenChange, onSave }: Workfl
             <div className="flex justify-center"><ArrowRight className="h-4 w-4 xs:h-5 xs:w-5 text-muted-foreground rotate-90" /></div>
 
             {/* THEN - Actions Section */}
-            <Card className="border-green-500/50">
+            <Card ref={actionsSectionRef} className={`border-green-500/50 ${errors.actions ? 'ring-2 ring-destructive ring-offset-2 ring-offset-background' : ''}`}>
               <Collapsible defaultOpen>
                 <CollapsibleTrigger asChild>
                   <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors p-3 xs:p-4 sm:p-6">
