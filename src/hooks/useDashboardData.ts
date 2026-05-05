@@ -324,10 +324,35 @@ export function useDashboardData(filters: DashboardFilters) {
         { id: '2', type: 'campaign', title: 'Schedule weekly newsletter', description: 'Last newsletter was sent 8 days ago', priority: 'medium', href: '/campaigns/create' },
       ]);
 
-      // Cache snapshot for instant re-render on next mount
+      // ── PHASE 4: Recent activity (real audit log) ──
+      const { data: auditRows } = await supabase
+        .from('audit_logs')
+        .select('id, action, resource_type, details, created_at')
+        .eq('tenant_id', tId)
+        .order('created_at', { ascending: false })
+        .limit(8);
+
+      const activity: RecentActivityItem[] = (auditRows || []).map((row: any) => {
+        const { title, subtitle } = humanize(row.action, row.details);
+        return {
+          id: row.id,
+          action: row.action,
+          resourceType: row.resource_type,
+          title,
+          subtitle,
+          timestamp: row.created_at,
+          iconKey: pickIcon(row.action, row.resource_type),
+        };
+      });
+      setRecentActivity(activity);
+
+      // Cache snapshot with timestamp for TTL invalidation
       cache.set(cacheKey, {
-        kpis, inboxHealth, phoneHealth, creditsBalance,
-        messagesReceivedToday, messagesRepliedToday,
+        ts: Date.now(),
+        data: {
+          kpis: undefined, // re-derived from setters; lightweight fields only
+          recentActivity: activity,
+        },
       });
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
