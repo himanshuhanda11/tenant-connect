@@ -123,10 +123,10 @@ function inboxCacheKey(tenantId: string, userId: string, view: InboxView, filter
   return `${tenantId}:${userId}:${view}:${JSON.stringify(filters)}`;
 }
 
-export function useInboxConversations(view: InboxView, filters: InboxFilters) {
+export function useInboxConversations(view: InboxView, filters: InboxFilters, crmFilter?: string) {
   const { currentTenant } = useTenant();
   const { user } = useAuth();
-  const cacheKey = currentTenant?.id && user?.id ? inboxCacheKey(currentTenant.id, user.id, view, filters) : null;
+  const cacheKey = currentTenant?.id && user?.id ? `${inboxCacheKey(currentTenant.id, user.id, view, filters)}:${crmFilter || ''}` : null;
   const cached = cacheKey ? inboxCache.get(cacheKey) : undefined;
   const [conversations, setConversations] = useState<InboxConversation[]>(cached?.data ?? []);
   const [loading, setLoading] = useState(!cached);
@@ -213,6 +213,15 @@ export function useInboxConversations(view: InboxView, filters: InboxFilters) {
       if (filters.hasUnread) {
         query = query.gt('unread_count', 0);
       }
+      // Server-side CRM filter (junk/spam, follow_up, open) so the 300-row cap
+      // doesn't accidentally hide older items in narrow tabs.
+      if (crmFilter === 'junk') {
+        query = query.in('crm_status', ['junk', 'not_interested']);
+      } else if (crmFilter === 'follow_up') {
+        query = query.eq('crm_status', 'follow_up_required').not('crm_status', 'in', '("converted","junk")');
+      } else if (crmFilter === 'open') {
+        query = query.neq('status', 'closed').not('crm_status', 'in', '("junk","not_interested")');
+      }
 
       // Run a parallel exact-count query so UI shows the true total
       // (Supabase caps row results at 1000, but count returns the real number)
@@ -239,6 +248,13 @@ export function useInboxConversations(view: InboxView, filters: InboxFilters) {
       }
       if (filters.priority && filters.priority !== 'all') countQuery = countQuery.eq('priority', filters.priority);
       if (filters.hasUnread) countQuery = countQuery.gt('unread_count', 0);
+      if (crmFilter === 'junk') {
+        countQuery = countQuery.in('crm_status', ['junk', 'not_interested']);
+      } else if (crmFilter === 'follow_up') {
+        countQuery = countQuery.eq('crm_status', 'follow_up_required').not('crm_status', 'in', '("converted","junk")');
+      } else if (crmFilter === 'open') {
+        countQuery = countQuery.neq('status', 'closed').not('crm_status', 'in', '("junk","not_interested")');
+      }
 
       const [{ data, error: queryError }, { count: exactCount }] = await Promise.all([
         query,
@@ -289,7 +305,7 @@ export function useInboxConversations(view: InboxView, filters: InboxFilters) {
     })();
     inFlightRef.current = run;
     try { await run; } finally { inFlightRef.current = null; }
-  }, [currentTenant?.id, user?.id, view, filters, cacheKey]);
+  }, [currentTenant?.id, user?.id, view, filters, crmFilter, cacheKey]);
 
   useEffect(() => {
     if (!cacheKey) { fetchConversations(); return; }
