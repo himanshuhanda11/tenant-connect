@@ -440,8 +440,53 @@ export default function ContactSegments() {
                               </div>
                             </div>
                           </TableCell>
-                          <TableCell className="text-muted-foreground text-xs max-w-sm truncate">
-                            {summarizeFilters(segment.filters)}
+                          <TableCell className="max-w-sm">
+                            {(() => {
+                              const parts = getFilterParts(segment.filters);
+                              if (parts.length === 0) {
+                                return (
+                                  <span className="text-xs text-muted-foreground italic">
+                                    All contacts — no filters
+                                  </span>
+                                );
+                              }
+                              const visible = parts.slice(0, 3);
+                              const overflow = parts.length - visible.length;
+                              return (
+                                <TooltipProvider delayDuration={150}>
+                                  <Tooltip>
+                                    <TooltipTrigger asChild>
+                                      <div className="flex flex-wrap gap-1 cursor-default">
+                                        {visible.map((p) => (
+                                          <span
+                                            key={p.key}
+                                            className="inline-flex items-center gap-1 rounded bg-muted/60 px-1.5 py-0.5 text-[11px] border border-border/40"
+                                          >
+                                            <span className="font-medium text-foreground/80">{p.label}:</span>
+                                            <span className="text-muted-foreground">{p.display}</span>
+                                          </span>
+                                        ))}
+                                        {overflow > 0 && (
+                                          <span className="inline-flex items-center rounded bg-muted/60 px-1.5 py-0.5 text-[11px] border border-border/40 text-muted-foreground">
+                                            +{overflow} more
+                                          </span>
+                                        )}
+                                      </div>
+                                    </TooltipTrigger>
+                                    <TooltipContent side="top" className="max-w-xs">
+                                      <div className="space-y-1">
+                                        {parts.map((p) => (
+                                          <div key={p.key} className="text-xs">
+                                            <span className="font-medium">{p.label}:</span>{' '}
+                                            <span className="text-muted-foreground">{p.display}</span>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    </TooltipContent>
+                                  </Tooltip>
+                                </TooltipProvider>
+                              );
+                            })()}
                           </TableCell>
                           <TableCell>
                             <Badge variant="secondary">
