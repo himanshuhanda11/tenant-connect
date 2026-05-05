@@ -182,7 +182,8 @@ export function useInboxConversations(view: InboxView, filters: InboxFilters) {
           phone_number:phone_numbers(id, status, verified_name)
         `)
         .eq('tenant_id', currentTenant.id)
-        .order('last_message_at', { ascending: false, nullsFirst: false });
+        .order('last_message_at', { ascending: false, nullsFirst: false })
+        .limit(300);
 
       // Agent visibility: only see assigned/claimed to self,
       // plus unassigned leads created AFTER the agent was added
