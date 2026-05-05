@@ -613,6 +613,12 @@ export function WorkflowBuilder({ workflow, open, onOpenChange, onSave }: Workfl
                 </CollapsibleTrigger>
                 <CollapsibleContent>
                   <CardContent className="pt-0 px-3 xs:px-4 sm:px-6 pb-3 xs:pb-4 sm:pb-6 space-y-3 xs:space-y-4">
+                    {errors.actions && (
+                      <p className="text-xs text-destructive flex items-center gap-1.5">
+                        <AlertTriangle className="h-3.5 w-3.5" />
+                        {errors.actions}
+                      </p>
+                    )}
                     {/* Actions List */}
                     {actions.length > 0 && (
                       <div className="space-y-2 xs:space-y-3">
