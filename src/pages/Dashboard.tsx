@@ -513,7 +513,11 @@ export default function Dashboard() {
             </button>
           </div>
           <div className="space-y-0">
-            {timelineEvents.map(ev => {
+            {timelineEvents.length === 0 ? (
+              <div className="py-6 text-center">
+                <p className="text-[11px] sm:text-xs text-muted-foreground">No recent activity yet.</p>
+              </div>
+            ) : timelineEvents.map(ev => {
               const Icon = ev.icon;
               return (
                 <div key={ev.id} className="flex items-start gap-2 sm:gap-3 py-2 px-1 rounded-lg hover:bg-muted/30 transition-colors">
@@ -522,7 +526,7 @@ export default function Dashboard() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-[11px] sm:text-sm font-medium text-foreground truncate">{ev.title}</p>
-                    <p className="text-[10px] sm:text-[11px] text-muted-foreground">{ev.sub}</p>
+                    {ev.sub && <p className="text-[10px] sm:text-[11px] text-muted-foreground truncate">{ev.sub}</p>}
                   </div>
                   <span className="text-[9px] sm:text-[10px] text-muted-foreground flex-shrink-0 mt-0.5">
                     {formatDistanceToNow(new Date(ev.timestamp), { addSuffix: true })}
