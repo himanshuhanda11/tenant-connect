@@ -193,14 +193,14 @@ export default function BookDemo() {
         <div className="absolute -top-40 -right-32 w-[480px] h-[480px] rounded-full bg-primary/10 blur-[120px] pointer-events-none" />
         <div className="absolute -bottom-32 -left-32 w-[420px] h-[420px] rounded-full bg-emerald-500/10 blur-[120px] pointer-events-none" />
 
-        <div className="container mx-auto px-4 relative pt-16 pb-12 md:pt-24 md:pb-20">
-          <div className="grid lg:grid-cols-2 gap-12 items-center max-w-6xl mx-auto">
+        <div className="container mx-auto px-4 relative pt-10 pb-10 sm:pt-16 sm:pb-12 md:pt-24 md:pb-20">
+          <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center max-w-6xl mx-auto">
             <motion.div initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }}>
-              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-semibold tracking-wide uppercase mb-5">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-[11px] sm:text-xs font-semibold tracking-wide uppercase mb-4">
                 <PlayCircle className="w-3.5 h-3.5" />
                 Live Product Demo
               </div>
-              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-foreground leading-[1.05] tracking-tight mb-5">
+              <h1 className="text-3xl sm:text-4xl lg:text-6xl font-bold text-foreground leading-[1.1] tracking-tight mb-4">
                 Book a 25-min demo with our{' '}
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-emerald-500 to-teal-500">
                   WhatsApp experts
