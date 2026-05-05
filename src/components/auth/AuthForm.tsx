@@ -89,6 +89,17 @@ export function AuthForm({ mode }: AuthFormProps) {
         }
         return;
       }
+      // Fire welcome + admin notification (non-blocking)
+      try {
+        const { supabase } = await import('@/integrations/supabase/client');
+        supabase.functions.invoke('send-team-email', {
+          body: {
+            type: 'signup_welcome',
+            email: data.email,
+            fullName: data.fullName,
+          },
+        }).catch((e) => console.warn('signup_welcome email failed', e));
+      } catch {}
       toast.success('Account created successfully!');
       navigate('/select-workspace');
     } finally {
