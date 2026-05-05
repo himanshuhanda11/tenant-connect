@@ -64,7 +64,7 @@ export default function InboxPage() {
   }, [location.pathname]);
 
   // Hooks
-  const { conversations, loading: loadingConversations, refetch } = useInboxConversations(view, filters);
+  const { conversations, totalCount, loading: loadingConversations, refetch } = useInboxConversations(view, filters);
 
   // Apply CRM filter client-side for follow_up / junk views
   const filteredConversations = useMemo(() => {
