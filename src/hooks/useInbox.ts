@@ -123,10 +123,10 @@ function inboxCacheKey(tenantId: string, userId: string, view: InboxView, filter
   return `${tenantId}:${userId}:${view}:${JSON.stringify(filters)}`;
 }
 
-export function useInboxConversations(view: InboxView, filters: InboxFilters) {
+export function useInboxConversations(view: InboxView, filters: InboxFilters, crmFilter?: string) {
   const { currentTenant } = useTenant();
   const { user } = useAuth();
-  const cacheKey = currentTenant?.id && user?.id ? inboxCacheKey(currentTenant.id, user.id, view, filters) : null;
+  const cacheKey = currentTenant?.id && user?.id ? `${inboxCacheKey(currentTenant.id, user.id, view, filters)}:${crmFilter || ''}` : null;
   const cached = cacheKey ? inboxCache.get(cacheKey) : undefined;
   const [conversations, setConversations] = useState<InboxConversation[]>(cached?.data ?? []);
   const [loading, setLoading] = useState(!cached);
