@@ -21,6 +21,7 @@ import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
+import SocialProofBar from '@/components/home/SocialProofBar';
 import SeoMeta from '@/components/seo/SeoMeta';
 import { Helmet } from 'react-helmet-async';
 import { cn } from '@/lib/utils';
