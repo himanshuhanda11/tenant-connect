@@ -1,25 +1,40 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, lazy, Suspense } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { SettingsSidebar, SettingsMobileNav } from '@/components/settings/SettingsSidebar';
-import { ProfileSettings } from '@/components/settings/sections/ProfileSettings';
-import { WorkspaceSettings } from '@/components/settings/sections/WorkspaceSettings';
-import { WhatsAppNumberSettings } from '@/components/settings/sections/WhatsAppNumberSettings';
-import { MessagingSettings } from '@/components/settings/sections/MessagingSettings';
-import { InboxSettings } from '@/components/settings/sections/InboxSettings';
-import { AutomationSettings } from '@/components/settings/sections/AutomationSettings';
-import { IntegrationsSettings } from '@/components/settings/sections/IntegrationsSettings';
-import { TeamPermissionsSettings } from '@/components/settings/sections/TeamPermissionsSettings';
-import { SecuritySettings } from '@/components/settings/sections/SecuritySettings';
-import { BillingSettings } from '@/components/settings/sections/BillingSettings';
-import { ComplianceSettings } from '@/components/settings/sections/ComplianceSettings';
-import { DeveloperSettings } from '@/components/settings/sections/DeveloperSettings';
-import { NotificationSettings } from '@/components/settings/sections/NotificationSettings';
-import { AdvancedSettings } from '@/components/settings/sections/AdvancedSettings';
-import { AutoReplySettings } from '@/components/settings/sections/AutoReplySettings';
-import { AppearanceSettings } from '@/components/settings/sections/AppearanceSettings';
-import { WhatsAppGreetingSettings } from '@/components/settings/sections/WhatsAppGreetingSettings';
+import { Skeleton } from '@/components/ui/skeleton';
 import { useTenant } from '@/contexts/TenantContext';
+
+const ProfileSettings = lazy(() => import('@/components/settings/sections/ProfileSettings').then(m => ({ default: m.ProfileSettings })));
+const WorkspaceSettings = lazy(() => import('@/components/settings/sections/WorkspaceSettings').then(m => ({ default: m.WorkspaceSettings })));
+const WhatsAppNumberSettings = lazy(() => import('@/components/settings/sections/WhatsAppNumberSettings').then(m => ({ default: m.WhatsAppNumberSettings })));
+const MessagingSettings = lazy(() => import('@/components/settings/sections/MessagingSettings').then(m => ({ default: m.MessagingSettings })));
+const InboxSettings = lazy(() => import('@/components/settings/sections/InboxSettings').then(m => ({ default: m.InboxSettings })));
+const AutomationSettings = lazy(() => import('@/components/settings/sections/AutomationSettings').then(m => ({ default: m.AutomationSettings })));
+const IntegrationsSettings = lazy(() => import('@/components/settings/sections/IntegrationsSettings').then(m => ({ default: m.IntegrationsSettings })));
+const TeamPermissionsSettings = lazy(() => import('@/components/settings/sections/TeamPermissionsSettings').then(m => ({ default: m.TeamPermissionsSettings })));
+const SecuritySettings = lazy(() => import('@/components/settings/sections/SecuritySettings').then(m => ({ default: m.SecuritySettings })));
+const BillingSettings = lazy(() => import('@/components/settings/sections/BillingSettings').then(m => ({ default: m.BillingSettings })));
+const ComplianceSettings = lazy(() => import('@/components/settings/sections/ComplianceSettings').then(m => ({ default: m.ComplianceSettings })));
+const DeveloperSettings = lazy(() => import('@/components/settings/sections/DeveloperSettings').then(m => ({ default: m.DeveloperSettings })));
+const NotificationSettings = lazy(() => import('@/components/settings/sections/NotificationSettings').then(m => ({ default: m.NotificationSettings })));
+const AdvancedSettings = lazy(() => import('@/components/settings/sections/AdvancedSettings').then(m => ({ default: m.AdvancedSettings })));
+const AutoReplySettings = lazy(() => import('@/components/settings/sections/AutoReplySettings').then(m => ({ default: m.AutoReplySettings })));
+const AppearanceSettings = lazy(() => import('@/components/settings/sections/AppearanceSettings').then(m => ({ default: m.AppearanceSettings })));
+const WhatsAppGreetingSettings = lazy(() => import('@/components/settings/sections/WhatsAppGreetingSettings').then(m => ({ default: m.WhatsAppGreetingSettings })));
+
+function SectionFallback() {
+  return (
+    <div className="space-y-4">
+      <Skeleton className="h-8 w-48" />
+      <Skeleton className="h-4 w-72" />
+      <div className="space-y-3 pt-4">
+        <Skeleton className="h-32 w-full" />
+        <Skeleton className="h-32 w-full" />
+      </div>
+    </div>
+  );
+}
 
 export default function Settings() {
   const { currentRole } = useTenant();
@@ -65,7 +80,9 @@ export default function Settings() {
           
           <div className="flex-1 overflow-y-auto p-3 sm:p-6">
             <div className="max-w-4xl mx-auto">
-              {renderContent()}
+              <Suspense fallback={<SectionFallback />}>
+                {renderContent()}
+              </Suspense>
             </div>
           </div>
         </div>
