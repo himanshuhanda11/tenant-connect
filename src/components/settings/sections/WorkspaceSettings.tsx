@@ -605,13 +605,19 @@ export function WorkspaceSettings() {
                     <h4 className="font-medium">Archive this Workspace</h4>
                     <p className="text-sm text-muted-foreground">Disable access but retain data for future restoration</p>
                   </div>
-                  <Button variant="destructive">Archive</Button>
+                  <Button variant="destructive" onClick={() => setContactFeature('Archive Workspace')}>Archive</Button>
                 </div>
               </CardContent>
             </Card>
           )}
         </TabsContent>
       </Tabs>
+
+      <ContactAdminDialog
+        open={contactFeature !== null}
+        onOpenChange={(open) => !open && setContactFeature(null)}
+        feature={contactFeature ?? undefined}
+      />
     </div>
   );
 }
