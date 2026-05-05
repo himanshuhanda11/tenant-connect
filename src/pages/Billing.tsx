@@ -131,6 +131,7 @@ export default function Billing() {
                       isCurrentPlan={currentPlanId === plan.id}
                       isYearly={isYearly}
                       isRecommended={!isTopPlan && plan.name === 'Pro'}
+                      currentPlanId={currentPlanId}
                       onSelect={handlePlanSelect}
                     />
                   ))}
