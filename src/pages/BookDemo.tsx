@@ -167,9 +167,14 @@ export default function BookDemo() {
     <div className="min-h-screen bg-background">
       <SeoMeta
         route="/demo"
-        fallbackTitle="Book a Demo with AiReatro — WhatsApp CRM Tailored to Your Business"
-        fallbackDescription="Get a 25-minute personalized demo of AiReatro. See how teams automate WhatsApp leads, ads attribution and customer support — book your slot."
+        fallbackTitle="Book a Free WhatsApp CRM Demo | AiReatro"
+        fallbackDescription="Book a free 25-minute demo of AiReatro — the all-in-one WhatsApp Cloud API platform with AI auto-replies, team inbox, Meta Ads attribution and < 10 min setup. Pick any time, any timezone."
       />
+      <Helmet>
+        <meta name="keywords" content="book whatsapp crm demo, whatsapp cloud api demo, whatsapp business api demo, schedule whatsapp demo, aireatro demo, whatsapp automation demo, whatsapp chatbot demo, meta ads whatsapp demo, free whatsapp api demo, whatsapp marketing demo" />
+        <meta property="og:title" content="Book a Free WhatsApp CRM Demo | AiReatro" />
+        <meta property="og:description" content="See how AiReatro automates WhatsApp leads, ads attribution and support — book your personalised 25-minute demo." />
+      </Helmet>
       <Navbar />
 
       {/* Hero */}
