@@ -351,7 +351,7 @@ export default function CreateCampaign() {
 
   return (
     <DashboardLayout>
-      <div className="max-w-4xl mx-auto space-y-4 sm:space-y-6">
+      <div className="max-w-4xl mx-auto space-y-4 sm:space-y-6 pb-32 md:pb-0">
         {/* Header */}
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-3 min-w-0">
@@ -923,10 +923,11 @@ export default function CreateCampaign() {
 
         {/* Navigation Buttons */}
         {currentStep < 5 && (
-          <div className="flex items-center justify-between gap-3">
+          <div className="fixed left-0 right-0 z-30 border-t bg-background/95 backdrop-blur px-4 py-3 flex items-center justify-between gap-3 bottom-[calc(56px+env(safe-area-inset-bottom))] md:static md:border-0 md:bg-transparent md:backdrop-blur-0 md:p-0">
             <Button
               variant="outline"
-              className="flex-1 sm:flex-none"
+              size="lg"
+              className="flex-1 sm:flex-none h-11"
               onClick={handleBack}
               disabled={currentStep === 1}
             >
@@ -934,7 +935,8 @@ export default function CreateCampaign() {
               Back
             </Button>
             <Button
-              className="flex-1 sm:flex-none"
+              size="lg"
+              className="flex-1 sm:flex-none h-11"
               onClick={handleNext}
               disabled={!canProceed()}
             >
