@@ -289,14 +289,14 @@ const TeamSLA = () => {
                           <div className="space-y-2">
                             <Label>Apply to Team</Label>
                             <Select 
-                              value={editingSLA.team_id || ''} 
-                              onValueChange={(v) => setEditingSLA({ ...editingSLA, team_id: v || undefined })}
+                              value={editingSLA.team_id || '__all__'} 
+                              onValueChange={(v) => setEditingSLA({ ...editingSLA, team_id: v === '__all__' ? undefined : v })}
                             >
                               <SelectTrigger>
                                 <SelectValue placeholder="All teams (default)" />
                               </SelectTrigger>
                               <SelectContent>
-                                <SelectItem value="">All teams</SelectItem>
+                                <SelectItem value="__all__">All teams</SelectItem>
                                 {teams.map(t => (
                                   <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>
                                 ))}
