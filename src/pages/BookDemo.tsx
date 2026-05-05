@@ -138,10 +138,20 @@ export default function BookDemo() {
       return;
     }
     setSubmitting(true);
-    await new Promise((res) => setTimeout(res, 1200));
-    setSubmitting(false);
-    setSubmitted(true);
-    toast({ title: 'Demo requested 🎉', description: 'Our team will confirm your slot shortly.' });
+    try {
+      const { supabase } = await import('@/integrations/supabase/client');
+      const { error } = await supabase.functions.invoke('send-team-email', {
+        body: { type: 'demo_request', ...data },
+      });
+      if (error) throw error;
+      setSubmitted(true);
+      toast({ title: 'Demo requested 🎉', description: "We've emailed you a confirmation. Our team will reach out shortly." });
+    } catch (err: any) {
+      console.error('demo_request failed', err);
+      toast({ title: 'Could not submit', description: err?.message || 'Please try again or WhatsApp us.', variant: 'destructive' });
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   if (submitted) {
