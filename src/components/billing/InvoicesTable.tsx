@@ -17,7 +17,13 @@ import {
   SheetHeader,
   SheetTitle,
 } from '@/components/ui/sheet';
-import { Download, ExternalLink, FileText, Eye } from 'lucide-react';
+import { Download, ExternalLink, FileText, Eye, MoreHorizontal } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { useInvoices } from '@/hooks/useBilling';
 import { format } from 'date-fns';
 import type { Invoice } from '@/types/billing';
