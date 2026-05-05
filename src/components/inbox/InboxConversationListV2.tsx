@@ -39,6 +39,7 @@ interface InboxConversationListV2Props {
   isMobile?: boolean;
   currentUserId?: string;
   unreadNewCount?: number;
+  totalCount?: number;
   onClearNotifications?: () => void;
 }
 
