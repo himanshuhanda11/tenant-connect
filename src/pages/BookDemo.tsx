@@ -224,8 +224,8 @@ export default function BookDemo() {
         <div className="absolute -bottom-32 -left-32 w-[420px] h-[420px] rounded-full bg-emerald-500/10 blur-[120px] pointer-events-none" />
 
         <div className="container mx-auto px-4 relative pt-10 pb-10 sm:pt-16 sm:pb-12 md:pt-24 md:pb-20">
-          <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center max-w-6xl mx-auto">
-            <motion.div initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }}>
+          <div className="grid lg:grid-cols-[1.05fr_1fr] gap-8 lg:gap-12 items-start max-w-6xl mx-auto">
+            <motion.div initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} className="lg:order-2 lg:sticky lg:top-24">
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-[11px] sm:text-xs font-semibold tracking-wide uppercase mb-4">
                 <PlayCircle className="w-3.5 h-3.5" />
                 Live Product Demo
