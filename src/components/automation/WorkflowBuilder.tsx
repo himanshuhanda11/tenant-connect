@@ -201,15 +201,14 @@ export function WorkflowBuilder({ workflow, open, onOpenChange, onSave }: Workfl
                 placeholder="Add description..."
               />
             </div>
-            <div className="flex gap-2 flex-shrink-0">
-              <Button variant="outline" size="sm" onClick={() => handleSave(false)} disabled={saving} className="text-xs xs:text-sm h-8 xs:h-9">
-                <Save className="h-3.5 w-3.5 xs:h-4 xs:w-4 mr-1.5 xs:mr-2" />
-                <span className="hidden xs:inline">Save </span>Draft
+            <div className="hidden xs:flex gap-2 flex-shrink-0">
+              <Button variant="outline" size="sm" onClick={() => handleSave(false)} disabled={saving} className="text-xs xs:text-sm h-9">
+                <Save className="h-4 w-4 mr-2" />
+                Save Draft
               </Button>
-              <Button size="sm" onClick={() => handleSave(true)} disabled={saving} className="text-xs xs:text-sm h-8 xs:h-9">
-                <PlayCircle className="h-3.5 w-3.5 xs:h-4 xs:w-4 mr-1.5 xs:mr-2" />
-                <span className="hidden xs:inline">Activate</span>
-                <span className="xs:hidden">Go</span>
+              <Button size="sm" onClick={() => handleSave(true)} disabled={saving} className="text-xs xs:text-sm h-9">
+                <PlayCircle className="h-4 w-4 mr-2" />
+                Activate
               </Button>
             </div>
           </div>
