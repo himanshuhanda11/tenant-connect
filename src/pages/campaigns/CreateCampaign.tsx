@@ -351,32 +351,32 @@ export default function CreateCampaign() {
 
   return (
     <DashboardLayout>
-      <div className="max-w-4xl mx-auto space-y-6">
+      <div className="max-w-4xl mx-auto space-y-4 sm:space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon" onClick={() => navigate('/campaigns')}>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-center gap-3 min-w-0">
+            <Button variant="ghost" size="icon" className="shrink-0" onClick={() => navigate('/campaigns')}>
               <ArrowLeft className="h-5 w-5" />
             </Button>
-            <div>
-              <h1 className="text-2xl font-bold">Create Campaign</h1>
-              <p className="text-muted-foreground">Step {currentStep} of 5</p>
+            <div className="min-w-0">
+              <h1 className="text-xl sm:text-2xl font-bold truncate">Create Campaign</h1>
+              <p className="text-xs sm:text-sm text-muted-foreground">Step {currentStep} of 5</p>
             </div>
           </div>
-          <Button variant="outline" onClick={() => navigate('/campaigns')}>
+          <Button variant="outline" size="sm" className="w-full sm:w-auto" onClick={() => navigate('/campaigns')}>
             Save Draft
           </Button>
         </div>
 
         {/* Progress Steps */}
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-1 overflow-x-auto -mx-1 px-1 pb-1">
           {STEPS.map((step, index) => (
-            <div key={step.id} className="flex items-center">
-              <div 
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors cursor-pointer
-                  ${currentStep === step.id 
-                    ? 'bg-primary text-primary-foreground' 
-                    : currentStep > step.id 
+            <div key={step.id} className="flex items-center shrink-0">
+              <div
+                className={`flex items-center gap-1.5 px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-lg transition-colors cursor-pointer
+                  ${currentStep === step.id
+                    ? 'bg-primary text-primary-foreground'
+                    : currentStep > step.id
                       ? 'bg-green-100 text-green-700'
                       : 'bg-muted text-muted-foreground'
                   }`}
@@ -387,10 +387,11 @@ export default function CreateCampaign() {
                 ) : (
                   <step.icon className="h-4 w-4" />
                 )}
-                <span className="hidden md:inline text-sm font-medium">{step.title}</span>
+                <span className="hidden sm:inline text-sm font-medium">{step.title}</span>
+                <span className="sm:hidden text-[11px] font-semibold">{step.id}</span>
               </div>
               {index < STEPS.length - 1 && (
-                <div className={`w-8 h-0.5 mx-2 ${currentStep > step.id ? 'bg-green-500' : 'bg-border'}`} />
+                <div className={`w-3 sm:w-8 h-0.5 mx-1 sm:mx-2 ${currentStep > step.id ? 'bg-green-500' : 'bg-border'}`} />
               )}
             </div>
           ))}
@@ -398,7 +399,7 @@ export default function CreateCampaign() {
 
         {/* Step Content */}
         <Card>
-          <CardContent className="pt-6">
+          <CardContent className="pt-4 sm:pt-6 px-4 sm:px-6 pb-4 sm:pb-6">
             {/* Step 1: Basics */}
             {currentStep === 1 && (
               <div className="space-y-6">
@@ -877,16 +878,16 @@ export default function CreateCampaign() {
                 </Card>
 
                 {/* Action Buttons */}
-                <div className="flex items-center justify-between pt-4 border-t">
-                  <Button variant="outline" onClick={() => navigate('/campaigns')}>
+                <div className="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-between gap-3 pt-4 border-t">
+                  <Button variant="outline" className="w-full sm:w-auto" onClick={() => navigate('/campaigns')}>
                     Save as Draft
                   </Button>
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-3 w-full sm:w-auto">
                     {wizard.delivery.send_type === 'scheduled' ? (
-                      <Button 
-                        onClick={() => handleSubmit(false)} 
+                      <Button
+                        onClick={() => handleSubmit(false)}
                         disabled={isSubmitting}
-                        className="min-w-32"
+                        className="w-full sm:min-w-32"
                       >
                         {isSubmitting ? (
                           <Loader2 className="h-4 w-4 animate-spin" />
@@ -898,10 +899,10 @@ export default function CreateCampaign() {
                         )}
                       </Button>
                     ) : (
-                      <Button 
-                        onClick={() => handleSubmit(true)} 
+                      <Button
+                        onClick={() => handleSubmit(true)}
                         disabled={isSubmitting}
-                        className="min-w-32 bg-green-600 hover:bg-green-700"
+                        className="w-full sm:min-w-32 bg-green-600 hover:bg-green-700"
                       >
                         {isSubmitting ? (
                           <Loader2 className="h-4 w-4 animate-spin" />
@@ -922,16 +923,18 @@ export default function CreateCampaign() {
 
         {/* Navigation Buttons */}
         {currentStep < 5 && (
-          <div className="flex justify-between">
-            <Button 
-              variant="outline" 
+          <div className="flex items-center justify-between gap-3">
+            <Button
+              variant="outline"
+              className="flex-1 sm:flex-none"
               onClick={handleBack}
               disabled={currentStep === 1}
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back
             </Button>
-            <Button 
+            <Button
+              className="flex-1 sm:flex-none"
               onClick={handleNext}
               disabled={!canProceed()}
             >

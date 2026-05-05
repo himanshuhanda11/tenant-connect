@@ -7,15 +7,15 @@ import { Zap, Plus } from 'lucide-react';
 export default function Automation() {
   return (
     <DashboardLayout>
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
+      <div className="space-y-4 sm:space-y-6">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-2xl font-bold">Automation</h1>
-            <p className="text-muted-foreground">
+            <h1 className="text-xl sm:text-2xl font-bold">Automation</h1>
+            <p className="text-sm text-muted-foreground">
               Create rules to automate responses and actions
             </p>
           </div>
-          <Button>
+          <Button className="w-full sm:w-auto">
             <Plus className="h-4 w-4 mr-2" />
             Create Rule
           </Button>
