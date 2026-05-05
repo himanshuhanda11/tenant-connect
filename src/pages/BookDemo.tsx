@@ -22,6 +22,7 @@ import { useToast } from '@/hooks/use-toast';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import SeoMeta from '@/components/seo/SeoMeta';
+import { Helmet } from 'react-helmet-async';
 import { cn } from '@/lib/utils';
 
 const schema = z.object({
@@ -41,9 +42,29 @@ const schema = z.object({
 
 type FormData = z.infer<typeof schema>;
 
-const TIME_SLOTS = [
-  '10:00 AM', '11:00 AM', '12:00 PM', '01:00 PM',
-  '02:00 PM', '03:00 PM', '04:00 PM', '05:00 PM', '06:00 PM',
+// 24-hour coverage in 30-min increments
+const TIME_SLOTS: string[] = (() => {
+  const out: string[] = [];
+  for (let h = 0; h < 24; h++) {
+    for (const m of [0, 30]) {
+      const period = h < 12 ? 'AM' : 'PM';
+      const hour12 = ((h + 11) % 12) + 1;
+      out.push(`${String(hour12).padStart(2, '0')}:${m === 0 ? '00' : '30'} ${period}`);
+    }
+  }
+  return out;
+})();
+
+// Curated common timezones (browser TZ added dynamically if missing)
+const COMMON_TIMEZONES = [
+  'Asia/Kolkata', 'Asia/Dubai', 'Asia/Singapore', 'Asia/Hong_Kong', 'Asia/Tokyo',
+  'Asia/Karachi', 'Asia/Dhaka', 'Asia/Bangkok', 'Asia/Jakarta', 'Asia/Manila',
+  'Australia/Sydney', 'Australia/Melbourne', 'Pacific/Auckland',
+  'Europe/London', 'Europe/Paris', 'Europe/Berlin', 'Europe/Madrid', 'Europe/Amsterdam',
+  'Europe/Istanbul', 'Europe/Moscow', 'Africa/Cairo', 'Africa/Johannesburg', 'Africa/Lagos',
+  'America/New_York', 'America/Chicago', 'America/Denver', 'America/Los_Angeles',
+  'America/Toronto', 'America/Mexico_City', 'America/Sao_Paulo', 'America/Buenos_Aires',
+  'UTC',
 ];
 
 const TEAM_SIZES = ['Just me', '2–5', '6–20', '21–50', '51–200', '200+'];
@@ -82,6 +103,15 @@ export default function BookDemo() {
   const browserTz = useMemo(() => {
     try { return Intl.DateTimeFormat().resolvedOptions().timeZone; } catch { return 'UTC'; }
   }, []);
+  const tzOptions = useMemo(() => {
+    const set = new Set<string>(COMMON_TIMEZONES);
+    if (browserTz) set.add(browserTz);
+    return Array.from(set).sort((a, b) => {
+      if (a === browserTz) return -1;
+      if (b === browserTz) return 1;
+      return a.localeCompare(b);
+    });
+  }, [browserTz]);
   const [pickedDate, setPickedDate] = useState<Date | undefined>();
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -147,9 +177,14 @@ export default function BookDemo() {
     <div className="min-h-screen bg-background">
       <SeoMeta
         route="/demo"
-        fallbackTitle="Book a Demo with AiReatro — WhatsApp CRM Tailored to Your Business"
-        fallbackDescription="Get a 25-minute personalized demo of AiReatro. See how teams automate WhatsApp leads, ads attribution and customer support — book your slot."
+        fallbackTitle="Book a Free WhatsApp CRM Demo | AiReatro"
+        fallbackDescription="Book a free 25-minute demo of AiReatro — the all-in-one WhatsApp Cloud API platform with AI auto-replies, team inbox, Meta Ads attribution and < 10 min setup. Pick any time, any timezone."
       />
+      <Helmet>
+        <meta name="keywords" content="book whatsapp crm demo, whatsapp cloud api demo, whatsapp business api demo, schedule whatsapp demo, aireatro demo, whatsapp automation demo, whatsapp chatbot demo, meta ads whatsapp demo, free whatsapp api demo, whatsapp marketing demo" />
+        <meta property="og:title" content="Book a Free WhatsApp CRM Demo | AiReatro" />
+        <meta property="og:description" content="See how AiReatro automates WhatsApp leads, ads attribution and support — book your personalised 25-minute demo." />
+      </Helmet>
       <Navbar />
 
       {/* Hero */}
@@ -158,14 +193,14 @@ export default function BookDemo() {
         <div className="absolute -top-40 -right-32 w-[480px] h-[480px] rounded-full bg-primary/10 blur-[120px] pointer-events-none" />
         <div className="absolute -bottom-32 -left-32 w-[420px] h-[420px] rounded-full bg-emerald-500/10 blur-[120px] pointer-events-none" />
 
-        <div className="container mx-auto px-4 relative pt-16 pb-12 md:pt-24 md:pb-20">
-          <div className="grid lg:grid-cols-2 gap-12 items-center max-w-6xl mx-auto">
+        <div className="container mx-auto px-4 relative pt-10 pb-10 sm:pt-16 sm:pb-12 md:pt-24 md:pb-20">
+          <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center max-w-6xl mx-auto">
             <motion.div initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }}>
-              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-semibold tracking-wide uppercase mb-5">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-[11px] sm:text-xs font-semibold tracking-wide uppercase mb-4">
                 <PlayCircle className="w-3.5 h-3.5" />
                 Live Product Demo
               </div>
-              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-foreground leading-[1.05] tracking-tight mb-5">
+              <h1 className="text-3xl sm:text-4xl lg:text-6xl font-bold text-foreground leading-[1.1] tracking-tight mb-4">
                 Book a 25-min demo with our{' '}
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-emerald-500 to-teal-500">
                   WhatsApp experts
@@ -200,7 +235,7 @@ export default function BookDemo() {
               initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
             >
               <Card className="border-border/60 shadow-2xl shadow-primary/5">
-                <CardContent className="p-6 md:p-8">
+                <CardContent className="p-5 sm:p-6 md:p-8">
                   <div className="flex items-center gap-3 mb-6">
                     <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-emerald-500 flex items-center justify-center shadow-lg shadow-primary/20">
                       <Sparkles className="w-5 h-5 text-white" />
@@ -341,8 +376,22 @@ export default function BookDemo() {
                         </div>
                       </div>
                       <div className="space-y-1.5">
-                        <Label className="text-xs">Timezone</Label>
-                        <Input value={data.timezone} onChange={(e) => update('timezone', e.target.value)} className="h-10" />
+                        <Label className="text-xs flex items-center gap-1.5">
+                          <Globe className="w-3.5 h-3.5" /> Timezone
+                          <span className="ml-auto text-[10px] font-normal text-muted-foreground">auto-detected</span>
+                        </Label>
+                        <Select value={data.timezone} onValueChange={(v) => update('timezone', v)}>
+                          <SelectTrigger className="h-10">
+                            <SelectValue placeholder="Select timezone" />
+                          </SelectTrigger>
+                          <SelectContent className="max-h-72">
+                            {tzOptions.map((tz) => (
+                              <SelectItem key={tz} value={tz}>
+                                {tz.replace(/_/g, ' ')} {tz === browserTz ? '(your timezone)' : ''}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                       </div>
                     </div>
 
