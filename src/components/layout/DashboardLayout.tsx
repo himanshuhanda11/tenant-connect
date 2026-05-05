@@ -8,13 +8,14 @@ import { supabase } from '@/integrations/supabase/client';
 import { Loader2, Menu, X } from 'lucide-react';
 import { useAgentSessionTracker } from '@/hooks/useAgentPerformance';
 import { WhatsAppConnectBanner } from '@/components/dashboard/WhatsAppConnectBanner';
+import { MobileBottomNav } from './MobileBottomNav';
 
 function MobileHeader() {
   const { toggleSidebar, state } = useSidebar();
   const isOpen = state === 'expanded';
 
   return (
-    <header className="h-12 sm:h-14 flex items-center gap-3 px-3 sm:px-4 border-b border-border/60 bg-background/95 backdrop-blur-md sticky top-0 z-30 shadow-xs">
+    <header className="h-12 sm:h-14 flex items-center gap-3 px-3 sm:px-4 border-b border-border/60 bg-background/95 backdrop-blur-md sticky top-0 z-30 shadow-xs pt-[env(safe-area-inset-top)] md:pt-0" style={{ height: 'calc(3rem + env(safe-area-inset-top))' }}>
       <button
         onClick={toggleSidebar}
         className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-card hover:bg-accent border border-border/50 shadow-sm transition-all duration-200 active:scale-95"
@@ -130,10 +131,11 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         <main className="flex-1 flex flex-col min-w-0 w-full">
           <MobileHeader />
           <ScrollToTop />
-          <div className="flex-1 overflow-auto relative bg-muted/20 p-4 sm:p-6 lg:p-8 pb-20">
+          <div className="flex-1 overflow-auto relative bg-muted/20 p-4 sm:p-6 lg:p-8 pb-[calc(5rem+env(safe-area-inset-bottom))] md:pb-20">
             {children}
           </div>
           <WhatsAppConnectBanner />
+          <MobileBottomNav />
         </main>
       </div>
     </SidebarProvider>

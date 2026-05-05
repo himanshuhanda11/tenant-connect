@@ -295,3 +295,16 @@
   animation-iteration-count: 1 !important;
   transition-duration: 0.01ms !important;
 }
+
+/* Mobile / native wrapper helpers */
+html, body { overscroll-behavior-y: none; }
+@supports (padding: env(safe-area-inset-top)) {
+  .safe-top { padding-top: env(safe-area-inset-top); }
+  .safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
+  .safe-x { padding-left: env(safe-area-inset-left); padding-right: env(safe-area-inset-right); }
+}
+/* Prevent iOS input zoom — inputs must render >= 16px on small screens */
+@media (max-width: 767px) {
+  input:not([type='checkbox']):not([type='radio']),
+  select, textarea { font-size: 16px; }
+}
