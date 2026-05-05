@@ -306,7 +306,9 @@ export default function Login() {
         <div className="mx-auto w-full max-w-md">
           {/* Logo */}
           <div className="flex items-center gap-2 mb-4">
-            <img src={aireatroLogo} alt="AiReatro" className="h-10 w-auto" />
+            <Link to="/" className="flex items-center">
+              <img src={aireatroLogo} alt="AiReatro" className="h-10 w-auto" />
+            </Link>
           </div>
 
           {/* Breadcrumb */}
