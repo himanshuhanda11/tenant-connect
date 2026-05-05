@@ -462,38 +462,119 @@ export default function CampaignsList() {
                 </CardContent>
               </Card>
             ) : (
-              filteredCampaigns.map((campaign) => (
-                <Card 
-                  key={campaign.id} 
-                  className="cursor-pointer active:scale-[0.99] transition-transform"
-                  onClick={() => navigate(`/campaigns/${campaign.id}`)}
-                >
-                  <CardContent className="p-4">
-                    <div className="flex items-start justify-between gap-3 mb-3">
-                      <div className="min-w-0 flex-1">
-                        <p className="font-medium text-sm truncate">{campaign.name}</p>
-                        <p className="text-xs text-muted-foreground truncate">{campaign.template_name}</p>
+              filteredCampaigns.map((campaign) => {
+                const deliveryRate = campaign.sent_count ? Math.round(((campaign.delivered_count || 0) / campaign.sent_count) * 100) : 0;
+                const readRate = campaign.delivered_count ? Math.round(((campaign.read_count || 0) / campaign.delivered_count) * 100) : 0;
+                const replyRate = campaign.read_count ? Math.round(((campaign.replied_count || 0) / campaign.read_count) * 100) : 0;
+                return (
+                  <Card
+                    key={campaign.id}
+                    className="cursor-pointer active:scale-[0.99] transition-transform border-border/60"
+                    onClick={() => navigate(`/campaigns/${campaign.id}`)}
+                  >
+                    <CardContent className="p-4">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0 flex-1">
+                          <p className="font-semibold text-sm truncate flex items-center gap-1.5">
+                            {campaign.name}
+                            {campaign.is_ab_test && <Sparkles className="h-3.5 w-3.5 text-primary shrink-0" />}
+                          </p>
+                          <p className="text-xs text-muted-foreground truncate mt-0.5">{campaign.template_name}</p>
+                        </div>
+                        <div onClick={(e) => e.stopPropagation()}>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="icon" className="h-9 w-9 -mr-2 -mt-1">
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem onClick={() => navigate(`/campaigns/${campaign.id}`)}>
+                                <Eye className="h-4 w-4 mr-2" />View Details
+                              </DropdownMenuItem>
+                              <DropdownMenuItem>
+                                <Copy className="h-4 w-4 mr-2" />Duplicate
+                              </DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                              {campaign.status === 'sending' && (
+                                <DropdownMenuItem className="text-amber-600">
+                                  <Pause className="h-4 w-4 mr-2" />Pause
+                                </DropdownMenuItem>
+                              )}
+                              {campaign.status === 'paused' && (
+                                <DropdownMenuItem className="text-green-600">
+                                  <Play className="h-4 w-4 mr-2" />Resume
+                                </DropdownMenuItem>
+                              )}
+                              {['sending', 'scheduled'].includes(campaign.status) && (
+                                <DropdownMenuItem className="text-red-600">
+                                  <XCircle className="h-4 w-4 mr-2" />Cancel
+                                </DropdownMenuItem>
+                              )}
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem>
+                                <Download className="h-4 w-4 mr-2" />Export Report
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
                       </div>
-                      {renderStatusBadge(campaign.status)}
-                    </div>
-                    
-                    {campaign.status === 'sending' && (
-                      <div className="mb-3">
-                        <Progress value={getProgressPercentage(campaign)} className="h-1.5" />
-                        <span className="text-[10px] text-muted-foreground">{getProgressPercentage(campaign)}%</span>
+
+                      <div className="flex flex-wrap items-center gap-1.5 mt-2.5">
+                        {renderStatusBadge(campaign.status)}
+                        <Badge variant="outline" className="text-[10px] gap-1">
+                          <Users className="h-3 w-3" />
+                          {(campaign.total_recipients || 0).toLocaleString()}
+                        </Badge>
+                        {campaign.scheduled_at && (
+                          <Badge variant="outline" className="text-[10px] gap-1">
+                            <Clock className="h-3 w-3" />
+                            {format(new Date(campaign.scheduled_at), 'MMM d, h:mm a')}
+                          </Badge>
+                        )}
                       </div>
-                    )}
-                    
-                    <div className="flex items-center justify-between text-xs text-muted-foreground">
-                      <span className="flex items-center gap-1">
-                        <Users className="h-3 w-3" />
-                        {(campaign.total_recipients || 0).toLocaleString()}
-                      </span>
-                      <span>{campaign.phone_display}</span>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))
+
+                      {campaign.status === 'sending' && (
+                        <div className="mt-3">
+                          <div className="flex items-center justify-between text-[10px] text-muted-foreground mb-1">
+                            <span>Sending</span>
+                            <span className="tabular-nums">{getProgressPercentage(campaign)}%</span>
+                          </div>
+                          <Progress value={getProgressPercentage(campaign)} className="h-1.5" />
+                        </div>
+                      )}
+
+                      {(campaign.sent_count || 0) > 0 && (
+                        <div className="grid grid-cols-3 gap-2 mt-3 pt-3 border-t border-border/60">
+                          <div className="text-center">
+                            <p className="text-sm font-semibold text-green-600 tabular-nums">{deliveryRate}%</p>
+                            <p className="text-[10px] text-muted-foreground">Delivered</p>
+                          </div>
+                          <div className="text-center">
+                            <p className="text-sm font-semibold text-blue-600 tabular-nums">{readRate}%</p>
+                            <p className="text-[10px] text-muted-foreground">Read</p>
+                          </div>
+                          <div className="text-center">
+                            <p className="text-sm font-semibold text-purple-600 tabular-nums">{replyRate}%</p>
+                            <p className="text-[10px] text-muted-foreground">Replied</p>
+                          </div>
+                        </div>
+                      )}
+
+                      <div className="flex items-center justify-between text-[11px] text-muted-foreground mt-3 pt-2 border-t border-border/60">
+                        <span className="truncate">{campaign.phone_display || '—'}</span>
+                        <span className="shrink-0 ml-2">
+                          {campaign.started_at
+                            ? formatDistanceToNow(new Date(campaign.started_at), { addSuffix: true })
+                            : campaign.scheduled_at
+                              ? 'Scheduled'
+                              : 'Draft'}
+                        </span>
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })
             )}
           </div>
           </>
