@@ -24,21 +24,27 @@ Deno.serve(async (req) => {
     const baseUrl = appUrl || Deno.env.get("APP_URL") || "https://aireatro.com";
     const ADMIN_EMAIL = "admin@aireatro.com";
 
-    const sendOne = async (toAddr: string, subj: string, body: string) => {
+    const sendOne = async (toAddr: string, subj: string, body: string, replyTo?: string) => {
+      const payload: Record<string, unknown> = {
+        from: "Aireatro <noreply@aireatro.com>",
+        to: [toAddr],
+        subject: subj,
+        html: body,
+        headers: {
+          "List-Unsubscribe": "<mailto:admin@aireatro.com>",
+        },
+      };
+      if (replyTo) payload.reply_to = replyTo;
       const r = await fetch("https://api.resend.com/emails", {
         method: "POST",
         headers: {
           "Authorization": `Bearer ${RESEND_API_KEY}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          from: "Aireatro <noreply@aireatro.com>",
-          to: [toAddr],
-          subject: subj,
-          html: body,
-        }),
+        body: JSON.stringify(payload),
       });
       const d = await r.json();
+      console.log(`Resend send → ${toAddr} | ok=${r.ok} | id=${(d as any)?.id || 'none'}`);
       if (!r.ok) console.error("Resend error:", d);
       return { ok: r.ok, data: d };
     };
