@@ -139,12 +139,11 @@ export function InvoicesTable() {
               <div
                 key={invoice.id}
                 className="rounded-xl border border-border/60 bg-card p-4 shadow-sm active:scale-[0.99] transition-transform"
+                onClick={() => setSelectedInvoice(invoice)}
+                role="button"
               >
                 <div className="flex items-start justify-between gap-3">
-                  <button
-                    onClick={() => setSelectedInvoice(invoice)}
-                    className="flex items-start gap-3 min-w-0 flex-1 text-left"
-                  >
+                  <div className="flex items-start gap-3 min-w-0 flex-1">
                     <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
                       <FileText className="h-5 w-5 text-primary" />
                     </div>
@@ -155,17 +154,49 @@ export function InvoicesTable() {
                         {itemCount > 0 && ` · ${itemCount} item${itemCount > 1 ? 's' : ''}`}
                       </p>
                     </div>
-                  </button>
-                  <div className="text-right shrink-0">
-                    <p className="font-bold text-base tabular-nums">
-                      {formatCurrency(invoice.amount_due, invoice.currency)}
-                    </p>
-                    <Badge
-                      variant="outline"
-                      className={`${statusColors[invoice.status] || ''} text-[10px] mt-1 px-1.5 py-0`}
-                    >
-                      {statusLabel}
-                    </Badge>
+                  </div>
+                  <div className="flex items-start gap-1 shrink-0">
+                    <div className="text-right">
+                      <p className="font-bold text-base tabular-nums">
+                        {formatCurrency(invoice.amount_due, invoice.currency)}
+                      </p>
+                      <Badge
+                        variant="outline"
+                        className={`${statusColors[invoice.status] || ''} text-[10px] mt-1 px-1.5 py-0`}
+                      >
+                        {statusLabel}
+                      </Badge>
+                    </div>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 -mr-1.5 -mt-0.5"
+                          onClick={(e) => e.stopPropagation()}
+                          aria-label="Invoice actions"
+                        >
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
+                        <DropdownMenuItem onClick={() => setSelectedInvoice(invoice)}>
+                          <Eye className="h-4 w-4 mr-2" /> View details
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          disabled={!invoice.invoice_pdf_url}
+                          onClick={() => invoice.invoice_pdf_url && window.open(invoice.invoice_pdf_url, '_blank')}
+                        >
+                          <Download className="h-4 w-4 mr-2" /> Download PDF
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          disabled={!invoice.hosted_invoice_url}
+                          onClick={() => invoice.hosted_invoice_url && window.open(invoice.hosted_invoice_url, '_blank')}
+                        >
+                          <ExternalLink className="h-4 w-4 mr-2" /> Open online
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
                 </div>
 
@@ -175,39 +206,6 @@ export function InvoicesTable() {
                     Paid {format(new Date(invoice.paid_at), 'MMM d, yyyy')}
                   </p>
                 )}
-
-                <div className="flex items-center gap-2 mt-3 pt-3 border-t border-border/60">
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="flex-1 h-9 text-xs"
-                    onClick={() => setSelectedInvoice(invoice)}
-                  >
-                    <Eye className="h-3.5 w-3.5 mr-1.5" />
-                    View
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="flex-1 h-9 text-xs"
-                    disabled={!invoice.invoice_pdf_url}
-                    onClick={() => invoice.invoice_pdf_url && window.open(invoice.invoice_pdf_url, '_blank')}
-                  >
-                    <Download className="h-3.5 w-3.5 mr-1.5" />
-                    PDF
-                  </Button>
-                  {invoice.hosted_invoice_url && (
-                    <Button
-                      size="icon"
-                      variant="outline"
-                      className="h-9 w-9 shrink-0"
-                      onClick={() => window.open(invoice.hosted_invoice_url!, '_blank')}
-                      aria-label="Open hosted invoice"
-                    >
-                      <ExternalLink className="h-3.5 w-3.5" />
-                    </Button>
-                  )}
-                </div>
               </div>
             );
           })
