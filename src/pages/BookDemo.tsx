@@ -367,8 +367,22 @@ export default function BookDemo() {
                         </div>
                       </div>
                       <div className="space-y-1.5">
-                        <Label className="text-xs">Timezone</Label>
-                        <Input value={data.timezone} onChange={(e) => update('timezone', e.target.value)} className="h-10" />
+                        <Label className="text-xs flex items-center gap-1.5">
+                          <Globe className="w-3.5 h-3.5" /> Timezone
+                          <span className="ml-auto text-[10px] font-normal text-muted-foreground">auto-detected</span>
+                        </Label>
+                        <Select value={data.timezone} onValueChange={(v) => update('timezone', v)}>
+                          <SelectTrigger className="h-10">
+                            <SelectValue placeholder="Select timezone" />
+                          </SelectTrigger>
+                          <SelectContent className="max-h-72">
+                            {tzOptions.map((tz) => (
+                              <SelectItem key={tz} value={tz}>
+                                {tz.replace(/_/g, ' ')} {tz === browserTz ? '(your timezone)' : ''}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                       </div>
                     </div>
 
