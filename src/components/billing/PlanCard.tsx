@@ -61,7 +61,7 @@ const PLAN_RANK: Record<string, number> = { free: 0, basic: 1, pro: 2, business:
 
 export function PlanCard({ plan, isCurrentPlan, isYearly, isRecommended, currentPlanId, onSelect }: PlanCardProps) {
   const currentRank = PLAN_RANK[(currentPlanId ?? 'free').toLowerCase()] ?? 0;
-  const thisRank = PLAN_RANK[plan.id?.toLowerCase()] ?? PLAN_RANK[plan.name?.toLowerCase()] ?? 0;
+  const thisRank = PLAN_RANK[(plan.id ?? '').toLowerCase()] ?? 0;
   const isDowngrade = !isCurrentPlan && thisRank < currentRank;
   const isUpgrade = !isCurrentPlan && thisRank > currentRank;
   const price = isYearly ? (plan.price_yearly || plan.price_monthly * 12) : plan.price_monthly;
