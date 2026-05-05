@@ -379,7 +379,7 @@ export default function AutomationWorkflows() {
                 <CardDescription>Start your workflow based on these events</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="grid md:grid-cols-3 lg:grid-cols-4 gap-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
                   {Object.entries(TRIGGER_DEFINITIONS).map(([type, def]) => (
                     <div key={type} className="flex items-center gap-2 p-2 rounded-lg bg-muted/50">
                       <Zap className="h-4 w-4 text-primary shrink-0" />
