@@ -126,58 +126,89 @@ export function InvoicesTable() {
       {/* Mobile Card View */}
       <div className="sm:hidden space-y-3">
         {invoices && invoices.length > 0 ? (
-          invoices.map((invoice) => (
-            <div 
-              key={invoice.id}
-              className="border rounded-lg p-4 bg-card"
-            >
-              <div className="flex items-start justify-between gap-3 mb-3">
-                <div className="flex items-center gap-2 min-w-0">
-                  <FileText className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                  <span className="font-medium text-sm truncate">{invoice.invoice_number}</span>
+          invoices.map((invoice) => {
+            const statusLabel = invoice.status.charAt(0).toUpperCase() + invoice.status.slice(1);
+            const itemCount = invoice.line_items?.length || 0;
+            return (
+              <div
+                key={invoice.id}
+                className="rounded-xl border border-border/60 bg-card p-4 shadow-sm active:scale-[0.99] transition-transform"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <button
+                    onClick={() => setSelectedInvoice(invoice)}
+                    className="flex items-start gap-3 min-w-0 flex-1 text-left"
+                  >
+                    <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                      <FileText className="h-5 w-5 text-primary" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="font-semibold text-sm truncate">{invoice.invoice_number}</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">
+                        {format(new Date(invoice.created_at), 'MMM d, yyyy')}
+                        {itemCount > 0 && ` · ${itemCount} item${itemCount > 1 ? 's' : ''}`}
+                      </p>
+                    </div>
+                  </button>
+                  <div className="text-right shrink-0">
+                    <p className="font-bold text-base tabular-nums">
+                      {formatCurrency(invoice.amount_due, invoice.currency)}
+                    </p>
+                    <Badge
+                      variant="outline"
+                      className={`${statusColors[invoice.status] || ''} text-[10px] mt-1 px-1.5 py-0`}
+                    >
+                      {statusLabel}
+                    </Badge>
+                  </div>
                 </div>
-                <Badge 
-                  variant="outline" 
-                  className={`${statusColors[invoice.status] || ''} text-xs flex-shrink-0`}
-                >
-                  {invoice.status.charAt(0).toUpperCase() + invoice.status.slice(1)}
-                </Badge>
+
+                {invoice.status === 'paid' && invoice.paid_at && (
+                  <p className="text-[11px] text-green-600 mt-2.5 flex items-center gap-1">
+                    <span className="h-1.5 w-1.5 rounded-full bg-green-500" />
+                    Paid {format(new Date(invoice.paid_at), 'MMM d, yyyy')}
+                  </p>
+                )}
+
+                <div className="flex items-center gap-2 mt-3 pt-3 border-t border-border/60">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="flex-1 h-9 text-xs"
+                    onClick={() => setSelectedInvoice(invoice)}
+                  >
+                    <Eye className="h-3.5 w-3.5 mr-1.5" />
+                    View
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="flex-1 h-9 text-xs"
+                    disabled={!invoice.invoice_pdf_url}
+                    onClick={() => invoice.invoice_pdf_url && window.open(invoice.invoice_pdf_url, '_blank')}
+                  >
+                    <Download className="h-3.5 w-3.5 mr-1.5" />
+                    PDF
+                  </Button>
+                  {invoice.hosted_invoice_url && (
+                    <Button
+                      size="icon"
+                      variant="outline"
+                      className="h-9 w-9 shrink-0"
+                      onClick={() => window.open(invoice.hosted_invoice_url!, '_blank')}
+                      aria-label="Open hosted invoice"
+                    >
+                      <ExternalLink className="h-3.5 w-3.5" />
+                    </Button>
+                  )}
+                </div>
               </div>
-              
-              <div className="flex items-center justify-between text-sm mb-3">
-                <span className="text-muted-foreground">
-                  {format(new Date(invoice.created_at), 'MMM d, yyyy')}
-                </span>
-                <span className="font-semibold">
-                  {formatCurrency(invoice.amount_due, invoice.currency)}
-                </span>
-              </div>
-              
-              <div className="flex items-center gap-2 pt-2 border-t">
-                <Button 
-                  size="sm" 
-                  variant="outline"
-                  className="flex-1 h-8 text-xs"
-                  onClick={() => setSelectedInvoice(invoice)}
-                >
-                  <Eye className="h-3.5 w-3.5 mr-1.5" />
-                  View
-                </Button>
-                <Button 
-                  size="sm" 
-                  variant="outline"
-                  className="flex-1 h-8 text-xs"
-                  onClick={() => window.open(invoice.invoice_pdf_url || '#', '_blank')}
-                >
-                  <Download className="h-3.5 w-3.5 mr-1.5" />
-                  Download
-                </Button>
-              </div>
-            </div>
-          ))
+            );
+          })
         ) : (
-          <div className="text-center py-8 text-muted-foreground border rounded-lg">
-            No invoices yet
+          <div className="text-center py-12 border rounded-xl border-dashed">
+            <FileText className="h-10 w-10 text-muted-foreground mx-auto mb-3" />
+            <p className="text-sm text-muted-foreground">No invoices yet</p>
           </div>
         )}
       </div>
