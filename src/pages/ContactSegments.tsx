@@ -39,6 +39,26 @@ import { toast } from 'sonner';
 import { formatDistanceToNow } from 'date-fns';
 import { Segment, SegmentFilters } from '@/types/segment';
 import { CreateSegmentModal } from '@/components/contacts/CreateSegmentModal';
+import { useIsMobile } from '@/hooks/use-mobile';
+
+const FILTER_LABELS: Record<string, string> = {
+  leadStatus: 'Status',
+  priority: 'Priority',
+  mauStatus: 'Activity',
+  country: 'Country',
+  tags: 'Tags',
+  source: 'Source',
+};
+
+function summarizeFilters(filters: SegmentFilters): string {
+  const parts: string[] = [];
+  Object.entries(filters || {}).forEach(([key, value]) => {
+    if (Array.isArray(value) && value.length > 0) {
+      parts.push(`${FILTER_LABELS[key] || key}: ${value.slice(0, 2).join(', ')}${value.length > 2 ? ` +${value.length - 2}` : ''}`);
+    }
+  });
+  return parts.join(' · ') || 'No filters';
+}
 
 export default function ContactSegments() {
   const { currentTenant } = useTenant();
