@@ -388,7 +388,7 @@ export function useInboxConversations(view: InboxView, filters: InboxFilters) {
     return () => clearInterval(interval);
   }, [currentTenant?.id, fetchConversations]);
 
-  return { conversations, loading, error, refetch: () => fetchConversations(true), updateConversation };
+  return { conversations, totalCount, loading, error, refetch: () => fetchConversations(true), updateConversation };
 }
 
 export function useInboxMessages(conversationId: string | null) {
