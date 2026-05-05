@@ -201,6 +201,7 @@ export function WorkflowBuilder({ workflow, open, onOpenChange, onSave }: Workfl
       });
       if (success) {
         toast.success(activate ? 'Workflow activated' : 'Draft saved');
+        setErrors({});
         onOpenChange(false);
       } else {
         toast.error('Failed to save workflow');
