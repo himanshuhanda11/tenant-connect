@@ -7,14 +7,28 @@ import metaPartnerLogo from '@/assets/meta-business-partner.png';
 export default function Footer() {
   const footerLinks = {
     product: [
-      { name: 'Features', href: '/features' },
+      { name: 'All Features', href: '/features' },
       { name: 'Unified Inbox', href: '/features/inbox' },
       { name: 'Contacts', href: '/features/contacts' },
       { name: 'Templates', href: '/features/templates' },
       { name: 'Campaigns', href: '/features/campaigns' },
       { name: 'Automation', href: '/features/automation' },
+      { name: 'Integrations', href: '/features/integrations' },
       { name: 'Analytics', href: '/features/analytics' },
+      { name: 'Phone Numbers', href: '/features/phone-numbers' },
+      { name: 'Team & Roles', href: '/features/team-roles' },
+      { name: 'Audit Logs', href: '/features/audit-logs' },
+      { name: 'Products', href: '/products' },
       { name: 'Pricing', href: '/pricing' },
+    ],
+    solutions: [
+      { name: 'WhatsApp Business API', href: '/whatsapp-business-api' },
+      { name: 'WhatsApp Forms', href: '/whatsapp-forms' },
+      { name: 'Click to WhatsApp Ads', href: '/click-to-whatsapp' },
+      { name: 'Why WhatsApp Marketing', href: '/why-whatsapp-marketing' },
+      { name: 'Why AiReatro', href: '/why-aireatro' },
+      { name: 'Free WhatsApp API', href: '/free-whatsapp-api-lifetime' },
+      { name: 'Install App', href: '/install' },
     ],
     integrations: [
       { name: 'All Integrations', href: '/integrations' },
@@ -28,18 +42,25 @@ export default function Footer() {
     resources: [
       { name: 'Help Center', href: '/help' },
       { name: 'Documentation', href: '/documentation' },
+      { name: 'API Docs', href: '/api-docs' },
+      { name: 'Guides', href: '/guides' },
       { name: 'Blog', href: '/blog' },
       { name: 'Case Studies', href: '/case-studies' },
       { name: 'Template Library', href: '/template-library' },
-      { name: 'Free WhatsApp API', href: '/free-whatsapp-api-lifetime' },
+      { name: 'Webinars', href: '/webinars' },
+      { name: 'Changelog', href: '/changelog' },
     ],
     company: [
       { name: 'About Us', href: '/about' },
       { name: 'Careers', href: '/careers' },
       { name: 'Partners', href: '/partners' },
+      { name: 'Press', href: '/press' },
       { name: 'Contact', href: '/contact' },
+      { name: 'Book a Demo', href: '/demo' },
       { name: 'Security', href: '/security' },
       { name: 'Compliance', href: '/compliance' },
+      { name: 'Login', href: '/login' },
+      { name: 'Sign Up', href: '/signup' },
     ],
     legal: [
       { name: 'Privacy Policy', href: '/privacy-policy' },
@@ -48,13 +69,14 @@ export default function Footer() {
       { name: 'Acceptable Use', href: '/acceptable-use' },
       { name: 'Cookie Policy', href: '/cookie-policy' },
       { name: 'Refund Policy', href: '/refund-policy' },
+      { name: 'App Access', href: '/app-access-instructions' },
     ],
   };
 
   return (
     <footer className="bg-slate-900 text-white">
       <div className="container mx-auto px-4 py-16">
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-7 gap-8 mb-12">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-8 gap-8 mb-12">
           {/* Brand */}
           <div className="col-span-2">
             <Link to="/" className="inline-flex items-center gap-2 mb-4 px-3 py-2 rounded-xl bg-white shadow-md">
@@ -90,6 +112,20 @@ export default function Footer() {
             <h4 className="font-semibold mb-4 text-sm">Product</h4>
             <ul className="space-y-2.5">
               {footerLinks.product.map((link) => (
+                <li key={link.name}>
+                  <Link to={link.href} className="text-slate-400 hover:text-white transition-colors text-sm">
+                    {link.name}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Solutions */}
+          <div>
+            <h4 className="font-semibold mb-4 text-sm">Solutions</h4>
+            <ul className="space-y-2.5">
+              {footerLinks.solutions.map((link) => (
                 <li key={link.name}>
                   <Link to={link.href} className="text-slate-400 hover:text-white transition-colors text-sm">
                     {link.name}
