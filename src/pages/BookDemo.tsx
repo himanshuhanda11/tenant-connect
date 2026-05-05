@@ -235,7 +235,7 @@ export default function BookDemo() {
               initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
             >
               <Card className="border-border/60 shadow-2xl shadow-primary/5">
-                <CardContent className="p-6 md:p-8">
+                <CardContent className="p-5 sm:p-6 md:p-8">
                   <div className="flex items-center gap-3 mb-6">
                     <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-emerald-500 flex items-center justify-center shadow-lg shadow-primary/20">
                       <Sparkles className="w-5 h-5 text-white" />
