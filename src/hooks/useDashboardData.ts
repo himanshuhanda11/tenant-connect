@@ -266,16 +266,16 @@ export function useDashboardData(filters: DashboardFilters) {
       })));
 
       setMetaAds({
-        leadsToday: 23, leads7d: 156,
-        topCampaigns: [{ name: 'Summer Sale', leads: 45 }, { name: 'New Product Launch', leads: 32 }, { name: 'Brand Awareness', leads: 28 }],
-        conversionRate: 34.5, avgResponseTime: 145,
+        leadsToday: 0, leads7d: 0,
+        topCampaigns: [],
+        conversionRate: 0, avgResponseTime: 0,
       });
 
       setContacts({
         newContactsToday: newTodayResult.count || 0, newContacts7d: new7dResult.count || 0, newContacts30d: new30dResult.count || 0,
-        optOuts7d: 3,
-        topSources: [{ source: 'Meta Ads', count: 45 }, { source: 'Website', count: 32 }, { source: 'QR Code', count: 18 }, { source: 'API', count: 12 }],
-        topSegments: [{ name: 'Active Customers', count: 1234, id: '1' }, { name: 'VIP', count: 89, id: '2' }, { name: 'New Leads', count: 456, id: '3' }],
+        optOuts7d: 0,
+        topSources: [],
+        topSegments: [],
       });
 
       // ── PHASE 3 (ADMIN): billing + agents (lowest priority) ──
