@@ -275,12 +275,14 @@ export function WorkflowBuilder({ workflow, open, onOpenChange, onSave }: Workfl
                 ref={nameInputRef}
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className={`text-base xs:text-lg font-semibold border-none p-0 h-auto focus-visible:ring-0 ${!name.trim() ? 'placeholder:text-destructive/70' : ''}`}
+                disabled={saving}
+                className={`text-base xs:text-lg font-semibold border-none p-0 h-auto focus-visible:ring-0 ${errors.name ? 'placeholder:text-destructive/70' : ''}`}
                 placeholder="Workflow Name *"
-                aria-invalid={!name.trim()}
+                aria-invalid={!!errors.name}
+                aria-describedby={errors.name ? 'wf-name-error' : undefined}
               />
-              {!name.trim() && (
-                <p className="text-[11px] text-destructive mt-0.5">Name is required</p>
+              {errors.name && (
+                <p id="wf-name-error" className="text-[11px] text-destructive mt-0.5">{errors.name}</p>
               )}
               <Input
                 value={description}
