@@ -62,6 +62,7 @@ function summarizeFilters(filters: SegmentFilters): string {
 
 export default function ContactSegments() {
   const { currentTenant } = useTenant();
+  const isMobile = useIsMobile();
   const [segments, setSegments] = useState<Segment[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
