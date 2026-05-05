@@ -183,13 +183,21 @@ export function PlanCard({ plan, isCurrentPlan, isYearly, isRecommended, current
             "w-full font-semibold text-sm gap-2 transition-all",
             isCurrentPlan
               ? "bg-muted text-muted-foreground cursor-default"
-              : theme.buttonGradient
+              : isDowngrade
+                ? "bg-muted hover:bg-muted/80 text-foreground border border-border"
+                : theme.buttonGradient
           )}
-          variant={isCurrentPlan ? 'outline' : 'default'}
+          variant={isCurrentPlan || isDowngrade ? 'outline' : 'default'}
           disabled={isCurrentPlan}
           onClick={() => onSelect(plan)}
         >
-          {isCurrentPlan ? '✓ Current Plan' : isCustomPrice ? 'Contact Sales' : 'Upgrade'}
+          {isCurrentPlan
+            ? '✓ Current Plan'
+            : isCustomPrice
+              ? 'Contact Sales'
+              : isDowngrade
+                ? 'Downgrade'
+                : 'Upgrade'}
           {!isCurrentPlan && <ArrowRight className="w-3.5 h-3.5" />}
         </Button>
       </div>
