@@ -363,35 +363,50 @@ export function useDashboardData(filters: DashboardFilters) {
   }, [currentTenant, filters, isAdmin, cacheKey]);
 
   useEffect(() => {
+    if (isFresh) {
+      setLoading(false);
+      return;
+    }
     fetchDashboardData();
-  }, [fetchDashboardData]);
+  }, [fetchDashboardData, isFresh]);
 
-  // Realtime with debounce to avoid hammering on bursts
+  // Realtime: invalidate cache + refetch on tenant data changes (debounced)
   useEffect(() => {
     if (!currentTenant) return;
+    const tId = currentTenant.id;
+
+    const triggerRefresh = () => {
+      invalidateDashboardCache(tId);
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+      debounceRef.current = setTimeout(() => fetchDashboardData(), 3000);
+    };
 
     const channel = supabase
-      .channel('dashboard-realtime')
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'conversations', filter: `tenant_id=eq.${currentTenant.id}` },
-        () => {
-          if (debounceRef.current) clearTimeout(debounceRef.current);
-          debounceRef.current = setTimeout(() => fetchDashboardData(), 5000);
-        }
-      )
+      .channel(`dashboard-rt-${tId}`)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'conversations', filter: `tenant_id=eq.${tId}` }, triggerRefresh)
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'audit_logs', filter: `tenant_id=eq.${tId}` }, triggerRefresh)
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter: `tenant_id=eq.${tId}` }, triggerRefresh)
       .subscribe();
+
+    // Also auto-refetch when window regains focus & cache is older than TTL
+    const onFocus = () => {
+      const entry = cache.get(cacheKey);
+      if (!entry || Date.now() - entry.ts >= CACHE_TTL_MS) fetchDashboardData();
+    };
+    window.addEventListener('focus', onFocus);
 
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
+      window.removeEventListener('focus', onFocus);
       supabase.removeChannel(channel);
     };
-  }, [currentTenant, fetchDashboardData]);
+  }, [currentTenant, fetchDashboardData, cacheKey]);
 
   return {
     loading, kpis, inboxHealth, actionQueue, agents, automations, campaigns, metaAds,
     phoneHealth, contacts, billing, alerts, heatmap, nextActions, isAdmin,
     creditsBalance, templatesPending, totalTemplates, messagesReceivedToday, messagesRepliedToday, totalCampaigns,
-    refetch: fetchDashboardData,
+    recentActivity,
+    refetch: () => { invalidateDashboardCache(tenantId); return fetchDashboardData(); },
   };
 }
