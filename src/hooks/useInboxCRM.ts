@@ -52,32 +52,80 @@ export interface AgentPerformance {
   total_today_assigned: number;
 }
 
+// Module-level TTL cache per tenant — keeps /inbox/dashboard instant on revisit
+// without ever serving stale data beyond the TTL window.
+const CRM_TTL_MS = 60_000;
+type CrmCacheEntry = { stats: DashboardStats | null; perf: AgentPerformance[]; ts: number };
+const crmCache = new Map<string, CrmCacheEntry>();
+
+export function invalidateInboxCRMCache(tenantId?: string) {
+  if (!tenantId) { crmCache.clear(); return; }
+  crmCache.delete(tenantId);
+}
+
 export function useInboxCRMStats() {
   const { currentTenant } = useTenant();
-  const [stats, setStats] = useState<DashboardStats | null>(null);
-  const [agentPerformance, setAgentPerformance] = useState<AgentPerformance[]>([]);
-  const [loading, setLoading] = useState(true);
+  const tenantId = currentTenant?.id;
+  const cached = tenantId ? crmCache.get(tenantId) : undefined;
+  const isFresh = cached && Date.now() - cached.ts < CRM_TTL_MS;
 
-  const fetchStats = useCallback(async () => {
-    if (!currentTenant?.id) return;
-    setLoading(true);
+  const [stats, setStats] = useState<DashboardStats | null>(cached?.stats ?? null);
+  const [agentPerformance, setAgentPerformance] = useState<AgentPerformance[]>(cached?.perf ?? []);
+  const [loading, setLoading] = useState(!cached);
+  const inFlightRef = (typeof window !== 'undefined') ? (window as any) : {};
+
+  const fetchStats = useCallback(async (force = false) => {
+    if (!tenantId) return;
+    const entry = crmCache.get(tenantId);
+    if (!force && entry && Date.now() - entry.ts < CRM_TTL_MS) {
+      setStats(entry.stats);
+      setAgentPerformance(entry.perf);
+      setLoading(false);
+      return;
+    }
+    if (!entry) setLoading(true);
     try {
       const [statsRes, perfRes] = await Promise.all([
-        supabase.rpc('inbox_crm_dashboard_stats', { p_tenant_id: currentTenant.id }),
-        supabase.rpc('inbox_agent_performance', { p_tenant_id: currentTenant.id }),
+        supabase.rpc('inbox_crm_dashboard_stats', { p_tenant_id: tenantId }),
+        supabase.rpc('inbox_agent_performance', { p_tenant_id: tenantId }),
       ]);
-      if (statsRes.data) setStats(statsRes.data as unknown as DashboardStats);
-      if (perfRes.data) setAgentPerformance(perfRes.data as unknown as AgentPerformance[]);
+      const nextStats = (statsRes.data as unknown as DashboardStats) ?? null;
+      const nextPerf = (perfRes.data as unknown as AgentPerformance[]) ?? [];
+      setStats(nextStats);
+      setAgentPerformance(nextPerf);
+      crmCache.set(tenantId, { stats: nextStats, perf: nextPerf, ts: Date.now() });
     } catch (err) {
       console.error('Failed to fetch CRM stats:', err);
     } finally {
       setLoading(false);
     }
-  }, [currentTenant?.id]);
+  }, [tenantId]);
 
-  useEffect(() => { fetchStats(); }, [fetchStats]);
+  useEffect(() => {
+    if (isFresh) { setLoading(false); return; }
+    fetchStats();
+  }, [fetchStats, isFresh]);
 
-  return { stats, agentPerformance, loading, refetch: fetchStats };
+  // Refresh on window focus if cache expired, and on inbox-update events
+  useEffect(() => {
+    if (!tenantId) return;
+    const onFocus = () => {
+      const entry = crmCache.get(tenantId);
+      if (!entry || Date.now() - entry.ts >= CRM_TTL_MS) fetchStats(true);
+    };
+    const onUpdate = () => { invalidateInboxCRMCache(tenantId); fetchStats(true); };
+    window.addEventListener('focus', onFocus);
+    window.addEventListener('inbox-update', onUpdate);
+    return () => {
+      window.removeEventListener('focus', onFocus);
+      window.removeEventListener('inbox-update', onUpdate);
+    };
+  }, [tenantId, fetchStats]);
+
+  return {
+    stats, agentPerformance, loading,
+    refetch: () => { if (tenantId) invalidateInboxCRMCache(tenantId); return fetchStats(true); },
+  };
 }
 
 export function useUpdateCRMStatus() {
