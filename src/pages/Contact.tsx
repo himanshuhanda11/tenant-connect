@@ -55,9 +55,9 @@ const contactSchema = z.object({
   timezone: z.string().optional(),
   message: z.string().trim().min(10, "Message must be at least 10 characters").max(2000, "Message must be less than 2000 characters"),
 }).refine((d) => {
-  if (d.subject === 'walkthrough') return !!d.preferredDate && !!d.preferredTime;
+  if (d.subject === 'demo') return !!d.preferredDate && !!d.preferredTime;
   return true;
-}, { message: 'Please pick a date and time for your walkthrough', path: ['preferredDate'] });
+}, { message: 'Please pick a date and time for your demo', path: ['preferredDate'] });
 
 const TIME_SLOTS = [
   '10:00 AM', '11:00 AM', '12:00 PM',
@@ -69,7 +69,7 @@ type ContactFormData = z.infer<typeof contactSchema>;
 
 export default function Contact() {
   const [searchParams] = useSearchParams();
-  const isWalkthrough = searchParams.get('intent') === 'walkthrough';
+  const isDemo = searchParams.get('intent') === 'demo';
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
@@ -84,12 +84,12 @@ export default function Contact() {
     email: '',
     company: '',
     phone: '',
-    subject: isWalkthrough ? 'walkthrough' : '',
+    subject: isDemo ? 'demo' : '',
     teamSize: '',
     preferredDate: '',
     preferredTime: '',
     timezone: browserTz,
-    message: isWalkthrough ? "I'd like a guided walkthrough of AiReatro for my team." : '',
+    message: isDemo ? "I'd like a guided demo of AiReatro for my team." : '',
   });
 
   const contactInfo = [
@@ -198,11 +198,11 @@ export default function Contact() {
       <Navbar />
 
       <PageHero
-        badge={{ icon: isWalkthrough ? PlayCircle : MessageCircle, text: isWalkthrough ? "Book a Walkthrough" : "Get in Touch" }}
-        title={isWalkthrough ? "See AiReatro in" : "Let's Start a"}
-        titleHighlight={isWalkthrough ? "Action" : "Conversation"}
-        subtitle={isWalkthrough
-          ? "Tell us about your business and pick a time. Our specialist will give you a tailored 20-minute walkthrough — no slides, just real workflows."
+        badge={{ icon: isDemo ? PlayCircle : MessageCircle, text: isDemo ? "Book a Demo" : "Get in Touch" }}
+        title={isDemo ? "Book a Demo with" : "Let's Start a"}
+        titleHighlight={isDemo ? "Our Team" : "Conversation"}
+        subtitle={isDemo
+          ? "Tell us about your business and pick a time. Our specialist will give you a tailored 20-minute demo — no slides, just real workflows."
           : "Have questions? We'd love to hear from you. Send us a message and we'll respond as soon as possible."}
       />
 
@@ -342,7 +342,7 @@ export default function Contact() {
                           <SelectValue placeholder="What can we help you with?" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="walkthrough">Book a Walkthrough</SelectItem>
+                          <SelectItem value="demo">Book a Demo</SelectItem>
                           <SelectItem value="sales">Sales Inquiry</SelectItem>
                           <SelectItem value="support">Technical Support</SelectItem>
                           <SelectItem value="billing">Billing Question</SelectItem>
@@ -354,11 +354,11 @@ export default function Contact() {
                       {errors.subject && <p className="text-xs text-destructive">{errors.subject}</p>}
                     </div>
 
-                    {formData.subject === 'walkthrough' && (
+                    {formData.subject === 'demo' && (
                       <div className="rounded-xl border border-primary/20 bg-primary/5 p-5 space-y-4">
                         <div className="flex items-center gap-2">
                           <Sparkles className="w-4 h-4 text-primary" />
-                          <h3 className="text-sm font-semibold text-foreground">Schedule your walkthrough</h3>
+                          <h3 className="text-sm font-semibold text-foreground">Schedule your demo</h3>
                         </div>
 
                         <div className="grid md:grid-cols-2 gap-4">
