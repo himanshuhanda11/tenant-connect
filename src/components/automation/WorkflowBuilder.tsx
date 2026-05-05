@@ -115,21 +115,39 @@ export function WorkflowBuilder({ workflow, open, onOpenChange, onSave }: Workfl
     }
   };
 
-  const validate = (activate: boolean): string | null => {
-    if (!name.trim()) return 'Please enter a workflow name';
-    if (activate && actions.length === 0) return 'Add at least one action before activating';
-    return null;
+  const validate = (activate: boolean) => {
+    const errs: { name?: string; trigger?: string; actions?: string } = {};
+    if (!name.trim()) errs.name = 'Please enter a workflow name';
+    // Trigger-specific required config
+    if (triggerType === 'keyword_received' && !(triggerConfig.keywords?.length)) {
+      errs.trigger = 'Add at least one keyword for this trigger';
+    }
+    if ((triggerType === 'tag_added' || triggerType === 'tag_removed') && !triggerConfig.tag_name) {
+      errs.trigger = 'Enter a tag name for this trigger';
+    }
+    if (activate && actions.length === 0) {
+      errs.actions = 'Add at least one action before activating';
+    }
+    return errs;
   };
 
   const handleSave = async (activate: boolean = false) => {
-    const error = validate(activate);
-    if (error) {
-      toast.error(error);
-      // Scroll the name input into view, accounting for the sticky bottom bar
-      if (!name.trim()) {
-        nameInputRef.current?.focus({ preventScroll: true });
-        nameInputRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }
+    const errs = validate(activate);
+    setErrors(errs);
+    const firstError = errs.name ? 'name' : errs.trigger ? 'trigger' : errs.actions ? 'actions' : null;
+    if (firstError) {
+      toast.error(errs.name || errs.trigger || errs.actions || 'Please fix the highlighted fields');
+      // Scroll first invalid section into view (accounts for sticky bar height)
+      requestAnimationFrame(() => {
+        if (firstError === 'name') {
+          nameInputRef.current?.focus({ preventScroll: true });
+          scrollIntoViewSafe(nameInputRef.current);
+        } else if (firstError === 'trigger') {
+          scrollIntoViewSafe(triggerSectionRef.current);
+        } else if (firstError === 'actions') {
+          scrollIntoViewSafe(actionsSectionRef.current);
+        }
+      });
       return;
     }
 
