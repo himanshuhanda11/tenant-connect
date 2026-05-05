@@ -95,24 +95,74 @@ export function WorkflowBuilder({ workflow, open, onOpenChange, onSave }: Workfl
     }
   }, [workflow, open]);
 
-  const nameInputRef = useRef<HTMLInputElement>(null);
-  const [savingMode, setSavingMode] = useState<'draft' | 'activate' | null>(null);
+  // Auto-clear errors as the user fixes the relevant fields
+  useEffect(() => {
+    setErrors((prev) => {
+      const next = { ...prev };
+      if (next.name && name.trim()) delete next.name;
+      if (next.actions && actions.length > 0) delete next.actions;
+      if (next.trigger) {
+        if (triggerType === 'keyword_received' && triggerConfig.keywords?.length) delete next.trigger;
+        else if ((triggerType === 'tag_added' || triggerType === 'tag_removed') && triggerConfig.tag_name) delete next.trigger;
+        else if (!['keyword_received', 'tag_added', 'tag_removed'].includes(triggerType)) delete next.trigger;
+      }
+      return next;
+    });
+  }, [name, actions.length, triggerType, triggerConfig]);
 
-  const validate = (activate: boolean): string | null => {
-    if (!name.trim()) return 'Please enter a workflow name';
-    if (activate && actions.length === 0) return 'Add at least one action before activating';
-    return null;
+  const nameInputRef = useRef<HTMLInputElement>(null);
+  const triggerSectionRef = useRef<HTMLDivElement>(null);
+  const conditionsSectionRef = useRef<HTMLDivElement>(null);
+  const actionsSectionRef = useRef<HTMLDivElement>(null);
+  const stickyBarRef = useRef<HTMLDivElement>(null);
+  const [savingMode, setSavingMode] = useState<'draft' | 'activate' | null>(null);
+  const [errors, setErrors] = useState<{ name?: string; trigger?: string; actions?: string }>({});
+
+  // Scroll element into view, accounting for the mobile sticky action bar height.
+  const scrollIntoViewSafe = (el: HTMLElement | null) => {
+    if (!el) return;
+    const barHeight = stickyBarRef.current?.offsetHeight ?? 0;
+    const rect = el.getBoundingClientRect();
+    const viewportH = window.innerHeight;
+    const safeBottom = viewportH - barHeight - 24;
+    if (rect.top < 80 || rect.bottom > safeBottom) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  };
+
+  const validate = (activate: boolean) => {
+    const errs: { name?: string; trigger?: string; actions?: string } = {};
+    if (!name.trim()) errs.name = 'Please enter a workflow name';
+    // Trigger-specific required config
+    if (triggerType === 'keyword_received' && !(triggerConfig.keywords?.length)) {
+      errs.trigger = 'Add at least one keyword for this trigger';
+    }
+    if ((triggerType === 'tag_added' || triggerType === 'tag_removed') && !triggerConfig.tag_name) {
+      errs.trigger = 'Enter a tag name for this trigger';
+    }
+    if (activate && actions.length === 0) {
+      errs.actions = 'Add at least one action before activating';
+    }
+    return errs;
   };
 
   const handleSave = async (activate: boolean = false) => {
-    const error = validate(activate);
-    if (error) {
-      toast.error(error);
-      // Scroll the name input into view, accounting for the sticky bottom bar
-      if (!name.trim()) {
-        nameInputRef.current?.focus({ preventScroll: true });
-        nameInputRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }
+    const errs = validate(activate);
+    setErrors(errs);
+    const firstError = errs.name ? 'name' : errs.trigger ? 'trigger' : errs.actions ? 'actions' : null;
+    if (firstError) {
+      toast.error(errs.name || errs.trigger || errs.actions || 'Please fix the highlighted fields');
+      // Scroll first invalid section into view (accounts for sticky bar height)
+      requestAnimationFrame(() => {
+        if (firstError === 'name') {
+          nameInputRef.current?.focus({ preventScroll: true });
+          scrollIntoViewSafe(nameInputRef.current);
+        } else if (firstError === 'trigger') {
+          scrollIntoViewSafe(triggerSectionRef.current);
+        } else if (firstError === 'actions') {
+          scrollIntoViewSafe(actionsSectionRef.current);
+        }
+      });
       return;
     }
 
@@ -151,6 +201,7 @@ export function WorkflowBuilder({ workflow, open, onOpenChange, onSave }: Workfl
       });
       if (success) {
         toast.success(activate ? 'Workflow activated' : 'Draft saved');
+        setErrors({});
         onOpenChange(false);
       } else {
         toast.error('Failed to save workflow');
@@ -225,12 +276,14 @@ export function WorkflowBuilder({ workflow, open, onOpenChange, onSave }: Workfl
                 ref={nameInputRef}
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className={`text-base xs:text-lg font-semibold border-none p-0 h-auto focus-visible:ring-0 ${!name.trim() ? 'placeholder:text-destructive/70' : ''}`}
+                disabled={saving}
+                className={`text-base xs:text-lg font-semibold border-none p-0 h-auto focus-visible:ring-0 ${errors.name ? 'placeholder:text-destructive/70' : ''}`}
                 placeholder="Workflow Name *"
-                aria-invalid={!name.trim()}
+                aria-invalid={!!errors.name}
+                aria-describedby={errors.name ? 'wf-name-error' : undefined}
               />
-              {!name.trim() && (
-                <p className="text-[11px] text-destructive mt-0.5">Name is required</p>
+              {errors.name && (
+                <p id="wf-name-error" className="text-[11px] text-destructive mt-0.5">{errors.name}</p>
               )}
               <Input
                 value={description}
@@ -274,9 +327,12 @@ export function WorkflowBuilder({ workflow, open, onOpenChange, onSave }: Workfl
         </SheetHeader>
 
         <ScrollArea className="flex-1 overflow-auto">
-          <div className="p-3 xs:p-4 sm:p-6 space-y-4 xs:space-y-5 sm:space-y-6 pb-32 xs:pb-6">
+          <fieldset
+            disabled={saving}
+            className={`p-3 xs:p-4 sm:p-6 space-y-4 xs:space-y-5 sm:space-y-6 pb-32 xs:pb-6 border-0 m-0 min-w-0 transition-opacity ${saving ? 'opacity-70 cursor-wait' : ''}`}
+          >
             {/* WHEN - Trigger Section */}
-            <Card className="border-primary/50">
+            <Card ref={triggerSectionRef} className={`border-primary/50 ${errors.trigger ? 'ring-2 ring-destructive ring-offset-2 ring-offset-background' : ''}`}>
               <Collapsible defaultOpen>
                 <CollapsibleTrigger asChild>
                   <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors p-3 xs:p-4 sm:p-6">
@@ -308,7 +364,13 @@ export function WorkflowBuilder({ workflow, open, onOpenChange, onSave }: Workfl
                       </Select>
                     </div>
 
-                    {/* Trigger-specific config */}
+                    {errors.trigger && (
+                      <p className="text-xs text-destructive flex items-center gap-1.5">
+                        <AlertTriangle className="h-3.5 w-3.5" />
+                        {errors.trigger}
+                      </p>
+                    )}
+
                     {triggerType === 'keyword_received' && (
                       <div className="grid grid-cols-1 xs:grid-cols-2 gap-3 xs:gap-4 p-3 xs:p-4 bg-muted/50 rounded-lg">
                         <div>
@@ -391,7 +453,7 @@ export function WorkflowBuilder({ workflow, open, onOpenChange, onSave }: Workfl
             <div className="flex justify-center"><ArrowRight className="h-4 w-4 xs:h-5 xs:w-5 text-muted-foreground rotate-90" /></div>
 
             {/* IF - Conditions Section */}
-            <Card className="border-amber-500/50">
+            <Card ref={conditionsSectionRef} className="border-amber-500/50">
               <Collapsible defaultOpen>
                 <CollapsibleTrigger asChild>
                   <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors p-3 xs:p-4 sm:p-6">
@@ -532,7 +594,7 @@ export function WorkflowBuilder({ workflow, open, onOpenChange, onSave }: Workfl
             <div className="flex justify-center"><ArrowRight className="h-4 w-4 xs:h-5 xs:w-5 text-muted-foreground rotate-90" /></div>
 
             {/* THEN - Actions Section */}
-            <Card className="border-green-500/50">
+            <Card ref={actionsSectionRef} className={`border-green-500/50 ${errors.actions ? 'ring-2 ring-destructive ring-offset-2 ring-offset-background' : ''}`}>
               <Collapsible defaultOpen>
                 <CollapsibleTrigger asChild>
                   <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors p-3 xs:p-4 sm:p-6">
@@ -552,6 +614,12 @@ export function WorkflowBuilder({ workflow, open, onOpenChange, onSave }: Workfl
                 </CollapsibleTrigger>
                 <CollapsibleContent>
                   <CardContent className="pt-0 px-3 xs:px-4 sm:px-6 pb-3 xs:pb-4 sm:pb-6 space-y-3 xs:space-y-4">
+                    {errors.actions && (
+                      <p className="text-xs text-destructive flex items-center gap-1.5">
+                        <AlertTriangle className="h-3.5 w-3.5" />
+                        {errors.actions}
+                      </p>
+                    )}
                     {/* Actions List */}
                     {actions.length > 0 && (
                       <div className="space-y-2 xs:space-y-3">
@@ -867,11 +935,11 @@ export function WorkflowBuilder({ workflow, open, onOpenChange, onSave }: Workfl
                 </CollapsibleContent>
               </Collapsible>
             </Card>
-          </div>
+          </fieldset>
         </ScrollArea>
 
         {/* Sticky mobile action bar */}
-        <div className="xs:hidden flex-shrink-0 border-t bg-background/95 backdrop-blur px-3 py-2.5 flex items-center gap-2 pb-[calc(0.625rem+env(safe-area-inset-bottom))]">
+        <div ref={stickyBarRef} className="xs:hidden flex-shrink-0 border-t bg-background/95 backdrop-blur px-3 py-2.5 flex items-center gap-2 pb-[calc(0.625rem+env(safe-area-inset-bottom))]">
           <Button variant="outline" size="lg" onClick={() => handleSave(false)} disabled={saving} className="flex-1 h-11">
             {savingMode === 'draft' ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
             {savingMode === 'draft' ? 'Saving…' : 'Draft'}
