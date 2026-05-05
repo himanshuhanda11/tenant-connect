@@ -349,19 +349,15 @@ export default function ContactSegments() {
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
-                            <DropdownMenuItem>
-                              <Play className="h-4 w-4 mr-2" />
-                              View Contacts
-                            </DropdownMenuItem>
-                            <DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleUseInCampaign(segment)}>
                               <Send className="h-4 w-4 mr-2" />
                               Use in Campaign
                             </DropdownMenuItem>
-                            <DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleUseInAutomation(segment)}>
                               <Zap className="h-4 w-4 mr-2" />
                               Use in Automation
                             </DropdownMenuItem>
-                            <DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleEditSegment(segment)}>
                               <Pencil className="h-4 w-4 mr-2" />
                               Edit Segment
                             </DropdownMenuItem>
