@@ -346,14 +346,14 @@ export function useInboxConversations(view: InboxView, filters: InboxFilters) {
     };
   }, [currentTenant?.id, fetchConversations]);
 
-  // Polling fallback — refresh conversations every 5 seconds for reliability
+  // Polling fallback — realtime handles most updates; poll less aggressively (20s)
+  // and only when the tab is visible to avoid wasted work on background tabs.
   useEffect(() => {
     if (!currentTenant?.id) return;
-
     const interval = setInterval(() => {
+      if (typeof document !== 'undefined' && document.visibilityState !== 'visible') return;
       fetchConversations(true);
-    }, 5000);
-
+    }, 20000);
     return () => clearInterval(interval);
   }, [currentTenant?.id, fetchConversations]);
 
