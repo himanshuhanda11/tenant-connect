@@ -326,9 +326,12 @@ export function WorkflowBuilder({ workflow, open, onOpenChange, onSave }: Workfl
         </SheetHeader>
 
         <ScrollArea className="flex-1 overflow-auto">
-          <div className="p-3 xs:p-4 sm:p-6 space-y-4 xs:space-y-5 sm:space-y-6 pb-32 xs:pb-6">
+          <fieldset
+            disabled={saving}
+            className={`p-3 xs:p-4 sm:p-6 space-y-4 xs:space-y-5 sm:space-y-6 pb-32 xs:pb-6 border-0 m-0 min-w-0 transition-opacity ${saving ? 'opacity-70 cursor-wait' : ''}`}
+          >
             {/* WHEN - Trigger Section */}
-            <Card className="border-primary/50">
+            <Card ref={triggerSectionRef} className={`border-primary/50 ${errors.trigger ? 'ring-2 ring-destructive ring-offset-2 ring-offset-background' : ''}`}>
               <Collapsible defaultOpen>
                 <CollapsibleTrigger asChild>
                   <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors p-3 xs:p-4 sm:p-6">
