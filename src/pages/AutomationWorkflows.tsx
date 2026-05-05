@@ -175,66 +175,66 @@ export default function AutomationWorkflows() {
         {/* Stats Cards */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-4">
           <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-primary/10">
-                  <Zap className="h-5 w-5 text-primary" />
+            <CardContent className="p-3 sm:p-4">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="p-1.5 sm:p-2 rounded-lg bg-primary/10 shrink-0">
+                  <Zap className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
                 </div>
-                <div>
-                  <p className="text-2xl font-bold">{workflows.length}</p>
-                  <p className="text-sm text-muted-foreground">Total</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-green-100 dark:bg-green-900/30">
-                  <PlayCircle className="h-5 w-5 text-green-600" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold">{activeCount}</p>
-                  <p className="text-sm text-muted-foreground">Active</p>
+                <div className="min-w-0">
+                  <p className="text-lg sm:text-2xl font-bold leading-tight">{workflows.length}</p>
+                  <p className="text-xs sm:text-sm text-muted-foreground truncate">Total</p>
                 </div>
               </div>
             </CardContent>
           </Card>
           <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-amber-100 dark:bg-amber-900/30">
-                  <PauseCircle className="h-5 w-5 text-amber-600" />
+            <CardContent className="p-3 sm:p-4">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="p-1.5 sm:p-2 rounded-lg bg-green-100 dark:bg-green-900/30 shrink-0">
+                  <PlayCircle className="h-4 w-4 sm:h-5 sm:w-5 text-green-600" />
                 </div>
-                <div>
-                  <p className="text-2xl font-bold">{pausedCount}</p>
-                  <p className="text-sm text-muted-foreground">Paused</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-muted">
-                  <Settings className="h-5 w-5 text-muted-foreground" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold">{draftCount}</p>
-                  <p className="text-sm text-muted-foreground">Drafts</p>
+                <div className="min-w-0">
+                  <p className="text-lg sm:text-2xl font-bold leading-tight">{activeCount}</p>
+                  <p className="text-xs sm:text-sm text-muted-foreground truncate">Active</p>
                 </div>
               </div>
             </CardContent>
           </Card>
           <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-blue-100 dark:bg-blue-900/30">
-                  <Activity className="h-5 w-5 text-blue-600" />
+            <CardContent className="p-3 sm:p-4">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="p-1.5 sm:p-2 rounded-lg bg-amber-100 dark:bg-amber-900/30 shrink-0">
+                  <PauseCircle className="h-4 w-4 sm:h-5 sm:w-5 text-amber-600" />
                 </div>
-                <div>
-                  <p className="text-2xl font-bold">{Object.keys(TRIGGER_DEFINITIONS).length}</p>
-                  <p className="text-sm text-muted-foreground">Triggers</p>
+                <div className="min-w-0">
+                  <p className="text-lg sm:text-2xl font-bold leading-tight">{pausedCount}</p>
+                  <p className="text-xs sm:text-sm text-muted-foreground truncate">Paused</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-3 sm:p-4">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="p-1.5 sm:p-2 rounded-lg bg-muted shrink-0">
+                  <Settings className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-lg sm:text-2xl font-bold leading-tight">{draftCount}</p>
+                  <p className="text-xs sm:text-sm text-muted-foreground truncate">Drafts</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="col-span-2 sm:col-span-1">
+            <CardContent className="p-3 sm:p-4">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="p-1.5 sm:p-2 rounded-lg bg-blue-100 dark:bg-blue-900/30 shrink-0">
+                  <Activity className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-lg sm:text-2xl font-bold leading-tight">{Object.keys(TRIGGER_DEFINITIONS).length}</p>
+                  <p className="text-xs sm:text-sm text-muted-foreground truncate">Triggers</p>
                 </div>
               </div>
             </CardContent>
@@ -242,42 +242,45 @@ export default function AutomationWorkflows() {
         </div>
 
         <Tabs defaultValue="workflows" className="space-y-4">
-          <TabsList>
-            <TabsTrigger value="workflows">
-              <Zap className="h-4 w-4 mr-2" />
-              My Workflows
-            </TabsTrigger>
-            <TabsTrigger value="starters">
-              <Sparkles className="h-4 w-4 mr-2" />
-              Templates
-            </TabsTrigger>
-            <TabsTrigger value="features">
-              <LayoutGrid className="h-4 w-4 mr-2" />
-              Features
-            </TabsTrigger>
-            <TabsTrigger value="analytics">
-              <BarChart3 className="h-4 w-4 mr-2" />
-              Analytics
-            </TabsTrigger>
-          </TabsList>
+          <div className="-mx-3 sm:mx-0 overflow-x-auto scrollbar-hide">
+            <TabsList className="w-max min-w-full sm:w-auto sm:min-w-0 px-3 sm:px-0">
+              <TabsTrigger value="workflows" className="text-xs sm:text-sm whitespace-nowrap">
+                <Zap className="h-4 w-4 mr-1.5 sm:mr-2" />
+                <span className="sm:inline">My </span>Workflows
+              </TabsTrigger>
+              <TabsTrigger value="starters" className="text-xs sm:text-sm whitespace-nowrap">
+                <Sparkles className="h-4 w-4 mr-1.5 sm:mr-2" />
+                Templates
+              </TabsTrigger>
+              <TabsTrigger value="features" className="text-xs sm:text-sm whitespace-nowrap">
+                <LayoutGrid className="h-4 w-4 mr-1.5 sm:mr-2" />
+                Features
+              </TabsTrigger>
+              <TabsTrigger value="analytics" className="text-xs sm:text-sm whitespace-nowrap">
+                <BarChart3 className="h-4 w-4 mr-1.5 sm:mr-2" />
+                Analytics
+              </TabsTrigger>
+            </TabsList>
+          </div>
 
           <TabsContent value="workflows" className="space-y-4">
             {/* Filters */}
-            <div className="flex flex-col sm:flex-row gap-4">
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
                   placeholder="Search workflows..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-9"
+                  className="pl-9 h-10"
                 />
               </div>
-              <div className="flex gap-2">
+              <div className="flex gap-2 overflow-x-auto -mx-1 px-1 sm:mx-0 sm:px-0 scrollbar-hide">
                 <Button
                   variant={statusFilter === 'all' ? 'default' : 'outline'}
                   size="sm"
                   onClick={() => setStatusFilter('all')}
+                  className="h-9 flex-1 sm:flex-none whitespace-nowrap"
                 >
                   All
                 </Button>
@@ -285,6 +288,7 @@ export default function AutomationWorkflows() {
                   variant={statusFilter === 'active' ? 'default' : 'outline'}
                   size="sm"
                   onClick={() => setStatusFilter('active')}
+                  className="h-9 flex-1 sm:flex-none whitespace-nowrap"
                 >
                   Active
                 </Button>
@@ -292,6 +296,7 @@ export default function AutomationWorkflows() {
                   variant={statusFilter === 'paused' ? 'default' : 'outline'}
                   size="sm"
                   onClick={() => setStatusFilter('paused')}
+                  className="h-9 flex-1 sm:flex-none whitespace-nowrap"
                 >
                   Paused
                 </Button>
@@ -299,6 +304,7 @@ export default function AutomationWorkflows() {
                   variant={statusFilter === 'draft' ? 'default' : 'outline'}
                   size="sm"
                   onClick={() => setStatusFilter('draft')}
+                  className="h-9 flex-1 sm:flex-none whitespace-nowrap"
                 >
                   Draft
                 </Button>
@@ -349,7 +355,7 @@ export default function AutomationWorkflows() {
               <p className="text-muted-foreground mb-4">
                 One-click install these pre-built automations to get started quickly
               </p>
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {starterAutomations.map(starter => (
                   <StarterAutomationCard
                     key={starter.id}
@@ -373,7 +379,7 @@ export default function AutomationWorkflows() {
                 <CardDescription>Start your workflow based on these events</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="grid md:grid-cols-3 lg:grid-cols-4 gap-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
                   {Object.entries(TRIGGER_DEFINITIONS).map(([type, def]) => (
                     <div key={type} className="flex items-center gap-2 p-2 rounded-lg bg-muted/50">
                       <Zap className="h-4 w-4 text-primary shrink-0" />
@@ -394,7 +400,7 @@ export default function AutomationWorkflows() {
                 <CardDescription>Filter when actions should execute</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="grid md:grid-cols-3 lg:grid-cols-4 gap-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
                   {Object.entries(CONDITION_DEFINITIONS).map(([type, def]) => (
                     <div key={type} className="flex items-center gap-2 p-2 rounded-lg bg-muted/50">
                       <Filter className="h-4 w-4 text-amber-500 shrink-0" />
@@ -415,7 +421,7 @@ export default function AutomationWorkflows() {
                 <CardDescription>What happens when conditions are met</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="grid md:grid-cols-3 lg:grid-cols-4 gap-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
                   {Object.entries(ACTION_DEFINITIONS).map(([type, def]) => (
                     <div key={type} className="flex items-center gap-2 p-2 rounded-lg bg-muted/50">
                       <MessageSquare className="h-4 w-4 text-green-500 shrink-0" />
@@ -436,7 +442,7 @@ export default function AutomationWorkflows() {
                 <CardDescription>Built-in protections to prevent spam and errors</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                   <div className="p-4 rounded-lg border">
                     <div className="flex items-center gap-2 mb-2">
                       <Clock className="h-4 w-4 text-blue-500" />
