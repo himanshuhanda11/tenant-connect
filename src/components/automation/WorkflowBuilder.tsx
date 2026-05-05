@@ -201,22 +201,21 @@ export function WorkflowBuilder({ workflow, open, onOpenChange, onSave }: Workfl
                 placeholder="Add description..."
               />
             </div>
-            <div className="flex gap-2 flex-shrink-0">
-              <Button variant="outline" size="sm" onClick={() => handleSave(false)} disabled={saving} className="text-xs xs:text-sm h-8 xs:h-9">
-                <Save className="h-3.5 w-3.5 xs:h-4 xs:w-4 mr-1.5 xs:mr-2" />
-                <span className="hidden xs:inline">Save </span>Draft
+            <div className="hidden xs:flex gap-2 flex-shrink-0">
+              <Button variant="outline" size="sm" onClick={() => handleSave(false)} disabled={saving} className="text-xs xs:text-sm h-9">
+                <Save className="h-4 w-4 mr-2" />
+                Save Draft
               </Button>
-              <Button size="sm" onClick={() => handleSave(true)} disabled={saving} className="text-xs xs:text-sm h-8 xs:h-9">
-                <PlayCircle className="h-3.5 w-3.5 xs:h-4 xs:w-4 mr-1.5 xs:mr-2" />
-                <span className="hidden xs:inline">Activate</span>
-                <span className="xs:hidden">Go</span>
+              <Button size="sm" onClick={() => handleSave(true)} disabled={saving} className="text-xs xs:text-sm h-9">
+                <PlayCircle className="h-4 w-4 mr-2" />
+                Activate
               </Button>
             </div>
           </div>
         </SheetHeader>
 
         <ScrollArea className="flex-1 overflow-auto">
-          <div className="p-3 xs:p-4 sm:p-6 space-y-4 xs:space-y-5 sm:space-y-6">
+          <div className="p-3 xs:p-4 sm:p-6 space-y-4 xs:space-y-5 sm:space-y-6 pb-24 xs:pb-6">
             {/* WHEN - Trigger Section */}
             <Card className="border-primary/50">
               <Collapsible defaultOpen>
@@ -360,7 +359,7 @@ export function WorkflowBuilder({ workflow, open, onOpenChange, onSave }: Workfl
                           key={preset.id}
                           variant="outline"
                           size="sm"
-                          className="text-xs h-7 xs:h-8"
+                          className="text-xs h-9 xs:h-8"
                           onClick={() => {
                             preset.conditions.forEach(c => addCondition(c.type));
                           }}
@@ -380,7 +379,7 @@ export function WorkflowBuilder({ workflow, open, onOpenChange, onSave }: Workfl
                               <div className="flex flex-col xs:flex-row items-stretch xs:items-center gap-2 xs:gap-3">
                                 {index > 0 && (
                                   <Select value={condition.config.operator || 'and'} onValueChange={(v) => updateCondition(condition.id, { config: { ...condition.config, operator: v } })}>
-                                    <SelectTrigger className="w-full xs:w-20 h-8 xs:h-9 text-xs xs:text-sm"><SelectValue /></SelectTrigger>
+                                    <SelectTrigger className="w-full xs:w-20 h-10 xs:h-9 text-xs xs:text-sm"><SelectValue /></SelectTrigger>
                                     <SelectContent>
                                       <SelectItem value="and">AND</SelectItem>
                                       <SelectItem value="or">OR</SelectItem>
@@ -388,7 +387,7 @@ export function WorkflowBuilder({ workflow, open, onOpenChange, onSave }: Workfl
                                   </Select>
                                 )}
                                 <Select value={condition.subType} onValueChange={(v) => updateCondition(condition.id, { subType: v, config: {} })}>
-                                  <SelectTrigger className="flex-1 h-8 xs:h-9 text-xs xs:text-sm"><SelectValue /></SelectTrigger>
+                                  <SelectTrigger className="flex-1 h-10 xs:h-9 text-xs xs:text-sm"><SelectValue /></SelectTrigger>
                                   <SelectContent>
                                     {Object.entries(CONDITION_DEFINITIONS).map(([type, def]) => (
                                       <SelectItem key={type} value={type}>{def.label}</SelectItem>
@@ -403,7 +402,7 @@ export function WorkflowBuilder({ workflow, open, onOpenChange, onSave }: Workfl
                                   value={condition.config.tag_name || ''}
                                   onChange={(e) => updateCondition(condition.id, { config: { ...condition.config, tag_name: e.target.value } })}
                                   placeholder="Tag name (e.g., VIP)"
-                                  className="h-8 xs:h-9 text-sm"
+                                  className="h-10 xs:h-9 text-sm"
                                 />
                               )}
 
@@ -413,20 +412,20 @@ export function WorkflowBuilder({ workflow, open, onOpenChange, onSave }: Workfl
                                     value={condition.config.attribute || ''}
                                     onChange={(e) => updateCondition(condition.id, { config: { ...condition.config, attribute: e.target.value } })}
                                     placeholder="Attribute (e.g., country)"
-                                    className="h-8 xs:h-9 text-sm"
+                                    className="h-10 xs:h-9 text-sm"
                                   />
                                   <Input
                                     value={condition.config.value || ''}
                                     onChange={(e) => updateCondition(condition.id, { config: { ...condition.config, value: e.target.value } })}
                                     placeholder="Value"
-                                    className="h-8 xs:h-9 text-sm"
+                                    className="h-10 xs:h-9 text-sm"
                                   />
                                 </div>
                               )}
 
                               {condition.subType === 'time_window' && (
                                 <Select value={condition.config.window || 'business_hours'} onValueChange={(v) => updateCondition(condition.id, { config: { ...condition.config, window: v } })}>
-                                  <SelectTrigger className="h-8 xs:h-9 text-sm"><SelectValue /></SelectTrigger>
+                                  <SelectTrigger className="h-10 xs:h-9 text-sm"><SelectValue /></SelectTrigger>
                                   <SelectContent>
                                     <SelectItem value="business_hours">During Business Hours</SelectItem>
                                     <SelectItem value="after_hours">After Hours</SelectItem>
@@ -437,7 +436,7 @@ export function WorkflowBuilder({ workflow, open, onOpenChange, onSave }: Workfl
 
                               {condition.subType === 'conversation_status_in' && (
                                 <Select value={condition.config.status || 'open'} onValueChange={(v) => updateCondition(condition.id, { config: { ...condition.config, status: v } })}>
-                                  <SelectTrigger className="h-8 xs:h-9 text-sm"><SelectValue /></SelectTrigger>
+                                  <SelectTrigger className="h-10 xs:h-9 text-sm"><SelectValue /></SelectTrigger>
                                   <SelectContent>
                                     <SelectItem value="open">Open</SelectItem>
                                     <SelectItem value="pending">Pending</SelectItem>
@@ -446,7 +445,7 @@ export function WorkflowBuilder({ workflow, open, onOpenChange, onSave }: Workfl
                                 </Select>
                               )}
                             </div>
-                            <Button variant="ghost" size="icon" onClick={() => removeCondition(condition.id)} className="h-7 w-7 xs:h-8 xs:w-8 flex-shrink-0">
+                            <Button variant="ghost" size="icon" onClick={() => removeCondition(condition.id)} className="h-9 w-9 xs:h-8 xs:w-8 flex-shrink-0">
                               <Trash2 className="h-3.5 w-3.5 xs:h-4 xs:w-4 text-destructive" />
                             </Button>
                           </div>
@@ -456,7 +455,7 @@ export function WorkflowBuilder({ workflow, open, onOpenChange, onSave }: Workfl
 
                     {/* Add Condition */}
                     <Select onValueChange={(v) => addCondition(v as ConditionType)}>
-                      <SelectTrigger className="border-dashed h-8 xs:h-9 text-xs xs:text-sm">
+                      <SelectTrigger className="border-dashed h-10 xs:h-9 text-xs xs:text-sm">
                         <Plus className="h-3.5 w-3.5 xs:h-4 xs:w-4 mr-1.5 xs:mr-2" />
                         Add Condition
                       </SelectTrigger>
@@ -509,7 +508,7 @@ export function WorkflowBuilder({ workflow, open, onOpenChange, onSave }: Workfl
                             <div className="flex-1 space-y-2 xs:space-y-3 min-w-0">
                               <div className="flex items-center gap-2 xs:gap-3">
                                 <Select value={action.subType} onValueChange={(v) => updateAction(action.id, { subType: v, type: v === 'delay' ? 'delay' : 'action', config: {} })}>
-                                  <SelectTrigger className="flex-1 h-8 xs:h-9 text-xs xs:text-sm"><SelectValue /></SelectTrigger>
+                                  <SelectTrigger className="flex-1 h-10 xs:h-9 text-xs xs:text-sm"><SelectValue /></SelectTrigger>
                                   <SelectContent>
                                     <SelectItem value="delay">⏱ Wait / Delay</SelectItem>
                                     <Separator className="my-1" />
@@ -528,11 +527,11 @@ export function WorkflowBuilder({ workflow, open, onOpenChange, onSave }: Workfl
                                       type="number"
                                       value={action.config.duration || 5}
                                       onChange={(e) => updateAction(action.id, { config: { ...action.config, duration: parseInt(e.target.value) } })}
-                                      className="w-20 xs:w-24 h-8 xs:h-9 text-sm"
+                                      className="w-20 xs:w-24 h-10 xs:h-9 text-sm"
                                       min={1}
                                     />
                                     <Select value={action.config.unit || 'minutes'} onValueChange={(v) => updateAction(action.id, { config: { ...action.config, unit: v } })}>
-                                      <SelectTrigger className="w-24 xs:w-32 h-8 xs:h-9 text-xs xs:text-sm"><SelectValue /></SelectTrigger>
+                                      <SelectTrigger className="w-24 xs:w-32 h-10 xs:h-9 text-xs xs:text-sm"><SelectValue /></SelectTrigger>
                                       <SelectContent>
                                         <SelectItem value="seconds">Seconds</SelectItem>
                                         <SelectItem value="minutes">Minutes</SelectItem>
@@ -558,10 +557,10 @@ export function WorkflowBuilder({ workflow, open, onOpenChange, onSave }: Workfl
                                     value={action.config.template_name || ''}
                                     onChange={(e) => updateAction(action.id, { config: { ...action.config, template_name: e.target.value } })}
                                     placeholder="Template name"
-                                    className="h-8 xs:h-9 text-sm"
+                                    className="h-10 xs:h-9 text-sm"
                                   />
                                   <Select value={action.config.language || 'en'} onValueChange={(v) => updateAction(action.id, { config: { ...action.config, language: v } })}>
-                                    <SelectTrigger className="h-8 xs:h-9 text-xs xs:text-sm"><SelectValue /></SelectTrigger>
+                                    <SelectTrigger className="h-10 xs:h-9 text-xs xs:text-sm"><SelectValue /></SelectTrigger>
                                     <SelectContent>
                                       <SelectItem value="en">English</SelectItem>
                                       <SelectItem value="es">Spanish</SelectItem>
@@ -580,14 +579,14 @@ export function WorkflowBuilder({ workflow, open, onOpenChange, onSave }: Workfl
                                   value={action.config.tag_name || ''}
                                   onChange={(e) => updateAction(action.id, { config: { ...action.config, tag_name: e.target.value } })}
                                   placeholder="Tag name"
-                                  className="h-8 xs:h-9 text-sm"
+                                  className="h-10 xs:h-9 text-sm"
                                 />
                               )}
 
                               {action.subType === 'assign_agent' && (
                                 <div className="grid grid-cols-1 xs:grid-cols-2 gap-2">
                                   <Select value={action.config.strategy || 'round_robin'} onValueChange={(v) => updateAction(action.id, { config: { ...action.config, strategy: v } })}>
-                                    <SelectTrigger className="h-8 xs:h-9 text-xs xs:text-sm"><SelectValue placeholder="Assignment strategy" /></SelectTrigger>
+                                    <SelectTrigger className="h-10 xs:h-9 text-xs xs:text-sm"><SelectValue placeholder="Assignment strategy" /></SelectTrigger>
                                     <SelectContent>
                                       <SelectItem value="round_robin">Round Robin</SelectItem>
                                       <SelectItem value="least_busy">Least Busy</SelectItem>
@@ -598,14 +597,14 @@ export function WorkflowBuilder({ workflow, open, onOpenChange, onSave }: Workfl
                                     value={action.config.team_id || ''}
                                     onChange={(e) => updateAction(action.id, { config: { ...action.config, team_id: e.target.value } })}
                                     placeholder="Team ID (optional)"
-                                    className="h-8 xs:h-9 text-sm"
+                                    className="h-10 xs:h-9 text-sm"
                                   />
                                 </div>
                               )}
 
                               {action.subType === 'set_priority' && (
                                 <Select value={action.config.priority || 'medium'} onValueChange={(v) => updateAction(action.id, { config: { ...action.config, priority: v } })}>
-                                  <SelectTrigger className="h-8 xs:h-9 text-sm"><SelectValue /></SelectTrigger>
+                                  <SelectTrigger className="h-10 xs:h-9 text-sm"><SelectValue /></SelectTrigger>
                                   <SelectContent>
                                     <SelectItem value="low">Low Priority</SelectItem>
                                     <SelectItem value="medium">Medium Priority</SelectItem>
@@ -616,7 +615,7 @@ export function WorkflowBuilder({ workflow, open, onOpenChange, onSave }: Workfl
 
                               {action.subType === 'set_status' && (
                                 <Select value={action.config.status || 'open'} onValueChange={(v) => updateAction(action.id, { config: { ...action.config, status: v } })}>
-                                  <SelectTrigger className="h-8 xs:h-9 text-sm"><SelectValue /></SelectTrigger>
+                                  <SelectTrigger className="h-10 xs:h-9 text-sm"><SelectValue /></SelectTrigger>
                                   <SelectContent>
                                     <SelectItem value="open">Open</SelectItem>
                                     <SelectItem value="pending">Pending</SelectItem>
@@ -631,13 +630,13 @@ export function WorkflowBuilder({ workflow, open, onOpenChange, onSave }: Workfl
                                     value={action.config.attribute || ''}
                                     onChange={(e) => updateAction(action.id, { config: { ...action.config, attribute: e.target.value } })}
                                     placeholder="Field name"
-                                    className="h-8 xs:h-9 text-sm"
+                                    className="h-10 xs:h-9 text-sm"
                                   />
                                   <Input
                                     value={action.config.value || ''}
                                     onChange={(e) => updateAction(action.id, { config: { ...action.config, value: e.target.value } })}
                                     placeholder="Value"
-                                    className="h-8 xs:h-9 text-sm"
+                                    className="h-10 xs:h-9 text-sm"
                                   />
                                 </div>
                               )}
@@ -658,10 +657,10 @@ export function WorkflowBuilder({ workflow, open, onOpenChange, onSave }: Workfl
                                     value={action.config.task_title || ''}
                                     onChange={(e) => updateAction(action.id, { config: { ...action.config, task_title: e.target.value } })}
                                     placeholder="Task title"
-                                    className="h-8 xs:h-9 text-sm"
+                                    className="h-10 xs:h-9 text-sm"
                                   />
                                   <Select value={action.config.task_due || 'tomorrow'} onValueChange={(v) => updateAction(action.id, { config: { ...action.config, task_due: v } })}>
-                                    <SelectTrigger className="h-8 xs:h-9 text-xs xs:text-sm"><SelectValue placeholder="Due date" /></SelectTrigger>
+                                    <SelectTrigger className="h-10 xs:h-9 text-xs xs:text-sm"><SelectValue placeholder="Due date" /></SelectTrigger>
                                     <SelectContent>
                                       <SelectItem value="now">Now</SelectItem>
                                       <SelectItem value="1_hour">In 1 hour</SelectItem>
@@ -676,7 +675,7 @@ export function WorkflowBuilder({ workflow, open, onOpenChange, onSave }: Workfl
                                 <div className="space-y-2">
                                   <div className="flex gap-2">
                                     <Select value={action.config.method || 'POST'} onValueChange={(v) => updateAction(action.id, { config: { ...action.config, method: v } })}>
-                                      <SelectTrigger className="w-20 xs:w-24 h-8 xs:h-9 text-xs xs:text-sm"><SelectValue /></SelectTrigger>
+                                      <SelectTrigger className="w-20 xs:w-24 h-10 xs:h-9 text-xs xs:text-sm"><SelectValue /></SelectTrigger>
                                       <SelectContent>
                                         <SelectItem value="POST">POST</SelectItem>
                                         <SelectItem value="PUT">PUT</SelectItem>
@@ -686,13 +685,13 @@ export function WorkflowBuilder({ workflow, open, onOpenChange, onSave }: Workfl
                                       value={action.config.url || ''}
                                       onChange={(e) => updateAction(action.id, { config: { ...action.config, url: e.target.value } })}
                                       placeholder="https://api.example.com/webhook"
-                                      className="flex-1 h-8 xs:h-9 text-sm"
+                                      className="flex-1 h-10 xs:h-9 text-sm"
                                     />
                                   </div>
                                 </div>
                               )}
                             </div>
-                            <Button variant="ghost" size="icon" onClick={() => removeAction(action.id)} className="h-7 w-7 xs:h-8 xs:w-8 flex-shrink-0">
+                            <Button variant="ghost" size="icon" onClick={() => removeAction(action.id)} className="h-9 w-9 xs:h-8 xs:w-8 flex-shrink-0">
                               <Trash2 className="h-3.5 w-3.5 xs:h-4 xs:w-4 text-destructive" />
                             </Button>
                           </div>
@@ -703,7 +702,7 @@ export function WorkflowBuilder({ workflow, open, onOpenChange, onSave }: Workfl
                     {/* Add Action */}
                     <div className="flex gap-2">
                       <Select onValueChange={(v) => v === 'delay' ? addDelay() : addAction(v as ActionType)}>
-                        <SelectTrigger className="flex-1 border-dashed h-8 xs:h-9 text-xs xs:text-sm">
+                        <SelectTrigger className="flex-1 border-dashed h-10 xs:h-9 text-xs xs:text-sm">
                           <Plus className="h-3.5 w-3.5 xs:h-4 xs:w-4 mr-1.5 xs:mr-2" />
                           Add Action
                         </SelectTrigger>
@@ -750,7 +749,7 @@ export function WorkflowBuilder({ workflow, open, onOpenChange, onSave }: Workfl
                             type="number"
                             value={guardrails.max_messages_per_hour}
                             onChange={(e) => setGuardrails({ ...guardrails, max_messages_per_hour: parseInt(e.target.value) })}
-                            className="h-8 xs:h-9 sm:h-10 text-sm"
+                            className="h-10 xs:h-9 sm:h-10 text-sm"
                           />
                         </div>
                         <div>
@@ -759,7 +758,7 @@ export function WorkflowBuilder({ workflow, open, onOpenChange, onSave }: Workfl
                             type="number"
                             value={guardrails.max_messages_per_contact_per_day}
                             onChange={(e) => setGuardrails({ ...guardrails, max_messages_per_contact_per_day: parseInt(e.target.value) })}
-                            className="h-8 xs:h-9 sm:h-10 text-sm"
+                            className="h-10 xs:h-9 sm:h-10 text-sm"
                           />
                         </div>
                         <div>
@@ -768,7 +767,7 @@ export function WorkflowBuilder({ workflow, open, onOpenChange, onSave }: Workfl
                             type="number"
                             value={guardrails.cooldown_seconds}
                             onChange={(e) => setGuardrails({ ...guardrails, cooldown_seconds: parseInt(e.target.value) })}
-                            className="h-8 xs:h-9 sm:h-10 text-sm"
+                            className="h-10 xs:h-9 sm:h-10 text-sm"
                           />
                         </div>
                       </div>
@@ -811,6 +810,18 @@ export function WorkflowBuilder({ workflow, open, onOpenChange, onSave }: Workfl
             </Card>
           </div>
         </ScrollArea>
+
+        {/* Sticky mobile action bar */}
+        <div className="xs:hidden flex-shrink-0 border-t bg-background/95 backdrop-blur px-3 py-2.5 flex items-center gap-2 pb-[calc(0.625rem+env(safe-area-inset-bottom))]">
+          <Button variant="outline" size="lg" onClick={() => handleSave(false)} disabled={saving} className="flex-1 h-11">
+            <Save className="h-4 w-4 mr-2" />
+            Draft
+          </Button>
+          <Button size="lg" onClick={() => handleSave(true)} disabled={saving} className="flex-1 h-11">
+            <PlayCircle className="h-4 w-4 mr-2" />
+            Activate
+          </Button>
+        </div>
       </SheetContent>
     </Sheet>
   );
