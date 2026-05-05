@@ -48,14 +48,45 @@ const FILTER_LABELS: Record<string, string> = {
   source: 'Source',
 };
 
-function summarizeFilters(filters: SegmentFilters): string {
-  const parts: string[] = [];
-  Object.entries(filters || {}).forEach(([key, value]) => {
-    if (Array.isArray(value) && value.length > 0) {
-      parts.push(`${FILTER_LABELS[key] || key}: ${value.slice(0, 2).join(', ')}${value.length > 2 ? ` +${value.length - 2}` : ''}`);
-    }
+// Render order for predictable, scannable summaries
+const FILTER_ORDER = ['leadStatus', 'priority', 'mauStatus', 'source', 'country', 'tags'] as const;
+
+interface FilterSummaryPart {
+  key: string;
+  label: string;
+  display: string;
+  count: number;
+}
+
+function getFilterParts(filters: SegmentFilters): FilterSummaryPart[] {
+  if (!filters) return [];
+  const seen = new Set<string>();
+  const ordered: string[] = [
+    ...FILTER_ORDER.filter((k) => k in filters),
+    ...Object.keys(filters).filter((k) => !FILTER_ORDER.includes(k as typeof FILTER_ORDER[number])),
+  ];
+  const parts: FilterSummaryPart[] = [];
+  ordered.forEach((key) => {
+    if (seen.has(key)) return;
+    seen.add(key);
+    const value = (filters as Record<string, unknown>)[key];
+    if (!Array.isArray(value) || value.length === 0) return;
+    const shown = value.slice(0, 2).join(', ');
+    const extra = value.length > 2 ? ` +${value.length - 2}` : '';
+    parts.push({
+      key,
+      label: FILTER_LABELS[key] || key,
+      display: `${shown}${extra}`,
+      count: value.length,
+    });
   });
-  return parts.join(' · ') || 'No filters';
+  return parts;
+}
+
+function summarizeFilters(filters: SegmentFilters): string {
+  const parts = getFilterParts(filters);
+  if (parts.length === 0) return 'All contacts — no filters applied';
+  return parts.map((p) => `${p.label}: ${p.display}`).join(' · ');
 }
 
 export default function ContactSegments() {
