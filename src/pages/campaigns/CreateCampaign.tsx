@@ -878,16 +878,16 @@ export default function CreateCampaign() {
                 </Card>
 
                 {/* Action Buttons */}
-                <div className="flex items-center justify-between pt-4 border-t">
-                  <Button variant="outline" onClick={() => navigate('/campaigns')}>
+                <div className="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-between gap-3 pt-4 border-t">
+                  <Button variant="outline" className="w-full sm:w-auto" onClick={() => navigate('/campaigns')}>
                     Save as Draft
                   </Button>
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-3 w-full sm:w-auto">
                     {wizard.delivery.send_type === 'scheduled' ? (
-                      <Button 
-                        onClick={() => handleSubmit(false)} 
+                      <Button
+                        onClick={() => handleSubmit(false)}
                         disabled={isSubmitting}
-                        className="min-w-32"
+                        className="w-full sm:min-w-32"
                       >
                         {isSubmitting ? (
                           <Loader2 className="h-4 w-4 animate-spin" />
@@ -899,10 +899,10 @@ export default function CreateCampaign() {
                         )}
                       </Button>
                     ) : (
-                      <Button 
-                        onClick={() => handleSubmit(true)} 
+                      <Button
+                        onClick={() => handleSubmit(true)}
                         disabled={isSubmitting}
-                        className="min-w-32 bg-green-600 hover:bg-green-700"
+                        className="w-full sm:min-w-32 bg-green-600 hover:bg-green-700"
                       >
                         {isSubmitting ? (
                           <Loader2 className="h-4 w-4 animate-spin" />
