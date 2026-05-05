@@ -231,36 +231,15 @@ export default function ContactSegments() {
                           )}
                         </div>
                       </div>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-9 w-9 -mr-2 -mt-1 shrink-0">
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem>
-                            <Play className="h-4 w-4 mr-2" />View Contacts
-                          </DropdownMenuItem>
-                          <DropdownMenuItem>
-                            <Send className="h-4 w-4 mr-2" />Use in Campaign
-                          </DropdownMenuItem>
-                          <DropdownMenuItem>
-                            <Zap className="h-4 w-4 mr-2" />Use in Automation
-                          </DropdownMenuItem>
-                          <DropdownMenuItem>
-                            <Pencil className="h-4 w-4 mr-2" />Edit Segment
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleDuplicateSegment(segment)}>
-                            <Copy className="h-4 w-4 mr-2" />Duplicate
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            onClick={() => handleDeleteSegment(segment.id)}
-                            className="text-destructive"
-                          >
-                            <Trash2 className="h-4 w-4 mr-2" />Delete
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+                      <Button
+                        size="sm"
+                        variant="default"
+                        className="h-8 text-xs px-3 shrink-0"
+                        onClick={() => handleUseInCampaign(segment)}
+                      >
+                        <Send className="h-3 w-3 mr-1.5" />
+                        Use
+                      </Button>
                     </div>
 
                     <div className="flex flex-wrap items-center gap-1.5 mt-2.5">
@@ -279,15 +258,48 @@ export default function ContactSegments() {
                       {summarizeFilters(segment.filters)}
                     </p>
 
-                    <div className="flex items-center justify-between mt-3 pt-3 border-t border-border/60 gap-2">
-                      <span className="text-[11px] text-muted-foreground">
-                        Updated {formatDistanceToNow(new Date(segment.updated_at), { addSuffix: true })}
-                      </span>
-                      <Button size="sm" variant="outline" className="h-8 text-xs px-3">
-                        <Send className="h-3 w-3 mr-1.5" />
-                        Use
+                    <div className="grid grid-cols-4 gap-1.5 mt-3 pt-3 border-t border-border/60">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="h-9 px-0 text-[11px] flex-col gap-0.5"
+                        onClick={() => handleUseInAutomation(segment)}
+                      >
+                        <Zap className="h-3.5 w-3.5" />
+                        Flow
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="h-9 px-0 text-[11px] flex-col gap-0.5"
+                        onClick={() => handleEditSegment(segment)}
+                      >
+                        <Pencil className="h-3.5 w-3.5" />
+                        Edit
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="h-9 px-0 text-[11px] flex-col gap-0.5"
+                        onClick={() => handleDuplicateSegment(segment)}
+                      >
+                        <Copy className="h-3.5 w-3.5" />
+                        Copy
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="h-9 px-0 text-[11px] flex-col gap-0.5 text-destructive hover:text-destructive"
+                        onClick={() => handleDeleteSegment(segment.id)}
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                        Delete
                       </Button>
                     </div>
+
+                    <p className="text-[10px] text-muted-foreground mt-2 text-center">
+                      Updated {formatDistanceToNow(new Date(segment.updated_at), { addSuffix: true })}
+                    </p>
                   </div>
                 ))}
               </div>
