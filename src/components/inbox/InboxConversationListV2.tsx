@@ -195,7 +195,11 @@ export function InboxConversationListV2({
           </Button>
         </div>
         <p className="text-xs text-muted-foreground mb-3">
-          {filteredConversations.length} conversations{hasMore ? ` · Showing ${visibleCount}` : ''}{totalUnread > 0 && ` · ${totalUnread} unread`}
+          {(() => {
+            const localFiltered = dateFilter !== 'all' || statusFilter !== 'all' || assignmentFilter !== 'all' || !!searchQuery;
+            const display = !localFiltered && typeof totalCount === 'number' ? totalCount : filteredConversations.length;
+            return `${display} conversations`;
+          })()}{hasMore ? ` · Showing ${visibleCount}` : ''}{totalUnread > 0 && ` · ${totalUnread} unread`}
         </p>
 
         {/* Search */}
