@@ -60,25 +60,23 @@ export default function Login() {
         }, 8000);
 
         try {
-          // User exists, check their status
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('onboarding_step')
-            .eq('id', user.id)
-            .maybeSingle();
+          // Run all auth-status queries in parallel to minimize round-trip latency
+          const [profileRes, membershipsRes, assignedRolesRes] = await Promise.all([
+            supabase.from('profiles').select('onboarding_step').eq('id', user.id).maybeSingle(),
+            supabase.from('tenant_members').select('tenant_id, role').eq('user_id', user.id),
+            supabase.from('user_roles').select('tenant_id, roles(base_role)').eq('user_id', user.id),
+          ]);
+
+          const profile = profileRes.data;
+          const memberships = membershipsRes.data;
+          const assignedRoles = assignedRolesRes.data;
 
           // Check onboarding status — but skip for team members who already belong to a tenant
           if (profile?.onboarding_step !== 'completed') {
-            const { data: existingMembership } = await supabase
-              .from('tenant_members')
-              .select('id')
-              .eq('user_id', user.id)
-              .limit(1)
-              .maybeSingle();
-
-            if (existingMembership) {
-              // Team member — auto-complete onboarding
-              await supabase.from('profiles').update({ onboarding_step: 'completed' }).eq('id', user.id);
+            const hasMembership = (memberships || []).length > 0;
+            if (hasMembership) {
+              // Team member — auto-complete onboarding (fire and forget)
+              supabase.from('profiles').update({ onboarding_step: 'completed' }).eq('id', user.id);
             } else {
               clearTimeout(safetyTimer);
               if (profile?.onboarding_step === 'org_done') {
@@ -89,17 +87,6 @@ export default function Login() {
               return;
             }
           }
-
-          // Check if user is an agent — redirect directly to inbox
-          const { data: memberships } = await supabase
-            .from('tenant_members')
-            .select('tenant_id, role')
-            .eq('user_id', user.id);
-
-          const { data: assignedRoles } = await supabase
-            .from('user_roles')
-            .select('tenant_id, roles(base_role)')
-            .eq('user_id', user.id);
 
           const assignedRoleMap = new Map<string, string | null>();
 
