@@ -96,7 +96,24 @@ export function WorkflowBuilder({ workflow, open, onOpenChange, onSave }: Workfl
   }, [workflow, open]);
 
   const nameInputRef = useRef<HTMLInputElement>(null);
+  const triggerSectionRef = useRef<HTMLDivElement>(null);
+  const conditionsSectionRef = useRef<HTMLDivElement>(null);
+  const actionsSectionRef = useRef<HTMLDivElement>(null);
+  const stickyBarRef = useRef<HTMLDivElement>(null);
   const [savingMode, setSavingMode] = useState<'draft' | 'activate' | null>(null);
+  const [errors, setErrors] = useState<{ name?: string; trigger?: string; actions?: string }>({});
+
+  // Scroll element into view, accounting for the mobile sticky action bar height.
+  const scrollIntoViewSafe = (el: HTMLElement | null) => {
+    if (!el) return;
+    const barHeight = stickyBarRef.current?.offsetHeight ?? 0;
+    const rect = el.getBoundingClientRect();
+    const viewportH = window.innerHeight;
+    const safeBottom = viewportH - barHeight - 24;
+    if (rect.top < 80 || rect.bottom > safeBottom) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  };
 
   const validate = (activate: boolean): string | null => {
     if (!name.trim()) return 'Please enter a workflow name';
