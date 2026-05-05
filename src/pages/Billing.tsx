@@ -29,11 +29,15 @@ export default function Billing() {
   const currentPlanId = entitlements?.plan_id ?? subscription?.plan_id ?? 'free';
   const isTopPlan = currentPlanId === 'business';
 
+  const PLAN_RANK: Record<string, number> = { free: 0, basic: 1, pro: 2, business: 3 };
   const handlePlanSelect = (plan: Plan) => {
-    if (plan.name === 'Business') {
+    const currentRank = PLAN_RANK[currentPlanId] ?? 0;
+    const targetRank = PLAN_RANK[plan.id] ?? 0;
+    if (plan.id === currentPlanId) return;
+    if (plan.name === 'Business' && currentPlanId !== 'business') {
       toast.info('Contact sales for Business pricing');
-    } else if (isTopPlan) {
-      toast.info('You are already on the highest plan');
+    } else if (targetRank < currentRank) {
+      toast.info('Contact support to downgrade your plan');
     } else {
       toast.info('Payment integration pending — upgrade will be available soon');
     }
@@ -131,6 +135,7 @@ export default function Billing() {
                       isCurrentPlan={currentPlanId === plan.id}
                       isYearly={isYearly}
                       isRecommended={!isTopPlan && plan.name === 'Pro'}
+                      currentPlanId={currentPlanId}
                       onSelect={handlePlanSelect}
                     />
                   ))}

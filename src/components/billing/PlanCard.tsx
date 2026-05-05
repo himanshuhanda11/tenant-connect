@@ -53,10 +53,17 @@ interface PlanCardProps {
   isCurrentPlan: boolean;
   isYearly: boolean;
   isRecommended?: boolean;
+  currentPlanId?: string;
   onSelect: (plan: Plan) => void;
 }
 
-export function PlanCard({ plan, isCurrentPlan, isYearly, isRecommended, onSelect }: PlanCardProps) {
+const PLAN_RANK: Record<string, number> = { free: 0, basic: 1, pro: 2, business: 3 };
+
+export function PlanCard({ plan, isCurrentPlan, isYearly, isRecommended, currentPlanId, onSelect }: PlanCardProps) {
+  const currentRank = PLAN_RANK[(currentPlanId ?? 'free').toLowerCase()] ?? 0;
+  const thisRank = PLAN_RANK[plan.id?.toLowerCase()] ?? PLAN_RANK[plan.name?.toLowerCase()] ?? 0;
+  const isDowngrade = !isCurrentPlan && thisRank < currentRank;
+  const isUpgrade = !isCurrentPlan && thisRank > currentRank;
   const price = isYearly ? (plan.price_yearly || plan.price_monthly * 12) : plan.price_monthly;
   const monthlyEquivalent = isYearly ? Math.round(price / 12) : price;
   const isBusiness = plan.name === 'Business';
@@ -176,13 +183,21 @@ export function PlanCard({ plan, isCurrentPlan, isYearly, isRecommended, onSelec
             "w-full font-semibold text-sm gap-2 transition-all",
             isCurrentPlan
               ? "bg-muted text-muted-foreground cursor-default"
-              : theme.buttonGradient
+              : isDowngrade
+                ? "bg-muted hover:bg-muted/80 text-foreground border border-border"
+                : theme.buttonGradient
           )}
-          variant={isCurrentPlan ? 'outline' : 'default'}
+          variant={isCurrentPlan || isDowngrade ? 'outline' : 'default'}
           disabled={isCurrentPlan}
           onClick={() => onSelect(plan)}
         >
-          {isCurrentPlan ? '✓ Current Plan' : isCustomPrice ? 'Contact Sales' : 'Upgrade'}
+          {isCurrentPlan
+            ? '✓ Current Plan'
+            : isCustomPrice
+              ? 'Contact Sales'
+              : isDowngrade
+                ? 'Downgrade'
+                : 'Upgrade'}
           {!isCurrentPlan && <ArrowRight className="w-3.5 h-3.5" />}
         </Button>
       </div>
