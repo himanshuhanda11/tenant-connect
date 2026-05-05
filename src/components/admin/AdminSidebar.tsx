@@ -6,7 +6,7 @@ import { Separator } from '@/components/ui/separator';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import {
   Shield, LayoutDashboard, Building2, ScrollText, Users, CreditCard,
-  ChevronLeft, ChevronRight, ArrowLeft, Settings, Siren, Phone
+  ChevronLeft, ChevronRight, ArrowLeft, Settings, Siren, Phone, Inbox
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
