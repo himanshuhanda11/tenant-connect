@@ -41,9 +41,29 @@ const schema = z.object({
 
 type FormData = z.infer<typeof schema>;
 
-const TIME_SLOTS = [
-  '10:00 AM', '11:00 AM', '12:00 PM', '01:00 PM',
-  '02:00 PM', '03:00 PM', '04:00 PM', '05:00 PM', '06:00 PM',
+// 24-hour coverage in 30-min increments
+const TIME_SLOTS: string[] = (() => {
+  const out: string[] = [];
+  for (let h = 0; h < 24; h++) {
+    for (const m of [0, 30]) {
+      const period = h < 12 ? 'AM' : 'PM';
+      const hour12 = ((h + 11) % 12) + 1;
+      out.push(`${String(hour12).padStart(2, '0')}:${m === 0 ? '00' : '30'} ${period}`);
+    }
+  }
+  return out;
+})();
+
+// Curated common timezones (browser TZ added dynamically if missing)
+const COMMON_TIMEZONES = [
+  'Asia/Kolkata', 'Asia/Dubai', 'Asia/Singapore', 'Asia/Hong_Kong', 'Asia/Tokyo',
+  'Asia/Karachi', 'Asia/Dhaka', 'Asia/Bangkok', 'Asia/Jakarta', 'Asia/Manila',
+  'Australia/Sydney', 'Australia/Melbourne', 'Pacific/Auckland',
+  'Europe/London', 'Europe/Paris', 'Europe/Berlin', 'Europe/Madrid', 'Europe/Amsterdam',
+  'Europe/Istanbul', 'Europe/Moscow', 'Africa/Cairo', 'Africa/Johannesburg', 'Africa/Lagos',
+  'America/New_York', 'America/Chicago', 'America/Denver', 'America/Los_Angeles',
+  'America/Toronto', 'America/Mexico_City', 'America/Sao_Paulo', 'America/Buenos_Aires',
+  'UTC',
 ];
 
 const TEAM_SIZES = ['Just me', '2–5', '6–20', '21–50', '51–200', '200+'];
