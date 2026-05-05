@@ -43,7 +43,7 @@ import { toast } from 'sonner';
 import { formatDistanceToNow } from 'date-fns';
 import { Segment, SegmentFilters } from '@/types/segment';
 import { CreateSegmentModal } from '@/components/contacts/CreateSegmentModal';
-import { useIsMobile } from '@/hooks/use-mobile';
+
 
 const FILTER_LABELS: Record<string, string> = {
   leadStatus: 'Status',
