@@ -131,6 +131,7 @@ export function useInboxConversations(view: InboxView, filters: InboxFilters) {
   const [conversations, setConversations] = useState<InboxConversation[]>(cached?.data ?? []);
   const [loading, setLoading] = useState(!cached);
   const [error, setError] = useState<string | null>(null);
+  const [totalCount, setTotalCount] = useState<number | null>(null);
   const inFlightRef = useRef<Promise<void> | null>(null);
 
   const initialLoadDone = useCallback(() => conversations.length > 0 || !loading, [conversations.length, loading]);
@@ -212,9 +213,39 @@ export function useInboxConversations(view: InboxView, filters: InboxFilters) {
         query = query.gt('unread_count', 0);
       }
 
-      const { data, error: queryError } = await query;
+      // Run a parallel exact-count query so UI shows the true total
+      // (Supabase caps row results at 1000, but count returns the real number)
+      let countQuery = supabase
+        .from('conversations')
+        .select('id', { count: 'exact', head: true })
+        .eq('tenant_id', currentTenant.id);
+      if (isAgent && user?.id) {
+        const agentCreatedAt = roleEntry.agentCreatedAt || new Date().toISOString();
+        countQuery = countQuery.or(
+          `assigned_to.eq.${user.id},claimed_by.eq.${user.id},and(assigned_to.is.null,created_at.gte.${agentCreatedAt})`
+        );
+      }
+      if (filters.status && filters.status !== 'all') {
+        const dbStatus = filters.status === 'pending' ? 'open' : filters.status;
+        countQuery = countQuery.eq('status', dbStatus);
+      }
+      if (filters.assignment === 'unassigned') {
+        countQuery = countQuery.is('assigned_to', null).is('claimed_at', null).neq('status', 'closed');
+      } else if (filters.assignment === 'assigned_pending' && user?.id) {
+        countQuery = countQuery.eq('assigned_to', user.id).is('claimed_at', null).neq('status', 'closed');
+      } else if (filters.assignment === 'mine' && user?.id) {
+        countQuery = countQuery.or(`assigned_to.eq.${user.id},claimed_by.eq.${user.id}`).neq('status', 'closed');
+      }
+      if (filters.priority && filters.priority !== 'all') countQuery = countQuery.eq('priority', filters.priority);
+      if (filters.hasUnread) countQuery = countQuery.gt('unread_count', 0);
+
+      const [{ data, error: queryError }, { count: exactCount }] = await Promise.all([
+        query,
+        countQuery,
+      ]);
 
       if (queryError) throw queryError;
+      setTotalCount(exactCount ?? null);
 
       let mapped = (data || []).map(mapConversation);
 
@@ -357,7 +388,7 @@ export function useInboxConversations(view: InboxView, filters: InboxFilters) {
     return () => clearInterval(interval);
   }, [currentTenant?.id, fetchConversations]);
 
-  return { conversations, loading, error, refetch: () => fetchConversations(true), updateConversation };
+  return { conversations, totalCount, loading, error, refetch: () => fetchConversations(true), updateConversation };
 }
 
 export function useInboxMessages(conversationId: string | null) {

@@ -64,7 +64,7 @@ export default function InboxPage() {
   }, [location.pathname]);
 
   // Hooks
-  const { conversations, loading: loadingConversations, refetch } = useInboxConversations(view, filters);
+  const { conversations, totalCount, loading: loadingConversations, refetch } = useInboxConversations(view, filters);
 
   // Apply CRM filter client-side for follow_up / junk views
   const filteredConversations = useMemo(() => {
@@ -218,6 +218,7 @@ export default function InboxPage() {
                     isMobile={true}
                     currentUserId={user?.id}
                     unreadNewCount={unreadNewCount}
+                    totalCount={totalCount ?? undefined}
                     onClearNotifications={clearNotifications}
                   />
                 </motion.div>
@@ -295,6 +296,7 @@ export default function InboxPage() {
               loading={loadingConversations}
               currentUserId={user?.id}
               unreadNewCount={unreadNewCount}
+              totalCount={totalCount ?? undefined}
               onClearNotifications={clearNotifications}
             />
           </div>
