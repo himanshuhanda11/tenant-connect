@@ -21,6 +21,7 @@ import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
+import SocialProofBar from '@/components/home/SocialProofBar';
 import SeoMeta from '@/components/seo/SeoMeta';
 import { Helmet } from 'react-helmet-async';
 import { cn } from '@/lib/utils';
@@ -223,8 +224,8 @@ export default function BookDemo() {
         <div className="absolute -bottom-32 -left-32 w-[420px] h-[420px] rounded-full bg-emerald-500/10 blur-[120px] pointer-events-none" />
 
         <div className="container mx-auto px-4 relative pt-10 pb-10 sm:pt-16 sm:pb-12 md:pt-24 md:pb-20">
-          <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center max-w-6xl mx-auto">
-            <motion.div initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }}>
+          <div className="grid lg:grid-cols-[1.05fr_1fr] gap-8 lg:gap-12 items-start max-w-6xl mx-auto">
+            <motion.div initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} className="lg:order-2 lg:sticky lg:top-24">
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-[11px] sm:text-xs font-semibold tracking-wide uppercase mb-4">
                 <PlayCircle className="w-3.5 h-3.5" />
                 Live Product Demo
@@ -262,17 +263,24 @@ export default function BookDemo() {
             <motion.div
               id="book"
               initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
+              className="lg:order-1 relative"
             >
-              <Card className="border-border/60 shadow-2xl shadow-primary/5">
+              <div className="absolute -inset-2 bg-gradient-to-br from-primary/25 via-emerald-500/15 to-teal-500/15 rounded-[2rem] blur-2xl opacity-70 pointer-events-none" />
+              <Card className="relative border-border/60 shadow-2xl shadow-primary/10 rounded-2xl overflow-hidden bg-card/95 backdrop-blur-xl">
+                <div className="h-1.5 w-full bg-gradient-to-r from-primary via-emerald-500 to-teal-500" />
                 <CardContent className="p-5 sm:p-6 md:p-8">
                   <div className="flex items-center gap-3 mb-6">
-                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-emerald-500 flex items-center justify-center shadow-lg shadow-primary/20">
+                    <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-primary to-emerald-500 flex items-center justify-center shadow-lg shadow-primary/30 ring-1 ring-white/20">
                       <Sparkles className="w-5 h-5 text-white" />
                     </div>
-                    <div>
+                    <div className="flex-1">
                       <h2 className="text-lg font-bold text-foreground">Pick a slot that suits you</h2>
                       <p className="text-xs text-muted-foreground">Free · 25 minutes · Zero obligations</p>
                     </div>
+                    <Badge variant="secondary" className="hidden sm:inline-flex bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20 text-[10px] font-semibold">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1.5 animate-pulse" />
+                      Available today
+                    </Badge>
                   </div>
 
                   <form onSubmit={onSubmit} className="space-y-4">
@@ -449,6 +457,9 @@ export default function BookDemo() {
           </div>
         </div>
       </section>
+
+      {/* Trusted by businesses */}
+      <SocialProofBar />
 
       {/* Why AiReatro */}
       <section className="py-16 md:py-24 bg-muted/30">
