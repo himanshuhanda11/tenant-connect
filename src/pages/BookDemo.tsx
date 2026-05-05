@@ -263,17 +263,24 @@ export default function BookDemo() {
             <motion.div
               id="book"
               initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
+              className="lg:order-1 relative"
             >
-              <Card className="border-border/60 shadow-2xl shadow-primary/5">
+              <div className="absolute -inset-2 bg-gradient-to-br from-primary/25 via-emerald-500/15 to-teal-500/15 rounded-[2rem] blur-2xl opacity-70 pointer-events-none" />
+              <Card className="relative border-border/60 shadow-2xl shadow-primary/10 rounded-2xl overflow-hidden bg-card/95 backdrop-blur-xl">
+                <div className="h-1.5 w-full bg-gradient-to-r from-primary via-emerald-500 to-teal-500" />
                 <CardContent className="p-5 sm:p-6 md:p-8">
                   <div className="flex items-center gap-3 mb-6">
-                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-emerald-500 flex items-center justify-center shadow-lg shadow-primary/20">
+                    <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-primary to-emerald-500 flex items-center justify-center shadow-lg shadow-primary/30 ring-1 ring-white/20">
                       <Sparkles className="w-5 h-5 text-white" />
                     </div>
-                    <div>
+                    <div className="flex-1">
                       <h2 className="text-lg font-bold text-foreground">Pick a slot that suits you</h2>
                       <p className="text-xs text-muted-foreground">Free · 25 minutes · Zero obligations</p>
                     </div>
+                    <Badge variant="secondary" className="hidden sm:inline-flex bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20 text-[10px] font-semibold">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1.5 animate-pulse" />
+                      Available today
+                    </Badge>
                   </div>
 
                   <form onSubmit={onSubmit} className="space-y-4">
