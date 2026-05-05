@@ -1,28 +1,26 @@
-import React, { useEffect, Component, ReactNode, ErrorInfo } from 'react';
+import React, { useEffect, Component, ReactNode, ErrorInfo, Suspense, lazy } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Skeleton } from '@/components/ui/skeleton';
 import { useAuth } from '@/contexts/AuthContext';
 import Footer from '@/components/layout/Footer';
 import Navbar from '@/components/layout/Navbar';
 import { JsonLd, organizationSchema, websiteSchema, softwareApplicationSchema } from '@/components/seo';
 import SeoMeta from '@/components/seo/SeoMeta';
-// Import homepage sections eagerly for preview stability
+// Above-the-fold: load eagerly for fast FCP
 import HeroSection from '@/components/home/HeroSection';
 import SocialProofBar from '@/components/home/SocialProofBar';
-import WhyAireatroBento from '@/components/home/WhyAireatroBento';
-import BusinessGrowthSection from '@/components/home/BusinessGrowthSection';
-import HowItWorksSection from '@/components/home/HowItWorksSection';
-import DifferentiatorCards from '@/components/home/DifferentiatorCards';
-import AIFlowBuilderSection from '@/components/home/AIFlowBuilderSection';
-import ProductTourSection from '@/components/home/ProductTourSection';
-import AICapabilitiesSection from '@/components/home/AICapabilitiesSection';
-import MetaAdsAttributionSection from '@/components/home/MetaAdsAttributionSection';
-import AdToConversionSection from '@/components/home/AdToConversionSection';
-import WhatsAppShowcaseSection from '@/components/home/WhatsAppShowcaseSection';
-import PricingPreview from '@/components/home/PricingPreview';
-import TestimonialsCarousel from '@/components/home/TestimonialsCarousel';
-import FinalCTANew from '@/components/home/FinalCTANew';
-import AwardsTrustSection from '@/components/home/AwardsTrustSection';
+
+// Below-the-fold: lazy-load to shrink initial JS bundle
+const WhyAireatroBento = lazy(() => import('@/components/home/WhyAireatroBento'));
+const BusinessGrowthSection = lazy(() => import('@/components/home/BusinessGrowthSection'));
+const HowItWorksSection = lazy(() => import('@/components/home/HowItWorksSection'));
+const AICapabilitiesSection = lazy(() => import('@/components/home/AICapabilitiesSection'));
+const MetaAdsAttributionSection = lazy(() => import('@/components/home/MetaAdsAttributionSection'));
+const AdToConversionSection = lazy(() => import('@/components/home/AdToConversionSection'));
+const WhatsAppShowcaseSection = lazy(() => import('@/components/home/WhatsAppShowcaseSection'));
+const PricingPreview = lazy(() => import('@/components/home/PricingPreview'));
+const TestimonialsCarousel = lazy(() => import('@/components/home/TestimonialsCarousel'));
+const FinalCTANew = lazy(() => import('@/components/home/FinalCTANew'));
+const AwardsTrustSection = lazy(() => import('@/components/home/AwardsTrustSection'));
 
 // Error boundary with retry for lazy loaded components
 interface ErrorBoundaryState {
@@ -59,6 +57,8 @@ class SectionErrorBoundary extends Component<{ children: ReactNode }, ErrorBound
   }
 }
 
+const SectionFallback = () => <div className="min-h-[200px]" aria-hidden />;
+
 export default function Index() {
   const navigate = useNavigate();
   const { user, loading } = useAuth();
@@ -83,64 +83,23 @@ export default function Index() {
       <JsonLd data={[organizationSchema, websiteSchema, softwareApplicationSchema]} />
       <Navbar />
 
-      {/* Hero Section - loaded eagerly for fast FCP */}
+      {/* Hero + social proof load eagerly for fast FCP */}
       <HeroSection />
-
-      {/* Social Proof - loaded eagerly */}
       <SocialProofBar />
 
-      {/* Awards & Trust */}
-      <SectionErrorBoundary>
-        <AwardsTrustSection />
-      </SectionErrorBoundary>
-
-      {/* Why AiReatro USPs - moved right after social proof */}
-      <WhyAireatroBento />
-
-      {/* Business Growth Visual */}
-      <SectionErrorBoundary>
-        <BusinessGrowthSection />
-      </SectionErrorBoundary>
-
-      {/* How It Works Flow */}
-      <SectionErrorBoundary>
-        <HowItWorksSection />
-      </SectionErrorBoundary>
-
-      {/* AI Capabilities */}
-      <SectionErrorBoundary>
-        <AICapabilitiesSection />
-      </SectionErrorBoundary>
-
-      {/* Meta Ads Attribution */}
-      <SectionErrorBoundary>
-        <MetaAdsAttributionSection />
-      </SectionErrorBoundary>
-
-      {/* Ad to Conversion Journey */}
-      <SectionErrorBoundary>
-        <AdToConversionSection />
-      </SectionErrorBoundary>
-
-      {/* WhatsApp Commerce Showcase */}
-      <SectionErrorBoundary>
-        <WhatsAppShowcaseSection />
-      </SectionErrorBoundary>
-
-      {/* Pricing Preview */}
-      <SectionErrorBoundary>
-        <PricingPreview />
-      </SectionErrorBoundary>
-
-      {/* Testimonials */}
-      <SectionErrorBoundary>
-        <TestimonialsCarousel />
-      </SectionErrorBoundary>
-
-      {/* Final CTA */}
-      <SectionErrorBoundary>
-        <FinalCTANew />
-      </SectionErrorBoundary>
+      <Suspense fallback={<SectionFallback />}>
+        <SectionErrorBoundary><AwardsTrustSection /></SectionErrorBoundary>
+        <WhyAireatroBento />
+        <SectionErrorBoundary><BusinessGrowthSection /></SectionErrorBoundary>
+        <SectionErrorBoundary><HowItWorksSection /></SectionErrorBoundary>
+        <SectionErrorBoundary><AICapabilitiesSection /></SectionErrorBoundary>
+        <SectionErrorBoundary><MetaAdsAttributionSection /></SectionErrorBoundary>
+        <SectionErrorBoundary><AdToConversionSection /></SectionErrorBoundary>
+        <SectionErrorBoundary><WhatsAppShowcaseSection /></SectionErrorBoundary>
+        <SectionErrorBoundary><PricingPreview /></SectionErrorBoundary>
+        <SectionErrorBoundary><TestimonialsCarousel /></SectionErrorBoundary>
+        <SectionErrorBoundary><FinalCTANew /></SectionErrorBoundary>
+      </Suspense>
 
       <Footer />
     </div>
