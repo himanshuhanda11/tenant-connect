@@ -260,8 +260,16 @@ export function useInboxConversations(view: InboxView, filters: InboxFilters) {
   }, [currentTenant?.id, user?.id, view, filters, cacheKey]);
 
   useEffect(() => {
-    fetchConversations();
-  }, [fetchConversations]);
+    if (!cacheKey) { fetchConversations(); return; }
+    const entry = inboxCache.get(cacheKey);
+    if (entry && Date.now() - entry.ts < INBOX_TTL_MS) {
+      setConversations(entry.data);
+      setLoading(false);
+      return; // fresh — skip network
+    }
+    // Have stale cache → show it instantly while fetching in background
+    fetchConversations(!!entry);
+  }, [fetchConversations, cacheKey]);
 
   const updateConversation = useCallback((id: string, updates: Partial<InboxConversation>) => {
     setConversations(prev => prev.map(c =>
