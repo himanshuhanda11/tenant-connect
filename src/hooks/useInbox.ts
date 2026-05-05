@@ -105,12 +105,33 @@ function mapMessage(row: any): InboxMessage {
   };
 }
 
+// Module-level caches — avoid redundant network requests on /inbox revisits
+const INBOX_TTL_MS = 30_000;
+type InboxCacheEntry = { data: InboxConversation[]; ts: number };
+const inboxCache = new Map<string, InboxCacheEntry>();
+
+// Role + agent record rarely change — cache for the session
+const roleCache = new Map<string, { role: string | null; agentCreatedAt: string | null; ts: number }>();
+const ROLE_TTL_MS = 5 * 60_000;
+
+export function invalidateInboxConversationsCache(tenantId?: string) {
+  if (!tenantId) { inboxCache.clear(); return; }
+  for (const key of inboxCache.keys()) if (key.startsWith(`${tenantId}:`)) inboxCache.delete(key);
+}
+
+function inboxCacheKey(tenantId: string, userId: string, view: InboxView, filters: InboxFilters) {
+  return `${tenantId}:${userId}:${view}:${JSON.stringify(filters)}`;
+}
+
 export function useInboxConversations(view: InboxView, filters: InboxFilters) {
   const { currentTenant } = useTenant();
   const { user } = useAuth();
-  const [conversations, setConversations] = useState<InboxConversation[]>([]);
-  const [loading, setLoading] = useState(true);
+  const cacheKey = currentTenant?.id && user?.id ? inboxCacheKey(currentTenant.id, user.id, view, filters) : null;
+  const cached = cacheKey ? inboxCache.get(cacheKey) : undefined;
+  const [conversations, setConversations] = useState<InboxConversation[]>(cached?.data ?? []);
+  const [loading, setLoading] = useState(!cached);
   const [error, setError] = useState<string | null>(null);
+  const inFlightRef = useRef<Promise<void> | null>(null);
 
   const initialLoadDone = useCallback(() => conversations.length > 0 || !loading, [conversations.length, loading]);
 
@@ -120,16 +141,35 @@ export function useInboxConversations(view: InboxView, filters: InboxFilters) {
       setLoading(false);
       return;
     }
-    
+    // De-dupe overlapping fetches (polling + realtime can stack up)
+    if (inFlightRef.current) return inFlightRef.current;
+
+    const run = (async () => {
     // Only show loading spinner on initial load, not background refreshes
     if (!isBackground) setLoading(true);
     try {
-      // Check if user is an agent (not owner/admin)
-      const { data: roleName } = await supabase.rpc('get_user_role_name', {
-        p_tenant_id: currentTenant.id,
-        p_user_id: user?.id || '',
-      });
-      const isAgent = roleName === 'agent';
+      // Resolve role + agent_created_at with session-scoped cache (avoids 2 extra RTTs per fetch)
+      const roleKey = `${currentTenant.id}:${user?.id || ''}`;
+      let roleEntry = roleCache.get(roleKey);
+      if (!roleEntry || Date.now() - roleEntry.ts > ROLE_TTL_MS) {
+        const { data: roleName } = await supabase.rpc('get_user_role_name', {
+          p_tenant_id: currentTenant.id,
+          p_user_id: user?.id || '',
+        });
+        let agentCreatedAt: string | null = null;
+        if (roleName === 'agent' && user?.id) {
+          const { data: agentRecord } = await supabase
+            .from('agents')
+            .select('created_at')
+            .eq('tenant_id', currentTenant.id)
+            .eq('user_id', user.id)
+            .maybeSingle();
+          agentCreatedAt = agentRecord?.created_at || new Date().toISOString();
+        }
+        roleEntry = { role: (roleName as string) || null, agentCreatedAt, ts: Date.now() };
+        roleCache.set(roleKey, roleEntry);
+      }
+      const isAgent = roleEntry.role === 'agent';
 
       let query = supabase
         .from('conversations')
