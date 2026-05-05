@@ -576,7 +576,12 @@ export function WorkspaceSettings() {
                   <Label>Enable Multi-Brand Mode</Label>
                   <p className="text-sm text-muted-foreground">Use multiple sender identities within this workspace</p>
                 </div>
-                <Switch disabled={!canEdit} />
+                <Switch
+                  disabled={!canEdit}
+                  checked={false}
+                  onCheckedChange={() => setContactFeature('Multi-Brand Mode')}
+                  onClick={(e) => { e.preventDefault(); setContactFeature('Multi-Brand Mode'); }}
+                />
               </div>
               <Separator />
               <div className="p-4 rounded-lg border border-dashed border-border text-center">
