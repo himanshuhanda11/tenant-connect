@@ -25,29 +25,21 @@ export function AdvancedSettings() {
   };
 
   const copyEmail = async () => {
-    await navigator.clipboard.writeText(ADMIN_EMAIL);
-    setCopied(true);
-    toast.success('Email copied to clipboard');
-    setTimeout(() => setCopied(false), 2000);
+    try {
+      await navigator.clipboard.writeText(ADMIN_EMAIL);
+      setCopied(true);
+      toast.success('Email copied to clipboard');
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      toast.error('Could not copy. Please copy manually.');
+    }
   };
 
   const mailtoHref = `mailto:${ADMIN_EMAIL}?subject=${encodeURIComponent(
-    `Activate Advanced Feature: ${feature || 'Advanced Settings'}`
+    `Request: ${feature || 'Advanced Settings'}`
   )}&body=${encodeURIComponent(
-    `Hi Aireatro Admin,\n\nPlease activate the following advanced feature for my workspace:\n\nFeature: ${feature}\n\nThanks.`
+    `Hi Aireatro Admin,\n\nI would like to request the following action for my workspace:\n\nAction: ${feature}\n\nPlease assist.\n\nThanks.`
   )}`;
-
-  // Locked toggle: clicking it opens the contact dialog instead of toggling
-  const LockedToggle = ({ name, checked = false }: { name: string; checked?: boolean }) => (
-    <Switch
-      checked={checked}
-      onCheckedChange={() => requestActivation(name)}
-      onClick={(e) => {
-        e.preventDefault();
-        requestActivation(name);
-      }}
-    />
-  );
 
   return (
     <div className="space-y-6">
@@ -65,7 +57,7 @@ export function AdvancedSettings() {
               <Label>Enable Caching</Label>
               <p className="text-sm text-muted-foreground">Cache frequently accessed data for faster loading</p>
             </div>
-            <LockedToggle name="Enable Caching" checked />
+            <Switch defaultChecked />
           </div>
 
           <Separator />
@@ -75,14 +67,14 @@ export function AdvancedSettings() {
               <Label>Lazy Load Messages</Label>
               <p className="text-sm text-muted-foreground">Load message history on demand</p>
             </div>
-            <LockedToggle name="Lazy Load Messages" checked />
+            <Switch defaultChecked />
           </div>
 
           <Separator />
 
           <div className="space-y-2">
             <Label>Data Retention Period</Label>
-            <Select defaultValue="365" onValueChange={() => requestActivation('Data Retention Period')}>
+            <Select defaultValue="365">
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
@@ -117,9 +109,7 @@ export function AdvancedSettings() {
               <p className="text-sm text-muted-foreground">
                 Download all workspace data including contacts, conversations, and templates
               </p>
-              <Button variant="outline" size="sm" onClick={() => requestActivation('Export Data')}>
-                Request Export
-              </Button>
+              <Button variant="outline" size="sm">Request Export</Button>
             </div>
 
             <div className="p-4 rounded-lg border border-border space-y-3">
@@ -128,9 +118,7 @@ export function AdvancedSettings() {
                 <h4 className="font-medium text-foreground">Sync Status</h4>
               </div>
               <p className="text-sm text-muted-foreground">Last synced: 2 minutes ago</p>
-              <Button variant="outline" size="sm" onClick={() => requestActivation('Force Sync')}>
-                Force Sync
-              </Button>
+              <Button variant="outline" size="sm">Force Sync</Button>
             </div>
           </div>
 
@@ -141,7 +129,7 @@ export function AdvancedSettings() {
               <Label>Auto-backup</Label>
               <p className="text-sm text-muted-foreground">Automatically backup data daily</p>
             </div>
-            <LockedToggle name="Auto-backup" checked />
+            <Switch defaultChecked />
           </div>
         </CardContent>
       </Card>
@@ -160,7 +148,7 @@ export function AdvancedSettings() {
               <Label>Beta Features</Label>
               <p className="text-sm text-muted-foreground">Enable access to beta features before general release</p>
             </div>
-            <LockedToggle name="Beta Features" />
+            <Switch />
           </div>
 
           <Separator />
@@ -170,7 +158,7 @@ export function AdvancedSettings() {
               <Label>AI Suggestions</Label>
               <p className="text-sm text-muted-foreground">Enable AI-powered reply suggestions</p>
             </div>
-            <LockedToggle name="AI Suggestions" checked />
+            <Switch defaultChecked />
           </div>
 
           <Separator />
@@ -180,7 +168,7 @@ export function AdvancedSettings() {
               <Label>Advanced Analytics</Label>
               <p className="text-sm text-muted-foreground">Enable detailed analytics dashboard</p>
             </div>
-            <LockedToggle name="Advanced Analytics" checked />
+            <Switch defaultChecked />
           </div>
         </CardContent>
       </Card>
@@ -195,26 +183,30 @@ export function AdvancedSettings() {
             <CardDescription>Irreversible actions - proceed with caution</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="flex items-center justify-between p-4 rounded-lg border border-border bg-muted/30">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 rounded-lg border border-border bg-muted/30">
               <div>
                 <h4 className="font-medium text-foreground">Clear All Data</h4>
                 <p className="text-sm text-muted-foreground">Remove all contacts, conversations, and messages</p>
               </div>
               <Button
                 variant="outline"
-                className="text-destructive border-destructive/50 hover:bg-destructive/10"
+                className="text-destructive border-destructive/50 hover:bg-destructive/10 w-full sm:w-auto"
                 onClick={() => requestActivation('Clear All Data')}
               >
                 Clear Data
               </Button>
             </div>
 
-            <div className="flex items-center justify-between p-4 rounded-lg border border-destructive/30 bg-destructive/5">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 rounded-lg border border-destructive/30 bg-destructive/5">
               <div>
                 <h4 className="font-medium text-foreground">Delete Workspace</h4>
                 <p className="text-sm text-muted-foreground">Permanently delete this workspace and all data</p>
               </div>
-              <Button variant="destructive" onClick={() => requestActivation('Delete Workspace')}>
+              <Button
+                variant="destructive"
+                className="w-full sm:w-auto"
+                onClick={() => requestActivation('Delete Workspace')}
+              >
                 <Trash2 className="w-4 h-4 mr-2" />
                 Delete
               </Button>
@@ -224,32 +216,44 @@ export function AdvancedSettings() {
       )}
 
       <Dialog open={contactOpen} onOpenChange={setContactOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <div className="mx-auto w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-2">
-              <Mail className="w-6 h-6 text-primary" />
+        <DialogContent className="w-[calc(100vw-2rem)] max-w-md p-5 sm:p-6 rounded-2xl gap-4">
+          <DialogHeader className="space-y-3">
+            <div className="mx-auto w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center">
+              <Mail className="w-7 h-7 text-primary" />
             </div>
-            <DialogTitle className="text-center">Contact Aireatro Admin</DialogTitle>
-            <DialogDescription className="text-center">
+            <DialogTitle className="text-center text-lg">Contact Aireatro Admin</DialogTitle>
+            <DialogDescription className="text-center text-sm leading-relaxed">
               {feature ? (
                 <>
-                  To activate <span className="font-medium text-foreground">{feature}</span>, please contact our admin team.
+                  To proceed with <span className="font-semibold text-foreground">{feature}</span>, please reach out to our admin team. This action requires manual review for your safety.
                 </>
               ) : (
-                <>This feature requires admin activation. Please contact our team to enable it.</>
+                <>This action requires admin assistance. Please contact our team to proceed.</>
               )}
             </DialogDescription>
           </DialogHeader>
 
-          <div className="flex items-center justify-between gap-2 p-3 rounded-lg border border-border bg-muted/40">
-            <span className="text-sm font-medium text-foreground truncate">{ADMIN_EMAIL}</span>
-            <Button variant="ghost" size="sm" onClick={copyEmail} className="h-8">
-              {copied ? <Check className="w-4 h-4 text-primary" /> : <Copy className="w-4 h-4" />}
-            </Button>
-          </div>
+          <button
+            type="button"
+            onClick={copyEmail}
+            className="w-full flex items-center justify-between gap-2 p-3 rounded-lg border border-border bg-muted/40 hover:bg-muted/60 transition-colors active:scale-[0.99]"
+          >
+            <span className="text-sm font-medium text-foreground truncate text-left">{ADMIN_EMAIL}</span>
+            <span className="flex items-center gap-1 text-xs text-muted-foreground shrink-0">
+              {copied ? (
+                <><Check className="w-4 h-4 text-primary" /> Copied</>
+              ) : (
+                <><Copy className="w-4 h-4" /> Copy</>
+              )}
+            </span>
+          </button>
 
-          <DialogFooter className="flex-col sm:flex-row gap-2">
-            <Button variant="outline" onClick={() => setContactOpen(false)} className="w-full sm:w-auto">
+          <DialogFooter className="flex-col-reverse sm:flex-row gap-2 sm:gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setContactOpen(false)}
+              className="w-full sm:w-auto"
+            >
               Cancel
             </Button>
             <Button asChild className="w-full sm:w-auto">
