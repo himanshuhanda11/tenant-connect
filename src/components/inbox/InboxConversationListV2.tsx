@@ -100,6 +100,7 @@ export function InboxConversationListV2({
   isMobile = false,
   currentUserId,
   unreadNewCount = 0,
+  totalCount,
   onClearNotifications,
 }: InboxConversationListV2Props) {
   const [searchQuery, setSearchQuery] = useState('');
