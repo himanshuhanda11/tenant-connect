@@ -54,20 +54,39 @@ export const DEFAULT_CRM_FILTERS: CrmSearchFilters = {
   attributes: [],
 };
 
+// Module-level TTL cache — keeps /contacts instant on revisit
+const CONTACTS_TTL_MS = 30_000;
+type ContactsCacheEntry = { contacts: CrmContact[]; totalCount: number; ts: number };
+const contactsCache = new Map<string, ContactsCacheEntry>();
+
+export function invalidateContactsCrmCache(tenantId?: string) {
+  if (!tenantId) { contactsCache.clear(); return; }
+  for (const key of contactsCache.keys()) if (key.startsWith(`${tenantId}:`)) contactsCache.delete(key);
+}
+
+function contactsCacheKey(tenantId: string, page: number, filters: CrmSearchFilters) {
+  return `${tenantId}:${page}:${JSON.stringify(filters)}`;
+}
+
 export function useContactsCrmSearch() {
   const { currentTenant } = useTenant();
-  const [contacts, setContacts] = useState<CrmContact[]>([]);
-  const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState<CrmSearchFilters>(DEFAULT_CRM_FILTERS);
   const [page, setPage] = useState(0);
-  const [totalCount, setTotalCount] = useState(0);
   const pageSize = 50;
+  const cacheKey = currentTenant?.id ? contactsCacheKey(currentTenant.id, page, filters) : null;
+  const cached = cacheKey ? contactsCache.get(cacheKey) : undefined;
+  const [contacts, setContacts] = useState<CrmContact[]>(cached?.contacts ?? []);
+  const [totalCount, setTotalCount] = useState(cached?.totalCount ?? 0);
+  const [loading, setLoading] = useState(!cached);
+  const inFlightRef = useRef<Promise<void> | null>(null);
 
-  const fetchContacts = useCallback(async () => {
+  const fetchContacts = useCallback(async (isBackground = false) => {
     if (!currentTenant?.id) return;
+    if (inFlightRef.current) return inFlightRef.current;
 
-    setLoading(true);
-    try {
+    const run = (async () => {
+      if (!isBackground) setLoading(true);
+      try {
       const params: Record<string, unknown> = {
         p_tenant_id: currentTenant.id,
         p_limit: pageSize,
@@ -103,7 +122,6 @@ export function useContactsCrmSearch() {
 
       if (dataResult.error) throw dataResult.error;
 
-      // Parse tags/attributes from jsonb
       const parsed: CrmContact[] = (dataResult.data || []).map((row: any) => ({
         ...row,
         tags: typeof row.tags === 'string' ? JSON.parse(row.tags) : (row.tags || []),
@@ -111,48 +129,55 @@ export function useContactsCrmSearch() {
       }));
 
       setContacts(parsed);
-      
-      // Use exact count from count query, fallback to estimating from results
-      if (countResult.count !== null && countResult.count !== undefined) {
-        setTotalCount(countResult.count);
-      } else {
-        // If we get a full page, there's probably more
-        const estimatedTotal = parsed.length === pageSize 
-          ? (page + 2) * pageSize  // At least one more page
-          : page * pageSize + parsed.length;
-        setTotalCount(estimatedTotal);
-      }
+      const nextTotal = (countResult.count !== null && countResult.count !== undefined)
+        ? countResult.count
+        : (parsed.length === pageSize ? (page + 2) * pageSize : page * pageSize + parsed.length);
+      setTotalCount(nextTotal);
+      if (cacheKey) contactsCache.set(cacheKey, { contacts: parsed, totalCount: nextTotal, ts: Date.now() });
     } catch (error) {
       console.error('Error in contacts_crm_search:', error);
-      toast.error('Failed to load contacts');
+      if (!isBackground) toast.error('Failed to load contacts');
     } finally {
       setLoading(false);
     }
-  }, [currentTenant?.id, filters, page]);
+    })();
+    inFlightRef.current = run;
+    try { await run; } finally { inFlightRef.current = null; }
+  }, [currentTenant?.id, filters, page, cacheKey]);
 
   useEffect(() => {
-    fetchContacts();
-  }, [fetchContacts]);
+    if (!cacheKey) { fetchContacts(); return; }
+    const entry = contactsCache.get(cacheKey);
+    if (entry && Date.now() - entry.ts < CONTACTS_TTL_MS) {
+      setContacts(entry.contacts);
+      setTotalCount(entry.totalCount);
+      setLoading(false);
+      return;
+    }
+    fetchContacts(!!entry);
+  }, [fetchContacts, cacheKey]);
 
-  // Realtime subscription for inbox summary changes
+  // Realtime — debounced background refetch (don't spam network on bursts)
   useEffect(() => {
     if (!currentTenant?.id) return;
-
+    let timer: ReturnType<typeof setTimeout> | null = null;
+    const tenantId = currentTenant.id;
     const channel = supabase
       .channel('crm_search_realtime')
       .on(
         'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'contact_inbox_summary',
-          filter: `tenant_id=eq.${currentTenant.id}`,
-        },
-        () => fetchContacts()
+        { event: '*', schema: 'public', table: 'contact_inbox_summary', filter: `tenant_id=eq.${tenantId}` },
+        () => {
+          if (timer) clearTimeout(timer);
+          timer = setTimeout(() => {
+            invalidateContactsCrmCache(tenantId);
+            fetchContacts(true);
+          }, 1500);
+        }
       )
       .subscribe();
-
     return () => {
+      if (timer) clearTimeout(timer);
       supabase.removeChannel(channel);
     };
   }, [currentTenant?.id, fetchContacts]);
