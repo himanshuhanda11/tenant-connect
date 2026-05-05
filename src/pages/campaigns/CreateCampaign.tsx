@@ -399,7 +399,7 @@ export default function CreateCampaign() {
 
         {/* Step Content */}
         <Card>
-          <CardContent className="pt-6">
+          <CardContent className="pt-4 sm:pt-6 px-4 sm:px-6 pb-4 sm:pb-6">
             {/* Step 1: Basics */}
             {currentStep === 1 && (
               <div className="space-y-6">
