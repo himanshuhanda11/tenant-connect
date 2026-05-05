@@ -296,6 +296,7 @@ export default function InboxPage() {
               loading={loadingConversations}
               currentUserId={user?.id}
               unreadNewCount={unreadNewCount}
+              totalCount={totalCount ?? undefined}
               onClearNotifications={clearNotifications}
             />
           </div>
