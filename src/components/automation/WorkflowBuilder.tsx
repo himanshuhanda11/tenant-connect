@@ -922,8 +922,10 @@ export function WorkflowBuilder({ workflow, open, onOpenChange, onSave }: Workfl
                 </CollapsibleContent>
               </Collapsible>
             </Card>
-          </div>
+          </fieldset>
         </ScrollArea>
+
+        {/* Sticky bar ref wrapper - just attach ref via stickyBarRef below */}
 
         {/* Sticky mobile action bar */}
         <div className="xs:hidden flex-shrink-0 border-t bg-background/95 backdrop-blur px-3 py-2.5 flex items-center gap-2 pb-[calc(0.625rem+env(safe-area-inset-bottom))]">
