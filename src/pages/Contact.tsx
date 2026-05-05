@@ -1,5 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { z } from 'zod';
+import { format } from 'date-fns';
 import { 
   Mail, 
   Phone, 
@@ -11,7 +13,12 @@ import {
   CheckCircle,
   Building2,
   User,
-  HelpCircle
+  HelpCircle,
+  Calendar as CalendarIcon,
+  Users,
+  Sparkles,
+  PlayCircle,
+  Globe
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -19,6 +26,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import {
   Select,
   SelectContent,
@@ -31,6 +40,7 @@ import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import SeoMeta from '@/components/seo/SeoMeta';
 import PageHero from '@/components/layout/PageHero';
+import { cn } from '@/lib/utils';
 
 const contactSchema = z.object({
   firstName: z.string().trim().min(1, "First name is required").max(50, "First name must be less than 50 characters"),
@@ -39,8 +49,21 @@ const contactSchema = z.object({
   company: z.string().trim().max(100, "Company name must be less than 100 characters").optional(),
   phone: z.string().trim().max(20, "Phone number must be less than 20 characters").optional(),
   subject: z.string().min(1, "Please select a subject"),
+  teamSize: z.string().optional(),
+  preferredDate: z.string().optional(),
+  preferredTime: z.string().optional(),
+  timezone: z.string().optional(),
   message: z.string().trim().min(10, "Message must be at least 10 characters").max(2000, "Message must be less than 2000 characters"),
-});
+}).refine((d) => {
+  if (d.subject === 'walkthrough') return !!d.preferredDate && !!d.preferredTime;
+  return true;
+}, { message: 'Please pick a date and time for your walkthrough', path: ['preferredDate'] });
+
+const TIME_SLOTS = [
+  '10:00 AM', '11:00 AM', '12:00 PM',
+  '01:00 PM', '02:00 PM', '03:00 PM',
+  '04:00 PM', '05:00 PM', '06:00 PM',
+];
 
 type ContactFormData = z.infer<typeof contactSchema>;
 
