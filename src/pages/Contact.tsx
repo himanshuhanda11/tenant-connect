@@ -152,16 +152,47 @@ export default function Contact() {
     }
 
     setIsSubmitting(true);
-    
-    // Simulate form submission
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    setIsSubmitting(false);
-    setIsSubmitted(true);
-    toast({
-      title: "Message Sent!",
-      description: "We'll get back to you within 24 hours.",
-    });
+    try {
+      const { supabase } = await import('@/integrations/supabase/client');
+      // Persist the lead first (works even if email fails)
+      const { error: insertError } = await supabase.from('marketing_leads').insert({
+        source: 'contact',
+        full_name: `${formData.firstName} ${formData.lastName}`.trim(),
+        email: formData.email,
+        phone: formData.phone || null,
+        company: formData.company || null,
+        team_size: formData.teamSize || null,
+        message: formData.message,
+        preferred_date: formData.preferredDate || null,
+        preferred_time: formData.preferredTime || null,
+        timezone: formData.timezone || null,
+        user_agent: typeof navigator !== 'undefined' ? navigator.userAgent : null,
+        referrer: typeof document !== 'undefined' ? document.referrer : null,
+        metadata: { subject: formData.subject },
+      });
+      if (insertError) throw insertError;
+
+      // Fire-and-forget email notification
+      supabase.functions.invoke('send-team-email', {
+        body: {
+          type: 'contact_request',
+          fullName: `${formData.firstName} ${formData.lastName}`.trim(),
+          email: formData.email,
+          phone: formData.phone,
+          company: formData.company,
+          subject: formData.subject,
+          message: formData.message,
+        },
+      }).catch((e) => console.warn('email notify failed', e));
+
+      setIsSubmitted(true);
+      toast({ title: 'Message Sent!', description: "We'll get back to you within 24 hours." });
+    } catch (err: any) {
+      console.error('contact submit failed', err);
+      toast({ title: 'Could not submit', description: err?.message || 'Please try again.', variant: 'destructive' });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   if (isSubmitted) {

@@ -140,10 +140,29 @@ export default function BookDemo() {
     setSubmitting(true);
     try {
       const { supabase } = await import('@/integrations/supabase/client');
+      const { error: insertError } = await supabase.from('marketing_leads').insert({
+        source: 'demo',
+        full_name: data.fullName,
+        email: data.workEmail,
+        phone: data.phone || null,
+        company: data.company || null,
+        website: data.website || null,
+        industry: data.industry || null,
+        team_size: data.teamSize || null,
+        use_case: data.useCase || null,
+        message: data.notes || null,
+        preferred_date: data.preferredDate || null,
+        preferred_time: data.preferredTime || null,
+        timezone: data.timezone || null,
+        user_agent: typeof navigator !== 'undefined' ? navigator.userAgent : null,
+        referrer: typeof document !== 'undefined' ? document.referrer : null,
+      });
+      if (insertError) throw insertError;
+
       const { error } = await supabase.functions.invoke('send-team-email', {
         body: { type: 'demo_request', ...data },
       });
-      if (error) throw error;
+      if (error) console.warn('email notify failed', error);
       setSubmitted(true);
       toast({ title: 'Demo requested 🎉', description: "We've emailed you a confirmation. Our team will reach out shortly." });
     } catch (err: any) {

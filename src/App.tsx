@@ -145,6 +145,7 @@ const ShopifyAnalytics = lazyWithRetry(() => import("./pages/shopify/ShopifyAnal
 const ShopifyAutomations = lazyWithRetry(() => import("./pages/shopify/ShopifyAutomations"));
 const SeoDashboard = lazyWithRetry(() => import("./pages/developer/SeoDashboard"));
 const AdminLayout = lazyWithRetry(() => import("./pages/admin/AdminLayout"));
+const AdminLeads = lazyWithRetry(() => import("./pages/admin/AdminLeads"));
 const AdminOverview = lazyWithRetry(() => import("./pages/admin/AdminOverview"));
 const AdminWorkspaces = lazyWithRetry(() => import("./pages/admin/AdminWorkspaces"));
 const AdminAuditLogs = lazyWithRetry(() => import("./pages/admin/AdminAuditLogs"));
@@ -346,6 +347,7 @@ const App = () => (
                       <Route path="team" element={<AdminTeam />} />
                       <Route path="settings" element={<AdminSettings />} />
                       <Route path="incidents" element={<AdminIncidents />} />
+                      <Route path="leads" element={<AdminLeads />} />
                     </Route>
                     <Route path="*" element={<NotFound />} />
                   </Routes>

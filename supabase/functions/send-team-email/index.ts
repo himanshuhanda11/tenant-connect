@@ -19,7 +19,7 @@ Deno.serve(async (req) => {
     if (!type) {
       return json({ error: "Missing required field: type" }, 400);
     }
-    if (type !== "signup_welcome" && type !== "demo_request" && !to) {
+    if (type !== "signup_welcome" && type !== "demo_request" && type !== "contact_request" && !to) {
       return json({ error: "Missing required field: to" }, 400);
     }
 
@@ -446,6 +446,47 @@ Deno.serve(async (req) => {
         sendOne(ADMIN_EMAIL, `🎯 New demo request: ${fullNameD}${companyD ? ` (${companyD})` : ""}`, adminHtml, workEmailD),
       ]);
       return json({ success: c.ok && a.ok, customer: c.data, admin: a.data });
+    }
+
+    if (type === "contact_request") {
+      const p = (req as any).__parsed;
+      const cName = String(p.fullName || "there");
+      const cEmail = String(p.email || "");
+      const subj = String(p.subject || "general");
+      const msg = String(p.message || "");
+      const phone = p.phone ? String(p.phone) : "";
+      const company = p.company ? String(p.company) : "";
+      if (!cEmail) return json({ error: "Missing email for contact_request" }, 400);
+
+      const customerHtml = `<!DOCTYPE html><html><body style="font-family:-apple-system,Segoe UI,Roboto,sans-serif;background:#f6f7fb;padding:24px;">
+        <div style="max-width:560px;margin:0 auto;background:#fff;border-radius:14px;padding:32px;box-shadow:0 6px 24px rgba(0,0,0,.06);">
+          <h1 style="margin:0 0 8px;font-size:22px;color:#0f172a;">Thanks ${cName.split(' ')[0]} 👋</h1>
+          <p style="color:#475569;line-height:1.6;margin:0 0 16px;">We received your message and our team will reply within 24 hours (often much sooner).</p>
+          <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:16px;color:#334155;font-size:14px;">
+            <strong>Your message:</strong><br/>${msg.replace(/</g,'&lt;').replace(/\n/g,'<br/>')}
+          </div>
+          <p style="color:#64748b;font-size:12px;margin-top:20px;">— Team Aireatro</p>
+        </div></body></html>`;
+      const adminHtml = `<!DOCTYPE html><html><body style="font-family:-apple-system,Segoe UI,Roboto,sans-serif;background:#f6f7fb;padding:24px;">
+        <div style="max-width:600px;margin:0 auto;background:#fff;border-radius:14px;padding:24px;">
+          <h2 style="margin:0 0 12px;color:#0f172a;">📩 New contact form submission</h2>
+          <table style="width:100%;font-size:14px;color:#334155;border-collapse:collapse;">
+            <tr><td style="padding:6px 0;width:140px;color:#64748b;">Name</td><td>${cName}</td></tr>
+            <tr><td style="padding:6px 0;color:#64748b;">Email</td><td><a href="mailto:${cEmail}">${cEmail}</a></td></tr>
+            ${phone ? `<tr><td style="padding:6px 0;color:#64748b;">Phone</td><td>${phone}</td></tr>` : ""}
+            ${company ? `<tr><td style="padding:6px 0;color:#64748b;">Company</td><td>${company}</td></tr>` : ""}
+            <tr><td style="padding:6px 0;color:#64748b;">Subject</td><td>${subj}</td></tr>
+          </table>
+          <div style="margin-top:16px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:14px;color:#0f172a;font-size:14px;">
+            ${msg.replace(/</g,'&lt;').replace(/\n/g,'<br/>')}
+          </div>
+        </div></body></html>`;
+
+      const [c, a] = await Promise.all([
+        sendOne(cEmail, "We received your message ✅", customerHtml),
+        sendOne(ADMIN_EMAIL, `📩 Contact: ${cName}${company ? ` (${company})` : ""}`, adminHtml, cEmail),
+      ]);
+      return json({ success: c.ok && a.ok });
     }
 
     let subject: string;

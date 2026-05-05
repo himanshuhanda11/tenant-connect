@@ -5063,6 +5063,81 @@ export type Database = {
           },
         ]
       }
+      marketing_leads: {
+        Row: {
+          company: string | null
+          created_at: string
+          email: string
+          full_name: string
+          id: string
+          industry: string | null
+          internal_notes: string | null
+          ip_address: string | null
+          message: string | null
+          metadata: Json
+          phone: string | null
+          preferred_date: string | null
+          preferred_time: string | null
+          referrer: string | null
+          source: string
+          status: string
+          team_size: string | null
+          timezone: string | null
+          updated_at: string
+          use_case: string | null
+          user_agent: string | null
+          website: string | null
+        }
+        Insert: {
+          company?: string | null
+          created_at?: string
+          email: string
+          full_name: string
+          id?: string
+          industry?: string | null
+          internal_notes?: string | null
+          ip_address?: string | null
+          message?: string | null
+          metadata?: Json
+          phone?: string | null
+          preferred_date?: string | null
+          preferred_time?: string | null
+          referrer?: string | null
+          source: string
+          status?: string
+          team_size?: string | null
+          timezone?: string | null
+          updated_at?: string
+          use_case?: string | null
+          user_agent?: string | null
+          website?: string | null
+        }
+        Update: {
+          company?: string | null
+          created_at?: string
+          email?: string
+          full_name?: string
+          id?: string
+          industry?: string | null
+          internal_notes?: string | null
+          ip_address?: string | null
+          message?: string | null
+          metadata?: Json
+          phone?: string | null
+          preferred_date?: string | null
+          preferred_time?: string | null
+          referrer?: string | null
+          source?: string
+          status?: string
+          team_size?: string | null
+          timezone?: string | null
+          updated_at?: string
+          use_case?: string | null
+          user_agent?: string | null
+          website?: string | null
+        }
+        Relationships: []
+      }
       media_library: {
         Row: {
           alt_text: string | null
