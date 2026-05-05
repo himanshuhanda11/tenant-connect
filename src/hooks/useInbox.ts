@@ -248,6 +248,13 @@ export function useInboxConversations(view: InboxView, filters: InboxFilters, cr
       }
       if (filters.priority && filters.priority !== 'all') countQuery = countQuery.eq('priority', filters.priority);
       if (filters.hasUnread) countQuery = countQuery.gt('unread_count', 0);
+      if (crmFilter === 'junk') {
+        countQuery = countQuery.in('crm_status', ['junk', 'not_interested']);
+      } else if (crmFilter === 'follow_up') {
+        countQuery = countQuery.eq('crm_status', 'follow_up_required').not('crm_status', 'in', '("converted","junk")');
+      } else if (crmFilter === 'open') {
+        countQuery = countQuery.neq('status', 'closed').not('crm_status', 'in', '("junk","not_interested")');
+      }
 
       const [{ data, error: queryError }, { count: exactCount }] = await Promise.all([
         query,
