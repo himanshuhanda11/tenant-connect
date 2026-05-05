@@ -100,9 +100,12 @@ export function useDashboardData(filters: DashboardFilters) {
   const { currentTenant, currentRole } = useTenant();
   const tenantId = currentTenant?.id ?? '';
   const cacheKey = `${tenantId}:${filters.dateRange}`;
-  const cached = cache.get(cacheKey);
+  const cachedEntry = cache.get(cacheKey);
+  const isFresh = cachedEntry && Date.now() - cachedEntry.ts < CACHE_TTL_MS;
+  const cached: any = cachedEntry?.data || null;
 
   const [loading, setLoading] = useState(!cached);
+  const [recentActivity, setRecentActivity] = useState<RecentActivityItem[]>(cached?.recentActivity || []);
   const [kpis, setKpis] = useState<KPIMetric[]>(cached?.kpis || []);
   const [inboxHealth, setInboxHealth] = useState<InboxHealthMetrics | null>(cached?.inboxHealth || null);
   const [actionQueue, setActionQueue] = useState<ActionQueueItem[]>(cached?.actionQueue || []);
