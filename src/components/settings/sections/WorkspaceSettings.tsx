@@ -556,7 +556,7 @@ export function WorkspaceSettings() {
                     <h4 className="font-medium">Transfer to Another Owner</h4>
                     <p className="text-sm text-muted-foreground">The new owner will have full control of this workspace</p>
                   </div>
-                  <Button variant="outline">Transfer Ownership</Button>
+                  <Button variant="outline" onClick={() => setContactFeature('Transfer Ownership')}>Transfer Ownership</Button>
                 </div>
               </CardContent>
             </Card>
