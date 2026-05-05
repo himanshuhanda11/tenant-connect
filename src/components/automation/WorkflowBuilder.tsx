@@ -223,11 +223,16 @@ export function WorkflowBuilder({ workflow, open, onOpenChange, onSave }: Workfl
           <div className="flex flex-col xs:flex-row xs:items-center gap-3 xs:gap-4">
             <div className="flex-1 min-w-0">
               <Input
+                ref={nameInputRef}
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="text-base xs:text-lg font-semibold border-none p-0 h-auto focus-visible:ring-0"
-                placeholder="Workflow Name"
+                className={`text-base xs:text-lg font-semibold border-none p-0 h-auto focus-visible:ring-0 ${!name.trim() ? 'placeholder:text-destructive/70' : ''}`}
+                placeholder="Workflow Name *"
+                aria-invalid={!name.trim()}
               />
+              {!name.trim() && (
+                <p className="text-[11px] text-destructive mt-0.5">Name is required</p>
+              )}
               <Input
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
@@ -236,20 +241,41 @@ export function WorkflowBuilder({ workflow, open, onOpenChange, onSave }: Workfl
               />
             </div>
             <div className="hidden xs:flex gap-2 flex-shrink-0">
-              <Button variant="outline" size="sm" onClick={() => handleSave(false)} disabled={saving} className="text-xs xs:text-sm h-9">
-                <Save className="h-4 w-4 mr-2" />
-                Save Draft
+              <Button variant="outline" size="sm" onClick={() => handleSave(false)} disabled={saving} className="text-xs xs:text-sm h-9 min-w-[110px]">
+                {savingMode === 'draft' ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
+                {savingMode === 'draft' ? 'Saving…' : 'Save Draft'}
               </Button>
-              <Button size="sm" onClick={() => handleSave(true)} disabled={saving} className="text-xs xs:text-sm h-9">
-                <PlayCircle className="h-4 w-4 mr-2" />
-                Activate
+              <Button size="sm" onClick={() => handleSave(true)} disabled={saving} className="text-xs xs:text-sm h-9 min-w-[110px]">
+                {savingMode === 'activate' ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <PlayCircle className="h-4 w-4 mr-2" />}
+                {savingMode === 'activate' ? 'Activating…' : 'Activate'}
               </Button>
             </div>
           </div>
+
+          {/* Mobile step progress / completion indicators */}
+          <div className="xs:hidden mt-3 flex items-center gap-2">
+            {[
+              { key: 'trigger', label: 'Trigger', done: !!triggerType },
+              { key: 'conditions', label: 'Conditions', done: conditions.length > 0, optional: true },
+              { key: 'actions', label: 'Actions', done: actions.length > 0 },
+            ].map((s, i) => (
+              <div key={s.key} className="flex-1 flex flex-col items-center gap-1">
+                <div className={`w-full h-1.5 rounded-full ${s.done ? 'bg-primary' : 'bg-muted'}`} />
+                <div className="flex items-center gap-1 text-[10px] font-medium">
+                  <span className={`inline-flex items-center justify-center w-4 h-4 rounded-full ${s.done ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}`}>
+                    {s.done ? <Check className="h-2.5 w-2.5" /> : i + 1}
+                  </span>
+                  <span className={s.done ? 'text-foreground' : 'text-muted-foreground'}>
+                    {s.label}{s.optional ? '' : ' *'}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
         </SheetHeader>
 
-        <ScrollArea className="flex-1 overflow-auto">
-          <div className="p-3 xs:p-4 sm:p-6 space-y-4 xs:space-y-5 sm:space-y-6 pb-24 xs:pb-6">
+        <ScrollArea className="flex-1 overflow-auto" ref={scrollContainerRef as any}>
+          <div className="p-3 xs:p-4 sm:p-6 space-y-4 xs:space-y-5 sm:space-y-6 pb-32 xs:pb-6">
             {/* WHEN - Trigger Section */}
             <Card className="border-primary/50">
               <Collapsible defaultOpen>
