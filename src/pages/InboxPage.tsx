@@ -202,7 +202,7 @@ export default function InboxPage() {
     return (
       <DashboardLayout>
         <TooltipProvider>
-          <div className="fixed inset-0 top-12 z-20 flex flex-col bg-background overflow-hidden">
+          <div className="fixed inset-x-0 top-[calc(3rem+env(safe-area-inset-top))] bottom-[calc(3.75rem+env(safe-area-inset-bottom))] md:bottom-0 z-20 flex flex-col bg-background overflow-hidden">
             <AnimatePresence mode="wait">
               {!selectedId ? (
                 <motion.div key="list" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="h-full">
