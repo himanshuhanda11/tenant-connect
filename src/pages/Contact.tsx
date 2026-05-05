@@ -198,10 +198,12 @@ export default function Contact() {
       <Navbar />
 
       <PageHero
-        badge={{ icon: MessageCircle, text: "Get in Touch" }}
-        title="Let's Start a"
-        titleHighlight="Conversation"
-        subtitle="Have questions? We'd love to hear from you. Send us a message and we'll respond as soon as possible."
+        badge={{ icon: isWalkthrough ? PlayCircle : MessageCircle, text: isWalkthrough ? "Book a Walkthrough" : "Get in Touch" }}
+        title={isWalkthrough ? "See AiReatro in" : "Let's Start a"}
+        titleHighlight={isWalkthrough ? "Action" : "Conversation"}
+        subtitle={isWalkthrough
+          ? "Tell us about your business and pick a time. Our specialist will give you a tailored 20-minute walkthrough — no slides, just real workflows."
+          : "Have questions? We'd love to hear from you. Send us a message and we'll respond as soon as possible."}
       />
 
       {/* Contact Info Cards */}
