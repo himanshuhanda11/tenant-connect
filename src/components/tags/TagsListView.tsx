@@ -94,8 +94,8 @@ export function TagsListView({
     return null;
   }
 
-  // Grid View
-  if (viewMode === 'grid') {
+  // Grid View (also used on mobile for list mode)
+  if (viewMode === 'grid' || isMobile) {
     return (
       <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
         {tags.map((tag) => {
