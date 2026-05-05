@@ -213,6 +213,15 @@ export function useInboxConversations(view: InboxView, filters: InboxFilters, cr
       if (filters.hasUnread) {
         query = query.gt('unread_count', 0);
       }
+      // Server-side CRM filter (junk/spam, follow_up, open) so the 300-row cap
+      // doesn't accidentally hide older items in narrow tabs.
+      if (crmFilter === 'junk') {
+        query = query.in('crm_status', ['junk', 'not_interested']);
+      } else if (crmFilter === 'follow_up') {
+        query = query.eq('crm_status', 'follow_up_required').not('crm_status', 'in', '("converted","junk")');
+      } else if (crmFilter === 'open') {
+        query = query.neq('status', 'closed').not('crm_status', 'in', '("junk","not_interested")');
+      }
 
       // Run a parallel exact-count query so UI shows the true total
       // (Supabase caps row results at 1000, but count returns the real number)
