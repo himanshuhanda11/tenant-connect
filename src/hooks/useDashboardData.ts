@@ -184,11 +184,11 @@ export function useDashboardData(filters: DashboardFilters) {
       const unreadCount = (unreadAggResult.data || []).reduce((s, r: any) => s + (r.unread_count || 0), 0);
 
       setKpis([
-        { id: 'open', title: 'Open Conversations', value: openCount, change: 12, changeType: 'positive', icon: 'inbox', href: '/inbox?status=open' },
+        { id: 'open', title: 'Open Conversations', value: openCount, icon: 'inbox', href: '/inbox?status=open' },
         { id: 'unassigned', title: 'Unassigned', value: unassigned, changeType: unassigned > 5 ? 'negative' : 'neutral', icon: 'user-x', href: '/inbox?assigned=none' },
         { id: 'sla', title: 'SLA Risk', value: slaRisk, changeType: slaRisk > 0 ? 'negative' : 'positive', icon: 'alert-triangle', href: '/inbox?sla=breached' },
-        { id: 'response', title: 'Avg Response', value: '3m', icon: 'clock' },
-        { id: 'resolved', title: 'Resolved Today', value: resolvedToday, change: 8, changeType: 'positive', icon: 'check-circle' },
+        { id: 'response', title: 'Avg Response', value: '—', icon: 'clock' },
+        { id: 'resolved', title: 'Resolved Today', value: resolvedToday, icon: 'check-circle' },
         { id: 'csat', title: 'CSAT', value: '—', icon: 'star' },
       ]);
 
@@ -196,13 +196,7 @@ export function useDashboardData(filters: DashboardFilters) {
         openConversations: openCount,
         closedConversations: resolvedToday,
         waitingOnAgent, waitingOnCustomer, unreadCount,
-        topTags: [
-          { name: 'VIP', count: 12, color: 'amber' },
-          { name: 'Support', count: 28, color: 'blue' },
-          { name: 'Pricing', count: 15, color: 'green' },
-          { name: 'Complaint', count: 5, color: 'red' },
-          { name: 'Lead', count: 42, color: 'purple' },
-        ],
+        topTags: [],
       });
 
       const phones = phonesResult.data || [];
@@ -272,16 +266,16 @@ export function useDashboardData(filters: DashboardFilters) {
       })));
 
       setMetaAds({
-        leadsToday: 23, leads7d: 156,
-        topCampaigns: [{ name: 'Summer Sale', leads: 45 }, { name: 'New Product Launch', leads: 32 }, { name: 'Brand Awareness', leads: 28 }],
-        conversionRate: 34.5, avgResponseTime: 145,
+        leadsToday: 0, leads7d: 0,
+        topCampaigns: [],
+        conversionRate: 0, avgResponseTime: 0,
       });
 
       setContacts({
         newContactsToday: newTodayResult.count || 0, newContacts7d: new7dResult.count || 0, newContacts30d: new30dResult.count || 0,
-        optOuts7d: 3,
-        topSources: [{ source: 'Meta Ads', count: 45 }, { source: 'Website', count: 32 }, { source: 'QR Code', count: 18 }, { source: 'API', count: 12 }],
-        topSegments: [{ name: 'Active Customers', count: 1234, id: '1' }, { name: 'VIP', count: 89, id: '2' }, { name: 'New Leads', count: 456, id: '3' }],
+        optOuts7d: 0,
+        topSources: [],
+        topSegments: [],
       });
 
       // ── PHASE 3 (ADMIN): billing + agents (lowest priority) ──
@@ -309,7 +303,7 @@ export function useDashboardData(filters: DashboardFilters) {
           numbersUsed: phones.length, numbersLimit: 5,
           campaignSends: campaignData.reduce((sum, c) => sum + (c.sent_count || 0), 0), campaignLimit: 50000,
           automationRuns, automationLimit: 10000,
-          storageUsedMB: 256, storageLimitMB: 5000,
+          storageUsedMB: 0, storageLimitMB: 5000,
           hasPaymentIssue: false,
         });
       }
@@ -319,10 +313,7 @@ export function useDashboardData(filters: DashboardFilters) {
       if (unassigned > 10) systemAlerts.push({ id: 'unassigned-alert', type: 'warning', category: 'api', title: 'Many unassigned conversations', message: `${unassigned} conversations need assignment`, timestamp: new Date().toISOString(), actionLabel: 'Assign Now', actionHref: '/inbox?assigned=none' });
       setAlerts(systemAlerts);
 
-      setNextActions([
-        { id: '1', type: 'followup', title: 'Follow up with VIP customers', description: '3 VIP customers have been waiting for a response', priority: 'high', href: '/inbox?tags=vip' },
-        { id: '2', type: 'campaign', title: 'Schedule weekly newsletter', description: 'Last newsletter was sent 8 days ago', priority: 'medium', href: '/campaigns/create' },
-      ]);
+      setNextActions([]);
 
       // ── PHASE 4: Recent activity (real audit log) ──
       const { data: auditRows } = await supabase

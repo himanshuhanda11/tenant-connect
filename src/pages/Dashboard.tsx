@@ -54,10 +54,11 @@ export default function Dashboard() {
 
   const chartData = useMemo(() => {
     const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-    return days.map(day => ({
+    const todayIdx = (new Date().getDay() + 6) % 7; // Mon=0..Sun=6
+    return days.map((day, i) => ({
       day,
-      received: Math.max(1, Math.floor(messagesReceivedToday * (0.6 + Math.random() * 0.8) / 7)),
-      sent: Math.max(1, Math.floor(messagesRepliedToday * (0.5 + Math.random() * 0.9) / 7)),
+      received: i === todayIdx ? messagesReceivedToday : 0,
+      sent: i === todayIdx ? messagesRepliedToday : 0,
     }));
   }, [messagesReceivedToday, messagesRepliedToday]);
 
