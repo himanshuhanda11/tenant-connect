@@ -119,6 +119,7 @@ export default function Footer() {
                 </li>
               ))}
             </ul>
+          </div>
 
           {/* Solutions */}
           <div>
