@@ -84,6 +84,7 @@ const GuideManager = lazyWithRetry(() =>
 );
 const About = lazyWithRetry(() => import("./pages/About"));
 const Contact = lazyWithRetry(() => import("./pages/Contact"));
+const BookDemo = lazyWithRetry(() => import("./pages/BookDemo"));
 const Blog = lazyWithRetry(() => import("./pages/Blog"));
 const BlogPost = lazyWithRetry(() => import("./pages/BlogPost"));
 const Careers = lazyWithRetry(() => import("./pages/Careers"));
