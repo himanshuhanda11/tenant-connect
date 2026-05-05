@@ -116,8 +116,16 @@ export default function SignupPage() {
 
       // Wait a moment for the profile to be created by trigger
       if (data.user) {
+        // Fire welcome + admin notification (non-blocking)
+        supabase.functions.invoke('send-team-email', {
+          body: {
+            type: 'signup_welcome',
+            email: email.trim(),
+            fullName: fullName.trim(),
+          },
+        }).catch((e) => console.warn('signup_welcome email failed', e));
+
         // The auth state change will trigger navigation
-        // But we can also manually navigate after a short delay
         setTimeout(() => {
           navigate('/onboarding/org', { replace: true });
         }, 500);
