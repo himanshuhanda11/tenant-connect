@@ -95,6 +95,21 @@ export function WorkflowBuilder({ workflow, open, onOpenChange, onSave }: Workfl
     }
   }, [workflow, open]);
 
+  // Auto-clear errors as the user fixes the relevant fields
+  useEffect(() => {
+    setErrors((prev) => {
+      const next = { ...prev };
+      if (next.name && name.trim()) delete next.name;
+      if (next.actions && actions.length > 0) delete next.actions;
+      if (next.trigger) {
+        if (triggerType === 'keyword_received' && triggerConfig.keywords?.length) delete next.trigger;
+        else if ((triggerType === 'tag_added' || triggerType === 'tag_removed') && triggerConfig.tag_name) delete next.trigger;
+        else if (!['keyword_received', 'tag_added', 'tag_removed'].includes(triggerType)) delete next.trigger;
+      }
+      return next;
+    });
+  }, [name, actions.length, triggerType, triggerConfig]);
+
   const nameInputRef = useRef<HTMLInputElement>(null);
   const triggerSectionRef = useRef<HTMLDivElement>(null);
   const conditionsSectionRef = useRef<HTMLDivElement>(null);
