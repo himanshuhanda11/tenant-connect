@@ -184,11 +184,11 @@ export function useDashboardData(filters: DashboardFilters) {
       const unreadCount = (unreadAggResult.data || []).reduce((s, r: any) => s + (r.unread_count || 0), 0);
 
       setKpis([
-        { id: 'open', title: 'Open Conversations', value: openCount, change: 12, changeType: 'positive', icon: 'inbox', href: '/inbox?status=open' },
+        { id: 'open', title: 'Open Conversations', value: openCount, icon: 'inbox', href: '/inbox?status=open' },
         { id: 'unassigned', title: 'Unassigned', value: unassigned, changeType: unassigned > 5 ? 'negative' : 'neutral', icon: 'user-x', href: '/inbox?assigned=none' },
         { id: 'sla', title: 'SLA Risk', value: slaRisk, changeType: slaRisk > 0 ? 'negative' : 'positive', icon: 'alert-triangle', href: '/inbox?sla=breached' },
-        { id: 'response', title: 'Avg Response', value: '3m', icon: 'clock' },
-        { id: 'resolved', title: 'Resolved Today', value: resolvedToday, change: 8, changeType: 'positive', icon: 'check-circle' },
+        { id: 'response', title: 'Avg Response', value: '—', icon: 'clock' },
+        { id: 'resolved', title: 'Resolved Today', value: resolvedToday, icon: 'check-circle' },
         { id: 'csat', title: 'CSAT', value: '—', icon: 'star' },
       ]);
 
@@ -196,13 +196,7 @@ export function useDashboardData(filters: DashboardFilters) {
         openConversations: openCount,
         closedConversations: resolvedToday,
         waitingOnAgent, waitingOnCustomer, unreadCount,
-        topTags: [
-          { name: 'VIP', count: 12, color: 'amber' },
-          { name: 'Support', count: 28, color: 'blue' },
-          { name: 'Pricing', count: 15, color: 'green' },
-          { name: 'Complaint', count: 5, color: 'red' },
-          { name: 'Lead', count: 42, color: 'purple' },
-        ],
+        topTags: [],
       });
 
       const phones = phonesResult.data || [];
