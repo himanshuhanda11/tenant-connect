@@ -923,10 +923,11 @@ export default function CreateCampaign() {
 
         {/* Navigation Buttons */}
         {currentStep < 5 && (
-          <div className="flex items-center justify-between gap-3">
+          <div className="fixed bottom-0 left-0 right-0 z-30 border-t bg-background/95 backdrop-blur px-4 py-3 flex items-center justify-between gap-3 sm:static sm:border-0 sm:bg-transparent sm:backdrop-blur-0 sm:p-0">
             <Button
               variant="outline"
-              className="flex-1 sm:flex-none"
+              size="lg"
+              className="flex-1 sm:flex-none h-11"
               onClick={handleBack}
               disabled={currentStep === 1}
             >
@@ -934,7 +935,8 @@ export default function CreateCampaign() {
               Back
             </Button>
             <Button
-              className="flex-1 sm:flex-none"
+              size="lg"
+              className="flex-1 sm:flex-none h-11"
               onClick={handleNext}
               disabled={!canProceed()}
             >
