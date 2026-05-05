@@ -18,6 +18,7 @@ import { useTenant } from '@/contexts/TenantContext';
 import { usePhoneNumbers } from '@/hooks/usePhoneNumbers';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { ContactAdminDialog } from '@/components/settings/ContactAdminDialog';
 
 const workspaceSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters').max(100),
@@ -48,6 +49,7 @@ export function WorkspaceSettings() {
   const [waProfile, setWaProfile] = useState<any>(null);
   const [waProfileLoading, setWaProfileLoading] = useState(false);
   const [waProfileSaving, setWaProfileSaving] = useState(false);
+  const [contactFeature, setContactFeature] = useState<string | null>(null);
   const [logoUploading, setLogoUploading] = useState(false);
   const [logoUrl, setLogoUrl] = useState('');
 
@@ -554,7 +556,7 @@ export function WorkspaceSettings() {
                     <h4 className="font-medium">Transfer to Another Owner</h4>
                     <p className="text-sm text-muted-foreground">The new owner will have full control of this workspace</p>
                   </div>
-                  <Button variant="outline">Transfer Ownership</Button>
+                  <Button variant="outline" onClick={() => setContactFeature('Transfer Ownership')}>Transfer Ownership</Button>
                 </div>
               </CardContent>
             </Card>
@@ -574,12 +576,17 @@ export function WorkspaceSettings() {
                   <Label>Enable Multi-Brand Mode</Label>
                   <p className="text-sm text-muted-foreground">Use multiple sender identities within this workspace</p>
                 </div>
-                <Switch disabled={!canEdit} />
+                <Switch
+                  disabled={!canEdit}
+                  checked={false}
+                  onCheckedChange={() => setContactFeature('Multi-Brand Mode')}
+                  onClick={(e) => { e.preventDefault(); setContactFeature('Multi-Brand Mode'); }}
+                />
               </div>
               <Separator />
               <div className="p-4 rounded-lg border border-dashed border-border text-center">
                 <p className="text-sm text-muted-foreground">No additional brands configured</p>
-                <Button variant="outline" size="sm" className="mt-2" disabled={!canEdit}>Add Brand</Button>
+                <Button variant="outline" size="sm" className="mt-2" disabled={!canEdit} onClick={() => setContactFeature('Add Brand')}>Add Brand</Button>
               </div>
             </CardContent>
           </Card>
@@ -598,13 +605,19 @@ export function WorkspaceSettings() {
                     <h4 className="font-medium">Archive this Workspace</h4>
                     <p className="text-sm text-muted-foreground">Disable access but retain data for future restoration</p>
                   </div>
-                  <Button variant="destructive">Archive</Button>
+                  <Button variant="destructive" onClick={() => setContactFeature('Archive Workspace')}>Archive</Button>
                 </div>
               </CardContent>
             </Card>
           )}
         </TabsContent>
       </Tabs>
+
+      <ContactAdminDialog
+        open={contactFeature !== null}
+        onOpenChange={(open) => !open && setContactFeature(null)}
+        feature={contactFeature ?? undefined}
+      />
     </div>
   );
 }
