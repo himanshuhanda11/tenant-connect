@@ -923,16 +923,18 @@ export default function CreateCampaign() {
 
         {/* Navigation Buttons */}
         {currentStep < 5 && (
-          <div className="flex justify-between">
-            <Button 
-              variant="outline" 
+          <div className="flex items-center justify-between gap-3">
+            <Button
+              variant="outline"
+              className="flex-1 sm:flex-none"
               onClick={handleBack}
               disabled={currentStep === 1}
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back
             </Button>
-            <Button 
+            <Button
+              className="flex-1 sm:flex-none"
               onClick={handleNext}
               disabled={!canProceed()}
             >
