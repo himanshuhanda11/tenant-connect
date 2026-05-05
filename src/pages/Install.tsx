@@ -68,7 +68,9 @@ export default function Install() {
       <main className="flex-1 container max-w-4xl mx-auto px-4 py-12 sm:py-20">
         <div className="text-center mb-10">
           <div className="flex justify-center mb-6">
-            <img src={aireatroLogo} alt="AiReatro" className="h-20 w-auto" />
+            <Link to="/" className="flex items-center">
+              <img src={aireatroLogo} alt="AiReatro" className="h-20 w-auto" />
+            </Link>
           </div>
           <h1 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">
             Install AiReatro App
