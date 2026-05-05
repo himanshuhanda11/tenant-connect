@@ -139,6 +139,8 @@ export function useSubscription() {
       };
     },
     enabled: !!currentTenant?.id,
+    staleTime: 60_000,
+    gcTime: 5 * 60_000,
   });
 }
 
@@ -181,6 +183,8 @@ export function useInvoices() {
       }));
     },
     enabled: !!currentTenant?.id,
+    staleTime: 60_000,
+    gcTime: 5 * 60_000,
   });
 }
 
@@ -195,6 +199,8 @@ export function usePaymentMethods() {
       return [];
     },
     enabled: !!currentTenant?.id,
+    staleTime: 60_000,
+    gcTime: 5 * 60_000,
   });
 }
 
@@ -208,30 +214,29 @@ export function useUsage() {
     queryFn: async () => {
       if (!currentTenant?.id) return null;
 
-      // Fetch usage counters
-      const { data, error } = await supabase
-        .from('usage_counters')
-        .select('*')
-        .eq('tenant_id', currentTenant.id)
-        .eq('year_month', currentMonth)
-        .maybeSingle();
-
-      if (error) throw error;
-
-      // Fetch real automation run count this month
       const startOfMonth = `${currentMonth}-01T00:00:00Z`;
-      const { count: automationCount } = await supabase
-        .from('automation_runs')
-        .select('*', { count: 'exact', head: true })
-        .eq('tenant_id', currentTenant.id)
-        .gte('started_at', startOfMonth);
 
-      // Fetch real storage size from storage.objects via RPC or direct query
-      // We'll use a simple approach - query media messages size
-      const { count: campaignCount } = await supabase
-        .from('campaigns')
-        .select('*', { count: 'exact', head: true })
-        .eq('tenant_id', currentTenant.id);
+      // Run all three queries in parallel instead of sequentially
+      const [counterRes, automationRes, campaignRes] = await Promise.all([
+        supabase
+          .from('usage_counters')
+          .select('*')
+          .eq('tenant_id', currentTenant.id)
+          .eq('year_month', currentMonth)
+          .maybeSingle(),
+        supabase
+          .from('automation_runs')
+          .select('*', { count: 'exact', head: true })
+          .eq('tenant_id', currentTenant.id)
+          .gte('started_at', startOfMonth),
+        supabase
+          .from('campaigns')
+          .select('*', { count: 'exact', head: true })
+          .eq('tenant_id', currentTenant.id),
+      ]);
+
+      if (counterRes.error) throw counterRes.error;
+      const data = counterRes.data;
 
       return {
         id: data?.id ?? '',
@@ -239,15 +244,17 @@ export function useUsage() {
         year_month: currentMonth,
         messages_sent: data?.messages_sent ?? 0,
         messages_received: data?.messages_received ?? 0,
-        campaigns_created: data?.campaigns_created ?? (campaignCount ?? 0),
+        campaigns_created: data?.campaigns_created ?? (campaignRes.count ?? 0),
         contacts_added: data?.contacts_added ?? 0,
-        automation_runs: automationCount ?? 0,
+        automation_runs: automationRes.count ?? 0,
         template_submissions: 0,
         api_calls: data?.messages_sent ? Math.round((data.messages_sent) * 2.1) : 0,
-        storage_bytes: 732638588, // From actual storage bucket query
+        storage_bytes: 732638588,
       };
     },
     enabled: !!currentTenant?.id,
+    staleTime: 60_000,
+    gcTime: 5 * 60_000,
   });
 }
 
@@ -277,6 +284,8 @@ export function useBillingSettings() {
       };
     },
     enabled: !!currentTenant?.id,
+    staleTime: 60_000,
+    gcTime: 5 * 60_000,
   });
 }
 
@@ -302,6 +311,8 @@ export function useTeamUsage() {
       return { used: count ?? 0, limit: numLimit };
     },
     enabled: !!currentTenant?.id,
+    staleTime: 60_000,
+    gcTime: 5 * 60_000,
   });
 }
 
@@ -327,6 +338,8 @@ export function usePhoneUsage() {
       return { used: count ?? 0, limit: numLimit };
     },
     enabled: !!currentTenant?.id,
+    staleTime: 60_000,
+    gcTime: 5 * 60_000,
   });
 }
 
@@ -352,5 +365,7 @@ export function useContactsUsage() {
       return { used: count ?? 0, limit: numLimit };
     },
     enabled: !!currentTenant?.id,
+    staleTime: 60_000,
+    gcTime: 5 * 60_000,
   });
 }
