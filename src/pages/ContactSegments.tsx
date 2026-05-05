@@ -59,12 +59,21 @@ function summarizeFilters(filters: SegmentFilters): string {
 }
 
 export default function ContactSegments() {
+  const navigate = useNavigate();
   const { currentTenant } = useTenant();
   const isMobile = useIsMobile();
   const [segments, setSegments] = useState<Segment[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [showCreateModal, setShowCreateModal] = useState(false);
+
+  const handleUseInCampaign = (segment: Segment) =>
+    navigate(`/campaigns/create?segment=${segment.id}`);
+  const handleUseInAutomation = (segment: Segment) =>
+    navigate(`/flows/builder?segment=${segment.id}`);
+  const handleEditSegment = (segment: Segment) => {
+    toast.info(`Edit "${segment.name}" — coming soon`);
+  };
 
   const fetchSegments = useCallback(async () => {
     if (!currentTenant?.id) return;
