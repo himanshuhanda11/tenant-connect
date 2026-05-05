@@ -19,7 +19,7 @@ Deno.serve(async (req) => {
     if (!type) {
       return json({ error: "Missing required field: type" }, 400);
     }
-    if (type !== "signup_welcome" && type !== "demo_request" && !to) {
+    if (type !== "signup_welcome" && type !== "demo_request" && type !== "contact_request" && !to) {
       return json({ error: "Missing required field: to" }, 400);
     }
 
