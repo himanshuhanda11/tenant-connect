@@ -47,16 +47,65 @@ const LIMIT_LABELS: Record<string, string> = {
   TIER_UNLIMITED: 'Unlimited',
 };
 
-// Module-level cache so navigating away and back doesn't blank the dashboard
-const cache = new Map<string, any>();
+// Module-level TTL cache (per tenant + range). Invalidated by realtime events
+// or after CACHE_TTL_MS, so the dashboard stays fast but never goes stale.
+const CACHE_TTL_MS = 60_000;
+type CacheEntry = { data: any; ts: number };
+const cache = new Map<string, CacheEntry>();
+
+export function invalidateDashboardCache(tenantId?: string) {
+  if (!tenantId) { cache.clear(); return; }
+  for (const key of cache.keys()) {
+    if (key.startsWith(`${tenantId}:`)) cache.delete(key);
+  }
+}
+
+export interface RecentActivityItem {
+  id: string;
+  action: string;
+  resourceType: string | null;
+  title: string;
+  subtitle: string;
+  timestamp: string;
+  iconKey: 'template' | 'campaign' | 'automation' | 'contact' | 'message' | 'auth' | 'generic';
+}
+
+const ACTION_ICON: Record<string, RecentActivityItem['iconKey']> = {
+  template: 'template', templates: 'template', wa_template: 'template',
+  campaign: 'campaign', campaigns: 'campaign', broadcast: 'campaign',
+  automation: 'automation', workflow: 'automation', flow: 'automation',
+  contact: 'contact', contacts: 'contact', lead: 'contact',
+  message: 'message', conversation: 'message', inbox: 'message',
+  login: 'auth', logout: 'auth', auth: 'auth', user: 'auth',
+};
+
+function pickIcon(action: string, resourceType?: string | null): RecentActivityItem['iconKey'] {
+  const key = (resourceType || action || '').toLowerCase();
+  for (const k of Object.keys(ACTION_ICON)) {
+    if (key.includes(k)) return ACTION_ICON[k];
+  }
+  return 'generic';
+}
+
+function humanize(action: string, details: any): { title: string; subtitle: string } {
+  const verb = action.replace(/[._-]/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+  const sub =
+    (details && (details.name || details.title || details.message || details.summary)) ||
+    (details && details.resource && String(details.resource)) ||
+    '';
+  return { title: verb, subtitle: typeof sub === 'string' ? sub : '' };
+}
 
 export function useDashboardData(filters: DashboardFilters) {
   const { currentTenant, currentRole } = useTenant();
   const tenantId = currentTenant?.id ?? '';
   const cacheKey = `${tenantId}:${filters.dateRange}`;
-  const cached = cache.get(cacheKey);
+  const cachedEntry = cache.get(cacheKey);
+  const isFresh = cachedEntry && Date.now() - cachedEntry.ts < CACHE_TTL_MS;
+  const cached: any = cachedEntry?.data || null;
 
   const [loading, setLoading] = useState(!cached);
+  const [recentActivity, setRecentActivity] = useState<RecentActivityItem[]>(cached?.recentActivity || []);
   const [kpis, setKpis] = useState<KPIMetric[]>(cached?.kpis || []);
   const [inboxHealth, setInboxHealth] = useState<InboxHealthMetrics | null>(cached?.inboxHealth || null);
   const [actionQueue, setActionQueue] = useState<ActionQueueItem[]>(cached?.actionQueue || []);
@@ -275,10 +324,35 @@ export function useDashboardData(filters: DashboardFilters) {
         { id: '2', type: 'campaign', title: 'Schedule weekly newsletter', description: 'Last newsletter was sent 8 days ago', priority: 'medium', href: '/campaigns/create' },
       ]);
 
-      // Cache snapshot for instant re-render on next mount
+      // ── PHASE 4: Recent activity (real audit log) ──
+      const { data: auditRows } = await supabase
+        .from('audit_logs')
+        .select('id, action, resource_type, details, created_at')
+        .eq('tenant_id', tId)
+        .order('created_at', { ascending: false })
+        .limit(8);
+
+      const activity: RecentActivityItem[] = (auditRows || []).map((row: any) => {
+        const { title, subtitle } = humanize(row.action, row.details);
+        return {
+          id: row.id,
+          action: row.action,
+          resourceType: row.resource_type,
+          title,
+          subtitle,
+          timestamp: row.created_at,
+          iconKey: pickIcon(row.action, row.resource_type),
+        };
+      });
+      setRecentActivity(activity);
+
+      // Cache snapshot with timestamp for TTL invalidation
       cache.set(cacheKey, {
-        kpis, inboxHealth, phoneHealth, creditsBalance,
-        messagesReceivedToday, messagesRepliedToday,
+        ts: Date.now(),
+        data: {
+          kpis: undefined, // re-derived from setters; lightweight fields only
+          recentActivity: activity,
+        },
       });
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
@@ -289,35 +363,50 @@ export function useDashboardData(filters: DashboardFilters) {
   }, [currentTenant, filters, isAdmin, cacheKey]);
 
   useEffect(() => {
+    if (isFresh) {
+      setLoading(false);
+      return;
+    }
     fetchDashboardData();
-  }, [fetchDashboardData]);
+  }, [fetchDashboardData, isFresh]);
 
-  // Realtime with debounce to avoid hammering on bursts
+  // Realtime: invalidate cache + refetch on tenant data changes (debounced)
   useEffect(() => {
     if (!currentTenant) return;
+    const tId = currentTenant.id;
+
+    const triggerRefresh = () => {
+      invalidateDashboardCache(tId);
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+      debounceRef.current = setTimeout(() => fetchDashboardData(), 3000);
+    };
 
     const channel = supabase
-      .channel('dashboard-realtime')
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'conversations', filter: `tenant_id=eq.${currentTenant.id}` },
-        () => {
-          if (debounceRef.current) clearTimeout(debounceRef.current);
-          debounceRef.current = setTimeout(() => fetchDashboardData(), 5000);
-        }
-      )
+      .channel(`dashboard-rt-${tId}`)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'conversations', filter: `tenant_id=eq.${tId}` }, triggerRefresh)
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'audit_logs', filter: `tenant_id=eq.${tId}` }, triggerRefresh)
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter: `tenant_id=eq.${tId}` }, triggerRefresh)
       .subscribe();
+
+    // Also auto-refetch when window regains focus & cache is older than TTL
+    const onFocus = () => {
+      const entry = cache.get(cacheKey);
+      if (!entry || Date.now() - entry.ts >= CACHE_TTL_MS) fetchDashboardData();
+    };
+    window.addEventListener('focus', onFocus);
 
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
+      window.removeEventListener('focus', onFocus);
       supabase.removeChannel(channel);
     };
-  }, [currentTenant, fetchDashboardData]);
+  }, [currentTenant, fetchDashboardData, cacheKey]);
 
   return {
     loading, kpis, inboxHealth, actionQueue, agents, automations, campaigns, metaAds,
     phoneHealth, contacts, billing, alerts, heatmap, nextActions, isAdmin,
     creditsBalance, templatesPending, totalTemplates, messagesReceivedToday, messagesRepliedToday, totalCampaigns,
-    refetch: fetchDashboardData,
+    recentActivity,
+    refetch: () => { invalidateDashboardCache(tenantId); return fetchDashboardData(); },
   };
 }

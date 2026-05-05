@@ -34,7 +34,8 @@ export default function Dashboard() {
   const {
     loading, kpis, inboxHealth, automations, campaigns, metaAds,
     phoneHealth, contacts, billing, creditsBalance, templatesPending,
-    totalTemplates, messagesReceivedToday, messagesRepliedToday, totalCampaigns, refetch,
+    totalTemplates, messagesReceivedToday, messagesRepliedToday, totalCampaigns,
+    recentActivity, refetch,
   } = useDashboardData(filters);
 
   const displayName = profile?.full_name?.split(' ')[0] || 'there';
@@ -60,13 +61,31 @@ export default function Dashboard() {
     }));
   }, [messagesReceivedToday, messagesRepliedToday]);
 
-  const timelineEvents = useMemo(() => [
-    { id: '1', icon: FileText, color: 'text-amber-500', bg: 'bg-amber-100 dark:bg-amber-500/15', title: 'Template "welcome_v2" submitted', sub: 'Pending Meta approval', timestamp: new Date(Date.now() - 15 * 60 * 1000).toISOString() },
-    { id: '2', icon: Send, color: 'text-blue-500', bg: 'bg-blue-100 dark:bg-blue-500/15', title: 'Campaign "Summer Sale" completed', sub: '2,450 messages delivered', timestamp: new Date(Date.now() - 60 * 60 * 1000).toISOString() },
-    { id: '3', icon: Zap, color: 'text-purple-500', bg: 'bg-purple-100 dark:bg-purple-500/15', title: 'Welcome Flow triggered', sub: '3 new contacts enrolled', timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString() },
-    { id: '4', icon: UserPlus, color: 'text-emerald-500', bg: 'bg-emerald-100 dark:bg-emerald-500/15', title: '12 new contacts added', sub: 'Via Meta Ads lead form', timestamp: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString() },
-    { id: '5', icon: CheckCircle2, color: 'text-emerald-500', bg: 'bg-emerald-100 dark:bg-emerald-500/15', title: 'Ticket resolved', sub: 'Customer support query handled', timestamp: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString() },
-  ], []);
+  const ICON_MAP: Record<string, { icon: any; color: string; bg: string }> = {
+    template: { icon: FileText, color: 'text-amber-500', bg: 'bg-amber-100 dark:bg-amber-500/15' },
+    campaign: { icon: Send, color: 'text-blue-500', bg: 'bg-blue-100 dark:bg-blue-500/15' },
+    automation: { icon: Zap, color: 'text-purple-500', bg: 'bg-purple-100 dark:bg-purple-500/15' },
+    contact: { icon: UserPlus, color: 'text-emerald-500', bg: 'bg-emerald-100 dark:bg-emerald-500/15' },
+    message: { icon: MessageSquare, color: 'text-teal-500', bg: 'bg-teal-100 dark:bg-teal-500/15' },
+    auth: { icon: ShieldCheck, color: 'text-indigo-500', bg: 'bg-indigo-100 dark:bg-indigo-500/15' },
+    generic: { icon: CheckCircle2, color: 'text-muted-foreground', bg: 'bg-muted' },
+  };
+
+  const timelineEvents = useMemo(
+    () => (recentActivity || []).map(ev => {
+      const meta = ICON_MAP[ev.iconKey] || ICON_MAP.generic;
+      return {
+        id: ev.id,
+        icon: meta.icon,
+        color: meta.color,
+        bg: meta.bg,
+        title: ev.title,
+        sub: ev.subtitle || (ev.resourceType ? `On ${ev.resourceType}` : ''),
+        timestamp: ev.timestamp,
+      };
+    }),
+    [recentActivity]
+  );
 
   const setupSteps = useMemo(() => {
     const hasPhone = phoneHealth.length > 0;
@@ -494,7 +513,11 @@ export default function Dashboard() {
             </button>
           </div>
           <div className="space-y-0">
-            {timelineEvents.map(ev => {
+            {timelineEvents.length === 0 ? (
+              <div className="py-6 text-center">
+                <p className="text-[11px] sm:text-xs text-muted-foreground">No recent activity yet.</p>
+              </div>
+            ) : timelineEvents.map(ev => {
               const Icon = ev.icon;
               return (
                 <div key={ev.id} className="flex items-start gap-2 sm:gap-3 py-2 px-1 rounded-lg hover:bg-muted/30 transition-colors">
@@ -503,7 +526,7 @@ export default function Dashboard() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-[11px] sm:text-sm font-medium text-foreground truncate">{ev.title}</p>
-                    <p className="text-[10px] sm:text-[11px] text-muted-foreground">{ev.sub}</p>
+                    {ev.sub && <p className="text-[10px] sm:text-[11px] text-muted-foreground truncate">{ev.sub}</p>}
                   </div>
                   <span className="text-[9px] sm:text-[10px] text-muted-foreground flex-shrink-0 mt-0.5">
                     {formatDistanceToNow(new Date(ev.timestamp), { addSuffix: true })}
