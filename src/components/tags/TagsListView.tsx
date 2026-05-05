@@ -62,6 +62,7 @@ export function TagsListView({
   onToggleRule,
 }: TagsListViewProps) {
   const getTagRules = (tagId: string) => rules.filter(r => r.tag_id === tagId);
+  const isMobile = useIsMobile();
 
   if (loading) {
     return viewMode === 'grid' ? (
