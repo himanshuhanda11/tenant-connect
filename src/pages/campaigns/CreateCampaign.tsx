@@ -128,6 +128,7 @@ export default function CreateCampaign() {
   }, [searchParams]);
 
   const preselectedCountParam = Number(searchParams.get('count') || '0');
+  const preselectedSegmentId = searchParams.get('segment') || '';
 
   const [wizard, setWizard] = useState<CampaignWizardState>({
     step: 1,
@@ -145,7 +146,7 @@ export default function CreateCampaign() {
     },
     audience: {
       source: preselectedContactIds.length > 0 ? 'contacts' : 'segments',
-      include_segments: [],
+      include_segments: preselectedSegmentId ? [preselectedSegmentId] : [],
       exclude_segments: [],
       include_tags: [],
       exclude_tags: [],
