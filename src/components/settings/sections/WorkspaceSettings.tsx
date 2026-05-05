@@ -586,7 +586,7 @@ export function WorkspaceSettings() {
               <Separator />
               <div className="p-4 rounded-lg border border-dashed border-border text-center">
                 <p className="text-sm text-muted-foreground">No additional brands configured</p>
-                <Button variant="outline" size="sm" className="mt-2" disabled={!canEdit}>Add Brand</Button>
+                <Button variant="outline" size="sm" className="mt-2" disabled={!canEdit} onClick={() => setContactFeature('Add Brand')}>Add Brand</Button>
               </div>
             </CardContent>
           </Card>
