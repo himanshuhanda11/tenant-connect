@@ -131,6 +131,7 @@ export function useInboxConversations(view: InboxView, filters: InboxFilters) {
   const [conversations, setConversations] = useState<InboxConversation[]>(cached?.data ?? []);
   const [loading, setLoading] = useState(!cached);
   const [error, setError] = useState<string | null>(null);
+  const [totalCount, setTotalCount] = useState<number | null>(null);
   const inFlightRef = useRef<Promise<void> | null>(null);
 
   const initialLoadDone = useCallback(() => conversations.length > 0 || !loading, [conversations.length, loading]);
