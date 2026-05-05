@@ -170,10 +170,10 @@ export default function HeroSection() {
                   variant="outline"
                   size="lg"
                   className="h-12 sm:h-14 px-6 sm:px-8 text-sm sm:text-base border-border hover:bg-muted rounded-xl"
-                  onClick={() => navigate('/contact')}
+                  onClick={() => navigate('/demo')}
                 >
                   <Play className="w-4 h-4 mr-2" />
-                  See Live Demo
+                  Book a Demo
                 </Button>
               </motion.div>
 
