@@ -432,8 +432,7 @@ export default function PhoneNumbersList() {
         </div>
 
         {/* Numbers List */}
-        {/* Force card view on mobile for table viewMode */}
-        {viewMode === 'cards' || (typeof window !== 'undefined' && window.innerWidth < 768) ? (
+        {viewMode === 'cards' || isMobile ? (
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
             {filteredNumbers.map((number) => (
               <Card 
