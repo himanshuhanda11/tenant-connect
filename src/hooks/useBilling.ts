@@ -139,6 +139,8 @@ export function useSubscription() {
       };
     },
     enabled: !!currentTenant?.id,
+    staleTime: 60_000,
+    gcTime: 5 * 60_000,
   });
 }
 
@@ -181,6 +183,8 @@ export function useInvoices() {
       }));
     },
     enabled: !!currentTenant?.id,
+    staleTime: 60_000,
+    gcTime: 5 * 60_000,
   });
 }
 
@@ -195,6 +199,8 @@ export function usePaymentMethods() {
       return [];
     },
     enabled: !!currentTenant?.id,
+    staleTime: 60_000,
+    gcTime: 5 * 60_000,
   });
 }
 
@@ -278,6 +284,8 @@ export function useBillingSettings() {
       };
     },
     enabled: !!currentTenant?.id,
+    staleTime: 60_000,
+    gcTime: 5 * 60_000,
   });
 }
 
@@ -303,6 +311,8 @@ export function useTeamUsage() {
       return { used: count ?? 0, limit: numLimit };
     },
     enabled: !!currentTenant?.id,
+    staleTime: 60_000,
+    gcTime: 5 * 60_000,
   });
 }
 
@@ -328,6 +338,8 @@ export function usePhoneUsage() {
       return { used: count ?? 0, limit: numLimit };
     },
     enabled: !!currentTenant?.id,
+    staleTime: 60_000,
+    gcTime: 5 * 60_000,
   });
 }
 
@@ -353,5 +365,7 @@ export function useContactsUsage() {
       return { used: count ?? 0, limit: numLimit };
     },
     enabled: !!currentTenant?.id,
+    staleTime: 60_000,
+    gcTime: 5 * 60_000,
   });
 }
