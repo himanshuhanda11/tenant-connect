@@ -274,7 +274,7 @@ export function WorkflowBuilder({ workflow, open, onOpenChange, onSave }: Workfl
           </div>
         </SheetHeader>
 
-        <ScrollArea className="flex-1 overflow-auto" ref={scrollContainerRef as any}>
+        <ScrollArea className="flex-1 overflow-auto">
           <div className="p-3 xs:p-4 sm:p-6 space-y-4 xs:space-y-5 sm:space-y-6 pb-32 xs:pb-6">
             {/* WHEN - Trigger Section */}
             <Card className="border-primary/50">
