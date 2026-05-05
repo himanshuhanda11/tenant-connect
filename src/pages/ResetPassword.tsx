@@ -85,7 +85,9 @@ export default function ResetPassword() {
         <div className="w-full max-w-md">
           {/* Logo */}
           <div className="flex items-center justify-center gap-2 mb-8">
-            <img src={aireatroLogo} alt="AiReatro" className="h-10 w-auto" />
+            <Link to="/" className="flex items-center">
+              <img src={aireatroLogo} alt="AiReatro" className="h-10 w-auto" />
+            </Link>
           </div>
 
           <Card className="border-0 shadow-xl">
@@ -118,7 +120,9 @@ export default function ResetPassword() {
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="flex items-center justify-center gap-2 mb-8">
-          <img src={aireatroLogo} alt="AiReatro" className="h-10 w-auto" />
+          <Link to="/" className="flex items-center">
+            <img src={aireatroLogo} alt="AiReatro" className="h-10 w-auto" />
+          </Link>
         </div>
 
         <Card className="border-0 shadow-xl">
