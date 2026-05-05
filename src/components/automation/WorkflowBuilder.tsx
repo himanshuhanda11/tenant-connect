@@ -874,12 +874,12 @@ export function WorkflowBuilder({ workflow, open, onOpenChange, onSave }: Workfl
         {/* Sticky mobile action bar */}
         <div className="xs:hidden flex-shrink-0 border-t bg-background/95 backdrop-blur px-3 py-2.5 flex items-center gap-2 pb-[calc(0.625rem+env(safe-area-inset-bottom))]">
           <Button variant="outline" size="lg" onClick={() => handleSave(false)} disabled={saving} className="flex-1 h-11">
-            <Save className="h-4 w-4 mr-2" />
-            Draft
+            {savingMode === 'draft' ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
+            {savingMode === 'draft' ? 'Saving…' : 'Draft'}
           </Button>
           <Button size="lg" onClick={() => handleSave(true)} disabled={saving} className="flex-1 h-11">
-            <PlayCircle className="h-4 w-4 mr-2" />
-            Activate
+            {savingMode === 'activate' ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <PlayCircle className="h-4 w-4 mr-2" />}
+            {savingMode === 'activate' ? 'Activating…' : 'Activate'}
           </Button>
         </div>
       </SheetContent>
