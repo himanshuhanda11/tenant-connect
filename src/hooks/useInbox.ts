@@ -305,7 +305,7 @@ export function useInboxConversations(view: InboxView, filters: InboxFilters, cr
     })();
     inFlightRef.current = run;
     try { await run; } finally { inFlightRef.current = null; }
-  }, [currentTenant?.id, user?.id, view, filters, cacheKey]);
+  }, [currentTenant?.id, user?.id, view, filters, crmFilter, cacheKey]);
 
   useEffect(() => {
     if (!cacheKey) { fetchConversations(); return; }
