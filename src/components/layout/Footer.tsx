@@ -119,6 +119,19 @@ export default function Footer() {
                 </li>
               ))}
             </ul>
+
+          {/* Solutions */}
+          <div>
+            <h4 className="font-semibold mb-4 text-sm">Solutions</h4>
+            <ul className="space-y-2.5">
+              {footerLinks.solutions.map((link) => (
+                <li key={link.name}>
+                  <Link to={link.href} className="text-slate-400 hover:text-white transition-colors text-sm">
+                    {link.name}
+                  </Link>
+                </li>
+              ))}
+            </ul>
           </div>
 
           {/* Integrations */}
