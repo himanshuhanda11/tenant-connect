@@ -355,7 +355,7 @@ export default function AutomationWorkflows() {
               <p className="text-muted-foreground mb-4">
                 One-click install these pre-built automations to get started quickly
               </p>
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {starterAutomations.map(starter => (
                   <StarterAutomationCard
                     key={starter.id}
@@ -400,7 +400,7 @@ export default function AutomationWorkflows() {
                 <CardDescription>Filter when actions should execute</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="grid md:grid-cols-3 lg:grid-cols-4 gap-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
                   {Object.entries(CONDITION_DEFINITIONS).map(([type, def]) => (
                     <div key={type} className="flex items-center gap-2 p-2 rounded-lg bg-muted/50">
                       <Filter className="h-4 w-4 text-amber-500 shrink-0" />
@@ -421,7 +421,7 @@ export default function AutomationWorkflows() {
                 <CardDescription>What happens when conditions are met</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="grid md:grid-cols-3 lg:grid-cols-4 gap-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
                   {Object.entries(ACTION_DEFINITIONS).map(([type, def]) => (
                     <div key={type} className="flex items-center gap-2 p-2 rounded-lg bg-muted/50">
                       <MessageSquare className="h-4 w-4 text-green-500 shrink-0" />
@@ -442,7 +442,7 @@ export default function AutomationWorkflows() {
                 <CardDescription>Built-in protections to prevent spam and errors</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                   <div className="p-4 rounded-lg border">
                     <div className="flex items-center gap-2 mb-2">
                       <Clock className="h-4 w-4 text-blue-500" />
