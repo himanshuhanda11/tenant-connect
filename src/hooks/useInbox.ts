@@ -247,13 +247,17 @@ export function useInboxConversations(view: InboxView, filters: InboxFilters) {
       }
 
       setConversations(mapped);
+      if (cacheKey) inboxCache.set(cacheKey, { data: mapped, ts: Date.now() });
     } catch (err) {
       console.error('Error fetching conversations:', err);
       setError(err instanceof Error ? err.message : 'Failed to load conversations');
     } finally {
       setLoading(false);
     }
-  }, [currentTenant?.id, view, filters]);
+    })();
+    inFlightRef.current = run;
+    try { await run; } finally { inFlightRef.current = null; }
+  }, [currentTenant?.id, user?.id, view, filters, cacheKey]);
 
   useEffect(() => {
     fetchConversations();
