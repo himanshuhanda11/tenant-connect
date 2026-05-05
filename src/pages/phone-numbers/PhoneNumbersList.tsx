@@ -80,6 +80,7 @@ interface Filters {
 export default function PhoneNumbersList() {
   const navigate = useNavigate();
   const { phoneNumbers, loading, setDefaultNumber, disconnectNumber, refetch } = usePhoneNumbers();
+  const isMobile = useIsMobile();
   const [search, setSearch] = useState('');
   const [viewMode, setViewMode] = useState<'cards' | 'table'>('cards');
   const [showFilters, setShowFilters] = useState(false);
