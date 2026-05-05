@@ -303,7 +303,7 @@ export function useDashboardData(filters: DashboardFilters) {
           numbersUsed: phones.length, numbersLimit: 5,
           campaignSends: campaignData.reduce((sum, c) => sum + (c.sent_count || 0), 0), campaignLimit: 50000,
           automationRuns, automationLimit: 10000,
-          storageUsedMB: 256, storageLimitMB: 5000,
+          storageUsedMB: 0, storageLimitMB: 5000,
           hasPaymentIssue: false,
         });
       }
@@ -313,10 +313,7 @@ export function useDashboardData(filters: DashboardFilters) {
       if (unassigned > 10) systemAlerts.push({ id: 'unassigned-alert', type: 'warning', category: 'api', title: 'Many unassigned conversations', message: `${unassigned} conversations need assignment`, timestamp: new Date().toISOString(), actionLabel: 'Assign Now', actionHref: '/inbox?assigned=none' });
       setAlerts(systemAlerts);
 
-      setNextActions([
-        { id: '1', type: 'followup', title: 'Follow up with VIP customers', description: '3 VIP customers have been waiting for a response', priority: 'high', href: '/inbox?tags=vip' },
-        { id: '2', type: 'campaign', title: 'Schedule weekly newsletter', description: 'Last newsletter was sent 8 days ago', priority: 'medium', href: '/campaigns/create' },
-      ]);
+      setNextActions([]);
 
       // ── PHASE 4: Recent activity (real audit log) ──
       const { data: auditRows } = await supabase
