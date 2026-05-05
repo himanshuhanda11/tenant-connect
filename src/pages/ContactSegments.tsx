@@ -155,39 +155,32 @@ export default function ContactSegments() {
   return (
     <DashboardLayout>
       <div className="space-y-4 sm:space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-          <div>
-            <h1 className="text-xl sm:text-2xl font-bold">Segments</h1>
-            <p className="text-sm text-muted-foreground">
-              Create and manage saved contact filters
-            </p>
-          </div>
-          <Button size="sm" onClick={() => setShowCreateModal(true)} className="self-start sm:self-auto">
-            <Plus className="h-4 w-4 mr-2" />
-            Create Segment
-          </Button>
-        </div>
-
         <Card>
           <CardHeader className="pb-3">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-              <div>
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="min-w-0">
                 <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
                   <FolderOpen className="h-5 w-5" />
-                  All Segments
+                  Segments
                 </CardTitle>
                 <CardDescription className="text-xs sm:text-sm">
-                  {segments.length} segment{segments.length !== 1 ? 's' : ''} created
+                  {segments.length} saved filter{segments.length !== 1 ? 's' : ''} — reuse across campaigns and automations
                 </CardDescription>
               </div>
-              <div className="relative w-full sm:w-64">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search segments..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-9"
-                />
+              <div className="flex items-center gap-2">
+                <div className="relative flex-1 sm:w-64">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Search segments..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-9"
+                  />
+                </div>
+                <Button size="sm" onClick={() => setShowCreateModal(true)} className="shrink-0">
+                  <Plus className="h-4 w-4 sm:mr-2" />
+                  <span className="hidden sm:inline">Create</span>
+                </Button>
               </div>
             </div>
           </CardHeader>
