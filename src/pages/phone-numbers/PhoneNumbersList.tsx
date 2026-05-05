@@ -67,6 +67,7 @@ import {
   WEBHOOK_HEALTH_CONFIG 
 } from '@/types/phoneNumber';
 import { cn } from '@/lib/utils';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface Filters {
   status: NumberStatus | 'all';
@@ -79,6 +80,7 @@ interface Filters {
 export default function PhoneNumbersList() {
   const navigate = useNavigate();
   const { phoneNumbers, loading, setDefaultNumber, disconnectNumber, refetch } = usePhoneNumbers();
+  const isMobile = useIsMobile();
   const [search, setSearch] = useState('');
   const [viewMode, setViewMode] = useState<'cards' | 'table'>('cards');
   const [showFilters, setShowFilters] = useState(false);
@@ -432,7 +434,7 @@ export default function PhoneNumbersList() {
         </div>
 
         {/* Numbers List */}
-        {viewMode === 'cards' ? (
+        {viewMode === 'cards' || isMobile ? (
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
             {filteredNumbers.map((number) => (
               <Card 

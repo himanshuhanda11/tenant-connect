@@ -34,6 +34,7 @@ import {
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { cn } from '@/lib/utils';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface TagsListViewProps {
   tags: Tag[];
@@ -61,6 +62,7 @@ export function TagsListView({
   onToggleRule,
 }: TagsListViewProps) {
   const getTagRules = (tagId: string) => rules.filter(r => r.tag_id === tagId);
+  const isMobile = useIsMobile();
 
   if (loading) {
     return viewMode === 'grid' ? (
@@ -92,8 +94,8 @@ export function TagsListView({
     return null;
   }
 
-  // Grid View
-  if (viewMode === 'grid') {
+  // Grid View (also used on mobile for list mode)
+  if (viewMode === 'grid' || isMobile) {
     return (
       <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
         {tags.map((tag) => {
