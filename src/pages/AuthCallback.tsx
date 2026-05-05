@@ -57,6 +57,35 @@ export default function AuthCallback() {
           throw new Error('Sign-in completed but no session was created.');
         }
 
+        // Fire welcome + admin notification for brand-new OAuth signups.
+        try {
+          const u = session.user;
+          const createdAt = u?.created_at ? new Date(u.created_at).getTime() : 0;
+          const lastSignIn = u?.last_sign_in_at ? new Date(u.last_sign_in_at).getTime() : 0;
+          // New user heuristic: created within last 5 min, or first sign-in equals created.
+          const isNew =
+            (Date.now() - createdAt < 5 * 60 * 1000) ||
+            (createdAt && lastSignIn && Math.abs(lastSignIn - createdAt) < 10_000);
+
+          if (isNew && u?.email) {
+            const sentKey = `signup_welcome_sent_${u.id}`;
+            if (!localStorage.getItem(sentKey)) {
+              localStorage.setItem(sentKey, '1');
+              const fullName =
+                (u.user_metadata as any)?.full_name ||
+                (u.user_metadata as any)?.name ||
+                u.email.split('@')[0];
+              supabase.functions
+                .invoke('send-team-email', {
+                  body: { type: 'signup_welcome', email: u.email, fullName },
+                })
+                .catch((e) => console.warn('signup_welcome email failed', e));
+            }
+          }
+        } catch (welcomeErr) {
+          console.warn('welcome email trigger error', welcomeErr);
+        }
+
         navigate(next, { replace: true });
       } catch (e: any) {
         console.error('OAuth callback error:', e);
