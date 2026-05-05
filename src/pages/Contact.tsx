@@ -68,18 +68,28 @@ const TIME_SLOTS = [
 type ContactFormData = z.infer<typeof contactSchema>;
 
 export default function Contact() {
+  const [searchParams] = useSearchParams();
+  const isWalkthrough = searchParams.get('intent') === 'walkthrough';
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [errors, setErrors] = useState<Partial<Record<keyof ContactFormData, string>>>({});
+  const browserTz = useMemo(() => {
+    try { return Intl.DateTimeFormat().resolvedOptions().timeZone; } catch { return 'UTC'; }
+  }, []);
+  const [pickedDate, setPickedDate] = useState<Date | undefined>(undefined);
   const [formData, setFormData] = useState<ContactFormData>({
     firstName: '',
     lastName: '',
     email: '',
     company: '',
     phone: '',
-    subject: '',
-    message: '',
+    subject: isWalkthrough ? 'walkthrough' : '',
+    teamSize: '',
+    preferredDate: '',
+    preferredTime: '',
+    timezone: browserTz,
+    message: isWalkthrough ? "I'd like a guided walkthrough of AiReatro for my team." : '',
   });
 
   const contactInfo = [
