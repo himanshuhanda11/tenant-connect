@@ -363,7 +363,13 @@ export function WorkflowBuilder({ workflow, open, onOpenChange, onSave }: Workfl
                       </Select>
                     </div>
 
-                    {/* Trigger-specific config */}
+                    {errors.trigger && (
+                      <p className="text-xs text-destructive flex items-center gap-1.5">
+                        <AlertTriangle className="h-3.5 w-3.5" />
+                        {errors.trigger}
+                      </p>
+                    )}
+
                     {triggerType === 'keyword_received' && (
                       <div className="grid grid-cols-1 xs:grid-cols-2 gap-3 xs:gap-4 p-3 xs:p-4 bg-muted/50 rounded-lg">
                         <div>
