@@ -923,7 +923,7 @@ export default function CreateCampaign() {
 
         {/* Navigation Buttons */}
         {currentStep < 5 && (
-          <div className="fixed bottom-0 left-0 right-0 z-30 border-t bg-background/95 backdrop-blur px-4 py-3 flex items-center justify-between gap-3 sm:static sm:border-0 sm:bg-transparent sm:backdrop-blur-0 sm:p-0">
+          <div className="fixed left-0 right-0 z-30 border-t bg-background/95 backdrop-blur px-4 py-3 flex items-center justify-between gap-3 bottom-[calc(56px+env(safe-area-inset-bottom))] md:static md:border-0 md:bg-transparent md:backdrop-blur-0 md:p-0">
             <Button
               variant="outline"
               size="lg"
