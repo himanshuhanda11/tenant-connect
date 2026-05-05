@@ -47,8 +47,54 @@ const LIMIT_LABELS: Record<string, string> = {
   TIER_UNLIMITED: 'Unlimited',
 };
 
-// Module-level cache so navigating away and back doesn't blank the dashboard
-const cache = new Map<string, any>();
+// Module-level TTL cache (per tenant + range). Invalidated by realtime events
+// or after CACHE_TTL_MS, so the dashboard stays fast but never goes stale.
+const CACHE_TTL_MS = 60_000;
+type CacheEntry = { data: any; ts: number };
+const cache = new Map<string, CacheEntry>();
+
+export function invalidateDashboardCache(tenantId?: string) {
+  if (!tenantId) { cache.clear(); return; }
+  for (const key of cache.keys()) {
+    if (key.startsWith(`${tenantId}:`)) cache.delete(key);
+  }
+}
+
+export interface RecentActivityItem {
+  id: string;
+  action: string;
+  resourceType: string | null;
+  title: string;
+  subtitle: string;
+  timestamp: string;
+  iconKey: 'template' | 'campaign' | 'automation' | 'contact' | 'message' | 'auth' | 'generic';
+}
+
+const ACTION_ICON: Record<string, RecentActivityItem['iconKey']> = {
+  template: 'template', templates: 'template', wa_template: 'template',
+  campaign: 'campaign', campaigns: 'campaign', broadcast: 'campaign',
+  automation: 'automation', workflow: 'automation', flow: 'automation',
+  contact: 'contact', contacts: 'contact', lead: 'contact',
+  message: 'message', conversation: 'message', inbox: 'message',
+  login: 'auth', logout: 'auth', auth: 'auth', user: 'auth',
+};
+
+function pickIcon(action: string, resourceType?: string | null): RecentActivityItem['iconKey'] {
+  const key = (resourceType || action || '').toLowerCase();
+  for (const k of Object.keys(ACTION_ICON)) {
+    if (key.includes(k)) return ACTION_ICON[k];
+  }
+  return 'generic';
+}
+
+function humanize(action: string, details: any): { title: string; subtitle: string } {
+  const verb = action.replace(/[._-]/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+  const sub =
+    (details && (details.name || details.title || details.message || details.summary)) ||
+    (details && details.resource && String(details.resource)) ||
+    '';
+  return { title: verb, subtitle: typeof sub === 'string' ? sub : '' };
+}
 
 export function useDashboardData(filters: DashboardFilters) {
   const { currentTenant, currentRole } = useTenant();
