@@ -96,7 +96,6 @@ export function WorkflowBuilder({ workflow, open, onOpenChange, onSave }: Workfl
   }, [workflow, open]);
 
   const nameInputRef = useRef<HTMLInputElement>(null);
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [savingMode, setSavingMode] = useState<'draft' | 'activate' | null>(null);
 
   const validate = (activate: boolean): string | null => {
