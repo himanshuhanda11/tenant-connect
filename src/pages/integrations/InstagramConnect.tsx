@@ -297,30 +297,67 @@ export default function InstagramConnect() {
                 </div>
               </div>
             ) : (
-              <div className="text-center py-10 space-y-4">
-                <div className="mx-auto w-20 h-20 rounded-2xl flex items-center justify-center"
-                  style={{ background: 'linear-gradient(135deg, #833AB4, #E1306C, #FCB045)' }}>
-                  <Instagram className="h-10 w-10 text-white" />
+              <div className="relative overflow-hidden rounded-2xl border bg-gradient-to-br from-purple-50 via-pink-50 to-orange-50 dark:from-purple-950/30 dark:via-pink-950/20 dark:to-orange-950/20 p-8 sm:p-10">
+                <div className="absolute -top-16 -right-16 h-48 w-48 rounded-full opacity-30 blur-3xl"
+                  style={{ background: 'radial-gradient(circle, #E1306C, transparent 70%)' }} />
+                <div className="absolute -bottom-16 -left-16 h-48 w-48 rounded-full opacity-30 blur-3xl"
+                  style={{ background: 'radial-gradient(circle, #833AB4, transparent 70%)' }} />
+
+                <div className="relative flex flex-col items-center text-center space-y-5">
+                  <div className="relative">
+                    <div className="absolute inset-0 rounded-3xl blur-xl opacity-60 animate-pulse"
+                      style={{ background: 'linear-gradient(135deg, #833AB4, #E1306C, #FCB045)' }} />
+                    <div className="relative w-24 h-24 rounded-3xl flex items-center justify-center shadow-2xl ring-4 ring-white/50 dark:ring-white/10"
+                      style={{ background: 'linear-gradient(135deg, #833AB4, #E1306C, #FCB045)' }}>
+                      <Instagram className="h-12 w-12 text-white" strokeWidth={1.75} />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2 max-w-md">
+                    <h3 className="text-xl sm:text-2xl font-bold tracking-tight">
+                      Bring Instagram into your inbox
+                    </h3>
+                    <p className="text-sm text-muted-foreground leading-relaxed">
+                      Connect your Instagram Professional account linked to a Facebook Page. We'll sync DMs, story replies and comments — securely.
+                    </p>
+                  </div>
+
+                  <div className="flex flex-wrap items-center justify-center gap-2 pt-1">
+                    <Badge variant="secondary" className="gap-1.5 rounded-full bg-background/80 backdrop-blur border">
+                      <ShieldCheck className="h-3 w-3 text-emerald-600" /> Secure OAuth
+                    </Badge>
+                    <Badge variant="secondary" className="gap-1.5 rounded-full bg-background/80 backdrop-blur border">
+                      <Sparkles className="h-3 w-3 text-pink-600" /> AI Auto-Reply
+                    </Badge>
+                    <Badge variant="secondary" className="gap-1.5 rounded-full bg-background/80 backdrop-blur border">
+                      <CheckCircle2 className="h-3 w-3 text-purple-600" /> &lt; 2 min setup
+                    </Badge>
+                  </div>
+
+                  <Button
+                    onClick={handleConnect}
+                    disabled={!isAdmin || connecting}
+                    size="lg"
+                    className="text-white border-0 shadow-xl hover:shadow-2xl hover:scale-[1.02] transition-all duration-200 px-8 h-12 rounded-xl text-base font-semibold mt-2"
+                    style={{ background: 'linear-gradient(135deg, #833AB4 0%, #E1306C 50%, #FD1D1D 100%)' }}
+                  >
+                    {connecting ? (
+                      <><Loader2 className="h-5 w-5 mr-2 animate-spin" /> Connecting…</>
+                    ) : (
+                      <><PlugZap className="h-5 w-5 mr-2" /> Connect Instagram</>
+                    )}
+                  </Button>
+
+                  {!isAdmin ? (
+                    <p className="text-xs text-muted-foreground flex items-center gap-1.5">
+                      <AlertCircle className="h-3 w-3" /> Only workspace admins can connect Instagram.
+                    </p>
+                  ) : (
+                    <p className="text-[11px] text-muted-foreground">
+                      You'll be redirected to Meta to authorize access. You can disconnect anytime.
+                    </p>
+                  )}
                 </div>
-                <div>
-                  <h3 className="text-lg font-semibold">No Instagram account connected</h3>
-                  <p className="text-sm text-muted-foreground max-w-md mx-auto mt-1">
-                    Connect your Instagram Professional account linked to a Facebook Page to start receiving DMs in your inbox.
-                  </p>
-                </div>
-                <Button
-                  onClick={handleConnect}
-                  disabled={!isAdmin || connecting}
-                  size="lg"
-                  className="text-white border-0 shadow-lg"
-                  style={{ background: 'linear-gradient(135deg, #833AB4, #E1306C, #FD1D1D)' }}
-                >
-                  {connecting ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <PlugZap className="h-4 w-4 mr-2" />}
-                  Connect Instagram
-                </Button>
-                {!isAdmin && (
-                  <p className="text-xs text-muted-foreground">Only workspace admins can connect Instagram.</p>
-                )}
               </div>
             )}
           </CardContent>
