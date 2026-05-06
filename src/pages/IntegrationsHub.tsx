@@ -99,6 +99,11 @@ export default function IntegrationsHub() {
       navigate('/app/integrations/tiktok-leads');
       return;
     }
+
+    if (integration.key === 'instagram') {
+      navigate('/app/integrations/instagram');
+      return;
+    }
     
     setSelectedIntegration(integration);
     setIsConnectModalOpen(true);

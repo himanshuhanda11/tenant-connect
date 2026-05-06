@@ -92,6 +92,7 @@ const Integrations = lazyWithRetry(() => import("./pages/Integrations"));
 const IntegrationsHub = lazyWithRetry(() => import("./pages/IntegrationsHub"));
 const IntegrationDetail = lazyWithRetry(() => import("./pages/IntegrationDetail"));
 const TikTokLeads = lazyWithRetry(() => import("./pages/integrations/TikTokLeads"));
+const InstagramConnect = lazyWithRetry(() => import("./pages/integrations/InstagramConnect"));
 const Security = lazyWithRetry(() => import("./pages/Security"));
 const DataDeletion = lazyWithRetry(() => import("./pages/DataDeletion"));
 const AcceptableUse = lazyWithRetry(() => import("./pages/AcceptableUse"));
@@ -260,6 +261,8 @@ const App = () => (
                     <Route path="/app/integrations" element={<IntegrationsHub />} />
                     <Route path="/app/integrations/tiktok-leads" element={<TikTokLeads />} />
                     <Route path="/dashboard/integrations/tiktok-leads" element={<TikTokLeads />} />
+                    <Route path="/app/integrations/instagram" element={<InstagramConnect />} />
+                    <Route path="/dashboard/integrations/instagram" element={<InstagramConnect />} />
                     <Route path="/app/integrations/shopify" element={<ShopifyOverview />} />
                     <Route path="/app/integrations/shopify/connect" element={<ShopifyConnect />} />
                     <Route path="/app/integrations/shopify/:storeId" element={<ShopifyStoreDetail />} />
