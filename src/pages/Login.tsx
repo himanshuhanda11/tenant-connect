@@ -218,63 +218,61 @@ export default function Login() {
         <div className="absolute bottom-20 left-20 w-96 h-96 bg-primary/10 rounded-full blur-3xl" />
 
         {/* Content */}
-        <div className="relative z-10 flex flex-col justify-center p-12 xl:p-16 w-full">
+        <div className="relative z-10 flex flex-col justify-center px-10 xl:px-14 py-6 w-full h-full">
           <div className="max-w-lg">
             {/* Badge */}
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 text-primary text-sm font-medium mb-8">
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-medium mb-4">
               <span className="flex h-2 w-2 rounded-full bg-primary animate-pulse" />
               Trusted by 2,500+ businesses worldwide
             </div>
 
             {/* Main headline */}
-            <h2 className="text-4xl xl:text-5xl font-bold text-slate-900 mb-6 leading-tight">
+            <h2 className="text-3xl xl:text-4xl font-bold text-slate-900 mb-3 leading-tight">
               Turn every WhatsApp chat into a{' '}
-              <span className="text-primary">
-                business opportunity
-              </span>
+              <span className="text-primary">business opportunity</span>
             </h2>
-            
-            <p className="text-lg xl:text-xl text-slate-600 mb-10 leading-relaxed">
+
+            <p className="text-base text-slate-600 mb-5 leading-relaxed">
               Automate responses, nurture leads, and close deals faster with AI-powered conversations.
             </p>
 
             {/* Stats */}
-            <div className="grid grid-cols-3 gap-6 mb-10">
+            <div className="grid grid-cols-3 gap-4 mb-5">
               <div className="text-center">
-                <div className="text-3xl xl:text-4xl font-bold text-primary mb-1">10M+</div>
-                <div className="text-sm text-slate-500">Messages/month</div>
+                <div className="text-2xl xl:text-3xl font-bold text-primary mb-0.5">10M+</div>
+                <div className="text-xs text-slate-500">Messages/month</div>
               </div>
               <div className="text-center border-x border-slate-200">
-                <div className="text-3xl xl:text-4xl font-bold text-primary mb-1">98%</div>
-                <div className="text-sm text-slate-500">Uptime SLA</div>
+                <div className="text-2xl xl:text-3xl font-bold text-primary mb-0.5">98%</div>
+                <div className="text-xs text-slate-500">Uptime SLA</div>
               </div>
               <div className="text-center">
-                <div className="text-3xl xl:text-4xl font-bold text-primary mb-1">3x</div>
-                <div className="text-sm text-slate-500">Faster response</div>
+                <div className="text-2xl xl:text-3xl font-bold text-primary mb-0.5">3x</div>
+                <div className="text-xs text-slate-500">Faster response</div>
               </div>
             </div>
 
             {/* Feature highlights */}
-            <div className="space-y-4">
-              <div className="flex items-center gap-3 text-slate-700">
+            <div className="space-y-2.5 mb-5">
+              <div className="flex items-center gap-3 text-sm text-slate-700">
                 <div className="flex-shrink-0 w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center">
                   <MessageSquare className="h-3.5 w-3.5 text-primary" />
                 </div>
                 <span>Unified inbox for all your WhatsApp conversations</span>
               </div>
-              <div className="flex items-center gap-3 text-slate-700">
+              <div className="flex items-center gap-3 text-sm text-slate-700">
                 <div className="flex-shrink-0 w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center">
                   <Zap className="h-3.5 w-3.5 text-primary" />
                 </div>
                 <span>No-code automation builder with AI assistance</span>
               </div>
-              <div className="flex items-center gap-3 text-slate-700">
+              <div className="flex items-center gap-3 text-sm text-slate-700">
                 <div className="flex-shrink-0 w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center">
                   <Users className="h-3.5 w-3.5 text-primary" />
                 </div>
                 <span>Team collaboration with role-based permissions</span>
               </div>
-              <div className="flex items-center gap-3 text-slate-700">
+              <div className="flex items-center gap-3 text-sm text-slate-700">
                 <div className="flex-shrink-0 w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center">
                   <Shield className="h-3.5 w-3.5 text-primary" />
                 </div>
@@ -283,17 +281,17 @@ export default function Login() {
             </div>
 
             {/* Testimonial */}
-            <div className="mt-10 p-6 rounded-2xl bg-slate-50 border border-slate-100">
-              <p className="text-slate-600 italic mb-4">
+            <div className="p-4 rounded-xl bg-slate-50 border border-slate-100">
+              <p className="text-sm text-slate-600 italic mb-2">
                 "AiReatro transformed how we handle customer inquiries. Our response time dropped from hours to minutes."
               </p>
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center text-white font-semibold">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center text-white text-xs font-semibold">
                   RP
                 </div>
                 <div>
-                  <div className="text-slate-900 font-medium">Rahul Patel</div>
-                  <div className="text-slate-500 text-sm">CEO, TechServe Solutions</div>
+                  <div className="text-slate-900 text-sm font-medium leading-tight">Rahul Patel</div>
+                  <div className="text-slate-500 text-xs">CEO, TechServe Solutions</div>
                 </div>
               </div>
             </div>
