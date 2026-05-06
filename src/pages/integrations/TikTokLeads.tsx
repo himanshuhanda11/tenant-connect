@@ -16,6 +16,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { SEO } from '@/components/seo';
 import { TikTokSyncSettingsForm } from '@/components/integrations/TikTokSyncSettingsForm';
+import { TikTokSyncDashboard } from '@/components/integrations/TikTokSyncDashboard';
 
 interface SafeConnection {
   id: string;
@@ -277,6 +278,11 @@ export default function TikTokLeads() {
             }))}
             isAdmin={isAdmin}
           />
+        )}
+
+        {/* Step 3: Sync Dashboard */}
+        {connected && currentTenant?.id && (
+          <TikTokSyncDashboard workspaceId={currentTenant.id} />
         )}
 
         {/* Benefits */}
