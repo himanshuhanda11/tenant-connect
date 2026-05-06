@@ -122,7 +122,11 @@ Deno.serve(async (req) => {
           facebook_user_id: null,
           status: "connected",
           health_status: "healthy",
-          scopes: (tokenJson.permissions || "").split(",").filter(Boolean),
+          scopes: Array.isArray(tokenJson.permissions)
+            ? tokenJson.permissions
+            : typeof tokenJson.permissions === "string"
+              ? tokenJson.permissions.split(",").filter(Boolean)
+              : [],
           connected_by: stateRow.user_id,
           connected_at: new Date().toISOString(),
           last_synced_at: new Date().toISOString(),
