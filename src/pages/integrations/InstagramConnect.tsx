@@ -46,6 +46,32 @@ const ERROR_LABELS: Record<string, string> = {
   server_error: 'Unexpected error during connection.',
 };
 
+const invokeInstagramFunction = async <T,>(functionName: string, body: Record<string, unknown>): Promise<T> => {
+  const { data: { session } } = await supabase.auth.getSession();
+  const token = session?.access_token;
+
+  if (!token) {
+    throw new Error('Your session expired. Please sign in again.');
+  }
+
+  const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/${functionName}`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+      apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+    },
+    body: JSON.stringify(body),
+  });
+
+  const payload = await response.json().catch(() => null);
+  if (!response.ok) {
+    throw new Error(payload?.error || payload?.message || `Edge function returned ${response.status}`);
+  }
+
+  return payload as T;
+};
+
 export default function InstagramConnect() {
   const { currentTenant, currentRole } = useTenant();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -60,14 +86,15 @@ export default function InstagramConnect() {
   const fetchStatus = useCallback(async () => {
     if (!currentTenant?.id) return;
     setLoading(true);
-    const { data, error } = await supabase.functions.invoke('instagram-manage', {
-      body: { tenantId: currentTenant.id, action: 'status' },
-    });
-    if (error) {
+    try {
+      const data = await invokeInstagramFunction<{ account: IGAccount | null }>('instagram-manage', {
+        tenantId: currentTenant.id,
+        action: 'status',
+      });
+      setAccount(data?.account || null);
+    } catch (error: any) {
       console.error(error);
       toast({ title: 'Failed to load Instagram status', variant: 'destructive' });
-    } else {
-      setAccount((data as any)?.account || null);
     }
     setLoading(false);
   }, [currentTenant?.id]);
@@ -96,11 +123,12 @@ export default function InstagramConnect() {
     if (!currentTenant?.id) return;
     setConnecting(true);
     try {
-      const { data, error } = await supabase.functions.invoke('instagram-oauth-start', {
-        body: { tenantId: currentTenant.id, returnUrl: window.location.href },
+      const data = await invokeInstagramFunction<{ authUrl?: string }>('instagram-oauth-start', {
+        tenantId: currentTenant.id,
+        returnUrl: window.location.href,
       });
-      if (error || !(data as any)?.authUrl) throw new Error(error?.message || 'Failed to start OAuth');
-      window.location.href = (data as any).authUrl;
+      if (!data?.authUrl) throw new Error('Failed to start OAuth');
+      window.location.href = data.authUrl;
     } catch (err: any) {
       toast({ title: 'Could not start connection', description: err.message, variant: 'destructive' });
       setConnecting(false);
@@ -110,31 +138,40 @@ export default function InstagramConnect() {
   const handleHealthCheck = async () => {
     if (!currentTenant?.id) return;
     setChecking(true);
-    const { data } = await supabase.functions.invoke('instagram-manage', {
-      body: { tenantId: currentTenant.id, action: 'health' },
-    });
-    setChecking(false);
-    const status = (data as any)?.status;
-    toast({
-      title: 'Health check complete',
-      description: status === 'connected' ? 'Connection is healthy.' : `Status: ${status}`,
-      variant: status === 'connected' ? 'default' : 'destructive',
-    });
-    fetchStatus();
+    try {
+      const data = await invokeInstagramFunction<{ status?: string }>('instagram-manage', {
+        tenantId: currentTenant.id,
+        action: 'health',
+      });
+      const status = data?.status;
+      toast({
+        title: 'Health check complete',
+        description: status === 'connected' ? 'Connection is healthy.' : `Status: ${status}`,
+        variant: status === 'connected' ? 'default' : 'destructive',
+      });
+      fetchStatus();
+    } catch (err: any) {
+      toast({ title: 'Health check failed', description: err.message, variant: 'destructive' });
+    } finally {
+      setChecking(false);
+    }
   };
 
   const handleDisconnect = async () => {
     if (!currentTenant?.id || !account) return;
     setDisconnecting(true);
-    const { error } = await supabase.functions.invoke('instagram-manage', {
-      body: { tenantId: currentTenant.id, action: 'disconnect', accountId: account.id },
-    });
-    setDisconnecting(false);
-    if (error) {
-      toast({ title: 'Disconnect failed', description: error.message, variant: 'destructive' });
-    } else {
+    try {
+      await invokeInstagramFunction('instagram-manage', {
+        tenantId: currentTenant.id,
+        action: 'disconnect',
+        accountId: account.id,
+      });
       toast({ title: 'Instagram disconnected' });
       setAccount(null);
+    } catch (error: any) {
+      toast({ title: 'Disconnect failed', description: error.message, variant: 'destructive' });
+    } finally {
+      setDisconnecting(false);
     }
   };
 

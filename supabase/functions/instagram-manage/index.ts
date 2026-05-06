@@ -7,6 +7,23 @@ const corsHeaders = {
 
 const GRAPH = "https://graph.facebook.com/v21.0";
 
+const getAuthenticatedUserId = async (authClient: ReturnType<typeof createClient>, authHeader: string) => {
+  const token = authHeader.replace("Bearer ", "");
+
+  const { data: claimsData, error: claimsError } = await authClient.auth.getClaims(token);
+  if (!claimsError && claimsData?.claims?.sub) {
+    return claimsData.claims.sub as string;
+  }
+
+  const { data: userData, error: userError } = await authClient.auth.getUser(token);
+  if (!userError && userData?.user?.id) {
+    return userData.user.id;
+  }
+
+  console.error("instagram-manage auth failed:", claimsError?.message || userError?.message || "missing user id");
+  return null;
+};
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
@@ -27,10 +44,8 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
-    const token = authHeader.replace("Bearer ", "");
-    const { data: claimsData, error: claimsError } = await authClient.auth.getClaims(token);
-    const userId = claimsData?.claims?.sub as string | undefined;
-    if (claimsError || !userId) {
+    const userId = await getAuthenticatedUserId(authClient, authHeader);
+    if (!userId) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
         status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
