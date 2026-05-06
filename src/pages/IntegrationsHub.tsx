@@ -94,6 +94,11 @@ export default function IntegrationsHub() {
       setIsRazorpayModalOpen(true);
       return;
     }
+
+    if (integration.key === 'tiktok-leads') {
+      navigate('/app/integrations/tiktok-leads');
+      return;
+    }
     
     setSelectedIntegration(integration);
     setIsConnectModalOpen(true);
