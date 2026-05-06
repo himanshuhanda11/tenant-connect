@@ -4623,6 +4623,178 @@ export type Database = {
           },
         ]
       }
+      instagram_accounts: {
+        Row: {
+          connected_at: string
+          connected_by: string | null
+          created_at: string
+          facebook_page_id: string | null
+          facebook_page_name: string | null
+          facebook_user_id: string | null
+          followers_count: number | null
+          health_status: string
+          id: string
+          ig_name: string | null
+          ig_username: string | null
+          instagram_user_id: string
+          last_error: string | null
+          last_synced_at: string | null
+          profile_picture_url: string | null
+          scopes: string[] | null
+          status: string
+          tenant_id: string
+          updated_at: string
+          webhook_subscribed: boolean
+        }
+        Insert: {
+          connected_at?: string
+          connected_by?: string | null
+          created_at?: string
+          facebook_page_id?: string | null
+          facebook_page_name?: string | null
+          facebook_user_id?: string | null
+          followers_count?: number | null
+          health_status?: string
+          id?: string
+          ig_name?: string | null
+          ig_username?: string | null
+          instagram_user_id: string
+          last_error?: string | null
+          last_synced_at?: string | null
+          profile_picture_url?: string | null
+          scopes?: string[] | null
+          status?: string
+          tenant_id: string
+          updated_at?: string
+          webhook_subscribed?: boolean
+        }
+        Update: {
+          connected_at?: string
+          connected_by?: string | null
+          created_at?: string
+          facebook_page_id?: string | null
+          facebook_page_name?: string | null
+          facebook_user_id?: string | null
+          followers_count?: number | null
+          health_status?: string
+          id?: string
+          ig_name?: string | null
+          ig_username?: string | null
+          instagram_user_id?: string
+          last_error?: string | null
+          last_synced_at?: string | null
+          profile_picture_url?: string | null
+          scopes?: string[] | null
+          status?: string
+          tenant_id?: string
+          updated_at?: string
+          webhook_subscribed?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "instagram_accounts_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "platform_workspace_directory"
+            referencedColumns: ["workspace_id"]
+          },
+          {
+            foreignKeyName: "instagram_accounts_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      instagram_oauth_states: {
+        Row: {
+          created_at: string
+          expires_at: string
+          state: string
+          tenant_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          expires_at?: string
+          state: string
+          tenant_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string
+          state?: string
+          tenant_id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      instagram_tokens: {
+        Row: {
+          access_token: string
+          created_at: string
+          expires_at: string | null
+          id: string
+          instagram_account_id: string
+          page_access_token: string | null
+          refresh_count: number
+          refreshed_at: string | null
+          tenant_id: string
+          token_type: string | null
+          updated_at: string
+        }
+        Insert: {
+          access_token: string
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          instagram_account_id: string
+          page_access_token?: string | null
+          refresh_count?: number
+          refreshed_at?: string | null
+          tenant_id: string
+          token_type?: string | null
+          updated_at?: string
+        }
+        Update: {
+          access_token?: string
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          instagram_account_id?: string
+          page_access_token?: string | null
+          refresh_count?: number
+          refreshed_at?: string | null
+          tenant_id?: string
+          token_type?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "instagram_tokens_instagram_account_id_fkey"
+            columns: ["instagram_account_id"]
+            isOneToOne: true
+            referencedRelation: "instagram_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "instagram_tokens_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "platform_workspace_directory"
+            referencedColumns: ["workspace_id"]
+          },
+          {
+            foreignKeyName: "instagram_tokens_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       integration_catalog: {
         Row: {
           auth_type: string
