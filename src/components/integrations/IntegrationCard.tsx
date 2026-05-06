@@ -36,6 +36,7 @@ const INTEGRATION_LOGOS: Record<string, string> = {
   woocommerce: 'https://cdn.worldvectorlogo.com/logos/woocommerce.svg',
   zapier: 'https://cdn.worldvectorlogo.com/logos/zapier.svg',
   razorpay: 'https://cdn.worldvectorlogo.com/logos/razorpay.svg',
+  'tiktok-leads': 'https://cdn.worldvectorlogo.com/logos/tiktok-icon-2.svg',
   // Fallback to initials for others
 };
 
