@@ -15,6 +15,7 @@ import { useTenant } from '@/contexts/TenantContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { SEO } from '@/components/seo';
+import { TikTokSyncSettingsForm } from '@/components/integrations/TikTokSyncSettingsForm';
 
 interface SafeConnection {
   id: string;
@@ -263,6 +264,20 @@ export default function TikTokLeads() {
             )}
           </CardContent>
         </Card>
+
+        {/* Step 2: Lead Sync & Automation */}
+        {currentTenant?.id && (
+          <TikTokSyncSettingsForm
+            workspaceId={currentTenant.id}
+            connections={connections.map(c => ({
+              id: c.id,
+              advertiser_id: c.advertiser_id,
+              advertiser_name: c.advertiser_name,
+              status: c.status,
+            }))}
+            isAdmin={isAdmin}
+          />
+        )}
 
         {/* Benefits */}
         <section>
