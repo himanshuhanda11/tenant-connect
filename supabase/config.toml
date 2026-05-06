@@ -119,3 +119,21 @@ verify_jwt = false
 
 [functions.sync-tiktok-leads]
 verify_jwt = false
+
+[functions.instagram-manage]
+verify_jwt = false
+
+[functions.instagram-oauth-start]
+verify_jwt = false
+
+[functions.instagram-oauth-callback]
+verify_jwt = false
+
+[functions.instagram-send-message]
+verify_jwt = false
+
+[functions.instagram-webhook]
+verify_jwt = false
+
+[functions.instagram-followup-runner]
+verify_jwt = false
