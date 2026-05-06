@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useLocation, useNavigate, Link } from 'react-router-dom';
-import { LayoutDashboard, Users, Settings, LogOut, ChevronDown, ChevronRight, Plus, Inbox, Contact, Phone, FileText, Send, Zap, CreditCard, Shield, UsersRound, Route, Clock, ScrollText, Tag, ListFilter, HelpCircle, Megaphone, BarChart3, Link2, Target, Workflow, Cog, Building2, TrendingUp, Headphones, Check, Puzzle, PanelLeftClose, PanelLeft, User, ChevronUp, ExternalLink, AlertTriangle, Ban, UserX, MessageCircle, CalendarClock, CheckCircle2, ShieldBan } from 'lucide-react';
+import { LayoutDashboard, Users, Settings, LogOut, ChevronDown, ChevronRight, Plus, Inbox, Contact, Phone, FileText, Send, Zap, CreditCard, Shield, UsersRound, Route, Clock, ScrollText, Tag, ListFilter, HelpCircle, Megaphone, BarChart3, Link2, Target, Workflow, Cog, Building2, TrendingUp, Headphones, Check, Puzzle, PanelLeftClose, PanelLeft, User, ChevronUp, ExternalLink, AlertTriangle, Ban, UserX, MessageCircle, CalendarClock, CheckCircle2, ShieldBan, Instagram, PlugZap, Sparkles } from 'lucide-react';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from '@/components/ui/sidebar';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
@@ -179,6 +179,11 @@ export function AppSidebar() {
     ...(isAgent ? [] : [{ label: 'Channels', icon: Phone, items: channelMenuItems }]),
     ...(isAgent ? [] : [{ label: 'Growth', icon: TrendingUp, items: growthMenuItems }]),
     ...(isAgent || filteredMetaAdsMenuItems.length === 0 ? [] : [{ label: 'Meta Ads', icon: Megaphone, items: filteredMetaAdsMenuItems }]),
+    ...(isAgent ? [] : [{ label: 'Instagram', icon: Instagram, items: [
+      { title: 'Connect', url: '/app/integrations/instagram', icon: PlugZap, key: 'instagram-connect' },
+      { title: 'Inbox', url: '/dashboard/integrations/instagram/inbox', icon: Inbox, key: 'instagram-inbox' },
+      { title: 'Automation', url: '/dashboard/integrations/instagram/automation', icon: Sparkles, key: 'instagram-automation' },
+    ] as MenuItem[] }]),
     ...(isAgent ? [] : [{ label: 'Team', icon: Users, items: teamMenuItems }]),
   ];
 
