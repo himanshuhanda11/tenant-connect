@@ -46,15 +46,22 @@ async function getPageToken(accountId: string) {
 }
 
 async function fetchIgProfile(igUserId: string, token: string) {
-  try {
-    const r = await fetch(
-      `https://graph.facebook.com/v21.0/${igUserId}?fields=name,username,profile_pic,follower_count,is_verified_user&access_token=${token}`
-    );
-    if (!r.ok) return null;
-    return await r.json();
-  } catch {
-    return null;
+  // Instagram Login for Business uses graph.instagram.com (not graph.facebook.com)
+  const endpoints = [
+    `https://graph.instagram.com/v21.0/${igUserId}?fields=name,username,profile_pic,follower_count,is_verified_user&access_token=${token}`,
+    `https://graph.facebook.com/v21.0/${igUserId}?fields=name,username,profile_pic,follower_count,is_verified_user&access_token=${token}`,
+  ];
+  for (const url of endpoints) {
+    try {
+      const r = await fetch(url);
+      const j = await r.json();
+      if (r.ok && !j.error) return j;
+      console.warn("[ig-webhook] profile fetch failed:", j?.error?.message || r.status);
+    } catch (e) {
+      console.warn("[ig-webhook] profile fetch error:", e);
+    }
   }
+  return null;
 }
 
 async function upsertContact(account: any, igUserId: string) {
