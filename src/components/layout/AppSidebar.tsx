@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useLayoutEffect } from 'react';
 import { useLocation, useNavigate, Link } from 'react-router-dom';
 import { LayoutDashboard, Users, Settings, LogOut, ChevronDown, ChevronRight, Plus, Inbox, Contact, Phone, FileText, Send, Zap, CreditCard, Shield, UsersRound, Route, Clock, ScrollText, Tag, ListFilter, HelpCircle, Megaphone, BarChart3, Link2, Target, Workflow, Cog, Building2, TrendingUp, Headphones, Check, Puzzle, PanelLeftClose, PanelLeft, User, ChevronUp, ExternalLink, AlertTriangle, Ban, UserX, MessageCircle, CalendarClock, CheckCircle2, ShieldBan } from 'lucide-react';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from '@/components/ui/sidebar';
@@ -24,6 +24,8 @@ import {
 import { sidebarDescriptions } from '@/data/sidebarDescriptions';
 import { cn } from '@/lib/utils';
 import aireatroLogo from '@/assets/aireatro-logo.png';
+
+const SIDEBAR_SCROLL_STORAGE_KEY = 'aireatro:app-sidebar-scroll-top';
 
 interface MenuItem {
   title: string;
@@ -197,22 +199,6 @@ export function AppSidebar() {
   }, [location.pathname]);
 
   const sidebarScrollRef = useRef<HTMLDivElement>(null);
-  const activeGroupRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      const el = activeGroupRef.current;
-      const scroller = sidebarScrollRef.current;
-      if (!el || !scroller) return;
-      const elRect = el.getBoundingClientRect();
-      const scRect = scroller.getBoundingClientRect();
-      // Only scroll the sidebar itself if the active group is out of view.
-      if (elRect.top < scRect.top || elRect.bottom > scRect.bottom) {
-        scroller.scrollTop += elRect.top - scRect.top - 8;
-      }
-    }, 150);
-    return () => clearTimeout(timer);
-  }, [location.pathname]);
 
   const handleSignOut = async () => {
     setCurrentTenant(null);
@@ -232,6 +218,32 @@ export function AppSidebar() {
 
   const isGroupActive = (items: MenuItem[]) => items.some(item => isRouteActive(item.url));
   const toggleGroup = (label: string) => setExpandedGroups(prev => ({ ...prev, [label]: !prev[label] }));
+
+  useLayoutEffect(() => {
+    const scroller = sidebarScrollRef.current;
+    if (!scroller) return;
+
+    const savedScrollTop = window.sessionStorage.getItem(SIDEBAR_SCROLL_STORAGE_KEY);
+    const savedValue = savedScrollTop === null ? NaN : Number(savedScrollTop);
+    const isPlatformRoute = filteredSettingsMenuItems.some(item => isRouteActive(item.url));
+    const targetScrollTop = Number.isFinite(savedValue)
+      ? savedValue
+      : isPlatformRoute
+        ? scroller.scrollHeight
+        : 0;
+
+    const restoreScroll = () => {
+      scroller.scrollTop = Math.max(0, targetScrollTop);
+    };
+
+    restoreScroll();
+    const frame = window.requestAnimationFrame(restoreScroll);
+    return () => window.cancelAnimationFrame(frame);
+  }, [isCollapsed, location.pathname, filteredSettingsMenuItems.length]);
+
+  const handleSidebarScroll = (event: React.UIEvent<HTMLDivElement>) => {
+    window.sessionStorage.setItem(SIDEBAR_SCROLL_STORAGE_KEY, String(event.currentTarget.scrollTop));
+  };
 
   /* ── Render a single menu item ── */
   const renderMenuItem = (item: MenuItem, nested = false) => {
@@ -340,7 +352,7 @@ export function AppSidebar() {
     }
 
     return (
-      <div key={group.label} ref={hasActiveItem ? activeGroupRef : undefined}>
+      <div key={group.label}>
         <Collapsible open={isOpen} onOpenChange={() => toggleGroup(group.label)} className="mt-1.5 border-t border-sidebar-border/30 pt-1.5 first:border-t-0 first:pt-0">
           <SidebarGroup>
            <CollapsibleTrigger asChild>
@@ -410,6 +422,7 @@ export function AppSidebar() {
       <SidebarContent className="overflow-hidden">
         <div
           ref={sidebarScrollRef}
+            onScroll={handleSidebarScroll}
           className={cn(
             "flex min-h-0 flex-1 flex-col overflow-y-auto overflow-x-hidden overscroll-contain",
             isCollapsed
