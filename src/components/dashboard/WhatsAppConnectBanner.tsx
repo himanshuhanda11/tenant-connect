@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { MessageSquare, X, ArrowRight, Wifi } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useTenant } from '@/contexts/TenantContext';
@@ -8,9 +8,13 @@ import { cn } from '@/lib/utils';
 
 export function WhatsAppConnectBanner() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { currentTenant } = useTenant();
   const [dismissed, setDismissed] = useState(false);
   const [hasPhone, setHasPhone] = useState<boolean | null>(null);
+
+  // Hide on Instagram pages — they're a separate channel
+  const isInstagramRoute = location.pathname.includes('/instagram');
 
   useEffect(() => {
     if (!currentTenant) return;
@@ -32,7 +36,7 @@ export function WhatsAppConnectBanner() {
     check();
   }, [currentTenant]);
 
-  if (dismissed || hasPhone === null || hasPhone) return null;
+  if (dismissed || hasPhone === null || hasPhone || isInstagramRoute) return null;
 
   const handleDismiss = () => {
     setDismissed(true);
