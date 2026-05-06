@@ -139,20 +139,28 @@ export default function InstagramConnect() {
   };
 
   const statusBadge = () => {
-    if (!account) return <Badge variant="outline">Not connected</Badge>;
-    const map: Record<string, { variant: any; label: string; icon: any }> = {
-      connected: { variant: 'default', label: 'Connected', icon: CheckCircle2 },
-      expired: { variant: 'destructive', label: 'Token expired', icon: AlertCircle },
-      permission_issue: { variant: 'destructive', label: 'Permission issue', icon: AlertCircle },
-      webhook_inactive: { variant: 'secondary', label: 'Webhook inactive', icon: AlertCircle },
-      disconnected: { variant: 'outline', label: 'Disconnected', icon: AlertCircle },
+    if (!account) {
+      return (
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur-md border border-white/30 px-3 py-1.5 text-xs font-medium text-white shadow-sm">
+          <span className="h-2 w-2 rounded-full bg-white/70" />
+          Not connected
+        </span>
+      );
+    }
+    const map: Record<string, { label: string; icon: any; tone: string; dot: string }> = {
+      connected: { label: 'Connected', icon: CheckCircle2, tone: 'bg-emerald-500/90 border-emerald-300/50 text-white', dot: 'bg-white' },
+      expired: { label: 'Token expired', icon: AlertCircle, tone: 'bg-red-500/90 border-red-300/50 text-white', dot: 'bg-white' },
+      permission_issue: { label: 'Permission issue', icon: AlertCircle, tone: 'bg-red-500/90 border-red-300/50 text-white', dot: 'bg-white' },
+      webhook_inactive: { label: 'Webhook inactive', icon: AlertCircle, tone: 'bg-amber-500/90 border-amber-300/50 text-white', dot: 'bg-white' },
+      disconnected: { label: 'Disconnected', icon: AlertCircle, tone: 'bg-white/15 border-white/30 text-white', dot: 'bg-white/70' },
     };
     const cfg = map[account.status] || map.connected;
     const Icon = cfg.icon;
     return (
-      <Badge variant={cfg.variant} className="gap-1.5">
-        <Icon className="h-3 w-3" /> {cfg.label}
-      </Badge>
+      <span className={`inline-flex items-center gap-1.5 rounded-full backdrop-blur-md border px-3 py-1.5 text-xs font-semibold shadow-sm ${cfg.tone}`}>
+        <Icon className="h-3.5 w-3.5" />
+        {cfg.label}
+      </span>
     );
   };
 
