@@ -17,6 +17,11 @@ import { toast } from '@/hooks/use-toast';
 import { SEO } from '@/components/seo';
 import { TikTokSyncSettingsForm } from '@/components/integrations/TikTokSyncSettingsForm';
 import { TikTokSyncDashboard } from '@/components/integrations/TikTokSyncDashboard';
+import { Link } from 'react-router-dom';
+import {
+  Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList,
+  BreadcrumbPage, BreadcrumbSeparator,
+} from '@/components/ui/breadcrumb';
 
 interface SafeConnection {
   id: string;
