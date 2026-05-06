@@ -14531,6 +14531,19 @@ export type Database = {
           isSetofReturn: true
         }
       }
+      lookup_invite_by_token: {
+        Args: { p_token: string }
+        Returns: {
+          accepted_at: string
+          email: string
+          expires_at: string
+          id: string
+          phone_number_ids: string[]
+          role_id: string
+          team_ids: string[]
+          tenant_id: string
+        }[]
+      }
       mark_conversation_read: {
         Args: {
           p_conversation_id: string

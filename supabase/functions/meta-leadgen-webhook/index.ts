@@ -36,7 +36,7 @@ Deno.serve(async (req) => {
     const signatureValid = await verifySignature(rawBody, signatureHeader);
     if (!signatureValid) {
       console.warn('[leadgen-webhook] Signature verification failed');
-      // Continue processing (temporary bypass like whatsapp-webhook)
+      return new Response('Invalid signature', { status: 401 });
     }
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
@@ -310,8 +310,8 @@ async function verifySignature(rawBody: string, signatureHeader: string | null):
   const ourSig = Array.from(new Uint8Array(signature)).map(b => b.toString(16).padStart(2, '0')).join('');
 
   if (ourSig !== theirSig) {
-    console.warn('[leadgen-webhook] Signature mismatch - continuing anyway');
-    return true; // Temporary bypass
+    console.warn('[leadgen-webhook] Signature mismatch - rejecting');
+    return false;
   }
   return true;
 }

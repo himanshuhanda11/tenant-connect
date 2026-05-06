@@ -19,11 +19,9 @@ const InviteAccept = () => {
         return;
       }
 
-      const { data, error } = await supabase
-        .from('member_invites')
-        .select('*')
-        .eq('token', token)
-        .maybeSingle();
+      const { data: rows, error } = await supabase
+        .rpc('lookup_invite_by_token', { p_token: token });
+      const data = Array.isArray(rows) ? rows[0] : rows;
 
       if (error || !data) {
         setStatus('invalid');

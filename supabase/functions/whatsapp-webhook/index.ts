@@ -79,11 +79,9 @@ async function verifySignature(rawBody: string, signatureHeader: string | null):
     .join('');
 
   if (ourSig.length !== theirSig.length || ourSig !== theirSig) {
-    // Log mismatch but allow through — secret needs investigation
-    console.warn(`Signature mismatch (allowed): ours=${ourSig.substring(0, 8)}... theirs=${theirSig.substring(0, 8)}...`);
+    console.warn('Signature mismatch - rejecting');
+    return false;
   }
-  
-  // Bypass strict verification until correct META_APP_SECRET is resolved
   return true;
 }
 

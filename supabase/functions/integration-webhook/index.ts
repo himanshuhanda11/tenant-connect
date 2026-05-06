@@ -449,14 +449,17 @@ serve(async (req) => {
     const credentials = integration.credentials as Record<string, any> || {};
     const webhookSecret = integration.webhook_secret || credentials?.webhook_secret || "";
     
-    // Allow test mode for development (header: X-Test-Mode: true)
-    const isTestMode = req.headers.get("x-test-mode") === "true";
-    
+    // Test mode requires the internal platform secret — never trust a client header alone
+    const platformSecret = req.headers.get("x-platform-secret");
+    const expectedPlatformSecret = Deno.env.get("PLATFORM_WEBHOOK_SECRET");
+    const isTestMode = req.headers.get("x-test-mode") === "true"
+      && !!expectedPlatformSecret
+      && platformSecret === expectedPlatformSecret;
+
     let signatureValid = false;
-    
-    // In test mode, skip signature verification
+
     if (isTestMode) {
-      console.log("Test mode enabled, skipping signature verification");
+      console.log("Authenticated test mode, skipping signature verification");
       signatureValid = true;
     } else {
       switch (provider) {
