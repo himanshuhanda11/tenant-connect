@@ -147,29 +147,29 @@ export default function SignupPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col lg:flex-row">
+    <div className="min-h-dvh md:h-dvh md:overflow-hidden flex flex-col lg:flex-row">
       {/* Left Panel - Signup Form */}
-      <div className="flex-1 flex flex-col justify-center px-6 py-12 lg:px-12 xl:px-20">
+      <div className="flex-1 min-h-0 flex flex-col justify-center px-5 py-6 md:px-8 md:py-4 lg:px-10 xl:px-14 md:overflow-hidden">
         <div className="mx-auto w-full max-w-md">
           {/* Logo */}
-          <div className="flex items-center gap-2 mb-4">
-            <img src={aireatroLogo} alt="AiReatro" className="h-10 w-auto" />
+          <div className="flex items-center gap-2 mb-2.5">
+            <img src={aireatroLogo} alt="AiReatro" className="h-7 md:h-8 w-auto" />
           </div>
 
           {/* Breadcrumb */}
-          <nav className="flex items-center gap-2 text-sm text-muted-foreground mb-6">
+          <nav className="flex items-center gap-2 text-xs md:text-sm text-muted-foreground mb-3 md:mb-4">
             <Link to="/" className="hover:text-foreground transition-colors">Home</Link>
             <span>/</span>
             <span className="text-foreground font-medium">Sign Up</span>
           </nav>
 
           {/* Progress */}
-          <div className="mb-8">
-            <div className="flex items-center justify-between text-sm text-muted-foreground mb-2">
+          <div className="mb-4 md:mb-5">
+            <div className="flex items-center justify-between text-xs md:text-sm text-muted-foreground mb-1.5">
               <span>Step 1 of 3</span>
               <span>Account</span>
             </div>
-            <Progress value={33} className="h-2" />
+            <Progress value={33} className="h-1.5" />
           </div>
 
           {/* Card */}
@@ -321,7 +321,7 @@ export default function SignupPage() {
           </Card>
 
           {/* Legal Links */}
-          <div className="mt-6 flex items-center justify-center gap-4 text-sm text-muted-foreground">
+          <div className="mt-3 flex items-center justify-center gap-3 text-xs text-muted-foreground">
             <Link to="/terms" className="hover:text-foreground transition-colors">
               Terms of Service
             </Link>
