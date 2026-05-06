@@ -282,32 +282,32 @@ export function AuthForm({ mode }: AuthFormProps) {
   }
 
   return (
-    <div className="min-h-screen flex">
+    <div className="min-h-screen lg:h-screen lg:overflow-hidden flex">
       {/* Left Panel - Marketing (no image) */}
-      <div className="hidden lg:flex w-1/2 bg-gradient-to-br from-emerald-600 via-green-600 to-teal-600 p-12 flex-col justify-center relative overflow-hidden">
+      <div className="hidden lg:flex w-1/2 bg-gradient-to-br from-emerald-600 via-green-600 to-teal-600 p-10 flex-col justify-center relative overflow-hidden">
         <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4xIj48Y2lyY2xlIGN4PSIzMCIgY3k9IjMwIiByPSIyIi8+PC9nPjwvZz48L3N2Zz4=')] opacity-30" />
-        
+
         <div className="relative z-10 max-w-lg">
-          <h2 className="text-4xl font-bold text-white mb-6">
+          <h2 className="text-3xl xl:text-4xl font-bold text-white mb-4">
             Start your WhatsApp Business journey today
           </h2>
-          <p className="text-white/80 text-lg mb-8">
+          <p className="text-white/80 text-base mb-6">
             Everything you need to connect with customers, automate conversations, and grow your business.
           </p>
 
-          <div className="grid grid-cols-2 gap-4 mb-8">
+          <div className="grid grid-cols-2 gap-3 mb-6">
             {benefits.map((benefit, index) => (
               <div key={index} className="flex items-center gap-2 text-white">
-                <CheckCircle2 className="w-5 h-5 text-white/80" />
+                <CheckCircle2 className="w-4 h-4 text-white/80" />
                 <span className="text-sm">{benefit}</span>
               </div>
             ))}
           </div>
 
-          <div className="space-y-3">
+          <div className="space-y-2.5">
             {features.map((feature, index) => (
-              <div key={index} className="flex items-center gap-3 text-white/90">
-                <feature.icon className="w-5 h-5" />
+              <div key={index} className="flex items-center gap-3 text-white/90 text-sm">
+                <feature.icon className="w-4 h-4" />
                 <span>{feature.text}</span>
               </div>
             ))}
@@ -316,71 +316,72 @@ export function AuthForm({ mode }: AuthFormProps) {
       </div>
 
       {/* Right Panel - Form */}
-      <div className="w-full lg:w-1/2 flex flex-col bg-background">
+      <div className="w-full lg:w-1/2 flex flex-col bg-background lg:overflow-y-auto">
         {/* Header */}
-        <header className="p-4 md:p-6">
+        <header className="px-4 md:px-6 pt-3 pb-2 shrink-0">
           <div className="flex items-center justify-between">
             <Link to="/" className="flex items-center">
-              <img src={aireatroLogo} alt="AiReatro" className="h-10 w-auto" />
+              <img src={aireatroLogo} alt="AiReatro" className="h-8 w-auto" />
             </Link>
           </div>
-          <Breadcrumb className="mt-4" />
         </header>
 
         {/* Form */}
-        <div className="flex-1 flex items-center justify-center px-4 md:px-8 py-8">
+        <div className="flex-1 flex items-center justify-center px-4 md:px-8 py-3">
           <div className="w-full max-w-md animate-fade-in">
-            <div className="mb-8">
-              <h1 className="text-3xl font-bold text-foreground mb-2">Create your account</h1>
-              <p className="text-muted-foreground">Get started with your free 14-day trial</p>
+            <div className="mb-3">
+              <h1 className="text-2xl font-bold text-foreground mb-1">Create your account</h1>
+              <p className="text-sm text-muted-foreground">Get started with your free 14-day trial</p>
             </div>
 
             <Card className="shadow-xl border-border/50">
-              <CardContent className="pt-6">
-                <form onSubmit={signupForm.handleSubmit(onSignupSubmit)} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="fullName">Full Name</Label>
-                    <Input id="fullName" placeholder="John Doe" {...signupForm.register('fullName')} className="h-12" />
+              <CardContent className="pt-4 pb-4 px-5">
+                <form onSubmit={signupForm.handleSubmit(onSignupSubmit)} className="space-y-3">
+                  <div className="space-y-1.5">
+                    <Label htmlFor="fullName" className="text-sm">Full Name</Label>
+                    <Input id="fullName" placeholder="John Doe" {...signupForm.register('fullName')} className="h-10" />
                     {signupForm.formState.errors.fullName && (
-                      <p className="text-sm text-destructive">{signupForm.formState.errors.fullName.message}</p>
+                      <p className="text-xs text-destructive">{signupForm.formState.errors.fullName.message}</p>
                     )}
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="email">Work Email</Label>
-                    <Input id="email" type="email" placeholder="you@company.com" {...signupForm.register('email')} className="h-12" />
+                  <div className="space-y-1.5">
+                    <Label htmlFor="email" className="text-sm">Work Email</Label>
+                    <Input id="email" type="email" placeholder="you@company.com" {...signupForm.register('email')} className="h-10" />
                     {signupForm.formState.errors.email && (
-                      <p className="text-sm text-destructive">{signupForm.formState.errors.email.message}</p>
+                      <p className="text-xs text-destructive">{signupForm.formState.errors.email.message}</p>
                     )}
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="password">Password</Label>
-                    <div className="relative">
-                      <Input id="password" type={showPassword ? 'text' : 'password'} placeholder="Min. 6 characters" {...signupForm.register('password')} className="h-12 pr-12" />
-                      <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors">
-                        {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                      </button>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1.5">
+                      <Label htmlFor="password" className="text-sm">Password</Label>
+                      <div className="relative">
+                        <Input id="password" type={showPassword ? 'text' : 'password'} placeholder="Min. 6 chars" {...signupForm.register('password')} className="h-10 pr-10" />
+                        <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors">
+                          {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                        </button>
+                      </div>
+                      {signupForm.formState.errors.password && (
+                        <p className="text-xs text-destructive">{signupForm.formState.errors.password.message}</p>
+                      )}
                     </div>
-                    {signupForm.formState.errors.password && (
-                      <p className="text-sm text-destructive">{signupForm.formState.errors.password.message}</p>
-                    )}
+
+                    <div className="space-y-1.5">
+                      <Label htmlFor="confirmPassword" className="text-sm">Confirm</Label>
+                      <Input id="confirmPassword" type="password" placeholder="••••••••" {...signupForm.register('confirmPassword')} className="h-10" />
+                      {signupForm.formState.errors.confirmPassword && (
+                        <p className="text-xs text-destructive">{signupForm.formState.errors.confirmPassword.message}</p>
+                      )}
+                    </div>
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="confirmPassword">Confirm Password</Label>
-                    <Input id="confirmPassword" type="password" placeholder="••••••••" {...signupForm.register('confirmPassword')} className="h-12" />
-                    {signupForm.formState.errors.confirmPassword && (
-                      <p className="text-sm text-destructive">{signupForm.formState.errors.confirmPassword.message}</p>
-                    )}
-                  </div>
-
-                  <Button type="submit" className="w-full h-12 text-base font-medium bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 shadow-lg" disabled={loading || googleLoading}>
-                    {loading ? <><Loader2 className="w-5 h-5 mr-2 animate-spin" />Creating account...</> : 'Create free account'}
+                  <Button type="submit" className="w-full h-10 text-sm font-medium bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 shadow-lg" disabled={loading || googleLoading}>
+                    {loading ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Creating account...</> : 'Create free account'}
                   </Button>
                 </form>
 
-                <div className="relative my-6">
+                <div className="relative my-3">
                   <div className="absolute inset-0 flex items-center">
                     <div className="w-full border-t border-border"></div>
                   </div>
@@ -392,14 +393,14 @@ export function AuthForm({ mode }: AuthFormProps) {
                 <Button
                   type="button"
                   variant="outline"
-                  className="w-full h-12 text-base font-medium"
+                  className="w-full h-10 text-sm font-medium"
                   onClick={handleGoogleSignIn}
                   disabled={loading || googleLoading}
                 >
                   {googleLoading ? (
-                    <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                   ) : (
-                    <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
+                    <svg className="w-4 h-4 mr-2" viewBox="0 0 24 24">
                       <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
                       <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
                       <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
@@ -409,8 +410,8 @@ export function AuthForm({ mode }: AuthFormProps) {
                   Continue with Google
                 </Button>
 
-                <div className="mt-6 text-center">
-                  <p className="text-muted-foreground">
+                <div className="mt-3 text-center">
+                  <p className="text-xs text-muted-foreground">
                     Already have an account?{' '}
                     <Link to="/login" className="text-primary font-semibold hover:underline">Sign in</Link>
                   </p>
@@ -418,7 +419,7 @@ export function AuthForm({ mode }: AuthFormProps) {
               </CardContent>
             </Card>
 
-            <p className="text-center text-sm text-muted-foreground mt-6">
+            <p className="text-center text-xs text-muted-foreground mt-3">
               By creating an account, you agree to our{' '}
               <Link to="/terms" className="text-primary hover:underline">Terms</Link>
               {' '}and{' '}
