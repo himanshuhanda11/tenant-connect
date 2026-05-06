@@ -45,7 +45,7 @@ Deno.serve(async (req) => {
 
     const { data: membership } = await supabase
       .from("tenant_members").select("role")
-      .eq("tenant_id", tenantId).eq("user_id", userData.user.id).maybeSingle();
+      .eq("tenant_id", tenantId).eq("user_id", userId).maybeSingle();
     if (!membership) {
       return new Response(JSON.stringify({ error: "Forbidden" }), {
         status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -118,7 +118,7 @@ Deno.serve(async (req) => {
         }
         await supabase.from("instagram_accounts").delete().eq("id", account.id);
         await supabase.from("audit_logs").insert({
-          tenant_id: tenantId, user_id: userData.user.id,
+          tenant_id: tenantId, user_id: userId,
           action: "instagram.disconnected", resource_type: "instagram_account",
           resource_id: account.id, details: { username: account.ig_username },
         });
