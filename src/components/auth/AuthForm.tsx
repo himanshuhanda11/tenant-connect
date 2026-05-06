@@ -241,37 +241,37 @@ export function AuthForm({ mode }: AuthFormProps) {
         </div>
 
         {/* Right Panel - Marketing */}
-        <div className="hidden lg:flex w-1/2 bg-gradient-to-br from-green-600 via-emerald-600 to-teal-600 p-12 flex-col justify-center relative overflow-hidden">
+        <div className="hidden lg:flex w-1/2 bg-gradient-to-br from-green-600 via-emerald-600 to-teal-600 p-10 flex-col justify-center relative overflow-hidden">
           <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4xIj48Y2lyY2xlIGN4PSIzMCIgY3k9IjMwIiByPSIyIi8+PC9nPjwvZz48L3N2Zz4=')] opacity-30" />
-          
+
           <div className="relative z-10 max-w-lg">
-            <h2 className="text-4xl font-bold text-white mb-6">
+            <h2 className="text-3xl xl:text-4xl font-bold text-white mb-3 leading-tight">
               Manage all your WhatsApp conversations in one place
             </h2>
-            <p className="text-white/80 text-lg mb-8">
+            <p className="text-white/80 text-base mb-5">
               Join 5,000+ businesses using AiReatro to connect with customers on WhatsApp at scale.
             </p>
 
-            <div className="space-y-4">
+            <div className="space-y-2.5">
               {features.slice(0, 4).map((feature, index) => (
-                <div key={index} className="flex items-center gap-3 text-white">
-                  <div className="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center">
-                    <feature.icon className="w-4 h-4" />
+                <div key={index} className="flex items-center gap-3 text-white text-sm">
+                  <div className="w-7 h-7 rounded-lg bg-white/20 flex items-center justify-center">
+                    <feature.icon className="w-3.5 h-3.5" />
                   </div>
                   <span>{feature.text}</span>
                 </div>
               ))}
             </div>
 
-            <div className="mt-12 p-6 rounded-2xl bg-white/10 backdrop-blur-sm border border-white/20">
-              <p className="text-white/90 italic mb-4">
+            <div className="mt-5 p-4 rounded-xl bg-white/10 backdrop-blur-sm border border-white/20">
+              <p className="text-white/90 text-sm italic mb-2">
                 "AiReatro transformed our customer support. We now handle 3x more conversations with the same team."
               </p>
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center text-white font-bold">SC</div>
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center text-white text-xs font-bold">SC</div>
                 <div>
-                  <div className="text-white font-medium">Sarah Chen</div>
-                  <div className="text-white/60 text-sm">Head of Support, TechFlow</div>
+                  <div className="text-white text-sm font-medium leading-tight">Sarah Chen</div>
+                  <div className="text-white/60 text-xs">Head of Support, TechFlow</div>
                 </div>
               </div>
             </div>
