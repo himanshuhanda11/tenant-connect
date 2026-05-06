@@ -1,0 +1,1 @@
+UPDATE public.instagram_accounts SET instagram_user_id = '17841473643576205' WHERE id = 'f5849b56-2c7d-4a3f-92e3-317de2820ea1';
