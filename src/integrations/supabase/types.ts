@@ -12504,6 +12504,9 @@ export type Database = {
           form_id: string
           form_name: string | null
           id: string
+          last_sync_at: string | null
+          last_sync_error: string | null
+          last_sync_status: string | null
           pipeline_id: string | null
           stage_id: string | null
           sync_enabled: boolean
@@ -12523,6 +12526,9 @@ export type Database = {
           form_id: string
           form_name?: string | null
           id?: string
+          last_sync_at?: string | null
+          last_sync_error?: string | null
+          last_sync_status?: string | null
           pipeline_id?: string | null
           stage_id?: string | null
           sync_enabled?: boolean
@@ -12542,6 +12548,9 @@ export type Database = {
           form_id?: string
           form_name?: string | null
           id?: string
+          last_sync_at?: string | null
+          last_sync_error?: string | null
+          last_sync_status?: string | null
           pipeline_id?: string | null
           stage_id?: string | null
           sync_enabled?: boolean
@@ -12577,6 +12586,169 @@ export type Database = {
           },
           {
             foreignKeyName: "tiktok_lead_sync_settings_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tiktok_leads: {
+        Row: {
+          ad_name: string | null
+          advertiser_id: string
+          campaign_name: string | null
+          created_at: string
+          crm_contact_id: string | null
+          email: string | null
+          form_id: string
+          form_name: string | null
+          id: string
+          message_status: string
+          name: string | null
+          phone: string | null
+          raw_payload: Json
+          sync_setting_id: string | null
+          synced_at: string
+          tiktok_connection_id: string | null
+          tiktok_lead_id: string
+          whatsapp_message_id: string | null
+          workspace_id: string
+        }
+        Insert: {
+          ad_name?: string | null
+          advertiser_id: string
+          campaign_name?: string | null
+          created_at?: string
+          crm_contact_id?: string | null
+          email?: string | null
+          form_id: string
+          form_name?: string | null
+          id?: string
+          message_status?: string
+          name?: string | null
+          phone?: string | null
+          raw_payload?: Json
+          sync_setting_id?: string | null
+          synced_at?: string
+          tiktok_connection_id?: string | null
+          tiktok_lead_id: string
+          whatsapp_message_id?: string | null
+          workspace_id: string
+        }
+        Update: {
+          ad_name?: string | null
+          advertiser_id?: string
+          campaign_name?: string | null
+          created_at?: string
+          crm_contact_id?: string | null
+          email?: string | null
+          form_id?: string
+          form_name?: string | null
+          id?: string
+          message_status?: string
+          name?: string | null
+          phone?: string | null
+          raw_payload?: Json
+          sync_setting_id?: string | null
+          synced_at?: string
+          tiktok_connection_id?: string | null
+          tiktok_lead_id?: string
+          whatsapp_message_id?: string | null
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tiktok_leads_sync_setting_id_fkey"
+            columns: ["sync_setting_id"]
+            isOneToOne: false
+            referencedRelation: "tiktok_lead_sync_settings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tiktok_leads_tiktok_connection_id_fkey"
+            columns: ["tiktok_connection_id"]
+            isOneToOne: false
+            referencedRelation: "tiktok_connections"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tiktok_leads_tiktok_connection_id_fkey"
+            columns: ["tiktok_connection_id"]
+            isOneToOne: false
+            referencedRelation: "tiktok_connections_safe"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tiktok_leads_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "platform_workspace_directory"
+            referencedColumns: ["workspace_id"]
+          },
+          {
+            foreignKeyName: "tiktok_leads_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tiktok_sync_logs: {
+        Row: {
+          created_at: string
+          error_details: Json | null
+          id: string
+          leads_created: number
+          leads_fetched: number
+          message: string | null
+          messages_sent: number
+          status: string
+          sync_setting_id: string | null
+          workspace_id: string
+        }
+        Insert: {
+          created_at?: string
+          error_details?: Json | null
+          id?: string
+          leads_created?: number
+          leads_fetched?: number
+          message?: string | null
+          messages_sent?: number
+          status: string
+          sync_setting_id?: string | null
+          workspace_id: string
+        }
+        Update: {
+          created_at?: string
+          error_details?: Json | null
+          id?: string
+          leads_created?: number
+          leads_fetched?: number
+          message?: string | null
+          messages_sent?: number
+          status?: string
+          sync_setting_id?: string | null
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tiktok_sync_logs_sync_setting_id_fkey"
+            columns: ["sync_setting_id"]
+            isOneToOne: false
+            referencedRelation: "tiktok_lead_sync_settings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tiktok_sync_logs_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "platform_workspace_directory"
+            referencedColumns: ["workspace_id"]
+          },
+          {
+            foreignKeyName: "tiktok_sync_logs_workspace_id_fkey"
             columns: ["workspace_id"]
             isOneToOne: false
             referencedRelation: "tenants"
