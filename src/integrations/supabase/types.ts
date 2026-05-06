@@ -4707,6 +4707,234 @@ export type Database = {
           },
         ]
       }
+      instagram_assignments: {
+        Row: {
+          agent_id: string
+          assigned_by: string | null
+          conversation_id: string
+          created_at: string
+          id: string
+          method: string
+          tenant_id: string
+        }
+        Insert: {
+          agent_id: string
+          assigned_by?: string | null
+          conversation_id: string
+          created_at?: string
+          id?: string
+          method?: string
+          tenant_id: string
+        }
+        Update: {
+          agent_id?: string
+          assigned_by?: string | null
+          conversation_id?: string
+          created_at?: string
+          id?: string
+          method?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "instagram_assignments_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "instagram_conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      instagram_contacts: {
+        Row: {
+          created_at: string
+          follower_count: number | null
+          id: string
+          ig_user_id: string
+          instagram_account_id: string
+          is_verified: boolean | null
+          lead_id: string | null
+          metadata: Json | null
+          name: string | null
+          profile_pic_url: string | null
+          tenant_id: string
+          updated_at: string
+          username: string | null
+        }
+        Insert: {
+          created_at?: string
+          follower_count?: number | null
+          id?: string
+          ig_user_id: string
+          instagram_account_id: string
+          is_verified?: boolean | null
+          lead_id?: string | null
+          metadata?: Json | null
+          name?: string | null
+          profile_pic_url?: string | null
+          tenant_id: string
+          updated_at?: string
+          username?: string | null
+        }
+        Update: {
+          created_at?: string
+          follower_count?: number | null
+          id?: string
+          ig_user_id?: string
+          instagram_account_id?: string
+          is_verified?: boolean | null
+          lead_id?: string | null
+          metadata?: Json | null
+          name?: string | null
+          profile_pic_url?: string | null
+          tenant_id?: string
+          updated_at?: string
+          username?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "instagram_contacts_instagram_account_id_fkey"
+            columns: ["instagram_account_id"]
+            isOneToOne: false
+            referencedRelation: "instagram_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      instagram_conversations: {
+        Row: {
+          assigned_agent_id: string | null
+          contact_id: string
+          created_at: string
+          id: string
+          instagram_account_id: string
+          last_inbound_at: string | null
+          last_message_at: string | null
+          last_message_text: string | null
+          last_outbound_at: string | null
+          notes: string | null
+          status: string
+          tags: string[] | null
+          tenant_id: string
+          unread_count: number
+          updated_at: string
+        }
+        Insert: {
+          assigned_agent_id?: string | null
+          contact_id: string
+          created_at?: string
+          id?: string
+          instagram_account_id: string
+          last_inbound_at?: string | null
+          last_message_at?: string | null
+          last_message_text?: string | null
+          last_outbound_at?: string | null
+          notes?: string | null
+          status?: string
+          tags?: string[] | null
+          tenant_id: string
+          unread_count?: number
+          updated_at?: string
+        }
+        Update: {
+          assigned_agent_id?: string | null
+          contact_id?: string
+          created_at?: string
+          id?: string
+          instagram_account_id?: string
+          last_inbound_at?: string | null
+          last_message_at?: string | null
+          last_message_text?: string | null
+          last_outbound_at?: string | null
+          notes?: string | null
+          status?: string
+          tags?: string[] | null
+          tenant_id?: string
+          unread_count?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "instagram_conversations_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "instagram_contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "instagram_conversations_instagram_account_id_fkey"
+            columns: ["instagram_account_id"]
+            isOneToOne: false
+            referencedRelation: "instagram_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      instagram_messages: {
+        Row: {
+          agent_id: string | null
+          conversation_id: string
+          created_at: string
+          direction: string
+          id: string
+          is_deleted: boolean | null
+          is_read: boolean | null
+          media_type: string | null
+          media_url: string | null
+          message_type: string
+          mid: string | null
+          raw: Json | null
+          reaction: string | null
+          sent_at: string
+          tenant_id: string
+          text: string | null
+        }
+        Insert: {
+          agent_id?: string | null
+          conversation_id: string
+          created_at?: string
+          direction: string
+          id?: string
+          is_deleted?: boolean | null
+          is_read?: boolean | null
+          media_type?: string | null
+          media_url?: string | null
+          message_type?: string
+          mid?: string | null
+          raw?: Json | null
+          reaction?: string | null
+          sent_at?: string
+          tenant_id: string
+          text?: string | null
+        }
+        Update: {
+          agent_id?: string | null
+          conversation_id?: string
+          created_at?: string
+          direction?: string
+          id?: string
+          is_deleted?: boolean | null
+          is_read?: boolean | null
+          media_type?: string | null
+          media_url?: string | null
+          message_type?: string
+          mid?: string | null
+          raw?: Json | null
+          reaction?: string | null
+          sent_at?: string
+          tenant_id?: string
+          text?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "instagram_messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "instagram_conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       instagram_oauth_states: {
         Row: {
           created_at: string
