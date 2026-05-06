@@ -116,3 +116,6 @@ verify_jwt = false
 
 [functions.meta-sync-lead-forms]
 verify_jwt = false
+
+[functions.sync-tiktok-leads]
+verify_jwt = false
