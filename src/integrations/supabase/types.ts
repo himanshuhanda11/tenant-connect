@@ -12495,6 +12495,95 @@ export type Database = {
           },
         ]
       }
+      tiktok_lead_sync_settings: {
+        Row: {
+          advertiser_id: string
+          assigned_user_id: string | null
+          auto_reply_enabled: boolean
+          created_at: string
+          form_id: string
+          form_name: string | null
+          id: string
+          pipeline_id: string | null
+          stage_id: string | null
+          sync_enabled: boolean
+          sync_frequency_minutes: number
+          tags: string[] | null
+          tiktok_connection_id: string
+          updated_at: string
+          whatsapp_phone_number_id: string
+          whatsapp_template_id: string | null
+          workspace_id: string
+        }
+        Insert: {
+          advertiser_id: string
+          assigned_user_id?: string | null
+          auto_reply_enabled?: boolean
+          created_at?: string
+          form_id: string
+          form_name?: string | null
+          id?: string
+          pipeline_id?: string | null
+          stage_id?: string | null
+          sync_enabled?: boolean
+          sync_frequency_minutes?: number
+          tags?: string[] | null
+          tiktok_connection_id: string
+          updated_at?: string
+          whatsapp_phone_number_id: string
+          whatsapp_template_id?: string | null
+          workspace_id: string
+        }
+        Update: {
+          advertiser_id?: string
+          assigned_user_id?: string | null
+          auto_reply_enabled?: boolean
+          created_at?: string
+          form_id?: string
+          form_name?: string | null
+          id?: string
+          pipeline_id?: string | null
+          stage_id?: string | null
+          sync_enabled?: boolean
+          sync_frequency_minutes?: number
+          tags?: string[] | null
+          tiktok_connection_id?: string
+          updated_at?: string
+          whatsapp_phone_number_id?: string
+          whatsapp_template_id?: string | null
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tiktok_lead_sync_settings_tiktok_connection_id_fkey"
+            columns: ["tiktok_connection_id"]
+            isOneToOne: false
+            referencedRelation: "tiktok_connections"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tiktok_lead_sync_settings_tiktok_connection_id_fkey"
+            columns: ["tiktok_connection_id"]
+            isOneToOne: false
+            referencedRelation: "tiktok_connections_safe"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tiktok_lead_sync_settings_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "platform_workspace_directory"
+            referencedColumns: ["workspace_id"]
+          },
+          {
+            foreignKeyName: "tiktok_lead_sync_settings_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       usage_counters: {
         Row: {
           campaigns_created: number | null
