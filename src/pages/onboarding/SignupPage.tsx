@@ -347,13 +347,22 @@ export default function SignupPage() {
             </div>
 
             {/* Main headline */}
-            <h2 className="text-2xl xl:text-3xl font-bold text-slate-900 mb-2.5 leading-tight">
-              Scale your business with{' '}
-              <span className="text-primary">WhatsApp</span>
+            <h2 className="text-3xl xl:text-5xl font-extrabold text-slate-900 mb-3 leading-[1.05] tracking-tight">
+              <span className="block">
+                <span className="bg-gradient-to-r from-primary via-primary to-primary/70 bg-clip-text text-transparent">5x</span>{' '}
+                your business
+              </span>
+              <span className="block text-slate-900">
+                with{' '}
+                <span className="relative inline-block">
+                  <span className="relative z-10">AiReatro</span>
+                  <span className="absolute inset-x-0 bottom-1 h-2 bg-primary/20 -z-0 rounded-sm" />
+                </span>
+              </span>
             </h2>
 
-            <p className="text-sm xl:text-base text-slate-600 mb-4 leading-relaxed">
-              Join thousands of businesses using AiReatro to automate customer conversations and grow faster.
+            <p className="text-sm xl:text-base text-slate-600 mb-5 leading-relaxed">
+              The AI-powered WhatsApp CRM trusted by thousands to automate conversations, capture leads, and close 5x faster.
             </p>
 
             {/* Feature highlights */}
