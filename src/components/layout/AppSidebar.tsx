@@ -489,22 +489,6 @@ export function AppSidebar() {
           {/* ── Collapsible Groups ── */}
           {menuGroups.map(group => renderCollapsibleGroup(group))}
 
-          {!isCollapsed && <div className="mx-3 my-3 border-b border-sidebar-border/50" />}
-
-          {/* ── Platform ── */}
-          <SidebarGroup className={cn("mt-1", isCollapsed && "pt-1.5")}>
-            {!isCollapsed && (
-              <SidebarGroupLabel className="text-sidebar-foreground/60 text-[10px] font-semibold uppercase tracking-[0.1em] px-3 mb-1">
-                Platform
-              </SidebarGroupLabel>
-            )}
-            {isCollapsed && <div className="mx-auto mb-1.5 w-7 border-t border-sidebar-border/20" />}
-            <SidebarGroupContent>
-              <SidebarMenu className={cn("space-y-0.5", isCollapsed && "flex flex-col items-center space-y-1.5")}>
-                {filteredSettingsMenuItems.map(item => renderMenuItem(item))}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
         </div>
       </SidebarContent>
 
