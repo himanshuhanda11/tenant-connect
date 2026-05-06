@@ -318,20 +318,20 @@ export function AuthForm({ mode }: AuthFormProps) {
       {/* Right Panel - Form */}
       <div className="w-full lg:w-1/2 flex flex-col bg-background lg:overflow-y-auto">
         {/* Header */}
-        <header className="px-4 md:px-6 pt-3 pb-2 shrink-0">
+        <header className="px-4 md:px-6 pt-3 pb-1 shrink-0">
           <div className="flex items-center justify-between">
             <Link to="/" className="flex items-center">
-              <img src={aireatroLogo} alt="AiReatro" className="h-8 w-auto" />
+              <img src={aireatroLogo} alt="AiReatro" className="h-7 w-auto" />
             </Link>
           </div>
         </header>
 
         {/* Form */}
-        <div className="flex-1 flex items-center justify-center px-4 md:px-8 py-3">
+        <div className="flex-1 flex items-center justify-center px-4 md:px-8 py-2">
           <div className="w-full max-w-md animate-fade-in">
-            <div className="mb-3">
-              <h1 className="text-2xl font-bold text-foreground mb-1">Create your account</h1>
-              <p className="text-sm text-muted-foreground">Get started with your free 14-day trial</p>
+            <div className="mb-2">
+              <h1 className="text-xl font-bold text-foreground mb-0.5">Create your account</h1>
+              <p className="text-xs text-muted-foreground">Get started with your free 14-day trial</p>
             </div>
 
             <Card className="shadow-xl border-border/50">
