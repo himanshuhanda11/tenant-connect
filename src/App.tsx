@@ -94,6 +94,7 @@ const IntegrationDetail = lazyWithRetry(() => import("./pages/IntegrationDetail"
 const TikTokLeads = lazyWithRetry(() => import("./pages/integrations/TikTokLeads"));
 const InstagramConnect = lazyWithRetry(() => import("./pages/integrations/InstagramConnect"));
 const InstagramInbox = lazyWithRetry(() => import("./pages/integrations/InstagramInbox"));
+const InstagramAutomation = lazyWithRetry(() => import("./pages/integrations/InstagramAutomation"));
 const Security = lazyWithRetry(() => import("./pages/Security"));
 const DataDeletion = lazyWithRetry(() => import("./pages/DataDeletion"));
 const AcceptableUse = lazyWithRetry(() => import("./pages/AcceptableUse"));
@@ -267,6 +268,9 @@ const App = () => (
                    <Route path="/app/integrations/instagram/inbox" element={<InstagramInbox />} />
                    <Route path="/dashboard/integrations/instagram/inbox" element={<InstagramInbox />} />
                    <Route path="/instagram/inbox" element={<InstagramInbox />} />
+                   <Route path="/app/integrations/instagram/automation" element={<InstagramAutomation />} />
+                   <Route path="/dashboard/integrations/instagram/automation" element={<InstagramAutomation />} />
+                   <Route path="/instagram/automation" element={<InstagramAutomation />} />
                     <Route path="/app/integrations/shopify" element={<ShopifyOverview />} />
                     <Route path="/app/integrations/shopify/connect" element={<ShopifyConnect />} />
                     <Route path="/app/integrations/shopify/:storeId" element={<ShopifyStoreDetail />} />

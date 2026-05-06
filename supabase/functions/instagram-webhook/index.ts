@@ -1,6 +1,7 @@
 // Instagram Messaging Webhook
 // Handles GET verification + POST events (messages, reactions, reads, media)
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { runIgAutomation, cancelPendingFollowups } from "../_shared/ig-automation.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -203,6 +204,18 @@ async function handleMessaging(account: any, m: any) {
       if (conv.status === "closed") updates.status = "open";
     }
     await sb.from("instagram_conversations").update(updates).eq("id", conv.id);
+
+    // Run automation engine on inbound only
+    if (!isOutbound) {
+      try {
+        await cancelPendingFollowups(sb, conv.id);
+        await runIgAutomation(sb, account, conv, contact, {
+          text, media_url: mediaUrl, media_type: mediaType, raw: m,
+        });
+      } catch (e) {
+        console.error("[ig-webhook] automation error:", e);
+      }
+    }
   }
 }
 

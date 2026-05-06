@@ -4745,6 +4745,156 @@ export type Database = {
           },
         ]
       }
+      instagram_automation_logs: {
+        Row: {
+          conversation_id: string | null
+          created_at: string
+          detail: Json | null
+          duration_ms: number | null
+          id: string
+          message_id: string | null
+          rule_id: string | null
+          status: string
+          tenant_id: string
+          trigger_type: string | null
+        }
+        Insert: {
+          conversation_id?: string | null
+          created_at?: string
+          detail?: Json | null
+          duration_ms?: number | null
+          id?: string
+          message_id?: string | null
+          rule_id?: string | null
+          status: string
+          tenant_id: string
+          trigger_type?: string | null
+        }
+        Update: {
+          conversation_id?: string | null
+          created_at?: string
+          detail?: Json | null
+          duration_ms?: number | null
+          id?: string
+          message_id?: string | null
+          rule_id?: string | null
+          status?: string
+          tenant_id?: string
+          trigger_type?: string | null
+        }
+        Relationships: []
+      }
+      instagram_automation_rules: {
+        Row: {
+          actions: Json
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          is_active: boolean
+          last_run_at: string | null
+          name: string
+          priority: number
+          run_count: number
+          tenant_id: string
+          trigger_config: Json
+          trigger_type: string
+          updated_at: string
+        }
+        Insert: {
+          actions?: Json
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          last_run_at?: string | null
+          name: string
+          priority?: number
+          run_count?: number
+          tenant_id: string
+          trigger_config?: Json
+          trigger_type: string
+          updated_at?: string
+        }
+        Update: {
+          actions?: Json
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          last_run_at?: string | null
+          name?: string
+          priority?: number
+          run_count?: number
+          tenant_id?: string
+          trigger_config?: Json
+          trigger_type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      instagram_business_hours: {
+        Row: {
+          away_message: string | null
+          enabled: boolean
+          tenant_id: string
+          timezone: string
+          updated_at: string
+          weekly: Json
+        }
+        Insert: {
+          away_message?: string | null
+          enabled?: boolean
+          tenant_id: string
+          timezone?: string
+          updated_at?: string
+          weekly?: Json
+        }
+        Update: {
+          away_message?: string | null
+          enabled?: boolean
+          tenant_id?: string
+          timezone?: string
+          updated_at?: string
+          weekly?: Json
+        }
+        Relationships: []
+      }
+      instagram_canned_replies: {
+        Row: {
+          body: string
+          created_at: string
+          created_by: string | null
+          id: string
+          shortcut: string
+          tenant_id: string
+          title: string | null
+          updated_at: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          shortcut: string
+          tenant_id: string
+          title?: string | null
+          updated_at?: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          shortcut?: string
+          tenant_id?: string
+          title?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       instagram_contacts: {
         Row: {
           created_at: string
@@ -4866,6 +5016,124 @@ export type Database = {
             columns: ["instagram_account_id"]
             isOneToOne: false
             referencedRelation: "instagram_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      instagram_followups: {
+        Row: {
+          attempts: number
+          cancel_on_reply: boolean
+          conversation_id: string
+          created_at: string
+          id: string
+          last_error: string | null
+          rule_id: string | null
+          send_at: string
+          sent_at: string | null
+          status: string
+          tenant_id: string
+          text: string
+          updated_at: string
+        }
+        Insert: {
+          attempts?: number
+          cancel_on_reply?: boolean
+          conversation_id: string
+          created_at?: string
+          id?: string
+          last_error?: string | null
+          rule_id?: string | null
+          send_at: string
+          sent_at?: string | null
+          status?: string
+          tenant_id: string
+          text: string
+          updated_at?: string
+        }
+        Update: {
+          attempts?: number
+          cancel_on_reply?: boolean
+          conversation_id?: string
+          created_at?: string
+          id?: string
+          last_error?: string | null
+          rule_id?: string | null
+          send_at?: string
+          sent_at?: string | null
+          status?: string
+          tenant_id?: string
+          text?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "instagram_followups_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "instagram_conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      instagram_lead_qualifications: {
+        Row: {
+          business_type: string | null
+          confidence: number | null
+          contact_id: string | null
+          conversation_id: string
+          created_at: string
+          current_step: string | null
+          email: string | null
+          id: string
+          intent: string | null
+          name: string | null
+          phone: string | null
+          raw: Json | null
+          status: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          business_type?: string | null
+          confidence?: number | null
+          contact_id?: string | null
+          conversation_id: string
+          created_at?: string
+          current_step?: string | null
+          email?: string | null
+          id?: string
+          intent?: string | null
+          name?: string | null
+          phone?: string | null
+          raw?: Json | null
+          status?: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          business_type?: string | null
+          confidence?: number | null
+          contact_id?: string | null
+          conversation_id?: string
+          created_at?: string
+          current_step?: string | null
+          email?: string | null
+          id?: string
+          intent?: string | null
+          name?: string | null
+          phone?: string | null
+          raw?: Json | null
+          status?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "instagram_lead_qualifications_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: true
+            referencedRelation: "instagram_conversations"
             referencedColumns: ["id"]
           },
         ]
