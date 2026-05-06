@@ -76,7 +76,25 @@ async function upsertContact(account: any, igUserId: string) {
     .eq("ig_user_id", igUserId)
     .maybeSingle();
 
-  if (existing) return existing;
+  if (existing) {
+    // Backfill profile if previously unknown
+    if (!existing.username && !existing.name && (profile.username || profile.name)) {
+      const { data: updated } = await sb
+        .from("instagram_contacts")
+        .update({
+          username: profile.username || null,
+          name: profile.name || null,
+          profile_pic_url: profile.profile_pic || null,
+          follower_count: profile.follower_count ?? null,
+          is_verified: !!profile.is_verified_user,
+        })
+        .eq("id", existing.id)
+        .select()
+        .single();
+      return updated || existing;
+    }
+    return existing;
+  }
 
   const { data: contact } = await sb
     .from("instagram_contacts")
