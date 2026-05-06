@@ -36,7 +36,7 @@ export function WhatsAppConnectBanner() {
     check();
   }, [currentTenant]);
 
-  if (dismissed || hasPhone === null || hasPhone) return null;
+  if (dismissed || hasPhone === null || hasPhone || isInstagramRoute) return null;
 
   const handleDismiss = () => {
     setDismissed(true);
