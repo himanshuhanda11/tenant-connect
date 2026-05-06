@@ -16,24 +16,27 @@ Deno.serve(async (req) => {
       return new Response('Webhook secret not configured', { status: 503 });
     }
 
-    // Verify HMAC signature
-    if (signature) {
-      const key = await crypto.subtle.importKey(
-        'raw',
-        new TextEncoder().encode(webhookSecret),
-        { name: 'HMAC', hash: 'SHA-256' },
-        false,
-        ['sign']
-      );
-      const sig = await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(body));
-      const expected = Array.from(new Uint8Array(sig))
-        .map((b) => b.toString(16).padStart(2, '0'))
-        .join('');
+    if (!signature) {
+      console.error('Missing x-razorpay-signature header');
+      return new Response('Missing signature', { status: 401 });
+    }
 
-      if (expected !== signature) {
-        console.error('Invalid Razorpay signature');
-        return new Response('Invalid signature', { status: 401 });
-      }
+    // Verify HMAC signature (always required)
+    const key = await crypto.subtle.importKey(
+      'raw',
+      new TextEncoder().encode(webhookSecret),
+      { name: 'HMAC', hash: 'SHA-256' },
+      false,
+      ['sign']
+    );
+    const sig = await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(body));
+    const expected = Array.from(new Uint8Array(sig))
+      .map((b) => b.toString(16).padStart(2, '0'))
+      .join('');
+
+    if (expected !== signature) {
+      console.error('Invalid Razorpay signature');
+      return new Response('Invalid signature', { status: 401 });
     }
 
     const payload = JSON.parse(body);
