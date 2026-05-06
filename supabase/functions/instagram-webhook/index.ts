@@ -8,7 +8,10 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const VERIFY_TOKEN = Deno.env.get("META_VERIFY_TOKEN") || "aireatro_verify";
+const VERIFY_TOKEN =
+  Deno.env.get("INSTAGRAM_WEBHOOK_VERIFY_TOKEN") ||
+  Deno.env.get("META_VERIFY_TOKEN") ||
+  "aireatro_verify";
 
 const sb = createClient(
   Deno.env.get("SUPABASE_URL")!,
