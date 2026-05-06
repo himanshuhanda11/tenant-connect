@@ -60,16 +60,18 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ error: "No access token for IG account" }), { status: 400, headers: corsHeaders });
     }
 
-    // Send via Graph API
+    // Send via Instagram Graph API (Instagram Login for Business)
     const sendRes = await fetch(
-      `https://graph.facebook.com/v21.0/${conv.account.facebook_page_id}/messages?access_token=${pageToken}`,
+      `https://graph.instagram.com/v21.0/${conv.account.instagram_user_id}/messages`,
       {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${pageToken}`,
+        },
         body: JSON.stringify({
           recipient: { id: conv.contact.ig_user_id },
           message: { text },
-          messaging_type: "RESPONSE",
         }),
       }
     );
