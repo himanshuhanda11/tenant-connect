@@ -282,7 +282,7 @@ export function AuthForm({ mode }: AuthFormProps) {
   }
 
   return (
-    <div className="min-h-screen lg:h-screen lg:overflow-hidden flex">
+    <div className="min-h-dvh md:h-dvh md:overflow-hidden flex">
       {/* Left Panel - Marketing (no image) */}
       <div className="hidden lg:flex w-1/2 bg-gradient-to-br from-emerald-600 via-green-600 to-teal-600 p-10 flex-col justify-center relative overflow-hidden">
         <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4xIj48Y2lyY2xlIGN4PSIzMCIgY3k9IjMwIiByPSIyIi8+PC9nPjwvZz48L3N2Zz4=')] opacity-30" />
@@ -316,27 +316,27 @@ export function AuthForm({ mode }: AuthFormProps) {
       </div>
 
       {/* Right Panel - Form */}
-      <div className="w-full lg:w-1/2 flex flex-col bg-background lg:overflow-y-auto">
+      <div className="w-full lg:w-1/2 flex flex-col bg-background md:h-full md:overflow-hidden">
         {/* Header */}
-        <header className="px-4 md:px-6 pt-3 pb-1 shrink-0">
+        <header className="px-4 md:px-6 py-2 shrink-0">
           <div className="flex items-center justify-between">
             <Link to="/" className="flex items-center">
-              <img src={aireatroLogo} alt="AiReatro" className="h-7 w-auto" />
+              <img src={aireatroLogo} alt="AiReatro" className="h-6 md:h-7 w-auto" />
             </Link>
           </div>
         </header>
 
         {/* Form */}
-        <div className="flex-1 flex items-center justify-center px-4 md:px-8 py-2">
+        <div className="flex-1 min-h-0 flex items-center justify-center px-4 md:px-8 py-1">
           <div className="w-full max-w-md animate-fade-in">
-            <div className="mb-2">
+            <div className="mb-1.5">
               <h1 className="text-xl font-bold text-foreground mb-0.5">Create your account</h1>
               <p className="text-xs text-muted-foreground">Get started with your free 14-day trial</p>
             </div>
 
             <Card className="shadow-xl border-border/50">
-              <CardContent className="pt-3 pb-3 px-4">
-                <form onSubmit={signupForm.handleSubmit(onSignupSubmit)} className="space-y-2.5">
+              <CardContent className="pt-2.5 pb-2.5 px-4">
+                <form onSubmit={signupForm.handleSubmit(onSignupSubmit)} className="space-y-2">
                   <div className="space-y-1">
                     <Label htmlFor="fullName" className="text-xs">Full Name</Label>
                     <Input id="fullName" placeholder="John Doe" {...signupForm.register('fullName')} className="h-9" />
@@ -353,7 +353,7 @@ export function AuthForm({ mode }: AuthFormProps) {
                     )}
                   </div>
 
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-2 gap-2.5">
                     <div className="space-y-1">
                       <Label htmlFor="password" className="text-xs">Password</Label>
                       <div className="relative">
@@ -376,12 +376,12 @@ export function AuthForm({ mode }: AuthFormProps) {
                     </div>
                   </div>
 
-                  <Button type="submit" className="w-full h-9 text-sm font-medium bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 shadow-lg" disabled={loading || googleLoading}>
+                  <Button type="submit" className="w-full h-8 md:h-9 text-sm font-medium bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 shadow-lg" disabled={loading || googleLoading}>
                     {loading ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Creating account...</> : 'Create free account'}
                   </Button>
                 </form>
 
-                <div className="relative my-2.5">
+                <div className="relative my-2">
                   <div className="absolute inset-0 flex items-center">
                     <div className="w-full border-t border-border"></div>
                   </div>
@@ -393,7 +393,7 @@ export function AuthForm({ mode }: AuthFormProps) {
                 <Button
                   type="button"
                   variant="outline"
-                  className="w-full h-9 text-sm font-medium"
+                  className="w-full h-8 md:h-9 text-sm font-medium"
                   onClick={handleGoogleSignIn}
                   disabled={loading || googleLoading}
                 >
@@ -410,7 +410,7 @@ export function AuthForm({ mode }: AuthFormProps) {
                   Continue with Google
                 </Button>
 
-                <div className="mt-2.5 text-center">
+                <div className="mt-2 text-center">
                   <p className="text-xs text-muted-foreground">
                     Already have an account?{' '}
                     <Link to="/login" className="text-primary font-semibold hover:underline">Sign in</Link>
@@ -419,7 +419,7 @@ export function AuthForm({ mode }: AuthFormProps) {
               </CardContent>
             </Card>
 
-            <p className="text-center text-xs text-muted-foreground mt-2">
+            <p className="text-center text-[11px] leading-snug text-muted-foreground mt-1.5">
               By creating an account, you agree to our{' '}
               <Link to="/terms" className="text-primary hover:underline">Terms</Link>
               {' '}and{' '}

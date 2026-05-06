@@ -147,42 +147,42 @@ export default function SignupPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col lg:flex-row">
+    <div className="min-h-dvh md:h-dvh md:overflow-hidden flex flex-col lg:flex-row">
       {/* Left Panel - Signup Form */}
-      <div className="flex-1 flex flex-col justify-center px-6 py-12 lg:px-12 xl:px-20">
+      <div className="flex-1 min-h-0 flex flex-col justify-center px-5 py-6 md:px-8 md:py-4 lg:px-10 xl:px-14 md:overflow-hidden">
         <div className="mx-auto w-full max-w-md">
           {/* Logo */}
-          <div className="flex items-center gap-2 mb-4">
-            <img src={aireatroLogo} alt="AiReatro" className="h-10 w-auto" />
+          <div className="flex items-center gap-2 mb-2.5">
+            <img src={aireatroLogo} alt="AiReatro" className="h-7 md:h-8 w-auto" />
           </div>
 
           {/* Breadcrumb */}
-          <nav className="flex items-center gap-2 text-sm text-muted-foreground mb-6">
+          <nav className="flex items-center gap-2 text-xs md:text-sm text-muted-foreground mb-3 md:mb-4">
             <Link to="/" className="hover:text-foreground transition-colors">Home</Link>
             <span>/</span>
             <span className="text-foreground font-medium">Sign Up</span>
           </nav>
 
           {/* Progress */}
-          <div className="mb-8">
-            <div className="flex items-center justify-between text-sm text-muted-foreground mb-2">
+          <div className="mb-4 md:mb-5">
+            <div className="flex items-center justify-between text-xs md:text-sm text-muted-foreground mb-1.5">
               <span>Step 1 of 3</span>
               <span>Account</span>
             </div>
-            <Progress value={33} className="h-2" />
+            <Progress value={33} className="h-1.5" />
           </div>
 
           {/* Card */}
           <Card className="border-0 shadow-lg">
-            <CardHeader className="space-y-1 pb-4">
-              <CardTitle className="text-2xl font-semibold tracking-tight">
+            <CardHeader className="space-y-0.5 pb-2.5 pt-5">
+              <CardTitle className="text-xl md:text-2xl font-semibold tracking-tight">
                 Create your AiReatro account
               </CardTitle>
-              <CardDescription className="text-base">
+              <CardDescription className="text-sm md:text-base">
                 Get started with WhatsApp Business API in minutes
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-6">
+            <CardContent className="space-y-3.5 pb-5">
               {error && (
                 <div className="p-3 rounded-lg bg-destructive/10 text-destructive text-sm">
                   {error}
@@ -194,13 +194,12 @@ export default function SignupPage() {
                 onClick={handleGoogleSignup}
                 disabled={isGoogleLoading || isLoading}
                 variant="outline"
-                size="lg"
-                className="w-full h-12 text-base font-medium"
+                className="w-full h-10 text-sm md:text-base font-medium"
               >
                 {isGoogleLoading ? (
-                  <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 ) : (
-                  <svg className="mr-2 h-5 w-5" viewBox="0 0 24 24">
+                  <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
                     <path
                       d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
                       fill="#4285F4"
@@ -234,36 +233,36 @@ export default function SignupPage() {
               </div>
 
               {/* Email Signup Form */}
-              <form onSubmit={handleEmailSignup} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="fullName">Full name</Label>
+              <form onSubmit={handleEmailSignup} className="space-y-3">
+                <div className="space-y-1.5">
+                  <Label htmlFor="fullName" className="text-sm">Full name</Label>
                   <Input
                     id="fullName"
                     placeholder="John Doe"
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
-                    className="h-11"
+                    className="h-10"
                     disabled={isLoading || isGoogleLoading}
                     required
                   />
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
+                <div className="space-y-1.5">
+                  <Label htmlFor="email" className="text-sm">Email</Label>
                   <Input
                     id="email"
                     type="email"
                     placeholder="you@company.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="h-11"
+                    className="h-10"
                     disabled={isLoading || isGoogleLoading}
                     required
                   />
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="password">Password</Label>
+                <div className="space-y-1.5">
+                  <Label htmlFor="password" className="text-sm">Password</Label>
                   <div className="relative">
                     <Input
                       id="password"
@@ -271,7 +270,7 @@ export default function SignupPage() {
                       placeholder="Create a password (min. 6 chars)"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      className="h-11 pr-10"
+                      className="h-10 pr-10"
                       disabled={isLoading || isGoogleLoading}
                       required
                       minLength={6}
@@ -295,12 +294,11 @@ export default function SignupPage() {
                 <Button
                   type="submit"
                   disabled={isLoading || isGoogleLoading}
-                  size="lg"
-                  className="w-full h-12 text-base font-medium"
+                  className="w-full h-10 text-sm md:text-base font-medium"
                 >
                   {isLoading ? (
                     <>
-                      <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                       Creating account...
                     </>
                   ) : (
@@ -309,8 +307,8 @@ export default function SignupPage() {
                 </Button>
               </form>
 
-              <div className="pt-4 border-t">
-                <p className="text-sm text-center text-muted-foreground">
+              <div className="pt-2.5 border-t">
+                <p className="text-xs md:text-sm text-center text-muted-foreground">
                   Already have an account?{' '}
                   <Link to="/login" className="text-primary font-medium hover:underline">
                     Log in
@@ -321,7 +319,7 @@ export default function SignupPage() {
           </Card>
 
           {/* Legal Links */}
-          <div className="mt-6 flex items-center justify-center gap-4 text-sm text-muted-foreground">
+          <div className="mt-3 flex items-center justify-center gap-3 text-xs text-muted-foreground">
             <Link to="/terms" className="hover:text-foreground transition-colors">
               Terms of Service
             </Link>
@@ -334,34 +332,34 @@ export default function SignupPage() {
       </div>
 
       {/* Right Panel - White background with colorful accents */}
-      <div className="hidden lg:flex flex-1 relative overflow-hidden bg-white">
+      <div className="hidden lg:flex flex-1 min-h-0 relative overflow-hidden bg-white">
         {/* Subtle decorative elements */}
         <div className="absolute top-20 right-20 w-72 h-72 bg-primary/5 rounded-full blur-3xl" />
         <div className="absolute bottom-20 left-20 w-96 h-96 bg-primary/10 rounded-full blur-3xl" />
 
         {/* Content */}
-        <div className="relative z-10 flex flex-col justify-center p-12 xl:p-16 w-full">
+        <div className="relative z-10 flex flex-col justify-center p-8 xl:p-10 w-full">
           <div className="max-w-lg">
             {/* Badge */}
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 text-primary text-sm font-medium mb-8">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 text-primary text-sm font-medium mb-5">
               <span className="flex h-2 w-2 rounded-full bg-primary animate-pulse" />
               Join 2,500+ growing businesses
             </div>
 
             {/* Main headline */}
-            <h2 className="text-4xl xl:text-5xl font-bold text-slate-900 mb-6 leading-tight">
+            <h2 className="text-3xl xl:text-4xl font-bold text-slate-900 mb-4 leading-tight">
               Scale your business with{' '}
               <span className="text-primary">
                 WhatsApp
               </span>
             </h2>
             
-            <p className="text-lg xl:text-xl text-slate-600 mb-10 leading-relaxed">
+            <p className="text-base xl:text-lg text-slate-600 mb-6 leading-relaxed">
               Join thousands of businesses using AiReatro to automate customer conversations and grow faster.
             </p>
 
             {/* Feature highlights */}
-            <div className="space-y-4">
+            <div className="space-y-3">
               <div className="flex items-center gap-3 text-slate-700">
                 <div className="flex-shrink-0 w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center">
                   <MessageSquare className="h-3.5 w-3.5 text-primary" />
@@ -389,17 +387,17 @@ export default function SignupPage() {
             </div>
 
             {/* Stats row */}
-            <div className="mt-10 grid grid-cols-3 gap-4 p-6 rounded-2xl bg-slate-50 border border-slate-100">
+            <div className="mt-7 grid grid-cols-3 gap-3 p-4 rounded-2xl bg-slate-50 border border-slate-100">
               <div className="text-center">
-                <div className="text-2xl font-bold text-primary">10M+</div>
+                <div className="text-xl font-bold text-primary">10M+</div>
                 <div className="text-xs text-slate-500">Messages/mo</div>
               </div>
               <div className="text-center border-x border-slate-200">
-                <div className="text-2xl font-bold text-primary">98%</div>
+                <div className="text-xl font-bold text-primary">98%</div>
                 <div className="text-xs text-slate-500">Uptime</div>
               </div>
               <div className="text-center">
-                <div className="text-2xl font-bold text-primary">24/7</div>
+                <div className="text-xl font-bold text-primary">24/7</div>
                 <div className="text-xs text-slate-500">Support</div>
               </div>
             </div>
