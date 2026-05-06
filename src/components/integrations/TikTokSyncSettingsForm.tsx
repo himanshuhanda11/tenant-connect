@@ -139,11 +139,20 @@ export function TikTokSyncSettingsForm({ workspaceId, connections, isAdmin }: Pr
       setPhones((phonesRes.data as any) || []);
       setTemplates((tmplRes.data as any) || []);
 
-      const mems: TeamMember[] = ((membersRes.data as any[]) || []).map((m: any) => ({
-        user_id: m.user_id,
-        full_name: m.profiles?.full_name ?? null,
-        email: m.profiles?.email ?? null,
-      }));
+      const userIds = ((membersRes.data as any[]) || []).map((m: any) => m.user_id);
+      let mems: TeamMember[] = userIds.map((uid: string) => ({ user_id: uid, full_name: null, email: null }));
+      if (userIds.length > 0) {
+        const { data: profs } = await supabase
+          .from('profiles')
+          .select('id,full_name,email')
+          .in('id', userIds);
+        const byId = new Map<string, any>(((profs as any[]) || []).map((p: any) => [p.id, p]));
+        mems = userIds.map((uid: string) => ({
+          user_id: uid,
+          full_name: byId.get(uid)?.full_name ?? null,
+          email: byId.get(uid)?.email ?? null,
+        }));
+      }
       setMembers(mems);
 
       if (settingsRes?.data) {
