@@ -92,6 +92,7 @@ const Integrations = lazyWithRetry(() => import("./pages/Integrations"));
 const IntegrationsHub = lazyWithRetry(() => import("./pages/IntegrationsHub"));
 const IntegrationDetail = lazyWithRetry(() => import("./pages/IntegrationDetail"));
 const TikTokLeads = lazyWithRetry(() => import("./pages/integrations/TikTokLeads"));
+const InstagramConnect = lazyWithRetry(() => import("./pages/integrations/InstagramConnect"));
 const Security = lazyWithRetry(() => import("./pages/Security"));
 const DataDeletion = lazyWithRetry(() => import("./pages/DataDeletion"));
 const AcceptableUse = lazyWithRetry(() => import("./pages/AcceptableUse"));
