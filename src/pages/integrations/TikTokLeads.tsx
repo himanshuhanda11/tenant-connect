@@ -280,6 +280,11 @@ export default function TikTokLeads() {
           />
         )}
 
+        {/* Step 3: Sync Dashboard */}
+        {connected && currentTenant?.id && (
+          <TikTokSyncDashboard workspaceId={currentTenant.id} />
+        )}
+
         {/* Benefits */}
         <section>
           <h2 className="text-lg font-semibold mb-4">Why connect TikTok to Aireatro</h2>
