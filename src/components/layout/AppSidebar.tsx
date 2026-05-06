@@ -197,22 +197,6 @@ export function AppSidebar() {
   }, [location.pathname]);
 
   const sidebarScrollRef = useRef<HTMLDivElement>(null);
-  const activeGroupRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      const el = activeGroupRef.current;
-      const scroller = sidebarScrollRef.current;
-      if (!el || !scroller) return;
-      const elRect = el.getBoundingClientRect();
-      const scRect = scroller.getBoundingClientRect();
-      // Only scroll the sidebar itself if the active group is out of view.
-      if (elRect.top < scRect.top || elRect.bottom > scRect.bottom) {
-        scroller.scrollTop += elRect.top - scRect.top - 8;
-      }
-    }, 150);
-    return () => clearTimeout(timer);
-  }, [location.pathname]);
 
   const handleSignOut = async () => {
     setCurrentTenant(null);
@@ -340,7 +324,7 @@ export function AppSidebar() {
     }
 
     return (
-      <div key={group.label} ref={hasActiveItem ? activeGroupRef : undefined}>
+      <div key={group.label}>
         <Collapsible open={isOpen} onOpenChange={() => toggleGroup(group.label)} className="mt-1.5 border-t border-sidebar-border/30 pt-1.5 first:border-t-0 first:pt-0">
           <SidebarGroup>
            <CollapsibleTrigger asChild>
@@ -505,27 +489,24 @@ export function AppSidebar() {
           {/* ── Collapsible Groups ── */}
           {menuGroups.map(group => renderCollapsibleGroup(group))}
 
-          {!isCollapsed && <div className="mx-3 my-3 border-b border-sidebar-border/50" />}
-
-          {/* ── Platform ── */}
-          <SidebarGroup className={cn("mt-1", isCollapsed && "pt-1.5")}>
-            {!isCollapsed && (
-              <SidebarGroupLabel className="text-sidebar-foreground/60 text-[10px] font-semibold uppercase tracking-[0.1em] px-3 mb-1">
-                Platform
-              </SidebarGroupLabel>
-            )}
-            {isCollapsed && <div className="mx-auto mb-1.5 w-7 border-t border-sidebar-border/20" />}
-            <SidebarGroupContent>
-              <SidebarMenu className={cn("space-y-0.5", isCollapsed && "flex flex-col items-center space-y-1.5")}>
-                {filteredSettingsMenuItems.map(item => renderMenuItem(item))}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
         </div>
       </SidebarContent>
 
-      {/* ── Footer — Floating tile ── */}
-      <SidebarFooter className={cn("py-3 border-t border-sidebar-border", isCollapsed ? "px-1.5" : "px-3")}>
+      {/* ── Footer — Platform + Floating tile ── */}
+      <SidebarFooter className={cn("gap-2 border-t border-sidebar-border", isCollapsed ? "px-1.5 py-2" : "px-3 py-3")}>
+        <SidebarGroup className="p-0">
+          {!isCollapsed && (
+            <SidebarGroupLabel className="mb-1 px-3 text-[10px] font-semibold uppercase tracking-[0.1em] text-sidebar-foreground/60">
+              Platform
+            </SidebarGroupLabel>
+          )}
+          <SidebarGroupContent>
+            <SidebarMenu className={cn("space-y-0.5", isCollapsed && "flex flex-col items-center space-y-1.5")}>
+              {filteredSettingsMenuItems.map(item => renderMenuItem(item))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <button className={cn(
