@@ -245,6 +245,11 @@ export default function TikTokLeads() {
                 <p className="text-sm text-muted-foreground">
                   No TikTok account is linked to this workspace yet.
                 </p>
+                <div className="w-full rounded-xl border border-amber-500/30 bg-amber-500/5 p-3 sm:p-4 text-xs sm:text-sm text-amber-700 dark:text-amber-300">
+                  <strong className="font-semibold">Heads up:</strong> Your workspace owner must add TikTok app credentials
+                  (<code className="font-mono">TIKTOK_CLIENT_KEY</code> &amp; <code className="font-mono">TIKTOK_CLIENT_SECRET</code>) before the connect button will work.
+                  Create a TikTok for Business app at <span className="underline">business-api.tiktok.com</span> and request the <em>Lead Generation</em> scope.
+                </div>
                 {isAdmin ? (
                   <Button
                     size="lg"
