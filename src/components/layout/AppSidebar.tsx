@@ -217,32 +217,6 @@ export function AppSidebar() {
   const isGroupActive = (items: MenuItem[]) => items.some(item => isRouteActive(item.url));
   const toggleGroup = (label: string) => setExpandedGroups(prev => ({ ...prev, [label]: !prev[label] }));
 
-  useLayoutEffect(() => {
-    const scroller = sidebarScrollRef.current;
-    if (!scroller) return;
-
-    const savedScrollTop = window.sessionStorage.getItem(SIDEBAR_SCROLL_STORAGE_KEY);
-    const savedValue = savedScrollTop === null ? NaN : Number(savedScrollTop);
-    const isPlatformRoute = filteredSettingsMenuItems.some(item => isRouteActive(item.url));
-    const targetScrollTop = Number.isFinite(savedValue)
-      ? savedValue
-      : isPlatformRoute
-        ? scroller.scrollHeight
-        : 0;
-
-    const restoreScroll = () => {
-      scroller.scrollTop = Math.max(0, targetScrollTop);
-    };
-
-    restoreScroll();
-    const frame = window.requestAnimationFrame(restoreScroll);
-    return () => window.cancelAnimationFrame(frame);
-  }, [isCollapsed, location.pathname, filteredSettingsMenuItems.length]);
-
-  const handleSidebarScroll = (event: React.UIEvent<HTMLDivElement>) => {
-    window.sessionStorage.setItem(SIDEBAR_SCROLL_STORAGE_KEY, String(event.currentTarget.scrollTop));
-  };
-
   /* ── Render a single menu item ── */
   const renderMenuItem = (item: MenuItem, nested = false) => {
     const isActive = isRouteActive(item.url);
