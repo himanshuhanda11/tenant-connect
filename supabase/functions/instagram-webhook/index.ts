@@ -1,6 +1,7 @@
 // Instagram Messaging Webhook
 // Handles GET verification + POST events (messages, reactions, reads, media)
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { runIgAutomation, cancelPendingFollowups } from "../_shared/ig-automation.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
