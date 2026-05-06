@@ -210,7 +210,7 @@ export default function Login() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col lg:flex-row">
+    <div className="min-h-screen lg:h-screen lg:overflow-hidden flex flex-col lg:flex-row">
       {/* Left Panel - Marketing Content */}
       <div className="hidden lg:flex flex-1 relative overflow-hidden bg-white">
         {/* Subtle decorative elements */}
@@ -302,17 +302,17 @@ export default function Login() {
       </div>
 
       {/* Right Panel - Login Form */}
-      <div className="flex-1 flex flex-col justify-center px-6 py-12 lg:px-12 xl:px-20 bg-background">
+      <div className="flex-1 flex flex-col justify-center px-6 py-6 lg:px-10 xl:px-16 lg:py-6 bg-background lg:overflow-y-auto">
         <div className="mx-auto w-full max-w-md">
           {/* Logo */}
-          <div className="flex items-center gap-2 mb-4">
+          <div className="flex items-center gap-2 mb-2">
             <Link to="/" className="flex items-center">
-              <img src={aireatroLogo} alt="AiReatro" className="h-10 w-auto" />
+              <img src={aireatroLogo} alt="AiReatro" className="h-8 w-auto" />
             </Link>
           </div>
 
           {/* Breadcrumb */}
-          <nav className="flex items-center gap-2 text-sm text-muted-foreground mb-8">
+          <nav className="flex items-center gap-2 text-xs text-muted-foreground mb-4">
             <Link to="/" className="hover:text-foreground transition-colors">Home</Link>
             <span>/</span>
             <span className="text-foreground font-medium">Sign In</span>
@@ -320,15 +320,15 @@ export default function Login() {
 
           {/* Card */}
           <Card className="border-0 shadow-lg">
-            <CardHeader className="space-y-1 pb-4">
-              <CardTitle className="text-2xl font-semibold tracking-tight">
+            <CardHeader className="space-y-1 pb-3 pt-5 px-5">
+              <CardTitle className="text-xl font-semibold tracking-tight">
                 Welcome back
               </CardTitle>
-              <CardDescription className="text-base">
+              <CardDescription className="text-sm">
                 Sign in to manage your conversations, flows, and Meta Ads.
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-6">
+            <CardContent className="space-y-4 px-5 pb-5">
               {error && (
                 <div className="p-3 rounded-lg bg-destructive/10 text-destructive text-sm">
                   {error}
@@ -340,8 +340,8 @@ export default function Login() {
                 onClick={handleGoogleLogin}
                 disabled={isGoogleLoading || isLoading}
                 variant="outline"
-                size="lg"
-                className="w-full h-12 text-base font-medium"
+                size="default"
+                className="w-full h-10 text-sm font-medium"
               >
                 {isGoogleLoading ? (
                   <Loader2 className="mr-2 h-5 w-5 animate-spin" />
@@ -380,9 +380,9 @@ export default function Login() {
               </div>
 
               {/* Email/Password Form */}
-              <form onSubmit={handleEmailLogin} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email or Username</Label>
+              <form onSubmit={handleEmailLogin} className="space-y-3">
+                <div className="space-y-1.5">
+                  <Label htmlFor="email" className="text-sm">Email or Username</Label>
                   <Input
                     ref={emailInputRef}
                     id="email"
@@ -390,19 +390,19 @@ export default function Login() {
                     placeholder="you@company.com or username"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="h-11"
+                    className="h-10"
                     disabled={isLoading || isGoogleLoading}
                     required
                     autoComplete="username"
                   />
                 </div>
 
-                <div className="space-y-2">
+                <div className="space-y-1.5">
                   <div className="flex items-center justify-between">
-                    <Label htmlFor="password">Password</Label>
+                    <Label htmlFor="password" className="text-sm">Password</Label>
                     <Link 
                       to="/forgot-password" 
-                      className="text-sm text-primary hover:underline"
+                      className="text-xs text-primary hover:underline"
                     >
                       Forgot password?
                     </Link>
@@ -414,7 +414,7 @@ export default function Login() {
                       placeholder="Enter your password"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      className="h-11 pr-10"
+                      className="h-10 pr-10"
                       disabled={isLoading || isGoogleLoading}
                       required
                       autoComplete="current-password"
@@ -445,7 +445,7 @@ export default function Login() {
                   />
                   <Label 
                     htmlFor="remember" 
-                    className="text-sm font-normal text-muted-foreground cursor-pointer"
+                    className="text-xs font-normal text-muted-foreground cursor-pointer"
                   >
                     Remember me for 30 days
                   </Label>
@@ -454,12 +454,12 @@ export default function Login() {
                 <Button
                   type="submit"
                   disabled={isLoading || isGoogleLoading}
-                  size="lg"
-                  className="w-full h-12 text-base font-medium"
+                  size="default"
+                  className="w-full h-10 text-sm font-medium"
                 >
                   {isLoading ? (
                     <>
-                      <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                       Signing in...
                     </>
                   ) : (
@@ -468,8 +468,8 @@ export default function Login() {
                 </Button>
               </form>
 
-              <div className="pt-4 border-t">
-                <p className="text-sm text-center text-muted-foreground">
+              <div className="pt-3 border-t">
+                <p className="text-xs text-center text-muted-foreground">
                   Don't have an account?{' '}
                   <Link to="/signup" className="text-primary font-medium hover:underline">
                     Create account
@@ -480,7 +480,7 @@ export default function Login() {
           </Card>
 
           {/* Legal Links */}
-          <div className="mt-6 flex items-center justify-center gap-4 text-sm text-muted-foreground">
+          <div className="mt-3 flex items-center justify-center gap-3 text-xs text-muted-foreground">
             <Link to="/terms" className="hover:text-foreground transition-colors">
               Terms of Service
             </Link>
