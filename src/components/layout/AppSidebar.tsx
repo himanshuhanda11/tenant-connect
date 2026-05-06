@@ -201,7 +201,15 @@ export function AppSidebar() {
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      activeGroupRef.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+      const el = activeGroupRef.current;
+      const scroller = sidebarScrollRef.current;
+      if (!el || !scroller) return;
+      const elRect = el.getBoundingClientRect();
+      const scRect = scroller.getBoundingClientRect();
+      // Only scroll the sidebar itself if the active group is out of view.
+      if (elRect.top < scRect.top || elRect.bottom > scRect.bottom) {
+        scroller.scrollTop += elRect.top - scRect.top - 8;
+      }
     }, 150);
     return () => clearTimeout(timer);
   }, [location.pathname]);
