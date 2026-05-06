@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useLayoutEffect } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useLocation, useNavigate, Link } from 'react-router-dom';
 import { LayoutDashboard, Users, Settings, LogOut, ChevronDown, ChevronRight, Plus, Inbox, Contact, Phone, FileText, Send, Zap, CreditCard, Shield, UsersRound, Route, Clock, ScrollText, Tag, ListFilter, HelpCircle, Megaphone, BarChart3, Link2, Target, Workflow, Cog, Building2, TrendingUp, Headphones, Check, Puzzle, PanelLeftClose, PanelLeft, User, ChevronUp, ExternalLink, AlertTriangle, Ban, UserX, MessageCircle, CalendarClock, CheckCircle2, ShieldBan } from 'lucide-react';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from '@/components/ui/sidebar';
@@ -24,8 +24,6 @@ import {
 import { sidebarDescriptions } from '@/data/sidebarDescriptions';
 import { cn } from '@/lib/utils';
 import aireatroLogo from '@/assets/aireatro-logo.png';
-
-const SIDEBAR_SCROLL_STORAGE_KEY = 'aireatro:app-sidebar-scroll-top';
 
 interface MenuItem {
   title: string;
