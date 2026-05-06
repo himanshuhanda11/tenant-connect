@@ -152,8 +152,8 @@ export default function SignupPage() {
       <div className="flex-1 min-h-0 flex flex-col justify-center px-5 py-6 md:px-8 md:py-4 lg:px-10 xl:px-14 md:overflow-hidden">
         <div className="mx-auto w-full max-w-md">
           {/* Logo */}
-          <div className="flex items-center gap-2 mb-2.5">
-            <img src={aireatroLogo} alt="AiReatro" className="h-7 md:h-8 w-auto" />
+          <div className="flex items-center mb-3">
+            <img src={aireatroLogo} alt="AiReatro" className="h-10 md:h-12 w-auto object-contain" />
           </div>
 
           {/* Breadcrumb */}
