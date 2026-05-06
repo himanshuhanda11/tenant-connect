@@ -25,6 +25,7 @@ import SocialProofBar from '@/components/home/SocialProofBar';
 import SeoMeta from '@/components/seo/SeoMeta';
 import { Helmet } from 'react-helmet-async';
 import { cn } from '@/lib/utils';
+import demoSpecialistImg from '@/assets/demo-specialist.jpg';
 
 const schema = z.object({
   fullName: z.string().trim().min(2, 'Please enter your full name').max(80),
@@ -249,13 +250,41 @@ export default function BookDemo() {
                 ))}
               </ul>
 
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8">
                 {SOCIAL.map((s) => (
                   <div key={s.label} className="rounded-xl border border-border/60 bg-card/60 backdrop-blur p-3 text-center">
                     <div className="text-lg font-bold text-foreground">{s.stat}</div>
                     <div className="text-[11px] text-muted-foreground uppercase tracking-wide mt-0.5">{s.label}</div>
                   </div>
                 ))}
+              </div>
+
+              {/* Specialist portrait */}
+              <div className="relative rounded-3xl overflow-hidden border border-border/60 bg-card/60 backdrop-blur shadow-xl">
+                <div className="absolute -inset-1 bg-gradient-to-br from-primary/20 via-emerald-500/10 to-teal-500/20 blur-2xl opacity-60 -z-10" />
+                <img
+                  src={demoSpecialistImg}
+                  alt="AiReatro product specialist ready for your WhatsApp CRM demo"
+                  width={1024}
+                  height={1280}
+                  loading="lazy"
+                  className="w-full h-64 sm:h-80 object-cover object-top"
+                />
+                <div className="absolute top-3 left-3 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-background/90 backdrop-blur border border-border/60 text-[11px] font-semibold text-foreground shadow">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                  Live specialist • Online now
+                </div>
+                <div className="absolute bottom-0 inset-x-0 p-4 bg-gradient-to-t from-background/95 via-background/70 to-transparent">
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-full bg-primary/15 border border-primary/30 flex items-center justify-center">
+                      <Headphones className="w-4 h-4 text-primary" />
+                    </div>
+                    <div className="min-w-0">
+                      <div className="text-sm font-semibold text-foreground truncate">Meet your demo expert</div>
+                      <div className="text-[11px] text-muted-foreground truncate">Personalised walk-through • 25 minutes</div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </motion.div>
 
