@@ -203,6 +203,19 @@ export function AppSidebar() {
 
   const sidebarScrollRef = useRef<HTMLDivElement>(null);
 
+  // Persist sidebar scroll position across route changes / refreshes
+  useEffect(() => {
+    const el = sidebarScrollRef.current;
+    if (!el) return;
+    const saved = sessionStorage.getItem('sidebar_scroll_top');
+    if (saved) el.scrollTop = parseInt(saved, 10) || 0;
+    const onScroll = () => {
+      sessionStorage.setItem('sidebar_scroll_top', String(el.scrollTop));
+    };
+    el.addEventListener('scroll', onScroll, { passive: true });
+    return () => el.removeEventListener('scroll', onScroll);
+  }, []);
+
   const handleSignOut = async () => {
     setCurrentTenant(null);
     await signOut();
