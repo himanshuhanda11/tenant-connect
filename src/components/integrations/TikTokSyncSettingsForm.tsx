@@ -123,7 +123,7 @@ export function TikTokSyncSettingsForm({ workspaceId, connections, isAdmin }: Pr
           .eq('is_archived', false),
         supabase
           .from('tenant_members')
-          .select('user_id, profiles:profiles!tenant_members_user_id_fkey(full_name,email)')
+          .select('user_id')
           .eq('tenant_id', workspaceId),
         supabase
           .from('tiktok_lead_sync_settings' as any)
