@@ -12432,6 +12432,69 @@ export type Database = {
         }
         Relationships: []
       }
+      tiktok_connections: {
+        Row: {
+          access_token: string
+          advertiser_id: string
+          advertiser_name: string | null
+          connected_by_user_id: string | null
+          created_at: string
+          id: string
+          last_sync_at: string | null
+          refresh_token: string | null
+          scope: string | null
+          status: string
+          token_expires_at: string | null
+          updated_at: string
+          workspace_id: string
+        }
+        Insert: {
+          access_token: string
+          advertiser_id: string
+          advertiser_name?: string | null
+          connected_by_user_id?: string | null
+          created_at?: string
+          id?: string
+          last_sync_at?: string | null
+          refresh_token?: string | null
+          scope?: string | null
+          status?: string
+          token_expires_at?: string | null
+          updated_at?: string
+          workspace_id: string
+        }
+        Update: {
+          access_token?: string
+          advertiser_id?: string
+          advertiser_name?: string | null
+          connected_by_user_id?: string | null
+          created_at?: string
+          id?: string
+          last_sync_at?: string | null
+          refresh_token?: string | null
+          scope?: string | null
+          status?: string
+          token_expires_at?: string | null
+          updated_at?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tiktok_connections_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "platform_workspace_directory"
+            referencedColumns: ["workspace_id"]
+          },
+          {
+            foreignKeyName: "tiktok_connections_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       usage_counters: {
         Row: {
           campaigns_created: number | null
@@ -14058,6 +14121,63 @@ export type Database = {
             columns: ["profile_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tiktok_connections_safe: {
+        Row: {
+          advertiser_id: string | null
+          advertiser_name: string | null
+          connected_by_user_id: string | null
+          created_at: string | null
+          id: string | null
+          last_sync_at: string | null
+          scope: string | null
+          status: string | null
+          token_expires_at: string | null
+          updated_at: string | null
+          workspace_id: string | null
+        }
+        Insert: {
+          advertiser_id?: string | null
+          advertiser_name?: string | null
+          connected_by_user_id?: string | null
+          created_at?: string | null
+          id?: string | null
+          last_sync_at?: string | null
+          scope?: string | null
+          status?: string | null
+          token_expires_at?: string | null
+          updated_at?: string | null
+          workspace_id?: string | null
+        }
+        Update: {
+          advertiser_id?: string | null
+          advertiser_name?: string | null
+          connected_by_user_id?: string | null
+          created_at?: string | null
+          id?: string | null
+          last_sync_at?: string | null
+          scope?: string | null
+          status?: string | null
+          token_expires_at?: string | null
+          updated_at?: string | null
+          workspace_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tiktok_connections_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "platform_workspace_directory"
+            referencedColumns: ["workspace_id"]
+          },
+          {
+            foreignKeyName: "tiktok_connections_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
             referencedColumns: ["id"]
           },
         ]
