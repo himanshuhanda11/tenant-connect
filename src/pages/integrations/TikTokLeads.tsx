@@ -17,6 +17,11 @@ import { toast } from '@/hooks/use-toast';
 import { SEO } from '@/components/seo';
 import { TikTokSyncSettingsForm } from '@/components/integrations/TikTokSyncSettingsForm';
 import { TikTokSyncDashboard } from '@/components/integrations/TikTokSyncDashboard';
+import { Link } from 'react-router-dom';
+import {
+  Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList,
+  BreadcrumbPage, BreadcrumbSeparator,
+} from '@/components/ui/breadcrumb';
 
 interface SafeConnection {
   id: string;
@@ -140,6 +145,27 @@ export default function TikTokLeads() {
       <SEO title="TikTok Leads → WhatsApp | Aireatro" description="Connect TikTok Lead Ads to Aireatro and reply to every lead on WhatsApp instantly." />
 
       <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-10 space-y-8">
+        {/* Breadcrumbs */}
+        <Breadcrumb>
+          <BreadcrumbList>
+            <BreadcrumbItem>
+              <BreadcrumbLink asChild>
+                <Link to="/app">Dashboard</Link>
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbLink asChild>
+                <Link to="/app/integrations">Integrations</Link>
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbPage>TikTok Lead Ads</BreadcrumbPage>
+            </BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb>
+
         {/* Hero */}
         <section className="relative overflow-hidden rounded-3xl border border-border bg-gradient-to-br from-background via-background to-primary/5 p-6 sm:p-10">
           <div className="absolute -top-20 -right-20 h-64 w-64 rounded-full bg-primary/10 blur-3xl pointer-events-none" />
