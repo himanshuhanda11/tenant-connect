@@ -258,6 +258,8 @@ const App = () => (
                     <Route path="/billing" element={<Billing />} />
                     <Route path="/add-ons" element={<WorkspaceAddOns />} />
                     <Route path="/app/integrations" element={<IntegrationsHub />} />
+                    <Route path="/app/integrations/tiktok-leads" element={<TikTokLeads />} />
+                    <Route path="/dashboard/integrations/tiktok-leads" element={<TikTokLeads />} />
                     <Route path="/app/integrations/shopify" element={<ShopifyOverview />} />
                     <Route path="/app/integrations/shopify/connect" element={<ShopifyConnect />} />
                     <Route path="/app/integrations/shopify/:storeId" element={<ShopifyStoreDetail />} />
