@@ -5,7 +5,7 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const GRAPH = "https://graph.facebook.com/v21.0";
+const IG_GRAPH = "https://graph.instagram.com";
 
 function htmlRedirect(url: string, message: string) {
   return new Response(
@@ -43,15 +43,14 @@ Deno.serve(async (req) => {
       return htmlRedirect(`${fallback}?error=invalid_state`, "Invalid state");
     }
 
-    const META_APP_ID = Deno.env.get("META_APP_ID")!;
-    const META_APP_SECRET = Deno.env.get("META_APP_SECRET")!;
+    const IG_APP_ID = Deno.env.get("INSTAGRAM_APP_ID")!;
+    const IG_APP_SECRET = Deno.env.get("INSTAGRAM_APP_SECRET")!;
 
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
-    // Validate state
     const { data: stateRow } = await supabase
       .from("instagram_oauth_states")
       .select("*")
@@ -64,65 +63,66 @@ Deno.serve(async (req) => {
 
     await supabase.from("instagram_oauth_states").delete().eq("state", parsed.s);
 
+    // Instagram Login callback URL (must match what we registered)
     const redirectUri = `${Deno.env.get("SUPABASE_URL")}/functions/v1/instagram-oauth-callback`;
 
-    // 1. Exchange code → short-lived token
-    const tokenRes = await fetch(
-      `${GRAPH}/oauth/access_token?client_id=${META_APP_ID}&client_secret=${META_APP_SECRET}&redirect_uri=${encodeURIComponent(redirectUri)}&code=${code}`
-    );
+    // 1. Exchange code → short-lived IG user token (POST form-encoded)
+    const tokenForm = new URLSearchParams({
+      client_id: IG_APP_ID,
+      client_secret: IG_APP_SECRET,
+      grant_type: "authorization_code",
+      redirect_uri: redirectUri,
+      code,
+    });
+    const tokenRes = await fetch("https://api.instagram.com/oauth/access_token", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: tokenForm.toString(),
+    });
     const tokenJson = await tokenRes.json();
     if (!tokenRes.ok || !tokenJson.access_token) {
-      console.error("Token exchange failed:", tokenJson);
+      console.error("IG token exchange failed:", tokenJson);
       return htmlRedirect(`${fallback}?error=token_exchange`, "Token exchange failed");
     }
-    const shortToken = tokenJson.access_token;
+    const shortToken = tokenJson.access_token as string;
+    const igUserId = String(tokenJson.user_id);
 
     // 2. Exchange for long-lived token (~60 days)
     const llRes = await fetch(
-      `${GRAPH}/oauth/access_token?grant_type=fb_exchange_token&client_id=${META_APP_ID}&client_secret=${META_APP_SECRET}&fb_exchange_token=${shortToken}`
+      `${IG_GRAPH}/access_token?grant_type=ig_exchange_token&client_secret=${IG_APP_SECRET}&access_token=${shortToken}`
     );
     const llJson = await llRes.json();
     const longToken = llJson.access_token || shortToken;
     const expiresIn = Number(llJson.expires_in || 60 * 24 * 3600);
     const expiresAt = new Date(Date.now() + expiresIn * 1000).toISOString();
 
-    // 3. Fetch FB user
-    const meRes = await fetch(`${GRAPH}/me?fields=id,name&access_token=${longToken}`);
-    const me = await meRes.json();
-
-    // 4. Fetch pages → IG accounts
-    const pagesRes = await fetch(
-      `${GRAPH}/me/accounts?fields=id,name,access_token,instagram_business_account{id,username,name,profile_picture_url,followers_count}&access_token=${longToken}`
+    // 3. Fetch IG account profile
+    const meRes = await fetch(
+      `${IG_GRAPH}/v21.0/me?fields=user_id,username,name,account_type,profile_picture_url,followers_count&access_token=${longToken}`
     );
-    const pages = await pagesRes.json();
-
-    const igPage = (pages.data || []).find((p: any) => p.instagram_business_account);
-    if (!igPage) {
-      return htmlRedirect(
-        `${fallback}?error=no_ig_account`,
-        "No Instagram Professional account linked to your Facebook pages"
-      );
+    const me = await meRes.json();
+    if (me.error) {
+      console.error("IG profile fetch failed:", me.error);
+      return htmlRedirect(`${fallback}?error=profile_fetch`, "Failed to load profile");
     }
 
-    const ig = igPage.instagram_business_account;
-
-    // 5. Upsert account
+    // 4. Upsert account (no facebook page involved in IG Login for Business)
     const { data: account, error: accErr } = await supabase
       .from("instagram_accounts")
       .upsert(
         {
           tenant_id: stateRow.tenant_id,
-          instagram_user_id: ig.id,
-          ig_username: ig.username,
-          ig_name: ig.name,
-          profile_picture_url: ig.profile_picture_url,
-          followers_count: ig.followers_count,
-          facebook_page_id: igPage.id,
-          facebook_page_name: igPage.name,
-          facebook_user_id: me.id,
+          instagram_user_id: igUserId,
+          ig_username: me.username,
+          ig_name: me.name || me.username,
+          profile_picture_url: me.profile_picture_url,
+          followers_count: me.followers_count,
+          facebook_page_id: null,
+          facebook_page_name: null,
+          facebook_user_id: null,
           status: "connected",
           health_status: "healthy",
-          scopes: tokenJson.scope?.split(",") || [],
+          scopes: (tokenJson.permissions || "").split(",").filter(Boolean),
           connected_by: stateRow.user_id,
           connected_at: new Date().toISOString(),
           last_synced_at: new Date().toISOString(),
@@ -137,13 +137,13 @@ Deno.serve(async (req) => {
       return htmlRedirect(`${fallback}?error=save_failed`, "Failed to save account");
     }
 
-    // 6. Store tokens
+    // 5. Store tokens (page_access_token = same long-lived IG token in this flow)
     await supabase.from("instagram_tokens").upsert(
       {
         tenant_id: stateRow.tenant_id,
         instagram_account_id: account.id,
         access_token: longToken,
-        page_access_token: igPage.access_token,
+        page_access_token: longToken,
         token_type: "long_lived",
         expires_at: expiresAt,
         refreshed_at: new Date().toISOString(),
@@ -151,22 +151,24 @@ Deno.serve(async (req) => {
       { onConflict: "instagram_account_id" }
     );
 
-    // 7. Subscribe page to webhooks (best-effort)
+    // 6. Subscribe IG account to webhooks (best-effort)
     try {
-      await fetch(`${GRAPH}/${igPage.id}/subscribed_apps?subscribed_fields=messages,messaging_postbacks,message_reactions,comments&access_token=${igPage.access_token}`, { method: "POST" });
+      await fetch(
+        `${IG_GRAPH}/v21.0/${igUserId}/subscribed_apps?subscribed_fields=messages,messaging_postbacks,message_reactions,comments&access_token=${longToken}`,
+        { method: "POST" }
+      );
       await supabase.from("instagram_accounts").update({ webhook_subscribed: true }).eq("id", account.id);
     } catch (e) {
       console.warn("Webhook subscribe failed (non-fatal):", e);
     }
 
-    // 8. Audit log
     await supabase.from("audit_logs").insert({
       tenant_id: stateRow.tenant_id,
       user_id: stateRow.user_id,
       action: "instagram.connected",
       resource_type: "instagram_account",
       resource_id: account.id,
-      details: { username: ig.username, page_id: igPage.id },
+      details: { username: me.username, ig_user_id: igUserId, flow: "instagram_login_for_business" },
     });
 
     const returnTo = parsed.r && parsed.r.startsWith("http") ? parsed.r : fallback;

@@ -5,23 +5,22 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+// Instagram Login for Business scopes (NOT Facebook Login)
 const SCOPES = [
   "instagram_business_basic",
   "instagram_business_manage_messages",
   "instagram_business_manage_comments",
-  "pages_show_list",
-  "pages_manage_metadata",
-  "pages_read_engagement",
-  "business_management",
+  "instagram_business_content_publish",
+  "instagram_business_manage_insights",
 ].join(",");
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const META_APP_ID = Deno.env.get("META_APP_ID");
-    if (!META_APP_ID) {
-      return new Response(JSON.stringify({ error: "META_APP_ID not configured" }), {
+    const IG_APP_ID = Deno.env.get("INSTAGRAM_APP_ID");
+    if (!IG_APP_ID) {
+      return new Response(JSON.stringify({ error: "INSTAGRAM_APP_ID not configured" }), {
         status: 503,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -57,7 +56,6 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Verify membership (admin/owner)
     const { data: membership } = await supabase
       .from("tenant_members")
       .select("role")
@@ -82,13 +80,16 @@ Deno.serve(async (req) => {
     const redirectUri = `${Deno.env.get("SUPABASE_URL")}/functions/v1/instagram-oauth-callback`;
     const stateParam = encodeURIComponent(JSON.stringify({ s: state, r: returnUrl || "" }));
 
+    // Instagram Login for Business OAuth (user signs in with their Instagram account)
     const authUrl =
-      `https://www.facebook.com/v21.0/dialog/oauth` +
-      `?client_id=${META_APP_ID}` +
+      `https://www.instagram.com/oauth/authorize` +
+      `?enable_fb_login=0` +
+      `&force_authentication=1` +
+      `&client_id=${IG_APP_ID}` +
       `&redirect_uri=${encodeURIComponent(redirectUri)}` +
-      `&state=${stateParam}` +
+      `&response_type=code` +
       `&scope=${encodeURIComponent(SCOPES)}` +
-      `&response_type=code`;
+      `&state=${stateParam}`;
 
     return new Response(JSON.stringify({ authUrl }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
