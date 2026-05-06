@@ -226,22 +226,56 @@ export default function BookDemo() {
 
         <div className="container mx-auto px-4 relative pt-10 pb-10 sm:pt-16 sm:pb-12 md:pt-24 md:pb-20">
           <div className="grid lg:grid-cols-[1.05fr_1fr] gap-8 lg:gap-12 items-start max-w-6xl mx-auto">
-            <motion.div initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} className="lg:order-2 lg:sticky lg:top-24">
+            <motion.div initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} className="lg:order-2">
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-[11px] sm:text-xs font-semibold tracking-wide uppercase mb-4">
                 <PlayCircle className="w-3.5 h-3.5" />
                 Live Product Demo
               </div>
-              <h1 className="text-3xl sm:text-4xl lg:text-6xl font-bold text-foreground leading-[1.1] tracking-tight mb-4">
+              <h1 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold text-foreground leading-[1.1] tracking-tight mb-4">
                 Book a 25-min demo with our{' '}
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-emerald-500 to-teal-500">
                   WhatsApp experts
                 </span>
               </h1>
-              <p className="text-base sm:text-lg text-muted-foreground leading-relaxed mb-7 max-w-xl">
+              <p className="text-base sm:text-lg text-muted-foreground leading-relaxed mb-6 max-w-xl">
                 See exactly how AiReatro automates your WhatsApp leads, support and Meta Ads — tailored to your business. No slides, just a real product walk-through.
               </p>
 
-              <ul className="space-y-2.5 mb-8">
+              {/* Premium specialist hero card */}
+              <div className="relative mb-6 rounded-3xl overflow-hidden border border-border/60 bg-gradient-to-br from-primary/5 via-card to-emerald-500/5 shadow-2xl shadow-primary/10">
+                <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-primary/20 blur-3xl pointer-events-none" />
+                <div className="absolute -bottom-10 -left-10 w-40 h-40 rounded-full bg-emerald-500/20 blur-3xl pointer-events-none" />
+
+                <div className="relative grid grid-cols-[auto_1fr] gap-4 p-4 sm:p-5 items-center">
+                  <div className="relative shrink-0">
+                    <div className="absolute -inset-1 rounded-full bg-gradient-to-br from-primary via-emerald-500 to-teal-500 blur opacity-70" />
+                    <img
+                      src={demoSpecialistImg}
+                      alt="AiReatro product specialist ready for your WhatsApp CRM demo"
+                      width={1024}
+                      height={1280}
+                      loading="lazy"
+                      className="relative w-20 h-20 sm:w-24 sm:h-24 rounded-full object-cover object-top ring-2 ring-background"
+                    />
+                    <span className="absolute bottom-0.5 right-0.5 w-3.5 h-3.5 rounded-full bg-emerald-500 ring-2 ring-background animate-pulse" />
+                  </div>
+                  <div className="min-w-0">
+                    <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-[10px] font-semibold uppercase tracking-wide mb-1.5">
+                      <Headphones className="w-3 h-3" /> Online now
+                    </div>
+                    <div className="text-base sm:text-lg font-bold text-foreground leading-tight">Meet your demo expert</div>
+                    <div className="text-xs sm:text-sm text-muted-foreground mt-0.5">Personalised 25-min walk-through, tailored to your business goals.</div>
+                    <div className="flex items-center gap-1 mt-2">
+                      {[0,1,2,3,4].map(i => (
+                        <Star key={i} className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                      ))}
+                      <span className="text-[11px] text-muted-foreground ml-1.5">4.9 from 2,000+ teams</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <ul className="space-y-2.5 mb-6">
                 {AGENDA.map((item) => (
                   <li key={item} className="flex items-start gap-2.5 text-sm text-foreground/80">
                     <CheckCircle2 className="w-4 h-4 text-primary mt-0.5 shrink-0" />
@@ -250,41 +284,13 @@ export default function BookDemo() {
                 ))}
               </ul>
 
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
                 {SOCIAL.map((s) => (
                   <div key={s.label} className="rounded-xl border border-border/60 bg-card/60 backdrop-blur p-3 text-center">
-                    <div className="text-lg font-bold text-foreground">{s.stat}</div>
-                    <div className="text-[11px] text-muted-foreground uppercase tracking-wide mt-0.5">{s.label}</div>
+                    <div className="text-base sm:text-lg font-bold text-foreground">{s.stat}</div>
+                    <div className="text-[10px] sm:text-[11px] text-muted-foreground uppercase tracking-wide mt-0.5">{s.label}</div>
                   </div>
                 ))}
-              </div>
-
-              {/* Specialist portrait */}
-              <div className="relative rounded-3xl overflow-hidden border border-border/60 bg-card/60 backdrop-blur shadow-xl">
-                <div className="absolute -inset-1 bg-gradient-to-br from-primary/20 via-emerald-500/10 to-teal-500/20 blur-2xl opacity-60 -z-10" />
-                <img
-                  src={demoSpecialistImg}
-                  alt="AiReatro product specialist ready for your WhatsApp CRM demo"
-                  width={1024}
-                  height={1280}
-                  loading="lazy"
-                  className="w-full h-64 sm:h-80 object-cover object-top"
-                />
-                <div className="absolute top-3 left-3 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-background/90 backdrop-blur border border-border/60 text-[11px] font-semibold text-foreground shadow">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                  Live specialist • Online now
-                </div>
-                <div className="absolute bottom-0 inset-x-0 p-4 bg-gradient-to-t from-background/95 via-background/70 to-transparent">
-                  <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-full bg-primary/15 border border-primary/30 flex items-center justify-center">
-                      <Headphones className="w-4 h-4 text-primary" />
-                    </div>
-                    <div className="min-w-0">
-                      <div className="text-sm font-semibold text-foreground truncate">Meet your demo expert</div>
-                      <div className="text-[11px] text-muted-foreground truncate">Personalised walk-through • 25 minutes</div>
-                    </div>
-                  </div>
-                </div>
               </div>
             </motion.div>
 
