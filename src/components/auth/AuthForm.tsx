@@ -335,29 +335,29 @@ export function AuthForm({ mode }: AuthFormProps) {
             </div>
 
             <Card className="shadow-xl border-border/50">
-              <CardContent className="pt-4 pb-4 px-5">
-                <form onSubmit={signupForm.handleSubmit(onSignupSubmit)} className="space-y-3">
-                  <div className="space-y-1.5">
-                    <Label htmlFor="fullName" className="text-sm">Full Name</Label>
-                    <Input id="fullName" placeholder="John Doe" {...signupForm.register('fullName')} className="h-10" />
+              <CardContent className="pt-3 pb-3 px-4">
+                <form onSubmit={signupForm.handleSubmit(onSignupSubmit)} className="space-y-2.5">
+                  <div className="space-y-1">
+                    <Label htmlFor="fullName" className="text-xs">Full Name</Label>
+                    <Input id="fullName" placeholder="John Doe" {...signupForm.register('fullName')} className="h-9" />
                     {signupForm.formState.errors.fullName && (
                       <p className="text-xs text-destructive">{signupForm.formState.errors.fullName.message}</p>
                     )}
                   </div>
 
-                  <div className="space-y-1.5">
-                    <Label htmlFor="email" className="text-sm">Work Email</Label>
-                    <Input id="email" type="email" placeholder="you@company.com" {...signupForm.register('email')} className="h-10" />
+                  <div className="space-y-1">
+                    <Label htmlFor="email" className="text-xs">Work Email</Label>
+                    <Input id="email" type="email" placeholder="you@company.com" {...signupForm.register('email')} className="h-9" />
                     {signupForm.formState.errors.email && (
                       <p className="text-xs text-destructive">{signupForm.formState.errors.email.message}</p>
                     )}
                   </div>
 
                   <div className="grid grid-cols-2 gap-3">
-                    <div className="space-y-1.5">
-                      <Label htmlFor="password" className="text-sm">Password</Label>
+                    <div className="space-y-1">
+                      <Label htmlFor="password" className="text-xs">Password</Label>
                       <div className="relative">
-                        <Input id="password" type={showPassword ? 'text' : 'password'} placeholder="Min. 6 chars" {...signupForm.register('password')} className="h-10 pr-10" />
+                        <Input id="password" type={showPassword ? 'text' : 'password'} placeholder="Min. 6 chars" {...signupForm.register('password')} className="h-9 pr-9" />
                         <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors">
                           {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                         </button>
@@ -367,21 +367,21 @@ export function AuthForm({ mode }: AuthFormProps) {
                       )}
                     </div>
 
-                    <div className="space-y-1.5">
-                      <Label htmlFor="confirmPassword" className="text-sm">Confirm</Label>
-                      <Input id="confirmPassword" type="password" placeholder="••••••••" {...signupForm.register('confirmPassword')} className="h-10" />
+                    <div className="space-y-1">
+                      <Label htmlFor="confirmPassword" className="text-xs">Confirm</Label>
+                      <Input id="confirmPassword" type="password" placeholder="••••••••" {...signupForm.register('confirmPassword')} className="h-9" />
                       {signupForm.formState.errors.confirmPassword && (
                         <p className="text-xs text-destructive">{signupForm.formState.errors.confirmPassword.message}</p>
                       )}
                     </div>
                   </div>
 
-                  <Button type="submit" className="w-full h-10 text-sm font-medium bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 shadow-lg" disabled={loading || googleLoading}>
+                  <Button type="submit" className="w-full h-9 text-sm font-medium bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 shadow-lg" disabled={loading || googleLoading}>
                     {loading ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Creating account...</> : 'Create free account'}
                   </Button>
                 </form>
 
-                <div className="relative my-3">
+                <div className="relative my-2.5">
                   <div className="absolute inset-0 flex items-center">
                     <div className="w-full border-t border-border"></div>
                   </div>
@@ -393,7 +393,7 @@ export function AuthForm({ mode }: AuthFormProps) {
                 <Button
                   type="button"
                   variant="outline"
-                  className="w-full h-10 text-sm font-medium"
+                  className="w-full h-9 text-sm font-medium"
                   onClick={handleGoogleSignIn}
                   disabled={loading || googleLoading}
                 >
@@ -410,7 +410,7 @@ export function AuthForm({ mode }: AuthFormProps) {
                   Continue with Google
                 </Button>
 
-                <div className="mt-3 text-center">
+                <div className="mt-2.5 text-center">
                   <p className="text-xs text-muted-foreground">
                     Already have an account?{' '}
                     <Link to="/login" className="text-primary font-semibold hover:underline">Sign in</Link>
@@ -419,7 +419,7 @@ export function AuthForm({ mode }: AuthFormProps) {
               </CardContent>
             </Card>
 
-            <p className="text-center text-xs text-muted-foreground mt-3">
+            <p className="text-center text-xs text-muted-foreground mt-2">
               By creating an account, you agree to our{' '}
               <Link to="/terms" className="text-primary hover:underline">Terms</Link>
               {' '}and{' '}
