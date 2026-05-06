@@ -268,6 +268,9 @@ const App = () => (
                    <Route path="/app/integrations/instagram/inbox" element={<InstagramInbox />} />
                    <Route path="/dashboard/integrations/instagram/inbox" element={<InstagramInbox />} />
                    <Route path="/instagram/inbox" element={<InstagramInbox />} />
+                   <Route path="/app/integrations/instagram/automation" element={<InstagramAutomation />} />
+                   <Route path="/dashboard/integrations/instagram/automation" element={<InstagramAutomation />} />
+                   <Route path="/instagram/automation" element={<InstagramAutomation />} />
                     <Route path="/app/integrations/shopify" element={<ShopifyOverview />} />
                     <Route path="/app/integrations/shopify/connect" element={<ShopifyConnect />} />
                     <Route path="/app/integrations/shopify/:storeId" element={<ShopifyStoreDetail />} />
