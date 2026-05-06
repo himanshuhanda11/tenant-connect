@@ -107,12 +107,15 @@ Deno.serve(async (req) => {
     }
 
     // 4. Upsert account (no facebook page involved in IG Login for Business)
+    // NOTE: me.user_id is the IG business-scoped ID (17841...) which is what webhook events use.
+    // tokenJson.user_id is app-scoped and won't match webhook entry.id.
+    const igBusinessId = String(me.user_id || igUserId);
     const { data: account, error: accErr } = await supabase
       .from("instagram_accounts")
       .upsert(
         {
           tenant_id: stateRow.tenant_id,
-          instagram_user_id: igUserId,
+          instagram_user_id: igBusinessId,
           ig_username: me.username,
           ig_name: me.name || me.username,
           profile_picture_url: me.profile_picture_url,
