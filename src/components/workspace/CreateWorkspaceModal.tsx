@@ -1,17 +1,11 @@
-import React, { useState } from 'react';
-import { Loader2, Building2, MessageSquare, Headphones, Megaphone, TestTube, Wifi, Clock } from 'lucide-react';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { cn } from '@/lib/utils';
+import React, { useState } from "react";
+import { Loader2, Building2, MessageSquare, Headphones, Megaphone, TestTube, Wifi, Clock } from "lucide-react";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { cn } from "@/lib/utils";
 
 interface CreateWorkspaceModalProps {
   open: boolean;
@@ -21,10 +15,10 @@ interface CreateWorkspaceModalProps {
 }
 
 const purposes = [
-  { value: 'sales', label: 'Sales', icon: MessageSquare },
-  { value: 'support', label: 'Support', icon: Headphones },
-  { value: 'marketing', label: 'Marketing', icon: Megaphone },
-  { value: 'demo', label: 'Demo / Test', icon: TestTube },
+  { value: "sales", label: "Sales", icon: MessageSquare },
+  { value: "support", label: "Support", icon: Headphones },
+  { value: "marketing", label: "Marketing", icon: Megaphone },
+  { value: "demo", label: "Demo / Test", icon: TestTube },
 ];
 
 export default function CreateWorkspaceModal({
@@ -33,16 +27,16 @@ export default function CreateWorkspaceModal({
   onCreateWorkspace,
   isCreating,
 }: CreateWorkspaceModalProps) {
-  const [name, setName] = useState('');
-  const [purpose, setPurpose] = useState('sales');
+  const [name, setName] = useState("");
+  const [purpose, setPurpose] = useState("sales");
   const [connectNow, setConnectNow] = useState(true);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) return;
     await onCreateWorkspace(name.trim(), purpose, connectNow);
-    setName('');
-    setPurpose('sales');
+    setName("");
+    setPurpose("sales");
     setConnectNow(true);
   };
 
@@ -71,7 +65,7 @@ export default function CreateWorkspaceModal({
             </Label>
             <Input
               id="workspace-name"
-              placeholder="e.g., My Brand Support"
+              placeholder="e.g., YOUR BRAND NAME"
               value={name}
               onChange={(e) => setName(e.target.value)}
               className="h-9 sm:h-10 text-sm"
@@ -95,11 +89,18 @@ export default function CreateWorkspaceModal({
                       "flex items-center gap-1.5 sm:gap-2 p-2 sm:p-2.5 rounded-lg border text-left transition-all touch-manipulation",
                       isSelected
                         ? "border-green-500 bg-green-50"
-                        : "border-gray-200 hover:border-gray-300 hover:bg-gray-50 active:bg-gray-100"
+                        : "border-gray-200 hover:border-gray-300 hover:bg-gray-50 active:bg-gray-100",
                     )}
                   >
-                    <Icon className={cn("w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0", isSelected ? "text-green-600" : "text-gray-400")} />
-                    <span className={cn("text-xs sm:text-sm font-medium", isSelected ? "text-green-700" : "text-gray-700")}>
+                    <Icon
+                      className={cn(
+                        "w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0",
+                        isSelected ? "text-green-600" : "text-gray-400",
+                      )}
+                    />
+                    <span
+                      className={cn("text-xs sm:text-sm font-medium", isSelected ? "text-green-700" : "text-gray-700")}
+                    >
                       {p.label}
                     </span>
                   </button>
@@ -111,34 +112,58 @@ export default function CreateWorkspaceModal({
           {/* WhatsApp Setup Option - Compact */}
           <div className="space-y-1.5 sm:space-y-2">
             <Label className="text-xs sm:text-sm font-medium">WhatsApp setup</Label>
-            <RadioGroup 
-              value={connectNow ? 'now' : 'later'} 
-              onValueChange={(v) => setConnectNow(v === 'now')}
+            <RadioGroup
+              value={connectNow ? "now" : "later"}
+              onValueChange={(v) => setConnectNow(v === "now")}
               className="grid grid-cols-2 gap-1.5 sm:gap-2"
             >
-              <div className={cn(
-                "flex items-center gap-1.5 sm:gap-2 p-2 sm:p-2.5 rounded-lg border cursor-pointer transition-all touch-manipulation",
-                connectNow ? "border-green-500 bg-green-50" : "border-gray-200 hover:border-gray-300 active:bg-gray-100"
-              )}>
+              <div
+                className={cn(
+                  "flex items-center gap-1.5 sm:gap-2 p-2 sm:p-2.5 rounded-lg border cursor-pointer transition-all touch-manipulation",
+                  connectNow
+                    ? "border-green-500 bg-green-50"
+                    : "border-gray-200 hover:border-gray-300 active:bg-gray-100",
+                )}
+              >
                 <RadioGroupItem value="now" id="connect-now" className="sr-only" />
-                <Wifi className={cn("w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0", connectNow ? "text-green-600" : "text-gray-400")} />
-                <Label htmlFor="connect-now" className={cn(
-                  "cursor-pointer text-xs sm:text-sm font-medium",
-                  connectNow ? "text-green-700" : "text-gray-700"
-                )}>
+                <Wifi
+                  className={cn(
+                    "w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0",
+                    connectNow ? "text-green-600" : "text-gray-400",
+                  )}
+                />
+                <Label
+                  htmlFor="connect-now"
+                  className={cn(
+                    "cursor-pointer text-xs sm:text-sm font-medium",
+                    connectNow ? "text-green-700" : "text-gray-700",
+                  )}
+                >
                   Connect now
                 </Label>
               </div>
-              <div className={cn(
-                "flex items-center gap-1.5 sm:gap-2 p-2 sm:p-2.5 rounded-lg border cursor-pointer transition-all touch-manipulation",
-                !connectNow ? "border-green-500 bg-green-50" : "border-gray-200 hover:border-gray-300 active:bg-gray-100"
-              )}>
+              <div
+                className={cn(
+                  "flex items-center gap-1.5 sm:gap-2 p-2 sm:p-2.5 rounded-lg border cursor-pointer transition-all touch-manipulation",
+                  !connectNow
+                    ? "border-green-500 bg-green-50"
+                    : "border-gray-200 hover:border-gray-300 active:bg-gray-100",
+                )}
+              >
                 <RadioGroupItem value="later" id="connect-later" className="sr-only" />
-                <Clock className={cn("w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0", !connectNow ? "text-green-600" : "text-gray-400")} />
-                <Label htmlFor="connect-later" className={cn(
-                  "cursor-pointer text-xs sm:text-sm font-medium",
-                  !connectNow ? "text-green-700" : "text-gray-700"
-                )}>
+                <Clock
+                  className={cn(
+                    "w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0",
+                    !connectNow ? "text-green-600" : "text-gray-400",
+                  )}
+                />
+                <Label
+                  htmlFor="connect-later"
+                  className={cn(
+                    "cursor-pointer text-xs sm:text-sm font-medium",
+                    !connectNow ? "text-green-700" : "text-gray-700",
+                  )}
+                >
                   Do it later
                 </Label>
               </div>
@@ -157,7 +182,7 @@ export default function CreateWorkspaceModal({
                 Creating...
               </>
             ) : (
-              'Create workspace'
+              "Create workspace"
             )}
           </Button>
 
