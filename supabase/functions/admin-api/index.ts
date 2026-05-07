@@ -155,6 +155,19 @@ Deno.serve(async (req: Request) => {
           .in("workspace_id", Array.from(allTenantIds));
         for (const t of tenants || []) tenantMap[t.workspace_id] = t;
       }
+      // Phone numbers per tenant (any row = "phone connected")
+      const tenantPhoneMap: Record<string, { display_number: string; status: string }> = {};
+      if (allTenantIds.size) {
+        const { data: phones } = await sb.from("phone_numbers")
+          .select("tenant_id, display_number, status, is_default, created_at")
+          .in("tenant_id", Array.from(allTenantIds))
+          .order("is_default", { ascending: false });
+        for (const ph of phones || []) {
+          if (!tenantPhoneMap[ph.tenant_id]) {
+            tenantPhoneMap[ph.tenant_id] = { display_number: ph.display_number, status: ph.status };
+          }
+        }
+      }
 
       // 4) Team members (sub-accounts) for each owned tenant
       const tenantTeamMap: Record<string, any[]> = {};
