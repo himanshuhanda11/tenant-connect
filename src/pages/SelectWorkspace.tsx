@@ -36,6 +36,7 @@ interface WorkspaceEnriched {
   name: string;
   slug: string;
   logo_url?: string | null;
+  verifiedName?: string;
   role: string;
   created_at: string;
   phoneCount: number;
