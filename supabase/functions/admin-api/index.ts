@@ -155,6 +155,19 @@ Deno.serve(async (req: Request) => {
           .in("workspace_id", Array.from(allTenantIds));
         for (const t of tenants || []) tenantMap[t.workspace_id] = t;
       }
+      // Phone numbers per tenant (any row = "phone connected")
+      const tenantPhoneMap: Record<string, { display_number: string; status: string }> = {};
+      if (allTenantIds.size) {
+        const { data: phones } = await sb.from("phone_numbers")
+          .select("tenant_id, display_number, status, is_default, created_at")
+          .in("tenant_id", Array.from(allTenantIds))
+          .order("is_default", { ascending: false });
+        for (const ph of phones || []) {
+          if (!tenantPhoneMap[ph.tenant_id]) {
+            tenantPhoneMap[ph.tenant_id] = { display_number: ph.display_number, status: ph.status };
+          }
+        }
+      }
 
       // 4) Team members (sub-accounts) for each owned tenant
       const tenantTeamMap: Record<string, any[]> = {};
@@ -190,6 +203,7 @@ Deno.serve(async (req: Request) => {
         const memberships = wsByOwner[u.id] || [];
         const workspaces = memberships.map((m: any) => {
           const t = tenantMap[m.tenant_id];
+          const ph = tenantPhoneMap[m.tenant_id];
           return {
             workspace_id: m.tenant_id,
             workspace_name: t?.workspace_name || "(Unnamed)",
@@ -201,12 +215,17 @@ Deno.serve(async (req: Request) => {
             contacts_count: t?.contacts_count || 0,
             conversations_count: t?.conversations_count || 0,
             created_at: t?.created_at || null,
+            phone_number: ph?.display_number || null,
+            phone_status: ph?.status || null,
             sub_accounts: tenantTeamMap[m.tenant_id] || [],
           };
         });
         const hasWorkspace = workspaces.length > 0;
+        const hasPhone = workspaces.some((w: any) => !!w.phone_number);
         const hasPaidPlan = workspaces.some((w: any) =>
           w.plan && !["free", "—", "trial"].includes(String(w.plan).toLowerCase()));
+        // Highest stage reached (funnel is cumulative)
+        const stage = hasPaidPlan ? 3 : hasPhone ? 2 : hasWorkspace ? 1 : 0;
         return {
           user_id: u.id,
           email: u.email || p?.email || null,
@@ -229,7 +248,8 @@ Deno.serve(async (req: Request) => {
             completed_at: p?.step_completed_at,
           },
           workspaces,
-          stage: hasPaidPlan ? 3 : hasWorkspace ? 1 : 0,
+          stage,
+          reached: { account: true, workspace: hasWorkspace, phone: hasPhone, plan: hasPaidPlan },
         };
       });
 

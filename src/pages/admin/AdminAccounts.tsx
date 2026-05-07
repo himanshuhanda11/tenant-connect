@@ -48,6 +48,7 @@ interface AccountRow {
   onboarding_step: string;
   workspaces: AccountWorkspace[];
   stage: number;
+  reached?: { account: boolean; workspace: boolean; phone: boolean; plan: boolean };
 }
 
 const STAGES = [
@@ -94,11 +95,20 @@ export default function AdminAccounts() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [search]);
 
+  const stageKeys = ['account', 'workspace', 'phone', 'plan'] as const;
+  const reachedFor = (r: AccountRow, i: number) => {
+    if (r.reached) return r.reached[stageKeys[i]];
+    // Fallback for old payload
+    if (i === 0) return true;
+    if (i === 1) return r.workspaces.length > 0;
+    if (i === 2) return false;
+    return r.stage >= 3;
+  };
   const stageCounts = useMemo(
-    () => [0, 1, 2, 3].map(s => rows.filter(r => r.stage === s).length),
+    () => [0, 1, 2, 3].map(s => rows.filter(r => reachedFor(r, s)).length),
     [rows]
   );
-  const filtered = stageFilter === null ? rows : rows.filter(r => r.stage === stageFilter);
+  const filtered = stageFilter === null ? rows : rows.filter(r => reachedFor(r, stageFilter));
 
   const toggle = (id: string) => setExpanded(p => ({ ...p, [id]: !p[id] }));
 
