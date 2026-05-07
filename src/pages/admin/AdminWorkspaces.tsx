@@ -63,6 +63,7 @@ export default function AdminWorkspaces() {
   const isMobile = useIsMobile();
   const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
   const [total, setTotal] = useState(0);
+  const [counts, setCounts] = useState<Record<string, number>>({});
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
   const [suspendDialog, setSuspendDialog] = useState<{ id: string; name: string; suspend: boolean } | null>(null);
@@ -80,12 +81,13 @@ export default function AdminWorkspaces() {
   const isSuperAdmin = role === 'super_admin';
 
   const loadWorkspaces = useCallback(async () => {
-    const params = new URLSearchParams({ page: page.toString() });
+    const params = new URLSearchParams({ page: page.toString(), view: activeView });
     if (search) params.set('search', search);
     const data = await get(`workspaces?${params}`);
     setWorkspaces(data.workspaces || []);
     setTotal(data.total || 0);
-  }, [page, search]);
+    setCounts(data.counts || {});
+  }, [page, search, activeView]);
 
   useEffect(() => { loadWorkspaces().catch(() => {}); }, [loadWorkspaces]);
 
@@ -188,15 +190,41 @@ export default function AdminWorkspaces() {
   const totalPages = Math.ceil(total / 25);
 
   return (
-    <div className="space-y-4 animate-fade-in">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold tracking-tight">Workspaces</h1>
-        <Badge variant="outline" className="text-xs">{total} total</Badge>
+    <div className="space-y-5 animate-fade-in">
+      {/* Header */}
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Workspaces</h1>
+          <p className="text-sm text-muted-foreground">
+            Manage tenants, plans, suspensions, and WhatsApp connectivity.
+          </p>
+        </div>
+        <Badge variant="outline" className="text-xs">{counts.all ?? total} total</Badge>
       </div>
 
-      {/* Saved Views */}
+      {/* KPI strip */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
+        {[
+          { label: 'Active', value: (counts.all ?? 0) - (counts.suspended ?? 0), tone: 'text-emerald-600' },
+          { label: 'Suspended', value: counts.suspended ?? 0, tone: 'text-red-600' },
+          { label: 'Pending Numbers', value: counts['pending-numbers'] ?? 0, tone: 'text-amber-600' },
+          { label: 'High Revenue (Pro+Biz)', value: counts['high-revenue'] ?? 0, tone: 'text-violet-600' },
+        ].map((k) => (
+          <Card key={k.label} className="rounded-xl border-border/60">
+            <CardContent className="p-3">
+              <div className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium">
+                {k.label}
+              </div>
+              <div className={`text-xl font-bold mt-0.5 ${k.tone}`}>{k.value}</div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      {/* Saved Views (grouped chips with live counts) */}
       <AdminSavedViews
         activeView={activeView}
+        counts={counts}
         onViewChange={(view) => { setActiveView(view.id); setPage(1); }}
       />
 
