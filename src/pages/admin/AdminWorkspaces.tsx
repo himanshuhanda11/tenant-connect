@@ -15,6 +15,8 @@ import { toast } from '@/hooks/use-toast';
 import { AdminStatusBadge, AdminPlanBadge } from '@/components/admin/AdminStatusBadge';
 import { AdminWorkspaceCard } from '@/components/admin/AdminWorkspaceCard';
 import { AdminSavedViews, defaultViews, type SavedView } from '@/components/admin/AdminSavedViews';
+import { OnboardingTimeline } from '@/components/admin/OnboardingTimeline';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { useIsMobile } from '@/hooks/use-mobile';
 import {
   Search, Loader2, Ban, Play, Pause, ChevronLeft, ChevronRight,
@@ -52,6 +54,14 @@ interface Workspace {
   waba_status: string | null;
   waba_name: string | null;
   waba_connected_at: string | null;
+  onboarding_step?: string | null;
+  onboarding_timeline?: {
+    signup_at?: string | null;
+    org_done_at?: string | null;
+    password_done_at?: string | null;
+    workspace_created_at?: string | null;
+    completed_at?: string | null;
+  };
 }
 
 const PLANS = ['free', 'basic', 'pro', 'business'];
@@ -348,6 +358,23 @@ export default function AdminWorkspaces() {
                           </span>
                         </div>
                       </button>
+                      {w.onboarding_timeline && (
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <button
+                              onClick={(e) => e.stopPropagation()}
+                              className="mt-1.5 flex items-center gap-1 hover:opacity-80"
+                              title="Onboarding progress"
+                            >
+                              <OnboardingTimeline data={w.onboarding_timeline} compact />
+                            </button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-64 p-3" align="start">
+                            <div className="text-xs font-semibold mb-2">Onboarding progress</div>
+                            <OnboardingTimeline data={w.onboarding_timeline} />
+                          </PopoverContent>
+                        </Popover>
+                      )}
                     </TableCell>
                     <TableCell>
                       <div className="min-w-0">
