@@ -303,9 +303,13 @@ export default function Login() {
       <div className="flex-1 flex flex-col justify-center px-6 py-6 lg:px-10 xl:px-16 lg:py-6 bg-background lg:overflow-y-auto">
         <div className="mx-auto w-full max-w-md">
           {/* Logo */}
-          <div className="flex items-center gap-2 mb-2">
+          <div className="flex items-center justify-center lg:justify-start mb-4 lg:mb-2">
             <Link to="/" className="flex items-center">
-              <img src={aireatroLogo} alt="AiReatro" className="h-8 w-auto" />
+              <img
+                src={aireatroLogo}
+                alt="AiReatro"
+                className="h-20 sm:h-24 lg:h-8 w-auto drop-shadow-sm"
+              />
             </Link>
           </div>
 
