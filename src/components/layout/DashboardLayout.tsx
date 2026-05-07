@@ -134,7 +134,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           <div className="flex-1 overflow-auto relative bg-muted/20 p-4 sm:p-6 lg:p-8 pb-[calc(5rem+env(safe-area-inset-bottom))] md:pb-20">
             {children}
           </div>
-          <WhatsAppConnectBanner />
+          {!location.pathname.startsWith('/phone-numbers') && <WhatsAppConnectBanner />}
           <MobileBottomNav />
         </main>
       </div>
