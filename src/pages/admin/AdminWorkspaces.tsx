@@ -63,6 +63,7 @@ export default function AdminWorkspaces() {
   const isMobile = useIsMobile();
   const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
   const [total, setTotal] = useState(0);
+  const [counts, setCounts] = useState<Record<string, number>>({});
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
   const [suspendDialog, setSuspendDialog] = useState<{ id: string; name: string; suspend: boolean } | null>(null);
@@ -80,12 +81,13 @@ export default function AdminWorkspaces() {
   const isSuperAdmin = role === 'super_admin';
 
   const loadWorkspaces = useCallback(async () => {
-    const params = new URLSearchParams({ page: page.toString() });
+    const params = new URLSearchParams({ page: page.toString(), view: activeView });
     if (search) params.set('search', search);
     const data = await get(`workspaces?${params}`);
     setWorkspaces(data.workspaces || []);
     setTotal(data.total || 0);
-  }, [page, search]);
+    setCounts(data.counts || {});
+  }, [page, search, activeView]);
 
   useEffect(() => { loadWorkspaces().catch(() => {}); }, [loadWorkspaces]);
 
