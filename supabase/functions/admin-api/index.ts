@@ -154,6 +154,13 @@ Deno.serve(async (req: Request) => {
             owner_timezone: p.timezone,
             owner_signup_at: p.created_at,
             onboarding_step: p.onboarding_step,
+            onboarding_timeline: {
+              signup_at: p.step_signup_at || p.created_at,
+              org_done_at: p.step_org_done_at,
+              password_done_at: p.step_password_done_at,
+              workspace_created_at: p.step_workspace_created_at,
+              completed_at: p.step_completed_at,
+            },
             phone_number: null, phone_status: null, phone_quality: null, phone_connected_at: null,
             waba_status: null, waba_name: null, waba_connected_at: null,
             no_workspace: !t,
