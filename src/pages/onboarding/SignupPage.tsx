@@ -114,7 +114,6 @@ export default function SignupPage() {
         return;
       }
 
-      // Wait a moment for the profile to be created by trigger
       if (data.user) {
         // Fire welcome + admin notification (non-blocking)
         supabase.functions.invoke('send-team-email', {
@@ -125,10 +124,27 @@ export default function SignupPage() {
           },
         }).catch((e) => console.warn('signup_welcome email failed', e));
 
-        // The auth state change will trigger navigation
+        // If no session was returned (e.g. email-confirm required), sign the user in
+        // immediately with the password they just provided so onboarding can continue.
+        if (!data.session) {
+          const { error: signInError } = await supabase.auth.signInWithPassword({
+            email: email.trim(),
+            password,
+          });
+          if (signInError) {
+            setError(
+              'Account created, but automatic sign-in failed. Please log in to continue.'
+            );
+            setIsLoading(false);
+            setTimeout(() => navigate('/login', { replace: true }), 1500);
+            return;
+          }
+        }
+
+        // Wait for AuthContext to pick up the new session, then navigate.
         setTimeout(() => {
           navigate('/onboarding/org', { replace: true });
-        }, 500);
+        }, 600);
       }
     } catch (err: any) {
       console.error('Email signup error:', err);
