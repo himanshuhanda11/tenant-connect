@@ -189,8 +189,8 @@ export default function WorkspaceTile({ workspace: w, onSelect, onRename, onMana
           onClick={onSelect}
           className={cn(
             "w-full mt-4 h-11 rounded-2xl font-semibold text-white shadow-lg",
-            "bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700",
-            "shadow-indigo-500/30 hover:shadow-indigo-500/50 transition-all"
+            "bg-gradient-to-r from-slate-800 to-slate-900 hover:from-slate-900 hover:to-black",
+            "shadow-slate-900/30 hover:shadow-slate-900/50 transition-all"
           )}
         >
           {isConnected ? 'Enter Workspace' : 'Continue Setup'}
