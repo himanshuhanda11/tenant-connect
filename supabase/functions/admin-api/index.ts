@@ -96,14 +96,93 @@ Deno.serve(async (req: Request) => {
       const actor = await requirePlatformRole(req, ["super_admin", "support"]);
       const sb = adminClient();
       const search = url.searchParams.get("search") || "";
+      const view = url.searchParams.get("view") || "all";
       const page = parseInt(url.searchParams.get("page") || "1");
       const limit = 25;
       const offset = (page - 1) * limit;
-      let query = sb.from("platform_workspace_directory").select("*", { count: "exact" });
-      if (search) {
-        query = query.or(`workspace_name.ilike.%${search}%,slug.ilike.%${search}%`);
-      }
-      const { data, count } = await query.order("created_at", { ascending: false }).range(offset, offset + limit - 1);
+
+      // Base builder so we apply the same filters to data + counts consistently
+      const buildQuery = (selectExpr: string, opts: { count?: boolean } = {}) => {
+        let q: any = opts.count
+          ? sb.from("platform_workspace_directory").select(selectExpr, { count: "exact", head: true })
+          : sb.from("platform_workspace_directory").select(selectExpr, { count: "exact" });
+        if (search) q = q.or(`workspace_name.ilike.%${search}%,slug.ilike.%${search}%`);
+        switch (view) {
+          case "suspended":
+            q = q.eq("is_suspended", true);
+            break;
+          case "pending-numbers":
+            // workspaces that have NO connected phone yet
+            q = q.eq("phone_numbers_count", 0);
+            break;
+          case "pro":
+            q = q.eq("plan", "pro");
+            break;
+          case "high-revenue":
+            q = q.in("plan", ["pro", "business"]);
+            break;
+          case "paused":
+            q = q.eq("sending_paused", true);
+            break;
+          case "business":
+            q = q.eq("plan", "business");
+            break;
+          case "free":
+            q = q.eq("plan", "free");
+            break;
+          case "new-week": {
+            const since = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+            q = q.gte("created_at", since);
+            break;
+          }
+          default:
+            break;
+        }
+        return q;
+      };
+
+      const { data, count } = await buildQuery("*")
+        .order("created_at", { ascending: false })
+        .range(offset, offset + limit - 1);
+
+      // Compute filter chip counts (respect search but ignore current view)
+      const buildCount = async (filterFn: (q: any) => any) => {
+        let q: any = sb
+          .from("platform_workspace_directory")
+          .select("workspace_id", { count: "exact", head: true });
+        if (search) q = q.or(`workspace_name.ilike.%${search}%,slug.ilike.%${search}%`);
+        q = filterFn(q);
+        const { count: c } = await q;
+        return c || 0;
+      };
+
+      const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+      const [
+        countAll, countSuspended, countPending, countPro, countHigh,
+        countPaused, countBusiness, countFree, countNewWeek,
+      ] = await Promise.all([
+        buildCount((q) => q),
+        buildCount((q) => q.eq("is_suspended", true)),
+        buildCount((q) => q.eq("phone_numbers_count", 0)),
+        buildCount((q) => q.eq("plan", "pro")),
+        buildCount((q) => q.in("plan", ["pro", "business"])),
+        buildCount((q) => q.eq("sending_paused", true)),
+        buildCount((q) => q.eq("plan", "business")),
+        buildCount((q) => q.eq("plan", "free")),
+        buildCount((q) => q.gte("created_at", sevenDaysAgo)),
+      ]);
+
+      const counts = {
+        all: countAll,
+        suspended: countSuspended,
+        "pending-numbers": countPending,
+        pro: countPro,
+        "high-revenue": countHigh,
+        paused: countPaused,
+        business: countBusiness,
+        free: countFree,
+        "new-week": countNewWeek,
+      };
 
       // Enrich with owner email, phone number, WABA status
       const workspaceIds = (data || []).map((w: any) => w.workspace_id);
