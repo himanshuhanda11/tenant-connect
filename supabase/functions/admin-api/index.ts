@@ -104,7 +104,7 @@ Deno.serve(async (req: Request) => {
       // Special view: recent signups (profiles directly, including users without workspaces)
       if (view === "recent-signups") {
         let pq: any = sb.from("profiles")
-          .select("id, email, full_name, company_name, website_url, country, phone_number, industry, team_size, timezone, onboarding_step, created_at", { count: "exact" })
+          .select("id, email, full_name, company_name, website_url, country, phone_number, industry, team_size, timezone, onboarding_step, created_at, step_signup_at, step_org_done_at, step_password_done_at, step_workspace_created_at, step_completed_at", { count: "exact" })
           .order("created_at", { ascending: false })
           .range(offset, offset + limit - 1);
         if (search) pq = pq.or(`email.ilike.%${search}%,full_name.ilike.%${search}%,company_name.ilike.%${search}%`);
