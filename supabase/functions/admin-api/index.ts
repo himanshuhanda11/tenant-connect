@@ -345,7 +345,66 @@ Deno.serve(async (req: Request) => {
         };
       });
 
-      return new Response(JSON.stringify({ workspaces: enriched, total: count, page, limit, counts }), {
+      // For the default "all" view, also surface signups that have not yet
+      // created a workspace so admins can see them on /control/workspaces.
+      let merged = enriched;
+      let mergedTotal = count || 0;
+      if (view === "all" && page === 1) {
+        // Find profiles with no tenant_members membership
+        const { data: allProfiles } = await sb.from("profiles")
+          .select("id, email, full_name, company_name, website_url, country, phone_number, industry, team_size, timezone, onboarding_step, created_at, step_signup_at, step_org_done_at, step_password_done_at, step_workspace_created_at, step_completed_at")
+          .order("created_at", { ascending: false })
+          .limit(100);
+        const profileIds = (allProfiles || []).map((p: any) => p.id);
+        let memberSet = new Set<string>();
+        if (profileIds.length) {
+          const { data: mems } = await sb.from("tenant_members")
+            .select("user_id").in("user_id", profileIds);
+          memberSet = new Set((mems || []).map((m: any) => m.user_id));
+        }
+        const orphans = (allProfiles || []).filter((p: any) => !memberSet.has(p.id));
+        const orphanRows = orphans.map((p: any) => ({
+          workspace_id: `signup:${p.id}`,
+          workspace_name: p.company_name || p.full_name || p.email || "(No workspace yet)",
+          slug: "—",
+          created_at: p.created_at,
+          is_suspended: false,
+          plan: "—",
+          sending_paused: false,
+          members_count: 0,
+          phone_numbers_count: 0,
+          contacts_count: 0,
+          conversations_count: 0,
+          plan_name: null,
+          owner_email: p.email,
+          owner_full_name: p.full_name,
+          owner_company_name: p.company_name,
+          owner_website_url: p.website_url,
+          owner_country: p.country,
+          owner_phone: p.phone_number,
+          owner_industry: p.industry,
+          owner_team_size: p.team_size,
+          owner_timezone: p.timezone,
+          owner_signup_at: p.created_at,
+          onboarding_step: p.onboarding_step,
+          onboarding_timeline: {
+            signup_at: p.step_signup_at || p.created_at,
+            org_done_at: p.step_org_done_at,
+            password_done_at: p.step_password_done_at,
+            workspace_created_at: p.step_workspace_created_at,
+            completed_at: p.step_completed_at,
+          },
+          phone_number: null, phone_status: null, phone_quality: null, phone_connected_at: null,
+          waba_status: null, waba_name: null, waba_connected_at: null,
+          no_workspace: true,
+        }));
+        merged = [...orphanRows, ...enriched].sort((a: any, b: any) =>
+          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+        );
+        mergedTotal = (count || 0) + orphanRows.length;
+      }
+
+      return new Response(JSON.stringify({ workspaces: merged, total: mergedTotal, page, limit, counts }), {
         headers: { ...corsHeaders, "content-type": "application/json" },
       });
     }
