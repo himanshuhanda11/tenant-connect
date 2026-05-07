@@ -459,37 +459,65 @@ export default function AdminWorkspaces() {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => navigate(`/control/workspaces/${w.workspace_id}`)}>
-                            <Eye className="h-3.5 w-3.5 mr-2" /> Open workspace
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handlePauseSending(w.workspace_id, !w.sending_paused)}>
-                            {w.sending_paused ? <Play className="h-3.5 w-3.5 mr-2" /> : <Pause className="h-3.5 w-3.5 mr-2" />}
-                            {w.sending_paused ? 'Resume sending' : 'Pause sending'}
-                          </DropdownMenuItem>
-                          {isSuperAdmin && (
+                          {String(w.workspace_id).startsWith('signup:') ? (
                             <>
-                              <DropdownMenuSeparator />
-                              <DropdownMenuItem onClick={() => {
-                                setPlanDialog({ id: w.workspace_id, name: w.workspace_name, currentPlan: w.plan_name || w.plan });
-                                setNewPlan(w.plan || 'free');
-                              }}>
-                                <ArrowRightLeft className="h-3.5 w-3.5 mr-2" /> Change plan
+                              <DropdownMenuItem onClick={() => setSignupActions({ userId: String(w.workspace_id).slice('signup:'.length), email: w.owner_email || '', name: w.workspace_name, action: 'reset' })}>
+                                <Mail className="h-3.5 w-3.5 mr-2" /> Reset password (link)
                               </DropdownMenuItem>
-                              <DropdownMenuSeparator />
-                              <DropdownMenuItem
-                                onClick={() => setSuspendDialog({ id: w.workspace_id, name: w.workspace_name, suspend: !w.is_suspended })}
-                                className="text-destructive"
-                              >
-                                <Ban className="h-3.5 w-3.5 mr-2" />
-                                {w.is_suspended ? 'Unsuspend' : 'Suspend workspace'}
+                              <DropdownMenuItem onClick={() => setSignupActions({ userId: String(w.workspace_id).slice('signup:'.length), email: w.owner_email || '', name: w.workspace_name, action: 'email' })}>
+                                <Mail className="h-3.5 w-3.5 mr-2" /> Change email
                               </DropdownMenuItem>
-                              <DropdownMenuItem
-                                onClick={() => setDeleteDialog({ ids: [w.workspace_id], names: [w.workspace_name] })}
-                                className="text-destructive"
-                              >
-                                <Trash2 className="h-3.5 w-3.5 mr-2" />
-                                Delete workspace
+                              <DropdownMenuItem onClick={() => setSignupActions({ userId: String(w.workspace_id).slice('signup:'.length), email: w.owner_email || '', name: w.workspace_name, action: 'phone' })}>
+                                <Phone className="h-3.5 w-3.5 mr-2" /> Change phone
                               </DropdownMenuItem>
+                              {isSuperAdmin && (
+                                <>
+                                  <DropdownMenuSeparator />
+                                  <DropdownMenuItem
+                                    onClick={() => setDeleteDialog({ ids: [w.workspace_id], names: [w.workspace_name] })}
+                                    className="text-destructive"
+                                  >
+                                    <Trash2 className="h-3.5 w-3.5 mr-2" />
+                                    Delete signup
+                                  </DropdownMenuItem>
+                                </>
+                              )}
+                            </>
+                          ) : (
+                            <>
+                              <DropdownMenuItem onClick={() => navigate(`/control/workspaces/${w.workspace_id}`)}>
+                                <Eye className="h-3.5 w-3.5 mr-2" /> Open workspace
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handlePauseSending(w.workspace_id, !w.sending_paused)}>
+                                {w.sending_paused ? <Play className="h-3.5 w-3.5 mr-2" /> : <Pause className="h-3.5 w-3.5 mr-2" />}
+                                {w.sending_paused ? 'Resume sending' : 'Pause sending'}
+                              </DropdownMenuItem>
+                              {isSuperAdmin && (
+                                <>
+                                  <DropdownMenuSeparator />
+                                  <DropdownMenuItem onClick={() => {
+                                    setPlanDialog({ id: w.workspace_id, name: w.workspace_name, currentPlan: w.plan_name || w.plan });
+                                    setNewPlan(w.plan || 'free');
+                                  }}>
+                                    <ArrowRightLeft className="h-3.5 w-3.5 mr-2" /> Change plan
+                                  </DropdownMenuItem>
+                                  <DropdownMenuSeparator />
+                                  <DropdownMenuItem
+                                    onClick={() => setSuspendDialog({ id: w.workspace_id, name: w.workspace_name, suspend: !w.is_suspended })}
+                                    className="text-destructive"
+                                  >
+                                    <Ban className="h-3.5 w-3.5 mr-2" />
+                                    {w.is_suspended ? 'Unsuspend' : 'Suspend workspace'}
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem
+                                    onClick={() => setDeleteDialog({ ids: [w.workspace_id], names: [w.workspace_name] })}
+                                    className="text-destructive"
+                                  >
+                                    <Trash2 className="h-3.5 w-3.5 mr-2" />
+                                    Delete workspace
+                                  </DropdownMenuItem>
+                                </>
+                              )}
                             </>
                           )}
                         </DropdownMenuContent>
