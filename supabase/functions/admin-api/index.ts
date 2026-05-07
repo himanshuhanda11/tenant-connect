@@ -235,7 +235,7 @@ Deno.serve(async (req: Request) => {
       const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
       const [
         countAll, countSuspended, countPending, countPro, countHigh,
-        countPaused, countBusiness, countFree, countNewWeek,
+        countPaused, countBusiness, countFree, countNewWeek, countSignups,
       ] = await Promise.all([
         buildCount((q) => q),
         buildCount((q) => q.eq("is_suspended", true)),
@@ -248,6 +248,7 @@ Deno.serve(async (req: Request) => {
         buildCount((q) => q.eq("plan", "business")),
         buildCount((q) => q.eq("plan", "free")),
         buildCount((q) => q.gte("created_at", sevenDaysAgo)),
+        sb.from("profiles").select("id", { count: "exact", head: true }).gte("created_at", sevenDaysAgo).then((r: any) => r.count || 0),
       ]);
 
       const counts = {
@@ -260,6 +261,7 @@ Deno.serve(async (req: Request) => {
         business: countBusiness,
         free: countFree,
         "new-week": countNewWeek,
+        "recent-signups": countSignups,
       };
 
       // Enrich with owner email, phone number, WABA status
