@@ -256,11 +256,12 @@ export default function AdminWorkspaces() {
           )}
         </div>
       ) : (
-        <Card className="rounded-2xl shadow-sm border-border/50">
+        <Card className="rounded-2xl shadow-sm border-border/50 overflow-hidden">
           <CardContent className="p-0">
+            <div className="overflow-x-auto">
             <Table>
               <TableHeader>
-                <TableRow>
+                <TableRow className="bg-muted/30">
                   {isSuperAdmin && (
                     <TableHead className="w-10">
                       <Checkbox
@@ -270,20 +271,22 @@ export default function AdminWorkspaces() {
                     </TableHead>
                   )}
                   <TableHead>Workspace</TableHead>
-                  <TableHead>Owner</TableHead>
-                  <TableHead>Phone</TableHead>
+                  <TableHead>Owner & Company</TableHead>
+                  <TableHead>Country</TableHead>
+                  <TableHead>WhatsApp Number</TableHead>
                   <TableHead>Plan</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>WABA</TableHead>
-                  <TableHead className="text-right">Members</TableHead>
+                  <TableHead className="text-right">Team</TableHead>
                   <TableHead className="text-right">Contacts</TableHead>
-                  <TableHead>Created</TableHead>
+                  <TableHead>Signed up</TableHead>
+                  <TableHead>WABA connected</TableHead>
                   <TableHead className="w-10"></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {workspaces.map(w => (
-                  <TableRow key={w.workspace_id} className="group">
+                  <TableRow key={w.workspace_id} className="group hover:bg-muted/40 transition-colors">
                     {isSuperAdmin && (
                       <TableCell>
                         <Checkbox
@@ -293,37 +296,66 @@ export default function AdminWorkspaces() {
                       </TableCell>
                     )}
                     <TableCell>
-                      <div className="flex items-center gap-2">
-                        <div>
-                          <span className="font-medium text-sm">{w.workspace_name}</span>
-                          <div className="flex items-center gap-1">
-                            <span className="text-xs text-muted-foreground">/{w.slug}</span>
-                            <button onClick={() => copyId(w.workspace_id)} className="opacity-0 group-hover:opacity-100 transition-opacity">
-                              <Copy className="h-3 w-3 text-muted-foreground hover:text-foreground" />
-                            </button>
-                          </div>
+                      <button
+                        onClick={() => navigate(`/control/workspaces/${w.workspace_id}`)}
+                        className="text-left group/ws"
+                      >
+                        <div className="font-medium text-sm group-hover/ws:text-primary transition-colors">{w.workspace_name}</div>
+                        <div className="flex items-center gap-1">
+                          <span className="text-[11px] text-muted-foreground">/{w.slug}</span>
+                          <span
+                            onClick={(e) => { e.stopPropagation(); copyId(w.workspace_id); }}
+                            className="opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                          >
+                            <Copy className="h-3 w-3 text-muted-foreground hover:text-foreground" />
+                          </span>
                         </div>
+                      </button>
+                    </TableCell>
+                    <TableCell>
+                      <div className="min-w-0">
+                        <div className="text-xs font-medium truncate max-w-[180px]" title={w.owner_full_name || ''}>
+                          {w.owner_full_name || <span className="text-muted-foreground">No name</span>}
+                        </div>
+                        {w.owner_company_name && (
+                          <div className="text-[11px] text-muted-foreground truncate max-w-[180px]" title={w.owner_company_name}>
+                            {w.owner_company_name}
+                          </div>
+                        )}
+                        {w.owner_email && (
+                          <div className="flex items-center gap-1 mt-0.5">
+                            <Mail className="h-2.5 w-2.5 text-muted-foreground flex-shrink-0" />
+                            <span className="text-[11px] text-muted-foreground truncate max-w-[160px]" title={w.owner_email}>{w.owner_email}</span>
+                          </div>
+                        )}
                       </div>
                     </TableCell>
                     <TableCell>
-                      {w.owner_email ? (
-                        <div className="flex items-center gap-1.5">
-                          <Mail className="h-3 w-3 text-muted-foreground flex-shrink-0" />
-                          <span className="text-xs truncate max-w-[160px]" title={w.owner_email}>{w.owner_email}</span>
-                        </div>
-                      ) : <span className="text-xs text-muted-foreground">—</span>}
+                      <span className="text-xs">{w.owner_country || <span className="text-muted-foreground">—</span>}</span>
+                      {w.owner_team_size && (
+                        <div className="text-[11px] text-muted-foreground">{w.owner_team_size} ppl</div>
+                      )}
                     </TableCell>
                     <TableCell>
                       {w.phone_number ? (
-                        <div className="flex items-center gap-1.5">
-                          <Phone className="h-3 w-3 text-muted-foreground flex-shrink-0" />
-                          <span className="text-xs font-mono">{w.phone_number}</span>
+                        <div>
+                          <div className="flex items-center gap-1.5">
+                            <Phone className="h-3 w-3 text-muted-foreground flex-shrink-0" />
+                            <span className="text-xs font-mono">{w.phone_number}</span>
+                          </div>
+                          {w.phone_quality && (
+                            <Badge variant="outline" className="mt-0.5 text-[10px] h-4 px-1">
+                              Q: {w.phone_quality}
+                            </Badge>
+                          )}
                         </div>
-                      ) : <span className="text-xs text-muted-foreground">—</span>}
+                      ) : (
+                        <span className="text-xs text-muted-foreground">Not connected</span>
+                      )}
                     </TableCell>
                     <TableCell><AdminPlanBadge plan={w.plan_name || w.plan} /></TableCell>
                     <TableCell>
-                      <div className="flex gap-1.5">
+                      <div className="flex gap-1.5 flex-wrap">
                         <AdminStatusBadge status={w.is_suspended ? 'suspended' : (w.waba_status === 'active' ? 'active' : 'inactive')} />
                         {w.sending_paused && <AdminStatusBadge status="paused" />}
                       </div>
@@ -340,24 +372,31 @@ export default function AdminWorkspaces() {
                           <span className="text-xs capitalize text-amber-600">{w.waba_status}</span>
                         </div>
                       ) : (
-                        <span className="text-xs text-muted-foreground">Not connected</span>
+                        <span className="text-xs text-muted-foreground">—</span>
                       )}
                     </TableCell>
                     <TableCell className="text-right text-sm">{w.members_count}</TableCell>
-                    <TableCell className="text-right text-sm">{w.contacts_count.toLocaleString()}</TableCell>
-                    <TableCell className="text-xs text-muted-foreground">
-                      {new Date(w.created_at).toLocaleDateString()}
+                    <TableCell className="text-right text-sm">{(w.contacts_count || 0).toLocaleString()}</TableCell>
+                    <TableCell className="text-xs text-muted-foreground whitespace-nowrap">
+                      {w.owner_signup_at
+                        ? new Date(w.owner_signup_at).toLocaleDateString()
+                        : new Date(w.created_at).toLocaleDateString()}
+                    </TableCell>
+                    <TableCell className="text-xs text-muted-foreground whitespace-nowrap">
+                      {w.waba_connected_at
+                        ? new Date(w.waba_connected_at).toLocaleDateString()
+                        : <span className="text-muted-foreground/60">—</span>}
                     </TableCell>
                     <TableCell>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="sm" className="h-7 w-7 p-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <Button variant="ghost" size="sm" className="h-7 w-7 p-0">
                             <MoreHorizontal className="h-4 w-4" />
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                           <DropdownMenuItem onClick={() => navigate(`/control/workspaces/${w.workspace_id}`)}>
-                            <Eye className="h-3.5 w-3.5 mr-2" /> View workspace
+                            <Eye className="h-3.5 w-3.5 mr-2" /> Open workspace
                           </DropdownMenuItem>
                           <DropdownMenuItem onClick={() => handlePauseSending(w.workspace_id, !w.sending_paused)}>
                             {w.sending_paused ? <Play className="h-3.5 w-3.5 mr-2" /> : <Pause className="h-3.5 w-3.5 mr-2" />}
@@ -396,13 +435,14 @@ export default function AdminWorkspaces() {
                 ))}
                 {workspaces.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={isSuperAdmin ? 11 : 10} className="text-center py-8 text-muted-foreground">
+                    <TableCell colSpan={isSuperAdmin ? 13 : 12} className="text-center py-8 text-muted-foreground">
                       No workspaces found
                     </TableCell>
                   </TableRow>
                 )}
               </TableBody>
             </Table>
+            </div>
           </CardContent>
         </Card>
       )}
