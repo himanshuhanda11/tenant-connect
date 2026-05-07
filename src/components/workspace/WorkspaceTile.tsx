@@ -66,9 +66,22 @@ export default function WorkspaceTile({ workspace: w, onSelect, onRename, onMana
   const initial = w.name.trim().charAt(0).toUpperCase() || 'W';
   const gradient = pickGradient(w.name);
   const isConnected = w.status === 'connected';
-  const lastActiveLabel = w.lastActive
-    ? new Date(w.lastActive).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
-    : '—';
+  const lastActiveLabel = (() => {
+    if (!w.lastActive) return '—';
+    const d = new Date(w.lastActive);
+    if (isNaN(d.getTime())) return '—';
+    const diffMs = Date.now() - d.getTime();
+    const sec = Math.floor(diffMs / 1000);
+    if (sec < 60) return 'now';
+    const min = Math.floor(sec / 60);
+    if (min < 60) return `${min}m`;
+    const hr = Math.floor(min / 60);
+    if (hr < 24) return `${hr}h`;
+    const day = Math.floor(hr / 24);
+    if (day < 7) return `${day}d`;
+    if (day < 30) return `${Math.floor(day / 7)}w`;
+    return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+  })();
 
   return (
     <motion.div

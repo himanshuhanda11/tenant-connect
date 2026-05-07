@@ -184,16 +184,18 @@ export default function SelectWorkspace() {
       try {
         const enriched: WorkspaceEnriched[] = await Promise.all(
           tenants.map(async (tenant) => {
-            const [phoneCountRes, phonesRes, memberCountRes, messagesThisWeekRes] = await Promise.all([
+            const [phoneCountRes, phonesRes, memberCountRes, messagesThisWeekRes, lastMessageRes] = await Promise.all([
               supabase.from('phone_numbers').select('*', { count: 'exact', head: true }).eq('tenant_id', tenant.id),
               supabase.from('phone_numbers').select('status, display_number, verified_name, phone_number_id, waba_account_id').eq('tenant_id', tenant.id).eq('status', 'connected').limit(1),
               supabase.from('tenant_members').select('*', { count: 'exact', head: true }).eq('tenant_id', tenant.id),
               supabase.from('messages').select('*', { count: 'exact', head: true }).eq('tenant_id', tenant.id).gte('created_at', weekAgoIso),
+              supabase.from('messages').select('created_at').eq('tenant_id', tenant.id).order('created_at', { ascending: false }).limit(1).maybeSingle(),
             ]);
             const phoneCount = phoneCountRes.count ?? 0;
             const phones = phonesRes.data ?? [];
             const memberCount = memberCountRes.count ?? 0;
             const messagesThisWeek = messagesThisWeekRes.count ?? 0;
+            const lastMessageAt = (lastMessageRes as any)?.data?.created_at as string | undefined;
             let status: 'connected' | 'setup' | 'attention' = 'setup';
             if (phones.length > 0) status = 'connected';
 
@@ -228,7 +230,7 @@ export default function SelectWorkspace() {
               memberCount,
               status,
               messagesThisWeek,
-              lastActive: tenant.updated_at || tenant.created_at,
+              lastActive: lastMessageAt || tenant.updated_at || tenant.created_at,
             };
           })
         );
