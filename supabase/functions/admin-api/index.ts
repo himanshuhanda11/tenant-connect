@@ -108,56 +108,76 @@ Deno.serve(async (req: Request) => {
       // Enrich with owner email, phone number, WABA status
       const workspaceIds = (data || []).map((w: any) => w.workspace_id);
       
-      // Owner emails - manual join since no FK between tenant_members and profiles
-      let ownerMap: Record<string, string> = {};
+      // Owner profiles - manual join since no FK between tenant_members and profiles
+      let ownerMap: Record<string, any> = {};
       if (workspaceIds.length > 0) {
         const { data: owners } = await sb.from("tenant_members")
-          .select("tenant_id, user_id, role")
+          .select("tenant_id, user_id, role, created_at")
           .eq("role", "owner")
           .in("tenant_id", workspaceIds);
         const ownerUserIds = (owners || []).map((o: any) => o.user_id).filter(Boolean);
-        let profileMap: Record<string, string> = {};
+        let profileMap: Record<string, any> = {};
         if (ownerUserIds.length > 0) {
           const { data: profiles } = await sb.from("profiles")
-            .select("id, email")
-            .in("id", ownerUserIds);
-          for (const p of profiles || []) {
-            profileMap[p.id] = p.email || '';
+            .select("id, email, full_name, company_name, website_url, country, phone_number, industry, team_size, timezone, created_at");
+          for (const p of (profiles || []).filter((p: any) => ownerUserIds.includes(p.id))) {
+            profileMap[p.id] = p;
           }
         }
         for (const o of owners || []) {
-          if (!ownerMap[o.tenant_id]) ownerMap[o.tenant_id] = profileMap[o.user_id] || '';
+          if (!ownerMap[o.tenant_id]) ownerMap[o.tenant_id] = profileMap[o.user_id] || null;
         }
       }
 
-      // Phone numbers
-      let phoneMap: Record<string, string> = {};
+      // Phone numbers (latest per tenant)
+      let phoneMap: Record<string, any> = {};
       if (workspaceIds.length > 0) {
         const { data: phones } = await sb.from("phone_numbers")
-          .select("tenant_id, display_number")
-          .in("tenant_id", workspaceIds);
+          .select("tenant_id, display_number, created_at, status, quality_rating")
+          .in("tenant_id", workspaceIds)
+          .order("created_at", { ascending: false });
         for (const p of phones || []) {
-          if (!phoneMap[p.tenant_id]) phoneMap[p.tenant_id] = p.display_number || '';
+          if (!phoneMap[p.tenant_id]) phoneMap[p.tenant_id] = p;
         }
       }
 
-      // WABA status
-      let wabaMap: Record<string, string> = {};
+      // WABA status (latest per tenant) — gives WABA "connected" date
+      let wabaMap: Record<string, any> = {};
       if (workspaceIds.length > 0) {
         const { data: wabas } = await sb.from("waba_accounts")
-          .select("tenant_id, status")
-          .in("tenant_id", workspaceIds);
+          .select("tenant_id, status, created_at, name")
+          .in("tenant_id", workspaceIds)
+          .order("created_at", { ascending: false });
         for (const w of wabas || []) {
-          if (!wabaMap[w.tenant_id]) wabaMap[w.tenant_id] = w.status || '';
+          if (!wabaMap[w.tenant_id]) wabaMap[w.tenant_id] = w;
         }
       }
 
-      const enriched = (data || []).map((w: any) => ({
-        ...w,
-        owner_email: ownerMap[w.workspace_id] || null,
-        phone_number: phoneMap[w.workspace_id] || null,
-        waba_status: wabaMap[w.workspace_id] || null,
-      }));
+      const enriched = (data || []).map((w: any) => {
+        const owner = ownerMap[w.workspace_id];
+        const phone = phoneMap[w.workspace_id];
+        const waba = wabaMap[w.workspace_id];
+        return {
+          ...w,
+          owner_email: owner?.email || null,
+          owner_full_name: owner?.full_name || null,
+          owner_company_name: owner?.company_name || null,
+          owner_website_url: owner?.website_url || null,
+          owner_country: owner?.country || null,
+          owner_phone: owner?.phone_number || null,
+          owner_industry: owner?.industry || null,
+          owner_team_size: owner?.team_size || null,
+          owner_timezone: owner?.timezone || null,
+          owner_signup_at: owner?.created_at || null,
+          phone_number: phone?.display_number || null,
+          phone_status: phone?.status || null,
+          phone_quality: phone?.quality_rating || null,
+          phone_connected_at: phone?.created_at || null,
+          waba_status: waba?.status || null,
+          waba_name: waba?.name || null,
+          waba_connected_at: waba?.created_at || null,
+        };
+      });
 
       return new Response(JSON.stringify({ workspaces: enriched, total: count, page, limit }), {
         headers: { ...corsHeaders, "content-type": "application/json" },
