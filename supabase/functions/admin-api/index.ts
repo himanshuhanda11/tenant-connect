@@ -258,7 +258,7 @@ Deno.serve(async (req: Request) => {
         };
       });
 
-      return new Response(JSON.stringify({ workspaces: enriched, total: count, page, limit }), {
+      return new Response(JSON.stringify({ workspaces: enriched, total: count, page, limit, counts }), {
         headers: { ...corsHeaders, "content-type": "application/json" },
       });
     }
