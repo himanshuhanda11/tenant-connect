@@ -442,6 +442,20 @@ Deno.serve(async (req: Request) => {
       }), { headers: { ...corsHeaders, "content-type": "application/json" } });
     }
 
+    // Guard: any /workspaces/:id/* mutation on a synthetic "signup:<uuid>" row
+    // (orphan signups with no tenant yet) — only the /delete handler knows how
+    // to handle these. Reject everything else with a clear 400 so we never pass
+    // the non-UUID into a UUID column and 500.
+    {
+      const m = path.match(/^workspaces\/([^/]+)\/([^/]+)$/);
+      if (req.method === "POST" && m && m[1].startsWith("signup:") && m[2] !== "delete") {
+        return new Response(
+          JSON.stringify({ error: "This signup has no workspace yet — only delete/archive is supported." }),
+          { status: 400, headers: { ...corsHeaders, "content-type": "application/json" } },
+        );
+      }
+    }
+
     // POST /workspaces/:id/update
     if (req.method === "POST" && path.match(/^workspaces\/[^/]+\/update$/)) {
       const workspaceId = path.split("/")[1];
