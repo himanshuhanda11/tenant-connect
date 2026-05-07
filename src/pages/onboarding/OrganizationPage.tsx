@@ -143,24 +143,33 @@ export default function OrganizationPage() {
         if (matchByTz) { setCountry(matchByTz.code); setDialCode(matchByTz.dial); }
       } catch {}
 
-      try {
-        const res = await fetch('https://ipapi.co/json/');
-        if (res.ok) {
-          const j = await res.json();
-          const cc = (j.country_code || '').toUpperCase();
-          const match = COUNTRIES.find(c => c.code === cc);
-          if (match) {
-            setCountry(prev => prev || match.code);
-            setDialCode(match.dial);
-            if (j.timezone) setTimezone(j.timezone);
-          }
-        }
-      } catch {}
-
+      // Stop blocking the UI immediately — geo lookup runs in the background.
       setIsCheckingStep(false);
+
+      // Background geo enrichment with a 2s timeout so it never blocks the page.
+      (async () => {
+        try {
+          const ctrl = new AbortController();
+          const timer = setTimeout(() => ctrl.abort(), 2000);
+          const res = await fetch('https://ipapi.co/json/', { signal: ctrl.signal });
+          clearTimeout(timer);
+          if (res.ok) {
+            const j = await res.json();
+            const cc = (j.country_code || '').toUpperCase();
+            const match = COUNTRIES.find(c => c.code === cc);
+            if (match) {
+              setCountry(prev => prev || match.code);
+              setDialCode(prev => prev || match.dial);
+              if (j.timezone) setTimezone(prev => prev || j.timezone);
+            }
+          }
+        } catch {}
+      })();
     };
     init();
-  }, [user, authLoading, navigate]);
+    // Run once when auth resolves; ignore later identity-stable user refreshes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [authLoading, user?.id]);
 
   useEffect(() => {
     if (selectedCountry) {
