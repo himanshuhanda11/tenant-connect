@@ -15,6 +15,8 @@ import { toast } from '@/hooks/use-toast';
 import { AdminStatusBadge, AdminPlanBadge } from '@/components/admin/AdminStatusBadge';
 import { AdminWorkspaceCard } from '@/components/admin/AdminWorkspaceCard';
 import { AdminSavedViews, defaultViews, type SavedView } from '@/components/admin/AdminSavedViews';
+import { OnboardingTimeline } from '@/components/admin/OnboardingTimeline';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { useIsMobile } from '@/hooks/use-mobile';
 import {
   Search, Loader2, Ban, Play, Pause, ChevronLeft, ChevronRight,
