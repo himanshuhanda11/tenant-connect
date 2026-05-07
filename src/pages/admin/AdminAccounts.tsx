@@ -75,7 +75,7 @@ const fmtDateTime = (s?: string | null) =>
   s ? new Date(s).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—';
 
 export default function AdminAccounts() {
-  const { get } = useAdminApi();
+  const { get, post } = useAdminApi();
   const navigate = useNavigate();
   const [rows, setRows] = useState<AccountRow[]>([]);
   const [total, setTotal] = useState(0);
@@ -84,6 +84,65 @@ export default function AdminAccounts() {
   const [loading, setLoading] = useState(true);
   const [stageFilter, setStageFilter] = useState<number | null>(null);
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
+  const [confirmDelete, setConfirmDelete] = useState<AccountRow | null>(null);
+  const [busyId, setBusyId] = useState<string | null>(null);
+
+  const doResetPassword = async (r: AccountRow) => {
+    setBusyId(r.user_id);
+    try {
+      const res = await post(`users/${r.user_id}/reset-password`, {});
+      if (res?.reset_link) {
+        try { await navigator.clipboard.writeText(res.reset_link); } catch { /* ignore */ }
+        toast({ title: 'Reset link generated', description: 'Copied to clipboard.' });
+      } else {
+        toast({ title: 'Reset link sent' });
+      }
+    } catch (e: any) {
+      toast({ title: 'Failed', description: e.message, variant: 'destructive' });
+    } finally { setBusyId(null); }
+  };
+
+  const doChangeEmail = async (r: AccountRow) => {
+    const next = window.prompt(`New email for ${r.email || r.user_id}:`, r.email || '');
+    if (!next || next === r.email) return;
+    setBusyId(r.user_id);
+    try {
+      await post(`users/${r.user_id}/update-email`, { email: next });
+      toast({ title: 'Email updated', description: next });
+      load();
+    } catch (e: any) {
+      toast({ title: 'Failed', description: e.message, variant: 'destructive' });
+    } finally { setBusyId(null); }
+  };
+
+  const doChangePhone = async (r: AccountRow) => {
+    const next = window.prompt(`New phone (E.164, e.g. +14155551234) for ${r.email || r.user_id}:`, r.phone || '');
+    if (!next || next === r.phone) return;
+    setBusyId(r.user_id);
+    try {
+      await post(`users/${r.user_id}/update-phone`, { phone: next });
+      toast({ title: 'Phone updated', description: next });
+      load();
+    } catch (e: any) {
+      toast({ title: 'Failed', description: e.message, variant: 'destructive' });
+    } finally { setBusyId(null); }
+  };
+
+  const doDeleteUser = async (r: AccountRow) => {
+    setBusyId(r.user_id);
+    try {
+      const res = await post(`users/${r.user_id}/delete`, { reason: 'Admin hard delete from /control/accounts' });
+      toast({
+        title: 'Account permanently deleted',
+        description: `Removed ${res?.deleted_workspaces || 0} workspace(s) + auth user.`,
+      });
+      setConfirmDelete(null);
+      load();
+    } catch (e: any) {
+      toast({ title: 'Delete failed', description: e.message, variant: 'destructive' });
+    } finally { setBusyId(null); }
+  };
+
 
   const load = async () => {
     setLoading(true);
