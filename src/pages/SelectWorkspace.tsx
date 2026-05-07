@@ -196,11 +196,30 @@ export default function SelectWorkspace() {
             const messagesThisWeek = messagesThisWeekRes.count ?? 0;
             let status: 'connected' | 'setup' | 'attention' = 'setup';
             if (phones.length > 0) status = 'connected';
+
+            // Fetch WhatsApp Business profile picture for connected workspaces
+            let waProfilePic: string | undefined;
+            const connectedPhone = phones?.[0] as any;
+            if (status === 'connected' && connectedPhone?.phone_number_id && connectedPhone?.waba_account_id) {
+              try {
+                const { data: profileRes } = await supabase.functions.invoke('whatsapp-profile', {
+                  body: {
+                    action: 'get',
+                    phone_number_id: connectedPhone.phone_number_id,
+                    waba_account_id: connectedPhone.waba_account_id,
+                  },
+                });
+                waProfilePic = profileRes?.profile?.profile_picture_url;
+              } catch (e) {
+                console.warn('Could not fetch WA profile pic for tenant', tenant.id, e);
+              }
+            }
+
             return {
               id: tenant.id,
               name: tenant.name,
               slug: tenant.slug,
-              logo_url: tenant.logo_url,
+              logo_url: waProfilePic || tenant.logo_url,
               role: tenant.role,
               created_at: tenant.created_at,
               phoneCount,
