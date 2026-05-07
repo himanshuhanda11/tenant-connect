@@ -6941,6 +6941,7 @@ export type Database = {
       profiles: {
         Row: {
           avatar_url: string | null
+          company_name: string | null
           country: string | null
           created_at: string
           email: string
@@ -6948,12 +6949,16 @@ export type Database = {
           id: string
           industry: string | null
           onboarding_step: string | null
+          phone_number: string | null
           primary_goal: string | null
           team_size: string | null
+          timezone: string | null
           updated_at: string
+          website_url: string | null
         }
         Insert: {
           avatar_url?: string | null
+          company_name?: string | null
           country?: string | null
           created_at?: string
           email: string
@@ -6961,12 +6966,16 @@ export type Database = {
           id: string
           industry?: string | null
           onboarding_step?: string | null
+          phone_number?: string | null
           primary_goal?: string | null
           team_size?: string | null
+          timezone?: string | null
           updated_at?: string
+          website_url?: string | null
         }
         Update: {
           avatar_url?: string | null
+          company_name?: string | null
           country?: string | null
           created_at?: string
           email?: string
@@ -6974,9 +6983,12 @@ export type Database = {
           id?: string
           industry?: string | null
           onboarding_step?: string | null
+          phone_number?: string | null
           primary_goal?: string | null
           team_size?: string | null
+          timezone?: string | null
           updated_at?: string
+          website_url?: string | null
         }
         Relationships: []
       }
