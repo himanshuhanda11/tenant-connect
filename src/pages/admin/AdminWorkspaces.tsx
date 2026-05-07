@@ -325,10 +325,19 @@ export default function AdminWorkspaces() {
                     )}
                     <TableCell>
                       <button
-                        onClick={() => navigate(`/control/workspaces/${w.workspace_id}`)}
+                        onClick={() => {
+                          if (!String(w.workspace_id).startsWith('signup:')) {
+                            navigate(`/control/workspaces/${w.workspace_id}`);
+                          }
+                        }}
                         className="text-left group/ws"
                       >
-                        <div className="font-medium text-sm group-hover/ws:text-primary transition-colors">{w.workspace_name}</div>
+                        <div className="font-medium text-sm group-hover/ws:text-primary transition-colors flex items-center gap-1.5">
+                          {w.workspace_name}
+                          {String(w.workspace_id).startsWith('signup:') && (
+                            <Badge variant="outline" className="text-[9px] h-4 px-1 border-amber-300 text-amber-700">Onboarding</Badge>
+                          )}
+                        </div>
                         <div className="flex items-center gap-1">
                           <span className="text-[11px] text-muted-foreground">/{w.slug}</span>
                           <span
