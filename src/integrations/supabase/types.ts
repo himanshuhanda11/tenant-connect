@@ -14691,12 +14691,20 @@ export type Database = {
     Views: {
       platform_kpi_overview: {
         Row: {
+          accounts_last_30d: number | null
+          accounts_with_workspace: number | null
           active_workspaces: number | null
+          completed_accounts: number | null
           connected_phone_numbers: number | null
+          daily_conversations: number | null
+          daily_messages: number | null
+          revenue_30d_cents: number | null
           suspended_workspaces: number | null
+          total_accounts: number | null
           total_contacts: number | null
           total_conversations: number | null
           total_phone_numbers: number | null
+          total_revenue_cents: number | null
           total_users: number | null
           total_workspaces: number | null
         }
