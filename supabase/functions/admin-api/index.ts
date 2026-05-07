@@ -101,6 +101,15 @@ Deno.serve(async (req: Request) => {
       const limit = 25;
       const offset = (page - 1) * limit;
 
+      // Workspaces with at least one phone in 'pending' status (Meta review / not yet connected)
+      const { data: pendingPhones } = await sb
+        .from("phone_numbers")
+        .select("tenant_id, status")
+        .in("status", ["pending", "pending_review", "in_review", "verifying"]);
+      const pendingTenantIds = Array.from(
+        new Set((pendingPhones || []).map((p: any) => p.tenant_id).filter(Boolean))
+      );
+
       // Base builder so we apply the same filters to data + counts consistently
       const buildQuery = (selectExpr: string, opts: { count?: boolean } = {}) => {
         let q: any = opts.count
@@ -112,8 +121,12 @@ Deno.serve(async (req: Request) => {
             q = q.eq("is_suspended", true);
             break;
           case "pending-numbers":
-            // workspaces that have NO connected phone yet
-            q = q.eq("phone_numbers_count", 0);
+            // Workspaces that have a phone whose Meta status is still pending review
+            if (pendingTenantIds.length === 0) {
+              q = q.eq("workspace_id", "00000000-0000-0000-0000-000000000000");
+            } else {
+              q = q.in("workspace_id", pendingTenantIds);
+            }
             break;
           case "pro":
             q = q.eq("plan", "pro");
@@ -163,7 +176,9 @@ Deno.serve(async (req: Request) => {
       ] = await Promise.all([
         buildCount((q) => q),
         buildCount((q) => q.eq("is_suspended", true)),
-        buildCount((q) => q.eq("phone_numbers_count", 0)),
+        pendingTenantIds.length
+          ? buildCount((q) => q.in("workspace_id", pendingTenantIds))
+          : Promise.resolve(0),
         buildCount((q) => q.eq("plan", "pro")),
         buildCount((q) => q.in("plan", ["pro", "business"])),
         buildCount((q) => q.eq("sending_paused", true)),
