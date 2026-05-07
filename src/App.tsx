@@ -153,6 +153,7 @@ const AdminLayout = lazyWithRetry(() => import("./pages/admin/AdminLayout"));
 const AdminLeads = lazyWithRetry(() => import("./pages/admin/AdminLeads"));
 const AdminOverview = lazyWithRetry(() => import("./pages/admin/AdminOverview"));
 const AdminWorkspaces = lazyWithRetry(() => import("./pages/admin/AdminWorkspaces"));
+const AdminAccounts = lazyWithRetry(() => import("./pages/admin/AdminAccounts"));
 const AdminAuditLogs = lazyWithRetry(() => import("./pages/admin/AdminAuditLogs"));
 const AdminWorkspaceDetail = lazyWithRetry(() => import("./pages/admin/AdminWorkspaceDetail"));
 const AdminTeam = lazyWithRetry(() => import("./pages/admin/AdminTeam"));
@@ -356,6 +357,7 @@ const App = () => (
                     <Route path="/control" element={<AdminLayout />}>
                       <Route index element={<AdminOverview />} />
                       <Route path="workspaces" element={<AdminWorkspaces />} />
+                      <Route path="accounts" element={<AdminAccounts />} />
                       <Route path="workspaces/:id" element={<AdminWorkspaceDetail />} />
                       <Route path="billing" element={<AdminBilling />} />
                       <Route path="phone-numbers" element={<AdminPhoneNumbers />} />
