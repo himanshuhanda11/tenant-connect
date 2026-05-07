@@ -230,7 +230,7 @@ export default function SelectWorkspace() {
               memberCount,
               status,
               messagesThisWeek,
-              lastActive: tenant.updated_at || tenant.created_at,
+              lastActive: lastMessageAt || tenant.updated_at || tenant.created_at,
             };
           })
         );
