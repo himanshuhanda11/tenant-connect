@@ -8,6 +8,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { TenantProvider } from "@/contexts/TenantContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import ScrollToTop from "@/components/ScrollToTop";
+import RoutePrefetcher from "@/components/RoutePrefetcher";
 import Index from "./pages/Index";
 import { RequirePermission } from "@/components/auth/RequirePermission";
 import {
@@ -191,6 +192,7 @@ const App = () => (
             <TenantProvider>
               <ThemeProvider>
                 <ScrollToTop />
+                <RoutePrefetcher />
                 <Suspense fallback={<RouteLoader />}>
                   <Routes>
                     <Route path="/" element={<Index />} />
