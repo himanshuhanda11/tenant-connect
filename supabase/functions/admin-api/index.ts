@@ -91,6 +91,153 @@ Deno.serve(async (req: Request) => {
       });
     }
 
+    // GET /accounts — list ALL signups from auth.users (source of truth),
+    // merged with profiles + owned workspaces + team-member sub-accounts.
+    if (req.method === "GET" && path === "accounts") {
+      await requirePlatformRole(req, ["super_admin", "support"]);
+      const sb = adminClient();
+      const search = (url.searchParams.get("search") || "").toLowerCase().trim();
+      const page = parseInt(url.searchParams.get("page") || "1");
+      const limit = 50;
+
+      // 1) Pull a page of auth users (admin-listUsers paginates by 1000 max)
+      const { data: authPage, error: authErr } = await sb.auth.admin.listUsers({
+        page: 1, perPage: 1000,
+      });
+      if (authErr) throw new Error(authErr.message);
+      let users = authPage?.users || [];
+
+      // Search filter (email / name / phone)
+      if (search) {
+        users = users.filter((u: any) => {
+          const meta = u.user_metadata || {};
+          const hay = [
+            u.email, u.phone, meta.full_name, meta.name, meta.company_name,
+          ].filter(Boolean).join(" ").toLowerCase();
+          return hay.includes(search);
+        });
+      }
+      // Sort newest first
+      users.sort((a: any, b: any) => (b.created_at || "").localeCompare(a.created_at || ""));
+
+      const total = users.length;
+      const offset = (page - 1) * limit;
+      const slice = users.slice(offset, offset + limit);
+      const userIds = slice.map((u: any) => u.id);
+
+      // 2) Profiles for these users
+      const profileMap: Record<string, any> = {};
+      if (userIds.length) {
+        const { data: profs } = await sb.from("profiles")
+          .select("id, email, full_name, company_name, country, phone_number, timezone, onboarding_step, created_at, step_signup_at, step_org_done_at, step_password_done_at, step_workspace_created_at, step_completed_at")
+          .in("id", userIds);
+        for (const p of profs || []) profileMap[p.id] = p;
+      }
+
+      // 3) All tenant memberships for these users → find owned workspaces
+      const wsByOwner: Record<string, any[]> = {};
+      const allTenantIds = new Set<string>();
+      if (userIds.length) {
+        const { data: members } = await sb.from("tenant_members")
+          .select("tenant_id, user_id, role")
+          .in("user_id", userIds);
+        for (const m of members || []) {
+          if (!wsByOwner[m.user_id]) wsByOwner[m.user_id] = [];
+          wsByOwner[m.user_id].push(m);
+          allTenantIds.add(m.tenant_id);
+        }
+      }
+      // Tenant directory
+      const tenantMap: Record<string, any> = {};
+      if (allTenantIds.size) {
+        const { data: tenants } = await sb.from("platform_workspace_directory")
+          .select("workspace_id, workspace_name, slug, plan, plan_name, is_suspended, sending_paused, members_count, contacts_count, conversations_count, created_at")
+          .in("workspace_id", Array.from(allTenantIds));
+        for (const t of tenants || []) tenantMap[t.workspace_id] = t;
+      }
+
+      // 4) Team members (sub-accounts) for each owned tenant
+      const tenantTeamMap: Record<string, any[]> = {};
+      if (allTenantIds.size) {
+        const { data: teamRows } = await sb.from("tenant_members")
+          .select("tenant_id, user_id, role, created_at")
+          .in("tenant_id", Array.from(allTenantIds));
+        const teamUserIds = Array.from(new Set((teamRows || []).map((r: any) => r.user_id)));
+        const teamProfMap: Record<string, any> = {};
+        if (teamUserIds.length) {
+          const { data: teamProfs } = await sb.from("profiles")
+            .select("id, email, full_name")
+            .in("id", teamUserIds);
+          for (const p of teamProfs || []) teamProfMap[p.id] = p;
+        }
+        for (const m of teamRows || []) {
+          if (!tenantTeamMap[m.tenant_id]) tenantTeamMap[m.tenant_id] = [];
+          const p = teamProfMap[m.user_id];
+          tenantTeamMap[m.tenant_id].push({
+            user_id: m.user_id,
+            role: m.role,
+            email: p?.email || null,
+            full_name: p?.full_name || null,
+            joined_at: m.created_at,
+          });
+        }
+      }
+
+      // 5) Build account rows
+      const accounts = slice.map((u: any) => {
+        const meta = u.user_metadata || {};
+        const p = profileMap[u.id];
+        const memberships = wsByOwner[u.id] || [];
+        const workspaces = memberships.map((m: any) => {
+          const t = tenantMap[m.tenant_id];
+          return {
+            workspace_id: m.tenant_id,
+            workspace_name: t?.workspace_name || "(Unnamed)",
+            role: m.role,
+            plan: t?.plan || "—",
+            plan_name: t?.plan_name || null,
+            is_suspended: t?.is_suspended || false,
+            members_count: t?.members_count || 0,
+            contacts_count: t?.contacts_count || 0,
+            conversations_count: t?.conversations_count || 0,
+            created_at: t?.created_at || null,
+            sub_accounts: tenantTeamMap[m.tenant_id] || [],
+          };
+        });
+        const hasWorkspace = workspaces.length > 0;
+        const hasPaidPlan = workspaces.some((w: any) =>
+          w.plan && !["free", "—", "trial"].includes(String(w.plan).toLowerCase()));
+        return {
+          user_id: u.id,
+          email: u.email || p?.email || null,
+          phone: u.phone || p?.phone_number || null,
+          full_name: p?.full_name || meta.full_name || meta.name || null,
+          company_name: p?.company_name || meta.company_name || null,
+          country: p?.country || null,
+          timezone: p?.timezone || null,
+          created_at: u.created_at,
+          last_sign_in_at: u.last_sign_in_at || null,
+          email_confirmed_at: u.email_confirmed_at || null,
+          provider: u.app_metadata?.provider || "email",
+          has_profile: !!p,
+          onboarding_step: p?.onboarding_step || (u.email_confirmed_at ? "signup" : "unconfirmed"),
+          onboarding_timeline: {
+            signup_at: p?.step_signup_at || u.created_at,
+            org_done_at: p?.step_org_done_at,
+            password_done_at: p?.step_password_done_at,
+            workspace_created_at: p?.step_workspace_created_at,
+            completed_at: p?.step_completed_at,
+          },
+          workspaces,
+          stage: hasPaidPlan ? 3 : hasWorkspace ? 1 : 0,
+        };
+      });
+
+      return new Response(JSON.stringify({ accounts, total, page, limit }), {
+        headers: { ...corsHeaders, "content-type": "application/json" },
+      });
+    }
+
     // GET /workspaces
     if (req.method === "GET" && path === "workspaces") {
       const actor = await requirePlatformRole(req, ["super_admin", "support"]);
