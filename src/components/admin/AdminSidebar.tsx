@@ -6,7 +6,7 @@ import { Separator } from '@/components/ui/separator';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import {
   Shield, LayoutDashboard, Building2, ScrollText, Users, CreditCard,
-  ChevronLeft, ChevronRight, ArrowLeft, Settings, Siren, Phone, Inbox
+  ChevronLeft, ChevronRight, ArrowLeft, Settings, Siren, Phone, Inbox, UserCircle2
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -19,6 +19,7 @@ interface AdminSidebarProps {
 
 const navItems = [
   { to: '/control', icon: LayoutDashboard, label: 'Overview', end: true },
+  { to: '/control/accounts', icon: UserCircle2, label: 'Accounts' },
   { to: '/control/workspaces', icon: Building2, label: 'Workspaces' },
   { to: '/control/phone-numbers', icon: Phone, label: 'Phone Numbers' },
   { to: '/control/billing', icon: CreditCard, label: 'Billing' },
