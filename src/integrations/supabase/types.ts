@@ -6951,6 +6951,11 @@ export type Database = {
           onboarding_step: string | null
           phone_number: string | null
           primary_goal: string | null
+          step_completed_at: string | null
+          step_org_done_at: string | null
+          step_password_done_at: string | null
+          step_signup_at: string | null
+          step_workspace_created_at: string | null
           team_size: string | null
           timezone: string | null
           updated_at: string
@@ -6968,6 +6973,11 @@ export type Database = {
           onboarding_step?: string | null
           phone_number?: string | null
           primary_goal?: string | null
+          step_completed_at?: string | null
+          step_org_done_at?: string | null
+          step_password_done_at?: string | null
+          step_signup_at?: string | null
+          step_workspace_created_at?: string | null
           team_size?: string | null
           timezone?: string | null
           updated_at?: string
@@ -6985,6 +6995,11 @@ export type Database = {
           onboarding_step?: string | null
           phone_number?: string | null
           primary_goal?: string | null
+          step_completed_at?: string | null
+          step_org_done_at?: string | null
+          step_password_done_at?: string | null
+          step_signup_at?: string | null
+          step_workspace_created_at?: string | null
           team_size?: string | null
           timezone?: string | null
           updated_at?: string
