@@ -6,9 +6,19 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
+  DropdownMenu, DropdownMenuTrigger, DropdownMenuContent,
+  DropdownMenuItem, DropdownMenuSeparator, DropdownMenuLabel,
+} from '@/components/ui/dropdown-menu';
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { toast } from '@/hooks/use-toast';
+import {
   Loader2, Search, UserCircle2, Building2, Phone, CreditCard,
   CheckCircle2, ChevronRight, RefreshCw, ArrowRight, Mail, Users,
-  ChevronDown, ShieldAlert, Sparkles, Globe2,
+  ChevronDown, ShieldAlert, Sparkles, Globe2, MoreVertical, KeyRound,
+  AtSign, PhoneCall, Trash2, Copy,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -65,7 +75,7 @@ const fmtDateTime = (s?: string | null) =>
   s ? new Date(s).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—';
 
 export default function AdminAccounts() {
-  const { get } = useAdminApi();
+  const { get, post } = useAdminApi();
   const navigate = useNavigate();
   const [rows, setRows] = useState<AccountRow[]>([]);
   const [total, setTotal] = useState(0);
@@ -74,6 +84,65 @@ export default function AdminAccounts() {
   const [loading, setLoading] = useState(true);
   const [stageFilter, setStageFilter] = useState<number | null>(null);
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
+  const [confirmDelete, setConfirmDelete] = useState<AccountRow | null>(null);
+  const [busyId, setBusyId] = useState<string | null>(null);
+
+  const doResetPassword = async (r: AccountRow) => {
+    setBusyId(r.user_id);
+    try {
+      const res = await post(`users/${r.user_id}/reset-password`, {});
+      if (res?.reset_link) {
+        try { await navigator.clipboard.writeText(res.reset_link); } catch { /* ignore */ }
+        toast({ title: 'Reset link generated', description: 'Copied to clipboard.' });
+      } else {
+        toast({ title: 'Reset link sent' });
+      }
+    } catch (e: any) {
+      toast({ title: 'Failed', description: e.message, variant: 'destructive' });
+    } finally { setBusyId(null); }
+  };
+
+  const doChangeEmail = async (r: AccountRow) => {
+    const next = window.prompt(`New email for ${r.email || r.user_id}:`, r.email || '');
+    if (!next || next === r.email) return;
+    setBusyId(r.user_id);
+    try {
+      await post(`users/${r.user_id}/update-email`, { email: next });
+      toast({ title: 'Email updated', description: next });
+      load();
+    } catch (e: any) {
+      toast({ title: 'Failed', description: e.message, variant: 'destructive' });
+    } finally { setBusyId(null); }
+  };
+
+  const doChangePhone = async (r: AccountRow) => {
+    const next = window.prompt(`New phone (E.164, e.g. +14155551234) for ${r.email || r.user_id}:`, r.phone || '');
+    if (!next || next === r.phone) return;
+    setBusyId(r.user_id);
+    try {
+      await post(`users/${r.user_id}/update-phone`, { phone: next });
+      toast({ title: 'Phone updated', description: next });
+      load();
+    } catch (e: any) {
+      toast({ title: 'Failed', description: e.message, variant: 'destructive' });
+    } finally { setBusyId(null); }
+  };
+
+  const doDeleteUser = async (r: AccountRow) => {
+    setBusyId(r.user_id);
+    try {
+      const res = await post(`users/${r.user_id}/delete`, { reason: 'Admin hard delete from /control/accounts' });
+      toast({
+        title: 'Account permanently deleted',
+        description: `Removed ${res?.deleted_workspaces || 0} workspace(s) + auth user.`,
+      });
+      setConfirmDelete(null);
+      load();
+    } catch (e: any) {
+      toast({ title: 'Delete failed', description: e.message, variant: 'destructive' });
+    } finally { setBusyId(null); }
+  };
+
 
   const load = async () => {
     setLoading(true);
@@ -214,9 +283,8 @@ export default function AdminAccounts() {
                 className="rounded-2xl border-border/50 overflow-hidden transition-all hover:shadow-md hover:border-primary/30"
               >
                 {/* Main row */}
-                <button
+                <div
                   onClick={() => row.workspaces.length > 0 && toggle(row.user_id)}
-                  disabled={row.workspaces.length === 0}
                   className={cn(
                     'w-full text-left p-4 flex items-center gap-4',
                     row.workspaces.length > 0 && 'cursor-pointer hover:bg-muted/30'
@@ -277,12 +345,46 @@ export default function AdminAccounts() {
                     {STAGES[row.stage].label}
                   </Badge>
 
+                  {/* Actions menu */}
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                      <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg flex-shrink-0" disabled={busyId === row.user_id}>
+                        {busyId === row.user_id
+                          ? <Loader2 className="h-4 w-4 animate-spin" />
+                          : <MoreVertical className="h-4 w-4" />}
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-56" onClick={(e) => e.stopPropagation()}>
+                      <DropdownMenuLabel className="text-xs truncate">{row.email || row.user_id.slice(0, 8)}</DropdownMenuLabel>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={() => doResetPassword(row)}>
+                        <KeyRound className="h-4 w-4 mr-2" /> Reset password
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => doChangeEmail(row)}>
+                        <AtSign className="h-4 w-4 mr-2" /> Change email
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => doChangePhone(row)}>
+                        <PhoneCall className="h-4 w-4 mr-2" /> Change phone
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => { navigator.clipboard.writeText(row.user_id); toast({ title: 'User ID copied' }); }}>
+                        <Copy className="h-4 w-4 mr-2" /> Copy user ID
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem
+                        className="text-destructive focus:text-destructive"
+                        onClick={() => setConfirmDelete(row)}
+                      >
+                        <Trash2 className="h-4 w-4 mr-2" /> Delete account permanently
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+
                   {row.workspaces.length > 0 ? (
                     <ChevronDown className={cn('h-4 w-4 text-muted-foreground transition-transform flex-shrink-0', isOpen && 'rotate-180')} />
                   ) : (
                     <span className="w-4" />
                   )}
-                </button>
+                </div>
 
                 {/* Expanded: workspaces + sub-accounts */}
                 {isOpen && row.workspaces.length > 0 && (
@@ -355,6 +457,29 @@ export default function AdminAccounts() {
           </div>
         </div>
       )}
+
+      <AlertDialog open={!!confirmDelete} onOpenChange={(o) => !o && setConfirmDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Permanently delete this account?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will hard-delete <strong>{confirmDelete?.email || confirmDelete?.user_id}</strong>:
+              the auth user, profile, and all <strong>{confirmDelete?.workspaces.length || 0}</strong> owned workspace(s)
+              with their messages, contacts, campaigns and templates. This cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={(e) => { e.preventDefault(); if (confirmDelete) doDeleteUser(confirmDelete); }}
+            >
+              {busyId === confirmDelete?.user_id ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <Trash2 className="h-4 w-4 mr-1" />}
+              Delete permanently
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
