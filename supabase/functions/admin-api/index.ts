@@ -882,6 +882,33 @@ Deno.serve(async (req: Request) => {
       const deleteType = body.type || 'soft';
       const reason = body.reason || '';
 
+      // Orphan signup rows have synthetic IDs like "signup:<profile_uuid>" — they
+      // are not tenants. Handle them by clearing the related profile data only.
+      if (workspaceId.startsWith("signup:")) {
+        const profileId = workspaceId.slice("signup:".length);
+        if (deleteType === 'soft') {
+          await sb.from("profiles").update({
+            onboarding_step: 'archived',
+          } as any).eq("id", profileId);
+          await logAction(sb, actor, "PLATFORM_SIGNUP_ARCHIVED", {
+            workspace_id: null, target_table: "profiles", target_id: profileId,
+            note: reason || 'Signup archived',
+          });
+        } else {
+          // Hard delete the orphan signup record (profile + auth user remain managed elsewhere)
+          await sb.from("onboarding_events").delete().eq("user_id", profileId);
+          await sb.from("profiles").delete().eq("id", profileId);
+          await logAction(sb, actor, "PLATFORM_SIGNUP_DELETED", {
+            workspace_id: null, target_table: "profiles", target_id: profileId,
+            note: reason || 'Signup permanently deleted',
+          });
+        }
+        return new Response(JSON.stringify({ success: true, type: deleteType, signup: true }), {
+          headers: { ...corsHeaders, "content-type": "application/json" },
+        });
+      }
+
+
       if (deleteType === 'soft') {
         // Soft delete: suspend + mark as deleted
         const { error } = await sb.from("tenants").update({
