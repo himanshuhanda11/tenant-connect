@@ -6,9 +6,19 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
+  DropdownMenu, DropdownMenuTrigger, DropdownMenuContent,
+  DropdownMenuItem, DropdownMenuSeparator, DropdownMenuLabel,
+} from '@/components/ui/dropdown-menu';
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { toast } from '@/hooks/use-toast';
+import {
   Loader2, Search, UserCircle2, Building2, Phone, CreditCard,
   CheckCircle2, ChevronRight, RefreshCw, ArrowRight, Mail, Users,
-  ChevronDown, ShieldAlert, Sparkles, Globe2,
+  ChevronDown, ShieldAlert, Sparkles, Globe2, MoreVertical, KeyRound,
+  AtSign, PhoneCall, Trash2, Copy,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
