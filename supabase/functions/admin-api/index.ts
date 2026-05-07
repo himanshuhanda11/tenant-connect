@@ -909,12 +909,14 @@ Deno.serve(async (req: Request) => {
             note: reason || 'Signup archived',
           });
         } else {
-          // Hard delete the orphan signup record (profile + auth user remain managed elsewhere)
+          // Hard delete: remove onboarding events, profile, AND the auth user.
           await sb.from("onboarding_events").delete().eq("user_id", profileId);
           await sb.from("profiles").delete().eq("id", profileId);
+          const { error: authDelErr } = await sb.auth.admin.deleteUser(profileId);
+          if (authDelErr) console.error("[admin-api] auth.deleteUser failed:", authDelErr.message);
           await logAction(sb, actor, "PLATFORM_SIGNUP_DELETED", {
-            workspace_id: null, target_table: "profiles", target_id: profileId,
-            note: reason || 'Signup permanently deleted',
+            workspace_id: null, target_table: "auth.users", target_id: profileId,
+            note: reason || 'Signup permanently deleted (profile + auth user)',
           });
         }
         return new Response(JSON.stringify({ success: true, type: deleteType, signup: true }), {

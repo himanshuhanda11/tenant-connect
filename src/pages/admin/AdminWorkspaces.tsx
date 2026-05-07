@@ -87,6 +87,36 @@ export default function AdminWorkspaces() {
   const [deleteReason, setDeleteReason] = useState('');
   const [planDialog, setPlanDialog] = useState<{ id: string; name: string; currentPlan: string } | null>(null);
   const [newPlan, setNewPlan] = useState('');
+  const [signupActions, setSignupActions] = useState<{ userId: string; email: string; name: string; action: 'reset' | 'email' | 'phone' } | null>(null);
+  const [signupInput, setSignupInput] = useState('');
+  const [signupResetLink, setSignupResetLink] = useState('');
+  const [signupSubmitting, setSignupSubmitting] = useState(false);
+
+  const handleSignupAction = async () => {
+    if (!signupActions) return;
+    setSignupSubmitting(true);
+    try {
+      if (signupActions.action === 'reset') {
+        const r = await post(`users/${signupActions.userId}/reset-password`, {});
+        setSignupResetLink(r.reset_link || '');
+        toast({ title: `Reset link generated for ${r.email}` });
+      } else if (signupActions.action === 'email') {
+        if (!signupInput.trim()) return;
+        await post(`users/${signupActions.userId}/update-email`, { email: signupInput.trim() });
+        toast({ title: 'Email updated' });
+        setSignupActions(null); setSignupInput('');
+      } else if (signupActions.action === 'phone') {
+        if (!signupInput.trim()) return;
+        await post(`users/${signupActions.userId}/update-phone`, { phone: signupInput.trim() });
+        toast({ title: 'Phone updated' });
+        setSignupActions(null); setSignupInput('');
+      }
+    } catch (e: any) {
+      toast({ title: 'Error', description: e.message, variant: 'destructive' });
+    } finally {
+      setSignupSubmitting(false);
+    }
+  };
 
   const isSuperAdmin = role === 'super_admin';
 
@@ -459,37 +489,65 @@ export default function AdminWorkspaces() {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => navigate(`/control/workspaces/${w.workspace_id}`)}>
-                            <Eye className="h-3.5 w-3.5 mr-2" /> Open workspace
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handlePauseSending(w.workspace_id, !w.sending_paused)}>
-                            {w.sending_paused ? <Play className="h-3.5 w-3.5 mr-2" /> : <Pause className="h-3.5 w-3.5 mr-2" />}
-                            {w.sending_paused ? 'Resume sending' : 'Pause sending'}
-                          </DropdownMenuItem>
-                          {isSuperAdmin && (
+                          {String(w.workspace_id).startsWith('signup:') ? (
                             <>
-                              <DropdownMenuSeparator />
-                              <DropdownMenuItem onClick={() => {
-                                setPlanDialog({ id: w.workspace_id, name: w.workspace_name, currentPlan: w.plan_name || w.plan });
-                                setNewPlan(w.plan || 'free');
-                              }}>
-                                <ArrowRightLeft className="h-3.5 w-3.5 mr-2" /> Change plan
+                              <DropdownMenuItem onClick={() => setSignupActions({ userId: String(w.workspace_id).slice('signup:'.length), email: w.owner_email || '', name: w.workspace_name, action: 'reset' })}>
+                                <Mail className="h-3.5 w-3.5 mr-2" /> Reset password (link)
                               </DropdownMenuItem>
-                              <DropdownMenuSeparator />
-                              <DropdownMenuItem
-                                onClick={() => setSuspendDialog({ id: w.workspace_id, name: w.workspace_name, suspend: !w.is_suspended })}
-                                className="text-destructive"
-                              >
-                                <Ban className="h-3.5 w-3.5 mr-2" />
-                                {w.is_suspended ? 'Unsuspend' : 'Suspend workspace'}
+                              <DropdownMenuItem onClick={() => setSignupActions({ userId: String(w.workspace_id).slice('signup:'.length), email: w.owner_email || '', name: w.workspace_name, action: 'email' })}>
+                                <Mail className="h-3.5 w-3.5 mr-2" /> Change email
                               </DropdownMenuItem>
-                              <DropdownMenuItem
-                                onClick={() => setDeleteDialog({ ids: [w.workspace_id], names: [w.workspace_name] })}
-                                className="text-destructive"
-                              >
-                                <Trash2 className="h-3.5 w-3.5 mr-2" />
-                                Delete workspace
+                              <DropdownMenuItem onClick={() => setSignupActions({ userId: String(w.workspace_id).slice('signup:'.length), email: w.owner_email || '', name: w.workspace_name, action: 'phone' })}>
+                                <Phone className="h-3.5 w-3.5 mr-2" /> Change phone
                               </DropdownMenuItem>
+                              {isSuperAdmin && (
+                                <>
+                                  <DropdownMenuSeparator />
+                                  <DropdownMenuItem
+                                    onClick={() => setDeleteDialog({ ids: [w.workspace_id], names: [w.workspace_name] })}
+                                    className="text-destructive"
+                                  >
+                                    <Trash2 className="h-3.5 w-3.5 mr-2" />
+                                    Delete signup
+                                  </DropdownMenuItem>
+                                </>
+                              )}
+                            </>
+                          ) : (
+                            <>
+                              <DropdownMenuItem onClick={() => navigate(`/control/workspaces/${w.workspace_id}`)}>
+                                <Eye className="h-3.5 w-3.5 mr-2" /> Open workspace
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handlePauseSending(w.workspace_id, !w.sending_paused)}>
+                                {w.sending_paused ? <Play className="h-3.5 w-3.5 mr-2" /> : <Pause className="h-3.5 w-3.5 mr-2" />}
+                                {w.sending_paused ? 'Resume sending' : 'Pause sending'}
+                              </DropdownMenuItem>
+                              {isSuperAdmin && (
+                                <>
+                                  <DropdownMenuSeparator />
+                                  <DropdownMenuItem onClick={() => {
+                                    setPlanDialog({ id: w.workspace_id, name: w.workspace_name, currentPlan: w.plan_name || w.plan });
+                                    setNewPlan(w.plan || 'free');
+                                  }}>
+                                    <ArrowRightLeft className="h-3.5 w-3.5 mr-2" /> Change plan
+                                  </DropdownMenuItem>
+                                  <DropdownMenuSeparator />
+                                  <DropdownMenuItem
+                                    onClick={() => setSuspendDialog({ id: w.workspace_id, name: w.workspace_name, suspend: !w.is_suspended })}
+                                    className="text-destructive"
+                                  >
+                                    <Ban className="h-3.5 w-3.5 mr-2" />
+                                    {w.is_suspended ? 'Unsuspend' : 'Suspend workspace'}
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem
+                                    onClick={() => setDeleteDialog({ ids: [w.workspace_id], names: [w.workspace_name] })}
+                                    className="text-destructive"
+                                  >
+                                    <Trash2 className="h-3.5 w-3.5 mr-2" />
+                                    Delete workspace
+                                  </DropdownMenuItem>
+                                </>
+                              )}
                             </>
                           )}
                         </DropdownMenuContent>
@@ -667,6 +725,54 @@ export default function AdminWorkspaces() {
             <Button onClick={handleChangePlan} disabled={!newPlan || newPlan === planDialog?.currentPlan}>
               Change Plan
             </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Signup Account Actions Dialog */}
+      <Dialog open={!!signupActions} onOpenChange={(o) => { if (!o) { setSignupActions(null); setSignupInput(''); setSignupResetLink(''); } }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              {signupActions?.action === 'reset' && `Reset password — ${signupActions.email || signupActions.name}`}
+              {signupActions?.action === 'email' && `Change email — ${signupActions.email || signupActions.name}`}
+              {signupActions?.action === 'phone' && `Change phone — ${signupActions.email || signupActions.name}`}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            {signupActions?.action === 'reset' && (
+              signupResetLink ? (
+                <>
+                  <p className="text-xs text-muted-foreground">Share this link with the user (expires in 24h):</p>
+                  <div className="flex gap-2">
+                    <Input value={signupResetLink} readOnly className="text-xs" />
+                    <Button size="sm" variant="outline" onClick={() => { navigator.clipboard.writeText(signupResetLink); toast({ title: 'Copied' }); }}>
+                      <Copy className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </>
+              ) : (
+                <p className="text-sm text-muted-foreground">Generate a one-time password reset link for <strong>{signupActions.email}</strong>.</p>
+              )
+            )}
+            {signupActions?.action === 'email' && (
+              <>
+                <Input value={signupActions.email} disabled />
+                <Input placeholder="new@example.com" value={signupInput} onChange={e => setSignupInput(e.target.value)} />
+              </>
+            )}
+            {signupActions?.action === 'phone' && (
+              <Input placeholder="+919876543210" value={signupInput} onChange={e => setSignupInput(e.target.value)} />
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { setSignupActions(null); setSignupInput(''); setSignupResetLink(''); }}>Close</Button>
+            {!(signupActions?.action === 'reset' && signupResetLink) && (
+              <Button onClick={handleSignupAction} disabled={signupSubmitting || (signupActions?.action !== 'reset' && !signupInput.trim())}>
+                {signupSubmitting && <Loader2 className="h-4 w-4 mr-1 animate-spin" />}
+                {signupActions?.action === 'reset' ? 'Generate link' : 'Save'}
+              </Button>
+            )}
           </DialogFooter>
         </DialogContent>
       </Dialog>
