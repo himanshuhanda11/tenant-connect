@@ -1054,6 +1054,45 @@ Deno.serve(async (req: Request) => {
       });
     }
 
+    // POST /users/:id/delete — hard delete the signup (auth user + profile + owned workspaces)
+    if (req.method === "POST" && path.match(/^users\/[^/]+\/delete$/)) {
+      const userId = path.split("/")[1];
+      const actor = await requirePlatformRole(req, ["super_admin"]);
+      const sb = adminClient();
+      const body = await req.json().catch(() => ({}));
+      const reason = body.reason || null;
+
+      const { data: owned } = await sb.from("tenant_members")
+        .select("tenant_id").eq("user_id", userId).eq("role", "owner");
+      const ownedIds = (owned || []).map((r: any) => r.tenant_id);
+
+      const childTables = [
+        "messages","conversations","contacts","campaigns","campaign_jobs","templates",
+        "phone_numbers","waba_accounts","workspace_phone_numbers","workspace_entitlements",
+        "tenant_members","audit_logs","onboarding_events","flow_sessions","flows",
+        "automation_workflows","forms","form_submissions","tags","contact_tags",
+      ];
+      for (const tid of ownedIds) {
+        for (const t of childTables) {
+          try { await sb.from(t).delete().eq("tenant_id", tid); } catch (_) { /* ignore */ }
+        }
+        try { await sb.from("tenants").delete().eq("id", tid); } catch (_) { /* ignore */ }
+      }
+
+      await sb.from("onboarding_events").delete().eq("user_id", userId);
+      await sb.from("profiles").delete().eq("id", userId);
+      const { error: authErr } = await sb.auth.admin.deleteUser(userId);
+      if (authErr) throw new Error(authErr.message);
+
+      await logAction(sb, actor, "PLATFORM_USER_HARD_DELETE", {
+        target_table: "auth.users", target_id: userId,
+        note: reason || `Hard deleted user + ${ownedIds.length} workspace(s)`,
+      });
+      return new Response(JSON.stringify({ success: true, deleted_workspaces: ownedIds.length }), {
+        headers: { ...corsHeaders, "content-type": "application/json" },
+      });
+    }
+
     // POST /workspaces/:id/delete
     if (req.method === "POST" && path.match(/^workspaces\/[^/]+\/delete$/)) {
       const workspaceId = path.split("/")[1];
