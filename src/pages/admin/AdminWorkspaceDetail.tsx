@@ -15,6 +15,7 @@ import { WhatsAppTab } from '@/components/admin/workspace-detail/WhatsAppTab';
 import { TemplatesTab } from '@/components/admin/workspace-detail/TemplatesTab';
 import { CampaignsTab } from '@/components/admin/workspace-detail/CampaignsTab';
 import { IntegrationsTab } from '@/components/admin/workspace-detail/IntegrationsTab';
+import { OwnerBusinessCard } from '@/components/admin/workspace-detail/OwnerBusinessCard';
 import {
   Loader2, LayoutDashboard, Users, Phone, MessageSquare, Zap, Plug, ScrollText, Eye
 } from 'lucide-react';
@@ -32,6 +33,8 @@ export default function AdminWorkspaceDetail() {
   const [members, setMembers] = useState<any[]>([]);
   const [phones, setPhones] = useState<any[]>([]);
   const [workspacePhone, setWorkspacePhone] = useState<any>(null);
+  const [waba, setWaba] = useState<any>(null);
+  const [owner, setOwner] = useState<any>(null);
   const [auditLogs, setAuditLogs] = useState<any[]>([]);
   const [suspendDialog, setSuspendDialog] = useState(false);
   const [suspendReason, setSuspendReason] = useState('');
@@ -44,6 +47,8 @@ export default function AdminWorkspaceDetail() {
       setMembers(data.members || []);
       setPhones(data.phones || []);
       setWorkspacePhone(data.workspace_phone || null);
+      setWaba(data.waba || null);
+      setOwner(data.owner || null);
     }).catch(() => {});
 
     get(`audit-logs?workspace_id=${id}`).then(data => {
