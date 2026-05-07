@@ -36,8 +36,22 @@ interface Workspace {
   conversations_count: number;
   plan_name: string | null;
   owner_email: string | null;
+  owner_full_name: string | null;
+  owner_company_name: string | null;
+  owner_website_url: string | null;
+  owner_country: string | null;
+  owner_phone: string | null;
+  owner_industry: string | null;
+  owner_team_size: string | null;
+  owner_timezone: string | null;
+  owner_signup_at: string | null;
   phone_number: string | null;
+  phone_status: string | null;
+  phone_quality: string | null;
+  phone_connected_at: string | null;
   waba_status: string | null;
+  waba_name: string | null;
+  waba_connected_at: string | null;
 }
 
 const PLANS = ['free', 'basic', 'pro', 'business'];
