@@ -150,21 +150,30 @@ export default function SelectWorkspace() {
     }
   }, [authLoading, tenantLoading, user, tenants, setCurrentTenant, navigate]);
 
-  // Onboarding check
+  // Onboarding check — always verify against the DB to avoid a stale-profile
+  // flicker right after the onboarding stepper finishes (the context profile
+  // can lag for a tick and bounce the user back to /onboarding/*).
   useEffect(() => {
+    let cancelled = false;
     const checkOnboarding = async () => {
-      if (!user || !profile) return;
-      const onboardingStep = profile.onboarding_step;
-      if (onboardingStep !== 'completed') {
-        if (onboardingStep === 'pending' || onboardingStep === 'google_done') {
-          navigate('/onboarding/org');
-        } else if (onboardingStep === 'org_done') {
-          navigate('/onboarding/password');
-        }
+      if (authLoading || !user) return;
+      const { data: fresh } = await supabase
+        .from('profiles')
+        .select('onboarding_step')
+        .eq('id', user.id)
+        .maybeSingle();
+      if (cancelled) return;
+      const onboardingStep = (fresh?.onboarding_step ?? profile?.onboarding_step) as string | undefined;
+      if (!onboardingStep || onboardingStep === 'completed') return;
+      if (onboardingStep === 'pending' || onboardingStep === 'google_done') {
+        navigate('/onboarding/org', { replace: true });
+      } else if (onboardingStep === 'org_done') {
+        navigate('/onboarding/password', { replace: true });
       }
     };
-    if (!authLoading && user && profile) checkOnboarding();
-  }, [user, authLoading, profile, navigate]);
+    checkOnboarding();
+    return () => { cancelled = true; };
+  }, [user?.id, authLoading, navigate]);
 
   // Fetch enriched workspace data
   useEffect(() => {
