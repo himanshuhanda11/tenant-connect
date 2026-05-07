@@ -219,7 +219,26 @@ export default function OrganizationPage() {
         } as any)
         .eq('id', user!.id);
       if (profileError) throw profileError;
-      navigate('/onboarding/password', { replace: true });
+
+      // Only Google signups need the password step (they don't have one yet).
+      // Email/password signups already set their password during signup, so finish here.
+      const identities = (user as any)?.identities || [];
+      const providers = identities.map((i: any) => i?.provider).filter(Boolean);
+      const meta = (user!.user_metadata || {}) as any;
+      const isGoogleOnly =
+        providers.includes('google') && !providers.includes('email');
+      const looksGoogle =
+        isGoogleOnly || (!providers.includes('email') && (meta.iss?.includes?.('google') || meta.picture));
+
+      if (looksGoogle) {
+        navigate('/onboarding/password', { replace: true });
+      } else {
+        await supabase
+          .from('profiles')
+          .update({ onboarding_step: 'completed' } as any)
+          .eq('id', user!.id);
+        navigate('/select-workspace', { replace: true });
+      }
     } catch (err: any) {
       console.error('Profile update error:', err);
       setError(err.message || 'Failed to save details');
