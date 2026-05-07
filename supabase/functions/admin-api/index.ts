@@ -105,7 +105,7 @@ Deno.serve(async (req: Request) => {
       const { data: pendingPhones } = await sb
         .from("phone_numbers")
         .select("tenant_id, status")
-        .in("status", ["pending", "pending_review", "in_review", "verifying"]);
+        .in("status", ["pending"]); // phone_status enum: pending | connected | disconnected | banned
       const pendingTenantIds = Array.from(
         new Set((pendingPhones || []).map((p: any) => p.tenant_id).filter(Boolean))
       );
