@@ -358,6 +358,23 @@ export default function AdminWorkspaces() {
                           </span>
                         </div>
                       </button>
+                      {w.onboarding_timeline && (
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <button
+                              onClick={(e) => e.stopPropagation()}
+                              className="mt-1.5 flex items-center gap-1 hover:opacity-80"
+                              title="Onboarding progress"
+                            >
+                              <OnboardingTimeline data={w.onboarding_timeline} compact />
+                            </button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-64 p-3" align="start">
+                            <div className="text-xs font-semibold mb-2">Onboarding progress</div>
+                            <OnboardingTimeline data={w.onboarding_timeline} />
+                          </PopoverContent>
+                        </Popover>
+                      )}
                     </TableCell>
                     <TableCell>
                       <div className="min-w-0">
