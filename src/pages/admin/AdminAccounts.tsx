@@ -48,6 +48,7 @@ interface AccountRow {
   onboarding_step: string;
   workspaces: AccountWorkspace[];
   stage: number;
+  reached?: { account: boolean; workspace: boolean; phone: boolean; plan: boolean };
 }
 
 const STAGES = [
