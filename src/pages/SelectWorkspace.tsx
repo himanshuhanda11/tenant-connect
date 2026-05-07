@@ -704,7 +704,7 @@ export default function SelectWorkspace() {
           <div className="fixed bottom-0 left-0 right-0 p-3 bg-white/90 backdrop-blur-xl border-t border-emerald-100 sm:hidden z-40">
             <Button
               onClick={() => setModalOpen(true)}
-              className="w-full h-12 rounded-2xl font-semibold text-white bg-gradient-to-r from-slate-800 to-slate-900 hover:from-slate-900 hover:to-black shadow-lg shadow-slate-900/30"
+              className="w-full h-12 rounded-2xl font-semibold text-white bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 shadow-lg shadow-emerald-500/30"
             >
               <Plus className="w-4 h-4 mr-2" />
               Create Workspace
