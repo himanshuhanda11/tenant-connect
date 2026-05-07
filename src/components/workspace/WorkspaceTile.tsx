@@ -17,7 +17,9 @@ interface WorkspaceTileProps {
     name: string;
     slug: string;
     role: string;
+    logo_url?: string | null;
     phoneNumber?: string;
+    verifiedName?: string;
     memberCount: number;
     messagesThisWeek?: number;
     lastActive?: string;
