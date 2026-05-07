@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
   ShieldAlert, AlertTriangle, BarChart3, Star, Filter,
-  PauseCircle, Crown, Sparkles, Clock,
+  PauseCircle, Crown, Sparkles, Clock, UserPlus,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -11,12 +11,13 @@ export interface SavedView {
   id: string;
   label: string;
   icon: React.ElementType;
-  group?: 'status' | 'plan' | 'time';
+  group?: 'status' | 'plan' | 'time' | 'people';
   tone?: 'default' | 'danger' | 'warning' | 'success' | 'premium';
 }
 
 const defaultViews: SavedView[] = [
   { id: 'all', label: 'All', icon: Filter, group: 'status' },
+  { id: 'recent-signups', label: 'Recent Signups', icon: UserPlus, group: 'people', tone: 'success' },
   { id: 'suspended', label: 'Suspended', icon: ShieldAlert, group: 'status', tone: 'danger' },
   { id: 'paused', label: 'Sending Paused', icon: PauseCircle, group: 'status', tone: 'warning' },
   { id: 'pending-numbers', label: 'Pending Numbers', icon: AlertTriangle, group: 'status', tone: 'warning' },
