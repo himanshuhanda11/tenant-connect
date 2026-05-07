@@ -98,11 +98,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       .maybeSingle();
     
     if (!error && data) {
-      // If this is a new signup via OAuth (SIGNED_IN after OAuth flow), mark as completed to skip onboarding
-      if (
-        event === 'SIGNED_IN' &&
-        (data.onboarding_step === 'pending' || data.onboarding_step === 'google_done')
-      ) {
+      // Only auto-complete onboarding for Google OAuth signups (their profile is marked
+      // 'google_done' by the OAuth callback). Email/password signups MUST go through
+      // the org details stepper, so we leave 'pending' alone here.
+      if (event === 'SIGNED_IN' && data.onboarding_step === 'google_done') {
         await supabase
           .from('profiles')
           .update({ onboarding_step: 'completed' })
