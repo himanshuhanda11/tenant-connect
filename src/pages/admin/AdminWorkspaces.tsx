@@ -728,6 +728,54 @@ export default function AdminWorkspaces() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Signup Account Actions Dialog */}
+      <Dialog open={!!signupActions} onOpenChange={(o) => { if (!o) { setSignupActions(null); setSignupInput(''); setSignupResetLink(''); } }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              {signupActions?.action === 'reset' && `Reset password — ${signupActions.email || signupActions.name}`}
+              {signupActions?.action === 'email' && `Change email — ${signupActions.email || signupActions.name}`}
+              {signupActions?.action === 'phone' && `Change phone — ${signupActions.email || signupActions.name}`}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            {signupActions?.action === 'reset' && (
+              signupResetLink ? (
+                <>
+                  <p className="text-xs text-muted-foreground">Share this link with the user (expires in 24h):</p>
+                  <div className="flex gap-2">
+                    <Input value={signupResetLink} readOnly className="text-xs" />
+                    <Button size="sm" variant="outline" onClick={() => { navigator.clipboard.writeText(signupResetLink); toast({ title: 'Copied' }); }}>
+                      <Copy className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </>
+              ) : (
+                <p className="text-sm text-muted-foreground">Generate a one-time password reset link for <strong>{signupActions.email}</strong>.</p>
+              )
+            )}
+            {signupActions?.action === 'email' && (
+              <>
+                <Input value={signupActions.email} disabled />
+                <Input placeholder="new@example.com" value={signupInput} onChange={e => setSignupInput(e.target.value)} />
+              </>
+            )}
+            {signupActions?.action === 'phone' && (
+              <Input placeholder="+919876543210" value={signupInput} onChange={e => setSignupInput(e.target.value)} />
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { setSignupActions(null); setSignupInput(''); setSignupResetLink(''); }}>Close</Button>
+            {!(signupActions?.action === 'reset' && signupResetLink) && (
+              <Button onClick={handleSignupAction} disabled={signupSubmitting || (signupActions?.action !== 'reset' && !signupInput.trim())}>
+                {signupSubmitting && <Loader2 className="h-4 w-4 mr-1 animate-spin" />}
+                {signupActions?.action === 'reset' ? 'Generate link' : 'Save'}
+              </Button>
+            )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
