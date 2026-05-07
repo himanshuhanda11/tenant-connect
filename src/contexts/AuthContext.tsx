@@ -98,20 +98,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       .maybeSingle();
     
     if (!error && data) {
-      // If this is a new signup via OAuth (SIGNED_IN after OAuth flow), mark as completed to skip onboarding
-      if (
-        event === 'SIGNED_IN' &&
-        (data.onboarding_step === 'pending' || data.onboarding_step === 'google_done')
-      ) {
-        await supabase
-          .from('profiles')
-          .update({ onboarding_step: 'completed' })
-          .eq('id', userId);
-
-        setProfile({ ...data, onboarding_step: 'completed' } as Profile);
-      } else {
-        setProfile(data as Profile);
-      }
+      // Both email/password AND Google signups go through the org details stepper.
+      // The stepper will pre-fill name from Google metadata when available.
+      setProfile(data as Profile);
     }
   };
 
