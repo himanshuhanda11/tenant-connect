@@ -45,6 +45,7 @@ interface AdminSavedViewsProps {
 export function AdminSavedViews({ activeView, counts, onViewChange }: AdminSavedViewsProps) {
   const groups: Array<{ key: string; label: string; views: SavedView[] }> = [
     { key: 'status', label: 'Status', views: defaultViews.filter(v => v.group === 'status') },
+    { key: 'people', label: 'People', views: defaultViews.filter(v => v.group === 'people') },
     { key: 'plan', label: 'Plan', views: defaultViews.filter(v => v.group === 'plan') },
     { key: 'time', label: 'Time', views: defaultViews.filter(v => v.group === 'time') },
   ];
