@@ -138,7 +138,14 @@ export default function AdminWorkspaceDetail() {
           </TabsList>
         </ScrollArea>
 
-        <TabsContent value="overview" className="mt-4">
+        <TabsContent value="overview" className="mt-4 space-y-4">
+          <OwnerBusinessCard
+            workspace={workspace}
+            owner={owner}
+            waba={waba}
+            workspacePhone={workspacePhone}
+            phones={phones}
+          />
           <OverviewTab
             entitlements={entitlements}
             isSuperAdmin={isSuperAdmin}
