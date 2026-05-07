@@ -101,6 +101,69 @@ Deno.serve(async (req: Request) => {
       const limit = 25;
       const offset = (page - 1) * limit;
 
+      // Special view: recent signups (profiles directly, including users without workspaces)
+      if (view === "recent-signups") {
+        let pq: any = sb.from("profiles")
+          .select("id, email, full_name, company_name, website_url, country, phone_number, industry, team_size, timezone, onboarding_step, created_at", { count: "exact" })
+          .order("created_at", { ascending: false })
+          .range(offset, offset + limit - 1);
+        if (search) pq = pq.or(`email.ilike.%${search}%,full_name.ilike.%${search}%,company_name.ilike.%${search}%`);
+        const { data: profiles, count: pCount } = await pq;
+        const userIds = (profiles || []).map((p: any) => p.id);
+        // Find their workspaces (if any)
+        const memberMap: Record<string, any> = {};
+        if (userIds.length) {
+          const { data: members } = await sb.from("tenant_members")
+            .select("tenant_id, user_id, role")
+            .in("user_id", userIds);
+          const tenantIds = Array.from(new Set((members || []).map((m: any) => m.tenant_id)));
+          let tMap: Record<string, any> = {};
+          if (tenantIds.length) {
+            const { data: tenants } = await sb.from("platform_workspace_directory")
+              .select("workspace_id, workspace_name, slug, plan, is_suspended, sending_paused, members_count, contacts_count, conversations_count, plan_name, created_at")
+              .in("workspace_id", tenantIds);
+            for (const t of tenants || []) tMap[t.workspace_id] = t;
+          }
+          for (const m of members || []) {
+            if (!memberMap[m.user_id]) memberMap[m.user_id] = tMap[m.tenant_id];
+          }
+        }
+        const enriched = (profiles || []).map((p: any) => {
+          const t = memberMap[p.id];
+          return {
+            workspace_id: t?.workspace_id || `signup:${p.id}`,
+            workspace_name: t?.workspace_name || (p.company_name || p.full_name || p.email || "(No workspace yet)"),
+            slug: t?.slug || "—",
+            created_at: t?.created_at || p.created_at,
+            is_suspended: t?.is_suspended || false,
+            plan: t?.plan || "—",
+            sending_paused: t?.sending_paused || false,
+            members_count: t?.members_count ?? 0,
+            phone_numbers_count: 0,
+            contacts_count: t?.contacts_count ?? 0,
+            conversations_count: t?.conversations_count ?? 0,
+            plan_name: t?.plan_name || null,
+            owner_email: p.email,
+            owner_full_name: p.full_name,
+            owner_company_name: p.company_name,
+            owner_website_url: p.website_url,
+            owner_country: p.country,
+            owner_phone: p.phone_number,
+            owner_industry: p.industry,
+            owner_team_size: p.team_size,
+            owner_timezone: p.timezone,
+            owner_signup_at: p.created_at,
+            onboarding_step: p.onboarding_step,
+            phone_number: null, phone_status: null, phone_quality: null, phone_connected_at: null,
+            waba_status: null, waba_name: null, waba_connected_at: null,
+            no_workspace: !t,
+          };
+        });
+        return new Response(JSON.stringify({ workspaces: enriched, total: pCount || 0, page, limit, counts: {} }), {
+          headers: { ...corsHeaders, "content-type": "application/json" },
+        });
+      }
+
       // Workspaces with at least one phone in 'pending' status (Meta review / not yet connected)
       const { data: pendingPhones } = await sb
         .from("phone_numbers")
