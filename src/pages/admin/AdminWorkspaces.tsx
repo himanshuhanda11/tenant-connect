@@ -87,6 +87,36 @@ export default function AdminWorkspaces() {
   const [deleteReason, setDeleteReason] = useState('');
   const [planDialog, setPlanDialog] = useState<{ id: string; name: string; currentPlan: string } | null>(null);
   const [newPlan, setNewPlan] = useState('');
+  const [signupActions, setSignupActions] = useState<{ userId: string; email: string; name: string; action: 'reset' | 'email' | 'phone' } | null>(null);
+  const [signupInput, setSignupInput] = useState('');
+  const [signupResetLink, setSignupResetLink] = useState('');
+  const [signupSubmitting, setSignupSubmitting] = useState(false);
+
+  const handleSignupAction = async () => {
+    if (!signupActions) return;
+    setSignupSubmitting(true);
+    try {
+      if (signupActions.action === 'reset') {
+        const r = await post(`users/${signupActions.userId}/reset-password`, {});
+        setSignupResetLink(r.reset_link || '');
+        toast({ title: `Reset link generated for ${r.email}` });
+      } else if (signupActions.action === 'email') {
+        if (!signupInput.trim()) return;
+        await post(`users/${signupActions.userId}/update-email`, { email: signupInput.trim() });
+        toast({ title: 'Email updated' });
+        setSignupActions(null); setSignupInput('');
+      } else if (signupActions.action === 'phone') {
+        if (!signupInput.trim()) return;
+        await post(`users/${signupActions.userId}/update-phone`, { phone: signupInput.trim() });
+        toast({ title: 'Phone updated' });
+        setSignupActions(null); setSignupInput('');
+      }
+    } catch (e: any) {
+      toast({ title: 'Error', description: e.message, variant: 'destructive' });
+    } finally {
+      setSignupSubmitting(false);
+    }
+  };
 
   const isSuperAdmin = role === 'super_admin';
 
