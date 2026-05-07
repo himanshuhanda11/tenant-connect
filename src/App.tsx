@@ -192,6 +192,7 @@ const App = () => (
             <TenantProvider>
               <ThemeProvider>
                 <ScrollToTop />
+                <RoutePrefetcher />
                 <Suspense fallback={<RouteLoader />}>
                   <Routes>
                     <Route path="/" element={<Index />} />
