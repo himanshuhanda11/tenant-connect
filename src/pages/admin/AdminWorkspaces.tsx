@@ -52,6 +52,14 @@ interface Workspace {
   waba_status: string | null;
   waba_name: string | null;
   waba_connected_at: string | null;
+  onboarding_step?: string | null;
+  onboarding_timeline?: {
+    signup_at?: string | null;
+    org_done_at?: string | null;
+    password_done_at?: string | null;
+    workspace_created_at?: string | null;
+    completed_at?: string | null;
+  };
 }
 
 const PLANS = ['free', 'basic', 'pro', 'business'];
