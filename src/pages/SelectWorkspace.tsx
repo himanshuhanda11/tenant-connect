@@ -185,7 +185,7 @@ export default function SelectWorkspace() {
           tenants.map(async (tenant) => {
             const [phoneCountRes, phonesRes, memberCountRes, messagesThisWeekRes] = await Promise.all([
               supabase.from('phone_numbers').select('*', { count: 'exact', head: true }).eq('tenant_id', tenant.id),
-              supabase.from('phone_numbers').select('status, display_number').eq('tenant_id', tenant.id).eq('status', 'connected').limit(1),
+              supabase.from('phone_numbers').select('status, display_number, verified_name').eq('tenant_id', tenant.id).eq('status', 'connected').limit(1),
               supabase.from('tenant_members').select('*', { count: 'exact', head: true }).eq('tenant_id', tenant.id),
               supabase.from('messages').select('*', { count: 'exact', head: true }).eq('tenant_id', tenant.id).gte('created_at', weekAgoIso),
             ]);
@@ -204,6 +204,7 @@ export default function SelectWorkspace() {
               created_at: tenant.created_at,
               phoneCount,
               phoneNumber: phones?.[0]?.display_number,
+              verifiedName: phones?.[0]?.verified_name ?? undefined,
               memberCount,
               status,
               messagesThisWeek,
