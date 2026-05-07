@@ -283,9 +283,8 @@ export default function AdminAccounts() {
                 className="rounded-2xl border-border/50 overflow-hidden transition-all hover:shadow-md hover:border-primary/30"
               >
                 {/* Main row */}
-                <button
+                <div
                   onClick={() => row.workspaces.length > 0 && toggle(row.user_id)}
-                  disabled={row.workspaces.length === 0}
                   className={cn(
                     'w-full text-left p-4 flex items-center gap-4',
                     row.workspaces.length > 0 && 'cursor-pointer hover:bg-muted/30'
@@ -346,12 +345,46 @@ export default function AdminAccounts() {
                     {STAGES[row.stage].label}
                   </Badge>
 
+                  {/* Actions menu */}
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                      <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg flex-shrink-0" disabled={busyId === row.user_id}>
+                        {busyId === row.user_id
+                          ? <Loader2 className="h-4 w-4 animate-spin" />
+                          : <MoreVertical className="h-4 w-4" />}
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-56" onClick={(e) => e.stopPropagation()}>
+                      <DropdownMenuLabel className="text-xs truncate">{row.email || row.user_id.slice(0, 8)}</DropdownMenuLabel>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={() => doResetPassword(row)}>
+                        <KeyRound className="h-4 w-4 mr-2" /> Reset password
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => doChangeEmail(row)}>
+                        <AtSign className="h-4 w-4 mr-2" /> Change email
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => doChangePhone(row)}>
+                        <PhoneCall className="h-4 w-4 mr-2" /> Change phone
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => { navigator.clipboard.writeText(row.user_id); toast({ title: 'User ID copied' }); }}>
+                        <Copy className="h-4 w-4 mr-2" /> Copy user ID
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem
+                        className="text-destructive focus:text-destructive"
+                        onClick={() => setConfirmDelete(row)}
+                      >
+                        <Trash2 className="h-4 w-4 mr-2" /> Delete account permanently
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+
                   {row.workspaces.length > 0 ? (
                     <ChevronDown className={cn('h-4 w-4 text-muted-foreground transition-transform flex-shrink-0', isOpen && 'rotate-180')} />
                   ) : (
                     <span className="w-4" />
                   )}
-                </button>
+                </div>
 
                 {/* Expanded: workspaces + sub-accounts */}
                 {isOpen && row.workspaces.length > 0 && (
