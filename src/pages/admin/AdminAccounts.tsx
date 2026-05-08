@@ -7,7 +7,8 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
   DropdownMenu, DropdownMenuTrigger, DropdownMenuContent,
-  DropdownMenuItem, DropdownMenuSeparator, DropdownMenuLabel,
+  DropdownMenuItem, DropdownMenuSeparator, DropdownMenuLabel, DropdownMenuSub,
+  DropdownMenuSubTrigger, DropdownMenuSubContent,
 } from '@/components/ui/dropdown-menu';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
@@ -16,61 +17,50 @@ import {
 import { toast } from '@/hooks/use-toast';
 import {
   Loader2, Search, UserCircle2, Building2, Phone, CreditCard,
-  CheckCircle2, ChevronRight, RefreshCw, ArrowRight, Mail, Users,
-  ChevronDown, ShieldAlert, Sparkles, Globe2, MoreVertical, KeyRound,
-  AtSign, PhoneCall, Trash2, Copy,
+  CheckCircle2, RefreshCw, Mail, Sparkles, MoreVertical, KeyRound,
+  AtSign, PhoneCall, Trash2, Copy, ShieldAlert, ShieldOff, ShieldCheck,
+  LogOut, MailCheck, Eye, Download, ArrowUpDown, ArrowUp, ArrowDown,
+  Lock, BadgeCheck,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { AccountDetailsDrawer } from '@/components/admin/AccountDetailsDrawer';
 
-interface SubAccount {
-  user_id: string;
-  role: string;
-  email: string | null;
-  full_name: string | null;
-  joined_at: string;
-}
 interface AccountWorkspace {
-  workspace_id: string;
-  workspace_name: string;
-  role: string;
-  plan: string;
-  plan_name: string | null;
-  is_suspended: boolean;
-  members_count: number;
-  contacts_count: number;
-  conversations_count: number;
-  created_at: string | null;
-  sub_accounts: SubAccount[];
+  workspace_id: string; workspace_name: string; role: string; plan: string;
+  plan_name: string | null; is_suspended: boolean; members_count: number;
+  contacts_count: number; conversations_count: number; created_at: string | null;
+  phone_number?: string | null; phone_status?: string | null;
+  sub_accounts: { user_id: string; role: string; email: string | null; full_name: string | null; joined_at: string }[];
 }
 interface AccountRow {
-  user_id: string;
-  email: string | null;
-  phone: string | null;
-  full_name: string | null;
-  company_name: string | null;
-  country: string | null;
-  timezone: string | null;
-  created_at: string;
-  last_sign_in_at: string | null;
-  email_confirmed_at: string | null;
-  provider: string;
-  has_profile: boolean;
-  onboarding_step: string;
-  workspaces: AccountWorkspace[];
-  stage: number;
+  user_id: string; email: string | null; phone: string | null;
+  full_name: string | null; company_name: string | null; country: string | null;
+  timezone: string | null; created_at: string; last_sign_in_at: string | null;
+  email_confirmed_at: string | null; provider: string; has_profile: boolean;
+  onboarding_step: string; workspaces: AccountWorkspace[]; stage: number;
   reached?: { account: boolean; workspace: boolean; phone: boolean; plan: boolean };
 }
 
-const STAGES = [
-  { key: 'account', label: 'Account', icon: UserCircle2 },
-  { key: 'workspace', label: 'Workspace', icon: Building2 },
-  { key: 'phone', label: 'Phone', icon: Phone },
-  { key: 'plan', label: 'Plan', icon: CreditCard },
-] as const;
+type FilterKey = 'all' | 'completed' | 'incomplete' | 'wa_connected' | 'wa_missing' | 'free' | 'paid' | 'active' | 'suspended';
+const FILTERS: { key: FilterKey; label: string }[] = [
+  { key: 'all', label: 'All' },
+  { key: 'completed', label: 'Signup completed' },
+  { key: 'incomplete', label: 'Signup incomplete' },
+  { key: 'wa_connected', label: 'WhatsApp connected' },
+  { key: 'wa_missing', label: 'WhatsApp not connected' },
+  { key: 'paid', label: 'Paid users' },
+  { key: 'free', label: 'Free users' },
+  { key: 'active', label: 'Active' },
+  { key: 'suspended', label: 'Suspended' },
+];
+
+const PLAN_OPTIONS = ['free', 'basic', 'pro', 'business'];
+
+type SortKey = 'created_at' | 'last_sign_in_at' | 'email' | 'full_name';
+type SortDir = 'asc' | 'desc';
 
 const fmtDate = (s?: string | null) =>
   s ? new Date(s).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—';
-
 const fmtDateTime = (s?: string | null) =>
   s ? new Date(s).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—';
 
@@ -82,67 +72,12 @@ export default function AdminAccounts() {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
-  const [stageFilter, setStageFilter] = useState<number | null>(null);
-  const [expanded, setExpanded] = useState<Record<string, boolean>>({});
-  const [confirmDelete, setConfirmDelete] = useState<AccountRow | null>(null);
+  const [filter, setFilter] = useState<FilterKey>('all');
+  const [sortKey, setSortKey] = useState<SortKey>('created_at');
+  const [sortDir, setSortDir] = useState<SortDir>('desc');
+  const [drawerUserId, setDrawerUserId] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
-
-  const doResetPassword = async (r: AccountRow) => {
-    setBusyId(r.user_id);
-    try {
-      const res = await post(`users/${r.user_id}/reset-password`, {});
-      if (res?.reset_link) {
-        try { await navigator.clipboard.writeText(res.reset_link); } catch { /* ignore */ }
-        toast({ title: 'Reset link generated', description: 'Copied to clipboard.' });
-      } else {
-        toast({ title: 'Reset link sent' });
-      }
-    } catch (e: any) {
-      toast({ title: 'Failed', description: e.message, variant: 'destructive' });
-    } finally { setBusyId(null); }
-  };
-
-  const doChangeEmail = async (r: AccountRow) => {
-    const next = window.prompt(`New email for ${r.email || r.user_id}:`, r.email || '');
-    if (!next || next === r.email) return;
-    setBusyId(r.user_id);
-    try {
-      await post(`users/${r.user_id}/update-email`, { email: next });
-      toast({ title: 'Email updated', description: next });
-      load();
-    } catch (e: any) {
-      toast({ title: 'Failed', description: e.message, variant: 'destructive' });
-    } finally { setBusyId(null); }
-  };
-
-  const doChangePhone = async (r: AccountRow) => {
-    const next = window.prompt(`New phone (E.164, e.g. +14155551234) for ${r.email || r.user_id}:`, r.phone || '');
-    if (!next || next === r.phone) return;
-    setBusyId(r.user_id);
-    try {
-      await post(`users/${r.user_id}/update-phone`, { phone: next });
-      toast({ title: 'Phone updated', description: next });
-      load();
-    } catch (e: any) {
-      toast({ title: 'Failed', description: e.message, variant: 'destructive' });
-    } finally { setBusyId(null); }
-  };
-
-  const doDeleteUser = async (r: AccountRow) => {
-    setBusyId(r.user_id);
-    try {
-      const res = await post(`users/${r.user_id}/delete`, { reason: 'Admin hard delete from /control/accounts' });
-      toast({
-        title: 'Account permanently deleted',
-        description: `Removed ${res?.deleted_workspaces || 0} workspace(s) + auth user.`,
-      });
-      setConfirmDelete(null);
-      load();
-    } catch (e: any) {
-      toast({ title: 'Delete failed', description: e.message, variant: 'destructive' });
-    } finally { setBusyId(null); }
-  };
-
+  const [confirm, setConfirm] = useState<{ kind: 'delete' | 'suspend' | 'reset'; row: AccountRow } | null>(null);
 
   const load = async () => {
     setLoading(true);
@@ -164,318 +99,420 @@ export default function AdminAccounts() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [search]);
 
-  const stageKeys = ['account', 'workspace', 'phone', 'plan'] as const;
-  const reachedFor = (r: AccountRow, i: number) => {
-    if (r.reached) return r.reached[stageKeys[i]];
-    // Fallback for old payload
-    if (i === 0) return true;
-    if (i === 1) return r.workspaces.length > 0;
-    if (i === 2) return false;
-    return r.stage >= 3;
+  // Status helpers
+  const hasWA = (r: AccountRow) => r.workspaces.some((w) => !!w.phone_number);
+  const hasPaid = (r: AccountRow) =>
+    r.workspaces.some((w) => w.plan && !['free', '—', 'trial', null].includes(String(w.plan).toLowerCase()));
+  const isSuspended = (r: AccountRow) =>
+    r.workspaces.length > 0 && r.workspaces.every((w) => w.is_suspended);
+  const accountStatus = (r: AccountRow) => {
+    if (isSuspended(r)) return 'suspended';
+    if (!r.email_confirmed_at) return 'incomplete';
+    return 'active';
   };
-  const stageCounts = useMemo(
-    () => [0, 1, 2, 3].map(s => rows.filter(r => reachedFor(r, s)).length),
-    [rows]
-  );
-  const filtered = stageFilter === null ? rows : rows.filter(r => reachedFor(r, stageFilter));
 
-  const toggle = (id: string) => setExpanded(p => ({ ...p, [id]: !p[id] }));
+  const planLabel = (r: AccountRow) => {
+    const w = r.workspaces[0];
+    return w ? (w.plan_name || w.plan || '—') : '—';
+  };
+
+  // Filter
+  const filtered = useMemo(() => {
+    let list = rows;
+    switch (filter) {
+      case 'completed':   list = list.filter((r) => !!r.email_confirmed_at && r.workspaces.length > 0); break;
+      case 'incomplete':  list = list.filter((r) => !r.email_confirmed_at || r.workspaces.length === 0); break;
+      case 'wa_connected':list = list.filter(hasWA); break;
+      case 'wa_missing':  list = list.filter((r) => !hasWA(r)); break;
+      case 'paid':        list = list.filter(hasPaid); break;
+      case 'free':        list = list.filter((r) => !hasPaid(r)); break;
+      case 'active':      list = list.filter((r) => accountStatus(r) === 'active'); break;
+      case 'suspended':   list = list.filter((r) => accountStatus(r) === 'suspended'); break;
+    }
+    const sorted = [...list].sort((a, b) => {
+      const av: any = (a as any)[sortKey] ?? '';
+      const bv: any = (b as any)[sortKey] ?? '';
+      const cmp = String(av).localeCompare(String(bv));
+      return sortDir === 'asc' ? cmp : -cmp;
+    });
+    return sorted;
+  }, [rows, filter, sortKey, sortDir]);
+
+  const counts: Record<FilterKey, number> = {
+    all: rows.length,
+    completed: rows.filter((r) => !!r.email_confirmed_at && r.workspaces.length > 0).length,
+    incomplete: rows.filter((r) => !r.email_confirmed_at || r.workspaces.length === 0).length,
+    wa_connected: rows.filter(hasWA).length,
+    wa_missing: rows.filter((r) => !hasWA(r)).length,
+    paid: rows.filter(hasPaid).length,
+    free: rows.filter((r) => !hasPaid(r)).length,
+    active: rows.filter((r) => accountStatus(r) === 'active').length,
+    suspended: rows.filter((r) => accountStatus(r) === 'suspended').length,
+  };
+
+  // Actions
+  const callAction = async (
+    r: AccountRow, path: string, body: any,
+    successMsg: string, opts?: { copyKey?: string }
+  ) => {
+    setBusyId(r.user_id);
+    try {
+      const res = await post(`users/${r.user_id}/${path}`, body);
+      if (opts?.copyKey && res?.[opts.copyKey]) {
+        try { await navigator.clipboard.writeText(res[opts.copyKey]); } catch { /* */ }
+        toast({ title: successMsg, description: 'Link copied to clipboard.' });
+      } else {
+        toast({ title: successMsg });
+      }
+      load();
+    } catch (e: any) {
+      toast({ title: 'Failed', description: e.message, variant: 'destructive' });
+    } finally { setBusyId(null); setConfirm(null); }
+  };
+
+  const doChangeEmail = (r: AccountRow) => {
+    const next = window.prompt(`New email for ${r.email || r.user_id}:`, r.email || '');
+    if (!next || next === r.email) return;
+    callAction(r, 'update-email', { email: next }, `Email updated to ${next}`);
+  };
+  const doChangePhone = (r: AccountRow) => {
+    const next = window.prompt(`New phone (E.164, e.g. +14155551234):`, r.phone || '');
+    if (!next || next === r.phone) return;
+    callAction(r, 'update-phone', { phone: next }, `Phone updated`);
+  };
+  const doChangePassword = (r: AccountRow) => {
+    const pw = window.prompt(`Set new password for ${r.email} (min 8 chars):`);
+    if (!pw || pw.length < 8) { toast({ title: 'Password too short' }); return; }
+    callAction(r, 'set-password', { password: pw }, 'Password set');
+  };
+  const doChangePlan = (r: AccountRow, plan: string) => {
+    callAction(r, 'change-plan', { plan }, `Plan changed to ${plan}`);
+  };
+
+  const exportCSV = () => {
+    const header = ['Name','Email','Phone','Country','Status','Workspaces','WA Connected','Plan','Created','Last Login'];
+    const escape = (v: any) => {
+      const s = String(v ?? '');
+      return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+    };
+    const lines = [header.join(',')];
+    filtered.forEach((r) => {
+      lines.push([
+        r.full_name || r.company_name || '', r.email || '', r.phone || '',
+        r.country || '', accountStatus(r), r.workspaces.length, hasWA(r) ? 'Yes' : 'No',
+        planLabel(r), r.created_at, r.last_sign_in_at || '',
+      ].map(escape).join(','));
+    });
+    const blob = new Blob([lines.join('\n')], { type: 'text/csv;charset=utf-8' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `accounts_${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+  };
+
+  const SortHeader = ({ k, label }: { k: SortKey; label: string }) => (
+    <button
+      onClick={() => {
+        if (sortKey === k) setSortDir(sortDir === 'asc' ? 'desc' : 'asc');
+        else { setSortKey(k); setSortDir('desc'); }
+      }}
+      className="inline-flex items-center gap-1 hover:text-foreground transition"
+    >
+      {label}
+      {sortKey === k ? (sortDir === 'asc' ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />) : <ArrowUpDown className="h-3 w-3 opacity-40" />}
+    </button>
+  );
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-5 animate-fade-in">
       {/* Header */}
       <div className="relative overflow-hidden rounded-2xl border border-border/50 bg-gradient-to-br from-primary/5 via-background to-background p-5">
         <div className="absolute -top-16 -right-16 w-56 h-56 rounded-full blur-3xl bg-primary/10" />
         <div className="relative flex items-center justify-between gap-4 flex-wrap">
           <div>
             <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary/10 text-primary text-[10px] font-semibold uppercase tracking-widest mb-2">
-              <Sparkles className="h-3 w-3" /> Customer Journey
+              <Sparkles className="h-3 w-3" /> Account Management
             </div>
-            <h1 className="text-2xl font-bold tracking-tight">Signup Accounts</h1>
+            <h1 className="text-2xl font-bold tracking-tight">Accounts</h1>
             <p className="text-sm text-muted-foreground mt-1">
-              Every signup from <strong>auth.users</strong> · expand to see workspaces &amp; sub-accounts (team members).
+              {total.toLocaleString()} signups · {counts.completed} completed · {counts.suspended} suspended · {counts.paid} paid
             </p>
           </div>
-          <Button variant="outline" size="sm" onClick={load} className="rounded-xl">
-            <RefreshCw className={cn('h-4 w-4 mr-1.5', loading && 'animate-spin')} /> Refresh
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" onClick={exportCSV} className="rounded-xl">
+              <Download className="h-4 w-4 mr-1.5" /> Export CSV
+            </Button>
+            <Button variant="outline" size="sm" onClick={load} className="rounded-xl">
+              <RefreshCw className={cn('h-4 w-4 mr-1.5', loading && 'animate-spin')} /> Refresh
+            </Button>
+          </div>
         </div>
       </div>
 
-      {/* Funnel */}
+      {/* Filters + search */}
+      <div className="flex items-center gap-3 flex-wrap">
+        <div className="relative flex-1 min-w-[260px]">
+          <Search className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            placeholder="Search by name, email, phone, company…"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="pl-9 rounded-xl"
+          />
+        </div>
+      </div>
+      <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
+        {FILTERS.map((f) => (
+          <button
+            key={f.key}
+            onClick={() => setFilter(f.key)}
+            className={cn(
+              'rounded-full px-3 py-1.5 text-xs font-medium border transition whitespace-nowrap',
+              filter === f.key
+                ? 'bg-primary text-primary-foreground border-primary shadow-sm'
+                : 'bg-background border-border/60 text-muted-foreground hover:text-foreground hover:border-primary/40'
+            )}
+          >
+            {f.label}
+            <span className={cn('ml-1.5 tabular-nums', filter === f.key ? 'opacity-90' : 'opacity-60')}>
+              {counts[f.key]}
+            </span>
+          </button>
+        ))}
+      </div>
+
+      {/* Table */}
       <Card className="rounded-2xl border-border/50 overflow-hidden">
-        <CardContent className="p-5">
-          <div className="text-xs font-medium text-muted-foreground uppercase tracking-widest mb-4">
-            {total.toLocaleString()} total signups · {rows.reduce((a, r) => a + r.workspaces.length, 0)} workspaces · {rows.reduce((a, r) => a + r.workspaces.reduce((b, w) => b + w.sub_accounts.length, 0), 0)} sub-accounts
-          </div>
-          <div className="flex items-center gap-2 overflow-x-auto pb-1">
-            {STAGES.map((stage, i) => {
-              const Icon = stage.icon;
-              const active = stageFilter === i;
-              return (
-                <React.Fragment key={stage.key}>
-                  <button
-                    onClick={() => setStageFilter(active ? null : i)}
-                    className={cn(
-                      'flex-1 min-w-[140px] rounded-xl border p-4 text-left transition-all',
-                      active
-                        ? 'border-primary bg-primary/5 shadow-sm'
-                        : 'border-border/60 bg-background hover:border-primary/40 hover:bg-muted/30'
-                    )}
-                  >
-                    <div className="flex items-center gap-2 mb-2">
-                      <div className={cn(
-                        'h-9 w-9 rounded-xl flex items-center justify-center',
-                        active ? 'bg-primary text-primary-foreground' : 'bg-muted text-foreground'
-                      )}>
-                        <Icon className="h-4 w-4" />
-                      </div>
-                      <Badge variant="outline" className="rounded-full text-[10px]">Step {i + 1}</Badge>
-                    </div>
-                    <div className="text-2xl font-bold tabular-nums">{stageCounts[i]}</div>
-                    <div className="text-xs text-muted-foreground mt-0.5">{stage.label}</div>
-                  </button>
-                  {i < STAGES.length - 1 && <ArrowRight className="h-4 w-4 text-muted-foreground flex-shrink-0" />}
-                </React.Fragment>
-              );
-            })}
-          </div>
-          {stageFilter !== null && (
-            <button onClick={() => setStageFilter(null)} className="text-xs text-primary mt-3 hover:underline">
-              Clear stage filter
-            </button>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Search */}
-      <div className="relative">
-        <Search className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-        <Input
-          placeholder="Search by email, name, company, or phone…"
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-          className="pl-9 rounded-xl"
-        />
-      </div>
-
-      {/* Account list */}
-      {loading ? (
-        <div className="flex justify-center py-20">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        </div>
-      ) : filtered.length === 0 ? (
-        <Card className="rounded-2xl border-border/50">
+        {loading ? (
+          <div className="flex justify-center py-20"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
+        ) : filtered.length === 0 ? (
           <CardContent className="p-12 text-center text-sm text-muted-foreground">
             No accounts match this filter.
           </CardContent>
-        </Card>
-      ) : (
-        <div className="space-y-3">
-          {filtered.map(row => {
-            const isOpen = !!expanded[row.user_id];
-            const totalSubs = row.workspaces.reduce((a, w) => a + w.sub_accounts.length, 0);
-            const initials = (row.full_name || row.email || '?')
-              .split(/\s+|@/).filter(Boolean).slice(0, 2).map(s => s[0]?.toUpperCase()).join('');
-            return (
-              <Card
-                key={row.user_id}
-                className="rounded-2xl border-border/50 overflow-hidden transition-all hover:shadow-md hover:border-primary/30"
-              >
-                {/* Main row */}
-                <div
-                  onClick={() => row.workspaces.length > 0 && toggle(row.user_id)}
-                  className={cn(
-                    'w-full text-left p-4 flex items-center gap-4',
-                    row.workspaces.length > 0 && 'cursor-pointer hover:bg-muted/30'
-                  )}
-                >
-                  {/* Avatar */}
-                  <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-primary/25 to-primary/5 flex items-center justify-center flex-shrink-0 border border-primary/10 font-semibold text-primary text-sm">
-                    {initials || <UserCircle2 className="h-5 w-5" />}
-                  </div>
-
-                  {/* Identity */}
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="font-semibold text-sm truncate">
-                        {row.full_name || row.company_name || row.email || 'Unknown'}
-                      </span>
-                      {!row.email_confirmed_at && (
-                        <Badge variant="outline" className="rounded-full text-[10px] border-amber-500/40 bg-amber-500/10 text-amber-700">
-                          <ShieldAlert className="h-3 w-3 mr-0.5" /> Unconfirmed
-                        </Badge>
-                      )}
-                      {!row.has_profile && (
-                        <Badge variant="outline" className="rounded-full text-[10px] border-orange-500/40 bg-orange-500/10 text-orange-700">
-                          No profile
-                        </Badge>
-                      )}
-                      {row.stage === 3 && (
-                        <Badge className="rounded-full text-[10px] bg-emerald-500/15 text-emerald-700 border-emerald-500/30 hover:bg-emerald-500/20">
-                          <CheckCircle2 className="h-3 w-3 mr-0.5" /> Activated
-                        </Badge>
-                      )}
-                      <Badge variant="outline" className="rounded-full text-[10px] capitalize">
-                        {row.provider}
-                      </Badge>
-                    </div>
-                    <div className="text-xs text-muted-foreground flex items-center gap-2 mt-1 flex-wrap">
-                      <span className="inline-flex items-center gap-1"><Mail className="h-3 w-3" />{row.email || '—'}</span>
-                      {row.phone && <span className="inline-flex items-center gap-1"><Phone className="h-3 w-3" />{row.phone}</span>}
-                      {row.country && <span className="inline-flex items-center gap-1"><Globe2 className="h-3 w-3" />{row.country}</span>}
-                      <span>· Signed up {fmtDate(row.created_at)}</span>
-                    </div>
-                  </div>
-
-                  {/* Counts */}
-                  <div className="hidden md:flex items-center gap-4 text-xs">
-                    <div className="text-center">
-                      <div className="font-bold tabular-nums">{row.workspaces.length}</div>
-                      <div className="text-[10px] text-muted-foreground uppercase tracking-wider">Workspaces</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="font-bold tabular-nums">{totalSubs}</div>
-                      <div className="text-[10px] text-muted-foreground uppercase tracking-wider">Sub-accts</div>
-                    </div>
-                  </div>
-
-                  {/* Stage chip */}
-                  <Badge variant="outline" className="rounded-full text-[10px] hidden sm:inline-flex">
-                    {STAGES[row.stage].label}
-                  </Badge>
-
-                  {/* Actions menu */}
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                      <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg flex-shrink-0" disabled={busyId === row.user_id}>
-                        {busyId === row.user_id
-                          ? <Loader2 className="h-4 w-4 animate-spin" />
-                          : <MoreVertical className="h-4 w-4" />}
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-56" onClick={(e) => e.stopPropagation()}>
-                      <DropdownMenuLabel className="text-xs truncate">{row.email || row.user_id.slice(0, 8)}</DropdownMenuLabel>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem onClick={() => doResetPassword(row)}>
-                        <KeyRound className="h-4 w-4 mr-2" /> Reset password
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => doChangeEmail(row)}>
-                        <AtSign className="h-4 w-4 mr-2" /> Change email
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => doChangePhone(row)}>
-                        <PhoneCall className="h-4 w-4 mr-2" /> Change phone
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => { navigator.clipboard.writeText(row.user_id); toast({ title: 'User ID copied' }); }}>
-                        <Copy className="h-4 w-4 mr-2" /> Copy user ID
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem
-                        className="text-destructive focus:text-destructive"
-                        onClick={() => setConfirmDelete(row)}
-                      >
-                        <Trash2 className="h-4 w-4 mr-2" /> Delete account permanently
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-
-                  {row.workspaces.length > 0 ? (
-                    <ChevronDown className={cn('h-4 w-4 text-muted-foreground transition-transform flex-shrink-0', isOpen && 'rotate-180')} />
-                  ) : (
-                    <span className="w-4" />
-                  )}
-                </div>
-
-                {/* Expanded: workspaces + sub-accounts */}
-                {isOpen && row.workspaces.length > 0 && (
-                  <div className="border-t border-border/50 bg-muted/20 px-4 py-3 space-y-2">
-                    {row.workspaces.map(ws => (
-                      <div key={ws.workspace_id} className="rounded-xl bg-background border border-border/60 overflow-hidden">
-                        {/* Workspace header */}
-                        <div
-                          className="p-3 flex items-center gap-3 cursor-pointer hover:bg-muted/30"
-                          onClick={() => navigate(`/control/workspaces/${ws.workspace_id}`)}
-                        >
-                          <div className="h-9 w-9 rounded-lg bg-purple-500/10 text-purple-600 flex items-center justify-center flex-shrink-0">
-                            <Building2 className="h-4 w-4" />
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="bg-muted/40 border-b border-border/50 text-[11px] uppercase tracking-wider text-muted-foreground">
+                <tr>
+                  <th className="text-left px-4 py-3 font-semibold"><SortHeader k="full_name" label="User" /></th>
+                  <th className="text-left px-4 py-3 font-semibold hidden lg:table-cell"><SortHeader k="email" label="Contact" /></th>
+                  <th className="text-left px-4 py-3 font-semibold">Status</th>
+                  <th className="text-left px-4 py-3 font-semibold hidden md:table-cell">Workspace</th>
+                  <th className="text-left px-4 py-3 font-semibold hidden md:table-cell">WhatsApp</th>
+                  <th className="text-left px-4 py-3 font-semibold hidden lg:table-cell">Plan</th>
+                  <th className="text-left px-4 py-3 font-semibold hidden xl:table-cell"><SortHeader k="created_at" label="Created" /></th>
+                  <th className="text-left px-4 py-3 font-semibold hidden xl:table-cell"><SortHeader k="last_sign_in_at" label="Last login" /></th>
+                  <th className="px-2 py-3"></th>
+                </tr>
+              </thead>
+              <tbody>
+                {filtered.map((r) => {
+                  const initials = (r.full_name || r.email || '?')
+                    .split(/\s+|@/).filter(Boolean).slice(0, 2).map((s) => s[0]?.toUpperCase()).join('');
+                  const status = accountStatus(r);
+                  const wa = hasWA(r);
+                  const ws = r.workspaces[0];
+                  return (
+                    <tr
+                      key={r.user_id}
+                      className="border-b border-border/40 hover:bg-muted/30 transition cursor-pointer"
+                      onClick={() => setDrawerUserId(r.user_id)}
+                    >
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-3">
+                          <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-primary/25 to-primary/5 flex items-center justify-center font-semibold text-primary text-xs flex-shrink-0 border border-primary/10">
+                            {initials || <UserCircle2 className="h-4 w-4" />}
                           </div>
-                          <div className="min-w-0 flex-1">
-                            <div className="flex items-center gap-2 flex-wrap">
-                              <span className="font-medium text-sm truncate">{ws.workspace_name}</span>
-                              <Badge variant="outline" className="rounded-full text-[10px] capitalize">{ws.role}</Badge>
-                              <Badge variant="outline" className="rounded-full text-[10px] capitalize">{ws.plan_name || ws.plan}</Badge>
-                              {ws.is_suspended && (
-                                <Badge variant="destructive" className="rounded-full text-[10px]">Suspended</Badge>
-                              )}
+                          <div className="min-w-0">
+                            <div className="font-semibold truncate flex items-center gap-1.5">
+                              {r.full_name || r.company_name || 'Unknown'}
+                              {hasPaid(r) && <BadgeCheck className="h-3.5 w-3.5 text-emerald-500" />}
                             </div>
-                            <div className="text-[11px] text-muted-foreground mt-0.5">
-                              {ws.members_count} members · {ws.contacts_count} contacts · {ws.conversations_count} convos · created {fmtDate(ws.created_at)}
-                            </div>
+                            <div className="text-[11px] text-muted-foreground truncate lg:hidden">{r.email}</div>
                           </div>
-                          <ChevronRight className="h-4 w-4 text-muted-foreground" />
                         </div>
-
-                        {/* Sub-accounts */}
-                        {ws.sub_accounts.length > 0 && (
-                          <div className="border-t border-border/50 bg-muted/10 px-3 py-2">
-                            <div className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest mb-1.5 flex items-center gap-1.5">
-                              <Users className="h-3 w-3" /> Team members ({ws.sub_accounts.length})
-                            </div>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
-                              {ws.sub_accounts.map(sa => (
-                                <div key={sa.user_id} className="flex items-center gap-2 text-xs p-1.5 rounded-md hover:bg-background">
-                                  <div className="h-6 w-6 rounded-full bg-muted flex items-center justify-center text-[10px] font-semibold flex-shrink-0">
-                                    {(sa.full_name || sa.email || '?')[0]?.toUpperCase()}
-                                  </div>
-                                  <div className="min-w-0 flex-1">
-                                    <div className="truncate font-medium">{sa.full_name || sa.email || sa.user_id.slice(0, 8)}</div>
-                                    <div className="truncate text-muted-foreground text-[10px]">{sa.email}</div>
-                                  </div>
-                                  <Badge variant="outline" className="rounded-full text-[9px] capitalize">{sa.role}</Badge>
-                                </div>
-                              ))}
-                            </div>
+                      </td>
+                      <td className="px-4 py-3 hidden lg:table-cell">
+                        <div className="text-xs text-muted-foreground space-y-0.5">
+                          <div className="flex items-center gap-1.5"><Mail className="h-3 w-3" />{r.email || '—'}</div>
+                          {r.phone && <div className="flex items-center gap-1.5"><Phone className="h-3 w-3" />{r.phone}</div>}
+                        </div>
+                      </td>
+                      <td className="px-4 py-3">
+                        {status === 'active' && (
+                          <Badge className="rounded-full text-[10px] bg-emerald-500/15 text-emerald-700 border-emerald-500/30 hover:bg-emerald-500/20">
+                            <CheckCircle2 className="h-3 w-3 mr-0.5" /> Active
+                          </Badge>
+                        )}
+                        {status === 'incomplete' && (
+                          <Badge variant="outline" className="rounded-full text-[10px] border-amber-500/40 bg-amber-500/10 text-amber-700">
+                            <ShieldAlert className="h-3 w-3 mr-0.5" /> Incomplete
+                          </Badge>
+                        )}
+                        {status === 'suspended' && (
+                          <Badge variant="destructive" className="rounded-full text-[10px]">
+                            <ShieldOff className="h-3 w-3 mr-0.5" /> Suspended
+                          </Badge>
+                        )}
+                      </td>
+                      <td className="px-4 py-3 hidden md:table-cell">
+                        {r.workspaces.length === 0 ? (
+                          <span className="text-xs text-muted-foreground italic">none</span>
+                        ) : (
+                          <div className="flex items-center gap-1.5 text-xs">
+                            <Building2 className="h-3.5 w-3.5 text-purple-600" />
+                            <span className="truncate max-w-[160px]">{ws?.workspace_name}</span>
+                            {r.workspaces.length > 1 && (
+                              <Badge variant="outline" className="rounded-full text-[9px]">+{r.workspaces.length - 1}</Badge>
+                            )}
                           </div>
                         )}
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </Card>
-            );
-          })}
-        </div>
-      )}
+                      </td>
+                      <td className="px-4 py-3 hidden md:table-cell">
+                        {wa ? (
+                          <Badge className="rounded-full text-[10px] bg-emerald-500/15 text-emerald-700 border-emerald-500/30 hover:bg-emerald-500/20">
+                            <Phone className="h-3 w-3 mr-0.5" /> Connected
+                          </Badge>
+                        ) : (
+                          <Badge variant="outline" className="rounded-full text-[10px] text-muted-foreground">
+                            Not connected
+                          </Badge>
+                        )}
+                      </td>
+                      <td className="px-4 py-3 hidden lg:table-cell">
+                        <Badge variant="outline" className="rounded-full text-[10px] capitalize">
+                          <CreditCard className="h-3 w-3 mr-0.5" /> {planLabel(r)}
+                        </Badge>
+                      </td>
+                      <td className="px-4 py-3 hidden xl:table-cell text-xs text-muted-foreground">{fmtDate(r.created_at)}</td>
+                      <td className="px-4 py-3 hidden xl:table-cell text-xs text-muted-foreground">{fmtDateTime(r.last_sign_in_at)}</td>
+                      <td className="px-2 py-3 text-right">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                            <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg" disabled={busyId === r.user_id}>
+                              {busyId === r.user_id
+                                ? <Loader2 className="h-4 w-4 animate-spin" />
+                                : <MoreVertical className="h-4 w-4" />}
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="w-60" onClick={(e) => e.stopPropagation()}>
+                            <DropdownMenuLabel className="text-xs truncate">{r.email || r.user_id.slice(0, 8)}</DropdownMenuLabel>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem onClick={() => setDrawerUserId(r.user_id)}>
+                              <Eye className="h-4 w-4 mr-2" /> View details
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => setConfirm({ kind: 'reset', row: r })}>
+                              <KeyRound className="h-4 w-4 mr-2" /> Send password reset
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => doChangePassword(r)}>
+                              <Lock className="h-4 w-4 mr-2" /> Change password
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => doChangeEmail(r)}>
+                              <AtSign className="h-4 w-4 mr-2" /> Change email
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => doChangePhone(r)}>
+                              <PhoneCall className="h-4 w-4 mr-2" /> Change phone
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => callAction(r, 'resend-verification', {}, 'Verification link generated', { copyKey: 'link' })}>
+                              <MailCheck className="h-4 w-4 mr-2" /> Resend verification
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => callAction(r, 'force-logout', {}, 'All sessions revoked')}>
+                              <LogOut className="h-4 w-4 mr-2" /> Force logout
+                            </DropdownMenuItem>
+                            <DropdownMenuSub>
+                              <DropdownMenuSubTrigger>
+                                <CreditCard className="h-4 w-4 mr-2" /> Change plan
+                              </DropdownMenuSubTrigger>
+                              <DropdownMenuSubContent>
+                                {PLAN_OPTIONS.map((p) => (
+                                  <DropdownMenuItem key={p} onClick={() => doChangePlan(r, p)} className="capitalize">
+                                    {p}
+                                  </DropdownMenuItem>
+                                ))}
+                              </DropdownMenuSubContent>
+                            </DropdownMenuSub>
+                            <DropdownMenuSeparator />
+                            {status === 'suspended' ? (
+                              <DropdownMenuItem onClick={() => callAction(r, 'activate', {}, 'Account reactivated')}>
+                                <ShieldCheck className="h-4 w-4 mr-2 text-emerald-600" /> Activate account
+                              </DropdownMenuItem>
+                            ) : (
+                              <DropdownMenuItem onClick={() => setConfirm({ kind: 'suspend', row: r })}>
+                                <ShieldOff className="h-4 w-4 mr-2 text-amber-600" /> Suspend account
+                              </DropdownMenuItem>
+                            )}
+                            <DropdownMenuItem onClick={() => { navigator.clipboard.writeText(r.user_id); toast({ title: 'User ID copied' }); }}>
+                              <Copy className="h-4 w-4 mr-2" /> Copy user ID
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem
+                              className="text-destructive focus:text-destructive"
+                              onClick={() => setConfirm({ kind: 'delete', row: r })}
+                            >
+                              <Trash2 className="h-4 w-4 mr-2" /> Delete permanently
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </Card>
 
       {/* Pagination */}
       {total > 50 && (
         <div className="flex items-center justify-between text-sm text-muted-foreground">
           <span>Page {page} of {Math.ceil(total / 50)} · {total} total</span>
           <div className="flex gap-2">
-            <Button variant="outline" size="sm" disabled={page === 1} onClick={() => setPage(p => p - 1)}>Prev</Button>
-            <Button variant="outline" size="sm" disabled={page * 50 >= total} onClick={() => setPage(p => p + 1)}>Next</Button>
+            <Button variant="outline" size="sm" disabled={page === 1} onClick={() => setPage((p) => p - 1)}>Prev</Button>
+            <Button variant="outline" size="sm" disabled={page * 50 >= total} onClick={() => setPage((p) => p + 1)}>Next</Button>
           </div>
         </div>
       )}
 
-      <AlertDialog open={!!confirmDelete} onOpenChange={(o) => !o && setConfirmDelete(null)}>
+      {/* Detail drawer */}
+      <AccountDetailsDrawer userId={drawerUserId} onClose={() => setDrawerUserId(null)} />
+
+      {/* Confirm dialog */}
+      <AlertDialog open={!!confirm} onOpenChange={(o) => !o && setConfirm(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Permanently delete this account?</AlertDialogTitle>
+            <AlertDialogTitle>
+              {confirm?.kind === 'delete' && 'Permanently delete this account?'}
+              {confirm?.kind === 'suspend' && 'Suspend this account?'}
+              {confirm?.kind === 'reset' && 'Send password reset?'}
+            </AlertDialogTitle>
             <AlertDialogDescription>
-              This will hard-delete <strong>{confirmDelete?.email || confirmDelete?.user_id}</strong>:
-              the auth user, profile, and all <strong>{confirmDelete?.workspaces.length || 0}</strong> owned workspace(s)
-              with their messages, contacts, campaigns and templates. This cannot be undone.
+              {confirm?.kind === 'delete' && (
+                <>This will hard-delete <strong>{confirm.row.email || confirm.row.user_id}</strong>: the auth user, profile, and all <strong>{confirm.row.workspaces.length}</strong> owned workspace(s) with all their data. This cannot be undone.</>
+              )}
+              {confirm?.kind === 'suspend' && (
+                <>This will block <strong>{confirm.row.email}</strong> from signing in and suspend all owned workspaces. You can reactivate later.</>
+              )}
+              {confirm?.kind === 'reset' && (
+                <>A recovery link will be generated for <strong>{confirm.row.email}</strong> and copied to your clipboard.</>
+              )}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              onClick={(e) => { e.preventDefault(); if (confirmDelete) doDeleteUser(confirmDelete); }}
+              className={cn(confirm?.kind === 'delete' && 'bg-destructive text-destructive-foreground hover:bg-destructive/90')}
+              onClick={(e) => {
+                e.preventDefault();
+                if (!confirm) return;
+                if (confirm.kind === 'delete') callAction(confirm.row, 'delete', { reason: 'Admin hard delete' }, 'Account permanently deleted');
+                if (confirm.kind === 'suspend') callAction(confirm.row, 'suspend', { reason: 'Suspended by admin' }, 'Account suspended');
+                if (confirm.kind === 'reset')   callAction(confirm.row, 'reset-password', {}, 'Reset link copied', { copyKey: 'reset_link' });
+              }}
             >
-              {busyId === confirmDelete?.user_id ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <Trash2 className="h-4 w-4 mr-1" />}
-              Delete permanently
+              {busyId === confirm?.row.user_id && <Loader2 className="h-4 w-4 animate-spin mr-1" />}
+              Confirm
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
