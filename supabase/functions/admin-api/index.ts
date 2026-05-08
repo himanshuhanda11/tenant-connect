@@ -102,7 +102,25 @@ Deno.serve(async (req: Request) => {
 
       // Counts via auth.admin (source of truth for signups)
       const { data: authPage } = await sb.auth.admin.listUsers({ page: 1, perPage: 1000 });
-      const allUsers = authPage?.users || [];
+      const allUsersRaw = authPage?.users || [];
+
+      // Filter to top-level accounts only (owners or users without any workspace membership).
+      // Sub-accounts (team members of others' workspaces) are excluded — they are visible
+      // inside their parent workspace, not as separate accounts.
+      const allUserIdsForFilter = allUsersRaw.map((u: any) => u.id);
+      const ownerIdSet = new Set<string>();
+      const memberIdSet = new Set<string>();
+      if (allUserIdsForFilter.length) {
+        const { data: allMems } = await sb.from("tenant_members")
+          .select("user_id, role")
+          .in("user_id", allUserIdsForFilter);
+        for (const m of allMems || []) {
+          memberIdSet.add(m.user_id);
+          if (m.role === "owner") ownerIdSet.add(m.user_id);
+        }
+      }
+      const allUsers = allUsersRaw.filter((u: any) => ownerIdSet.has(u.id) || !memberIdSet.has(u.id));
+      const subAccountsCount = allUsersRaw.length - allUsers.length;
       const totalAccounts = allUsers.length;
       const confirmedAccounts = allUsers.filter((u: any) => !!u.email_confirmed_at).length;
       const incompleteAccounts = totalAccounts - confirmedAccounts;
