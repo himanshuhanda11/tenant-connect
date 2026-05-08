@@ -91,6 +91,111 @@ Deno.serve(async (req: Request) => {
       });
     }
 
+    // GET /dashboard-stats — rich super-admin analytics
+    if (req.method === "GET" && path === "dashboard-stats") {
+      await requirePlatformRole(req, ["super_admin", "support"]);
+      const sb = adminClient();
+
+      // Counts via auth.admin (source of truth for signups)
+      const { data: authPage } = await sb.auth.admin.listUsers({ page: 1, perPage: 1000 });
+      const allUsers = authPage?.users || [];
+      const totalAccounts = allUsers.length;
+      const confirmedAccounts = allUsers.filter((u: any) => !!u.email_confirmed_at).length;
+      const incompleteAccounts = totalAccounts - confirmedAccounts;
+
+      // Workspaces
+      const { data: tenants } = await sb.from("tenants")
+        .select("id, created_at, is_suspended");
+      const totalWorkspaces = (tenants || []).length;
+      const activeWorkspaces = (tenants || []).filter((t: any) => !t.is_suspended).length;
+      const suspendedWorkspaces = totalWorkspaces - activeWorkspaces;
+
+      // Phone connections
+      const { data: phones } = await sb.from("phone_numbers")
+        .select("tenant_id, status, created_at");
+      const tenantsWithPhone = new Set((phones || []).filter((p: any) => p.status === "connected").map((p: any) => p.tenant_id));
+      const workspacesWithPhone = tenantsWithPhone.size;
+      const workspacesWithoutPhone = Math.max(0, totalWorkspaces - workspacesWithPhone);
+
+      // Plans (from directory)
+      const { data: dir } = await sb.from("platform_workspace_directory")
+        .select("workspace_id, plan, plan_name, subscription_status, is_suspended");
+      const planCounts: Record<string, number> = {};
+      let activePaid = 0;
+      let freeTrial = 0;
+      for (const d of dir || []) {
+        const planLabel = (d.plan_name || d.plan || "free").toString();
+        planCounts[planLabel] = (planCounts[planLabel] || 0) + 1;
+        const lower = planLabel.toLowerCase();
+        if (["free", "trial", "starter"].includes(lower) || !d.subscription_status) freeTrial++;
+        else activePaid++;
+      }
+      const planDistribution = Object.entries(planCounts).map(([name, value]) => ({ name, value }));
+
+      // Time-series helper: bucket by day for last 30 days
+      const days = 30;
+      const today = new Date();
+      today.setUTCHours(0, 0, 0, 0);
+      const series = Array.from({ length: days }, (_, i) => {
+        const d = new Date(today);
+        d.setUTCDate(d.getUTCDate() - (days - 1 - i));
+        return { date: d.toISOString().slice(0, 10), accounts: 0, workspaces: 0, phones: 0 };
+      });
+      const indexFor = (iso: string) => {
+        const d = iso.slice(0, 10);
+        return series.findIndex((s) => s.date === d);
+      };
+      for (const u of allUsers) {
+        const i = indexFor(u.created_at || "");
+        if (i >= 0) series[i].accounts++;
+      }
+      for (const t of tenants || []) {
+        const i = indexFor(t.created_at || "");
+        if (i >= 0) series[i].workspaces++;
+      }
+      for (const p of phones || []) {
+        const i = indexFor(p.created_at || "");
+        if (i >= 0) series[i].phones++;
+      }
+
+      // Growth windows
+      const now = Date.now();
+      const within = (iso: string, ms: number) => iso && (now - new Date(iso).getTime()) <= ms;
+      const DAY = 86400000;
+      const accountsToday = allUsers.filter((u: any) => within(u.created_at, DAY)).length;
+      const accountsWeek = allUsers.filter((u: any) => within(u.created_at, 7 * DAY)).length;
+      const accountsMonth = allUsers.filter((u: any) => within(u.created_at, 30 * DAY)).length;
+      const workspacesToday = (tenants || []).filter((t: any) => within(t.created_at, DAY)).length;
+      const workspacesWeek = (tenants || []).filter((t: any) => within(t.created_at, 7 * DAY)).length;
+      const workspacesMonth = (tenants || []).filter((t: any) => within(t.created_at, 30 * DAY)).length;
+
+      // Recent activity (last 10 audit events)
+      const { data: activity } = await sb.from("platform_audit_logs")
+        .select("id, action, actor_role, created_at, note, target_table")
+        .order("created_at", { ascending: false })
+        .limit(10);
+
+      return new Response(JSON.stringify({
+        totals: {
+          totalAccounts, confirmedAccounts, incompleteAccounts,
+          totalWorkspaces, activeWorkspaces, suspendedWorkspaces,
+          workspacesWithPhone, workspacesWithoutPhone,
+          activePaid, freeTrial,
+        },
+        growth: {
+          accountsToday, accountsWeek, accountsMonth,
+          workspacesToday, workspacesWeek, workspacesMonth,
+        },
+        series,
+        planDistribution,
+        phoneStatus: [
+          { name: "Connected", value: workspacesWithPhone },
+          { name: "No Number", value: workspacesWithoutPhone },
+        ],
+        recentActivity: activity || [],
+      }), { headers: { ...corsHeaders, "content-type": "application/json" } });
+    }
+
     // GET /accounts — list ALL signups from auth.users (source of truth),
     // merged with profiles + owned workspaces + team-member sub-accounts.
     if (req.method === "GET" && path === "accounts") {

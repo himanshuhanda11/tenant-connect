@@ -1,85 +1,66 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAdminApi } from '@/hooks/useAdminApi';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
 import {
   Building2, Phone, MessageSquare, Loader2, AlertTriangle, RefreshCw,
-  DollarSign, UserCircle2, ArrowRight, CheckCircle2, TrendingUp, Sparkles
+  UserCircle2, ArrowRight, CheckCircle2, TrendingUp, Sparkles, Search,
+  ShieldOff, CreditCard, Activity, Bell, Zap, Filter,
 } from 'lucide-react';
-import { AdminHealthChips } from '@/components/admin/AdminHealthChips';
-import { AdminAttentionPanel, buildAttentionItems } from '@/components/admin/AdminAttentionPanel';
-import { AdminRiskPanel } from '@/components/admin/AdminRiskPanel';
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import {
+  AreaChart, Area, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
+  PieChart, Pie, Cell, CartesianGrid, Legend,
+} from 'recharts';
 import { cn } from '@/lib/utils';
+import { formatDistanceToNow } from 'date-fns';
 
-interface KPI {
-  total_workspaces: number;
-  active_workspaces: number;
-  suspended_workspaces: number;
-  total_phone_numbers: number;
-  connected_phone_numbers: number;
-  total_users: number;
-  total_contacts: number;
-  total_conversations: number;
-  total_accounts?: number;
-  completed_accounts?: number;
-  accounts_with_workspace?: number;
-  accounts_last_30d?: number;
-  total_revenue_cents?: number;
-  revenue_30d_cents?: number;
-  daily_conversations?: number;
-  daily_messages?: number;
+interface Stats {
+  totals: {
+    totalAccounts: number; confirmedAccounts: number; incompleteAccounts: number;
+    totalWorkspaces: number; activeWorkspaces: number; suspendedWorkspaces: number;
+    workspacesWithPhone: number; workspacesWithoutPhone: number;
+    activePaid: number; freeTrial: number;
+  };
+  growth: {
+    accountsToday: number; accountsWeek: number; accountsMonth: number;
+    workspacesToday: number; workspacesWeek: number; workspacesMonth: number;
+  };
+  series: { date: string; accounts: number; workspaces: number; phones: number }[];
+  planDistribution: { name: string; value: number }[];
+  phoneStatus: { name: string; value: number }[];
+  recentActivity: { id: string; action: string; actor_role: string; created_at: string; note?: string; target_table?: string }[];
 }
 
-const generateRevenueData = () => {
-  const data = [];
-  const now = new Date();
-  for (let i = 29; i >= 0; i--) {
-    const d = new Date(now);
-    d.setDate(d.getDate() - i);
-    data.push({
-      date: d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-      revenue: Math.floor(Math.random() * 3000) + 1200,
-    });
-  }
-  return data;
-};
+const PIE_COLORS = ['hsl(152, 60%, 45%)', 'hsl(217, 91%, 60%)', 'hsl(38, 92%, 55%)', 'hsl(340, 75%, 55%)', 'hsl(280, 65%, 60%)'];
 
-const CHART_COLORS = ['hsl(var(--primary))', 'hsl(var(--destructive))'];
-
-interface PremiumKPIProps {
-  label: string;
-  value: string | number;
-  subtitle?: string;
-  icon: React.ElementType;
-  accent: string; // tailwind from- color e.g. 'from-blue-500'
-  accentTo: string;
-  trend?: number;
+interface KPIProps {
+  label: string; value: string | number; subtitle?: string;
+  icon: React.ElementType; gradient: string; trend?: number;
   onClick?: () => void;
 }
 
-function PremiumKPI({ label, value, subtitle, icon: Icon, accent, accentTo, trend, onClick }: PremiumKPIProps) {
+function KPI({ label, value, subtitle, icon: Icon, gradient, trend, onClick }: KPIProps) {
   return (
     <Card
       onClick={onClick}
       className={cn(
-        'relative overflow-hidden rounded-2xl border-border/50 transition-all duration-300 group',
-        onClick && 'cursor-pointer hover:shadow-xl hover:-translate-y-0.5'
+        'relative overflow-hidden rounded-2xl border-border/50 transition-all duration-300 group bg-card',
+        onClick && 'cursor-pointer hover:shadow-xl hover:-translate-y-0.5 hover:border-primary/30'
       )}
     >
-      {/* gradient glow */}
-      <div className={cn(
-        'absolute -top-12 -right-12 w-40 h-40 rounded-full blur-3xl opacity-20 group-hover:opacity-40 transition-opacity bg-gradient-to-br',
-        accent, accentTo
-      )} />
+      <div
+        className="absolute -top-12 -right-12 w-40 h-40 rounded-full blur-3xl opacity-20 group-hover:opacity-40 transition-opacity"
+        style={{ background: gradient }}
+      />
       <CardContent className="p-5 relative">
         <div className="flex items-start justify-between mb-4">
-          <div className={cn(
-            'h-11 w-11 rounded-2xl flex items-center justify-center bg-gradient-to-br shadow-md text-white',
-            accent, accentTo
-          )}>
+          <div
+            className="h-11 w-11 rounded-2xl flex items-center justify-center shadow-md text-white"
+            style={{ background: gradient }}
+          >
             <Icon className="h-5 w-5" />
           </div>
           {trend !== undefined && (
@@ -93,11 +74,11 @@ function PremiumKPI({ label, value, subtitle, icon: Icon, accent, accentTo, tren
               )}
             >
               <TrendingUp className={cn('h-3 w-3', trend < 0 && 'rotate-180')} />
-              {trend > 0 ? '+' : ''}{trend}%
+              {trend > 0 ? '+' : ''}{trend}
             </Badge>
           )}
         </div>
-        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">{label}</p>
+        <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider mb-1">{label}</p>
         <p className="text-3xl font-bold tracking-tight tabular-nums">{value}</p>
         {subtitle && <p className="text-xs text-muted-foreground mt-1.5">{subtitle}</p>}
       </CardContent>
@@ -105,45 +86,55 @@ function PremiumKPI({ label, value, subtitle, icon: Icon, accent, accentTo, tren
   );
 }
 
-const FUNNEL_STAGES = [
-  { key: 'account', label: 'Account Created', icon: UserCircle2, color: 'bg-blue-500' },
-  { key: 'workspace', label: 'Workspace', icon: Building2, color: 'bg-purple-500' },
-  { key: 'phone', label: 'Phone Connected', icon: Phone, color: 'bg-emerald-500' },
-  { key: 'plan', label: 'Active Plan', icon: DollarSign, color: 'bg-amber-500' },
-];
+const RANGE_OPTIONS = [
+  { key: '7d', label: '7d', days: 7 },
+  { key: '14d', label: '14d', days: 14 },
+  { key: '30d', label: '30d', days: 30 },
+] as const;
 
 export default function AdminOverview() {
   const { get } = useAdminApi();
   const navigate = useNavigate();
-  const [kpi, setKpi] = useState<KPI | null>(null);
+  const [stats, setStats] = useState<Stats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [revenueData] = useState(generateRevenueData);
+  const [search, setSearch] = useState('');
+  const [range, setRange] = useState<typeof RANGE_OPTIONS[number]['key']>('30d');
 
   const loadData = async () => {
-    setLoading(true);
-    setError(null);
+    setLoading(true); setError(null);
     try {
-      const data = await get('overview');
-      setKpi(data.kpi);
+      const data = await get('dashboard-stats');
+      setStats(data);
     } catch (e: any) {
-      setError(e.message || 'Failed to load overview data');
-    } finally {
-      setLoading(false);
-    }
+      setError(e.message || 'Failed to load dashboard');
+    } finally { setLoading(false); }
   };
 
   useEffect(() => { loadData(); }, []);
+  // Auto-refresh every 60s for "real-time" counters
+  useEffect(() => {
+    const t = setInterval(loadData, 60000);
+    return () => clearInterval(t);
+  }, []);
 
-  if (loading) {
+  const filteredSeries = useMemo(() => {
+    if (!stats) return [];
+    const days = RANGE_OPTIONS.find((r) => r.key === range)?.days ?? 30;
+    return stats.series.slice(-days).map((s) => ({
+      ...s,
+      label: new Date(s.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+    }));
+  }, [stats, range]);
+
+  if (loading && !stats) {
     return <div className="flex justify-center py-20"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
   }
-
-  if (error || !kpi) {
+  if (error || !stats) {
     return (
       <div className="flex flex-col items-center justify-center py-20 gap-4">
-        <div className="h-12 w-12 rounded-2xl bg-red-50 flex items-center justify-center">
-          <AlertTriangle className="h-6 w-6 text-red-500" />
+        <div className="h-12 w-12 rounded-2xl bg-destructive/10 flex items-center justify-center">
+          <AlertTriangle className="h-6 w-6 text-destructive" />
         </div>
         <p className="text-muted-foreground">{error || 'No data available'}</p>
         <Button onClick={loadData} variant="outline" size="sm">
@@ -153,217 +144,236 @@ export default function AdminOverview() {
     );
   }
 
-  const pendingPhones = kpi.total_phone_numbers - kpi.connected_phone_numbers;
-  const totalAccounts = kpi.total_accounts ?? kpi.total_users ?? 0;
-  const accountsWithWorkspace = kpi.accounts_with_workspace ?? kpi.total_workspaces ?? 0;
-  const completedAccounts = kpi.completed_accounts ?? 0;
-  const revenueDollars = (kpi.total_revenue_cents ?? 0) / 100;
-  const dailyConvos = kpi.daily_conversations ?? 0;
+  const t = stats.totals;
+  const g = stats.growth;
+  const activationRate = t.totalAccounts > 0 ? (t.confirmedAccounts / t.totalAccounts) * 100 : 0;
+  const phoneAttachRate = t.totalWorkspaces > 0 ? (t.workspacesWithPhone / t.totalWorkspaces) * 100 : 0;
 
-  // Funnel counts
-  const funnelCounts = [
-    totalAccounts,
-    accountsWithWorkspace,
-    kpi.connected_phone_numbers,
-    completedAccounts,
+  const funnelStages = [
+    { key: 'account', label: 'Account Created', icon: UserCircle2, color: 'hsl(217, 91%, 60%)', count: t.totalAccounts },
+    { key: 'confirmed', label: 'Email Confirmed', icon: CheckCircle2, color: 'hsl(280, 65%, 60%)', count: t.confirmedAccounts },
+    { key: 'workspace', label: 'Workspace', icon: Building2, color: 'hsl(38, 92%, 55%)', count: t.totalWorkspaces },
+    { key: 'phone', label: 'Phone Connected', icon: Phone, color: 'hsl(152, 60%, 45%)', count: t.workspacesWithPhone },
+    { key: 'plan', label: 'Active Paid Plan', icon: CreditCard, color: 'hsl(340, 75%, 55%)', count: t.activePaid },
   ];
-  const maxFunnel = Math.max(1, funnelCounts[0]);
+  const maxFunnel = Math.max(1, funnelStages[0].count);
 
-  const healthChips = [
-    { label: 'Active Workspaces', value: kpi.active_workspaces, status: 'success' as const },
-    { label: 'Pending Numbers', value: pendingPhones, status: pendingPhones > 0 ? 'warning' as const : 'success' as const },
-    { label: 'Suspended', value: kpi.suspended_workspaces, status: kpi.suspended_workspaces > 0 ? 'error' as const : 'success' as const },
-  ];
-
-  const attentionItems = buildAttentionItems(kpi, navigate);
-
-  const donutData = [
-    { name: 'Active', value: kpi.active_workspaces },
-    { name: 'Suspended', value: kpi.suspended_workspaces || 1 },
-  ];
+  const filteredActivity = stats.recentActivity.filter((a) =>
+    !search || JSON.stringify(a).toLowerCase().includes(search.toLowerCase())
+  );
 
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Hero */}
       <div className="relative overflow-hidden rounded-2xl border border-border/50 bg-gradient-to-br from-primary/5 via-background to-background p-6">
         <div className="absolute -top-20 -right-20 w-64 h-64 bg-primary/10 rounded-full blur-3xl" />
-        <div className="relative flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="absolute -bottom-16 -left-10 w-56 h-56 bg-emerald-500/10 rounded-full blur-3xl" />
+        <div className="relative flex flex-col lg:flex-row lg:items-center justify-between gap-4">
           <div>
             <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary/10 text-primary text-[10px] font-semibold uppercase tracking-widest mb-2">
-              <Sparkles className="h-3 w-3" /> Control Center
+              <Sparkles className="h-3 w-3" /> Super Admin · Live
             </div>
-            <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Platform Overview</h1>
+            <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Aireatro Control Center</h1>
             <p className="text-sm text-muted-foreground mt-1">
-              Internal AiReatro operations · {totalAccounts.toLocaleString()} accounts created successfully.
+              {t.totalAccounts.toLocaleString()} accounts · {t.totalWorkspaces.toLocaleString()} workspaces · {t.workspacesWithPhone.toLocaleString()} active numbers
             </p>
           </div>
-          <div className="flex items-center gap-2">
-            <AdminHealthChips chips={healthChips} />
-            <Button variant="outline" size="sm" className="rounded-xl" onClick={loadData}>
-              <RefreshCw className="h-4 w-4" />
+          <div className="flex items-center gap-2 flex-wrap">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+              <Input
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search activity..."
+                className="pl-9 h-9 w-56 rounded-xl text-sm"
+              />
+            </div>
+            <Button variant="outline" size="sm" className="rounded-xl gap-1.5" onClick={loadData}>
+              <RefreshCw className={cn('h-3.5 w-3.5', loading && 'animate-spin')} />
+              Refresh
             </Button>
           </div>
         </div>
       </div>
 
-      {/* Premium KPI Grid — 5 cards as requested */}
+      {/* Top KPIs — accounts focus */}
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
-        <PremiumKPI
-          label="Accounts"
-          value={totalAccounts.toLocaleString()}
-          subtitle={`${kpi.accounts_last_30d ?? 0} new in 30d`}
-          icon={UserCircle2}
-          accent="from-blue-500"
-          accentTo="to-indigo-600"
-          trend={12}
-          onClick={() => navigate('/control/accounts')}
-        />
-        <PremiumKPI
-          label="Workspaces"
-          value={kpi.total_workspaces.toLocaleString()}
-          subtitle={`${kpi.active_workspaces} active`}
-          icon={Building2}
-          accent="from-purple-500"
-          accentTo="to-fuchsia-600"
-          trend={8}
-          onClick={() => navigate('/control/workspaces')}
-        />
-        <PremiumKPI
-          label="Phone Active"
-          value={kpi.connected_phone_numbers.toLocaleString()}
-          subtitle={`${pendingPhones} pending`}
-          icon={Phone}
-          accent="from-emerald-500"
-          accentTo="to-teal-600"
-          trend={5}
-          onClick={() => navigate('/control/phone-numbers')}
-        />
-        <PremiumKPI
-          label="Revenue"
-          value={`$${revenueDollars.toLocaleString(undefined, { maximumFractionDigits: 0 })}`}
-          subtitle={`$${(((kpi.revenue_30d_cents ?? 0) / 100)).toLocaleString()} in 30d`}
-          icon={DollarSign}
-          accent="from-amber-500"
-          accentTo="to-orange-600"
-          trend={revenueDollars > 0 ? 18 : 0}
-          onClick={() => navigate('/control/billing')}
-        />
-        <PremiumKPI
-          label="Daily Convos"
-          value={dailyConvos.toLocaleString()}
-          subtitle={`${(kpi.daily_messages ?? 0).toLocaleString()} messages 24h`}
-          icon={MessageSquare}
-          accent="from-pink-500"
-          accentTo="to-rose-600"
-          trend={-3}
-        />
+        <KPI label="Total Accounts" value={t.totalAccounts.toLocaleString()}
+          subtitle={`+${g.accountsMonth} in 30d`}
+          icon={UserCircle2} gradient="linear-gradient(135deg,#3b82f6,#6366f1)"
+          trend={g.accountsToday}
+          onClick={() => navigate('/control/accounts')} />
+        <KPI label="Completed" value={t.confirmedAccounts.toLocaleString()}
+          subtitle={`${activationRate.toFixed(1)}% activation`}
+          icon={CheckCircle2} gradient="linear-gradient(135deg,#10b981,#059669)"
+          onClick={() => navigate('/control/accounts')} />
+        <KPI label="Incomplete" value={t.incompleteAccounts.toLocaleString()}
+          subtitle="Email not confirmed"
+          icon={AlertTriangle} gradient="linear-gradient(135deg,#f59e0b,#d97706)"
+          onClick={() => navigate('/control/accounts')} />
+        <KPI label="Workspaces" value={t.totalWorkspaces.toLocaleString()}
+          subtitle={`${t.activeWorkspaces} active · ${t.suspendedWorkspaces} suspended`}
+          icon={Building2} gradient="linear-gradient(135deg,#8b5cf6,#a855f7)"
+          trend={g.workspacesToday}
+          onClick={() => navigate('/control/workspaces')} />
+        <KPI label="WA Connected" value={t.workspacesWithPhone.toLocaleString()}
+          subtitle={`${phoneAttachRate.toFixed(0)}% attach rate`}
+          icon={Phone} gradient="linear-gradient(135deg,#14b8a6,#10b981)"
+          onClick={() => navigate('/control/phone-numbers')} />
       </div>
 
-      {/* Customer Journey Map */}
+      {/* Secondary KPIs */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <KPI label="Active Paid Plans" value={t.activePaid.toLocaleString()}
+          subtitle="Revenue generating"
+          icon={CreditCard} gradient="linear-gradient(135deg,#ec4899,#f43f5e)"
+          onClick={() => navigate('/control/billing')} />
+        <KPI label="Free / Trial" value={t.freeTrial.toLocaleString()}
+          subtitle="Conversion opportunities"
+          icon={Zap} gradient="linear-gradient(135deg,#f59e0b,#f97316)" />
+        <KPI label="Suspended" value={t.suspendedWorkspaces.toLocaleString()}
+          subtitle="Workspaces blocked"
+          icon={ShieldOff} gradient="linear-gradient(135deg,#ef4444,#dc2626)" />
+        <KPI label="No WA Number" value={t.workspacesWithoutPhone.toLocaleString()}
+          subtitle="Pending connection"
+          icon={Phone} gradient="linear-gradient(135deg,#64748b,#475569)"
+          onClick={() => navigate('/control/phone-numbers')} />
+      </div>
+
+      {/* Growth strip */}
+      <Card className="rounded-2xl border-border/50">
+        <CardContent className="p-5">
+          <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
+            {[
+              { l: 'Accounts · Today', v: g.accountsToday, c: 'text-blue-600' },
+              { l: 'Accounts · Week', v: g.accountsWeek, c: 'text-blue-600' },
+              { l: 'Accounts · Month', v: g.accountsMonth, c: 'text-blue-600' },
+              { l: 'Workspaces · Today', v: g.workspacesToday, c: 'text-purple-600' },
+              { l: 'Workspaces · Week', v: g.workspacesWeek, c: 'text-purple-600' },
+              { l: 'Workspaces · Month', v: g.workspacesMonth, c: 'text-purple-600' },
+            ].map((m) => (
+              <div key={m.l}>
+                <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">{m.l}</p>
+                <p className={cn('text-2xl font-bold tabular-nums mt-1', m.c)}>+{m.v}</p>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Customer Journey Funnel */}
       <Card className="rounded-2xl border-border/50 overflow-hidden">
         <CardHeader className="pb-3">
           <CardTitle className="text-sm font-semibold flex items-center gap-2">
             <div className="h-7 w-7 rounded-lg bg-primary/10 flex items-center justify-center">
               <ArrowRight className="h-3.5 w-3.5 text-primary" />
             </div>
-            Customer Journey · Account → Workspace → Phone → Plan
+            Customer Journey Map · Account → Workspace → Phone → Plan
           </CardTitle>
         </CardHeader>
-        <CardContent className="pb-5">
-          <div className="space-y-3">
-            {FUNNEL_STAGES.map((stage, i) => {
-              const count = funnelCounts[i];
-              const pct = (count / maxFunnel) * 100;
-              const conversion = i === 0 ? 100 : (funnelCounts[i] / Math.max(1, funnelCounts[i - 1])) * 100;
-              const Icon = stage.icon;
-              return (
-                <div key={stage.key} className="flex items-center gap-3">
-                  <div className={cn('h-9 w-9 rounded-xl flex items-center justify-center text-white flex-shrink-0', stage.color)}>
-                    <Icon className="h-4 w-4" />
+        <CardContent className="pb-5 space-y-3">
+          {funnelStages.map((stage, i) => {
+            const pct = (stage.count / maxFunnel) * 100;
+            const conv = i === 0 ? 100 : (stage.count / Math.max(1, funnelStages[i - 1].count)) * 100;
+            const Icon = stage.icon;
+            return (
+              <div key={stage.key} className="flex items-center gap-3">
+                <div className="h-9 w-9 rounded-xl flex items-center justify-center text-white flex-shrink-0"
+                  style={{ background: stage.color }}>
+                  <Icon className="h-4 w-4" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between mb-1.5">
+                    <span className="text-sm font-medium">{stage.label}</span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-bold tabular-nums">{stage.count.toLocaleString()}</span>
+                      {i > 0 && (
+                        <Badge variant="outline" className="rounded-full text-[10px]">
+                          {conv.toFixed(0)}% conv.
+                        </Badge>
+                      )}
+                    </div>
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between mb-1.5">
-                      <span className="text-sm font-medium">{stage.label}</span>
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm font-bold tabular-nums">{count.toLocaleString()}</span>
-                        {i > 0 && (
-                          <Badge variant="outline" className="rounded-full text-[10px]">
-                            {conversion.toFixed(0)}% conv.
-                          </Badge>
-                        )}
-                      </div>
-                    </div>
-                    <div className="relative h-2 rounded-full bg-muted overflow-hidden">
-                      <div
-                        className={cn('absolute inset-y-0 left-0 rounded-full transition-all duration-700', stage.color)}
-                        style={{ width: `${pct}%` }}
-                      />
-                    </div>
+                  <div className="relative h-2 rounded-full bg-muted overflow-hidden">
+                    <div className="absolute inset-y-0 left-0 rounded-full transition-all duration-700"
+                      style={{ width: `${pct}%`, background: stage.color }} />
                   </div>
                 </div>
-              );
-            })}
-          </div>
-          <div className="mt-4 pt-4 border-t border-border/50 flex items-center justify-between text-xs">
-            <span className="text-muted-foreground flex items-center gap-1.5">
-              <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
-              Overall activation rate: <strong className="text-foreground">{((completedAccounts / Math.max(1, totalAccounts)) * 100).toFixed(1)}%</strong>
-            </span>
-            <button
-              onClick={() => navigate('/control/accounts')}
-              className="text-primary font-medium hover:underline flex items-center gap-1"
-            >
-              View accounts <ArrowRight className="h-3 w-3" />
-            </button>
-          </div>
+              </div>
+            );
+          })}
         </CardContent>
       </Card>
 
-      {/* Charts Section */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card className="rounded-2xl shadow-sm border-border/50 md:col-span-2">
-          <CardHeader className="pb-2">
+      {/* Charts: Growth + Phone status + Plan distribution */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <Card className="rounded-2xl border-border/50 lg:col-span-2">
+          <CardHeader className="pb-2 flex flex-row items-center justify-between">
             <CardTitle className="text-sm font-semibold flex items-center gap-2">
-              <div className="h-7 w-7 rounded-lg bg-emerald-50 flex items-center justify-center">
-                <DollarSign className="h-3.5 w-3.5 text-emerald-600" />
+              <div className="h-7 w-7 rounded-lg bg-blue-500/10 flex items-center justify-center">
+                <TrendingUp className="h-3.5 w-3.5 text-blue-600" />
               </div>
-              Revenue — Last 30 Days
+              Growth — Accounts & Workspaces
             </CardTitle>
+            <div className="flex items-center gap-1 bg-muted/50 rounded-lg p-0.5">
+              {RANGE_OPTIONS.map((r) => (
+                <button key={r.key} onClick={() => setRange(r.key)}
+                  className={cn(
+                    'text-xs px-2.5 py-1 rounded-md font-medium transition',
+                    range === r.key ? 'bg-background shadow-sm text-foreground' : 'text-muted-foreground hover:text-foreground'
+                  )}>
+                  {r.label}
+                </button>
+              ))}
+            </div>
           </CardHeader>
           <CardContent className="pl-0 pr-4 pb-4">
-            <ResponsiveContainer width="100%" height={220}>
-              <BarChart data={revenueData} barSize={8}>
-                <XAxis dataKey="date" tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }} axisLine={false} tickLine={false} interval={6} />
-                <YAxis tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }} axisLine={false} tickLine={false} tickFormatter={v => `$${(v / 1000).toFixed(0)}k`} width={45} />
-                <Tooltip contentStyle={{ borderRadius: 12, border: '1px solid hsl(var(--border))', fontSize: 12, background: 'hsl(var(--card))' }} formatter={(value: number) => [`$${value.toLocaleString()}`, 'Revenue']} />
-                <Bar dataKey="revenue" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
-              </BarChart>
+            <ResponsiveContainer width="100%" height={260}>
+              <AreaChart data={filteredSeries}>
+                <defs>
+                  <linearGradient id="ga" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="hsl(217, 91%, 60%)" stopOpacity={0.3} />
+                    <stop offset="100%" stopColor="hsl(217, 91%, 60%)" stopOpacity={0} />
+                  </linearGradient>
+                  <linearGradient id="gw" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="hsl(280, 65%, 60%)" stopOpacity={0.3} />
+                    <stop offset="100%" stopColor="hsl(280, 65%, 60%)" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+                <XAxis dataKey="label" tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }} axisLine={false} tickLine={false} interval={Math.floor(filteredSeries.length / 8)} />
+                <YAxis tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }} axisLine={false} tickLine={false} width={32} />
+                <Tooltip contentStyle={{ borderRadius: 12, border: '1px solid hsl(var(--border))', fontSize: 12, background: 'hsl(var(--card))' }} />
+                <Legend wrapperStyle={{ fontSize: 11 }} iconType="circle" />
+                <Area type="monotone" dataKey="accounts" stroke="hsl(217, 91%, 60%)" strokeWidth={2} fill="url(#ga)" name="Accounts" />
+                <Area type="monotone" dataKey="workspaces" stroke="hsl(280, 65%, 60%)" strokeWidth={2} fill="url(#gw)" name="Workspaces" />
+              </AreaChart>
             </ResponsiveContainer>
           </CardContent>
         </Card>
 
-        <Card className="rounded-2xl shadow-sm border-border/50">
+        <Card className="rounded-2xl border-border/50">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-semibold flex items-center gap-2">
-              <div className="h-7 w-7 rounded-lg bg-blue-50 flex items-center justify-center">
-                <Building2 className="h-3.5 w-3.5 text-blue-600" />
+              <div className="h-7 w-7 rounded-lg bg-emerald-500/10 flex items-center justify-center">
+                <Phone className="h-3.5 w-3.5 text-emerald-600" />
               </div>
-              Active vs Suspended
+              WhatsApp Connection
             </CardTitle>
           </CardHeader>
           <CardContent className="flex flex-col items-center pb-4">
-            <ResponsiveContainer width="100%" height={160}>
+            <ResponsiveContainer width="100%" height={200}>
               <PieChart>
-                <Pie data={donutData} cx="50%" cy="50%" innerRadius={45} outerRadius={65} paddingAngle={4} dataKey="value" strokeWidth={0}>
-                  {donutData.map((_, i) => <Cell key={i} fill={CHART_COLORS[i]} />)}
+                <Pie data={stats.phoneStatus} cx="50%" cy="50%" innerRadius={50} outerRadius={75} paddingAngle={4} dataKey="value" strokeWidth={0}>
+                  {stats.phoneStatus.map((_, i) => <Cell key={i} fill={i === 0 ? 'hsl(152, 60%, 45%)' : 'hsl(var(--muted-foreground))'} />)}
                 </Pie>
                 <Tooltip contentStyle={{ borderRadius: 12, border: '1px solid hsl(var(--border))', fontSize: 12, background: 'hsl(var(--card))' }} />
               </PieChart>
             </ResponsiveContainer>
             <div className="flex gap-4 mt-1">
-              {donutData.map((d, i) => (
+              {stats.phoneStatus.map((d, i) => (
                 <div key={d.name} className="flex items-center gap-1.5 text-xs">
-                  <span className="h-2 w-2 rounded-full" style={{ background: CHART_COLORS[i] }} />
+                  <span className="h-2 w-2 rounded-full" style={{ background: i === 0 ? 'hsl(152, 60%, 45%)' : 'hsl(var(--muted-foreground))' }} />
                   <span className="text-muted-foreground">{d.name}</span>
                   <span className="font-semibold">{d.value}</span>
                 </div>
@@ -373,8 +383,139 @@ export default function AdminOverview() {
         </Card>
       </div>
 
-      <AdminAttentionPanel items={attentionItems} />
-      <AdminRiskPanel />
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <Card className="rounded-2xl border-border/50">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-semibold flex items-center gap-2">
+              <div className="h-7 w-7 rounded-lg bg-pink-500/10 flex items-center justify-center">
+                <CreditCard className="h-3.5 w-3.5 text-pink-600" />
+              </div>
+              Plan Distribution
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pb-4">
+            {stats.planDistribution.length === 0 ? (
+              <div className="text-xs text-muted-foreground py-10 text-center">No plan data yet</div>
+            ) : (
+              <ResponsiveContainer width="100%" height={200}>
+                <PieChart>
+                  <Pie data={stats.planDistribution} cx="50%" cy="50%" outerRadius={75} dataKey="value" label={(e: any) => `${e.name}: ${e.value}`} labelLine={false} strokeWidth={0}>
+                    {stats.planDistribution.map((_, i) => <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />)}
+                  </Pie>
+                  <Tooltip contentStyle={{ borderRadius: 12, border: '1px solid hsl(var(--border))', fontSize: 12, background: 'hsl(var(--card))' }} />
+                </PieChart>
+              </ResponsiveContainer>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card className="rounded-2xl border-border/50 lg:col-span-2">
+          <CardHeader className="pb-2 flex flex-row items-center justify-between">
+            <CardTitle className="text-sm font-semibold flex items-center gap-2">
+              <div className="h-7 w-7 rounded-lg bg-amber-500/10 flex items-center justify-center">
+                <Activity className="h-3.5 w-3.5 text-amber-600" />
+              </div>
+              Phone Numbers Added — last {RANGE_OPTIONS.find(r=>r.key===range)?.days}d
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pl-0 pr-4 pb-4">
+            <ResponsiveContainer width="100%" height={200}>
+              <BarChart data={filteredSeries} barSize={10}>
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+                <XAxis dataKey="label" tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }} axisLine={false} tickLine={false} interval={Math.floor(filteredSeries.length / 6)} />
+                <YAxis tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }} axisLine={false} tickLine={false} width={32} />
+                <Tooltip contentStyle={{ borderRadius: 12, border: '1px solid hsl(var(--border))', fontSize: 12, background: 'hsl(var(--card))' }} />
+                <Bar dataKey="phones" fill="hsl(152, 60%, 45%)" radius={[4, 4, 0, 0]} name="Phones" />
+              </BarChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Recent Activity & Notifications */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <Card className="rounded-2xl border-border/50 lg:col-span-2">
+          <CardHeader className="pb-2 flex flex-row items-center justify-between">
+            <CardTitle className="text-sm font-semibold flex items-center gap-2">
+              <div className="h-7 w-7 rounded-lg bg-indigo-500/10 flex items-center justify-center">
+                <Activity className="h-3.5 w-3.5 text-indigo-600" />
+              </div>
+              Recent Activity
+            </CardTitle>
+            <Button size="sm" variant="ghost" className="rounded-xl text-xs h-7" onClick={() => navigate('/control/audit-logs')}>
+              View all <ArrowRight className="h-3 w-3 ml-1" />
+            </Button>
+          </CardHeader>
+          <CardContent className="pb-4">
+            {filteredActivity.length === 0 ? (
+              <div className="text-xs text-muted-foreground text-center py-8">No recent activity</div>
+            ) : (
+              <div className="space-y-2">
+                {filteredActivity.map((a) => (
+                  <div key={a.id} className="flex items-start gap-3 p-3 rounded-xl hover:bg-muted/40 transition">
+                    <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                      <Activity className="h-3.5 w-3.5 text-primary" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate">{a.action.replace(/_/g, ' ')}</p>
+                      <p className="text-xs text-muted-foreground truncate">
+                        {a.actor_role} · {a.target_table || 'platform'}
+                        {a.note ? ` · ${a.note}` : ''}
+                      </p>
+                    </div>
+                    <span className="text-[10px] text-muted-foreground whitespace-nowrap">
+                      {formatDistanceToNow(new Date(a.created_at), { addSuffix: true })}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card className="rounded-2xl border-border/50">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-semibold flex items-center gap-2">
+              <div className="h-7 w-7 rounded-lg bg-rose-500/10 flex items-center justify-center">
+                <Bell className="h-3.5 w-3.5 text-rose-600" />
+              </div>
+              Notifications
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pb-4 space-y-2">
+            {t.suspendedWorkspaces > 0 && (
+              <div className="flex items-start gap-2 p-3 rounded-xl bg-red-500/5 border border-red-500/20">
+                <ShieldOff className="h-4 w-4 text-red-600 mt-0.5" />
+                <div className="text-xs">
+                  <p className="font-medium text-red-700">{t.suspendedWorkspaces} suspended workspace{t.suspendedWorkspaces > 1 ? 's' : ''}</p>
+                  <p className="text-muted-foreground">Review status</p>
+                </div>
+              </div>
+            )}
+            {t.incompleteAccounts > 0 && (
+              <div className="flex items-start gap-2 p-3 rounded-xl bg-amber-500/5 border border-amber-500/20">
+                <AlertTriangle className="h-4 w-4 text-amber-600 mt-0.5" />
+                <div className="text-xs">
+                  <p className="font-medium text-amber-700">{t.incompleteAccounts} unconfirmed signups</p>
+                  <p className="text-muted-foreground">Email not verified yet</p>
+                </div>
+              </div>
+            )}
+            {t.workspacesWithoutPhone > 0 && (
+              <div className="flex items-start gap-2 p-3 rounded-xl bg-blue-500/5 border border-blue-500/20">
+                <Phone className="h-4 w-4 text-blue-600 mt-0.5" />
+                <div className="text-xs">
+                  <p className="font-medium text-blue-700">{t.workspacesWithoutPhone} workspaces without WA</p>
+                  <p className="text-muted-foreground">Help them connect a number</p>
+                </div>
+              </div>
+            )}
+            {t.suspendedWorkspaces === 0 && t.incompleteAccounts === 0 && t.workspacesWithoutPhone === 0 && (
+              <div className="text-xs text-muted-foreground text-center py-8">All systems healthy ✨</div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }
