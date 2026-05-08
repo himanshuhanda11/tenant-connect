@@ -38,27 +38,30 @@ interface PhoneRecord {
 
 export default function AdminPhoneNumbers() {
   const { role } = useOutletContext<{ role: string }>();
-  const { get, post, loading } = useAdminApi();
+  const { get, post } = useAdminApi();
   const navigate = useNavigate();
   const isSuperAdmin = role === 'super_admin';
-  const [phones, setPhones] = useState<PhoneRecord[]>([]);
   const [search, setSearch] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
   const [deleteDialog, setDeleteDialog] = useState<PhoneRecord | null>(null);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
 
-  const loadPhones = useCallback(async () => {
-    try {
-      const params = new URLSearchParams({ page: page.toString() });
-      if (search) params.set('search', search);
-      const data = await get(`phone-numbers?${params}`);
-      setPhones(data.phones || []);
-      setTotal(data.total || 0);
-    } catch {}
-  }, [page, search]);
+  useEffect(() => {
+    const t = setTimeout(() => { setDebouncedSearch(search); setPage(1); }, 300);
+    return () => clearTimeout(t);
+  }, [search]);
 
-  useEffect(() => { loadPhones(); }, [loadPhones]);
+  const queryPath = (() => {
+    const p = new URLSearchParams({ page: page.toString() });
+    if (debouncedSearch) p.set('search', debouncedSearch);
+    return `phone-numbers?${p.toString()}`;
+  })();
+  const { data: pData, loading, refetch } = useAdminQuery<{ phones: PhoneRecord[]; total: number }>(queryPath);
+  const phones = pData?.phones || [];
+  useEffect(() => { if (pData?.total != null) setTotal(pData.total); }, [pData?.total]);
+  const loadPhones = useCallback(async () => { adminCacheInvalidate('phone-numbers'); await refetch(); }, [refetch]);
 
   const totalPages = Math.ceil(total / 25);
 
