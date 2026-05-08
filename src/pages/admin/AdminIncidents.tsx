@@ -149,8 +149,12 @@ export default function AdminIncidents() {
 
   const activeCount = incidents.filter(i => i.status !== 'resolved').length;
 
-  if (loadingState) {
-    return <div className="flex justify-center py-20"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
+  if (loadingState && incidents.length === 0) {
+    return (
+      <div className="space-y-3">
+        {Array.from({length:5}).map((_,i)=>(<div key={i} className="h-20 rounded-2xl bg-muted/40 animate-pulse"/>))}
+      </div>
+    );
   }
 
   return (

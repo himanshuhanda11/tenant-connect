@@ -10,6 +10,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sh
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { toast } from '@/hooks/use-toast';
 import { Loader2, Search, Download, RefreshCw, Mail, Phone, Globe, Building2, Calendar, MessageSquare } from 'lucide-react';
+import { TableSkeleton } from '@/components/admin/AdminSkeletons';
 import { format } from 'date-fns';
 
 interface Lead {
@@ -175,8 +176,8 @@ export default function AdminLeads() {
           </div>
         </CardHeader>
         <CardContent className="p-0">
-          {loading ? (
-            <div className="flex items-center justify-center py-16"><Loader2 className="w-6 h-6 animate-spin text-muted-foreground" /></div>
+          {loading && filtered.length === 0 ? (
+            <TableSkeleton rows={6} cols={6} />
           ) : filtered.length === 0 ? (
             <div className="text-center py-16 text-muted-foreground text-sm">No leads yet.</div>
           ) : (

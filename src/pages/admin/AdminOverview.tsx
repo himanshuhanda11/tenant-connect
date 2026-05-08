@@ -1,6 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAdminApi } from '@/hooks/useAdminApi';
+import { useAdminQuery } from '@/hooks/useAdminQuery';
+import { KpiSkeleton, ListSkeleton } from '@/components/admin/AdminSkeletons';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -104,28 +106,17 @@ const RANGE_OPTIONS = [
 export default function AdminOverview() {
   const { get } = useAdminApi();
   const navigate = useNavigate();
-  const [stats, setStats] = useState<Stats | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState('');
   const [range, setRange] = useState<typeof RANGE_OPTIONS[number]['key']>('30d');
 
-  const loadData = async () => {
-    setLoading(true); setError(null);
-    try {
-      const data = await get('dashboard-stats');
-      setStats(data);
-    } catch (e: any) {
-      setError(e.message || 'Failed to load dashboard');
-    } finally { setLoading(false); }
-  };
-
-  useEffect(() => { loadData(); }, []);
-  // Auto-refresh every 60s for "real-time" counters
+  const { data: stats, loading, error: qError, refetch } = useAdminQuery<Stats>('dashboard-stats', { ttl: 60_000 });
+  const error = qError;
+  const loadData = () => refetch();
+  // Auto-refresh every 60s
   useEffect(() => {
-    const t = setInterval(loadData, 60000);
+    const t = setInterval(() => refetch(), 60000);
     return () => clearInterval(t);
-  }, []);
+  }, [refetch]);
 
   const filteredSeries = useMemo(() => {
     if (!stats) return [];
@@ -137,8 +128,15 @@ export default function AdminOverview() {
   }, [stats, range]);
 
   if (loading && !stats) {
-    return <div className="flex justify-center py-20"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
+    return (
+      <div className="space-y-6">
+        <KpiSkeleton count={4} />
+        <KpiSkeleton count={4} />
+        <ListSkeleton rows={6} />
+      </div>
+    );
   }
+
   if (error || !stats) {
     return (
       <div className="flex flex-col items-center justify-center py-20 gap-4">

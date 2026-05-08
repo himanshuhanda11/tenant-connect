@@ -108,7 +108,15 @@ export default function AdminWorkspaceDetail() {
   };
 
   if (!workspace) {
-    return <div className="flex justify-center py-20"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
+    return (
+      <div className="space-y-4">
+        <div className="h-24 rounded-2xl bg-muted/40 animate-pulse" />
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {Array.from({length:4}).map((_,i)=>(<div key={i} className="h-24 rounded-2xl bg-muted/40 animate-pulse"/>))}
+        </div>
+        <div className="h-64 rounded-2xl bg-muted/40 animate-pulse" />
+      </div>
+    );
   }
   // Workspace may exist without an entitlements row (legacy/free workspaces).
   // Render with safe defaults instead of blocking the whole page.

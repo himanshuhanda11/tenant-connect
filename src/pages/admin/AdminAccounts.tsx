@@ -1,6 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAdminApi } from '@/hooks/useAdminApi';
+import { useAdminQuery, adminCacheInvalidate } from '@/hooks/useAdminQuery';
+import { TableSkeleton } from '@/components/admin/AdminSkeletons';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -67,11 +69,10 @@ const fmtDateTime = (s?: string | null) =>
 export default function AdminAccounts() {
   const { get, post } = useAdminApi();
   const navigate = useNavigate();
-  const [rows, setRows] = useState<AccountRow[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
-  const [loading, setLoading] = useState(true);
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [filter, setFilter] = useState<FilterKey>('all');
   const [sortKey, setSortKey] = useState<SortKey>('created_at');
   const [sortDir, setSortDir] = useState<SortDir>('desc');
@@ -79,25 +80,24 @@ export default function AdminAccounts() {
   const [busyId, setBusyId] = useState<string | null>(null);
   const [confirm, setConfirm] = useState<{ kind: 'delete' | 'suspend' | 'reset'; row: AccountRow } | null>(null);
 
-  const load = async () => {
-    setLoading(true);
-    try {
-      const qs = new URLSearchParams({ page: String(page) });
-      if (search) qs.set('search', search);
-      const data = await get(`accounts?${qs.toString()}`);
-      setRows(data.accounts || []);
-      setTotal(data.total || 0);
-    } catch (e) {
-      console.error('[AdminAccounts] load failed', e);
-    } finally { setLoading(false); }
-  };
-
-  useEffect(() => { load(); }, [page]);
+  // Debounce search → 300ms
   useEffect(() => {
-    const t = setTimeout(() => { setPage(1); load(); }, 300);
+    const t = setTimeout(() => { setDebouncedSearch(search); setPage(1); }, 300);
     return () => clearTimeout(t);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [search]);
+
+  const queryPath = useMemo(() => {
+    const qs = new URLSearchParams({ page: String(page) });
+    if (debouncedSearch) qs.set('search', debouncedSearch);
+    return `accounts?${qs.toString()}`;
+  }, [page, debouncedSearch]);
+
+  const { data, loading, refreshing, refetch } = useAdminQuery<{ accounts: AccountRow[]; total: number }>(queryPath);
+  const rows: AccountRow[] = data?.accounts || [];
+  useEffect(() => { if (data?.total != null) setTotal(data.total); }, [data?.total]);
+
+  const load = () => { adminCacheInvalidate('accounts'); refetch(); };
+
 
   // Status helpers
   const hasWA = (r: AccountRow) => r.workspaces.some((w) => !!w.phone_number);
@@ -244,7 +244,7 @@ export default function AdminAccounts() {
               <Download className="h-4 w-4 mr-1.5" /> Export CSV
             </Button>
             <Button variant="outline" size="sm" onClick={load} className="rounded-xl">
-              <RefreshCw className={cn('h-4 w-4 mr-1.5', loading && 'animate-spin')} /> Refresh
+              <RefreshCw className={cn('h-4 w-4 mr-1.5', (loading || refreshing) && 'animate-spin')} /> Refresh
             </Button>
           </div>
         </div>
@@ -284,8 +284,11 @@ export default function AdminAccounts() {
 
       {/* Table */}
       <Card className="rounded-2xl border-border/50 overflow-hidden">
-        {loading ? (
-          <div className="flex justify-center py-20"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
+        {loading && rows.length === 0 ? (
+          <TableSkeleton rows={10} cols={7} />
+        ) : false ? (
+          <div />
+
         ) : filtered.length === 0 ? (
           <CardContent className="p-12 text-center text-sm text-muted-foreground">
             No accounts match this filter.

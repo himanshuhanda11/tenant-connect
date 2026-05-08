@@ -1,6 +1,8 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useOutletContext, useNavigate } from 'react-router-dom';
 import { useAdminApi } from '@/hooks/useAdminApi';
+import { useAdminQuery, adminCacheInvalidate } from '@/hooks/useAdminQuery';
+import { TableSkeleton } from '@/components/admin/AdminSkeletons';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -69,14 +71,14 @@ const PLANS = ['free', 'basic', 'pro', 'business'];
 
 export default function AdminWorkspaces() {
   const { role } = useOutletContext<{ role: string }>();
-  const { get, post, loading } = useAdminApi();
+  const { get, post } = useAdminApi();
   const navigate = useNavigate();
   const isMobile = useIsMobile();
-  const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
   const [total, setTotal] = useState(0);
   const [counts, setCounts] = useState<Record<string, number>>({});
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [suspendDialog, setSuspendDialog] = useState<{ id: string; name: string; suspend: boolean } | null>(null);
   const [suspendReason, setSuspendReason] = useState('');
   const [confirmText, setConfirmText] = useState('');
@@ -122,16 +124,25 @@ export default function AdminWorkspaces() {
 
   const isSuperAdmin = role === 'super_admin';
 
-  const loadWorkspaces = useCallback(async () => {
-    const params = new URLSearchParams({ page: page.toString(), view: activeView });
-    if (search) params.set('search', search);
-    const data = await get(`workspaces?${params}`);
-    setWorkspaces(data.workspaces || []);
-    setTotal(data.total || 0);
-    setCounts(data.counts || {});
-  }, [page, search, activeView]);
+  // Debounce search
+  useEffect(() => {
+    const t = setTimeout(() => { setDebouncedSearch(search); setPage(1); }, 300);
+    return () => clearTimeout(t);
+  }, [search]);
 
-  useEffect(() => { loadWorkspaces().catch(() => {}); }, [loadWorkspaces]);
+  const queryPath = (() => {
+    const params = new URLSearchParams({ page: page.toString(), view: activeView });
+    if (debouncedSearch) params.set('search', debouncedSearch);
+    return `workspaces?${params.toString()}`;
+  })();
+  const { data: wsData, loading, refreshing, refetch } = useAdminQuery<{ workspaces: Workspace[]; total: number; counts: Record<string, number> }>(queryPath);
+  const workspaces: Workspace[] = wsData?.workspaces || [];
+  useEffect(() => {
+    if (wsData?.total != null) setTotal(wsData.total);
+    if (wsData?.counts) setCounts(wsData.counts);
+  }, [wsData]);
+  const loadWorkspaces = useCallback(async () => { adminCacheInvalidate('workspaces'); await refetch(); }, [refetch]);
+
 
   const handleSuspend = async () => {
     if (!suspendDialog) return;
@@ -307,8 +318,9 @@ export default function AdminWorkspaces() {
       </div>
 
       {/* Mobile: Cards | Desktop: Table */}
-      {loading ? (
-        <div className="flex justify-center py-10"><Loader2 className="h-6 w-6 animate-spin" /></div>
+      {loading && workspaces.length === 0 ? (
+        <TableSkeleton rows={8} cols={6} />
+
       ) : isMobile ? (
         <div className="space-y-3">
           {workspaces.map(w => (
