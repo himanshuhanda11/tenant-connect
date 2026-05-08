@@ -388,18 +388,31 @@ export default function AdminBackups() {
                         {Array.isArray(r.downloaded_by) ? r.downloaded_by.length : 0}
                       </td>
                       <td className="py-2 px-2 text-right">
-                        {r.status === 'success' && r.storage_path ? (
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => downloadBackup(r.id)}
-                            disabled={downloadingId === r.id}
-                          >
-                            {downloadingId === r.id
-                              ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                              : <Download className="h-3.5 w-3.5" />}
-                          </Button>
-                        ) : null}
+                        <div className="flex items-center justify-end gap-1.5">
+                          {r.status === 'success' && r.storage_path ? (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => downloadBackup(r.id)}
+                              disabled={downloadingId === r.id}
+                              title="Download ZIP"
+                            >
+                              {downloadingId === r.id
+                                ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                                : <Download className="h-3.5 w-3.5" />}
+                            </Button>
+                          ) : null}
+                          {r.drive_web_link ? (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => openInDrive(r.drive_web_link!)}
+                              title="Open in Google Drive"
+                            >
+                              <Cloud className="h-3.5 w-3.5" />
+                            </Button>
+                          ) : null}
+                        </div>
                       </td>
                     </tr>
                   ))}
