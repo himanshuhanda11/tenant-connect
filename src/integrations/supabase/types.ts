@@ -14,6 +14,30 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_user_notes: {
+        Row: {
+          author_user_id: string
+          created_at: string
+          id: string
+          note: string
+          target_user_id: string
+        }
+        Insert: {
+          author_user_id: string
+          created_at?: string
+          id?: string
+          note: string
+          target_user_id: string
+        }
+        Update: {
+          author_user_id?: string
+          created_at?: string
+          id?: string
+          note?: string
+          target_user_id?: string
+        }
+        Relationships: []
+      }
       agent_sessions: {
         Row: {
           created_at: string
