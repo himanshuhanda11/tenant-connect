@@ -280,6 +280,37 @@ export default function SelectWorkspace() {
         });
 
         if (!isCancelled) setWorkspaces(enriched);
+
+        // 3) Fetch WhatsApp business profile pictures for connected workspaces.
+        //    Cached in sessionStorage to avoid hammering Meta on every visit.
+        const connectedPhones = tenants
+          .map((t) => {
+            const phones = phonesByTenant.get(t.id) || [];
+            const c = phones.find((p: any) => p.status === 'connected' && p.phone_number_id && p.waba_account_id);
+            return c ? { tenantId: t.id, phone_number_id: c.phone_number_id, waba_account_id: c.waba_account_id } : null;
+          })
+          .filter(Boolean) as { tenantId: string; phone_number_id: string; waba_account_id: string }[];
+
+        await Promise.all(connectedPhones.map(async ({ tenantId, phone_number_id, waba_account_id }) => {
+          try {
+            const cacheKey = `wa_profile_pic_${phone_number_id}`;
+            let pic: string | null = null;
+            const cached = sessionStorage.getItem(cacheKey);
+            if (cached) {
+              pic = cached === '__none__' ? null : cached;
+            } else {
+              const { data } = await supabase.functions.invoke('whatsapp-profile', {
+                body: { action: 'get', phone_number_id, waba_account_id },
+              });
+              pic = data?.profile?.profile_picture_url || null;
+              sessionStorage.setItem(cacheKey, pic || '__none__');
+            }
+            if (!pic || isCancelled) return;
+            setWorkspaces((prev) => prev.map((w) => (w.id === tenantId && !w.logo_url ? { ...w, logo_url: pic } : w)));
+          } catch (e) {
+            console.warn('Profile pic fetch failed for tenant', tenantId, e);
+          }
+        }));
       } catch (error) {
         console.error('Error fetching workspace details:', error);
       } finally {
