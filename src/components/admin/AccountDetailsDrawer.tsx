@@ -241,6 +241,17 @@ export function AccountDetailsDrawer({ userId, onClose }: Props) {
                   <Stat label="Industry" value={p?.industry || '—'} />
                   <Stat label="Team size" value={p?.team_size || '—'} />
                   <Stat label="Workspaces" value={String(workspaces.length)} />
+                  <Stat label="WABA-connected" value={`${workspaces.filter((w:any) => phones.some((p:any)=>p.tenant_id===w.workspace_id && (p.status==='connected'||p.status==='verified'))).length} / ${workspaces.length}`} />
+                  <Stat label="Paid workspaces" value={String(workspaces.filter((w:any) => {
+                    const plan = (w.plan || '').toLowerCase();
+                    const ss = (w.subscription_status || '').toLowerCase();
+                    return plan && plan !== 'free' && plan !== 'trial' && !['expired','past_due','cancelled','canceled'].includes(ss);
+                  }).length)} />
+                  <Stat label="Free workspaces" value={String(workspaces.filter((w:any) => {
+                    const plan = (w.plan || 'free').toLowerCase();
+                    return plan === 'free' || plan === 'trial' || plan === '';
+                  }).length)} />
+                  <Stat label="Team members (sub)" value={String(teamMembers.length)} />
                   <Stat label="Campaigns" value={String(data?.campaigns_count || 0)} />
                 </div>
               </TabsContent>
