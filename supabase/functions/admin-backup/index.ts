@@ -284,7 +284,7 @@ async function walkBucket(sb: any, bucket: string, prefix = ""): Promise<Array<{
   return out;
 }
 
-async function runBackup(reqUrl: string, trigger: "manual" | "scheduled", actorId: string | null, existingRunId?: string) {
+async function runBackup(_reqUrl: string, trigger: "manual" | "scheduled", actorId: string | null, existingRunId?: string) {
   const sb = admin();
   const startedAt = Date.now();
   const allTables = await listPublicTables(sb);
@@ -455,7 +455,7 @@ async function runBackup(reqUrl: string, trigger: "manual" | "scheduled", actorI
           `Generated: ${manifest.generated_at}`,
           `Tables exported: ${okTables} / ${tables.length}`,
           `Tables skipped for Edge safety: ${skippedTables.length}`,
-          `Storage files: ${storageDownloaded.length} downloaded, ${storageSkipped.length} skipped (mode: ${includeStorageBytes ? "bytes_included" : "inventory_only"})`,
+          `Storage files: ${storageDownloaded.length} downloaded, ${storageSkipped.length} skipped (mode: bucket_inventory_only)`,
           "",
           "Important:",
           "  This ZIP is an edge-safe admin snapshot, not the full disaster-recovery backup.",
