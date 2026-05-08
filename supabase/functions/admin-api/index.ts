@@ -2101,10 +2101,20 @@ Deno.serve(async (req: Request) => {
       await requirePlatformRole(req, ["super_admin", "support"]);
       const workspaceId = path.split("/")[1];
       const sb = adminClient();
-      const { data: members } = await sb
+      const { data: rawMembers } = await sb
         .from("tenant_members")
-        .select("id, user_id, role, created_at, profiles(email, full_name, avatar_url, phone_number)")
+        .select("id, user_id, role, created_at")
         .eq("tenant_id", workspaceId);
+      // Manual join (no FK between tenant_members.user_id and profiles)
+      const memberUserIds = (rawMembers || []).map((m: any) => m.user_id).filter(Boolean);
+      const profMap = new Map<string, any>();
+      if (memberUserIds.length) {
+        const { data: profs } = await sb.from("profiles")
+          .select("id, email, full_name, avatar_url, phone_number")
+          .in("id", memberUserIds);
+        for (const p of profs || []) profMap.set(p.id, p);
+      }
+      const members = (rawMembers || []).map((m: any) => ({ ...m, profiles: profMap.get(m.user_id) || null }));
       // last sign-in
       const ids = (members || []).map((m: any) => m.user_id);
       const lastSignIn: Record<string, string | null> = {};
