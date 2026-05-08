@@ -25,25 +25,24 @@ const ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
 const TABLE_EXCLUDE = new Set<string>(["platform_backup_runs"]);
 const STALE_PENDING_MS = 10 * 60 * 1000;
 const STUCK_ZERO_PROGRESS_MS = 2 * 60 * 1000;
-const EDGE_UNSAFE_TABLE_EXACT = new Set<string>([
-  "messages",
-  "smeksh_messages",
-  "instagram_messages",
-  "webhook_events",
-  "shopify_webhook_events",
-  "contact_inbox_summary",
-  "smeksh_typing_state",
-]);
-const EDGE_UNSAFE_TABLE_SUFFIXES = ["_logs", "_events", "_jobs", "_sessions", "_analytics"];
 
-// Per-file cap (skip giant single objects); total storage cap keeps ZIP sane.
-// Edge functions have a hard ~256MB memory ceiling. Keep totals well below that
-// so the in-memory ZIP build never OOMs. Larger files are listed in the
-// inventory but their bytes are skipped (operator can re-upload from the live
-// bucket during restore).
-const MAX_FILE_BYTES = 5 * 1024 * 1024; // 5 MB per file
-const MAX_TOTAL_BYTES = 80 * 1024 * 1024; // 80 MB total bytes
+// Per-table row cap so a single huge table cannot OOM the worker.
+// Tables exceeding this are flagged as "truncated" in manifest.json so you
+// know to re-export them with pg_dump for a full restore.
 const MAX_EDGE_ROWS_PER_TABLE = 5000;
+const MAX_EDGE_ROWS_HEAVY_TABLE = 1000;
+const HEAVY_TABLE_SUFFIXES = ["_logs", "_events", "_jobs", "_sessions", "_analytics", "_messages"];
+const HEAVY_TABLE_EXACT = new Set<string>([
+  "messages", "smeksh_messages", "instagram_messages",
+  "webhook_events", "shopify_webhook_events",
+  "contact_inbox_summary", "smeksh_typing_state",
+]);
+
+function rowCapFor(table: string): number {
+  if (HEAVY_TABLE_EXACT.has(table)) return MAX_EDGE_ROWS_HEAVY_TABLE;
+  if (HEAVY_TABLE_SUFFIXES.some((s) => table.endsWith(s))) return MAX_EDGE_ROWS_HEAVY_TABLE;
+  return MAX_EDGE_ROWS_PER_TABLE;
+}
 
 async function listPublicTables(sb: any): Promise<string[]> {
   const { data, error } = await sb.rpc("backup_list_public_tables");
