@@ -1,0 +1,116 @@
+name: Daily Database Backup
+
+# Runs every day at 02:00 UTC, and can also be triggered manually.
+on:
+  schedule:
+    - cron: "0 2 * * *"
+  workflow_dispatch:
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install PostgreSQL 16 client (pg_dump)
+        run: |
+          sudo sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
+          curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo gpg --dearmor -o /etc/apt/trusted.gpg.d/postgresql.gpg
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client-16
+
+      - name: Run pg_dump
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: |
+          set -euo pipefail
+          STAMP=$(date -u +"%Y-%m-%d_%H-%M-%S")
+          echo "STAMP=$STAMP" >> $GITHUB_ENV
+          mkdir -p out
+          FILE="out/aireatro-backup-${STAMP}.sql.gz"
+          echo "FILE=$FILE" >> $GITHUB_ENV
+          pg_dump \
+            --no-owner \
+            --no-privileges \
+            --clean --if-exists \
+            --quote-all-identifiers \
+            --schema=public \
+            "$SUPABASE_DB_URL" \
+            | gzip -9 > "$FILE"
+          ls -lh "$FILE"
+
+      - name: Upload to Google Drive
+        env:
+          GOOGLE_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}
+          GDRIVE_FOLDER_ID: ${{ secrets.GDRIVE_FOLDER_ID }}
+          BACKUP_FILE: ${{ env.FILE }}
+        run: |
+          set -euo pipefail
+          python3 -m pip install --quiet google-auth google-api-python-client
+          python3 - <<'PY'
+          import json, os, sys
+          from google.oauth2 import service_account
+          from googleapiclient.discovery import build
+          from googleapiclient.http import MediaFileUpload
+
+          creds_json = os.environ["GOOGLE_SERVICE_ACCOUNT_JSON"]
+          folder_id  = os.environ["GDRIVE_FOLDER_ID"]
+          file_path  = os.environ["BACKUP_FILE"]
+
+          info = json.loads(creds_json)
+          creds = service_account.Credentials.from_service_account_info(
+              info, scopes=["https://www.googleapis.com/auth/drive.file"]
+          )
+          drive = build("drive", "v3", credentials=creds, cache_discovery=False)
+
+          name = os.path.basename(file_path)
+          media = MediaFileUpload(file_path, mimetype="application/gzip", resumable=True)
+          meta = {"name": name, "parents": [folder_id]}
+          f = drive.files().create(
+              body=meta, media_body=media,
+              fields="id,name,webViewLink",
+              supportsAllDrives=True,
+          ).execute()
+          print(f"Uploaded: {f.get('name')} ({f.get('id')}) -> {f.get('webViewLink')}")
+          with open(os.environ["GITHUB_ENV"], "a") as fh:
+              fh.write(f"DRIVE_FILE_ID={f.get('id')}\n")
+              fh.write(f"DRIVE_LINK={f.get('webViewLink')}\n")
+          PY
+
+      - name: Log success to backup runs
+        if: success()
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          DRIVE_FILE_ID: ${{ env.DRIVE_FILE_ID }}
+          DRIVE_LINK: ${{ env.DRIVE_LINK }}
+          STAMP: ${{ env.STAMP }}
+          FILE: ${{ env.FILE }}
+        run: |
+          SIZE=$(stat -c%s "$FILE")
+          NAME=$(basename "$FILE")
+          psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 <<SQL
+          INSERT INTO public.platform_backup_runs
+            (status, trigger, drive_status, drive_file_id, drive_web_link, storage_path, file_size_bytes, completed_at)
+          VALUES
+            ('success', 'github_action', 'uploaded', '${DRIVE_FILE_ID}', '${DRIVE_LINK}',
+             '${NAME}', ${SIZE}, now());
+          SQL
+
+      - name: Log failure to backup runs
+        if: failure()
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          STAMP: ${{ env.STAMP }}
+        run: |
+          psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 <<SQL || true
+          INSERT INTO public.platform_backup_runs
+            (status, trigger, drive_status, drive_error, error_message, completed_at)
+          VALUES
+            ('failed', 'github_action', 'failed',
+             'GitHub Action failed - see workflow run ${{ github.run_id }}',
+             'GitHub Action failed - see workflow run ${{ github.run_id }}',
+             now());
+          SQL
