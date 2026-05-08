@@ -371,18 +371,32 @@ async function runBackup(_reqUrl: string, trigger: "manual" | "scheduled", actor
     }
     await writeProgress({ tables_done: tables.length, progress_percent: 84, current_step: "Recording storage bucket inventory…" }, true);
 
-    // ===== Storage: bucket inventory only =====
-    // Recursive object scans can exceed Edge worker CPU/time limits on media-heavy apps.
+    // ===== Storage: full file inventory across every bucket =====
+    // We list every object (path, size, mime, updated_at) in every bucket so
+    // restore tooling knows exactly what media to re-fetch. Object BYTES are
+    // intentionally not stuffed into this ZIP — that would blow past the
+    // edge-function memory cap on media-heavy projects. Use the live bucket
+    // (or PITR / a storage migration script) to restore actual file contents.
     const { data: buckets } = await sb.storage.listBuckets();
+    const bucketsList = (buckets || []).filter((b: any) => b.id !== "database-backups");
     const storageInventory: any[] = [];
-    const storageDownloaded: any[] = [];
-    const storageSkipped: any[] = [{ reason: "Object-level storage scan skipped in edge-safe snapshot; use storage exports/PITR for full restore." }];
     let totalBytes = 0;
-    for (const b of buckets || []) if (b.id !== "database-backups") storageInventory.push({ id: b.id, name: b.name, public: b.public });
-    addFile("storage/file_list.json", strToU8(JSON.stringify(storageInventory)));
-    addFile("storage/_downloaded.json", strToU8(JSON.stringify(storageDownloaded)));
-    addFile("storage/_skipped.json", strToU8(JSON.stringify(storageSkipped)));
-    addFile("storage/_mode.txt", strToU8("bucket_inventory_only"));
+    for (const b of bucketsList) {
+      try {
+        const files = await walkBucket(sb, b.id);
+        for (const f of files) {
+          totalBytes += Number(f.size || 0);
+          storageInventory.push({ bucket: b.id, path: f.name, size: f.size, updated_at: f.updated_at });
+        }
+      } catch (e: any) {
+        console.warn(`[backup] bucket ${b.id} walk failed:`, e?.message || e);
+      }
+    }
+    addFile("storage/buckets.json", strToU8(JSON.stringify(bucketsList.map((b: any) => ({ id: b.id, name: b.name, public: b.public })), null, 2)));
+    addFile("storage/file_list.json", strToU8(JSON.stringify(storageInventory, null, 2)));
+    addFile("storage/_mode.txt", strToU8("full_inventory_no_bytes"));
+    const storageDownloaded: any[] = [];
+    const storageSkipped: any[] = [{ reason: "Object bytes are not embedded in the edge ZIP. Re-fetch from live bucket using storage/file_list.json or restore via PITR." }];
 
     // Env snapshot
     const projectRef = (SUPABASE_URL.match(/https?:\/\/([^.]+)\./) || [])[1] || "";
