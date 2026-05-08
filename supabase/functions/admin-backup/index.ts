@@ -164,29 +164,55 @@ async function getOrCreateDriveFolder(): Promise<string> {
   return (await create.json()).id;
 }
 
-async function uploadToDrive(zipped: Uint8Array, fileName: string) {
+async function uploadToDriveStreamed(tmpPath: string, fileSize: number, fileName: string) {
   const folderId = await getOrCreateDriveFolder();
-  const boundary = "lovable_backup_" + crypto.randomUUID();
-  const meta = JSON.stringify({ name: fileName, parents: [folderId] });
-  const enc = new TextEncoder();
-  const head = enc.encode(
-    `--${boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${meta}\r\n` +
-      `--${boundary}\r\nContent-Type: application/zip\r\n\r\n`,
-  );
-  const tail = enc.encode(`\r\n--${boundary}--`);
-  const body = new Uint8Array(head.length + zipped.length + tail.length);
-  body.set(head, 0);
-  body.set(zipped, head.length);
-  body.set(tail, head.length + zipped.length);
+  const file = await Deno.open(tmpPath, { read: true });
+  try {
+    const upload = await fetch(`${DRIVE_UPLOAD}/files?uploadType=media&fields=id`, {
+      method: "POST",
+      headers: { ...driveHeaders(), "Content-Type": "application/zip", "Content-Length": String(fileSize) },
+      body: file.readable,
+      // @ts-ignore - Deno fetch supports duplex streaming
+      duplex: "half",
+    });
+    if (!upload.ok) throw new Error(`Drive upload failed [${upload.status}]: ${await upload.text()}`);
+    const { id: fileId } = await upload.json();
+    const patch = await fetch(
+      `${DRIVE_GATEWAY}/files/${fileId}?addParents=${folderId}&fields=id,webViewLink`,
+      {
+        method: "PATCH",
+        headers: { ...driveHeaders(), "Content-Type": "application/json" },
+        body: JSON.stringify({ name: fileName }),
+      },
+    );
+    if (!patch.ok) throw new Error(`Drive patch failed [${patch.status}]: ${await patch.text()}`);
+    const j = await patch.json();
+    return { ok: true as const, fileId: j.id, folderId, webLink: j.webViewLink };
+  } finally {
+    try { file.close(); } catch { /* already closed */ }
+  }
+}
 
-  const r = await fetch(`${DRIVE_UPLOAD}/files?uploadType=multipart&fields=id,webViewLink,size`, {
-    method: "POST",
-    headers: { ...driveHeaders(), "Content-Type": `multipart/related; boundary=${boundary}` },
-    body,
-  });
-  if (!r.ok) throw new Error(`Drive upload failed [${r.status}]: ${await r.text()}`);
-  const j = await r.json();
-  return { ok: true as const, fileId: j.id, folderId, webLink: j.webViewLink };
+// Stream a temp file directly to Supabase Storage REST (no in-memory buffer).
+async function uploadFileToStorageStreamed(tmpPath: string, fileSize: number, bucketPath: string) {
+  const file = await Deno.open(tmpPath, { read: true });
+  try {
+    const r = await fetch(`${SUPABASE_URL}/storage/v1/object/database-backups/${bucketPath}`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${SERVICE_ROLE}`,
+        "Content-Type": "application/zip",
+        "Content-Length": String(fileSize),
+        "x-upsert": "false",
+      },
+      body: file.readable,
+      // @ts-ignore - Deno fetch supports duplex streaming
+      duplex: "half",
+    });
+    if (!r.ok) throw new Error(`Storage upload failed [${r.status}]: ${await r.text()}`);
+  } finally {
+    try { file.close(); } catch { /* already closed */ }
+  }
 }
 
 async function cleanupDriveOldBackups(folderId: string, keep = 7) {
