@@ -255,18 +255,23 @@ async function walkBucket(sb: any, bucket: string, prefix = ""): Promise<Array<{
   return out;
 }
 
-async function runBackup(req: Request, trigger: "manual" | "scheduled", actorId: string | null) {
+async function runBackup(req: Request, trigger: "manual" | "scheduled", actorId: string | null, existingRunId?: string) {
   const sb = admin();
   const startedAt = Date.now();
   const tables = await listPublicTables(sb);
 
-  // Insert run row first (pending)
-  const { data: run } = await sb
-    .from("platform_backup_runs")
-    .insert({ status: "pending", trigger, triggered_by: actorId, tables_included: tables })
-    .select()
-    .single();
-  const runId = run!.id as string;
+  let runId: string;
+  if (existingRunId) {
+    runId = existingRunId;
+    await sb.from("platform_backup_runs").update({ tables_included: tables }).eq("id", runId);
+  } else {
+    const { data: run } = await sb
+      .from("platform_backup_runs")
+      .insert({ status: "pending", trigger, triggered_by: actorId, tables_included: tables })
+      .select()
+      .single();
+    runId = run!.id as string;
+  }
 
   // ====== Streaming ZIP to a temp file (memory stays flat) ======
   const tmpPath = await Deno.makeTempFile({ prefix: "aireatro-backup-", suffix: ".zip" });
@@ -297,7 +302,7 @@ async function runBackup(req: Request, trigger: "manual" | "scheduled", actorId:
     // Per-table JSONL (newline-delimited JSON) — written page-by-page so we
     // never hold a full table in RAM. Restore: parse each line as a row.
     for (const t of tables) {
-      const entry = new ZipDeflate(`tables/json/${t}.jsonl`, { level: 6 });
+      const entry = new ZipDeflate(`tables/json/${t}.jsonl`, { level: 1 });
       zip.add(entry);
       const { total, error } = await streamTableRows(sb, t, (rows) => {
         const chunk = rows.map((r) => JSON.stringify(r)).join("\n") + "\n";
@@ -525,10 +530,41 @@ Deno.serve(async (req: Request) => {
 
     if (req.method === "POST" && path === "run") {
       const { userId, cron } = await requireSuperAdminOrCron(req);
-      const result = await runBackup(req, cron ? "scheduled" : "manual", userId);
-      return new Response(JSON.stringify(result), {
-        headers: { ...corsHeaders, "content-type": "application/json" },
-      });
+      // Pre-create a pending run row so we can return its id immediately.
+      const { data: tables } = await sb.rpc("backup_list_public_tables");
+      const tableList = (tables || []).map((r: any) => r.table_name);
+      const { data: run } = await sb
+        .from("platform_backup_runs")
+        .insert({
+          status: "pending",
+          trigger: cron ? "scheduled" : "manual",
+          triggered_by: userId,
+          tables_included: tableList,
+        })
+        .select()
+        .single();
+      const runId = run!.id as string;
+
+      // Offload the heavy work — avoids CPU/wall-time limits on the request.
+      // @ts-ignore EdgeRuntime is provided by the Supabase edge runtime
+      EdgeRuntime.waitUntil(
+        runBackup(req, cron ? "scheduled" : "manual", userId, runId).catch(async (e: any) => {
+          console.error("[backup] background run failed:", e?.message || e);
+          await sb
+            .from("platform_backup_runs")
+            .update({
+              status: "failed",
+              error_message: String(e?.message || e),
+              completed_at: new Date().toISOString(),
+            })
+            .eq("id", runId);
+        }),
+      );
+
+      return new Response(
+        JSON.stringify({ ok: true, run_id: runId, status: "pending", message: "Backup started in background. Refresh the page to track progress." }),
+        { status: 202, headers: { ...corsHeaders, "content-type": "application/json" } },
+      );
     }
 
     if (req.method === "GET" && path === "list") {

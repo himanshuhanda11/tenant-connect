@@ -81,16 +81,18 @@ export default function AdminBackups() {
 
   const runBackup = async () => {
     setRunning(true);
-    toast({ title: 'Backup started', description: 'This typically takes 30–90 seconds…' });
     try {
-      const r = await call('run', { method: 'POST', body: '{}' });
+      await call('run', { method: 'POST', body: '{}' });
       toast({
-        title: 'Backup complete',
-        description: `${r.table_count} tables · ${fmtBytes(r.size)} · ${(r.duration_ms / 1000).toFixed(1)}s`,
+        title: 'Backup started',
+        description: 'Running in the background. The list will refresh automatically — typically completes in 1–3 minutes.',
       });
+      // Poll the list a few times so the user sees the row flip from pending → success
       await refresh();
+      const poll = (delay: number) => setTimeout(refresh, delay);
+      poll(15000); poll(45000); poll(90000); poll(180000);
     } catch (e: any) {
-      toast({ title: 'Backup failed', description: e.message, variant: 'destructive' });
+      toast({ title: 'Backup failed to start', description: e.message, variant: 'destructive' });
       await refresh();
     } finally {
       setRunning(false);
