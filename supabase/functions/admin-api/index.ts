@@ -102,7 +102,25 @@ Deno.serve(async (req: Request) => {
 
       // Counts via auth.admin (source of truth for signups)
       const { data: authPage } = await sb.auth.admin.listUsers({ page: 1, perPage: 1000 });
-      const allUsers = authPage?.users || [];
+      const allUsersRaw = authPage?.users || [];
+
+      // Filter to top-level accounts only (owners or users without any workspace membership).
+      // Sub-accounts (team members of others' workspaces) are excluded — they are visible
+      // inside their parent workspace, not as separate accounts.
+      const allUserIdsForFilter = allUsersRaw.map((u: any) => u.id);
+      const ownerIdSet = new Set<string>();
+      const memberIdSet = new Set<string>();
+      if (allUserIdsForFilter.length) {
+        const { data: allMems } = await sb.from("tenant_members")
+          .select("user_id, role")
+          .in("user_id", allUserIdsForFilter);
+        for (const m of allMems || []) {
+          memberIdSet.add(m.user_id);
+          if (m.role === "owner") ownerIdSet.add(m.user_id);
+        }
+      }
+      const allUsers = allUsersRaw.filter((u: any) => ownerIdSet.has(u.id) || !memberIdSet.has(u.id));
+      const subAccountsCount = allUsersRaw.length - allUsers.length;
       const totalAccounts = allUsers.length;
       const confirmedAccounts = allUsers.filter((u: any) => !!u.email_confirmed_at).length;
       const incompleteAccounts = totalAccounts - confirmedAccounts;
@@ -213,14 +231,58 @@ Deno.serve(async (req: Request) => {
         if (ss === "trialing" || ss === "trial") trialPlans++;
       }
 
-      // Messages today
+      // Messages today + per-workspace conversation breakdown (WABA-connected only)
       const todayStart = new Date(today).toISOString();
       let messagesToday = 0;
+      let messagesInbound24h = 0;
+      let messagesOutbound24h = 0;
+      const wabaConnectedTenantIds = Array.from(tenantsWithPhone);
+      const tenantNameMap: Record<string, string> = {};
       try {
-        const { count } = await sb.from("messages")
-          .select("id", { count: "exact", head: true })
-          .gte("created_at", todayStart);
-        messagesToday = count || 0;
+        if (wabaConnectedTenantIds.length) {
+          const { data: tenantsMeta } = await sb.from("tenants")
+            .select("id, name, slug")
+            .in("id", wabaConnectedTenantIds);
+          for (const t of tenantsMeta || []) tenantNameMap[t.id] = t.name || t.slug || t.id;
+        }
+      } catch { /* ignore */ }
+
+      const conversationsByWorkspace: { tenant_id: string; name: string; display_number: string | null; messages_today: number; inbound: number; outbound: number; conversations_active: number }[] = [];
+      try {
+        // Aggregate per-tenant message counts today (only for WABA-connected workspaces)
+        const { data: msgs } = await sb.from("messages")
+          .select("tenant_id, direction, conversation_id")
+          .gte("created_at", todayStart)
+          .in("tenant_id", wabaConnectedTenantIds.length ? wabaConnectedTenantIds : ["00000000-0000-0000-0000-000000000000"]);
+        const agg: Record<string, { in: number; out: number; convs: Set<string> }> = {};
+        for (const m of msgs || []) {
+          messagesToday++;
+          const dir = String(m.direction || "");
+          if (dir === "inbound") messagesInbound24h++; else if (dir === "outbound") messagesOutbound24h++;
+          if (!agg[m.tenant_id]) agg[m.tenant_id] = { in: 0, out: 0, convs: new Set() };
+          if (dir === "inbound") agg[m.tenant_id].in++; else if (dir === "outbound") agg[m.tenant_id].out++;
+          if (m.conversation_id) agg[m.tenant_id].convs.add(m.conversation_id);
+        }
+        // Map default phone display
+        const phoneByTenant: Record<string, string> = {};
+        for (const p of phones || []) {
+          if (p.status === "connected" && !phoneByTenant[p.tenant_id]) {
+            phoneByTenant[p.tenant_id] = (p as any).display_number || "";
+          }
+        }
+        for (const tid of wabaConnectedTenantIds) {
+          const a = agg[tid] || { in: 0, out: 0, convs: new Set() };
+          conversationsByWorkspace.push({
+            tenant_id: tid,
+            name: tenantNameMap[tid] || tid.slice(0, 8),
+            display_number: phoneByTenant[tid] || null,
+            messages_today: a.in + a.out,
+            inbound: a.in,
+            outbound: a.out,
+            conversations_active: a.convs.size,
+          });
+        }
+        conversationsByWorkspace.sort((a, b) => b.messages_today - a.messages_today);
       } catch { /* table may not exist in some envs */ }
 
       // Inactive users: confirmed but no sign-in in 30 days
@@ -245,6 +307,8 @@ Deno.serve(async (req: Request) => {
           totalWaba, activeWaba, pendingWaba,
           expiredPlans, trialPlans,
           messagesToday, inactiveAccounts,
+          messagesInbound24h, messagesOutbound24h,
+          subAccountsCount,
           revenue30d, paymentsSucceeded, paymentsFailed,
         },
         growth: {
@@ -259,6 +323,7 @@ Deno.serve(async (req: Request) => {
           { name: "No Number", value: workspacesWithoutPhone },
         ],
         phoneStatusDetail,
+        conversationsByWorkspace,
         recentActivity: activity || [],
       }), { headers: { ...corsHeaders, "content-type": "application/json" } });
     }
