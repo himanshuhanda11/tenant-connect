@@ -338,12 +338,12 @@ export function useDashboardData(filters: DashboardFilters) {
       });
       setRecentActivity(activity);
 
-      // Cache snapshot with timestamp for TTL invalidation
+      // Cache full snapshot so revisits skip all queries until TTL expires.
       cache.set(cacheKey, {
         ts: Date.now(),
         data: {
-          kpis: undefined, // re-derived from setters; lightweight fields only
           recentActivity: activity,
+          phoneHealthCount: phones.length,
         },
       });
     } catch (error) {
