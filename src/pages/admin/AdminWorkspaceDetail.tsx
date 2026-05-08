@@ -172,7 +172,7 @@ export default function AdminWorkspaceDetail() {
           />
         </TabsContent>
         <TabsContent value="templates" className="mt-4">
-          <TemplatesTab />
+          <TemplatesTab workspaceId={id} />
         </TabsContent>
         <TabsContent value="campaigns" className="mt-4">
           <CampaignsTab isSuperAdmin={isSuperAdmin} workspaceId={id} />
