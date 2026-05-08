@@ -91,6 +91,13 @@ export type Database = {
             foreignKeyName: "agent_sessions_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
+            referencedRelation: "platform_account_health"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "agent_sessions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -180,6 +187,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "tenants"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agents_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "platform_account_health"
+            referencedColumns: ["user_id"]
           },
           {
             foreignKeyName: "agents_user_id_fkey"
@@ -312,6 +326,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "tenants"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "audit_logs_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "platform_account_health"
+            referencedColumns: ["user_id"]
           },
           {
             foreignKeyName: "audit_logs_user_id_fkey"
@@ -1304,6 +1325,13 @@ export type Database = {
             foreignKeyName: "automation_workflows_created_by_fkey"
             columns: ["created_by"]
             isOneToOne: false
+            referencedRelation: "platform_account_health"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "automation_workflows_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -2147,6 +2175,13 @@ export type Database = {
             foreignKeyName: "connected_stores_created_by_fkey"
             columns: ["created_by"]
             isOneToOne: false
+            referencedRelation: "platform_account_health"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "connected_stores_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -2272,8 +2307,22 @@ export type Database = {
             foreignKeyName: "contact_inbox_summary_assigned_to_fkey"
             columns: ["assigned_to"]
             isOneToOne: false
+            referencedRelation: "platform_account_health"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "contact_inbox_summary_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contact_inbox_summary_claimed_by_fkey"
+            columns: ["claimed_by"]
+            isOneToOne: false
+            referencedRelation: "platform_account_health"
+            referencedColumns: ["user_id"]
           },
           {
             foreignKeyName: "contact_inbox_summary_claimed_by_fkey"
@@ -2288,6 +2337,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "contacts"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contact_inbox_summary_last_replied_by_fkey"
+            columns: ["last_replied_by"]
+            isOneToOne: false
+            referencedRelation: "platform_account_health"
+            referencedColumns: ["user_id"]
           },
           {
             foreignKeyName: "contact_inbox_summary_last_replied_by_fkey"
@@ -2387,6 +2443,13 @@ export type Database = {
           tenant_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "contact_timeline_actor_id_fkey"
+            columns: ["actor_id"]
+            isOneToOne: false
+            referencedRelation: "platform_account_health"
+            referencedColumns: ["user_id"]
+          },
           {
             foreignKeyName: "contact_timeline_actor_id_fkey"
             columns: ["actor_id"]
@@ -2579,8 +2642,22 @@ export type Database = {
             foreignKeyName: "contacts_assigned_agent_id_fkey"
             columns: ["assigned_agent_id"]
             isOneToOne: false
+            referencedRelation: "platform_account_health"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "contacts_assigned_agent_id_fkey"
+            columns: ["assigned_agent_id"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contacts_intervened_by_fkey"
+            columns: ["intervened_by"]
+            isOneToOne: false
+            referencedRelation: "platform_account_health"
+            referencedColumns: ["user_id"]
           },
           {
             foreignKeyName: "contacts_intervened_by_fkey"
@@ -2710,6 +2787,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "conversations"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conversation_shopify_links_linked_by_fkey"
+            columns: ["linked_by"]
+            isOneToOne: false
+            referencedRelation: "platform_account_health"
+            referencedColumns: ["user_id"]
           },
           {
             foreignKeyName: "conversation_shopify_links_linked_by_fkey"
@@ -2885,6 +2969,13 @@ export type Database = {
             foreignKeyName: "conversations_assigned_by_fkey"
             columns: ["assigned_by"]
             isOneToOne: false
+            referencedRelation: "platform_account_health"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "conversations_assigned_by_fkey"
+            columns: ["assigned_by"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -2892,8 +2983,22 @@ export type Database = {
             foreignKeyName: "conversations_assigned_to_fkey"
             columns: ["assigned_to"]
             isOneToOne: false
+            referencedRelation: "platform_account_health"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "conversations_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conversations_claimed_by_fkey"
+            columns: ["claimed_by"]
+            isOneToOne: false
+            referencedRelation: "platform_account_health"
+            referencedColumns: ["user_id"]
           },
           {
             foreignKeyName: "conversations_claimed_by_fkey"
@@ -2913,6 +3018,13 @@ export type Database = {
             foreignKeyName: "conversations_intervened_by_fkey"
             columns: ["intervened_by"]
             isOneToOne: false
+            referencedRelation: "platform_account_health"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "conversations_intervened_by_fkey"
+            columns: ["intervened_by"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -2920,8 +3032,22 @@ export type Database = {
             foreignKeyName: "conversations_last_opened_by_fkey"
             columns: ["last_opened_by"]
             isOneToOne: false
+            referencedRelation: "platform_account_health"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "conversations_last_opened_by_fkey"
+            columns: ["last_opened_by"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conversations_locked_by_fkey"
+            columns: ["locked_by"]
+            isOneToOne: false
+            referencedRelation: "platform_account_health"
+            referencedColumns: ["user_id"]
           },
           {
             foreignKeyName: "conversations_locked_by_fkey"
@@ -3646,6 +3772,13 @@ export type Database = {
             foreignKeyName: "flow_versions_created_by_fkey"
             columns: ["created_by"]
             isOneToOne: false
+            referencedRelation: "platform_account_health"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "flow_versions_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -3726,6 +3859,13 @@ export type Database = {
             foreignKeyName: "flows_created_by_fkey"
             columns: ["created_by"]
             isOneToOne: false
+            referencedRelation: "platform_account_health"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "flows_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -3749,6 +3889,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "tenants"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "flows_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "platform_account_health"
+            referencedColumns: ["user_id"]
           },
           {
             foreignKeyName: "flows_updated_by_fkey"
@@ -3797,6 +3944,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "form_field_library_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "platform_account_health"
+            referencedColumns: ["user_id"]
+          },
           {
             foreignKeyName: "form_field_library_created_by_fkey"
             columns: ["created_by"]
@@ -4098,6 +4252,13 @@ export type Database = {
             foreignKeyName: "form_rules_created_by_fkey"
             columns: ["created_by"]
             isOneToOne: false
+            referencedRelation: "platform_account_health"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "form_rules_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -4373,6 +4534,13 @@ export type Database = {
             foreignKeyName: "form_versions_created_by_fkey"
             columns: ["created_by"]
             isOneToOne: false
+            referencedRelation: "platform_account_health"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "form_versions_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -4426,6 +4594,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "form_versions"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "forms_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "platform_account_health"
+            referencedColumns: ["user_id"]
           },
           {
             foreignKeyName: "forms_created_by_fkey"
@@ -4704,6 +4879,13 @@ export type Database = {
           tenant_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "inbox_activity_logs_actor_id_fkey"
+            columns: ["actor_id"]
+            isOneToOne: false
+            referencedRelation: "platform_account_health"
+            referencedColumns: ["user_id"]
+          },
           {
             foreignKeyName: "inbox_activity_logs_actor_id_fkey"
             columns: ["actor_id"]
@@ -5823,6 +6005,13 @@ export type Database = {
             foreignKeyName: "lead_forms_created_by_fkey"
             columns: ["created_by"]
             isOneToOne: false
+            referencedRelation: "platform_account_health"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "lead_forms_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -6001,6 +6190,13 @@ export type Database = {
             foreignKeyName: "member_invites_invited_by_fkey"
             columns: ["invited_by"]
             isOneToOne: false
+            referencedRelation: "platform_account_health"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "member_invites_invited_by_fkey"
+            columns: ["invited_by"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -6087,6 +6283,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "tenants"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "member_performance_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "platform_account_health"
+            referencedColumns: ["user_id"]
           },
           {
             foreignKeyName: "member_performance_user_id_fkey"
@@ -7247,6 +7450,13 @@ export type Database = {
             foreignKeyName: "quick_replies_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
+            referencedRelation: "platform_account_health"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "quick_replies_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -7488,6 +7698,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "teams"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "routing_rules_assign_to_user_id_fkey"
+            columns: ["assign_to_user_id"]
+            isOneToOne: false
+            referencedRelation: "platform_account_health"
+            referencedColumns: ["user_id"]
           },
           {
             foreignKeyName: "routing_rules_assign_to_user_id_fkey"
@@ -7782,6 +7999,13 @@ export type Database = {
             foreignKeyName: "shopify_automation_rules_created_by_fkey"
             columns: ["created_by"]
             isOneToOne: false
+            referencedRelation: "platform_account_health"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "shopify_automation_rules_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -7978,6 +8202,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "shopify_cart_recovery_rules_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "platform_account_health"
+            referencedColumns: ["user_id"]
+          },
           {
             foreignKeyName: "shopify_cart_recovery_rules_created_by_fkey"
             columns: ["created_by"]
@@ -8617,6 +8848,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "tenants"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shopify_sync_jobs_triggered_by_fkey"
+            columns: ["triggered_by"]
+            isOneToOne: false
+            referencedRelation: "platform_account_health"
+            referencedColumns: ["user_id"]
           },
           {
             foreignKeyName: "shopify_sync_jobs_triggered_by_fkey"
@@ -9488,6 +9726,13 @@ export type Database = {
             foreignKeyName: "smeksh_contact_tags_applied_by_fkey"
             columns: ["applied_by"]
             isOneToOne: false
+            referencedRelation: "platform_account_health"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "smeksh_contact_tags_applied_by_fkey"
+            columns: ["applied_by"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -9730,8 +9975,22 @@ export type Database = {
             foreignKeyName: "smeksh_contacts_assigned_to_fkey"
             columns: ["assigned_to"]
             isOneToOne: false
+            referencedRelation: "platform_account_health"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "smeksh_contacts_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "smeksh_contacts_intervened_by_fkey"
+            columns: ["intervened_by"]
+            isOneToOne: false
+            referencedRelation: "platform_account_health"
+            referencedColumns: ["user_id"]
           },
           {
             foreignKeyName: "smeksh_contacts_intervened_by_fkey"
@@ -9831,6 +10090,13 @@ export type Database = {
             foreignKeyName: "smeksh_conversation_events_actor_profile_id_fkey"
             columns: ["actor_profile_id"]
             isOneToOne: false
+            referencedRelation: "platform_account_health"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "smeksh_conversation_events_actor_profile_id_fkey"
+            columns: ["actor_profile_id"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -9847,6 +10113,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "conversations"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "smeksh_conversation_events_from_assigned_to_fkey"
+            columns: ["from_assigned_to"]
+            isOneToOne: false
+            referencedRelation: "platform_account_health"
+            referencedColumns: ["user_id"]
           },
           {
             foreignKeyName: "smeksh_conversation_events_from_assigned_to_fkey"
@@ -9875,6 +10148,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "tenants"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "smeksh_conversation_events_to_assigned_to_fkey"
+            columns: ["to_assigned_to"]
+            isOneToOne: false
+            referencedRelation: "platform_account_health"
+            referencedColumns: ["user_id"]
           },
           {
             foreignKeyName: "smeksh_conversation_events_to_assigned_to_fkey"
@@ -9921,6 +10201,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "smeksh_messages"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "smeksh_conversation_reads_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "platform_account_health"
+            referencedColumns: ["user_id"]
           },
           {
             foreignKeyName: "smeksh_conversation_reads_profile_id_fkey"
@@ -10001,6 +10288,13 @@ export type Database = {
             foreignKeyName: "smeksh_conversation_snoozes_snoozed_by_profile_id_fkey"
             columns: ["snoozed_by_profile_id"]
             isOneToOne: false
+            referencedRelation: "platform_account_health"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "smeksh_conversation_snoozes_snoozed_by_profile_id_fkey"
+            columns: ["snoozed_by_profile_id"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -10073,6 +10367,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "smeksh_contacts"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "smeksh_data_requests_processed_by_fkey"
+            columns: ["processed_by"]
+            isOneToOne: false
+            referencedRelation: "platform_account_health"
+            referencedColumns: ["user_id"]
           },
           {
             foreignKeyName: "smeksh_data_requests_processed_by_fkey"
@@ -10236,6 +10537,13 @@ export type Database = {
             foreignKeyName: "smeksh_import_jobs_created_by_fkey"
             columns: ["created_by"]
             isOneToOne: false
+            referencedRelation: "platform_account_health"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "smeksh_import_jobs_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -10296,6 +10604,13 @@ export type Database = {
           visibility?: Database["public"]["Enums"]["smeksh_note_visibility"]
         }
         Relationships: [
+          {
+            foreignKeyName: "smeksh_internal_notes_author_profile_id_fkey"
+            columns: ["author_profile_id"]
+            isOneToOne: false
+            referencedRelation: "platform_account_health"
+            referencedColumns: ["user_id"]
+          },
           {
             foreignKeyName: "smeksh_internal_notes_author_profile_id_fkey"
             columns: ["author_profile_id"]
@@ -10510,6 +10825,13 @@ export type Database = {
             foreignKeyName: "smeksh_messages_sent_by_profile_id_fkey"
             columns: ["sent_by_profile_id"]
             isOneToOne: false
+            referencedRelation: "platform_account_health"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "smeksh_messages_sent_by_profile_id_fkey"
+            columns: ["sent_by_profile_id"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -10625,6 +10947,13 @@ export type Database = {
             foreignKeyName: "smeksh_meta_ad_accounts_connected_by_fkey"
             columns: ["connected_by"]
             isOneToOne: false
+            referencedRelation: "platform_account_health"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "smeksh_meta_ad_accounts_connected_by_fkey"
+            columns: ["connected_by"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -10697,6 +11026,13 @@ export type Database = {
           workspace_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "smeksh_meta_ad_automations_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "platform_account_health"
+            referencedColumns: ["user_id"]
+          },
           {
             foreignKeyName: "smeksh_meta_ad_automations_created_by_fkey"
             columns: ["created_by"]
@@ -11069,6 +11405,13 @@ export type Database = {
             foreignKeyName: "smeksh_meta_ads_settings_default_assigned_agent_id_fkey"
             columns: ["default_assigned_agent_id"]
             isOneToOne: false
+            referencedRelation: "platform_account_health"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "smeksh_meta_ads_settings_default_assigned_agent_id_fkey"
+            columns: ["default_assigned_agent_id"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -11158,6 +11501,13 @@ export type Database = {
           workspace_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "smeksh_meta_attribution_rules_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "platform_account_health"
+            referencedColumns: ["user_id"]
+          },
           {
             foreignKeyName: "smeksh_meta_attribution_rules_created_by_fkey"
             columns: ["created_by"]
@@ -11811,6 +12161,13 @@ export type Database = {
             foreignKeyName: "smeksh_segments_created_by_fkey"
             columns: ["created_by"]
             isOneToOne: false
+            referencedRelation: "platform_account_health"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "smeksh_segments_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -11862,6 +12219,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "conversations"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "smeksh_typing_state_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "platform_account_health"
+            referencedColumns: ["user_id"]
           },
           {
             foreignKeyName: "smeksh_typing_state_profile_id_fkey"
@@ -12126,6 +12490,13 @@ export type Database = {
             foreignKeyName: "store_settings_default_agent_id_fkey"
             columns: ["default_agent_id"]
             isOneToOne: false
+            referencedRelation: "platform_account_health"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "store_settings_default_agent_id_fkey"
+            columns: ["default_agent_id"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -12274,6 +12645,13 @@ export type Database = {
             foreignKeyName: "tag_history_applied_by_fkey"
             columns: ["applied_by"]
             isOneToOne: false
+            referencedRelation: "platform_account_health"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "tag_history_applied_by_fkey"
+            columns: ["applied_by"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -12381,6 +12759,13 @@ export type Database = {
             foreignKeyName: "tag_rules_created_by_fkey"
             columns: ["created_by"]
             isOneToOne: false
+            referencedRelation: "platform_account_health"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "tag_rules_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -12454,6 +12839,13 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "tags_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "platform_account_health"
+            referencedColumns: ["user_id"]
+          },
           {
             foreignKeyName: "tags_created_by_fkey"
             columns: ["created_by"]
@@ -12596,6 +12988,13 @@ export type Database = {
             foreignKeyName: "teams_team_lead_id_fkey"
             columns: ["team_lead_id"]
             isOneToOne: false
+            referencedRelation: "platform_account_health"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "teams_team_lead_id_fkey"
+            columns: ["team_lead_id"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -12660,8 +13059,22 @@ export type Database = {
             foreignKeyName: "template_approvals_requested_by_fkey"
             columns: ["requested_by"]
             isOneToOne: false
+            referencedRelation: "platform_account_health"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "template_approvals_requested_by_fkey"
+            columns: ["requested_by"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "template_approvals_reviewed_by_fkey"
+            columns: ["reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "platform_account_health"
+            referencedColumns: ["user_id"]
           },
           {
             foreignKeyName: "template_approvals_reviewed_by_fkey"
@@ -12819,6 +13232,13 @@ export type Database = {
             foreignKeyName: "template_submission_logs_submitted_by_fkey"
             columns: ["submitted_by"]
             isOneToOne: false
+            referencedRelation: "platform_account_health"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "template_submission_logs_submitted_by_fkey"
+            columns: ["submitted_by"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -12914,6 +13334,13 @@ export type Database = {
             foreignKeyName: "template_versions_created_by_fkey"
             columns: ["created_by"]
             isOneToOne: false
+            referencedRelation: "platform_account_health"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "template_versions_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -12985,6 +13412,13 @@ export type Database = {
           waba_account_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "templates_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "platform_account_health"
+            referencedColumns: ["user_id"]
+          },
           {
             foreignKeyName: "templates_created_by_fkey"
             columns: ["created_by"]
@@ -13127,6 +13561,13 @@ export type Database = {
           webhook_url?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "tenant_integrations_connected_by_fkey"
+            columns: ["connected_by"]
+            isOneToOne: false
+            referencedRelation: "platform_account_health"
+            referencedColumns: ["user_id"]
+          },
           {
             foreignKeyName: "tenant_integrations_connected_by_fkey"
             columns: ["connected_by"]
@@ -13676,6 +14117,13 @@ export type Database = {
             foreignKeyName: "user_attributes_created_by_fkey"
             columns: ["created_by"]
             isOneToOne: false
+            referencedRelation: "platform_account_health"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "user_attributes_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -13738,6 +14186,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "tenants"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_roles_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "platform_account_health"
+            referencedColumns: ["user_id"]
           },
           {
             foreignKeyName: "user_roles_user_id_fkey"
@@ -13821,6 +14276,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "wa_templates"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "wa_template_fallback_policies_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "platform_account_health"
+            referencedColumns: ["user_id"]
           },
           {
             foreignKeyName: "wa_template_fallback_policies_updated_by_fkey"
@@ -13975,6 +14437,13 @@ export type Database = {
             foreignKeyName: "wa_template_validation_logs_created_by_fkey"
             columns: ["created_by"]
             isOneToOne: false
+            referencedRelation: "platform_account_health"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "wa_template_validation_logs_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -14045,6 +14514,13 @@ export type Database = {
           version?: number
         }
         Relationships: [
+          {
+            foreignKeyName: "wa_template_versions_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "platform_account_health"
+            referencedColumns: ["user_id"]
+          },
           {
             foreignKeyName: "wa_template_versions_created_by_fkey"
             columns: ["created_by"]
@@ -14121,8 +14597,22 @@ export type Database = {
             foreignKeyName: "wa_templates_created_by_fkey"
             columns: ["created_by"]
             isOneToOne: false
+            referencedRelation: "platform_account_health"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "wa_templates_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "wa_templates_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "platform_account_health"
+            referencedColumns: ["user_id"]
           },
           {
             foreignKeyName: "wa_templates_updated_by_fkey"
@@ -14364,6 +14854,13 @@ export type Database = {
             foreignKeyName: "working_hours_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
+            referencedRelation: "platform_account_health"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "working_hours_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -14581,11 +15078,16 @@ export type Database = {
       }
       workspace_entitlements: {
         Row: {
+          ai_usage_limit: number | null
+          billing_cycle: string
+          campaign_limit: number | null
           enable_ads: boolean
           enable_ai: boolean
           enable_autoforms: boolean
           enable_integrations: boolean
+          expires_at: string | null
           id: string
+          internal_admin_note: string | null
           monthly_broadcast_limit: number | null
           monthly_conversation_limit: number | null
           monthly_flow_limit: number | null
@@ -14593,16 +15095,23 @@ export type Database = {
           plan: string
           sending_paused: boolean
           status: string
+          team_member_limit: number | null
+          trial_ends_at: string | null
           updated_at: string
           updated_by: string | null
           workspace_id: string
         }
         Insert: {
+          ai_usage_limit?: number | null
+          billing_cycle?: string
+          campaign_limit?: number | null
           enable_ads?: boolean
           enable_ai?: boolean
           enable_autoforms?: boolean
           enable_integrations?: boolean
+          expires_at?: string | null
           id?: string
+          internal_admin_note?: string | null
           monthly_broadcast_limit?: number | null
           monthly_conversation_limit?: number | null
           monthly_flow_limit?: number | null
@@ -14610,16 +15119,23 @@ export type Database = {
           plan?: string
           sending_paused?: boolean
           status?: string
+          team_member_limit?: number | null
+          trial_ends_at?: string | null
           updated_at?: string
           updated_by?: string | null
           workspace_id: string
         }
         Update: {
+          ai_usage_limit?: number | null
+          billing_cycle?: string
+          campaign_limit?: number | null
           enable_ads?: boolean
           enable_ai?: boolean
           enable_autoforms?: boolean
           enable_integrations?: boolean
+          expires_at?: string | null
           id?: string
+          internal_admin_note?: string | null
           monthly_broadcast_limit?: number | null
           monthly_conversation_limit?: number | null
           monthly_flow_limit?: number | null
@@ -14627,6 +15143,8 @@ export type Database = {
           plan?: string
           sending_paused?: boolean
           status?: string
+          team_member_limit?: number | null
+          trial_ends_at?: string | null
           updated_at?: string
           updated_by?: string | null
           workspace_id?: string
@@ -14713,6 +15231,24 @@ export type Database = {
       }
     }
     Views: {
+      platform_account_health: {
+        Row: {
+          banned_until: string | null
+          connected_phone_count: number | null
+          created_at: string | null
+          email: string | null
+          email_confirmed_at: string | null
+          expired_plans: number | null
+          full_name: string | null
+          health_score: number | null
+          last_sign_in_at: string | null
+          low_quality_phones: number | null
+          user_id: string | null
+          waba_issues: number | null
+          workspace_count: number | null
+        }
+        Relationships: []
+      }
       platform_kpi_overview: {
         Row: {
           accounts_last_30d: number | null
@@ -14854,6 +15390,13 @@ export type Database = {
             foreignKeyName: "audit_logs_user_id_fkey"
             columns: ["actor_user_id"]
             isOneToOne: false
+            referencedRelation: "platform_account_health"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "audit_logs_user_id_fkey"
+            columns: ["actor_user_id"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -14898,6 +15441,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "tenants"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agents_user_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "platform_account_health"
+            referencedColumns: ["user_id"]
           },
           {
             foreignKeyName: "agents_user_id_fkey"
@@ -15029,6 +15579,13 @@ export type Database = {
             foreignKeyName: "routing_rules_assign_to_user_id_fkey"
             columns: ["target_member_id"]
             isOneToOne: false
+            referencedRelation: "platform_account_health"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "routing_rules_assign_to_user_id_fkey"
+            columns: ["target_member_id"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -15059,6 +15616,13 @@ export type Database = {
           workspace_id: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "agents_user_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "platform_account_health"
+            referencedColumns: ["user_id"]
+          },
           {
             foreignKeyName: "agents_user_id_fkey"
             columns: ["profile_id"]
@@ -15159,6 +15723,13 @@ export type Database = {
             foreignKeyName: "teams_team_lead_id_fkey"
             columns: ["team_lead_id"]
             isOneToOne: false
+            referencedRelation: "platform_account_health"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "teams_team_lead_id_fkey"
+            columns: ["team_lead_id"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -15214,6 +15785,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "tenants"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agents_user_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "platform_account_health"
+            referencedColumns: ["user_id"]
           },
           {
             foreignKeyName: "agents_user_id_fkey"
