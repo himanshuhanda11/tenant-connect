@@ -242,30 +242,50 @@ async function runBackup(req: Request, trigger: "manual" | "scheduled", actorId:
     .single();
   const runId = run!.id as string;
 
-  try {
-    const filesObj: Record<string, Uint8Array> = {};
-    let okTables = 0;
-    const tableErrors: Record<string, string> = {};
+  // ====== Streaming ZIP to a temp file (memory stays flat) ======
+  const tmpPath = await Deno.makeTempFile({ prefix: "aireatro-backup-", suffix: ".zip" });
+  const tmpFile = await Deno.open(tmpPath, { write: true, create: true, truncate: true });
+  const writer = tmpFile.writable.getWriter();
+  const pendingWrites: Promise<unknown>[] = [];
 
-    // Per-table JSON (auto-discovered). JSON is the canonical restore format
-    // (CSV produced on demand from JSON during restore). Skipping CSV here
-    // halves memory pressure and keeps the in-memory ZIP within the edge
-    // function memory budget.
+  const zip = new Zip();
+  zip.ondata = (err, chunk, _final) => {
+    if (err) {
+      console.error("[backup] zip error:", err);
+      return;
+    }
+    if (chunk && chunk.length) pendingWrites.push(writer.write(chunk));
+  };
+
+  const addFile = (name: string, bytes: Uint8Array) => {
+    const entry = new ZipPassThrough(name);
+    zip.add(entry);
+    entry.push(bytes, true);
+  };
+
+  let okTables = 0;
+  const tableErrors: Record<string, string> = {};
+  const tableCounts: Record<string, number> = {};
+
+  try {
+    // Per-table JSONL (newline-delimited JSON) — written page-by-page so we
+    // never hold a full table in RAM. Restore: parse each line as a row.
     for (const t of tables) {
-      try {
-        const rows = await fetchAllRows(sb, t);
-        filesObj[`tables/json/${t}.json`] = strToU8(JSON.stringify(rows));
-        okTables++;
-      } catch (e: any) {
-        tableErrors[t] = String(e?.message || e);
-      }
+      const entry = new ZipPassThrough(`tables/json/${t}.jsonl`);
+      zip.add(entry);
+      const { total, error } = await streamTableRows(sb, t, (rows) => {
+        const chunk = rows.map((r) => JSON.stringify(r)).join("\n") + "\n";
+        entry.push(strToU8(chunk), false);
+      });
+      entry.push(new Uint8Array(0), true);
+      tableCounts[t] = total;
+      if (error) tableErrors[t] = error;
+      else okTables++;
+      // Yield to event loop so backpressure drains.
+      await Promise.resolve();
     }
 
     // ===== Storage: inventory only (file bytes opt-in via ?include_storage=1) =====
-    // Storage byte downloads are skipped by default to keep the in-memory ZIP
-    // within the edge function memory budget. The full inventory (bucket, path,
-    // size, updated_at) is always included so an operator can re-download the
-    // live bytes during restore from the source bucket.
     const url = new URL(req.url);
     const includeStorageBytes = url.searchParams.get("include_storage") === "1";
     const { data: buckets } = await sb.storage.listBuckets();
@@ -275,7 +295,7 @@ async function runBackup(req: Request, trigger: "manual" | "scheduled", actorId:
     let totalBytes = 0;
 
     for (const b of buckets || []) {
-      if (b.id === "database-backups") continue; // skip self
+      if (b.id === "database-backups") continue;
       const objects = await walkBucket(sb, b.id);
       for (const obj of objects) {
         storageInventory.push({ bucket: b.id, ...obj });
@@ -295,7 +315,7 @@ async function runBackup(req: Request, trigger: "manual" | "scheduled", actorId:
             continue;
           }
           const bytes = new Uint8Array(await blob.arrayBuffer());
-          filesObj[`storage/files/${b.id}/${obj.name}`] = bytes;
+          addFile(`storage/files/${b.id}/${obj.name}`, bytes);
           totalBytes += bytes.byteLength;
           storageDownloaded.push({ bucket: b.id, name: obj.name, size: bytes.byteLength });
         } catch (e: any) {
@@ -303,41 +323,43 @@ async function runBackup(req: Request, trigger: "manual" | "scheduled", actorId:
         }
       }
     }
-    filesObj["storage/file_list.json"] = strToU8(JSON.stringify(storageInventory));
-    filesObj["storage/_downloaded.json"] = strToU8(JSON.stringify(storageDownloaded));
-    filesObj["storage/_skipped.json"] = strToU8(JSON.stringify(storageSkipped));
-    filesObj["storage/_mode.txt"] = strToU8(includeStorageBytes ? "bytes_included" : "inventory_only");
+    addFile("storage/file_list.json", strToU8(JSON.stringify(storageInventory)));
+    addFile("storage/_downloaded.json", strToU8(JSON.stringify(storageDownloaded)));
+    addFile("storage/_skipped.json", strToU8(JSON.stringify(storageSkipped)));
+    addFile("storage/_mode.txt", strToU8(includeStorageBytes ? "bytes_included" : "inventory_only"));
 
-    // Environment snapshot
-    // - .env: public/non-secret values only (safe to ship in backup)
-    // - env.secrets.list.txt: NAMES of configured secrets (no values) so a restore
-    //   operator knows which secrets to recreate in the new project.
+    // Env snapshot
     const projectRef = (SUPABASE_URL.match(/https?:\/\/([^.]+)\./) || [])[1] || "";
-    const envFile = [
-      "# Aireatro public environment snapshot",
-      "# These are PUBLIC values — safe to commit. Secret keys are NOT included here.",
-      "# Recreate secrets in your new Supabase project using env.secrets.list.txt.",
-      `VITE_SUPABASE_URL=${SUPABASE_URL}`,
-      `VITE_SUPABASE_PUBLISHABLE_KEY=${ANON_KEY}`,
-      `VITE_SUPABASE_PROJECT_ID=${projectRef}`,
-      "",
-    ].join("\n");
-    filesObj["config/.env"] = strToU8(envFile);
-
+    addFile(
+      "config/.env",
+      strToU8(
+        [
+          "# Aireatro public environment snapshot",
+          "# These are PUBLIC values — safe to commit. Secret keys are NOT included here.",
+          "# Recreate secrets in your new Supabase project using env.secrets.list.txt.",
+          `VITE_SUPABASE_URL=${SUPABASE_URL}`,
+          `VITE_SUPABASE_PUBLISHABLE_KEY=${ANON_KEY}`,
+          `VITE_SUPABASE_PROJECT_ID=${projectRef}`,
+          "",
+        ].join("\n"),
+      ),
+    );
     const allEnv = Object.keys(Deno.env.toObject()).sort();
     const secretNames = allEnv.filter(
       (k) => !["SUPABASE_URL", "SUPABASE_ANON_KEY", "SUPABASE_PUBLISHABLE_KEY"].includes(k),
     );
-    filesObj["config/env.secrets.list.txt"] = strToU8(
-      [
-        "# Names of secrets configured on the source project (values intentionally omitted).",
-        "# Recreate these in the destination project before deploying edge functions.",
-        "",
-        ...secretNames,
-      ].join("\n"),
+    addFile(
+      "config/env.secrets.list.txt",
+      strToU8(
+        [
+          "# Names of secrets configured on the source project (values intentionally omitted).",
+          "# Recreate these in the destination project before deploying edge functions.",
+          "",
+          ...secretNames,
+        ].join("\n"),
+      ),
     );
 
-    // Manifest
     const manifest = {
       generated_at: new Date().toISOString(),
       trigger,
@@ -345,6 +367,7 @@ async function runBackup(req: Request, trigger: "manual" | "scheduled", actorId:
       app: "Aireatro",
       tables,
       table_count: okTables,
+      table_row_counts: tableCounts,
       table_errors: tableErrors,
       buckets: (buckets || []).map((b: any) => ({ id: b.id, public: b.public })),
       storage_files_total: storageInventory.length,
@@ -352,42 +375,54 @@ async function runBackup(req: Request, trigger: "manual" | "scheduled", actorId:
       storage_files_skipped: storageSkipped.length,
       storage_bytes_downloaded: totalBytes,
       schema_note: "Full schema + edge functions + frontend live in GitHub repo.",
+      format_note: "Each tables/json/<name>.jsonl is newline-delimited JSON (one row per line).",
     };
-    filesObj["manifest.json"] = strToU8(JSON.stringify(manifest, null, 2));
+    addFile("manifest.json", strToU8(JSON.stringify(manifest, null, 2)));
 
-    filesObj["RESTORE_README.txt"] = strToU8(
-      [
-        "Aireatro full backup",
-        "====================",
-        `Generated: ${manifest.generated_at}`,
-        `Tables: ${okTables} / ${tables.length}`,
-        `Storage files: ${storageDownloaded.length} downloaded, ${storageSkipped.length} skipped`,
-        `Total storage bytes: ${totalBytes}`,
-        "",
-        "Restore order:",
-        "  1. Create a new Supabase project.",
-        "  2. Run `aireatro_full_schema.sql` in SQL Editor (from GitHub repo).",
-        "  3. Recreate buckets listed in manifest.json -> buckets.",
-        "  4. Re-upload files from storage/files/<bucket>/... to matching buckets.",
-        "  5. Import tables/csv/*.csv in FK-safe order (see DATABASE_RESTORE_GUIDE.md).",
-        "  6. Recreate secrets listed in config/env.secrets.list.txt.",
-        "  7. Deploy edge functions from GitHub repo (`supabase functions deploy`).",
-        "  8. Update VITE_SUPABASE_URL/KEY in frontend deploy env.",
-        "",
-        "Frontend code, migrations and edge functions are NOT included here —",
-        "they live in the GitHub repository connected to this project.",
-      ].join("\n")
+    addFile(
+      "RESTORE_README.txt",
+      strToU8(
+        [
+          "Aireatro full backup",
+          "====================",
+          `Generated: ${manifest.generated_at}`,
+          `Tables: ${okTables} / ${tables.length}`,
+          `Storage files: ${storageDownloaded.length} downloaded, ${storageSkipped.length} skipped (mode: ${includeStorageBytes ? "bytes_included" : "inventory_only"})`,
+          "",
+          "Restore order:",
+          "  1. Create a new Supabase project.",
+          "  2. Run `aireatro_full_schema.sql` in SQL Editor (from GitHub repo).",
+          "  3. Recreate buckets listed in manifest.json -> buckets.",
+          "  4. Re-upload files from storage/files/<bucket>/... (or re-download from the live source bucket using storage/file_list.json if mode=inventory_only).",
+          "  5. Import tables/json/*.jsonl in FK-safe order (each line = one row; see DATABASE_RESTORE_GUIDE.md).",
+          "  6. Recreate secrets listed in config/env.secrets.list.txt.",
+          "  7. Deploy edge functions from GitHub repo (`supabase functions deploy`).",
+          "  8. Update VITE_SUPABASE_URL/KEY in frontend deploy env.",
+          "",
+          "Frontend code, migrations and edge functions are NOT included here —",
+          "they live in the GitHub repository connected to this project.",
+        ].join("\n"),
+      ),
     );
 
-    // Build ZIP
-    const zipped = zipSync(filesObj, { level: 6 });
+    // Finalize ZIP
+    zip.end();
+    await Promise.all(pendingWrites);
+    await writer.close();
+
+    const stat = await Deno.stat(tmpPath);
+    const fileSize = stat.size;
+
+    // Upload to Supabase Storage from the temp file (read once into memory —
+    // compressed JSON ZIP is typically << raw DB).
     const ts = new Date().toISOString().replace(/[:.]/g, "-");
     const fileName = `aireatro-backup-${ts}.zip`;
     const path = `${ts}/${fileName}`;
+    const zipBytes = await Deno.readFile(tmpPath);
 
     const { error: upErr } = await sb.storage
       .from("database-backups")
-      .upload(path, zipped, { contentType: "application/zip", upsert: false });
+      .upload(path, zipBytes, { contentType: "application/zip", upsert: false });
     if (upErr) throw upErr;
 
     const ms = Date.now() - startedAt;
@@ -396,13 +431,51 @@ async function runBackup(req: Request, trigger: "manual" | "scheduled", actorId:
       .update({
         status: "success",
         storage_path: path,
-        file_size_bytes: zipped.byteLength,
+        file_size_bytes: fileSize,
         table_count: okTables,
         duration_ms: ms,
         completed_at: new Date().toISOString(),
+        error_message: Object.keys(tableErrors).length
+          ? `partial: ${Object.keys(tableErrors).length} table(s) failed`
+          : null,
       })
       .eq("id", runId);
 
+    // Upload to Google Drive
+    const driveResult = await uploadToDrive(zipBytes, fileName).catch((e: any) => ({
+      ok: false,
+      error: String(e?.message || e),
+    }));
+    await sb
+      .from("platform_backup_runs")
+      .update({
+        drive_status: driveResult.ok ? "uploaded" : "failed",
+        drive_file_id: (driveResult as any).fileId || null,
+        drive_folder_id: (driveResult as any).folderId || null,
+        drive_web_link: (driveResult as any).webLink || null,
+        drive_error: (driveResult as any).error || null,
+      })
+      .eq("id", runId);
+
+    await sb.rpc("cleanup_old_backups").catch(() => {});
+    if (driveResult.ok) {
+      await cleanupDriveOldBackups((driveResult as any).folderId).catch((e: any) =>
+        console.warn("[backup] drive cleanup failed:", e?.message),
+      );
+    }
+
+    try { await Deno.remove(tmpPath); } catch { /* ignore */ }
+
+    return {
+      ok: true,
+      run_id: runId,
+      path,
+      size: fileSize,
+      table_count: okTables,
+      table_errors: tableErrors,
+      duration_ms: ms,
+      drive: driveResult,
+    };
     // Upload to Google Drive (best-effort: errors are recorded but don't fail the run)
     const driveResult = await uploadToDrive(zipped, fileName).catch((e: any) => ({
       ok: false,
