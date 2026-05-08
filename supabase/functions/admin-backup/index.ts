@@ -348,6 +348,7 @@ async function runBackup(reqUrl: string, trigger: "manual" | "scheduled", actorI
   let okTables = 0;
   const tableErrors: Record<string, string> = {};
   const tableCounts: Record<string, number> = {};
+  const tableTruncated: Record<string, number> = {};
 
   try {
     // Tables phase = 0% → 80% of overall progress
@@ -361,12 +362,13 @@ async function runBackup(reqUrl: string, trigger: "manual" | "scheduled", actorI
       });
       const entry = new ZipPassThrough(`tables/json/${t}.jsonl`);
       zip.add(entry);
-      const { total, error } = await streamTableRows(sb, t, (rows) => {
+      const { total, error, truncated } = await streamTableRows(sb, t, (rows) => {
         const chunk = rows.map((r) => JSON.stringify(r)).join("\n") + "\n";
         entry.push(strToU8(chunk), false);
       });
       entry.push(new Uint8Array(0), true);
       tableCounts[t] = total;
+      if (truncated) tableTruncated[t] = MAX_EDGE_ROWS_PER_TABLE;
       if (error) tableErrors[t] = error;
       else okTables++;
       if (pendingWrites.length) {
@@ -458,6 +460,8 @@ async function runBackup(reqUrl: string, trigger: "manual" | "scheduled", actorI
       tables,
       table_count: okTables,
       table_row_counts: tableCounts,
+      table_row_limit: MAX_EDGE_ROWS_PER_TABLE,
+      table_truncated_at_row_limit: tableTruncated,
       table_errors: tableErrors,
       skipped_tables: skippedTables,
       skipped_table_count: skippedTables.length,
