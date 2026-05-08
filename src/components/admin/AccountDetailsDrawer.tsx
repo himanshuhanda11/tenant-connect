@@ -595,6 +595,22 @@ export function AccountDetailsDrawer({ userId, onClose }: Props) {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <PlanChangeModal
+        workspaceId={planModalWs?.id || null}
+        workspaceName={planModalWs?.name}
+        onClose={() => setPlanModalWs(null)}
+        onSaved={() => load(true)}
+      />
+      {p && (
+        <ProfileEditModal
+          open={editProfileOpen}
+          onClose={() => setEditProfileOpen(false)}
+          onSaved={() => load(true)}
+          userId={userId}
+          profile={p}
+        />
+      )}
     </Sheet>
   );
 }
