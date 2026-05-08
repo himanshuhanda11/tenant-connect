@@ -355,13 +355,14 @@ async function runBackup(_reqUrl: string, trigger: "manual" | "scheduled", actor
       });
       const entry = new ZipPassThrough(`tables/json/${t}.jsonl`);
       zip.add(entry);
+      const cap = rowCapFor(t);
       const { total, error, truncated } = await streamTableRows(sb, t, (rows) => {
         const chunk = rows.map((r) => JSON.stringify(r)).join("\n") + "\n";
         entry.push(strToU8(chunk), false);
-      });
+      }, 500, cap);
       entry.push(new Uint8Array(0), true);
       tableCounts[t] = total;
-      if (truncated) tableTruncated[t] = MAX_EDGE_ROWS_PER_TABLE;
+      if (truncated) tableTruncated[t] = cap;
       if (error) tableErrors[t] = error;
       else okTables++;
       if (pendingWrites.length) {
