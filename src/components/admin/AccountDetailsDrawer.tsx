@@ -91,8 +91,6 @@ export function AccountDetailsDrawer({ userId, onClose }: Props) {
     } finally { setSavingNote(false); }
   };
 
-  if (!userId) return null;
-
   const u = data?.user;
   const p = data?.profile;
   const initials = (p?.full_name || u?.email || '?')
@@ -146,6 +144,8 @@ export function AccountDetailsDrawer({ userId, onClose }: Props) {
 
   // ─────────── Quick admin action helpers ───────────
   const askConfirm = (a: NonNullable<DangerAction>) => setConfirm(a);
+
+  if (!userId) return null;
 
   return (
     <Sheet open={!!userId} onOpenChange={(o) => !o && onClose()}>
