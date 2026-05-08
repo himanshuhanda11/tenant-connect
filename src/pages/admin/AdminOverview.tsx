@@ -463,6 +463,56 @@ export default function AdminOverview() {
         </Card>
       </div>
 
+      {/* Daily Conversations per WABA-connected workspace */}
+      <Card className="rounded-2xl border-border/50">
+        <CardHeader className="pb-2 flex flex-row items-center justify-between">
+          <CardTitle className="text-sm font-semibold flex items-center gap-2">
+            <div className="h-7 w-7 rounded-lg bg-cyan-500/10 flex items-center justify-center">
+              <MessageSquare className="h-3.5 w-3.5 text-cyan-600" />
+            </div>
+            Conversations Today · WABA-Connected Workspaces
+          </CardTitle>
+          <div className="flex items-center gap-3 text-xs">
+            <span className="text-muted-foreground">In: <b className="text-foreground tabular-nums">{(t.messagesInbound24h ?? 0).toLocaleString()}</b></span>
+            <span className="text-muted-foreground">Out: <b className="text-foreground tabular-nums">{(t.messagesOutbound24h ?? 0).toLocaleString()}</b></span>
+            <span className="text-muted-foreground">Total: <b className="text-foreground tabular-nums">{(t.messagesToday ?? 0).toLocaleString()}</b></span>
+          </div>
+        </CardHeader>
+        <CardContent className="p-0">
+          {(stats.conversationsByWorkspace?.length ?? 0) === 0 ? (
+            <div className="text-xs text-muted-foreground py-10 text-center">No WABA-connected workspaces yet</div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="text-[11px] uppercase tracking-wider text-muted-foreground border-b">
+                    <th className="text-left font-medium px-4 py-2.5">Workspace</th>
+                    <th className="text-left font-medium px-4 py-2.5">WhatsApp #</th>
+                    <th className="text-right font-medium px-4 py-2.5">Active Convs</th>
+                    <th className="text-right font-medium px-4 py-2.5">Inbound</th>
+                    <th className="text-right font-medium px-4 py-2.5">Outbound</th>
+                    <th className="text-right font-medium px-4 py-2.5">Total</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {(stats.conversationsByWorkspace || []).slice(0, 12).map(w => (
+                    <tr key={w.tenant_id} className="border-b last:border-0 hover:bg-muted/40 cursor-pointer"
+                        onClick={() => navigate(`/control/workspaces/${w.tenant_id}`)}>
+                      <td className="px-4 py-2.5 font-medium truncate max-w-[200px]">{w.name}</td>
+                      <td className="px-4 py-2.5 text-muted-foreground tabular-nums">{w.display_number || '—'}</td>
+                      <td className="px-4 py-2.5 text-right tabular-nums">{w.conversations_active}</td>
+                      <td className="px-4 py-2.5 text-right tabular-nums text-emerald-600">{w.inbound}</td>
+                      <td className="px-4 py-2.5 text-right tabular-nums text-blue-600">{w.outbound}</td>
+                      <td className="px-4 py-2.5 text-right tabular-nums font-semibold">{w.messages_today}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
       {/* Revenue trend + WhatsApp status breakdown */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <Card className="rounded-2xl border-border/50 lg:col-span-2">
