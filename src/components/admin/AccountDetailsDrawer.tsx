@@ -58,6 +58,8 @@ export function AccountDetailsDrawer({ userId, onClose }: Props) {
     try {
       const fresh = await get(`users/${userId}/details`);
       setData(fresh);
+      // Cache for instant re-open
+      try { (window as any).__adminUserCache ||= new Map(); (window as any).__adminUserCache.set(userId, fresh); } catch {}
     } catch (e: any) {
       toast({ title: 'Failed to load', description: e.message, variant: 'destructive' });
     } finally { setLoading(false); setRefreshing(false); }
@@ -65,7 +67,10 @@ export function AccountDetailsDrawer({ userId, onClose }: Props) {
 
   useEffect(() => {
     if (!userId) { setData(null); return; }
-    load(false);
+    // Show cached data instantly while we refresh in background
+    const cached = (window as any).__adminUserCache?.get(userId);
+    if (cached) { setData(cached); setLoading(false); load(true); }
+    else { load(false); }
   }, [userId]);
 
   const runAction = async (key: string, fn: () => Promise<any>, successMsg: string) => {
