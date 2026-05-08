@@ -121,7 +121,8 @@ export default function AdminBackups() {
             Database Backups
           </h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Export everything to a portable ZIP. Last 30 backups are kept automatically.
+            Daily auto-backup at 02:30 UTC. Uploaded to Lovable Cloud storage and to Google Drive folder
+            <strong> Aireatro Daily Backups</strong>. Last 7 backups are retained automatically.
           </p>
         </div>
         <div className="flex gap-2">
