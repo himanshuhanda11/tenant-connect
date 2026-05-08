@@ -297,7 +297,7 @@ async function runBackup(req: Request, trigger: "manual" | "scheduled", actorId:
     // Per-table JSONL (newline-delimited JSON) — written page-by-page so we
     // never hold a full table in RAM. Restore: parse each line as a row.
     for (const t of tables) {
-      const entry = new ZipDeflate(`tables/json/${t}.jsonl`, { level: 6 });
+      const entry = new ZipDeflate(`tables/json/${t}.jsonl`, { level: 1 });
       zip.add(entry);
       const { total, error } = await streamTableRows(sb, t, (rows) => {
         const chunk = rows.map((r) => JSON.stringify(r)).join("\n") + "\n";
