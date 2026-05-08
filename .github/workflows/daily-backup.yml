@@ -90,12 +90,13 @@ jobs:
           FILE: ${{ env.FILE }}
         run: |
           SIZE=$(stat -c%s "$FILE")
+          NAME=$(basename "$FILE")
           psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 <<SQL
           INSERT INTO public.platform_backup_runs
-            (status, drive_status, drive_file_id, drive_link, file_name, file_size_bytes, started_at, completed_at, source)
+            (status, trigger, drive_status, drive_file_id, drive_web_link, storage_path, file_size_bytes, completed_at)
           VALUES
-            ('success', 'uploaded', '${DRIVE_FILE_ID}', '${DRIVE_LINK}',
-             '$(basename "$FILE")', ${SIZE}, now(), now(), 'github_action');
+            ('success', 'github_action', 'uploaded', '${DRIVE_FILE_ID}', '${DRIVE_LINK}',
+             '${NAME}', ${SIZE}, now());
           SQL
 
       - name: Log failure to backup runs
