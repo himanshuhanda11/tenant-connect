@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, lazy, Suspense } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -19,8 +19,9 @@ import {
   Bot, Timer, Check, Gift, Megaphone, Eye, Tag,
   MessageCircle, UserPlus, Gauge,
 } from 'lucide-react';
-import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 import { formatDistanceToNow } from 'date-fns';
+
+const MessagesAreaChart = lazy(() => import('@/components/dashboard/MessagesAreaChart'));
 
 export default function Dashboard() {
   const navigate = useNavigate();
