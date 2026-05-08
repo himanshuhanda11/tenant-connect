@@ -176,8 +176,7 @@ export default function AdminBackups() {
             Database Backups
           </h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Daily auto-backup at 02:30 UTC. Uploaded to Lovable Cloud storage and to Google Drive folder
-            <strong> Aireatro Daily Backups</strong>. Last 7 backups are retained automatically.
+            Edge-safe admin snapshots at 02:30 UTC. Full disaster-recovery backups should use Lovable Cloud PITR or pg_dump.
           </p>
         </div>
         <div className="flex gap-2">
@@ -202,7 +201,7 @@ export default function AdminBackups() {
           </Button>
           <Button onClick={runBackup} disabled={running}>
             {running ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> : <Download className="h-4 w-4 mr-1.5" />}
-            {running ? 'Backing up…' : 'Run backup now'}
+            {running ? 'Creating snapshot…' : 'Run snapshot now'}
           </Button>
         </div>
       </div>
@@ -312,7 +311,7 @@ export default function AdminBackups() {
       <Card>
         <CardHeader>
           <CardTitle className="text-base">Backup history</CardTitle>
-          <CardDescription>Most recent 50 runs. Older successful backups are auto-pruned beyond 30.</CardDescription>
+          <CardDescription>Most recent 50 runs. Edge snapshots skip high-volume message/event tables to avoid worker CPU limits.</CardDescription>
         </CardHeader>
         <CardContent>
           {loading ? (
@@ -398,8 +397,8 @@ export default function AdminBackups() {
             <BookOpen className="h-4 w-4" /> What's inside each ZIP?
           </p>
           <ul className="text-muted-foreground text-xs space-y-1 ml-6 list-disc">
-            <li><code>tables/csv/</code> — every important table as CSV (Excel-friendly).</li>
-            <li><code>tables/json/</code> — same data as JSON.</li>
+            <li><code>tables/json/</code> — edge-safe reference tables as JSONL.</li>
+            <li>High-volume messages, events, logs, jobs, and sessions are handled by full backend backups, not edge snapshots.</li>
             <li><code>storage/file_list.json</code> — inventory of all media files in storage buckets.</li>
             <li><code>manifest.json</code> + <code>RESTORE_README.txt</code> — what's included and quick restore steps.</li>
           </ul>
