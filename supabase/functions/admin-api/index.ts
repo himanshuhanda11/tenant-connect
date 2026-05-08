@@ -148,9 +148,12 @@ Deno.serve(async (req: Request) => {
       for (const d of dir || []) {
         const planLabel = (d.plan_name || d.plan || "free").toString();
         planCounts[planLabel] = (planCounts[planLabel] || 0) + 1;
-        const lower = planLabel.toLowerCase();
-        if (["free", "trial", "starter"].includes(lower) || !d.subscription_status) freeTrial++;
-        else activePaid++;
+        const planKey = (d.plan || "free").toString().toLowerCase();
+        const ss = String(d.subscription_status || "").toLowerCase();
+        const isPaidPlan = !["free", "trial", "trialing"].includes(planKey);
+        const isCancelled = ["expired", "past_due", "cancelled", "canceled"].includes(ss);
+        if (isPaidPlan && !isCancelled) activePaid++;
+        else freeTrial++;
       }
       const planDistribution = Object.entries(planCounts).map(([name, value]) => ({ name, value }));
 
