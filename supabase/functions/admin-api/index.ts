@@ -292,10 +292,26 @@ Deno.serve(async (req: Request) => {
       // Sort newest first
       users.sort((a: any, b: any) => (b.created_at || "").localeCompare(a.created_at || ""));
 
-      const total = users.length;
-      const offset = (page - 1) * limit;
-      const slice = users.slice(offset, offset + limit);
-      const userIds = slice.map((u: any) => u.id);
+      // Pre-fetch all memberships to filter out sub-accounts (team members of others' workspaces).
+      // An account qualifies as a top-level account if: it owns ≥1 workspace OR has no memberships at all.
+      const allUserIds = users.map((u: any) => u.id);
+      const ownerSet = new Set<string>();
+      const memberSet = new Set<string>();
+      if (allUserIds.length) {
+        const { data: allMems } = await sb.from("tenant_members")
+          .select("user_id, role")
+          .in("user_id", allUserIds);
+        for (const m of allMems || []) {
+          memberSet.add(m.user_id);
+          if (m.role === "owner") ownerSet.add(m.user_id);
+        }
+      }
+      users = users.filter((u: any) => ownerSet.has(u.id) || !memberSet.has(u.id));
+
+       const total = users.length;
+       const offset = (page - 1) * limit;
+       const slice = users.slice(offset, offset + limit);
+       const userIds = slice.map((u: any) => u.id);
 
       // 2) Profiles for these users
       const profileMap: Record<string, any> = {};
