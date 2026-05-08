@@ -1,6 +1,8 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useOutletContext, useNavigate } from 'react-router-dom';
 import { useAdminApi } from '@/hooks/useAdminApi';
+import { useAdminQuery, adminCacheInvalidate } from '@/hooks/useAdminQuery';
+import { TableSkeleton } from '@/components/admin/AdminSkeletons';
 import { Card, CardContent } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
