@@ -114,7 +114,7 @@ export default function AdminWorkspaceDetail() {
     <div className="space-y-6 animate-fade-in">
       <WorkspaceDetailHeader
         workspace={workspace}
-        entitlements={entitlements}
+        entitlements={safeEntitlements}
         isSuperAdmin={isSuperAdmin}
         onPauseSending={handlePauseSending}
         onSuspendClick={() => setSuspendDialog(true)}
