@@ -124,16 +124,25 @@ export default function AdminWorkspaces() {
 
   const isSuperAdmin = role === 'super_admin';
 
-  const loadWorkspaces = useCallback(async () => {
-    const params = new URLSearchParams({ page: page.toString(), view: activeView });
-    if (search) params.set('search', search);
-    const data = await get(`workspaces?${params}`);
-    setWorkspaces(data.workspaces || []);
-    setTotal(data.total || 0);
-    setCounts(data.counts || {});
-  }, [page, search, activeView]);
+  // Debounce search
+  useEffect(() => {
+    const t = setTimeout(() => { setDebouncedSearch(search); setPage(1); }, 300);
+    return () => clearTimeout(t);
+  }, [search]);
 
-  useEffect(() => { loadWorkspaces().catch(() => {}); }, [loadWorkspaces]);
+  const queryPath = (() => {
+    const params = new URLSearchParams({ page: page.toString(), view: activeView });
+    if (debouncedSearch) params.set('search', debouncedSearch);
+    return `workspaces?${params.toString()}`;
+  })();
+  const { data: wsData, loading, refreshing, refetch } = useAdminQuery<{ workspaces: Workspace[]; total: number; counts: Record<string, number> }>(queryPath);
+  const workspaces: Workspace[] = wsData?.workspaces || [];
+  useEffect(() => {
+    if (wsData?.total != null) setTotal(wsData.total);
+    if (wsData?.counts) setCounts(wsData.counts);
+  }, [wsData]);
+  const loadWorkspaces = useCallback(async () => { adminCacheInvalidate('workspaces'); await refetch(); }, [refetch]);
+
 
   const handleSuspend = async () => {
     if (!suspendDialog) return;
