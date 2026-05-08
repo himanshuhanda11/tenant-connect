@@ -53,6 +53,20 @@ interface BackupRun {
   drive_error: string | null;
 }
 
+const normalizeRun = (run: BackupRun): BackupRun => {
+  if (run.status !== 'pending') return run;
+  const hasProgress = Number(run.progress_percent || 0) > 0;
+  return {
+    ...run,
+    progress_percent: hasProgress ? run.progress_percent : 1,
+    current_step: run.current_step || 'Queued — waiting for backup worker…',
+    started_at: run.started_at || run.created_at,
+    tables_total: Number(run.tables_total || 0) > 0
+      ? run.tables_total
+      : Array.isArray((run as any).tables_included) ? (run as any).tables_included.length : run.tables_total,
+  };
+};
+
 function fmtBytes(n: number | null | undefined) {
   if (!n) return '—';
   const u = ['B', 'KB', 'MB', 'GB'];
@@ -74,8 +88,8 @@ export default function AdminBackups() {
     if (!silent) setLoading(true);
     try {
       const data = await call('list');
-      setRuns(data.runs || []);
-      setLatest(data.latest || null);
+      setRuns((data.runs || []).map(normalizeRun));
+      setLatest(data.latest ? normalizeRun(data.latest) : null);
     } catch (e: any) {
       if (!silent) toast({ title: 'Failed to load backups', description: e.message, variant: 'destructive' });
     } finally {
@@ -122,10 +136,11 @@ export default function AdminBackups() {
 
   // Compute ETA for the active pending run
   const activeRun = runs.find(r => r.status === 'pending') || null;
+  const activeProgress = Math.max(1, Math.min(100, Number(activeRun?.progress_percent || 1)));
   const etaSeconds = (() => {
-    if (!activeRun || !activeRun.started_at || !activeRun.progress_percent) return null;
+    if (!activeRun || !activeRun.started_at) return null;
     const elapsed = (Date.now() - new Date(activeRun.started_at).getTime()) / 1000;
-    const pct = Math.max(1, activeRun.progress_percent);
+    const pct = activeProgress;
     if (pct >= 100) return 0;
     const total = elapsed / (pct / 100);
     return Math.max(0, Math.round(total - elapsed));
@@ -204,7 +219,7 @@ export default function AdminBackups() {
               </div>
               <div className="flex items-center gap-4 text-xs text-muted-foreground">
                 <span>
-                  <span className="font-medium text-foreground">{activeRun.progress_percent ?? 0}%</span>
+                  <span className="font-medium text-foreground">{activeProgress}%</span>
                 </span>
                 <span>
                   Tables: <span className="font-medium text-foreground">{activeRun.tables_done ?? 0}/{activeRun.tables_total ?? 0}</span>
@@ -219,7 +234,7 @@ export default function AdminBackups() {
                 </span>
               </div>
             </div>
-            <Progress value={activeRun.progress_percent ?? 0} className="h-2" />
+            <Progress value={activeProgress} className="h-2" />
             <p className="text-xs text-muted-foreground mt-2 truncate">
               {activeRun.current_step || 'Starting…'}
             </p>
@@ -336,7 +351,7 @@ export default function AdminBackups() {
                       <td className="py-2 px-2">
                         {r.status === 'success' && <Badge variant="secondary" className="bg-green-500/15 text-green-700 dark:text-green-400">Success</Badge>}
                         {r.status === 'failed' && <Badge variant="destructive">Failed</Badge>}
-                        {r.status === 'pending' && <Badge variant="outline">Running…</Badge>}
+                        {r.status === 'pending' && <Badge variant="outline">Running {Math.max(1, Number(r.progress_percent || 1))}%</Badge>}
                         {r.error_message && <div className="text-xs text-destructive mt-1 max-w-xs truncate" title={r.error_message}>{r.error_message}</div>}
                       </td>
                       <td className="py-2 px-2">
