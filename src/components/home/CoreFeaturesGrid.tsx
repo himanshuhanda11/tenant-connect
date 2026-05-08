@@ -14,8 +14,8 @@ import {
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
-import whatsappFriends from '@/assets/whatsapp-friends.jpg';
-import whatsappCouplePink from '@/assets/whatsapp-couple-pink.jpg';
+import whatsappFriends from '@/assets/whatsapp-friends.webp';
+import whatsappCouplePink from '@/assets/whatsapp-couple-pink.webp';
 
 const features = [
   {

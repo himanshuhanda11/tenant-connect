@@ -5,7 +5,7 @@ import {
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Link } from 'react-router-dom';
-import homeDifferentiators from '@/assets/home-differentiators.png';
+import homeDifferentiators from '@/assets/home-differentiators.webp';
 
 const differentiators = [
   {

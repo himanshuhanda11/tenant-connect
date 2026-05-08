@@ -16,7 +16,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import whatsappTechFuture from '@/assets/whatsapp-tech-future.jpg';
+import whatsappTechFuture from '@/assets/whatsapp-tech-future.webp';
 
 const advancedFeatures = {
   all: [
