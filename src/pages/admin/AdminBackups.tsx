@@ -6,7 +6,7 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import {
   Database, Download, RefreshCw, Loader2, CheckCircle2, XCircle, Clock,
-  HardDrive, FileArchive, BookOpen, Calendar, Trash2,
+  HardDrive, FileArchive, BookOpen, Calendar, Cloud, ExternalLink,
 } from 'lucide-react';
 import { formatDistanceToNow, format } from 'date-fns';
 
