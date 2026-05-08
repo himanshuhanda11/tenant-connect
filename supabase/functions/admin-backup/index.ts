@@ -230,6 +230,7 @@ async function uploadFileToStorageStreamed(tmpPath: string, fileSize: number, bu
       method: "POST",
       headers: {
         Authorization: `Bearer ${SERVICE_ROLE}`,
+        apikey: SERVICE_ROLE,
         "Content-Type": "application/zip",
         "Content-Length": String(fileSize),
         "x-upsert": "false",
