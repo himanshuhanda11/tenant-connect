@@ -8998,6 +8998,33 @@ export type Database = {
           },
         ]
       }
+      signup_reminder_log: {
+        Row: {
+          email: string
+          id: string
+          reminder_stage: string
+          reminder_type: string
+          sent_at: string
+          user_id: string
+        }
+        Insert: {
+          email: string
+          id?: string
+          reminder_stage: string
+          reminder_type: string
+          sent_at?: string
+          user_id: string
+        }
+        Update: {
+          email?: string
+          id?: string
+          reminder_stage?: string
+          reminder_type?: string
+          sent_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       sla_settings: {
         Row: {
           after_hours_auto_reply: boolean

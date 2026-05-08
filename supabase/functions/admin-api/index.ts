@@ -1546,6 +1546,21 @@ Deno.serve(async (req: Request) => {
         .select("tenant_id").eq("user_id", userId).eq("role", "owner");
       const ownedIds = (owned || []).map((r: any) => r.tenant_id);
 
+      // Generate contacts archive BEFORE deletion (best-effort, do not block)
+      try {
+        const { data: { user: targetUser } } = await sb.auth.admin.getUserById(userId);
+        const { data: profile } = await sb.from("profiles").select("full_name").eq("id", userId).maybeSingle();
+        await sb.functions.invoke("account-deletion-export", {
+          body: {
+            user_id: userId,
+            account_email: targetUser?.email || null,
+            account_name: (profile as any)?.full_name || null,
+          },
+        });
+      } catch (e: any) {
+        console.error("[admin-api] archive export failed:", e?.message);
+      }
+
       const childTables = [
         "messages","conversations","contacts","campaigns","campaign_jobs","templates",
         "phone_numbers","waba_accounts","workspace_phone_numbers","workspace_entitlements",
@@ -1792,6 +1807,21 @@ Deno.serve(async (req: Request) => {
       const sb = adminClient();
       const deleteType = body.type || 'soft';
       const reason = body.reason || '';
+
+      // GUARD: block deletion if a WhatsApp phone number is still connected.
+      if (!workspaceId.startsWith("signup:")) {
+        const { data: phones } = await sb.from("phone_numbers")
+          .select("id,display_number,phone_number_id")
+          .eq("tenant_id", workspaceId);
+        if ((phones || []).length > 0) {
+          const numbers = (phones || []).map((p: any) => p.display_number || p.phone_number_id).join(", ");
+          return new Response(JSON.stringify({
+            error: `This workspace still has ${phones!.length} WhatsApp number(s) connected: ${numbers}. Please disconnect or delete the phone number(s) first.`,
+            code: "PHONE_CONNECTED",
+            phones,
+          }), { status: 400, headers: { ...corsHeaders, "content-type": "application/json" } });
+        }
+      }
 
       // Orphan signup rows have synthetic IDs like "signup:<profile_uuid>" — they
       // are not tenants. Handle them by clearing the related profile data only.
