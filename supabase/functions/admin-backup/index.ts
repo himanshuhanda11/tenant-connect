@@ -25,8 +25,12 @@ const ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
 const TABLE_EXCLUDE = new Set<string>(["platform_backup_runs"]);
 
 // Per-file cap (skip giant single objects); total storage cap keeps ZIP sane.
-const MAX_FILE_BYTES = 25 * 1024 * 1024; // 25 MB
-const MAX_TOTAL_BYTES = 500 * 1024 * 1024; // 500 MB
+// Edge functions have a hard ~256MB memory ceiling. Keep totals well below that
+// so the in-memory ZIP build never OOMs. Larger files are listed in the
+// inventory but their bytes are skipped (operator can re-upload from the live
+// bucket during restore).
+const MAX_FILE_BYTES = 5 * 1024 * 1024; // 5 MB per file
+const MAX_TOTAL_BYTES = 80 * 1024 * 1024; // 80 MB total bytes
 
 async function listPublicTables(sb: any): Promise<string[]> {
   const { data, error } = await sb.rpc("backup_list_public_tables");
@@ -235,19 +239,27 @@ async function runBackup(req: Request, trigger: "manual" | "scheduled", actorId:
     let okTables = 0;
     const tableErrors: Record<string, string> = {};
 
-    // Per-table CSV + JSON (auto-discovered)
+    // Per-table JSON (auto-discovered). JSON is the canonical restore format
+    // (CSV produced on demand from JSON during restore). Skipping CSV here
+    // halves memory pressure and keeps the in-memory ZIP within the edge
+    // function memory budget.
     for (const t of tables) {
       try {
         const rows = await fetchAllRows(sb, t);
-        filesObj[`tables/csv/${t}.csv`] = strToU8(toCSV(rows));
-        filesObj[`tables/json/${t}.json`] = strToU8(JSON.stringify(rows, null, 2));
+        filesObj[`tables/json/${t}.json`] = strToU8(JSON.stringify(rows));
         okTables++;
       } catch (e: any) {
         tableErrors[t] = String(e?.message || e);
       }
     }
 
-    // ===== Storage: inventory + actual file bytes =====
+    // ===== Storage: inventory only (file bytes opt-in via ?include_storage=1) =====
+    // Storage byte downloads are skipped by default to keep the in-memory ZIP
+    // within the edge function memory budget. The full inventory (bucket, path,
+    // size, updated_at) is always included so an operator can re-download the
+    // live bytes during restore from the source bucket.
+    const url = new URL(req.url);
+    const includeStorageBytes = url.searchParams.get("include_storage") === "1";
     const { data: buckets } = await sb.storage.listBuckets();
     const storageInventory: any[] = [];
     const storageDownloaded: any[] = [];
@@ -259,6 +271,7 @@ async function runBackup(req: Request, trigger: "manual" | "scheduled", actorId:
       const objects = await walkBucket(sb, b.id);
       for (const obj of objects) {
         storageInventory.push({ bucket: b.id, ...obj });
+        if (!includeStorageBytes) continue;
         if (obj.size > MAX_FILE_BYTES) {
           storageSkipped.push({ bucket: b.id, name: obj.name, size: obj.size, reason: "exceeds_per_file_cap" });
           continue;
@@ -282,9 +295,10 @@ async function runBackup(req: Request, trigger: "manual" | "scheduled", actorId:
         }
       }
     }
-    filesObj["storage/file_list.json"] = strToU8(JSON.stringify(storageInventory, null, 2));
-    filesObj["storage/_downloaded.json"] = strToU8(JSON.stringify(storageDownloaded, null, 2));
-    filesObj["storage/_skipped.json"] = strToU8(JSON.stringify(storageSkipped, null, 2));
+    filesObj["storage/file_list.json"] = strToU8(JSON.stringify(storageInventory));
+    filesObj["storage/_downloaded.json"] = strToU8(JSON.stringify(storageDownloaded));
+    filesObj["storage/_skipped.json"] = strToU8(JSON.stringify(storageSkipped));
+    filesObj["storage/_mode.txt"] = strToU8(includeStorageBytes ? "bytes_included" : "inventory_only");
 
     // Environment snapshot
     // - .env: public/non-secret values only (safe to ship in backup)
