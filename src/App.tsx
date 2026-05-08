@@ -190,8 +190,9 @@ const App = () => (
         </Suspense>
         <BrowserRouter>
           <AuthProvider>
-            <TenantProvider>
-              <ThemeProvider>
+            <PreviewWorkspaceProvider>
+              <TenantProvider>
+                <ThemeProvider>
                 <ScrollToTop />
                 <RoutePrefetcher />
                 <Suspense fallback={<RouteLoader />}>
