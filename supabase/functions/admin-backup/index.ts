@@ -56,16 +56,9 @@ async function listPublicTables(sb: any): Promise<string[]> {
 }
 
 function planEdgeSafeTables(tables: string[]) {
-  const skipped: Array<{ table_name: string; reason: string }> = [];
-  const exportTables = tables.filter((table) => {
-    const unsafe = EDGE_UNSAFE_TABLE_EXACT.has(table) || EDGE_UNSAFE_TABLE_SUFFIXES.some((suffix) => table.endsWith(suffix));
-    if (unsafe) {
-      skipped.push({ table_name: table, reason: "Skipped in Edge backup because this table can exceed worker CPU/time limits; full DB backup must use pg_dump/PITR." });
-      return false;
-    }
-    return true;
-  });
-  return { exportTables, skipped };
+  // Back up EVERY public table. Heavy tables are still included but with a
+  // smaller per-table row cap so the worker doesn't OOM.
+  return { exportTables: tables, skipped: [] as Array<{ table_name: string; reason: string }> };
 }
 
 function admin() {
