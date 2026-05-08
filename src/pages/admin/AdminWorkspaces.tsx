@@ -340,6 +340,7 @@ export default function AdminWorkspaces() {
                       />
                     </TableHead>
                   )}
+                  <TableHead className="w-8"></TableHead>
                   <TableHead>Workspace</TableHead>
                   <TableHead>Owner & Company</TableHead>
                   <TableHead>Country</TableHead>
