@@ -840,12 +840,24 @@ Deno.serve(async (req: Request) => {
       const [workspace, entitlements, members, phones, wsPhone, waba, ownerMember] = await Promise.all([
         sb.from("tenants").select("*").eq("id", workspaceId).single(),
         sb.from("workspace_entitlements").select("*").eq("workspace_id", workspaceId).maybeSingle(),
-        sb.from("tenant_members").select("*, profiles(email, full_name, company_name, website_url, country, phone_number, industry, team_size, timezone, created_at)").eq("tenant_id", workspaceId),
+        sb.from("tenant_members").select("*").eq("tenant_id", workspaceId),
         sb.from("phone_numbers").select("id,display_number,verified_name,phone_number_id,waba_account_id,quality_rating,status,messaging_limit,webhook_health,last_webhook_at,is_default,created_at,updated_at").eq("tenant_id", workspaceId).order("created_at", { ascending: false }),
         sb.from("workspace_phone_numbers").select("*").eq("workspace_id", workspaceId).maybeSingle(),
         sb.from("waba_accounts").select("id,waba_id,business_id,name,status,token_source,created_at,updated_at").eq("tenant_id", workspaceId).order("created_at", { ascending: false }).maybeSingle(),
         sb.from("tenant_members").select("user_id, created_at").eq("tenant_id", workspaceId).eq("role", "owner").order("created_at", { ascending: true }).maybeSingle(),
       ]);
+
+      // Manually attach profiles (no FK between tenant_members.user_id and profiles)
+      {
+        const userIds = (members.data || []).map((m: any) => m.user_id).filter(Boolean);
+        if (userIds.length > 0) {
+          const { data: profs } = await sb.from("profiles")
+            .select("id, email, full_name, company_name, website_url, country, phone_number, industry, team_size, timezone, created_at")
+            .in("id", userIds);
+          const byId = new Map((profs || []).map((p: any) => [p.id, p]));
+          members.data = (members.data || []).map((m: any) => ({ ...m, profiles: byId.get(m.user_id) || null }));
+        }
+      }
 
       // Owner profile
       let ownerProfile: any = null;
