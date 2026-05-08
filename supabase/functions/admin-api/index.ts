@@ -1445,7 +1445,8 @@ Deno.serve(async (req: Request) => {
           email_confirmed_at: user.email_confirmed_at, banned_until: (user as any).banned_until || null,
           provider: user.app_metadata?.provider || "email",
         },
-        profile, workspaces, phones, team_members: teamMembers,
+        profile, workspaces, phones, wabas, team_members: teamMembers,
+        campaigns_count: campaignsCount,
         activity: activity || [], onboarding_events: events || [], notes: enrichedNotes,
       }), { headers: { ...corsHeaders, "content-type": "application/json" } });
     }
