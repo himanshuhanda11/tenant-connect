@@ -520,6 +520,16 @@ export default function AdminWorkspaces() {
                               <DropdownMenuItem onClick={() => setSignupActions({ userId: String(w.workspace_id).slice('signup:'.length), email: w.owner_email || '', name: w.workspace_name, action: 'phone' })}>
                                 <Phone className="h-3.5 w-3.5 mr-2" /> Change phone
                               </DropdownMenuItem>
+                              <DropdownMenuItem onClick={async () => {
+                                try {
+                                  await post(`users/${String(w.workspace_id).slice('signup:'.length)}/send-reminder`, { type: 'signup' });
+                                  toast({ title: 'Reminder sent', description: `Complete-signup email sent to ${w.owner_email}` });
+                                } catch (e: any) {
+                                  toast({ title: 'Failed', description: e.message, variant: 'destructive' });
+                                }
+                              }}>
+                                <Mail className="h-3.5 w-3.5 mr-2" /> Send signup reminder
+                              </DropdownMenuItem>
                               {isSuperAdmin && (
                                 <>
                                   <DropdownMenuSeparator />
