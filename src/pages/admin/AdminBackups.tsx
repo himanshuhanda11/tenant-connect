@@ -192,6 +192,41 @@ export default function AdminBackups() {
         </div>
       </div>
 
+      {/* Live progress (visible while a backup is running) */}
+      {activeRun && (
+        <Card className="border-primary/40 bg-primary/5">
+          <CardContent className="pt-5">
+            <div className="flex items-center justify-between gap-4 flex-wrap mb-3">
+              <div className="flex items-center gap-2">
+                <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                <span className="font-semibold text-sm">Backup in progress</span>
+                <Badge variant="outline" className="text-xs">{activeRun.trigger}</Badge>
+              </div>
+              <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                <span>
+                  <span className="font-medium text-foreground">{activeRun.progress_percent ?? 0}%</span>
+                </span>
+                <span>
+                  Tables: <span className="font-medium text-foreground">{activeRun.tables_done ?? 0}/{activeRun.tables_total ?? 0}</span>
+                </span>
+                <span>
+                  ETA: <span className="font-medium text-foreground">{fmtEta(etaSeconds)}</span>
+                </span>
+                <span>
+                  Elapsed: <span className="font-medium text-foreground">
+                    {activeRun.started_at ? `${Math.round((Date.now() - new Date(activeRun.started_at).getTime()) / 1000)}s` : '—'}
+                  </span>
+                </span>
+              </div>
+            </div>
+            <Progress value={activeRun.progress_percent ?? 0} className="h-2" />
+            <p className="text-xs text-muted-foreground mt-2 truncate">
+              {activeRun.current_step || 'Starting…'}
+            </p>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Health cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         <Card>
