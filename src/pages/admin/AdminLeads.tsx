@@ -10,6 +10,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sh
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { toast } from '@/hooks/use-toast';
 import { Loader2, Search, Download, RefreshCw, Mail, Phone, Globe, Building2, Calendar, MessageSquare } from 'lucide-react';
+import { TableSkeleton } from '@/components/admin/AdminSkeletons';
 import { format } from 'date-fns';
 
 interface Lead {
