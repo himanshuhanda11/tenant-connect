@@ -346,7 +346,7 @@ async function runBackup(reqUrl: string, trigger: "manual" | "scheduled", actorI
     await writeProgress({ tables_done: tables.length, progress_percent: 80, current_step: "Indexing storage files…" }, true);
 
     // ===== Storage: inventory only (file bytes opt-in via ?include_storage=1) =====
-    const url = new URL(req.url);
+    const url = new URL(reqUrl);
     const includeStorageBytes = url.searchParams.get("include_storage") === "1";
     const { data: buckets } = await sb.storage.listBuckets();
     const storageInventory: any[] = [];
