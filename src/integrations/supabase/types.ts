@@ -6873,6 +6873,11 @@ export type Database = {
           completed_at: string | null
           created_at: string
           downloaded_by: Json | null
+          drive_error: string | null
+          drive_file_id: string | null
+          drive_folder_id: string | null
+          drive_status: string | null
+          drive_web_link: string | null
           duration_ms: number | null
           error_message: string | null
           file_size_bytes: number | null
@@ -6888,6 +6893,11 @@ export type Database = {
           completed_at?: string | null
           created_at?: string
           downloaded_by?: Json | null
+          drive_error?: string | null
+          drive_file_id?: string | null
+          drive_folder_id?: string | null
+          drive_status?: string | null
+          drive_web_link?: string | null
           duration_ms?: number | null
           error_message?: string | null
           file_size_bytes?: number | null
@@ -6903,6 +6913,11 @@ export type Database = {
           completed_at?: string | null
           created_at?: string
           downloaded_by?: Json | null
+          drive_error?: string | null
+          drive_file_id?: string | null
+          drive_folder_id?: string | null
+          drive_status?: string | null
+          drive_web_link?: string | null
           duration_ms?: number | null
           error_message?: string | null
           file_size_bytes?: number | null
@@ -7053,6 +7068,27 @@ export type Database = {
           status?: string
           title?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      platform_internal_settings: {
+        Row: {
+          created_at: string
+          key: string
+          updated_at: string
+          value: string
+        }
+        Insert: {
+          created_at?: string
+          key: string
+          updated_at?: string
+          value: string
+        }
+        Update: {
+          created_at?: string
+          key?: string
+          updated_at?: string
+          value?: string
         }
         Relationships: []
       }

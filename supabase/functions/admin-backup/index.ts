@@ -44,7 +44,20 @@ function admin() {
 }
 
 async function requireSuperAdminOrCron(req: Request): Promise<{ userId: string | null; cron: boolean }> {
-  // Cron / service path: apikey header equals service role key
+  // Cron path: x-cron: 1 + matching token from platform_internal_settings
+  if (req.headers.get("x-cron") === "1") {
+    const token = req.headers.get("x-cron-token") || "";
+    const sb = admin();
+    const { data } = await sb
+      .from("platform_internal_settings")
+      .select("value")
+      .eq("key", "backup_cron_token")
+      .maybeSingle();
+    if (token && data?.value && token === data.value) {
+      return { userId: null, cron: true };
+    }
+  }
+  // Service-role direct call (kept for emergencies)
   const apiKey = req.headers.get("apikey") || "";
   if (apiKey === SERVICE_ROLE && req.headers.get("x-cron") === "1") {
     return { userId: null, cron: true };
@@ -104,6 +117,77 @@ async function fetchAllRows(sb: any, table: string, pageSize = 1000): Promise<an
     from += pageSize;
   }
   return all;
+}
+
+// ===== Google Drive integration via Lovable connector gateway =====
+const DRIVE_GATEWAY = "https://connector-gateway.lovable.dev/google_drive/drive/v3";
+const DRIVE_UPLOAD = "https://connector-gateway.lovable.dev/google_drive/upload/drive/v3";
+const DRIVE_FOLDER_NAME = "Aireatro Daily Backups";
+
+function driveHeaders() {
+  const lov = Deno.env.get("LOVABLE_API_KEY");
+  const drv = Deno.env.get("GOOGLE_DRIVE_API_KEY");
+  if (!lov) throw new Error("LOVABLE_API_KEY missing");
+  if (!drv) throw new Error("GOOGLE_DRIVE_API_KEY missing (Google Drive not connected)");
+  return { Authorization: `Bearer ${lov}`, "X-Connection-Api-Key": drv };
+}
+
+async function getOrCreateDriveFolder(): Promise<string> {
+  const q = encodeURIComponent(
+    `name='${DRIVE_FOLDER_NAME}' and mimeType='application/vnd.google-apps.folder' and trashed=false`,
+  );
+  const r = await fetch(`${DRIVE_GATEWAY}/files?q=${q}&fields=files(id,name)&pageSize=10`, {
+    headers: driveHeaders(),
+  });
+  if (!r.ok) throw new Error(`Drive search failed [${r.status}]: ${await r.text()}`);
+  const j = await r.json();
+  if (j.files?.length) return j.files[0].id;
+
+  const create = await fetch(`${DRIVE_GATEWAY}/files?fields=id`, {
+    method: "POST",
+    headers: { ...driveHeaders(), "Content-Type": "application/json" },
+    body: JSON.stringify({ name: DRIVE_FOLDER_NAME, mimeType: "application/vnd.google-apps.folder" }),
+  });
+  if (!create.ok) throw new Error(`Drive folder create failed [${create.status}]: ${await create.text()}`);
+  return (await create.json()).id;
+}
+
+async function uploadToDrive(zipped: Uint8Array, fileName: string) {
+  const folderId = await getOrCreateDriveFolder();
+  const boundary = "lovable_backup_" + crypto.randomUUID();
+  const meta = JSON.stringify({ name: fileName, parents: [folderId] });
+  const enc = new TextEncoder();
+  const head = enc.encode(
+    `--${boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${meta}\r\n` +
+      `--${boundary}\r\nContent-Type: application/zip\r\n\r\n`,
+  );
+  const tail = enc.encode(`\r\n--${boundary}--`);
+  const body = new Uint8Array(head.length + zipped.length + tail.length);
+  body.set(head, 0);
+  body.set(zipped, head.length);
+  body.set(tail, head.length + zipped.length);
+
+  const r = await fetch(`${DRIVE_UPLOAD}/files?uploadType=multipart&fields=id,webViewLink,size`, {
+    method: "POST",
+    headers: { ...driveHeaders(), "Content-Type": `multipart/related; boundary=${boundary}` },
+    body,
+  });
+  if (!r.ok) throw new Error(`Drive upload failed [${r.status}]: ${await r.text()}`);
+  const j = await r.json();
+  return { ok: true as const, fileId: j.id, folderId, webLink: j.webViewLink };
+}
+
+async function cleanupDriveOldBackups(folderId: string, keep = 7) {
+  const q = encodeURIComponent(`'${folderId}' in parents and trashed=false`);
+  const r = await fetch(
+    `${DRIVE_GATEWAY}/files?q=${q}&orderBy=createdTime desc&fields=files(id,name,createdTime)&pageSize=100`,
+    { headers: driveHeaders() },
+  );
+  if (!r.ok) return;
+  const { files = [] } = await r.json();
+  for (const f of files.slice(keep)) {
+    await fetch(`${DRIVE_GATEWAY}/files/${f.id}`, { method: "DELETE", headers: driveHeaders() }).catch(() => {});
+  }
 }
 
 // Recursively walk a bucket and return every object path.
@@ -276,7 +360,8 @@ async function runBackup(req: Request, trigger: "manual" | "scheduled", actorId:
     // Build ZIP
     const zipped = zipSync(filesObj, { level: 6 });
     const ts = new Date().toISOString().replace(/[:.]/g, "-");
-    const path = `${ts}/aireatro-backup-${ts}.zip`;
+    const fileName = `aireatro-backup-${ts}.zip`;
+    const path = `${ts}/${fileName}`;
 
     const { error: upErr } = await sb.storage
       .from("database-backups")
@@ -296,10 +381,39 @@ async function runBackup(req: Request, trigger: "manual" | "scheduled", actorId:
       })
       .eq("id", runId);
 
-    // Retention: keep last 30
-    await sb.rpc("cleanup_old_backups").catch(() => {});
+    // Upload to Google Drive (best-effort: errors are recorded but don't fail the run)
+    const driveResult = await uploadToDrive(zipped, fileName).catch((e: any) => ({
+      ok: false,
+      error: String(e?.message || e),
+    }));
+    await sb
+      .from("platform_backup_runs")
+      .update({
+        drive_status: driveResult.ok ? "uploaded" : "failed",
+        drive_file_id: (driveResult as any).fileId || null,
+        drive_folder_id: (driveResult as any).folderId || null,
+        drive_web_link: (driveResult as any).webLink || null,
+        drive_error: (driveResult as any).error || null,
+      })
+      .eq("id", runId);
 
-    return { ok: true, run_id: runId, path, size: zipped.byteLength, table_count: okTables, duration_ms: ms };
+    // Retention: keep last 7 (Supabase + Google Drive)
+    await sb.rpc("cleanup_old_backups").catch(() => {});
+    if (driveResult.ok) {
+      await cleanupDriveOldBackups((driveResult as any).folderId).catch((e: any) =>
+        console.warn("[backup] drive cleanup failed:", e?.message),
+      );
+    }
+
+    return {
+      ok: true,
+      run_id: runId,
+      path,
+      size: zipped.byteLength,
+      table_count: okTables,
+      duration_ms: ms,
+      drive: driveResult,
+    };
   } catch (e: any) {
     await sb
       .from("platform_backup_runs")
