@@ -1,7 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import {
@@ -40,6 +41,11 @@ interface BackupRun {
   duration_ms: number | null;
   created_at: string;
   completed_at: string | null;
+  started_at: string | null;
+  progress_percent: number | null;
+  current_step: string | null;
+  tables_done: number | null;
+  tables_total: number | null;
   downloaded_by: any[];
   drive_status: 'uploaded' | 'failed' | null;
   drive_file_id: string | null;
@@ -64,20 +70,38 @@ export default function AdminBackups() {
   const [running, setRunning] = useState(false);
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
 
-  const refresh = async () => {
-    setLoading(true);
+  const refresh = async (silent = false) => {
+    if (!silent) setLoading(true);
     try {
       const data = await call('list');
       setRuns(data.runs || []);
       setLatest(data.latest || null);
     } catch (e: any) {
-      toast({ title: 'Failed to load backups', description: e.message, variant: 'destructive' });
+      if (!silent) toast({ title: 'Failed to load backups', description: e.message, variant: 'destructive' });
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   };
 
   useEffect(() => { refresh(); }, []);
+
+  // Live polling while any run is pending — every 2 seconds
+  const pollRef = useRef<number | null>(null);
+  useEffect(() => {
+    const hasPending = runs.some(r => r.status === 'pending') || running;
+    if (hasPending && pollRef.current == null) {
+      pollRef.current = window.setInterval(() => refresh(true), 2000);
+    } else if (!hasPending && pollRef.current != null) {
+      window.clearInterval(pollRef.current);
+      pollRef.current = null;
+    }
+    return () => {
+      if (pollRef.current != null) {
+        window.clearInterval(pollRef.current);
+        pollRef.current = null;
+      }
+    };
+  }, [runs, running]);
 
   const runBackup = async () => {
     setRunning(true);
@@ -85,18 +109,32 @@ export default function AdminBackups() {
       await call('run', { method: 'POST', body: '{}' });
       toast({
         title: 'Backup started',
-        description: 'Running in the background. The list will refresh automatically — typically completes in 1–3 minutes.',
+        description: 'Tracking progress live below.',
       });
-      // Poll the list a few times so the user sees the row flip from pending → success
       await refresh();
-      const poll = (delay: number) => setTimeout(refresh, delay);
-      poll(15000); poll(45000); poll(90000); poll(180000);
     } catch (e: any) {
       toast({ title: 'Backup failed to start', description: e.message, variant: 'destructive' });
       await refresh();
     } finally {
       setRunning(false);
     }
+  };
+
+  // Compute ETA for the active pending run
+  const activeRun = runs.find(r => r.status === 'pending') || null;
+  const etaSeconds = (() => {
+    if (!activeRun || !activeRun.started_at || !activeRun.progress_percent) return null;
+    const elapsed = (Date.now() - new Date(activeRun.started_at).getTime()) / 1000;
+    const pct = Math.max(1, activeRun.progress_percent);
+    if (pct >= 100) return 0;
+    const total = elapsed / (pct / 100);
+    return Math.max(0, Math.round(total - elapsed));
+  })();
+  const fmtEta = (s: number | null) => {
+    if (s == null) return '—';
+    if (s < 60) return `${s}s`;
+    const m = Math.floor(s / 60); const r = s % 60;
+    return `${m}m ${r}s`;
   };
 
   const downloadBackup = async (id: string) => {
@@ -128,7 +166,7 @@ export default function AdminBackups() {
           </p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" size="sm" onClick={refresh} disabled={loading}>
+          <Button variant="outline" size="sm" onClick={() => refresh()} disabled={loading}>
             <RefreshCw className={`h-4 w-4 mr-1.5 ${loading ? 'animate-spin' : ''}`} />
             Refresh
           </Button>
@@ -153,6 +191,41 @@ export default function AdminBackups() {
           </Button>
         </div>
       </div>
+
+      {/* Live progress (visible while a backup is running) */}
+      {activeRun && (
+        <Card className="border-primary/40 bg-primary/5">
+          <CardContent className="pt-5">
+            <div className="flex items-center justify-between gap-4 flex-wrap mb-3">
+              <div className="flex items-center gap-2">
+                <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                <span className="font-semibold text-sm">Backup in progress</span>
+                <Badge variant="outline" className="text-xs">{activeRun.trigger}</Badge>
+              </div>
+              <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                <span>
+                  <span className="font-medium text-foreground">{activeRun.progress_percent ?? 0}%</span>
+                </span>
+                <span>
+                  Tables: <span className="font-medium text-foreground">{activeRun.tables_done ?? 0}/{activeRun.tables_total ?? 0}</span>
+                </span>
+                <span>
+                  ETA: <span className="font-medium text-foreground">{fmtEta(etaSeconds)}</span>
+                </span>
+                <span>
+                  Elapsed: <span className="font-medium text-foreground">
+                    {activeRun.started_at ? `${Math.round((Date.now() - new Date(activeRun.started_at).getTime()) / 1000)}s` : '—'}
+                  </span>
+                </span>
+              </div>
+            </div>
+            <Progress value={activeRun.progress_percent ?? 0} className="h-2" />
+            <p className="text-xs text-muted-foreground mt-2 truncate">
+              {activeRun.current_step || 'Starting…'}
+            </p>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Health cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">

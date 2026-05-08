@@ -6872,6 +6872,7 @@ export type Database = {
         Row: {
           completed_at: string | null
           created_at: string
+          current_step: string | null
           downloaded_by: Json | null
           drive_error: string | null
           drive_file_id: string | null
@@ -6882,16 +6883,21 @@ export type Database = {
           error_message: string | null
           file_size_bytes: number | null
           id: string
+          progress_percent: number
+          started_at: string | null
           status: string
           storage_path: string | null
           table_count: number | null
+          tables_done: number
           tables_included: Json | null
+          tables_total: number
           trigger: string
           triggered_by: string | null
         }
         Insert: {
           completed_at?: string | null
           created_at?: string
+          current_step?: string | null
           downloaded_by?: Json | null
           drive_error?: string | null
           drive_file_id?: string | null
@@ -6902,16 +6908,21 @@ export type Database = {
           error_message?: string | null
           file_size_bytes?: number | null
           id?: string
+          progress_percent?: number
+          started_at?: string | null
           status?: string
           storage_path?: string | null
           table_count?: number | null
+          tables_done?: number
           tables_included?: Json | null
+          tables_total?: number
           trigger?: string
           triggered_by?: string | null
         }
         Update: {
           completed_at?: string | null
           created_at?: string
+          current_step?: string | null
           downloaded_by?: Json | null
           drive_error?: string | null
           drive_file_id?: string | null
@@ -6922,10 +6933,14 @@ export type Database = {
           error_message?: string | null
           file_size_bytes?: number | null
           id?: string
+          progress_percent?: number
+          started_at?: string | null
           status?: string
           storage_path?: string | null
           table_count?: number | null
+          tables_done?: number
           tables_included?: Json | null
+          tables_total?: number
           trigger?: string
           triggered_by?: string | null
         }

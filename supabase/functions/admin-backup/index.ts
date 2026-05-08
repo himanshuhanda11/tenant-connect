@@ -263,15 +263,36 @@ async function runBackup(req: Request, trigger: "manual" | "scheduled", actorId:
   let runId: string;
   if (existingRunId) {
     runId = existingRunId;
-    await sb.from("platform_backup_runs").update({ tables_included: tables }).eq("id", runId);
+    await sb.from("platform_backup_runs").update({
+      tables_included: tables,
+      tables_total: tables.length,
+      tables_done: 0,
+      progress_percent: 2,
+      current_step: `Preparing ${tables.length} tables…`,
+      started_at: new Date().toISOString(),
+    }).eq("id", runId);
   } else {
     const { data: run } = await sb
       .from("platform_backup_runs")
-      .insert({ status: "pending", trigger, triggered_by: actorId, tables_included: tables })
+      .insert({
+        status: "pending", trigger, triggered_by: actorId, tables_included: tables,
+        tables_total: tables.length, progress_percent: 2,
+        current_step: `Preparing ${tables.length} tables…`,
+        started_at: new Date().toISOString(),
+      })
       .select()
       .single();
     runId = run!.id as string;
   }
+
+  // Throttled progress writer (avoid hammering DB)
+  let lastProgressWrite = 0;
+  const writeProgress = async (patch: Record<string, unknown>, force = false) => {
+    const now = Date.now();
+    if (!force && now - lastProgressWrite < 1500) return;
+    lastProgressWrite = now;
+    await sb.from("platform_backup_runs").update(patch).eq("id", runId).then(() => {}, () => {});
+  };
 
   // ====== Streaming ZIP to a temp file (memory stays flat) ======
   const tmpPath = await Deno.makeTempFile({ prefix: "aireatro-backup-", suffix: ".zip" });
@@ -299,9 +320,15 @@ async function runBackup(req: Request, trigger: "manual" | "scheduled", actorId:
   const tableCounts: Record<string, number> = {};
 
   try {
-    // Per-table JSONL (newline-delimited JSON) — written page-by-page so we
-    // never hold a full table in RAM. Restore: parse each line as a row.
+    // Tables phase = 0% → 80% of overall progress
+    let idx = 0;
     for (const t of tables) {
+      idx++;
+      await writeProgress({
+        current_step: `Exporting table ${idx}/${tables.length}: ${t}`,
+        tables_done: idx - 1,
+        progress_percent: Math.min(80, Math.round((idx - 1) / Math.max(1, tables.length) * 80) + 2),
+      });
       const entry = new ZipDeflate(`tables/json/${t}.jsonl`, { level: 1 });
       zip.add(entry);
       const { total, error } = await streamTableRows(sb, t, (rows) => {
@@ -312,11 +339,11 @@ async function runBackup(req: Request, trigger: "manual" | "scheduled", actorId:
       tableCounts[t] = total;
       if (error) tableErrors[t] = error;
       else okTables++;
-      // Drain any buffered writes before moving to next table to keep memory flat.
       if (pendingWrites.length) {
         await Promise.all(pendingWrites.splice(0));
       }
     }
+    await writeProgress({ tables_done: tables.length, progress_percent: 80, current_step: "Indexing storage files…" }, true);
 
     // ===== Storage: inventory only (file bytes opt-in via ?include_storage=1) =====
     const url = new URL(req.url);
@@ -439,6 +466,7 @@ async function runBackup(req: Request, trigger: "manual" | "scheduled", actorId:
     );
 
     // Finalize ZIP
+    await writeProgress({ progress_percent: 88, current_step: "Finalizing ZIP archive…" }, true);
     zip.end();
     await Promise.all(pendingWrites);
     await writer.close();
@@ -451,6 +479,7 @@ async function runBackup(req: Request, trigger: "manual" | "scheduled", actorId:
     const fileName = `aireatro-backup-${ts}.zip`;
     const path = `${ts}/${fileName}`;
 
+    await writeProgress({ progress_percent: 92, current_step: "Uploading backup to cloud storage…" }, true);
     await uploadFileToStorageStreamed(tmpPath, fileSize, path);
 
     const ms = Date.now() - startedAt;
@@ -463,6 +492,8 @@ async function runBackup(req: Request, trigger: "manual" | "scheduled", actorId:
         table_count: okTables,
         duration_ms: ms,
         completed_at: new Date().toISOString(),
+        progress_percent: 96,
+        current_step: "Uploading to Google Drive…",
         error_message: Object.keys(tableErrors).length
           ? `partial: ${Object.keys(tableErrors).length} table(s) failed`
           : null,
@@ -482,6 +513,8 @@ async function runBackup(req: Request, trigger: "manual" | "scheduled", actorId:
         drive_folder_id: (driveResult as any).folderId || null,
         drive_web_link: (driveResult as any).webLink || null,
         drive_error: (driveResult as any).error || null,
+        progress_percent: 100,
+        current_step: driveResult.ok ? "Completed" : "Completed (Drive upload failed)",
       })
       .eq("id", runId);
 
