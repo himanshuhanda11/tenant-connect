@@ -320,9 +320,15 @@ async function runBackup(req: Request, trigger: "manual" | "scheduled", actorId:
   const tableCounts: Record<string, number> = {};
 
   try {
-    // Per-table JSONL (newline-delimited JSON) — written page-by-page so we
-    // never hold a full table in RAM. Restore: parse each line as a row.
+    // Tables phase = 0% → 80% of overall progress
+    let idx = 0;
     for (const t of tables) {
+      idx++;
+      await writeProgress({
+        current_step: `Exporting table ${idx}/${tables.length}: ${t}`,
+        tables_done: idx - 1,
+        progress_percent: Math.min(80, Math.round((idx - 1) / Math.max(1, tables.length) * 80) + 2),
+      });
       const entry = new ZipDeflate(`tables/json/${t}.jsonl`, { level: 1 });
       zip.add(entry);
       const { total, error } = await streamTableRows(sb, t, (rows) => {
@@ -333,11 +339,11 @@ async function runBackup(req: Request, trigger: "manual" | "scheduled", actorId:
       tableCounts[t] = total;
       if (error) tableErrors[t] = error;
       else okTables++;
-      // Drain any buffered writes before moving to next table to keep memory flat.
       if (pendingWrites.length) {
         await Promise.all(pendingWrites.splice(0));
       }
     }
+    await writeProgress({ tables_done: tables.length, progress_percent: 80, current_step: "Indexing storage files…" }, true);
 
     // ===== Storage: inventory only (file bytes opt-in via ?include_storage=1) =====
     const url = new URL(req.url);
