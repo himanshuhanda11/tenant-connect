@@ -255,18 +255,23 @@ async function walkBucket(sb: any, bucket: string, prefix = ""): Promise<Array<{
   return out;
 }
 
-async function runBackup(req: Request, trigger: "manual" | "scheduled", actorId: string | null) {
+async function runBackup(req: Request, trigger: "manual" | "scheduled", actorId: string | null, existingRunId?: string) {
   const sb = admin();
   const startedAt = Date.now();
   const tables = await listPublicTables(sb);
 
-  // Insert run row first (pending)
-  const { data: run } = await sb
-    .from("platform_backup_runs")
-    .insert({ status: "pending", trigger, triggered_by: actorId, tables_included: tables })
-    .select()
-    .single();
-  const runId = run!.id as string;
+  let runId: string;
+  if (existingRunId) {
+    runId = existingRunId;
+    await sb.from("platform_backup_runs").update({ tables_included: tables }).eq("id", runId);
+  } else {
+    const { data: run } = await sb
+      .from("platform_backup_runs")
+      .insert({ status: "pending", trigger, triggered_by: actorId, tables_included: tables })
+      .select()
+      .single();
+    runId = run!.id as string;
+  }
 
   // ====== Streaming ZIP to a temp file (memory stays flat) ======
   const tmpPath = await Deno.makeTempFile({ prefix: "aireatro-backup-", suffix: ".zip" });
