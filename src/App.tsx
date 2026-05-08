@@ -162,6 +162,7 @@ const AdminBilling = lazyWithRetry(() => import("./pages/admin/AdminBilling"));
 const AdminPhoneNumbers = lazyWithRetry(() => import("./pages/admin/AdminPhoneNumbers"));
 const AdminSettings = lazyWithRetry(() => import("./pages/admin/AdminSettings"));
 const AdminIncidents = lazyWithRetry(() => import("./pages/admin/AdminIncidents"));
+const AdminBackups = lazyWithRetry(() => import("./pages/admin/AdminBackups"));
 const QualifiedLeads = lazyWithRetry(() => import("./pages/QualifiedLeads"));
 const TeamOverview = lazyWithRetry(() => import("./pages/team/TeamOverview"));
 const TeamMembers = lazyWithRetry(() => import("./pages/team/TeamMembers"));
@@ -368,6 +369,7 @@ const App = () => (
                       <Route path="settings" element={<AdminSettings />} />
                       <Route path="incidents" element={<AdminIncidents />} />
                       <Route path="leads" element={<AdminLeads />} />
+                      <Route path="backups" element={<AdminBackups />} />
                     </Route>
                     <Route path="*" element={<NotFound />} />
                   </Routes>
