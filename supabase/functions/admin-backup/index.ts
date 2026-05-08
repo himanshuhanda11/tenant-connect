@@ -628,7 +628,8 @@ Deno.serve(async (req: Request) => {
       // Pre-create a pending run row, fully initialized so the UI shows progress
       // immediately even before the background worker writes its first update.
       const { data: tables } = await sb.rpc("backup_list_public_tables");
-      const tableList = (tables || []).map((r: any) => r.table_name).filter((t: string) => !TABLE_EXCLUDE.has(t));
+      const allTableList = (tables || []).map((r: any) => r.table_name).filter((t: string) => !TABLE_EXCLUDE.has(t));
+      const { exportTables: tableList } = planEdgeSafeTables(allTableList);
 
       const { data: activeRun } = await sb
         .from("platform_backup_runs")
@@ -660,7 +661,7 @@ Deno.serve(async (req: Request) => {
           tables_total: tableList.length,
           tables_done: 0,
           progress_percent: 1,
-          current_step: "Queued — starting backup worker…",
+          current_step: `Queued — starting edge-safe snapshot (${tableList.length}/${allTableList.length} tables)…`,
           started_at: new Date().toISOString(),
         })
         .select()
