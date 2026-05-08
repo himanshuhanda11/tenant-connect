@@ -74,11 +74,11 @@ export default function AdminWorkspaces() {
   const { get, post } = useAdminApi();
   const navigate = useNavigate();
   const isMobile = useIsMobile();
-  const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
   const [total, setTotal] = useState(0);
   const [counts, setCounts] = useState<Record<string, number>>({});
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [suspendDialog, setSuspendDialog] = useState<{ id: string; name: string; suspend: boolean } | null>(null);
   const [suspendReason, setSuspendReason] = useState('');
   const [confirmText, setConfirmText] = useState('');
