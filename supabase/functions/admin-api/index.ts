@@ -1399,6 +1399,8 @@ Deno.serve(async (req: Request) => {
       let workspaces: any[] = [];
       let phones: any[] = [];
       let teamMembers: any[] = [];
+      let wabas: any[] = [];
+      let campaignsCount = 0;
       if (tenantIds.length) {
         const { data: ws } = await sb.from("platform_workspace_directory")
           .select("workspace_id, workspace_name, plan, plan_name, is_suspended, members_count, contacts_count, conversations_count, created_at, subscription_status")
@@ -1407,8 +1409,13 @@ Deno.serve(async (req: Request) => {
           ...w, role: members?.find((m: any) => m.tenant_id === w.workspace_id)?.role,
         }));
         const { data: ph } = await sb.from("phone_numbers")
-          .select("tenant_id, display_number, status, quality_rating, created_at, verified_name").in("tenant_id", tenantIds);
+          .select("id, tenant_id, phone_number_id, display_number, status, quality_rating, messaging_limit, webhook_health, last_webhook_at, created_at, updated_at, verified_name, waba_account_id").in("tenant_id", tenantIds);
         phones = ph || [];
+        const { data: wb } = await sb.from("waba_accounts")
+          .select("id, tenant_id, waba_id, business_id, name, status, token_source, created_at, updated_at").in("tenant_id", tenantIds);
+        wabas = wb || [];
+        const { count: cc } = await sb.from("campaigns").select("id", { count: "exact", head: true }).in("tenant_id", tenantIds);
+        campaignsCount = cc || 0;
         const { data: tm } = await sb.from("tenant_members")
           .select("tenant_id, user_id, role, created_at").in("tenant_id", tenantIds).neq("user_id", userId);
         const subIds = Array.from(new Set((tm || []).map((m: any) => m.user_id)));
