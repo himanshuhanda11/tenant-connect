@@ -43,6 +43,7 @@ const EDGE_UNSAFE_TABLE_SUFFIXES = ["_logs", "_events", "_jobs", "_sessions", "_
 // bucket during restore).
 const MAX_FILE_BYTES = 5 * 1024 * 1024; // 5 MB per file
 const MAX_TOTAL_BYTES = 80 * 1024 * 1024; // 80 MB total bytes
+const MAX_EDGE_ROWS_PER_TABLE = 5000;
 
 async function listPublicTables(sb: any): Promise<string[]> {
   const { data, error } = await sb.rpc("backup_list_public_tables");
@@ -137,23 +138,26 @@ async function streamTableRows(
   table: string,
   onPage: (rows: any[], pageIndex: number) => Promise<void> | void,
   pageSize = 500,
-): Promise<{ total: number; error: string | null }> {
+  maxRows = MAX_EDGE_ROWS_PER_TABLE,
+): Promise<{ total: number; error: string | null; truncated: boolean }> {
   let from = 0;
   let total = 0;
   let pageIndex = 0;
   while (true) {
-    const { data, error } = await sb.from(table).select("*").range(from, from + pageSize - 1);
+    const to = Math.min(from + pageSize - 1, maxRows - 1);
+    const { data, error } = await sb.from(table).select("*").range(from, to);
     if (error) {
       console.warn(`[backup] table ${table} failed:`, error.message);
-      return { total, error: error.message };
+      return { total, error: error.message, truncated: false };
     }
     if (!data || data.length === 0) break;
     await onPage(data, pageIndex++);
     total += data.length;
+    if (total >= maxRows) return { total, error: null, truncated: true };
     if (data.length < pageSize) break;
     from += pageSize;
   }
-  return { total, error: null };
+  return { total, error: null, truncated: false };
 }
 
 // ===== Google Drive integration via Lovable connector gateway =====
