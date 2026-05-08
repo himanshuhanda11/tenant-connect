@@ -466,6 +466,7 @@ async function runBackup(req: Request, trigger: "manual" | "scheduled", actorId:
     );
 
     // Finalize ZIP
+    await writeProgress({ progress_percent: 88, current_step: "Finalizing ZIP archive…" }, true);
     zip.end();
     await Promise.all(pendingWrites);
     await writer.close();
@@ -478,6 +479,7 @@ async function runBackup(req: Request, trigger: "manual" | "scheduled", actorId:
     const fileName = `aireatro-backup-${ts}.zip`;
     const path = `${ts}/${fileName}`;
 
+    await writeProgress({ progress_percent: 92, current_step: "Uploading backup to cloud storage…" }, true);
     await uploadFileToStorageStreamed(tmpPath, fileSize, path);
 
     const ms = Date.now() - startedAt;
@@ -490,6 +492,8 @@ async function runBackup(req: Request, trigger: "manual" | "scheduled", actorId:
         table_count: okTables,
         duration_ms: ms,
         completed_at: new Date().toISOString(),
+        progress_percent: 96,
+        current_step: "Uploading to Google Drive…",
         error_message: Object.keys(tableErrors).length
           ? `partial: ${Object.keys(tableErrors).length} table(s) failed`
           : null,
@@ -509,6 +513,8 @@ async function runBackup(req: Request, trigger: "manual" | "scheduled", actorId:
         drive_folder_id: (driveResult as any).folderId || null,
         drive_web_link: (driveResult as any).webLink || null,
         drive_error: (driveResult as any).error || null,
+        progress_percent: 100,
+        current_step: driveResult.ok ? "Completed" : "Completed (Drive upload failed)",
       })
       .eq("id", runId);
 
