@@ -20,36 +20,24 @@ const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
 
-// Tables to back up (mapped to actual schema names).
-// Order does not matter for export; restore order lives in DATABASE_RESTORE_GUIDE.md.
-const BACKUP_TABLES = [
-  "profiles",
-  "tenants",
-  "tenant_members",
-  "platform_admins",
-  "platform_plans",
-  "platform_subscriptions",
-  "platform_invoices",
-  "workspace_entitlements",
-  "waba_accounts",
-  "phone_numbers",
-  "contacts",
-  "conversations",
-  "messages",
-  "message_templates",
-  "campaigns",
-  "campaign_jobs",
-  "leads",
-  "lead_forms",
-  "integrations",
-  "automation_workflows",
-  "routing_rules",
-  "teams",
-  "team_members",
-  "agents",
-  "message_credits",
-  "credit_transactions",
-];
+// Tables are auto-discovered from information_schema so newly added
+// tables are automatically backed up. Exclude noisy/self tables.
+const TABLE_EXCLUDE = new Set<string>(["platform_backup_runs"]);
+
+// Per-file cap (skip giant single objects); total storage cap keeps ZIP sane.
+const MAX_FILE_BYTES = 25 * 1024 * 1024; // 25 MB
+const MAX_TOTAL_BYTES = 500 * 1024 * 1024; // 500 MB
+
+async function listPublicTables(sb: any): Promise<string[]> {
+  const { data, error } = await sb.rpc("backup_list_public_tables");
+  if (error || !data) {
+    console.warn("[backup] table discovery RPC failed:", error?.message);
+    return [];
+  }
+  return (data as Array<{ table_name: string }>)
+    .map((r) => r.table_name)
+    .filter((t) => !TABLE_EXCLUDE.has(t));
+}
 
 function admin() {
   return createClient(SUPABASE_URL, SERVICE_ROLE);
@@ -118,19 +106,29 @@ async function fetchAllRows(sb: any, table: string, pageSize = 1000): Promise<an
   return all;
 }
 
-async function listStorageFiles(sb: any) {
-  const { data: buckets } = await sb.storage.listBuckets();
-  const out: any[] = [];
-  for (const b of buckets || []) {
-    if (b.id === "database-backups") continue; // skip self
-    try {
-      const { data: files } = await sb.storage.from(b.id).list("", { limit: 1000, sortBy: { column: "name", order: "asc" } });
-      for (const f of files || []) {
-        out.push({ bucket: b.id, name: f.name, size: f.metadata?.size, updated_at: f.updated_at });
+// Recursively walk a bucket and return every object path.
+async function walkBucket(sb: any, bucket: string, prefix = ""): Promise<Array<{ name: string; size: number; updated_at: string | null }>> {
+  const out: Array<{ name: string; size: number; updated_at: string | null }> = [];
+  let offset = 0;
+  while (true) {
+    const { data, error } = await sb.storage.from(bucket).list(prefix, {
+      limit: 1000,
+      offset,
+      sortBy: { column: "name", order: "asc" },
+    });
+    if (error || !data) break;
+    for (const f of data) {
+      const full = prefix ? `${prefix}/${f.name}` : f.name;
+      // Folders have no metadata.size; recurse into them
+      if (!f.metadata) {
+        const sub = await walkBucket(sb, bucket, full);
+        out.push(...sub);
+      } else {
+        out.push({ name: full, size: Number(f.metadata?.size || 0), updated_at: f.updated_at });
       }
-    } catch (e) {
-      console.warn(`[backup] list bucket ${b.id} failed:`, (e as any)?.message);
     }
+    if (data.length < 1000) break;
+    offset += 1000;
   }
   return out;
 }
@@ -138,11 +136,12 @@ async function listStorageFiles(sb: any) {
 async function runBackup(req: Request, trigger: "manual" | "scheduled", actorId: string | null) {
   const sb = admin();
   const startedAt = Date.now();
+  const tables = await listPublicTables(sb);
 
   // Insert run row first (pending)
   const { data: run } = await sb
     .from("platform_backup_runs")
-    .insert({ status: "pending", trigger, triggered_by: actorId, tables_included: BACKUP_TABLES })
+    .insert({ status: "pending", trigger, triggered_by: actorId, tables_included: tables })
     .select()
     .single();
   const runId = run!.id as string;
@@ -150,18 +149,58 @@ async function runBackup(req: Request, trigger: "manual" | "scheduled", actorId:
   try {
     const filesObj: Record<string, Uint8Array> = {};
     let okTables = 0;
+    const tableErrors: Record<string, string> = {};
 
-    // Per-table CSV + JSON
-    for (const t of BACKUP_TABLES) {
-      const rows = await fetchAllRows(sb, t);
-      filesObj[`tables/csv/${t}.csv`] = strToU8(toCSV(rows));
-      filesObj[`tables/json/${t}.json`] = strToU8(JSON.stringify(rows, null, 2));
-      okTables++;
+    // Per-table CSV + JSON (auto-discovered)
+    for (const t of tables) {
+      try {
+        const rows = await fetchAllRows(sb, t);
+        filesObj[`tables/csv/${t}.csv`] = strToU8(toCSV(rows));
+        filesObj[`tables/json/${t}.json`] = strToU8(JSON.stringify(rows, null, 2));
+        okTables++;
+      } catch (e: any) {
+        tableErrors[t] = String(e?.message || e);
+      }
     }
 
-    // Storage file inventory
-    const storageList = await listStorageFiles(sb);
-    filesObj["storage/file_list.json"] = strToU8(JSON.stringify(storageList, null, 2));
+    // ===== Storage: inventory + actual file bytes =====
+    const { data: buckets } = await sb.storage.listBuckets();
+    const storageInventory: any[] = [];
+    const storageDownloaded: any[] = [];
+    const storageSkipped: any[] = [];
+    let totalBytes = 0;
+
+    for (const b of buckets || []) {
+      if (b.id === "database-backups") continue; // skip self
+      const objects = await walkBucket(sb, b.id);
+      for (const obj of objects) {
+        storageInventory.push({ bucket: b.id, ...obj });
+        if (obj.size > MAX_FILE_BYTES) {
+          storageSkipped.push({ bucket: b.id, name: obj.name, size: obj.size, reason: "exceeds_per_file_cap" });
+          continue;
+        }
+        if (totalBytes + obj.size > MAX_TOTAL_BYTES) {
+          storageSkipped.push({ bucket: b.id, name: obj.name, size: obj.size, reason: "total_cap_reached" });
+          continue;
+        }
+        try {
+          const { data: blob, error } = await sb.storage.from(b.id).download(obj.name);
+          if (error || !blob) {
+            storageSkipped.push({ bucket: b.id, name: obj.name, reason: error?.message || "download_failed" });
+            continue;
+          }
+          const bytes = new Uint8Array(await blob.arrayBuffer());
+          filesObj[`storage/files/${b.id}/${obj.name}`] = bytes;
+          totalBytes += bytes.byteLength;
+          storageDownloaded.push({ bucket: b.id, name: obj.name, size: bytes.byteLength });
+        } catch (e: any) {
+          storageSkipped.push({ bucket: b.id, name: obj.name, reason: String(e?.message || e) });
+        }
+      }
+    }
+    filesObj["storage/file_list.json"] = strToU8(JSON.stringify(storageInventory, null, 2));
+    filesObj["storage/_downloaded.json"] = strToU8(JSON.stringify(storageDownloaded, null, 2));
+    filesObj["storage/_skipped.json"] = strToU8(JSON.stringify(storageSkipped, null, 2));
 
     // Environment snapshot
     // - .env: public/non-secret values only (safe to ship in backup)
@@ -197,29 +236,40 @@ async function runBackup(req: Request, trigger: "manual" | "scheduled", actorId:
       generated_at: new Date().toISOString(),
       trigger,
       run_id: runId,
-      tables: BACKUP_TABLES,
-      table_count: okTables,
-      storage_files_total: storageList.length,
       app: "Aireatro",
-      schema_note: "Full schema lives in supabase/migrations + aireatro_full_schema.sql in repo.",
+      tables,
+      table_count: okTables,
+      table_errors: tableErrors,
+      buckets: (buckets || []).map((b: any) => ({ id: b.id, public: b.public })),
+      storage_files_total: storageInventory.length,
+      storage_files_downloaded: storageDownloaded.length,
+      storage_files_skipped: storageSkipped.length,
+      storage_bytes_downloaded: totalBytes,
+      schema_note: "Full schema + edge functions + frontend live in GitHub repo.",
     };
     filesObj["manifest.json"] = strToU8(JSON.stringify(manifest, null, 2));
 
-    // Restore quick reference
     filesObj["RESTORE_README.txt"] = strToU8(
       [
-        "Aireatro backup ZIP",
-        "===================",
+        "Aireatro full backup",
+        "====================",
         `Generated: ${manifest.generated_at}`,
-        `Tables: ${okTables}`,
+        `Tables: ${okTables} / ${tables.length}`,
+        `Storage files: ${storageDownloaded.length} downloaded, ${storageSkipped.length} skipped`,
+        `Total storage bytes: ${totalBytes}`,
         "",
-        "1. Create a new Supabase project.",
-        "2. Run `aireatro_full_schema.sql` (from repo) in SQL Editor.",
-        "3. Recreate storage buckets (see DATABASE_RESTORE_GUIDE.md).",
-        "4. Import CSVs from tables/csv/ in the order documented in the guide.",
-        "5. Re-upload media files referenced in storage/file_list.json.",
+        "Restore order:",
+        "  1. Create a new Supabase project.",
+        "  2. Run `aireatro_full_schema.sql` in SQL Editor (from GitHub repo).",
+        "  3. Recreate buckets listed in manifest.json -> buckets.",
+        "  4. Re-upload files from storage/files/<bucket>/... to matching buckets.",
+        "  5. Import tables/csv/*.csv in FK-safe order (see DATABASE_RESTORE_GUIDE.md).",
+        "  6. Recreate secrets listed in config/env.secrets.list.txt.",
+        "  7. Deploy edge functions from GitHub repo (`supabase functions deploy`).",
+        "  8. Update VITE_SUPABASE_URL/KEY in frontend deploy env.",
         "",
-        "Full instructions: DATABASE_RESTORE_GUIDE.md in the project repo.",
+        "Frontend code, migrations and edge functions are NOT included here —",
+        "they live in the GitHub repository connected to this project.",
       ].join("\n")
     );
 

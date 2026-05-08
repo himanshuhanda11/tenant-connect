@@ -16033,6 +16033,12 @@ export type Database = {
         }
         Returns: Json
       }
+      backup_list_public_tables: {
+        Args: never
+        Returns: {
+          table_name: string
+        }[]
+      }
       cancel_conversation_jobs: {
         Args: {
           p_conversation_id: string
