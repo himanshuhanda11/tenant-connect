@@ -1,6 +1,8 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { useAdminApi } from '@/hooks/useAdminApi';
+import { useAdminQuery } from '@/hooks/useAdminQuery';
+import { ListSkeleton } from '@/components/admin/AdminSkeletons';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
