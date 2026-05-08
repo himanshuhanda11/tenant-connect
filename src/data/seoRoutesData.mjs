@@ -1,29 +1,13 @@
 /**
- * Registry of all public routes that should have SEO entries.
- * Used by the SEO dashboard to auto-sync missing pages AND by the
- * build-time prerender script (scripts/prerender-seo.mjs).
+ * Single source of truth for public marketing route SEO metadata.
+ * Imported by:
+ *  - src/data/seoRouteRegistry.ts (runtime / dashboard SEO sync)
+ *  - scripts/prerender-seo.mjs   (build-time HTML prerender)
  *
- * Single source of truth lives in ./seoRoutesData.mjs so Node and Vite
- * can both consume it without a TS compile step.
+ * Pure ESM .mjs so Node and Vite can both consume it without TS compilation.
  */
-// @ts-ignore - .mjs has no .d.ts but Vite/Node both resolve it fine
-import { PUBLIC_PAGE_ROUTES as RAW_PUBLIC_PAGE_ROUTES } from './seoRoutesData.mjs';
 
-export interface SeoRouteEntry {
-  route_path: string;
-  page_key: string;
-  page_name: string;
-  page_type: 'page' | 'blog';
-  is_public: boolean;
-  fallbackTitle: string;
-  fallbackDescription: string;
-}
-
-// All public-facing pages (non-app routes)
-export const PUBLIC_PAGE_ROUTES: SeoRouteEntry[] = RAW_PUBLIC_PAGE_ROUTES as SeoRouteEntry[];
-
-// Legacy inline list kept below (now unused) for reference during review.
-const _LEGACY_INLINE: SeoRouteEntry[] = [
+export const PUBLIC_PAGE_ROUTES = [
   { route_path: '/', page_key: 'home', page_name: 'Home', page_type: 'page', is_public: true, fallbackTitle: 'AiReatro — Free WhatsApp API Lifetime', fallbackDescription: 'Get Free WhatsApp API Lifetime access with AiReatro. Automate conversations, send campaigns, and manage customer relationships.' },
   { route_path: '/about', page_key: 'about', page_name: 'About Us', page_type: 'page', is_public: true, fallbackTitle: 'About AiReatro Communications', fallbackDescription: 'Meet the team behind AiReatro — an AI-powered WhatsApp Cloud API platform helping businesses automate messaging and grow faster.' },
   { route_path: '/contact', page_key: 'contact', page_name: 'Contact', page_type: 'page', is_public: true, fallbackTitle: 'Contact AiReatro — Talk to Our WhatsApp API Experts', fallbackDescription: 'Have questions about AiReatro WhatsApp Business API? Reach out for sales inquiries, support, or partnership opportunities.' },
@@ -45,6 +29,7 @@ const _LEGACY_INLINE: SeoRouteEntry[] = [
   { route_path: '/why-whatsapp-marketing', page_key: 'why-whatsapp-marketing', page_name: 'Why WhatsApp Marketing', page_type: 'page', is_public: true, fallbackTitle: 'Why WhatsApp Marketing — 98% Open Rates', fallbackDescription: 'Discover why WhatsApp marketing outperforms email and SMS. 98% open rates, 45% reply rates, and direct customer conversations.' },
   { route_path: '/why-aireatro', page_key: 'why-aireatro', page_name: 'Why AiReatro', page_type: 'page', is_public: true, fallbackTitle: 'Why AiReatro — The Best WhatsApp API Platform', fallbackDescription: 'Compare AiReatro with alternatives. Free lifetime access, team inbox, automation, and the most affordable WhatsApp API platform.' },
   { route_path: '/free-whatsapp-api-lifetime', page_key: 'free-whatsapp-api-lifetime', page_name: 'Free WhatsApp API Lifetime', page_type: 'page', is_public: true, fallbackTitle: 'Free WhatsApp API — Lifetime Access', fallbackDescription: 'Get lifetime free access to WhatsApp Business API with AiReatro. No credit card required. Start automating today.' },
+  { route_path: '/aisensy-alternative', page_key: 'aisensy-alternative', page_name: 'AiSensy Alternative', page_type: 'page', is_public: true, fallbackTitle: 'Best AiSensy Alternative — AiReatro WhatsApp API', fallbackDescription: 'Looking for an AiSensy alternative? AiReatro offers a free lifetime WhatsApp API, team inbox, automation, and Meta Ads attribution at a lower cost.' },
   { route_path: '/cookies', page_key: 'cookies', page_name: 'Cookie Policy', page_type: 'page', is_public: true, fallbackTitle: 'Cookie Policy — AiReatro', fallbackDescription: 'Learn about how AiReatro uses cookies and tracking technologies on our website.' },
   { route_path: '/features/inbox', page_key: 'features-inbox', page_name: 'Feature: Team Inbox', page_type: 'page', is_public: true, fallbackTitle: 'Team Inbox — Shared WhatsApp Inbox for Teams', fallbackDescription: 'Manage all WhatsApp conversations in one shared inbox. Assign agents, track SLAs, and collaborate in real-time.' },
   { route_path: '/features/contacts', page_key: 'features-contacts', page_name: 'Feature: Contacts & CRM', page_type: 'page', is_public: true, fallbackTitle: 'Contact Management — WhatsApp CRM', fallbackDescription: 'Manage contacts, segment audiences, and track lead lifecycle with AiReatro built-in WhatsApp CRM.' },
@@ -67,18 +52,3 @@ const _LEGACY_INLINE: SeoRouteEntry[] = [
   { route_path: '/help/form-rules', page_key: 'help-form-rules', page_name: 'Guide: Form Rules', page_type: 'page', is_public: true, fallbackTitle: 'Form Rules Guide — Automated Data Collection', fallbackDescription: 'Set up conversational forms in WhatsApp. Collect data, qualify leads, and trigger actions based on responses.' },
   { route_path: '/help/phone-numbers', page_key: 'help-phone-numbers', page_name: 'Guide: Phone Numbers', page_type: 'page', is_public: true, fallbackTitle: 'Phone Numbers Guide — Connect & Manage', fallbackDescription: 'Connect WhatsApp Business numbers, manage quality ratings, and monitor messaging limits.' },
 ];
-
-/**
- * Generate blog SEO entries from blogPosts data.
- */
-export function getBlogSeoEntries(blogPosts: Array<{ slug: string; title: string; excerpt: string }>): SeoRouteEntry[] {
-  return blogPosts.map(post => ({
-    route_path: `/blog/${post.slug}`,
-    page_key: `blog-${post.slug}`,
-    page_name: post.title,
-    page_type: 'blog' as const,
-    is_public: true,
-    fallbackTitle: post.title,
-    fallbackDescription: post.excerpt,
-  }));
-}
