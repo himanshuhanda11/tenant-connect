@@ -109,7 +109,7 @@ export default function AdminOverview() {
   const [search, setSearch] = useState('');
   const [range, setRange] = useState<typeof RANGE_OPTIONS[number]['key']>('30d');
 
-  const { data: stats, loading, error: qError, refetch } = (require('@/hooks/useAdminQuery') as typeof import('@/hooks/useAdminQuery')).useAdminQuery<Stats>('dashboard-stats', { ttl: 60_000 });
+  const { data: stats, loading, error: qError, refetch } = useAdminQuery<Stats>('dashboard-stats', { ttl: 60_000 });
   const error = qError;
   const loadData = () => refetch();
   // Auto-refresh every 60s
