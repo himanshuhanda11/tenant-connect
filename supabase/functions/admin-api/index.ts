@@ -917,6 +917,12 @@ Deno.serve(async (req: Request) => {
         contacts_total: contactsTotal.count || 0,
       };
 
+      // Templates & Campaigns lists (admin-scoped, bypass RLS)
+      const [tplList, campList] = await Promise.all([
+        sb.from("templates").select("id, name, category, status, language, updated_at").eq("tenant_id", workspaceId).order("updated_at", { ascending: false }).limit(50),
+        sb.from("campaigns").select("id, name, status, sent_count, delivered_count, created_at").eq("tenant_id", workspaceId).order("created_at", { ascending: false }).limit(20),
+      ]);
+
       return new Response(JSON.stringify({
         workspace: workspace.data,
         entitlements: entitlements.data,
@@ -926,6 +932,8 @@ Deno.serve(async (req: Request) => {
         waba: waba.data,
         owner: ownerProfile,
         stats,
+        templates: tplList.data || [],
+        campaigns: campList.data || [],
       }), { headers: { ...corsHeaders, "content-type": "application/json" } });
     }
 
