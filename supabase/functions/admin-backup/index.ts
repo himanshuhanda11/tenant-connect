@@ -255,7 +255,7 @@ async function walkBucket(sb: any, bucket: string, prefix = ""): Promise<Array<{
   return out;
 }
 
-async function runBackup(req: Request, trigger: "manual" | "scheduled", actorId: string | null, existingRunId?: string) {
+async function runBackup(reqUrl: string, trigger: "manual" | "scheduled", actorId: string | null, existingRunId?: string) {
   const sb = admin();
   const startedAt = Date.now();
   const tables = await listPublicTables(sb);
