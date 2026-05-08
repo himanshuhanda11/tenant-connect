@@ -484,6 +484,12 @@ export function AccountDetailsDrawer({ userId, onClose }: Props) {
                       run: () => post(`users/${userId}/delete`, {}),
                       successMsg: 'Account deleted',
                     })} />
+                  <ActionBtn icon={UserCircle2} label="Edit profile"
+                    onClick={() => setEditProfileOpen(true)} />
+                  {workspaces[0] && (
+                    <ActionBtn icon={CreditCard} label="Change plan" tone="emerald"
+                      onClick={() => setPlanModalWs({ id: workspaces[0].workspace_id, name: workspaces[0].workspace_name })} />
+                  )}
                 </div>
 
                 <div className="text-xs uppercase tracking-widest text-muted-foreground font-semibold pt-2">Quick note</div>
