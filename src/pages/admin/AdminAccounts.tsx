@@ -1,6 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAdminApi } from '@/hooks/useAdminApi';
+import { useAdminQuery, adminCacheInvalidate } from '@/hooks/useAdminQuery';
+import { TableSkeleton } from '@/components/admin/AdminSkeletons';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
