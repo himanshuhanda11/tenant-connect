@@ -356,8 +356,12 @@ export default function AdminWorkspaces() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {workspaces.map(w => (
-                  <TableRow key={w.workspace_id} className="group hover:bg-muted/40 transition-colors">
+                {workspaces.map(w => {
+                  const isSignup = String(w.workspace_id).startsWith('signup:');
+                  const isExpanded = expandedId === w.workspace_id;
+                  return (
+                  <React.Fragment key={w.workspace_id}>
+                  <TableRow className="group hover:bg-muted/40 transition-colors">
                     {isSuperAdmin && (
                       <TableCell>
                         <Checkbox
@@ -366,6 +370,19 @@ export default function AdminWorkspaces() {
                         />
                       </TableCell>
                     )}
+                    <TableCell className="p-1">
+                      {!isSignup && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 w-7 p-0"
+                          onClick={() => setExpandedId(isExpanded ? null : w.workspace_id)}
+                          aria-label={isExpanded ? 'Collapse' : 'Expand'}
+                        >
+                          {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                        </Button>
+                      )}
+                    </TableCell>
                     <TableCell>
                       <button
                         onClick={() => {
