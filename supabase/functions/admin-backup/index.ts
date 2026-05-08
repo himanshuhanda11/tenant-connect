@@ -476,39 +476,6 @@ async function runBackup(req: Request, trigger: "manual" | "scheduled", actorId:
       duration_ms: ms,
       drive: driveResult,
     };
-    // Upload to Google Drive (best-effort: errors are recorded but don't fail the run)
-    const driveResult = await uploadToDrive(zipped, fileName).catch((e: any) => ({
-      ok: false,
-      error: String(e?.message || e),
-    }));
-    await sb
-      .from("platform_backup_runs")
-      .update({
-        drive_status: driveResult.ok ? "uploaded" : "failed",
-        drive_file_id: (driveResult as any).fileId || null,
-        drive_folder_id: (driveResult as any).folderId || null,
-        drive_web_link: (driveResult as any).webLink || null,
-        drive_error: (driveResult as any).error || null,
-      })
-      .eq("id", runId);
-
-    // Retention: keep last 7 (Supabase + Google Drive)
-    await sb.rpc("cleanup_old_backups").catch(() => {});
-    if (driveResult.ok) {
-      await cleanupDriveOldBackups((driveResult as any).folderId).catch((e: any) =>
-        console.warn("[backup] drive cleanup failed:", e?.message),
-      );
-    }
-
-    return {
-      ok: true,
-      run_id: runId,
-      path,
-      size: zipped.byteLength,
-      table_count: okTables,
-      duration_ms: ms,
-      drive: driveResult,
-    };
   } catch (e: any) {
     await sb
       .from("platform_backup_runs")
