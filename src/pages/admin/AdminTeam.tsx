@@ -88,7 +88,7 @@ export default function AdminTeam() {
       <Card className="rounded-2xl shadow-sm border-border/50">
         <CardContent className="p-0">
           {loading && team.length === 0 ? (
-            <div className="flex justify-center py-10"><Loader2 className="h-6 w-6 animate-spin" /></div>
+            <div className="space-y-2 p-4">{Array.from({length:5}).map((_,i)=>(<div key={i} className="h-12 rounded-lg bg-muted/40 animate-pulse"/>))}</div>
           ) : (
             <Table>
               <TableHeader>
