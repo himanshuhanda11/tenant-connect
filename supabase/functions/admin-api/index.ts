@@ -1549,6 +1549,8 @@ Deno.serve(async (req: Request) => {
         headers: { ...corsHeaders, "content-type": "application/json" },
       });
     }
+
+    // POST /users/:id/update-email
     if (req.method === "POST" && path.match(/^users\/[^/]+\/update-email$/)) {
       const userId = path.split("/")[1];
       const actor = await requirePlatformRole(req, ["super_admin"]);
