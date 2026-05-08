@@ -1088,7 +1088,17 @@ Deno.serve(async (req: Request) => {
       const workspaceFilter = url.searchParams.get("workspace_id");
       if (workspaceFilter) query = query.eq("workspace_id", workspaceFilter);
       const actionFilter = url.searchParams.get("action");
-      if (actionFilter) query = query.eq("action", actionFilter);
+      if (actionFilter) query = query.ilike("action", `%${actionFilter}%`);
+      const actorFilter = url.searchParams.get("actor_user_id");
+      if (actorFilter) query = query.eq("actor_user_id", actorFilter);
+      const targetFilter = url.searchParams.get("target_id");
+      if (targetFilter) query = query.eq("target_id", targetFilter);
+      const since = url.searchParams.get("since");
+      if (since) query = query.gte("created_at", since);
+      const until = url.searchParams.get("until");
+      if (until) query = query.lte("created_at", until);
+      const search = url.searchParams.get("q");
+      if (search) query = query.ilike("note", `%${search}%`);
       const { data, count } = await query.order("created_at", { ascending: false }).range(offset, offset + limit - 1);
       return new Response(JSON.stringify({ logs: data, total: count, page, limit }), {
         headers: { ...corsHeaders, "content-type": "application/json" },
