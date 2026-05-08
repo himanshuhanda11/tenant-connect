@@ -1546,6 +1546,21 @@ Deno.serve(async (req: Request) => {
         .select("tenant_id").eq("user_id", userId).eq("role", "owner");
       const ownedIds = (owned || []).map((r: any) => r.tenant_id);
 
+      // Generate contacts archive BEFORE deletion (best-effort, do not block)
+      try {
+        const { data: { user: targetUser } } = await sb.auth.admin.getUserById(userId);
+        const { data: profile } = await sb.from("profiles").select("full_name").eq("id", userId).maybeSingle();
+        await sb.functions.invoke("account-deletion-export", {
+          body: {
+            user_id: userId,
+            account_email: targetUser?.email || null,
+            account_name: (profile as any)?.full_name || null,
+          },
+        });
+      } catch (e: any) {
+        console.error("[admin-api] archive export failed:", e?.message);
+      }
+
       const childTables = [
         "messages","conversations","contacts","campaigns","campaign_jobs","templates",
         "phone_numbers","waba_accounts","workspace_phone_numbers","workspace_entitlements",
