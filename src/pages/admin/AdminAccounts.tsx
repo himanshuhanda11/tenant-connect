@@ -420,6 +420,19 @@ export default function AdminAccounts() {
                             <DropdownMenuItem onClick={() => callAction(r, 'resend-verification', {}, 'Verification link generated', { copyKey: 'link' })}>
                               <MailCheck className="h-4 w-4 mr-2" /> Resend verification
                             </DropdownMenuItem>
+                            <DropdownMenuSub>
+                              <DropdownMenuSubTrigger>
+                                <Mail className="h-4 w-4 mr-2" /> Send reminder email
+                              </DropdownMenuSubTrigger>
+                              <DropdownMenuSubContent>
+                                <DropdownMenuItem onClick={() => callAction(r, 'send-reminder', { type: 'signup' }, `Complete-signup reminder sent to ${r.email}`)}>
+                                  Complete signup reminder
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => callAction(r, 'send-reminder', { type: 'workspace' }, `Create-workspace reminder sent to ${r.email}`)}>
+                                  Create workspace reminder
+                                </DropdownMenuItem>
+                              </DropdownMenuSubContent>
+                            </DropdownMenuSub>
                             <DropdownMenuItem onClick={() => callAction(r, 'force-logout', {}, 'All sessions revoked')}>
                               <LogOut className="h-4 w-4 mr-2" /> Force logout
                             </DropdownMenuItem>
