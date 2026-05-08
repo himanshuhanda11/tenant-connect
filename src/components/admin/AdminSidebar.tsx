@@ -6,7 +6,7 @@ import { Separator } from '@/components/ui/separator';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import {
   Shield, LayoutDashboard, Building2, ScrollText, Users, CreditCard,
-  ChevronLeft, ChevronRight, ArrowLeft, Settings, Siren, Phone, Inbox, UserCircle2
+  ChevronLeft, ChevronRight, ArrowLeft, Settings, Siren, Phone, Inbox, UserCircle2, Database
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -27,6 +27,7 @@ const navItems = [
   { to: '/control/leads', icon: Inbox, label: 'Marketing Leads' },
   { to: '/control/team', icon: Users, label: 'Platform Team', superOnly: true },
   { to: '/control/audit-logs', icon: ScrollText, label: 'Audit Logs' },
+  { to: '/control/backups', icon: Database, label: 'Backups', superOnly: true },
   { to: '/control/settings', icon: Settings, label: 'Settings', superOnly: true },
 ];
 
