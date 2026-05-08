@@ -204,8 +204,8 @@ export default function AdminPhoneNumbers() {
       </div>
 
       {/* Table */}
-      {loading ? (
-        <div className="flex justify-center py-10"><Loader2 className="h-6 w-6 animate-spin" /></div>
+      {loading && phones.length === 0 ? (
+        <TableSkeleton rows={8} cols={6} />
       ) : (
         <Card className="rounded-2xl shadow-sm border-border/50">
           <CardContent className="p-0">
