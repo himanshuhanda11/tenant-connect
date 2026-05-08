@@ -232,17 +232,17 @@ export function useDashboardData(filters: DashboardFilters) {
         new7dResult,
         new30dResult,
       ] = await Promise.all([
-        supabase.from('templates').select('id', { count: 'exact', head: true }).eq('tenant_id', tId).eq('status', 'PENDING'),
-        supabase.from('templates').select('id', { count: 'exact', head: true }).eq('tenant_id', tId),
-        supabase.from('campaigns').select('id', { count: 'exact', head: true }).eq('tenant_id', tId),
-        supabase.from('automation_runs').select('id', { count: 'exact', head: true }).eq('tenant_id', tId).gte('started_at', start),
+        supabase.from('templates').select('id', { count: 'planned', head: true }).eq('tenant_id', tId).eq('status', 'PENDING'),
+        supabase.from('templates').select('id', { count: 'planned', head: true }).eq('tenant_id', tId),
+        supabase.from('campaigns').select('id', { count: 'planned', head: true }).eq('tenant_id', tId),
+        supabase.from('automation_runs').select('id', { count: 'planned', head: true }).eq('tenant_id', tId).gte('started_at', start),
         supabase.from('automation_workflows').select('id, name').eq('tenant_id', tId).eq('status', 'active').limit(5),
-        supabase.from('automation_workflows').select('id', { count: 'exact', head: true }).eq('tenant_id', tId).eq('status', 'paused'),
+        supabase.from('automation_workflows').select('id', { count: 'planned', head: true }).eq('tenant_id', tId).eq('status', 'paused'),
         supabase.from('campaigns').select('id, name, status, scheduled_at, sent_count, delivered_count, read_count, replied_count')
           .eq('tenant_id', tId).order('created_at', { ascending: false }).limit(5),
-        supabase.from('contacts').select('id', { count: 'exact', head: true }).eq('tenant_id', tId).gte('created_at', todayISO),
-        supabase.from('contacts').select('id', { count: 'exact', head: true }).eq('tenant_id', tId).gte('created_at', sevenDaysAgo),
-        supabase.from('contacts').select('id', { count: 'exact', head: true }).eq('tenant_id', tId).gte('created_at', thirtyDaysAgo),
+        supabase.from('contacts').select('id', { count: 'planned', head: true }).eq('tenant_id', tId).gte('created_at', todayISO),
+        supabase.from('contacts').select('id', { count: 'planned', head: true }).eq('tenant_id', tId).gte('created_at', sevenDaysAgo),
+        supabase.from('contacts').select('id', { count: 'planned', head: true }).eq('tenant_id', tId).gte('created_at', thirtyDaysAgo),
       ]);
 
       setTemplatesPending(pendingTplResult.count || 0);
