@@ -1198,6 +1198,206 @@ Deno.serve(async (req: Request) => {
       });
     }
 
+    // POST /users/:id/suspend  { reason }
+    if (req.method === "POST" && path.match(/^users\/[^/]+\/suspend$/)) {
+      const userId = path.split("/")[1];
+      const actor = await requirePlatformRole(req, ["super_admin"]);
+      const sb = adminClient();
+      const body = await req.json().catch(() => ({}));
+      const reason = body.reason || "Suspended by admin";
+      // Ban the user effectively forever (876000h ≈ 100y)
+      const { error } = await sb.auth.admin.updateUserById(userId, { ban_duration: "876000h" } as any);
+      if (error) throw new Error(error.message);
+      // Also suspend any workspaces they own
+      const { data: owned } = await sb.from("tenant_members").select("tenant_id").eq("user_id", userId).eq("role", "owner");
+      const ownedIds = (owned || []).map((r: any) => r.tenant_id);
+      if (ownedIds.length) {
+        await sb.from("tenants").update({
+          is_suspended: true, suspended_reason: reason, suspended_at: new Date().toISOString(),
+        }).in("id", ownedIds);
+      }
+      await logAction(sb, actor, "PLATFORM_USER_SUSPENDED", {
+        target_table: "auth.users", target_id: userId, note: reason,
+      });
+      return new Response(JSON.stringify({ success: true, suspended_workspaces: ownedIds.length }),
+        { headers: { ...corsHeaders, "content-type": "application/json" } });
+    }
+
+    // POST /users/:id/activate
+    if (req.method === "POST" && path.match(/^users\/[^/]+\/activate$/)) {
+      const userId = path.split("/")[1];
+      const actor = await requirePlatformRole(req, ["super_admin"]);
+      const sb = adminClient();
+      const { error } = await sb.auth.admin.updateUserById(userId, { ban_duration: "none" } as any);
+      if (error) throw new Error(error.message);
+      const { data: owned } = await sb.from("tenant_members").select("tenant_id").eq("user_id", userId).eq("role", "owner");
+      const ownedIds = (owned || []).map((r: any) => r.tenant_id);
+      if (ownedIds.length) {
+        await sb.from("tenants").update({
+          is_suspended: false, suspended_reason: null, suspended_at: null,
+        }).in("id", ownedIds);
+      }
+      await logAction(sb, actor, "PLATFORM_USER_ACTIVATED", {
+        target_table: "auth.users", target_id: userId, note: "Account reactivated",
+      });
+      return new Response(JSON.stringify({ success: true }),
+        { headers: { ...corsHeaders, "content-type": "application/json" } });
+    }
+
+    // POST /users/:id/set-password { password }
+    if (req.method === "POST" && path.match(/^users\/[^/]+\/set-password$/)) {
+      const userId = path.split("/")[1];
+      const actor = await requirePlatformRole(req, ["super_admin"]);
+      const sb = adminClient();
+      const body = await req.json();
+      if (!body.password || String(body.password).length < 8) throw new Error("Password must be ≥ 8 characters");
+      const { error } = await sb.auth.admin.updateUserById(userId, { password: body.password });
+      if (error) throw new Error(error.message);
+      await logAction(sb, actor, "PLATFORM_USER_PASSWORD_SET", {
+        target_table: "auth.users", target_id: userId, note: "Password manually set by admin",
+      });
+      return new Response(JSON.stringify({ success: true }),
+        { headers: { ...corsHeaders, "content-type": "application/json" } });
+    }
+
+    // POST /users/:id/force-logout — invalidate all sessions
+    if (req.method === "POST" && path.match(/^users\/[^/]+\/force-logout$/)) {
+      const userId = path.split("/")[1];
+      const actor = await requirePlatformRole(req, ["super_admin"]);
+      const sb = adminClient();
+      const { error } = await sb.auth.admin.signOut(userId, "global" as any);
+      if (error) throw new Error(error.message);
+      await logAction(sb, actor, "PLATFORM_USER_FORCE_LOGOUT", {
+        target_table: "auth.users", target_id: userId, note: "All sessions revoked",
+      });
+      return new Response(JSON.stringify({ success: true }),
+        { headers: { ...corsHeaders, "content-type": "application/json" } });
+    }
+
+    // POST /users/:id/resend-verification
+    if (req.method === "POST" && path.match(/^users\/[^/]+\/resend-verification$/)) {
+      const userId = path.split("/")[1];
+      const actor = await requirePlatformRole(req, ["super_admin"]);
+      const sb = adminClient();
+      const { data: { user } } = await sb.auth.admin.getUserById(userId);
+      if (!user?.email) throw new Error("User has no email");
+      const { data, error } = await sb.auth.admin.generateLink({ type: "signup", email: user.email });
+      if (error) throw new Error(error.message);
+      await logAction(sb, actor, "PLATFORM_USER_VERIFICATION_RESENT", {
+        target_table: "auth.users", target_id: userId, note: `Verification regenerated for ${user.email}`,
+      });
+      return new Response(JSON.stringify({ success: true, link: data?.properties?.action_link }),
+        { headers: { ...corsHeaders, "content-type": "application/json" } });
+    }
+
+    // POST /users/:id/change-plan { plan, workspace_id? }
+    if (req.method === "POST" && path.match(/^users\/[^/]+\/change-plan$/)) {
+      const userId = path.split("/")[1];
+      const actor = await requirePlatformRole(req, ["super_admin"]);
+      const sb = adminClient();
+      const body = await req.json();
+      if (!body.plan) throw new Error("plan required");
+      let tenantIds: string[] = [];
+      if (body.workspace_id) tenantIds = [body.workspace_id];
+      else {
+        const { data: owned } = await sb.from("tenant_members").select("tenant_id").eq("user_id", userId).eq("role", "owner");
+        tenantIds = (owned || []).map((r: any) => r.tenant_id);
+      }
+      if (!tenantIds.length) throw new Error("No workspaces to update");
+      // Try update workspace_entitlements first
+      for (const tid of tenantIds) {
+        const { error: eErr } = await sb.from("workspace_entitlements")
+          .upsert({ workspace_id: tid, plan: body.plan, updated_at: new Date().toISOString() }, { onConflict: "workspace_id" });
+        if (eErr) console.warn("[change-plan] entitlements upsert", eErr.message);
+      }
+      await logAction(sb, actor, "PLATFORM_USER_PLAN_CHANGED", {
+        target_table: "workspace_entitlements", target_id: userId,
+        after: { plan: body.plan, workspaces: tenantIds }, note: `Plan changed to ${body.plan}`,
+      });
+      return new Response(JSON.stringify({ success: true, updated: tenantIds.length }),
+        { headers: { ...corsHeaders, "content-type": "application/json" } });
+    }
+
+    // GET /users/:id/details — full profile + workspaces + activity + notes
+    if (req.method === "GET" && path.match(/^users\/[^/]+\/details$/)) {
+      const userId = path.split("/")[1];
+      await requirePlatformRole(req, ["super_admin", "support"]);
+      const sb = adminClient();
+      const { data: { user } } = await sb.auth.admin.getUserById(userId);
+      if (!user) throw new Error("User not found");
+      const [{ data: profile }, { data: members }, { data: notes }, { data: activity }, { data: events }] = await Promise.all([
+        sb.from("profiles").select("*").eq("id", userId).maybeSingle(),
+        sb.from("tenant_members").select("tenant_id, role, created_at").eq("user_id", userId),
+        sb.from("admin_user_notes").select("id, note, created_at, author_user_id").eq("target_user_id", userId).order("created_at", { ascending: false }),
+        sb.from("platform_audit_logs").select("id, action, actor_user_id, actor_role, note, created_at, target_table, target_id").or(`target_id.eq.${userId},workspace_id.in.(${(await sb.from("tenant_members").select("tenant_id").eq("user_id", userId)).data?.map((r: any) => r.tenant_id).join(",") || "00000000-0000-0000-0000-000000000000"})`).order("created_at", { ascending: false }).limit(30),
+        sb.from("onboarding_events").select("event_type, created_at, metadata").eq("user_id", userId).order("created_at", { ascending: false }).limit(30),
+      ]);
+      const tenantIds = (members || []).map((m: any) => m.tenant_id);
+      let workspaces: any[] = [];
+      let phones: any[] = [];
+      let teamMembers: any[] = [];
+      if (tenantIds.length) {
+        const { data: ws } = await sb.from("platform_workspace_directory")
+          .select("workspace_id, workspace_name, plan, plan_name, is_suspended, members_count, contacts_count, conversations_count, created_at, subscription_status")
+          .in("workspace_id", tenantIds);
+        workspaces = (ws || []).map((w: any) => ({
+          ...w, role: members?.find((m: any) => m.tenant_id === w.workspace_id)?.role,
+        }));
+        const { data: ph } = await sb.from("phone_numbers")
+          .select("tenant_id, display_number, status, quality_rating, created_at, verified_name").in("tenant_id", tenantIds);
+        phones = ph || [];
+        const { data: tm } = await sb.from("tenant_members")
+          .select("tenant_id, user_id, role, created_at").in("tenant_id", tenantIds).neq("user_id", userId);
+        const subIds = Array.from(new Set((tm || []).map((m: any) => m.user_id)));
+        let pmap: Record<string, any> = {};
+        if (subIds.length) {
+          const { data: profs } = await sb.from("profiles").select("id, email, full_name").in("id", subIds);
+          for (const p of profs || []) pmap[p.id] = p;
+        }
+        teamMembers = (tm || []).map((m: any) => ({
+          ...m, email: pmap[m.user_id]?.email, full_name: pmap[m.user_id]?.full_name,
+        }));
+      }
+      // Resolve note authors
+      const authorIds = Array.from(new Set((notes || []).map((n: any) => n.author_user_id)));
+      let authorMap: Record<string, string> = {};
+      if (authorIds.length) {
+        const { data: authProfs } = await sb.from("profiles").select("id, email, full_name").in("id", authorIds);
+        for (const a of authProfs || []) authorMap[a.id] = a.full_name || a.email || a.id.slice(0, 8);
+      }
+      const enrichedNotes = (notes || []).map((n: any) => ({
+        ...n, author_name: authorMap[n.author_user_id] || "Admin",
+      }));
+      return new Response(JSON.stringify({
+        user: {
+          id: user.id, email: user.email, phone: user.phone,
+          created_at: user.created_at, last_sign_in_at: user.last_sign_in_at,
+          email_confirmed_at: user.email_confirmed_at, banned_until: (user as any).banned_until || null,
+          provider: user.app_metadata?.provider || "email",
+        },
+        profile, workspaces, phones, team_members: teamMembers,
+        activity: activity || [], onboarding_events: events || [], notes: enrichedNotes,
+      }), { headers: { ...corsHeaders, "content-type": "application/json" } });
+    }
+
+    // POST /users/:id/notes  { note }
+    if (req.method === "POST" && path.match(/^users\/[^/]+\/notes$/)) {
+      const userId = path.split("/")[1];
+      const actor = await requirePlatformRole(req, ["super_admin", "support"]);
+      const sb = adminClient();
+      const body = await req.json();
+      if (!body.note) throw new Error("note required");
+      const { data, error } = await sb.from("admin_user_notes").insert({
+        target_user_id: userId, author_user_id: actor.user.id, note: body.note,
+      }).select().single();
+      if (error) throw new Error(error.message);
+      await logAction(sb, actor, "PLATFORM_ADMIN_NOTE_ADDED", {
+        target_table: "admin_user_notes", target_id: userId, note: body.note.slice(0, 200),
+      });
+      return new Response(JSON.stringify({ success: true, note: data }),
+        { headers: { ...corsHeaders, "content-type": "application/json" } });
+    }
+
     // POST /workspaces/:id/delete
     if (req.method === "POST" && path.match(/^workspaces\/[^/]+\/delete$/)) {
       const workspaceId = path.split("/")[1];
