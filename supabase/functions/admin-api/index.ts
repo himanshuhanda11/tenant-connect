@@ -655,93 +655,89 @@ Deno.serve(async (req: Request) => {
         .order("created_at", { ascending: false })
         .range(offset, offset + limit - 1);
 
-      // Compute filter chip counts (respect search but ignore current view)
-      const buildCount = async (filterFn: (q: any) => any) => {
-        let q: any = sb
-          .from("platform_workspace_directory")
-          .select("workspace_id", { count: "exact", head: true });
-        if (search) q = q.or(`workspace_name.ilike.%${search}%,slug.ilike.%${search}%`);
-        q = filterFn(q);
-        const { count: c } = await q;
-        return c || 0;
-      };
+      // Compute filter chip counts only on page 1 (avoid 10 extra count queries on every refresh)
+      let counts: Record<string, number> = {};
+      if (page === 1) {
+        const buildCount = async (filterFn: (q: any) => any) => {
+          let q: any = sb
+            .from("platform_workspace_directory")
+            .select("workspace_id", { count: "exact", head: true });
+          if (search) q = q.or(`workspace_name.ilike.%${search}%,slug.ilike.%${search}%`);
+          q = filterFn(q);
+          const { count: c } = await q;
+          return c || 0;
+        };
+        const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+        let pendingForCount: string[] = pendingTenantIds;
+        if (pendingForCount.length === 0 && view !== "pending-numbers") {
+          const { data: pp } = await sb.from("phone_numbers").select("tenant_id").eq("status", "pending");
+          pendingForCount = Array.from(new Set((pp || []).map((p: any) => p.tenant_id).filter(Boolean)));
+        }
+        const [
+          countAll, countSuspended, countPending, countPro, countHigh,
+          countPaused, countBusiness, countFree, countNewWeek, countSignups,
+        ] = await Promise.all([
+          buildCount((q) => q),
+          buildCount((q) => q.eq("is_suspended", true)),
+          pendingForCount.length
+            ? buildCount((q) => q.in("workspace_id", pendingForCount))
+            : Promise.resolve(0),
+          buildCount((q) => q.eq("plan", "pro")),
+          buildCount((q) => q.in("plan", ["pro", "business"])),
+          buildCount((q) => q.eq("sending_paused", true)),
+          buildCount((q) => q.eq("plan", "business")),
+          buildCount((q) => q.eq("plan", "free")),
+          buildCount((q) => q.gte("created_at", sevenDaysAgo)),
+          sb.from("profiles").select("id", { count: "exact", head: true }).gte("created_at", sevenDaysAgo).then((r: any) => r.count || 0),
+        ]);
+        counts = {
+          all: countAll, suspended: countSuspended, "pending-numbers": countPending,
+          pro: countPro, "high-revenue": countHigh, paused: countPaused,
+          business: countBusiness, free: countFree, "new-week": countNewWeek,
+          "recent-signups": countSignups,
+        };
+      }
 
-      const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
-      const [
-        countAll, countSuspended, countPending, countPro, countHigh,
-        countPaused, countBusiness, countFree, countNewWeek, countSignups,
-      ] = await Promise.all([
-        buildCount((q) => q),
-        buildCount((q) => q.eq("is_suspended", true)),
-        pendingTenantIds.length
-          ? buildCount((q) => q.in("workspace_id", pendingTenantIds))
-          : Promise.resolve(0),
-        buildCount((q) => q.eq("plan", "pro")),
-        buildCount((q) => q.in("plan", ["pro", "business"])),
-        buildCount((q) => q.eq("sending_paused", true)),
-        buildCount((q) => q.eq("plan", "business")),
-        buildCount((q) => q.eq("plan", "free")),
-        buildCount((q) => q.gte("created_at", sevenDaysAgo)),
-        sb.from("profiles").select("id", { count: "exact", head: true }).gte("created_at", sevenDaysAgo).then((r: any) => r.count || 0),
-      ]);
-
-      const counts = {
-        all: countAll,
-        suspended: countSuspended,
-        "pending-numbers": countPending,
-        pro: countPro,
-        "high-revenue": countHigh,
-        paused: countPaused,
-        business: countBusiness,
-        free: countFree,
-        "new-week": countNewWeek,
-        "recent-signups": countSignups,
-      };
-
-      // Enrich with owner email, phone number, WABA status
+      // Enrich with owner email, phone number, WABA status — fully parallelized
       const workspaceIds = (data || []).map((w: any) => w.workspace_id);
-      
-      // Owner profiles - manual join since no FK between tenant_members and profiles
+
       let ownerMap: Record<string, any> = {};
+      let phoneMap: Record<string, any> = {};
+      let wabaMap: Record<string, any> = {};
+
       if (workspaceIds.length > 0) {
-        const { data: owners } = await sb.from("tenant_members")
-          .select("tenant_id, user_id, role, created_at")
-          .eq("role", "owner")
-          .in("tenant_id", workspaceIds);
-        const ownerUserIds = (owners || []).map((o: any) => o.user_id).filter(Boolean);
+        const [ownersRes, phonesRes, wabasRes] = await Promise.all([
+          sb.from("tenant_members")
+            .select("tenant_id, user_id, role, created_at")
+            .eq("role", "owner")
+            .in("tenant_id", workspaceIds),
+          sb.from("phone_numbers")
+            .select("tenant_id, display_number, created_at, status, quality_rating")
+            .in("tenant_id", workspaceIds)
+            .order("created_at", { ascending: false }),
+          sb.from("waba_accounts")
+            .select("tenant_id, status, created_at, name")
+            .in("tenant_id", workspaceIds)
+            .order("created_at", { ascending: false }),
+        ]);
+
+        // CRITICAL FIX: previously fetched ALL profiles in DB; now scope by ownerUserIds
+        const owners = ownersRes.data || [];
+        const ownerUserIds = Array.from(new Set(owners.map((o: any) => o.user_id).filter(Boolean)));
         let profileMap: Record<string, any> = {};
         if (ownerUserIds.length > 0) {
           const { data: profiles } = await sb.from("profiles")
-            .select("id, email, full_name, company_name, website_url, country, phone_number, industry, team_size, timezone, created_at");
-          for (const p of (profiles || []).filter((p: any) => ownerUserIds.includes(p.id))) {
-            profileMap[p.id] = p;
-          }
+            .select("id, email, full_name, company_name, website_url, country, phone_number, industry, team_size, timezone, created_at")
+            .in("id", ownerUserIds);
+          for (const p of profiles || []) profileMap[p.id] = p;
         }
-        for (const o of owners || []) {
+        for (const o of owners) {
           if (!ownerMap[o.tenant_id]) ownerMap[o.tenant_id] = profileMap[o.user_id] || null;
         }
-      }
-
-      // Phone numbers (latest per tenant)
-      let phoneMap: Record<string, any> = {};
-      if (workspaceIds.length > 0) {
-        const { data: phones } = await sb.from("phone_numbers")
-          .select("tenant_id, display_number, created_at, status, quality_rating")
-          .in("tenant_id", workspaceIds)
-          .order("created_at", { ascending: false });
-        for (const p of phones || []) {
+        for (const p of phonesRes.data || []) {
           if (!phoneMap[p.tenant_id]) phoneMap[p.tenant_id] = p;
         }
-      }
-
-      // WABA status (latest per tenant) — gives WABA "connected" date
-      let wabaMap: Record<string, any> = {};
-      if (workspaceIds.length > 0) {
-        const { data: wabas } = await sb.from("waba_accounts")
-          .select("tenant_id, status, created_at, name")
-          .in("tenant_id", workspaceIds)
-          .order("created_at", { ascending: false });
-        for (const w of wabas || []) {
+        for (const w of wabasRes.data || []) {
           if (!wabaMap[w.tenant_id]) wabaMap[w.tenant_id] = w;
         }
       }
