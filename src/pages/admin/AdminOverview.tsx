@@ -460,7 +460,70 @@ export default function AdminOverview() {
         </Card>
       </div>
 
-      {/* Recent Activity & Notifications */}
+      {/* Revenue trend + WhatsApp status breakdown */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <Card className="rounded-2xl border-border/50 lg:col-span-2">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-semibold flex items-center gap-2">
+              <div className="h-7 w-7 rounded-lg bg-emerald-500/10 flex items-center justify-center">
+                <CreditCard className="h-3.5 w-3.5 text-emerald-600" />
+              </div>
+              Revenue — last 30d
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pl-0 pr-4 pb-4">
+            <ResponsiveContainer width="100%" height={200}>
+              <AreaChart data={(stats.revenueSeries || []).map(r => ({ ...r, revenue: (r.revenue || 0) / 100 }))}>
+                <defs>
+                  <linearGradient id="grev" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="hsl(152, 60%, 45%)" stopOpacity={0.35} />
+                    <stop offset="100%" stopColor="hsl(152, 60%, 45%)" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+                <XAxis dataKey="label" tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }} axisLine={false} tickLine={false} interval={Math.floor((stats.revenueSeries?.length || 1) / 8)} />
+                <YAxis tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }} axisLine={false} tickLine={false} width={40} />
+                <Tooltip contentStyle={{ borderRadius: 12, border: '1px solid hsl(var(--border))', fontSize: 12, background: 'hsl(var(--card))' }} formatter={(v: any) => [`₹${Number(v).toLocaleString()}`, 'Revenue']} />
+                <Area type="monotone" dataKey="revenue" stroke="hsl(152, 60%, 45%)" strokeWidth={2} fill="url(#grev)" />
+              </AreaChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+
+        <Card className="rounded-2xl border-border/50">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-semibold flex items-center gap-2">
+              <div className="h-7 w-7 rounded-lg bg-cyan-500/10 flex items-center justify-center">
+                <Phone className="h-3.5 w-3.5 text-cyan-600" />
+              </div>
+              Numbers by status
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pb-4">
+            {(stats.phoneStatusDetail || []).length === 0 ? (
+              <div className="text-xs text-muted-foreground py-10 text-center">No phone data yet</div>
+            ) : (
+              <ResponsiveContainer width="100%" height={200}>
+                <PieChart>
+                  <Pie data={stats.phoneStatusDetail} cx="50%" cy="50%" outerRadius={75} dataKey="value" label={(e: any) => `${e.name}: ${e.value}`} labelLine={false} strokeWidth={0}>
+                    {(stats.phoneStatusDetail || []).map((d, i) => {
+                      const color =
+                        d.name === 'connected' ? 'hsl(152, 60%, 45%)' :
+                        d.name === 'pending' ? 'hsl(38, 92%, 55%)' :
+                        d.name === 'banned' ? 'hsl(0, 80%, 55%)' :
+                        d.name === 'disconnected' ? 'hsl(var(--muted-foreground))' :
+                        PIE_COLORS[i % PIE_COLORS.length];
+                      return <Cell key={i} fill={color} />;
+                    })}
+                  </Pie>
+                  <Tooltip contentStyle={{ borderRadius: 12, border: '1px solid hsl(var(--border))', fontSize: 12, background: 'hsl(var(--card))' }} />
+                </PieChart>
+              </ResponsiveContainer>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <Card className="rounded-2xl border-border/50 lg:col-span-2">
           <CardHeader className="pb-2 flex flex-row items-center justify-between">
