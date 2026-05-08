@@ -577,6 +577,31 @@ export default function AdminWorkspaces() {
                                 {w.sending_paused ? <Play className="h-3.5 w-3.5 mr-2" /> : <Pause className="h-3.5 w-3.5 mr-2" />}
                                 {w.sending_paused ? 'Resume sending' : 'Pause sending'}
                               </DropdownMenuItem>
+                              {(w as any).owner_user_id || w.owner_email ? (
+                                <>
+                                  <DropdownMenuSeparator />
+                                  <DropdownMenuItem onClick={async () => {
+                                    try {
+                                      await post(`workspaces/${w.workspace_id}/send-reminder`, { type: 'signup' });
+                                      toast({ title: 'Reminder sent', description: `Complete-signup email sent to ${w.owner_email}` });
+                                    } catch (e: any) {
+                                      toast({ title: 'Failed', description: e.message, variant: 'destructive' });
+                                    }
+                                  }}>
+                                    <Mail className="h-3.5 w-3.5 mr-2" /> Send signup reminder
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem onClick={async () => {
+                                    try {
+                                      await post(`workspaces/${w.workspace_id}/send-reminder`, { type: 'workspace' });
+                                      toast({ title: 'Reminder sent', description: `Create-workspace email sent to ${w.owner_email}` });
+                                    } catch (e: any) {
+                                      toast({ title: 'Failed', description: e.message, variant: 'destructive' });
+                                    }
+                                  }}>
+                                    <Mail className="h-3.5 w-3.5 mr-2" /> Send workspace reminder
+                                  </DropdownMenuItem>
+                                </>
+                              ) : null}
                               {isSuperAdmin && (
                                 <>
                                   <DropdownMenuSeparator />
