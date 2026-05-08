@@ -92,6 +92,7 @@ export default function AdminWorkspaces() {
   const [signupInput, setSignupInput] = useState('');
   const [signupResetLink, setSignupResetLink] = useState('');
   const [signupSubmitting, setSignupSubmitting] = useState(false);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
 
   const handleSignupAction = async () => {
     if (!signupActions) return;
