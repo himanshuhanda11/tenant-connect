@@ -1656,7 +1656,10 @@ Deno.serve(async (req: Request) => {
       const sb = adminClient();
       const { data: { user } } = await sb.auth.admin.getUserById(userId);
       if (!user?.email) throw new Error("User has no email");
-      const { data, error } = await sb.auth.admin.generateLink({ type: "signup", email: user.email });
+      // If the user has already confirmed their email, `signup` link generation
+      // fails ("user already registered"). Fall back to a magic-link in that case.
+      const linkType = user.email_confirmed_at ? "magiclink" : "signup";
+      const { data, error } = await sb.auth.admin.generateLink({ type: linkType as any, email: user.email });
       if (error) throw new Error(error.message);
       await logAction(sb, actor, "PLATFORM_USER_VERIFICATION_RESENT", {
         target_table: "auth.users", target_id: userId, note: `Verification regenerated for ${user.email}`,
