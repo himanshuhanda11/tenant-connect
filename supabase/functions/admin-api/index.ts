@@ -594,14 +594,18 @@ Deno.serve(async (req: Request) => {
         });
       }
 
-      // Workspaces with at least one phone in 'pending' status (Meta review / not yet connected)
-      const { data: pendingPhones } = await sb
-        .from("phone_numbers")
-        .select("tenant_id, status")
-        .in("status", ["pending"]); // phone_status enum: pending | connected | disconnected | banned
-      const pendingTenantIds = Array.from(
-        new Set((pendingPhones || []).map((p: any) => p.tenant_id).filter(Boolean))
-      );
+      // Workspaces with at least one phone in 'pending' status — only needed for the
+      // pending-numbers view or its chip count. Skip the heavy scan otherwise.
+      let pendingTenantIds: string[] = [];
+      if (view === "pending-numbers") {
+        const { data: pendingPhones } = await sb
+          .from("phone_numbers")
+          .select("tenant_id")
+          .eq("status", "pending");
+        pendingTenantIds = Array.from(
+          new Set((pendingPhones || []).map((p: any) => p.tenant_id).filter(Boolean))
+        );
+      }
 
       // Base builder so we apply the same filters to data + counts consistently
       const buildQuery = (selectExpr: string, opts: { count?: boolean } = {}) => {
