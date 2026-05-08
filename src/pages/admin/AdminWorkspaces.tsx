@@ -318,8 +318,9 @@ export default function AdminWorkspaces() {
       </div>
 
       {/* Mobile: Cards | Desktop: Table */}
-      {loading ? (
-        <div className="flex justify-center py-10"><Loader2 className="h-6 w-6 animate-spin" /></div>
+      {loading && workspaces.length === 0 ? (
+        <TableSkeleton rows={8} cols={6} />
+
       ) : isMobile ? (
         <div className="space-y-3">
           {workspaces.map(w => (
