@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
 import { AdminStatusBadge } from '@/components/admin/AdminStatusBadge';
-import { MessageSquare, ExternalLink, Filter } from 'lucide-react';
+import { MessageSquare } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 
 const STATUS_MAP: Record<string, 'active' | 'suspended' | 'pending'> = {
   APPROVED: 'active',
@@ -13,15 +15,28 @@ const STATUS_MAP: Record<string, 'active' | 'suspended' | 'pending'> = {
   IN_APPEAL: 'pending',
 };
 
-const MOCK_TEMPLATES = [
-  { id: '1', name: 'welcome_message', category: 'MARKETING', status: 'APPROVED', updated_at: new Date().toISOString() },
-  { id: '2', name: 'order_confirmation', category: 'UTILITY', status: 'PENDING', updated_at: new Date().toISOString() },
-  { id: '3', name: 'promo_summer', category: 'MARKETING', status: 'REJECTED', updated_at: new Date().toISOString() },
-];
+interface Props { workspaceId?: string }
 
-export function TemplatesTab() {
+export function TemplatesTab({ workspaceId }: Props = {}) {
   const [filter, setFilter] = useState<string>('all');
-  const templates = MOCK_TEMPLATES.filter(t => filter === 'all' || t.status === filter);
+
+  const { data: templates = [], isLoading } = useQuery({
+    queryKey: ['admin-templates', workspaceId],
+    queryFn: async () => {
+      if (!workspaceId) return [];
+      const { data, error } = await supabase
+        .from('templates')
+        .select('id, name, category, status, language, updated_at')
+        .eq('tenant_id', workspaceId)
+        .order('updated_at', { ascending: false })
+        .limit(50);
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!workspaceId,
+  });
+
+  const filtered = templates.filter((t: any) => filter === 'all' || t.status === filter);
 
   return (
     <Card className="rounded-2xl shadow-sm border-border/50">
@@ -30,55 +45,53 @@ export function TemplatesTab() {
           <div className="h-7 w-7 rounded-lg bg-indigo-50 flex items-center justify-center">
             <MessageSquare className="h-3.5 w-3.5 text-indigo-600" />
           </div>
-          Templates
+          Templates ({templates.length})
         </CardTitle>
-        <div className="flex items-center gap-2">
-          <div className="flex rounded-xl border overflow-hidden text-xs">
-            {['all', 'PENDING', 'REJECTED'].map(f => (
-              <button
-                key={f}
-                onClick={() => setFilter(f)}
-                className={`px-3 py-1.5 capitalize transition-colors ${filter === f ? 'bg-primary text-primary-foreground' : 'hover:bg-muted'}`}
-              >
-                {f === 'all' ? 'All' : f.toLowerCase()}
-              </button>
-            ))}
-          </div>
-          <Button variant="outline" size="sm" className="rounded-xl text-xs">
-            <ExternalLink className="h-3.5 w-3.5 mr-1" /> Open Template Module
-          </Button>
+        <div className="flex rounded-xl border overflow-hidden text-xs">
+          {['all', 'APPROVED', 'PENDING', 'REJECTED'].map(f => (
+            <button
+              key={f}
+              onClick={() => setFilter(f)}
+              className={`px-3 py-1.5 capitalize transition-colors ${filter === f ? 'bg-primary text-primary-foreground' : 'hover:bg-muted'}`}
+            >
+              {f === 'all' ? 'All' : f.toLowerCase()}
+            </button>
+          ))}
         </div>
       </CardHeader>
       <CardContent className="p-0">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead>Category</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Last Updated</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {templates.map(t => (
-              <TableRow key={t.id}>
-                <TableCell className="font-medium text-sm font-mono">{t.name}</TableCell>
-                <TableCell>
-                  <Badge variant="outline" className="text-[11px]">{t.category}</Badge>
-                </TableCell>
-                <TableCell>
-                  <AdminStatusBadge status={STATUS_MAP[t.status] || 'pending'} />
-                </TableCell>
-                <TableCell className="text-xs text-muted-foreground">{new Date(t.updated_at).toLocaleDateString()}</TableCell>
-              </TableRow>
-            ))}
-            {templates.length === 0 && (
+        {isLoading ? (
+          <div className="p-4 space-y-2">
+            <Skeleton className="h-8 w-full" /><Skeleton className="h-8 w-full" /><Skeleton className="h-8 w-full" />
+          </div>
+        ) : filtered.length === 0 ? (
+          <div className="text-center py-8 text-sm text-muted-foreground">
+            {templates.length === 0 ? 'No templates for this workspace' : 'No templates match the filter'}
+          </div>
+        ) : (
+          <Table>
+            <TableHeader>
               <TableRow>
-                <TableCell colSpan={4} className="text-center py-8 text-muted-foreground text-sm">No templates match the filter</TableCell>
+                <TableHead>Name</TableHead>
+                <TableHead>Category</TableHead>
+                <TableHead>Language</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Last Updated</TableHead>
               </TableRow>
-            )}
-          </TableBody>
-        </Table>
+            </TableHeader>
+            <TableBody>
+              {filtered.map((t: any) => (
+                <TableRow key={t.id}>
+                  <TableCell className="font-medium text-sm font-mono">{t.name}</TableCell>
+                  <TableCell><Badge variant="outline" className="text-[11px]">{t.category}</Badge></TableCell>
+                  <TableCell className="text-xs">{t.language}</TableCell>
+                  <TableCell><AdminStatusBadge status={STATUS_MAP[t.status] || 'pending'} /></TableCell>
+                  <TableCell className="text-xs text-muted-foreground">{new Date(t.updated_at).toLocaleDateString()}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        )}
       </CardContent>
     </Card>
   );

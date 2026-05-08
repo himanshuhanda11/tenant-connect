@@ -97,27 +97,35 @@ export function OverviewTab({ entitlements, isSuperAdmin, onToggle, onLimitChang
         </CardContent>
       </Card>
 
-      {/* Recent Activity Summary */}
+      {/* Live Stats */}
       <Card className="rounded-2xl shadow-sm border-border/50 md:col-span-2">
         <CardHeader className="pb-3">
           <CardTitle className="text-sm font-semibold flex items-center gap-2">
             <div className="h-7 w-7 rounded-lg bg-blue-50 flex items-center justify-center">
               <Activity className="h-3.5 w-3.5 text-blue-600" />
             </div>
-            Recent Activity
+            Workspace Activity
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-3">
             {[
-              { label: 'Messages (7d)', value: entitlements?.messages_7d ?? '—' },
-              { label: 'Active flows', value: entitlements?.active_flows ?? '—' },
-              { label: 'Templates approved', value: entitlements?.templates_approved ?? '—' },
-              { label: 'Campaigns sent', value: entitlements?.campaigns_sent ?? '—' },
+              { label: 'Team members', value: entitlements?.members_count ?? '—' },
+              { label: 'WhatsApp #', value: entitlements?.phones_count ?? '—' },
+              { label: 'Contacts', value: entitlements?.contacts_total ?? '—' },
+              { label: 'Conversations', value: entitlements?.conversations_total ?? '—' },
+              { label: 'Open chats', value: entitlements?.conversations_open ?? '—' },
+              { label: 'Messages today', value: entitlements?.messages_today ?? '—' },
+              { label: 'Inbound today', value: entitlements?.messages_inbound_today ?? '—' },
+              { label: 'Outbound today', value: entitlements?.messages_outbound_today ?? '—' },
+              { label: 'Messages 7d', value: entitlements?.messages_7d ?? '—' },
+              { label: 'Messages total', value: entitlements?.messages_total ?? '—' },
+              { label: 'Templates approved', value: `${entitlements?.templates_approved ?? 0}/${entitlements?.templates_total ?? 0}` },
+              { label: 'Campaigns', value: `${entitlements?.campaigns_running ?? 0} live · ${entitlements?.campaigns_total ?? 0} total` },
             ].map(s => (
-              <div key={s.label} className="text-center p-3 rounded-xl bg-muted/40">
-                <p className="text-lg font-bold">{s.value}</p>
-                <p className="text-[11px] text-muted-foreground">{s.label}</p>
+              <div key={s.label} className="p-3 rounded-xl bg-muted/40 border border-border/40">
+                <p className="text-base font-bold tabular-nums">{typeof s.value === 'number' ? s.value.toLocaleString() : s.value}</p>
+                <p className="text-[11px] text-muted-foreground mt-0.5">{s.label}</p>
               </div>
             ))}
           </div>
