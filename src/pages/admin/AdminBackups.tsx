@@ -41,6 +41,11 @@ interface BackupRun {
   duration_ms: number | null;
   created_at: string;
   completed_at: string | null;
+  started_at: string | null;
+  progress_percent: number | null;
+  current_step: string | null;
+  tables_done: number | null;
+  tables_total: number | null;
   downloaded_by: any[];
   drive_status: 'uploaded' | 'failed' | null;
   drive_file_id: string | null;
