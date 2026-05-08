@@ -203,11 +203,17 @@ export default function AdminBackups() {
         <Card>
           <CardContent className="pt-5">
             <div className="flex items-center justify-between">
-              <p className="text-xs uppercase tracking-wide text-muted-foreground">History</p>
-              <FileArchive className="h-4 w-4 text-muted-foreground" />
+              <p className="text-xs uppercase tracking-wide text-muted-foreground">Google Drive</p>
+              <Cloud className={`h-4 w-4 ${latest?.drive_status === 'uploaded' ? 'text-green-500' : 'text-muted-foreground'}`} />
             </div>
-            <p className="text-lg font-semibold mt-2">{successCount} / 30</p>
-            <p className="text-xs text-muted-foreground mt-0.5">Successful backups stored</p>
+            <p className="text-lg font-semibold mt-2 capitalize">
+              {latest?.drive_status === 'uploaded' ? 'Uploaded' : latest?.drive_status === 'failed' ? 'Failed' : '—'}
+            </p>
+            <p className="text-xs text-muted-foreground mt-0.5 truncate" title={latest?.drive_error || ''}>
+              {latest?.drive_web_link
+                ? <a href={latest.drive_web_link} target="_blank" rel="noreferrer" className="text-primary hover:underline">Open in Drive ↗</a>
+                : (latest?.drive_error || `${successCount} / 7 retained`)}
+            </p>
           </CardContent>
         </Card>
       </div>
