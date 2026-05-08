@@ -253,7 +253,13 @@ async function runBackup(req: Request, trigger: "manual" | "scheduled", actorId:
       }
     }
 
-    // ===== Storage: inventory + actual file bytes =====
+    // ===== Storage: inventory only (file bytes opt-in via ?include_storage=1) =====
+    // Storage byte downloads are skipped by default to keep the in-memory ZIP
+    // within the edge function memory budget. The full inventory (bucket, path,
+    // size, updated_at) is always included so an operator can re-download the
+    // live bytes during restore from the source bucket.
+    const url = new URL(req.url);
+    const includeStorageBytes = url.searchParams.get("include_storage") === "1";
     const { data: buckets } = await sb.storage.listBuckets();
     const storageInventory: any[] = [];
     const storageDownloaded: any[] = [];
@@ -265,6 +271,7 @@ async function runBackup(req: Request, trigger: "manual" | "scheduled", actorId:
       const objects = await walkBucket(sb, b.id);
       for (const obj of objects) {
         storageInventory.push({ bucket: b.id, ...obj });
+        if (!includeStorageBytes) continue;
         if (obj.size > MAX_FILE_BYTES) {
           storageSkipped.push({ bucket: b.id, name: obj.name, size: obj.size, reason: "exceeds_per_file_cap" });
           continue;
@@ -288,9 +295,10 @@ async function runBackup(req: Request, trigger: "manual" | "scheduled", actorId:
         }
       }
     }
-    filesObj["storage/file_list.json"] = strToU8(JSON.stringify(storageInventory, null, 2));
-    filesObj["storage/_downloaded.json"] = strToU8(JSON.stringify(storageDownloaded, null, 2));
-    filesObj["storage/_skipped.json"] = strToU8(JSON.stringify(storageSkipped, null, 2));
+    filesObj["storage/file_list.json"] = strToU8(JSON.stringify(storageInventory));
+    filesObj["storage/_downloaded.json"] = strToU8(JSON.stringify(storageDownloaded));
+    filesObj["storage/_skipped.json"] = strToU8(JSON.stringify(storageSkipped));
+    filesObj["storage/_mode.txt"] = strToU8(includeStorageBytes ? "bytes_included" : "inventory_only");
 
     // Environment snapshot
     // - .env: public/non-secret values only (safe to ship in backup)
