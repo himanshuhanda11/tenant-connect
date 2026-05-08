@@ -41,6 +41,10 @@ interface BackupRun {
   created_at: string;
   completed_at: string | null;
   downloaded_by: any[];
+  drive_status: 'uploaded' | 'failed' | null;
+  drive_file_id: string | null;
+  drive_web_link: string | null;
+  drive_error: string | null;
 }
 
 function fmtBytes(n: number | null | undefined) {
