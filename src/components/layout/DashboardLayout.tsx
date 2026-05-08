@@ -9,6 +9,7 @@ import { Loader2, Menu, X } from 'lucide-react';
 import { useAgentSessionTracker } from '@/hooks/useAgentPerformance';
 import { WhatsAppConnectBanner } from '@/components/dashboard/WhatsAppConnectBanner';
 import { MobileBottomNav } from './MobileBottomNav';
+import { PreviewWorkspaceBanner } from '@/components/admin/PreviewWorkspaceBanner';
 
 function MobileHeader() {
   const { toggleSidebar, state } = useSidebar();
