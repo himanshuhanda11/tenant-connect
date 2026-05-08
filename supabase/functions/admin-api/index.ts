@@ -55,7 +55,9 @@ async function requirePlatformRole(req: Request, allowed: string[]) {
     }
   }
 
-  return { user: { id: userId, email: userEmail }, role };
+  const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || req.headers.get("cf-connecting-ip") || null;
+  const user_agent = req.headers.get("user-agent") || null;
+  return { user: { id: userId, email: userEmail }, role, ip, user_agent };
 }
 
 async function logAction(sb: any, actor: any, action: string, details: any) {
@@ -69,6 +71,8 @@ async function logAction(sb: any, actor: any, action: string, details: any) {
     before_data: details.before || null,
     after_data: details.after || null,
     note: details.note || null,
+    ip: actor.ip || null,
+    user_agent: actor.user_agent || null,
   });
 }
 
@@ -911,7 +915,169 @@ Deno.serve(async (req: Request) => {
       });
     }
 
-    // GET /audit-logs
+    // GET /plans — list plans for plan-change modal
+    if (req.method === "GET" && path === "plans") {
+      await requirePlatformRole(req, ["super_admin", "support"]);
+      const sb = adminClient();
+      const { data } = await sb.from("platform_plans")
+        .select("id,name,price_monthly,price_yearly,limits,features,is_active,sort_order")
+        .order("sort_order", { ascending: true });
+      return new Response(JSON.stringify({ plans: data || [] }),
+        { headers: { ...corsHeaders, "content-type": "application/json" } });
+    }
+
+    // GET /workspaces/:id/entitlements — current entitlement snapshot
+    if (req.method === "GET" && path.match(/^workspaces\/[^/]+\/entitlements$/)) {
+      await requirePlatformRole(req, ["super_admin", "support"]);
+      const sb = adminClient();
+      const wid = path.split("/")[1];
+      const { data: ent } = await sb.from("workspace_entitlements").select("*").eq("workspace_id", wid).maybeSingle();
+      const { data: tenant } = await sb.from("tenants").select("id, name, slug, billing_email").eq("id", wid).maybeSingle();
+      return new Response(JSON.stringify({ entitlement: ent, tenant }),
+        { headers: { ...corsHeaders, "content-type": "application/json" } });
+    }
+
+    // POST /workspaces/:id/entitlements — advanced plan/limits update with full before/after audit
+    if (req.method === "POST" && path.match(/^workspaces\/[^/]+\/entitlements$/)) {
+      const wid = path.split("/")[1];
+      const actor = await requirePlatformRole(req, ["super_admin"]);
+      const sb = adminClient();
+      const body = await req.json();
+      const reason: string = (body.reason || "").toString().slice(0, 500);
+      if (!reason || reason.length < 4) throw new Error("Reason (min 4 chars) is required for plan/limit changes");
+
+      const { data: before } = await sb.from("workspace_entitlements").select("*").eq("workspace_id", wid).maybeSingle();
+
+      // Whitelist of mutable columns — never accept raw SQL or arbitrary keys
+      const allowed = [
+        "plan", "status", "billing_cycle", "expires_at", "trial_ends_at",
+        "monthly_conversation_limit", "monthly_broadcast_limit", "monthly_template_limit",
+        "monthly_flow_limit", "team_member_limit", "campaign_limit", "ai_usage_limit",
+        "enable_ai", "enable_ads", "enable_integrations", "enable_autoforms",
+        "sending_paused", "internal_admin_note",
+      ];
+      const patch: Record<string, any> = {};
+      for (const k of allowed) if (k in body) patch[k] = body[k];
+
+      // Validate billing_cycle
+      if (patch.billing_cycle && !["monthly","quarterly","yearly","lifetime","trial"].includes(patch.billing_cycle)) {
+        throw new Error("Invalid billing_cycle");
+      }
+      if (patch.status && !["active","suspended","closed"].includes(patch.status)) {
+        throw new Error("Invalid status");
+      }
+
+      // If plan changed, hydrate defaults from platform_plans (limits column)
+      if (patch.plan && patch.plan !== before?.plan) {
+        const { data: plan } = await sb.from("platform_plans").select("*").eq("id", patch.plan).maybeSingle();
+        if (!plan) throw new Error(`Unknown plan: ${patch.plan}`);
+        const lim = plan.limits || {};
+        const toInt = (v: any) => (v === 'unlimited' || v === null || v === undefined) ? -1 : (typeof v === 'number' ? v : parseInt(v) || -1);
+        patch.monthly_conversation_limit ??= toInt(lim.monthly_messages);
+        patch.monthly_broadcast_limit ??= toInt(lim.monthly_broadcasts);
+        patch.monthly_template_limit ??= toInt(lim.monthly_templates);
+        patch.monthly_flow_limit ??= toInt(lim.flows);
+        patch.team_member_limit ??= toInt(lim.team_members);
+        patch.enable_ai ??= lim.ai_features !== 'none' && lim.ai_features !== false;
+      }
+
+      patch.updated_by = actor.user.id;
+      patch.updated_at = new Date().toISOString();
+
+      const { data: after, error } = await sb.from("workspace_entitlements")
+        .upsert({ workspace_id: wid, ...patch }, { onConflict: "workspace_id" })
+        .select().single();
+      if (error) throw new Error(error.message);
+
+      await logAction(sb, actor, "PLATFORM_ENTITLEMENTS_UPDATED", {
+        workspace_id: wid, target_table: "workspace_entitlements", target_id: wid,
+        before, after, note: reason,
+      });
+      return new Response(JSON.stringify({ success: true, entitlement: after }),
+        { headers: { ...corsHeaders, "content-type": "application/json" } });
+    }
+
+    // POST /users/:id/profile — safe profile edit (validated whitelist)
+    if (req.method === "POST" && path.match(/^users\/[^/]+\/profile$/)) {
+      const uid = path.split("/")[1];
+      const actor = await requirePlatformRole(req, ["super_admin"]);
+      const sb = adminClient();
+      const body = await req.json();
+      const reason: string = (body.reason || "").toString().slice(0, 500);
+      if (!reason || reason.length < 4) throw new Error("Reason required");
+
+      const { data: before } = await sb.from("profiles").select("*").eq("id", uid).maybeSingle();
+
+      const allowed = ["full_name", "company_name", "country", "industry", "team_size", "timezone", "phone"];
+      const patch: Record<string, any> = {};
+      for (const k of allowed) {
+        if (k in body) {
+          const v = body[k];
+          if (typeof v === "string" && v.length > 200) throw new Error(`${k} too long`);
+          patch[k] = v;
+        }
+      }
+      const { data: after, error } = await sb.from("profiles")
+        .update(patch).eq("id", uid).select().maybeSingle();
+      if (error) throw new Error(error.message);
+
+      await logAction(sb, actor, "PLATFORM_PROFILE_UPDATED", {
+        target_table: "profiles", target_id: uid, before, after, note: reason,
+      });
+      return new Response(JSON.stringify({ success: true, profile: after }),
+        { headers: { ...corsHeaders, "content-type": "application/json" } });
+    }
+
+    // POST /workspaces/:id/settings — safe workspace edit
+    if (req.method === "POST" && path.match(/^workspaces\/[^/]+\/settings$/)) {
+      const wid = path.split("/")[1];
+      const actor = await requirePlatformRole(req, ["super_admin"]);
+      const sb = adminClient();
+      const body = await req.json();
+      const reason: string = (body.reason || "").toString().slice(0, 500);
+      if (!reason || reason.length < 4) throw new Error("Reason required");
+
+      const { data: before } = await sb.from("tenants").select("*").eq("id", wid).maybeSingle();
+      const allowed = ["name", "slug", "billing_email", "billing_address", "timezone"];
+      const patch: Record<string, any> = {};
+      for (const k of allowed) if (k in body) patch[k] = body[k];
+
+      const { data: after, error } = await sb.from("tenants")
+        .update(patch).eq("id", wid).select().maybeSingle();
+      if (error) throw new Error(error.message);
+
+      await logAction(sb, actor, "PLATFORM_WORKSPACE_UPDATED", {
+        workspace_id: wid, target_table: "tenants", target_id: wid, before, after, note: reason,
+      });
+      return new Response(JSON.stringify({ success: true, tenant: after }),
+        { headers: { ...corsHeaders, "content-type": "application/json" } });
+    }
+
+    // GET /users/:id/health — composite health score + alerts
+    if (req.method === "GET" && path.match(/^users\/[^/]+\/health$/)) {
+      const uid = path.split("/")[1];
+      await requirePlatformRole(req, ["super_admin", "support"]);
+      const sb = adminClient();
+      const { data: row } = await sb.from("platform_account_health").select("*").eq("user_id", uid).maybeSingle();
+      if (!row) return new Response(JSON.stringify({ health: null, alerts: [] }),
+        { headers: { ...corsHeaders, "content-type": "application/json" } });
+
+      const alerts: { level: 'critical'|'warning'|'info'; key: string; message: string }[] = [];
+      if (!row.email_confirmed_at) alerts.push({ level: 'warning', key: 'email_unconfirmed', message: 'Email not verified' });
+      if (row.workspace_count === 0) alerts.push({ level: 'critical', key: 'no_workspace', message: 'No workspace created' });
+      if (row.workspace_count > 0 && row.connected_phone_count === 0) alerts.push({ level: 'critical', key: 'no_whatsapp', message: 'No WhatsApp number connected' });
+      if (row.waba_issues > 0) alerts.push({ level: 'warning', key: 'waba_issues', message: `${row.waba_issues} WABA(s) not active` });
+      if (row.low_quality_phones > 0) alerts.push({ level: 'warning', key: 'low_quality', message: `${row.low_quality_phones} phone(s) with low quality rating` });
+      if (row.expired_plans > 0) alerts.push({ level: 'critical', key: 'expired_plan', message: `${row.expired_plans} expired plan(s)` });
+      if (row.banned_until && new Date(row.banned_until) > new Date()) alerts.push({ level: 'critical', key: 'suspended', message: 'Account suspended' });
+      if (row.last_sign_in_at && new Date(row.last_sign_in_at) < new Date(Date.now() - 30 * 86400_000)) {
+        alerts.push({ level: 'info', key: 'inactive_30d', message: 'Inactive for 30+ days' });
+      }
+      const status = row.health_score >= 80 ? 'healthy' : row.health_score >= 50 ? 'warning' : 'critical';
+      return new Response(JSON.stringify({ health: { ...row, status }, alerts }),
+        { headers: { ...corsHeaders, "content-type": "application/json" } });
+    }
+
     if (req.method === "GET" && path === "audit-logs") {
       const actor = await requirePlatformRole(req, ["super_admin", "support"]);
       const sb = adminClient();
@@ -922,7 +1088,17 @@ Deno.serve(async (req: Request) => {
       const workspaceFilter = url.searchParams.get("workspace_id");
       if (workspaceFilter) query = query.eq("workspace_id", workspaceFilter);
       const actionFilter = url.searchParams.get("action");
-      if (actionFilter) query = query.eq("action", actionFilter);
+      if (actionFilter) query = query.ilike("action", `%${actionFilter}%`);
+      const actorFilter = url.searchParams.get("actor_user_id");
+      if (actorFilter) query = query.eq("actor_user_id", actorFilter);
+      const targetFilter = url.searchParams.get("target_id");
+      if (targetFilter) query = query.eq("target_id", targetFilter);
+      const since = url.searchParams.get("since");
+      if (since) query = query.gte("created_at", since);
+      const until = url.searchParams.get("until");
+      if (until) query = query.lte("created_at", until);
+      const search = url.searchParams.get("q");
+      if (search) query = query.ilike("note", `%${search}%`);
       const { data, count } = await query.order("created_at", { ascending: false }).range(offset, offset + limit - 1);
       return new Response(JSON.stringify({ logs: data, total: count, page, limit }), {
         headers: { ...corsHeaders, "content-type": "application/json" },

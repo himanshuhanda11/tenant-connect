@@ -22,6 +22,8 @@ import {
 import { useAdminApi } from '@/hooks/useAdminApi';
 import { toast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
+import { PlanChangeModal } from './PlanChangeModal';
+import { ProfileEditModal } from './ProfileEditModal';
 
 interface Props { userId: string | null; onClose: () => void; }
 
@@ -46,6 +48,8 @@ export function AccountDetailsDrawer({ userId, onClose }: Props) {
   const [confirm, setConfirm] = useState<DangerAction>(null);
   const [activityFilter, setActivityFilter] = useState('');
   const [activityType, setActivityType] = useState<string>('all');
+  const [planModalWs, setPlanModalWs] = useState<{ id: string; name: string } | null>(null);
+  const [editProfileOpen, setEditProfileOpen] = useState(false);
 
   const load = async (silent = false) => {
     if (!userId) return;
@@ -480,6 +484,12 @@ export function AccountDetailsDrawer({ userId, onClose }: Props) {
                       run: () => post(`users/${userId}/delete`, {}),
                       successMsg: 'Account deleted',
                     })} />
+                  <ActionBtn icon={UserCircle2} label="Edit profile"
+                    onClick={() => setEditProfileOpen(true)} />
+                  {workspaces[0] && (
+                    <ActionBtn icon={CreditCard} label="Change plan" tone="emerald"
+                      onClick={() => setPlanModalWs({ id: workspaces[0].workspace_id, name: workspaces[0].workspace_name })} />
+                  )}
                 </div>
 
                 <div className="text-xs uppercase tracking-widest text-muted-foreground font-semibold pt-2">Quick note</div>
@@ -585,6 +595,22 @@ export function AccountDetailsDrawer({ userId, onClose }: Props) {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <PlanChangeModal
+        workspaceId={planModalWs?.id || null}
+        workspaceName={planModalWs?.name}
+        onClose={() => setPlanModalWs(null)}
+        onSaved={() => load(true)}
+      />
+      {p && (
+        <ProfileEditModal
+          open={editProfileOpen}
+          onClose={() => setEditProfileOpen(false)}
+          onSaved={() => load(true)}
+          userId={userId}
+          profile={p}
+        />
+      )}
     </Sheet>
   );
 }
