@@ -239,12 +239,14 @@ async function runBackup(req: Request, trigger: "manual" | "scheduled", actorId:
     let okTables = 0;
     const tableErrors: Record<string, string> = {};
 
-    // Per-table CSV + JSON (auto-discovered)
+    // Per-table JSON (auto-discovered). JSON is the canonical restore format
+    // (CSV produced on demand from JSON during restore). Skipping CSV here
+    // halves memory pressure and keeps the in-memory ZIP within the edge
+    // function memory budget.
     for (const t of tables) {
       try {
         const rows = await fetchAllRows(sb, t);
-        filesObj[`tables/csv/${t}.csv`] = strToU8(toCSV(rows));
-        filesObj[`tables/json/${t}.json`] = strToU8(JSON.stringify(rows, null, 2));
+        filesObj[`tables/json/${t}.json`] = strToU8(JSON.stringify(rows));
         okTables++;
       } catch (e: any) {
         tableErrors[t] = String(e?.message || e);
