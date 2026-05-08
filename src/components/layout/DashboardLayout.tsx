@@ -107,10 +107,12 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   useEffect(() => {
     // After refresh/login we may not have a selected workspace yet.
     // Always route through the workspace selector instead of forcing creation.
+    // Skip in preview mode — the previewed tenant is loaded async.
+    if (isPreview) return;
     if (!authLoading && !tenantLoading && user && !currentTenant && onboardingChecked) {
       navigate('/select-workspace');
     }
-  }, [user, authLoading, tenantLoading, currentTenant, onboardingChecked, navigate]);
+  }, [user, authLoading, tenantLoading, currentTenant, onboardingChecked, navigate, isPreview]);
 
   // Show loading while auth or tenant data is being fetched
   if (authLoading || tenantLoading || !onboardingChecked) {
