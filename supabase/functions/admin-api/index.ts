@@ -847,6 +847,18 @@ Deno.serve(async (req: Request) => {
         sb.from("tenant_members").select("user_id, created_at").eq("tenant_id", workspaceId).eq("role", "owner").order("created_at", { ascending: true }).maybeSingle(),
       ]);
 
+      // Manually attach profiles (no FK between tenant_members.user_id and profiles)
+      {
+        const userIds = (members.data || []).map((m: any) => m.user_id).filter(Boolean);
+        if (userIds.length > 0) {
+          const { data: profs } = await sb.from("profiles")
+            .select("id, email, full_name, company_name, website_url, country, phone_number, industry, team_size, timezone, created_at")
+            .in("id", userIds);
+          const byId = new Map((profs || []).map((p: any) => [p.id, p]));
+          members.data = (members.data || []).map((m: any) => ({ ...m, profiles: byId.get(m.user_id) || null }));
+        }
+      }
+
       // Owner profile
       let ownerProfile: any = null;
       if (ownerMember.data?.user_id) {
