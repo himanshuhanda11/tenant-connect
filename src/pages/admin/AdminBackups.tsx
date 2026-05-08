@@ -321,7 +321,7 @@ export default function AdminBackups() {
           ) : runs.length === 0 ? (
             <div className="text-center py-12">
               <FileArchive className="h-10 w-10 mx-auto text-muted-foreground/50 mb-3" />
-              <p className="text-sm text-muted-foreground">No backups yet. Click "Run backup now" to create your first one.</p>
+              <p className="text-sm text-muted-foreground">No snapshots yet. Click "Run snapshot now" to create your first one.</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
