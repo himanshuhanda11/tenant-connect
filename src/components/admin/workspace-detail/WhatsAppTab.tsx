@@ -37,7 +37,7 @@ export function WhatsAppTab({ phones, workspacePhone, isSuperAdmin, workspaceId,
     setProcessing(true);
     try {
       // Soft delete: mark as disconnected but keep all associated data (chats, contacts, etc.)
-      toast({ title: 'Number disconnected', description: `${deleteDialog.phone.phone_e164} has been disconnected. All associated chats and contacts are preserved.` });
+      toast({ title: 'Number disconnected', description: `${deleteDialog.phone.display_number} has been disconnected. All associated chats and contacts are preserved.` });
       setDeleteDialog({ open: false });
       onRefresh?.();
     } catch (e: any) {
@@ -156,8 +156,8 @@ export function WhatsAppTab({ phones, workspacePhone, isSuperAdmin, workspaceId,
             <TableBody>
               {phones.map((p: any) => (
                 <TableRow key={p.id}>
-                  <TableCell className="font-medium text-sm">{p.display_name || '—'}</TableCell>
-                  <TableCell className="font-mono text-sm">{p.phone_e164}</TableCell>
+                  <TableCell className="font-medium text-sm">{p.verified_name || '—'}</TableCell>
+                  <TableCell className="font-mono text-sm">{p.display_number}</TableCell>
                   <TableCell>
                     <AdminStatusBadge status={p.status === 'connected' ? 'connected' : 'pending'} />
                   </TableCell>
@@ -169,7 +169,7 @@ export function WhatsAppTab({ phones, workspacePhone, isSuperAdmin, workspaceId,
                     ) : <span className="text-xs text-muted-foreground">—</span>}
                   </TableCell>
                   <TableCell className="text-xs text-muted-foreground">
-                    {p.last_message_at ? new Date(p.last_message_at).toLocaleString() : '—'}
+                    {p.last_webhook_at ? new Date(p.last_webhook_at).toLocaleString() : '—'}
                   </TableCell>
                   <TableCell>
                     <DropdownMenu>
@@ -225,7 +225,7 @@ export function WhatsAppTab({ phones, workspacePhone, isSuperAdmin, workspaceId,
               Delete Phone Number
             </DialogTitle>
             <DialogDescription>
-              This will disconnect <span className="font-mono font-medium">{deleteDialog.phone?.phone_e164}</span> from this workspace. 
+              This will disconnect <span className="font-mono font-medium">{deleteDialog.phone?.display_number}</span> from this workspace. 
               All chats, contacts, and conversation history will be preserved.
             </DialogDescription>
           </DialogHeader>

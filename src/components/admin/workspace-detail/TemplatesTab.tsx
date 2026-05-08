@@ -15,12 +15,12 @@ const STATUS_MAP: Record<string, 'active' | 'suspended' | 'pending'> = {
   IN_APPEAL: 'pending',
 };
 
-interface Props { workspaceId?: string }
+interface Props { workspaceId?: string; templates?: any[] }
 
-export function TemplatesTab({ workspaceId }: Props = {}) {
+export function TemplatesTab({ workspaceId, templates: templatesProp }: Props = {}) {
   const [filter, setFilter] = useState<string>('all');
 
-  const { data: templates = [], isLoading } = useQuery({
+  const { data: fetched = [], isLoading } = useQuery({
     queryKey: ['admin-templates', workspaceId],
     queryFn: async () => {
       if (!workspaceId) return [];
@@ -33,8 +33,10 @@ export function TemplatesTab({ workspaceId }: Props = {}) {
       if (error) throw error;
       return data || [];
     },
-    enabled: !!workspaceId,
+    enabled: !!workspaceId && !templatesProp,
   });
+
+  const templates = templatesProp ?? fetched;
 
   const filtered = templates.filter((t: any) => filter === 'all' || t.status === filter);
 

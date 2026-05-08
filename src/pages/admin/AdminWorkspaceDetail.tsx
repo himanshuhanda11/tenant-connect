@@ -37,6 +37,8 @@ export default function AdminWorkspaceDetail() {
   const [owner, setOwner] = useState<any>(null);
   const [stats, setStats] = useState<any>(null);
   const [auditLogs, setAuditLogs] = useState<any[]>([]);
+  const [templates, setTemplates] = useState<any[]>([]);
+  const [campaigns, setCampaigns] = useState<any[]>([]);
   const [suspendDialog, setSuspendDialog] = useState(false);
   const [suspendReason, setSuspendReason] = useState('');
 
@@ -51,6 +53,8 @@ export default function AdminWorkspaceDetail() {
       setWaba(data.waba || null);
       setOwner(data.owner || null);
       setStats(data.stats || null);
+      setTemplates(data.templates || []);
+      setCampaigns(data.campaigns || []);
     }).catch(() => {});
 
     get(`audit-logs?workspace_id=${id}`).then(data => {
@@ -175,10 +179,10 @@ export default function AdminWorkspaceDetail() {
           />
         </TabsContent>
         <TabsContent value="templates" className="mt-4">
-          <TemplatesTab workspaceId={id} />
+          <TemplatesTab workspaceId={id} templates={templates} />
         </TabsContent>
         <TabsContent value="campaigns" className="mt-4">
-          <CampaignsTab isSuperAdmin={isSuperAdmin} workspaceId={id} />
+          <CampaignsTab isSuperAdmin={isSuperAdmin} workspaceId={id} campaigns={campaigns} />
         </TabsContent>
         <TabsContent value="integrations" className="mt-4">
           <IntegrationsTab isSuperAdmin={isSuperAdmin} />

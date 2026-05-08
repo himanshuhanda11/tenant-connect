@@ -14,12 +14,13 @@ import { supabase } from '@/integrations/supabase/client';
 interface CampaignsTabProps {
   isSuperAdmin: boolean;
   workspaceId?: string;
+  campaigns?: any[];
 }
 
-export function CampaignsTab({ isSuperAdmin, workspaceId }: CampaignsTabProps) {
+export function CampaignsTab({ isSuperAdmin, workspaceId, campaigns: campaignsProp }: CampaignsTabProps) {
   const [pauseAllDialog, setPauseAllDialog] = useState(false);
 
-  const { data: campaigns = [], isLoading } = useQuery({
+  const { data: fetched = [], isLoading } = useQuery({
     queryKey: ['admin-campaigns', workspaceId],
     queryFn: async () => {
       if (!workspaceId) return [];
@@ -32,8 +33,10 @@ export function CampaignsTab({ isSuperAdmin, workspaceId }: CampaignsTabProps) {
       if (error) throw error;
       return data || [];
     },
-    enabled: !!workspaceId,
+    enabled: !!workspaceId && !campaignsProp,
   });
+
+  const campaigns = campaignsProp ?? fetched;
 
   return (
     <>
