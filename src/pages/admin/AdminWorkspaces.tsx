@@ -530,6 +530,16 @@ export default function AdminWorkspaces() {
                               }}>
                                 <Mail className="h-3.5 w-3.5 mr-2" /> Send signup reminder
                               </DropdownMenuItem>
+                              <DropdownMenuItem onClick={async () => {
+                                try {
+                                  await post(`users/${String(w.workspace_id).slice('signup:'.length)}/send-reminder`, { type: 'workspace' });
+                                  toast({ title: 'Reminder sent', description: `Create-workspace email sent to ${w.owner_email}` });
+                                } catch (e: any) {
+                                  toast({ title: 'Failed', description: e.message, variant: 'destructive' });
+                                }
+                              }}>
+                                <Mail className="h-3.5 w-3.5 mr-2" /> Send workspace reminder
+                              </DropdownMenuItem>
                               {isSuperAdmin && (
                                 <>
                                   <DropdownMenuSeparator />
