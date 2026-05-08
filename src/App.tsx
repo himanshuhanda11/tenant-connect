@@ -373,6 +373,7 @@ const App = () => (
                 </Suspense>
               </ThemeProvider>
             </TenantProvider>
+            </PreviewWorkspaceProvider>
           </AuthProvider>
         </BrowserRouter>
       </TooltipProvider>
