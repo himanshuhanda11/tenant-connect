@@ -22,6 +22,8 @@ import {
 import { useAdminApi } from '@/hooks/useAdminApi';
 import { toast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
+import { PlanChangeModal } from './PlanChangeModal';
+import { ProfileEditModal } from './ProfileEditModal';
 
 interface Props { userId: string | null; onClose: () => void; }
 
