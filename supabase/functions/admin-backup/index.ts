@@ -9,7 +9,7 @@
 // the `database-backups` storage bucket, and inserts into platform_backup_runs.
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { Zip, ZipPassThrough, ZipDeflate, strToU8 } from "https://esm.sh/fflate@0.8.2";
+import { Zip, ZipPassThrough, strToU8 } from "https://esm.sh/fflate@0.8.2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -23,6 +23,8 @@ const ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
 // Tables are auto-discovered from information_schema so newly added
 // tables are automatically backed up. Exclude noisy/self tables.
 const TABLE_EXCLUDE = new Set<string>(["platform_backup_runs"]);
+const STALE_PENDING_MS = 10 * 60 * 1000;
+const STUCK_ZERO_PROGRESS_MS = 2 * 60 * 1000;
 
 // Per-file cap (skip giant single objects); total storage cap keeps ZIP sane.
 // Edge functions have a hard ~256MB memory ceiling. Keep totals well below that
@@ -329,7 +331,7 @@ async function runBackup(reqUrl: string, trigger: "manual" | "scheduled", actorI
         tables_done: idx - 1,
         progress_percent: Math.min(80, Math.round((idx - 1) / Math.max(1, tables.length) * 80) + 2),
       });
-      const entry = new ZipDeflate(`tables/json/${t}.jsonl`, { level: 1 });
+      const entry = new ZipPassThrough(`tables/json/${t}.jsonl`);
       zip.add(entry);
       const { total, error } = await streamTableRows(sb, t, (rows) => {
         const chunk = rows.map((r) => JSON.stringify(r)).join("\n") + "\n";
@@ -553,6 +555,30 @@ async function runBackup(reqUrl: string, trigger: "manual" | "scheduled", actorI
   }
 }
 
+async function failStaleBackupRuns(sb: any) {
+  const now = new Date().toISOString();
+  await sb
+    .from("platform_backup_runs")
+    .update({
+      status: "failed",
+      error_message: "Auto-failed: backup worker did not report progress within 2 minutes",
+      completed_at: now,
+    })
+    .eq("status", "pending")
+    .lte("progress_percent", 0)
+    .lt("created_at", new Date(Date.now() - STUCK_ZERO_PROGRESS_MS).toISOString());
+
+  await sb
+    .from("platform_backup_runs")
+    .update({
+      status: "failed",
+      error_message: "Auto-failed: backup worker did not finish within 10 minutes",
+      completed_at: now,
+    })
+    .eq("status", "pending")
+    .lt("created_at", new Date(Date.now() - STALE_PENDING_MS).toISOString());
+}
+
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
@@ -564,21 +590,33 @@ Deno.serve(async (req: Request) => {
     if (req.method === "POST" && path === "run") {
       const { userId, cron } = await requireSuperAdminOrCron(req);
 
-      // Auto-fail any stale pending rows so we never have multiple "running" entries
-      await sb
-        .from("platform_backup_runs")
-        .update({
-          status: "failed",
-          error_message: "Auto-failed: previous run did not report progress within 10 minutes",
-          completed_at: new Date().toISOString(),
-        })
-        .eq("status", "pending")
-        .lt("created_at", new Date(Date.now() - 10 * 60 * 1000).toISOString());
+      await failStaleBackupRuns(sb);
 
       // Pre-create a pending run row, fully initialized so the UI shows progress
       // immediately even before the background worker writes its first update.
       const { data: tables } = await sb.rpc("backup_list_public_tables");
-      const tableList = (tables || []).map((r: any) => r.table_name);
+      const tableList = (tables || []).map((r: any) => r.table_name).filter((t: string) => !TABLE_EXCLUDE.has(t));
+
+      const { data: activeRun } = await sb
+        .from("platform_backup_runs")
+        .select("id,status,progress_percent,current_step,tables_done,tables_total,started_at,created_at")
+        .eq("status", "pending")
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (activeRun) {
+        const normalizedRun = {
+          ...activeRun,
+          progress_percent: Math.max(1, Number(activeRun.progress_percent || 0)),
+          current_step: activeRun.current_step || "Queued — waiting for backup worker…",
+          started_at: activeRun.started_at || activeRun.created_at,
+          tables_total: Number(activeRun.tables_total || 0) || tableList.length,
+        };
+        return new Response(
+          JSON.stringify({ ok: true, run_id: activeRun.id, status: "pending", message: "Backup already running. Tracking existing progress.", run: normalizedRun }),
+          { status: 202, headers: { ...corsHeaders, "content-type": "application/json" } },
+        );
+      }
       const { data: run } = await sb
         .from("platform_backup_runs")
         .insert({
@@ -623,16 +661,7 @@ Deno.serve(async (req: Request) => {
     if (req.method === "GET" && path === "list") {
       await requireSuperAdminOrCron(req);
 
-      // Auto-fail stale pending rows so the history doesn't show ghost "Running…" entries
-      await sb
-        .from("platform_backup_runs")
-        .update({
-          status: "failed",
-          error_message: "Auto-failed: backup worker did not report progress within 10 minutes",
-          completed_at: new Date().toISOString(),
-        })
-        .eq("status", "pending")
-        .lt("created_at", new Date(Date.now() - 10 * 60 * 1000).toISOString());
+      await failStaleBackupRuns(sb);
 
       const { data } = await sb
         .from("platform_backup_runs")
