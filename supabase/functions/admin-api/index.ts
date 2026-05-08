@@ -1793,6 +1793,21 @@ Deno.serve(async (req: Request) => {
       const deleteType = body.type || 'soft';
       const reason = body.reason || '';
 
+      // GUARD: block deletion if a WhatsApp phone number is still connected.
+      if (!workspaceId.startsWith("signup:")) {
+        const { data: phones } = await sb.from("phone_numbers")
+          .select("id,display_number,phone_number_id")
+          .eq("tenant_id", workspaceId);
+        if ((phones || []).length > 0) {
+          const numbers = (phones || []).map((p: any) => p.display_number || p.phone_number_id).join(", ");
+          return new Response(JSON.stringify({
+            error: `This workspace still has ${phones!.length} WhatsApp number(s) connected: ${numbers}. Please disconnect or delete the phone number(s) first.`,
+            code: "PHONE_CONNECTED",
+            phones,
+          }), { status: 400, headers: { ...corsHeaders, "content-type": "application/json" } });
+        }
+      }
+
       // Orphan signup rows have synthetic IDs like "signup:<profile_uuid>" — they
       // are not tenants. Handle them by clearing the related profile data only.
       if (workspaceId.startsWith("signup:")) {
