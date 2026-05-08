@@ -532,7 +532,11 @@ async function runBackup(_reqUrl: string, trigger: "manual" | "scheduled", actor
       })
       .eq("id", runId);
 
-    await sb.rpc("cleanup_old_backups").catch(() => {});
+    try {
+      await sb.rpc("cleanup_old_backups");
+    } catch (e: any) {
+      console.warn("[backup] cleanup_old_backups failed:", e?.message || e);
+    }
     if (driveResult.ok) {
       await cleanupDriveOldBackups((driveResult as any).folderId).catch((e: any) =>
         console.warn("[backup] drive cleanup failed:", e?.message),
