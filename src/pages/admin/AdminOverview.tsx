@@ -246,7 +246,29 @@ export default function AdminOverview() {
           onClick={() => navigate('/control/phone-numbers')} />
       </div>
 
-      {/* Growth strip */}
+      {/* Tertiary KPIs — Revenue, WABA, Messaging, Health */}
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
+        <KPI label="Revenue · 30d"
+          value={(t.revenue30d ?? 0) > 0 ? `₹${((t.revenue30d ?? 0) / 100).toLocaleString()}` : '—'}
+          subtitle={`${t.paymentsSucceeded ?? 0} paid · ${t.paymentsFailed ?? 0} failed`}
+          icon={CreditCard} gradient="linear-gradient(135deg,#22c55e,#16a34a)"
+          onClick={() => navigate('/control/billing')} />
+        <KPI label="WABA Accounts" value={(t.totalWaba ?? 0).toLocaleString()}
+          subtitle={`${t.activeWaba ?? 0} active · ${t.pendingWaba ?? 0} pending`}
+          icon={Building2} gradient="linear-gradient(135deg,#0ea5e9,#0284c7)"
+          onClick={() => navigate('/control/phone-numbers')} />
+        <KPI label="Trial Plans" value={(t.trialPlans ?? 0).toLocaleString()}
+          subtitle="In trial period"
+          icon={Sparkles} gradient="linear-gradient(135deg,#a855f7,#7c3aed)" />
+        <KPI label="Expired Plans" value={(t.expiredPlans ?? 0).toLocaleString()}
+          subtitle="Need re-activation"
+          icon={AlertTriangle} gradient="linear-gradient(135deg,#f97316,#ea580c)"
+          onClick={() => navigate('/control/billing')} />
+        <KPI label="Messages Today" value={(t.messagesToday ?? 0).toLocaleString()}
+          subtitle={`${(t.inactiveAccounts ?? 0)} inactive users`}
+          icon={MessageSquare} gradient="linear-gradient(135deg,#06b6d4,#0891b2)" />
+      </div>
+
       <Card className="rounded-2xl border-border/50">
         <CardContent className="p-5">
           <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
