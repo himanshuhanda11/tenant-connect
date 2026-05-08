@@ -307,6 +307,8 @@ Deno.serve(async (req: Request) => {
           totalWaba, activeWaba, pendingWaba,
           expiredPlans, trialPlans,
           messagesToday, inactiveAccounts,
+          messagesInbound24h, messagesOutbound24h,
+          subAccountsCount,
           revenue30d, paymentsSucceeded, paymentsFailed,
         },
         growth: {
@@ -321,6 +323,7 @@ Deno.serve(async (req: Request) => {
           { name: "No Number", value: workspacesWithoutPhone },
         ],
         phoneStatusDetail,
+        conversationsByWorkspace,
         recentActivity: activity || [],
       }), { headers: { ...corsHeaders, "content-type": "application/json" } });
     }
