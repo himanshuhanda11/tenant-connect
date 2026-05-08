@@ -477,6 +477,8 @@ async function runBackup(req: Request, trigger: "manual" | "scheduled", actorId:
       drive: driveResult,
     };
   } catch (e: any) {
+    try { await writer.close(); } catch { /* ignore */ }
+    try { await Deno.remove(tmpPath); } catch { /* ignore */ }
     await sb
       .from("platform_backup_runs")
       .update({
