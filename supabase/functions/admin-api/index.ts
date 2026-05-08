@@ -1625,6 +1625,158 @@ Deno.serve(async (req: Request) => {
       });
     }
 
+    // GET /workspaces/:id/team-detail — full member info with last sign-in for accordion
+    if (req.method === "GET" && path.match(/^workspaces\/[^/]+\/team-detail$/)) {
+      await requirePlatformRole(req, ["super_admin", "support"]);
+      const workspaceId = path.split("/")[1];
+      const sb = adminClient();
+      const { data: members } = await sb
+        .from("tenant_members")
+        .select("id, user_id, role, created_at, profiles(email, full_name, avatar_url, phone_number)")
+        .eq("tenant_id", workspaceId);
+      // last sign-in
+      const ids = (members || []).map((m: any) => m.user_id);
+      const lastSignIn: Record<string, string | null> = {};
+      if (ids.length) {
+        const { data: usersList } = await sb.auth.admin.listUsers({ page: 1, perPage: 1000 });
+        for (const u of usersList?.users || []) {
+          if (ids.includes(u.id)) lastSignIn[u.id] = (u as any).last_sign_in_at || null;
+        }
+      }
+      return new Response(JSON.stringify({
+        members: (members || []).map((m: any) => ({ ...m, last_sign_in_at: lastSignIn[m.user_id] || null })),
+      }), { headers: { ...corsHeaders, "content-type": "application/json" } });
+    }
+
+    // POST /workspaces/:id/members/:memberId/remove
+    if (req.method === "POST" && path.match(/^workspaces\/[^/]+\/members\/[^/]+\/remove$/)) {
+      const parts = path.split("/");
+      const workspaceId = parts[1];
+      const memberId = parts[3];
+      const actor = await requirePlatformRole(req, ["super_admin"]);
+      const sb = adminClient();
+      const { data: m } = await sb.from("tenant_members").select("*").eq("id", memberId).single();
+      if (!m) throw new Error("Member not found");
+      if (m.role === "owner") throw new Error("Cannot remove the owner. Transfer ownership first.");
+      const { error } = await sb.from("tenant_members").delete().eq("id", memberId);
+      if (error) throw new Error(error.message);
+      await logAction(sb, actor, "PLATFORM_MEMBER_REMOVED", {
+        workspace_id: workspaceId, target_table: "tenant_members", target_id: memberId,
+        before: m, note: `Removed member ${m.user_id}`,
+      });
+      return new Response(JSON.stringify({ success: true }), {
+        headers: { ...corsHeaders, "content-type": "application/json" },
+      });
+    }
+
+    // POST /workspaces/:id/members/:memberId/change-role { role }
+    if (req.method === "POST" && path.match(/^workspaces\/[^/]+\/members\/[^/]+\/change-role$/)) {
+      const parts = path.split("/");
+      const workspaceId = parts[1];
+      const memberId = parts[3];
+      const body = await req.json();
+      const actor = await requirePlatformRole(req, ["super_admin"]);
+      const sb = adminClient();
+      const newRole = String(body.role || "");
+      if (!["owner", "admin", "agent"].includes(newRole)) throw new Error("Invalid role");
+      const { data: before } = await sb.from("tenant_members").select("*").eq("id", memberId).single();
+      if (!before) throw new Error("Member not found");
+      if (before.role === "owner" && newRole !== "owner") {
+        throw new Error("Cannot demote the owner. Transfer ownership first.");
+      }
+      const { error } = await sb.from("tenant_members").update({ role: newRole }).eq("id", memberId);
+      if (error) throw new Error(error.message);
+      await logAction(sb, actor, "PLATFORM_MEMBER_ROLE_CHANGED", {
+        workspace_id: workspaceId, target_table: "tenant_members", target_id: memberId,
+        before: { role: before.role }, after: { role: newRole },
+      });
+      return new Response(JSON.stringify({ success: true }), {
+        headers: { ...corsHeaders, "content-type": "application/json" },
+      });
+    }
+
+    // POST /workspaces/:id/transfer-ownership { new_owner_user_id }
+    if (req.method === "POST" && path.match(/^workspaces\/[^/]+\/transfer-ownership$/)) {
+      const workspaceId = path.split("/")[1];
+      const body = await req.json();
+      const actor = await requirePlatformRole(req, ["super_admin"]);
+      const sb = adminClient();
+      const newOwnerId = String(body.new_owner_user_id || "");
+      if (!newOwnerId) throw new Error("new_owner_user_id required");
+
+      const { data: currentOwner } = await sb.from("tenant_members")
+        .select("*").eq("tenant_id", workspaceId).eq("role", "owner").maybeSingle();
+      const { data: target } = await sb.from("tenant_members")
+        .select("*").eq("tenant_id", workspaceId).eq("user_id", newOwnerId).maybeSingle();
+      if (!target) throw new Error("Target user is not a member of this workspace");
+
+      // Demote current owner -> admin, promote target -> owner
+      if (currentOwner && currentOwner.user_id !== newOwnerId) {
+        await sb.from("tenant_members").update({ role: "admin" }).eq("id", currentOwner.id);
+      }
+      const { error } = await sb.from("tenant_members").update({ role: "owner" }).eq("id", target.id);
+      if (error) throw new Error(error.message);
+
+      await logAction(sb, actor, "PLATFORM_OWNERSHIP_TRANSFERRED", {
+        workspace_id: workspaceId, target_table: "tenant_members", target_id: target.id,
+        before: { owner: currentOwner?.user_id }, after: { owner: newOwnerId },
+        note: body.reason || null,
+      });
+      return new Response(JSON.stringify({ success: true }), {
+        headers: { ...corsHeaders, "content-type": "application/json" },
+      });
+    }
+
+    // POST /workspaces/:id/reset-settings — wipe entitlements back to defaults (free plan)
+    if (req.method === "POST" && path.match(/^workspaces\/[^/]+\/reset-settings$/)) {
+      const workspaceId = path.split("/")[1];
+      const actor = await requirePlatformRole(req, ["super_admin"]);
+      const sb = adminClient();
+      const { data: before } = await sb.from("workspace_entitlements").select("*").eq("workspace_id", workspaceId).maybeSingle();
+      const { error } = await sb.from("workspace_entitlements").upsert({
+        workspace_id: workspaceId,
+        plan: "free",
+        status: "active",
+        sending_paused: false,
+        enable_ai: false,
+        enable_ads: false,
+        enable_integrations: false,
+        enable_autoforms: false,
+        monthly_conversation_limit: 100,
+        monthly_broadcast_limit: 0,
+        monthly_template_limit: 5,
+        monthly_flow_limit: 1,
+        updated_by: actor.user.id,
+        updated_at: new Date().toISOString(),
+      }, { onConflict: "workspace_id" });
+      if (error) throw new Error(error.message);
+      await logAction(sb, actor, "PLATFORM_WORKSPACE_RESET", {
+        workspace_id: workspaceId, target_table: "workspace_entitlements",
+        before, note: "Reset to default free settings",
+      });
+      return new Response(JSON.stringify({ success: true }), {
+        headers: { ...corsHeaders, "content-type": "application/json" },
+      });
+    }
+
+    // POST /workspaces/:id/disconnect-whatsapp — disconnect all phone numbers
+    if (req.method === "POST" && path.match(/^workspaces\/[^/]+\/disconnect-whatsapp$/)) {
+      const workspaceId = path.split("/")[1];
+      const actor = await requirePlatformRole(req, ["super_admin"]);
+      const sb = adminClient();
+      const { data: phones } = await sb.from("phone_numbers").select("id, display_number").eq("tenant_id", workspaceId);
+      for (const p of phones || []) {
+        await sb.from("phone_numbers").update({ status: "disconnected", updated_at: new Date().toISOString() }).eq("id", p.id);
+      }
+      await sb.from("workspace_phone_numbers").delete().eq("workspace_id", workspaceId);
+      await logAction(sb, actor, "PLATFORM_WHATSAPP_DISCONNECTED", {
+        workspace_id: workspaceId, note: `Disconnected ${phones?.length || 0} phone(s)`,
+      });
+      return new Response(JSON.stringify({ success: true, disconnected: phones?.length || 0 }), {
+        headers: { ...corsHeaders, "content-type": "application/json" },
+      });
+    }
+
     return new Response(JSON.stringify({ error: "Not found" }), {
       status: 404, headers: { ...corsHeaders, "content-type": "application/json" },
     });

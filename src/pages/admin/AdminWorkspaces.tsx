@@ -21,8 +21,9 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import {
   Search, Loader2, Ban, Play, Pause, ChevronLeft, ChevronRight,
   Eye, MoreHorizontal, Copy, Users, Phone, AlertTriangle, Trash2, X,
-  Mail, Wifi, WifiOff, ArrowRightLeft
+  Mail, Wifi, WifiOff, ArrowRightLeft, ChevronDown, ChevronUp
 } from 'lucide-react';
+import { WorkspaceExpandedRow } from '@/components/admin/WorkspaceExpandedRow';
 
 interface Workspace {
   workspace_id: string;
@@ -91,6 +92,7 @@ export default function AdminWorkspaces() {
   const [signupInput, setSignupInput] = useState('');
   const [signupResetLink, setSignupResetLink] = useState('');
   const [signupSubmitting, setSignupSubmitting] = useState(false);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
 
   const handleSignupAction = async () => {
     if (!signupActions) return;
@@ -338,6 +340,7 @@ export default function AdminWorkspaces() {
                       />
                     </TableHead>
                   )}
+                  <TableHead className="w-8"></TableHead>
                   <TableHead>Workspace</TableHead>
                   <TableHead>Owner & Company</TableHead>
                   <TableHead>Country</TableHead>
@@ -353,8 +356,12 @@ export default function AdminWorkspaces() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {workspaces.map(w => (
-                  <TableRow key={w.workspace_id} className="group hover:bg-muted/40 transition-colors">
+                {workspaces.map(w => {
+                  const isSignup = String(w.workspace_id).startsWith('signup:');
+                  const isExpanded = expandedId === w.workspace_id;
+                  return (
+                  <React.Fragment key={w.workspace_id}>
+                  <TableRow className="group hover:bg-muted/40 transition-colors">
                     {isSuperAdmin && (
                       <TableCell>
                         <Checkbox
@@ -363,6 +370,19 @@ export default function AdminWorkspaces() {
                         />
                       </TableCell>
                     )}
+                    <TableCell className="p-1">
+                      {!isSignup && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 w-7 p-0"
+                          onClick={() => setExpandedId(isExpanded ? null : w.workspace_id)}
+                          aria-label={isExpanded ? 'Collapse' : 'Expand'}
+                        >
+                          {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                        </Button>
+                      )}
+                    </TableCell>
                     <TableCell>
                       <button
                         onClick={() => {
@@ -554,10 +574,24 @@ export default function AdminWorkspaces() {
                       </DropdownMenu>
                     </TableCell>
                   </TableRow>
-                ))}
+                  {isExpanded && !isSignup && (
+                    <TableRow className="bg-transparent hover:bg-transparent">
+                      <TableCell colSpan={isSuperAdmin ? 14 : 13} className="p-2">
+                        <WorkspaceExpandedRow
+                          workspaceId={w.workspace_id}
+                          workspaceName={w.workspace_name}
+                          isSuperAdmin={isSuperAdmin}
+                          onChanged={loadWorkspaces}
+                        />
+                      </TableCell>
+                    </TableRow>
+                  )}
+                  </React.Fragment>
+                  );
+                })}
                 {workspaces.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={isSuperAdmin ? 13 : 12} className="text-center py-8 text-muted-foreground">
+                    <TableCell colSpan={isSuperAdmin ? 14 : 13} className="text-center py-8 text-muted-foreground">
                       No workspaces found
                     </TableCell>
                   </TableRow>
