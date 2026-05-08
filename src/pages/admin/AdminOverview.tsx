@@ -128,7 +128,6 @@ export default function AdminOverview() {
   }, [stats, range]);
 
   if (loading && !stats) {
-    const { KpiSkeleton, ListSkeleton } = require('@/components/admin/AdminSkeletons') as typeof import('@/components/admin/AdminSkeletons');
     return (
       <div className="space-y-6">
         <KpiSkeleton count={4} />
