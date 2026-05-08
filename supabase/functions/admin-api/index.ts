@@ -55,7 +55,9 @@ async function requirePlatformRole(req: Request, allowed: string[]) {
     }
   }
 
-  return { user: { id: userId, email: userEmail }, role };
+  const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || req.headers.get("cf-connecting-ip") || null;
+  const user_agent = req.headers.get("user-agent") || null;
+  return { user: { id: userId, email: userEmail }, role, ip, user_agent };
 }
 
 async function logAction(sb: any, actor: any, action: string, details: any) {
