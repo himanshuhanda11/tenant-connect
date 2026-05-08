@@ -106,6 +106,77 @@ async function fetchAllRows(sb: any, table: string, pageSize = 1000): Promise<an
   return all;
 }
 
+// ===== Google Drive integration via Lovable connector gateway =====
+const DRIVE_GATEWAY = "https://connector-gateway.lovable.dev/google_drive/drive/v3";
+const DRIVE_UPLOAD = "https://connector-gateway.lovable.dev/google_drive/upload/drive/v3";
+const DRIVE_FOLDER_NAME = "Aireatro Daily Backups";
+
+function driveHeaders() {
+  const lov = Deno.env.get("LOVABLE_API_KEY");
+  const drv = Deno.env.get("GOOGLE_DRIVE_API_KEY");
+  if (!lov) throw new Error("LOVABLE_API_KEY missing");
+  if (!drv) throw new Error("GOOGLE_DRIVE_API_KEY missing (Google Drive not connected)");
+  return { Authorization: `Bearer ${lov}`, "X-Connection-Api-Key": drv };
+}
+
+async function getOrCreateDriveFolder(): Promise<string> {
+  const q = encodeURIComponent(
+    `name='${DRIVE_FOLDER_NAME}' and mimeType='application/vnd.google-apps.folder' and trashed=false`,
+  );
+  const r = await fetch(`${DRIVE_GATEWAY}/files?q=${q}&fields=files(id,name)&pageSize=10`, {
+    headers: driveHeaders(),
+  });
+  if (!r.ok) throw new Error(`Drive search failed [${r.status}]: ${await r.text()}`);
+  const j = await r.json();
+  if (j.files?.length) return j.files[0].id;
+
+  const create = await fetch(`${DRIVE_GATEWAY}/files?fields=id`, {
+    method: "POST",
+    headers: { ...driveHeaders(), "Content-Type": "application/json" },
+    body: JSON.stringify({ name: DRIVE_FOLDER_NAME, mimeType: "application/vnd.google-apps.folder" }),
+  });
+  if (!create.ok) throw new Error(`Drive folder create failed [${create.status}]: ${await create.text()}`);
+  return (await create.json()).id;
+}
+
+async function uploadToDrive(zipped: Uint8Array, fileName: string) {
+  const folderId = await getOrCreateDriveFolder();
+  const boundary = "lovable_backup_" + crypto.randomUUID();
+  const meta = JSON.stringify({ name: fileName, parents: [folderId] });
+  const enc = new TextEncoder();
+  const head = enc.encode(
+    `--${boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${meta}\r\n` +
+      `--${boundary}\r\nContent-Type: application/zip\r\n\r\n`,
+  );
+  const tail = enc.encode(`\r\n--${boundary}--`);
+  const body = new Uint8Array(head.length + zipped.length + tail.length);
+  body.set(head, 0);
+  body.set(zipped, head.length);
+  body.set(tail, head.length + zipped.length);
+
+  const r = await fetch(`${DRIVE_UPLOAD}/files?uploadType=multipart&fields=id,webViewLink,size`, {
+    method: "POST",
+    headers: { ...driveHeaders(), "Content-Type": `multipart/related; boundary=${boundary}` },
+    body,
+  });
+  if (!r.ok) throw new Error(`Drive upload failed [${r.status}]: ${await r.text()}`);
+  const j = await r.json();
+  return { ok: true as const, fileId: j.id, folderId, webLink: j.webViewLink };
+}
+
+async function cleanupDriveOldBackups(folderId: string, keep = 7) {
+  const q = encodeURIComponent(`'${folderId}' in parents and trashed=false`);
+  const r = await fetch(
+    `${DRIVE_GATEWAY}/files?q=${q}&orderBy=createdTime desc&fields=files(id,name,createdTime)&pageSize=100`,
+    { headers: driveHeaders() },
+  );
+  if (!r.ok) return;
+  const { files = [] } = await r.json();
+  for (const f of files.slice(keep)) {
+    await fetch(`${DRIVE_GATEWAY}/files/${f.id}`, { method: "DELETE", headers: driveHeaders() }).catch(() => {});
+  }
+}
+
 // Recursively walk a bucket and return every object path.
 async function walkBucket(sb: any, bucket: string, prefix = ""): Promise<Array<{ name: string; size: number; updated_at: string | null }>> {
   const out: Array<{ name: string; size: number; updated_at: string | null }> = [];
