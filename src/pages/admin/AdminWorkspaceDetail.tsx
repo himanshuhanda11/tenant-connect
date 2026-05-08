@@ -150,7 +150,7 @@ export default function AdminWorkspaceDetail() {
             phones={phones}
           />
           <OverviewTab
-            entitlements={{ ...entitlements, ...(stats || {}) }}
+            entitlements={{ ...safeEntitlements, ...(stats || {}) }}
             isSuperAdmin={isSuperAdmin}
             onToggle={handleToggle}
             onLimitChange={handleLimitChange}
