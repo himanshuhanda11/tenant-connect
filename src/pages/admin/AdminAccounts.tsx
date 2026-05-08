@@ -244,7 +244,7 @@ export default function AdminAccounts() {
               <Download className="h-4 w-4 mr-1.5" /> Export CSV
             </Button>
             <Button variant="outline" size="sm" onClick={load} className="rounded-xl">
-              <RefreshCw className={cn('h-4 w-4 mr-1.5', loading && 'animate-spin')} /> Refresh
+              <RefreshCw className={cn('h-4 w-4 mr-1.5', (loading || refreshing) && 'animate-spin')} /> Refresh
             </Button>
           </div>
         </div>
