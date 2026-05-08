@@ -854,6 +854,57 @@ Deno.serve(async (req: Request) => {
         ownerProfile = op;
       }
 
+      // Live counts: templates, campaigns, conversations, messages, contacts
+      const todayIso = new Date(new Date().setUTCHours(0, 0, 0, 0)).toISOString();
+      const sevenDaysAgo = new Date(Date.now() - 7 * 86400000).toISOString();
+      const [
+        tplTotal, tplApproved, tplPending, tplRejected,
+        campTotal, campRunning, campCompleted,
+        convTotal, convOpen,
+        msgsToday, msgs7d, msgsTotal,
+        contactsTotal,
+      ] = await Promise.all([
+        sb.from("templates").select("id", { count: "exact", head: true }).eq("tenant_id", workspaceId),
+        sb.from("templates").select("id", { count: "exact", head: true }).eq("tenant_id", workspaceId).eq("status", "APPROVED"),
+        sb.from("templates").select("id", { count: "exact", head: true }).eq("tenant_id", workspaceId).eq("status", "PENDING"),
+        sb.from("templates").select("id", { count: "exact", head: true }).eq("tenant_id", workspaceId).eq("status", "REJECTED"),
+        sb.from("campaigns").select("id", { count: "exact", head: true }).eq("tenant_id", workspaceId),
+        sb.from("campaigns").select("id", { count: "exact", head: true }).eq("tenant_id", workspaceId).in("status", ["sending", "running", "scheduled"]),
+        sb.from("campaigns").select("id", { count: "exact", head: true }).eq("tenant_id", workspaceId).eq("status", "completed"),
+        sb.from("conversations").select("id", { count: "exact", head: true }).eq("tenant_id", workspaceId),
+        sb.from("conversations").select("id", { count: "exact", head: true }).eq("tenant_id", workspaceId).neq("status", "closed"),
+        sb.from("messages").select("id", { count: "exact", head: true }).eq("tenant_id", workspaceId).gte("created_at", todayIso),
+        sb.from("messages").select("id", { count: "exact", head: true }).eq("tenant_id", workspaceId).gte("created_at", sevenDaysAgo),
+        sb.from("messages").select("id", { count: "exact", head: true }).eq("tenant_id", workspaceId),
+        sb.from("contacts").select("id", { count: "exact", head: true }).eq("tenant_id", workspaceId),
+      ]);
+
+      // Inbound vs Outbound (today)
+      const [{ count: inboundToday }, { count: outboundToday }] = await Promise.all([
+        sb.from("messages").select("id", { count: "exact", head: true }).eq("tenant_id", workspaceId).eq("direction", "inbound").gte("created_at", todayIso),
+        sb.from("messages").select("id", { count: "exact", head: true }).eq("tenant_id", workspaceId).eq("direction", "outbound").gte("created_at", todayIso),
+      ]);
+
+      const stats = {
+        members_count: (members.data || []).length,
+        phones_count: (phones.data || []).length,
+        templates_total: tplTotal.count || 0,
+        templates_approved: tplApproved.count || 0,
+        templates_pending: tplPending.count || 0,
+        templates_rejected: tplRejected.count || 0,
+        campaigns_total: campTotal.count || 0,
+        campaigns_running: campRunning.count || 0,
+        campaigns_completed: campCompleted.count || 0,
+        conversations_total: convTotal.count || 0,
+        conversations_open: convOpen.count || 0,
+        messages_today: msgsToday.count || 0,
+        messages_7d: msgs7d.count || 0,
+        messages_total: msgsTotal.count || 0,
+        messages_inbound_today: inboundToday || 0,
+        messages_outbound_today: outboundToday || 0,
+        contacts_total: contactsTotal.count || 0,
+      };
+
       return new Response(JSON.stringify({
         workspace: workspace.data,
         entitlements: entitlements.data,
@@ -862,10 +913,9 @@ Deno.serve(async (req: Request) => {
         workspace_phone: wsPhone.data,
         waba: waba.data,
         owner: ownerProfile,
+        stats,
       }), { headers: { ...corsHeaders, "content-type": "application/json" } });
     }
-
-    // Guard: any /workspaces/:id/* mutation on a synthetic "signup:<uuid>" row
     // (orphan signups with no tenant yet) — only the /delete handler knows how
     // to handle these. Reject everything else with a clear 400 so we never pass
     // the non-UUID into a UUID column and 500.
