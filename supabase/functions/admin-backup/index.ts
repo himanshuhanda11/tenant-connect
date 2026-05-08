@@ -525,10 +525,41 @@ Deno.serve(async (req: Request) => {
 
     if (req.method === "POST" && path === "run") {
       const { userId, cron } = await requireSuperAdminOrCron(req);
-      const result = await runBackup(req, cron ? "scheduled" : "manual", userId);
-      return new Response(JSON.stringify(result), {
-        headers: { ...corsHeaders, "content-type": "application/json" },
-      });
+      // Pre-create a pending run row so we can return its id immediately.
+      const { data: tables } = await sb.rpc("backup_list_public_tables");
+      const tableList = (tables || []).map((r: any) => r.table_name);
+      const { data: run } = await sb
+        .from("platform_backup_runs")
+        .insert({
+          status: "pending",
+          trigger: cron ? "scheduled" : "manual",
+          triggered_by: userId,
+          tables_included: tableList,
+        })
+        .select()
+        .single();
+      const runId = run!.id as string;
+
+      // Offload the heavy work — avoids CPU/wall-time limits on the request.
+      // @ts-ignore EdgeRuntime is provided by the Supabase edge runtime
+      EdgeRuntime.waitUntil(
+        runBackup(req, cron ? "scheduled" : "manual", userId, runId).catch(async (e: any) => {
+          console.error("[backup] background run failed:", e?.message || e);
+          await sb
+            .from("platform_backup_runs")
+            .update({
+              status: "failed",
+              error_message: String(e?.message || e),
+              completed_at: new Date().toISOString(),
+            })
+            .eq("id", runId);
+        }),
+      );
+
+      return new Response(
+        JSON.stringify({ ok: true, run_id: runId, status: "pending", message: "Backup started in background. Refresh the page to track progress." }),
+        { status: 202, headers: { ...corsHeaders, "content-type": "application/json" } },
+      );
     }
 
     if (req.method === "GET" && path === "list") {
