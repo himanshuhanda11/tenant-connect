@@ -32,8 +32,10 @@ const normalizeTenantRole = (membershipRole: string | null | undefined, assigned
 
 export function TenantProvider({ children }: { children: React.ReactNode }) {
   const { user } = useAuth();
+  const { previewTenantId, isPreview } = usePreviewWorkspace();
   const [tenants, setTenants] = useState<TenantWithRole[]>([]);
   const [currentTenant, setCurrentTenantState] = useState<TenantWithRole | null>(null);
+  const [previewTenant, setPreviewTenant] = useState<TenantWithRole | null>(null);
   const [loading, setLoading] = useState(true);
 
   const fetchTenants = async (showSpinner = false) => {
