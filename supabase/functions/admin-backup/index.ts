@@ -563,7 +563,20 @@ Deno.serve(async (req: Request) => {
 
     if (req.method === "POST" && path === "run") {
       const { userId, cron } = await requireSuperAdminOrCron(req);
-      // Pre-create a pending run row so we can return its id immediately.
+
+      // Auto-fail any stale pending rows so we never have multiple "running" entries
+      await sb
+        .from("platform_backup_runs")
+        .update({
+          status: "failed",
+          error_message: "Auto-failed: previous run did not report progress within 10 minutes",
+          completed_at: new Date().toISOString(),
+        })
+        .eq("status", "pending")
+        .lt("created_at", new Date(Date.now() - 10 * 60 * 1000).toISOString());
+
+      // Pre-create a pending run row, fully initialized so the UI shows progress
+      // immediately even before the background worker writes its first update.
       const { data: tables } = await sb.rpc("backup_list_public_tables");
       const tableList = (tables || []).map((r: any) => r.table_name);
       const { data: run } = await sb
@@ -573,15 +586,22 @@ Deno.serve(async (req: Request) => {
           trigger: cron ? "scheduled" : "manual",
           triggered_by: userId,
           tables_included: tableList,
+          tables_total: tableList.length,
+          tables_done: 0,
+          progress_percent: 1,
+          current_step: "Queued — starting backup worker…",
+          started_at: new Date().toISOString(),
         })
         .select()
         .single();
       const runId = run!.id as string;
 
+      // Capture URL string (req object becomes invalid after response returns).
+      const reqUrl = req.url;
       // Offload the heavy work — avoids CPU/wall-time limits on the request.
       // @ts-ignore EdgeRuntime is provided by the Supabase edge runtime
       EdgeRuntime.waitUntil(
-        runBackup(req, cron ? "scheduled" : "manual", userId, runId).catch(async (e: any) => {
+        runBackup(reqUrl, cron ? "scheduled" : "manual", userId, runId).catch(async (e: any) => {
           console.error("[backup] background run failed:", e?.message || e);
           await sb
             .from("platform_backup_runs")
@@ -595,13 +615,25 @@ Deno.serve(async (req: Request) => {
       );
 
       return new Response(
-        JSON.stringify({ ok: true, run_id: runId, status: "pending", message: "Backup started in background. Refresh the page to track progress." }),
+        JSON.stringify({ ok: true, run_id: runId, status: "pending", message: "Backup started in background. Tracking progress live." }),
         { status: 202, headers: { ...corsHeaders, "content-type": "application/json" } },
       );
     }
 
     if (req.method === "GET" && path === "list") {
       await requireSuperAdminOrCron(req);
+
+      // Auto-fail stale pending rows so the history doesn't show ghost "Running…" entries
+      await sb
+        .from("platform_backup_runs")
+        .update({
+          status: "failed",
+          error_message: "Auto-failed: backup worker did not report progress within 10 minutes",
+          completed_at: new Date().toISOString(),
+        })
+        .eq("status", "pending")
+        .lt("created_at", new Date(Date.now() - 10 * 60 * 1000).toISOString());
+
       const { data } = await sb
         .from("platform_backup_runs")
         .select("*")
