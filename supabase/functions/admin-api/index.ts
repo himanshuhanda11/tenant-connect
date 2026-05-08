@@ -69,6 +69,8 @@ async function logAction(sb: any, actor: any, action: string, details: any) {
     before_data: details.before || null,
     after_data: details.after || null,
     note: details.note || null,
+    ip: actor.ip || null,
+    user_agent: actor.user_agent || null,
   });
 }
 
