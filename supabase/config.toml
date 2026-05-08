@@ -97,3 +97,6 @@ project_id = "fygwjpdasnhaomoqdvcu"
     verify_jwt = false
   [functions.whatsapp-webhook]
     verify_jwt = false
+
+  [functions.process-email-queue]
+    verify_jwt = true
