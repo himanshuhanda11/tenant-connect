@@ -263,15 +263,36 @@ async function runBackup(req: Request, trigger: "manual" | "scheduled", actorId:
   let runId: string;
   if (existingRunId) {
     runId = existingRunId;
-    await sb.from("platform_backup_runs").update({ tables_included: tables }).eq("id", runId);
+    await sb.from("platform_backup_runs").update({
+      tables_included: tables,
+      tables_total: tables.length,
+      tables_done: 0,
+      progress_percent: 2,
+      current_step: `Preparing ${tables.length} tables…`,
+      started_at: new Date().toISOString(),
+    }).eq("id", runId);
   } else {
     const { data: run } = await sb
       .from("platform_backup_runs")
-      .insert({ status: "pending", trigger, triggered_by: actorId, tables_included: tables })
+      .insert({
+        status: "pending", trigger, triggered_by: actorId, tables_included: tables,
+        tables_total: tables.length, progress_percent: 2,
+        current_step: `Preparing ${tables.length} tables…`,
+        started_at: new Date().toISOString(),
+      })
       .select()
       .single();
     runId = run!.id as string;
   }
+
+  // Throttled progress writer (avoid hammering DB)
+  let lastProgressWrite = 0;
+  const writeProgress = async (patch: Record<string, unknown>, force = false) => {
+    const now = Date.now();
+    if (!force && now - lastProgressWrite < 1500) return;
+    lastProgressWrite = now;
+    await sb.from("platform_backup_runs").update(patch).eq("id", runId).then(() => {}, () => {});
+  };
 
   // ====== Streaming ZIP to a temp file (memory stays flat) ======
   const tmpPath = await Deno.makeTempFile({ prefix: "aireatro-backup-", suffix: ".zip" });
