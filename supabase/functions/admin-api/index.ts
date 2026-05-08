@@ -175,23 +175,86 @@ Deno.serve(async (req: Request) => {
         .order("created_at", { ascending: false })
         .limit(10);
 
+      // === Extended metrics ===
+      // WABA accounts
+      const { data: wabas } = await sb.from("waba_accounts").select("id, status, created_at");
+      const totalWaba = (wabas || []).length;
+      const activeWaba = (wabas || []).filter((w: any) => w.status === "active").length;
+      const pendingWaba = (wabas || []).filter((w: any) => w.status === "pending").length;
+
+      // Subscription / payments
+      const { data: payments } = await sb.from("platform_payments")
+        .select("amount, currency, status, created_at")
+        .gte("created_at", new Date(now - 30 * DAY).toISOString());
+      const paymentsSucceeded = (payments || []).filter((p: any) => ["succeeded", "captured", "paid"].includes(String(p.status))).length;
+      const paymentsFailed = (payments || []).filter((p: any) => ["failed", "error"].includes(String(p.status))).length;
+      const revenue30d = (payments || [])
+        .filter((p: any) => ["succeeded", "captured", "paid"].includes(String(p.status)))
+        .reduce((s: number, p: any) => s + (Number(p.amount) || 0), 0);
+
+      // Revenue trend by day (last 30d)
+      const revenueSeries = series.map((s) => ({ date: s.date, label: s.date.slice(5), revenue: 0 }));
+      for (const p of payments || []) {
+        if (!["succeeded", "captured", "paid"].includes(String(p.status))) continue;
+        const i = indexFor(p.created_at || "");
+        if (i >= 0) revenueSeries[i].revenue += Number(p.amount) || 0;
+      }
+
+      // Subscriptions: expired / trial / paid
+      let expiredPlans = 0;
+      let trialPlans = 0;
+      for (const d of dir || []) {
+        const ss = String(d.subscription_status || "").toLowerCase();
+        if (ss === "expired" || ss === "past_due" || ss === "cancelled") expiredPlans++;
+        if (ss === "trialing" || ss === "trial") trialPlans++;
+      }
+
+      // Messages today
+      const todayStart = new Date(today).toISOString();
+      let messagesToday = 0;
+      try {
+        const { count } = await sb.from("messages")
+          .select("id", { count: "exact", head: true })
+          .gte("created_at", todayStart);
+        messagesToday = count || 0;
+      } catch { /* table may not exist in some envs */ }
+
+      // Inactive users: confirmed but no sign-in in 30 days
+      const inactiveAccounts = allUsers.filter((u: any) =>
+        u.email_confirmed_at && (!u.last_sign_in_at || (now - new Date(u.last_sign_in_at).getTime()) > 30 * DAY)
+      ).length;
+
+      // WhatsApp connection success/failure breakdown
+      const phoneStatusBreakdown: Record<string, number> = {};
+      for (const p of phones || []) {
+        const k = p.status || "unknown";
+        phoneStatusBreakdown[k] = (phoneStatusBreakdown[k] || 0) + 1;
+      }
+      const phoneStatusDetail = Object.entries(phoneStatusBreakdown).map(([name, value]) => ({ name, value }));
+
       return new Response(JSON.stringify({
         totals: {
           totalAccounts, confirmedAccounts, incompleteAccounts,
           totalWorkspaces, activeWorkspaces, suspendedWorkspaces,
           workspacesWithPhone, workspacesWithoutPhone,
           activePaid, freeTrial,
+          totalWaba, activeWaba, pendingWaba,
+          expiredPlans, trialPlans,
+          messagesToday, inactiveAccounts,
+          revenue30d, paymentsSucceeded, paymentsFailed,
         },
         growth: {
           accountsToday, accountsWeek, accountsMonth,
           workspacesToday, workspacesWeek, workspacesMonth,
         },
         series,
+        revenueSeries,
         planDistribution,
         phoneStatus: [
           { name: "Connected", value: workspacesWithPhone },
           { name: "No Number", value: workspacesWithoutPhone },
         ],
+        phoneStatusDetail,
         recentActivity: activity || [],
       }), { headers: { ...corsHeaders, "content-type": "application/json" } });
     }

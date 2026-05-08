@@ -23,14 +23,20 @@ interface Stats {
     totalWorkspaces: number; activeWorkspaces: number; suspendedWorkspaces: number;
     workspacesWithPhone: number; workspacesWithoutPhone: number;
     activePaid: number; freeTrial: number;
+    totalWaba?: number; activeWaba?: number; pendingWaba?: number;
+    expiredPlans?: number; trialPlans?: number;
+    messagesToday?: number; inactiveAccounts?: number;
+    revenue30d?: number; paymentsSucceeded?: number; paymentsFailed?: number;
   };
   growth: {
     accountsToday: number; accountsWeek: number; accountsMonth: number;
     workspacesToday: number; workspacesWeek: number; workspacesMonth: number;
   };
   series: { date: string; accounts: number; workspaces: number; phones: number }[];
+  revenueSeries?: { date: string; label: string; revenue: number }[];
   planDistribution: { name: string; value: number }[];
   phoneStatus: { name: string; value: number }[];
+  phoneStatusDetail?: { name: string; value: number }[];
   recentActivity: { id: string; action: string; actor_role: string; created_at: string; note?: string; target_table?: string }[];
 }
 
@@ -240,7 +246,29 @@ export default function AdminOverview() {
           onClick={() => navigate('/control/phone-numbers')} />
       </div>
 
-      {/* Growth strip */}
+      {/* Tertiary KPIs — Revenue, WABA, Messaging, Health */}
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
+        <KPI label="Revenue · 30d"
+          value={(t.revenue30d ?? 0) > 0 ? `₹${((t.revenue30d ?? 0) / 100).toLocaleString()}` : '—'}
+          subtitle={`${t.paymentsSucceeded ?? 0} paid · ${t.paymentsFailed ?? 0} failed`}
+          icon={CreditCard} gradient="linear-gradient(135deg,#22c55e,#16a34a)"
+          onClick={() => navigate('/control/billing')} />
+        <KPI label="WABA Accounts" value={(t.totalWaba ?? 0).toLocaleString()}
+          subtitle={`${t.activeWaba ?? 0} active · ${t.pendingWaba ?? 0} pending`}
+          icon={Building2} gradient="linear-gradient(135deg,#0ea5e9,#0284c7)"
+          onClick={() => navigate('/control/phone-numbers')} />
+        <KPI label="Trial Plans" value={(t.trialPlans ?? 0).toLocaleString()}
+          subtitle="In trial period"
+          icon={Sparkles} gradient="linear-gradient(135deg,#a855f7,#7c3aed)" />
+        <KPI label="Expired Plans" value={(t.expiredPlans ?? 0).toLocaleString()}
+          subtitle="Need re-activation"
+          icon={AlertTriangle} gradient="linear-gradient(135deg,#f97316,#ea580c)"
+          onClick={() => navigate('/control/billing')} />
+        <KPI label="Messages Today" value={(t.messagesToday ?? 0).toLocaleString()}
+          subtitle={`${(t.inactiveAccounts ?? 0)} inactive users`}
+          icon={MessageSquare} gradient="linear-gradient(135deg,#06b6d4,#0891b2)" />
+      </div>
+
       <Card className="rounded-2xl border-border/50">
         <CardContent className="p-5">
           <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
@@ -432,7 +460,70 @@ export default function AdminOverview() {
         </Card>
       </div>
 
-      {/* Recent Activity & Notifications */}
+      {/* Revenue trend + WhatsApp status breakdown */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <Card className="rounded-2xl border-border/50 lg:col-span-2">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-semibold flex items-center gap-2">
+              <div className="h-7 w-7 rounded-lg bg-emerald-500/10 flex items-center justify-center">
+                <CreditCard className="h-3.5 w-3.5 text-emerald-600" />
+              </div>
+              Revenue — last 30d
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pl-0 pr-4 pb-4">
+            <ResponsiveContainer width="100%" height={200}>
+              <AreaChart data={(stats.revenueSeries || []).map(r => ({ ...r, revenue: (r.revenue || 0) / 100 }))}>
+                <defs>
+                  <linearGradient id="grev" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="hsl(152, 60%, 45%)" stopOpacity={0.35} />
+                    <stop offset="100%" stopColor="hsl(152, 60%, 45%)" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+                <XAxis dataKey="label" tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }} axisLine={false} tickLine={false} interval={Math.floor((stats.revenueSeries?.length || 1) / 8)} />
+                <YAxis tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }} axisLine={false} tickLine={false} width={40} />
+                <Tooltip contentStyle={{ borderRadius: 12, border: '1px solid hsl(var(--border))', fontSize: 12, background: 'hsl(var(--card))' }} formatter={(v: any) => [`₹${Number(v).toLocaleString()}`, 'Revenue']} />
+                <Area type="monotone" dataKey="revenue" stroke="hsl(152, 60%, 45%)" strokeWidth={2} fill="url(#grev)" />
+              </AreaChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+
+        <Card className="rounded-2xl border-border/50">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-semibold flex items-center gap-2">
+              <div className="h-7 w-7 rounded-lg bg-cyan-500/10 flex items-center justify-center">
+                <Phone className="h-3.5 w-3.5 text-cyan-600" />
+              </div>
+              Numbers by status
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pb-4">
+            {(stats.phoneStatusDetail || []).length === 0 ? (
+              <div className="text-xs text-muted-foreground py-10 text-center">No phone data yet</div>
+            ) : (
+              <ResponsiveContainer width="100%" height={200}>
+                <PieChart>
+                  <Pie data={stats.phoneStatusDetail} cx="50%" cy="50%" outerRadius={75} dataKey="value" label={(e: any) => `${e.name}: ${e.value}`} labelLine={false} strokeWidth={0}>
+                    {(stats.phoneStatusDetail || []).map((d, i) => {
+                      const color =
+                        d.name === 'connected' ? 'hsl(152, 60%, 45%)' :
+                        d.name === 'pending' ? 'hsl(38, 92%, 55%)' :
+                        d.name === 'banned' ? 'hsl(0, 80%, 55%)' :
+                        d.name === 'disconnected' ? 'hsl(var(--muted-foreground))' :
+                        PIE_COLORS[i % PIE_COLORS.length];
+                      return <Cell key={i} fill={color} />;
+                    })}
+                  </Pie>
+                  <Tooltip contentStyle={{ borderRadius: 12, border: '1px solid hsl(var(--border))', fontSize: 12, background: 'hsl(var(--card))' }} />
+                </PieChart>
+              </ResponsiveContainer>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <Card className="rounded-2xl border-border/50 lg:col-span-2">
           <CardHeader className="pb-2 flex flex-row items-center justify-between">
@@ -510,7 +601,25 @@ export default function AdminOverview() {
                 </div>
               </div>
             )}
-            {t.suspendedWorkspaces === 0 && t.incompleteAccounts === 0 && t.workspacesWithoutPhone === 0 && (
+            {(t.expiredPlans ?? 0) > 0 && (
+              <div className="flex items-start gap-2 p-3 rounded-xl bg-orange-500/5 border border-orange-500/20">
+                <CreditCard className="h-4 w-4 text-orange-600 mt-0.5" />
+                <div className="text-xs">
+                  <p className="font-medium text-orange-700">{t.expiredPlans} expired plan{(t.expiredPlans ?? 0) > 1 ? 's' : ''}</p>
+                  <p className="text-muted-foreground">Trigger renewal outreach</p>
+                </div>
+              </div>
+            )}
+            {(t.paymentsFailed ?? 0) > 0 && (
+              <div className="flex items-start gap-2 p-3 rounded-xl bg-rose-500/5 border border-rose-500/20">
+                <AlertTriangle className="h-4 w-4 text-rose-600 mt-0.5" />
+                <div className="text-xs">
+                  <p className="font-medium text-rose-700">{t.paymentsFailed} failed payment{(t.paymentsFailed ?? 0) > 1 ? 's' : ''} · 30d</p>
+                  <p className="text-muted-foreground">Review billing logs</p>
+                </div>
+              </div>
+            )}
+            {t.suspendedWorkspaces === 0 && t.incompleteAccounts === 0 && t.workspacesWithoutPhone === 0 && (t.expiredPlans ?? 0) === 0 && (t.paymentsFailed ?? 0) === 0 && (
               <div className="text-xs text-muted-foreground text-center py-8">All systems healthy ✨</div>
             )}
           </CardContent>
