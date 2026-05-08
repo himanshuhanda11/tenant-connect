@@ -179,10 +179,10 @@ export default function AdminWorkspaceDetail() {
           />
         </TabsContent>
         <TabsContent value="templates" className="mt-4">
-          <TemplatesTab workspaceId={id} />
+          <TemplatesTab workspaceId={id} templates={templates} />
         </TabsContent>
         <TabsContent value="campaigns" className="mt-4">
-          <CampaignsTab isSuperAdmin={isSuperAdmin} workspaceId={id} />
+          <CampaignsTab isSuperAdmin={isSuperAdmin} workspaceId={id} campaigns={campaigns} />
         </TabsContent>
         <TabsContent value="integrations" className="mt-4">
           <IntegrationsTab isSuperAdmin={isSuperAdmin} />
