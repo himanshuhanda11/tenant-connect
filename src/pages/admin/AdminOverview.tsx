@@ -23,14 +23,20 @@ interface Stats {
     totalWorkspaces: number; activeWorkspaces: number; suspendedWorkspaces: number;
     workspacesWithPhone: number; workspacesWithoutPhone: number;
     activePaid: number; freeTrial: number;
+    totalWaba?: number; activeWaba?: number; pendingWaba?: number;
+    expiredPlans?: number; trialPlans?: number;
+    messagesToday?: number; inactiveAccounts?: number;
+    revenue30d?: number; paymentsSucceeded?: number; paymentsFailed?: number;
   };
   growth: {
     accountsToday: number; accountsWeek: number; accountsMonth: number;
     workspacesToday: number; workspacesWeek: number; workspacesMonth: number;
   };
   series: { date: string; accounts: number; workspaces: number; phones: number }[];
+  revenueSeries?: { date: string; label: string; revenue: number }[];
   planDistribution: { name: string; value: number }[];
   phoneStatus: { name: string; value: number }[];
+  phoneStatusDetail?: { name: string; value: number }[];
   recentActivity: { id: string; action: string; actor_role: string; created_at: string; note?: string; target_table?: string }[];
 }
 
