@@ -71,7 +71,7 @@ const PLANS = ['free', 'basic', 'pro', 'business'];
 
 export default function AdminWorkspaces() {
   const { role } = useOutletContext<{ role: string }>();
-  const { get, post, loading } = useAdminApi();
+  const { get, post } = useAdminApi();
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
