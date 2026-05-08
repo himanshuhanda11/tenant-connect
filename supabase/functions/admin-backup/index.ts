@@ -25,6 +25,16 @@ const ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
 const TABLE_EXCLUDE = new Set<string>(["platform_backup_runs"]);
 const STALE_PENDING_MS = 10 * 60 * 1000;
 const STUCK_ZERO_PROGRESS_MS = 2 * 60 * 1000;
+const EDGE_UNSAFE_TABLE_EXACT = new Set<string>([
+  "messages",
+  "smeksh_messages",
+  "instagram_messages",
+  "webhook_events",
+  "shopify_webhook_events",
+  "contact_inbox_summary",
+  "smeksh_typing_state",
+]);
+const EDGE_UNSAFE_TABLE_SUFFIXES = ["_logs", "_events", "_jobs", "_sessions", "_analytics"];
 
 // Per-file cap (skip giant single objects); total storage cap keeps ZIP sane.
 // Edge functions have a hard ~256MB memory ceiling. Keep totals well below that
@@ -33,6 +43,7 @@ const STUCK_ZERO_PROGRESS_MS = 2 * 60 * 1000;
 // bucket during restore).
 const MAX_FILE_BYTES = 5 * 1024 * 1024; // 5 MB per file
 const MAX_TOTAL_BYTES = 80 * 1024 * 1024; // 80 MB total bytes
+const MAX_EDGE_ROWS_PER_TABLE = 5000;
 
 async function listPublicTables(sb: any): Promise<string[]> {
   const { data, error } = await sb.rpc("backup_list_public_tables");
@@ -43,6 +54,19 @@ async function listPublicTables(sb: any): Promise<string[]> {
   return (data as Array<{ table_name: string }>)
     .map((r) => r.table_name)
     .filter((t) => !TABLE_EXCLUDE.has(t));
+}
+
+function planEdgeSafeTables(tables: string[]) {
+  const skipped: Array<{ table_name: string; reason: string }> = [];
+  const exportTables = tables.filter((table) => {
+    const unsafe = EDGE_UNSAFE_TABLE_EXACT.has(table) || EDGE_UNSAFE_TABLE_SUFFIXES.some((suffix) => table.endsWith(suffix));
+    if (unsafe) {
+      skipped.push({ table_name: table, reason: "Skipped in Edge backup because this table can exceed worker CPU/time limits; full DB backup must use pg_dump/PITR." });
+      return false;
+    }
+    return true;
+  });
+  return { exportTables, skipped };
 }
 
 function admin() {
@@ -114,23 +138,26 @@ async function streamTableRows(
   table: string,
   onPage: (rows: any[], pageIndex: number) => Promise<void> | void,
   pageSize = 500,
-): Promise<{ total: number; error: string | null }> {
+  maxRows = MAX_EDGE_ROWS_PER_TABLE,
+): Promise<{ total: number; error: string | null; truncated: boolean }> {
   let from = 0;
   let total = 0;
   let pageIndex = 0;
   while (true) {
-    const { data, error } = await sb.from(table).select("*").range(from, from + pageSize - 1);
+    const to = Math.min(from + pageSize - 1, maxRows - 1);
+    const { data, error } = await sb.from(table).select("*").range(from, to);
     if (error) {
       console.warn(`[backup] table ${table} failed:`, error.message);
-      return { total, error: error.message };
+      return { total, error: error.message, truncated: false };
     }
     if (!data || data.length === 0) break;
     await onPage(data, pageIndex++);
     total += data.length;
+    if (total >= maxRows) return { total, error: null, truncated: true };
     if (data.length < pageSize) break;
     from += pageSize;
   }
-  return { total, error: null };
+  return { total, error: null, truncated: false };
 }
 
 // ===== Google Drive integration via Lovable connector gateway =====
@@ -203,6 +230,7 @@ async function uploadFileToStorageStreamed(tmpPath: string, fileSize: number, bu
       method: "POST",
       headers: {
         Authorization: `Bearer ${SERVICE_ROLE}`,
+        apikey: SERVICE_ROLE,
         "Content-Type": "application/zip",
         "Content-Length": String(fileSize),
         "x-upsert": "false",
@@ -257,10 +285,11 @@ async function walkBucket(sb: any, bucket: string, prefix = ""): Promise<Array<{
   return out;
 }
 
-async function runBackup(reqUrl: string, trigger: "manual" | "scheduled", actorId: string | null, existingRunId?: string) {
+async function runBackup(_reqUrl: string, trigger: "manual" | "scheduled", actorId: string | null, existingRunId?: string) {
   const sb = admin();
   const startedAt = Date.now();
-  const tables = await listPublicTables(sb);
+  const allTables = await listPublicTables(sb);
+  const { exportTables: tables, skipped: skippedTables } = planEdgeSafeTables(allTables);
 
   let runId: string;
   if (existingRunId) {
@@ -270,7 +299,7 @@ async function runBackup(reqUrl: string, trigger: "manual" | "scheduled", actorI
       tables_total: tables.length,
       tables_done: 0,
       progress_percent: 2,
-      current_step: `Preparing ${tables.length} tables…`,
+      current_step: `Preparing edge-safe snapshot: ${tables.length}/${allTables.length} tables…`,
       started_at: new Date().toISOString(),
     }).eq("id", runId);
   } else {
@@ -279,7 +308,7 @@ async function runBackup(reqUrl: string, trigger: "manual" | "scheduled", actorI
       .insert({
         status: "pending", trigger, triggered_by: actorId, tables_included: tables,
         tables_total: tables.length, progress_percent: 2,
-        current_step: `Preparing ${tables.length} tables…`,
+        current_step: `Preparing edge-safe snapshot: ${tables.length}/${allTables.length} tables…`,
         started_at: new Date().toISOString(),
       })
       .select()
@@ -320,6 +349,7 @@ async function runBackup(reqUrl: string, trigger: "manual" | "scheduled", actorI
   let okTables = 0;
   const tableErrors: Record<string, string> = {};
   const tableCounts: Record<string, number> = {};
+  const tableTruncated: Record<string, number> = {};
 
   try {
     // Tables phase = 0% → 80% of overall progress
@@ -333,62 +363,33 @@ async function runBackup(reqUrl: string, trigger: "manual" | "scheduled", actorI
       });
       const entry = new ZipPassThrough(`tables/json/${t}.jsonl`);
       zip.add(entry);
-      const { total, error } = await streamTableRows(sb, t, (rows) => {
+      const { total, error, truncated } = await streamTableRows(sb, t, (rows) => {
         const chunk = rows.map((r) => JSON.stringify(r)).join("\n") + "\n";
         entry.push(strToU8(chunk), false);
       });
       entry.push(new Uint8Array(0), true);
       tableCounts[t] = total;
+      if (truncated) tableTruncated[t] = MAX_EDGE_ROWS_PER_TABLE;
       if (error) tableErrors[t] = error;
       else okTables++;
       if (pendingWrites.length) {
         await Promise.all(pendingWrites.splice(0));
       }
     }
-    await writeProgress({ tables_done: tables.length, progress_percent: 80, current_step: "Indexing storage files…" }, true);
+    await writeProgress({ tables_done: tables.length, progress_percent: 84, current_step: "Recording storage bucket inventory…" }, true);
 
-    // ===== Storage: inventory only (file bytes opt-in via ?include_storage=1) =====
-    const url = new URL(reqUrl);
-    const includeStorageBytes = url.searchParams.get("include_storage") === "1";
+    // ===== Storage: bucket inventory only =====
+    // Recursive object scans can exceed Edge worker CPU/time limits on media-heavy apps.
     const { data: buckets } = await sb.storage.listBuckets();
     const storageInventory: any[] = [];
     const storageDownloaded: any[] = [];
-    const storageSkipped: any[] = [];
+    const storageSkipped: any[] = [{ reason: "Object-level storage scan skipped in edge-safe snapshot; use storage exports/PITR for full restore." }];
     let totalBytes = 0;
-
-    for (const b of buckets || []) {
-      if (b.id === "database-backups") continue;
-      const objects = await walkBucket(sb, b.id);
-      for (const obj of objects) {
-        storageInventory.push({ bucket: b.id, ...obj });
-        if (!includeStorageBytes) continue;
-        if (obj.size > MAX_FILE_BYTES) {
-          storageSkipped.push({ bucket: b.id, name: obj.name, size: obj.size, reason: "exceeds_per_file_cap" });
-          continue;
-        }
-        if (totalBytes + obj.size > MAX_TOTAL_BYTES) {
-          storageSkipped.push({ bucket: b.id, name: obj.name, size: obj.size, reason: "total_cap_reached" });
-          continue;
-        }
-        try {
-          const { data: blob, error } = await sb.storage.from(b.id).download(obj.name);
-          if (error || !blob) {
-            storageSkipped.push({ bucket: b.id, name: obj.name, reason: error?.message || "download_failed" });
-            continue;
-          }
-          const bytes = new Uint8Array(await blob.arrayBuffer());
-          addFile(`storage/files/${b.id}/${obj.name}`, bytes);
-          totalBytes += bytes.byteLength;
-          storageDownloaded.push({ bucket: b.id, name: obj.name, size: bytes.byteLength });
-        } catch (e: any) {
-          storageSkipped.push({ bucket: b.id, name: obj.name, reason: String(e?.message || e) });
-        }
-      }
-    }
+    for (const b of buckets || []) if (b.id !== "database-backups") storageInventory.push({ id: b.id, name: b.name, public: b.public });
     addFile("storage/file_list.json", strToU8(JSON.stringify(storageInventory)));
     addFile("storage/_downloaded.json", strToU8(JSON.stringify(storageDownloaded)));
     addFile("storage/_skipped.json", strToU8(JSON.stringify(storageSkipped)));
-    addFile("storage/_mode.txt", strToU8(includeStorageBytes ? "bytes_included" : "inventory_only"));
+    addFile("storage/_mode.txt", strToU8("bucket_inventory_only"));
 
     // Env snapshot
     const projectRef = (SUPABASE_URL.match(/https?:\/\/([^.]+)\./) || [])[1] || "";
@@ -430,13 +431,18 @@ async function runBackup(reqUrl: string, trigger: "manual" | "scheduled", actorI
       tables,
       table_count: okTables,
       table_row_counts: tableCounts,
+      table_row_limit: MAX_EDGE_ROWS_PER_TABLE,
+      table_truncated_at_row_limit: tableTruncated,
       table_errors: tableErrors,
+      skipped_tables: skippedTables,
+      skipped_table_count: skippedTables.length,
       buckets: (buckets || []).map((b: any) => ({ id: b.id, public: b.public })),
       storage_files_total: storageInventory.length,
       storage_files_downloaded: storageDownloaded.length,
       storage_files_skipped: storageSkipped.length,
       storage_bytes_downloaded: totalBytes,
       schema_note: "Full schema + edge functions + frontend live in GitHub repo.",
+      full_backup_note: "This in-app Edge backup intentionally skips high-volume operational tables. Disaster recovery/full exports should use Lovable Cloud PITR or the GitHub Actions pg_dump workflow.",
       format_note: "Each tables/json/<name>.jsonl is newline-delimited JSON (one row per line).",
     };
     addFile("manifest.json", strToU8(JSON.stringify(manifest, null, 2)));
@@ -448,8 +454,14 @@ async function runBackup(reqUrl: string, trigger: "manual" | "scheduled", actorI
           "Aireatro full backup",
           "====================",
           `Generated: ${manifest.generated_at}`,
-          `Tables: ${okTables} / ${tables.length}`,
-          `Storage files: ${storageDownloaded.length} downloaded, ${storageSkipped.length} skipped (mode: ${includeStorageBytes ? "bytes_included" : "inventory_only"})`,
+          `Tables exported: ${okTables} / ${tables.length}`,
+          `Tables skipped for Edge safety: ${skippedTables.length}`,
+          `Storage files: ${storageDownloaded.length} downloaded, ${storageSkipped.length} skipped (mode: bucket_inventory_only)`,
+          "",
+          "Important:",
+          "  This ZIP is an edge-safe admin snapshot, not the full disaster-recovery backup.",
+          "  Large messages/events/logs/jobs tables are skipped to avoid Edge Function CPU limits.",
+          "  Use Lovable Cloud PITR or the GitHub Actions pg_dump workflow for full database restore.",
           "",
           "Restore order:",
           "  1. Create a new Supabase project.",
@@ -520,7 +532,11 @@ async function runBackup(reqUrl: string, trigger: "manual" | "scheduled", actorI
       })
       .eq("id", runId);
 
-    await sb.rpc("cleanup_old_backups").catch(() => {});
+    try {
+      await sb.rpc("cleanup_old_backups");
+    } catch (e: any) {
+      console.warn("[backup] cleanup_old_backups failed:", e?.message || e);
+    }
     if (driveResult.ok) {
       await cleanupDriveOldBackups((driveResult as any).folderId).catch((e: any) =>
         console.warn("[backup] drive cleanup failed:", e?.message),
@@ -595,7 +611,8 @@ Deno.serve(async (req: Request) => {
       // Pre-create a pending run row, fully initialized so the UI shows progress
       // immediately even before the background worker writes its first update.
       const { data: tables } = await sb.rpc("backup_list_public_tables");
-      const tableList = (tables || []).map((r: any) => r.table_name).filter((t: string) => !TABLE_EXCLUDE.has(t));
+      const allTableList = (tables || []).map((r: any) => r.table_name).filter((t: string) => !TABLE_EXCLUDE.has(t));
+      const { exportTables: tableList } = planEdgeSafeTables(allTableList);
 
       const { data: activeRun } = await sb
         .from("platform_backup_runs")
@@ -627,7 +644,7 @@ Deno.serve(async (req: Request) => {
           tables_total: tableList.length,
           tables_done: 0,
           progress_percent: 1,
-          current_step: "Queued — starting backup worker…",
+          current_step: `Queued — starting edge-safe snapshot (${tableList.length}/${allTableList.length} tables)…`,
           started_at: new Date().toISOString(),
         })
         .select()
