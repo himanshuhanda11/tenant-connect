@@ -20,36 +20,24 @@ const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
 
-// Tables to back up (mapped to actual schema names).
-// Order does not matter for export; restore order lives in DATABASE_RESTORE_GUIDE.md.
-const BACKUP_TABLES = [
-  "profiles",
-  "tenants",
-  "tenant_members",
-  "platform_admins",
-  "platform_plans",
-  "platform_subscriptions",
-  "platform_invoices",
-  "workspace_entitlements",
-  "waba_accounts",
-  "phone_numbers",
-  "contacts",
-  "conversations",
-  "messages",
-  "message_templates",
-  "campaigns",
-  "campaign_jobs",
-  "leads",
-  "lead_forms",
-  "integrations",
-  "automation_workflows",
-  "routing_rules",
-  "teams",
-  "team_members",
-  "agents",
-  "message_credits",
-  "credit_transactions",
-];
+// Tables are auto-discovered from information_schema so newly added
+// tables are automatically backed up. Exclude noisy/self tables.
+const TABLE_EXCLUDE = new Set<string>(["platform_backup_runs"]);
+
+// Per-file cap (skip giant single objects); total storage cap keeps ZIP sane.
+const MAX_FILE_BYTES = 25 * 1024 * 1024; // 25 MB
+const MAX_TOTAL_BYTES = 500 * 1024 * 1024; // 500 MB
+
+async function listPublicTables(sb: any): Promise<string[]> {
+  const { data, error } = await sb.rpc("backup_list_public_tables");
+  if (error || !data) {
+    console.warn("[backup] table discovery RPC failed:", error?.message);
+    return [];
+  }
+  return (data as Array<{ table_name: string }>)
+    .map((r) => r.table_name)
+    .filter((t) => !TABLE_EXCLUDE.has(t));
+}
 
 function admin() {
   return createClient(SUPABASE_URL, SERVICE_ROLE);
