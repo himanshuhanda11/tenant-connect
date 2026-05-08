@@ -370,14 +370,15 @@ export function useDashboardData(filters: DashboardFilters) {
     const triggerRefresh = () => {
       invalidateDashboardCache(tId);
       if (debounceRef.current) clearTimeout(debounceRef.current);
-      debounceRef.current = setTimeout(() => fetchDashboardData(), 3000);
+      // Longer debounce — dashboard is a snapshot, not a live feed.
+      debounceRef.current = setTimeout(() => fetchDashboardData(), 15000);
     };
 
+    // Only subscribe to conversations (low-frequency). Skip `messages` (high-volume,
+    // would refetch the whole dashboard on every inbound chat) and `audit_logs`.
     const channel = supabase
       .channel(`dashboard-rt-${tId}`)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'conversations', filter: `tenant_id=eq.${tId}` }, triggerRefresh)
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'audit_logs', filter: `tenant_id=eq.${tId}` }, triggerRefresh)
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter: `tenant_id=eq.${tId}` }, triggerRefresh)
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'conversations', filter: `tenant_id=eq.${tId}` }, triggerRefresh)
       .subscribe();
 
     // Also auto-refetch when window regains focus & cache is older than TTL
