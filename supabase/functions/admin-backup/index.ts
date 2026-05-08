@@ -25,25 +25,24 @@ const ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
 const TABLE_EXCLUDE = new Set<string>(["platform_backup_runs"]);
 const STALE_PENDING_MS = 10 * 60 * 1000;
 const STUCK_ZERO_PROGRESS_MS = 2 * 60 * 1000;
-const EDGE_UNSAFE_TABLE_EXACT = new Set<string>([
-  "messages",
-  "smeksh_messages",
-  "instagram_messages",
-  "webhook_events",
-  "shopify_webhook_events",
-  "contact_inbox_summary",
-  "smeksh_typing_state",
-]);
-const EDGE_UNSAFE_TABLE_SUFFIXES = ["_logs", "_events", "_jobs", "_sessions", "_analytics"];
 
-// Per-file cap (skip giant single objects); total storage cap keeps ZIP sane.
-// Edge functions have a hard ~256MB memory ceiling. Keep totals well below that
-// so the in-memory ZIP build never OOMs. Larger files are listed in the
-// inventory but their bytes are skipped (operator can re-upload from the live
-// bucket during restore).
-const MAX_FILE_BYTES = 5 * 1024 * 1024; // 5 MB per file
-const MAX_TOTAL_BYTES = 80 * 1024 * 1024; // 80 MB total bytes
+// Per-table row cap so a single huge table cannot OOM the worker.
+// Tables exceeding this are flagged as "truncated" in manifest.json so you
+// know to re-export them with pg_dump for a full restore.
 const MAX_EDGE_ROWS_PER_TABLE = 5000;
+const MAX_EDGE_ROWS_HEAVY_TABLE = 1000;
+const HEAVY_TABLE_SUFFIXES = ["_logs", "_events", "_jobs", "_sessions", "_analytics", "_messages"];
+const HEAVY_TABLE_EXACT = new Set<string>([
+  "messages", "smeksh_messages", "instagram_messages",
+  "webhook_events", "shopify_webhook_events",
+  "contact_inbox_summary", "smeksh_typing_state",
+]);
+
+function rowCapFor(table: string): number {
+  if (HEAVY_TABLE_EXACT.has(table)) return MAX_EDGE_ROWS_HEAVY_TABLE;
+  if (HEAVY_TABLE_SUFFIXES.some((s) => table.endsWith(s))) return MAX_EDGE_ROWS_HEAVY_TABLE;
+  return MAX_EDGE_ROWS_PER_TABLE;
+}
 
 async function listPublicTables(sb: any): Promise<string[]> {
   const { data, error } = await sb.rpc("backup_list_public_tables");
@@ -57,16 +56,9 @@ async function listPublicTables(sb: any): Promise<string[]> {
 }
 
 function planEdgeSafeTables(tables: string[]) {
-  const skipped: Array<{ table_name: string; reason: string }> = [];
-  const exportTables = tables.filter((table) => {
-    const unsafe = EDGE_UNSAFE_TABLE_EXACT.has(table) || EDGE_UNSAFE_TABLE_SUFFIXES.some((suffix) => table.endsWith(suffix));
-    if (unsafe) {
-      skipped.push({ table_name: table, reason: "Skipped in Edge backup because this table can exceed worker CPU/time limits; full DB backup must use pg_dump/PITR." });
-      return false;
-    }
-    return true;
-  });
-  return { exportTables, skipped };
+  // Back up EVERY public table. Heavy tables are still included but with a
+  // smaller per-table row cap so the worker doesn't OOM.
+  return { exportTables: tables, skipped: [] as Array<{ table_name: string; reason: string }> };
 }
 
 function admin() {
@@ -363,13 +355,14 @@ async function runBackup(_reqUrl: string, trigger: "manual" | "scheduled", actor
       });
       const entry = new ZipPassThrough(`tables/json/${t}.jsonl`);
       zip.add(entry);
+      const cap = rowCapFor(t);
       const { total, error, truncated } = await streamTableRows(sb, t, (rows) => {
         const chunk = rows.map((r) => JSON.stringify(r)).join("\n") + "\n";
         entry.push(strToU8(chunk), false);
-      });
+      }, 500, cap);
       entry.push(new Uint8Array(0), true);
       tableCounts[t] = total;
-      if (truncated) tableTruncated[t] = MAX_EDGE_ROWS_PER_TABLE;
+      if (truncated) tableTruncated[t] = cap;
       if (error) tableErrors[t] = error;
       else okTables++;
       if (pendingWrites.length) {
@@ -378,18 +371,32 @@ async function runBackup(_reqUrl: string, trigger: "manual" | "scheduled", actor
     }
     await writeProgress({ tables_done: tables.length, progress_percent: 84, current_step: "Recording storage bucket inventory…" }, true);
 
-    // ===== Storage: bucket inventory only =====
-    // Recursive object scans can exceed Edge worker CPU/time limits on media-heavy apps.
+    // ===== Storage: full file inventory across every bucket =====
+    // We list every object (path, size, mime, updated_at) in every bucket so
+    // restore tooling knows exactly what media to re-fetch. Object BYTES are
+    // intentionally not stuffed into this ZIP — that would blow past the
+    // edge-function memory cap on media-heavy projects. Use the live bucket
+    // (or PITR / a storage migration script) to restore actual file contents.
     const { data: buckets } = await sb.storage.listBuckets();
+    const bucketsList = (buckets || []).filter((b: any) => b.id !== "database-backups");
     const storageInventory: any[] = [];
-    const storageDownloaded: any[] = [];
-    const storageSkipped: any[] = [{ reason: "Object-level storage scan skipped in edge-safe snapshot; use storage exports/PITR for full restore." }];
     let totalBytes = 0;
-    for (const b of buckets || []) if (b.id !== "database-backups") storageInventory.push({ id: b.id, name: b.name, public: b.public });
-    addFile("storage/file_list.json", strToU8(JSON.stringify(storageInventory)));
-    addFile("storage/_downloaded.json", strToU8(JSON.stringify(storageDownloaded)));
-    addFile("storage/_skipped.json", strToU8(JSON.stringify(storageSkipped)));
-    addFile("storage/_mode.txt", strToU8("bucket_inventory_only"));
+    for (const b of bucketsList) {
+      try {
+        const files = await walkBucket(sb, b.id);
+        for (const f of files) {
+          totalBytes += Number(f.size || 0);
+          storageInventory.push({ bucket: b.id, path: f.name, size: f.size, updated_at: f.updated_at });
+        }
+      } catch (e: any) {
+        console.warn(`[backup] bucket ${b.id} walk failed:`, e?.message || e);
+      }
+    }
+    addFile("storage/buckets.json", strToU8(JSON.stringify(bucketsList.map((b: any) => ({ id: b.id, name: b.name, public: b.public })), null, 2)));
+    addFile("storage/file_list.json", strToU8(JSON.stringify(storageInventory, null, 2)));
+    addFile("storage/_mode.txt", strToU8("full_inventory_no_bytes"));
+    const storageDownloaded: any[] = [];
+    const storageSkipped: any[] = [{ reason: "Object bytes are not embedded in the edge ZIP. Re-fetch from live bucket using storage/file_list.json or restore via PITR." }];
 
     // Env snapshot
     const projectRef = (SUPABASE_URL.match(/https?:\/\/([^.]+)\./) || [])[1] || "";
