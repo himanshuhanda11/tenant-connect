@@ -375,50 +375,20 @@ async function runBackup(reqUrl: string, trigger: "manual" | "scheduled", actorI
         await Promise.all(pendingWrites.splice(0));
       }
     }
-    await writeProgress({ tables_done: tables.length, progress_percent: 80, current_step: "Indexing storage files…" }, true);
+    await writeProgress({ tables_done: tables.length, progress_percent: 84, current_step: "Recording storage bucket inventory…" }, true);
 
-    // ===== Storage: inventory only (file bytes opt-in via ?include_storage=1) =====
-    const url = new URL(reqUrl);
-    const includeStorageBytes = url.searchParams.get("include_storage") === "1";
+    // ===== Storage: bucket inventory only =====
+    // Recursive object scans can exceed Edge worker CPU/time limits on media-heavy apps.
     const { data: buckets } = await sb.storage.listBuckets();
     const storageInventory: any[] = [];
     const storageDownloaded: any[] = [];
-    const storageSkipped: any[] = [];
+    const storageSkipped: any[] = [{ reason: "Object-level storage scan skipped in edge-safe snapshot; use storage exports/PITR for full restore." }];
     let totalBytes = 0;
-
-    for (const b of buckets || []) {
-      if (b.id === "database-backups") continue;
-      const objects = await walkBucket(sb, b.id);
-      for (const obj of objects) {
-        storageInventory.push({ bucket: b.id, ...obj });
-        if (!includeStorageBytes) continue;
-        if (obj.size > MAX_FILE_BYTES) {
-          storageSkipped.push({ bucket: b.id, name: obj.name, size: obj.size, reason: "exceeds_per_file_cap" });
-          continue;
-        }
-        if (totalBytes + obj.size > MAX_TOTAL_BYTES) {
-          storageSkipped.push({ bucket: b.id, name: obj.name, size: obj.size, reason: "total_cap_reached" });
-          continue;
-        }
-        try {
-          const { data: blob, error } = await sb.storage.from(b.id).download(obj.name);
-          if (error || !blob) {
-            storageSkipped.push({ bucket: b.id, name: obj.name, reason: error?.message || "download_failed" });
-            continue;
-          }
-          const bytes = new Uint8Array(await blob.arrayBuffer());
-          addFile(`storage/files/${b.id}/${obj.name}`, bytes);
-          totalBytes += bytes.byteLength;
-          storageDownloaded.push({ bucket: b.id, name: obj.name, size: bytes.byteLength });
-        } catch (e: any) {
-          storageSkipped.push({ bucket: b.id, name: obj.name, reason: String(e?.message || e) });
-        }
-      }
-    }
+    for (const b of buckets || []) if (b.id !== "database-backups") storageInventory.push({ id: b.id, name: b.name, public: b.public });
     addFile("storage/file_list.json", strToU8(JSON.stringify(storageInventory)));
     addFile("storage/_downloaded.json", strToU8(JSON.stringify(storageDownloaded)));
     addFile("storage/_skipped.json", strToU8(JSON.stringify(storageSkipped)));
-    addFile("storage/_mode.txt", strToU8(includeStorageBytes ? "bytes_included" : "inventory_only"));
+    addFile("storage/_mode.txt", strToU8("bucket_inventory_only"));
 
     // Env snapshot
     const projectRef = (SUPABASE_URL.match(/https?:\/\/([^.]+)\./) || [])[1] || "";
