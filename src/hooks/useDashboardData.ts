@@ -283,7 +283,7 @@ export function useDashboardData(filters: DashboardFilters) {
       if (isAdmin) {
         const [agentResult, memberResult, entitlementResult] = await Promise.all([
           supabase.from('agents').select('id, display_name, is_online, user_id').eq('tenant_id', tId).eq('is_active', true),
-          supabase.from('tenant_members').select('id', { count: 'exact', head: true }).eq('tenant_id', tId),
+          supabase.from('tenant_members').select('id', { count: 'planned', head: true }).eq('tenant_id', tId),
           supabase.from('workspace_entitlements').select('plan').eq('workspace_id', tId).maybeSingle(),
         ]);
 
