@@ -25,8 +25,12 @@ const ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
 const TABLE_EXCLUDE = new Set<string>(["platform_backup_runs"]);
 
 // Per-file cap (skip giant single objects); total storage cap keeps ZIP sane.
-const MAX_FILE_BYTES = 25 * 1024 * 1024; // 25 MB
-const MAX_TOTAL_BYTES = 500 * 1024 * 1024; // 500 MB
+// Edge functions have a hard ~256MB memory ceiling. Keep totals well below that
+// so the in-memory ZIP build never OOMs. Larger files are listed in the
+// inventory but their bytes are skipped (operator can re-upload from the live
+// bucket during restore).
+const MAX_FILE_BYTES = 5 * 1024 * 1024; // 5 MB per file
+const MAX_TOTAL_BYTES = 80 * 1024 * 1024; // 80 MB total bytes
 
 async function listPublicTables(sb: any): Promise<string[]> {
   const { data, error } = await sb.rpc("backup_list_public_tables");
