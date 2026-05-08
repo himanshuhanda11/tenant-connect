@@ -25,6 +25,16 @@ const ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
 const TABLE_EXCLUDE = new Set<string>(["platform_backup_runs"]);
 const STALE_PENDING_MS = 10 * 60 * 1000;
 const STUCK_ZERO_PROGRESS_MS = 2 * 60 * 1000;
+const EDGE_UNSAFE_TABLE_EXACT = new Set<string>([
+  "messages",
+  "smeksh_messages",
+  "instagram_messages",
+  "webhook_events",
+  "shopify_webhook_events",
+  "contact_inbox_summary",
+  "smeksh_typing_state",
+]);
+const EDGE_UNSAFE_TABLE_SUFFIXES = ["_logs", "_events", "_jobs", "_sessions", "_analytics"];
 
 // Per-file cap (skip giant single objects); total storage cap keeps ZIP sane.
 // Edge functions have a hard ~256MB memory ceiling. Keep totals well below that
@@ -43,6 +53,19 @@ async function listPublicTables(sb: any): Promise<string[]> {
   return (data as Array<{ table_name: string }>)
     .map((r) => r.table_name)
     .filter((t) => !TABLE_EXCLUDE.has(t));
+}
+
+function planEdgeSafeTables(tables: string[]) {
+  const skipped: Array<{ table_name: string; reason: string }> = [];
+  const exportTables = tables.filter((table) => {
+    const unsafe = EDGE_UNSAFE_TABLE_EXACT.has(table) || EDGE_UNSAFE_TABLE_SUFFIXES.some((suffix) => table.endsWith(suffix));
+    if (unsafe) {
+      skipped.push({ table_name: table, reason: "Skipped in Edge backup because this table can exceed worker CPU/time limits; full DB backup must use pg_dump/PITR." });
+      return false;
+    }
+    return true;
+  });
+  return { exportTables, skipped };
 }
 
 function admin() {
