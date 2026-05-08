@@ -192,12 +192,35 @@ export function TenantProvider({ children }: { children: React.ReactNode }) {
     await fetchTenants();
   };
 
+  // In preview mode, load the previewed workspace directly (super-admin RLS allows it).
+  useEffect(() => {
+    if (!isPreview || !previewTenantId || !user) {
+      setPreviewTenant(null);
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase
+        .from('tenants')
+        .select('id, name, slug, logo_url, created_at, updated_at')
+        .eq('id', previewTenantId)
+        .maybeSingle();
+      if (!cancelled && data) {
+        setPreviewTenant({ ...(data as Tenant), role: 'owner' as TenantRole });
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [isPreview, previewTenantId, user]);
+
+  const effectiveCurrent = isPreview ? previewTenant : currentTenant;
+  const effectiveLoading = isPreview ? (loading || !previewTenant) : loading;
+
   return (
     <TenantContext.Provider value={{
       tenants,
-      currentTenant,
-      currentRole: currentTenant?.role ?? null,
-      loading,
+      currentTenant: effectiveCurrent,
+      currentRole: effectiveCurrent?.role ?? null,
+      loading: effectiveLoading,
       setCurrentTenant,
       createTenant,
       refreshTenants
