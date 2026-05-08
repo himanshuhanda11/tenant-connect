@@ -281,8 +281,10 @@ async function runBackup(req: Request, trigger: "manual" | "scheduled", actorId:
       tableCounts[t] = total;
       if (error) tableErrors[t] = error;
       else okTables++;
-      // Yield to event loop so backpressure drains.
-      await Promise.resolve();
+      // Drain any buffered writes before moving to next table to keep memory flat.
+      if (pendingWrites.length) {
+        await Promise.all(pendingWrites.splice(0));
+      }
     }
 
     // ===== Storage: inventory only (file bytes opt-in via ?include_storage=1) =====
