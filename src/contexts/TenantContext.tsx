@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './AuthContext';
+import { usePreviewWorkspace } from './PreviewWorkspaceContext';
 import type { Tenant, TenantRole, TenantWithRole } from '@/types/tenant';
 
 interface TenantContextType {
