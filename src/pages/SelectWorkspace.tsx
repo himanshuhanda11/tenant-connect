@@ -175,88 +175,118 @@ export default function SelectWorkspace() {
     return () => { cancelled = true; };
   }, [user?.id, authLoading, navigate]);
 
-  // Fetch enriched workspace data
+  // Fetch enriched workspace data — render basics instantly, enrich in batched queries.
   useEffect(() => {
     let isCancelled = false;
-    const fetchWorkspaceDetails = async () => {
-      if (tenants.length === 0) {
-        setWorkspaces([]);
-        return;
-      }
-      setLoadingDetails(true);
-      const weekAgoIso = (() => {
-        const weekAgo = new Date();
-        weekAgo.setDate(weekAgo.getDate() - 7);
-        return weekAgo.toISOString();
-      })();
 
+    if (tenants.length === 0) {
+      setWorkspaces([]);
+      setLoadingDetails(false);
+      return;
+    }
+
+    // 1) Instant render from tenants list (no spinner needed).
+    const baseline: WorkspaceEnriched[] = tenants.map((t) => ({
+      id: t.id,
+      name: t.name,
+      slug: t.slug,
+      logo_url: t.logo_url,
+      role: t.role,
+      created_at: t.created_at,
+      phoneCount: 0,
+      memberCount: 0,
+      status: 'setup',
+      messagesThisWeek: 0,
+      lastActive: (t as any).updated_at || t.created_at,
+    }));
+    setWorkspaces(baseline);
+    setLoadingDetails(true);
+
+    const tenantIds = tenants.map((t) => t.id);
+    const weekAgoIso = (() => {
+      const d = new Date();
+      d.setDate(d.getDate() - 7);
+      return d.toISOString();
+    })();
+
+    (async () => {
       try {
-        const enriched: WorkspaceEnriched[] = await Promise.all(
-          tenants.map(async (tenant) => {
-            const [phoneCountRes, phonesRes, memberCountRes, messagesThisWeekRes, lastMessageRes] = await Promise.all([
-              supabase.from('phone_numbers').select('*', { count: 'exact', head: true }).eq('tenant_id', tenant.id),
-              supabase.from('phone_numbers').select('status, display_number, verified_name, phone_number_id, waba_account_id').eq('tenant_id', tenant.id).eq('status', 'connected').limit(1),
-              supabase.from('tenant_members').select('*', { count: 'exact', head: true }).eq('tenant_id', tenant.id),
-              supabase.from('messages').select('*', { count: 'exact', head: true }).eq('tenant_id', tenant.id).gte('created_at', weekAgoIso),
-              supabase.from('messages').select('created_at').eq('tenant_id', tenant.id).order('created_at', { ascending: false }).limit(1).maybeSingle(),
-            ]);
-            const phoneCount = phoneCountRes.count ?? 0;
-            const phones = phonesRes.data ?? [];
-            const memberCount = memberCountRes.count ?? 0;
-            const messagesThisWeek = messagesThisWeekRes.count ?? 0;
-            const lastMessageAt = (lastMessageRes as any)?.data?.created_at as string | undefined;
-            let status: 'connected' | 'setup' | 'attention' = 'setup';
-            if (phones.length > 0) status = 'connected';
+        // 2) Batch all queries with .in() — N+1 → 4 queries total.
+        const [phonesRes, membersRes, weekMsgsRes, lastMsgsRes] = await Promise.all([
+          supabase
+            .from('phone_numbers')
+            .select('tenant_id, status, display_number, verified_name, phone_number_id, waba_account_id')
+            .in('tenant_id', tenantIds),
+          supabase
+            .from('tenant_members')
+            .select('tenant_id')
+            .in('tenant_id', tenantIds),
+          supabase
+            .from('messages')
+            .select('tenant_id')
+            .in('tenant_id', tenantIds)
+            .gte('created_at', weekAgoIso),
+          supabase
+            .from('messages')
+            .select('tenant_id, created_at')
+            .in('tenant_id', tenantIds)
+            .order('created_at', { ascending: false })
+            .limit(500),
+        ]);
 
-            // Fetch WhatsApp Business profile picture for connected workspaces
-            let waProfilePic: string | undefined;
-            const connectedPhone = phones?.[0] as any;
-            if (status === 'connected' && connectedPhone?.phone_number_id && connectedPhone?.waba_account_id) {
-              try {
-                const { data: profileRes } = await supabase.functions.invoke('whatsapp-profile', {
-                  body: {
-                    action: 'get',
-                    phone_number_id: connectedPhone.phone_number_id,
-                    waba_account_id: connectedPhone.waba_account_id,
-                  },
-                });
-                waProfilePic = profileRes?.profile?.profile_picture_url;
-              } catch (e) {
-                console.warn('Could not fetch WA profile pic for tenant', tenant.id, e);
-              }
-            }
+        if (isCancelled) return;
 
-            return {
-              id: tenant.id,
-              name: tenant.name,
-              slug: tenant.slug,
-              logo_url: waProfilePic || tenant.logo_url,
-              role: tenant.role,
-              created_at: tenant.created_at,
-              phoneCount,
-              phoneNumber: phones?.[0]?.display_number,
-              verifiedName: phones?.[0]?.verified_name ?? undefined,
-              memberCount,
-              status,
-              messagesThisWeek,
-              lastActive: lastMessageAt || tenant.updated_at || tenant.created_at,
-            };
-          })
-        );
+        const phonesByTenant = new Map<string, any[]>();
+        (phonesRes.data || []).forEach((p: any) => {
+          const arr = phonesByTenant.get(p.tenant_id) || [];
+          arr.push(p);
+          phonesByTenant.set(p.tenant_id, arr);
+        });
+
+        const memberCountByTenant = new Map<string, number>();
+        (membersRes.data || []).forEach((m: any) => {
+          memberCountByTenant.set(m.tenant_id, (memberCountByTenant.get(m.tenant_id) || 0) + 1);
+        });
+
+        const weekCountByTenant = new Map<string, number>();
+        (weekMsgsRes.data || []).forEach((m: any) => {
+          weekCountByTenant.set(m.tenant_id, (weekCountByTenant.get(m.tenant_id) || 0) + 1);
+        });
+
+        const lastByTenant = new Map<string, string>();
+        (lastMsgsRes.data || []).forEach((m: any) => {
+          if (!lastByTenant.has(m.tenant_id)) lastByTenant.set(m.tenant_id, m.created_at);
+        });
+
+        const enriched: WorkspaceEnriched[] = tenants.map((t) => {
+          const phones = phonesByTenant.get(t.id) || [];
+          const connected = phones.find((p) => p.status === 'connected');
+          const status: 'connected' | 'setup' | 'attention' = connected ? 'connected' : 'setup';
+          return {
+            id: t.id,
+            name: t.name,
+            slug: t.slug,
+            logo_url: t.logo_url,
+            role: t.role,
+            created_at: t.created_at,
+            phoneCount: phones.length,
+            phoneNumber: connected?.display_number,
+            verifiedName: connected?.verified_name ?? undefined,
+            memberCount: memberCountByTenant.get(t.id) || 0,
+            status,
+            messagesThisWeek: weekCountByTenant.get(t.id) || 0,
+            lastActive: lastByTenant.get(t.id) || (t as any).updated_at || t.created_at,
+          };
+        });
+
         if (!isCancelled) setWorkspaces(enriched);
       } catch (error) {
         console.error('Error fetching workspace details:', error);
-        if (!isCancelled) {
-          setWorkspaces(tenants.map((t) => ({
-            id: t.id, name: t.name, slug: t.slug, role: t.role, created_at: t.created_at,
-            phoneCount: 0, memberCount: 0, status: 'setup' as const,
-          })));
-        }
       } finally {
         if (!isCancelled) setLoadingDetails(false);
       }
-    };
-    fetchWorkspaceDetails();
+    })();
+
     return () => { isCancelled = true; };
   }, [tenants]);
 
