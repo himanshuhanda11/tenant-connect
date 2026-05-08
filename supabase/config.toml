@@ -3,6 +3,8 @@ project_id = "fygwjpdasnhaomoqdvcu"
 [functions]
   [functions.admin-api]
     verify_jwt = false
+  [functions.admin-backup]
+    verify_jwt = false
   [functions.ai-prompt-engine]
     verify_jwt = false
   [functions.auth-email-hook]
