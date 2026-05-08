@@ -9,7 +9,7 @@
 // the `database-backups` storage bucket, and inserts into platform_backup_runs.
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { Zip, ZipPassThrough, ZipDeflate, strToU8 } from "https://esm.sh/fflate@0.8.2";
+import { Zip, ZipPassThrough, strToU8 } from "https://esm.sh/fflate@0.8.2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -331,7 +331,7 @@ async function runBackup(reqUrl: string, trigger: "manual" | "scheduled", actorI
         tables_done: idx - 1,
         progress_percent: Math.min(80, Math.round((idx - 1) / Math.max(1, tables.length) * 80) + 2),
       });
-      const entry = new ZipDeflate(`tables/json/${t}.jsonl`, { level: 1 });
+      const entry = new ZipPassThrough(`tables/json/${t}.jsonl`);
       zip.add(entry);
       const { total, error } = await streamTableRows(sb, t, (rows) => {
         const chunk = rows.map((r) => JSON.stringify(r)).join("\n") + "\n";
