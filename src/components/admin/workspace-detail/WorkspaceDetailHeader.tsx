@@ -98,9 +98,13 @@ export function WorkspaceDetailHeader({
             <Eye className="h-3.5 w-3.5 mr-1" /> Impersonate (Read-only)
           </Button>
         )}
-        <Button variant="outline" size="sm" className="rounded-xl text-xs" asChild>
-          <a href={`/dashboard`} target="_blank" rel="noopener noreferrer">
-            <ExternalLink className="h-3.5 w-3.5 mr-1" /> View in Client App
+        <Button variant="default" size="sm" className="rounded-xl text-xs" asChild>
+          <a
+            href={`/dashboard?preview_workspace=${workspace.id}`}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <ExternalLink className="h-3.5 w-3.5 mr-1" /> Preview Workspace
           </a>
         </Button>
       </div>
