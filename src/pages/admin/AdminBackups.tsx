@@ -156,12 +156,32 @@ export default function AdminBackups() {
     setDownloadingId(id);
     try {
       const r = await call(`download/${id}`);
-      window.open(r.url, '_blank');
+      // Use an anchor click so it survives popup-blockers (a window.open after
+      // an await is treated as a non-user-initiated popup by Chrome/Safari).
+      const a = document.createElement('a');
+      a.href = r.url;
+      a.rel = 'noreferrer';
+      a.target = '_blank';
+      a.download = (r.path || '').split('/').pop() || 'backup.zip';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      toast({ title: 'Download started', description: 'Your backup ZIP is downloading.' });
     } catch (e: any) {
       toast({ title: 'Download failed', description: e.message, variant: 'destructive' });
     } finally {
       setDownloadingId(null);
     }
+  };
+
+  const openInDrive = (link: string) => {
+    const a = document.createElement('a');
+    a.href = link;
+    a.rel = 'noreferrer';
+    a.target = '_blank';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
   };
 
   const successCount = runs.filter(r => r.status === 'success').length;
