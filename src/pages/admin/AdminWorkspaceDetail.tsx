@@ -101,11 +101,9 @@ export default function AdminWorkspaceDetail() {
     }
   };
 
-  if (loading && !workspace) {
+  if (!workspace || !entitlements) {
     return <div className="flex justify-center py-20"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
   }
-
-  if (!workspace) return <div className="text-center py-20 text-muted-foreground">Workspace not found</div>;
 
   return (
     <div className="space-y-6 animate-fade-in">
