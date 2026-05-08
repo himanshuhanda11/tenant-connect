@@ -592,6 +592,11 @@ Deno.serve(async (req: Request) => {
 
       await failStaleBackupRuns(sb);
 
+      // Pre-create a pending run row, fully initialized so the UI shows progress
+      // immediately even before the background worker writes its first update.
+      const { data: tables } = await sb.rpc("backup_list_public_tables");
+      const tableList = (tables || []).map((r: any) => r.table_name).filter((t: string) => !TABLE_EXCLUDE.has(t));
+
       const { data: activeRun } = await sb
         .from("platform_backup_runs")
         .select("id,status,progress_percent,current_step,tables_done,tables_total,started_at,created_at")
@@ -600,16 +605,18 @@ Deno.serve(async (req: Request) => {
         .limit(1)
         .maybeSingle();
       if (activeRun) {
+        const normalizedRun = {
+          ...activeRun,
+          progress_percent: Math.max(1, Number(activeRun.progress_percent || 0)),
+          current_step: activeRun.current_step || "Queued — waiting for backup worker…",
+          started_at: activeRun.started_at || activeRun.created_at,
+          tables_total: Number(activeRun.tables_total || 0) || tableList.length,
+        };
         return new Response(
-          JSON.stringify({ ok: true, run_id: activeRun.id, status: "pending", message: "Backup already running. Tracking existing progress.", run: activeRun }),
+          JSON.stringify({ ok: true, run_id: activeRun.id, status: "pending", message: "Backup already running. Tracking existing progress.", run: normalizedRun }),
           { status: 202, headers: { ...corsHeaders, "content-type": "application/json" } },
         );
       }
-
-      // Pre-create a pending run row, fully initialized so the UI shows progress
-      // immediately even before the background worker writes its first update.
-      const { data: tables } = await sb.rpc("backup_list_public_tables");
-      const tableList = (tables || []).map((r: any) => r.table_name);
       const { data: run } = await sb
         .from("platform_backup_runs")
         .insert({
