@@ -574,10 +574,24 @@ export default function AdminWorkspaces() {
                       </DropdownMenu>
                     </TableCell>
                   </TableRow>
-                ))}
+                  {isExpanded && !isSignup && (
+                    <TableRow className="bg-transparent hover:bg-transparent">
+                      <TableCell colSpan={isSuperAdmin ? 14 : 13} className="p-2">
+                        <WorkspaceExpandedRow
+                          workspaceId={w.workspace_id}
+                          workspaceName={w.workspace_name}
+                          isSuperAdmin={isSuperAdmin}
+                          onChanged={loadWorkspaces}
+                        />
+                      </TableCell>
+                    </TableRow>
+                  )}
+                  </React.Fragment>
+                  );
+                })}
                 {workspaces.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={isSuperAdmin ? 13 : 12} className="text-center py-8 text-muted-foreground">
+                    <TableCell colSpan={isSuperAdmin ? 14 : 13} className="text-center py-8 text-muted-foreground">
                       No workspaces found
                     </TableCell>
                   </TableRow>
