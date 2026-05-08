@@ -916,6 +916,8 @@ Deno.serve(async (req: Request) => {
         stats,
       }), { headers: { ...corsHeaders, "content-type": "application/json" } });
     }
+
+    // Guard: any /workspaces/:id/* mutation on a synthetic "signup:<uuid>" row
     // (orphan signups with no tenant yet) — only the /delete handler knows how
     // to handle these. Reject everything else with a clear 400 so we never pass
     // the non-UUID into a UUID column and 500.
