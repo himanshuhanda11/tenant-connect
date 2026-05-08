@@ -284,8 +284,11 @@ export default function AdminAccounts() {
 
       {/* Table */}
       <Card className="rounded-2xl border-border/50 overflow-hidden">
-        {loading ? (
-          <div className="flex justify-center py-20"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
+        {loading && rows.length === 0 ? (
+          <TableSkeleton rows={10} cols={7} />
+        ) : false ? (
+          <div />
+
         ) : filtered.length === 0 ? (
           <CardContent className="p-12 text-center text-sm text-muted-foreground">
             No accounts match this filter.
