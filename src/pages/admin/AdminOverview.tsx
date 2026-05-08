@@ -26,6 +26,8 @@ interface Stats {
     totalWaba?: number; activeWaba?: number; pendingWaba?: number;
     expiredPlans?: number; trialPlans?: number;
     messagesToday?: number; inactiveAccounts?: number;
+    messagesInbound24h?: number; messagesOutbound24h?: number;
+    subAccountsCount?: number;
     revenue30d?: number; paymentsSucceeded?: number; paymentsFailed?: number;
   };
   growth: {
@@ -37,6 +39,7 @@ interface Stats {
   planDistribution: { name: string; value: number }[];
   phoneStatus: { name: string; value: number }[];
   phoneStatusDetail?: { name: string; value: number }[];
+  conversationsByWorkspace?: { tenant_id: string; name: string; display_number: string | null; messages_today: number; inbound: number; outbound: number; conversations_active: number }[];
   recentActivity: { id: string; action: string; actor_role: string; created_at: string; note?: string; target_table?: string }[];
 }
 
