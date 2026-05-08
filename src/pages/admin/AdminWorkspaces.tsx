@@ -538,6 +538,9 @@ export default function AdminWorkspaces() {
                               <DropdownMenuItem onClick={() => navigate(`/control/workspaces/${w.workspace_id}`)}>
                                 <Eye className="h-3.5 w-3.5 mr-2" /> Open workspace
                               </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => window.open(`/dashboard?preview_workspace=${w.workspace_id}`, '_blank', 'noopener,noreferrer')}>
+                                <Eye className="h-3.5 w-3.5 mr-2" /> Preview as customer
+                              </DropdownMenuItem>
                               <DropdownMenuItem onClick={() => handlePauseSending(w.workspace_id, !w.sending_paused)}>
                                 {w.sending_paused ? <Play className="h-3.5 w-3.5 mr-2" /> : <Pause className="h-3.5 w-3.5 mr-2" />}
                                 {w.sending_paused ? 'Resume sending' : 'Pause sending'}

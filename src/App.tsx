@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { HelmetProvider } from "react-helmet-async";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { TenantProvider } from "@/contexts/TenantContext";
+import { PreviewWorkspaceProvider } from "@/contexts/PreviewWorkspaceContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import ScrollToTop from "@/components/ScrollToTop";
 import RoutePrefetcher from "@/components/RoutePrefetcher";
@@ -190,6 +191,7 @@ const App = () => (
         </Suspense>
         <BrowserRouter>
           <AuthProvider>
+            <PreviewWorkspaceProvider>
             <TenantProvider>
               <ThemeProvider>
                 <ScrollToTop />
@@ -372,6 +374,7 @@ const App = () => (
                 </Suspense>
               </ThemeProvider>
             </TenantProvider>
+            </PreviewWorkspaceProvider>
           </AuthProvider>
         </BrowserRouter>
       </TooltipProvider>

@@ -9,6 +9,7 @@ import { Loader2, Menu, X } from 'lucide-react';
 import { useAgentSessionTracker } from '@/hooks/useAgentPerformance';
 import { WhatsAppConnectBanner } from '@/components/dashboard/WhatsAppConnectBanner';
 import { MobileBottomNav } from './MobileBottomNav';
+import { PreviewWorkspaceBanner } from '@/components/admin/PreviewWorkspaceBanner';
 
 function MobileHeader() {
   const { toggleSidebar, state } = useSidebar();
@@ -45,7 +46,9 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
   const { loading: tenantLoading, currentTenant } = useTenant();
-  const [onboardingChecked, setOnboardingChecked] = useState(false);
+  // Skip onboarding/role-based redirects when a super admin is previewing.
+  const isPreview = typeof window !== 'undefined' && !!sessionStorage.getItem('preview_workspace_id');
+  const [onboardingChecked, setOnboardingChecked] = useState(isPreview);
   // Track user id to avoid re-running onboarding check on token refreshes
   const [checkedUserId, setCheckedUserId] = useState<string | null>(null);
 
@@ -104,10 +107,12 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   useEffect(() => {
     // After refresh/login we may not have a selected workspace yet.
     // Always route through the workspace selector instead of forcing creation.
+    // Skip in preview mode — the previewed tenant is loaded async.
+    if (isPreview) return;
     if (!authLoading && !tenantLoading && user && !currentTenant && onboardingChecked) {
       navigate('/select-workspace');
     }
-  }, [user, authLoading, tenantLoading, currentTenant, onboardingChecked, navigate]);
+  }, [user, authLoading, tenantLoading, currentTenant, onboardingChecked, navigate, isPreview]);
 
   // Show loading while auth or tenant data is being fetched
   if (authLoading || tenantLoading || !onboardingChecked) {
@@ -129,6 +134,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       <div className="min-h-screen flex w-full bg-background">
         <AppSidebar />
         <main className="flex-1 flex flex-col min-w-0 w-full">
+          <PreviewWorkspaceBanner />
           <MobileHeader />
           <ScrollToTop />
           <div className="flex-1 overflow-auto relative bg-muted/20 p-4 sm:p-6 lg:p-8 pb-[calc(5rem+env(safe-area-inset-bottom))] md:pb-20">
