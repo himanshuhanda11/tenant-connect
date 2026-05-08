@@ -37,6 +37,8 @@ export default function AdminWorkspaceDetail() {
   const [owner, setOwner] = useState<any>(null);
   const [stats, setStats] = useState<any>(null);
   const [auditLogs, setAuditLogs] = useState<any[]>([]);
+  const [templates, setTemplates] = useState<any[]>([]);
+  const [campaigns, setCampaigns] = useState<any[]>([]);
   const [suspendDialog, setSuspendDialog] = useState(false);
   const [suspendReason, setSuspendReason] = useState('');
 
@@ -51,6 +53,8 @@ export default function AdminWorkspaceDetail() {
       setWaba(data.waba || null);
       setOwner(data.owner || null);
       setStats(data.stats || null);
+      setTemplates(data.templates || []);
+      setCampaigns(data.campaigns || []);
     }).catch(() => {});
 
     get(`audit-logs?workspace_id=${id}`).then(data => {
