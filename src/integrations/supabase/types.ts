@@ -6868,6 +6868,54 @@ export type Database = {
         }
         Relationships: []
       }
+      platform_backup_runs: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          downloaded_by: Json | null
+          duration_ms: number | null
+          error_message: string | null
+          file_size_bytes: number | null
+          id: string
+          status: string
+          storage_path: string | null
+          table_count: number | null
+          tables_included: Json | null
+          trigger: string
+          triggered_by: string | null
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          downloaded_by?: Json | null
+          duration_ms?: number | null
+          error_message?: string | null
+          file_size_bytes?: number | null
+          id?: string
+          status?: string
+          storage_path?: string | null
+          table_count?: number | null
+          tables_included?: Json | null
+          trigger?: string
+          triggered_by?: string | null
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          downloaded_by?: Json | null
+          duration_ms?: number | null
+          error_message?: string | null
+          file_size_bytes?: number | null
+          id?: string
+          status?: string
+          storage_path?: string | null
+          table_count?: number | null
+          tables_included?: Json | null
+          trigger?: string
+          triggered_by?: string | null
+        }
+        Relationships: []
+      }
       platform_billing_events: {
         Row: {
           amount: number
@@ -16051,6 +16099,7 @@ export type Database = {
       }
       cleanup_automation_expired_records: { Args: never; Returns: undefined }
       cleanup_expired_typing: { Args: never; Returns: undefined }
+      cleanup_old_backups: { Args: never; Returns: undefined }
       cleanup_rate_limit_logs: { Args: never; Returns: undefined }
       complete_automation_job: {
         Args: {
