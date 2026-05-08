@@ -181,8 +181,8 @@ export default function AdminAuditLogs() {
       </div>
 
       {/* Timeline */}
-      {loading ? (
-        <div className="flex justify-center py-10"><Loader2 className="h-6 w-6 animate-spin" /></div>
+      {loading && logs.length === 0 ? (
+        <ListSkeleton rows={6} />
       ) : (
         <AdminAuditTimeline logs={filteredLogs} />
       )}
