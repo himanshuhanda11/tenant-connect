@@ -106,19 +106,29 @@ async function fetchAllRows(sb: any, table: string, pageSize = 1000): Promise<an
   return all;
 }
 
-async function listStorageFiles(sb: any) {
-  const { data: buckets } = await sb.storage.listBuckets();
-  const out: any[] = [];
-  for (const b of buckets || []) {
-    if (b.id === "database-backups") continue; // skip self
-    try {
-      const { data: files } = await sb.storage.from(b.id).list("", { limit: 1000, sortBy: { column: "name", order: "asc" } });
-      for (const f of files || []) {
-        out.push({ bucket: b.id, name: f.name, size: f.metadata?.size, updated_at: f.updated_at });
+// Recursively walk a bucket and return every object path.
+async function walkBucket(sb: any, bucket: string, prefix = ""): Promise<Array<{ name: string; size: number; updated_at: string | null }>> {
+  const out: Array<{ name: string; size: number; updated_at: string | null }> = [];
+  let offset = 0;
+  while (true) {
+    const { data, error } = await sb.storage.from(bucket).list(prefix, {
+      limit: 1000,
+      offset,
+      sortBy: { column: "name", order: "asc" },
+    });
+    if (error || !data) break;
+    for (const f of data) {
+      const full = prefix ? `${prefix}/${f.name}` : f.name;
+      // Folders have no metadata.size; recurse into them
+      if (!f.metadata) {
+        const sub = await walkBucket(sb, bucket, full);
+        out.push(...sub);
+      } else {
+        out.push({ name: full, size: Number(f.metadata?.size || 0), updated_at: f.updated_at });
       }
-    } catch (e) {
-      console.warn(`[backup] list bucket ${b.id} failed:`, (e as any)?.message);
     }
+    if (data.length < 1000) break;
+    offset += 1000;
   }
   return out;
 }
@@ -126,11 +136,12 @@ async function listStorageFiles(sb: any) {
 async function runBackup(req: Request, trigger: "manual" | "scheduled", actorId: string | null) {
   const sb = admin();
   const startedAt = Date.now();
+  const tables = await listPublicTables(sb);
 
   // Insert run row first (pending)
   const { data: run } = await sb
     .from("platform_backup_runs")
-    .insert({ status: "pending", trigger, triggered_by: actorId, tables_included: BACKUP_TABLES })
+    .insert({ status: "pending", trigger, triggered_by: actorId, tables_included: tables })
     .select()
     .single();
   const runId = run!.id as string;
@@ -138,18 +149,58 @@ async function runBackup(req: Request, trigger: "manual" | "scheduled", actorId:
   try {
     const filesObj: Record<string, Uint8Array> = {};
     let okTables = 0;
+    const tableErrors: Record<string, string> = {};
 
-    // Per-table CSV + JSON
-    for (const t of BACKUP_TABLES) {
-      const rows = await fetchAllRows(sb, t);
-      filesObj[`tables/csv/${t}.csv`] = strToU8(toCSV(rows));
-      filesObj[`tables/json/${t}.json`] = strToU8(JSON.stringify(rows, null, 2));
-      okTables++;
+    // Per-table CSV + JSON (auto-discovered)
+    for (const t of tables) {
+      try {
+        const rows = await fetchAllRows(sb, t);
+        filesObj[`tables/csv/${t}.csv`] = strToU8(toCSV(rows));
+        filesObj[`tables/json/${t}.json`] = strToU8(JSON.stringify(rows, null, 2));
+        okTables++;
+      } catch (e: any) {
+        tableErrors[t] = String(e?.message || e);
+      }
     }
 
-    // Storage file inventory
-    const storageList = await listStorageFiles(sb);
-    filesObj["storage/file_list.json"] = strToU8(JSON.stringify(storageList, null, 2));
+    // ===== Storage: inventory + actual file bytes =====
+    const { data: buckets } = await sb.storage.listBuckets();
+    const storageInventory: any[] = [];
+    const storageDownloaded: any[] = [];
+    const storageSkipped: any[] = [];
+    let totalBytes = 0;
+
+    for (const b of buckets || []) {
+      if (b.id === "database-backups") continue; // skip self
+      const objects = await walkBucket(sb, b.id);
+      for (const obj of objects) {
+        storageInventory.push({ bucket: b.id, ...obj });
+        if (obj.size > MAX_FILE_BYTES) {
+          storageSkipped.push({ bucket: b.id, name: obj.name, size: obj.size, reason: "exceeds_per_file_cap" });
+          continue;
+        }
+        if (totalBytes + obj.size > MAX_TOTAL_BYTES) {
+          storageSkipped.push({ bucket: b.id, name: obj.name, size: obj.size, reason: "total_cap_reached" });
+          continue;
+        }
+        try {
+          const { data: blob, error } = await sb.storage.from(b.id).download(obj.name);
+          if (error || !blob) {
+            storageSkipped.push({ bucket: b.id, name: obj.name, reason: error?.message || "download_failed" });
+            continue;
+          }
+          const bytes = new Uint8Array(await blob.arrayBuffer());
+          filesObj[`storage/files/${b.id}/${obj.name}`] = bytes;
+          totalBytes += bytes.byteLength;
+          storageDownloaded.push({ bucket: b.id, name: obj.name, size: bytes.byteLength });
+        } catch (e: any) {
+          storageSkipped.push({ bucket: b.id, name: obj.name, reason: String(e?.message || e) });
+        }
+      }
+    }
+    filesObj["storage/file_list.json"] = strToU8(JSON.stringify(storageInventory, null, 2));
+    filesObj["storage/_downloaded.json"] = strToU8(JSON.stringify(storageDownloaded, null, 2));
+    filesObj["storage/_skipped.json"] = strToU8(JSON.stringify(storageSkipped, null, 2));
 
     // Environment snapshot
     // - .env: public/non-secret values only (safe to ship in backup)
