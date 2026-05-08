@@ -441,17 +441,12 @@ async function runBackup(req: Request, trigger: "manual" | "scheduled", actorId:
     const stat = await Deno.stat(tmpPath);
     const fileSize = stat.size;
 
-    // Upload to Supabase Storage from the temp file (read once into memory —
-    // compressed JSON ZIP is typically << raw DB).
+    // Stream temp file directly to Supabase Storage (no in-memory buffer).
     const ts = new Date().toISOString().replace(/[:.]/g, "-");
     const fileName = `aireatro-backup-${ts}.zip`;
     const path = `${ts}/${fileName}`;
-    const zipBytes = await Deno.readFile(tmpPath);
 
-    const { error: upErr } = await sb.storage
-      .from("database-backups")
-      .upload(path, zipBytes, { contentType: "application/zip", upsert: false });
-    if (upErr) throw upErr;
+    await uploadFileToStorageStreamed(tmpPath, fileSize, path);
 
     const ms = Date.now() - startedAt;
     await sb
@@ -469,8 +464,8 @@ async function runBackup(req: Request, trigger: "manual" | "scheduled", actorId:
       })
       .eq("id", runId);
 
-    // Upload to Google Drive
-    const driveResult = await uploadToDrive(zipBytes, fileName).catch((e: any) => ({
+    // Stream temp file to Google Drive (best-effort)
+    const driveResult = await uploadToDriveStreamed(tmpPath, fileSize, fileName).catch((e: any) => ({
       ok: false,
       error: String(e?.message || e),
     }));
