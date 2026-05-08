@@ -109,3 +109,7 @@ project_id = "fygwjpdasnhaomoqdvcu"
     verify_jwt = false
   [functions.handle-email-suppression]
     verify_jwt = false
+  [functions.account-deletion-export]
+    verify_jwt = false
+  [functions.signup-reminder-runner]
+    verify_jwt = false
