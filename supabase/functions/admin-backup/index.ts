@@ -44,7 +44,20 @@ function admin() {
 }
 
 async function requireSuperAdminOrCron(req: Request): Promise<{ userId: string | null; cron: boolean }> {
-  // Cron / service path: apikey header equals service role key
+  // Cron path: x-cron: 1 + matching token from platform_internal_settings
+  if (req.headers.get("x-cron") === "1") {
+    const token = req.headers.get("x-cron-token") || "";
+    const sb = admin();
+    const { data } = await sb
+      .from("platform_internal_settings")
+      .select("value")
+      .eq("key", "backup_cron_token")
+      .maybeSingle();
+    if (token && data?.value && token === data.value) {
+      return { userId: null, cron: true };
+    }
+  }
+  // Service-role direct call (kept for emergencies)
   const apiKey = req.headers.get("apikey") || "";
   if (apiKey === SERVICE_ROLE && req.headers.get("x-cron") === "1") {
     return { userId: null, cron: true };
