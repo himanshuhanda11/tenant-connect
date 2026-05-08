@@ -283,7 +283,8 @@ async function walkBucket(sb: any, bucket: string, prefix = ""): Promise<Array<{
 async function runBackup(reqUrl: string, trigger: "manual" | "scheduled", actorId: string | null, existingRunId?: string) {
   const sb = admin();
   const startedAt = Date.now();
-  const tables = await listPublicTables(sb);
+  const allTables = await listPublicTables(sb);
+  const { exportTables: tables, skipped: skippedTables } = planEdgeSafeTables(allTables);
 
   let runId: string;
   if (existingRunId) {
@@ -293,7 +294,7 @@ async function runBackup(reqUrl: string, trigger: "manual" | "scheduled", actorI
       tables_total: tables.length,
       tables_done: 0,
       progress_percent: 2,
-      current_step: `Preparing ${tables.length} tables…`,
+      current_step: `Preparing edge-safe snapshot: ${tables.length}/${allTables.length} tables…`,
       started_at: new Date().toISOString(),
     }).eq("id", runId);
   } else {
@@ -302,7 +303,7 @@ async function runBackup(reqUrl: string, trigger: "manual" | "scheduled", actorI
       .insert({
         status: "pending", trigger, triggered_by: actorId, tables_included: tables,
         tables_total: tables.length, progress_percent: 2,
-        current_step: `Preparing ${tables.length} tables…`,
+        current_step: `Preparing edge-safe snapshot: ${tables.length}/${allTables.length} tables…`,
         started_at: new Date().toISOString(),
       })
       .select()
@@ -454,12 +455,15 @@ async function runBackup(reqUrl: string, trigger: "manual" | "scheduled", actorI
       table_count: okTables,
       table_row_counts: tableCounts,
       table_errors: tableErrors,
+      skipped_tables: skippedTables,
+      skipped_table_count: skippedTables.length,
       buckets: (buckets || []).map((b: any) => ({ id: b.id, public: b.public })),
       storage_files_total: storageInventory.length,
       storage_files_downloaded: storageDownloaded.length,
       storage_files_skipped: storageSkipped.length,
       storage_bytes_downloaded: totalBytes,
       schema_note: "Full schema + edge functions + frontend live in GitHub repo.",
+      full_backup_note: "This in-app Edge backup intentionally skips high-volume operational tables. Disaster recovery/full exports should use Lovable Cloud PITR or the GitHub Actions pg_dump workflow.",
       format_note: "Each tables/json/<name>.jsonl is newline-delimited JSON (one row per line).",
     };
     addFile("manifest.json", strToU8(JSON.stringify(manifest, null, 2)));
