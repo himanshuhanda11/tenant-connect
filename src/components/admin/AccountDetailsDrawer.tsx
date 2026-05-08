@@ -20,6 +20,7 @@ import {
   Wifi, AlertTriangle,
 } from 'lucide-react';
 import { useAdminApi } from '@/hooks/useAdminApi';
+import { adminCachePeek } from '@/hooks/useAdminQuery';
 import { toast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { PlanChangeModal } from './PlanChangeModal';
