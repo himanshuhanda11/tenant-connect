@@ -48,6 +48,8 @@ export function AccountDetailsDrawer({ userId, onClose }: Props) {
   const [confirm, setConfirm] = useState<DangerAction>(null);
   const [activityFilter, setActivityFilter] = useState('');
   const [activityType, setActivityType] = useState<string>('all');
+  const [planModalWs, setPlanModalWs] = useState<{ id: string; name: string } | null>(null);
+  const [editProfileOpen, setEditProfileOpen] = useState(false);
 
   const load = async (silent = false) => {
     if (!userId) return;
