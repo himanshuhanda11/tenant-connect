@@ -163,6 +163,35 @@ async function runBackup(req: Request, trigger: "manual" | "scheduled", actorId:
     const storageList = await listStorageFiles(sb);
     filesObj["storage/file_list.json"] = strToU8(JSON.stringify(storageList, null, 2));
 
+    // Environment snapshot
+    // - .env: public/non-secret values only (safe to ship in backup)
+    // - env.secrets.list.txt: NAMES of configured secrets (no values) so a restore
+    //   operator knows which secrets to recreate in the new project.
+    const projectRef = (SUPABASE_URL.match(/https?:\/\/([^.]+)\./) || [])[1] || "";
+    const envFile = [
+      "# Aireatro public environment snapshot",
+      "# These are PUBLIC values — safe to commit. Secret keys are NOT included here.",
+      "# Recreate secrets in your new Supabase project using env.secrets.list.txt.",
+      `VITE_SUPABASE_URL=${SUPABASE_URL}`,
+      `VITE_SUPABASE_PUBLISHABLE_KEY=${ANON_KEY}`,
+      `VITE_SUPABASE_PROJECT_ID=${projectRef}`,
+      "",
+    ].join("\n");
+    filesObj["config/.env"] = strToU8(envFile);
+
+    const allEnv = Object.keys(Deno.env.toObject()).sort();
+    const secretNames = allEnv.filter(
+      (k) => !["SUPABASE_URL", "SUPABASE_ANON_KEY", "SUPABASE_PUBLISHABLE_KEY"].includes(k),
+    );
+    filesObj["config/env.secrets.list.txt"] = strToU8(
+      [
+        "# Names of secrets configured on the source project (values intentionally omitted).",
+        "# Recreate these in the destination project before deploying edge functions.",
+        "",
+        ...secretNames,
+      ].join("\n"),
+    );
+
     // Manifest
     const manifest = {
       generated_at: new Date().toISOString(),
