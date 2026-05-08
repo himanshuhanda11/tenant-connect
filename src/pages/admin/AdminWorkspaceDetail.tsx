@@ -35,6 +35,7 @@ export default function AdminWorkspaceDetail() {
   const [workspacePhone, setWorkspacePhone] = useState<any>(null);
   const [waba, setWaba] = useState<any>(null);
   const [owner, setOwner] = useState<any>(null);
+  const [stats, setStats] = useState<any>(null);
   const [auditLogs, setAuditLogs] = useState<any[]>([]);
   const [suspendDialog, setSuspendDialog] = useState(false);
   const [suspendReason, setSuspendReason] = useState('');
@@ -49,6 +50,7 @@ export default function AdminWorkspaceDetail() {
       setWorkspacePhone(data.workspace_phone || null);
       setWaba(data.waba || null);
       setOwner(data.owner || null);
+      setStats(data.stats || null);
     }).catch(() => {});
 
     get(`audit-logs?workspace_id=${id}`).then(data => {
