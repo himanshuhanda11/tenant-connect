@@ -21,8 +21,9 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import {
   Search, Loader2, Ban, Play, Pause, ChevronLeft, ChevronRight,
   Eye, MoreHorizontal, Copy, Users, Phone, AlertTriangle, Trash2, X,
-  Mail, Wifi, WifiOff, ArrowRightLeft
+  Mail, Wifi, WifiOff, ArrowRightLeft, ChevronDown, ChevronUp
 } from 'lucide-react';
+import { WorkspaceExpandedRow } from '@/components/admin/WorkspaceExpandedRow';
 
 interface Workspace {
   workspace_id: string;
