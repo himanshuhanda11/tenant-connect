@@ -28,11 +28,11 @@ interface AuditLog {
 
 export default function AdminAuditLogs() {
   const { role } = useOutletContext<{ role: string; readOnly: boolean }>();
-  const { get, loading } = useAdminApi();
-  const [logs, setLogs] = useState<AuditLog[]>([]);
+  const { get } = useAdminApi();
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [actionFilter, setActionFilter] = useState('all');
   const [roleFilter, setRoleFilter] = useState('all');
   const [dateRange, setDateRange] = useState('30');
@@ -40,15 +40,21 @@ export default function AdminAuditLogs() {
 
   const isSuperAdmin = role === 'super_admin';
 
-  const load = useCallback(async () => {
-    const params = new URLSearchParams({ page: page.toString() });
-    if (search) params.set('search', search);
-    const data = await get(`audit-logs?${params}`);
-    setLogs(data.logs || []);
-    setTotal(data.total || 0);
-  }, [page, search]);
+  useEffect(() => {
+    const t = setTimeout(() => { setDebouncedSearch(search); setPage(1); }, 300);
+    return () => clearTimeout(t);
+  }, [search]);
 
-  useEffect(() => { load().catch(() => {}); }, [load]);
+  const queryPath = (() => {
+    const params = new URLSearchParams({ page: page.toString() });
+    if (debouncedSearch) params.set('search', debouncedSearch);
+    return `audit-logs?${params.toString()}`;
+  })();
+  const { data: lData, loading, refetch } = useAdminQuery<{ logs: AuditLog[]; total: number }>(queryPath);
+  const logs = lData?.logs || [];
+  useEffect(() => { if (lData?.total != null) setTotal(lData.total); }, [lData?.total]);
+  const load = useCallback(async () => { await refetch(); }, [refetch]);
+
 
   const totalPages = Math.ceil(total / 50);
 
