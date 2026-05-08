@@ -106,21 +106,29 @@ function toCSV(rows: any[]): string {
   return header + "\n" + body;
 }
 
-async function fetchAllRows(sb: any, table: string, pageSize = 1000): Promise<any[]> {
-  const all: any[] = [];
+// Stream rows from a table page-by-page into a callback. Memory stays flat.
+async function streamTableRows(
+  sb: any,
+  table: string,
+  onPage: (rows: any[], pageIndex: number) => Promise<void> | void,
+  pageSize = 500,
+): Promise<{ total: number; error: string | null }> {
   let from = 0;
+  let total = 0;
+  let pageIndex = 0;
   while (true) {
     const { data, error } = await sb.from(table).select("*").range(from, from + pageSize - 1);
     if (error) {
       console.warn(`[backup] table ${table} failed:`, error.message);
-      return all; // partial
+      return { total, error: error.message };
     }
     if (!data || data.length === 0) break;
-    all.push(...data);
+    await onPage(data, pageIndex++);
+    total += data.length;
     if (data.length < pageSize) break;
     from += pageSize;
   }
-  return all;
+  return { total, error: null };
 }
 
 // ===== Google Drive integration via Lovable connector gateway =====
