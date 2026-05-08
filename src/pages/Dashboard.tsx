@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, lazy, Suspense } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -19,8 +19,9 @@ import {
   Bot, Timer, Check, Gift, Megaphone, Eye, Tag,
   MessageCircle, UserPlus, Gauge,
 } from 'lucide-react';
-import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 import { formatDistanceToNow } from 'date-fns';
+
+const MessagesAreaChart = lazy(() => import('@/components/dashboard/MessagesAreaChart'));
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -408,26 +409,9 @@ export default function Dashboard() {
             </div>
           </div>
           <div className="-mx-1 sm:-mx-2">
-            <ResponsiveContainer width="100%" height={140}>
-              <AreaChart data={chartData} margin={{ top: 5, right: 5, left: -30, bottom: 0 }}>
-                <defs>
-                  <linearGradient id="rcvGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.2} />
-                    <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
-                  </linearGradient>
-                  <linearGradient id="sntGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.2} />
-                    <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" strokeOpacity={0.4} vertical={false} />
-                <XAxis dataKey="day" tick={{ fontSize: 9, fill: 'hsl(var(--muted-foreground))' }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fontSize: 9, fill: 'hsl(var(--muted-foreground))' }} axisLine={false} tickLine={false} />
-                <Tooltip contentStyle={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '10px', fontSize: '10px' }} />
-                <Area type="monotone" dataKey="received" stroke="hsl(var(--primary))" strokeWidth={2} fill="url(#rcvGrad)" />
-                <Area type="monotone" dataKey="sent" stroke="#10b981" strokeWidth={2} fill="url(#sntGrad)" />
-              </AreaChart>
-            </ResponsiveContainer>
+            <Suspense fallback={<Skeleton className="h-[140px] w-full rounded-md" />}>
+              <MessagesAreaChart data={chartData} />
+            </Suspense>
           </div>
         </div>
 

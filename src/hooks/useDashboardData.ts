@@ -144,6 +144,7 @@ export function useDashboardData(filters: DashboardFilters) {
 
     try {
       // ── PHASE 1 (CRITICAL): KPIs, phones, credits — render the visible top-fold fast ──
+      // Use count: 'planned' (fast estimate) instead of 'exact' (full table scan) for dashboard counters.
       const [
         openConvosCount,
         unassignedCount,
@@ -155,23 +156,23 @@ export function useDashboardData(filters: DashboardFilters) {
         inboundCount,
         outboundCount,
       ] = await Promise.all([
-        supabase.from('conversations').select('id', { count: 'exact', head: true })
+        supabase.from('conversations').select('id', { count: 'planned', head: true })
           .eq('tenant_id', tId).neq('status', 'closed').neq('status', 'expired'),
-        supabase.from('conversations').select('id', { count: 'exact', head: true })
+        supabase.from('conversations').select('id', { count: 'planned', head: true })
           .eq('tenant_id', tId).neq('status', 'closed').neq('status', 'expired').is('assigned_to', null),
-        supabase.from('conversations').select('id', { count: 'exact', head: true })
+        supabase.from('conversations').select('id', { count: 'planned', head: true })
           .eq('tenant_id', tId).eq('sla_breached', true),
-        supabase.from('conversations').select('id', { count: 'exact', head: true })
+        supabase.from('conversations').select('id', { count: 'planned', head: true })
           .eq('tenant_id', tId).eq('status', 'closed').gte('updated_at', todayISO),
         supabase.from('conversations').select('unread_count')
-          .eq('tenant_id', tId).neq('status', 'closed').gt('unread_count', 0).limit(200),
+          .eq('tenant_id', tId).neq('status', 'closed').gt('unread_count', 0).limit(50),
         supabase.from('phone_numbers')
           .select('id, display_number, verified_name, quality_rating, status, messaging_limit')
           .eq('tenant_id', tId),
         supabase.from('message_credits').select('balance').eq('tenant_id', tId).maybeSingle(),
-        supabase.from('messages').select('id', { count: 'exact', head: true })
+        supabase.from('messages').select('id', { count: 'planned', head: true })
           .eq('tenant_id', tId).eq('direction', 'inbound').gte('created_at', todayISO),
-        supabase.from('messages').select('id', { count: 'exact', head: true })
+        supabase.from('messages').select('id', { count: 'planned', head: true })
           .eq('tenant_id', tId).eq('direction', 'outbound').gte('created_at', todayISO),
       ]);
 
@@ -231,17 +232,17 @@ export function useDashboardData(filters: DashboardFilters) {
         new7dResult,
         new30dResult,
       ] = await Promise.all([
-        supabase.from('templates').select('id', { count: 'exact', head: true }).eq('tenant_id', tId).eq('status', 'PENDING'),
-        supabase.from('templates').select('id', { count: 'exact', head: true }).eq('tenant_id', tId),
-        supabase.from('campaigns').select('id', { count: 'exact', head: true }).eq('tenant_id', tId),
-        supabase.from('automation_runs').select('id', { count: 'exact', head: true }).eq('tenant_id', tId).gte('started_at', start),
+        supabase.from('templates').select('id', { count: 'planned', head: true }).eq('tenant_id', tId).eq('status', 'PENDING'),
+        supabase.from('templates').select('id', { count: 'planned', head: true }).eq('tenant_id', tId),
+        supabase.from('campaigns').select('id', { count: 'planned', head: true }).eq('tenant_id', tId),
+        supabase.from('automation_runs').select('id', { count: 'planned', head: true }).eq('tenant_id', tId).gte('started_at', start),
         supabase.from('automation_workflows').select('id, name').eq('tenant_id', tId).eq('status', 'active').limit(5),
-        supabase.from('automation_workflows').select('id', { count: 'exact', head: true }).eq('tenant_id', tId).eq('status', 'paused'),
+        supabase.from('automation_workflows').select('id', { count: 'planned', head: true }).eq('tenant_id', tId).eq('status', 'paused'),
         supabase.from('campaigns').select('id, name, status, scheduled_at, sent_count, delivered_count, read_count, replied_count')
           .eq('tenant_id', tId).order('created_at', { ascending: false }).limit(5),
-        supabase.from('contacts').select('id', { count: 'exact', head: true }).eq('tenant_id', tId).gte('created_at', todayISO),
-        supabase.from('contacts').select('id', { count: 'exact', head: true }).eq('tenant_id', tId).gte('created_at', sevenDaysAgo),
-        supabase.from('contacts').select('id', { count: 'exact', head: true }).eq('tenant_id', tId).gte('created_at', thirtyDaysAgo),
+        supabase.from('contacts').select('id', { count: 'planned', head: true }).eq('tenant_id', tId).gte('created_at', todayISO),
+        supabase.from('contacts').select('id', { count: 'planned', head: true }).eq('tenant_id', tId).gte('created_at', sevenDaysAgo),
+        supabase.from('contacts').select('id', { count: 'planned', head: true }).eq('tenant_id', tId).gte('created_at', thirtyDaysAgo),
       ]);
 
       setTemplatesPending(pendingTplResult.count || 0);
@@ -282,7 +283,7 @@ export function useDashboardData(filters: DashboardFilters) {
       if (isAdmin) {
         const [agentResult, memberResult, entitlementResult] = await Promise.all([
           supabase.from('agents').select('id, display_name, is_online, user_id').eq('tenant_id', tId).eq('is_active', true),
-          supabase.from('tenant_members').select('id', { count: 'exact', head: true }).eq('tenant_id', tId),
+          supabase.from('tenant_members').select('id', { count: 'planned', head: true }).eq('tenant_id', tId),
           supabase.from('workspace_entitlements').select('plan').eq('workspace_id', tId).maybeSingle(),
         ]);
 
@@ -337,12 +338,12 @@ export function useDashboardData(filters: DashboardFilters) {
       });
       setRecentActivity(activity);
 
-      // Cache snapshot with timestamp for TTL invalidation
+      // Cache full snapshot so revisits skip all queries until TTL expires.
       cache.set(cacheKey, {
         ts: Date.now(),
         data: {
-          kpis: undefined, // re-derived from setters; lightweight fields only
           recentActivity: activity,
+          phoneHealthCount: phones.length,
         },
       });
     } catch (error) {
@@ -369,14 +370,15 @@ export function useDashboardData(filters: DashboardFilters) {
     const triggerRefresh = () => {
       invalidateDashboardCache(tId);
       if (debounceRef.current) clearTimeout(debounceRef.current);
-      debounceRef.current = setTimeout(() => fetchDashboardData(), 3000);
+      // Longer debounce — dashboard is a snapshot, not a live feed.
+      debounceRef.current = setTimeout(() => fetchDashboardData(), 15000);
     };
 
+    // Only subscribe to conversations (low-frequency). Skip `messages` (high-volume,
+    // would refetch the whole dashboard on every inbound chat) and `audit_logs`.
     const channel = supabase
       .channel(`dashboard-rt-${tId}`)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'conversations', filter: `tenant_id=eq.${tId}` }, triggerRefresh)
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'audit_logs', filter: `tenant_id=eq.${tId}` }, triggerRefresh)
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter: `tenant_id=eq.${tId}` }, triggerRefresh)
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'conversations', filter: `tenant_id=eq.${tId}` }, triggerRefresh)
       .subscribe();
 
     // Also auto-refetch when window regains focus & cache is older than TTL
