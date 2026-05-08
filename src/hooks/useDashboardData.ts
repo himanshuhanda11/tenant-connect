@@ -144,6 +144,7 @@ export function useDashboardData(filters: DashboardFilters) {
 
     try {
       // ── PHASE 1 (CRITICAL): KPIs, phones, credits — render the visible top-fold fast ──
+      // Use count: 'planned' (fast estimate) instead of 'exact' (full table scan) for dashboard counters.
       const [
         openConvosCount,
         unassignedCount,
@@ -155,23 +156,23 @@ export function useDashboardData(filters: DashboardFilters) {
         inboundCount,
         outboundCount,
       ] = await Promise.all([
-        supabase.from('conversations').select('id', { count: 'exact', head: true })
+        supabase.from('conversations').select('id', { count: 'planned', head: true })
           .eq('tenant_id', tId).neq('status', 'closed').neq('status', 'expired'),
-        supabase.from('conversations').select('id', { count: 'exact', head: true })
+        supabase.from('conversations').select('id', { count: 'planned', head: true })
           .eq('tenant_id', tId).neq('status', 'closed').neq('status', 'expired').is('assigned_to', null),
-        supabase.from('conversations').select('id', { count: 'exact', head: true })
+        supabase.from('conversations').select('id', { count: 'planned', head: true })
           .eq('tenant_id', tId).eq('sla_breached', true),
-        supabase.from('conversations').select('id', { count: 'exact', head: true })
+        supabase.from('conversations').select('id', { count: 'planned', head: true })
           .eq('tenant_id', tId).eq('status', 'closed').gte('updated_at', todayISO),
         supabase.from('conversations').select('unread_count')
-          .eq('tenant_id', tId).neq('status', 'closed').gt('unread_count', 0).limit(200),
+          .eq('tenant_id', tId).neq('status', 'closed').gt('unread_count', 0).limit(50),
         supabase.from('phone_numbers')
           .select('id, display_number, verified_name, quality_rating, status, messaging_limit')
           .eq('tenant_id', tId),
         supabase.from('message_credits').select('balance').eq('tenant_id', tId).maybeSingle(),
-        supabase.from('messages').select('id', { count: 'exact', head: true })
+        supabase.from('messages').select('id', { count: 'planned', head: true })
           .eq('tenant_id', tId).eq('direction', 'inbound').gte('created_at', todayISO),
-        supabase.from('messages').select('id', { count: 'exact', head: true })
+        supabase.from('messages').select('id', { count: 'planned', head: true })
           .eq('tenant_id', tId).eq('direction', 'outbound').gte('created_at', todayISO),
       ]);
 
