@@ -46,7 +46,9 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
   const { loading: tenantLoading, currentTenant } = useTenant();
-  const [onboardingChecked, setOnboardingChecked] = useState(false);
+  // Skip onboarding/role-based redirects when a super admin is previewing.
+  const isPreview = typeof window !== 'undefined' && !!sessionStorage.getItem('preview_workspace_id');
+  const [onboardingChecked, setOnboardingChecked] = useState(isPreview);
   // Track user id to avoid re-running onboarding check on token refreshes
   const [checkedUserId, setCheckedUserId] = useState<string | null>(null);
 
