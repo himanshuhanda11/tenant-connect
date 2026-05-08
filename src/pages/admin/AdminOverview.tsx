@@ -601,7 +601,25 @@ export default function AdminOverview() {
                 </div>
               </div>
             )}
-            {t.suspendedWorkspaces === 0 && t.incompleteAccounts === 0 && t.workspacesWithoutPhone === 0 && (
+            {(t.expiredPlans ?? 0) > 0 && (
+              <div className="flex items-start gap-2 p-3 rounded-xl bg-orange-500/5 border border-orange-500/20">
+                <CreditCard className="h-4 w-4 text-orange-600 mt-0.5" />
+                <div className="text-xs">
+                  <p className="font-medium text-orange-700">{t.expiredPlans} expired plan{(t.expiredPlans ?? 0) > 1 ? 's' : ''}</p>
+                  <p className="text-muted-foreground">Trigger renewal outreach</p>
+                </div>
+              </div>
+            )}
+            {(t.paymentsFailed ?? 0) > 0 && (
+              <div className="flex items-start gap-2 p-3 rounded-xl bg-rose-500/5 border border-rose-500/20">
+                <AlertTriangle className="h-4 w-4 text-rose-600 mt-0.5" />
+                <div className="text-xs">
+                  <p className="font-medium text-rose-700">{t.paymentsFailed} failed payment{(t.paymentsFailed ?? 0) > 1 ? 's' : ''} · 30d</p>
+                  <p className="text-muted-foreground">Review billing logs</p>
+                </div>
+              </div>
+            )}
+            {t.suspendedWorkspaces === 0 && t.incompleteAccounts === 0 && t.workspacesWithoutPhone === 0 && (t.expiredPlans ?? 0) === 0 && (t.paymentsFailed ?? 0) === 0 && (
               <div className="text-xs text-muted-foreground text-center py-8">All systems healthy ✨</div>
             )}
           </CardContent>
