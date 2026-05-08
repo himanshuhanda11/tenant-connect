@@ -3,7 +3,7 @@ import {
   MousePointerClick, MessageSquare, Users, TrendingUp,
   ArrowRight, DollarSign, Target, Clock, CheckCircle2,
 } from 'lucide-react';
-import girlWithPhone from '@/assets/girl-with-phone.png';
+import girlWithPhone from '@/assets/girl-with-phone.webp';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';

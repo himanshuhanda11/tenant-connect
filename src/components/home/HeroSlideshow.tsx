@@ -1,15 +1,15 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { cn } from '@/lib/utils';
 
-import slideInbox from '@/assets/slides/slide-inbox.png';
-import slideTags from '@/assets/slides/slide-tags.png';
-import slideTemplates from '@/assets/slides/slide-templates.png';
-import slideAutomation from '@/assets/slides/slide-automation.png';
-import slideFormRules from '@/assets/slides/slide-form-rules.png';
-import slideFlowBuilder from '@/assets/slides/slide-flow-builder.png';
-import slideMetaAds from '@/assets/slides/slide-meta-ads.png';
-import slideTeam from '@/assets/slides/slide-team.png';
-import slideBilling from '@/assets/slides/slide-billing.png';
+import slideInbox from '@/assets/slides/slide-inbox.webp';
+import slideTags from '@/assets/slides/slide-tags.webp';
+import slideTemplates from '@/assets/slides/slide-templates.webp';
+import slideAutomation from '@/assets/slides/slide-automation.webp';
+import slideFormRules from '@/assets/slides/slide-form-rules.webp';
+import slideFlowBuilder from '@/assets/slides/slide-flow-builder.webp';
+import slideMetaAds from '@/assets/slides/slide-meta-ads.webp';
+import slideTeam from '@/assets/slides/slide-team.webp';
+import slideBilling from '@/assets/slides/slide-billing.webp';
 
 const slides = [
   { src: slideInbox, label: 'Team Inbox', description: 'Manage conversations with VIP tagging & SLA tracking' },

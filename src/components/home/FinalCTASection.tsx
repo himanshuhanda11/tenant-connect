@@ -2,7 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowRight, CheckCircle2, Calendar, Headphones, Rocket, Sparkles, MessageSquare } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import whatsappCouplePink from '@/assets/whatsapp-couple-pink.jpg';
+import whatsappCouplePink from '@/assets/whatsapp-couple-pink.webp';
 
 export default function FinalCTASection() {
   const navigate = useNavigate();
