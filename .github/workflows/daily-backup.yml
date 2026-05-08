@@ -107,9 +107,10 @@ jobs:
         run: |
           psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 <<SQL || true
           INSERT INTO public.platform_backup_runs
-            (status, drive_status, drive_error, started_at, completed_at, source)
+            (status, trigger, drive_status, drive_error, error_message, completed_at)
           VALUES
-            ('failed', 'failed',
+            ('failed', 'github_action', 'failed',
              'GitHub Action failed - see workflow run ${{ github.run_id }}',
-             now(), now(), 'github_action');
+             'GitHub Action failed - see workflow run ${{ github.run_id }}',
+             now());
           SQL
