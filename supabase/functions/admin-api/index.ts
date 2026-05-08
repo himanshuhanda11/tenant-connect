@@ -1515,7 +1515,40 @@ Deno.serve(async (req: Request) => {
       });
     }
 
-    // POST /users/:id/update-email
+    // POST /users/:id/send-reminder  { type: 'signup' | 'workspace' }
+    if (req.method === "POST" && path.match(/^users\/[^/]+\/send-reminder$/)) {
+      const userId = path.split("/")[1];
+      const actor = await requirePlatformRole(req, ["super_admin", "support"]);
+      const sb = adminClient();
+      const body = await req.json().catch(() => ({}));
+      const type = body.type === "workspace" ? "workspace" : "signup";
+      const { data: { user } } = await sb.auth.admin.getUserById(userId);
+      if (!user?.email) throw new Error("User not found or no email");
+      const name = (user.user_metadata as any)?.full_name?.split(" ")?.[0] || null;
+      const stamp = new Date().toISOString().slice(0, 16);
+      const templateName = type === "signup" ? "complete-signup-reminder" : "create-workspace-reminder";
+      const templateData = type === "signup"
+        ? { name, resumeUrl: "https://aireatro.com/signup" }
+        : { name, workspaceUrl: "https://app.aireatro.com/create-workspace" };
+      const { error } = await sb.functions.invoke("send-transactional-email", {
+        body: {
+          templateName,
+          recipientEmail: user.email,
+          idempotencyKey: `manual-${type}-reminder-${userId}-${stamp}`,
+          templateData,
+        },
+      });
+      if (error) throw new Error(error.message || "Email send failed");
+      await sb.from("signup_reminder_log").insert({
+        user_id: userId, email: user.email, reminder_type: type, reminder_stage: `manual-${stamp}`,
+      }).then(() => null, () => null);
+      await logAction(sb, actor, "PLATFORM_REMINDER_SENT", {
+        target_table: "auth.users", target_id: userId, note: `Manual ${type} reminder to ${user.email}`,
+      });
+      return new Response(JSON.stringify({ success: true, email: user.email }), {
+        headers: { ...corsHeaders, "content-type": "application/json" },
+      });
+    }
     if (req.method === "POST" && path.match(/^users\/[^/]+\/update-email$/)) {
       const userId = path.split("/")[1];
       const actor = await requirePlatformRole(req, ["super_admin"]);
