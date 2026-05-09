@@ -3,7 +3,7 @@ type GoogleOAuthOptions = {
   extraParams?: Record<string, string>;
 };
 
-const MANAGED_OAUTH_BROKER_PATH = "/~oauth/initiate";
+import { lovable } from "@/integrations/lovable";
 
 export function buildGoogleAuthRedirectUri(nextPath = "/select-workspace") {
   const normalizedPath = nextPath.startsWith("/") ? nextPath : `/${nextPath}`;
@@ -11,18 +11,16 @@ export function buildGoogleAuthRedirectUri(nextPath = "/select-workspace") {
   return `${window.location.origin}/auth/callback?${params.toString()}`;
 }
 
-function buildManagedGoogleBrokerUrl(options: GoogleOAuthOptions = {}) {
+export async function signInWithManagedGoogle(options: GoogleOAuthOptions = {}) {
   const { nextPath = "/select-workspace", extraParams } = options;
-  const params = new URLSearchParams({
-    provider: "google",
+
+  const result = await lovable.auth.signInWithOAuth("google", {
     redirect_uri: buildGoogleAuthRedirectUri(nextPath),
-    ...extraParams,
+    extraParams,
   });
 
-  return `${MANAGED_OAUTH_BROKER_PATH}?${params.toString()}`;
-}
-
-export async function signInWithManagedGoogle(options: GoogleOAuthOptions = {}) {
-  window.location.assign(buildManagedGoogleBrokerUrl(options));
-  return { error: null, redirected: true as const };
+  return {
+    error: result.error ?? null,
+    redirected: Boolean(result.redirected) as boolean,
+  };
 }
