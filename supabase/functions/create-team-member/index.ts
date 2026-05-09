@@ -28,6 +28,10 @@ Deno.serve(async (req) => {
       return json({ error: roleCheck.error }, 403);
     }
 
+    // 2b. Verify the workspace's plan allows inviting more members
+    const planCheck = await requirePlanAccess(tenantId, "invite_member");
+    if (!planCheck.ok) return planCheck.res;
+
     const admin = getAdminClient();
 
     // 3. Create auth user
