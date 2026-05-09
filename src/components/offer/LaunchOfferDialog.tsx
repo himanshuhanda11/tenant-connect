@@ -125,9 +125,9 @@ export function LaunchOfferDialog({ open, onOpenChange }: Props) {
               </div>
 
               <div className="mt-4 flex items-center justify-between text-[11px] text-white/60">
-                <span className="inline-flex items-center gap-1.5">
+                <span className="inline-flex items-center gap-1.5 text-emerald-200 font-semibold">
                   <ShieldCheck className="w-3 h-3" />
-                  No card • No hidden fee • Instant
+                  No credit card required
                 </span>
                 {typeof claimCount === 'number' && claimCount > 0 && (
                   <span>🔥 {claimCount} users claimed today</span>
