@@ -334,7 +334,7 @@ export default function CreateWorkspaceSplitHero({
                   placeholder="e.g., Acme Sales"
                   value={workspaceName}
                   onChange={(e) => setWorkspaceName(e.target.value)}
-                  className="h-11 rounded-xl border-emerald-100 bg-white/90 focus-visible:ring-emerald-500/30 focus-visible:border-emerald-400 transition-all"
+                  className="h-11 rounded-xl border-emerald-200 bg-white text-slate-900 placeholder:text-slate-400 focus-visible:ring-emerald-500/30 focus-visible:border-emerald-400 transition-all"
                   autoFocus
                 />
               </div>
@@ -349,7 +349,7 @@ export default function CreateWorkspaceSplitHero({
                   placeholder="Your company name"
                   value={businessName}
                   onChange={(e) => setBusinessName(e.target.value)}
-                  className="h-11 rounded-xl border-emerald-100 bg-white/90 focus-visible:ring-emerald-500/30 focus-visible:border-emerald-400 transition-all"
+                  className="h-11 rounded-xl border-emerald-200 bg-white text-slate-900 placeholder:text-slate-400 focus-visible:ring-emerald-500/30 focus-visible:border-emerald-400 transition-all"
                 />
               </div>
 
@@ -360,10 +360,10 @@ export default function CreateWorkspaceSplitHero({
                     Category
                   </Label>
                   <Select value={category} onValueChange={setCategory}>
-                    <SelectTrigger className="h-11 rounded-xl border-emerald-100 bg-white/90 text-sm">
+                    <SelectTrigger className="h-11 rounded-xl border-emerald-200 bg-white text-slate-900 text-sm data-[placeholder]:text-slate-400">
                       <SelectValue placeholder="Select" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="bg-white text-slate-900">
                       {CATEGORIES.map((c) => (
                         <SelectItem key={c} value={c}>{c}</SelectItem>
                       ))}
@@ -375,10 +375,10 @@ export default function CreateWorkspaceSplitHero({
                     Team Size
                   </Label>
                   <Select value={teamSize} onValueChange={setTeamSize}>
-                    <SelectTrigger className="h-11 rounded-xl border-emerald-100 bg-white/90 text-sm">
+                    <SelectTrigger className="h-11 rounded-xl border-emerald-200 bg-white text-slate-900 text-sm data-[placeholder]:text-slate-400">
                       <SelectValue placeholder="Select" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="bg-white text-slate-900">
                       {TEAM_SIZES.map((t) => (
                         <SelectItem key={t} value={t}>{t}</SelectItem>
                       ))}
