@@ -1,5 +1,6 @@
 import { getAdminClient, getUserClient, corsHeaders, json } from "../_shared/supabase.ts";
 import { requireUser, requireTenantRole } from "../_shared/guards.ts";
+import { requirePlanAccess } from "../_shared/planAccess.ts";
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -26,6 +27,10 @@ Deno.serve(async (req) => {
     if (!roleCheck.ok) {
       return json({ error: roleCheck.error }, 403);
     }
+
+    // 2b. Verify the workspace's plan allows inviting more members
+    const planCheck = await requirePlanAccess(tenantId, "invite_member");
+    if (!planCheck.ok) return planCheck.res;
 
     const admin = getAdminClient();
 
