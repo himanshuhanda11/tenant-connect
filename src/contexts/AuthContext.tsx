@@ -39,6 +39,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
+      // If Supabase reports the user is gone or token refresh failed,
+      // wipe local state so the app redirects to /login.
+      if (event === 'USER_DELETED' as any || event === 'TOKEN_REFRESHED' && !session) {
+        try { localStorage.removeItem('whatsapp-isv-current-tenant'); } catch {}
+        setSession(null);
+        setUser(null);
+        setProfile(null);
+        return;
+      }
+
       setSession(session);
       setUser(session?.user ?? null);
 
