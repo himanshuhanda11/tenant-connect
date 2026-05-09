@@ -16771,6 +16771,14 @@ export type Database = {
         Args: { user_a: string; user_b: string }
         Returns: boolean
       }
+      verify_plan_security_invariants: {
+        Args: never
+        Returns: {
+          check_name: string
+          detail: string
+          passed: boolean
+        }[]
+      }
     }
     Enums: {
       app_role:
