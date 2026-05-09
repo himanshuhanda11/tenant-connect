@@ -374,7 +374,7 @@ export default function SelectWorkspace() {
       setModalOpen(false);
       setCurrentTenant({ ...(tenant as any), role: 'owner' });
       toast.success('Workspace created!');
-      navigate(`/dashboard?select_plan=1${connectNow ? '&connect=1' : ''}`);
+      navigate(`/dashboard${connectNow ? '?connect=1' : ''}`);
     } catch (e: any) {
       console.error('[CreateWorkspace] exception:', e);
       toast.error(e?.message || 'Something went wrong. Please try again.');
