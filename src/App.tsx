@@ -12,6 +12,7 @@ import ScrollToTop from "@/components/ScrollToTop";
 import RoutePrefetcher from "@/components/RoutePrefetcher";
 import Index from "./pages/Index";
 import { RequirePermission } from "@/components/auth/RequirePermission";
+import { RequirePlanSelection } from "@/components/auth/RequirePlanSelection";
 import {
   META_ADS_ATTRIBUTION_PERMISSIONS,
   META_ADS_AUTOMATION_PERMISSIONS,
@@ -29,6 +30,7 @@ const SignupPage = lazyWithRetry(() => import("./pages/onboarding/SignupPage"));
 const OrganizationPage = lazyWithRetry(() => import("./pages/onboarding/OrganizationPage"));
 const PasswordPage = lazyWithRetry(() => import("./pages/onboarding/PasswordPage"));
 const AuthCallback = lazyWithRetry(() => import("./pages/AuthCallback"));
+const ChoosePlanPage = lazyWithRetry(() => import("./pages/onboarding/ChoosePlanPage"));
 const CreateWorkspace = lazyWithRetry(() => import("./pages/CreateWorkspace"));
 const SelectWorkspace = lazyWithRetry(() => import("./pages/SelectWorkspace"));
 const NotFound = lazyWithRetry(() => import("./pages/NotFound"));
@@ -197,6 +199,7 @@ const App = () => (
               <ThemeProvider>
                 <ScrollToTop />
                 <RoutePrefetcher />
+                <RequirePlanSelection>
                 <Suspense fallback={<RouteLoader />}>
                   <Routes>
                     <Route path="/" element={<Index />} />
@@ -209,6 +212,7 @@ const App = () => (
                     <Route path="/invite/accept" element={<InviteAccept />} />
                     <Route path="/onboarding/org" element={<OrganizationPage />} />
                     <Route path="/onboarding/password" element={<PasswordPage />} />
+                    <Route path="/choose-plan" element={<ChoosePlanPage />} />
                     <Route path="/create-workspace" element={<CreateWorkspace />} />
                     <Route path="/select-workspace" element={<SelectWorkspace />} />
                     <Route path="/dashboard" element={<Dashboard />} />
@@ -374,6 +378,7 @@ const App = () => (
                     <Route path="*" element={<NotFound />} />
                   </Routes>
                 </Suspense>
+                </RequirePlanSelection>
               </ThemeProvider>
             </TenantProvider>
             </PreviewWorkspaceProvider>

@@ -14329,6 +14329,39 @@ export type Database = {
           },
         ]
       }
+      user_offers: {
+        Row: {
+          claimed_at: string | null
+          claimed_plan_id: string | null
+          created_at: string
+          offer_claimed: boolean
+          offer_expires_at: string
+          offer_started_at: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          claimed_at?: string | null
+          claimed_plan_id?: string | null
+          created_at?: string
+          offer_claimed?: boolean
+          offer_expires_at?: string
+          offer_started_at?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          claimed_at?: string | null
+          claimed_plan_id?: string | null
+          created_at?: string
+          offer_claimed?: boolean
+          offer_expires_at?: string
+          offer_started_at?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -16209,6 +16242,7 @@ export type Database = {
         Args: { p_conversation_id: string; p_tenant_id: string }
         Returns: Json
       }
+      claim_launch_offer: { Args: { _plan_id: string }; Returns: Json }
       claim_on_reply: {
         Args: {
           p_actor_id: string
@@ -16362,6 +16396,7 @@ export type Database = {
         Args: { payload: Json; queue_name: string }
         Returns: number
       }
+      get_offer_claim_count_today: { Args: never; Returns: number }
       get_platform_role: { Args: { _user_id: string }; Returns: string }
       get_team_workload: {
         Args: { p_team_id: string; p_tenant_id: string }

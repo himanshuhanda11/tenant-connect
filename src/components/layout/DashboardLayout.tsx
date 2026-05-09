@@ -10,6 +10,7 @@ import { useAgentSessionTracker } from '@/hooks/useAgentPerformance';
 import { WhatsAppConnectBanner } from '@/components/dashboard/WhatsAppConnectBanner';
 import { MobileBottomNav } from './MobileBottomNav';
 import { PreviewWorkspaceBanner } from '@/components/admin/PreviewWorkspaceBanner';
+import { LaunchOfferProvider } from '@/components/offer/LaunchOfferProvider';
 
 function MobileHeader() {
   const { toggleSidebar, state } = useSidebar();
@@ -131,6 +132,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   }
   return (
     <SidebarProvider>
+      <LaunchOfferProvider>
       <div className="min-h-screen flex w-full bg-background">
         <AppSidebar />
         <main className="flex-1 flex flex-col min-w-0 w-full">
@@ -144,6 +146,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           <MobileBottomNav />
         </main>
       </div>
+      </LaunchOfferProvider>
     </SidebarProvider>
   );
 }
