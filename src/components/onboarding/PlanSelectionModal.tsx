@@ -204,7 +204,7 @@ export default function PlanSelectionModal({ open, tenantId, onSelected, onPaidI
             <div
               ref={scrollerRef}
               onScroll={updateArrows}
-              className="flex gap-4 overflow-x-auto px-4 sm:px-6 py-5 snap-x snap-mandatory scroll-smooth"
+              className="flex gap-3 sm:gap-4 overflow-x-auto px-3 sm:px-6 py-4 sm:py-5 snap-x snap-mandatory scroll-smooth"
               style={{ scrollbarWidth: 'thin' }}
             >
               {pricingPlans.map((plan) => {
