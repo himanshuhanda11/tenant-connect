@@ -201,7 +201,8 @@ export function UpgradePlanDialog({ open, onOpenChange, currentPlanId }: Upgrade
         <div className="grid gap-4 sm:grid-cols-3 mt-2">
           {upgradePlans.map((plan) => {
             const isCurrent = currentPlanId === plan.id || currentPlanId === `plan_${plan.id}`;
-            const price = isYearly ? Math.round(plan.price_monthly * 0.8) : plan.price_monthly;
+            const baseMonthly = localPrice(plan.id) || plan.price_monthly;
+            const price = isYearly ? Math.round(baseMonthly * 0.8) : baseMonthly;
             const isLoading = loading && selectedPlan === plan.id;
 
             return (
