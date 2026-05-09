@@ -176,7 +176,7 @@ export default function PlanSelectionModal({ open, tenantId, onSelected, onPaidI
               disabled={!canLeft}
               aria-label="Previous plan"
               className={cn(
-                'absolute left-2 sm:left-3 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-white border border-slate-200 shadow-lg flex items-center justify-center transition-all duration-200',
+                'absolute left-1.5 sm:left-3 top-1/2 -translate-y-1/2 z-20 w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-white border border-slate-200 shadow-lg flex items-center justify-center transition-all duration-200',
                 'hover:scale-110 hover:shadow-emerald-500/20 hover:border-emerald-300',
                 !canLeft && 'opacity-0 pointer-events-none',
               )}
