@@ -1,6 +1,8 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { Gift } from 'lucide-react';
 import { useLaunchOffer, formatCountdown } from '@/hooks/useLaunchOffer';
+import { useLocation } from 'react-router-dom';
+import { isOfferExcludedPath } from './excludedPaths';
 
 interface Props {
   onClick: () => void;
@@ -10,8 +12,9 @@ interface Props {
 export function FloatingOfferWidget({ onClick, hidden }: Props) {
   const { isActive, secondsLeft } = useLaunchOffer();
   const { h, m } = formatCountdown(secondsLeft);
+  const location = useLocation();
 
-  if (!isActive || hidden) return null;
+  if (!isActive || hidden || isOfferExcludedPath(location.pathname)) return null;
 
   return (
     <AnimatePresence>
