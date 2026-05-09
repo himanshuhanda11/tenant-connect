@@ -1,4 +1,4 @@
-import { Clock } from 'lucide-react';
+import { Clock, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { formatCountdown } from '@/hooks/useLaunchOffer';
 
@@ -9,13 +9,33 @@ interface Props {
 }
 
 export function CountdownPill({ secondsLeft, size = 'md', className }: Props) {
-  const { h, m, s, isCritical } = formatCountdown(secondsLeft);
   const sizeCls =
     size === 'lg'
       ? 'text-base px-4 py-2 gap-2'
       : size === 'sm'
         ? 'text-[11px] px-2 py-0.5 gap-1'
         : 'text-xs px-3 py-1 gap-1.5';
+
+  const isEvergreen = !isFinite(secondsLeft);
+
+  if (isEvergreen) {
+    return (
+      <div
+        className={cn(
+          'inline-flex items-center rounded-full font-semibold uppercase tracking-wide',
+          'border border-amber-400/50 bg-gradient-to-r from-amber-400/15 to-orange-400/15 text-amber-200',
+          'backdrop-blur-md',
+          sizeCls,
+          className,
+        )}
+      >
+        <Sparkles className={cn(size === 'lg' ? 'w-4 h-4' : 'w-3 h-3')} />
+        <span>Limited Time Offer</span>
+      </div>
+    );
+  }
+
+  const { h, m, s, isCritical } = formatCountdown(secondsLeft);
   return (
     <div
       className={cn(
@@ -40,3 +60,4 @@ export function CountdownPill({ secondsLeft, size = 'md', className }: Props) {
     </div>
   );
 }
+
