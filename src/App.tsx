@@ -380,6 +380,7 @@ const App = () => (
                     <Route path="*" element={<NotFound />} />
                   </Routes>
                 </Suspense>
+                </LaunchOfferProvider>
                 </RequirePlanSelection>
               </ThemeProvider>
             </TenantProvider>
