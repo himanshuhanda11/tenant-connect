@@ -32,6 +32,7 @@ const OrganizationPage = lazyWithRetry(() => import("./pages/onboarding/Organiza
 const PasswordPage = lazyWithRetry(() => import("./pages/onboarding/PasswordPage"));
 const AuthCallback = lazyWithRetry(() => import("./pages/AuthCallback"));
 const ChoosePlanPage = lazyWithRetry(() => import("./pages/onboarding/ChoosePlanPage"));
+const SelectWorkspacePlanPage = lazyWithRetry(() => import("./pages/onboarding/SelectWorkspacePlanPage"));
 const CreateWorkspace = lazyWithRetry(() => import("./pages/CreateWorkspace"));
 const SelectWorkspace = lazyWithRetry(() => import("./pages/SelectWorkspace"));
 const NotFound = lazyWithRetry(() => import("./pages/NotFound"));
@@ -215,6 +216,7 @@ const App = () => (
                     <Route path="/onboarding/org" element={<OrganizationPage />} />
                     <Route path="/onboarding/password" element={<PasswordPage />} />
                     <Route path="/choose-plan" element={<ChoosePlanPage />} />
+                    <Route path="/select-workspace-plan" element={<SelectWorkspacePlanPage />} />
                     <Route path="/create-workspace" element={<CreateWorkspace />} />
                     <Route path="/select-workspace" element={<SelectWorkspace />} />
                     <Route path="/dashboard" element={<Dashboard />} />

@@ -366,7 +366,8 @@ export default function SelectWorkspace() {
     const { error, tenant } = await createTenant(name, slug);
     if (!error && tenant) {
       setModalOpen(false);
-      navigate(connectNow ? '/phone-numbers/connect' : '/dashboard');
+      // After workspace creation → always send to plan selection scoped to this workspace.
+      navigate(`/select-workspace-plan?workspace_id=${tenant.id}${connectNow ? '&connect=1' : ''}`);
     }
     setIsCreating(false);
   };
