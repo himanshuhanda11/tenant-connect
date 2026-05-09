@@ -104,6 +104,24 @@ export function formatCountdown(totalSeconds: number) {
   };
 }
 
+/**
+ * Server-authoritative check: can the current user still claim a free
+ * paid trial? Returns false once they've used it on any workspace.
+ */
+export function useTrialEligibility() {
+  const { user } = useAuth();
+  return useQuery({
+    queryKey: ['trial-eligible', user?.id],
+    enabled: !!user?.id,
+    staleTime: 60_000,
+    queryFn: async (): Promise<boolean> => {
+      const { data, error } = await supabase.rpc('is_trial_eligible' as any);
+      if (error) return false;
+      return Boolean(data);
+    },
+  });
+}
+
 export function useTodayClaimCount() {
   return useQuery({
     queryKey: ['offer-claims-today'],
