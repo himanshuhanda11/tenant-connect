@@ -77,6 +77,11 @@ export default function SelectWorkspacePlanPage() {
     setPendingPlan(plan.id);
     try {
       await claim({ planId: plan.id, workspaceId: targetWorkspaceId });
+      const isFree = plan.id === 'free';
+      toast.success(
+        isFree ? `${plan.name} plan activated for ${targetWorkspace?.name ?? 'your workspace'}` : `🎉 ${plan.name} trial started — first month free!`,
+        { description: 'Redirecting to your dashboard…', duration: 2200 },
+      );
       setSuccess(true);
       setTimeout(() => navigate('/dashboard', { replace: true }), 1400);
     } catch (e: any) {
