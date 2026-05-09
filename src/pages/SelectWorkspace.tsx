@@ -497,22 +497,35 @@ export default function SelectWorkspace() {
           {/* Welcome banner with full name */}
           {(profile?.full_name || user?.email) && (
             <motion.div
-              initial={{ opacity: 0, y: -8 }}
+              initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4 }}
-              className="mb-6 flex items-center gap-3 px-5 py-3 rounded-2xl bg-white/80 backdrop-blur-xl border border-emerald-100/80 shadow-sm"
+              transition={{ duration: 0.5, ease: 'easeOut' }}
+              className="mb-8 flex items-center gap-4 px-5 sm:px-6 py-4 sm:py-5 rounded-3xl bg-gradient-to-r from-white/90 via-emerald-50/70 to-teal-50/60 backdrop-blur-xl border border-emerald-100/80 shadow-[0_8px_30px_-12px_rgba(16,185,129,0.25)]"
             >
-              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center text-white font-bold text-base shadow-md">
+              <motion.div
+                initial={{ scale: 0.6, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ delay: 0.1, type: 'spring', stiffness: 240, damping: 16 }}
+                className="relative w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center text-white font-bold text-lg sm:text-xl shadow-lg shadow-emerald-500/30 flex-shrink-0"
+              >
                 {(profile?.full_name || user?.email || '?').charAt(0).toUpperCase()}
-              </div>
-              <div className="min-w-0">
-                <p className="text-[11px] uppercase tracking-wider text-emerald-700 font-semibold">Welcome back</p>
-                <p className="text-base sm:text-lg font-bold text-slate-900 truncate">
-                  {profile?.full_name || user?.email}
+                <span className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-emerald-400 border-2 border-white shadow-sm" />
+              </motion.div>
+              <div className="min-w-0 flex-1">
+                <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 truncate flex items-center gap-2">
+                  Welcome,&nbsp;
+                  <span className="bg-gradient-to-r from-emerald-600 via-green-600 to-teal-600 bg-clip-text text-transparent truncate">
+                    {profile?.full_name || (user?.email?.split('@')[0] ?? '')}
+                  </span>
+                  <span className="inline-block animate-[pulse_2s_ease-in-out_infinite]">👋</span>
+                </h2>
+                <p className="text-xs sm:text-sm text-slate-600 mt-0.5 truncate">
+                  Let's create your first workspace and start growing with WhatsApp automation.
                 </p>
               </div>
             </motion.div>
           )}
+
 
           {/* HERO: Command Center */}
           <motion.section
