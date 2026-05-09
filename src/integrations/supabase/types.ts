@@ -14331,36 +14331,67 @@ export type Database = {
       }
       user_offers: {
         Row: {
+          applied_at: string | null
+          applied_to_tenant_id: string | null
           claimed_at: string | null
           claimed_plan_id: string | null
           created_at: string
           offer_claimed: boolean
           offer_expires_at: string
           offer_started_at: string
+          subscription_id: string | null
           updated_at: string
           user_id: string
         }
         Insert: {
+          applied_at?: string | null
+          applied_to_tenant_id?: string | null
           claimed_at?: string | null
           claimed_plan_id?: string | null
           created_at?: string
           offer_claimed?: boolean
           offer_expires_at?: string
           offer_started_at?: string
+          subscription_id?: string | null
           updated_at?: string
           user_id: string
         }
         Update: {
+          applied_at?: string | null
+          applied_to_tenant_id?: string | null
           claimed_at?: string | null
           claimed_plan_id?: string | null
           created_at?: string
           offer_claimed?: boolean
           offer_expires_at?: string
           offer_started_at?: string
+          subscription_id?: string | null
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "user_offers_applied_to_tenant_id_fkey"
+            columns: ["applied_to_tenant_id"]
+            isOneToOne: false
+            referencedRelation: "platform_workspace_directory"
+            referencedColumns: ["workspace_id"]
+          },
+          {
+            foreignKeyName: "user_offers_applied_to_tenant_id_fkey"
+            columns: ["applied_to_tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_offers_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: false
+            referencedRelation: "subscriptions"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {
@@ -16160,6 +16191,10 @@ export type Database = {
           total_hours_worked: number
           total_sessions: number
         }[]
+      }
+      apply_launch_offer_to_tenant: {
+        Args: { _tenant_id: string }
+        Returns: Json
       }
       assign_conversation: {
         Args: {
