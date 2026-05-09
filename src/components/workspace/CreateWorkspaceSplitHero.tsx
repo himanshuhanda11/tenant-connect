@@ -121,8 +121,8 @@ export default function CreateWorkspaceSplitHero({
     await onCreate({
       workspaceName: workspaceName.trim(),
       businessName: businessName.trim() || workspaceName.trim(),
-      category,
-      teamSize,
+      category: category || "",
+      teamSize: teamSize || "",
     });
   };
 
