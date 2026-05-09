@@ -12,6 +12,7 @@ import ScrollToTop from "@/components/ScrollToTop";
 import RoutePrefetcher from "@/components/RoutePrefetcher";
 import Index from "./pages/Index";
 import { RequirePermission } from "@/components/auth/RequirePermission";
+import { RequirePlanSelection } from "@/components/auth/RequirePlanSelection";
 import {
   META_ADS_ATTRIBUTION_PERMISSIONS,
   META_ADS_AUTOMATION_PERMISSIONS,
@@ -29,6 +30,7 @@ const SignupPage = lazyWithRetry(() => import("./pages/onboarding/SignupPage"));
 const OrganizationPage = lazyWithRetry(() => import("./pages/onboarding/OrganizationPage"));
 const PasswordPage = lazyWithRetry(() => import("./pages/onboarding/PasswordPage"));
 const AuthCallback = lazyWithRetry(() => import("./pages/AuthCallback"));
+const ChoosePlanPage = lazyWithRetry(() => import("./pages/onboarding/ChoosePlanPage"));
 const CreateWorkspace = lazyWithRetry(() => import("./pages/CreateWorkspace"));
 const SelectWorkspace = lazyWithRetry(() => import("./pages/SelectWorkspace"));
 const NotFound = lazyWithRetry(() => import("./pages/NotFound"));
@@ -376,6 +378,7 @@ const App = () => (
                     <Route path="*" element={<NotFound />} />
                   </Routes>
                 </Suspense>
+                </RequirePlanSelection>
               </ThemeProvider>
             </TenantProvider>
             </PreviewWorkspaceProvider>
