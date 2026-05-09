@@ -1,7 +1,7 @@
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { CheckCircle2, Gift, Sparkles, ShieldCheck, Crown, Rocket, Building2, Loader2 } from 'lucide-react';
+import { CheckCircle2, Gift, Sparkles, ShieldCheck, Crown, Rocket, Building2, Loader2, X } from 'lucide-react';
 import { CountdownPill } from './CountdownPill';
 import { useLaunchOffer, useTodayClaimCount } from '@/hooks/useLaunchOffer';
 import { useNavigate } from 'react-router-dom';
