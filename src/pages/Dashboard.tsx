@@ -534,6 +534,7 @@ export default function Dashboard() {
         {/* Bottom spacer for mobile */}
         <div className="h-4" />
       </div>
+      </OnboardingGate>
 
       {/* Embedded Signup Dialog */}
       <Dialog open={embeddedSignupOpen} onOpenChange={setEmbeddedSignupOpen}>
