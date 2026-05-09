@@ -27,32 +27,20 @@ export function LaunchOfferProvider({ children }: { children: ReactNode }) {
     sessionStorage.setItem(SHOWN_KEY, String(Date.now()));
   }, []);
 
-  // Show popup on every page navigation (throttled) until the user claims a plan.
+  // Only auto-popup on public marketing pages — never inside the app.
   useEffect(() => {
     if (!isActive) return;
-    // Don't auto-popup on auth / onboarding flows
     const path = location.pathname;
-    if (
-      path.startsWith('/login') ||
-      path.startsWith('/signup') ||
-      path.startsWith('/forgot-password') ||
-      path.startsWith('/reset-password') ||
-      path.startsWith('/auth') ||
-      path.startsWith('/onboarding') ||
-      path.startsWith('/invite') ||
-      path.startsWith('/admin') ||
-      path.startsWith('/control') ||
-      path.startsWith('/pricing') ||
-      path.startsWith('/choose-plan') ||
-      path.startsWith('/select-plan') ||
-      path.startsWith('/plans') ||
-      path.startsWith('/billing') ||
-      path.startsWith('/select-workspace') ||
-      path.startsWith('/create-workspace') ||
-      path.startsWith('/workspaces')
-    ) {
-      return;
-    }
+
+    // Allowlist: marketing/landing routes only.
+    const marketingRoots = ['/', '/features', '/products', '/blog', '/about', '/why-aireatro'];
+    const isMarketing =
+      marketingRoots.includes(path) ||
+      path.startsWith('/features/') ||
+      path.startsWith('/blog/') ||
+      path.startsWith('/products/');
+
+    if (!isMarketing) return;
 
     const last = Number(sessionStorage.getItem(SHOWN_KEY) ?? '0');
     const elapsed = Date.now() - last;
