@@ -305,6 +305,12 @@ export function BillingSettings() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      <ChangePlanDialog
+        open={changeOpen}
+        onOpenChange={setChangeOpen}
+        currentPlanId={currentPlanId}
+      />
     </div>
   );
 }
