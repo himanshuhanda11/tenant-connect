@@ -46,7 +46,10 @@ export function LaunchOfferProvider({ children }: { children: ReactNode }) {
       path.startsWith('/choose-plan') ||
       path.startsWith('/select-plan') ||
       path.startsWith('/plans') ||
-      path.startsWith('/billing')
+      path.startsWith('/billing') ||
+      path.startsWith('/select-workspace') ||
+      path.startsWith('/create-workspace') ||
+      path.startsWith('/workspaces')
     ) {
       return;
     }
