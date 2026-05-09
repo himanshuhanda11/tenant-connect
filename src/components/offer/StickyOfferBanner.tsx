@@ -3,7 +3,7 @@ import { Gift, Sparkles, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { CountdownPill } from './CountdownPill';
 import { useLaunchOffer } from '@/hooks/useLaunchOffer';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useState } from 'react';
 
 interface Props {
@@ -15,9 +15,12 @@ const HIDE_KEY = 'launch_offer_banner_hidden';
 export function StickyOfferBanner({ onClaim }: Props) {
   const { isActive, secondsLeft } = useLaunchOffer();
   const navigate = useNavigate();
+  const location = useLocation();
   const [hidden, setHidden] = useState(() => sessionStorage.getItem(HIDE_KEY) === '1');
 
-  const visible = isActive && !hidden;
+  // Don't show the banner on the pricing page — plans are already the focus.
+  const onPricing = location.pathname.startsWith('/pricing');
+  const visible = isActive && !hidden && !onPricing;
 
   return (
     <AnimatePresence>
