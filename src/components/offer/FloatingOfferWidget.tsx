@@ -9,8 +9,7 @@ interface Props {
 
 export function FloatingOfferWidget({ onClick, hidden }: Props) {
   const { isActive, secondsLeft } = useLaunchOffer();
-  const isEvergreen = !isFinite(secondsLeft);
-  const { h, m } = isEvergreen ? { h: 0, m: 0 } : formatCountdown(secondsLeft);
+  const { h, m } = formatCountdown(secondsLeft);
 
   if (!isActive || hidden) return null;
 
