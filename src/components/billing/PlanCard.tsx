@@ -5,6 +5,7 @@ import { Check, Sparkles, Users, Phone, Contact, MessageSquare, Bot, Workflow, A
 import type { Plan } from '@/types/billing';
 import { cn } from '@/lib/utils';
 import TemplateChargesBlock from '@/components/shared/TemplateChargesBlock';
+import { useGeoLocation, type PlanId } from '@/hooks/useGeoLocation';
 
 const planThemes: Record<string, {
   icon: React.ReactNode;
@@ -60,21 +61,23 @@ interface PlanCardProps {
 const PLAN_RANK: Record<string, number> = { free: 0, basic: 1, pro: 2, business: 3 };
 
 export function PlanCard({ plan, isCurrentPlan, isYearly, isRecommended, currentPlanId, onSelect }: PlanCardProps) {
+  const { getPlanPrice, formatAmount } = useGeoLocation();
   const currentRank = PLAN_RANK[(currentPlanId ?? 'free').toLowerCase()] ?? 0;
   const thisRank = PLAN_RANK[(plan.id ?? '').toLowerCase()] ?? 0;
   const isDowngrade = !isCurrentPlan && thisRank < currentRank;
   const isUpgrade = !isCurrentPlan && thisRank > currentRank;
-  const price = isYearly ? (plan.price_yearly || plan.price_monthly * 12) : plan.price_monthly;
-  const monthlyEquivalent = isYearly ? Math.round(price / 12) : price;
+  // Local-currency price lookup, with DB fallback
+  const planKey = (plan.id?.replace(/^plan_/, '').toLowerCase() || plan.name?.toLowerCase()) as PlanId;
+  const localBase = getPlanPrice(planKey, false);
+  const baseMonthly = localBase || plan.price_monthly;
+  const monthlyEquivalent = isYearly ? Math.round(baseMonthly * 0.8) : baseMonthly;
   const isBusiness = plan.name === 'Business';
-  const isFree = plan.name === 'Free';
-  const isCustomPrice = false; // Business now has a real price
-  const savings = isYearly && plan.price_yearly
-    ? Math.round((1 - plan.price_yearly / (plan.price_monthly * 12)) * 100)
-    : 0;
+  const isFree = plan.name === 'Free' || baseMonthly === 0;
+  const isCustomPrice = false;
+  const savings = isYearly ? 20 : 0;
 
   const theme = planThemes[plan.name] || planThemes.Free;
-  const formatINR = (val: number) => `₹${val.toLocaleString('en-IN')}`;
+  const formatINR = (val: number) => formatAmount(val);
   const limits = plan.limits_json;
   const formatLimit = (value: number) => value === -1 ? 'Unlimited' : value.toLocaleString();
 
