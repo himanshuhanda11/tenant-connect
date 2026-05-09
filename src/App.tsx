@@ -197,6 +197,7 @@ const App = () => (
               <ThemeProvider>
                 <ScrollToTop />
                 <RoutePrefetcher />
+                <RequirePlanSelection>
                 <Suspense fallback={<RouteLoader />}>
                   <Routes>
                     <Route path="/" element={<Index />} />
@@ -209,6 +210,7 @@ const App = () => (
                     <Route path="/invite/accept" element={<InviteAccept />} />
                     <Route path="/onboarding/org" element={<OrganizationPage />} />
                     <Route path="/onboarding/password" element={<PasswordPage />} />
+                    <Route path="/choose-plan" element={<ChoosePlanPage />} />
                     <Route path="/create-workspace" element={<CreateWorkspace />} />
                     <Route path="/select-workspace" element={<SelectWorkspace />} />
                     <Route path="/dashboard" element={<Dashboard />} />
