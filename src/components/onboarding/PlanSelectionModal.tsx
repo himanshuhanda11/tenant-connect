@@ -101,8 +101,30 @@ export default function PlanSelectionModal({ open, tenantId, onSelected, onPaidI
     }
   };
 
-  const handlePaid = (plan: PricingPlan) => {
-    onPaidIntent();
+  const handlePaid = async (plan: PricingPlan) => {
+    if (activatingId) return;
+    setActivatingId(plan.id);
+    try {
+      const trialEnds = new Date();
+      trialEnds.setDate(trialEnds.getDate() + 30);
+      try {
+        await supabase.from('subscriptions').upsert(
+          {
+            tenant_id: tenantId,
+            plan_id: `plan_${plan.id}`,
+            status: 'trialing',
+            trial_ends_at: trialEnds.toISOString(),
+          } as any,
+          { onConflict: 'tenant_id' },
+        );
+      } catch (e) {
+        console.warn('[PlanSelection] paid trial upsert non-fatal:', e);
+      }
+      onSelected(plan.name);
+      toast.success(`${plan.name} trial started — 1 month free 🚀`);
+    } finally {
+      setActivatingId(null);
+    }
   };
 
   return (
