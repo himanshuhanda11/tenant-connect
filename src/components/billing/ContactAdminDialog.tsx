@@ -85,7 +85,7 @@ export default function ContactAdminDialog({ open, onOpenChange, onContinueFree,
               className="w-full"
               onClick={() => { onOpenChange(false); onContinueFree(); }}
             >
-              <Sparkles className="w-4 h-4 mr-2" /> Continue with Free Plan
+              <Sparkles className="w-4 h-4 mr-2" /> Continue with Free Lifetime
             </Button>
           )}
         </DialogFooter>

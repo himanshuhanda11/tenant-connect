@@ -22,6 +22,23 @@ export function StickyOfferBanner({ onClaim }: Props) {
   const path = location.pathname;
   const visible = isActive && !hidden && !isPricingPath(path) && !isOfferExcludedPath(path);
 
+  // Collapse the banner when the user engages with any CTA — the floating
+  // gift widget remains visible so they can re-open the offer later.
+  const collapseBanner = () => {
+    sessionStorage.setItem(HIDE_KEY, '1');
+    setHidden(true);
+  };
+
+  const handleClaim = () => {
+    collapseBanner();
+    onClaim();
+  };
+
+  const handleViewPlans = () => {
+    collapseBanner();
+    navigate('/pricing');
+  };
+
 
   return (
     <AnimatePresence>
@@ -63,7 +80,7 @@ export function StickyOfferBanner({ onClaim }: Props) {
                 <Button
                   size="sm"
                   className="h-7 text-[11px] sm:text-xs px-3 bg-white text-emerald-900 hover:bg-emerald-100 font-semibold gap-1"
-                  onClick={onClaim}
+                  onClick={handleClaim}
                 >
                   <Sparkles className="w-3 h-3" />
                   Claim
@@ -72,16 +89,13 @@ export function StickyOfferBanner({ onClaim }: Props) {
                   size="sm"
                   variant="ghost"
                   className="h-7 text-[11px] sm:text-xs px-2 text-white/90 hover:bg-white/10 hidden sm:inline-flex"
-                  onClick={() => navigate('/pricing')}
+                  onClick={handleViewPlans}
                 >
                   View Plans
                 </Button>
                 <button
                   aria-label="Hide offer banner"
-                  onClick={() => {
-                    sessionStorage.setItem(HIDE_KEY, '1');
-                    setHidden(true);
-                  }}
+                  onClick={collapseBanner}
                   className="text-white/70 hover:text-white p-1 rounded"
                 >
                   <X className="w-3.5 h-3.5" />

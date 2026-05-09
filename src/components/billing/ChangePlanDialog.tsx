@@ -132,7 +132,7 @@ export default function ChangePlanDialog({ open, onOpenChange, currentPlanId, on
                         : locked
                           ? <>🔒 Contact Admin</>
                           : isFree
-                            ? 'Switch to Free'
+                            ? 'Free Lifetime'
                             : '🎁 Start Free Month'}
                     {!isCurrent && !locked && <ArrowRight className="w-3.5 h-3.5" />}
                   </Button>

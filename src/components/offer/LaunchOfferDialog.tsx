@@ -12,6 +12,9 @@ import { useGeoLocation } from '@/hooks/useGeoLocation';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
+import { useTenant } from '@/contexts/TenantContext';
+
+const PENDING_CLAIM_KEY = 'lovable.pending_claim_offer';
 
 interface Props {
   open: boolean;
@@ -26,33 +29,40 @@ const planIcons: Record<string, JSX.Element> = {
 };
 
 export function LaunchOfferDialog({ open, onOpenChange }: Props) {
-  const { isActive, secondsLeft, claim, isClaiming } = useLaunchOffer();
+  const { isActive, secondsLeft, isClaiming } = useLaunchOffer();
   const { data: claimCount } = useTodayClaimCount();
   const { getPlanPrice, formatAmount } = useGeoLocation();
   const { user } = useAuth();
+  const { tenants, currentTenant } = useTenant();
   const navigate = useNavigate();
   const [pendingPlan, setPendingPlan] = useState<string | null>(null);
   const [view, setView] = useState<'intro' | 'plans'>('intro');
 
   if (!isActive) return null;
 
-  const handleSelect = async (plan: PricingPlan) => {
-    if (isClaiming) return;
+  const routeToPlanFlow = (planId?: string) => {
+    onOpenChange(false);
+    // Plans are workspace-scoped: always route through workspace creation/selection.
     if (!user) {
-      onOpenChange(false);
+      // Remember intent so post-signup the user lands on the workspace flow.
+      try { sessionStorage.setItem(PENDING_CLAIM_KEY, planId ?? '1'); } catch {}
       navigate('/signup');
       return;
     }
-    setPendingPlan(plan.id);
-    try {
-      await claim(plan.id);
-      toast.success(`🎉 1 month FREE activated on ${plan.name}!`);
-      onOpenChange(false);
-      setTimeout(() => navigate('/select-workspace'), 400);
-    } catch (e: any) {
-      toast.error(e?.message ?? 'Could not activate offer');
-      setPendingPlan(null);
+    if (tenants.length === 0) {
+      try { sessionStorage.setItem(PENDING_CLAIM_KEY, planId ?? '1'); } catch {}
+      navigate('/select-workspace');
+      return;
     }
+    const wsId = currentTenant?.id ?? tenants[0].id;
+    const planParam = planId ? `&plan=${planId}` : '';
+    navigate(`/select-workspace-plan?workspace_id=${wsId}${planParam}`);
+  };
+
+  const handleSelect = (plan: PricingPlan) => {
+    if (isClaiming) return;
+    setPendingPlan(plan.id);
+    routeToPlanFlow(plan.id);
   };
 
   return (
@@ -110,7 +120,7 @@ export function LaunchOfferDialog({ open, onOpenChange }: Props) {
               <div className="flex flex-col gap-2.5">
                 <Button
                   className="w-full h-12 px-4 bg-gradient-to-r from-emerald-400 to-primary text-white border-0 font-semibold text-sm sm:text-base shadow-lg shadow-emerald-500/30 hover:shadow-xl hover:scale-[1.01] transition-all whitespace-normal leading-tight"
-                  onClick={() => setView('plans')}
+                  onClick={() => routeToPlanFlow()}
                 >
                   <Sparkles className="w-4 h-4 mr-1.5 flex-shrink-0" />
                   <span>Select Plan &amp; Get 1 Month Free</span>
