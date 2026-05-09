@@ -32,6 +32,10 @@ Deno.serve(async (req: Request) => {
       return json({ error: "storeDomain and tenantId required" }, 400);
     }
 
+    // Plan gate: connecting a third-party integration requires Pro+
+    const planCheck = await requirePlanAccess(tenantId, "create_integration");
+    if (!planCheck.ok) return planCheck.res;
+
     // Normalize domain
     let shop = storeDomain.trim().toLowerCase();
     if (!shop.includes(".")) {
