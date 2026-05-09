@@ -1,19 +1,13 @@
 // Paths where the launch offer UI (banner, widget, popup) should NOT appear.
 export function isOfferExcludedPath(pathname: string): boolean {
-  return (
-    pathname.startsWith('/login') ||
-    pathname.startsWith('/signup') ||
-    pathname.startsWith('/forgot-password') ||
-    pathname.startsWith('/reset-password') ||
-    pathname.startsWith('/auth') ||
-    pathname.startsWith('/onboarding') ||
-    pathname.startsWith('/invite') ||
-    pathname.startsWith('/admin') ||
-    pathname.startsWith('/control') ||
-    pathname.startsWith('/select-workspace') ||
-    pathname.startsWith('/create-workspace') ||
-    pathname.startsWith('/workspaces')
-  );
+  // Allow only on public marketing pages.
+  const marketingRoots = ['/', '/features', '/products', '/blog', '/about', '/why-aireatro'];
+  const isMarketing =
+    marketingRoots.includes(pathname) ||
+    pathname.startsWith('/features/') ||
+    pathname.startsWith('/blog/') ||
+    pathname.startsWith('/products/');
+  return !isMarketing;
 }
 
 // Pricing-style pages where the sticky banner is hidden (plans are already focal),
