@@ -29,10 +29,46 @@ Deno.serve(async (req) => {
       return json({ error: "workspaceId and planId required" }, 400);
     }
 
-    // Permission check for user-initiated calls
-    if (!isInternal && actorUserId) {
+    const isFree = planId === "free" || planId === "plan_free";
+
+    // SECURITY: User-initiated calls can ONLY downgrade to the free plan.
+    // Paid plans can ONLY be activated by verified payment webhooks
+    // (which call this function with x-platform-secret) or by platform super-admins.
+    if (!isInternal) {
+      if (!actorUserId) return json({ error: "Unauthorized" }, 401);
+
       const perm = await requireTenantRole(workspaceId, actorUserId, ["owner", "admin"]);
       if (!perm.ok) return json({ error: perm.error }, 403);
+
+      if (!isFree) {
+        // Allow super-admin override
+        const admin0 = getAdminClient();
+        const { data: isAdmin } = await admin0
+          .from("platform_admins")
+          .select("user_id")
+          .eq("user_id", actorUserId)
+          .eq("is_active", true)
+          .in("role", ["super_admin", "support"])
+          .maybeSingle();
+
+        if (!isAdmin) {
+          // Log the attempt
+          await admin0.from("access_denied_log").insert({
+            tenant_id: workspaceId,
+            user_id: actorUserId,
+            feature_key: "activate_paid_plan",
+            reason: "no_verified_payment",
+            current_plan: null,
+            required_plan: planId,
+            details: { attempted_plan: planId, provider, billingCycle },
+          }).catch(() => null);
+
+          return json({
+            error: "Paid plans can only be activated through a verified payment. Please complete checkout to upgrade.",
+            code: "PAYMENT_REQUIRED",
+          }, 402);
+        }
+      }
     }
 
     const admin = getAdminClient();
@@ -45,8 +81,6 @@ Deno.serve(async (req) => {
       .maybeSingle();
 
     if (!plan) return json({ error: "Plan not found" }, 404);
-
-    const isFree = planId === "free";
 
     // Phone requirement for paid plans
     if (!isFree) {
