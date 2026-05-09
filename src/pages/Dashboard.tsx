@@ -139,7 +139,8 @@ export default function Dashboard() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-3 sm:space-y-5 max-w-[1200px] mx-auto px-2 py-3 sm:px-6 sm:py-6 animate-fade-in">
+      <OnboardingGate onConnectWhatsApp={() => setEmbeddedSignupOpen(true)}>
+        <div className="space-y-3 sm:space-y-5 max-w-[1200px] mx-auto px-2 py-3 sm:px-6 sm:py-6 animate-fade-in">
 
         {/* ═══════════════════════════════════════════════
             SECTION 1: HERO — Greeting + Refresh
