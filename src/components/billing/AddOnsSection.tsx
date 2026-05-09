@@ -2,7 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ArrowRight } from 'lucide-react';
-import { addOns, addOnCategories, formatINR, type AddOnCategory } from '@/data/addOns';
+import { addOns, addOnCategories, type AddOnCategory } from '@/data/addOns';
 import { AddOnCard } from './AddOnCard';
 import { useEntitlements } from '@/hooks/useEntitlements';
 import { useNavigate } from 'react-router-dom';

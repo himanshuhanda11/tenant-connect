@@ -36,7 +36,7 @@ export const addOns: AddOn[] = [
     price: 499,
     unit: 'per agent/month',
     quantitySelectable: true,
-    availableOn: ['basic', 'pro', 'business'],
+    availableOn: ['pro', 'business'],
   },
   {
     id: 'extra_flows',
@@ -48,7 +48,7 @@ export const addOns: AddOn[] = [
     price: 799,
     unit: 'per 5 flows/month',
     quantitySelectable: true,
-    availableOn: ['basic', 'pro', 'business'],
+    availableOn: ['pro', 'business'],
   },
   {
     id: 'extra_autoforms',
@@ -60,7 +60,7 @@ export const addOns: AddOn[] = [
     price: 599,
     unit: 'per 5 forms/month',
     quantitySelectable: true,
-    availableOn: ['basic', 'pro', 'business'],
+    availableOn: ['pro', 'business'],
   },
   {
     id: 'ai_credits',
@@ -72,7 +72,7 @@ export const addOns: AddOn[] = [
     price: 999,
     unit: 'per 1,000 credits/month',
     quantitySelectable: true,
-    availableOn: ['basic', 'pro', 'business'],
+    availableOn: ['pro', 'business'],
   },
   {
     id: 'campaign_boost',
@@ -84,7 +84,7 @@ export const addOns: AddOn[] = [
     price: 1499,
     unit: 'per month',
     quantitySelectable: false,
-    availableOn: ['basic', 'pro', 'business'],
+    availableOn: ['pro', 'business'],
   },
   {
     id: 'anti_ban_guard',

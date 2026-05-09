@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { pricingPlans, type PricingPlan } from '@/data/pricingPlans';
 import { cn } from '@/lib/utils';
 import { useNavigate } from 'react-router-dom';
+import { useGeoLocation, type PlanId } from '@/hooks/useGeoLocation';
 import addonExtraAgents from '@/assets/addon-extra-agents.png';
 import addonExtraFlows from '@/assets/addon-extra-flows.png';
 import addonAutoforms from '@/assets/addon-autoforms.png';
@@ -42,13 +43,12 @@ interface PricingCardsProps {
 
 export default function PricingCards({ isAnnual }: PricingCardsProps) {
   const navigate = useNavigate();
+  const { getPlanPrice, formatAmount } = useGeoLocation();
 
-  const getPrice = (plan: PricingPlan) => {
-    if (plan.price === 0) return 0;
-    return isAnnual ? Math.round((plan.price as number) * 0.8) : (plan.price as number);
-  };
+  const getPrice = (plan: PricingPlan) => getPlanPrice(plan.id as PlanId, isAnnual);
+  const getBasePrice = (plan: PricingPlan) => getPlanPrice(plan.id as PlanId, false);
 
-  const formatPrice = (price: number) => `₹${price.toLocaleString('en-IN')}`;
+  const formatPrice = (price: number) => formatAmount(price);
 
   return (
     <section id="pricing-cards" className="py-6 md:py-10">
@@ -98,7 +98,7 @@ export default function PricingCards({ isAnnual }: PricingCardsProps) {
                       <div>
                         {isAnnual && (
                           <span className="text-sm text-muted-foreground line-through block mb-0.5">
-                            {formatPrice(plan.price as number)}
+                            {formatPrice(getBasePrice(plan))}
                           </span>
                         )}
                         <div className="flex items-baseline justify-center gap-0.5">

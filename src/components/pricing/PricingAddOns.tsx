@@ -1,6 +1,7 @@
 import { Plus } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import { addOns, formatINR } from '@/data/addOns';
+import { addOns } from '@/data/addOns';
+import { useGeoLocation } from '@/hooks/useGeoLocation';
 import addonExtraAgents from '@/assets/addon-extra-agents.png';
 import addonExtraFlows from '@/assets/addon-extra-flows.png';
 import addonAutoforms from '@/assets/addon-autoforms.png';
@@ -21,6 +22,7 @@ const addonImages: Record<string, string> = {
 };
 
 export default function PricingAddOns() {
+  const { formatAddOnPrice } = useGeoLocation();
   return (
     <section className="py-10 md:py-14">
       <div className="container mx-auto px-4">
@@ -71,7 +73,7 @@ export default function PricingAddOns() {
                 </div>
                 <div className="flex flex-col sm:flex-row items-center sm:items-center justify-between mt-auto gap-1">
                   <span className="text-xs sm:text-sm text-center sm:text-left">
-                    <span className="font-bold text-foreground">{formatINR(addon.price)}</span>
+                    <span className="font-bold text-foreground">{formatAddOnPrice(addon.id) || ''}</span>
                     <span className="text-muted-foreground text-[10px] sm:text-[11px] block">{addon.unit}</span>
                   </span>
                 </div>

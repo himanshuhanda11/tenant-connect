@@ -6,16 +6,16 @@ import { pricingPlans, type PricingPlan } from '@/data/pricingPlans';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
 import TemplateChargesBlock from '@/components/shared/TemplateChargesBlock';
+import { useGeoLocation, type PlanId } from '@/hooks/useGeoLocation';
 
 export default function PricingPreview() {
   const [isYearly, setIsYearly] = useState(false);
+  const { getPlanPrice, formatAmount } = useGeoLocation();
 
-  const getPrice = (plan: PricingPlan) => {
-    if (plan.price === 0) return 0;
-    return isYearly ? Math.round((plan.price as number) * 0.8) : (plan.price as number);
-  };
+  const getPrice = (plan: PricingPlan) => getPlanPrice(plan.id as PlanId, isYearly);
+  const getBasePrice = (plan: PricingPlan) => getPlanPrice(plan.id as PlanId, false);
 
-  const fmt = (p: number) => `₹${p.toLocaleString('en-IN')}`;
+  const fmt = (p: number) => formatAmount(p);
 
   const limitItems = (plan: PricingPlan) => [
     { icon: Users, label: 'Members', value: plan.limits.team_members },
@@ -115,7 +115,7 @@ export default function PricingPreview() {
                   <div className="mb-6">
                     {price === 0 ? (
                       <div className="flex items-baseline gap-1">
-                        <span className="text-4xl font-extrabold text-foreground tracking-tight">₹0</span>
+                        <span className="text-4xl font-extrabold text-foreground tracking-tight">{fmt(0)}</span>
                         <span className="text-muted-foreground text-sm">/forever</span>
                       </div>
                     ) : (
@@ -125,7 +125,7 @@ export default function PricingPreview() {
                           <span className="text-muted-foreground text-sm">/mo</span>
                         </div>
                         {isYearly && (
-                          <p className="text-muted-foreground/60 text-xs mt-1 line-through">{fmt(plan.price as number)}/mo</p>
+                          <p className="text-muted-foreground/60 text-xs mt-1 line-through">{fmt(getBasePrice(plan))}/mo</p>
                         )}
                       </div>
                     )}
