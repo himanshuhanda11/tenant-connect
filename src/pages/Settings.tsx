@@ -44,8 +44,8 @@ export default function Settings() {
   const [activeSection, setActiveSection] = useState(sectionParam || (isAgent ? 'profile' : 'workspace'));
 
   useEffect(() => {
-    if (sectionParam) setActiveSection(sectionParam);
-  }, [sectionParam]);
+    setActiveSection(sectionParam || (isAgent ? 'profile' : 'workspace'));
+  }, [sectionParam, isAgent]);
 
   const renderContent = () => {
     switch (activeSection) {
