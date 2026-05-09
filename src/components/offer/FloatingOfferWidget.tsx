@@ -9,7 +9,8 @@ interface Props {
 
 export function FloatingOfferWidget({ onClick, hidden }: Props) {
   const { isActive, secondsLeft } = useLaunchOffer();
-  const { h, m } = formatCountdown(secondsLeft);
+  const isEvergreen = !isFinite(secondsLeft);
+  const { h, m } = isEvergreen ? { h: 0, m: 0 } : formatCountdown(secondsLeft);
 
   if (!isActive || hidden) return null;
 
@@ -34,7 +35,9 @@ export function FloatingOfferWidget({ onClick, hidden }: Props) {
           <span className="flex flex-col items-start leading-tight">
             <span className="text-[10px] uppercase tracking-wider opacity-80">1 month free</span>
             <span className="text-xs font-mono tabular-nums">
-              {String(h).padStart(2, '0')}h {String(m).padStart(2, '0')}m left
+              {isEvergreen
+                ? 'Claim now'
+                : `${String(h).padStart(2, '0')}h ${String(m).padStart(2, '0')}m left`}
             </span>
           </span>
         </span>
@@ -42,3 +45,4 @@ export function FloatingOfferWidget({ onClick, hidden }: Props) {
     </AnimatePresence>
   );
 }
+

@@ -34,15 +34,23 @@ export function useLaunchOffer() {
 
   const offer = offerQuery.data;
   const expiresAt = offer ? new Date(offer.offer_expires_at).getTime() : 0;
-  const secondsLeft = offer ? Math.max(0, Math.floor((expiresAt - now) / 1000)) : 0;
-  const isActive = !!offer && !offer.offer_claimed && secondsLeft > 0;
+  // Evergreen offer: active for any signed-up user until they claim a paid plan.
+  // Expiry is kept in DB as a far-future timestamp; we ignore it for activation.
+  const isActive = !!offer && !offer.offer_claimed;
+  const FAR_FUTURE_MS = 30 * 24 * 60 * 60 * 1000; // > 30 days = treat as evergreen
+  const isEvergreen = !!offer && expiresAt - now > FAR_FUTURE_MS;
+  const secondsLeft = isEvergreen
+    ? Number.POSITIVE_INFINITY
+    : offer
+      ? Math.max(0, Math.floor((expiresAt - now) / 1000))
+      : 0;
 
-  // 1s ticker — only when offer is active
+  // 1s ticker — only when a finite countdown is showing
   useEffect(() => {
-    if (!isActive) return;
+    if (!isActive || isEvergreen) return;
     const id = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(id);
-  }, [isActive]);
+  }, [isActive, isEvergreen]);
 
   const claim = useMutation({
     mutationFn: async (planId: string) => {
