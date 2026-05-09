@@ -87,7 +87,10 @@ export const pricingPlans: PricingPlan[] = [
       'Basic AI replies & template validation',
       'Campaign scheduling',
     ],
-    addons: ['extra_agents', 'extra_flows', 'extra_autoforms', 'ai_credits', 'campaign_boost'],
+    addons: [],
+    restrictions: [
+      'No add-ons — upgrade to Pro for more members, contacts, flows or automations',
+    ],
   },
   {
     id: 'pro',
