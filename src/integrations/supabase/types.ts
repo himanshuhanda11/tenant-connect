@@ -14,6 +14,42 @@ export type Database = {
   }
   public: {
     Tables: {
+      access_denied_log: {
+        Row: {
+          created_at: string
+          current_plan: string | null
+          details: Json | null
+          feature_key: string
+          id: string
+          reason: string
+          required_plan: string | null
+          tenant_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          current_plan?: string | null
+          details?: Json | null
+          feature_key: string
+          id?: string
+          reason: string
+          required_plan?: string | null
+          tenant_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          current_plan?: string | null
+          details?: Json | null
+          feature_key?: string
+          id?: string
+          reason?: string
+          required_plan?: string | null
+          tenant_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       admin_user_notes: {
         Row: {
           author_user_id: string
@@ -3280,6 +3316,30 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      feature_catalog: {
+        Row: {
+          created_at: string
+          description: string
+          feature_key: string
+          min_plan_rank: number
+          upgrade_to: string
+        }
+        Insert: {
+          created_at?: string
+          description: string
+          feature_key: string
+          min_plan_rank: number
+          upgrade_to: string
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          feature_key?: string
+          min_plan_rank?: number
+          upgrade_to?: string
+        }
+        Relationships: []
       }
       flow_diagnostics: {
         Row: {
@@ -16133,6 +16193,10 @@ export type Database = {
         Args: { p_user_id: string }
         Returns: boolean
       }
+      check_plan_access: {
+        Args: { p_feature_key: string; p_tenant_id: string }
+        Returns: Json
+      }
       check_tenant_limit: {
         Args: { p_limit_key: string; p_tenant_id: string }
         Returns: boolean
@@ -16283,6 +16347,10 @@ export type Database = {
         Returns: boolean
       }
       detect_timezone_from_phone: { Args: { phone: string }; Returns: string }
+      enforce_plan_access: {
+        Args: { p_feature_key: string; p_tenant_id: string }
+        Returns: undefined
+      }
       enqueue_email: {
         Args: { payload: Json; queue_name: string }
         Returns: number
@@ -16535,6 +16603,7 @@ export type Database = {
         }
         Returns: string
       }
+      plan_rank: { Args: { p_plan: string }; Returns: number }
       platform_revenue_daily: {
         Args: { p_days?: number }
         Returns: {
