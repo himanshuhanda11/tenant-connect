@@ -246,7 +246,7 @@ export default function OrganizationPage() {
           .from('profiles')
           .update({ onboarding_step: 'completed' } as any)
           .eq('id', user!.id);
-        navigate('/choose-plan', { replace: true });
+        navigate('/select-workspace', { replace: true });
       }
     } catch (err: any) {
       console.error('Profile update error:', err);
