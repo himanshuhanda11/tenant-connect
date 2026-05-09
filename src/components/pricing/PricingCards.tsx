@@ -215,6 +215,7 @@ export default function PricingCards({ isAnnual }: PricingCardsProps) {
                   )}
                 </CardContent>
               </Card>
+              </motion.div>
             );
           })}
         </div>
