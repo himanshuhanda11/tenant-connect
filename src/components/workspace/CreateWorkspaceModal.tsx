@@ -12,6 +12,7 @@ interface CreateWorkspaceModalProps {
   onOpenChange: (open: boolean) => void;
   onCreateWorkspace: (name: string, purpose: string, connectNow: boolean) => Promise<void>;
   isCreating: boolean;
+  initialName?: string;
 }
 
 const purposes = [
@@ -26,10 +27,19 @@ export default function CreateWorkspaceModal({
   onOpenChange,
   onCreateWorkspace,
   isCreating,
+  initialName = "",
 }: CreateWorkspaceModalProps) {
-  const [name, setName] = useState("");
+  const [name, setName] = useState(initialName);
   const [purpose, setPurpose] = useState("sales");
   const [connectNow, setConnectNow] = useState(true);
+
+  // Prefill with company name when the modal opens (user can still edit).
+  React.useEffect(() => {
+    if (open && initialName && !name) {
+      setName(initialName);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, initialName]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

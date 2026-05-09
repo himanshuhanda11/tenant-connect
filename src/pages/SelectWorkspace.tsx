@@ -848,6 +848,7 @@ export default function SelectWorkspace() {
           onOpenChange={setModalOpen}
           onCreateWorkspace={handleCreateWorkspace}
           isCreating={isCreating}
+          initialName={(profile as any)?.company_name || ''}
         />
 
         {/* Rename Dialog */}
