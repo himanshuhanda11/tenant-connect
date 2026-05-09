@@ -570,7 +570,7 @@ export function AppSidebar() {
             <DropdownMenuItem onClick={() => navigate('/settings?section=profile')} className="gap-2 py-1.5 rounded-md text-[12px] text-popover-foreground/75 hover:text-popover-foreground focus:text-popover-foreground focus:bg-accent">
               <User className="w-3.5 h-3.5" strokeWidth={1.5} /> My Profile
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => navigate('/settings')} className="gap-2 py-1.5 rounded-md text-[12px] text-popover-foreground/75 hover:text-popover-foreground focus:text-popover-foreground focus:bg-accent">
+            <DropdownMenuItem onClick={() => navigate('/settings?section=workspace')} className="gap-2 py-1.5 rounded-md text-[12px] text-popover-foreground/75 hover:text-popover-foreground focus:text-popover-foreground focus:bg-accent">
               <Settings className="w-3.5 h-3.5" strokeWidth={1.5} /> Settings
             </DropdownMenuItem>
             <DropdownMenuItem asChild className="gap-2 py-1.5 rounded-md text-[12px] text-popover-foreground/75 hover:text-popover-foreground focus:text-popover-foreground focus:bg-accent">
