@@ -1,14 +1,10 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Sparkles, Rocket, ShieldCheck, MessageSquare, Users, Zap,
-  TrendingUp, Bot, Send, CheckCircle2, Loader2,
-  Megaphone, HeadphonesIcon, Briefcase, Target,
+  Sparkles, ShieldCheck, MessageSquare, Users, Zap,
+  TrendingUp, Bot, Send,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { cn } from "@/lib/utils";
+import { PremiumWorkspaceForm } from "./CreateWorkspaceModal";
 
 interface CreateWorkspaceSplitHeroProps {
   displayName: string;
@@ -22,13 +18,6 @@ interface CreateWorkspaceSplitHeroProps {
     purpose: string;
   }) => Promise<void> | void;
 }
-
-const PURPOSE_OPTIONS = [
-  { value: "sales", label: "Sales", icon: Target },
-  { value: "support", label: "Support", icon: HeadphonesIcon },
-  { value: "marketing", label: "Marketing", icon: Megaphone },
-  { value: "other", label: "Other", icon: Briefcase },
-];
 
 const ROTATING_WORDS = [
   "Boost Sales 5X",
@@ -47,15 +36,6 @@ const BENEFITS = [
   { icon: TrendingUp, label: "Lead Distribution" },
 ];
 
-const CATEGORIES = [
-  "E-commerce", "Education", "Real Estate", "Healthcare",
-  "Travel & Tourism", "SaaS / Tech", "Finance", "Marketing Agency",
-  "Retail", "Other",
-];
-
-const TEAM_SIZES = ["Just me", "2-5", "6-20", "21-50", "50+"];
-
-/** Animated counter (0 → target). */
 function useCounter(target: number, duration = 1200) {
   const [val, setVal] = useState(0);
   useEffect(() => {
@@ -63,7 +43,6 @@ function useCounter(target: number, duration = 1200) {
     const start = performance.now();
     const tick = (t: number) => {
       const p = Math.min(1, (t - start) / duration);
-      // ease-out cubic
       const eased = 1 - Math.pow(1 - p, 3);
       setVal(Math.round(target * eased));
       if (p < 1) raf = requestAnimationFrame(tick);
@@ -91,39 +70,35 @@ function TrustStat({ value, suffix, label }: { value: number; suffix?: string; l
 export default function CreateWorkspaceSplitHero({
   displayName,
   initialName = "",
-  initialBusinessName = "",
   initialPurpose = "",
   isCreating,
   onCreate,
 }: CreateWorkspaceSplitHeroProps) {
   const [workspaceName, setWorkspaceName] = useState(initialName);
-  const [businessName, setBusinessName] = useState(initialBusinessName || initialName);
   const [purpose, setPurpose] = useState<string>(initialPurpose || "sales");
+  const [focused, setFocused] = useState(false);
   const [rotIdx, setRotIdx] = useState(0);
 
-  // Sync prefill when the parent finishes loading the profile.
   useEffect(() => {
     if (initialName && !workspaceName) setWorkspaceName(initialName);
-    const biz = initialBusinessName || initialName;
-    if (biz && !businessName) setBusinessName(biz);
     if (initialPurpose && !purpose) setPurpose(initialPurpose);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initialName, initialBusinessName, initialPurpose]);
+  }, [initialName, initialPurpose]);
 
-  // Rotating headline
   useEffect(() => {
     const id = setInterval(() => setRotIdx((i) => (i + 1) % ROTATING_WORDS.length), 2200);
     return () => clearInterval(id);
   }, []);
 
-  const canSubmit = workspaceName.trim().length >= 2 && businessName.trim().length >= 2 && !isCreating;
+  const canSubmit = workspaceName.trim().length >= 2 && !isCreating;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!canSubmit) return;
+    const name = workspaceName.trim();
     await onCreate({
-      workspaceName: workspaceName.trim(),
-      businessName: businessName.trim() || workspaceName.trim(),
+      workspaceName: name,
+      businessName: name,
       purpose: purpose || "sales",
     });
   };
@@ -135,7 +110,6 @@ export default function CreateWorkspaceSplitHero({
       <div className="grid grid-cols-1 lg:grid-cols-2 lg:min-h-[calc(100vh-4rem)] gap-0">
         {/* ============== LEFT — premium marketing ============== */}
         <div className="relative overflow-hidden bg-gradient-to-br from-emerald-700 via-emerald-600 to-teal-600 lg:rounded-r-[2.5rem] order-2 lg:order-1">
-          {/* Animated gradient blobs */}
           <motion.div
             className="absolute -top-32 -left-24 w-[28rem] h-[28rem] rounded-full bg-emerald-300/30 blur-3xl"
             animate={{ x: [0, 40, 0], y: [0, 30, 0] }}
@@ -146,7 +120,6 @@ export default function CreateWorkspaceSplitHero({
             animate={{ x: [0, -30, 0], y: [0, -40, 0] }}
             transition={{ duration: 16, repeat: Infinity, ease: "easeInOut" }}
           />
-          {/* Subtle grid */}
           <svg className="absolute inset-0 w-full h-full opacity-[0.07]" xmlns="http://www.w3.org/2000/svg">
             <defs>
               <pattern id="lhgrid" width="28" height="28" patternUnits="userSpaceOnUse">
@@ -156,7 +129,6 @@ export default function CreateWorkspaceSplitHero({
             <rect width="100%" height="100%" fill="url(#lhgrid)" />
           </svg>
 
-          {/* Floating chat bubbles (decorative, hidden on small) */}
           <motion.div
             className="absolute top-[14%] right-[10%] hidden md:flex items-center gap-2 px-3 py-2 rounded-2xl rounded-tr-sm bg-white/95 shadow-2xl shadow-emerald-900/30 backdrop-blur"
             initial={{ opacity: 0, y: 20 }}
@@ -187,7 +159,6 @@ export default function CreateWorkspaceSplitHero({
             </div>
           </motion.div>
 
-          {/* Content */}
           <div className="relative z-10 h-full flex flex-col justify-center px-6 sm:px-10 lg:px-14 py-10 lg:py-14 text-white">
             <motion.span
               initial={{ opacity: 0, y: -8 }}
@@ -210,7 +181,6 @@ export default function CreateWorkspaceSplitHero({
               <span className="inline-block">🚀</span>
             </motion.h1>
 
-            {/* Rotating subline */}
             <div className="mt-3 h-7 sm:h-8 overflow-hidden text-emerald-50 text-base sm:text-lg font-medium">
               <AnimatePresence mode="wait">
                 <motion.span
@@ -236,7 +206,6 @@ export default function CreateWorkspaceSplitHero({
               your premium WhatsApp API workspace and automating your business like a top brand.
             </motion.p>
 
-            {/* Benefit pills */}
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
@@ -257,7 +226,6 @@ export default function CreateWorkspaceSplitHero({
               ))}
             </motion.div>
 
-            {/* Trust bar */}
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
@@ -272,192 +240,29 @@ export default function CreateWorkspaceSplitHero({
           </div>
         </div>
 
-        {/* ============== RIGHT — compact form ============== */}
+        {/* ============== RIGHT — premium form ============== */}
         <div className="relative flex items-center justify-center px-4 sm:px-8 py-8 lg:py-10 order-1 lg:order-2 bg-transparent">
-          {/* soft glow behind card */}
           <div className="pointer-events-none absolute inset-0 overflow-hidden">
             <div className="absolute top-1/4 right-1/4 w-72 h-72 rounded-full bg-emerald-200/30 blur-3xl" />
+            <div className="absolute bottom-1/4 left-1/4 w-64 h-64 rounded-full bg-teal-200/30 blur-3xl" />
           </div>
 
-          <motion.form
-            onSubmit={handleSubmit}
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.15 }}
-            className="relative w-full max-w-md rounded-3xl bg-white/85 backdrop-blur-2xl border border-emerald-100 shadow-[0_25px_70px_-25px_rgba(16,185,129,0.35)] p-5 sm:p-7"
-          >
-            {/* animated border glow */}
-            <div
-              aria-hidden
-              className="pointer-events-none absolute -inset-px rounded-[inherit] opacity-60"
-              style={{
-                background:
-                  "conic-gradient(from 180deg at 50% 50%, rgba(16,185,129,0.0) 0deg, rgba(16,185,129,0.25) 90deg, rgba(16,185,129,0.0) 180deg, rgba(20,184,166,0.25) 270deg, rgba(16,185,129,0.0) 360deg)",
-                WebkitMask:
-                  "linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0)",
-                WebkitMaskComposite: "xor",
-                maskComposite: "exclude",
-                padding: 1,
-                borderRadius: "inherit",
-              }}
+          <div className="relative w-full max-w-md">
+            <PremiumWorkspaceForm
+              workspaceName={workspaceName}
+              setWorkspaceName={setWorkspaceName}
+              purpose={purpose}
+              setPurpose={setPurpose}
+              focused={focused}
+              setFocused={setFocused}
+              isCreating={isCreating}
+              canSubmit={canSubmit}
+              firstName={firstName}
+              onSubmit={handleSubmit}
             />
-
-            {/* Welcome */}
-            <div className="flex items-center gap-3">
-              <div className="relative w-11 h-11 rounded-2xl bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center text-white font-bold text-lg shadow-lg shadow-emerald-500/30">
-                {(firstName || "?").charAt(0).toUpperCase()}
-                <motion.span
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  transition={{ delay: 0.4, type: "spring", stiffness: 300 }}
-                  className="absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full bg-white flex items-center justify-center shadow"
-                >
-                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
-                </motion.span>
-              </div>
-              <div className="min-w-0">
-                <h2 className="text-base sm:text-lg font-bold text-slate-900 truncate">
-                  Welcome, {firstName} 👋
-                </h2>
-                <p className="text-[11px] sm:text-xs text-slate-500 leading-snug">
-                  Create your workspace to start growing on WhatsApp.
-                </p>
-              </div>
-            </div>
-
-            <div className="mt-5 space-y-3.5">
-              {/* Workspace Name */}
-              <div className="space-y-1">
-                <Label htmlFor="ws-name" className="text-[11px] font-semibold text-slate-600 uppercase tracking-wide">
-                  Workspace Name
-                </Label>
-                <div className="relative">
-                  <div className="absolute left-3 top-1/2 -translate-y-1/2 w-6 h-6 rounded-md bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center shadow-sm shadow-emerald-500/30">
-                    <Rocket className="w-3.5 h-3.5 text-white" />
-                  </div>
-                  <Input
-                    id="ws-name"
-                    placeholder="e.g., Acme Sales"
-                    value={workspaceName}
-                    onChange={(e) => setWorkspaceName(e.target.value)}
-                    className="h-11 pl-11 rounded-xl border-emerald-200 bg-white text-slate-900 placeholder:text-slate-400 focus-visible:ring-emerald-500/30 focus-visible:border-emerald-400 transition-all"
-                    autoFocus
-                  />
-                </div>
-              </div>
-
-              {/* Business Name */}
-              <div className="space-y-1">
-                <Label htmlFor="biz-name" className="text-[11px] font-semibold text-slate-600 uppercase tracking-wide">
-                  Business Name <span className="text-slate-400 normal-case font-normal">(as on license)</span>
-                </Label>
-                <div className="relative">
-                  <div className="absolute left-3 top-1/2 -translate-y-1/2 w-6 h-6 rounded-md bg-gradient-to-br from-teal-500 to-emerald-600 flex items-center justify-center shadow-sm shadow-emerald-500/30">
-                    <Briefcase className="w-3.5 h-3.5 text-white" />
-                  </div>
-                  <Input
-                    id="biz-name"
-                    placeholder="Your registered company name"
-                    value={businessName}
-                    onChange={(e) => setBusinessName(e.target.value)}
-                    className="h-11 pl-11 rounded-xl border-emerald-200 bg-white text-slate-900 placeholder:text-slate-400 focus-visible:ring-emerald-500/30 focus-visible:border-emerald-400 transition-all"
-                  />
-                </div>
-              </div>
-
-              {/* Purpose — primary use case */}
-              <div className="space-y-1.5">
-                <Label className="text-[11px] font-semibold text-slate-600 uppercase tracking-wide">
-                  What will you use this workspace for?
-                </Label>
-                <div className="grid grid-cols-2 gap-2">
-                  {PURPOSE_OPTIONS.map((opt) => {
-                    const Icon = opt.icon;
-                    const active = purpose === opt.value;
-                    return (
-                      <button
-                        type="button"
-                        key={opt.value}
-                        onClick={() => setPurpose(opt.value)}
-                        className={cn(
-                          "relative flex items-center gap-2 px-3 h-11 rounded-xl border text-sm font-medium transition-all",
-                          active
-                            ? "border-emerald-500 bg-emerald-50 text-emerald-700 shadow-sm ring-2 ring-emerald-500/20"
-                            : "border-emerald-200 bg-white text-slate-700 hover:border-emerald-300 hover:bg-emerald-50/40"
-                        )}
-                      >
-                        <Icon className={cn("w-4 h-4", active ? "text-emerald-600" : "text-slate-400")} />
-                        {opt.label}
-                        {active && (
-                          <CheckCircle2 className="w-4 h-4 text-emerald-500 ml-auto" />
-                        )}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            </div>
-
-            {/* CTA */}
-            <motion.div
-              whileHover={canSubmit ? { scale: 1.01 } : undefined}
-              whileTap={canSubmit ? { scale: 0.99 } : undefined}
-              className="mt-5"
-            >
-              <Button
-                type="submit"
-                disabled={!canSubmit}
-                className={cn(
-                  "relative w-full h-12 rounded-2xl text-[15px] font-semibold text-white overflow-hidden",
-                  "bg-[length:200%_200%] bg-gradient-to-r from-emerald-500 via-green-500 to-teal-500",
-                  "shadow-[0_15px_40px_-12px_rgba(16,185,129,0.55)]",
-                  "hover:shadow-[0_20px_50px_-12px_rgba(16,185,129,0.7)]",
-                  "transition-all duration-300",
-                  "animate-[gradientShift_4s_ease_infinite]"
-                )}
-                style={{ backgroundSize: "200% 200%" }}
-              >
-                {isCreating ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Launching your workspace...
-                  </>
-                ) : (
-                  <>
-                    <Rocket className="w-4 h-4 mr-2" />
-                    Launch My Workspace
-                  </>
-                )}
-                {/* shimmer */}
-                <span
-                  aria-hidden
-                  className="pointer-events-none absolute inset-0 -translate-x-full hover:translate-x-full transition-transform duration-1000 bg-gradient-to-r from-transparent via-white/25 to-transparent"
-                />
-              </Button>
-            </motion.div>
-
-            <p className="mt-3 text-center text-[11px] text-slate-500">
-              No technical setup required · Takes less than 30 seconds
-            </p>
-
-            {/* tiny trust row */}
-            <div className="mt-4 pt-4 border-t border-emerald-100/80 flex items-center justify-center gap-4 text-[10px] sm:text-[11px] text-slate-500">
-              <span className="inline-flex items-center gap-1"><ShieldCheck className="w-3 h-3 text-emerald-500" /> Encrypted</span>
-              <span className="inline-flex items-center gap-1"><CheckCircle2 className="w-3 h-3 text-emerald-500" /> Official Meta Partner</span>
-              <span className="inline-flex items-center gap-1"><Sparkles className="w-3 h-3 text-emerald-500" /> Free to start</span>
-            </div>
-          </motion.form>
+          </div>
         </div>
       </div>
-
-      {/* Local keyframes for the CTA gradient */}
-      <style>{`
-        @keyframes gradientShift {
-          0% { background-position: 0% 50%; }
-          50% { background-position: 100% 50%; }
-          100% { background-position: 0% 50%; }
-        }
-      `}</style>
     </section>
   );
 }

@@ -681,6 +681,7 @@ export default function SelectWorkspace() {
           onCreateWorkspace={handleCreateWorkspace}
           isCreating={isCreating}
           initialName={(profile as any)?.company_name || ''}
+          displayName={profile?.full_name || (user as any)?.user_metadata?.full_name || (user as any)?.user_metadata?.name || user?.email || 'there'}
         />
 
         {/* Rename Dialog */}
