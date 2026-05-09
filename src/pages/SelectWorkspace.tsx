@@ -876,7 +876,7 @@ export default function SelectWorkspace() {
         </main>
 
         {/* Mobile sticky CTA */}
-        {canCreateWorkspace && (
+        {canCreateWorkspace && workspaces.length > 0 && (
           <div className="fixed bottom-0 left-0 right-0 p-3 bg-white/90 backdrop-blur-xl border-t border-emerald-100 sm:hidden z-40">
             <Button
               onClick={() => setModalOpen(true)}
