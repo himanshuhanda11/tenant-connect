@@ -115,7 +115,7 @@ export default function PricingPreview() {
                   <div className="mb-6">
                     {price === 0 ? (
                       <div className="flex items-baseline gap-1">
-                        <span className="text-4xl font-extrabold text-foreground tracking-tight">₹0</span>
+                        <span className="text-4xl font-extrabold text-foreground tracking-tight">{fmt(0)}</span>
                         <span className="text-muted-foreground text-sm">/forever</span>
                       </div>
                     ) : (
@@ -125,7 +125,7 @@ export default function PricingPreview() {
                           <span className="text-muted-foreground text-sm">/mo</span>
                         </div>
                         {isYearly && (
-                          <p className="text-muted-foreground/60 text-xs mt-1 line-through">{fmt(plan.price as number)}/mo</p>
+                          <p className="text-muted-foreground/60 text-xs mt-1 line-through">{fmt(getBasePrice(plan))}/mo</p>
                         )}
                       </div>
                     )}
