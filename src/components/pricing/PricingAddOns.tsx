@@ -22,6 +22,7 @@ const addonImages: Record<string, string> = {
 };
 
 export default function PricingAddOns() {
+  const { formatAddOnPrice } = useGeoLocation();
   return (
     <section className="py-10 md:py-14">
       <div className="container mx-auto px-4">
@@ -72,7 +73,7 @@ export default function PricingAddOns() {
                 </div>
                 <div className="flex flex-col sm:flex-row items-center sm:items-center justify-between mt-auto gap-1">
                   <span className="text-xs sm:text-sm text-center sm:text-left">
-                    <span className="font-bold text-foreground">{formatINR(addon.price)}</span>
+                    <span className="font-bold text-foreground">{formatAddOnPrice(addon.id) || ''}</span>
                     <span className="text-muted-foreground text-[10px] sm:text-[11px] block">{addon.unit}</span>
                   </span>
                 </div>

@@ -3,7 +3,8 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Minus, Plus } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { type AddOn, formatINR } from '@/data/addOns';
+import { type AddOn } from '@/data/addOns';
+import { useGeoLocation } from '@/hooks/useGeoLocation';
 import { toast } from 'sonner';
 
 interface AddOnCardProps {
@@ -14,6 +15,7 @@ interface AddOnCardProps {
 
 export function AddOnCard({ addon, locked, compact }: AddOnCardProps) {
   const [qty, setQty] = useState(1);
+  const { formatAddOnPrice } = useGeoLocation();
   const Icon = addon.icon;
 
   const handleAdd = () => {
