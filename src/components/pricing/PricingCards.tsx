@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { pricingPlans, type PricingPlan } from '@/data/pricingPlans';
 import { cn } from '@/lib/utils';
 import { useNavigate } from 'react-router-dom';
+import { useGeoLocation, type PlanId } from '@/hooks/useGeoLocation';
 import addonExtraAgents from '@/assets/addon-extra-agents.png';
 import addonExtraFlows from '@/assets/addon-extra-flows.png';
 import addonAutoforms from '@/assets/addon-autoforms.png';
