@@ -16,6 +16,7 @@ import { TemplatesTab } from '@/components/admin/workspace-detail/TemplatesTab';
 import { CampaignsTab } from '@/components/admin/workspace-detail/CampaignsTab';
 import { IntegrationsTab } from '@/components/admin/workspace-detail/IntegrationsTab';
 import { OwnerBusinessCard } from '@/components/admin/workspace-detail/OwnerBusinessCard';
+import { WhatsAppConnectionStatus } from '@/components/admin/workspace-detail/WhatsAppConnectionStatus';
 import {
   Loader2, LayoutDashboard, Users, Phone, MessageSquare, Zap, Plug, ScrollText, Eye
 } from 'lucide-react';
@@ -154,6 +155,7 @@ export default function AdminWorkspaceDetail() {
         </ScrollArea>
 
         <TabsContent value="overview" className="mt-4 space-y-4">
+          <WhatsAppConnectionStatus waba={waba} phones={phones} workspacePhone={workspacePhone} />
           <OwnerBusinessCard
             workspace={workspace}
             owner={owner}
@@ -172,7 +174,8 @@ export default function AdminWorkspaceDetail() {
         <TabsContent value="team" className="mt-4">
           <TeamTab members={members} isSuperAdmin={isSuperAdmin} />
         </TabsContent>
-        <TabsContent value="whatsapp" className="mt-4">
+        <TabsContent value="whatsapp" className="mt-4 space-y-4">
+          <WhatsAppConnectionStatus waba={waba} phones={phones} workspacePhone={workspacePhone} />
           <WhatsAppTab 
             phones={phones} 
             workspacePhone={workspacePhone} 
@@ -182,6 +185,7 @@ export default function AdminWorkspaceDetail() {
               get(`workspaces/${id}`).then(data => {
                 setPhones(data.phones || []);
                 setWorkspacePhone(data.workspace_phone || null);
+                setWaba(data.waba || null);
               }).catch(() => {});
             }}
           />
