@@ -30,7 +30,7 @@ export default function SubscriptionStatusBanner() {
   const planId = (entitlements?.plan_id ?? subscription?.plan_id ?? 'free').replace(/^plan_/, '');
   const meta = planMeta[planId] ?? planMeta.free;
   const isFree = planId === 'free';
-  const isTrial = subscription?.status === 'trialing';
+  const isTrial = (subscription?.status as string) === 'trialing';
   const periodEnd = subscription?.current_period_end ? new Date(subscription.current_period_end) : null;
   const daysLeft = periodEnd ? Math.max(0, differenceInDays(periodEnd, new Date())) : null;
 
