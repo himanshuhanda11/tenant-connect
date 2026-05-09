@@ -8,6 +8,7 @@ import {
 
 interface Props {
   onMarkDone: () => void;
+  phoneId?: string | null;
 }
 
 const TASKS = [
