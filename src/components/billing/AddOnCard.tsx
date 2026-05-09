@@ -80,8 +80,9 @@ export function AddOnCard({ addon, locked, compact }: AddOnCardProps) {
       </div>
 
       {locked && (
-        <div className="absolute inset-0 rounded-xl bg-background/60 flex items-center justify-center">
-          <Badge variant="secondary" className="text-xs">Upgrade required</Badge>
+        <div className="absolute inset-0 rounded-xl bg-background/80 backdrop-blur-[1px] flex flex-col items-center justify-center gap-1.5">
+          <Badge variant="secondary" className="text-[10px]">Upgrade to Pro to add</Badge>
+          <span className="text-[10px] text-muted-foreground">Not available on Basic</span>
         </div>
       )}
     </div>
