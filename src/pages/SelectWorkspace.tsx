@@ -524,7 +524,35 @@ export default function SelectWorkspace() {
           </div>
         </header>
 
-        <main className="relative container mx-auto px-3 sm:px-6 py-6 sm:py-10 max-w-7xl pb-24 md:pb-12">
+        <main
+          className={cn(
+            "relative",
+            !loadingDetails && workspaces.length === 0
+              ? "px-0 py-0"
+              : "container mx-auto px-3 sm:px-6 py-6 sm:py-10 max-w-7xl pb-24 md:pb-12",
+          )}
+        >
+          {!loadingDetails && workspaces.length === 0 ? (() => {
+            const meta: any = (user as any)?.user_metadata || {};
+            const displayName =
+              profile?.full_name ||
+              meta.full_name ||
+              meta.name ||
+              meta.display_name ||
+              (user?.email?.split('@')[0] ?? '');
+            return (
+              <CreateWorkspaceSplitHero
+                displayName={displayName}
+                initialName={(profile as any)?.company_name || ''}
+                initialCategory={(profile as any)?.industry || ''}
+                initialTeamSize={(profile as any)?.team_size || ''}
+                isCreating={isCreating}
+                onCreate={async ({ workspaceName, businessName, category, teamSize }) =>
+                  handleCreateWorkspace(workspaceName, 'sales', true, { businessName, category, teamSize })
+                }
+              />
+            );
+          })() : (<>
           {/* Welcome banner with full name */}
           {(() => {
             const meta: any = (user as any)?.user_metadata || {};
