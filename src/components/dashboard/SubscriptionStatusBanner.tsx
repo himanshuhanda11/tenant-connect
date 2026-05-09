@@ -28,10 +28,9 @@ export default function SubscriptionStatusBanner() {
   const { data: isEligible } = useTrialEligibility();
   const [changeOpen, setChangeOpen] = useState(false);
 
-  // Auto-open plan picker when redirected from workspace creation (?select_plan=1)
+  // Strip the legacy ?select_plan=1 param without opening any popup.
   useEffect(() => {
     if (searchParams.get('select_plan') === '1') {
-      setChangeOpen(true);
       const next = new URLSearchParams(searchParams);
       next.delete('select_plan');
       setSearchParams(next, { replace: true });
