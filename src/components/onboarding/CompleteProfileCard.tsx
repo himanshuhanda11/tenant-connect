@@ -20,8 +20,12 @@ const TASKS = [
   { icon: MapPin, label: 'Address' },
 ];
 
-export default function CompleteProfileCard({ onMarkDone }: Props) {
+export default function CompleteProfileCard({ onMarkDone, phoneId }: Props) {
   const navigate = useNavigate();
+  const goToProfile = () => {
+    if (phoneId) navigate(`/phone-numbers/${phoneId}?tab=profile`);
+    else navigate('/phone-numbers');
+  };
   return (
     <motion.div
       initial={{ opacity: 0, y: 12 }}
