@@ -13859,6 +13859,8 @@ export type Database = {
           updated_at: string
           vat_enabled: boolean | null
           vat_percentage: number | null
+          whatsapp_profile_completed: boolean
+          whatsapp_profile_saved_at: string | null
         }
         Insert: {
           billing_address?: Json | null
@@ -13883,6 +13885,8 @@ export type Database = {
           updated_at?: string
           vat_enabled?: boolean | null
           vat_percentage?: number | null
+          whatsapp_profile_completed?: boolean
+          whatsapp_profile_saved_at?: string | null
         }
         Update: {
           billing_address?: Json | null
@@ -13907,6 +13911,8 @@ export type Database = {
           updated_at?: string
           vat_enabled?: boolean | null
           vat_percentage?: number | null
+          whatsapp_profile_completed?: boolean
+          whatsapp_profile_saved_at?: string | null
         }
         Relationships: []
       }
@@ -16422,6 +16428,8 @@ export type Database = {
           updated_at: string
           vat_enabled: boolean | null
           vat_percentage: number | null
+          whatsapp_profile_completed: boolean
+          whatsapp_profile_saved_at: string | null
         }
         SetofOptions: {
           from: "*"
