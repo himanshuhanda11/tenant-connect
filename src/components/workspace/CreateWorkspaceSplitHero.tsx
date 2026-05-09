@@ -331,28 +331,38 @@ export default function CreateWorkspaceSplitHero({
                 <Label htmlFor="ws-name" className="text-[11px] font-semibold text-slate-600 uppercase tracking-wide">
                   Workspace Name
                 </Label>
-                <Input
-                  id="ws-name"
-                  placeholder="e.g., Acme Sales"
-                  value={workspaceName}
-                  onChange={(e) => setWorkspaceName(e.target.value)}
-                  className="h-11 rounded-xl border-emerald-200 bg-white text-slate-900 placeholder:text-slate-400 focus-visible:ring-emerald-500/30 focus-visible:border-emerald-400 transition-all"
-                  autoFocus
-                />
+                <div className="relative">
+                  <div className="absolute left-3 top-1/2 -translate-y-1/2 w-6 h-6 rounded-md bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center shadow-sm shadow-emerald-500/30">
+                    <Rocket className="w-3.5 h-3.5 text-white" />
+                  </div>
+                  <Input
+                    id="ws-name"
+                    placeholder="e.g., Acme Sales"
+                    value={workspaceName}
+                    onChange={(e) => setWorkspaceName(e.target.value)}
+                    className="h-11 pl-11 rounded-xl border-emerald-200 bg-white text-slate-900 placeholder:text-slate-400 focus-visible:ring-emerald-500/30 focus-visible:border-emerald-400 transition-all"
+                    autoFocus
+                  />
+                </div>
               </div>
 
               {/* Business Name */}
               <div className="space-y-1">
                 <Label htmlFor="biz-name" className="text-[11px] font-semibold text-slate-600 uppercase tracking-wide">
-                  Business Name
+                  Business Name <span className="text-slate-400 normal-case font-normal">(as on license)</span>
                 </Label>
-                <Input
-                  id="biz-name"
-                  placeholder="Your company name"
-                  value={businessName}
-                  onChange={(e) => setBusinessName(e.target.value)}
-                  className="h-11 rounded-xl border-emerald-200 bg-white text-slate-900 placeholder:text-slate-400 focus-visible:ring-emerald-500/30 focus-visible:border-emerald-400 transition-all"
-                />
+                <div className="relative">
+                  <div className="absolute left-3 top-1/2 -translate-y-1/2 w-6 h-6 rounded-md bg-gradient-to-br from-teal-500 to-emerald-600 flex items-center justify-center shadow-sm shadow-emerald-500/30">
+                    <Briefcase className="w-3.5 h-3.5 text-white" />
+                  </div>
+                  <Input
+                    id="biz-name"
+                    placeholder="Your registered company name"
+                    value={businessName}
+                    onChange={(e) => setBusinessName(e.target.value)}
+                    className="h-11 pl-11 rounded-xl border-emerald-200 bg-white text-slate-900 placeholder:text-slate-400 focus-visible:ring-emerald-500/30 focus-visible:border-emerald-400 transition-all"
+                  />
+                </div>
               </div>
 
               {/* Purpose — primary use case */}
