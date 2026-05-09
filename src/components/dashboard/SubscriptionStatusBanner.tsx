@@ -77,17 +77,28 @@ export default function SubscriptionStatusBanner() {
                 )}
               </div>
               <div className="text-[11px] sm:text-xs text-muted-foreground mt-1 flex items-center flex-wrap gap-x-3 gap-y-1">
-                {periodEnd ? (
+                {isTrial && periodEnd ? (
                   <span className="flex items-center gap-1">
                     <Calendar className="w-3 h-3" />
-                    Next billing: <span className="font-medium text-foreground">{format(periodEnd, 'MMM d, yyyy')}</span>
+                    Free trial ends: <span className="font-medium text-foreground">{format(periodEnd, 'MMM d, yyyy')}</span>
                   </span>
                 ) : isFree ? (
                   <span>No billing cycle · Free forever</span>
                 ) : (
-                  <span>Active</span>
+                  <span>Active subscription</span>
                 )}
-                {trialChip && (
+                {isTrial && trialChip && (
+                  <span className={cn(
+                    'inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium',
+                    trialChip.tone === 'emerald'
+                      ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300'
+                      : 'bg-amber-500/15 text-amber-700 dark:text-amber-300',
+                  )}>
+                    {trialChip.tone === 'amber' && <Lock className="w-2.5 h-2.5" />}
+                    {trialChip.label}
+                  </span>
+                )}
+                {!isTrial && isFree && trialChip && (
                   <span className={cn(
                     'inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium',
                     trialChip.tone === 'emerald'
