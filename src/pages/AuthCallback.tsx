@@ -35,17 +35,27 @@ export default function AuthCallback() {
           return;
         }
 
-        // 1) If PKCE code is present, exchange it.
-        const code = searchParams.get('code');
-        if (code) {
-          const { error } = await supabase.auth.exchangeCodeForSession(code);
+        // 1) Lovable managed OAuth broker returns tokens directly as query params.
+        const accessToken = searchParams.get('access_token');
+        const refreshToken = searchParams.get('refresh_token');
+        if (accessToken && refreshToken) {
+          const { error } = await supabase.auth.setSession({
+            access_token: accessToken,
+            refresh_token: refreshToken,
+          });
           if (error) throw error;
         } else {
-          // 2) Otherwise, try implicit parsing (if provider returned tokens in hash).
-          //    This is safe to call even if there are no tokens.
-          // @ts-expect-error - getSessionFromUrl exists in supabase-js v2
-          const { error } = await supabase.auth.getSessionFromUrl({ storeSession: true });
-          if (error) throw error;
+          // 2) PKCE code flow (email magic links, etc.)
+          const code = searchParams.get('code');
+          if (code) {
+            const { error } = await supabase.auth.exchangeCodeForSession(code);
+            if (error) throw error;
+          } else {
+            // 3) Fallback: implicit hash flow.
+            // @ts-expect-error - getSessionFromUrl exists in supabase-js v2
+            const { error } = await supabase.auth.getSessionFromUrl({ storeSession: true });
+            if (error) throw error;
+          }
         }
 
         // Confirm we now have a session (prevents redirect-to-login race conditions).
