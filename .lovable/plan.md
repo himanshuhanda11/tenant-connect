@@ -1,117 +1,107 @@
-## Aireatro Plan & Access Control Hardening
+# 24-Hour Launch Offer + Mandatory Plan Selection
 
-A full server-side enforcement layer for plan/feature access. Frontend stays as UX only — backend is the source of truth.
+A two-part feature: (1) a server-anchored 24-hour "1 month free" offer with sticky banner, popup, and floating widget, and (2) a mandatory "Choose Plan" step inserted into onboarding before workspace access.
 
-### 1. Audit findings (to confirm before coding)
+---
 
-I'll start by auditing:
-- `workspace_entitlements`, `tenants`, `platform_plans`, `subscriptions` tables + RLS
-- All RLS policies on sensitive tables (profiles, tenants, tenant_members, conversations, contacts, campaigns, automations, messages, templates, whatsapp_phone_numbers, integrations, message_credits, user_roles)
-- Edge functions that mutate plan/subscription state (look for any that trust client `plan` input)
-- Webhook handlers (Razorpay/Stripe/Paddle) — signature verification + idempotency
-- Frontend-only gates (`useGeoLocation`, `pricingPlans.ts` restrictions, plan-tier-mapping) — confirm none control real access
+## Part 1 — 24h Limited Offer System
 
-Deliverable: short audit report posted in chat with concrete findings before mutation.
+### Database (migration)
+New table `public.user_offers` (one row per user, created automatically on signup):
+- `user_id` (uuid, PK, FK auth.users)
+- `offer_started_at` (timestamptz, default now())
+- `offer_expires_at` (timestamptz, default now() + 24h) — **server-computed, immutable**
+- `offer_claimed` (boolean, default false)
+- `claimed_plan_id` (text, nullable — references `platform_plans.id`)
+- `claimed_at` (timestamptz, nullable)
+- `subscription_id` (uuid, nullable)
 
-### 2. Single backend authority: `check_plan_access`
+**Triggers / functions:**
+- Trigger `on_auth_user_created_offer` → inserts a row when a new auth user is created (via `handle_new_user_offer()` SECURITY DEFINER). Idempotent (`ON CONFLICT DO NOTHING`).
+- Trigger `guard_user_offer_mutations()` BEFORE UPDATE → blocks any change to `offer_started_at` / `offer_expires_at`; only `offer_claimed`, `claimed_plan_id`, `claimed_at`, `subscription_id` may be updated, and only via SECURITY DEFINER claim function (raises if `current_setting('app.allow_offer_claim','t') <> 'on'`).
+- Function `claim_launch_offer(plan_id text)` SECURITY DEFINER:
+  - Verifies caller is the owner.
+  - Verifies `offer_claimed = false`, `now() < offer_expires_at`, and user has no active paid subscription in `subscriptions`.
+  - Inserts a 30-day trial entry into `subscriptions` (status `trialing`, plan = `plan_id`, trial_ends_at = now+30d).
+  - Updates `user_offers` row (sets `offer_claimed`, `claimed_plan_id`, `claimed_at`, `subscription_id`).
+  - Returns `{ ok, subscription_id, trial_ends_at }`.
+- RLS:
+  - SELECT: `auth.uid() = user_id`
+  - INSERT/UPDATE/DELETE: blocked for end users (only the trigger and SECURITY DEFINER claim function may write).
 
-New SECURITY DEFINER SQL function:
+### Edge function
+`claim-launch-offer` — wraps `claim_launch_offer()` RPC, returns the new subscription. Validates JWT in code. No client-trusted timer values are accepted.
 
-```text
-check_plan_access(p_user_id uuid, p_tenant_id uuid, p_feature_key text, p_requested_amount int default 1)
-returns jsonb { allowed, reason, plan, limit, used, upgrade_to }
-```
+### Frontend hook `useLaunchOffer()`
+- Reads `user_offers` row for current user.
+- Computes `secondsLeft = max(0, offer_expires_at - now())` from the **server timestamp only**.
+- `isActive = !offer_claimed && secondsLeft > 0 && !hasActivePaidSubscription`.
+- Real-time `setInterval(1000)` for ticking the local display.
+- Exposes `claim(planId)` which calls the edge function then invalidates `useSubscription` / `useEntitlements`.
 
-Validates in order:
-1. user is `tenant_members` of tenant
-2. user role allows the feature (via existing `has_permission`)
-3. tenant subscription is `active` or `trialing` and not past `current_period_end`
-4. feature_key exists in `workspace_entitlements` for current plan
-5. usage counter + requested_amount ≤ plan limit
-6. logs failed checks to `access_denied_log`
+### Components
+- `src/components/offer/LaunchOfferProvider.tsx` — context that exposes offer state + dialog/widget triggers, mounts banner + popup + widget once.
+- `src/components/offer/StickyOfferBanner.tsx` — fixed top bar, glassmorphism, animated gradient border, neon green accents, pulses red when `secondsLeft < 3h`. Hidden when not active. Buttons: **Claim Offer**, **View Plans**.
+- `src/components/offer/LaunchOfferDialog.tsx` — premium modal (radix Dialog + framer-motion), backdrop blur, 3D glow, animated countdown, benefits list, **Start Free Month** + **Compare Plans** buttons. Cooldown (30 min) tracked in `sessionStorage` for re-popup, but never gates the actual offer (which lives server-side).
+- `src/components/offer/FloatingOfferWidget.tsx` — bottom-right pulsing gift icon when banner/dialog dismissed, opens dialog on click.
+- Mount `LaunchOfferProvider` inside `DashboardLayout` and on `/signup`, `/onboarding/*`, `/choose-plan`.
 
-Companion: `enforce_plan_access(...)` that RAISES on deny — used inside other SECURITY DEFINER RPCs.
+### Security guarantees
+- Timer derived from `offer_expires_at` — **server-set, immutable** (trigger blocks changes).
+- Claim only via SECURITY DEFINER function with full validation (ownership, not claimed, not expired, no existing paid sub).
+- RLS prevents direct insert/update from clients; localStorage cannot affect anything visible to other users or to the server.
+- Replays: `offer_claimed = true` permanently disables claim (UNIQUE on user_id).
 
-### 3. Lock down mutation paths
+---
 
-- Add BEFORE UPDATE trigger on `tenants` and `subscriptions` blocking changes to `plan_id`, `status`, `current_period_end` unless `auth.uid()` is super_admin OR session has `request.jwt.claim.role = 'service_role'` (webhook).
-- Revoke direct UPDATE on `workspace_entitlements` from authenticated; only updated via webhook RPC.
-- Add `enforce_plan_access` calls inside server-side RPCs:
-  - `send_campaign`, `connect_whatsapp_number`, `invite_member`, `create_automation`, `ai_reply_request`, `import_contacts`, `create_template`, `create_integration`
-- Anti-abuse: tighten existing `check_workspace_creation_allowed` (already 2-per-owner) — keep as-is, add daily IP/email cap via `platform_risk_events`.
+## Part 2 — Mandatory "Choose Plan" Onboarding Step
 
-### 4. RLS sweep
+### Routing flow
+After signup → profile completion, route to **`/choose-plan`** before the workspace.
 
-For each sensitive table, ensure 4 policies (SELECT/INSERT/UPDATE/DELETE) all gated by `is_tenant_member(auth.uid(), tenant_id)`. Tables to verify and fix where missing:
+- Add route `/choose-plan` → new page `src/pages/onboarding/ChoosePlanPage.tsx`.
+- Add a tiny `RequirePlanSelection` guard in `App.tsx` (or `DashboardLayout`): if user has `user_offers.offer_claimed = false` AND no active subscription AND offer still active → redirect dashboard hits to `/choose-plan`. If user already has a subscription (free or paid), allow through.
+- Free users who skip explicitly can click "Continue with Free" — that calls `claim_launch_offer('free')` to mark the choice and unblock the dashboard.
 
-```text
-profiles, tenants, tenant_members, contacts, conversations,
-messages, campaigns, campaign_jobs, automations,
-automation_workflows, templates, whatsapp_phone_numbers,
-integrations, message_credits, credit_transactions,
-crm_deals/qualified_leads, usage_counters, subscriptions,
-workspace_entitlements, platform_plans (read-only public)
-```
+### Page design (`ChoosePlanPage.tsx`)
+- Full-screen premium layout, animated aurora background (reuse PricingHero gradients).
+- Headline "🚀 Start Growing with Aireatro", live countdown component.
+- 4 plan cards (reuse `pricingPlans` data) with **"FREE First Month"** badge on paid plans.
+- Monthly/Yearly toggle.
+- CTA per card: **Start Free Month** (paid plans) → calls `claim(plan.id)` → success animation (framer-motion + confetti via `canvas-confetti`) → navigate to `/dashboard`.
+- Free plan CTA: **Continue with Free**.
+- Social proof line "X users claimed today" — pulled from a lightweight `count(*) where claimed_at::date = today` via a SECURITY DEFINER `get_offer_claim_count_today()` function (no PII).
+- Mobile: cards stack, sticky CTA at bottom.
 
-Block client UPDATE on `subscriptions`, `workspace_entitlements`, `platform_plans`, `usage_counters`, `message_credits` (mutations only via SECURITY DEFINER RPCs).
+### Success state
+After claim succeeds:
+- Show 1.5s success overlay "🎉 Your Free Month Has Started".
+- Navigate to `/dashboard`. The banner/widget/popup self-hide because `offer_claimed = true`.
 
-### 5. Payment webhook hardening
+---
 
-- Verify HMAC signature on every webhook (Razorpay/Stripe/Paddle)
-- Idempotency table `payment_webhook_events(provider, event_id PK, processed_at)` — reject duplicates
-- Only webhook function (with service_role) updates `subscriptions` + `workspace_entitlements`
-- On `payment_failed` / `subscription_cancelled` / `past_due`: set status, schedule grace period (3 days), then auto-downgrade `workspace_entitlements` to free tier
-- Cron-like job (existing scheduled jobs) checks `current_period_end < now()` daily and downgrades
+## Files
 
-### 6. Audit logging
+**New:**
+- `supabase/migrations/<ts>_launch_offer_system.sql`
+- `supabase/functions/claim-launch-offer/index.ts`
+- `src/hooks/useLaunchOffer.ts`
+- `src/components/offer/LaunchOfferProvider.tsx`
+- `src/components/offer/StickyOfferBanner.tsx`
+- `src/components/offer/LaunchOfferDialog.tsx`
+- `src/components/offer/FloatingOfferWidget.tsx`
+- `src/components/offer/CountdownPill.tsx` (shared)
+- `src/pages/onboarding/ChoosePlanPage.tsx`
+- `src/components/auth/RequirePlanSelection.tsx`
 
-Use existing `audit_logs` + add `access_denied_log(tenant_id, user_id, feature_key, reason, ip, ua, created_at)`. Log:
-- All plan/subscription changes (who/what/when)
-- Every `check_plan_access` denial
-- Admin overrides
-- Webhook events processed
-- Suspicious: rapid workspace creation, repeated denials, role escalation attempts
+**Edited:**
+- `src/App.tsx` — register `/choose-plan` route + `RequirePlanSelection` wrapper.
+- `src/components/layout/DashboardLayout.tsx` — mount `LaunchOfferProvider`.
+- `src/pages/onboarding/SignupPage.tsx` / profile page — redirect to `/choose-plan` after profile complete.
+- `package.json` — add `canvas-confetti`.
 
-### 7. Frontend updates (UX only)
+## Out of scope (deferred unless asked)
+- Super-admin UI to toggle offer / edit text / view analytics dashboard. (Add a feature flag `launch_offer_enabled` in `platform_settings` so it's togglable later.)
+- Per-event analytics events table (popup impressions/closes/etc.). The data model supports it but the UI is a future pass.
 
-- Replace any client-only gating with calls to a new `usePlanAccess(featureKey)` hook that calls `check_plan_access` RPC
-- Show premium "Upgrade to {plan}" dialog with reason returned from backend
-- Hide locked CTAs, but always also call backend (defense in depth)
-- Pricing page / billing already geo-aware — no changes
-
-### 8. Test suite
-
-Create `supabase/tests/plan_access.test.sql` (pgTAP-style or simple `do $$ begin assert ... end $$`):
-
-```text
-- free user → blocked from pro feature
-- basic → blocked from business feature
-- expired plan → blocked even if entitlement row exists
-- direct UPDATE on subscriptions by authenticated → denied
-- cross-tenant SELECT → denied by RLS
-- webhook replay (same event_id) → no-op
-- usage at limit → blocked; at limit-1 → allowed
-- super_admin override → allowed + audit logged
-- cancelled then grace period → allowed; after grace → blocked
-```
-
-Plus a frontend `vitest` file mocking the RPC to assert UI shows correct upgrade messaging.
-
-### Technical notes
-
-- All new SQL functions: `LANGUAGE plpgsql SECURITY DEFINER SET search_path = public`
-- New tables: `payment_webhook_events`, `access_denied_log`, `feature_catalog(feature_key, min_plan, limit_field)`
-- `feature_catalog` is the single source of truth mapping feature_key → required plan + which usage_counters column to check
-- Migrations grouped: (a) catalog + log tables, (b) check/enforce functions, (c) triggers + revokes, (d) RLS policy patches, (e) webhook idempotency
-
-### Rollout order
-
-1. Audit (read-only) → post findings
-2. Migration A: catalog/log tables + `check_plan_access` (non-breaking, additive)
-3. Migration B: webhook idempotency + signature verification in edge functions
-4. Migration C: RLS tightening + UPDATE revokes + triggers
-5. Migration D: wire `enforce_plan_access` into existing RPCs
-6. Frontend: `usePlanAccess` hook + upgrade dialogs
-7. Tests + manual verification
-
-Each migration shipped separately so we can verify nothing breaks existing flows.
+Confirm to proceed.
