@@ -22,6 +22,23 @@ export function StickyOfferBanner({ onClaim }: Props) {
   const path = location.pathname;
   const visible = isActive && !hidden && !isPricingPath(path) && !isOfferExcludedPath(path);
 
+  // Collapse the banner when the user engages with any CTA — the floating
+  // gift widget remains visible so they can re-open the offer later.
+  const collapseBanner = () => {
+    sessionStorage.setItem(HIDE_KEY, '1');
+    setHidden(true);
+  };
+
+  const handleClaim = () => {
+    collapseBanner();
+    onClaim();
+  };
+
+  const handleViewPlans = () => {
+    collapseBanner();
+    navigate('/pricing');
+  };
+
 
   return (
     <AnimatePresence>
