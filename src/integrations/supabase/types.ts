@@ -16351,6 +16351,13 @@ export type Database = {
         Args: { p_feature_key: string; p_tenant_id: string }
         Returns: undefined
       }
+      enforce_subscription_grace_period: {
+        Args: never
+        Returns: {
+          action: string
+          workspace_id: string
+        }[]
+      }
       enqueue_email: {
         Args: { payload: Json; queue_name: string }
         Returns: number
