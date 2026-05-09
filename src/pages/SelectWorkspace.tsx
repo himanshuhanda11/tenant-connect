@@ -362,15 +362,25 @@ export default function SelectWorkspace() {
 
   const handleCreateWorkspace = async (name: string, purpose: string, connectNow: boolean) => {
     setIsCreating(true);
-    const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-    const { error, tenant } = await createTenant(name, slug);
-    if (!error && tenant) {
+    try {
+      const baseSlug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || 'workspace';
+      const slug = `${baseSlug}-${Math.random().toString(36).slice(2, 6)}`;
+      const { error, tenant } = await createTenant(name, slug);
+      if (error || !tenant) {
+        console.error('[CreateWorkspace] failed:', error);
+        toast.error(error?.message || 'Failed to create workspace. Please try again.');
+        return;
+      }
       setModalOpen(false);
       setCurrentTenant({ ...(tenant as any), role: 'owner' });
-      // Enter dashboard directly; dashboard banner will prompt for plan selection.
+      toast.success('Workspace created!');
       navigate(`/dashboard?select_plan=1${connectNow ? '&connect=1' : ''}`);
+    } catch (e: any) {
+      console.error('[CreateWorkspace] exception:', e);
+      toast.error(e?.message || 'Something went wrong. Please try again.');
+    } finally {
+      setIsCreating(false);
     }
-    setIsCreating(false);
   };
 
   const handleSignOut = async () => {
