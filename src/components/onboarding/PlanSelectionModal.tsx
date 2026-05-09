@@ -101,8 +101,30 @@ export default function PlanSelectionModal({ open, tenantId, onSelected, onPaidI
     }
   };
 
-  const handlePaid = (plan: PricingPlan) => {
-    onPaidIntent();
+  const handlePaid = async (plan: PricingPlan) => {
+    if (activatingId) return;
+    setActivatingId(plan.id);
+    try {
+      const trialEnds = new Date();
+      trialEnds.setDate(trialEnds.getDate() + 30);
+      try {
+        await supabase.from('subscriptions').upsert(
+          {
+            tenant_id: tenantId,
+            plan_id: `plan_${plan.id}`,
+            status: 'trialing',
+            trial_ends_at: trialEnds.toISOString(),
+          } as any,
+          { onConflict: 'tenant_id' },
+        );
+      } catch (e) {
+        console.warn('[PlanSelection] paid trial upsert non-fatal:', e);
+      }
+      onSelected(plan.name);
+      toast.success(`${plan.name} trial started — 1 month free 🚀`);
+    } finally {
+      setActivatingId(null);
+    }
   };
 
   return (
@@ -271,6 +293,7 @@ export default function PlanSelectionModal({ open, tenantId, onSelected, onPaidI
                     ) : (
                       <Button
                         onClick={() => handlePaid(plan)}
+                        disabled={!!activatingId}
                         className={cn(
                           'h-10 rounded-xl font-semibold text-sm text-white shadow-lg',
                           plan.id === 'pro' && 'bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 shadow-emerald-500/30',
@@ -278,7 +301,11 @@ export default function PlanSelectionModal({ open, tenantId, onSelected, onPaidI
                           plan.id === 'business' && 'bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 shadow-amber-500/30',
                         )}
                       >
-                        <Sparkles className="w-4 h-4 mr-1.5" /> Start 1 Month Free
+                        {activatingId === plan.id ? (
+                          <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Starting trial…</>
+                        ) : (
+                          <><Sparkles className="w-4 h-4 mr-1.5" /> Start 1 Month Free</>
+                        )}
                       </Button>
                     )}
                   </motion.div>
