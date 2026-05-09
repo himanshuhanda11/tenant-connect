@@ -80,8 +80,8 @@ async function cleanup(userId: string, tenantIds: string[]) {
   await admin.auth.admin.deleteUser(userId);
 }
 
-Deno.test(
-  "claim_launch_offer: enforces one paid trial per user across workspaces",
+Deno.test({ ignore: !CAN_RUN, name: 
+  permalink: "claim_launch_offer: enforces one paid trial per user across workspaces",
   async () => {
     const user = await makeUser();
     const c = await userClient(user.email, user.password);
@@ -133,8 +133,8 @@ Deno.test(
   },
 );
 
-Deno.test(
-  "claim_launch_offer: rejects non-members of the workspace",
+Deno.test({ ignore: !CAN_RUN, name: 
+  permalink: "claim_launch_offer: rejects non-members of the workspace",
   async () => {
     const owner = await makeUser();
     const stranger = await makeUser();
@@ -158,8 +158,8 @@ Deno.test(
   },
 );
 
-Deno.test(
-  "claim_launch_offer: returns a structured JSON response (no 2xx/500 mismatch)",
+Deno.test({ ignore: !CAN_RUN, name: 
+  permalink: "claim_launch_offer: returns a structured JSON response (no 2xx/500 mismatch)",
   async () => {
     const user = await makeUser();
     const c = await userClient(user.email, user.password);
