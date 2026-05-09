@@ -494,6 +494,26 @@ export default function SelectWorkspace() {
         </header>
 
         <main className="relative container mx-auto px-3 sm:px-6 py-6 sm:py-10 max-w-7xl pb-24 md:pb-12">
+          {/* Welcome banner with full name */}
+          {(profile?.full_name || user?.email) && (
+            <motion.div
+              initial={{ opacity: 0, y: -8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4 }}
+              className="mb-6 flex items-center gap-3 px-5 py-3 rounded-2xl bg-white/80 backdrop-blur-xl border border-emerald-100/80 shadow-sm"
+            >
+              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center text-white font-bold text-base shadow-md">
+                {(profile?.full_name || user?.email || '?').charAt(0).toUpperCase()}
+              </div>
+              <div className="min-w-0">
+                <p className="text-[11px] uppercase tracking-wider text-emerald-700 font-semibold">Welcome back</p>
+                <p className="text-base sm:text-lg font-bold text-slate-900 truncate">
+                  {profile?.full_name || user?.email}
+                </p>
+              </div>
+            </motion.div>
+          )}
+
           {/* HERO: Command Center */}
           <motion.section
             initial={{ opacity: 0, y: 16 }}
