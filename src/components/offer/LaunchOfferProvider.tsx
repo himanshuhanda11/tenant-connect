@@ -41,7 +41,12 @@ export function LaunchOfferProvider({ children }: { children: ReactNode }) {
       path.startsWith('/onboarding') ||
       path.startsWith('/invite') ||
       path.startsWith('/admin') ||
-      path.startsWith('/control')
+      path.startsWith('/control') ||
+      path.startsWith('/pricing') ||
+      path.startsWith('/choose-plan') ||
+      path.startsWith('/select-plan') ||
+      path.startsWith('/plans') ||
+      path.startsWith('/billing')
     ) {
       return;
     }
