@@ -1,4 +1,5 @@
 import React from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   CheckCircle2, ArrowRight, X, Sparkles,
   Rocket, Crown, Building2, Gift, TrendingUp,
@@ -54,62 +55,102 @@ export default function PricingCards({ isAnnual }: PricingCardsProps) {
     <section id="pricing-cards" className="py-6 md:py-10">
       <div className="container mx-auto px-4">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 max-w-7xl mx-auto items-stretch">
-          {pricingPlans.map((plan) => {
+          {pricingPlans.map((plan, idx) => {
             const price = getPrice(plan);
             const isCustom = false;
             const colors = planColors[plan.id];
             const isPro = plan.highlight;
 
             return (
-              <Card key={plan.id} className={cn(
-                'relative flex flex-col transition-all duration-300 rounded-2xl',
-                isPro
-                  ? 'border-primary shadow-2xl shadow-primary/10 lg:scale-[1.03] z-10 ring-1 ring-primary/20'
-                  : 'border-border hover:shadow-lg hover:border-primary/20',
-              )}>
-                {isPro && (
-                  <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary via-emerald-400 to-primary" />
-                )}
-                {plan.badge && (
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-20">
-                    <Badge className="px-3 py-1 bg-gradient-to-r from-primary to-emerald-500 text-white text-[11px] font-semibold rounded-full shadow-lg gap-1.5">
-                      <Sparkles className="w-3 h-3" />
-                      {plan.badge}
-                    </Badge>
-                  </div>
-                )}
+              <motion.div
+                key={plan.id}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: '-50px' }}
+                transition={{ duration: 0.5, delay: idx * 0.08, ease: 'easeOut' }}
+                whileHover={{ y: -6 }}
+                className="flex"
+              >
+                <Card className={cn(
+                  'relative flex flex-col w-full transition-all duration-300 rounded-2xl overflow-hidden',
+                  isPro
+                    ? 'border-primary/40 shadow-2xl shadow-primary/20 lg:scale-[1.04] z-10 ring-2 ring-primary/30 bg-gradient-to-b from-primary/[0.04] via-card to-card'
+                    : 'border-border/60 hover:shadow-xl hover:border-primary/30 bg-card',
+                )}>
+                  {/* Pro shimmer top bar */}
+                  {isPro && (
+                    <>
+                      <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-primary via-emerald-400 to-primary" />
+                      <motion.div
+                        className="absolute -top-px left-0 h-[3px] w-1/3 bg-gradient-to-r from-transparent via-white/80 to-transparent"
+                        animate={{ x: ['-100%', '400%'] }}
+                        transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut', repeatDelay: 1 }}
+                      />
+                      {/* Soft inner glow */}
+                      <div className="absolute inset-0 bg-gradient-to-br from-primary/[0.03] via-transparent to-emerald-500/[0.04] pointer-events-none" />
+                    </>
+                  )}
+                  {plan.badge && (
+                    <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-20">
+                      <Badge className="px-3 py-1 bg-gradient-to-r from-primary to-emerald-500 text-white text-[11px] font-semibold rounded-full shadow-lg shadow-primary/30 gap-1.5 border-0">
+                        <Sparkles className="w-3 h-3" />
+                        {plan.badge}
+                      </Badge>
+                    </div>
+                  )}
 
-                <CardHeader className="text-center pt-8 pb-2">
-                  <div className={cn('w-11 h-11 rounded-xl mx-auto mb-3 flex items-center justify-center', colors.iconBg, colors.text)}>
-                    {planIcons[plan.id]}
-                  </div>
-                  <CardTitle className="text-lg font-bold">{plan.name}</CardTitle>
-                  <CardDescription className="text-sm mt-0.5">{plan.tagline}</CardDescription>
+                  <CardHeader className="text-center pt-8 pb-2 relative">
+                    <motion.div
+                      whileHover={{ rotate: [0, -8, 8, 0], scale: 1.08 }}
+                      transition={{ duration: 0.4 }}
+                      className={cn(
+                        'w-12 h-12 rounded-2xl mx-auto mb-3 flex items-center justify-center shadow-md',
+                        isPro ? 'bg-gradient-to-br from-primary/20 to-emerald-500/20 text-primary ring-1 ring-primary/30' : cn(colors.iconBg, colors.text),
+                      )}
+                    >
+                      {planIcons[plan.id]}
+                    </motion.div>
+                    <CardTitle className={cn('text-lg font-bold', isPro && 'text-primary')}>{plan.name}</CardTitle>
+                    <CardDescription className="text-xs mt-0.5 px-2">{plan.tagline}</CardDescription>
 
-                  <div className="mt-4">
-                    {isCustom ? (
-                      <span className="text-3xl font-bold text-foreground">Custom</span>
-                    ) : price === 0 ? (
-                      <div>
-                        <span className="text-4xl font-bold text-foreground">Free</span>
-                        <p className="text-xs text-muted-foreground mt-0.5">Forever</p>
-                      </div>
-                    ) : (
-                      <div>
-                        {isAnnual && (
-                          <span className="text-sm text-muted-foreground line-through block mb-0.5">
-                            {formatPrice(getBasePrice(plan))}
-                          </span>
-                        )}
-                        <div className="flex items-baseline justify-center gap-0.5">
-                          <span className="text-4xl font-bold text-foreground">{formatPrice(price!)}</span>
-                          <span className="text-muted-foreground text-sm">/mo</span>
+                    <div className="mt-4 min-h-[80px]">
+                      {isCustom ? (
+                        <span className="text-3xl font-bold text-foreground">Custom</span>
+                      ) : price === 0 ? (
+                        <div>
+                          <span className="text-4xl font-bold text-foreground">Free</span>
+                          <p className="text-xs text-muted-foreground mt-0.5">Forever</p>
                         </div>
-                        <p className="text-[11px] text-muted-foreground mt-0.5">Per workspace</p>
-                      </div>
-                    )}
-                  </div>
-                </CardHeader>
+                      ) : (
+                        <div>
+                          {isAnnual && (
+                            <span className="text-xs text-muted-foreground line-through block mb-0.5">
+                              {formatPrice(getBasePrice(plan))}/mo
+                            </span>
+                          )}
+                          <AnimatePresence mode="wait">
+                            <motion.div
+                              key={`${plan.id}-${isAnnual}`}
+                              initial={{ opacity: 0, y: 8 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              exit={{ opacity: 0, y: -8 }}
+                              transition={{ duration: 0.25 }}
+                              className="flex items-baseline justify-center gap-0.5"
+                            >
+                              <span className={cn(
+                                'text-4xl font-bold tracking-tight',
+                                isPro ? 'bg-gradient-to-br from-primary to-emerald-500 bg-clip-text text-transparent' : 'text-foreground',
+                              )}>
+                                {formatPrice(price!)}
+                              </span>
+                              <span className="text-muted-foreground text-sm">/mo</span>
+                            </motion.div>
+                          </AnimatePresence>
+                          <p className="text-[11px] text-muted-foreground mt-0.5">Per workspace</p>
+                        </div>
+                      )}
+                    </div>
+                  </CardHeader>
 
                 <CardContent className="pb-6 flex-1 flex flex-col px-5">
                   <Button
