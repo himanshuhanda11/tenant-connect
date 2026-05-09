@@ -355,41 +355,35 @@ export default function CreateWorkspaceSplitHero({
                 />
               </div>
 
-              {/* Category + Team Size */}
-              <div className="grid grid-cols-2 gap-2.5">
-                <div className="space-y-1">
-                  <Label className="text-[11px] font-semibold text-slate-600 uppercase tracking-wide">
-                    Category
-                  </Label>
-                  <Select value={category} onValueChange={setCategory}>
-                    <SelectTrigger className="h-11 rounded-xl border-emerald-200 bg-white text-sm text-slate-900">
-                      <span className={cn("truncate", !category && "text-slate-500")}>
-                        {category || "Select category"}
-                      </span>
-                    </SelectTrigger>
-                    <SelectContent className="bg-white text-slate-900 z-[60]">
-                      {CATEGORIES.map((c) => (
-                        <SelectItem key={c} value={c} className="text-slate-900 focus:bg-emerald-50 focus:text-emerald-700">{c}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-1">
-                  <Label className="text-[11px] font-semibold text-slate-600 uppercase tracking-wide">
-                    Team Size
-                  </Label>
-                  <Select value={teamSize} onValueChange={setTeamSize}>
-                    <SelectTrigger className="h-11 rounded-xl border-emerald-200 bg-white text-sm text-slate-900">
-                      <span className={cn("truncate", !teamSize && "text-slate-500")}>
-                        {teamSize || "Select size"}
-                      </span>
-                    </SelectTrigger>
-                    <SelectContent className="bg-white text-slate-900 z-[60]">
-                      {TEAM_SIZES.map((t) => (
-                        <SelectItem key={t} value={t} className="text-slate-900 focus:bg-emerald-50 focus:text-emerald-700">{t}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+              {/* Purpose — primary use case */}
+              <div className="space-y-1.5">
+                <Label className="text-[11px] font-semibold text-slate-600 uppercase tracking-wide">
+                  What will you use this workspace for?
+                </Label>
+                <div className="grid grid-cols-2 gap-2">
+                  {PURPOSE_OPTIONS.map((opt) => {
+                    const Icon = opt.icon;
+                    const active = purpose === opt.value;
+                    return (
+                      <button
+                        type="button"
+                        key={opt.value}
+                        onClick={() => setPurpose(opt.value)}
+                        className={cn(
+                          "relative flex items-center gap-2 px-3 h-11 rounded-xl border text-sm font-medium transition-all",
+                          active
+                            ? "border-emerald-500 bg-emerald-50 text-emerald-700 shadow-sm ring-2 ring-emerald-500/20"
+                            : "border-emerald-200 bg-white text-slate-700 hover:border-emerald-300 hover:bg-emerald-50/40"
+                        )}
+                      >
+                        <Icon className={cn("w-4 h-4", active ? "text-emerald-600" : "text-slate-400")} />
+                        {opt.label}
+                        {active && (
+                          <CheckCircle2 className="w-4 h-4 text-emerald-500 ml-auto" />
+                        )}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
             </div>
