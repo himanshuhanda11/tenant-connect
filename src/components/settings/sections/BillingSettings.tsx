@@ -12,7 +12,11 @@ import { Progress } from '@/components/ui/progress';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Link } from 'react-router-dom';
 import { useSubscription, useUsage, useInvoices, useTeamUsage, usePhoneUsage } from '@/hooks/useBilling';
+import { useEntitlements } from '@/hooks/useEntitlements';
 import { format } from 'date-fns';
+import { useState } from 'react';
+import ChangePlanDialog from '@/components/billing/ChangePlanDialog';
+import { Sparkles } from 'lucide-react';
 
 export function BillingSettings() {
   const { data: subscription, isLoading: subLoading } = useSubscription();
@@ -20,8 +24,11 @@ export function BillingSettings() {
   const { data: invoices, isLoading: invLoading } = useInvoices();
   const { data: teamUsage } = useTeamUsage();
   const { data: phoneUsage } = usePhoneUsage();
+  const { data: entitlements } = useEntitlements();
+  const [changeOpen, setChangeOpen] = useState(false);
 
   const isLoading = subLoading || usageLoading || invLoading;
+  const currentPlanId = (entitlements?.plan_id ?? subscription?.plan_id ?? 'free').replace(/^plan_/, '');
 
   const planName = subscription?.plan?.name ?? 'Free';
   const planPrice = subscription?.plan?.price_monthly ?? 0;
@@ -74,9 +81,15 @@ export function BillingSettings() {
                         {billingCycle === 'yearly' && ' • Billed yearly'}
                       </p>
                     </div>
-                    <Button asChild>
-                      <Link to="/billing">Upgrade</Link>
-                    </Button>
+                    <div className="flex items-center gap-2">
+                      <Button variant="outline" size="sm" onClick={() => setChangeOpen(true)} className="gap-1.5">
+                        <Sparkles className="w-3.5 h-3.5" />
+                        Change Plan
+                      </Button>
+                      <Button asChild>
+                        <Link to="/billing">Manage</Link>
+                      </Button>
+                    </div>
                   </div>
 
                   <div className="grid gap-4 md:grid-cols-3">
@@ -292,6 +305,12 @@ export function BillingSettings() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      <ChangePlanDialog
+        open={changeOpen}
+        onOpenChange={setChangeOpen}
+        currentPlanId={currentPlanId}
+      />
     </div>
   );
 }

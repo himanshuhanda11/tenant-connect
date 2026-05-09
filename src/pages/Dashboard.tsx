@@ -22,6 +22,7 @@ import {
 import { formatDistanceToNow } from 'date-fns';
 
 const MessagesAreaChart = lazy(() => import('@/components/dashboard/MessagesAreaChart'));
+const SubscriptionStatusBanner = lazy(() => import('@/components/dashboard/SubscriptionStatusBanner'));
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -179,6 +180,11 @@ export default function Dashboard() {
             </Button>
           </div>
         </div>
+
+        {/* Subscription status banner — plan, trial, next billing */}
+        <Suspense fallback={<Skeleton className="h-20 rounded-2xl" />}>
+          <SubscriptionStatusBanner />
+        </Suspense>
 
         {/* ═══════════════════════════════════════════════
             SECTION 2: STATUS STRIP — API / Quality / Quota
