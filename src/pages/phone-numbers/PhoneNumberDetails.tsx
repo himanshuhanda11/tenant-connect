@@ -208,7 +208,15 @@ export default function PhoneNumberDetails() {
 
       if (error) throw error;
 
-      toast.success('Business profile updated successfully');
+      // Mark onboarding step 3 (Complete WhatsApp Profile) as done for this workspace
+      try {
+        if (number?.tenant_id) {
+          localStorage.setItem(`aireatro:onboarding:${number.tenant_id}:profileCompleted`, '1');
+          window.dispatchEvent(new CustomEvent('aireatro:wa-profile-saved', { detail: { tenantId: number.tenant_id } }));
+        }
+      } catch {}
+
+      toast.success('WhatsApp Profile Completed Successfully');
       setBusinessProfile(prev => ({ ...prev, saving: false }));
     } catch (error: any) {
       console.error('Failed to save business profile:', error);
