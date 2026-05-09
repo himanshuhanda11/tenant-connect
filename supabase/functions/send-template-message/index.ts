@@ -197,6 +197,7 @@ Deno.serve(async (req) => {
         status: 402,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
+    }
 
     // 2. Deduct message credit
     const { data: creditDeducted, error: creditError } = await supabase
