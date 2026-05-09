@@ -50,11 +50,11 @@ export function LaunchOfferDialog({ open, onOpenChange }: Props) {
               <Sparkles className="w-3 h-3" /> Launch Offer
             </Badge>
             <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">
-              🎁 Unlock 1 Month FREE Access
+              🎁 Get 1 Month FREE — Pick Any Plan
             </h2>
             <p className="text-sm text-white/70">
-              Pick any Aireatro plan within your first 24 hours and we'll cover your first month —
-              no card required.
+              Subscribe to any Aireatro plan today and we'll cover your first month on us.
+              Limited launch offer — countdown resets every 24 hours.
             </p>
             <div className="pt-1 flex justify-center">
               <CountdownPill secondsLeft={secondsLeft} size="lg" />
@@ -76,21 +76,18 @@ export function LaunchOfferDialog({ open, onOpenChange }: Props) {
               className="flex-1 bg-gradient-to-r from-emerald-400 to-primary text-white border-0 font-semibold shadow-lg shadow-emerald-500/30 hover:shadow-xl hover:scale-[1.02] transition-all"
               onClick={() => {
                 onOpenChange(false);
-                navigate('/choose-plan');
+                navigate('/pricing');
               }}
             >
-              <Sparkles className="w-4 h-4 mr-1" /> Start Free Month
+              <Sparkles className="w-4 h-4 mr-1" /> Select Plan & Get 1 Month Free
             </Button>
             <Button
               size="lg"
               variant="outline"
               className="flex-1 border-white/20 bg-white/5 text-white hover:bg-white/10"
-              onClick={() => {
-                onOpenChange(false);
-                navigate('/pricing');
-              }}
+              onClick={() => onOpenChange(false)}
             >
-              Compare Plans
+              Maybe later
             </Button>
           </div>
 

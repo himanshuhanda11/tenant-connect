@@ -68,7 +68,7 @@ export function StickyOfferBanner({ onClaim }: Props) {
                   size="sm"
                   variant="ghost"
                   className="h-7 text-[11px] sm:text-xs px-2 text-white/90 hover:bg-white/10 hidden sm:inline-flex"
-                  onClick={() => navigate('/choose-plan')}
+                  onClick={() => navigate('/pricing')}
                 >
                   View Plans
                 </Button>
