@@ -54,11 +54,13 @@ export function useLaunchOffer() {
 
   const claim = useMutation({
     mutationFn: async (planId: string) => {
-      const { data, error } = await supabase.functions.invoke('claim-launch-offer', {
-        body: { plan_id: planId },
+      const { data, error } = await supabase.rpc('claim_launch_offer', {
+        _plan_id: planId,
       });
       if (error) throw error;
-      if ((data as any)?.error) throw new Error((data as any).error);
+      if ((data as any)?.ok === false) {
+        throw new Error((data as any)?.reason ?? (data as any)?.error ?? 'Could not activate offer');
+      }
       return data;
     },
     onSuccess: () => {
