@@ -538,11 +538,11 @@ export default function SelectWorkspace() {
               <CreateWorkspaceSplitHero
                 displayName={displayName}
                 initialName={(profile as any)?.company_name || ''}
-                initialCategory={(profile as any)?.industry || ''}
-                initialTeamSize={(profile as any)?.team_size || ''}
+                initialBusinessName={(profile as any)?.company_name || ''}
+                initialPurpose={''}
                 isCreating={isCreating}
-                onCreate={async ({ workspaceName, businessName, category, teamSize }) =>
-                  handleCreateWorkspace(workspaceName, 'sales', true, { businessName, category, teamSize })
+                onCreate={async ({ workspaceName, businessName, purpose }) =>
+                  handleCreateWorkspace(workspaceName, purpose || 'sales', true, { businessName })
                 }
               />
             );
