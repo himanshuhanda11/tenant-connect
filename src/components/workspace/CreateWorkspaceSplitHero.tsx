@@ -94,8 +94,8 @@ export default function CreateWorkspaceSplitHero({
 }: CreateWorkspaceSplitHeroProps) {
   const [workspaceName, setWorkspaceName] = useState(initialName);
   const [businessName, setBusinessName] = useState(initialName);
-  const [category, setCategory] = useState(initialCategory);
-  const [teamSize, setTeamSize] = useState(initialTeamSize);
+  const [category, setCategory] = useState<string | undefined>(initialCategory || undefined);
+  const [teamSize, setTeamSize] = useState<string | undefined>(initialTeamSize || undefined);
   const [rotIdx, setRotIdx] = useState(0);
 
   // Sync prefill when the parent finishes loading the profile.
