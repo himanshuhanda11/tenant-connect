@@ -94,8 +94,8 @@ export default function CreateWorkspaceSplitHero({
 }: CreateWorkspaceSplitHeroProps) {
   const [workspaceName, setWorkspaceName] = useState(initialName);
   const [businessName, setBusinessName] = useState(initialName);
-  const [category, setCategory] = useState(initialCategory);
-  const [teamSize, setTeamSize] = useState(initialTeamSize);
+  const [category, setCategory] = useState<string | undefined>(initialCategory || undefined);
+  const [teamSize, setTeamSize] = useState<string | undefined>(initialTeamSize || undefined);
   const [rotIdx, setRotIdx] = useState(0);
 
   // Sync prefill when the parent finishes loading the profile.
@@ -121,8 +121,8 @@ export default function CreateWorkspaceSplitHero({
     await onCreate({
       workspaceName: workspaceName.trim(),
       businessName: businessName.trim() || workspaceName.trim(),
-      category,
-      teamSize,
+      category: category || "",
+      teamSize: teamSize || "",
     });
   };
 
@@ -360,12 +360,14 @@ export default function CreateWorkspaceSplitHero({
                     Category
                   </Label>
                   <Select value={category} onValueChange={setCategory}>
-                    <SelectTrigger className="h-11 rounded-xl border-emerald-200 bg-white text-slate-900 text-sm data-[placeholder]:text-slate-400">
-                      <SelectValue placeholder="Select" />
+                    <SelectTrigger className="h-11 rounded-xl border-emerald-200 bg-white text-sm text-slate-900">
+                      <span className={cn("truncate", !category && "text-slate-500")}>
+                        {category || "Select category"}
+                      </span>
                     </SelectTrigger>
-                    <SelectContent className="bg-white text-slate-900">
+                    <SelectContent className="bg-white text-slate-900 z-[60]">
                       {CATEGORIES.map((c) => (
-                        <SelectItem key={c} value={c}>{c}</SelectItem>
+                        <SelectItem key={c} value={c} className="text-slate-900 focus:bg-emerald-50 focus:text-emerald-700">{c}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
@@ -375,12 +377,14 @@ export default function CreateWorkspaceSplitHero({
                     Team Size
                   </Label>
                   <Select value={teamSize} onValueChange={setTeamSize}>
-                    <SelectTrigger className="h-11 rounded-xl border-emerald-200 bg-white text-slate-900 text-sm data-[placeholder]:text-slate-400">
-                      <SelectValue placeholder="Select" />
+                    <SelectTrigger className="h-11 rounded-xl border-emerald-200 bg-white text-sm text-slate-900">
+                      <span className={cn("truncate", !teamSize && "text-slate-500")}>
+                        {teamSize || "Select size"}
+                      </span>
                     </SelectTrigger>
-                    <SelectContent className="bg-white text-slate-900">
+                    <SelectContent className="bg-white text-slate-900 z-[60]">
                       {TEAM_SIZES.map((t) => (
-                        <SelectItem key={t} value={t}>{t}</SelectItem>
+                        <SelectItem key={t} value={t} className="text-slate-900 focus:bg-emerald-50 focus:text-emerald-700">{t}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
