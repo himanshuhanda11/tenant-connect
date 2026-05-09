@@ -33,17 +33,20 @@ export function useLaunchOffer() {
   });
 
   const offer = offerQuery.data;
-  // Active until user claims (i.e. picks any plan). Backend keeps the row alive.
-  const isActive = !!offer && !offer.offer_claimed;
+  // Active for guests (no user) AND for logged-in users until they claim a plan.
+  // Guests see the offer everywhere on the marketing site and the dialog
+  // redirects them to /signup when they pick a plan.
+  const isActive = user ? !!offer && !offer.offer_claimed : true;
 
   // Rolling 24-hour display countdown — purely visual urgency.
-  // Anchored to `offer_started_at` so it ticks down from 24:00:00 → 00:00:00,
-  // then automatically restarts at 24:00:00 — repeating every day until the
-  // user claims a plan.
+  // For logged-in users it anchors to their `offer_started_at`.
+  // For guests it anchors to the current UTC day so everyone sees the same
+  // ticking countdown that resets every 24 hours.
   const DAY_MS = 24 * 60 * 60 * 1000;
-  const startedAt = offer ? new Date(offer.offer_started_at).getTime() : now;
+  const guestAnchor = Math.floor(now / DAY_MS) * DAY_MS;
+  const startedAt = offer ? new Date(offer.offer_started_at).getTime() : guestAnchor;
   const elapsedInCycle = ((now - startedAt) % DAY_MS + DAY_MS) % DAY_MS;
-  const secondsLeft = offer ? Math.max(0, Math.floor((DAY_MS - elapsedInCycle) / 1000)) : 0;
+  const secondsLeft = isActive ? Math.max(0, Math.floor((DAY_MS - elapsedInCycle) / 1000)) : 0;
 
   // 1s ticker while the offer is active
   useEffect(() => {
