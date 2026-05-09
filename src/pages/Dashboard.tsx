@@ -181,6 +181,11 @@ export default function Dashboard() {
           </div>
         </div>
 
+        {/* Subscription status banner — plan, trial, next billing */}
+        <Suspense fallback={<Skeleton className="h-20 rounded-2xl" />}>
+          <SubscriptionStatusBanner />
+        </Suspense>
+
         {/* ═══════════════════════════════════════════════
             SECTION 2: STATUS STRIP — API / Quality / Quota
         ═══════════════════════════════════════════════ */}
