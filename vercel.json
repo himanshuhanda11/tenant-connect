@@ -5,9 +5,17 @@
   "framework": "vite",
   "trailingSlash": false,
   "rewrites": [
+    { "source": "/version.json", "destination": "/version.json" },
     { "source": "/((?!assets/).*)", "destination": "/index.html" }
   ],
   "headers": [
+    {
+      "source": "/version.json",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" },
+        { "key": "Content-Type", "value": "application/json; charset=utf-8" }
+      ]
+    },
     {
       "source": "/assets/(.*)",
       "headers": [
