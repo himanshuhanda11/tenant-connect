@@ -56,13 +56,19 @@ export function useLaunchOffer() {
   }, [isActive]);
 
   const claim = useMutation({
-    mutationFn: async (planId: string) => {
-      const { data, error } = await supabase.rpc('claim_launch_offer', {
-        _plan_id: planId,
-      });
+    mutationFn: async (input: string | { planId: string; workspaceId?: string | null }) => {
+      const planId = typeof input === 'string' ? input : input.planId;
+      const workspaceId = typeof input === 'string' ? null : (input.workspaceId ?? null);
+      const args: any = workspaceId
+        ? { _plan_id: planId, _workspace_id: workspaceId }
+        : { _plan_id: planId };
+      const { data, error } = await supabase.rpc('claim_launch_offer', args);
       if (error) throw error;
       if ((data as any)?.ok === false) {
-        throw new Error((data as any)?.reason ?? (data as any)?.error ?? 'Could not activate offer');
+        const reason = (data as any)?.reason ?? (data as any)?.error ?? 'Could not activate offer';
+        const err: any = new Error((data as any)?.message ?? reason);
+        err.reason = reason;
+        throw err;
       }
       return data;
     },
