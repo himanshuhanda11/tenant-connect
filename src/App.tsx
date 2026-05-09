@@ -13,6 +13,7 @@ import RoutePrefetcher from "@/components/RoutePrefetcher";
 import Index from "./pages/Index";
 import { RequirePermission } from "@/components/auth/RequirePermission";
 import { RequirePlanSelection } from "@/components/auth/RequirePlanSelection";
+import { LaunchOfferProvider } from "@/components/offer/LaunchOfferProvider";
 import {
   META_ADS_ATTRIBUTION_PERMISSIONS,
   META_ADS_AUTOMATION_PERMISSIONS,
@@ -200,6 +201,7 @@ const App = () => (
                 <ScrollToTop />
                 <RoutePrefetcher />
                 <RequirePlanSelection>
+                <LaunchOfferProvider>
                 <Suspense fallback={<RouteLoader />}>
                   <Routes>
                     <Route path="/" element={<Index />} />
@@ -378,6 +380,7 @@ const App = () => (
                     <Route path="*" element={<NotFound />} />
                   </Routes>
                 </Suspense>
+                </LaunchOfferProvider>
                 </RequirePlanSelection>
               </ThemeProvider>
             </TenantProvider>
