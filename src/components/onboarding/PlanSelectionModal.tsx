@@ -218,7 +218,7 @@ export default function PlanSelectionModal({ open, tenantId, onSelected, onPaidI
                     whileHover={{ y: -4 }}
                     transition={{ type: 'spring', stiffness: 300, damping: 22 }}
                     className={cn(
-                      'snap-start flex-shrink-0 w-[280px] sm:w-[300px] rounded-2xl border bg-gradient-to-b p-5 flex flex-col relative shadow-sm hover:shadow-xl transition-shadow',
+                      'snap-center sm:snap-start flex-shrink-0 w-[78vw] max-w-[280px] sm:w-[300px] sm:max-w-none rounded-2xl border bg-gradient-to-b p-4 sm:p-5 flex flex-col relative shadow-sm hover:shadow-xl transition-shadow',
                       meta.gradient,
                       meta.ring,
                     )}
