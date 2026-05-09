@@ -30,7 +30,7 @@ export const pricingPlans: PricingPlan[] = [
     tagline: 'Get started with WhatsApp',
     price: 0,
     billing_cycle: 'forever',
-    cta: 'Start Free',
+    cta: 'Free Lifetime',
     highlight: false,
     limits: {
       team_members: 1,
