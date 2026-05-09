@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Loader2, Building2, Target, HeadphonesIcon, Megaphone, Briefcase, Sparkles } from "lucide-react";
+import { Loader2, Target, HeadphonesIcon, Megaphone, Briefcase, Rocket, CheckCircle2, ShieldCheck } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -73,69 +73,85 @@ export default function CreateWorkspaceModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg max-h-[92vh] overflow-y-auto mx-3 sm:mx-auto w-[calc(100%-1.5rem)] sm:w-full rounded-3xl p-0 border-emerald-100">
-        {/* Premium gradient header */}
-        <div className="relative overflow-hidden rounded-t-3xl bg-gradient-to-br from-emerald-600 via-emerald-500 to-teal-500 p-5 sm:p-6 text-white">
-          <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-white/15 blur-3xl" />
-          <div className="absolute -bottom-12 -left-8 w-36 h-36 rounded-full bg-teal-300/25 blur-3xl" />
-          <DialogHeader className="relative space-y-1">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-white/15 backdrop-blur flex items-center justify-center ring-1 ring-white/20">
-                <Building2 className="w-5 h-5 text-white" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <DialogTitle className="text-white text-base sm:text-lg font-bold">
-                  Create a new workspace
-                </DialogTitle>
-                <DialogDescription className="text-emerald-50/90 text-xs sm:text-sm">
-                  Set up a fresh workspace for another brand or team.
-                </DialogDescription>
-              </div>
-            </div>
-            <div className="inline-flex items-center gap-1.5 mt-2 w-fit px-2.5 py-1 rounded-full bg-white/15 backdrop-blur text-[10px] sm:text-xs font-semibold">
-              <Sparkles className="w-3 h-3" /> Setup in &lt; 10 min
-            </div>
-          </DialogHeader>
-        </div>
+      <DialogContent className="sm:max-w-lg max-h-[92vh] overflow-y-auto mx-3 sm:mx-auto w-[calc(100%-1.5rem)] sm:w-full rounded-3xl border-emerald-100 bg-white/95 p-0 shadow-[0_25px_70px_-25px_rgba(16,185,129,0.45)]">
+        <DialogHeader className="sr-only">
+          <DialogTitle>Create workspace</DialogTitle>
+          <DialogDescription>Create a workspace for another brand or team.</DialogDescription>
+        </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4 p-5 sm:p-6">
-          {/* Workspace Name */}
-          <div className="space-y-1.5">
-            <Label htmlFor="ws-name" className="text-xs sm:text-sm font-semibold text-slate-800">
-              Workspace name <span className="text-rose-500">*</span>
-            </Label>
-            <Input
-              id="ws-name"
-              placeholder="e.g., Acme Sales Team"
-              value={workspaceName}
-              onChange={(e) => setWorkspaceName(e.target.value)}
-              className="h-11 text-sm rounded-xl border-emerald-100 focus-visible:ring-emerald-500/30"
-              autoFocus
-              maxLength={60}
-            />
-            <p className="text-[10px] sm:text-[11px] text-slate-500">Internal label — visible only to your team.</p>
+        <form onSubmit={handleSubmit} className="relative overflow-hidden rounded-3xl p-5 sm:p-7">
+          <div
+            aria-hidden
+            className="pointer-events-none absolute -inset-px rounded-[inherit] opacity-60"
+            style={{
+              background:
+                "conic-gradient(from 180deg at 50% 50%, rgba(16,185,129,0.0) 0deg, rgba(16,185,129,0.25) 90deg, rgba(16,185,129,0.0) 180deg, rgba(20,184,166,0.25) 270deg, rgba(16,185,129,0.0) 360deg)",
+              WebkitMask: "linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0)",
+              WebkitMaskComposite: "xor",
+              maskComposite: "exclude",
+              padding: 1,
+              borderRadius: "inherit",
+            }}
+          />
+
+          <div className="relative flex items-center gap-3">
+            <div className="relative w-11 h-11 rounded-2xl bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center text-white font-bold text-lg shadow-lg shadow-emerald-500/30">
+              {(workspaceName.trim() || businessName.trim() || "W").charAt(0).toUpperCase()}
+              <span className="absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full bg-white flex items-center justify-center shadow">
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
+              </span>
+            </div>
+            <div className="min-w-0">
+              <h2 className="text-base sm:text-lg font-bold text-slate-900 truncate">Create Workspace</h2>
+              <p className="text-[11px] sm:text-xs text-slate-500 leading-snug">Create your workspace to start growing on WhatsApp.</p>
+            </div>
           </div>
 
-          {/* Business Name */}
-          <div className="space-y-1.5">
-            <Label htmlFor="biz-name" className="text-xs sm:text-sm font-semibold text-slate-800">
-              Business name <span className="text-rose-500">*</span>
-            </Label>
-            <Input
-              id="biz-name"
-              placeholder="e.g., Acme Inc."
-              value={businessName}
-              onChange={(e) => setBusinessName(e.target.value)}
-              className="h-11 text-sm rounded-xl border-emerald-100 focus-visible:ring-emerald-500/30"
-              maxLength={80}
-            />
-            <p className="text-[10px] sm:text-[11px] text-slate-500">Shown to your customers on WhatsApp & invoices.</p>
-          </div>
+          <div className="relative mt-5 space-y-3.5">
+            <div className="space-y-1">
+              <Label htmlFor="ws-name" className="text-[11px] font-semibold text-slate-600 uppercase tracking-wide">
+                Workspace Name
+              </Label>
+              <div className="relative">
+                <div className="absolute left-3 top-1/2 -translate-y-1/2 w-6 h-6 rounded-md bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center shadow-sm shadow-emerald-500/30">
+                  <Rocket className="w-3.5 h-3.5 text-white" />
+                </div>
+                <Input
+                  id="ws-name"
+                  placeholder="e.g., Acme Sales"
+                  value={workspaceName}
+                  onChange={(e) => setWorkspaceName(e.target.value)}
+                  className="h-11 pl-11 rounded-xl border-emerald-200 bg-white text-slate-900 placeholder:text-slate-400 focus-visible:ring-emerald-500/30 focus-visible:border-emerald-400 transition-all"
+                  autoFocus
+                  maxLength={60}
+                />
+              </div>
+            </div>
 
-          {/* Purpose */}
-          <div className="space-y-2">
-            <Label className="text-xs sm:text-sm font-semibold text-slate-800">Primary purpose</Label>
-            <div className="grid grid-cols-2 gap-2">
+            <div className="space-y-1">
+              <Label htmlFor="biz-name" className="text-[11px] font-semibold text-slate-600 uppercase tracking-wide">
+                Business Name <span className="text-slate-400 normal-case font-normal">(as on license)</span>
+              </Label>
+              <div className="relative">
+                <div className="absolute left-3 top-1/2 -translate-y-1/2 w-6 h-6 rounded-md bg-gradient-to-br from-teal-500 to-emerald-600 flex items-center justify-center shadow-sm shadow-emerald-500/30">
+                  <Briefcase className="w-3.5 h-3.5 text-white" />
+                </div>
+                <Input
+                  id="biz-name"
+                  placeholder="Your registered company name"
+                  value={businessName}
+                  onChange={(e) => setBusinessName(e.target.value)}
+                  className="h-11 pl-11 rounded-xl border-emerald-200 bg-white text-slate-900 placeholder:text-slate-400 focus-visible:ring-emerald-500/30 focus-visible:border-emerald-400 transition-all"
+                  maxLength={80}
+                />
+              </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <Label className="text-[11px] font-semibold text-slate-600 uppercase tracking-wide">
+                What will you use this workspace for?
+              </Label>
+              <div className="grid grid-cols-2 gap-2">
               {PURPOSES.map((p) => {
                 const Icon = p.icon;
                 const isSelected = purpose === p.value;
@@ -145,10 +161,10 @@ export default function CreateWorkspaceModal({
                     type="button"
                     onClick={() => setPurpose(p.value)}
                     className={cn(
-                      "flex items-center gap-2 p-3 rounded-xl border-2 text-left transition-all touch-manipulation",
+                      "relative flex h-11 items-center gap-2 rounded-xl border px-3 text-left text-sm font-medium transition-all touch-manipulation",
                       isSelected
-                        ? "border-emerald-500 bg-emerald-50 shadow-sm shadow-emerald-500/10"
-                        : "border-slate-200 hover:border-emerald-200 hover:bg-emerald-50/40",
+                        ? "border-emerald-500 bg-emerald-50 text-emerald-700 shadow-sm ring-2 ring-emerald-500/20"
+                        : "border-emerald-200 bg-white text-slate-700 hover:border-emerald-300 hover:bg-emerald-50/40",
                     )}
                   >
                     <Icon
@@ -165,31 +181,41 @@ export default function CreateWorkspaceModal({
                     >
                       {p.label}
                     </span>
+                    {isSelected && <CheckCircle2 className="w-4 h-4 text-emerald-500 ml-auto" />}
                   </button>
                 );
               })}
+              </div>
             </div>
           </div>
 
-          {/* Submit */}
           <Button
             type="submit"
             disabled={!canSubmit}
-            className="w-full h-12 rounded-2xl text-sm font-semibold text-white bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 shadow-lg shadow-emerald-500/30"
+            className="relative mt-5 w-full h-12 rounded-2xl text-[15px] font-semibold text-white overflow-hidden bg-[length:200%_200%] bg-gradient-to-r from-emerald-500 via-green-500 to-teal-500 shadow-[0_15px_40px_-12px_rgba(16,185,129,0.55)] hover:shadow-[0_20px_50px_-12px_rgba(16,185,129,0.7)] transition-all duration-300"
+            style={{ backgroundSize: "200% 200%" }}
           >
             {isCreating ? (
               <>
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                Creating workspace...
+                Launching your workspace...
               </>
             ) : (
-              "Create workspace"
+              <>
+                <Rocket className="w-4 h-4 mr-2" />
+                Launch My Workspace
+              </>
             )}
           </Button>
 
-          <p className="text-[10px] sm:text-[11px] text-center text-slate-400">
-            Each workspace links to one WhatsApp Business API number.
+          <p className="mt-3 text-center text-[11px] text-slate-500">
+            No technical setup required · Takes less than 30 seconds
           </p>
+
+          <div className="mt-4 pt-4 border-t border-emerald-100/80 flex items-center justify-center gap-4 text-[10px] sm:text-[11px] text-slate-500">
+            <span className="inline-flex items-center gap-1"><ShieldCheck className="w-3 h-3 text-emerald-500" /> Encrypted</span>
+            <span className="inline-flex items-center gap-1"><CheckCircle2 className="w-3 h-3 text-emerald-500" /> Official Meta Partner</span>
+          </div>
         </form>
       </DialogContent>
     </Dialog>
