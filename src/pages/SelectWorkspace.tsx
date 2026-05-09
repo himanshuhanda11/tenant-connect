@@ -516,14 +516,14 @@ export default function SelectWorkspace() {
                 transition={{ delay: 0.1, type: 'spring', stiffness: 240, damping: 16 }}
                 className="relative w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center text-white font-bold text-lg sm:text-xl shadow-lg shadow-emerald-500/30 flex-shrink-0"
               >
-                {(profile?.full_name || user?.email || '?').charAt(0).toUpperCase()}
+                {(displayName || '?').charAt(0).toUpperCase()}
                 <span className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-emerald-400 border-2 border-white shadow-sm" />
               </motion.div>
               <div className="min-w-0 flex-1">
                 <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 truncate flex items-center gap-2">
                   Welcome,&nbsp;
                   <span className="bg-gradient-to-r from-emerald-600 via-green-600 to-teal-600 bg-clip-text text-transparent truncate">
-                    {profile?.full_name || (user?.email?.split('@')[0] ?? '')}
+                    {displayName}
                   </span>
                   <span className="inline-block animate-[pulse_2s_ease-in-out_infinite]">👋</span>
                 </h2>
@@ -532,7 +532,8 @@ export default function SelectWorkspace() {
                 </p>
               </div>
             </motion.div>
-          )}
+            ) : null;
+          })()}
 
 
           {/* HERO: Command Center */}
