@@ -1,4 +1,4 @@
-import { Clock, Sparkles } from 'lucide-react';
+import { Clock } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { formatCountdown } from '@/hooks/useLaunchOffer';
 
