@@ -27,6 +27,7 @@ interface PricingComparisonProps {
 
 export default function PricingComparison({ isAnnual }: PricingComparisonProps) {
   const navigate = useNavigate();
+  const { formatPlanPrice, formatAmount } = (require('@/hooks/useGeoLocation') as typeof import('@/hooks/useGeoLocation')).useGeoLocation();
 
   return (
     <section id="comparison" className="py-10 md:py-14 bg-muted/20">
