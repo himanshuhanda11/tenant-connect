@@ -872,6 +872,7 @@ export default function SelectWorkspace() {
               </div>
             </motion.div>
           )}
+          </>)}
         </main>
 
         {/* Mobile sticky CTA */}
