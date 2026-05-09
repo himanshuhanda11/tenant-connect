@@ -30,6 +30,10 @@ Deno.serve(async (req) => {
     const perm = await requireTenantRole(workspaceId, auth.user.id, ["owner", "admin"]);
     if (!perm.ok) return json({ error: perm.error }, 403);
 
+    // Plan gate: connecting a WhatsApp number requires Basic+
+    const planCheck = await requirePlanAccess(workspaceId, "connect_whatsapp_number");
+    if (!planCheck.ok) return planCheck.res;
+
     const admin = getAdminClient();
 
     // Insert pending phone number (DB constraints enforce uniqueness)
