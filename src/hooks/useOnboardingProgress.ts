@@ -80,10 +80,17 @@ export function useOnboardingProgress(tenantId: string | null | undefined): Onbo
     return () => window.removeEventListener('aireatro:wa-profile-saved', handler as EventListener);
   }, [tenantId]);
 
-  const markProfileCompleted = useCallback(() => {
+  const markProfileCompleted = useCallback(async () => {
     if (!tenantId) return;
-    localStorage.setItem(lsKey(tenantId, 'profileCompleted'), '1');
     setProfileCompleted(true);
+    try {
+      await supabase
+        .from('tenants')
+        .update({ whatsapp_profile_completed: true, whatsapp_profile_saved_at: new Date().toISOString() } as any)
+        .eq('id', tenantId);
+    } catch (e) {
+      console.warn('[markProfileCompleted] tenants update failed:', e);
+    }
   }, [tenantId]);
 
   const markPlanSelected = useCallback((name: string) => {
