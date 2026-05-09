@@ -53,7 +53,7 @@ export default function PricingHero({ isAnnual, setIsAnnual }: PricingHeroProps)
         {/* Hero row */}
         <div className="flex flex-col lg:flex-row items-center gap-6 lg:gap-12 mb-6">
           <motion.div
-            className="flex-1 text-center lg:text-left"
+            className="flex-1 text-center lg:text-left lg:pl-6 xl:pl-10"
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, ease: 'easeOut' }}

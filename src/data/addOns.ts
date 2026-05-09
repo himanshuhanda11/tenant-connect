@@ -29,7 +29,7 @@ export const addOns: AddOn[] = [
   {
     id: 'extra_agents',
     name: 'Extra Agents',
-    description: 'Add more team members beyond your plan limit',
+    description: 'Add more agents beyond your plan limit',
     benefit: 'Scale your support team without upgrading plans',
     icon: Users,
     category: 'team',
