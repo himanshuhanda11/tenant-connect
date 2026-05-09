@@ -3,28 +3,32 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Sparkles, Rocket, ShieldCheck, MessageSquare, Users, Zap,
   TrendingUp, Bot, Send, CheckCircle2, Loader2,
+  Megaphone, HeadphonesIcon, Briefcase, Target,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 
 interface CreateWorkspaceSplitHeroProps {
   displayName: string;
   initialName?: string;
-  initialCategory?: string;
-  initialTeamSize?: string;
+  initialBusinessName?: string;
+  initialPurpose?: string;
   isCreating: boolean;
   onCreate: (payload: {
     workspaceName: string;
     businessName: string;
-    category: string;
-    teamSize: string;
+    purpose: string;
   }) => Promise<void> | void;
 }
+
+const PURPOSE_OPTIONS = [
+  { value: "sales", label: "Sales", icon: Target },
+  { value: "support", label: "Support", icon: HeadphonesIcon },
+  { value: "marketing", label: "Marketing", icon: Megaphone },
+  { value: "other", label: "Other", icon: Briefcase },
+];
 
 const ROTATING_WORDS = [
   "Boost Sales 5X",
