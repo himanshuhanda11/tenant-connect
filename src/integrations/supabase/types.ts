@@ -7419,6 +7419,7 @@ export type Database = {
           created_at: string
           email: string
           full_name: string | null
+          has_used_trial: boolean
           id: string
           industry: string | null
           onboarding_step: string | null
@@ -7431,6 +7432,8 @@ export type Database = {
           step_workspace_created_at: string | null
           team_size: string | null
           timezone: string | null
+          trial_claimed_at: string | null
+          trial_workspace_id: string | null
           updated_at: string
           website_url: string | null
         }
@@ -7441,6 +7444,7 @@ export type Database = {
           created_at?: string
           email: string
           full_name?: string | null
+          has_used_trial?: boolean
           id: string
           industry?: string | null
           onboarding_step?: string | null
@@ -7453,6 +7457,8 @@ export type Database = {
           step_workspace_created_at?: string | null
           team_size?: string | null
           timezone?: string | null
+          trial_claimed_at?: string | null
+          trial_workspace_id?: string | null
           updated_at?: string
           website_url?: string | null
         }
@@ -7463,6 +7469,7 @@ export type Database = {
           created_at?: string
           email?: string
           full_name?: string | null
+          has_used_trial?: boolean
           id?: string
           industry?: string | null
           onboarding_step?: string | null
@@ -7475,6 +7482,8 @@ export type Database = {
           step_workspace_created_at?: string | null
           team_size?: string | null
           timezone?: string | null
+          trial_claimed_at?: string | null
+          trial_workspace_id?: string | null
           updated_at?: string
           website_url?: string | null
         }
@@ -13830,6 +13839,9 @@ export type Database = {
         Row: {
           billing_address: Json | null
           billing_email: string | null
+          business_category: string | null
+          business_name: string | null
+          country: string | null
           created_at: string
           enforcement_mode: string | null
           id: string
@@ -13842,6 +13854,7 @@ export type Database = {
           suspended_at: string | null
           suspended_reason: string | null
           tax_id: string | null
+          team_size: string | null
           timezone: string
           updated_at: string
           vat_enabled: boolean | null
@@ -13850,6 +13863,9 @@ export type Database = {
         Insert: {
           billing_address?: Json | null
           billing_email?: string | null
+          business_category?: string | null
+          business_name?: string | null
+          country?: string | null
           created_at?: string
           enforcement_mode?: string | null
           id?: string
@@ -13862,6 +13878,7 @@ export type Database = {
           suspended_at?: string | null
           suspended_reason?: string | null
           tax_id?: string | null
+          team_size?: string | null
           timezone?: string
           updated_at?: string
           vat_enabled?: boolean | null
@@ -13870,6 +13887,9 @@ export type Database = {
         Update: {
           billing_address?: Json | null
           billing_email?: string | null
+          business_category?: string | null
+          business_name?: string | null
+          country?: string | null
           created_at?: string
           enforcement_mode?: string | null
           id?: string
@@ -13882,6 +13902,7 @@ export type Database = {
           suspended_at?: string | null
           suspended_reason?: string | null
           tax_id?: string | null
+          team_size?: string | null
           timezone?: string
           updated_at?: string
           vat_enabled?: boolean | null
@@ -16277,7 +16298,9 @@ export type Database = {
         Args: { p_conversation_id: string; p_tenant_id: string }
         Returns: Json
       }
-      claim_launch_offer: { Args: { _plan_id: string }; Returns: Json }
+      claim_launch_offer:
+        | { Args: { _plan_id: string }; Returns: Json }
+        | { Args: { _plan_id: string; _workspace_id: string }; Returns: Json }
       claim_on_reply: {
         Args: {
           p_actor_id: string
@@ -16379,6 +16402,9 @@ export type Database = {
         Returns: {
           billing_address: Json | null
           billing_email: string | null
+          business_category: string | null
+          business_name: string | null
+          country: string | null
           created_at: string
           enforcement_mode: string | null
           id: string
@@ -16391,6 +16417,7 @@ export type Database = {
           suspended_at: string | null
           suspended_reason: string | null
           tax_id: string | null
+          team_size: string | null
           timezone: string
           updated_at: string
           vat_enabled: boolean | null
@@ -16516,6 +16543,7 @@ export type Database = {
         | { Args: { _tenant_id: string }; Returns: boolean }
         | { Args: { _tenant_id: string; _user_id: string }; Returns: boolean }
       is_tenant_owner: { Args: { _tenant_id: string }; Returns: boolean }
+      is_trial_eligible: { Args: never; Returns: boolean }
       lock_campaign_jobs: {
         Args: { p_limit?: number; p_locked_by?: string }
         Returns: {
