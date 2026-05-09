@@ -535,20 +535,84 @@ export default function Dashboard() {
   );
 }
 
-/* ─── KPI Card ─── */
-function KpiCard({ icon: Icon, iconColor, iconBg, label, value, onClick }: {
-  icon: React.ElementType; iconColor: string; iconBg: string; label: string; value: number | string; onClick?: () => void;
+/* ─── Tone Map ─── */
+const TONE_MAP: Record<string, { from: string; to: string; text: string; ring: string; soft: string }> = {
+  emerald: { from: 'from-emerald-400', to: 'to-emerald-600', text: 'text-emerald-600 dark:text-emerald-400', ring: 'ring-emerald-500/20', soft: 'bg-emerald-500/10' },
+  teal:    { from: 'from-teal-400',    to: 'to-teal-600',    text: 'text-teal-600 dark:text-teal-400',       ring: 'ring-teal-500/20',    soft: 'bg-teal-500/10' },
+  blue:    { from: 'from-blue-400',    to: 'to-blue-600',    text: 'text-blue-600 dark:text-blue-400',       ring: 'ring-blue-500/20',    soft: 'bg-blue-500/10' },
+  cyan:    { from: 'from-cyan-400',    to: 'to-cyan-600',    text: 'text-cyan-600 dark:text-cyan-400',       ring: 'ring-cyan-500/20',    soft: 'bg-cyan-500/10' },
+  violet:  { from: 'from-violet-400',  to: 'to-violet-600',  text: 'text-violet-600 dark:text-violet-400',   ring: 'ring-violet-500/20',  soft: 'bg-violet-500/10' },
+  orange:  { from: 'from-orange-400',  to: 'to-orange-600',  text: 'text-orange-600 dark:text-orange-400',   ring: 'ring-orange-500/20',  soft: 'bg-orange-500/10' },
+  amber:   { from: 'from-amber-400',   to: 'to-amber-600',   text: 'text-amber-600 dark:text-amber-400',     ring: 'ring-amber-500/20',   soft: 'bg-amber-500/10' },
+  rose:    { from: 'from-rose-400',    to: 'to-rose-600',    text: 'text-rose-600 dark:text-rose-400',       ring: 'ring-rose-500/20',    soft: 'bg-rose-500/10' },
+  slate:   { from: 'from-slate-400',   to: 'to-slate-600',   text: 'text-slate-600 dark:text-slate-400',     ring: 'ring-slate-500/20',   soft: 'bg-slate-500/10' },
+};
+
+/* ─── Premium KPI Card ─── */
+function KpiCard({ icon: Icon, tone, label, value, onClick }: {
+  icon: React.ElementType; tone: keyof typeof TONE_MAP; label: string; value: number | string; onClick?: () => void;
 }) {
+  const t = TONE_MAP[tone];
   return (
     <div onClick={onClick} className={cn(
-      "rounded-lg sm:rounded-xl border border-border/40 bg-card p-2.5 sm:p-4 shadow-sm transition-all duration-200",
-      onClick && "cursor-pointer hover:shadow-md active:scale-[0.97]"
+      "premium-card p-3 sm:p-4 group",
+      onClick && "cursor-pointer active:scale-[0.97]"
     )}>
-      <div className={cn("h-6 w-6 sm:h-7 sm:w-7 rounded-md sm:rounded-lg flex items-center justify-center mb-1.5 sm:mb-2", iconBg)}>
-        <Icon className={cn("h-3 w-3 sm:h-3.5 sm:w-3.5", iconColor)} />
+      <div className="flex items-start justify-between mb-2 sm:mb-3">
+        <div className={cn("h-9 w-9 sm:h-11 sm:w-11 rounded-xl bg-gradient-to-br shadow-md ring-1 flex items-center justify-center transition-transform group-hover:scale-110", t.from, t.to, t.ring)}>
+          <Icon className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
+        </div>
+        {onClick && <ArrowUpRight className="h-3.5 w-3.5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />}
       </div>
-      <p className="text-lg sm:text-2xl font-bold text-foreground leading-none">{value}</p>
-      <p className="text-[9px] sm:text-[11px] text-muted-foreground font-medium mt-0.5 sm:mt-1">{label}</p>
+      <p className="text-xl sm:text-3xl font-extrabold text-foreground leading-none tracking-tight">{value}</p>
+      <p className="text-[10px] sm:text-xs text-muted-foreground font-medium mt-1 sm:mt-1.5 truncate">{label}</p>
+    </div>
+  );
+}
+
+/* ─── Hero Mini Stat ─── */
+function HeroStat({ icon: Icon, label, value, tone, live }: {
+  icon: React.ElementType; label: string; value: number | string; tone: keyof typeof TONE_MAP; live?: boolean;
+}) {
+  const t = TONE_MAP[tone];
+  return (
+    <div className="glass-card rounded-2xl p-3 sm:p-3.5 relative">
+      <div className="flex items-center justify-between mb-1.5 sm:mb-2">
+        <div className={cn("h-7 w-7 sm:h-8 sm:w-8 rounded-lg bg-gradient-to-br shadow-sm flex items-center justify-center", t.from, t.to)}>
+          <Icon className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-white" />
+        </div>
+        {live && <span className="live-dot" />}
+      </div>
+      <p className="text-lg sm:text-xl font-bold text-foreground leading-none">{value}</p>
+      <p className="text-[9px] sm:text-[10px] text-muted-foreground font-medium mt-1 truncate">{label}</p>
+    </div>
+  );
+}
+
+/* ─── Premium Status Tile ─── */
+function PremiumStatusTile({ icon: Icon, label, tone, value, sub, live, onClick }: {
+  icon: React.ElementType; label: string; tone: keyof typeof TONE_MAP; value: string; sub?: string; live?: boolean; onClick?: () => void;
+}) {
+  const t = TONE_MAP[tone];
+  return (
+    <div onClick={onClick} className={cn(
+      "premium-card p-3 sm:p-4 relative overflow-hidden",
+      onClick && "cursor-pointer"
+    )}>
+      <div className={cn("absolute -top-10 -right-10 h-24 w-24 rounded-full blur-2xl opacity-60", t.soft)} />
+      <div className="relative flex items-center gap-2.5 sm:gap-3">
+        <div className={cn("h-10 w-10 sm:h-11 sm:w-11 rounded-xl bg-gradient-to-br shadow-md flex items-center justify-center flex-shrink-0", t.from, t.to)}>
+          <Icon className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
+        </div>
+        <div className="min-w-0 flex-1">
+          <p className="text-[9px] sm:text-[11px] uppercase tracking-wider font-semibold text-muted-foreground">{label}</p>
+          <div className="flex items-center gap-1.5">
+            <p className={cn("text-sm sm:text-lg font-bold leading-tight truncate", t.text)}>{value}</p>
+            {live && <span className="live-dot" />}
+          </div>
+          {sub && <p className="text-[9px] sm:text-[10px] text-muted-foreground truncate mt-0.5">{sub}</p>}
+        </div>
+      </div>
     </div>
   );
 }
