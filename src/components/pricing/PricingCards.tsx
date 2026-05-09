@@ -43,13 +43,12 @@ interface PricingCardsProps {
 
 export default function PricingCards({ isAnnual }: PricingCardsProps) {
   const navigate = useNavigate();
+  const { getPlanPrice, formatAmount } = useGeoLocation();
 
-  const getPrice = (plan: PricingPlan) => {
-    if (plan.price === 0) return 0;
-    return isAnnual ? Math.round((plan.price as number) * 0.8) : (plan.price as number);
-  };
+  const getPrice = (plan: PricingPlan) => getPlanPrice(plan.id as PlanId, isAnnual);
+  const getBasePrice = (plan: PricingPlan) => getPlanPrice(plan.id as PlanId, false);
 
-  const formatPrice = (price: number) => `₹${price.toLocaleString('en-IN')}`;
+  const formatPrice = (price: number) => formatAmount(price);
 
   return (
     <section id="pricing-cards" className="py-6 md:py-10">
