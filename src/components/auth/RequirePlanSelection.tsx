@@ -55,36 +55,8 @@ function isAllowed(path: string) {
 }
 
 export function RequirePlanSelection({ children }: { children: ReactNode }) {
-  const { user, loading } = useAuth();
-  const location = useLocation();
-  const navigate = useNavigate();
-  const [checking, setChecking] = useState(false);
-
-  useEffect(() => {
-    let cancelled = false;
-    if (loading || !user) return;
-    if (isAllowed(location.pathname)) return;
-
-    setChecking(true);
-    (async () => {
-      const { data, error } = await supabase
-        .from('user_offers')
-        .select('offer_claimed, offer_expires_at')
-        .eq('user_id', user.id)
-        .maybeSingle();
-      if (cancelled) return;
-      setChecking(false);
-      if (error) return;
-      if (!data) return; // no row — let user through
-      const expired = new Date(data.offer_expires_at).getTime() < Date.now();
-      if (!data.offer_claimed && !expired) {
-        navigate('/choose-plan', { replace: true });
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [user?.id, loading, location.pathname, navigate]);
-
+  // Plan selection is no longer forced — users can browse the app freely and
+  // claim the launch offer from the floating widget / popup at any time.
+  // The component is kept as a passthrough to avoid touching App.tsx structure.
   return <>{children}</>;
 }
