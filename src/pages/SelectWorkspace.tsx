@@ -378,7 +378,16 @@ export default function SelectWorkspace() {
         return;
       }
 
-      // Best-effort: persist optional profile metadata.
+      // Persist business name on the workspace itself (source of truth).
+      if (extra?.businessName || extra?.category || extra?.teamSize) {
+        const tenantPatch: any = {};
+        if (extra.businessName) tenantPatch.business_name = extra.businessName;
+        if (extra.category) tenantPatch.business_category = extra.category;
+        if (extra.teamSize) tenantPatch.team_size = extra.teamSize;
+        try { await supabase.from('tenants').update(tenantPatch).eq('id', (tenant as any).id); } catch (_) { /* non-blocking */ }
+      }
+
+      // Mirror onto profile for prefill convenience on next workspace creation.
       if (user && extra && (extra.businessName || extra.category || extra.teamSize)) {
         const patch: any = {};
         if (extra.businessName) patch.company_name = extra.businessName;
