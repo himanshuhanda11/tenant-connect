@@ -29,33 +29,40 @@ const planIcons: Record<string, JSX.Element> = {
 };
 
 export function LaunchOfferDialog({ open, onOpenChange }: Props) {
-  const { isActive, secondsLeft, claim, isClaiming } = useLaunchOffer();
+  const { isActive, secondsLeft, isClaiming } = useLaunchOffer();
   const { data: claimCount } = useTodayClaimCount();
   const { getPlanPrice, formatAmount } = useGeoLocation();
   const { user } = useAuth();
+  const { tenants, currentTenant } = useTenant();
   const navigate = useNavigate();
   const [pendingPlan, setPendingPlan] = useState<string | null>(null);
   const [view, setView] = useState<'intro' | 'plans'>('intro');
 
   if (!isActive) return null;
 
-  const handleSelect = async (plan: PricingPlan) => {
-    if (isClaiming) return;
+  const routeToPlanFlow = (planId?: string) => {
+    onOpenChange(false);
+    // Plans are workspace-scoped: always route through workspace creation/selection.
     if (!user) {
-      onOpenChange(false);
+      // Remember intent so post-signup the user lands on the workspace flow.
+      try { sessionStorage.setItem(PENDING_CLAIM_KEY, planId ?? '1'); } catch {}
       navigate('/signup');
       return;
     }
-    setPendingPlan(plan.id);
-    try {
-      await claim(plan.id);
-      toast.success(`🎉 1 month FREE activated on ${plan.name}!`);
-      onOpenChange(false);
-      setTimeout(() => navigate('/select-workspace'), 400);
-    } catch (e: any) {
-      toast.error(e?.message ?? 'Could not activate offer');
-      setPendingPlan(null);
+    if (tenants.length === 0) {
+      try { sessionStorage.setItem(PENDING_CLAIM_KEY, planId ?? '1'); } catch {}
+      navigate('/select-workspace');
+      return;
     }
+    const wsId = currentTenant?.id ?? tenants[0].id;
+    const planParam = planId ? `&plan=${planId}` : '';
+    navigate(`/select-workspace-plan?workspace_id=${wsId}${planParam}`);
+  };
+
+  const handleSelect = (plan: PricingPlan) => {
+    if (isClaiming) return;
+    setPendingPlan(plan.id);
+    routeToPlanFlow(plan.id);
   };
 
   return (
