@@ -1,7 +1,4 @@
-import { useEffect, useState, type ReactNode } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { useAuth } from '@/contexts/AuthContext';
-import { supabase } from '@/integrations/supabase/client';
+import { type ReactNode } from 'react';
 
 /**
  * Wraps the app and redirects authenticated users with an unclaimed,
