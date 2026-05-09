@@ -120,7 +120,7 @@ export function LaunchOfferDialog({ open, onOpenChange }: Props) {
               <div className="flex flex-col gap-2.5">
                 <Button
                   className="w-full h-12 px-4 bg-gradient-to-r from-emerald-400 to-primary text-white border-0 font-semibold text-sm sm:text-base shadow-lg shadow-emerald-500/30 hover:shadow-xl hover:scale-[1.01] transition-all whitespace-normal leading-tight"
-                  onClick={() => setView('plans')}
+                  onClick={() => routeToPlanFlow()}
                 >
                   <Sparkles className="w-4 h-4 mr-1.5 flex-shrink-0" />
                   <span>Select Plan &amp; Get 1 Month Free</span>
