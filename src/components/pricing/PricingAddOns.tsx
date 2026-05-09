@@ -1,6 +1,7 @@
 import { Plus } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import { addOns, formatINR } from '@/data/addOns';
+import { addOns } from '@/data/addOns';
+import { useGeoLocation } from '@/hooks/useGeoLocation';
 import addonExtraAgents from '@/assets/addon-extra-agents.png';
 import addonExtraFlows from '@/assets/addon-extra-flows.png';
 import addonAutoforms from '@/assets/addon-autoforms.png';
