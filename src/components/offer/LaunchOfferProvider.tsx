@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useLaunchOffer } from '@/hooks/useLaunchOffer';
 import { StickyOfferBanner } from './StickyOfferBanner';
