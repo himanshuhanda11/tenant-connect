@@ -1,6 +1,7 @@
 import { corsHeaders, json } from "../_shared/supabase.ts";
 import { requireUser } from "../_shared/guards.ts";
 import { getAdminClient } from "../_shared/supabase.ts";
+import { requirePlanAccess } from "../_shared/planAccess.ts";
 
 const SHOPIFY_API_KEY = Deno.env.get("SHOPIFY_API_KEY") || "";
 const SHOPIFY_API_SECRET = Deno.env.get("SHOPIFY_API_SECRET") || "";
