@@ -194,7 +194,7 @@ export default function ChoosePlanPage() {
                   {isClaiming && pendingPlan === plan.id
                     ? 'Activating…'
                     : isFree
-                      ? 'Continue with Free'
+                      ? 'Free Lifetime'
                       : 'Start Free Month'}
                   <ArrowRight className="w-4 h-4" />
                 </Button>
