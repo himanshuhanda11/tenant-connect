@@ -495,7 +495,15 @@ export default function SelectWorkspace() {
 
         <main className="relative container mx-auto px-3 sm:px-6 py-6 sm:py-10 max-w-7xl pb-24 md:pb-12">
           {/* Welcome banner with full name */}
-          {(profile?.full_name || user?.email) && (
+          {(() => {
+            const meta: any = (user as any)?.user_metadata || {};
+            const displayName =
+              profile?.full_name ||
+              meta.full_name ||
+              meta.name ||
+              meta.display_name ||
+              (user?.email?.split('@')[0] ?? '');
+            return (user?.email || displayName) ? (
             <motion.div
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
