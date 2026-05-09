@@ -322,7 +322,7 @@ export default function Dashboard() {
         {/* ═══════════════════════════════════════════════
             SECTION 2: WHATSAPP STATUS — Premium Strip
         ═══════════════════════════════════════════════ */}
-        {!loading && !hasPhoneConnected && (
+        {!loading && !onboarding.loading && !hasPhoneConnected && (
           <div className="relative overflow-hidden rounded-2xl border border-destructive/30 bg-gradient-to-br from-destructive/10 via-destructive/5 to-transparent p-4 sm:p-6 flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4">
             <div className="h-11 w-11 sm:h-12 sm:w-12 rounded-2xl bg-destructive/15 flex items-center justify-center flex-shrink-0 shadow-md">
               <Phone className="h-5 w-5 sm:h-6 sm:w-6 text-destructive" />
