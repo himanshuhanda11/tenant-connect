@@ -50,7 +50,7 @@ export function AddOnCard({ addon, locked, compact }: AddOnCardProps) {
 
       <div className="mt-3 flex items-center justify-between gap-2">
         <div>
-          <span className="text-sm font-bold text-foreground">{formatINR(addon.price)}</span>
+          <span className="text-sm font-bold text-foreground">{formatAddOnPrice(addon.id) || ''}</span>
           <span className="text-xs text-muted-foreground ml-1">{addon.unit}</span>
         </div>
 
