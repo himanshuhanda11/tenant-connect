@@ -67,7 +67,18 @@ export function LaunchOfferDialog({ open, onOpenChange }: Props) {
         <div className="pointer-events-none absolute -top-24 -left-24 w-72 h-72 rounded-full bg-emerald-500/30 blur-3xl" />
         <div className="pointer-events-none absolute -bottom-24 -right-24 w-72 h-72 rounded-full bg-primary/30 blur-3xl" />
 
-        <div className="relative p-5 sm:p-7">
+        {/* Custom high-contrast close (mobile-friendly) */}
+        <button
+          type="button"
+          aria-label="Close"
+          onClick={() => onOpenChange(false)}
+          className="absolute right-2.5 top-2.5 z-50 rounded-full bg-black/50 hover:bg-black/70 text-white p-2 backdrop-blur-sm border border-white/20 transition-all touch-manipulation"
+        >
+          <X className="w-4 h-4" />
+        </button>
+
+        <div className="relative p-5 sm:p-7 pt-12 sm:pt-7">
+
           {view === 'intro' ? (
             <>
               <motion.div
