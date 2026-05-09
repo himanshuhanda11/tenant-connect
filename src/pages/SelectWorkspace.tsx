@@ -30,6 +30,7 @@ import aireatroLogo from '@/assets/aireatro-logo.png';
 import CreateWorkspaceModal from '@/components/workspace/CreateWorkspaceModal';
 import WorkspaceTile from '@/components/workspace/WorkspaceTile';
 import WorkspaceEmptyState from '@/components/workspace/WorkspaceEmptyState';
+import CreateWorkspaceSplitHero from '@/components/workspace/CreateWorkspaceSplitHero';
 
 interface WorkspaceEnriched {
   id: string;
@@ -360,7 +361,12 @@ export default function SelectWorkspace() {
     setIsRefreshing(false);
   };
 
-  const handleCreateWorkspace = async (name: string, purpose: string, connectNow: boolean) => {
+  const handleCreateWorkspace = async (
+    name: string,
+    purpose: string,
+    connectNow: boolean,
+    extra?: { businessName?: string; category?: string; teamSize?: string },
+  ) => {
     setIsCreating(true);
     try {
       const baseSlug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || 'workspace';
@@ -371,6 +377,16 @@ export default function SelectWorkspace() {
         toast.error(error?.message || 'Failed to create workspace. Please try again.');
         return;
       }
+
+      // Best-effort: persist optional profile metadata.
+      if (user && extra && (extra.businessName || extra.category || extra.teamSize)) {
+        const patch: any = {};
+        if (extra.businessName) patch.company_name = extra.businessName;
+        if (extra.category) patch.industry = extra.category;
+        if (extra.teamSize) patch.team_size = extra.teamSize;
+        try { await supabase.from('profiles').update(patch).eq('id', user.id); } catch (_) { /* non-blocking */ }
+      }
+
       setModalOpen(false);
       setCurrentTenant({ ...(tenant as any), role: 'owner' });
       toast.success('Workspace created!');
@@ -508,7 +524,35 @@ export default function SelectWorkspace() {
           </div>
         </header>
 
-        <main className="relative container mx-auto px-3 sm:px-6 py-6 sm:py-10 max-w-7xl pb-24 md:pb-12">
+        <main
+          className={cn(
+            "relative",
+            !loadingDetails && workspaces.length === 0
+              ? "px-0 py-0"
+              : "container mx-auto px-3 sm:px-6 py-6 sm:py-10 max-w-7xl pb-24 md:pb-12",
+          )}
+        >
+          {!loadingDetails && workspaces.length === 0 ? (() => {
+            const meta: any = (user as any)?.user_metadata || {};
+            const displayName =
+              profile?.full_name ||
+              meta.full_name ||
+              meta.name ||
+              meta.display_name ||
+              (user?.email?.split('@')[0] ?? '');
+            return (
+              <CreateWorkspaceSplitHero
+                displayName={displayName}
+                initialName={(profile as any)?.company_name || ''}
+                initialCategory={(profile as any)?.industry || ''}
+                initialTeamSize={(profile as any)?.team_size || ''}
+                isCreating={isCreating}
+                onCreate={async ({ workspaceName, businessName, category, teamSize }) =>
+                  handleCreateWorkspace(workspaceName, 'sales', true, { businessName, category, teamSize })
+                }
+              />
+            );
+          })() : (<>
           {/* Welcome banner with full name */}
           {(() => {
             const meta: any = (user as any)?.user_metadata || {};
@@ -828,10 +872,11 @@ export default function SelectWorkspace() {
               </div>
             </motion.div>
           )}
+          </>)}
         </main>
 
         {/* Mobile sticky CTA */}
-        {canCreateWorkspace && (
+        {canCreateWorkspace && workspaces.length > 0 && (
           <div className="fixed bottom-0 left-0 right-0 p-3 bg-white/90 backdrop-blur-xl border-t border-emerald-100 sm:hidden z-40">
             <Button
               onClick={() => setModalOpen(true)}
