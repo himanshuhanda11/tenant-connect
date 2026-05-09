@@ -106,18 +106,17 @@ export function LaunchOfferDialog({ open, onOpenChange }: Props) {
                 </div>
               </div>
 
-              <div className="flex flex-col sm:flex-row gap-2.5">
+              <div className="flex flex-col gap-2.5">
                 <Button
-                  size="lg"
-                  className="flex-1 bg-gradient-to-r from-emerald-400 to-primary text-white border-0 font-semibold shadow-lg shadow-emerald-500/30 hover:shadow-xl hover:scale-[1.02] transition-all"
+                  className="w-full h-12 px-4 bg-gradient-to-r from-emerald-400 to-primary text-white border-0 font-semibold text-sm sm:text-base shadow-lg shadow-emerald-500/30 hover:shadow-xl hover:scale-[1.01] transition-all whitespace-normal leading-tight"
                   onClick={() => setView('plans')}
                 >
-                  <Sparkles className="w-4 h-4 mr-1" /> Select Plan & Get 1 Month Free
+                  <Sparkles className="w-4 h-4 mr-1.5 flex-shrink-0" />
+                  <span>Select Plan &amp; Get 1 Month Free</span>
                 </Button>
                 <Button
-                  size="lg"
                   variant="outline"
-                  className="flex-1 border-white/20 bg-white/5 text-white hover:bg-white/10"
+                  className="w-full h-11 border-white/20 bg-white/5 text-white hover:bg-white/10 hover:text-white font-medium text-sm"
                   onClick={() => onOpenChange(false)}
                 >
                   Maybe later
