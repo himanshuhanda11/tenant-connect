@@ -6,16 +6,16 @@ import { pricingPlans, type PricingPlan } from '@/data/pricingPlans';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
 import TemplateChargesBlock from '@/components/shared/TemplateChargesBlock';
+import { useGeoLocation, type PlanId } from '@/hooks/useGeoLocation';
 
 export default function PricingPreview() {
   const [isYearly, setIsYearly] = useState(false);
+  const { getPlanPrice, formatAmount } = useGeoLocation();
 
-  const getPrice = (plan: PricingPlan) => {
-    if (plan.price === 0) return 0;
-    return isYearly ? Math.round((plan.price as number) * 0.8) : (plan.price as number);
-  };
+  const getPrice = (plan: PricingPlan) => getPlanPrice(plan.id as PlanId, isYearly);
+  const getBasePrice = (plan: PricingPlan) => getPlanPrice(plan.id as PlanId, false);
 
-  const fmt = (p: number) => `₹${p.toLocaleString('en-IN')}`;
+  const fmt = (p: number) => formatAmount(p);
 
   const limitItems = (plan: PricingPlan) => [
     { icon: Users, label: 'Members', value: plan.limits.team_members },
