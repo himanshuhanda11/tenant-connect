@@ -32,11 +32,9 @@ export function FloatingOfferWidget({ onClick, hidden }: Props) {
             <Gift className="w-4 h-4" />
           </span>
           <span className="flex flex-col items-start leading-tight">
-            <span className="text-[10px] uppercase tracking-wider opacity-80">1 month free</span>
+            <span className="text-[10px] uppercase tracking-wider opacity-90">1 month free</span>
             <span className="text-xs font-mono tabular-nums">
-              {isEvergreen
-                ? 'Claim now'
-                : `${String(h).padStart(2, '0')}h ${String(m).padStart(2, '0')}m left`}
+              {`${String(h).padStart(2, '0')}h ${String(m).padStart(2, '0')}m left`}
             </span>
           </span>
         </span>
