@@ -1,14 +1,11 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Sparkles, Rocket, ShieldCheck, MessageSquare, Users, Zap,
-  TrendingUp, Bot, Send, CheckCircle2, Loader2,
-  Megaphone, HeadphonesIcon, Briefcase, Target,
+  Sparkles, ShieldCheck, MessageSquare, Users, Zap,
+  TrendingUp, Bot, Send,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
+import { PremiumWorkspaceForm } from "./CreateWorkspaceModal";
 
 interface CreateWorkspaceSplitHeroProps {
   displayName: string;
