@@ -18,8 +18,14 @@ export function StickyOfferBanner({ onClaim }: Props) {
   const location = useLocation();
   const [hidden, setHidden] = useState(() => sessionStorage.getItem(HIDE_KEY) === '1');
 
-  // Don't show the banner on the pricing page — plans are already the focus.
-  const onPricing = location.pathname.startsWith('/pricing');
+  // Don't show the banner on pricing-related pages — plans are already the focus.
+  const path = location.pathname;
+  const onPricing =
+    path.startsWith('/pricing') ||
+    path.startsWith('/select-plan') ||
+    path.startsWith('/choose-plan') ||
+    path.startsWith('/plans') ||
+    path.startsWith('/billing');
   const visible = isActive && !hidden && !onPricing;
 
   return (
