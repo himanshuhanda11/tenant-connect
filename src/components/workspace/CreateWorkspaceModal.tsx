@@ -12,6 +12,7 @@ interface CreateWorkspaceModalProps {
   onOpenChange: (open: boolean) => void;
   onCreateWorkspace: (name: string, purpose: string, connectNow: boolean) => Promise<void>;
   isCreating: boolean;
+  initialName?: string;
 }
 
 const purposes = [
