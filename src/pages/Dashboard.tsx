@@ -659,20 +659,17 @@ function InsightRow({ icon: Icon, color, bg, title, detail }: {
   );
 }
 
-/* ─── Quick Action Row ─── */
-function QuickActionRow({ icon: Icon, color, bg, title, sub, onClick }: {
-  icon: React.ElementType; color: string; bg: string; title: string; sub: string; onClick: () => void;
+/* ─── Quick Action Tile (premium) ─── */
+function QuickActionTile({ icon: Icon, tone, title, onClick }: {
+  icon: React.ElementType; tone: keyof typeof TONE_MAP; title: string; onClick: () => void;
 }) {
+  const t = TONE_MAP[tone];
   return (
-    <button onClick={onClick} className="w-full flex items-center gap-2 sm:gap-3 p-2 sm:p-2.5 rounded-lg hover:bg-muted/40 transition-colors text-left group active:scale-[0.98]">
-      <div className={cn("h-7 w-7 sm:h-8 sm:w-8 rounded-md sm:rounded-lg flex items-center justify-center flex-shrink-0", bg)}>
-        <Icon className={cn("h-3.5 w-3.5 sm:h-4 sm:w-4", color)} />
+    <button onClick={onClick} className="group relative flex flex-col items-center justify-center gap-1.5 sm:gap-2 p-2.5 sm:p-3 rounded-2xl border border-border/50 bg-card hover:border-primary/30 hover:shadow-md transition-all active:scale-[0.96]">
+      <div className={cn("h-9 w-9 sm:h-11 sm:w-11 rounded-xl bg-gradient-to-br shadow-md flex items-center justify-center transition-transform group-hover:scale-110 group-hover:-translate-y-0.5", t.from, t.to)}>
+        <Icon className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
       </div>
-      <div className="flex-1 min-w-0">
-        <p className="text-[11px] sm:text-xs font-semibold text-foreground">{title}</p>
-        <p className="text-[9px] sm:text-[10px] text-muted-foreground">{sub}</p>
-      </div>
-      <ChevronRight className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+      <p className="text-[10px] sm:text-xs font-semibold text-foreground text-center leading-tight">{title}</p>
     </button>
   );
 }
