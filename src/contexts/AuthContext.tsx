@@ -39,6 +39,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
+      // If Supabase reports the user is gone or token refresh failed,
+      // wipe local state so the app redirects to /login.
+      if (event === 'USER_DELETED' as any || event === 'TOKEN_REFRESHED' && !session) {
+        try { localStorage.removeItem('whatsapp-isv-current-tenant'); } catch {}
+        setSession(null);
+        setUser(null);
+        setProfile(null);
+        return;
+      }
+
       setSession(session);
       setUser(session?.user ?? null);
 
@@ -73,6 +83,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const {
           data: { session },
         } = await supabase.auth.getSession();
+
+        // Validate the session against the server. If the user has been
+        // deleted by an admin, the local JWT is still present but invalid
+        // — force a clean sign-out so the UI redirects to /login.
+        if (session?.user) {
+          const { data: serverUser, error: getUserError } = await supabase.auth.getUser();
+          if (getUserError || !serverUser?.user) {
+            console.warn('[Auth] Stored session invalid (user deleted?). Signing out.');
+            try { localStorage.removeItem('whatsapp-isv-current-tenant'); } catch {}
+            await supabase.auth.signOut().catch(() => {});
+            setSession(null);
+            setUser(null);
+            setProfile(null);
+            return;
+          }
+        }
 
         setSession(session);
         setUser(session?.user ?? null);

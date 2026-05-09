@@ -482,9 +482,14 @@ export default function SelectWorkspace() {
               <img src={aireatroLogo} alt="AiReatro" className="h-10 w-auto hover:opacity-80 transition-opacity" />
             </Link>
             <div className="flex items-center gap-3">
-              <div className="hidden sm:flex items-center gap-2 text-sm text-slate-600">
+              <div className="hidden sm:flex items-center gap-2 text-sm text-slate-600" title={user.email ?? ''}>
                 <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.6)]" />
-                <span className="truncate max-w-[200px]">{user.email}</span>
+                <span className="truncate max-w-[220px] font-semibold text-slate-800">
+                  {profile?.full_name
+                    || (user as any)?.user_metadata?.full_name
+                    || (user as any)?.user_metadata?.name
+                    || user.email}
+                </span>
               </div>
               <Button variant="ghost" size="sm" onClick={handleSignOut} className="text-slate-600 hover:text-slate-900 h-10 px-3">
                 Sign out
@@ -495,7 +500,15 @@ export default function SelectWorkspace() {
 
         <main className="relative container mx-auto px-3 sm:px-6 py-6 sm:py-10 max-w-7xl pb-24 md:pb-12">
           {/* Welcome banner with full name */}
-          {(profile?.full_name || user?.email) && (
+          {(() => {
+            const meta: any = (user as any)?.user_metadata || {};
+            const displayName =
+              profile?.full_name ||
+              meta.full_name ||
+              meta.name ||
+              meta.display_name ||
+              (user?.email?.split('@')[0] ?? '');
+            return (user?.email || displayName) ? (
             <motion.div
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
@@ -508,14 +521,14 @@ export default function SelectWorkspace() {
                 transition={{ delay: 0.1, type: 'spring', stiffness: 240, damping: 16 }}
                 className="relative w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center text-white font-bold text-lg sm:text-xl shadow-lg shadow-emerald-500/30 flex-shrink-0"
               >
-                {(profile?.full_name || user?.email || '?').charAt(0).toUpperCase()}
+                {(displayName || '?').charAt(0).toUpperCase()}
                 <span className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-emerald-400 border-2 border-white shadow-sm" />
               </motion.div>
               <div className="min-w-0 flex-1">
                 <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 truncate flex items-center gap-2">
                   Welcome,&nbsp;
                   <span className="bg-gradient-to-r from-emerald-600 via-green-600 to-teal-600 bg-clip-text text-transparent truncate">
-                    {profile?.full_name || (user?.email?.split('@')[0] ?? '')}
+                    {displayName}
                   </span>
                   <span className="inline-block animate-[pulse_2s_ease-in-out_infinite]">👋</span>
                 </h2>
@@ -524,7 +537,8 @@ export default function SelectWorkspace() {
                 </p>
               </div>
             </motion.div>
-          )}
+            ) : null;
+          })()}
 
 
           {/* HERO: Command Center */}
