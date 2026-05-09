@@ -155,6 +155,7 @@ export default function AdminWorkspaceDetail() {
         </ScrollArea>
 
         <TabsContent value="overview" className="mt-4 space-y-4">
+          <WhatsAppConnectionStatus waba={waba} phones={phones} workspacePhone={workspacePhone} />
           <OwnerBusinessCard
             workspace={workspace}
             owner={owner}
