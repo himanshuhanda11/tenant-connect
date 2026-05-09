@@ -50,8 +50,8 @@ async function userClient(email: string, password: string) {
   return c;
 }
 
-async function createWorkspace(c: ReturnType<typeof createClient>, name: string) {
-  const slug = `${name.toLowerCase()}-${crypto.randomUUID().slice(0, 6)}`;
+async function createWorkspace(c: any, name: string) {
+  const slug = `${name.toLowerCase().replace(/\s+/g, "-")}-${crypto.randomUUID().slice(0, 6)}`;
   const { data, error } = await c.rpc("create_tenant_with_owner", {
     _name: name,
     _slug: slug,
