@@ -147,6 +147,9 @@ export function LaunchOfferDialog({ open, onOpenChange }: Props) {
                   <p className="text-xs sm:text-sm text-white/70 mt-1">
                     Choose any plan below. We'll activate it FREE for 30 days. Cancel anytime.
                   </p>
+                  <div className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-emerald-400/15 border border-emerald-300/30 px-2.5 py-1 text-[11px] font-semibold text-emerald-200">
+                    <ShieldCheck className="w-3 h-3" /> No credit card required
+                  </div>
                 </div>
                 <CountdownPill secondsLeft={secondsLeft} size="sm" />
               </div>
