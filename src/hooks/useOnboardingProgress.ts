@@ -36,10 +36,11 @@ export function useOnboardingProgress(tenantId: string | null | undefined): Onbo
       const lsPlan = localStorage.getItem(lsKey(tenantId, 'planSelected'));
       const lsPlanName = localStorage.getItem(lsKey(tenantId, 'planName'));
 
-      const [{ data: ent }, { data: sub }, { data: phones }] = await Promise.all([
+      const [{ data: ent }, { data: sub }, { data: phones }, { data: tenantRow }] = await Promise.all([
         supabase.from('workspace_entitlements').select('plan').eq('workspace_id', tenantId).maybeSingle(),
         supabase.from('subscriptions').select('plan_id').eq('tenant_id', tenantId).in('status', ['active', 'trialing']).maybeSingle(),
         supabase.from('phone_numbers').select('id,status').eq('tenant_id', tenantId).order('is_default', { ascending: false }),
+        supabase.from('tenants').select('whatsapp_profile_completed' as any).eq('id', tenantId).maybeSingle(),
       ]);
 
       const detectedPlan = (ent as any)?.plan || (sub as any)?.plan_id?.replace('plan_', '') || (lsPlan ? lsPlanName : null);
@@ -48,15 +49,15 @@ export function useOnboardingProgress(tenantId: string | null | undefined): Onbo
       setPlanName(detectedPlan ? detectedPlan.charAt(0).toUpperCase() + detectedPlan.slice(1) : null);
 
       const phoneList = (phones as any[]) || [];
-      // Workspace is "WhatsApp connected" when at least one phone row exists and is not in
-      // a disconnected/banned state (any of: pending, connected — Meta sometimes leaves it pending).
       const validPhones = phoneList.filter((p) => !['disconnected', 'banned'].includes(p.status));
       setWhatsappConnected(validPhones.length > 0);
       const preferred = validPhones.find((p) => p.status === 'connected') || validPhones[0] || null;
       setPrimaryPhoneId(preferred?.id || null);
 
+      // Source of truth: tenants.whatsapp_profile_completed. Fallback to legacy localStorage.
+      const dbProfileDone = !!(tenantRow as any)?.whatsapp_profile_completed;
       const lsProfile = localStorage.getItem(lsKey(tenantId, 'profileCompleted'));
-      setProfileCompleted(lsProfile === '1');
+      setProfileCompleted(dbProfileDone || lsProfile === '1');
     } catch (e) {
       console.error('[useOnboardingProgress] failed:', e);
     } finally {
