@@ -176,7 +176,7 @@ interface ThemeContextType {
 
 const defaultAppearance: WorkspaceAppearance = {
   theme: 'default',
-  mode: 'system',
+  mode: 'light',
   accent_color: null,
   sidebar_color: null,
   density: 'comfortable',

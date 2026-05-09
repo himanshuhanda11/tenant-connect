@@ -10,6 +10,8 @@ import { useTenant } from '@/contexts/TenantContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { MetaEmbeddedSignup } from '@/components/meta/MetaEmbeddedSignup';
 import { useDashboardData } from '@/hooks/useDashboardData';
+import { useOnboardingProgress } from '@/hooks/useOnboardingProgress';
+import OnboardingGate from '@/components/onboarding/OnboardingGate';
 import { cn } from '@/lib/utils';
 import type { DashboardFilters } from '@/types/dashboard';
 import {
@@ -137,7 +139,8 @@ export default function Dashboard() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-3 sm:space-y-5 max-w-[1200px] mx-auto px-2 py-3 sm:px-6 sm:py-6 animate-fade-in">
+      <OnboardingGate onConnectWhatsApp={() => setEmbeddedSignupOpen(true)}>
+        <div className="space-y-3 sm:space-y-5 max-w-[1200px] mx-auto px-2 py-3 sm:px-6 sm:py-6 animate-fade-in">
 
         {/* ═══════════════════════════════════════════════
             SECTION 1: HERO — Greeting + Refresh
@@ -531,6 +534,7 @@ export default function Dashboard() {
         {/* Bottom spacer for mobile */}
         <div className="h-4" />
       </div>
+      </OnboardingGate>
 
       {/* Embedded Signup Dialog */}
       <Dialog open={embeddedSignupOpen} onOpenChange={setEmbeddedSignupOpen}>
