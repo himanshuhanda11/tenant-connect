@@ -23,7 +23,11 @@ async function adminFetch(path: string, options: RequestInit = {}) {
   const json = await res.json();
   if (!res.ok) {
     console.error(`[Admin API] Error ${res.status}:`, json);
-    throw new Error(json.error || `Request failed (${res.status})`);
+    const msg = json.message || json.error || `Request failed (${res.status})`;
+    const err: any = new Error(msg);
+    err.status = res.status;
+    err.body = json;
+    throw err;
   }
   console.log(`[Admin API] Success:`, path);
   return json;

@@ -1626,17 +1626,65 @@ Deno.serve(async (req: Request) => {
       });
     }
 
-    // POST /users/:id/delete — hard delete the signup (auth user + profile + owned workspaces)
+    // POST /users/:id/delete — hard delete the signup (auth user + profile)
+    // SAFETY: Refuses if the user still owns workspaces or has connected WhatsApp numbers.
+    // Admin must disconnect numbers and delete owned workspaces FIRST.
     if (req.method === "POST" && path.match(/^users\/[^/]+\/delete$/)) {
       const userId = path.split("/")[1];
       const actor = await requirePlatformRole(req, ["super_admin"]);
       const sb = adminClient();
       const body = await req.json().catch(() => ({}));
       const reason = body.reason || null;
+      const force = body.force === true;
 
+      // Step 1: check owned workspaces
       const { data: owned } = await sb.from("tenant_members")
-        .select("tenant_id").eq("user_id", userId).eq("role", "owner");
-      const ownedIds = (owned || []).map((r: any) => r.tenant_id);
+        .select("tenant_id, tenants(id, name)").eq("user_id", userId).eq("role", "owner");
+      const ownedRows = (owned || []) as any[];
+      const ownedIds = ownedRows.map((r: any) => r.tenant_id);
+
+      // Step 2: check connected WhatsApp numbers in those workspaces
+      let connectedNumbers: any[] = [];
+      if (ownedIds.length) {
+        const { data: nums } = await sb.from("phone_numbers")
+          .select("id, display_phone_number, tenant_id")
+          .in("tenant_id", ownedIds);
+        connectedNumbers = nums || [];
+      }
+
+      if (!force) {
+        if (connectedNumbers.length > 0) {
+          return new Response(JSON.stringify({
+            success: false,
+            blocked: true,
+            reason: "phone_numbers_connected",
+            message: `This account has ${connectedNumbers.length} connected WhatsApp number(s). Please disconnect all WhatsApp numbers first, then delete the workspace(s), then delete the account.`,
+            phone_numbers: connectedNumbers.map((n: any) => ({
+              id: n.id,
+              number: n.display_phone_number,
+              workspace_id: n.tenant_id,
+            })),
+          }), {
+            status: 409,
+            headers: { ...corsHeaders, "content-type": "application/json" },
+          });
+        }
+        if (ownedIds.length > 0) {
+          return new Response(JSON.stringify({
+            success: false,
+            blocked: true,
+            reason: "workspaces_exist",
+            message: `This account still owns ${ownedIds.length} workspace(s). Please delete the workspace(s) first, then delete the account.`,
+            workspaces: ownedRows.map((r: any) => ({
+              id: r.tenant_id,
+              name: r.tenants?.name ?? null,
+            })),
+          }), {
+            status: 409,
+            headers: { ...corsHeaders, "content-type": "application/json" },
+          });
+        }
+      }
 
       // Generate contacts archive BEFORE deletion (best-effort, do not block)
       try {
@@ -1653,17 +1701,20 @@ Deno.serve(async (req: Request) => {
         console.error("[admin-api] archive export failed:", e?.message);
       }
 
-      const childTables = [
-        "messages","conversations","contacts","campaigns","campaign_jobs","templates",
-        "phone_numbers","waba_accounts","workspace_phone_numbers","workspace_entitlements",
-        "tenant_members","audit_logs","onboarding_events","flow_sessions","flows",
-        "automation_workflows","forms","form_submissions","tags","contact_tags",
-      ];
-      for (const tid of ownedIds) {
-        for (const t of childTables) {
-          try { await sb.from(t).delete().eq("tenant_id", tid); } catch (_) { /* ignore */ }
+      // Force-delete path (only if explicitly requested) — clean up child rows then workspaces
+      if (force && ownedIds.length) {
+        const childTables = [
+          "messages","conversations","contacts","campaigns","campaign_jobs","templates",
+          "phone_numbers","waba_accounts","workspace_phone_numbers","workspace_entitlements",
+          "tenant_members","audit_logs","onboarding_events","flow_sessions","flows",
+          "automation_workflows","forms","form_submissions","tags","contact_tags",
+        ];
+        for (const tid of ownedIds) {
+          for (const t of childTables) {
+            try { await sb.from(t).delete().eq("tenant_id", tid); } catch (_) { /* ignore */ }
+          }
+          try { await sb.from("tenants").delete().eq("id", tid); } catch (_) { /* ignore */ }
         }
-        try { await sb.from("tenants").delete().eq("id", tid); } catch (_) { /* ignore */ }
       }
 
       await sb.from("onboarding_events").delete().eq("user_id", userId);
@@ -1673,9 +1724,9 @@ Deno.serve(async (req: Request) => {
 
       await logAction(sb, actor, "PLATFORM_USER_HARD_DELETE", {
         target_table: "auth.users", target_id: userId,
-        note: reason || `Hard deleted user + ${ownedIds.length} workspace(s)`,
+        note: reason || `Hard deleted user${force ? ` (forced) + ${ownedIds.length} workspace(s)` : ''}`,
       });
-      return new Response(JSON.stringify({ success: true, deleted_workspaces: ownedIds.length }), {
+      return new Response(JSON.stringify({ success: true, deleted_workspaces: force ? ownedIds.length : 0 }), {
         headers: { ...corsHeaders, "content-type": "application/json" },
       });
     }
