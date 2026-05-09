@@ -63,7 +63,7 @@ export default function OnboardingGate({ children, onConnectWhatsApp }: Props) {
             // refresh from DB after a beat in case entitlements row was created
             setTimeout(() => progress.refresh(), 600);
           }}
-          onPaidIntent={() => navigate('/pricing')}
+          onPaidIntent={() => { /* trial activates inline; no redirect */ }}
         />
       )}
     </div>
