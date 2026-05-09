@@ -1,5 +1,6 @@
 import { getAdminClient, json, corsHeaders } from "../_shared/supabase.ts";
 import { requireUser, requireTenantRole } from "../_shared/guards.ts";
+import { requirePlanAccess } from "../_shared/planAccess.ts";
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -28,6 +29,10 @@ Deno.serve(async (req) => {
 
     const perm = await requireTenantRole(workspaceId, auth.user.id, ["owner", "admin"]);
     if (!perm.ok) return json({ error: perm.error }, 403);
+
+    // Plan gate: connecting a WhatsApp number requires Basic+
+    const planCheck = await requirePlanAccess(workspaceId, "connect_whatsapp_number");
+    if (!planCheck.ok) return planCheck.res;
 
     const admin = getAdminClient();
 

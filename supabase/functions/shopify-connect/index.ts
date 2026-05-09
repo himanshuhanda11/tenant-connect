@@ -1,6 +1,7 @@
 import { corsHeaders, json } from "../_shared/supabase.ts";
 import { requireUser } from "../_shared/guards.ts";
 import { getAdminClient } from "../_shared/supabase.ts";
+import { requirePlanAccess } from "../_shared/planAccess.ts";
 
 const SHOPIFY_API_KEY = Deno.env.get("SHOPIFY_API_KEY") || "";
 const SHOPIFY_API_SECRET = Deno.env.get("SHOPIFY_API_SECRET") || "";
@@ -30,6 +31,10 @@ Deno.serve(async (req: Request) => {
     if (!storeDomain || !tenantId) {
       return json({ error: "storeDomain and tenantId required" }, 400);
     }
+
+    // Plan gate: connecting a third-party integration requires Pro+
+    const planCheck = await requirePlanAccess(tenantId, "create_integration");
+    if (!planCheck.ok) return planCheck.res;
 
     // Normalize domain
     let shop = storeDomain.trim().toLowerCase();
