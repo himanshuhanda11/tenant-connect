@@ -366,8 +366,9 @@ export default function SelectWorkspace() {
     const { error, tenant } = await createTenant(name, slug);
     if (!error && tenant) {
       setModalOpen(false);
-      // After workspace creation → always send to plan selection scoped to this workspace.
-      navigate(`/select-workspace-plan?workspace_id=${tenant.id}${connectNow ? '&connect=1' : ''}`);
+      setCurrentTenant(tenant);
+      // Enter dashboard directly; dashboard banner will prompt for plan selection.
+      navigate(`/dashboard?select_plan=1${connectNow ? '&connect=1' : ''}`);
     }
     setIsCreating(false);
   };
