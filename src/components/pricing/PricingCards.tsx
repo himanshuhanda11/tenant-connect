@@ -98,7 +98,7 @@ export default function PricingCards({ isAnnual }: PricingCardsProps) {
                       <div>
                         {isAnnual && (
                           <span className="text-sm text-muted-foreground line-through block mb-0.5">
-                            {formatPrice(plan.price as number)}
+                            {formatPrice(getBasePrice(plan))}
                           </span>
                         )}
                         <div className="flex items-baseline justify-center gap-0.5">
