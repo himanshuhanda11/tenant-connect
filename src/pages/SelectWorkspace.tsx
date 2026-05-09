@@ -524,15 +524,9 @@ export default function SelectWorkspace() {
           </div>
         </header>
 
-        <main
-          className={cn(
-            "relative",
-            !loadingDetails && workspaces.length === 0
-              ? "px-0 py-0"
-              : "container mx-auto px-3 sm:px-6 py-6 sm:py-10 max-w-7xl pb-24 md:pb-12",
-          )}
-        >
-          {!loadingDetails && workspaces.length === 0 ? (() => {
+        <main className="relative pb-24 md:pb-12">
+          {/* Premium Split-Hero is ALWAYS shown at the top */}
+          {(() => {
             const meta: any = (user as any)?.user_metadata || {};
             const displayName =
               profile?.full_name ||
@@ -552,327 +546,113 @@ export default function SelectWorkspace() {
                 }
               />
             );
-          })() : (<>
-          {/* Welcome banner with full name */}
-          {(() => {
-            const meta: any = (user as any)?.user_metadata || {};
-            const displayName =
-              profile?.full_name ||
-              meta.full_name ||
-              meta.name ||
-              meta.display_name ||
-              (user?.email?.split('@')[0] ?? '');
-            return (user?.email || displayName) ? (
-            <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, ease: 'easeOut' }}
-              className="mb-8 flex items-center gap-4 px-5 sm:px-6 py-4 sm:py-5 rounded-3xl bg-gradient-to-r from-white/90 via-emerald-50/70 to-teal-50/60 backdrop-blur-xl border border-emerald-100/80 shadow-[0_8px_30px_-12px_rgba(16,185,129,0.25)]"
-            >
-              <motion.div
-                initial={{ scale: 0.6, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{ delay: 0.1, type: 'spring', stiffness: 240, damping: 16 }}
-                className="relative w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center text-white font-bold text-lg sm:text-xl shadow-lg shadow-emerald-500/30 flex-shrink-0"
-              >
-                {(displayName || '?').charAt(0).toUpperCase()}
-                <span className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-emerald-400 border-2 border-white shadow-sm" />
-              </motion.div>
-              <div className="min-w-0 flex-1">
-                <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 truncate flex items-center gap-2">
-                  Welcome,&nbsp;
-                  <span className="bg-gradient-to-r from-emerald-600 via-green-600 to-teal-600 bg-clip-text text-transparent truncate">
-                    {displayName}
-                  </span>
-                  <span className="inline-block animate-[pulse_2s_ease-in-out_infinite]">👋</span>
-                </h2>
-                <p className="text-xs sm:text-sm text-slate-600 mt-0.5 truncate">
-                  Let's create your first workspace and start growing with WhatsApp automation.
-                </p>
-              </div>
-            </motion.div>
-            ) : null;
           })()}
 
-
-          {/* HERO: Command Center */}
-          <motion.section
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className="grid grid-cols-1 lg:grid-cols-5 gap-5 mb-8"
-          >
-            {/* Left: title + stats */}
-            <div className="lg:col-span-3 space-y-5">
-              <div>
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-100/80 border border-emerald-200/70 text-emerald-700 text-[11px] font-semibold mb-3">
-                  <Sparkles className="w-3 h-3" />
-                  Workspace Command Center
-                </span>
-                <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-slate-900 leading-tight">
-                  Workspace <span className="bg-gradient-to-r from-emerald-500 to-green-600 bg-clip-text text-transparent">Command Center</span>
-                </h1>
-                <p className="mt-3 text-sm sm:text-base text-slate-600 max-w-xl">
-                  Manage all your WhatsApp API numbers, teams, automation and business conversations from one powerful dashboard.
-                </p>
-              </div>
-
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
-                <StatCard icon={Building2} label="Total Workspaces" value={workspaces.length} gradient="from-emerald-500 to-green-600" delay={0.05} />
-                <StatCard icon={Wifi} label="WhatsApp Connected" value={connectedCount} gradient="from-teal-500 to-emerald-600" delay={0.1} />
-                <StatCard icon={AlertCircle} label="Setup Pending" value={setupPending} gradient="from-amber-400 to-orange-500" delay={0.15} />
-                <StatCard icon={MessageSquare} label="Messages / Week" value={totalMessages} gradient="from-green-500 to-lime-600" delay={0.2} />
-              </div>
-            </div>
-
-            {/* Right: analytics graph */}
-            <motion.div
-              initial={{ opacity: 0, scale: 0.96 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.2, duration: 0.5 }}
-              className="lg:col-span-2 relative overflow-hidden rounded-3xl bg-white/80 backdrop-blur-xl border border-emerald-100/80 p-5 shadow-[0_10px_40px_-15px_rgba(16,185,129,0.25)]"
-            >
-              <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-emerald-200/40 blur-3xl" />
-              <div className="relative flex items-start justify-between mb-3">
-                <div>
-                  <p className="text-xs text-slate-500 font-medium">Weekly activity</p>
-                  <h3 className="text-lg font-bold text-slate-900">Messages overview</h3>
-                </div>
-                <span className="inline-flex items-center gap-1 text-emerald-600 text-xs font-semibold bg-emerald-50 border border-emerald-200/70 px-2 py-1 rounded-lg">
-                  <TrendingUp className="w-3 h-3" /> +18%
-                </span>
-              </div>
-              <div className="relative h-32 sm:h-36">
-                <WeeklyActivityChart data={chartData} />
-              </div>
-              <div className="relative grid grid-cols-7 gap-1 mt-1 text-[10px] text-slate-400 font-medium text-center">
-                {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((d, i) => (
-                  <div key={i}>{d}</div>
-                ))}
-              </div>
-              <div className="relative grid grid-cols-3 gap-2 mt-4 pt-4 border-t border-emerald-100/70">
-                <div className="flex items-center gap-1.5 text-[11px] text-slate-600">
-                  <Smartphone className="w-3.5 h-3.5 text-emerald-600" /> WA Active
-                </div>
-                <div className="flex items-center gap-1.5 text-[11px] text-slate-600">
-                  <Zap className="w-3.5 h-3.5 text-emerald-600" /> Automations
-                </div>
-                <div className="flex items-center gap-1.5 text-[11px] text-slate-600">
-                  <Users className="w-3.5 h-3.5 text-emerald-600" /> Teams
-                </div>
-              </div>
-            </motion.div>
-          </motion.section>
-
-          {/* CREATE WORKSPACE GLASS PANEL */}
-          {canCreateWorkspace && (
-            <motion.section
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.25, duration: 0.5 }}
-              className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-white/90 via-emerald-50/60 to-teal-50/40 backdrop-blur-xl border border-emerald-100/80 shadow-[0_15px_50px_-20px_rgba(16,185,129,0.25)] mb-10"
-            >
-              <div className="absolute -top-20 -right-20 w-72 h-72 rounded-full bg-emerald-300/20 blur-3xl" />
-              <div className="absolute -bottom-20 -left-10 w-72 h-72 rounded-full bg-teal-300/15 blur-3xl" />
-
-              <div className="relative grid grid-cols-1 md:grid-cols-2 gap-6 p-6 sm:p-8 lg:p-10 items-center">
-                <div>
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white border border-emerald-200/80 text-emerald-700 text-[11px] font-semibold mb-3 shadow-sm">
-                    <Sparkles className="w-3 h-3" />
-                    Get Started
-                  </span>
-                  <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">
-                    Create a New WhatsApp Workspace
-                  </h2>
-                  <p className="mt-2 text-sm sm:text-base text-slate-600 max-w-md">
-                    Connect a new brand, branch, client or WhatsApp number in minutes.
-                  </p>
-                  <div className="mt-5 flex flex-col sm:flex-row gap-3">
-                    <Button
-                      onClick={() => setModalOpen(true)}
-                      className="h-12 px-6 rounded-2xl font-semibold text-white bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 shadow-lg shadow-emerald-500/30 hover:shadow-emerald-500/50 transition-all"
-                    >
-                      <Plus className="w-4 h-4 mr-1" />
-                      Create Workspace
-                    </Button>
-                    <Button asChild variant="outline" className="h-12 px-6 rounded-2xl font-semibold border-emerald-200 text-slate-700 hover:bg-emerald-50 hover:text-emerald-700">
-                      <Link to="/help/workspaces">
-                        How Workspaces Work
-                        <ArrowRight className="w-4 h-4 ml-1" />
-                      </Link>
-                    </Button>
-                  </div>
-                </div>
-
-                {/* 3D-style illustration via SVG */}
-                <div className="relative h-56 sm:h-64 hidden md:block">
-                  <motion.div
-                    animate={{ y: [0, -8, 0] }}
-                    transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
-                    className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
-                  >
-                    <div className="relative w-40 h-64 rounded-[2rem] bg-gradient-to-br from-slate-900 to-slate-700 shadow-2xl border-4 border-slate-800 overflow-hidden">
-                      <div className="absolute inset-2 rounded-[1.5rem] bg-gradient-to-br from-emerald-50 to-white p-3">
-                        <div className="w-full h-1 rounded-full bg-emerald-100 mb-3" />
-                        <div className="space-y-2">
-                          <div className="flex items-center gap-2">
-                            <div className="w-6 h-6 rounded-full bg-gradient-to-br from-emerald-400 to-green-600" />
-                            <div className="flex-1 h-2 rounded-full bg-emerald-100" />
-                          </div>
-                          <div className="ml-8 h-8 rounded-xl rounded-tl-sm bg-emerald-100/80 px-2 flex items-center">
-                            <div className="h-1.5 w-12 rounded-full bg-emerald-300" />
-                          </div>
-                          <div className="ml-auto w-24 h-8 rounded-xl rounded-tr-sm bg-gradient-to-br from-emerald-400 to-green-500" />
-                          <div className="ml-8 h-8 rounded-xl rounded-tl-sm bg-emerald-100/80" />
-                        </div>
-                      </div>
-                    </div>
-                  </motion.div>
-
-                  {/* Floating chips */}
-                  {[
-                    { icon: MessageSquare, x: '-10%', y: '10%', delay: 0 },
-                    { icon: Users, x: '85%', y: '20%', delay: 0.4 },
-                    { icon: Zap, x: '-5%', y: '70%', delay: 0.8 },
-                    { icon: TrendingUp, x: '85%', y: '70%', delay: 1.2 },
-                  ].map((chip, i) => (
-                    <motion.div
-                      key={i}
-                      animate={{ y: [0, -10, 0] }}
-                      transition={{ duration: 3 + i * 0.3, repeat: Infinity, delay: chip.delay, ease: 'easeInOut' }}
-                      style={{ left: chip.x, top: chip.y }}
-                      className="absolute w-12 h-12 rounded-2xl bg-white shadow-xl border border-emerald-100 flex items-center justify-center"
-                    >
-                      <chip.icon className="w-5 h-5 text-emerald-600" />
-                    </motion.div>
-                  ))}
-                </div>
-              </div>
-            </motion.section>
-          )}
-
-          {/* WORKSPACES LIST */}
-          {loadingDetails ? (
-            <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-              {[1, 2, 3].map((i) => (
-                <div key={i} className="rounded-3xl bg-white/70 border border-emerald-100/60 p-6">
-                  <div className="flex gap-3 mb-4">
-                    <Skeleton className="w-14 h-14 rounded-full" />
-                    <div className="flex-1"><Skeleton className="h-5 w-32 mb-2" /><Skeleton className="h-4 w-20" /></div>
-                  </div>
-                  <Skeleton className="h-10 w-full mb-3" />
-                  <Skeleton className="h-20 w-full mb-3" />
-                  <Skeleton className="h-10 w-full" />
-                </div>
-              ))}
-            </div>
-          ) : workspaces.length === 0 ? (
-            <WorkspaceEmptyState />
-          ) : (
-            <section>
-              <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-5">
-                <div>
-                  <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">Your Workspaces</h2>
-                  <p className="text-sm text-slate-500 mt-1">All your connected WhatsApp API workspaces in one place.</p>
-                </div>
-                <div className="flex flex-wrap items-center gap-2">
-                  <div className="relative flex-1 sm:flex-none sm:w-64">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                    <Input
-                      placeholder="Search workspaces..."
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      className="pl-9 h-10 text-sm rounded-2xl border-emerald-100 bg-white/80 backdrop-blur focus-visible:ring-emerald-500/30"
-                    />
-                  </div>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="outline" size="sm" className="gap-1.5 h-10 rounded-2xl border-emerald-100 bg-white/80 text-slate-700">
-                        <Filter className="w-4 h-4" />
-                        <span className="hidden sm:inline">Filter</span>
-                        <ChevronDown className="w-3 h-3" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={() => setFilterBy('all')}>All {filterBy === 'all' && '✓'}</DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => setFilterBy('connected')}>Connected {filterBy === 'connected' && '✓'}</DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => setFilterBy('setup')}>Needs setup {filterBy === 'setup' && '✓'}</DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="outline" size="sm" className="gap-1.5 h-10 rounded-2xl border-emerald-100 bg-white/80 text-slate-700">
-                        <span className="hidden sm:inline">{sortLabels[sortBy]}</span>
-                        <span className="sm:hidden">Sort</span>
-                        <ChevronDown className="w-3 h-3" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={() => setSortBy('recent')}>Recently opened {sortBy === 'recent' && '✓'}</DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => setSortBy('newest')}>Newest first {sortBy === 'newest' && '✓'}</DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => setSortBy('alphabetical')}>Alphabetical {sortBy === 'alphabetical' && '✓'}</DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                  <Button
-                    variant="outline" size="icon"
-                    onClick={handleRefresh}
-                    disabled={isRefreshing}
-                    className="h-10 w-10 rounded-2xl border-emerald-100 bg-white/80 text-slate-700"
-                  >
-                    <RefreshCw className={cn("w-4 h-4", isRefreshing && "animate-spin")} />
-                  </Button>
-                </div>
-              </div>
-
-              {filteredWorkspaces.length === 0 ? (
-                <div className="text-center py-12 bg-white/60 backdrop-blur rounded-3xl border border-emerald-100/70">
-                  <p className="text-slate-500">No workspaces match your filters.</p>
-                  <Button variant="link" onClick={() => { setSearchQuery(''); setFilterBy('all'); }} className="mt-2 text-emerald-600">
-                    Clear filters
-                  </Button>
-                </div>
-              ) : (
-                <div className="grid gap-4 sm:gap-5 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-                  {filteredWorkspaces.map((workspace) => (
-                    <WorkspaceTile
-                      key={workspace.id}
-                      workspace={workspace}
-                      onSelect={() => handleSelectWorkspace(workspace)}
-                      onRename={() => { setRenameTarget(workspace); setRenameValue(workspace.name); }}
-                      onManageMembers={() => handleManageMembers(workspace)}
-                      onSettings={() => handleSettings(workspace)}
-                      onArchive={() => setArchiveTarget(workspace)}
-                    />
-                  ))}
-                </div>
-              )}
-            </section>
-          )}
-
-          {/* Security footer */}
+          {/* Existing workspaces list — only when the user has at least one */}
           {workspaces.length > 0 && (
-            <motion.div
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4 }}
-              className="mt-10 sm:mt-14 relative overflow-hidden rounded-3xl bg-gradient-to-br from-emerald-600 via-green-600 to-teal-600 p-5 sm:p-6 text-white shadow-2xl"
-            >
-              <div className="absolute -top-10 -right-10 w-48 h-48 rounded-full bg-white/10 blur-3xl" />
-              <div className="relative flex flex-col sm:flex-row items-start sm:items-center gap-4">
-                <div className="w-12 h-12 rounded-2xl bg-white/15 backdrop-blur flex items-center justify-center shrink-0 ring-1 ring-white/20">
-                  <ShieldCheck className="w-6 h-6 text-white" />
+            <div className="container mx-auto px-3 sm:px-6 py-8 sm:py-12 max-w-7xl">
+              <section>
+                <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-5">
+                  <div>
+                    <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">Your Workspaces</h2>
+                    <p className="text-sm text-slate-500 mt-1">All your connected WhatsApp API workspaces in one place.</p>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <div className="relative flex-1 sm:flex-none sm:w-64">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                      <Input
+                        placeholder="Search workspaces..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="pl-9 h-10 text-sm rounded-2xl border-emerald-100 bg-white/80 backdrop-blur focus-visible:ring-emerald-500/30"
+                      />
+                    </div>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="outline" size="sm" className="gap-1.5 h-10 rounded-2xl border-emerald-100 bg-white/80 text-slate-700">
+                          <Filter className="w-4 h-4" />
+                          <span className="hidden sm:inline">Filter</span>
+                          <ChevronDown className="w-3 h-3" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => setFilterBy('all')}>All {filterBy === 'all' && '✓'}</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => setFilterBy('connected')}>Connected {filterBy === 'connected' && '✓'}</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => setFilterBy('setup')}>Needs setup {filterBy === 'setup' && '✓'}</DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="outline" size="sm" className="gap-1.5 h-10 rounded-2xl border-emerald-100 bg-white/80 text-slate-700">
+                          <span className="hidden sm:inline">{sortLabels[sortBy]}</span>
+                          <span className="sm:hidden">Sort</span>
+                          <ChevronDown className="w-3 h-3" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => setSortBy('recent')}>Recently opened {sortBy === 'recent' && '✓'}</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => setSortBy('newest')}>Newest first {sortBy === 'newest' && '✓'}</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => setSortBy('alphabetical')}>Alphabetical {sortBy === 'alphabetical' && '✓'}</DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                    <Button
+                      variant="outline" size="icon"
+                      onClick={handleRefresh}
+                      disabled={isRefreshing}
+                      className="h-10 w-10 rounded-2xl border-emerald-100 bg-white/80 text-slate-700"
+                    >
+                      <RefreshCw className={cn("w-4 h-4", isRefreshing && "animate-spin")} />
+                    </Button>
+                  </div>
                 </div>
-                <div className="flex-1">
-                  <h3 className="font-semibold text-base">Your data is secure and encrypted.</h3>
-                  <p className="text-sm text-white/80 mt-0.5">Each workspace is linked to one WhatsApp Business API number.</p>
+
+                {filteredWorkspaces.length === 0 ? (
+                  <div className="text-center py-12 bg-white/60 backdrop-blur rounded-3xl border border-emerald-100/70">
+                    <p className="text-slate-500">No workspaces match your filters.</p>
+                    <Button variant="link" onClick={() => { setSearchQuery(''); setFilterBy('all'); }} className="mt-2 text-emerald-600">
+                      Clear filters
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="grid gap-4 sm:gap-5 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+                    {filteredWorkspaces.map((workspace) => (
+                      <WorkspaceTile
+                        key={workspace.id}
+                        workspace={workspace}
+                        onSelect={() => handleSelectWorkspace(workspace)}
+                        onRename={() => { setRenameTarget(workspace); setRenameValue(workspace.name); }}
+                        onManageMembers={() => handleManageMembers(workspace)}
+                        onSettings={() => handleSettings(workspace)}
+                        onArchive={() => setArchiveTarget(workspace)}
+                      />
+                    ))}
+                  </div>
+                )}
+              </section>
+
+              {/* Security footer */}
+              <motion.div
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4 }}
+                className="mt-10 sm:mt-14 relative overflow-hidden rounded-3xl bg-gradient-to-br from-emerald-600 via-green-600 to-teal-600 p-5 sm:p-6 text-white shadow-2xl"
+              >
+                <div className="absolute -top-10 -right-10 w-48 h-48 rounded-full bg-white/10 blur-3xl" />
+                <div className="relative flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                  <div className="w-12 h-12 rounded-2xl bg-white/15 backdrop-blur flex items-center justify-center shrink-0 ring-1 ring-white/20">
+                    <ShieldCheck className="w-6 h-6 text-white" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-base">Your data is secure and encrypted.</h3>
+                    <p className="text-sm text-white/80 mt-0.5">Each workspace is linked to one WhatsApp Business API number.</p>
+                  </div>
+                  <Button asChild variant="secondary" className="bg-white text-emerald-700 hover:bg-emerald-50 rounded-2xl font-semibold w-full sm:w-auto">
+                    <Link to="/security">Learn more <ArrowRight className="w-4 h-4 ml-1" /></Link>
+                  </Button>
                 </div>
-                <Button asChild variant="secondary" className="bg-white text-emerald-700 hover:bg-emerald-50 rounded-2xl font-semibold w-full sm:w-auto">
-                  <Link to="/security">Learn more <ArrowRight className="w-4 h-4 ml-1" /></Link>
-                </Button>
-              </div>
-            </motion.div>
+              </motion.div>
+            </div>
           )}
-          </>)}
         </main>
 
         {/* Mobile sticky CTA */}
