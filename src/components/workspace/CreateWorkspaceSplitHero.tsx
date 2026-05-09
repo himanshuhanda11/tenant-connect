@@ -360,12 +360,12 @@ export default function CreateWorkspaceSplitHero({
                     Category
                   </Label>
                   <Select value={category} onValueChange={setCategory}>
-                    <SelectTrigger className="h-11 rounded-xl border-emerald-200 bg-white text-slate-900 text-sm data-[placeholder]:text-slate-400">
-                      <SelectValue placeholder="Select" />
+                    <SelectTrigger className="h-11 rounded-xl border-emerald-200 bg-white text-sm text-slate-900 [&>span]:text-slate-900 data-[placeholder]:[&>span]:text-slate-500">
+                      <SelectValue placeholder="Select category" />
                     </SelectTrigger>
-                    <SelectContent className="bg-white text-slate-900">
+                    <SelectContent className="bg-white text-slate-900 z-[60]">
                       {CATEGORIES.map((c) => (
-                        <SelectItem key={c} value={c}>{c}</SelectItem>
+                        <SelectItem key={c} value={c} className="text-slate-900 focus:bg-emerald-50 focus:text-emerald-700">{c}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
@@ -375,12 +375,12 @@ export default function CreateWorkspaceSplitHero({
                     Team Size
                   </Label>
                   <Select value={teamSize} onValueChange={setTeamSize}>
-                    <SelectTrigger className="h-11 rounded-xl border-emerald-200 bg-white text-slate-900 text-sm data-[placeholder]:text-slate-400">
-                      <SelectValue placeholder="Select" />
+                    <SelectTrigger className="h-11 rounded-xl border-emerald-200 bg-white text-sm text-slate-900 [&>span]:text-slate-900 data-[placeholder]:[&>span]:text-slate-500">
+                      <SelectValue placeholder="Select size" />
                     </SelectTrigger>
-                    <SelectContent className="bg-white text-slate-900">
+                    <SelectContent className="bg-white text-slate-900 z-[60]">
                       {TEAM_SIZES.map((t) => (
-                        <SelectItem key={t} value={t}>{t}</SelectItem>
+                        <SelectItem key={t} value={t} className="text-slate-900 focus:bg-emerald-50 focus:text-emerald-700">{t}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
