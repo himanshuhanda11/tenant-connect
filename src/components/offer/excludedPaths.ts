@@ -9,7 +9,10 @@ export function isOfferExcludedPath(pathname: string): boolean {
     pathname.startsWith('/onboarding') ||
     pathname.startsWith('/invite') ||
     pathname.startsWith('/admin') ||
-    pathname.startsWith('/control')
+    pathname.startsWith('/control') ||
+    pathname.startsWith('/select-workspace') ||
+    pathname.startsWith('/create-workspace') ||
+    pathname.startsWith('/workspaces')
   );
 }
 
