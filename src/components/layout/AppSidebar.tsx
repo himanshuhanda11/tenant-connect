@@ -185,6 +185,7 @@ export function AppSidebar() {
       { title: 'Automation', url: '/dashboard/integrations/instagram/automation', icon: Sparkles, key: 'instagram-automation' },
     ] as MenuItem[] }]),
     ...(isAgent ? [] : [{ label: 'Team', icon: Users, items: teamMenuItems }]),
+    ...(isAgent ? [] : [{ label: 'Workspace', icon: Cog, items: settingsMenuItems }]),
   ];
 
   const filteredSettingsMenuItems = isAgent
