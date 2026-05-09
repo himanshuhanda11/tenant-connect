@@ -129,7 +129,10 @@ export default function PricingHero({ isAnnual, setIsAnnual }: PricingHeroProps)
             transition={{ duration: 0.8, delay: 0.2, ease: 'easeOut' }}
           >
             {/* Glow halo */}
-            <div className="absolute inset-0 bg-gradient-radial from-primary/20 via-transparent to-transparent blur-3xl" />
+            <div
+              className="absolute inset-0 blur-3xl"
+              style={{ background: 'radial-gradient(circle at center, hsl(var(--primary) / 0.25), transparent 70%)' }}
+            />
             <motion.img
               src={heroImage}
               alt="Premium WhatsApp pricing"
