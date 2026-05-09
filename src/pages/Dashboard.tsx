@@ -161,8 +161,9 @@ export default function Dashboard() {
   const currentHour = new Date().getHours();
   const greeting = currentHour < 12 ? 'Good morning' : currentHour < 18 ? 'Good afternoon' : 'Good evening';
 
-  const hasPhoneConnected = phoneHealth.length > 0;
-  const isWABAConnected = hasPhoneConnected && phoneHealth.some(p => p.webhookHealth === 'healthy');
+  const onboarding = useOnboardingProgress(currentTenant?.id);
+  const hasPhoneConnected = phoneHealth.length > 0 || onboarding.whatsappConnected;
+  const isWABAConnected = hasPhoneConnected && (phoneHealth.length === 0 || phoneHealth.some(p => p.webhookHealth === 'healthy'));
   const primaryPhone = phoneHealth[0];
   const openChats = (kpis.find(k => k.id === 'open')?.value as number) || 0;
   const unassigned = (kpis.find(k => k.id === 'unassigned')?.value as number) || 0;
@@ -321,7 +322,7 @@ export default function Dashboard() {
         {/* ═══════════════════════════════════════════════
             SECTION 2: WHATSAPP STATUS — Premium Strip
         ═══════════════════════════════════════════════ */}
-        {!loading && !hasPhoneConnected && (
+        {!loading && !onboarding.loading && !hasPhoneConnected && (
           <div className="relative overflow-hidden rounded-2xl border border-destructive/30 bg-gradient-to-br from-destructive/10 via-destructive/5 to-transparent p-4 sm:p-6 flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4">
             <div className="h-11 w-11 sm:h-12 sm:w-12 rounded-2xl bg-destructive/15 flex items-center justify-center flex-shrink-0 shadow-md">
               <Phone className="h-5 w-5 sm:h-6 sm:w-6 text-destructive" />
