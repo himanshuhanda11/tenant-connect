@@ -27,11 +27,12 @@ export function WhatsAppConnectBanner() {
     }
 
     const check = async () => {
-      const { count } = await supabase
+      const { data } = await supabase
         .from('phone_numbers')
-        .select('*', { count: 'exact', head: true })
+        .select('id,status')
         .eq('tenant_id', currentTenant.id);
-      setHasPhone((count ?? 0) > 0);
+      const valid = (data || []).filter((p: any) => !['disconnected', 'banned'].includes(p.status));
+      setHasPhone(valid.length > 0);
     };
     check();
   }, [currentTenant]);
