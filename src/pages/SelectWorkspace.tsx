@@ -366,7 +366,7 @@ export default function SelectWorkspace() {
     const { error, tenant } = await createTenant(name, slug);
     if (!error && tenant) {
       setModalOpen(false);
-      setCurrentTenant(tenant);
+      setCurrentTenant({ ...(tenant as any), role: 'owner' });
       // Enter dashboard directly; dashboard banner will prompt for plan selection.
       navigate(`/dashboard?select_plan=1${connectNow ? '&connect=1' : ''}`);
     }
