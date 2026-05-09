@@ -1,5 +1,6 @@
 import { getAdminClient, getUserClient, corsHeaders, json } from "../_shared/supabase.ts";
 import { requireUser, requireTenantRole } from "../_shared/guards.ts";
+import { requirePlanAccess } from "../_shared/planAccess.ts";
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
