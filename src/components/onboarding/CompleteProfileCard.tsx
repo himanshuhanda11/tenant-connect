@@ -8,6 +8,7 @@ import {
 
 interface Props {
   onMarkDone: () => void;
+  phoneId?: string | null;
 }
 
 const TASKS = [
@@ -19,8 +20,12 @@ const TASKS = [
   { icon: MapPin, label: 'Address' },
 ];
 
-export default function CompleteProfileCard({ onMarkDone }: Props) {
+export default function CompleteProfileCard({ onMarkDone, phoneId }: Props) {
   const navigate = useNavigate();
+  const goToProfile = () => {
+    if (phoneId) navigate(`/phone-numbers/${phoneId}?tab=profile`);
+    else navigate('/phone-numbers');
+  };
   return (
     <motion.div
       initial={{ opacity: 0, y: 12 }}
@@ -56,7 +61,7 @@ export default function CompleteProfileCard({ onMarkDone }: Props) {
 
         <div className="mt-4 sm:mt-5 flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
           <Button
-            onClick={() => navigate('/settings?section=business')}
+            onClick={goToProfile}
             className="w-full sm:w-auto h-11 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white font-semibold shadow-lg shadow-emerald-500/30"
           >
             Complete Profile <ArrowRight className="w-4 h-4 ml-1.5" />
