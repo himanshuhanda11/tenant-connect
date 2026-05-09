@@ -361,7 +361,12 @@ export default function SelectWorkspace() {
     setIsRefreshing(false);
   };
 
-  const handleCreateWorkspace = async (name: string, purpose: string, connectNow: boolean) => {
+  const handleCreateWorkspace = async (
+    name: string,
+    purpose: string,
+    connectNow: boolean,
+    extra?: { businessName?: string; category?: string; teamSize?: string },
+  ) => {
     setIsCreating(true);
     try {
       const baseSlug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || 'workspace';
@@ -372,6 +377,16 @@ export default function SelectWorkspace() {
         toast.error(error?.message || 'Failed to create workspace. Please try again.');
         return;
       }
+
+      // Best-effort: persist optional profile metadata.
+      if (user && extra && (extra.businessName || extra.category || extra.teamSize)) {
+        const patch: any = {};
+        if (extra.businessName) patch.company_name = extra.businessName;
+        if (extra.category) patch.industry = extra.category;
+        if (extra.teamSize) patch.team_size = extra.teamSize;
+        try { await supabase.from('profiles').update(patch).eq('id', user.id); } catch (_) { /* non-blocking */ }
+      }
+
       setModalOpen(false);
       setCurrentTenant({ ...(tenant as any), role: 'owner' });
       toast.success('Workspace created!');
