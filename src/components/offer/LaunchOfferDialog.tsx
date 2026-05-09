@@ -59,8 +59,9 @@ export function LaunchOfferDialog({ open, onOpenChange }: Props) {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         className={cn(
-          'p-0 overflow-hidden border-emerald-500/30 bg-gradient-to-br from-slate-900 via-slate-950 to-emerald-950 text-white',
-          view === 'plans' ? 'max-w-3xl max-h-[92vh] overflow-y-auto' : 'max-w-lg'
+          'p-0 overflow-hidden border-emerald-500/30 bg-gradient-to-br from-slate-900 via-slate-950 to-emerald-950 text-white rounded-2xl',
+          'my-6 sm:my-10 max-h-[calc(100vh-4rem)] sm:max-h-[calc(100vh-5rem)] overflow-y-auto',
+          view === 'plans' ? 'max-w-3xl' : 'max-w-lg'
         )}
       >
         {/* Glow halo */}

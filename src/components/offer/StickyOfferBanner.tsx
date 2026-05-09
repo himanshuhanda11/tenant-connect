@@ -5,6 +5,7 @@ import { CountdownPill } from './CountdownPill';
 import { useLaunchOffer } from '@/hooks/useLaunchOffer';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useState } from 'react';
+import { isOfferExcludedPath, isPricingPath } from './excludedPaths';
 
 interface Props {
   onClaim: () => void;
@@ -18,15 +19,9 @@ export function StickyOfferBanner({ onClaim }: Props) {
   const location = useLocation();
   const [hidden, setHidden] = useState(() => sessionStorage.getItem(HIDE_KEY) === '1');
 
-  // Don't show the banner on pricing-related pages — plans are already the focus.
   const path = location.pathname;
-  const onPricing =
-    path.startsWith('/pricing') ||
-    path.startsWith('/select-plan') ||
-    path.startsWith('/choose-plan') ||
-    path.startsWith('/plans') ||
-    path.startsWith('/billing');
-  const visible = isActive && !hidden && !onPricing;
+  const visible = isActive && !hidden && !isPricingPath(path) && !isOfferExcludedPath(path);
+
 
   return (
     <AnimatePresence>
