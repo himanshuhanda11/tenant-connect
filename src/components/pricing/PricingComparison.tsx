@@ -107,7 +107,7 @@ export default function PricingComparison({ isAnnual }: PricingComparisonProps) 
                           <Gift className="w-4 h-4 text-slate-500" />
                         </div>
                         <span className="text-sm font-bold text-foreground">Free</span>
-                        <span className="text-[11px] text-muted-foreground">₹0/mo</span>
+                        <span className="text-[11px] text-muted-foreground">{formatPlanPrice('free')}/mo</span>
                       </div>
                     </th>
                     <th className="text-center py-5 px-3 w-[140px]">
@@ -116,7 +116,7 @@ export default function PricingComparison({ isAnnual }: PricingComparisonProps) 
                           <Rocket className="w-4 h-4 text-blue-600" />
                         </div>
                         <span className="text-sm font-bold text-foreground">Basic</span>
-                        <span className="text-[11px] text-muted-foreground">{isAnnual ? '₹1,199' : '₹1,499'}/mo</span>
+                        <span className="text-[11px] text-muted-foreground">{formatPlanPrice('basic', isAnnual)}/mo</span>
                       </div>
                     </th>
                     <th className="text-center py-5 px-3 w-[140px] relative">
@@ -132,7 +132,7 @@ export default function PricingComparison({ isAnnual }: PricingComparisonProps) 
                           <Crown className="w-4 h-4 text-primary" />
                         </div>
                         <span className="text-sm font-bold text-primary">Pro</span>
-                        <span className="text-[11px] text-primary font-medium">{isAnnual ? '₹2,799' : '₹3,499'}/mo</span>
+                        <span className="text-[11px] text-primary font-medium">{formatPlanPrice('pro', isAnnual)}/mo</span>
                       </div>
                     </th>
                     <th className="text-center py-5 px-3 w-[140px]">
@@ -141,7 +141,7 @@ export default function PricingComparison({ isAnnual }: PricingComparisonProps) 
                           <Building2 className="w-4 h-4 text-amber-600" />
                         </div>
                         <span className="text-sm font-bold text-foreground">Business</span>
-                        <span className="text-[11px] text-muted-foreground">Custom</span>
+                        <span className="text-[11px] text-muted-foreground">{formatPlanPrice('business', isAnnual)}/mo</span>
                       </div>
                     </th>
                   </tr>
