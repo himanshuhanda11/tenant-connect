@@ -255,9 +255,9 @@ export default function SelectWorkspacePlanPage() {
                     ? 'Activating…'
                     : locked
                       ? <>🔒 Contact Admin</>
-                      : isFree
-                        ? 'Continue with Free'
-                        : '🎁 Start Free Month'}
+                        : isFree
+                          ? 'Free Lifetime'
+                          : '🎁 Start Free Month'}
                   {!locked && <ArrowRight className="w-4 h-4" />}
                 </Button>
               </motion.div>
