@@ -51,7 +51,6 @@ export default function CreateWorkspaceModal({
     const biz = initialBusinessName || initialName;
     if (biz && !businessName) setBusinessName(biz);
     if (initialPurpose && !purpose) setPurpose(initialPurpose);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, initialName, initialBusinessName, initialPurpose]);
 
   const canSubmit =
