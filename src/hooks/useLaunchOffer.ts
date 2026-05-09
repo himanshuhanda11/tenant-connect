@@ -56,13 +56,19 @@ export function useLaunchOffer() {
   }, [isActive]);
 
   const claim = useMutation({
-    mutationFn: async (planId: string) => {
-      const { data, error } = await supabase.rpc('claim_launch_offer', {
-        _plan_id: planId,
-      });
+    mutationFn: async (input: string | { planId: string; workspaceId?: string | null }) => {
+      const planId = typeof input === 'string' ? input : input.planId;
+      const workspaceId = typeof input === 'string' ? null : (input.workspaceId ?? null);
+      const args: any = workspaceId
+        ? { _plan_id: planId, _workspace_id: workspaceId }
+        : { _plan_id: planId };
+      const { data, error } = await supabase.rpc('claim_launch_offer', args);
       if (error) throw error;
       if ((data as any)?.ok === false) {
-        throw new Error((data as any)?.reason ?? (data as any)?.error ?? 'Could not activate offer');
+        const reason = (data as any)?.reason ?? (data as any)?.error ?? 'Could not activate offer';
+        const err: any = new Error((data as any)?.message ?? reason);
+        err.reason = reason;
+        throw err;
       }
       return data;
     },
@@ -96,6 +102,24 @@ export function formatCountdown(totalSeconds: number) {
     text: `${String(h).padStart(2, '0')}h ${String(m).padStart(2, '0')}m ${String(sec).padStart(2, '0')}s`,
     isCritical: totalSeconds < 3 * 3600,
   };
+}
+
+/**
+ * Server-authoritative check: can the current user still claim a free
+ * paid trial? Returns false once they've used it on any workspace.
+ */
+export function useTrialEligibility() {
+  const { user } = useAuth();
+  return useQuery({
+    queryKey: ['trial-eligible', user?.id],
+    enabled: !!user?.id,
+    staleTime: 60_000,
+    queryFn: async (): Promise<boolean> => {
+      const { data, error } = await supabase.rpc('is_trial_eligible' as any);
+      if (error) return false;
+      return Boolean(data);
+    },
+  });
 }
 
 export function useTodayClaimCount() {
