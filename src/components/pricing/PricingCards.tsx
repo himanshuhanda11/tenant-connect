@@ -168,7 +168,7 @@ export default function PricingCards({ isAnnual }: PricingCardsProps) {
                   {/* Key limits */}
                   <div className="grid grid-cols-2 gap-2 mb-4 p-3 rounded-xl bg-muted/30 border border-border/40">
                     {[
-                      { key: 'team_members', label: 'Members', value: plan.limits.team_members === 25 ? '25+' : plan.limits.team_members },
+                      { key: 'team_members', label: 'Agents', value: plan.limits.team_members === 25 ? '25+' : plan.limits.team_members },
                       { key: 'contacts', label: 'Contacts', value: plan.limits.contacts === 'unlimited' ? '∞' : (plan.limits.contacts as number).toLocaleString('en-IN') },
                       { key: 'flows', label: 'Flows', value: plan.limits.flows === 'unlimited' ? '∞' : plan.limits.flows === 0 ? '—' : plan.limits.flows },
                       { key: 'automations', label: 'Automations', value: plan.limits.automations === 'unlimited' ? '∞' : plan.limits.automations === 0 ? '—' : plan.limits.automations },

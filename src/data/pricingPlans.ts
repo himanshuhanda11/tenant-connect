@@ -102,7 +102,7 @@ export const pricingPlans: PricingPlan[] = [
     highlight: true,
     badge: 'Most Popular',
     limits: {
-      team_members: 10,
+      team_members: 15,
       phone_numbers: 1,
       contacts: 50000,
       tags: 50,
@@ -164,7 +164,7 @@ export const comparisonGroups = [
   {
     category: 'Core',
     features: [
-      { name: 'Team Members', free: '1', basic: '5', pro: '10', business: '25+' },
+      { name: 'Agents', free: '1', basic: '5', pro: '15', business: '25+' },
       { name: 'Phone Numbers', free: '1', basic: '1', pro: '1', business: '1' },
       { name: 'Contacts', free: '1,000', basic: '10,000', pro: '50,000', business: 'Unlimited' },
       { name: 'Tags', free: '10', basic: '10', pro: '50', business: 'Unlimited' },
