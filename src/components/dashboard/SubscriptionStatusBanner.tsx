@@ -1,5 +1,5 @@
-import { useState, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useMemo, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -21,11 +21,22 @@ const planMeta: Record<string, { icon: JSX.Element; gradient: string; label: str
 
 export default function SubscriptionStatusBanner() {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { currentTenant } = useTenant();
   const { data: subscription } = useSubscription();
   const { data: entitlements } = useEntitlements();
   const { data: isEligible } = useTrialEligibility();
   const [changeOpen, setChangeOpen] = useState(false);
+
+  // Auto-open plan picker when redirected from workspace creation (?select_plan=1)
+  useEffect(() => {
+    if (searchParams.get('select_plan') === '1') {
+      setChangeOpen(true);
+      const next = new URLSearchParams(searchParams);
+      next.delete('select_plan');
+      setSearchParams(next, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
 
   const planId = (entitlements?.plan_id ?? subscription?.plan_id ?? 'free').replace(/^plan_/, '');
   const meta = planMeta[planId] ?? planMeta.free;
