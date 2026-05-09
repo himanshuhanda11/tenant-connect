@@ -525,8 +525,8 @@ export default function SelectWorkspace() {
         </header>
 
         <main className="relative pb-24 md:pb-12">
-          {/* Premium Split-Hero is ALWAYS shown at the top */}
-          {(() => {
+          {/* Premium Split-Hero — only shown when user has NO workspaces yet */}
+          {workspaces.length === 0 && (() => {
             const meta: any = (user as any)?.user_metadata || {};
             const displayName =
               profile?.full_name ||
@@ -550,15 +550,26 @@ export default function SelectWorkspace() {
 
           {/* Existing workspaces list — only when the user has at least one */}
           {workspaces.length > 0 && (
-            <div className="container mx-auto px-3 sm:px-6 py-8 sm:py-12 max-w-7xl">
+            <div className="container mx-auto px-3 sm:px-6 py-6 sm:py-12 max-w-7xl">
               <section>
-                <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-5">
-                  <div>
-                    <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">Your Workspaces</h2>
-                    <p className="text-sm text-slate-500 mt-1">All your connected WhatsApp API workspaces in one place.</p>
+                <div className="flex flex-col gap-4 mb-5">
+                  <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
+                    <div className="min-w-0">
+                      <h2 className="text-xl sm:text-3xl font-bold text-slate-900 tracking-tight">Your Workspaces</h2>
+                      <p className="text-xs sm:text-sm text-slate-500 mt-1">All your connected WhatsApp API workspaces in one place.</p>
+                    </div>
+                    {canCreateWorkspace && (
+                      <Button
+                        onClick={() => setModalOpen(true)}
+                        className="hidden sm:inline-flex h-10 rounded-2xl font-semibold text-white bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 shadow-lg shadow-emerald-500/30 px-4 gap-2 self-start sm:self-auto flex-shrink-0"
+                      >
+                        <Plus className="w-4 h-4" />
+                        Create new workspace
+                      </Button>
+                    )}
                   </div>
                   <div className="flex flex-wrap items-center gap-2">
-                    <div className="relative flex-1 sm:flex-none sm:w-64">
+                    <div className="relative flex-1 min-w-[160px] sm:flex-none sm:w-64">
                       <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                       <Input
                         placeholder="Search workspaces..."
@@ -599,7 +610,7 @@ export default function SelectWorkspace() {
                       variant="outline" size="icon"
                       onClick={handleRefresh}
                       disabled={isRefreshing}
-                      className="h-10 w-10 rounded-2xl border-emerald-100 bg-white/80 text-slate-700"
+                      className="h-10 w-10 rounded-2xl border-emerald-100 bg-white/80 text-slate-700 flex-shrink-0"
                     >
                       <RefreshCw className={cn("w-4 h-4", isRefreshing && "animate-spin")} />
                     </Button>
@@ -614,7 +625,7 @@ export default function SelectWorkspace() {
                     </Button>
                   </div>
                 ) : (
-                  <div className="grid gap-4 sm:gap-5 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+                  <div className="grid gap-3 sm:gap-5 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
                     {filteredWorkspaces.map((workspace) => (
                       <WorkspaceTile
                         key={workspace.id}
@@ -635,16 +646,16 @@ export default function SelectWorkspace() {
                 initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.4 }}
-                className="mt-10 sm:mt-14 relative overflow-hidden rounded-3xl bg-gradient-to-br from-emerald-600 via-green-600 to-teal-600 p-5 sm:p-6 text-white shadow-2xl"
+                className="mt-8 sm:mt-14 relative overflow-hidden rounded-3xl bg-gradient-to-br from-emerald-600 via-green-600 to-teal-600 p-4 sm:p-6 text-white shadow-2xl"
               >
                 <div className="absolute -top-10 -right-10 w-48 h-48 rounded-full bg-white/10 blur-3xl" />
-                <div className="relative flex flex-col sm:flex-row items-start sm:items-center gap-4">
-                  <div className="w-12 h-12 rounded-2xl bg-white/15 backdrop-blur flex items-center justify-center shrink-0 ring-1 ring-white/20">
-                    <ShieldCheck className="w-6 h-6 text-white" />
+                <div className="relative flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4">
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-white/15 backdrop-blur flex items-center justify-center shrink-0 ring-1 ring-white/20">
+                    <ShieldCheck className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
                   </div>
-                  <div className="flex-1">
-                    <h3 className="font-semibold text-base">Your data is secure and encrypted.</h3>
-                    <p className="text-sm text-white/80 mt-0.5">Each workspace is linked to one WhatsApp Business API number.</p>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-semibold text-sm sm:text-base">Your data is secure and encrypted.</h3>
+                    <p className="text-xs sm:text-sm text-white/80 mt-0.5">Each workspace is linked to one WhatsApp Business API number.</p>
                   </div>
                   <Button asChild variant="secondary" className="bg-white text-emerald-700 hover:bg-emerald-50 rounded-2xl font-semibold w-full sm:w-auto">
                     <Link to="/security">Learn more <ArrowRight className="w-4 h-4 ml-1" /></Link>
