@@ -174,7 +174,8 @@ export default function AdminWorkspaceDetail() {
         <TabsContent value="team" className="mt-4">
           <TeamTab members={members} isSuperAdmin={isSuperAdmin} />
         </TabsContent>
-        <TabsContent value="whatsapp" className="mt-4">
+        <TabsContent value="whatsapp" className="mt-4 space-y-4">
+          <WhatsAppConnectionStatus waba={waba} phones={phones} workspacePhone={workspacePhone} />
           <WhatsAppTab 
             phones={phones} 
             workspacePhone={workspacePhone} 
@@ -184,6 +185,7 @@ export default function AdminWorkspaceDetail() {
               get(`workspaces/${id}`).then(data => {
                 setPhones(data.phones || []);
                 setWorkspacePhone(data.workspace_phone || null);
+                setWaba(data.waba || null);
               }).catch(() => {});
             }}
           />
