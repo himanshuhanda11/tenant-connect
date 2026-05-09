@@ -208,13 +208,19 @@ export default function PhoneNumberDetails() {
 
       if (error) throw error;
 
-      // Mark onboarding step 3 (Complete WhatsApp Profile) as done for this workspace
-      try {
-        if (number?.tenant_id) {
-          localStorage.setItem(`aireatro:onboarding:${number.tenant_id}:profileCompleted`, '1');
-          window.dispatchEvent(new CustomEvent('aireatro:wa-profile-saved', { detail: { tenantId: number.tenant_id } }));
+      // Mark onboarding step 3 as done at the workspace level (source of truth = tenants table).
+      if (number?.tenant_id) {
+        const savedAt = new Date().toISOString();
+        try {
+          await supabase
+            .from('tenants')
+            .update({ whatsapp_profile_completed: true, whatsapp_profile_saved_at: savedAt } as any)
+            .eq('id', number.tenant_id);
+        } catch (e) {
+          console.warn('[saveBusinessProfile] tenants update failed:', e);
         }
-      } catch {}
+        window.dispatchEvent(new CustomEvent('aireatro:wa-profile-saved', { detail: { tenantId: number.tenant_id } }));
+      }
 
       toast.success('WhatsApp Profile Completed Successfully');
       setBusinessProfile(prev => ({ ...prev, saving: false }));
