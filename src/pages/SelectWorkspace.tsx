@@ -29,7 +29,6 @@ import { cn } from '@/lib/utils';
 import aireatroLogo from '@/assets/aireatro-logo.png';
 import CreateWorkspaceModal from '@/components/workspace/CreateWorkspaceModal';
 import WorkspaceTile from '@/components/workspace/WorkspaceTile';
-import WorkspaceEmptyState from '@/components/workspace/WorkspaceEmptyState';
 import CreateWorkspaceSplitHero from '@/components/workspace/CreateWorkspaceSplitHero';
 
 interface WorkspaceEnriched {
@@ -534,28 +533,15 @@ export default function SelectWorkspace() {
         </header>
 
         <main className="relative pb-24 md:pb-12">
-          {/* Empty state — opens the same Create Workspace modal used elsewhere */}
+          {/* Empty state — show the current create form directly. */}
           {workspaces.length === 0 && (
-            <div className="container mx-auto px-3 sm:px-6 py-10 sm:py-20 max-w-3xl">
-              <div className="rounded-3xl border border-emerald-100 bg-white/80 backdrop-blur p-6 sm:p-10 text-center shadow-xl shadow-emerald-500/5">
-                <div className="mx-auto w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center shadow-lg shadow-emerald-500/30 mb-5">
-                  <Plus className="w-7 h-7 text-white" />
-                </div>
-                <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">
-                  Create your first workspace
-                </h2>
-                <p className="text-sm sm:text-base text-slate-500 mt-2 max-w-md mx-auto">
-                  Set up a workspace to connect your WhatsApp Business number and start messaging in &lt; 10 min.
-                </p>
-                <Button
-                  onClick={() => setModalOpen(true)}
-                  className="mt-6 h-12 px-6 rounded-2xl font-semibold text-white bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 shadow-lg shadow-emerald-500/30 gap-2"
-                >
-                  <Plus className="w-4 h-4" />
-                  Create Workspace
-                </Button>
-              </div>
-            </div>
+            <CreateWorkspaceSplitHero
+              displayName={profile?.full_name || (user as any)?.user_metadata?.full_name || (user as any)?.user_metadata?.name || user.email || 'there'}
+              initialName={(profile as any)?.company_name || ''}
+              initialBusinessName={(profile as any)?.company_name || ''}
+              isCreating={isCreating}
+              onCreate={(payload) => handleCreateWorkspace(payload.workspaceName, payload.purpose, true, { businessName: payload.businessName })}
+            />
           )}
 
           {/* Existing workspaces list — only when the user has at least one */}
@@ -568,15 +554,6 @@ export default function SelectWorkspace() {
                       <h2 className="text-xl sm:text-3xl font-bold text-slate-900 tracking-tight">Your Workspaces</h2>
                       <p className="text-xs sm:text-sm text-slate-500 mt-1">All your connected WhatsApp API workspaces in one place.</p>
                     </div>
-                    {canCreateWorkspace && (
-                      <Button
-                        onClick={() => setModalOpen(true)}
-                        className="hidden sm:inline-flex h-10 rounded-2xl font-semibold text-white bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 shadow-lg shadow-emerald-500/30 px-4 gap-2 self-start sm:self-auto flex-shrink-0"
-                      >
-                        <Plus className="w-4 h-4" />
-                        Create new workspace
-                      </Button>
-                    )}
                   </div>
                   <div className="flex flex-wrap items-center gap-2">
                     <div className="relative flex-1 min-w-[160px] sm:flex-none sm:w-64">
