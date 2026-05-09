@@ -386,15 +386,20 @@ export default function Dashboard() {
         {/* ═══════════════════════════════════════════════
             SECTION 7: CHART — Messages Overview
         ═══════════════════════════════════════════════ */}
-        <div className="rounded-lg sm:rounded-xl border border-border/40 bg-card p-3 sm:p-4 shadow-sm">
-          <div className="flex items-center justify-between mb-2 sm:mb-3">
-            <div>
-              <h3 className="text-xs sm:text-sm font-bold text-foreground">Messages Overview</h3>
-              <p className="text-[10px] sm:text-[11px] text-muted-foreground">Last 7 days</p>
+        <div className="premium-card p-3.5 sm:p-5">
+          <div className="flex items-center justify-between mb-3 sm:mb-4">
+            <div className="flex items-center gap-2.5">
+              <div className="h-8 w-8 sm:h-9 sm:w-9 rounded-xl bg-gradient-to-br from-primary to-emerald-500 shadow-md flex items-center justify-center">
+                <MessageSquare className="h-4 w-4 text-white" />
+              </div>
+              <div>
+                <h3 className="text-sm sm:text-base font-bold text-foreground">Messages Overview</h3>
+                <p className="text-[10px] sm:text-xs text-muted-foreground">Last 7 days · live data</p>
+              </div>
             </div>
             <div className="flex items-center gap-2 sm:gap-3">
-              <div className="flex items-center gap-1"><div className="h-1.5 w-1.5 sm:h-2 sm:w-2 rounded-full bg-primary" /><span className="text-[9px] sm:text-[10px] text-muted-foreground">Recv</span></div>
-              <div className="flex items-center gap-1"><div className="h-1.5 w-1.5 sm:h-2 sm:w-2 rounded-full bg-emerald-500" /><span className="text-[9px] sm:text-[10px] text-muted-foreground">Sent</span></div>
+              <div className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-primary/10"><div className="h-1.5 w-1.5 rounded-full bg-primary" /><span className="text-[9px] sm:text-[10px] font-medium text-primary">Recv</span></div>
+              <div className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-emerald-500/10"><div className="h-1.5 w-1.5 rounded-full bg-emerald-500" /><span className="text-[9px] sm:text-[10px] font-medium text-emerald-600 dark:text-emerald-400">Sent</span></div>
             </div>
           </div>
           <div className="-mx-1 sm:-mx-2">
@@ -405,36 +410,56 @@ export default function Dashboard() {
         </div>
 
         {/* ═══════════════════════════════════════════════
-            SECTION 8: AI INSIGHTS + QUICK ACTIONS (side by side on desktop)
+            SECTION 8: AI INSIGHTS + QUICK ACTIONS
         ═══════════════════════════════════════════════ */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4">
-          {/* AI Insights */}
-          <div className="rounded-lg sm:rounded-xl border border-border/40 bg-card p-3 sm:p-4 shadow-sm">
-            <div className="flex items-center gap-2 mb-2 sm:mb-3">
-              <Sparkles className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-primary" />
-              <h3 className="text-xs sm:text-sm font-bold text-foreground">AI Insights</h3>
-            </div>
-            <div className="space-y-2">
-              {openChats > 0 && (
-                <InsightRow icon={MessageSquare} color="text-amber-500" bg="bg-amber-100 dark:bg-amber-500/15"
-                  title="Performance" detail={`${unassigned} unassigned chat${unassigned !== 1 ? 's' : ''} need attention.`} />
-              )}
-              <InsightRow icon={Gauge} color="text-emerald-500" bg="bg-emerald-100 dark:bg-emerald-500/15"
-                title="Lead Engagement" detail="Avg response 3m — excellent!" />
-              <InsightRow icon={Eye} color="text-blue-500" bg="bg-blue-100 dark:bg-blue-500/15"
-                title="Campaign Health" detail={`${totalCampaigns} campaign${totalCampaigns !== 1 ? 's' : ''} sent.`} />
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-5">
+          {/* AI Insights — premium glow */}
+          <div className="premium-card premium-card-gradient p-3.5 sm:p-5 relative overflow-hidden">
+            <div className="absolute -top-16 -right-16 h-40 w-40 rounded-full bg-primary/15 blur-3xl pointer-events-none" />
+            <div className="relative">
+              <div className="flex items-center justify-between mb-3 sm:mb-4">
+                <div className="flex items-center gap-2.5">
+                  <div className="h-8 w-8 sm:h-9 sm:w-9 rounded-xl bg-gradient-to-br from-violet-500 to-fuchsia-500 shadow-md glow-icon flex items-center justify-center float-anim">
+                    <Sparkles className="h-4 w-4 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm sm:text-base font-bold text-foreground">AI Insights</h3>
+                    <p className="text-[10px] sm:text-xs text-muted-foreground">Powered by Aireatro AI</p>
+                  </div>
+                </div>
+                <Badge className="bg-gradient-to-r from-violet-500/15 to-fuchsia-500/15 text-violet-600 dark:text-violet-400 border-violet-500/30 text-[9px] sm:text-[10px] font-semibold rounded-full">LIVE</Badge>
+              </div>
+              <div className="space-y-2.5">
+                {openChats > 0 && (
+                  <InsightRow icon={MessageSquare} color="text-amber-500" bg="bg-gradient-to-br from-amber-400/20 to-amber-500/10"
+                    title="Performance" detail={`${unassigned} unassigned chat${unassigned !== 1 ? 's' : ''} need attention.`} />
+                )}
+                <InsightRow icon={Gauge} color="text-emerald-500" bg="bg-gradient-to-br from-emerald-400/20 to-emerald-500/10"
+                  title="Lead Engagement" detail="Avg response 3m — excellent!" />
+                <InsightRow icon={Eye} color="text-blue-500" bg="bg-gradient-to-br from-blue-400/20 to-blue-500/10"
+                  title="Campaign Health" detail={`${totalCampaigns} campaign${totalCampaigns !== 1 ? 's' : ''} sent.`} />
+              </div>
             </div>
           </div>
 
-          {/* Quick Actions */}
-          <div className="rounded-lg sm:rounded-xl border border-border/40 bg-card p-3 sm:p-4 shadow-sm">
-            <h3 className="text-xs sm:text-sm font-bold text-foreground mb-2 sm:mb-3">Quick Actions</h3>
-            <div className="space-y-0.5">
-              <QuickActionRow icon={FileText} color="text-blue-500" bg="bg-blue-100 dark:bg-blue-500/15" title="Templates" sub="50+ pre-approved" onClick={() => navigate('/templates')} />
-              <QuickActionRow icon={Inbox} color="text-rose-500" bg="bg-rose-100 dark:bg-rose-500/15" title="Inbox" sub="Manage chats" onClick={() => navigate('/inbox')} />
-              <QuickActionRow icon={Zap} color="text-amber-500" bg="bg-amber-100 dark:bg-amber-500/15" title="Create Flow" sub="Build automations" onClick={() => navigate('/flows/new')} />
-              <QuickActionRow icon={Send} color="text-orange-500" bg="bg-orange-100 dark:bg-orange-500/15" title="Campaign" sub="Broadcast messages" onClick={() => navigate('/campaigns/create')} />
-              <QuickActionRow icon={FileText} color="text-purple-500" bg="bg-purple-100 dark:bg-purple-500/15" title="New Template" sub="Design templates" onClick={() => navigate('/templates?action=create')} />
+          {/* Quick Actions — floating tiles */}
+          <div className="premium-card p-3.5 sm:p-5">
+            <div className="flex items-center gap-2.5 mb-3 sm:mb-4">
+              <div className="h-8 w-8 sm:h-9 sm:w-9 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-500 shadow-md flex items-center justify-center">
+                <Zap className="h-4 w-4 text-white" />
+              </div>
+              <div>
+                <h3 className="text-sm sm:text-base font-bold text-foreground">Quick Actions</h3>
+                <p className="text-[10px] sm:text-xs text-muted-foreground">Jump to popular tools</p>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-2.5">
+              <QuickActionTile icon={Inbox} tone="rose" title="Inbox" onClick={() => navigate('/inbox')} />
+              <QuickActionTile icon={Send} tone="orange" title="Broadcast" onClick={() => navigate('/campaigns/create')} />
+              <QuickActionTile icon={Zap} tone="amber" title="New Flow" onClick={() => navigate('/flows/new')} />
+              <QuickActionTile icon={FileText} tone="blue" title="Templates" onClick={() => navigate('/templates')} />
+              <QuickActionTile icon={UserPlus} tone="emerald" title="Add Team" onClick={() => navigate('/team')} />
+              <QuickActionTile icon={Megaphone} tone="violet" title="Campaigns" onClick={() => navigate('/campaigns')} />
             </div>
           </div>
         </div>
