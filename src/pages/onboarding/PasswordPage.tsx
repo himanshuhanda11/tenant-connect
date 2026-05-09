@@ -88,7 +88,7 @@ export default function PasswordPage() {
         .update({ onboarding_step: 'completed' })
         .eq('id', user!.id);
 
-      navigate('/choose-plan', { replace: true });
+      navigate('/select-workspace', { replace: true });
     } catch (err: any) {
       console.error('Password update error:', err);
       setError(err.message || 'Failed to set password');
@@ -107,7 +107,7 @@ export default function PasswordPage() {
         .update({ onboarding_step: 'completed' })
         .eq('id', user!.id);
 
-      navigate('/choose-plan', { replace: true });
+      navigate('/select-workspace', { replace: true });
     } catch (err: any) {
       console.error('Skip error:', err);
       setError(err.message || 'Failed to complete setup');
