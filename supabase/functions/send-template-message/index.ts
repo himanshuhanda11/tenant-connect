@@ -175,6 +175,29 @@ Deno.serve(async (req) => {
       });
     }
 
+    // Plan gate: sending template/campaign requires Basic+ and respects sending_paused
+    const { data: planAccess, error: planErr } = await supabase.rpc('check_plan_access', {
+      p_tenant_id: tenant_id,
+      p_feature_key: 'send_campaign',
+    });
+    if (planErr) {
+      return new Response(JSON.stringify({ error: 'plan_check_failed', detail: planErr.message }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+    if (!planAccess?.allowed) {
+      return new Response(JSON.stringify({
+        error: 'plan_access_denied',
+        reason: planAccess?.reason,
+        current_plan: planAccess?.current_plan,
+        upgrade_to: planAccess?.upgrade_to,
+        feature: 'send_campaign',
+      }), {
+        status: 402,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+
     // 2. Deduct message credit
     const { data: creditDeducted, error: creditError } = await supabase
       .rpc('deduct_message_credit', {
