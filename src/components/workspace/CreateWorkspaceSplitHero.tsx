@@ -91,25 +91,24 @@ function TrustStat({ value, suffix, label }: { value: number; suffix?: string; l
 export default function CreateWorkspaceSplitHero({
   displayName,
   initialName = "",
-  initialCategory = "",
-  initialTeamSize = "",
+  initialBusinessName = "",
+  initialPurpose = "",
   isCreating,
   onCreate,
 }: CreateWorkspaceSplitHeroProps) {
   const [workspaceName, setWorkspaceName] = useState(initialName);
-  const [businessName, setBusinessName] = useState(initialName);
-  const [category, setCategory] = useState<string | undefined>(initialCategory || undefined);
-  const [teamSize, setTeamSize] = useState<string | undefined>(initialTeamSize || undefined);
+  const [businessName, setBusinessName] = useState(initialBusinessName || initialName);
+  const [purpose, setPurpose] = useState<string>(initialPurpose || "");
   const [rotIdx, setRotIdx] = useState(0);
 
   // Sync prefill when the parent finishes loading the profile.
   useEffect(() => {
     if (initialName && !workspaceName) setWorkspaceName(initialName);
-    if (initialName && !businessName) setBusinessName(initialName);
-    if (initialCategory && !category) setCategory(initialCategory);
-    if (initialTeamSize && !teamSize) setTeamSize(initialTeamSize);
+    const biz = initialBusinessName || initialName;
+    if (biz && !businessName) setBusinessName(biz);
+    if (initialPurpose && !purpose) setPurpose(initialPurpose);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initialName, initialCategory, initialTeamSize]);
+  }, [initialName, initialBusinessName, initialPurpose]);
 
   // Rotating headline
   useEffect(() => {
@@ -117,7 +116,7 @@ export default function CreateWorkspaceSplitHero({
     return () => clearInterval(id);
   }, []);
 
-  const canSubmit = workspaceName.trim().length >= 2 && !isCreating;
+  const canSubmit = workspaceName.trim().length >= 2 && businessName.trim().length >= 2 && !isCreating;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -125,8 +124,7 @@ export default function CreateWorkspaceSplitHero({
     await onCreate({
       workspaceName: workspaceName.trim(),
       businessName: businessName.trim() || workspaceName.trim(),
-      category: category || "",
-      teamSize: teamSize || "",
+      purpose: purpose || "sales",
     });
   };
 
