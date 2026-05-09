@@ -144,7 +144,7 @@ export function PlanCard({ plan, isCurrentPlan, isYearly, isRecommended, current
               <div className="text-2xl font-bold bg-gradient-to-r from-amber-500 to-orange-500 bg-clip-text text-transparent">Custom Pricing</div>
               <p className="text-xs text-muted-foreground mt-1">Tailored to your business needs</p>
             </div>
-          ) : price === 0 ? (
+          ) : isFree ? (
             <div>
               <div className="text-3xl font-bold">Free</div>
               <p className="text-xs text-muted-foreground mt-1">Forever free • No credit card</p>

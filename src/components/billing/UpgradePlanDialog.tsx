@@ -11,6 +11,7 @@ import { toast } from 'sonner';
 import { usePlatformPlans, type PlatformPlan } from '@/hooks/useEntitlements';
 import { useTenant } from '@/contexts/TenantContext';
 import { supabase } from '@/integrations/supabase/client';
+import { useGeoLocation, type PlanId } from '@/hooks/useGeoLocation';
 
 const planIcons: Record<string, React.ReactNode> = {
   basic: <Rocket className="w-5 h-5" />,
@@ -40,7 +41,9 @@ export function UpgradePlanDialog({ open, onOpenChange, currentPlanId }: Upgrade
 
   const isTopPlan = currentPlanId === 'business';
   const upgradePlans = (plans ?? []).filter(p => p.id !== 'free');
-  const formatINR = (val: number) => `₹${val.toLocaleString('en-IN')}`;
+  const { getPlanPrice, formatAmount } = useGeoLocation();
+  const formatINR = (val: number) => formatAmount(val);
+  const localPrice = (id: string) => getPlanPrice(id.replace(/^plan_/, '').toLowerCase() as PlanId, false);
 
   const handleCheckout = async (plan: PlatformPlan) => {
     if (plan.is_custom) {
