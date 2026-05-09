@@ -171,7 +171,7 @@ export default function CreateWorkspaceSplitHero({
           </motion.div>
 
           <motion.div
-            className="absolute bottom-[18%] left-[8%] hidden md:flex items-center gap-2 px-3 py-2 rounded-2xl rounded-bl-sm bg-white/95 shadow-2xl shadow-emerald-900/30 backdrop-blur"
+            className="absolute bottom-[6%] left-[6%] hidden xl:flex items-center gap-2 px-3 py-2 rounded-2xl rounded-bl-sm bg-white/95 shadow-2xl shadow-emerald-900/30 backdrop-blur"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: [0, 8, 0] }}
             transition={{ opacity: { duration: 0.6, delay: 0.6 }, y: { duration: 5, repeat: Infinity, ease: "easeInOut" } }}
