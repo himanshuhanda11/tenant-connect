@@ -12,6 +12,9 @@ import { useGeoLocation } from '@/hooks/useGeoLocation';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
+import { useTenant } from '@/contexts/TenantContext';
+
+const PENDING_CLAIM_KEY = 'lovable.pending_claim_offer';
 
 interface Props {
   open: boolean;
