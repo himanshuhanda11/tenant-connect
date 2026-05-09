@@ -50,7 +50,7 @@ export default function OnboardingGate({ children, onConnectWhatsApp }: Props) {
       )}
 
       {progress.currentStep === 3 && (
-        <CompleteProfileCard onMarkDone={progress.markProfileCompleted} />
+        <CompleteProfileCard onMarkDone={progress.markProfileCompleted} phoneId={progress.primaryPhoneId} />
       )}
 
       {/* Plan selection modal — auto-opens when needed */}
