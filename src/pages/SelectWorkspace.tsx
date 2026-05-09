@@ -30,6 +30,7 @@ import aireatroLogo from '@/assets/aireatro-logo.png';
 import CreateWorkspaceModal from '@/components/workspace/CreateWorkspaceModal';
 import WorkspaceTile from '@/components/workspace/WorkspaceTile';
 import WorkspaceEmptyState from '@/components/workspace/WorkspaceEmptyState';
+import CreateWorkspaceSplitHero from '@/components/workspace/CreateWorkspaceSplitHero';
 
 interface WorkspaceEnriched {
   id: string;
