@@ -482,9 +482,14 @@ export default function SelectWorkspace() {
               <img src={aireatroLogo} alt="AiReatro" className="h-10 w-auto hover:opacity-80 transition-opacity" />
             </Link>
             <div className="flex items-center gap-3">
-              <div className="hidden sm:flex items-center gap-2 text-sm text-slate-600">
+              <div className="hidden sm:flex items-center gap-2 text-sm text-slate-600" title={user.email ?? ''}>
                 <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.6)]" />
-                <span className="truncate max-w-[200px]">{user.email}</span>
+                <span className="truncate max-w-[220px] font-semibold text-slate-800">
+                  {profile?.full_name
+                    || (user as any)?.user_metadata?.full_name
+                    || (user as any)?.user_metadata?.name
+                    || user.email}
+                </span>
               </div>
               <Button variant="ghost" size="sm" onClick={handleSignOut} className="text-slate-600 hover:text-slate-900 h-10 px-3">
                 Sign out
