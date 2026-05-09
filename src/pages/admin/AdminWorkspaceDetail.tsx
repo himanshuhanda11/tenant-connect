@@ -16,6 +16,7 @@ import { TemplatesTab } from '@/components/admin/workspace-detail/TemplatesTab';
 import { CampaignsTab } from '@/components/admin/workspace-detail/CampaignsTab';
 import { IntegrationsTab } from '@/components/admin/workspace-detail/IntegrationsTab';
 import { OwnerBusinessCard } from '@/components/admin/workspace-detail/OwnerBusinessCard';
+import { WhatsAppConnectionStatus } from '@/components/admin/workspace-detail/WhatsAppConnectionStatus';
 import {
   Loader2, LayoutDashboard, Users, Phone, MessageSquare, Zap, Plug, ScrollText, Eye
 } from 'lucide-react';
