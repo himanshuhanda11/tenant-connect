@@ -9,7 +9,15 @@ export default function Signup() {
 
   useEffect(() => {
     if (!loading && user) {
-      navigate('/dashboard');
+      const pending = (() => {
+        try { return sessionStorage.getItem('lovable.pending_claim_offer'); } catch { return null; }
+      })();
+      if (pending) {
+        try { sessionStorage.removeItem('lovable.pending_claim_offer'); } catch {}
+        navigate('/select-workspace');
+      } else {
+        navigate('/dashboard');
+      }
     }
   }, [user, loading, navigate]);
 
