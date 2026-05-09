@@ -1,6 +1,9 @@
 import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import "./index.css";
+import { startVersionPolling } from "./lib/versionCheck";
+
+startVersionPolling();
 
 const CHUNK_ERROR_PATTERNS = [
   "Failed to fetch dynamically imported module",

@@ -2,10 +2,7 @@
   if (!('serviceWorker' in navigator)) return;
 
   try {
-    const alreadyRan = sessionStorage.getItem('legacy-sw-cleanup-ran');
-    if (alreadyRan) return;
-    sessionStorage.setItem('legacy-sw-cleanup-ran', '1');
-
+    // Always run: prevents any stale service worker from serving outdated assets.
     const registrations = await navigator.serviceWorker.getRegistrations();
     await Promise.all(registrations.map((registration) => registration.unregister()));
 
