@@ -512,19 +512,6 @@ export function AppSidebar() {
 
       {/* ── Footer — Platform + Floating tile ── */}
       <SidebarFooter className={cn("gap-2 border-t border-sidebar-border", isCollapsed ? "px-1.5 py-2" : "px-3 py-3")}>
-        <SidebarGroup className="p-0">
-          {!isCollapsed && (
-            <SidebarGroupLabel className="mb-1 px-3 text-[10px] font-semibold uppercase tracking-[0.1em] text-sidebar-foreground/60">
-              Platform
-            </SidebarGroupLabel>
-          )}
-          <SidebarGroupContent>
-            <SidebarMenu className={cn("space-y-0.5", isCollapsed && "flex flex-col items-center space-y-1.5")}>
-              {filteredSettingsMenuItems.map(item => renderMenuItem(item))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <button className={cn(
@@ -570,7 +557,7 @@ export function AppSidebar() {
             <DropdownMenuItem onClick={() => navigate('/settings?section=profile')} className="gap-2 py-1.5 rounded-md text-[12px] text-popover-foreground/75 hover:text-popover-foreground focus:text-popover-foreground focus:bg-accent">
               <User className="w-3.5 h-3.5" strokeWidth={1.5} /> My Profile
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => navigate('/settings')} className="gap-2 py-1.5 rounded-md text-[12px] text-popover-foreground/75 hover:text-popover-foreground focus:text-popover-foreground focus:bg-accent">
+            <DropdownMenuItem onClick={() => navigate('/settings?section=workspace')} className="gap-2 py-1.5 rounded-md text-[12px] text-popover-foreground/75 hover:text-popover-foreground focus:text-popover-foreground focus:bg-accent">
               <Settings className="w-3.5 h-3.5" strokeWidth={1.5} /> Settings
             </DropdownMenuItem>
             <DropdownMenuItem asChild className="gap-2 py-1.5 rounded-md text-[12px] text-popover-foreground/75 hover:text-popover-foreground focus:text-popover-foreground focus:bg-accent">
