@@ -10,6 +10,8 @@ import { useTenant } from '@/contexts/TenantContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { MetaEmbeddedSignup } from '@/components/meta/MetaEmbeddedSignup';
 import { useDashboardData } from '@/hooks/useDashboardData';
+import { useOnboardingProgress } from '@/hooks/useOnboardingProgress';
+import OnboardingGate from '@/components/onboarding/OnboardingGate';
 import { cn } from '@/lib/utils';
 import type { DashboardFilters } from '@/types/dashboard';
 import {
