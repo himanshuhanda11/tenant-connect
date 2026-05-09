@@ -9,15 +9,11 @@ export default function Signup() {
 
   useEffect(() => {
     if (!loading && user) {
-      const pending = (() => {
-        try { return sessionStorage.getItem('lovable.pending_claim_offer'); } catch { return null; }
-      })();
-      if (pending) {
-        try { sessionStorage.removeItem('lovable.pending_claim_offer'); } catch {}
-        navigate('/select-workspace');
-      } else {
-        navigate('/dashboard');
-      }
+      // After signup, ALWAYS route to workspace creation/selection.
+      // SelectWorkspace decides whether to send the user to onboarding,
+      // their existing workspaces, or the plan selector.
+      try { sessionStorage.removeItem('lovable.pending_claim_offer'); } catch {}
+      navigate('/select-workspace', { replace: true });
     }
   }, [user, loading, navigate]);
 
