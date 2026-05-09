@@ -140,130 +140,110 @@ export default function Dashboard() {
   return (
     <DashboardLayout>
       <OnboardingGate onConnectWhatsApp={() => setEmbeddedSignupOpen(true)}>
-        <div className="space-y-3 sm:space-y-5 max-w-[1200px] mx-auto px-2 py-3 sm:px-6 sm:py-6 animate-fade-in">
+        <div className="space-y-4 sm:space-y-6 max-w-[1280px] mx-auto px-2 py-3 sm:px-6 sm:py-6 animate-fade-in">
 
         {/* ═══════════════════════════════════════════════
-            SECTION 1: HERO — Greeting + Refresh
+            SECTION 1: PREMIUM HERO
         ═══════════════════════════════════════════════ */}
-        <div className="flex items-start sm:items-center justify-between gap-2">
-          <div className="min-w-0">
-            <h1 className="text-base sm:text-xl font-bold text-foreground truncate">{greeting}, {displayName} 👋</h1>
-            <p className="text-[11px] sm:text-sm text-muted-foreground truncate">Here's what's happening in <span className="font-semibold text-foreground">{currentTenant?.name}</span></p>
-          </div>
-          <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
-            {billing?.planName && (
-              <>
-                <Badge
-                  className={cn(
-                    "font-bold rounded-full border cursor-pointer hover:opacity-90 transition-opacity",
-                    billing.planName.toLowerCase() === 'free'
-                      ? "text-[10px] sm:text-sm px-2.5 sm:px-3 py-0.5 sm:py-1 bg-orange-100 dark:bg-orange-500/15 text-orange-600 dark:text-orange-400 border-orange-300 dark:border-orange-500/30"
-                      : billing.planName.toLowerCase() === 'basic'
-                      ? "text-[9px] sm:text-xs px-2 py-0.5 sm:py-1 bg-blue-100 dark:bg-blue-500/15 text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-500/20"
-                      : billing.planName.toLowerCase() === 'pro'
-                      ? "text-[9px] sm:text-xs px-2 py-0.5 sm:py-1 bg-purple-100 dark:bg-purple-500/15 text-purple-600 dark:text-purple-400 border-purple-200 dark:border-purple-500/20"
-                      : "text-[9px] sm:text-xs px-2 py-0.5 sm:py-1 bg-amber-100 dark:bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-200 dark:border-amber-500/20"
-                  )}
-                  onClick={() => navigate('/billing')}
-                >
-                  <Sparkles className="h-3 w-3 mr-1" />
-                  {billing.planName} Plan
-                </Badge>
-                {billing.planName.toLowerCase() === 'free' && (
-                  <Button size="sm" onClick={() => navigate('/billing')} className="h-6 sm:h-7 text-[9px] sm:text-[11px] px-2.5 sm:px-3 rounded-full bg-primary hover:bg-primary/90 gap-1 font-semibold">
-                    <ArrowUpRight className="h-3 w-3" />
-                    <span className="hidden sm:inline">Upgrade</span>
+        <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl border border-border/50 hero-grid-bg bg-card p-4 sm:p-7">
+          <div className="pointer-events-none absolute -top-20 -right-16 h-56 w-56 rounded-full bg-primary/15 blur-3xl" />
+          <div className="pointer-events-none absolute -bottom-24 -left-10 h-56 w-56 rounded-full bg-blue-500/10 blur-3xl" />
+
+          <div className="relative grid grid-cols-1 lg:grid-cols-[1.2fr,1fr] gap-5 sm:gap-7 items-center">
+            <div className="min-w-0">
+              <div className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-background/70 backdrop-blur px-2.5 py-1 mb-3 sm:mb-4 shadow-xs">
+                <span className="live-dot" />
+                <span className="text-[10px] sm:text-[11px] font-medium text-foreground truncate max-w-[180px]">Live · {currentTenant?.name}</span>
+              </div>
+              <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight leading-tight">
+                <span className="text-foreground">{greeting},</span>{' '}
+                <span className="text-gradient-premium">{displayName}</span>
+                <span className="ml-1.5">👋</span>
+              </h1>
+              <p className="mt-1.5 sm:mt-2.5 text-xs sm:text-base text-muted-foreground max-w-md">
+                Your WhatsApp business is <span className="font-semibold text-foreground">growing beautifully</span> today.
+              </p>
+
+              <div className="mt-3 sm:mt-5 flex flex-wrap items-center gap-2">
+                {billing?.planName && (
+                  <Badge
+                    onClick={() => navigate('/billing')}
+                    className={cn(
+                      "cursor-pointer rounded-full border font-semibold gap-1 px-2.5 py-1 text-[10px] sm:text-xs",
+                      billing.planName.toLowerCase() === 'free'
+                        ? "bg-orange-100 dark:bg-orange-500/15 text-orange-600 dark:text-orange-400 border-orange-300/60 dark:border-orange-500/30"
+                        : "bg-gradient-to-r from-primary/15 to-blue-500/15 text-foreground border-primary/30"
+                    )}
+                  >
+                    <Sparkles className="h-3 w-3" /> {billing.planName} Plan
+                  </Badge>
+                )}
+                {billing?.planName?.toLowerCase() === 'free' && (
+                  <Button size="sm" onClick={() => navigate('/billing')} className="h-7 sm:h-8 text-[11px] px-3 rounded-full gap-1 bg-gradient-to-r from-primary to-emerald-500 hover:opacity-90 shadow-md">
+                    <ArrowUpRight className="h-3.5 w-3.5" /> Upgrade
                   </Button>
                 )}
-              </>
-            )}
-            <Button variant="outline" size="sm" onClick={refetch} className="h-7 sm:h-8 rounded-xl text-[10px] sm:text-xs gap-1 sm:gap-1.5 border-border/40 px-2 sm:px-3">
-              <RefreshCw className={cn("h-3 sm:h-3.5 w-3 sm:w-3.5", loading && "animate-spin")} />
-              <span className="hidden sm:inline">Refresh</span>
-            </Button>
+                <Button variant="outline" size="sm" onClick={refetch} className="h-7 sm:h-8 rounded-full text-[11px] gap-1.5 border-border/60 px-3 bg-background/60 backdrop-blur">
+                  <RefreshCw className={cn("h-3.5 w-3.5", loading && "animate-spin")} /> Refresh
+                </Button>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2 sm:gap-3">
+              <HeroStat icon={MessageSquare} label="Messages today" value={messagesSent || 0} tone="emerald" />
+              <HeroStat icon={Inbox} label="Open chats" value={openChats} tone="blue" />
+              <HeroStat icon={Users} label="New leads" value={newLeads7d} tone="violet" />
+              <HeroStat icon={Bot} label="AI / Auto runs" value={automationRuns} tone="amber" live />
+            </div>
           </div>
         </div>
 
-        {/* Subscription status banner — plan, trial, next billing */}
+        {/* Subscription status banner */}
         <Suspense fallback={<Skeleton className="h-20 rounded-2xl" />}>
           <SubscriptionStatusBanner />
         </Suspense>
 
         {/* ═══════════════════════════════════════════════
-            SECTION 2: STATUS STRIP — API / Quality / Quota
+            SECTION 2: WHATSAPP STATUS — Premium Strip
         ═══════════════════════════════════════════════ */}
-        {/* WhatsApp Not Connected - Full Width Alert */}
         {!hasPhoneConnected && (
-          <div className="rounded-xl sm:rounded-2xl border-2 border-destructive/20 bg-destructive/5 p-3 sm:p-6 flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4">
-            <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-lg sm:rounded-xl bg-destructive/10 flex items-center justify-center flex-shrink-0">
+          <div className="relative overflow-hidden rounded-2xl border border-destructive/30 bg-gradient-to-br from-destructive/10 via-destructive/5 to-transparent p-4 sm:p-6 flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4">
+            <div className="h-11 w-11 sm:h-12 sm:w-12 rounded-2xl bg-destructive/15 flex items-center justify-center flex-shrink-0 shadow-md">
               <Phone className="h-5 w-5 sm:h-6 sm:w-6 text-destructive" />
             </div>
             <div className="flex-1 min-w-0">
-              <h3 className="text-xs sm:text-base font-semibold text-foreground">WhatsApp API Not Connected</h3>
-              <p className="text-[10px] sm:text-sm text-muted-foreground mt-0.5">
+              <h3 className="text-sm sm:text-base font-bold text-foreground">WhatsApp API Not Connected</h3>
+              <p className="text-[11px] sm:text-sm text-muted-foreground mt-0.5">
                 Connect your number to start messaging, campaigns & automations.
               </p>
             </div>
-            <Button onClick={() => navigate('/phone-numbers/connect')} size="sm" className="rounded-xl gap-1.5 px-3 sm:px-5 flex-shrink-0 w-full sm:w-auto h-8 sm:h-9 text-xs">
-              <MessageSquare className="h-3.5 w-3.5" />
-              Connect Now
-              <ArrowRight className="h-3.5 w-3.5" />
+            <Button onClick={() => navigate('/phone-numbers/connect')} size="sm" className="rounded-xl gap-1.5 px-4 sm:px-5 flex-shrink-0 w-full sm:w-auto h-9 text-xs bg-gradient-to-r from-primary to-emerald-500 shadow-md">
+              <MessageSquare className="h-3.5 w-3.5" /> Connect Now <ArrowRight className="h-3.5 w-3.5" />
             </Button>
           </div>
         )}
 
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
-          {/* WhatsApp API Status */}
-          <div className="rounded-lg sm:rounded-xl border border-border/40 bg-card p-2.5 sm:p-4 shadow-sm">
-            <p className="text-[9px] sm:text-[11px] text-muted-foreground font-medium mb-1">WhatsApp API</p>
-            {isWABAConnected ? (
-              <Badge className="bg-emerald-100 dark:bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-0 text-[9px] sm:text-[11px] font-semibold rounded-full px-1.5 sm:px-2 py-0.5">
-                ● LIVE
-              </Badge>
-            ) : (
-              <Badge variant="outline" className="text-[9px] sm:text-[10px] text-destructive border-destructive/30 rounded-full px-1.5 sm:px-2 py-0.5 w-fit">
-                ● Offline
-              </Badge>
-            )}
-            <p className="text-[9px] sm:text-[10px] text-muted-foreground mt-1 truncate">{primaryPhone?.phoneNumber || ''}</p>
-          </div>
-
-          {/* Quality Rating */}
-          <div className="rounded-lg sm:rounded-xl border border-border/40 bg-card p-2.5 sm:p-4 shadow-sm">
-            <p className="text-[9px] sm:text-[11px] text-muted-foreground font-medium mb-1">Quality</p>
-            <Badge className={cn("border-0 text-[9px] sm:text-[11px] font-semibold rounded-full px-1.5 sm:px-2 py-0.5",
-              primaryPhone?.qualityRating === 'green' ? 'bg-emerald-100 dark:bg-emerald-500/15 text-emerald-600 dark:text-emerald-400' :
-              primaryPhone?.qualityRating === 'yellow' ? 'bg-amber-100 dark:bg-amber-500/15 text-amber-600 dark:text-amber-400' :
-              primaryPhone?.qualityRating === 'red' ? 'bg-red-100 dark:bg-red-500/15 text-red-600 dark:text-red-400' :
-              'bg-muted text-muted-foreground'
-            )}>
-              {primaryPhone?.qualityRating === 'green' ? 'High' : primaryPhone?.qualityRating === 'yellow' ? 'Medium' : primaryPhone?.qualityRating === 'red' ? 'Low' : 'N/A'}
-            </Badge>
-          </div>
-
-          {/* Messaging Limit */}
-          <div className="rounded-lg sm:rounded-xl border border-border/40 bg-card p-2.5 sm:p-4 shadow-sm">
-            <p className="text-[9px] sm:text-[11px] text-muted-foreground font-medium mb-1">Msg Limit</p>
-            <p className="text-base sm:text-xl font-bold text-foreground leading-none">{primaryPhone?.messagingLimit || 'N/A'}</p>
-            <p className="text-[9px] sm:text-[10px] text-muted-foreground mt-0.5">per day</p>
-          </div>
-
-          {/* Credits */}
-          <div className="rounded-lg sm:rounded-xl border border-border/40 bg-card p-2.5 sm:p-4 shadow-sm">
-            <p className="text-[9px] sm:text-[11px] text-muted-foreground font-medium mb-1">Credits</p>
-            <p className="text-base sm:text-xl font-bold text-primary leading-none">₹{creditsBalance.toLocaleString()}</p>
-            <p className="text-[9px] sm:text-[10px] text-muted-foreground mt-0.5 truncate">{primaryPhone?.phoneNumber || ''}</p>
-          </div>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">
+          <PremiumStatusTile icon={MessageCircle} label="WhatsApp API" tone="emerald"
+            value={isWABAConnected ? 'LIVE' : 'Offline'} sub={primaryPhone?.phoneNumber || 'No number'} live={isWABAConnected} />
+          <PremiumStatusTile icon={Gauge} label="Quality"
+            tone={primaryPhone?.qualityRating === 'green' ? 'emerald' : primaryPhone?.qualityRating === 'yellow' ? 'amber' : primaryPhone?.qualityRating === 'red' ? 'rose' : 'slate'}
+            value={primaryPhone?.qualityRating === 'green' ? 'High' : primaryPhone?.qualityRating === 'yellow' ? 'Medium' : primaryPhone?.qualityRating === 'red' ? 'Low' : 'N/A'}
+            sub="API quality rating" />
+          <PremiumStatusTile icon={Send} label="Messaging Limit" tone="blue"
+            value={primaryPhone?.messagingLimit || 'N/A'} sub="per 24 hours" />
+          <PremiumStatusTile icon={CreditCard} label="Credits" tone="violet"
+            value={`₹${creditsBalance.toLocaleString()}`} sub="Wallet balance" onClick={() => navigate('/billing')} />
         </div>
 
         {/* ═══════════════════════════════════════════════
-            SECTION 3: SETUP PROGRESS (show only if incomplete)
+            SECTION 3: SETUP PROGRESS
         ═══════════════════════════════════════════════ */}
         {setupDone < setupTotal && (
-          <div className="rounded-lg sm:rounded-xl border border-amber-200/60 dark:border-amber-500/20 bg-amber-50/50 dark:bg-amber-950/15 p-3 sm:p-4 shadow-sm">
-            <div className="flex items-center gap-2 mb-2.5 sm:mb-3">
-              <div className="h-7 w-7 sm:h-8 sm:w-8 rounded-lg bg-amber-100 dark:bg-amber-500/20 flex items-center justify-center">
-                <Gift className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-amber-600 dark:text-amber-400" />
+          <div className="relative overflow-hidden rounded-2xl border border-amber-200/60 dark:border-amber-500/25 bg-gradient-to-br from-amber-50 via-amber-50/40 to-transparent dark:from-amber-950/20 dark:to-transparent p-3.5 sm:p-5 shadow-sm">
+            <div className="flex items-center gap-2.5 mb-3 sm:mb-4">
+              <div className="h-9 w-9 sm:h-10 sm:w-10 rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center shadow-md">
+                <Gift className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
               </div>
               <div>
                 <p className="text-xs sm:text-sm font-bold text-foreground">Complete steps & win 200 Credits</p>
@@ -274,23 +254,23 @@ export default function Dashboard() {
               {setupSteps.map((step, i) => (
                 <React.Fragment key={step.id}>
                   <div className="flex flex-col items-center gap-0.5 sm:gap-1 flex-1">
-                    <div className={cn("h-6 w-6 sm:h-8 sm:w-8 rounded-full flex items-center justify-center text-[9px] sm:text-[10px] font-bold",
-                      step.done ? "bg-emerald-500 text-white" : "border-2 border-muted-foreground/30 text-muted-foreground"
+                    <div className={cn("h-7 w-7 sm:h-9 sm:w-9 rounded-full flex items-center justify-center text-[10px] sm:text-[11px] font-bold transition-all",
+                      step.done ? "bg-gradient-to-br from-emerald-400 to-emerald-600 text-white shadow-md" : "border-2 border-muted-foreground/30 text-muted-foreground bg-background"
                     )}>
-                      {step.done ? <Check className="h-3 w-3" /> : i + 1}
+                      {step.done ? <Check className="h-3.5 w-3.5" /> : i + 1}
                     </div>
                     <span className={cn("text-[8px] sm:text-[10px] font-medium text-center leading-tight",
                       step.done ? "text-emerald-600 dark:text-emerald-400" : "text-muted-foreground"
                     )}>{step.title}</span>
                   </div>
                   {i < setupSteps.length - 1 && (
-                    <div className={cn("h-0.5 flex-1 rounded-full -mt-3 sm:-mt-4", step.done ? "bg-emerald-500" : "bg-border")} />
+                    <div className={cn("h-0.5 flex-1 rounded-full -mt-3 sm:-mt-4 transition-colors", step.done ? "bg-gradient-to-r from-emerald-400 to-emerald-500" : "bg-border")} />
                   )}
                 </React.Fragment>
               ))}
               <div className="flex flex-col items-center gap-0.5 sm:gap-1">
-                <div className="h-6 w-6 sm:h-8 sm:w-8 rounded-full bg-amber-100 dark:bg-amber-500/20 flex items-center justify-center">
-                  <Sparkles className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-amber-600 dark:text-amber-400" />
+                <div className="h-7 w-7 sm:h-9 sm:w-9 rounded-full bg-gradient-to-br from-amber-300 to-amber-500 flex items-center justify-center shadow-md">
+                  <Sparkles className="h-3.5 w-3.5 text-white" />
                 </div>
                 <span className="text-[8px] sm:text-[10px] font-bold text-amber-600 dark:text-amber-400">200 Cr</span>
               </div>
@@ -299,15 +279,15 @@ export default function Dashboard() {
         )}
 
         {/* ═══════════════════════════════════════════════
-            SECTION 4: KPI GRID — 6 metrics
+            SECTION 4: PREMIUM KPI GRID
         ═══════════════════════════════════════════════ */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3">
-          <KpiCard icon={MessageSquare} iconColor="text-teal-500" iconBg="bg-teal-100 dark:bg-teal-500/15" label="Open Chats" value={openChats} onClick={() => navigate('/inbox?status=open')} />
-          <KpiCard icon={Users} iconColor="text-blue-500" iconBg="bg-blue-100 dark:bg-blue-500/15" label="New Contacts" value={newLeads7d} onClick={() => navigate('/contacts')} />
-          <KpiCard icon={Bot} iconColor="text-orange-500" iconBg="bg-orange-100 dark:bg-orange-500/15" label="Auto Runs" value={automationRuns} onClick={() => navigate('/automation')} />
-          <KpiCard icon={Send} iconColor="text-violet-500" iconBg="bg-violet-100 dark:bg-violet-500/15" label="Campaigns" value={totalCampaigns} onClick={() => navigate('/campaigns')} />
-          <KpiCard icon={Timer} iconColor="text-cyan-500" iconBg="bg-cyan-100 dark:bg-cyan-500/15" label="Avg Response" value="3m" />
-          <KpiCard icon={CheckCircle2} iconColor="text-emerald-500" iconBg="bg-emerald-100 dark:bg-emerald-500/15" label="Resolved" value={resolvedToday} />
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5 sm:gap-3.5">
+          <KpiCard icon={MessageSquare} tone="teal" label="Open Chats" value={openChats} onClick={() => navigate('/inbox?status=open')} />
+          <KpiCard icon={Users} tone="blue" label="New Contacts" value={newLeads7d} onClick={() => navigate('/contacts')} />
+          <KpiCard icon={Bot} tone="orange" label="Auto Runs" value={automationRuns} onClick={() => navigate('/automation')} />
+          <KpiCard icon={Send} tone="violet" label="Campaigns" value={totalCampaigns} onClick={() => navigate('/campaigns')} />
+          <KpiCard icon={Timer} tone="cyan" label="Avg Response" value="3m" />
+          <KpiCard icon={CheckCircle2} tone="emerald" label="Resolved" value={resolvedToday} />
         </div>
 
         {/* ═══════════════════════════════════════════════
