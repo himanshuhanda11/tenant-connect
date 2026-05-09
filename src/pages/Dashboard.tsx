@@ -161,8 +161,9 @@ export default function Dashboard() {
   const currentHour = new Date().getHours();
   const greeting = currentHour < 12 ? 'Good morning' : currentHour < 18 ? 'Good afternoon' : 'Good evening';
 
-  const hasPhoneConnected = phoneHealth.length > 0;
-  const isWABAConnected = hasPhoneConnected && phoneHealth.some(p => p.webhookHealth === 'healthy');
+  const onboarding = useOnboardingProgress(currentTenant?.id);
+  const hasPhoneConnected = phoneHealth.length > 0 || onboarding.whatsappConnected;
+  const isWABAConnected = hasPhoneConnected && (phoneHealth.length === 0 || phoneHealth.some(p => p.webhookHealth === 'healthy'));
   const primaryPhone = phoneHealth[0];
   const openChats = (kpis.find(k => k.id === 'open')?.value as number) || 0;
   const unassigned = (kpis.find(k => k.id === 'unassigned')?.value as number) || 0;
