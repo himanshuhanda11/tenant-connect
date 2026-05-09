@@ -360,8 +360,10 @@ export default function CreateWorkspaceSplitHero({
                     Category
                   </Label>
                   <Select value={category} onValueChange={setCategory}>
-                    <SelectTrigger className="h-11 rounded-xl border-emerald-200 bg-white text-sm text-slate-900 [&>span]:text-slate-900 data-[placeholder]:[&>span]:text-slate-500">
-                      <SelectValue placeholder="Select category" />
+                    <SelectTrigger className="h-11 rounded-xl border-emerald-200 bg-white text-sm text-slate-900">
+                      <span className={cn("truncate", !category && "text-slate-500")}>
+                        {category || "Select category"}
+                      </span>
                     </SelectTrigger>
                     <SelectContent className="bg-white text-slate-900 z-[60]">
                       {CATEGORIES.map((c) => (
@@ -375,8 +377,10 @@ export default function CreateWorkspaceSplitHero({
                     Team Size
                   </Label>
                   <Select value={teamSize} onValueChange={setTeamSize}>
-                    <SelectTrigger className="h-11 rounded-xl border-emerald-200 bg-white text-sm text-slate-900 [&>span]:text-slate-900 data-[placeholder]:[&>span]:text-slate-500">
-                      <SelectValue placeholder="Select size" />
+                    <SelectTrigger className="h-11 rounded-xl border-emerald-200 bg-white text-sm text-slate-900">
+                      <span className={cn("truncate", !teamSize && "text-slate-500")}>
+                        {teamSize || "Select size"}
+                      </span>
                     </SelectTrigger>
                     <SelectContent className="bg-white text-slate-900 z-[60]">
                       {TEAM_SIZES.map((t) => (
