@@ -189,7 +189,7 @@ export default function PlanSelectionModal({ open, tenantId, onSelected, onPaidI
               disabled={!canRight}
               aria-label="Next plan"
               className={cn(
-                'absolute right-2 sm:right-3 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-gradient-to-br from-emerald-500 to-teal-500 shadow-lg shadow-emerald-500/40 flex items-center justify-center transition-all duration-200 text-white',
+                'absolute right-1.5 sm:right-3 top-1/2 -translate-y-1/2 z-20 w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gradient-to-br from-emerald-500 to-teal-500 shadow-lg shadow-emerald-500/40 flex items-center justify-center transition-all duration-200 text-white',
                 'hover:scale-110 hover:shadow-emerald-500/60',
                 !canRight && 'opacity-0 pointer-events-none',
               )}
