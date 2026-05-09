@@ -512,19 +512,6 @@ export function AppSidebar() {
 
       {/* ── Footer — Platform + Floating tile ── */}
       <SidebarFooter className={cn("gap-2 border-t border-sidebar-border", isCollapsed ? "px-1.5 py-2" : "px-3 py-3")}>
-        <SidebarGroup className="p-0">
-          {!isCollapsed && (
-            <SidebarGroupLabel className="mb-1 px-3 text-[10px] font-semibold uppercase tracking-[0.1em] text-sidebar-foreground/60">
-              Platform
-            </SidebarGroupLabel>
-          )}
-          <SidebarGroupContent>
-            <SidebarMenu className={cn("space-y-0.5", isCollapsed && "flex flex-col items-center space-y-1.5")}>
-              {filteredSettingsMenuItems.map(item => renderMenuItem(item))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <button className={cn(
