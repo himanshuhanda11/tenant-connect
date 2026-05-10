@@ -18,6 +18,7 @@ export function WidgetPreview({ widget, agents = [], device = 'desktop', forceOp
   const previewIssues = [
     !widget.whatsapp_number ? 'WhatsApp number is missing' : null,
     cfg.type === 'multi-agent' && agents.length === 0 ? 'Add at least one agent or switch widget type' : null,
+    cfg.type === 'minimal-icon' ? 'Minimal icon mode shows only the button on the live site' : null,
   ].filter(Boolean) as string[];
   const showFallbackNotice = previewIssues.length > 0;
 
@@ -105,7 +106,7 @@ export function WidgetPreview({ widget, agents = [], device = 'desktop', forceOp
           </button>
 
           <AnimatePresence>
-            {isOpen && cfg.type !== 'minimal-icon' && (
+            {isOpen && (
               <motion.div
                 initial={{ opacity: 0, y: 16, scale: 0.96 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -214,20 +215,6 @@ export function WidgetPreview({ widget, agents = [], device = 'desktop', forceOp
             )}
           </AnimatePresence>
 
-          {cfg.type === 'minimal-icon' && (
-            <div
-              className="absolute z-20 w-[300px] max-w-[88%] rounded-2xl border border-border bg-card/95 p-3 text-sm text-card-foreground shadow-2xl backdrop-blur"
-              style={{ bottom: 88, [isLeft ? 'left' : 'right']: 16 }}
-            >
-              <div className="flex items-center gap-2 font-semibold">
-                <RefreshCw className="h-4 w-4 text-primary" />
-                Minimal icon preview
-              </div>
-              <p className="mt-1 text-xs leading-5 text-muted-foreground">
-                This template intentionally shows only the floating WhatsApp button on the website.
-              </p>
-            </div>
-          )}
         </>
       )}
 
