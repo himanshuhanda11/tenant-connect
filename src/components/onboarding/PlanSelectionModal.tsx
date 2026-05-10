@@ -54,7 +54,7 @@ const planMeta: Record<string, { icon: React.ReactNode; gradient: string; ring: 
   },
 };
 
-export default function PlanSelectionModal({ open, tenantId, onSelected, onPaidIntent }: Props) {
+export default function PlanSelectionModal({ open, tenantId, onSelected, onPaidIntent, onDismiss }: Props) {
   const [activatingId, setActivatingId] = useState<string | null>(null);
   const scrollerRef = useRef<HTMLDivElement>(null);
   const [canLeft, setCanLeft] = useState(false);
