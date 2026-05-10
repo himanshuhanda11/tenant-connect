@@ -25,11 +25,13 @@ Deno.serve(async (req) => {
       .select("role").eq("tenant_id", workspaceId).eq("user_id", user.id).maybeSingle();
     if (!member) return json({ error: "Not a member of this workspace" }, 403);
 
-    const [{ data: sub }, { data: ent }] = await Promise.all([
+    const [{ data: sub }, { data: ent }, { data: tenant }] = await Promise.all([
       service.from("subscriptions")
         .select("*").eq("tenant_id", workspaceId).maybeSingle(),
       service.from("workspace_entitlements")
         .select("*").eq("workspace_id", workspaceId).maybeSingle(),
+      service.from("tenants")
+        .select("country, pricing_region, currency").eq("id", workspaceId).maybeSingle(),
     ]);
 
     const planId = (sub?.plan_id || "plan_free").replace(/^plan_/, "");
@@ -59,6 +61,9 @@ Deno.serve(async (req) => {
       stripe_customer_id: sub?.stripe_customer_id || null,
       has_subscription: !!sub?.stripe_subscription_id,
       role: member.role,
+      country: tenant?.country || null,
+      pricing_region: sub?.pricing_region || tenant?.pricing_region || "OTHER",
+      currency: sub?.currency || tenant?.currency || "USD",
       entitlements: ent || null,
     });
   } catch (err: any) {

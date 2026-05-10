@@ -15,6 +15,7 @@ import { useStartCheckout } from '@/hooks/useWorkspaceBilling';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTenant } from '@/contexts/TenantContext';
 import ContactAdminDialog from '@/components/billing/ContactAdminDialog';
+import RegionSelector, { regionFromCountry, CURRENCY_FOR_REGION, type PricingRegion, type PricingCurrency } from '@/components/billing/RegionSelector';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import aireatroLogo from '@/assets/aireatro-logo.png';
@@ -41,6 +42,31 @@ export default function SelectWorkspacePlanPage() {
   const [success, setSuccess] = useState(false);
   const [contactOpen, setContactOpen] = useState(false);
 
+  // Region / currency selection (drives pricing display + Stripe price ID)
+  const [country, setCountry] = useState<string>(
+    (typeof window !== 'undefined' ? localStorage.getItem('preferred_country') : null) || 'OTHER',
+  );
+  const region: PricingRegion = regionFromCountry(country);
+  const currency: PricingCurrency = CURRENCY_FOR_REGION[region];
+
+  // Local price book (mirrors Stripe / DB prices). Yearly = 20% off.
+  const PLAN_PRICES_LOCAL: Record<string, Record<PricingCurrency, number>> = {
+    free:     { INR: 0,    AED: 0,   USD: 0 },
+    basic:    { INR: 1499, AED: 350, USD: 50 },
+    pro:      { INR: 3499, AED: 550, USD: 150 },
+    business: { INR: 5500, AED: 850, USD: 220 },
+  };
+  const getLocalPrice = (planId: string, yearly: boolean): number => {
+    const base = PLAN_PRICES_LOCAL[planId]?.[currency] ?? 0;
+    if (!base) return 0;
+    return yearly ? Math.round(base * 0.8) : base;
+  };
+  const formatLocalAmount = (amount: number): string => {
+    if (currency === 'INR') return `₹${amount.toLocaleString('en-IN')}`;
+    if (currency === 'AED') return `AED ${amount.toLocaleString('en-US')}`;
+    return `$${amount.toLocaleString('en-US')}`;
+  };
+
   // Resolve target workspace (from query param or current tenant)
   const targetWorkspaceId = params.get('workspace_id') || currentTenant?.id || tenants[0]?.id || null;
   const targetWorkspace = useMemo(
@@ -66,6 +92,14 @@ export default function SelectWorkspacePlanPage() {
       setCurrentTenant(targetWorkspace);
     }
   }, [targetWorkspace, currentTenant?.id, setCurrentTenant]);
+
+  // Pre-fill country from tenant if available
+  useEffect(() => {
+    const tenantCountry = (targetWorkspace as any)?.country as string | undefined;
+    if (tenantCountry && tenantCountry.toUpperCase() !== country) {
+      setCountry(tenantCountry.toUpperCase());
+    }
+  }, [targetWorkspace?.id]);
 
   const handleSelect = async (plan: PricingPlan) => {
     if (isClaiming || startCheckout.isPending || !targetWorkspaceId) return;
@@ -94,6 +128,8 @@ export default function SelectWorkspacePlanPage() {
         workspaceId: targetWorkspaceId,
         planId: plan.id,
         billingCycle: isYearly ? 'yearly' : 'monthly',
+        region,
+        country,
         successPath: '/onboarding/billing-return',
         cancelPath: '/onboarding/plan',
       });
@@ -177,7 +213,7 @@ export default function SelectWorkspacePlanPage() {
               : <>You've used your one free trial. Free plan is always available, or contact admin to activate paid plans.</>}
           </p>
 
-          <div className="mt-5 inline-flex items-center gap-3 px-4 py-2 rounded-full bg-white/5 border border-white/10">
+          <div className="mt-5 inline-flex flex-wrap items-center justify-center gap-3 px-4 py-2 rounded-full bg-white/5 border border-white/10">
             <Label htmlFor="yearly" className={cn('text-xs cursor-pointer', !isYearly ? 'text-white' : 'text-white/60')}>Monthly</Label>
             <Switch id="yearly" checked={isYearly} onCheckedChange={setIsYearly} />
             <Label htmlFor="yearly" className={cn('text-xs cursor-pointer flex items-center gap-1.5', isYearly ? 'text-white' : 'text-white/60')}>
@@ -185,12 +221,21 @@ export default function SelectWorkspacePlanPage() {
               <Badge className="bg-emerald-400/20 text-emerald-200 border-0 text-[10px] px-1.5 py-0">−20%</Badge>
             </Label>
           </div>
+
+          <div className="mt-3 flex items-center justify-center">
+            <RegionSelector
+              workspaceId={targetWorkspaceId}
+              initialCountry={country}
+              onChange={({ country: c }) => setCountry(c)}
+              compact
+            />
+          </div>
         </div>
 
         {/* Plans */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 max-w-6xl mx-auto pb-12">
           {pricingPlans.map((plan, idx) => {
-            const price = getPlanPrice(plan.id as PlanId, isYearly);
+            const price = getLocalPrice(plan.id, isYearly);
             const isPro = plan.highlight;
             const isFree = plan.id === 'free';
             const locked = !isFree && isEligible === false;
@@ -235,7 +280,7 @@ export default function SelectWorkspacePlanPage() {
                     <span className="text-3xl font-bold">Free</span>
                   ) : (
                     <div className="flex items-baseline gap-1">
-                      <span className="text-3xl font-bold">{formatAmount(price ?? 0)}</span>
+                      <span className="text-3xl font-bold">{formatLocalAmount(price ?? 0)}</span>
                       <span className="text-xs text-white/60">/mo</span>
                     </div>
                   )}

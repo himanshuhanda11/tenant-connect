@@ -3,6 +3,7 @@
 import {
   corsHeaders, json, getStripe, getServiceClient, getAuthedUser,
   assertWorkspaceAdmin, resolveStripePriceId, appUrl,
+  REGION_CURRENCY, type PricingRegion,
 } from "../_shared/stripe.ts";
 import { callFunction } from "../_shared/http.ts";
 
@@ -70,10 +71,33 @@ Deno.serve(async (req) => {
     }
 
     // ── PAID PLAN: Stripe Checkout with 30-day trial ──
-    const priceId = resolveStripePriceId(planId, billingCycle);
+    // Resolve workspace pricing region (request override > tenant > default)
+    const { data: tenantRow } = await service
+      .from("tenants")
+      .select("name, billing_email, country, pricing_region, currency")
+      .eq("id", workspaceId)
+      .maybeSingle();
+
+    const requestedRegion = (body.region || body.pricingRegion || "").toUpperCase();
+    const region: PricingRegion =
+      (requestedRegion === "IN" || requestedRegion === "GULF" || requestedRegion === "OTHER")
+        ? requestedRegion
+        : ((tenantRow?.pricing_region as PricingRegion) || "OTHER");
+    const currency = REGION_CURRENCY[region];
+
+    // Persist region/currency on tenant if not yet set or if changed by request
+    if (tenantRow && (tenantRow.pricing_region !== region || tenantRow.currency !== currency)) {
+      await service.from("tenants").update({
+        pricing_region: region,
+        currency,
+        ...(body.country ? { country: String(body.country).toUpperCase() } : {}),
+      }).eq("id", workspaceId);
+    }
+
+    const priceId = await resolveStripePriceId(service, planId, billingCycle, region);
     if (!priceId) {
       return json({
-        error: `Stripe price not configured for ${planId}/${billingCycle}. Set STRIPE_PRICE_${planId.toUpperCase()}_${billingCycle.toUpperCase()}.`,
+        error: `Stripe price not configured for ${planId}/${billingCycle}/${region}. Add it to platform_plans.stripe_prices or set STRIPE_PRICE_${planId.toUpperCase()}_${billingCycle.toUpperCase()}_${region}.`,
       }, 503);
     }
 
@@ -89,13 +113,15 @@ Deno.serve(async (req) => {
     customerId = existingSub?.stripe_customer_id ?? null;
 
     if (!customerId) {
-      const { data: tenant } = await service
-        .from("tenants").select("name, billing_email")
-        .eq("id", workspaceId).maybeSingle();
       const customer = await stripe.customers.create({
-        email: tenant?.billing_email || user.email,
-        name: tenant?.name || undefined,
-        metadata: { workspace_id: workspaceId, user_id: user.id },
+        email: tenantRow?.billing_email || user.email,
+        name: tenantRow?.name || undefined,
+        metadata: {
+          workspace_id: workspaceId,
+          user_id: user.id,
+          pricing_region: region,
+          currency,
+        },
       });
       customerId = customer.id;
       await service.from("subscriptions").upsert({
@@ -104,6 +130,8 @@ Deno.serve(async (req) => {
         stripe_customer_id: customerId,
         status: "incomplete" as any,
         billing_cycle: billingCycle,
+        currency,
+        pricing_region: region,
       }, { onConflict: "tenant_id" });
     }
 
@@ -125,6 +153,8 @@ Deno.serve(async (req) => {
           plan_id: planId,
           billing_cycle: billingCycle,
           user_id: user.id,
+          pricing_region: region,
+          currency,
         },
       },
       metadata: {
@@ -132,6 +162,8 @@ Deno.serve(async (req) => {
         plan_id: planId,
         billing_cycle: billingCycle,
         user_id: user.id,
+        pricing_region: region,
+        currency,
       },
       allow_promotion_codes: true,
       billing_address_collection: "auto",

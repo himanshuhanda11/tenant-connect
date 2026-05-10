@@ -97,6 +97,9 @@ Deno.serve(async (req) => {
       ? "active"
       : (sub.trial_end && Math.floor(Date.now() / 1000) > sub.trial_end ? "ended" : "none");
 
+    const currency = (item?.price?.currency || sub.metadata?.currency || "").toUpperCase() || null;
+    const pricingRegion = sub.metadata?.pricing_region || null;
+
     await supabase.from("subscriptions").upsert({
       tenant_id: workspaceId,
       plan_id: planId ? (planId.startsWith("plan_") ? planId : `plan_${planId}`) : "plan_basic",
@@ -105,6 +108,8 @@ Deno.serve(async (req) => {
       stripe_price_id: priceId,
       status: sub.status as any,
       billing_cycle: billingCycle,
+      currency,
+      pricing_region: pricingRegion,
       current_period_start: sub.current_period_start ? new Date(sub.current_period_start * 1000).toISOString() : null,
       current_period_end: sub.current_period_end ? new Date(sub.current_period_end * 1000).toISOString() : null,
       cancel_at_period_end: !!sub.cancel_at_period_end,

@@ -50,6 +50,8 @@ export function useStartCheckout() {
       workspaceId: string;
       planId: string;
       billingCycle: 'monthly' | 'yearly';
+      region?: 'IN' | 'GULF' | 'OTHER';
+      country?: string;
       successPath?: string;
       cancelPath?: string;
     }) => {
@@ -60,6 +62,8 @@ export function useStartCheckout() {
           planId: input.planId,
           billingCycle: input.billingCycle,
           provider: 'stripe',
+          region: input.region,
+          country: input.country,
           successUrl: input.successPath
             ? `${origin}${input.successPath}?session_id={CHECKOUT_SESSION_ID}`
             : undefined,

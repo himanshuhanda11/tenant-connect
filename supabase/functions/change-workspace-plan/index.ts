@@ -59,9 +59,14 @@ Deno.serve(async (req) => {
       }, 400);
     }
 
-    const newPriceId = resolveStripePriceId(planId, cycle);
+    // Resolve region from existing subscription/tenant so plan changes stay in same region
+    const { data: tenantRow } = await service
+      .from("tenants").select("pricing_region").eq("id", workspaceId).maybeSingle();
+    const region = (sub?.pricing_region || tenantRow?.pricing_region || "OTHER") as
+      "IN" | "GULF" | "OTHER";
+    const newPriceId = await resolveStripePriceId(service, planId, cycle, region);
     if (!newPriceId) {
-      return json({ error: `Stripe price not configured for ${planId}/${cycle}` }, 503);
+      return json({ error: `Stripe price not configured for ${planId}/${cycle}/${region}` }, 503);
     }
 
     const stripe = await getStripe();
