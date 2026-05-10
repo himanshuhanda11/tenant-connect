@@ -36,7 +36,7 @@ export default function OnboardingStepBar({ currentStep, className }: Props) {
         </div>
         <div className="text-right flex-shrink-0">
           <p className="text-[9px] sm:text-[11px] text-slate-500 leading-none">Setup</p>
-          <p className="text-[11px] sm:text-sm font-bold text-emerald-600">&lt; 10 min</p>
+          <p className="text-[11px] sm:text-sm font-bold text-emerald-600">&lt; 2 min</p>
         </div>
       </div>
 
