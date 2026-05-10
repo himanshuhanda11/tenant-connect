@@ -141,12 +141,12 @@ export default function PlanSelectionModal({ open, tenantId, onSelected, onPaidI
           transition={{ duration: 0.35, ease: 'easeOut' }}
           className="relative rounded-3xl bg-white shadow-2xl overflow-hidden max-h-[92vh] flex flex-col"
         >
-          {/* Close button */}
+          {/* Close button — dismisses modal and keeps user on dashboard (defaults to Free plan) */}
           <button
             type="button"
-            onClick={async () => {
-              try { await supabase.auth.signOut(); } catch {}
-              navigate('/login', { replace: true });
+            onClick={() => {
+              if (activatingId) return;
+              handleFree();
             }}
             aria-label="Close"
             className="absolute top-3 right-3 sm:top-4 sm:right-4 z-30 w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-slate-900 hover:bg-slate-800 text-white shadow-lg flex items-center justify-center transition-all hover:scale-105 active:scale-95"
