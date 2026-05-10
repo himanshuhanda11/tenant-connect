@@ -132,6 +132,7 @@ const Features = lazyWithRetry(() => import("./pages/Features"));
 const WhatsAppForms = lazyWithRetry(() => import("./pages/WhatsAppForms"));
 const WhatsAppBusinessApi = lazyWithRetry(() => import("./pages/WhatsAppBusinessApi"));
 const ClickToWhatsApp = lazyWithRetry(() => import("./pages/ClickToWhatsApp"));
+const WhatsAppWidgetPublic = lazyWithRetry(() => import("./pages/WhatsAppWidget"));
 const WhyWhatsAppMarketing = lazyWithRetry(() => import("./pages/WhyWhatsAppMarketing"));
 const FreeWhatsAppApiLifetime = lazyWithRetry(() => import("./pages/FreeWhatsAppApiLifetime"));
 const DocsViewer = lazyWithRetry(() => import("./pages/DocsViewer"));
