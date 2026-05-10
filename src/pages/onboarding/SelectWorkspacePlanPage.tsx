@@ -271,7 +271,7 @@ export default function SelectWorkspacePlanPage() {
                     <span className="text-3xl font-bold">Free</span>
                   ) : (
                     <div className="flex items-baseline gap-1">
-                      <span className="text-3xl font-bold">{formatAmount(price ?? 0)}</span>
+                      <span className="text-3xl font-bold">{formatLocalAmount(price ?? 0)}</span>
                       <span className="text-xs text-white/60">/mo</span>
                     </div>
                   )}
