@@ -3,8 +3,6 @@ type GoogleOAuthOptions = {
   extraParams?: Record<string, string>;
 };
 
-import { lovable } from "@/integrations/lovable";
-
 const MANAGED_OAUTH_PATH = "/~oauth/initiate";
 const PRIMARY_CUSTOM_ORIGIN = "https://www.aireatro.com";
 
@@ -49,25 +47,13 @@ export function buildGoogleAuthRedirectUri(nextPath = "/select-workspace") {
 export async function signInWithManagedGoogle(options: GoogleOAuthOptions = {}) {
   const { nextPath = "/select-workspace", extraParams } = options;
 
-  if (window.location.hostname === "aireatro.com" || window.location.hostname.endsWith(".aireatro.com")) {
-    const params = new URLSearchParams({
-      ...extraParams,
-      provider: "google",
-      redirect_uri: buildGoogleAuthRedirectUri(nextPath),
-      state: createOAuthState(),
-    });
-
-    redirectToOAuth(`${getOAuthBrokerOrigin()}${MANAGED_OAUTH_PATH}?${params.toString()}`);
-    return { error: null, redirected: true };
-  }
-
-  const result = await lovable.auth.signInWithOAuth("google", {
+  const params = new URLSearchParams({
+    ...extraParams,
+    provider: "google",
     redirect_uri: buildGoogleAuthRedirectUri(nextPath),
-    extraParams,
+    state: createOAuthState(),
   });
 
-  return {
-    error: result.error ?? null,
-    redirected: Boolean(result.redirected) as boolean,
-  };
+  redirectToOAuth(`${getOAuthBrokerOrigin()}${MANAGED_OAUTH_PATH}?${params.toString()}`);
+  return { error: null, redirected: true };
 }
