@@ -226,7 +226,7 @@ export default function SelectWorkspacePlanPage() {
         {/* Plans */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 max-w-6xl mx-auto pb-12">
           {pricingPlans.map((plan, idx) => {
-            const price = getPlanPrice(plan.id as PlanId, isYearly);
+            const price = getLocalPrice(plan.id, isYearly);
             const isPro = plan.highlight;
             const isFree = plan.id === 'free';
             const locked = !isFree && isEligible === false;
