@@ -193,6 +193,8 @@ export function WidgetBuilderControls({ widget, agents, onChange, onAgentSave, o
             <Toggle label="Show email field" value={!!draft.fieldEmail} onChange={v => patch({ fieldEmail: v })} />
           </Card>
 
+          <WidgetRoutingPanel config={draft} onChange={patch} />
+
           <WidgetGeoRules config={draft} onChange={patch} />
           <WidgetUtmRules config={draft} onChange={patch} />
           <WidgetCustomCss config={draft} onChange={patch} />
