@@ -10,8 +10,15 @@
   var ORIGIN = (script && script.getAttribute('data-origin')) || 'https://fygwjpdasnhaomoqdvcu.supabase.co';
   var FN = ORIGIN + '/functions/v1';
 
-  // Session id
-  var sid = 'aw_' + Math.random().toString(36).slice(2) + Date.now().toString(36);
+  // Session id (persisted to keep variant assignment stable per visitor)
+  var SKEY = 'aireatro:wid:' + widgetId;
+  var sessionStore = (function(){
+    try { return JSON.parse(localStorage.getItem(SKEY) || '{}'); } catch(_) { return {}; }
+  })();
+  function persistSession(){ try { localStorage.setItem(SKEY, JSON.stringify(sessionStore)); } catch(_){} }
+  if (!sessionStore.sid) { sessionStore.sid = 'aw_' + Math.random().toString(36).slice(2) + Date.now().toString(36); persistSession(); }
+  var sid = sessionStore.sid;
+  var assignedVariantId = null;
 
   function detectDevice(){ return /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent) ? 'mobile' : 'desktop'; }
 
