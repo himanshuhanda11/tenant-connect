@@ -1,18 +1,14 @@
-import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { CheckCircle2, Gift, Sparkles, ShieldCheck, Crown, Rocket, Building2, Loader2, X, Zap } from 'lucide-react';
-import { CountdownPill } from './CountdownPill';
-import { useLaunchOffer, useTodayClaimCount } from '@/hooks/useLaunchOffer';
+import { Sparkles, ShieldCheck, X, Zap, MessageCircle, ArrowRight, Clock } from 'lucide-react';
+import { useLaunchOffer, useTodayClaimCount, formatCountdown } from '@/hooks/useLaunchOffer';
 import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useState } from 'react';
-import { pricingPlans, type PricingPlan } from '@/data/pricingPlans';
-import { useGeoLocation } from '@/hooks/useGeoLocation';
-import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTenant } from '@/contexts/TenantContext';
+import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 
 const PENDING_CLAIM_KEY = 'lovable.pending_claim_offer';
 
@@ -21,24 +17,39 @@ interface Props {
   onOpenChange: (open: boolean) => void;
 }
 
-const planIcons: Record<string, JSX.Element> = {
-  free: <Gift className="w-4 h-4" />,
-  basic: <Rocket className="w-4 h-4" />,
-  pro: <Crown className="w-4 h-4" />,
-  business: <Building2 className="w-4 h-4" />,
-};
+const trustItems = [
+  { icon: ShieldCheck, label: 'No Credit Card' },
+  { icon: MessageCircle, label: 'Official WhatsApp API' },
+  { icon: Zap, label: 'Setup in < 10 min' },
+];
+
+function TimeBlock({ value, label }: { value: number; label: string }) {
+  return (
+    <div className="flex flex-col items-center">
+      <div className="relative">
+        <div className="absolute inset-0 bg-emerald-400/20 blur-md rounded-lg" />
+        <div className="relative w-12 sm:w-14 h-12 sm:h-14 rounded-lg bg-white/[0.06] border border-white/10 backdrop-blur-md flex items-center justify-center font-mono font-bold text-xl sm:text-2xl tabular-nums text-white">
+          {String(value).padStart(2, '0')}
+        </div>
+      </div>
+      <span className="mt-1.5 text-[9px] uppercase tracking-[0.15em] text-white/50 font-medium">
+        {label}
+      </span>
+    </div>
+  );
+}
 
 export function LaunchOfferDialog({ open, onOpenChange }: Props) {
   const { isActive, secondsLeft, isClaiming } = useLaunchOffer();
   const { data: claimCount } = useTodayClaimCount();
-  const { getPlanPrice, formatAmount } = useGeoLocation();
   const { user } = useAuth();
   const { tenants, currentTenant } = useTenant();
   const navigate = useNavigate();
-  const [pendingPlan, setPendingPlan] = useState<string | null>(null);
-  const [view, setView] = useState<'intro' | 'plans'>('intro');
+  const [hovering, setHovering] = useState(false);
 
   if (!isActive) return null;
+
+  const { h, m, s } = formatCountdown(secondsLeft);
 
   const routeToPlanFlow = (planId?: string) => {
     onOpenChange(false);
@@ -57,199 +68,250 @@ export function LaunchOfferDialog({ open, onOpenChange }: Props) {
     navigate(`/select-workspace-plan?workspace_id=${wsId}${planParam}`);
   };
 
-  const handleSelect = (plan: PricingPlan) => {
-    if (isClaiming) return;
-    setPendingPlan(plan.id);
-    routeToPlanFlow(plan.id);
-  };
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
+        hideOverlay={false}
         className={cn(
-          'p-0 overflow-hidden border-emerald-200/60 bg-gradient-to-br from-emerald-50/40 via-background to-background text-foreground rounded-2xl shadow-2xl',
-          'my-6 sm:my-10 max-h-[calc(100vh-4rem)] sm:max-h-[calc(100vh-5rem)] overflow-y-auto',
-          view === 'plans' ? 'max-w-2xl' : 'max-w-md'
+          'p-0 border-0 bg-transparent shadow-none overflow-visible max-w-md',
+          'data-[state=open]:animate-none data-[state=closed]:animate-none',
         )}
       >
-        {/* Soft ambient glows */}
-        <div className="pointer-events-none absolute -top-16 -left-16 w-48 h-48 rounded-full bg-emerald-300/20 blur-[60px]" />
-        <div className="pointer-events-none absolute -bottom-16 -right-16 w-48 h-48 rounded-full bg-primary/10 blur-[60px]" />
+        <VisuallyHidden>
+          <DialogTitle>Get 1 Month FREE on Any Plan</DialogTitle>
+          <DialogDescription>Limited launch offer for new Aireatro subscribers</DialogDescription>
+        </VisuallyHidden>
 
-        {/* Close */}
-        <button
-          type="button"
-          aria-label="Close"
-          onClick={() => onOpenChange(false)}
-          className="absolute right-2.5 top-2.5 z-50 rounded-full bg-muted/80 hover:bg-muted text-muted-foreground hover:text-foreground p-1.5 backdrop-blur-sm border border-border/60 transition-all touch-manipulation shadow-sm"
-        >
-          <X className="w-3.5 h-3.5" />
-        </button>
+        <AnimatePresence>
+          {open && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.92, y: 20 }}
+              animate={{
+                opacity: 1,
+                scale: 1,
+                y: [0, -4, 0],
+              }}
+              exit={{ opacity: 0, scale: 0.95, y: 10 }}
+              transition={{
+                opacity: { duration: 0.3 },
+                scale: { type: 'spring', stiffness: 280, damping: 22 },
+                y: { duration: 6, repeat: Infinity, ease: 'easeInOut', delay: 0.4 },
+              }}
+              className="relative w-full"
+            >
+              {/* Outer glow halos */}
+              <div className="pointer-events-none absolute -inset-12 -z-10">
+                <div className="absolute top-0 left-1/4 w-64 h-64 rounded-full bg-emerald-500/30 blur-[80px] animate-pulse" />
+                <div className="absolute bottom-0 right-1/4 w-72 h-72 rounded-full bg-primary/25 blur-[100px] animate-pulse" style={{ animationDelay: '1s' }} />
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-56 h-56 rounded-full bg-cyan-400/15 blur-[90px]" />
+              </div>
 
-        <div className="relative p-5 sm:p-6 pt-10 sm:pt-6">
-
-          {view === 'intro' ? (
-            <>
-              <motion.div
-                initial={{ scale: 0.85, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{ type: 'spring', stiffness: 260, damping: 18 }}
-                className="mx-auto w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-400 to-primary flex items-center justify-center shadow-md shadow-emerald-500/20 mb-3"
+              {/* Frosted glass card */}
+              <div
+                className="relative rounded-3xl overflow-hidden border border-white/10 shadow-[0_30px_80px_-20px_rgba(0,0,0,0.6)]"
+                style={{
+                  background:
+                    'linear-gradient(140deg, rgba(15,23,42,0.92) 0%, rgba(2,6,23,0.96) 50%, rgba(6,30,22,0.92) 100%)',
+                  backdropFilter: 'blur(24px)',
+                  WebkitBackdropFilter: 'blur(24px)',
+                }}
               >
-                <Gift className="w-6 h-6 text-white" />
-              </motion.div>
+                {/* Top emerald hairline glow */}
+                <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-emerald-400/70 to-transparent" />
 
-              <div className="text-center mb-4">
-                <Badge className="bg-emerald-100 text-emerald-700 border-emerald-200 gap-1 font-medium text-[11px] mb-2">
-                  <Sparkles className="w-2.5 h-2.5" /> Launch Offer
-                </Badge>
-                <h2 className="text-xl sm:text-2xl font-bold tracking-tight leading-snug">
-                  1 Month FREE — Pick Any Plan
-                </h2>
-                <p className="text-xs text-muted-foreground mt-1.5 max-w-[16rem] mx-auto leading-relaxed">
-                  Your first month is on us. Countdown resets every 24 hours.
-                </p>
-                <div className="mt-2.5 flex justify-center">
-                  <CountdownPill secondsLeft={secondsLeft} size="md" light />
+                {/* Sparkle / particle layer */}
+                <div className="pointer-events-none absolute inset-0 overflow-hidden">
+                  {[...Array(6)].map((_, i) => (
+                    <motion.span
+                      key={i}
+                      className="absolute w-1 h-1 rounded-full bg-emerald-300/70"
+                      style={{
+                        top: `${15 + i * 13}%`,
+                        left: `${10 + (i * 17) % 80}%`,
+                      }}
+                      animate={{
+                        opacity: [0, 1, 0],
+                        scale: [0, 1.2, 0],
+                        y: [0, -20],
+                      }}
+                      transition={{
+                        duration: 3 + i * 0.4,
+                        repeat: Infinity,
+                        delay: i * 0.6,
+                        ease: 'easeOut',
+                      }}
+                    />
+                  ))}
                 </div>
-              </div>
 
-              <div className="flex flex-col gap-2">
-                <Button
-                  className="w-full h-11 px-4 bg-gradient-to-r from-emerald-500 to-primary text-white border-0 font-semibold text-sm shadow-lg shadow-emerald-500/20 hover:shadow-xl hover:scale-[1.01] transition-all"
-                  onClick={() => routeToPlanFlow()}
-                >
-                  <Sparkles className="w-4 h-4 mr-1.5 flex-shrink-0" />
-                  <span>Claim 1 Month Free</span>
-                </Button>
-                <Button
-                  variant="ghost"
-                  className="w-full h-9 text-muted-foreground hover:text-foreground hover:bg-muted font-medium text-xs"
+                {/* Close */}
+                <button
+                  type="button"
+                  aria-label="Close"
                   onClick={() => onOpenChange(false)}
+                  className="group absolute right-3 top-3 z-50 w-8 h-8 rounded-full bg-white/[0.06] hover:bg-white/[0.14] border border-white/10 backdrop-blur-md flex items-center justify-center transition-all duration-200 hover:scale-110 hover:rotate-90"
                 >
-                  Maybe later
-                </Button>
-              </div>
+                  <X className="w-3.5 h-3.5 text-white/70 group-hover:text-white transition-colors" />
+                </button>
 
-              <div className="mt-3 flex items-center justify-between text-[11px] text-muted-foreground">
-                <span className="inline-flex items-center gap-1 text-emerald-700 font-semibold">
-                  <ShieldCheck className="w-3 h-3" />
-                  No credit card
-                </span>
-                {typeof claimCount === 'number' && claimCount > 0 && (
-                  <span className="inline-flex items-center gap-1">
-                    <Zap className="w-3 h-3 text-amber-500" />
-                    {claimCount} claimed today
-                  </span>
-                )}
-              </div>
-            </>
-          ) : (
-            <>
-              <div className="flex items-start justify-between gap-2 mb-4">
-                <div>
-                  <Badge className="bg-emerald-100 text-emerald-700 border-emerald-200 gap-1 mb-1.5 font-medium text-[11px]">
-                    <Sparkles className="w-2.5 h-2.5" /> 1 Month FREE
-                  </Badge>
-                  <h2 className="text-lg sm:text-xl font-bold tracking-tight leading-snug">
-                    Pick your plan
-                  </h2>
-                  <p className="text-[11px] text-muted-foreground mt-0.5">
-                    First month free. Cancel anytime.
-                  </p>
-                </div>
-                <CountdownPill secondsLeft={secondsLeft} size="sm" light />
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                {pricingPlans.map((plan) => {
-                  const price = getPlanPrice(plan.id as any, false);
-                  const isPending = pendingPlan === plan.id && isClaiming;
-                  return (
-                    <motion.div
-                      key={plan.id}
-                      whileHover={{ y: -2 }}
-                      className={cn(
-                        'relative rounded-lg border p-3 bg-card/60 backdrop-blur transition-all',
-                        plan.highlight
-                          ? 'border-emerald-400/60 ring-1 ring-emerald-400/30 shadow-sm shadow-emerald-500/10'
-                          : 'border-border/80 hover:border-emerald-300/60'
-                      )}
-                    >
-                      {plan.highlight && (
-                        <Badge className="absolute -top-2 right-2 bg-gradient-to-r from-emerald-500 to-primary text-white border-0 text-[9px] px-1.5 py-0">
-                          Popular
-                        </Badge>
-                      )}
-                      <div className="flex items-center gap-2 mb-2">
-                        <span className="w-7 h-7 rounded-md bg-emerald-100 flex items-center justify-center text-emerald-600">
-                          {planIcons[plan.id] ?? <Gift className="w-3.5 h-3.5" />}
+                <div className="relative px-6 sm:px-7 pt-7 pb-6">
+                  {/* Premium animated badge */}
+                  <motion.div
+                    initial={{ opacity: 0, y: -8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.15 }}
+                    className="flex justify-center mb-4"
+                  >
+                    <div className="relative inline-flex">
+                      <div className="absolute inset-0 rounded-full bg-emerald-400/30 blur-md animate-pulse" />
+                      <div className="relative inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/[0.06] border border-emerald-300/30 backdrop-blur-md">
+                        <span className="text-sm">🎁</span>
+                        <span className="text-[10px] font-semibold uppercase tracking-[0.14em] bg-gradient-to-r from-emerald-200 to-emerald-400 bg-clip-text text-transparent">
+                          Limited Launch Offer
                         </span>
-                        <div>
-                          <div className="font-semibold text-xs">{plan.name}</div>
-                          <div className="text-[10px] text-muted-foreground">{plan.tagline}</div>
+                      </div>
+                    </div>
+                  </motion.div>
+
+                  {/* Headline */}
+                  <motion.h2
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.22 }}
+                    className="text-center text-[22px] sm:text-[26px] font-bold tracking-tight leading-[1.15] text-white"
+                  >
+                    Get{' '}
+                    <span className="relative inline-block">
+                      <span className="bg-gradient-to-r from-emerald-300 via-emerald-200 to-teal-300 bg-clip-text text-transparent">
+                        1 Month FREE
+                      </span>
+                      <span className="absolute -bottom-0.5 left-0 right-0 h-px bg-gradient-to-r from-transparent via-emerald-400/60 to-transparent" />
+                    </span>
+                    <br />
+                    <span className="text-white/95">on Any Plan</span>
+                  </motion.h2>
+
+                  {/* Subheading */}
+                  <motion.p
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.28 }}
+                    className="text-center text-[12.5px] sm:text-[13px] text-white/60 mt-2.5 leading-relaxed max-w-[20rem] mx-auto"
+                  >
+                    Scale your WhatsApp sales with AI automation, CRM, team inbox & campaigns — free for your first month.
+                  </motion.p>
+
+                  {/* Countdown timer */}
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.34 }}
+                    className="mt-5 mx-auto"
+                  >
+                    <div className="relative">
+                      <div className="absolute -inset-1 rounded-2xl bg-gradient-to-r from-emerald-500/20 via-transparent to-emerald-500/20 blur-md" />
+                      <div className="relative rounded-2xl bg-white/[0.03] border border-white/10 backdrop-blur-md px-4 py-3">
+                        <div className="flex items-center justify-center gap-1.5 mb-2">
+                          <Clock className="w-3 h-3 text-emerald-300/80" />
+                          <span className="text-[9.5px] uppercase tracking-[0.18em] text-emerald-200/80 font-semibold">
+                            Offer resets in
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-center gap-2 sm:gap-3">
+                          <TimeBlock value={h} label="Hours" />
+                          <span className="text-white/30 font-bold text-xl pb-4">:</span>
+                          <TimeBlock value={m} label="Mins" />
+                          <span className="text-white/30 font-bold text-xl pb-4">:</span>
+                          <TimeBlock value={s} label="Secs" />
                         </div>
                       </div>
+                    </div>
+                  </motion.div>
 
-                      <div className="flex items-end gap-1 mb-1">
-                        {typeof price === 'number' ? (
-                          <>
-                            <span className="text-xs font-bold line-through text-muted-foreground/60">
-                              {formatAmount(price)}
-                            </span>
-                            <span className="text-sm font-extrabold text-emerald-600">FREE</span>
-                          </>
-                        ) : (
-                          <span className="text-sm font-bold">Custom</span>
-                        )}
-                      </div>
-
-                      <ul className="space-y-0.5 mb-2.5">
-                        {plan.features.slice(0, 3).map((f) => (
-                          <li key={f} className="flex items-start gap-1 text-[10px] text-foreground/80">
-                            <CheckCircle2 className="w-3 h-3 text-emerald-500 mt-0.5 flex-shrink-0" />
-                            <span className="truncate">{f}</span>
-                          </li>
-                        ))}
-                      </ul>
-
-                      <Button
-                        size="sm"
-                        disabled={isClaiming}
-                        onClick={() => handleSelect(plan)}
+                  {/* CTAs */}
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.4 }}
+                    className="mt-5 flex flex-col gap-2.5"
+                  >
+                    {/* Primary CTA with glow */}
+                    <div
+                      className="relative group"
+                      onMouseEnter={() => setHovering(true)}
+                      onMouseLeave={() => setHovering(false)}
+                    >
+                      <div
                         className={cn(
-                          'w-full h-8 text-xs font-semibold',
-                          plan.highlight
-                            ? 'bg-gradient-to-r from-emerald-500 to-primary text-white border-0 hover:shadow-md hover:shadow-emerald-500/20'
-                            : 'bg-muted hover:bg-muted/80 text-foreground border border-border'
+                          'absolute -inset-0.5 rounded-xl bg-gradient-to-r from-emerald-400 via-emerald-500 to-teal-400 opacity-60 blur-md transition-all duration-300',
+                          hovering && 'opacity-100 blur-lg',
                         )}
+                      />
+                      <Button
+                        disabled={isClaiming}
+                        onClick={() => routeToPlanFlow()}
+                        className="relative w-full h-12 rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-white border-0 font-semibold text-sm shadow-lg shadow-emerald-900/30 transition-all duration-200 hover:scale-[1.015] active:scale-[0.99] group/btn"
                       >
-                        {isPending ? (
-                          <><Loader2 className="w-3 h-3 mr-1 animate-spin" /> Activating…</>
-                        ) : (
-                          <><Sparkles className="w-3 h-3 mr-1" /> Claim Free</>
-                        )}
+                        <Sparkles className="w-4 h-4 mr-2 transition-transform group-hover/btn:rotate-12" />
+                        Claim Free Access
+                        <ArrowRight className="w-4 h-4 ml-2 transition-transform group-hover/btn:translate-x-0.5" />
                       </Button>
-                    </motion.div>
-                  );
-                })}
-              </div>
+                    </div>
 
-              <div className="mt-3 flex items-center justify-between gap-2 text-[11px] text-muted-foreground">
-                <button
-                  onClick={() => setView('intro')}
-                  className="hover:text-foreground underline-offset-2 hover:underline"
-                >
-                  ← Back
-                </button>
-                <span className="inline-flex items-center gap-1">
-                  <ShieldCheck className="w-3 h-3" />
-                  No card • Cancel anytime
-                </span>
+                    {/* Secondary CTA */}
+                    <Button
+                      onClick={() => {
+                        onOpenChange(false);
+                        navigate('/pricing');
+                      }}
+                      variant="ghost"
+                      className="w-full h-10 rounded-xl bg-white/[0.02] hover:bg-white/[0.06] border border-white/10 hover:border-white/20 text-white/85 hover:text-white font-medium text-[13px] backdrop-blur-md transition-all"
+                    >
+                      Explore Plans
+                    </Button>
+                  </motion.div>
+
+                  {/* Trust indicators */}
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.5 }}
+                    className="mt-5 flex items-center justify-between gap-2"
+                  >
+                    {trustItems.map(({ icon: Icon, label }) => (
+                      <div
+                        key={label}
+                        className="flex items-center gap-1.5 text-[10.5px] text-white/55 font-medium"
+                      >
+                        <Icon className="w-3 h-3 text-emerald-400/80 flex-shrink-0" />
+                        <span className="whitespace-nowrap">{label}</span>
+                      </div>
+                    ))}
+                  </motion.div>
+
+                  {/* Social proof */}
+                  {typeof claimCount === 'number' && claimCount > 0 && (
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: 0.6 }}
+                      className="mt-3 pt-3 border-t border-white/5 flex items-center justify-center gap-1.5 text-[10.5px] text-white/45"
+                    >
+                      <span className="relative flex w-1.5 h-1.5">
+                        <span className="absolute inset-0 rounded-full bg-emerald-400 animate-ping" />
+                        <span className="relative rounded-full bg-emerald-400 w-1.5 h-1.5" />
+                      </span>
+                      <span className="font-medium text-white/65">{claimCount}</span> founders claimed today
+                    </motion.div>
+                  )}
+                </div>
+
+                {/* Bottom hairline */}
+                <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
               </div>
-            </>
+            </motion.div>
           )}
-        </div>
+        </AnimatePresence>
       </DialogContent>
     </Dialog>
   );
