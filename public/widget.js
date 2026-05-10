@@ -269,12 +269,21 @@
 
   var root, panel;
   function mount(data){
-    var cfg = data.config || {};
+    // Resolve A/B variant + dynamic copy + custom CSS BEFORE rendering
+    var variant = pickVariant(data.variants);
+    assignedVariantId = variant ? variant.id : null;
+    var baseCfg = data.config || {};
+    var merged = variant ? Object.assign({}, baseCfg, variant.config_overrides || {}) : baseCfg;
+    var country = data.visitor && data.visitor.country;
+    var cfg = applyDynamicCopy(merged, country);
+    data.config = cfg; // downstream readers (buildPanel) use data.config
+
     if (!shouldShow(cfg)) return;
     injectStyles(cfg);
+    injectCustomCss(cfg.customCss);
 
     if (cfg.type === 'sticky-bar') {
-      var bar = el('div', { class: 'aw-sticky', onclick: function(){ track('click'); openWa(data.whatsapp_number, cfg.prefilledMessage); } }, [waIcon(), cfg.ctaText || 'Chat with us on WhatsApp']);
+      var bar = el('div', { class: 'aw-sticky aireatro-widget aireatro-widget__sticky', onclick: function(){ track('click'); openWa(data.whatsapp_number, cfg.prefilledMessage); } }, [waIcon(), cfg.ctaText || 'Chat with us on WhatsApp']);
       document.body.appendChild(bar);
       track('view');
       return;
