@@ -1,215 +1,256 @@
+// Stripe webhook → updates subscriptions, invoices, billing events for any workspace.
+// Idempotent via platform_billing_events.uq_billing_events_provider_event_id.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { callFunction } from "../_shared/http.ts";
+
+const PLAN_BY_PRICE_ENV: Record<string, { plan: string; cycle: "monthly" | "yearly" }> = {};
+function buildPriceLookup() {
+  const map: Record<string, { plan: string; cycle: "monthly" | "yearly" }> = {};
+  for (const plan of ["basic", "pro", "business"]) {
+    const m = Deno.env.get(`STRIPE_PRICE_${plan.toUpperCase()}_MONTHLY`);
+    const y = Deno.env.get(`STRIPE_PRICE_${plan.toUpperCase()}_YEARLY`);
+    if (m) map[m] = { plan, cycle: "monthly" };
+    if (y) map[y] = { plan, cycle: "yearly" };
+  }
+  return map;
+}
 
 Deno.serve(async (req) => {
-  if (req.method !== 'POST') {
-    return new Response('Method not allowed', { status: 405 });
+  if (req.method !== "POST") return new Response("Method not allowed", { status: 405 });
+
+  const sig = req.headers.get("stripe-signature");
+  if (!sig) return new Response("Missing stripe-signature", { status: 400 });
+
+  const whSecret = Deno.env.get("STRIPE_WEBHOOK_SECRET");
+  const skKey = Deno.env.get("STRIPE_SECRET_KEY");
+  if (!whSecret || !skKey) return new Response("Stripe secrets not configured", { status: 503 });
+
+  const body = await req.text();
+  const { default: Stripe } = await import("https://esm.sh/stripe@14.21.0?target=deno");
+  const stripe = new Stripe(skKey, { apiVersion: "2023-10-16" });
+
+  let event: any;
+  try {
+    event = await stripe.webhooks.constructEventAsync(body, sig, whSecret);
+  } catch (err: any) {
+    console.error("Signature verify failed:", err?.message);
+    return new Response(`Webhook Error: ${err?.message}`, { status: 400 });
   }
 
+  const supabase = createClient(
+    Deno.env.get("SUPABASE_URL")!,
+    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+  );
+
+  // Idempotency: refuse duplicate event ids
+  const { data: existing } = await supabase
+    .from("platform_billing_events")
+    .select("id").eq("provider", "stripe").eq("provider_event_id", event.id).maybeSingle();
+  if (existing) {
+    console.log(`Duplicate event ${event.id} ignored`);
+    return new Response("ok (dup)", { status: 200 });
+  }
+
+  const priceLookup = buildPriceLookup();
+
+  // Resolve workspace id from any Stripe object the event carries.
+  const resolveWorkspace = async (obj: any): Promise<string | null> => {
+    const md = obj?.metadata?.workspace_id
+      || obj?.subscription_details?.metadata?.workspace_id
+      || obj?.lines?.data?.[0]?.metadata?.workspace_id;
+    if (md) return md;
+    const customerId = obj?.customer || obj?.customer_id;
+    if (customerId) {
+      const { data } = await supabase.from("subscriptions")
+        .select("tenant_id").eq("stripe_customer_id", customerId).maybeSingle();
+      if (data?.tenant_id) return data.tenant_id;
+    }
+    const subId = obj?.subscription || obj?.id;
+    if (subId && typeof subId === "string" && subId.startsWith("sub_")) {
+      const { data } = await supabase.from("subscriptions")
+        .select("tenant_id").eq("stripe_subscription_id", subId).maybeSingle();
+      if (data?.tenant_id) return data.tenant_id;
+    }
+    return null;
+  };
+
+  const insertEvent = async (eventType: string, workspaceId: string | null, amount: number, payload: any) => {
+    await supabase.from("platform_billing_events").insert({
+      provider: "stripe",
+      event_type: eventType,
+      workspace_id: workspaceId,
+      amount,
+      currency: (payload?.currency || "usd").toUpperCase(),
+      provider_event_id: event.id,
+      payload,
+    });
+  };
+
+  const upsertSubscriptionFromStripe = async (sub: any, workspaceId: string) => {
+    const item = sub.items?.data?.[0];
+    const priceId = item?.price?.id as string | undefined;
+    const lookup = priceId ? priceLookup[priceId] : null;
+    const planId = lookup?.plan || sub.metadata?.plan_id;
+    const billingCycle = lookup?.cycle || sub.metadata?.billing_cycle ||
+      (item?.price?.recurring?.interval === "year" ? "yearly" : "monthly");
+
+    const trialStatus = sub.status === "trialing"
+      ? "active"
+      : (sub.trial_end && Math.floor(Date.now() / 1000) > sub.trial_end ? "ended" : "none");
+
+    await supabase.from("subscriptions").upsert({
+      tenant_id: workspaceId,
+      plan_id: planId ? (planId.startsWith("plan_") ? planId : `plan_${planId}`) : "plan_basic",
+      stripe_customer_id: sub.customer,
+      stripe_subscription_id: sub.id,
+      stripe_price_id: priceId,
+      status: sub.status as any,
+      billing_cycle: billingCycle,
+      current_period_start: sub.current_period_start ? new Date(sub.current_period_start * 1000).toISOString() : null,
+      current_period_end: sub.current_period_end ? new Date(sub.current_period_end * 1000).toISOString() : null,
+      cancel_at_period_end: !!sub.cancel_at_period_end,
+      canceled_at: sub.canceled_at ? new Date(sub.canceled_at * 1000).toISOString() : null,
+      trial_start: sub.trial_start ? new Date(sub.trial_start * 1000).toISOString() : null,
+      trial_end: sub.trial_end ? new Date(sub.trial_end * 1000).toISOString() : null,
+      trial_status: trialStatus,
+    }, { onConflict: "tenant_id" });
+
+    // Recompute entitlements (existing helper)
+    await supabase.rpc("compute_workspace_entitlements", { p_workspace_id: workspaceId });
+
+    // Update tenant onboarding status if still 'new'
+    await supabase.from("tenants").update({ onboarding_status: "plan_selected" })
+      .eq("id", workspaceId).eq("onboarding_status", "new");
+
+    return { planId, billingCycle };
+  };
+
   try {
-    const signature = req.headers.get('stripe-signature');
-    if (!signature) {
-      return new Response('Missing stripe-signature header', { status: 400 });
-    }
+    console.log(`stripe event: ${event.type}`);
 
-    const body = await req.text();
-    const webhookSecret = Deno.env.get('STRIPE_WEBHOOK_SECRET');
-    
-    if (!webhookSecret) {
-      console.error('STRIPE_WEBHOOK_SECRET not configured');
-      return new Response('Webhook secret not configured', { status: 503 });
-    }
+    switch (event.type) {
+      case "checkout.session.completed": {
+        const session = event.data.object;
+        const workspaceId = await resolveWorkspace(session);
+        if (!workspaceId) { console.warn("No workspace for session", session.id); break; }
 
-    const { default: Stripe } = await import("https://esm.sh/stripe@14.21.0?target=deno");
-    const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY')!, { apiVersion: '2023-10-16' });
-
-    let event: any;
-    try {
-      event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
-    } catch (err) {
-      console.error('Webhook signature verification failed:', err);
-      return new Response(`Webhook Error: ${err.message}`, { status: 400 });
-    }
-
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL')!,
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
-    );
-
-    console.log(`Stripe event: ${event.type}`);
-
-    // ── Helper: insert billing event ──
-    const insertBillingEvent = async (eventType: string, workspaceId: string | null, amount: number, payload: any) => {
-      await supabase.from('platform_billing_events').insert({
-        provider: 'stripe',
-        event_type: eventType,
-        workspace_id: workspaceId,
-        amount,
-        currency: 'INR',
-        provider_event_id: event.id,
-        payload,
-      });
-    };
-
-    // ── Helper: create invoice record ──
-    const createInvoice = async (workspaceId: string, amount: number, planName: string, billingCycle: string) => {
-      const { data: invNum } = await supabase.rpc('next_invoice_number');
-      const invoiceNumber = invNum || `INV-${Date.now()}`;
-
-      const periodStart = new Date();
-      const periodEnd = new Date();
-      periodEnd.setMonth(periodEnd.getMonth() + (billingCycle === 'yearly' ? 12 : 1));
-
-      await supabase.from('platform_invoices').insert({
-        workspace_id: workspaceId,
-        provider: 'stripe',
-        invoice_number: invoiceNumber,
-        amount,
-        currency: 'INR',
-        status: 'paid',
-        billed_to: {},
-        line_items: [{ name: `${planName} Plan (${billingCycle})`, qty: 1, unit_amount: amount, amount }],
-        period_start: periodStart.toISOString(),
-        period_end: periodEnd.toISOString(),
-      });
-    };
-
-    // ── checkout.session.completed → activate plan ──
-    if (event.type === 'checkout.session.completed') {
-      const session = event.data.object;
-      const { workspaceId, planId, billingCycle, paymentId } = session.metadata || {};
-
-      if (!workspaceId || !planId) {
-        console.error('Missing metadata in session:', session.id);
-        return new Response('ok');
+        // Fetch full subscription
+        if (session.subscription) {
+          const sub = await stripe.subscriptions.retrieve(session.subscription as string);
+          const { planId, billingCycle } = await upsertSubscriptionFromStripe(sub, workspaceId);
+          await insertEvent("checkout_completed", workspaceId, 0, {
+            session_id: session.id, subscription_id: sub.id, plan_id: planId, billing_cycle: billingCycle,
+          });
+          await supabase.from("audit_logs").insert({
+            tenant_id: workspaceId,
+            action: "subscription.activated",
+            resource_type: "subscription",
+            details: { provider: "stripe", session_id: session.id, subscription_id: sub.id },
+          });
+        }
+        break;
       }
 
-      // Update payment record
-      if (paymentId) {
-        await supabase.from('platform_payments').update({
-          status: 'paid',
-          provider_payment_id: session.payment_intent,
-          provider_subscription_id: session.subscription,
-        }).eq('id', paymentId);
+      case "customer.subscription.created":
+      case "customer.subscription.updated": {
+        const sub = event.data.object;
+        const workspaceId = await resolveWorkspace(sub);
+        if (!workspaceId) { console.warn("No workspace for sub", sub.id); break; }
+        await upsertSubscriptionFromStripe(sub, workspaceId);
+        await insertEvent("subscription_" + (event.type.endsWith("created") ? "created" : "updated"),
+          workspaceId, 0, { subscription_id: sub.id, status: sub.status });
+        break;
       }
 
-      // Upsert subscription
-      const periodEnd = new Date();
-      periodEnd.setMonth(periodEnd.getMonth() + (billingCycle === 'yearly' ? 12 : 1));
-
-      await supabase.from('subscriptions').upsert({
-        tenant_id: workspaceId,
-        plan_id: planId.startsWith('plan_') ? planId : `plan_${planId}`,
-        status: 'active',
-        billing_cycle: billingCycle || 'monthly',
-        current_period_start: new Date().toISOString(),
-        current_period_end: periodEnd.toISOString(),
-      }, { onConflict: 'tenant_id' });
-
-      // Fetch plan for invoice
-      const { data: plan } = await supabase.from('platform_plans').select('name, price_monthly').eq('id', planId).single();
-      const amount = billingCycle === 'yearly'
-        ? Math.round((plan?.price_monthly || 0) * 12 * 0.8)
-        : (plan?.price_monthly || 0);
-
-      // Insert billing event
-      await insertBillingEvent('payment_succeeded', workspaceId, amount, {
-        stripe_session_id: session.id,
-        plan_id: planId,
-        billing_cycle: billingCycle,
-      });
-
-      // Create invoice
-      await createInvoice(workspaceId, amount, plan?.name || planId, billingCycle || 'monthly');
-
-      // Recompute entitlements
-      await supabase.rpc('compute_workspace_entitlements', { p_workspace_id: workspaceId });
-
-      // Also call billing-apply-plan for consistency
-      await callFunction("billing-apply-plan", {
-        workspaceId,
-        planId,
-        billingCycle: billingCycle || "monthly",
-        provider: "stripe",
-        providerSubscriptionId: session.subscription,
-        providerCustomerId: session.customer,
-      }, { "x-platform-secret": Deno.env.get("PLATFORM_WEBHOOK_SECRET") || "" }).catch(() => null);
-
-      // Audit log
-      await supabase.from('audit_logs').insert({
-        tenant_id: workspaceId,
-        action: 'subscription.activated',
-        resource_type: 'subscription',
-        resource_id: planId,
-        details: {
-          provider: 'stripe',
-          plan_id: planId,
-          billing_cycle: billingCycle,
-          stripe_session_id: session.id,
-          stripe_subscription_id: session.subscription,
-        },
-      });
-
-      console.log(`Plan ${planId} activated for workspace ${workspaceId}`);
-    }
-
-    // ── subscription deleted ──
-    if (event.type === 'customer.subscription.deleted') {
-      const subscription = event.data.object;
-      const { workspaceId } = subscription.metadata || {};
-
-      if (workspaceId) {
-        await supabase.from('subscriptions').update({ status: 'cancelled' }).eq('tenant_id', workspaceId);
-        await supabase.rpc('compute_workspace_entitlements', { p_workspace_id: workspaceId });
-        await insertBillingEvent('subscription_cancelled', workspaceId, 0, { stripe_subscription_id: subscription.id });
-
-        await supabase.from('audit_logs').insert({
-          tenant_id: workspaceId,
-          action: 'subscription.cancelled',
-          resource_type: 'subscription',
-          details: { provider: 'stripe', stripe_subscription_id: subscription.id },
-        });
+      case "customer.subscription.deleted": {
+        const sub = event.data.object;
+        const workspaceId = await resolveWorkspace(sub);
+        if (workspaceId) {
+          await supabase.from("subscriptions").update({
+            status: "cancelled" as any,
+            canceled_at: new Date().toISOString(),
+          }).eq("tenant_id", workspaceId);
+          await supabase.rpc("compute_workspace_entitlements", { p_workspace_id: workspaceId });
+          await insertEvent("subscription_cancelled", workspaceId, 0, { subscription_id: sub.id });
+        }
+        break;
       }
-    }
 
-    // ── payment failed ──
-    if (event.type === 'invoice.payment_failed') {
-      const invoice = event.data.object;
-      const { workspaceId } = invoice.subscription_details?.metadata || {};
+      case "invoice.payment_succeeded":
+      case "invoice.finalized":
+      case "invoice.payment_failed": {
+        const invoice = event.data.object;
+        const workspaceId = await resolveWorkspace(invoice);
+        if (!workspaceId) break;
 
-      if (workspaceId) {
-        await supabase.from('subscriptions').update({ status: 'past_due' }).eq('tenant_id', workspaceId);
-        await insertBillingEvent('payment_failed', workspaceId, (invoice.amount_due || 0) / 100, { invoice_id: invoice.id });
+        const succeeded = event.type === "invoice.payment_succeeded";
+        const failed = event.type === "invoice.payment_failed";
+        const amount = (invoice.amount_paid || invoice.amount_due || 0) / 100;
+        const currency = (invoice.currency || "usd").toUpperCase();
 
-        // Record risk event
-        await supabase.from('platform_risk_events').insert({
-          action: 'payment_failed',
-          meta: { provider: 'stripe', workspace_id: workspaceId, invoice_id: invoice.id },
-        });
+        // Mirror invoice
+        const { data: invNum } = await supabase.rpc("next_invoice_number");
+        await supabase.from("platform_invoices").upsert({
+          workspace_id: workspaceId,
+          provider: "stripe",
+          provider_invoice_id: invoice.id,
+          invoice_number: invoice.number || invNum || `INV-${Date.now()}`,
+          amount,
+          currency,
+          status: succeeded ? "paid" : (failed ? "failed" : invoice.status || "open"),
+          billed_to: { email: invoice.customer_email, name: invoice.customer_name },
+          line_items: (invoice.lines?.data || []).map((l: any) => ({
+            name: l.description, qty: l.quantity, unit_amount: (l.amount || 0) / 100, amount: (l.amount || 0) / 100,
+          })),
+          period_start: invoice.period_start ? new Date(invoice.period_start * 1000).toISOString() : null,
+          period_end: invoice.period_end ? new Date(invoice.period_end * 1000).toISOString() : null,
+          pdf_path: invoice.invoice_pdf || null,
+        }, { onConflict: "provider_invoice_id" });
 
-        await supabase.from('audit_logs').insert({
-          tenant_id: workspaceId,
-          action: 'subscription.payment_failed',
-          resource_type: 'subscription',
-          details: { provider: 'stripe', invoice_id: invoice.id },
-        });
+        // Update subscription payment status
+        if (invoice.subscription) {
+          await supabase.from("subscriptions").update({
+            last_payment_status: succeeded ? "succeeded" : (failed ? "failed" : "open"),
+            latest_invoice_id: invoice.id,
+            ...(failed ? { status: "past_due" as any } : {}),
+            ...(succeeded ? { trial_status: "ended" } : {}),
+          }).eq("stripe_subscription_id", invoice.subscription);
+        }
+
+        await insertEvent(
+          succeeded ? "payment_succeeded" : (failed ? "payment_failed" : "invoice_finalized"),
+          workspaceId, amount,
+          { invoice_id: invoice.id, hosted_invoice_url: invoice.hosted_invoice_url, currency },
+        );
+
+        if (failed) {
+          await supabase.from("audit_logs").insert({
+            tenant_id: workspaceId,
+            action: "subscription.payment_failed",
+            resource_type: "subscription",
+            details: { invoice_id: invoice.id },
+          });
+        }
+        break;
       }
-    }
 
-    // ── refund ──
-    if (event.type === 'charge.refunded') {
-      const charge = event.data.object;
-      const { workspaceId } = charge.metadata || {};
-      const refundAmount = (charge.amount_refunded || 0) / 100;
-
-      if (workspaceId) {
-        await insertBillingEvent('refund', workspaceId, refundAmount, { charge_id: charge.id });
+      case "payment_method.attached": {
+        const pm = event.data.object;
+        const workspaceId = await resolveWorkspace(pm);
+        if (workspaceId) {
+          await insertEvent("payment_method_attached", workspaceId, 0,
+            { brand: pm.card?.brand, last4: pm.card?.last4 });
+        }
+        break;
       }
+
+      default:
+        // Still log for audit, but don't do anything else
+        await insertEvent(event.type, null, 0, { ignored: true });
     }
 
-    return new Response('ok', { status: 200 });
-  } catch (err) {
-    console.error('Stripe webhook error:', err);
-    return new Response('Internal error', { status: 500 });
+    return new Response("ok", { status: 200 });
+  } catch (err: any) {
+    console.error("Webhook handler error:", err);
+    return new Response("Internal error", { status: 500 });
   }
 });
