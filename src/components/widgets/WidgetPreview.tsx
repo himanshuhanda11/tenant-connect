@@ -78,13 +78,35 @@ export function WidgetPreview({ widget, agents = [], device = 'desktop', forceOp
       )}
 
       {cfg.type === 'sticky-bar' ? (
-        <div
-          className="absolute left-0 right-0 bottom-0 z-20 flex items-center justify-center gap-2 py-3 text-sm font-semibold text-white shadow-2xl cursor-pointer"
-          style={{ background: `linear-gradient(135deg, ${primary}, ${accent})` }}
-        >
-          <MessageCircle className="h-4 w-4" />
-          {cfg.ctaText || 'Chat with us on WhatsApp'}
-        </div>
+        <>
+          <div className="absolute inset-x-6 bottom-20 z-20 rounded-2xl border border-border bg-card/95 p-4 text-card-foreground shadow-2xl backdrop-blur">
+            <div className="flex items-center gap-3">
+              <div
+                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-white shadow-lg"
+                style={{ background: `linear-gradient(135deg, ${primary}, ${accent})` }}
+              >
+                <MessageCircle className="h-5 w-5" />
+              </div>
+              <div className="min-w-0">
+                <div className="truncate text-sm font-semibold text-foreground">{cfg.brandName || widget.name || 'Aireatro Team'}</div>
+                <div className="mt-0.5 flex items-center gap-1.5 text-xs text-muted-foreground">
+                  <span className="h-2 w-2 rounded-full bg-emerald-500" />
+                  {cfg.subtitle || 'Typically replies in minutes'}
+                </div>
+              </div>
+            </div>
+            <div className="mt-3 rounded-xl bg-muted/70 px-3 py-2 text-sm text-muted-foreground">
+              {cfg.greeting || 'Hi 👋 How can we help you today?'}
+            </div>
+          </div>
+          <div
+            className="absolute left-0 right-0 bottom-0 z-30 flex items-center justify-center gap-2 py-4 text-sm font-semibold text-white shadow-2xl cursor-pointer"
+            style={{ background: `linear-gradient(135deg, ${primary}, ${accent})` }}
+          >
+            <MessageCircle className="h-4 w-4" />
+            {cfg.ctaText || 'Chat with us on WhatsApp'}
+          </div>
+        </>
       ) : (
         <>
           {/* Bubble */}
