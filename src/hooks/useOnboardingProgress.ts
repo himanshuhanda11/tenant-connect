@@ -7,6 +7,7 @@ export interface OnboardingProgress {
   whatsappConnected: boolean;
   profileCompleted: boolean;
   planName: string | null;
+  planSelectionDismissed: boolean;
   /** First connected phone number id — used to deep-link to WA Profile tab */
   primaryPhoneId: string | null;
   /** 1, 2, 3, or 'done' */
@@ -14,7 +15,8 @@ export interface OnboardingProgress {
   refresh: () => Promise<void>;
   markProfileCompleted: () => void;
   markPlanSelected: (planName: string) => void;
-  clearPlanSelection: () => Promise<void>;
+  dismissPlanSelection: () => Promise<void>;
+  reopenPlanSelection: () => void;
 }
 
 const lsKey = (tenantId: string, k: string) => `aireatro:onboarding:${tenantId}:${k}`;
@@ -23,6 +25,7 @@ export function useOnboardingProgress(tenantId: string | null | undefined): Onbo
   const [loading, setLoading] = useState(true);
   const [planSelected, setPlanSelected] = useState(false);
   const [planName, setPlanName] = useState<string | null>(null);
+  const [planSelectionDismissed, setPlanSelectionDismissed] = useState(false);
   const [whatsappConnected, setWhatsappConnected] = useState(false);
   const [profileCompleted, setProfileCompleted] = useState(false);
   const [primaryPhoneId, setPrimaryPhoneId] = useState<string | null>(null);
@@ -36,6 +39,8 @@ export function useOnboardingProgress(tenantId: string | null | undefined): Onbo
     try {
       const lsPlan = localStorage.getItem(lsKey(tenantId, 'planSelected'));
       const lsPlanName = localStorage.getItem(lsKey(tenantId, 'planName'));
+      const lsPlanDismissed = localStorage.getItem(lsKey(tenantId, 'planDismissed')) === '1';
+      setPlanSelectionDismissed(lsPlanDismissed);
 
       const [{ data: ent }, { data: sub }, { data: phones }, { data: tenantRow }] = await Promise.all([
         supabase.from('workspace_entitlements').select('plan').eq('workspace_id', tenantId).maybeSingle(),
@@ -44,7 +49,10 @@ export function useOnboardingProgress(tenantId: string | null | undefined): Onbo
         supabase.from('tenants').select('whatsapp_profile_completed' as any).eq('id', tenantId).maybeSingle(),
       ]);
 
-      const detectedPlan = (ent as any)?.plan || (sub as any)?.plan_id?.replace('plan_', '') || (lsPlan ? lsPlanName : null);
+      const explicitPlan = lsPlan === '1' ? lsPlanName : null;
+      const subscriptionPlan = (sub as any)?.plan_id?.replace('plan_', '') || null;
+      const entitlementPlan = (ent as any)?.plan && (ent as any)?.plan !== 'free' ? (ent as any).plan : null;
+      const detectedPlan = lsPlanDismissed ? null : (explicitPlan || subscriptionPlan || entitlementPlan);
       const hasPlan = !!detectedPlan;
       setPlanSelected(hasPlan);
       setPlanName(detectedPlan ? detectedPlan.charAt(0).toUpperCase() + detectedPlan.slice(1) : null);
@@ -96,23 +104,33 @@ export function useOnboardingProgress(tenantId: string | null | undefined): Onbo
 
   const markPlanSelected = useCallback((name: string) => {
     if (!tenantId) return;
+    localStorage.removeItem(lsKey(tenantId, 'planDismissed'));
     localStorage.setItem(lsKey(tenantId, 'planSelected'), '1');
     localStorage.setItem(lsKey(tenantId, 'planName'), name.toLowerCase());
+    setPlanSelectionDismissed(false);
     setPlanSelected(true);
     setPlanName(name.charAt(0).toUpperCase() + name.slice(1));
   }, [tenantId]);
 
-  const clearPlanSelection = useCallback(async () => {
+  const dismissPlanSelection = useCallback(async () => {
     if (!tenantId) return;
+    localStorage.setItem(lsKey(tenantId, 'planDismissed'), '1');
     localStorage.removeItem(lsKey(tenantId, 'planSelected'));
     localStorage.removeItem(lsKey(tenantId, 'planName'));
     try {
       await supabase.from('subscriptions').delete().eq('tenant_id', tenantId);
     } catch (e) {
-      console.warn('[clearPlanSelection] subscription delete failed:', e);
+      console.warn('[dismissPlanSelection] subscription delete failed:', e);
     }
+    setPlanSelectionDismissed(true);
     setPlanSelected(false);
     setPlanName(null);
+  }, [tenantId]);
+
+  const reopenPlanSelection = useCallback(() => {
+    if (!tenantId) return;
+    localStorage.removeItem(lsKey(tenantId, 'planDismissed'));
+    setPlanSelectionDismissed(false);
   }, [tenantId]);
 
   let currentStep: 1 | 2 | 3 | 'done' = 'done';
@@ -126,11 +144,13 @@ export function useOnboardingProgress(tenantId: string | null | undefined): Onbo
     whatsappConnected,
     profileCompleted,
     planName,
+    planSelectionDismissed,
     primaryPhoneId,
     currentStep,
     refresh: load,
     markProfileCompleted,
     markPlanSelected,
-    clearPlanSelection,
+    dismissPlanSelection,
+    reopenPlanSelection,
   };
 }
