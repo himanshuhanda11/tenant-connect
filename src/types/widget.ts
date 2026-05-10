@@ -92,6 +92,7 @@ export interface Widget {
   status: WidgetStatus;
   whatsapp_number: string | null;
   config: WidgetConfig;
+  variants?: WidgetVariant[];
   created_at: string;
   updated_at: string;
 }
