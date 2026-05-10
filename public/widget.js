@@ -256,7 +256,7 @@
 
   function submitLead(form, data, prefilled){
     var fd = new FormData(form);
-    var payload = { id: widgetId, page_url: location.href, device: detectDevice(), session_id: sid,
+    var payload = { id: widgetId, page_url: location.href, device: detectDevice(), session_id: sid, variant_id: assignedVariantId,
       name: fd.get('name'), phone: fd.get('phone'), email: fd.get('email'), message: fd.get('message') || prefilled };
     var btn = form.querySelector('.aw-cta'); if (btn) { btn.disabled = true; btn.style.opacity = '.7'; }
     fetch(FN + '/widget-lead', { method:'POST', headers:{ 'Content-Type':'application/json' }, body: JSON.stringify(payload) })
