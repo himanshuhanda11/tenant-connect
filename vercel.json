@@ -4,6 +4,14 @@
   "outputDirectory": "dist",
   "framework": "vite",
   "trailingSlash": false,
+  "redirects": [
+    {
+      "source": "/:path*",
+      "has": [{ "type": "host", "value": "aireatro.com" }],
+      "destination": "https://www.aireatro.com/:path*",
+      "permanent": true
+    }
+  ],
   "rewrites": [
     { "source": "/version.json", "destination": "/version.json" },
     { "source": "/((?!assets/).*)", "destination": "/index.html" }
