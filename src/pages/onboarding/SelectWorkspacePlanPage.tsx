@@ -42,6 +42,31 @@ export default function SelectWorkspacePlanPage() {
   const [success, setSuccess] = useState(false);
   const [contactOpen, setContactOpen] = useState(false);
 
+  // Region / currency selection (drives pricing display + Stripe price ID)
+  const [country, setCountry] = useState<string>(
+    (typeof window !== 'undefined' ? localStorage.getItem('preferred_country') : null) || 'OTHER',
+  );
+  const region: PricingRegion = regionFromCountry(country);
+  const currency: PricingCurrency = CURRENCY_FOR_REGION[region];
+
+  // Local price book (mirrors Stripe / DB prices). Yearly = 20% off.
+  const PLAN_PRICES_LOCAL: Record<string, Record<PricingCurrency, number>> = {
+    free:     { INR: 0,    AED: 0,   USD: 0 },
+    basic:    { INR: 1499, AED: 350, USD: 50 },
+    pro:      { INR: 3499, AED: 550, USD: 150 },
+    business: { INR: 5500, AED: 850, USD: 220 },
+  };
+  const getLocalPrice = (planId: string, yearly: boolean): number => {
+    const base = PLAN_PRICES_LOCAL[planId]?.[currency] ?? 0;
+    if (!base) return 0;
+    return yearly ? Math.round(base * 0.8) : base;
+  };
+  const formatLocalAmount = (amount: number): string => {
+    if (currency === 'INR') return `₹${amount.toLocaleString('en-IN')}`;
+    if (currency === 'AED') return `AED ${amount.toLocaleString('en-US')}`;
+    return `$${amount.toLocaleString('en-US')}`;
+  };
+
   // Resolve target workspace (from query param or current tenant)
   const targetWorkspaceId = params.get('workspace_id') || currentTenant?.id || tenants[0]?.id || null;
   const targetWorkspace = useMemo(
