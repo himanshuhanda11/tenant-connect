@@ -4,7 +4,7 @@ import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import {
   Sparkles, Check, Rocket, Crown, Building2, Gift,
-  ChevronLeft, ChevronRight, Loader2, ShieldCheck, Users, Flame, Star,
+  ChevronLeft, ChevronRight, Loader2, ShieldCheck, Users, Flame, Star, X,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
@@ -141,6 +141,19 @@ export default function PlanSelectionModal({ open, tenantId, onSelected, onPaidI
           transition={{ duration: 0.35, ease: 'easeOut' }}
           className="relative rounded-3xl bg-white shadow-2xl overflow-hidden max-h-[92vh] flex flex-col"
         >
+          {/* Close button */}
+          <button
+            type="button"
+            onClick={async () => {
+              try { await supabase.auth.signOut(); } catch {}
+              navigate('/login', { replace: true });
+            }}
+            aria-label="Close"
+            className="absolute top-3 right-3 sm:top-4 sm:right-4 z-30 w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-slate-900 hover:bg-slate-800 text-white shadow-lg flex items-center justify-center transition-all hover:scale-105 active:scale-95"
+          >
+            <X className="w-4 h-4 sm:w-5 sm:h-5" />
+          </button>
+
           {/* Header */}
           <div className="relative px-5 sm:px-8 pt-5 sm:pt-7 pb-4 text-center bg-gradient-to-br from-emerald-50 via-white to-teal-50 border-b border-emerald-100">
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-100 text-emerald-700 text-[10px] sm:text-xs font-semibold mb-2">
