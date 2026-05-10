@@ -13,6 +13,7 @@ import type { Widget, WidgetAgent, WidgetConfig, WidgetType, WidgetVariant } fro
 import { WidgetAiGreetings } from './WidgetAiGreetings';
 import { WidgetTemplatesMarketplace } from './WidgetTemplatesMarketplace';
 import { WidgetVariants, WidgetGeoRules, WidgetUtmRules, WidgetCustomCss } from './WidgetPowerPanels';
+import { WidgetRoutingPanel } from './WidgetRoutingPanel';
 
 interface Props {
   widget: Widget;
@@ -191,6 +192,8 @@ export function WidgetBuilderControls({ widget, agents, onChange, onAgentSave, o
             <Toggle label="Show phone field" value={draft.fieldPhone !== false} onChange={v => patch({ fieldPhone: v })} />
             <Toggle label="Show email field" value={!!draft.fieldEmail} onChange={v => patch({ fieldEmail: v })} />
           </Card>
+
+          <WidgetRoutingPanel config={draft} onChange={patch} />
 
           <WidgetGeoRules config={draft} onChange={patch} />
           <WidgetUtmRules config={draft} onChange={patch} />
