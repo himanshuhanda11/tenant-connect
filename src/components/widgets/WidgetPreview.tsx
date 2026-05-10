@@ -1,6 +1,6 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState } from 'react';
-import { AlertTriangle, MessageCircle, X, Send, Phone, RefreshCw } from 'lucide-react';
+import { AlertTriangle, MessageCircle, X, Send, Phone } from 'lucide-react';
 import type { Widget, WidgetAgent } from '@/types/widget';
 import { cn } from '@/lib/utils';
 
