@@ -6,7 +6,7 @@ import { WidgetBuilderControls } from '@/components/widgets/WidgetBuilderControl
 import { WidgetPreview } from '@/components/widgets/WidgetPreview';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Code2, Eye, Monitor, Smartphone, Users, BarChart3, Pause, Play } from 'lucide-react';
+import { ArrowLeft, Code2, Eye, Monitor, Smartphone, Users, BarChart3, Pause, Play, FlaskConical } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 
 export default function WidgetBuilder() {
