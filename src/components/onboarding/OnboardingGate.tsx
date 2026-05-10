@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTenant } from '@/contexts/TenantContext';
 import { useOnboardingProgress } from '@/hooks/useOnboardingProgress';
@@ -21,7 +21,6 @@ export default function OnboardingGate({ children, onConnectWhatsApp }: Props) {
   const { currentTenant } = useTenant();
   const tenantId = currentTenant?.id || null;
   const progress = useOnboardingProgress(tenantId);
-  const [planModalDismissed, setPlanModalDismissed] = useState(false);
 
   if (progress.loading) {
     return (
@@ -49,7 +48,7 @@ export default function OnboardingGate({ children, onConnectWhatsApp }: Props) {
             <p className="text-sm text-slate-500 mt-1">Pick a plan to unlock your full dashboard.</p>
           </div>
           <Button
-            onClick={() => setPlanModalDismissed(false)}
+            onClick={progress.reopenPlanSelection}
             className="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white shadow-lg shadow-emerald-500/30"
           >
             <Sparkles className="w-4 h-4 mr-2" /> Choose your plan
@@ -68,17 +67,14 @@ export default function OnboardingGate({ children, onConnectWhatsApp }: Props) {
       {/* Plan selection modal — auto-opens when needed; user can dismiss to stay on step 1 */}
       {tenantId && (
         <PlanSelectionModal
-          open={progress.currentStep === 1 && !planModalDismissed}
+          open={progress.currentStep === 1 && !progress.planSelectionDismissed}
           tenantId={tenantId}
           onSelected={(name) => {
             progress.markPlanSelected(name);
             setTimeout(() => progress.refresh(), 600);
           }}
           onPaidIntent={() => { /* trial activates inline; no redirect */ }}
-          onDismiss={() => {
-            progress.clearPlanSelection();
-            setPlanModalDismissed(true);
-          }}
+          onDismiss={progress.dismissPlanSelection}
         />
       )}
     </div>
