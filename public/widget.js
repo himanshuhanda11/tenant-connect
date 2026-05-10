@@ -289,15 +289,16 @@
       return;
     }
 
-    root = el('div', { class: 'aw-root' });
+    root = el('div', { class: 'aw-root aireatro-widget' });
     var animClass = ({ pulse: 'aw-pulse', glow: 'aw-glow', bounce: 'aw-bounce', float: 'aw-float' })[cfg.animation || 'pulse'] || '';
-    var bubble = el('button', { class: 'aw-bubble ' + animClass, 'aria-label': 'Open chat', onclick: function(){
+    var bubble = el('button', { class: 'aw-bubble aireatro-widget__bubble ' + animClass, 'aria-label': 'Open chat', onclick: function(){
       var open = root.classList.toggle('aw-open');
       track(open ? 'open' : 'close');
     } }, [waIcon()]);
     bubble.style.position = 'relative';
     root.appendChild(bubble);
     panel = buildPanel(data);
+    panel.classList.add('aireatro-widget__panel');
     root.appendChild(panel);
     document.body.appendChild(root);
     track('view');
