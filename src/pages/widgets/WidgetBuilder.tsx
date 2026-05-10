@@ -35,6 +35,7 @@ export default function WidgetBuilder() {
           <div className="flex-1" />
           <Button variant="outline" size="sm" className="gap-2" onClick={() => navigate(`/widgets/${widget.id}/leads`)}><Users className="h-4 w-4" />Leads</Button>
           <Button variant="outline" size="sm" className="gap-2" onClick={() => navigate(`/widgets/${widget.id}/analytics`)}><BarChart3 className="h-4 w-4" />Analytics</Button>
+          <Button variant="outline" size="sm" className="gap-2" onClick={() => navigate(`/widgets/${widget.id}/test`)}><FlaskConical className="h-4 w-4" />Test</Button>
           <Button variant="outline" size="sm" className="gap-2" onClick={() => navigate(`/widgets/${widget.id}/install`)}><Code2 className="h-4 w-4" />Install</Button>
           {isPublished ? (
             <>
