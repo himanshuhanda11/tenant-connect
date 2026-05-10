@@ -18,6 +18,7 @@ interface Props {
   tenantId: string;
   onSelected: (planName: string) => void;
   onPaidIntent: () => void;
+  onDismiss?: () => void;
 }
 
 const planMeta: Record<string, { icon: React.ReactNode; gradient: string; ring: string; iconBg: string; iconText: string; badge?: { label: string; icon: React.ReactNode; cls: string } }> = {
