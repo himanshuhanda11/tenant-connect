@@ -27,28 +27,53 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ error: "not_found" }), { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    const name = clean(body?.name);
-    const phone = clean(body?.phone, 32);
-    const email = clean(body?.email, 200);
-    const message = clean(body?.message, 2000);
+    // Two-phase flow:
+    //   phase 1 (default): "save" — capture lead in widget_leads only.
+    //   phase 2: "start_chat" — when customer actually clicks the WhatsApp CTA,
+    //            push the lead into the Inbox as a real conversation.
+    const phase = clean(body?.phase) === "start_chat" ? "start_chat" : "save";
+    const existingLeadId = clean(body?.lead_id, 64);
+
+    let name = clean(body?.name);
+    let phone = clean(body?.phone, 32);
+    let email = clean(body?.email, 200);
+    let message = clean(body?.message, 2000);
     const page_url = clean(body?.page_url, 500);
     const variant_id = clean(body?.variant_id, 32);
     const device = clean(body?.device, 32);
     const country = clean(body?.country, 8);
 
-    const { data: lead } = await supabase.from("widget_leads").insert({
-      widget_id: widget.id, tenant_id: widget.tenant_id,
-      name, phone, email, message, page_url, device, country, variant_id,
-      metadata: body?.metadata && typeof body.metadata === "object" ? body.metadata : null,
-    }).select("id").maybeSingle();
+    let lead: { id: string } | null = null;
 
-    await supabase.from("widget_events").insert({
-      widget_id: widget.id, tenant_id: widget.tenant_id, event_type: "lead",
-      page_url, device, country, session_id: clean(body?.session_id, 64),
-      variant_id, metadata: { lead_id: lead?.id },
-    });
+    if (phase === "save") {
+      const { data: inserted } = await supabase.from("widget_leads").insert({
+        widget_id: widget.id, tenant_id: widget.tenant_id,
+        name, phone, email, message, page_url, device, country, variant_id,
+        metadata: body?.metadata && typeof body.metadata === "object" ? body.metadata : null,
+      }).select("id").maybeSingle();
+      lead = inserted ?? null;
 
-    // ===== Push into Aireatro Inbox =====
+      await supabase.from("widget_events").insert({
+        widget_id: widget.id, tenant_id: widget.tenant_id, event_type: "lead",
+        page_url, device, country, session_id: clean(body?.session_id, 64),
+        variant_id, metadata: { lead_id: lead?.id },
+      });
+    } else if (existingLeadId) {
+      // Reload original lead so we don't trust client-mutated values
+      const { data: existing } = await supabase.from("widget_leads")
+        .select("id, name, phone, email, message")
+        .eq("id", existingLeadId).eq("tenant_id", widget.tenant_id).maybeSingle();
+      if (existing) {
+        lead = { id: existing.id };
+        name = existing.name ?? name;
+        phone = existing.phone ?? phone;
+        email = existing.email ?? email;
+        message = existing.message ?? message;
+      }
+    }
+
+    // ===== Push into Aireatro Inbox (only when customer clicks Start Chat) =====
+    const shouldPushToInbox = phase === "start_chat";
     const routing = (widget.config as any)?.routing as
       | { mode?: string; agent_id?: string | null; team_id?: string | null } | undefined;
     const routingMode = routing?.mode ?? "inbox_unassigned";
