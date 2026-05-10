@@ -48,6 +48,11 @@ const ContactDuplicates = lazyWithRetry(() => import("./pages/ContactDuplicates"
 const ContactDataRequests = lazyWithRetry(() => import("./pages/ContactDataRequests"));
 const Tags = lazyWithRetry(() => import("./pages/Tags"));
 const UserAttributes = lazyWithRetry(() => import("./pages/UserAttributes"));
+const WidgetsList = lazyWithRetry(() => import("./pages/widgets/WidgetsList"));
+const WidgetBuilder = lazyWithRetry(() => import("./pages/widgets/WidgetBuilder"));
+const WidgetInstall = lazyWithRetry(() => import("./pages/widgets/WidgetInstall"));
+const WidgetLeads = lazyWithRetry(() => import("./pages/widgets/WidgetLeads"));
+const WidgetAnalytics = lazyWithRetry(() => import("./pages/widgets/WidgetAnalytics"));
 const PhoneNumbers = lazyWithRetry(() => import("./pages/PhoneNumbers"));
 const PhoneNumbersList = lazyWithRetry(() => import("./pages/phone-numbers/PhoneNumbersList"));
 const ConnectNumber = lazyWithRetry(() => import("./pages/phone-numbers/ConnectNumber"));
@@ -258,6 +263,11 @@ const App = () => (
                     <Route path="/flows" element={<FlowsHub />} />
                     <Route path="/flows/builder" element={<FlowBuilder />} />
                     <Route path="/flows/builder/:id" element={<FlowBuilder />} />
+                    <Route path="/widgets" element={<WidgetsList />} />
+                    <Route path="/widgets/:id" element={<WidgetBuilder />} />
+                    <Route path="/widgets/:id/install" element={<WidgetInstall />} />
+                    <Route path="/widgets/:id/leads" element={<WidgetLeads />} />
+                    <Route path="/widgets/:id/analytics" element={<WidgetAnalytics />} />
                     <Route path="/team" element={<TeamOverview />} />
                     <Route path="/team/overview" element={<TeamOverview />} />
                     <Route path="/team/members" element={<TeamMembers />} />

@@ -115,3 +115,9 @@ project_id = "fygwjpdasnhaomoqdvcu"
     verify_jwt = false
   [functions.signup-reminder-runner]
     verify_jwt = false
+  [functions.widget-config]
+    verify_jwt = false
+  [functions.widget-event]
+    verify_jwt = false
+  [functions.widget-lead]
+    verify_jwt = false

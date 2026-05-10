@@ -15064,6 +15064,261 @@ export type Database = {
           },
         ]
       }
+      widget_agents: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          department: string | null
+          id: string
+          is_active: boolean
+          name: string
+          phone_e164: string
+          prefilled_message: string | null
+          priority: number
+          role: string | null
+          tenant_id: string
+          widget_id: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          department?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          phone_e164: string
+          prefilled_message?: string | null
+          priority?: number
+          role?: string | null
+          tenant_id: string
+          widget_id: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          department?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          phone_e164?: string
+          prefilled_message?: string | null
+          priority?: number
+          role?: string | null
+          tenant_id?: string
+          widget_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "widget_agents_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "platform_workspace_directory"
+            referencedColumns: ["workspace_id"]
+          },
+          {
+            foreignKeyName: "widget_agents_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "widget_agents_widget_id_fkey"
+            columns: ["widget_id"]
+            isOneToOne: false
+            referencedRelation: "widgets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      widget_events: {
+        Row: {
+          country: string | null
+          created_at: string
+          device: string | null
+          event_type: string
+          id: string
+          metadata: Json | null
+          page_url: string | null
+          referrer: string | null
+          session_id: string | null
+          tenant_id: string
+          widget_id: string
+        }
+        Insert: {
+          country?: string | null
+          created_at?: string
+          device?: string | null
+          event_type: string
+          id?: string
+          metadata?: Json | null
+          page_url?: string | null
+          referrer?: string | null
+          session_id?: string | null
+          tenant_id: string
+          widget_id: string
+        }
+        Update: {
+          country?: string | null
+          created_at?: string
+          device?: string | null
+          event_type?: string
+          id?: string
+          metadata?: Json | null
+          page_url?: string | null
+          referrer?: string | null
+          session_id?: string | null
+          tenant_id?: string
+          widget_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "widget_events_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "platform_workspace_directory"
+            referencedColumns: ["workspace_id"]
+          },
+          {
+            foreignKeyName: "widget_events_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "widget_events_widget_id_fkey"
+            columns: ["widget_id"]
+            isOneToOne: false
+            referencedRelation: "widgets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      widget_leads: {
+        Row: {
+          contact_id: string | null
+          country: string | null
+          created_at: string
+          device: string | null
+          email: string | null
+          id: string
+          message: string | null
+          metadata: Json | null
+          name: string | null
+          page_url: string | null
+          phone: string | null
+          tenant_id: string
+          widget_id: string
+        }
+        Insert: {
+          contact_id?: string | null
+          country?: string | null
+          created_at?: string
+          device?: string | null
+          email?: string | null
+          id?: string
+          message?: string | null
+          metadata?: Json | null
+          name?: string | null
+          page_url?: string | null
+          phone?: string | null
+          tenant_id: string
+          widget_id: string
+        }
+        Update: {
+          contact_id?: string | null
+          country?: string | null
+          created_at?: string
+          device?: string | null
+          email?: string | null
+          id?: string
+          message?: string | null
+          metadata?: Json | null
+          name?: string | null
+          page_url?: string | null
+          phone?: string | null
+          tenant_id?: string
+          widget_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "widget_leads_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "platform_workspace_directory"
+            referencedColumns: ["workspace_id"]
+          },
+          {
+            foreignKeyName: "widget_leads_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "widget_leads_widget_id_fkey"
+            columns: ["widget_id"]
+            isOneToOne: false
+            referencedRelation: "widgets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      widgets: {
+        Row: {
+          config: Json
+          created_at: string
+          created_by: string | null
+          id: string
+          name: string
+          public_key: string
+          status: string
+          tenant_id: string
+          updated_at: string
+          whatsapp_number: string | null
+        }
+        Insert: {
+          config?: Json
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          name?: string
+          public_key?: string
+          status?: string
+          tenant_id: string
+          updated_at?: string
+          whatsapp_number?: string | null
+        }
+        Update: {
+          config?: Json
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          name?: string
+          public_key?: string
+          status?: string
+          tenant_id?: string
+          updated_at?: string
+          whatsapp_number?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "widgets_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "platform_workspace_directory"
+            referencedColumns: ["workspace_id"]
+          },
+          {
+            foreignKeyName: "widgets_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       working_hours: {
         Row: {
           created_at: string
