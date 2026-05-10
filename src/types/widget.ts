@@ -57,7 +57,19 @@ export interface WidgetConfig {
   customCss?: string;
   geoRules?: GeoRule[];
   utmRules?: UtmRule[];
+
+  // Lead routing into Aireatro Inbox
+  routing?: WidgetRouting;
 }
+
+export interface WidgetRouting {
+  // 'none' = do not push into Inbox (just store as widget_lead);
+  // 'inbox_unassigned' = push to Inbox but leave unassigned (common dashboard);
+  // 'specific_agent' = always assign to one agent;
+  // 'team_round_robin' = round-robin across a team's members.
+  mode: 'none' | 'inbox_unassigned' | 'specific_agent' | 'team_round_robin';
+  agent_id?: string | null;
+  team_id?: string | null;
 
 export interface GeoRule {
   id: string;
