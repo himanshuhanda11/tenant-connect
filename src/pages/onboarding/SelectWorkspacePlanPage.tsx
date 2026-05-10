@@ -11,6 +11,7 @@ import { Label } from '@/components/ui/label';
 import { pricingPlans, type PricingPlan } from '@/data/pricingPlans';
 import { useGeoLocation, type PlanId } from '@/hooks/useGeoLocation';
 import { useLaunchOffer, useTrialEligibility } from '@/hooks/useLaunchOffer';
+import { useStartCheckout } from '@/hooks/useWorkspaceBilling';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTenant } from '@/contexts/TenantContext';
 import ContactAdminDialog from '@/components/billing/ContactAdminDialog';
