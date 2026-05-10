@@ -101,6 +101,19 @@ export function useOnboardingProgress(tenantId: string | null | undefined): Onbo
     setPlanName(name.charAt(0).toUpperCase() + name.slice(1));
   }, [tenantId]);
 
+  const clearPlanSelection = useCallback(async () => {
+    if (!tenantId) return;
+    localStorage.removeItem(lsKey(tenantId, 'planSelected'));
+    localStorage.removeItem(lsKey(tenantId, 'planName'));
+    try {
+      await supabase.from('subscriptions').delete().eq('tenant_id', tenantId);
+    } catch (e) {
+      console.warn('[clearPlanSelection] subscription delete failed:', e);
+    }
+    setPlanSelected(false);
+    setPlanName(null);
+  }, [tenantId]);
+
   let currentStep: 1 | 2 | 3 | 'done' = 'done';
   if (!planSelected) currentStep = 1;
   else if (!whatsappConnected) currentStep = 2;
@@ -117,5 +130,6 @@ export function useOnboardingProgress(tenantId: string | null | undefined): Onbo
     refresh: load,
     markProfileCompleted,
     markPlanSelected,
+    clearPlanSelection,
   };
 }
