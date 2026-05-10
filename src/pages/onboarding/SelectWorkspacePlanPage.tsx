@@ -213,13 +213,22 @@ export default function SelectWorkspacePlanPage() {
               : <>You've used your one free trial. Free plan is always available, or contact admin to activate paid plans.</>}
           </p>
 
-          <div className="mt-5 inline-flex items-center gap-3 px-4 py-2 rounded-full bg-white/5 border border-white/10">
+          <div className="mt-5 inline-flex flex-wrap items-center justify-center gap-3 px-4 py-2 rounded-full bg-white/5 border border-white/10">
             <Label htmlFor="yearly" className={cn('text-xs cursor-pointer', !isYearly ? 'text-white' : 'text-white/60')}>Monthly</Label>
             <Switch id="yearly" checked={isYearly} onCheckedChange={setIsYearly} />
             <Label htmlFor="yearly" className={cn('text-xs cursor-pointer flex items-center gap-1.5', isYearly ? 'text-white' : 'text-white/60')}>
               Yearly
               <Badge className="bg-emerald-400/20 text-emerald-200 border-0 text-[10px] px-1.5 py-0">−20%</Badge>
             </Label>
+          </div>
+
+          <div className="mt-3 flex items-center justify-center">
+            <RegionSelector
+              workspaceId={targetWorkspaceId}
+              initialCountry={country}
+              onChange={({ country: c }) => setCountry(c)}
+              compact
+            />
           </div>
         </div>
 
