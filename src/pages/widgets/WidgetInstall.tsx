@@ -9,12 +9,12 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import {
   Copy, Check, ArrowLeft, ExternalLink, Sparkles, Code2,
-  Rocket, MousePointerClick, Eye, Inbox, AlertTriangle, PartyPopper,
+  Rocket, MousePointerClick, Eye, Inbox, AlertTriangle, PartyPopper, FlaskConical,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
 
-const PUBLIC_WIDGET_URL = 'https://app.aireatro.com/widget.js';
+const PUBLIC_WIDGET_URL = 'https://www.aireatro.com/widget.js';
 
 export default function WidgetInstall() {
   const { id } = useParams<{ id: string }>();
@@ -180,6 +180,36 @@ export default function WidgetInstall() {
                 <CodeBox code={reactSnippet} onCopy={() => copy(reactSnippet, 'react', 'React snippet')} copied={copied === 'react'} multiline />
               </TabsContent>
             </Tabs>
+
+            {/* Test integration */}
+            <Card className="p-4 bg-gradient-to-br from-violet-500/5 to-fuchsia-500/5 border-violet-500/20">
+              <div className="flex items-start gap-3">
+                <div className="h-10 w-10 rounded-xl bg-violet-500/15 flex items-center justify-center flex-shrink-0">
+                  <FlaskConical className="h-5 w-5 text-violet-600" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-semibold text-sm">Test the integration</h3>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    Loads the public snippet inside a sandboxed iframe and runs end-to-end checks (script reachable, config OK, widget rendered).
+                  </p>
+                  <div className="flex flex-wrap gap-2 mt-3">
+                    <Button size="sm" className="gap-1.5 bg-gradient-to-r from-violet-500 to-fuchsia-600 text-white"
+                      onClick={() => navigate(`/widgets/${widget.id}/test`)}>
+                      <FlaskConical className="h-3.5 w-3.5" /> Open live test page
+                    </Button>
+                    <Button size="sm" variant="outline" className="gap-1.5"
+                      onClick={() => copy(html, 'test-html', 'Embed code')}>
+                      {copied === 'test-html' ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
+                      Copy website code
+                    </Button>
+                    <Button size="sm" variant="outline" className="gap-1.5"
+                      onClick={() => window.open(PUBLIC_WIDGET_URL, '_blank')}>
+                      <ExternalLink className="h-3.5 w-3.5" /> Verify widget.js
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </Card>
 
             {/* CTA link card */}
             {ctaLink && (

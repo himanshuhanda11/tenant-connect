@@ -6,7 +6,7 @@ import { WidgetBuilderControls } from '@/components/widgets/WidgetBuilderControl
 import { WidgetPreview } from '@/components/widgets/WidgetPreview';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Code2, Eye, Monitor, Smartphone, Users, BarChart3, Pause, Play } from 'lucide-react';
+import { ArrowLeft, Code2, Eye, Monitor, Smartphone, Users, BarChart3, Pause, Play, FlaskConical } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 
 export default function WidgetBuilder() {
@@ -35,6 +35,7 @@ export default function WidgetBuilder() {
           <div className="flex-1" />
           <Button variant="outline" size="sm" className="gap-2" onClick={() => navigate(`/widgets/${widget.id}/leads`)}><Users className="h-4 w-4" />Leads</Button>
           <Button variant="outline" size="sm" className="gap-2" onClick={() => navigate(`/widgets/${widget.id}/analytics`)}><BarChart3 className="h-4 w-4" />Analytics</Button>
+          <Button variant="outline" size="sm" className="gap-2" onClick={() => navigate(`/widgets/${widget.id}/test`)}><FlaskConical className="h-4 w-4" />Test</Button>
           <Button variant="outline" size="sm" className="gap-2" onClick={() => navigate(`/widgets/${widget.id}/install`)}><Code2 className="h-4 w-4" />Install</Button>
           {isPublished ? (
             <>
@@ -58,7 +59,7 @@ export default function WidgetBuilder() {
         </div>
       </div>
 
-      <div className="grid lg:grid-cols-[420px_1fr] gap-6 px-4 sm:px-6 py-6 max-w-[1500px] mx-auto">
+      <div className="grid md:grid-cols-[380px_1fr] xl:grid-cols-[420px_1fr] gap-6 px-4 sm:px-6 py-6 max-w-[1500px] mx-auto">
         <div>
           <WidgetBuilderControls
             widget={widget}
