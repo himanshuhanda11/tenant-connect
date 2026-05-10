@@ -207,7 +207,7 @@ const App = () => (
                   <Routes>
                     <Route path="/" element={<Index />} />
                     <Route path="/index" element={<Index />} />
-                    <Route path="/~oauth/initiate" element={<ManagedOAuthRedirect />} />
+                    
                     <Route path="/auth/callback" element={<AuthCallback />} />
                     <Route path="/login" element={<Login />} />
                     <Route path="/signup" element={<SignupPage />} />
