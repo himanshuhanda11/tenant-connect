@@ -52,6 +52,7 @@ const WidgetsList = lazyWithRetry(() => import("./pages/widgets/WidgetsList"));
 const WidgetBuilder = lazyWithRetry(() => import("./pages/widgets/WidgetBuilder"));
 const WidgetInstall = lazyWithRetry(() => import("./pages/widgets/WidgetInstall"));
 const WidgetLeads = lazyWithRetry(() => import("./pages/widgets/WidgetLeads"));
+const WidgetTest = lazyWithRetry(() => import("./pages/widgets/WidgetTest"));
 const WidgetAnalytics = lazyWithRetry(() => import("./pages/widgets/WidgetAnalytics"));
 const PhoneNumbers = lazyWithRetry(() => import("./pages/PhoneNumbers"));
 const PhoneNumbersList = lazyWithRetry(() => import("./pages/phone-numbers/PhoneNumbersList"));
