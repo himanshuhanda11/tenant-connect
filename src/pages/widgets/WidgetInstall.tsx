@@ -9,7 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import {
   Copy, Check, ArrowLeft, ExternalLink, Sparkles, Code2,
-  Rocket, MousePointerClick, Eye, Inbox, AlertTriangle, PartyPopper,
+  Rocket, MousePointerClick, Eye, Inbox, AlertTriangle, PartyPopper, FlaskConical,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
