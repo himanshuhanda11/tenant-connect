@@ -11,21 +11,27 @@ interface Props {
   onClaim: () => void;
 }
 
-const HIDE_KEY = 'launch_offer_banner_hidden';
+const HIDE_KEY = 'launch_offer_banner_hidden_until_v2';
+const HIDE_DURATION_MS = 30 * 60 * 1000; // re-show after 30 min
+
+function isCurrentlyHidden(): boolean {
+  const until = Number(sessionStorage.getItem(HIDE_KEY) ?? '0');
+  return until > Date.now();
+}
 
 export function StickyOfferBanner({ onClaim }: Props) {
   const { isActive, secondsLeft } = useLaunchOffer();
   const navigate = useNavigate();
   const location = useLocation();
-  const [hidden, setHidden] = useState(() => sessionStorage.getItem(HIDE_KEY) === '1');
+  const [hidden, setHidden] = useState(() => isCurrentlyHidden());
 
   const path = location.pathname;
   const visible = isActive && !hidden && !isPricingPath(path) && !isOfferExcludedPath(path);
 
-  // Collapse the banner when the user engages with any CTA — the floating
-  // gift widget remains visible so they can re-open the offer later.
+  // Collapse the banner when the user engages with any CTA. It will
+  // reappear automatically after HIDE_DURATION_MS so the offer stays visible.
   const collapseBanner = () => {
-    sessionStorage.setItem(HIDE_KEY, '1');
+    sessionStorage.setItem(HIDE_KEY, String(Date.now() + HIDE_DURATION_MS));
     setHidden(true);
   };
 
