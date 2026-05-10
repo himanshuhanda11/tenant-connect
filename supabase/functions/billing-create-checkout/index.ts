@@ -3,6 +3,7 @@
 import {
   corsHeaders, json, getStripe, getServiceClient, getAuthedUser,
   assertWorkspaceAdmin, resolveStripePriceId, appUrl,
+  REGION_CURRENCY, type PricingRegion,
 } from "../_shared/stripe.ts";
 import { callFunction } from "../_shared/http.ts";
 
