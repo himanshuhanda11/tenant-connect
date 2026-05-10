@@ -204,14 +204,6 @@ export default function SelectWorkspacePlanPage() {
             </Label>
           </div>
 
-          <div className="mt-3 flex items-center justify-center">
-            <RegionSelector
-              workspaceId={targetWorkspaceId}
-              initialCountry={country}
-              onChange={({ country: c }) => setCountry(c)}
-              compact
-            />
-          </div>
         </div>
 
         {/* Plans */}
