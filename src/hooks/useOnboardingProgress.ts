@@ -14,6 +14,7 @@ export interface OnboardingProgress {
   refresh: () => Promise<void>;
   markProfileCompleted: () => void;
   markPlanSelected: (planName: string) => void;
+  clearPlanSelection: () => Promise<void>;
 }
 
 const lsKey = (tenantId: string, k: string) => `aireatro:onboarding:${tenantId}:${k}`;
