@@ -190,13 +190,20 @@ function ManagedOAuthRedirect() {
   if (typeof window !== "undefined") {
     const params = new URLSearchParams(window.location.search);
     const provider = params.get("provider") || "google";
+    const redirectUrl = `https://www.aireatro.com/~oauth/initiate?${new URLSearchParams({
+      ...Object.fromEntries(params.entries()),
+      provider,
+    }).toString()}`;
 
-    window.location.replace(
-      `https://aireatro.com/~oauth/initiate?${new URLSearchParams({
-        ...Object.fromEntries(params.entries()),
-        provider,
-      }).toString()}`
-    );
+    try {
+      if (window.top && window.top !== window.self) {
+        window.open(redirectUrl, "_top");
+      } else {
+        window.location.replace(redirectUrl);
+      }
+    } catch {
+      window.location.replace(redirectUrl);
+    }
   }
 
   return <RouteLoader />;
