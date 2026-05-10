@@ -1,6 +1,6 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState } from 'react';
-import { MessageCircle, X, Send, Phone } from 'lucide-react';
+import { AlertTriangle, MessageCircle, X, Send, Phone } from 'lucide-react';
 import type { Widget, WidgetAgent } from '@/types/widget';
 import { cn } from '@/lib/utils';
 
@@ -12,9 +12,15 @@ interface Props {
 }
 
 export function WidgetPreview({ widget, agents = [], device = 'desktop', forceOpen }: Props) {
-  const cfg = widget.config || {};
+  const cfg = widget.config && typeof widget.config === 'object' ? widget.config : {};
   const [open, setOpen] = useState(true);
   const isOpen = forceOpen ?? open;
+  const previewIssues = [
+    !widget.whatsapp_number ? 'WhatsApp number is missing' : null,
+    cfg.type === 'multi-agent' && agents.length === 0 ? 'Add at least one agent or switch widget type' : null,
+    cfg.type === 'minimal-icon' ? 'Minimal icon mode shows only the button on the live site' : null,
+  ].filter(Boolean) as string[];
+  const showFallbackNotice = previewIssues.length > 0;
 
   const primary = cfg.primaryColor || '#10B981';
   const accent = cfg.accentColor || '#059669';
@@ -55,14 +61,52 @@ export function WidgetPreview({ widget, agents = [], device = 'desktop', forceOp
         </div>
       </div>
 
-      {cfg.type === 'sticky-bar' ? (
-        <div
-          className="absolute left-0 right-0 bottom-0 flex items-center justify-center gap-2 py-3 text-white font-semibold text-sm cursor-pointer"
-          style={{ background: `linear-gradient(135deg, ${primary}, ${accent})` }}
-        >
-          <MessageCircle className="h-4 w-4" />
-          {cfg.ctaText || 'Chat with us on WhatsApp'}
+      {showFallbackNotice && (
+        <div className="absolute left-4 right-4 top-4 z-30 rounded-xl border border-border bg-card/95 p-3 shadow-lg backdrop-blur">
+          <div className="flex items-start gap-2">
+            <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-destructive/10 text-destructive">
+              <AlertTriangle className="h-4 w-4" />
+            </span>
+            <div className="min-w-0">
+              <div className="text-sm font-semibold text-foreground">Preview is using safe fallback data</div>
+              <div className="mt-1 text-xs leading-5 text-muted-foreground">
+                {previewIssues.join(' • ')}. The widget remains visible here, but publish needs these fields completed.
+              </div>
+            </div>
+          </div>
         </div>
+      )}
+
+      {cfg.type === 'sticky-bar' ? (
+        <>
+          <div className="absolute inset-x-6 bottom-20 z-20 rounded-2xl border border-border bg-card/95 p-4 text-card-foreground shadow-2xl backdrop-blur">
+            <div className="flex items-center gap-3">
+              <div
+                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-white shadow-lg"
+                style={{ background: `linear-gradient(135deg, ${primary}, ${accent})` }}
+              >
+                <MessageCircle className="h-5 w-5" />
+              </div>
+              <div className="min-w-0">
+                <div className="truncate text-sm font-semibold text-foreground">{cfg.brandName || widget.name || 'Aireatro Team'}</div>
+                <div className="mt-0.5 flex items-center gap-1.5 text-xs text-muted-foreground">
+                  <span className="h-2 w-2 rounded-full bg-emerald-500" />
+                  {cfg.subtitle || 'Typically replies in minutes'}
+                </div>
+              </div>
+            </div>
+            <div className="mt-3 rounded-xl bg-muted/70 px-3 py-2 text-sm text-muted-foreground">
+              {cfg.greeting || 'Hi 👋 How can we help you today?'}
+            </div>
+          </div>
+          <div
+            className="absolute left-0 right-0 bottom-0 z-30 flex items-center justify-center gap-2 py-4 text-sm font-semibold text-white shadow-2xl cursor-pointer"
+            style={{ background: `linear-gradient(135deg, ${primary}, ${accent})` }}
+          >
+            <MessageCircle className="h-4 w-4" />
+            {cfg.ctaText || 'Chat with us on WhatsApp'}
+          </div>
+        </>
       ) : (
         <>
           {/* Bubble */}
@@ -84,7 +128,7 @@ export function WidgetPreview({ widget, agents = [], device = 'desktop', forceOp
           </button>
 
           <AnimatePresence>
-            {isOpen && cfg.type !== 'minimal-icon' && (
+            {isOpen && (
               <motion.div
                 initial={{ opacity: 0, y: 16, scale: 0.96 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -192,6 +236,7 @@ export function WidgetPreview({ widget, agents = [], device = 'desktop', forceOp
               </motion.div>
             )}
           </AnimatePresence>
+
         </>
       )}
 
