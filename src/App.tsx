@@ -132,6 +132,7 @@ const Features = lazyWithRetry(() => import("./pages/Features"));
 const WhatsAppForms = lazyWithRetry(() => import("./pages/WhatsAppForms"));
 const WhatsAppBusinessApi = lazyWithRetry(() => import("./pages/WhatsAppBusinessApi"));
 const ClickToWhatsApp = lazyWithRetry(() => import("./pages/ClickToWhatsApp"));
+const WhatsAppWidgetPublic = lazyWithRetry(() => import("./pages/WhatsAppWidget"));
 const WhyWhatsAppMarketing = lazyWithRetry(() => import("./pages/WhyWhatsAppMarketing"));
 const FreeWhatsAppApiLifetime = lazyWithRetry(() => import("./pages/FreeWhatsAppApiLifetime"));
 const DocsViewer = lazyWithRetry(() => import("./pages/DocsViewer"));
@@ -370,6 +371,7 @@ const App = () => (
                     <Route path="/whatsapp-forms" element={<WhatsAppForms />} />
                     <Route path="/whatsapp-business-api" element={<WhatsAppBusinessApi />} />
                     <Route path="/click-to-whatsapp" element={<ClickToWhatsApp />} />
+                    <Route path="/whatsapp-widget" element={<WhatsAppWidgetPublic />} />
                     <Route path="/why-whatsapp-marketing" element={<WhyWhatsAppMarketing />} />
                     <Route path="/why-aireatro" element={<WhyAireatro />} />
                     <Route path="/free-whatsapp-api-lifetime" element={<FreeWhatsAppApiLifetime />} />
