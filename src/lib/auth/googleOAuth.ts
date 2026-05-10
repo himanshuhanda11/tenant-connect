@@ -1,4 +1,4 @@
-import { lovable } from "@/integrations/lovable";
+import { supabase } from "@/integrations/supabase/client";
 
 type GoogleOAuthOptions = {
   nextPath?: string;
@@ -6,37 +6,62 @@ type GoogleOAuthOptions = {
 };
 
 /**
- * Sign in with Google via the Lovable managed OAuth broker (`/~oauth/initiate`).
+ * Build the post-OAuth redirect URI on the current origin.
  *
- * Using the managed broker (instead of supabase.auth.signInWithOAuth directly)
- * makes Google's consent screen show your app's domain (e.g. aireatro.com)
- * instead of the Supabase project callback host.
+ * NOTE: This project is hosted on Vercel, not Lovable. The Lovable managed
+ * OAuth broker (`/~oauth/initiate`) only works on `*.lovable.app` domains
+ * and Lovable-managed custom domains, so we MUST go through Supabase's
+ * `signInWithOAuth` directly here.
+ */
+export function buildGoogleAuthRedirectUri(nextPath = "/select-workspace") {
+  const normalizedPath = nextPath.startsWith("/") ? nextPath : `/${nextPath}`;
+  const params = new URLSearchParams({ next: normalizedPath });
+  return `${window.location.origin}/auth/callback?${params.toString()}`;
+}
+
+/**
+ * Sign in with Google directly via Supabase Auth (PKCE flow).
  *
- * Per project rule: Lovable managed Google auth strictly uses ~oauth/initiate.
+ * Required Google OAuth client config (Google Cloud Console):
+ *   Authorized JavaScript origins:
+ *     https://www.aireatro.com
+ *     https://aireatro.com
+ *   Authorized redirect URIs:
+ *     https://fygwjpdasnhaomoqdvcu.supabase.co/auth/v1/callback
+ *     https://www.aireatro.com/auth/callback
+ *     https://aireatro.com/auth/callback
+ *
+ * Required Supabase Auth → URL Configuration:
+ *   Site URL:      https://www.aireatro.com
+ *   Redirect URLs: https://www.aireatro.com/**, https://aireatro.com/**
  */
 export async function signInWithManagedGoogle(options: GoogleOAuthOptions = {}) {
   const { nextPath = "/select-workspace", extraParams } = options;
 
-  // The broker returns the user back to redirect_uri after completing OAuth.
-  // We send them to the app origin + nextPath so AuthCallback / route guards
-  // can take over from there.
-  const normalizedPath = nextPath.startsWith("/") ? nextPath : `/${nextPath}`;
-  const redirect_uri =
-    typeof window !== "undefined"
-      ? `${window.location.origin}${normalizedPath}`
-      : normalizedPath;
-
-  const result = await lovable.auth.signInWithOAuth("google", {
-    redirect_uri,
-    extraParams: {
-      prompt: "select_account",
-      ...extraParams,
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: "google",
+    options: {
+      redirectTo: buildGoogleAuthRedirectUri(nextPath),
+      queryParams: {
+        prompt: "select_account",
+        ...extraParams,
+      },
     },
   });
 
-  if (result.error) {
-    return { error: result.error as Error, redirected: false } as const;
+  if (error) {
+    return { error, redirected: false } as const;
   }
 
-  return { error: null, redirected: !!result.redirected } as const;
+  // supabase-js usually redirects itself; force-navigate as a fallback
+  // in case popup-blocking or iframe context prevents auto-redirect.
+  if (data?.url && typeof window !== "undefined") {
+    try {
+      window.location.assign(data.url);
+    } catch {
+      window.location.href = data.url;
+    }
+  }
+
+  return { error: null, redirected: true } as const;
 }
