@@ -172,6 +172,21 @@
     return n;
   }
 
+  function showLoadError(message){
+    var render = function(){
+      if (document.getElementById('aireatro-widget-error')) return;
+      var s = document.createElement('style');
+      s.id = 'aireatro-widget-error-style';
+      s.textContent = '.aw-error{position:fixed;right:24px;bottom:24px;z-index:2147483000;max-width:320px;border-radius:16px;background:#fff;color:#0f172a;box-shadow:0 20px 50px rgba(15,23,42,.24);border:1px solid rgba(239,68,68,.35);font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif;overflow:hidden}.aw-error__head{display:flex;align-items:center;gap:10px;padding:12px 14px;background:#fef2f2;color:#991b1b;font-weight:700;font-size:14px}.aw-error__body{padding:12px 14px;font-size:13px;line-height:1.45;color:#475569}.aw-error__dot{width:10px;height:10px;border-radius:999px;background:#ef4444;box-shadow:0 0 0 5px rgba(239,68,68,.12)}';
+      document.head.appendChild(s);
+      document.body.appendChild(el('div', { id:'aireatro-widget-error', class:'aw-error aireatro-widget aireatro-widget--error' }, [
+        el('div', { class:'aw-error__head' }, [el('span', { class:'aw-error__dot' }), 'Aireatro widget not ready']),
+        el('div', { class:'aw-error__body' }, [message || 'Widget settings could not be loaded. Check the widget ID, published status, and installation snippet.'])
+      ]));
+    };
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', render); else render();
+  }
+
   function waLink(phone, msg){
     var p = String(phone || '').replace(/[^\d]/g, '');
     return 'https://wa.me/' + p + (msg ? '?text=' + encodeURIComponent(msg) : '');
@@ -209,6 +224,10 @@
   function renderBody(data, prefilled, ctaText){
     var cfg = data.config || {};
     var wrap = el('div');
+    if (!data.whatsapp_number) {
+      wrap.appendChild(el('div', { class:'aw-msg', style:{ marginTop:'12px', background: cfg.darkMode ? '#111827' : '#fef2f2', color: cfg.darkMode ? '#fecaca' : '#991b1b' } }, ['WhatsApp number is missing. Add it in Aireatro to activate this widget.']));
+      return wrap;
+    }
     var agents = (data.agents || []);
     if (cfg.type === 'multi-agent' && agents.length) {
       var list = el('div', { class: 'aw-agents' });
@@ -342,6 +361,12 @@
   // Fetch config
   fetch(FN + '/widget-config?id=' + encodeURIComponent(widgetId))
     .then(function(r){ if (!r.ok) throw new Error('config'); return r.json(); })
-    .then(function(data){ if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function(){ mount(data); }); else mount(data); })
-    .catch(function(e){ console.warn('[Aireatro] widget load failed', e); });
+    .then(function(data){
+      if (!data || data.error) throw new Error((data && data.error) || 'config');
+      if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function(){ mount(data); }); else mount(data);
+    })
+    .catch(function(e){
+      console.warn('[Aireatro] widget load failed', e);
+      showLoadError('Widget settings could not be loaded. Check that this widget is published and the copied snippet uses the correct widget ID.');
+    });
 })();
