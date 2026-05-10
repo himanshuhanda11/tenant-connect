@@ -298,7 +298,7 @@ export function AppSidebar() {
             )} />
             <span className="flex-1 truncate tracking-[-0.01em] leading-none">{item.title}</span>
             {item.isNew && (
-              <span className="rounded-md border border-sidebar-primary/20 bg-sidebar-primary/10 px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-wider text-sidebar-primary leading-none">
+              <span className="shrink-0 rounded-md border border-sidebar-primary/20 bg-sidebar-primary/10 px-1 py-0.5 text-[8px] font-bold uppercase tracking-wider text-sidebar-primary leading-none">
                 new
               </span>
             )}
