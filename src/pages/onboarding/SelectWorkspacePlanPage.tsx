@@ -110,8 +110,8 @@ export default function SelectWorkspacePlanPage() {
         workspaceId: targetWorkspaceId,
         planId: plan.id,
         billingCycle: isYearly ? 'yearly' : 'monthly',
-        region,
-        country,
+        region: 'GULF',
+        country: 'AE',
         successPath: '/onboarding/billing-return',
         cancelPath: '/onboarding/plan',
       });
