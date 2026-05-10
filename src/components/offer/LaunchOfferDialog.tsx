@@ -71,7 +71,6 @@ export function LaunchOfferDialog({ open, onOpenChange }: Props) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        hideOverlay={false}
         className={cn(
           'p-0 border-0 bg-transparent shadow-none overflow-visible max-w-md',
           'data-[state=open]:animate-none data-[state=closed]:animate-none',
