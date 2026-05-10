@@ -14,7 +14,7 @@ import {
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
 
-const PUBLIC_WIDGET_URL = 'https://app.aireatro.com/widget.js';
+const PUBLIC_WIDGET_URL = 'https://www.aireatro.com/widget.js';
 
 export default function WidgetInstall() {
   const { id } = useParams<{ id: string }>();
