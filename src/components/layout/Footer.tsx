@@ -25,6 +25,7 @@ export default function Footer() {
       { name: 'WhatsApp Business API', href: '/whatsapp-business-api' },
       { name: 'WhatsApp Forms', href: '/whatsapp-forms' },
       { name: 'Click to WhatsApp Ads', href: '/click-to-whatsapp' },
+      { name: 'Free WhatsApp Widget', href: '/whatsapp-widget' },
       { name: 'Why WhatsApp Marketing', href: '/why-whatsapp-marketing' },
       { name: 'Why AiReatro', href: '/why-aireatro' },
       { name: 'Free WhatsApp API', href: '/free-whatsapp-api-lifetime' },
