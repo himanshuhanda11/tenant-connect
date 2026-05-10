@@ -507,8 +507,8 @@ export default function OrganizationPage() {
 
               {/* Step 4: Confirm */}
               {step === 4 && (
-                <div className="space-y-3">
-                  <p className="text-sm text-muted-foreground mb-3">
+                <div className="space-y-2 sm:space-y-3">
+                  <p className="hidden sm:block text-sm text-muted-foreground mb-3">
                     Please confirm everything looks right. You can edit any section before continuing.
                   </p>
                   <ReviewSection title="Personal" onEdit={() => setStep(1)} items={[
@@ -530,7 +530,7 @@ export default function OrganizationPage() {
               )}
 
               {/* Footer nav */}
-              <div className="mt-6 sm:mt-8 flex items-center justify-between gap-3">
+              <div className="mt-4 sm:mt-8 flex items-center justify-between gap-3">
                 <Button
                   type="button" variant="ghost" onClick={back}
                   disabled={step === 1 || isLoading}
@@ -573,19 +573,19 @@ function ReviewSection({
   title, items, onEdit,
 }: { title: string; items: { label: string; value: string }[]; onEdit: () => void }) {
   return (
-    <div className="rounded-lg border bg-muted/20 p-4">
-      <div className="flex items-center justify-between mb-2">
-        <h3 className="text-sm font-semibold">{title}</h3>
+    <div className="rounded-lg border bg-muted/20 p-2.5 sm:p-4">
+      <div className="flex items-center justify-between mb-1.5 sm:mb-2">
+        <h3 className="text-xs sm:text-sm font-semibold">{title}</h3>
         <button type="button" onClick={onEdit}
           className="text-xs text-emerald-600 dark:text-emerald-400 hover:underline font-medium">
           Edit
         </button>
       </div>
-      <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1.5 text-sm">
+      <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1 sm:gap-y-1.5 text-sm">
         {items.map((it) => (
-          <div key={it.label} className="flex justify-between sm:block gap-2">
-            <dt className="text-muted-foreground text-xs">{it.label}</dt>
-            <dd className="font-medium truncate">{it.value || '—'}</dd>
+          <div key={it.label} className="flex justify-between sm:block gap-2 min-w-0">
+            <dt className="text-muted-foreground text-[11px] sm:text-xs">{it.label}</dt>
+            <dd className="text-xs sm:text-sm font-medium truncate">{it.value || '—'}</dd>
           </div>
         ))}
       </dl>
