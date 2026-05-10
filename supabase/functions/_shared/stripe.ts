@@ -14,26 +14,47 @@ export const json = (body: unknown, status = 200) =>
     headers: { ...corsHeaders, "Content-Type": "application/json" },
   });
 
-export const PLAN_PRICE_ENV: Record<string, { monthly: string; yearly: string }> = {
-  basic: {
-    monthly: "STRIPE_PRICE_BASIC_MONTHLY",
-    yearly: "STRIPE_PRICE_BASIC_YEARLY",
-  },
-  pro: {
-    monthly: "STRIPE_PRICE_PRO_MONTHLY",
-    yearly: "STRIPE_PRICE_PRO_YEARLY",
-  },
-  business: {
-    monthly: "STRIPE_PRICE_BUSINESS_MONTHLY",
-    yearly: "STRIPE_PRICE_BUSINESS_YEARLY",
-  },
+export type PricingRegion = "IN" | "GULF" | "OTHER";
+export type PricingCycle = "monthly" | "yearly";
+
+export const REGION_CURRENCY: Record<PricingRegion, "INR" | "AED" | "USD"> = {
+  IN: "INR",
+  GULF: "AED",
+  OTHER: "USD",
 };
 
-export function resolveStripePriceId(planId: string, cycle: "monthly" | "yearly"): string | null {
-  const map = PLAN_PRICE_ENV[planId];
-  if (!map) return null;
-  const envName = cycle === "yearly" ? map.yearly : map.monthly;
-  return Deno.env.get(envName) ?? null;
+/**
+ * Resolve the Stripe price ID for a (plan, cycle, region) tuple.
+ * Lookup order:
+ *   1. platform_plans.stripe_prices JSON  →  { IN: { monthly, yearly }, GULF: {...}, OTHER: {...} }
+ *   2. Region-suffixed env var, e.g. STRIPE_PRICE_BASIC_MONTHLY_IN
+ *   3. Legacy unsuffixed env var, e.g. STRIPE_PRICE_BASIC_MONTHLY
+ */
+export async function resolveStripePriceId(
+  service: ReturnType<typeof getServiceClient>,
+  planId: string,
+  cycle: PricingCycle,
+  region: PricingRegion = "OTHER",
+): Promise<string | null> {
+  // 1. DB-driven config
+  try {
+    const { data } = await service
+      .from("platform_plans")
+      .select("stripe_prices")
+      .eq("id", planId)
+      .maybeSingle();
+    const map = (data?.stripe_prices ?? {}) as Record<string, Record<string, string>>;
+    const fromDb = map?.[region]?.[cycle] || map?.[region.toLowerCase()]?.[cycle];
+    if (fromDb) return fromDb;
+  } catch (_) { /* fall through */ }
+
+  // 2. Region-suffixed env
+  const base = `STRIPE_PRICE_${planId.toUpperCase()}_${cycle.toUpperCase()}`;
+  const suffixed = Deno.env.get(`${base}_${region}`);
+  if (suffixed) return suffixed;
+
+  // 3. Legacy fallback
+  return Deno.env.get(base) ?? null;
 }
 
 export async function getStripe() {
