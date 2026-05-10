@@ -7325,6 +7325,8 @@ export type Database = {
           price_yearly: number | null
           restrictions: Json | null
           sort_order: number | null
+          stripe_price_monthly: string | null
+          stripe_price_yearly: string | null
           tagline: string | null
         }
         Insert: {
@@ -7342,6 +7344,8 @@ export type Database = {
           price_yearly?: number | null
           restrictions?: Json | null
           sort_order?: number | null
+          stripe_price_monthly?: string | null
+          stripe_price_yearly?: string | null
           tagline?: string | null
         }
         Update: {
@@ -7359,6 +7363,8 @@ export type Database = {
           price_yearly?: number | null
           restrictions?: Json | null
           sort_order?: number | null
+          stripe_price_monthly?: string | null
+          stripe_price_yearly?: string | null
           tagline?: string | null
         }
         Relationships: []
@@ -12713,11 +12719,17 @@ export type Database = {
           current_period_end: string | null
           current_period_start: string | null
           id: string
+          last_payment_status: string | null
+          latest_invoice_id: string | null
           plan_id: string
           status: Database["public"]["Enums"]["subscription_status"]
           stripe_customer_id: string | null
+          stripe_price_id: string | null
           stripe_subscription_id: string | null
           tenant_id: string
+          trial_end: string | null
+          trial_start: string | null
+          trial_status: string | null
           updated_at: string
         }
         Insert: {
@@ -12728,11 +12740,17 @@ export type Database = {
           current_period_end?: string | null
           current_period_start?: string | null
           id?: string
+          last_payment_status?: string | null
+          latest_invoice_id?: string | null
           plan_id: string
           status?: Database["public"]["Enums"]["subscription_status"]
           stripe_customer_id?: string | null
+          stripe_price_id?: string | null
           stripe_subscription_id?: string | null
           tenant_id: string
+          trial_end?: string | null
+          trial_start?: string | null
+          trial_status?: string | null
           updated_at?: string
         }
         Update: {
@@ -12743,11 +12761,17 @@ export type Database = {
           current_period_end?: string | null
           current_period_start?: string | null
           id?: string
+          last_payment_status?: string | null
+          latest_invoice_id?: string | null
           plan_id?: string
           status?: Database["public"]["Enums"]["subscription_status"]
           stripe_customer_id?: string | null
+          stripe_price_id?: string | null
           stripe_subscription_id?: string | null
           tenant_id?: string
+          trial_end?: string | null
+          trial_start?: string | null
+          trial_status?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -16816,6 +16840,10 @@ export type Database = {
         | { Args: { _tenant_id: string; _user_id: string }; Returns: boolean }
       is_tenant_owner: { Args: { _tenant_id: string }; Returns: boolean }
       is_trial_eligible: { Args: never; Returns: boolean }
+      is_workspace_admin: {
+        Args: { _user_id: string; _workspace_id: string }
+        Returns: boolean
+      }
       lock_campaign_jobs: {
         Args: { p_limit?: number; p_locked_by?: string }
         Returns: {
@@ -17511,6 +17539,8 @@ export type Database = {
         | "incomplete"
         | "trialing"
         | "paused"
+        | "unpaid"
+        | "incomplete_expired"
       tag_apply_to: "contacts" | "conversations" | "both"
       tag_status: "active" | "archived"
       tag_type:
@@ -18078,6 +18108,8 @@ export const Constants = {
         "incomplete",
         "trialing",
         "paused",
+        "unpaid",
+        "incomplete_expired",
       ],
       tag_apply_to: ["contacts", "conversations", "both"],
       tag_status: ["active", "archived"],
