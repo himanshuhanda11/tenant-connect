@@ -8,13 +8,16 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Slider } from '@/components/ui/slider';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Plus, Trash2, Sparkles, Palette, MessageSquare, Settings2, Users, Wand2, Bell, Type, ShieldCheck } from 'lucide-react';
-import type { Widget, WidgetAgent, WidgetConfig, WidgetType } from '@/types/widget';
+import { Plus, Trash2, Sparkles, Palette, MessageSquare, Settings2, Users, Wand2, Type, ShieldCheck, FlaskConical, Rocket } from 'lucide-react';
+import type { Widget, WidgetAgent, WidgetConfig, WidgetType, WidgetVariant } from '@/types/widget';
+import { WidgetAiGreetings } from './WidgetAiGreetings';
+import { WidgetTemplatesMarketplace } from './WidgetTemplatesMarketplace';
+import { WidgetVariants, WidgetGeoRules, WidgetUtmRules, WidgetCustomCss } from './WidgetPowerPanels';
 
 interface Props {
   widget: Widget;
   agents: WidgetAgent[];
-  onChange: (patch: Partial<Pick<Widget, 'name' | 'whatsapp_number'>> & { config?: WidgetConfig }) => void;
+  onChange: (patch: Partial<Pick<Widget, 'name' | 'whatsapp_number'>> & { config?: WidgetConfig; variants?: WidgetVariant[] }) => void;
   onAgentSave: (a: Partial<WidgetAgent>) => void;
   onAgentDelete: (id: string) => void;
 }
@@ -50,12 +53,14 @@ export function WidgetBuilderControls({ widget, agents, onChange, onAgentSave, o
       </Card>
 
       <Tabs defaultValue="type" className="w-full">
-        <TabsList className="grid grid-cols-5 h-auto bg-muted/40 p-1">
-          <TabsTrigger value="type" className="text-[11px] gap-1"><Sparkles className="h-3 w-3" />Type</TabsTrigger>
-          <TabsTrigger value="brand" className="text-[11px] gap-1"><Palette className="h-3 w-3" />Brand</TabsTrigger>
-          <TabsTrigger value="msg" className="text-[11px] gap-1"><MessageSquare className="h-3 w-3" />Message</TabsTrigger>
-          <TabsTrigger value="behavior" className="text-[11px] gap-1"><Wand2 className="h-3 w-3" />Behavior</TabsTrigger>
-          <TabsTrigger value="advanced" className="text-[11px] gap-1"><Settings2 className="h-3 w-3" />More</TabsTrigger>
+        <TabsList className="grid grid-cols-7 h-auto bg-muted/40 p-1 gap-0.5">
+          <TabsTrigger value="type" className="text-[10px] gap-1 px-1"><Sparkles className="h-3 w-3" />Type</TabsTrigger>
+          <TabsTrigger value="brand" className="text-[10px] gap-1 px-1"><Palette className="h-3 w-3" />Brand</TabsTrigger>
+          <TabsTrigger value="msg" className="text-[10px] gap-1 px-1"><MessageSquare className="h-3 w-3" />Copy</TabsTrigger>
+          <TabsTrigger value="behavior" className="text-[10px] gap-1 px-1"><Wand2 className="h-3 w-3" />Behave</TabsTrigger>
+          <TabsTrigger value="ai" className="text-[10px] gap-1 px-1 data-[state=active]:bg-gradient-to-r data-[state=active]:from-violet-500/20 data-[state=active]:to-fuchsia-500/20"><Rocket className="h-3 w-3" />AI</TabsTrigger>
+          <TabsTrigger value="ab" className="text-[10px] gap-1 px-1"><FlaskConical className="h-3 w-3" />A/B</TabsTrigger>
+          <TabsTrigger value="advanced" className="text-[10px] gap-1 px-1"><Settings2 className="h-3 w-3" />More</TabsTrigger>
         </TabsList>
 
         <TabsContent value="type" className="space-y-2 pt-3">
@@ -166,6 +171,18 @@ export function WidgetBuilderControls({ widget, agents, onChange, onAgentSave, o
           </div>
         </TabsContent>
 
+        <TabsContent value="ai" className="space-y-4 pt-3">
+          <WidgetTemplatesMarketplace onApply={(p) => patch(p)} />
+          <WidgetAiGreetings brandName={draft.brandName} onApply={(p) => patch(p)} />
+        </TabsContent>
+
+        <TabsContent value="ab" className="space-y-4 pt-3">
+          <WidgetVariants
+            widget={widget}
+            onChange={(variants) => onChange({ variants })}
+          />
+        </TabsContent>
+
         <TabsContent value="advanced" className="space-y-4 pt-3">
           <Card className="p-3 space-y-2 bg-card/60">
             <div className="flex items-center gap-2 text-sm font-semibold"><Type className="h-4 w-4" /> Lead capture form</div>
@@ -174,6 +191,10 @@ export function WidgetBuilderControls({ widget, agents, onChange, onAgentSave, o
             <Toggle label="Show phone field" value={draft.fieldPhone !== false} onChange={v => patch({ fieldPhone: v })} />
             <Toggle label="Show email field" value={!!draft.fieldEmail} onChange={v => patch({ fieldEmail: v })} />
           </Card>
+
+          <WidgetGeoRules config={draft} onChange={patch} />
+          <WidgetUtmRules config={draft} onChange={patch} />
+          <WidgetCustomCss config={draft} onChange={patch} />
 
           <Card className="p-3 space-y-2 bg-card/60">
             <div className="flex items-center gap-2 text-sm font-semibold"><Users className="h-4 w-4" /> Agents (multi-agent widget)</div>

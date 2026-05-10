@@ -52,6 +52,36 @@ export interface WidgetConfig {
     schedule?: Record<string, { start: string; end: string } | null>;
     offlineMessage?: string;
   };
+
+  // Phase 2 — Power features
+  customCss?: string;
+  geoRules?: GeoRule[];
+  utmRules?: UtmRule[];
+}
+
+export interface GeoRule {
+  id: string;
+  countries: string[]; // ISO 3166-1 alpha-2 e.g. ["IN","US"]
+  greeting?: string;
+  ctaText?: string;
+  prefilledMessage?: string;
+}
+
+export interface UtmRule {
+  id: string;
+  key: 'utm_source' | 'utm_medium' | 'utm_campaign' | 'utm_term' | 'utm_content';
+  match: string; // case-insensitive contains
+  greeting?: string;
+  ctaText?: string;
+  prefilledMessage?: string;
+}
+
+export interface WidgetVariant {
+  id: string;
+  name: string;
+  traffic_pct: number; // 0..100
+  config_overrides: Partial<WidgetConfig>;
+  is_active?: boolean;
 }
 
 export interface Widget {
@@ -62,6 +92,7 @@ export interface Widget {
   status: WidgetStatus;
   whatsapp_number: string | null;
   config: WidgetConfig;
+  variants?: WidgetVariant[];
   created_at: string;
   updated_at: string;
 }
@@ -89,6 +120,7 @@ export interface WidgetLead {
   message: string | null;
   page_url: string | null;
   device: string | null;
+  variant_id?: string | null;
   created_at: string;
 }
 
@@ -98,6 +130,7 @@ export interface WidgetEvent {
   event_type: 'view' | 'open' | 'click' | 'lead' | 'close';
   page_url: string | null;
   device: string | null;
+  variant_id?: string | null;
   created_at: string;
 }
 

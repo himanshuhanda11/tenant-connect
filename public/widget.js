@@ -10,17 +10,84 @@
   var ORIGIN = (script && script.getAttribute('data-origin')) || 'https://fygwjpdasnhaomoqdvcu.supabase.co';
   var FN = ORIGIN + '/functions/v1';
 
-  // Session id
-  var sid = 'aw_' + Math.random().toString(36).slice(2) + Date.now().toString(36);
+  // Session id (persisted to keep variant assignment stable per visitor)
+  var SKEY = 'aireatro:wid:' + widgetId;
+  var sessionStore = (function(){
+    try { return JSON.parse(localStorage.getItem(SKEY) || '{}'); } catch(_) { return {}; }
+  })();
+  function persistSession(){ try { localStorage.setItem(SKEY, JSON.stringify(sessionStore)); } catch(_){} }
+  if (!sessionStore.sid) { sessionStore.sid = 'aw_' + Math.random().toString(36).slice(2) + Date.now().toString(36); persistSession(); }
+  var sid = sessionStore.sid;
+  var assignedVariantId = null;
 
   function detectDevice(){ return /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent) ? 'mobile' : 'desktop'; }
 
   function track(type, extra){
     try {
+      var body = Object.assign({ id: widgetId, event_type: type, page_url: location.href, referrer: document.referrer, device: detectDevice(), session_id: sid, variant_id: assignedVariantId }, extra || {});
       navigator.sendBeacon
-        ? navigator.sendBeacon(FN + '/widget-event', new Blob([JSON.stringify(Object.assign({ id: widgetId, event_type: type, page_url: location.href, referrer: document.referrer, device: detectDevice(), session_id: sid }, extra || {}))], { type: 'application/json' }))
-        : fetch(FN + '/widget-event', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ id: widgetId, event_type: type, page_url: location.href, referrer: document.referrer, device: detectDevice(), session_id: sid }), keepalive: true });
+        ? navigator.sendBeacon(FN + '/widget-event', new Blob([JSON.stringify(body)], { type: 'application/json' }))
+        : fetch(FN + '/widget-event', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body), keepalive: true });
     } catch(_) {}
+  }
+
+  // ---------- Phase 2: variant + dynamic copy resolution ----------
+  function pickVariant(variants){
+    if (!Array.isArray(variants) || !variants.length) return null;
+    var active = variants.filter(function(v){ return v && v.is_active !== false && (v.traffic_pct|0) > 0; });
+    if (!active.length) return null;
+    if (sessionStore.variantId) {
+      var existing = active.find(function(v){ return v.id === sessionStore.variantId; });
+      if (existing) return existing;
+    }
+    var total = active.reduce(function(s,v){ return s + (v.traffic_pct|0); }, 0);
+    if (total <= 0) return null;
+    var roll = Math.random() * Math.min(total, 100);
+    if (total < 100 && roll > total) return null; // fall through to control
+    var acc = 0;
+    for (var i=0;i<active.length;i++){ acc += active[i].traffic_pct|0; if (roll <= acc) { sessionStore.variantId = active[i].id; persistSession(); return active[i]; } }
+    return null;
+  }
+
+  function getQuery(){
+    var q = {};
+    try { (location.search || '').replace(/^\?/, '').split('&').forEach(function(kv){ if(!kv) return; var p = kv.split('='); q[decodeURIComponent(p[0])] = decodeURIComponent((p[1]||'').replace(/\+/g,' ')); }); } catch(_){}
+    return q;
+  }
+
+  function applyDynamicCopy(cfg, country){
+    var out = Object.assign({}, cfg);
+    // Geo rules
+    if (country && Array.isArray(cfg.geoRules)) {
+      var geo = cfg.geoRules.find(function(r){ return r.countries && r.countries.indexOf(country.toUpperCase()) !== -1; });
+      if (geo) {
+        if (geo.greeting) out.greeting = geo.greeting;
+        if (geo.ctaText) out.ctaText = geo.ctaText;
+        if (geo.prefilledMessage) out.prefilledMessage = geo.prefilledMessage;
+      }
+    }
+    // UTM rules (last match wins for specificity)
+    if (Array.isArray(cfg.utmRules) && cfg.utmRules.length) {
+      var q = getQuery();
+      cfg.utmRules.forEach(function(r){
+        var v = (q[r.key] || '').toLowerCase();
+        if (v && r.match && v.indexOf(r.match.toLowerCase()) !== -1) {
+          if (r.greeting) out.greeting = r.greeting;
+          if (r.ctaText) out.ctaText = r.ctaText;
+          if (r.prefilledMessage) out.prefilledMessage = r.prefilledMessage;
+        }
+      });
+    }
+    return out;
+  }
+
+  function injectCustomCss(css){
+    if (!css || typeof css !== 'string') return;
+    // basic sanitization — strip @import and url(...) to prevent leaking traffic
+    var safe = css.replace(/@import[^;]*;/gi, '').replace(/url\s*\(/gi, '/* url( */');
+    if (!safe.trim()) return;
+    var s = document.createElement('style'); s.id = 'aireatro-widget-custom'; s.textContent = safe;
+    document.head.appendChild(s);
   }
 
   function shouldShow(cfg){
@@ -189,7 +256,7 @@
 
   function submitLead(form, data, prefilled){
     var fd = new FormData(form);
-    var payload = { id: widgetId, page_url: location.href, device: detectDevice(), session_id: sid,
+    var payload = { id: widgetId, page_url: location.href, device: detectDevice(), session_id: sid, variant_id: assignedVariantId,
       name: fd.get('name'), phone: fd.get('phone'), email: fd.get('email'), message: fd.get('message') || prefilled };
     var btn = form.querySelector('.aw-cta'); if (btn) { btn.disabled = true; btn.style.opacity = '.7'; }
     fetch(FN + '/widget-lead', { method:'POST', headers:{ 'Content-Type':'application/json' }, body: JSON.stringify(payload) })
@@ -202,26 +269,36 @@
 
   var root, panel;
   function mount(data){
-    var cfg = data.config || {};
+    // Resolve A/B variant + dynamic copy + custom CSS BEFORE rendering
+    var variant = pickVariant(data.variants);
+    assignedVariantId = variant ? variant.id : null;
+    var baseCfg = data.config || {};
+    var merged = variant ? Object.assign({}, baseCfg, variant.config_overrides || {}) : baseCfg;
+    var country = data.visitor && data.visitor.country;
+    var cfg = applyDynamicCopy(merged, country);
+    data.config = cfg; // downstream readers (buildPanel) use data.config
+
     if (!shouldShow(cfg)) return;
     injectStyles(cfg);
+    injectCustomCss(cfg.customCss);
 
     if (cfg.type === 'sticky-bar') {
-      var bar = el('div', { class: 'aw-sticky', onclick: function(){ track('click'); openWa(data.whatsapp_number, cfg.prefilledMessage); } }, [waIcon(), cfg.ctaText || 'Chat with us on WhatsApp']);
+      var bar = el('div', { class: 'aw-sticky aireatro-widget aireatro-widget__sticky', onclick: function(){ track('click'); openWa(data.whatsapp_number, cfg.prefilledMessage); } }, [waIcon(), cfg.ctaText || 'Chat with us on WhatsApp']);
       document.body.appendChild(bar);
       track('view');
       return;
     }
 
-    root = el('div', { class: 'aw-root' });
+    root = el('div', { class: 'aw-root aireatro-widget' });
     var animClass = ({ pulse: 'aw-pulse', glow: 'aw-glow', bounce: 'aw-bounce', float: 'aw-float' })[cfg.animation || 'pulse'] || '';
-    var bubble = el('button', { class: 'aw-bubble ' + animClass, 'aria-label': 'Open chat', onclick: function(){
+    var bubble = el('button', { class: 'aw-bubble aireatro-widget__bubble ' + animClass, 'aria-label': 'Open chat', onclick: function(){
       var open = root.classList.toggle('aw-open');
       track(open ? 'open' : 'close');
     } }, [waIcon()]);
     bubble.style.position = 'relative';
     root.appendChild(bubble);
     panel = buildPanel(data);
+    panel.classList.add('aireatro-widget__panel');
     root.appendChild(panel);
     document.body.appendChild(root);
     track('view');

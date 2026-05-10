@@ -64,7 +64,7 @@ export function useWidget(id?: string) {
 
   useEffect(() => { refresh(); }, [refresh]);
 
-  const save = useCallback(async (patch: Partial<Pick<Widget, 'name' | 'status' | 'whatsapp_number'>> & { config?: WidgetConfig }) => {
+  const save = useCallback(async (patch: Partial<Pick<Widget, 'name' | 'status' | 'whatsapp_number'>> & { config?: WidgetConfig; variants?: any }) => {
     if (!id) return;
     const { error } = await supabase.from('widgets' as any).update(patch as any).eq('id', id);
     if (error) toast({ title: 'Save failed', description: error.message, variant: 'destructive' });
