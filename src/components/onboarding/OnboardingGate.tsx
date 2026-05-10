@@ -75,7 +75,10 @@ export default function OnboardingGate({ children, onConnectWhatsApp }: Props) {
             setTimeout(() => progress.refresh(), 600);
           }}
           onPaidIntent={() => { /* trial activates inline; no redirect */ }}
-          onDismiss={() => setPlanModalDismissed(true)}
+          onDismiss={() => {
+            progress.clearPlanSelection();
+            setPlanModalDismissed(true);
+          }}
         />
       )}
     </div>
