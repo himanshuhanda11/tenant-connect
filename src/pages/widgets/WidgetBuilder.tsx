@@ -37,15 +37,22 @@ export default function WidgetBuilder() {
           <Button variant="outline" size="sm" className="gap-2" onClick={() => navigate(`/widgets/${widget.id}/analytics`)}><BarChart3 className="h-4 w-4" />Analytics</Button>
           <Button variant="outline" size="sm" className="gap-2" onClick={() => navigate(`/widgets/${widget.id}/install`)}><Code2 className="h-4 w-4" />Install</Button>
           {isPublished ? (
-            <Button size="sm" variant="outline" className="gap-2" onClick={async () => { await setStatus('paused'); toast({ title: 'Widget paused' }); }}>
-              <Pause className="h-4 w-4" /> Pause
-            </Button>
+            <>
+              <Button size="sm" className="gap-2 bg-gradient-to-r from-emerald-500 to-teal-600 text-white" onClick={() => navigate(`/widgets/${widget.id}/install`)}>
+                <Code2 className="h-4 w-4" /> Get embed code
+              </Button>
+              <Button size="sm" variant="outline" className="gap-2" onClick={async () => { await setStatus('paused'); toast({ title: 'Widget paused' }); }}>
+                <Pause className="h-4 w-4" /> Pause
+              </Button>
+            </>
           ) : (
             <Button size="sm" className="gap-2 bg-gradient-to-r from-emerald-500 to-teal-600 text-white" onClick={async () => {
               if (!widget.whatsapp_number) { toast({ title: 'Add a WhatsApp number first', variant: 'destructive' }); return; }
-              await setStatus('published'); toast({ title: 'Widget published — copy the embed code' });
+              await setStatus('published');
+              toast({ title: 'Widget published 🎉', description: 'Opening installation snippet…' });
+              navigate(`/widgets/${widget.id}/install?published=1`);
             }}>
-              <Play className="h-4 w-4" /> Publish
+              <Play className="h-4 w-4" /> Publish & install
             </Button>
           )}
         </div>
