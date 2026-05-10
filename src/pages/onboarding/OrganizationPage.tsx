@@ -530,7 +530,7 @@ export default function OrganizationPage() {
               )}
 
               {/* Footer nav */}
-              <div className="mt-6 sm:mt-8 flex items-center justify-between gap-3">
+              <div className="mt-4 sm:mt-8 flex items-center justify-between gap-3">
                 <Button
                   type="button" variant="ghost" onClick={back}
                   disabled={step === 1 || isLoading}
