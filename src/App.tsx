@@ -31,6 +31,7 @@ const SignupPage = lazyWithRetry(() => import("./pages/onboarding/SignupPage"));
 const OrganizationPage = lazyWithRetry(() => import("./pages/onboarding/OrganizationPage"));
 const PasswordPage = lazyWithRetry(() => import("./pages/onboarding/PasswordPage"));
 const AuthCallback = lazyWithRetry(() => import("./pages/AuthCallback"));
+const LegacyOAuthInitiate = lazyWithRetry(() => import("./pages/LegacyOAuthInitiate"));
 const ChoosePlanPage = lazyWithRetry(() => import("./pages/onboarding/ChoosePlanPage"));
 const SelectWorkspacePlanPage = lazyWithRetry(() => import("./pages/onboarding/SelectWorkspacePlanPage"));
 const CreateWorkspace = lazyWithRetry(() => import("./pages/CreateWorkspace"));
@@ -209,6 +210,7 @@ const App = () => (
                     <Route path="/index" element={<Index />} />
                     
                     <Route path="/auth/callback" element={<AuthCallback />} />
+                    <Route path="/~oauth/initiate" element={<LegacyOAuthInitiate />} />
                     <Route path="/login" element={<Login />} />
                     <Route path="/signup" element={<SignupPage />} />
                     <Route path="/forgot-password" element={<ForgotPassword />} />
