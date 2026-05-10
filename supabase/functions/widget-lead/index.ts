@@ -31,19 +31,22 @@ Deno.serve(async (req) => {
     const message = clean(body?.message, 2000);
     const page_url = clean(body?.page_url, 500);
 
+    const variant_id = clean(body?.variant_id, 32);
+
     const { data: lead } = await supabase.from("widget_leads").insert({
       widget_id: widget.id,
       tenant_id: widget.tenant_id,
       name, phone, email, message, page_url,
       device: clean(body?.device, 32),
       country: clean(body?.country, 8),
+      variant_id,
       metadata: body?.metadata && typeof body.metadata === "object" ? body.metadata : null,
     }).select("id").maybeSingle();
 
     await supabase.from("widget_events").insert({
       widget_id: widget.id, tenant_id: widget.tenant_id, event_type: "lead", page_url,
       device: clean(body?.device, 32), country: clean(body?.country, 8),
-      session_id: clean(body?.session_id, 64), metadata: { lead_id: lead?.id },
+      session_id: clean(body?.session_id, 64), variant_id, metadata: { lead_id: lead?.id },
     });
 
     // Best-effort: create or upsert contact in CRM
