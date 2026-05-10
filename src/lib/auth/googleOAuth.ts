@@ -19,9 +19,10 @@ function createOAuthState() {
 }
 
 function getOAuthBrokerOrigin() {
-  // www is served by the static host and does not proxy /~oauth, causing a client 404.
-  // The apex domain is Lovable-managed and correctly forwards the OAuth broker route.
-  return window.location.hostname === "www.aireatro.com" ? PRIMARY_CUSTOM_ORIGIN : window.location.origin;
+  // Some custom subdomains can serve the SPA before the managed OAuth proxy sees /~oauth,
+  // which renders the app's 404. Use the apex domain as the broker for all Aireatro subdomains.
+  const hostname = window.location.hostname;
+  return hostname.endsWith(".aireatro.com") ? PRIMARY_CUSTOM_ORIGIN : window.location.origin;
 }
 
 export function buildGoogleAuthRedirectUri(nextPath = "/select-workspace") {
@@ -33,7 +34,7 @@ export function buildGoogleAuthRedirectUri(nextPath = "/select-workspace") {
 export async function signInWithManagedGoogle(options: GoogleOAuthOptions = {}) {
   const { nextPath = "/select-workspace", extraParams } = options;
 
-  if (window.location.hostname === "www.aireatro.com") {
+  if (window.location.hostname.endsWith(".aireatro.com")) {
     const params = new URLSearchParams({
       ...extraParams,
       provider: "google",
