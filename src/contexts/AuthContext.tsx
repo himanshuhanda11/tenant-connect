@@ -39,6 +39,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
+      console.info('[AuthState]', event, { hasSession: !!session, userId: session?.user?.id ?? null });
       // If Supabase reports the user is gone or token refresh failed,
       // wipe local state so the app redirects to /login.
       if (event === 'USER_DELETED' as any || event === 'TOKEN_REFRESHED' && !session) {
