@@ -120,6 +120,7 @@ export interface WidgetLead {
   message: string | null;
   page_url: string | null;
   device: string | null;
+  variant_id?: string | null;
   created_at: string;
 }
 
@@ -129,6 +130,7 @@ export interface WidgetEvent {
   event_type: 'view' | 'open' | 'click' | 'lead' | 'close';
   page_url: string | null;
   device: string | null;
+  variant_id?: string | null;
   created_at: string;
 }
 
