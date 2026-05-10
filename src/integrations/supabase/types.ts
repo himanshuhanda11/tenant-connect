@@ -7327,6 +7327,7 @@ export type Database = {
           sort_order: number | null
           stripe_price_monthly: string | null
           stripe_price_yearly: string | null
+          stripe_prices: Json
           tagline: string | null
         }
         Insert: {
@@ -7346,6 +7347,7 @@ export type Database = {
           sort_order?: number | null
           stripe_price_monthly?: string | null
           stripe_price_yearly?: string | null
+          stripe_prices?: Json
           tagline?: string | null
         }
         Update: {
@@ -7365,6 +7367,7 @@ export type Database = {
           sort_order?: number | null
           stripe_price_monthly?: string | null
           stripe_price_yearly?: string | null
+          stripe_prices?: Json
           tagline?: string | null
         }
         Relationships: []
@@ -12716,12 +12719,14 @@ export type Database = {
           cancel_at_period_end: boolean | null
           canceled_at: string | null
           created_at: string
+          currency: string | null
           current_period_end: string | null
           current_period_start: string | null
           id: string
           last_payment_status: string | null
           latest_invoice_id: string | null
           plan_id: string
+          pricing_region: string | null
           status: Database["public"]["Enums"]["subscription_status"]
           stripe_customer_id: string | null
           stripe_price_id: string | null
@@ -12737,12 +12742,14 @@ export type Database = {
           cancel_at_period_end?: boolean | null
           canceled_at?: string | null
           created_at?: string
+          currency?: string | null
           current_period_end?: string | null
           current_period_start?: string | null
           id?: string
           last_payment_status?: string | null
           latest_invoice_id?: string | null
           plan_id: string
+          pricing_region?: string | null
           status?: Database["public"]["Enums"]["subscription_status"]
           stripe_customer_id?: string | null
           stripe_price_id?: string | null
@@ -12758,12 +12765,14 @@ export type Database = {
           cancel_at_period_end?: boolean | null
           canceled_at?: string | null
           created_at?: string
+          currency?: string | null
           current_period_end?: string | null
           current_period_start?: string | null
           id?: string
           last_payment_status?: string | null
           latest_invoice_id?: string | null
           plan_id?: string
+          pricing_region?: string | null
           status?: Database["public"]["Enums"]["subscription_status"]
           stripe_customer_id?: string | null
           stripe_price_id?: string | null
@@ -13867,6 +13876,7 @@ export type Database = {
           business_name: string | null
           country: string | null
           created_at: string
+          currency: string | null
           enforcement_mode: string | null
           id: string
           invoice_notes: string | null
@@ -13874,6 +13884,7 @@ export type Database = {
           logo_url: string | null
           name: string
           onboarding_status: string | null
+          pricing_region: string | null
           slug: string
           suspended_at: string | null
           suspended_reason: string | null
@@ -13893,6 +13904,7 @@ export type Database = {
           business_name?: string | null
           country?: string | null
           created_at?: string
+          currency?: string | null
           enforcement_mode?: string | null
           id?: string
           invoice_notes?: string | null
@@ -13900,6 +13912,7 @@ export type Database = {
           logo_url?: string | null
           name: string
           onboarding_status?: string | null
+          pricing_region?: string | null
           slug: string
           suspended_at?: string | null
           suspended_reason?: string | null
@@ -13919,6 +13932,7 @@ export type Database = {
           business_name?: string | null
           country?: string | null
           created_at?: string
+          currency?: string | null
           enforcement_mode?: string | null
           id?: string
           invoice_notes?: string | null
@@ -13926,6 +13940,7 @@ export type Database = {
           logo_url?: string | null
           name?: string
           onboarding_status?: string | null
+          pricing_region?: string | null
           slug?: string
           suspended_at?: string | null
           suspended_reason?: string | null
@@ -16700,6 +16715,7 @@ export type Database = {
           business_name: string | null
           country: string | null
           created_at: string
+          currency: string | null
           enforcement_mode: string | null
           id: string
           invoice_notes: string | null
@@ -16707,6 +16723,7 @@ export type Database = {
           logo_url: string | null
           name: string
           onboarding_status: string | null
+          pricing_region: string | null
           slug: string
           suspended_at: string | null
           suspended_reason: string | null
@@ -17039,6 +17056,8 @@ export type Database = {
       }
       record_agent_login: { Args: { p_tenant_id: string }; Returns: string }
       record_agent_logout: { Args: { p_tenant_id: string }; Returns: undefined }
+      resolve_pricing_currency: { Args: { _region: string }; Returns: string }
+      resolve_pricing_region: { Args: { _country: string }; Returns: string }
       schedule_automation_job: {
         Args: {
           p_contact_id: string
