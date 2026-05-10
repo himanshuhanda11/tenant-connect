@@ -50,7 +50,8 @@ export function useOnboardingProgress(tenantId: string | null | undefined): Onbo
       ]);
 
       const explicitPlan = lsPlan === '1' ? lsPlanName : null;
-      const subscriptionPlan = (sub as any)?.plan_id?.replace('plan_', '') || null;
+      const rawSubscriptionPlan = (sub as any)?.plan_id?.replace('plan_', '') || null;
+      const subscriptionPlan = rawSubscriptionPlan && rawSubscriptionPlan !== 'free' ? rawSubscriptionPlan : null;
       const entitlementPlan = (ent as any)?.plan && (ent as any)?.plan !== 'free' ? (ent as any).plan : null;
       const detectedPlan = lsPlanDismissed ? null : (explicitPlan || subscriptionPlan || entitlementPlan);
       const hasPlan = !!detectedPlan;
