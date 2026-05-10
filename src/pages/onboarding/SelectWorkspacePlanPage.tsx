@@ -15,7 +15,7 @@ import { useStartCheckout } from '@/hooks/useWorkspaceBilling';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTenant } from '@/contexts/TenantContext';
 import ContactAdminDialog from '@/components/billing/ContactAdminDialog';
-import RegionSelector, { regionFromCountry, CURRENCY_FOR_REGION, type PricingRegion, type PricingCurrency } from '@/components/billing/RegionSelector';
+
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import aireatroLogo from '@/assets/aireatro-logo.png';
