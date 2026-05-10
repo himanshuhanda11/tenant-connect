@@ -507,8 +507,8 @@ export default function OrganizationPage() {
 
               {/* Step 4: Confirm */}
               {step === 4 && (
-                <div className="space-y-3">
-                  <p className="text-sm text-muted-foreground mb-3">
+                <div className="space-y-2 sm:space-y-3">
+                  <p className="hidden sm:block text-sm text-muted-foreground mb-3">
                     Please confirm everything looks right. You can edit any section before continuing.
                   </p>
                   <ReviewSection title="Personal" onEdit={() => setStep(1)} items={[
