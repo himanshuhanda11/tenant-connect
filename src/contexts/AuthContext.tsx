@@ -69,10 +69,49 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         // causing route guards to redirect to /login.
         const url = new URL(window.location.href);
         const code = url.searchParams.get('code');
+        const oauthError = url.searchParams.get('error');
+        const oauthErrorDesc = url.searchParams.get('error_description');
+
+        const persistOauthLog = (stage: string, data: Record<string, unknown>) => {
+          try {
+            const entry = { t: new Date().toISOString(), stage, ...data };
+            const prev = JSON.parse(sessionStorage.getItem('oauth_debug_log') || '[]');
+            prev.push(entry);
+            sessionStorage.setItem('oauth_debug_log', JSON.stringify(prev.slice(-50)));
+          } catch {}
+        };
+
+        console.info('[AuthInit] landing url', {
+          href: window.location.href,
+          pathname: url.pathname,
+          hasCode: !!code,
+          hasError: !!oauthError,
+          oauthError,
+          oauthErrorDesc,
+        });
+        persistOauthLog('landing', {
+          href: window.location.href,
+          pathname: url.pathname,
+          hasCode: !!code,
+          oauthError,
+          oauthErrorDesc,
+        });
+
+        if (oauthError) {
+          console.error('[AuthInit] OAuth provider returned error', { oauthError, oauthErrorDesc });
+        }
 
         if (code) {
-          const { error } = await supabase.auth.exchangeCodeForSession(code);
-          if (!error) {
+          console.info('[AuthInit] exchanging code for session…');
+          const t0 = performance.now();
+          const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+          const ms = Math.round(performance.now() - t0);
+          if (error) {
+            console.error('[AuthInit] exchangeCodeForSession failed', { ms, error: error.message });
+            persistOauthLog('exchange_failed', { ms, error: error.message });
+          } else {
+            console.info('[AuthInit] exchangeCodeForSession ok', { ms, hasSession: !!data?.session, userId: data?.session?.user?.id ?? null });
+            persistOauthLog('exchange_ok', { ms, hasSession: !!data?.session, userId: data?.session?.user?.id ?? null });
             url.searchParams.delete('code');
             url.searchParams.delete('state');
             window.history.replaceState({}, document.title, url.pathname + url.search + url.hash);
