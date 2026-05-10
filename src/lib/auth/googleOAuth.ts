@@ -5,6 +5,19 @@ type GoogleOAuthOptions = {
   extraParams?: Record<string, string>;
 };
 
+const PRODUCTION_ORIGIN = "https://www.aireatro.com";
+
+function getAuthOrigin() {
+  if (typeof window === "undefined") return PRODUCTION_ORIGIN;
+
+  const { hostname, origin } = window.location;
+  if (hostname === "aireatro.com" || hostname === "www.aireatro.com") {
+    return PRODUCTION_ORIGIN;
+  }
+
+  return origin;
+}
+
 /**
  * Build the post-OAuth redirect URI on the current origin.
  *
@@ -16,7 +29,7 @@ type GoogleOAuthOptions = {
 export function buildGoogleAuthRedirectUri(nextPath = "/select-workspace") {
   const normalizedPath = nextPath.startsWith("/") ? nextPath : `/${nextPath}`;
   const params = new URLSearchParams({ next: normalizedPath });
-  return `${window.location.origin}/auth/callback?${params.toString()}`;
+  return `${getAuthOrigin()}/auth/callback?${params.toString()}`;
 }
 
 /**
