@@ -49,25 +49,28 @@ export function useOnboardingProgress(tenantId: string | null | undefined): Onbo
         supabase.from('tenants').select('whatsapp_profile_completed' as any).eq('id', tenantId).maybeSingle(),
       ]);
 
+      const phoneList = (phones as any[]) || [];
+      const validPhones = phoneList.filter((p) => !['disconnected', 'banned'].includes(p.status));
+      const hasConnectedPhone = validPhones.some((p) => p.status === 'connected');
+      setWhatsappConnected(validPhones.length > 0);
+      const preferred = validPhones.find((p) => p.status === 'connected') || validPhones[0] || null;
+      setPrimaryPhoneId(preferred?.id || null);
+
       const explicitPlan = lsPlan === '1' ? lsPlanName : null;
       const rawSubscriptionPlan = (sub as any)?.plan_id?.replace('plan_', '') || null;
       const subscriptionPlan = rawSubscriptionPlan && rawSubscriptionPlan !== 'free' ? rawSubscriptionPlan : null;
       const entitlementPlan = (ent as any)?.plan && (ent as any)?.plan !== 'free' ? (ent as any).plan : null;
       const detectedPlan = lsPlanDismissed ? null : (explicitPlan || subscriptionPlan || entitlementPlan);
-      const hasPlan = !!detectedPlan;
+      // Failsafe: if user already connected WhatsApp, plan choice is implicit (they passed step 1).
+      const hasPlan = !!detectedPlan || hasConnectedPhone;
       setPlanSelected(hasPlan);
-      setPlanName(detectedPlan ? detectedPlan.charAt(0).toUpperCase() + detectedPlan.slice(1) : null);
+      setPlanName(detectedPlan ? detectedPlan.charAt(0).toUpperCase() + detectedPlan.slice(1) : (hasConnectedPhone ? 'Free' : null));
 
-      const phoneList = (phones as any[]) || [];
-      const validPhones = phoneList.filter((p) => !['disconnected', 'banned'].includes(p.status));
-      setWhatsappConnected(validPhones.length > 0);
-      const preferred = validPhones.find((p) => p.status === 'connected') || validPhones[0] || null;
-      setPrimaryPhoneId(preferred?.id || null);
-
-      // Source of truth: tenants.whatsapp_profile_completed. Fallback to legacy localStorage.
+      // Source of truth: tenants.whatsapp_profile_completed (auto-set by DB trigger on phone connect).
+      // Failsafe: any connected phone implies the WA profile exists on Meta's side.
       const dbProfileDone = !!(tenantRow as any)?.whatsapp_profile_completed;
       const lsProfile = localStorage.getItem(lsKey(tenantId, 'profileCompleted'));
-      setProfileCompleted(dbProfileDone || lsProfile === '1');
+      setProfileCompleted(dbProfileDone || hasConnectedPhone || lsProfile === '1');
     } catch (e) {
       console.error('[useOnboardingProgress] failed:', e);
     } finally {
