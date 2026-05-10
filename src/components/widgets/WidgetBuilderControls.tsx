@@ -171,6 +171,18 @@ export function WidgetBuilderControls({ widget, agents, onChange, onAgentSave, o
           </div>
         </TabsContent>
 
+        <TabsContent value="ai" className="space-y-4 pt-3">
+          <WidgetTemplatesMarketplace onApply={(p) => patch(p)} />
+          <WidgetAiGreetings brandName={draft.brandName} onApply={(p) => patch(p)} />
+        </TabsContent>
+
+        <TabsContent value="ab" className="space-y-4 pt-3">
+          <WidgetVariants
+            widget={widget}
+            onChange={(variants) => onChange({ variants })}
+          />
+        </TabsContent>
+
         <TabsContent value="advanced" className="space-y-4 pt-3">
           <Card className="p-3 space-y-2 bg-card/60">
             <div className="flex items-center gap-2 text-sm font-semibold"><Type className="h-4 w-4" /> Lead capture form</div>
@@ -179,6 +191,10 @@ export function WidgetBuilderControls({ widget, agents, onChange, onAgentSave, o
             <Toggle label="Show phone field" value={draft.fieldPhone !== false} onChange={v => patch({ fieldPhone: v })} />
             <Toggle label="Show email field" value={!!draft.fieldEmail} onChange={v => patch({ fieldEmail: v })} />
           </Card>
+
+          <WidgetGeoRules config={draft} onChange={patch} />
+          <WidgetUtmRules config={draft} onChange={patch} />
+          <WidgetCustomCss config={draft} onChange={patch} />
 
           <Card className="p-3 space-y-2 bg-card/60">
             <div className="flex items-center gap-2 text-sm font-semibold"><Users className="h-4 w-4" /> Agents (multi-agent widget)</div>
