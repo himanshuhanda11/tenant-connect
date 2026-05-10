@@ -186,29 +186,6 @@ function RouteLoader() {
   );
 }
 
-function ManagedOAuthRedirect() {
-  if (typeof window !== "undefined") {
-    const params = new URLSearchParams(window.location.search);
-    const provider = params.get("provider") || "google";
-    const redirectUrl = `https://www.aireatro.com/~oauth/initiate?${new URLSearchParams({
-      ...Object.fromEntries(params.entries()),
-      provider,
-    }).toString()}`;
-
-    try {
-      if (window.top && window.top !== window.self) {
-        window.open(redirectUrl, "_top");
-      } else {
-        window.location.replace(redirectUrl);
-      }
-    } catch {
-      window.location.replace(redirectUrl);
-    }
-  }
-
-  return <RouteLoader />;
-}
-
 const App = () => (
   <HelmetProvider>
     <QueryClientProvider client={queryClient}>
@@ -230,7 +207,7 @@ const App = () => (
                   <Routes>
                     <Route path="/" element={<Index />} />
                     <Route path="/index" element={<Index />} />
-                    <Route path="/~oauth/initiate" element={<ManagedOAuthRedirect />} />
+                    
                     <Route path="/auth/callback" element={<AuthCallback />} />
                     <Route path="/login" element={<Login />} />
                     <Route path="/signup" element={<SignupPage />} />
