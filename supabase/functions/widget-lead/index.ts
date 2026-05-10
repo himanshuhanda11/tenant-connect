@@ -79,7 +79,7 @@ Deno.serve(async (req) => {
     const routingMode = routing?.mode ?? "inbox_unassigned";
 
     let assignTo: string | null = null;
-    if (phone && routingMode !== "none") {
+    if (shouldPushToInbox && phone && routingMode !== "none") {
       const wa_id = phone.replace(/[^\d]/g, "");
 
       // 1) Upsert contact
