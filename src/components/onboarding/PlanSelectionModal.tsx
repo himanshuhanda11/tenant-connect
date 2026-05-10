@@ -18,6 +18,7 @@ interface Props {
   tenantId: string;
   onSelected: (planName: string) => void;
   onPaidIntent: () => void;
+  onDismiss?: () => void;
 }
 
 const planMeta: Record<string, { icon: React.ReactNode; gradient: string; ring: string; iconBg: string; iconText: string; badge?: { label: string; icon: React.ReactNode; cls: string } }> = {
@@ -53,7 +54,7 @@ const planMeta: Record<string, { icon: React.ReactNode; gradient: string; ring: 
   },
 };
 
-export default function PlanSelectionModal({ open, tenantId, onSelected, onPaidIntent }: Props) {
+export default function PlanSelectionModal({ open, tenantId, onSelected, onPaidIntent, onDismiss }: Props) {
   const [activatingId, setActivatingId] = useState<string | null>(null);
   const scrollerRef = useRef<HTMLDivElement>(null);
   const [canLeft, setCanLeft] = useState(false);
@@ -141,12 +142,12 @@ export default function PlanSelectionModal({ open, tenantId, onSelected, onPaidI
           transition={{ duration: 0.35, ease: 'easeOut' }}
           className="relative rounded-3xl bg-white shadow-2xl overflow-hidden max-h-[92vh] flex flex-col"
         >
-          {/* Close button — dismisses modal and keeps user on dashboard (defaults to Free plan) */}
+          {/* Close button — dismiss without selecting; user stays on step 1 */}
           <button
             type="button"
             onClick={() => {
               if (activatingId) return;
-              handleFree();
+              onDismiss?.();
             }}
             aria-label="Close"
             className="absolute top-3 right-3 sm:top-4 sm:right-4 z-30 w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-slate-900 hover:bg-slate-800 text-white shadow-lg flex items-center justify-center transition-all hover:scale-105 active:scale-95"
