@@ -16,7 +16,7 @@ Deno.serve(async (req) => {
     const supabase = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
     const { data: widget, error } = await supabase
       .from("widgets")
-      .select("id, public_key, name, status, whatsapp_number, config, tenant_id")
+      .select("id, public_key, name, status, whatsapp_number, config, variants, tenant_id")
       .eq("public_key", id)
       .maybeSingle();
     if (error) throw error;
@@ -27,14 +27,23 @@ Deno.serve(async (req) => {
       .from("widget_agents").select("id, name, role, department, avatar_url, phone_e164, prefilled_message, priority")
       .eq("widget_id", widget.id).eq("is_active", true).order("priority", { ascending: false });
 
+    // Best-effort visitor country from common edge headers
+    const country =
+      req.headers.get("cf-ipcountry") ||
+      req.headers.get("x-vercel-ip-country") ||
+      req.headers.get("x-country-code") ||
+      null;
+
     return new Response(JSON.stringify({
       id: widget.public_key,
       name: widget.name,
       whatsapp_number: widget.whatsapp_number,
       config: widget.config,
+      variants: widget.variants ?? [],
       agents: agents ?? [],
+      visitor: { country },
     }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json", "Cache-Control": "public, max-age=60" },
+      headers: { ...corsHeaders, "Content-Type": "application/json", "Cache-Control": "public, max-age=30" },
     });
   } catch (e) {
     return new Response(JSON.stringify({ error: String(e) }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
