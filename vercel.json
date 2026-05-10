@@ -4,13 +4,7 @@
   "outputDirectory": "dist",
   "framework": "vite",
   "trailingSlash": false,
-  "github": { "silent": false },
-  "cleanUrls": true,
   "rewrites": [
-    {
-      "source": "/~oauth/:path*",
-      "destination": "https://oauth.lovable.app/:path*?project_id=9ee3464f-477f-4b1e-b642-f9597c9a83d5&project_env=prod"
-    },
     { "source": "/version.json", "destination": "/version.json" },
     { "source": "/((?!assets/).*)", "destination": "/index.html" }
   ],
