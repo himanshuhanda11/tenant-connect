@@ -263,6 +263,11 @@ const App = () => (
                     <Route path="/flows" element={<FlowsHub />} />
                     <Route path="/flows/builder" element={<FlowBuilder />} />
                     <Route path="/flows/builder/:id" element={<FlowBuilder />} />
+                    <Route path="/widgets" element={<WidgetsList />} />
+                    <Route path="/widgets/:id" element={<WidgetBuilder />} />
+                    <Route path="/widgets/:id/install" element={<WidgetInstall />} />
+                    <Route path="/widgets/:id/leads" element={<WidgetLeads />} />
+                    <Route path="/widgets/:id/analytics" element={<WidgetAnalytics />} />
                     <Route path="/team" element={<TeamOverview />} />
                     <Route path="/team/overview" element={<TeamOverview />} />
                     <Route path="/team/members" element={<TeamMembers />} />
