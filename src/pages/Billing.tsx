@@ -110,12 +110,32 @@ export default function Billing() {
               Manage your plan, usage, invoices, and billing settings
             </p>
           </div>
-          {isTopPlan && (
-            <Badge className="bg-gradient-to-r from-amber-500 to-orange-500 text-white border-0 gap-1.5 px-3 py-1.5 text-xs self-start">
-              <Sparkles className="h-3.5 w-3.5" /> Business Plan Active
-            </Badge>
-          )}
+          <div className="flex flex-wrap items-center gap-2 self-start">
+            {billing && (
+              <BillingStatusBadge
+                status={(showPaymentFailed ? 'payment_failed' : (billing.is_trialing ? 'trialing' : billing.status)) as any}
+                planName={billing.plan_name}
+                trialDaysLeft={billing.is_trialing ? billing.trial_days_left : undefined}
+              />
+            )}
+            {billing?.has_subscription && (
+              <Button size="sm" variant="outline" className="gap-1.5"
+                onClick={() => currentTenant?.id && openPortal.mutate(currentTenant.id)}
+                disabled={openPortal.isPending}>
+                <ExternalLink className="w-3.5 h-3.5" /> Manage Billing
+              </Button>
+            )}
+            {isTopPlan && (
+              <Badge className="bg-gradient-to-r from-amber-500 to-orange-500 text-white border-0 gap-1.5 px-3 py-1.5 text-xs">
+                <Sparkles className="h-3.5 w-3.5" /> Business Plan Active
+              </Badge>
+            )}
+          </div>
         </div>
+
+        {showPaymentFailed && currentTenant?.id && (
+          <PaymentFailedBanner workspaceId={currentTenant.id} />
+        )}
 
         <Tabs defaultValue="overview" className="space-y-4 sm:space-y-6">
           <div className="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0">
