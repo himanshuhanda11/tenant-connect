@@ -67,11 +67,19 @@ export default function WidgetsList() {
                   </div>
                   <h3 className="font-semibold mt-3 truncate">{w.name}</h3>
                   <p className="text-xs text-muted-foreground truncate mt-0.5">{w.whatsapp_number || 'No WhatsApp number'}</p>
-                  <div className="mt-4 flex items-center gap-2">
-                    <Button size="sm" variant="outline" className="flex-1" onClick={() => navigate(`/widgets/${w.id}`)}>Open builder</Button>
-                    <Button size="sm" variant="ghost" onClick={() => navigate(`/widgets/${w.id}/analytics`)}><BarChart3 className="h-4 w-4" /></Button>
-                    <Button size="sm" variant="ghost" onClick={() => navigate(`/widgets/${w.id}/install`)}><ExternalLink className="h-4 w-4" /></Button>
-                    <Button size="sm" variant="ghost" onClick={() => remove(w.id)}><Trash2 className="h-4 w-4" /></Button>
+                  <div className="mt-4 grid grid-cols-2 gap-2">
+                    <Button size="sm" variant="outline" className="gap-1.5" onClick={() => navigate(`/widgets/${w.id}`)}>
+                      <Settings2 className="h-3.5 w-3.5" /> Edit
+                    </Button>
+                    <Button size="sm" variant="outline" className="gap-1.5" onClick={() => navigate(`/widgets/${w.id}/install`)}>
+                      <Code2 className="h-3.5 w-3.5" /> Install code
+                    </Button>
+                    <Button size="sm" variant="outline" className="gap-1.5" onClick={() => navigate(`/widgets/${w.id}/analytics`)}>
+                      <BarChart3 className="h-3.5 w-3.5" /> Analytics
+                    </Button>
+                    <Button size="sm" variant="outline" className="gap-1.5 text-destructive hover:text-destructive" onClick={() => remove(w.id)}>
+                      <Trash2 className="h-3.5 w-3.5" /> Delete
+                    </Button>
                   </div>
                 </Card>
               </motion.div>
