@@ -93,6 +93,14 @@ export default function SelectWorkspacePlanPage() {
     }
   }, [targetWorkspace, currentTenant?.id, setCurrentTenant]);
 
+  // Pre-fill country from tenant if available
+  useEffect(() => {
+    const tenantCountry = (targetWorkspace as any)?.country as string | undefined;
+    if (tenantCountry && tenantCountry.toUpperCase() !== country) {
+      setCountry(tenantCountry.toUpperCase());
+    }
+  }, [targetWorkspace?.id]);
+
   const handleSelect = async (plan: PricingPlan) => {
     if (isClaiming || startCheckout.isPending || !targetWorkspaceId) return;
 
