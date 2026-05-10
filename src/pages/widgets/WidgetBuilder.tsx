@@ -59,7 +59,7 @@ export default function WidgetBuilder() {
         </div>
       </div>
 
-      <div className="grid lg:grid-cols-[420px_1fr] gap-6 px-4 sm:px-6 py-6 max-w-[1500px] mx-auto">
+      <div className="grid md:grid-cols-[380px_1fr] xl:grid-cols-[420px_1fr] gap-6 px-4 sm:px-6 py-6 max-w-[1500px] mx-auto">
         <div>
           <WidgetBuilderControls
             widget={widget}
