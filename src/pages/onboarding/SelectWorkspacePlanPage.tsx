@@ -34,6 +34,7 @@ export default function SelectWorkspacePlanPage() {
   const { claim, isClaiming } = useLaunchOffer();
   const { data: isEligible, isLoading: eligLoading, refetch: refetchEligible } = useTrialEligibility();
   const { getPlanPrice, formatAmount } = useGeoLocation();
+  const startCheckout = useStartCheckout();
 
   const [isYearly, setIsYearly] = useState(false);
   const [pendingPlan, setPendingPlan] = useState<string | null>(null);
