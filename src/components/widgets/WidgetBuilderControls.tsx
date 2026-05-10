@@ -53,12 +53,14 @@ export function WidgetBuilderControls({ widget, agents, onChange, onAgentSave, o
       </Card>
 
       <Tabs defaultValue="type" className="w-full">
-        <TabsList className="grid grid-cols-5 h-auto bg-muted/40 p-1">
-          <TabsTrigger value="type" className="text-[11px] gap-1"><Sparkles className="h-3 w-3" />Type</TabsTrigger>
-          <TabsTrigger value="brand" className="text-[11px] gap-1"><Palette className="h-3 w-3" />Brand</TabsTrigger>
-          <TabsTrigger value="msg" className="text-[11px] gap-1"><MessageSquare className="h-3 w-3" />Message</TabsTrigger>
-          <TabsTrigger value="behavior" className="text-[11px] gap-1"><Wand2 className="h-3 w-3" />Behavior</TabsTrigger>
-          <TabsTrigger value="advanced" className="text-[11px] gap-1"><Settings2 className="h-3 w-3" />More</TabsTrigger>
+        <TabsList className="grid grid-cols-7 h-auto bg-muted/40 p-1 gap-0.5">
+          <TabsTrigger value="type" className="text-[10px] gap-1 px-1"><Sparkles className="h-3 w-3" />Type</TabsTrigger>
+          <TabsTrigger value="brand" className="text-[10px] gap-1 px-1"><Palette className="h-3 w-3" />Brand</TabsTrigger>
+          <TabsTrigger value="msg" className="text-[10px] gap-1 px-1"><MessageSquare className="h-3 w-3" />Copy</TabsTrigger>
+          <TabsTrigger value="behavior" className="text-[10px] gap-1 px-1"><Wand2 className="h-3 w-3" />Behave</TabsTrigger>
+          <TabsTrigger value="ai" className="text-[10px] gap-1 px-1 data-[state=active]:bg-gradient-to-r data-[state=active]:from-violet-500/20 data-[state=active]:to-fuchsia-500/20"><Rocket className="h-3 w-3" />AI</TabsTrigger>
+          <TabsTrigger value="ab" className="text-[10px] gap-1 px-1"><FlaskConical className="h-3 w-3" />A/B</TabsTrigger>
+          <TabsTrigger value="advanced" className="text-[10px] gap-1 px-1"><Settings2 className="h-3 w-3" />More</TabsTrigger>
         </TabsList>
 
         <TabsContent value="type" className="space-y-2 pt-3">
