@@ -256,15 +256,35 @@
 
   function submitLead(form, data, prefilled){
     var fd = new FormData(form);
-    var payload = { id: widgetId, page_url: location.href, device: detectDevice(), session_id: sid, variant_id: assignedVariantId,
+    var payload = { id: widgetId, phase: 'save', page_url: location.href, device: detectDevice(), session_id: sid, variant_id: assignedVariantId,
       name: fd.get('name'), phone: fd.get('phone'), email: fd.get('email'), message: fd.get('message') || prefilled };
     var btn = form.querySelector('.aw-cta'); if (btn) { btn.disabled = true; btn.style.opacity = '.7'; }
     fetch(FN + '/widget-lead', { method:'POST', headers:{ 'Content-Type':'application/json' }, body: JSON.stringify(payload) })
       .then(function(r){ return r.json(); }).then(function(res){
-        if (res && res.whatsapp_url) window.open(res.whatsapp_url, '_blank');
-        else openWa(data.whatsapp_number, payload.message);
-      }).catch(function(){ openWa(data.whatsapp_number, payload.message); })
-      .finally(function(){ if (btn) { btn.disabled = false; btn.style.opacity = '1'; } });
+        // Replace form with confirmation + explicit Start Chat button.
+        // Inbox conversation is created only when this button is clicked.
+        var leadId = res && res.lead_id;
+        var waUrl = res && res.whatsapp_url;
+        var parent = form.parentNode;
+        var done = el('div', { class: 'aw-msg', style:{ marginTop:'10px', background:'rgba(34,197,94,.12)', color:'#15803d' } },
+          ['✅ Thanks ' + (payload.name || '') + '! Tap below to continue on WhatsApp.']);
+        var go = el('button', { class: 'aw-cta', type:'button', onclick: function(){
+          track('start_chat', { lead_id: leadId });
+          // Fire-and-forget: push into inbox in background
+          try {
+            fetch(FN + '/widget-lead', { method:'POST', headers:{ 'Content-Type':'application/json' }, keepalive: true,
+              body: JSON.stringify({ id: widgetId, phase: 'start_chat', lead_id: leadId, page_url: location.href, device: detectDevice(), session_id: sid, variant_id: assignedVariantId }) });
+          } catch(_){}
+          if (waUrl) window.open(waUrl, '_blank');
+          else openWa(data.whatsapp_number, payload.message);
+        } }, [waIcon(), 'Start Chat on WhatsApp']);
+        parent.removeChild(form);
+        parent.appendChild(done);
+        parent.appendChild(go);
+      }).catch(function(){
+        if (btn) { btn.disabled = false; btn.style.opacity = '1'; }
+        openWa(data.whatsapp_number, payload.message);
+      });
   }
 
   var root, panel;
