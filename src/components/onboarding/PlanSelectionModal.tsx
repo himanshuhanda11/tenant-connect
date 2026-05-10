@@ -4,7 +4,7 @@ import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import {
   Sparkles, Check, Rocket, Crown, Building2, Gift,
-  ChevronLeft, ChevronRight, Loader2, ShieldCheck, Users, Flame, Star,
+  ChevronLeft, ChevronRight, Loader2, ShieldCheck, Users, Flame, Star, X,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
