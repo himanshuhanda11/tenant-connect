@@ -139,6 +139,37 @@ export default function WidgetAnalytics() {
           </Card>
         </div>
 
+        {variantPerf.length > 0 && (
+          <Card className="p-4">
+            <div className="flex items-center justify-between mb-3">
+              <div className="text-sm font-semibold">A/B variants performance</div>
+              <div className="text-[11px] text-muted-foreground">Higher conversion = winner</div>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead><tr className="text-left text-xs text-muted-foreground border-b border-border/50">
+                  <th className="py-2">Variant</th><th className="py-2 text-right">Views</th><th className="py-2 text-right">Clicks</th><th className="py-2 text-right">Leads</th><th className="py-2 text-right">Conv. rate</th>
+                </tr></thead>
+                <tbody>
+                  {variantPerf.map(v => {
+                    const top = Math.max(...variantPerf.map(x => x.conv));
+                    const isWinner = v.conv > 0 && v.conv === top;
+                    return (
+                      <tr key={v.id} className="border-b border-border/30">
+                        <td className="py-2 font-medium flex items-center gap-2">{v.name}{isWinner && <span className="text-[9px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-600 dark:text-emerald-400">Winner</span>}</td>
+                        <td className="py-2 text-right tabular-nums">{v.views}</td>
+                        <td className="py-2 text-right tabular-nums">{v.clicks}</td>
+                        <td className="py-2 text-right tabular-nums">{v.leads}</td>
+                        <td className="py-2 text-right tabular-nums font-semibold">{v.conv}%</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </Card>
+        )}
+
         {loading && <div className="text-xs text-muted-foreground">Refreshing…</div>}
       </div>
     </DashboardLayout>
