@@ -128,6 +128,8 @@ export default function SelectWorkspacePlanPage() {
         workspaceId: targetWorkspaceId,
         planId: plan.id,
         billingCycle: isYearly ? 'yearly' : 'monthly',
+        region,
+        country,
         successPath: '/onboarding/billing-return',
         cancelPath: '/onboarding/plan',
       });
