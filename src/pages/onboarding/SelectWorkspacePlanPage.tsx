@@ -11,6 +11,7 @@ import { Label } from '@/components/ui/label';
 import { pricingPlans, type PricingPlan } from '@/data/pricingPlans';
 import { useGeoLocation, type PlanId } from '@/hooks/useGeoLocation';
 import { useLaunchOffer, useTrialEligibility } from '@/hooks/useLaunchOffer';
+import { useStartCheckout } from '@/hooks/useWorkspaceBilling';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTenant } from '@/contexts/TenantContext';
 import ContactAdminDialog from '@/components/billing/ContactAdminDialog';
@@ -33,6 +34,7 @@ export default function SelectWorkspacePlanPage() {
   const { claim, isClaiming } = useLaunchOffer();
   const { data: isEligible, isLoading: eligLoading, refetch: refetchEligible } = useTrialEligibility();
   const { getPlanPrice, formatAmount } = useGeoLocation();
+  const startCheckout = useStartCheckout();
 
   const [isYearly, setIsYearly] = useState(false);
   const [pendingPlan, setPendingPlan] = useState<string | null>(null);
@@ -66,30 +68,47 @@ export default function SelectWorkspacePlanPage() {
   }, [targetWorkspace, currentTenant?.id, setCurrentTenant]);
 
   const handleSelect = async (plan: PricingPlan) => {
-    if (isClaiming || !targetWorkspaceId) return;
+    if (isClaiming || startCheckout.isPending || !targetWorkspaceId) return;
 
-    // Paid plan + ineligible → contact admin popup
-    if (plan.id !== 'free' && isEligible === false) {
-      setContactOpen(true);
+    // FREE plan → instant activation, no Stripe (keeps existing claim flow for trial-eligibility tracking)
+    if (plan.id === 'free') {
+      setPendingPlan(plan.id);
+      try {
+        await claim({ planId: plan.id, workspaceId: targetWorkspaceId });
+        toast.success(`${plan.name} plan activated for ${targetWorkspace?.name ?? 'your workspace'}`, {
+          description: 'Redirecting to your dashboard…', duration: 1800,
+        });
+        setSuccess(true);
+        setTimeout(() => navigate('/dashboard', { replace: true }), 1200);
+      } catch (e: any) {
+        toast.error(e?.message ?? 'Could not activate plan');
+        setPendingPlan(null);
+      }
       return;
     }
 
+    // PAID plan → Stripe Checkout with 30-day trial
     setPendingPlan(plan.id);
     try {
-      await claim({ planId: plan.id, workspaceId: targetWorkspaceId });
-      const isFree = plan.id === 'free';
-      toast.success(
-        isFree ? `${plan.name} plan activated for ${targetWorkspace?.name ?? 'your workspace'}` : `🎉 ${plan.name} trial started — first month free!`,
-        { description: 'Redirecting to your dashboard…', duration: 2200 },
-      );
-      setSuccess(true);
-      setTimeout(() => navigate('/dashboard', { replace: true }), 1400);
+      const res = await startCheckout.mutateAsync({
+        workspaceId: targetWorkspaceId,
+        planId: plan.id,
+        billingCycle: isYearly ? 'yearly' : 'monthly',
+        successPath: '/onboarding/billing-return',
+        cancelPath: '/onboarding/plan',
+      });
+      if (res?.checkout_url) {
+        window.location.href = res.checkout_url;
+        return;
+      }
+      toast.error('Could not start checkout');
+      setPendingPlan(null);
     } catch (e: any) {
-      if (e?.reason === 'trial_already_used') {
-        await refetchEligible();
-        setContactOpen(true);
+      const msg = e?.message || 'Could not start checkout';
+      if (msg.toLowerCase().includes('not configured')) {
+        toast.error('Stripe is not fully configured yet. Please contact support.');
       } else {
-        toast.error(e?.message ?? 'Could not activate plan');
+        toast.error(msg);
       }
       setPendingPlan(null);
     }

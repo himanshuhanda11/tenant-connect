@@ -12,34 +12,88 @@ import { WorkspacePlanCard } from '@/components/billing/WorkspacePlanCard';
 import { InvoiceHistory } from '@/components/billing/InvoiceHistory';
 import { usePlans, useSubscription } from '@/hooks/useBilling';
 import { useEntitlements } from '@/hooks/useEntitlements';
-import { useState } from 'react';
+import { useWorkspaceBilling, useStartCheckout, useOpenBillingPortal, useChangePlan } from '@/hooks/useWorkspaceBilling';
+import { useTenant } from '@/contexts/TenantContext';
+import { PaymentFailedBanner } from '@/components/billing/PaymentFailedBanner';
+import { BillingStatusBadge } from '@/components/billing/BillingStatusBadge';
+import { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
-import { LayoutDashboard, CreditCard, BarChart3, Settings, Sparkles, Receipt } from 'lucide-react';
+import { LayoutDashboard, CreditCard, BarChart3, Settings, Sparkles, Receipt, ExternalLink } from 'lucide-react';
 import type { Plan } from '@/types/billing';
 
 export default function Billing() {
   const [isYearly, setIsYearly] = useState(false);
+  const [params] = useSearchParams();
+  const { currentTenant } = useTenant();
   const { data: plans } = usePlans();
   const { data: subscription } = useSubscription();
   const { data: entitlements } = useEntitlements();
-  const currentPlanId = entitlements?.plan_id ?? subscription?.plan_id ?? 'free';
+  const { data: billing, refetch: refetchBilling } = useWorkspaceBilling();
+  const startCheckout = useStartCheckout();
+  const openPortal = useOpenBillingPortal();
+  const changePlan = useChangePlan();
+
+  const currentPlanId = billing?.plan_id ?? entitlements?.plan_id ?? subscription?.plan_id ?? 'free';
   const isTopPlan = currentPlanId === 'business';
+  const showPaymentFailed = billing?.status === 'past_due' || billing?.status === 'unpaid' || billing?.last_payment_status === 'failed';
+
+  // Handle Stripe return
+  useEffect(() => {
+    const status = params.get('status');
+    if (status === 'success') {
+      toast.success('Subscription activated! 🎉', { description: 'Your trial is now active.' });
+      const t = setTimeout(() => refetchBilling(), 1500);
+      return () => clearTimeout(t);
+    }
+    if (status === 'cancelled') {
+      toast.info('Checkout cancelled');
+    }
+  }, [params, refetchBilling]);
 
   const PLAN_RANK: Record<string, number> = { free: 0, basic: 1, pro: 2, business: 3 };
-  const handlePlanSelect = (plan: Plan) => {
-    const currentRank = PLAN_RANK[currentPlanId] ?? 0;
-    const targetRank = PLAN_RANK[plan.id] ?? 0;
+  const handlePlanSelect = async (plan: Plan) => {
+    if (!currentTenant?.id) return;
     if (plan.id === currentPlanId) return;
-    if (plan.name === 'Business' && currentPlanId !== 'business') {
-      toast.info('Contact sales for Business pricing');
-    } else if (targetRank < currentRank) {
-      toast.info('Contact support to downgrade your plan');
-    } else {
-      toast.info('Payment integration pending — upgrade will be available soon');
+
+    const targetRank = PLAN_RANK[plan.id] ?? 0;
+    const currentRank = PLAN_RANK[currentPlanId] ?? 0;
+
+    // No active Stripe sub yet → start fresh checkout (works for upgrade from free)
+    if (!billing?.has_subscription) {
+      if (plan.id === 'free') {
+        toast.info('You are already on a free or inactive plan');
+        return;
+      }
+      try {
+        const res = await startCheckout.mutateAsync({
+          workspaceId: currentTenant.id,
+          planId: plan.id,
+          billingCycle: isYearly ? 'yearly' : 'monthly',
+        });
+        if (res?.checkout_url) { window.location.href = res.checkout_url; return; }
+        toast.success('Plan updated');
+      } catch (e: any) {
+        toast.error(e?.message || 'Could not start checkout');
+      }
+      return;
+    }
+
+    // Active sub → change plan via Stripe
+    try {
+      await changePlan.mutateAsync({
+        workspaceId: currentTenant.id,
+        planId: plan.id,
+        billingCycle: isYearly ? 'yearly' : 'monthly',
+      });
+      toast.success(targetRank > currentRank ? 'Upgraded! ✨' : 'Downgrade scheduled at period end');
+    } catch (e: any) {
+      toast.error(e?.message || 'Could not change plan');
     }
   };
 
@@ -56,12 +110,32 @@ export default function Billing() {
               Manage your plan, usage, invoices, and billing settings
             </p>
           </div>
-          {isTopPlan && (
-            <Badge className="bg-gradient-to-r from-amber-500 to-orange-500 text-white border-0 gap-1.5 px-3 py-1.5 text-xs self-start">
-              <Sparkles className="h-3.5 w-3.5" /> Business Plan Active
-            </Badge>
-          )}
+          <div className="flex flex-wrap items-center gap-2 self-start">
+            {billing && (
+              <BillingStatusBadge
+                status={(showPaymentFailed ? 'payment_failed' : (billing.is_trialing ? 'trialing' : billing.status)) as any}
+                planName={billing.plan_name}
+                trialDaysLeft={billing.is_trialing ? billing.trial_days_left : undefined}
+              />
+            )}
+            {billing?.has_subscription && (
+              <Button size="sm" variant="outline" className="gap-1.5"
+                onClick={() => currentTenant?.id && openPortal.mutate(currentTenant.id)}
+                disabled={openPortal.isPending}>
+                <ExternalLink className="w-3.5 h-3.5" /> Manage Billing
+              </Button>
+            )}
+            {isTopPlan && (
+              <Badge className="bg-gradient-to-r from-amber-500 to-orange-500 text-white border-0 gap-1.5 px-3 py-1.5 text-xs">
+                <Sparkles className="h-3.5 w-3.5" /> Business Plan Active
+              </Badge>
+            )}
+          </div>
         </div>
+
+        {showPaymentFailed && currentTenant?.id && (
+          <PaymentFailedBanner workspaceId={currentTenant.id} />
+        )}
 
         <Tabs defaultValue="overview" className="space-y-4 sm:space-y-6">
           <div className="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0">
