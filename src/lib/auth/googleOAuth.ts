@@ -6,7 +6,7 @@ type GoogleOAuthOptions = {
 import { lovable } from "@/integrations/lovable";
 
 const MANAGED_OAUTH_PATH = "/~oauth/initiate";
-const PRIMARY_CUSTOM_ORIGIN = "https://aireatro.com";
+const PRIMARY_CUSTOM_ORIGIN = "https://www.aireatro.com";
 
 function createOAuthState() {
   if (typeof crypto !== "undefined" && crypto.getRandomValues) {
@@ -19,10 +19,25 @@ function createOAuthState() {
 }
 
 function getOAuthBrokerOrigin() {
-  // Some custom subdomains can serve the SPA before the managed OAuth proxy sees /~oauth,
-  // which renders the app's 404. Use the apex domain as the broker for all Aireatro subdomains.
+  // Use the configured primary domain as the OAuth broker so every Aireatro domain
+  // goes through one stable managed OAuth entry point.
   const hostname = window.location.hostname;
-  return hostname.endsWith(".aireatro.com") ? PRIMARY_CUSTOM_ORIGIN : window.location.origin;
+  return hostname === "aireatro.com" || hostname.endsWith(".aireatro.com")
+    ? PRIMARY_CUSTOM_ORIGIN
+    : window.location.origin;
+}
+
+function redirectToOAuth(url: string) {
+  try {
+    if (window.top && window.top !== window.self) {
+      window.open(url, "_top");
+      return;
+    }
+  } catch {
+    // Fall back to navigating the current frame if the parent frame is protected.
+  }
+
+  window.location.assign(url);
 }
 
 export function buildGoogleAuthRedirectUri(nextPath = "/select-workspace") {
@@ -34,7 +49,7 @@ export function buildGoogleAuthRedirectUri(nextPath = "/select-workspace") {
 export async function signInWithManagedGoogle(options: GoogleOAuthOptions = {}) {
   const { nextPath = "/select-workspace", extraParams } = options;
 
-  if (window.location.hostname.endsWith(".aireatro.com")) {
+  if (window.location.hostname === "aireatro.com" || window.location.hostname.endsWith(".aireatro.com")) {
     const params = new URLSearchParams({
       ...extraParams,
       provider: "google",
@@ -42,7 +57,7 @@ export async function signInWithManagedGoogle(options: GoogleOAuthOptions = {}) 
       state: createOAuthState(),
     });
 
-    window.location.assign(`${getOAuthBrokerOrigin()}${MANAGED_OAUTH_PATH}?${params.toString()}`);
+    redirectToOAuth(`${getOAuthBrokerOrigin()}${MANAGED_OAUTH_PATH}?${params.toString()}`);
     return { error: null, redirected: true };
   }
 
