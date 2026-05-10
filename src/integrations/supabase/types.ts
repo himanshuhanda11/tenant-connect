@@ -15143,6 +15143,7 @@ export type Database = {
           referrer: string | null
           session_id: string | null
           tenant_id: string
+          variant_id: string | null
           widget_id: string
         }
         Insert: {
@@ -15156,6 +15157,7 @@ export type Database = {
           referrer?: string | null
           session_id?: string | null
           tenant_id: string
+          variant_id?: string | null
           widget_id: string
         }
         Update: {
@@ -15169,6 +15171,7 @@ export type Database = {
           referrer?: string | null
           session_id?: string | null
           tenant_id?: string
+          variant_id?: string | null
           widget_id?: string
         }
         Relationships: [
@@ -15209,6 +15212,7 @@ export type Database = {
           page_url: string | null
           phone: string | null
           tenant_id: string
+          variant_id: string | null
           widget_id: string
         }
         Insert: {
@@ -15224,6 +15228,7 @@ export type Database = {
           page_url?: string | null
           phone?: string | null
           tenant_id: string
+          variant_id?: string | null
           widget_id: string
         }
         Update: {
@@ -15239,6 +15244,7 @@ export type Database = {
           page_url?: string | null
           phone?: string | null
           tenant_id?: string
+          variant_id?: string | null
           widget_id?: string
         }
         Relationships: [
@@ -15276,6 +15282,7 @@ export type Database = {
           status: string
           tenant_id: string
           updated_at: string
+          variants: Json
           whatsapp_number: string | null
         }
         Insert: {
@@ -15288,6 +15295,7 @@ export type Database = {
           status?: string
           tenant_id: string
           updated_at?: string
+          variants?: Json
           whatsapp_number?: string | null
         }
         Update: {
@@ -15300,6 +15308,7 @@ export type Database = {
           status?: string
           tenant_id?: string
           updated_at?: string
+          variants?: Json
           whatsapp_number?: string | null
         }
         Relationships: [
