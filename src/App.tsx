@@ -228,6 +228,8 @@ const App = () => (
                     <Route path="/onboarding/password" element={<PasswordPage />} />
                     <Route path="/choose-plan" element={<ChoosePlanPage />} />
                     <Route path="/select-workspace-plan" element={<SelectWorkspacePlanPage />} />
+                    <Route path="/onboarding/plan" element={<SelectWorkspacePlanPage />} />
+                    <Route path="/onboarding/billing-return" element={<BillingReturnPage />} />
                     <Route path="/create-workspace" element={<CreateWorkspace />} />
                     <Route path="/select-workspace" element={<SelectWorkspace />} />
                     <Route path="/dashboard" element={<Dashboard />} />
