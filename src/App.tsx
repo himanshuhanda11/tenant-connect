@@ -270,6 +270,7 @@ const App = () => (
                     <Route path="/widgets/:id/install" element={<WidgetInstall />} />
                     <Route path="/widgets/:id/leads" element={<WidgetLeads />} />
                     <Route path="/widgets/:id/analytics" element={<WidgetAnalytics />} />
+                    <Route path="/widgets/:id/test" element={<WidgetTest />} />
                     <Route path="/team" element={<TeamOverview />} />
                     <Route path="/team/overview" element={<TeamOverview />} />
                     <Route path="/team/members" element={<TeamMembers />} />
