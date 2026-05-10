@@ -12,7 +12,7 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
   try {
     const body = await req.json();
-    const { id, event_type, page_url, referrer, device, country, session_id, metadata } = body ?? {};
+    const { id, event_type, page_url, referrer, device, country, session_id, metadata, variant_id } = body ?? {};
     if (!id || !ALLOWED.has(event_type)) {
       return new Response(JSON.stringify({ error: "invalid" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
@@ -30,6 +30,7 @@ Deno.serve(async (req) => {
       device: typeof device === "string" ? device.slice(0, 32) : null,
       country: typeof country === "string" ? country.slice(0, 8) : null,
       session_id: typeof session_id === "string" ? session_id.slice(0, 64) : null,
+      variant_id: typeof variant_id === "string" ? variant_id.slice(0, 32) : null,
       metadata: metadata && typeof metadata === "object" ? metadata : null,
     });
     return new Response(JSON.stringify({ ok: true }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
