@@ -24,10 +24,70 @@
 
   function track(type, extra){
     try {
+      var body = Object.assign({ id: widgetId, event_type: type, page_url: location.href, referrer: document.referrer, device: detectDevice(), session_id: sid, variant_id: assignedVariantId }, extra || {});
       navigator.sendBeacon
-        ? navigator.sendBeacon(FN + '/widget-event', new Blob([JSON.stringify(Object.assign({ id: widgetId, event_type: type, page_url: location.href, referrer: document.referrer, device: detectDevice(), session_id: sid }, extra || {}))], { type: 'application/json' }))
-        : fetch(FN + '/widget-event', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ id: widgetId, event_type: type, page_url: location.href, referrer: document.referrer, device: detectDevice(), session_id: sid }), keepalive: true });
+        ? navigator.sendBeacon(FN + '/widget-event', new Blob([JSON.stringify(body)], { type: 'application/json' }))
+        : fetch(FN + '/widget-event', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body), keepalive: true });
     } catch(_) {}
+  }
+
+  // ---------- Phase 2: variant + dynamic copy resolution ----------
+  function pickVariant(variants){
+    if (!Array.isArray(variants) || !variants.length) return null;
+    var active = variants.filter(function(v){ return v && v.is_active !== false && (v.traffic_pct|0) > 0; });
+    if (!active.length) return null;
+    if (sessionStore.variantId) {
+      var existing = active.find(function(v){ return v.id === sessionStore.variantId; });
+      if (existing) return existing;
+    }
+    var total = active.reduce(function(s,v){ return s + (v.traffic_pct|0); }, 0);
+    if (total <= 0) return null;
+    var roll = Math.random() * Math.min(total, 100);
+    if (total < 100 && roll > total) return null; // fall through to control
+    var acc = 0;
+    for (var i=0;i<active.length;i++){ acc += active[i].traffic_pct|0; if (roll <= acc) { sessionStore.variantId = active[i].id; persistSession(); return active[i]; } }
+    return null;
+  }
+
+  function getQuery(){
+    var q = {};
+    try { (location.search || '').replace(/^\?/, '').split('&').forEach(function(kv){ if(!kv) return; var p = kv.split('='); q[decodeURIComponent(p[0])] = decodeURIComponent((p[1]||'').replace(/\+/g,' ')); }); } catch(_){}
+    return q;
+  }
+
+  function applyDynamicCopy(cfg, country){
+    var out = Object.assign({}, cfg);
+    // Geo rules
+    if (country && Array.isArray(cfg.geoRules)) {
+      var geo = cfg.geoRules.find(function(r){ return r.countries && r.countries.indexOf(country.toUpperCase()) !== -1; });
+      if (geo) {
+        if (geo.greeting) out.greeting = geo.greeting;
+        if (geo.ctaText) out.ctaText = geo.ctaText;
+        if (geo.prefilledMessage) out.prefilledMessage = geo.prefilledMessage;
+      }
+    }
+    // UTM rules (last match wins for specificity)
+    if (Array.isArray(cfg.utmRules) && cfg.utmRules.length) {
+      var q = getQuery();
+      cfg.utmRules.forEach(function(r){
+        var v = (q[r.key] || '').toLowerCase();
+        if (v && r.match && v.indexOf(r.match.toLowerCase()) !== -1) {
+          if (r.greeting) out.greeting = r.greeting;
+          if (r.ctaText) out.ctaText = r.ctaText;
+          if (r.prefilledMessage) out.prefilledMessage = r.prefilledMessage;
+        }
+      });
+    }
+    return out;
+  }
+
+  function injectCustomCss(css){
+    if (!css || typeof css !== 'string') return;
+    // basic sanitization — strip @import and url(...) to prevent leaking traffic
+    var safe = css.replace(/@import[^;]*;/gi, '').replace(/url\s*\(/gi, '/* url( */');
+    if (!safe.trim()) return;
+    var s = document.createElement('style'); s.id = 'aireatro-widget-custom'; s.textContent = safe;
+    document.head.appendChild(s);
   }
 
   function shouldShow(cfg){
