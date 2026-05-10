@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { Plus, MessageCircle, Trash2, ExternalLink, BarChart3, Sparkles } from 'lucide-react';
+import { Plus, MessageCircle, Trash2, Code2, BarChart3, Sparkles, Settings2 } from 'lucide-react';
 import { useWidgets } from '@/hooks/useWidgets';
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
