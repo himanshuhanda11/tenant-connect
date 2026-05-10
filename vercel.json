@@ -4,6 +4,8 @@
   "outputDirectory": "dist",
   "framework": "vite",
   "trailingSlash": false,
+  "github": { "silent": false },
+  "cleanUrls": true,
   "rewrites": [
     {
       "source": "/~oauth/:path*",
