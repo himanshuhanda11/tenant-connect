@@ -8,13 +8,16 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Slider } from '@/components/ui/slider';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Plus, Trash2, Sparkles, Palette, MessageSquare, Settings2, Users, Wand2, Bell, Type, ShieldCheck } from 'lucide-react';
-import type { Widget, WidgetAgent, WidgetConfig, WidgetType } from '@/types/widget';
+import { Plus, Trash2, Sparkles, Palette, MessageSquare, Settings2, Users, Wand2, Type, ShieldCheck, FlaskConical, Rocket } from 'lucide-react';
+import type { Widget, WidgetAgent, WidgetConfig, WidgetType, WidgetVariant } from '@/types/widget';
+import { WidgetAiGreetings } from './WidgetAiGreetings';
+import { WidgetTemplatesMarketplace } from './WidgetTemplatesMarketplace';
+import { WidgetVariants, WidgetGeoRules, WidgetUtmRules, WidgetCustomCss } from './WidgetPowerPanels';
 
 interface Props {
   widget: Widget;
   agents: WidgetAgent[];
-  onChange: (patch: Partial<Pick<Widget, 'name' | 'whatsapp_number'>> & { config?: WidgetConfig }) => void;
+  onChange: (patch: Partial<Pick<Widget, 'name' | 'whatsapp_number'>> & { config?: WidgetConfig; variants?: WidgetVariant[] }) => void;
   onAgentSave: (a: Partial<WidgetAgent>) => void;
   onAgentDelete: (id: string) => void;
 }
