@@ -70,6 +70,7 @@ export interface WidgetRouting {
   mode: 'none' | 'inbox_unassigned' | 'specific_agent' | 'team_round_robin';
   agent_id?: string | null;
   team_id?: string | null;
+}
 
 export interface GeoRule {
   id: string;
