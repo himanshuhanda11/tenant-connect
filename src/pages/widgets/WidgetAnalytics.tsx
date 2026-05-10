@@ -59,6 +59,25 @@ export default function WidgetAnalytics() {
     return Object.entries(m).map(([device, count]) => ({ device, count }));
   }, [events]);
 
+  const variantPerf = useMemo(() => {
+    const variants = (widget?.variants ?? []) as Array<{ id: string; name: string; traffic_pct: number }>;
+    if (!variants.length) return [];
+    const buckets: Record<string, { id: string; name: string; views: number; clicks: number; leads: number }> = {
+      __control: { id: '__control', name: 'Control', views: 0, clicks: 0, leads: 0 },
+    };
+    variants.forEach(v => { buckets[v.id] = { id: v.id, name: v.name, views: 0, clicks: 0, leads: 0 }; });
+    events.forEach(e => {
+      const key = e.variant_id && buckets[e.variant_id] ? e.variant_id : '__control';
+      if (e.event_type === 'view') buckets[key].views++;
+      if (e.event_type === 'click') buckets[key].clicks++;
+      if (e.event_type === 'lead') buckets[key].leads++;
+    });
+    return Object.values(buckets).map(b => ({
+      ...b,
+      conv: b.views ? Math.round((b.leads / b.views) * 1000) / 10 : 0,
+    }));
+  }, [events, widget]);
+
   return (
     <DashboardLayout>
       <div className="px-4 sm:px-6 lg:px-8 py-6 max-w-6xl mx-auto space-y-5">
