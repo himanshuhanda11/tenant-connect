@@ -5,8 +5,9 @@ import { motion } from 'framer-motion';
 import {
   CalendarIcon, Clock, User, Mail, Phone, Building2, Users, Globe,
   Sparkles, ArrowRight, CheckCircle2, PlayCircle, Zap, ShieldCheck,
-  Bot, BarChart3, MessageCircle, Rocket, Star, Headphones,
+  Bot, BarChart3, MessageCircle, Rocket, Star, Headphones, AlertCircle, X,
 } from 'lucide-react';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
