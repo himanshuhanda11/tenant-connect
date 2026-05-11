@@ -153,7 +153,7 @@ export function LaunchOfferDialog({ open, onOpenChange }: Props) {
                   <X className="w-3.5 h-3.5 text-white/70 group-hover:text-white transition-colors" />
                 </button>
 
-                <div className="relative px-6 sm:px-7 pt-7 pb-6">
+                <div className="relative px-5 sm:px-7 pt-6 pb-5 sm:pb-6">
                   {/* Premium animated badge */}
                   <motion.div
                     initial={{ opacity: 0, y: -8 }}
