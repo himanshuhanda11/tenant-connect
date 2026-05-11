@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation } from 'react-router-dom';
-import { MessageCircle, X, Calendar, ArrowRight, Loader2, CheckCircle2, User, Phone } from 'lucide-react';
+import { MessageCircle, X, Calendar, ArrowRight, Loader2, CheckCircle2, User, Phone, Minus } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -70,19 +70,30 @@ async function logEvent(
 type Step = 'intro' | 'name' | 'phone' | 'connecting';
 
 const ICON_DISMISS_KEY = 'aireatro_support_widget_icon_dismissed';
+const FULL_DISMISS_KEY = 'aireatro_support_widget_full_dismissed';
+const FULL_MINIMIZED_KEY = 'aireatro_support_widget_full_minimized';
 
 export function SupportWidget() {
   const settings = useSupportSettings();
   const location = useLocation();
   const { user } = useAuth();
   const { currentTenant } = useTenant();
-  const [open, setOpen] = useState(false);
+  // Auto-open on desktop unless the user has minimized it this session.
+  const [open, setOpen] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    const isDesktop = window.matchMedia('(min-width: 768px)').matches;
+    if (!isDesktop) return false;
+    try { return sessionStorage.getItem(FULL_MINIMIZED_KEY) !== '1'; } catch { return true; }
+  });
   const [step, setStep] = useState<Step>('intro');
   const [leadName, setLeadName] = useState('');
   const [leadPhone, setLeadPhone] = useState('');
   const [errMsg, setErrMsg] = useState<string | null>(null);
   const [iconDismissed, setIconDismissed] = useState(() => {
     try { return sessionStorage.getItem(ICON_DISMISS_KEY) === '1'; } catch { return false; }
+  });
+  const [fullDismissed, setFullDismissed] = useState(() => {
+    try { return sessionStorage.getItem(FULL_DISMISS_KEY) === '1'; } catch { return false; }
   });
   const viewedRef = useRef<string | null>(null);
 
