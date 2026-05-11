@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation } from 'react-router-dom';
-import { MessageCircle, X, Calendar, ArrowRight, Loader2, CheckCircle2, User, Phone } from 'lucide-react';
+import { MessageCircle, X, Calendar, ArrowRight, Loader2, CheckCircle2, User, Phone, Minus } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -70,19 +70,30 @@ async function logEvent(
 type Step = 'intro' | 'name' | 'phone' | 'connecting';
 
 const ICON_DISMISS_KEY = 'aireatro_support_widget_icon_dismissed';
+const FULL_DISMISS_KEY = 'aireatro_support_widget_full_dismissed';
+const FULL_MINIMIZED_KEY = 'aireatro_support_widget_full_minimized';
 
 export function SupportWidget() {
   const settings = useSupportSettings();
   const location = useLocation();
   const { user } = useAuth();
   const { currentTenant } = useTenant();
-  const [open, setOpen] = useState(false);
+  // Auto-open on desktop unless the user has minimized it this session.
+  const [open, setOpen] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    const isDesktop = window.matchMedia('(min-width: 768px)').matches;
+    if (!isDesktop) return false;
+    try { return sessionStorage.getItem(FULL_MINIMIZED_KEY) !== '1'; } catch { return true; }
+  });
   const [step, setStep] = useState<Step>('intro');
   const [leadName, setLeadName] = useState('');
   const [leadPhone, setLeadPhone] = useState('');
   const [errMsg, setErrMsg] = useState<string | null>(null);
   const [iconDismissed, setIconDismissed] = useState(() => {
     try { return sessionStorage.getItem(ICON_DISMISS_KEY) === '1'; } catch { return false; }
+  });
+  const [fullDismissed, setFullDismissed] = useState(() => {
+    try { return sessionStorage.getItem(FULL_DISMISS_KEY) === '1'; } catch { return false; }
   });
   const viewedRef = useRef<string | null>(null);
 
@@ -187,8 +198,18 @@ export function SupportWidget() {
     setErrMsg(null);
   };
 
-  const handleClose = () => {
+  // Minimize: collapse to FAB, remember for the session so it doesn't auto-open again.
+  const handleMinimize = () => {
     setOpen(false);
+    try { sessionStorage.setItem(FULL_MINIMIZED_KEY, '1'); } catch {}
+    setTimeout(resetForm, 200);
+  };
+
+  // Dismiss: hide the widget entirely for this session (no FAB).
+  const handleDismiss = () => {
+    setOpen(false);
+    try { sessionStorage.setItem(FULL_DISMISS_KEY, '1'); } catch {}
+    setFullDismissed(true);
     setTimeout(resetForm, 200);
   };
 
@@ -231,6 +252,7 @@ export function SupportWidget() {
   }
 
   // full_widget
+  if (fullDismissed) return null;
   return (
     <div className={cn('fixed bottom-4 sm:bottom-6 z-[60] flex flex-col items-end gap-3', positionClass)}>
       {open && (
@@ -239,13 +261,24 @@ export function SupportWidget() {
         >
           {/* Header */}
           <div className="px-5 pt-5 pb-4 text-white relative" style={{ backgroundColor: brand }}>
-            <button
-              onClick={handleClose}
-              className="absolute top-3 right-3 h-7 w-7 rounded-full bg-white/15 hover:bg-white/25 flex items-center justify-center transition-colors"
-              aria-label="Close"
-            >
-              <X className="h-3.5 w-3.5" />
-            </button>
+            <div className="absolute top-3 right-3 flex items-center gap-1.5">
+              <button
+                onClick={handleMinimize}
+                className="h-7 w-7 rounded-full bg-white/15 hover:bg-white/25 flex items-center justify-center transition-colors"
+                aria-label="Minimize"
+                title="Minimize"
+              >
+                <Minus className="h-3.5 w-3.5" />
+              </button>
+              <button
+                onClick={handleDismiss}
+                className="h-7 w-7 rounded-full bg-white/15 hover:bg-white/25 flex items-center justify-center transition-colors"
+                aria-label="Close"
+                title="Close"
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+            </div>
             <div className="flex items-center gap-3">
               <div className="h-10 w-10 rounded-full bg-white/20 flex items-center justify-center">
                 <MessageCircle className="h-5 w-5" strokeWidth={2.4} />
