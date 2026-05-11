@@ -215,7 +215,7 @@ export function PlanCardsGrid({
               ) : isDowngrade ? (
                 <>Downgrade <ArrowRight className="w-4 h-4" /></>
               ) : (
-                <>{showTrialBadge ? '🎁 Start 30-Day Free Trial' : 'Get ' + plan.name} <ArrowRight className="w-4 h-4" /></>
+                <>{isDowngrade ? 'Downgrade' : '🎁 Start 30-Day Free Trial'} <ArrowRight className="w-4 h-4" /></>
               )}
             </Button>
           </motion.div>
