@@ -6,8 +6,8 @@ import { toast } from 'sonner';
 
 export type WorkspaceBillingStatus = {
   workspace_id: string;
-  plan_id: string;
-  plan_name: string;
+  plan_id: string | null;
+  plan_name: string | null;
   billing_cycle: 'monthly' | 'yearly';
   status: 'active' | 'trialing' | 'past_due' | 'unpaid' | 'cancelled' | 'canceled' | 'incomplete' | 'incomplete_expired' | 'inactive';
   trial_status: 'none' | 'active' | 'ended';
