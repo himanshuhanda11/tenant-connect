@@ -340,7 +340,7 @@ export default function BookDemo() {
                       <div className="space-y-1.5">
                         <Label className="flex items-center gap-1.5 text-xs"><Phone className="w-3.5 h-3.5" /> WhatsApp number *</Label>
                         <Input value={data.phone} onChange={(e) => update('phone', e.target.value)}
-                          placeholder="+91 98xxxxxxxx" className={cn('h-10', errors.phone && 'border-destructive')} />
+                          placeholder="+971 5x xxx xxxx" className={cn('h-10', errors.phone && 'border-destructive')} />
                         {errors.phone && <p className="text-[11px] text-destructive">{errors.phone}</p>}
                       </div>
                       <div className="space-y-1.5">
