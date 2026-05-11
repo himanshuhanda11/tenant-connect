@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { useTenant } from '@/contexts/TenantContext';
 import { useEntitlements } from '@/hooks/useEntitlements';
 import { useLaunchOfferUI } from '@/components/offer/LaunchOfferProvider';
+import { useWhatsAppConnectionAccess } from '@/hooks/useWhatsAppConnectionAccess';
 import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
 
