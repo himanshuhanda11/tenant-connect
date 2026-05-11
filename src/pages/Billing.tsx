@@ -12,8 +12,6 @@ import { BillingFAQ } from '@/components/billing/BillingFAQ';
 import { WorkspacePlanCard } from '@/components/billing/WorkspacePlanCard';
 import { InvoiceHistory } from '@/components/billing/InvoiceHistory';
 import { ManageSubscriptionCard } from '@/components/billing/ManageSubscriptionCard';
-import { useSubscription } from '@/hooks/useBilling';
-import { useEntitlements } from '@/hooks/useEntitlements';
 import { useWorkspaceBilling, useStartCheckout, useOpenBillingPortal, useChangePlan } from '@/hooks/useWorkspaceBilling';
 import { useTenant } from '@/contexts/TenantContext';
 import { PaymentFailedBanner } from '@/components/billing/PaymentFailedBanner';
@@ -32,8 +30,6 @@ export default function Billing() {
   const [planLoading, setPlanLoading] = useState<string | null>(null);
   const [params] = useSearchParams();
   const { currentTenant } = useTenant();
-  const { data: subscription } = useSubscription();
-  const { data: entitlements } = useEntitlements();
   const { data: billing, refetch: refetchBilling } = useWorkspaceBilling();
   const startCheckout = useStartCheckout();
   const openPortal = useOpenBillingPortal();
