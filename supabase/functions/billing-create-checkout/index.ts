@@ -126,7 +126,7 @@ Deno.serve(async (req) => {
       customerId = customer.id;
       await service.from("subscriptions").upsert({
         tenant_id: workspaceId,
-        plan_id: `plan_${planId}`,
+        plan_id: planId,
         stripe_customer_id: customerId,
         status: "incomplete" as any,
         billing_cycle: billingCycle,
