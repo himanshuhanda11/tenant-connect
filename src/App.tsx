@@ -32,7 +32,7 @@ const OrganizationPage = lazyWithRetry(() => import("./pages/onboarding/Organiza
 const PasswordPage = lazyWithRetry(() => import("./pages/onboarding/PasswordPage"));
 const AuthCallback = lazyWithRetry(() => import("./pages/AuthCallback"));
 const LegacyOAuthInitiate = lazyWithRetry(() => import("./pages/LegacyOAuthInitiate"));
-const ChoosePlanPage = lazyWithRetry(() => import("./pages/onboarding/ChoosePlanPage"));
+
 const SelectWorkspacePlanPage = lazyWithRetry(() => import("./pages/onboarding/SelectWorkspacePlanPage"));
 const BillingReturnPage = lazyWithRetry(() => import("./pages/onboarding/BillingReturnPage"));
 const CreateWorkspace = lazyWithRetry(() => import("./pages/CreateWorkspace"));
