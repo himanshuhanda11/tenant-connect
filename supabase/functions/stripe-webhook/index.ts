@@ -2,14 +2,16 @@
 // Idempotent via platform_billing_events.uq_billing_events_provider_event_id.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-const PLAN_BY_PRICE_ENV: Record<string, { plan: string; cycle: "monthly" | "yearly" }> = {};
 function buildPriceLookup() {
   const map: Record<string, { plan: string; cycle: "monthly" | "yearly" }> = {};
   for (const plan of ["basic", "pro", "business"]) {
-    const m = Deno.env.get(`STRIPE_PRICE_${plan.toUpperCase()}_MONTHLY`);
-    const y = Deno.env.get(`STRIPE_PRICE_${plan.toUpperCase()}_YEARLY`);
-    if (m) map[m] = { plan, cycle: "monthly" };
-    if (y) map[y] = { plan, cycle: "yearly" };
+    for (const cycle of ["monthly", "yearly"] as const) {
+      // Plain + region-suffixed env vars
+      for (const suffix of ["", "_IN", "_GULF", "_OTHER"]) {
+        const v = Deno.env.get(`STRIPE_PRICE_${plan.toUpperCase()}_${cycle.toUpperCase()}${suffix}`);
+        if (v) map[v] = { plan, cycle };
+      }
+    }
   }
   return map;
 }
