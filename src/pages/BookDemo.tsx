@@ -139,7 +139,7 @@ export default function BookDemo() {
       const fe: Partial<Record<keyof FormData, string>> = {};
       r.error.errors.forEach((er) => { fe[er.path[0] as keyof FormData] = er.message; });
       setErrors(fe);
-      toast({ title: 'Please complete the form', description: 'A few fields need your attention.', variant: 'destructive' });
+      setShowErrorDialog(true);
       return;
     }
     setSubmitting(true);
