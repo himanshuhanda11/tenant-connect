@@ -35,7 +35,7 @@ export function FloatingOfferWidget({ onClick, hidden }: Props) {
         animate={{ scale: 1, y: 0, opacity: 1 }}
         exit={{ scale: 0, opacity: 0 }}
         transition={{ type: 'spring', stiffness: 300, damping: 22 }}
-        className="fixed left-3 bottom-[88px] sm:left-auto sm:right-5 sm:bottom-5 z-[55]"
+        className="hidden sm:block fixed right-5 bottom-5 z-[55]"
       >
         <div className="relative">
           <motion.button
