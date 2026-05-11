@@ -460,11 +460,46 @@ export function SupportWidget() {
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className="h-14 w-14 rounded-full shadow-lg shadow-black/20 hover:scale-105 active:scale-95 transition-transform flex items-center justify-center text-white"
+        className="group relative inline-flex items-center gap-2 pl-2 pr-3 sm:pr-4 py-2 rounded-full shadow-lg shadow-black/20 hover:scale-[1.03] active:scale-95 transition-transform text-white"
         style={{ backgroundColor: brand }}
         aria-label={open ? 'Close support' : 'Open support'}
       >
-        {open ? <X className="h-6 w-6" /> : <MessageCircle className="h-6 w-6" strokeWidth={2.4} />}
+        {!open && (
+          <>
+            <span
+              className="absolute inset-0 rounded-full animate-ping opacity-30"
+              style={{ backgroundColor: brand }}
+            />
+            <span
+              className="absolute inset-0 rounded-full animate-pulse opacity-20"
+              style={{ backgroundColor: brand }}
+            />
+          </>
+        )}
+        <span className="relative h-10 w-10 rounded-full bg-white/15 flex items-center justify-center">
+          {open ? (
+            <X className="h-5 w-5" />
+          ) : (
+            <>
+              <MessageCircle className="h-5 w-5" strokeWidth={2.4} />
+              <span className="absolute -top-0.5 -right-0.5 flex h-3 w-3">
+                <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75 animate-ping" />
+                <span className="relative inline-flex h-3 w-3 rounded-full bg-emerald-400 ring-2 ring-white" />
+              </span>
+            </>
+          )}
+        </span>
+        {!open && (
+          <span className="relative flex flex-col items-start leading-tight pr-1">
+            <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-white flex items-center gap-1 whitespace-nowrap drop-shadow-sm">
+              <span className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-300 animate-pulse shadow-[0_0_6px_rgba(110,231,183,0.9)]" />
+              Live Chat
+            </span>
+            <span className="text-xs sm:text-sm font-semibold whitespace-nowrap text-white/95">
+              {settings.cta_text || 'Chat on WhatsApp'}
+            </span>
+          </span>
+        )}
       </button>
     </div>
   );
