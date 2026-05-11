@@ -26,7 +26,13 @@ Deno.serve(async (req) => {
     const baseUrl = appUrl || Deno.env.get("APP_URL") || "https://aireatro.com";
     const ADMIN_EMAIL = "admin@aireatro.com";
 
-    const sendOne = async (toAddr: string, subj: string, body: string, replyTo?: string) => {
+    const sendOne = async (
+      toAddr: string,
+      subj: string,
+      body: string,
+      replyTo?: string,
+      attachments?: Array<{ filename: string; content: string }>,
+    ) => {
       const payload: Record<string, unknown> = {
         from: "Aireatro <noreply@aireatro.com>",
         to: [toAddr],
@@ -37,6 +43,7 @@ Deno.serve(async (req) => {
         },
       };
       if (replyTo) payload.reply_to = replyTo;
+      if (attachments && attachments.length) payload.attachments = attachments;
       const r = await fetch("https://api.resend.com/emails", {
         method: "POST",
         headers: {
