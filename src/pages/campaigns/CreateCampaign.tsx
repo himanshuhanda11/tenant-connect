@@ -55,6 +55,8 @@ import {
   CAMPAIGN_TYPE_CONFIG
 } from '@/types/campaign';
 import { useTenant } from '@/contexts/TenantContext';
+import { useEntitlements } from '@/hooks/useEntitlements';
+import { useUpgradeModal } from '@/components/billing/UpgradeModal';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import CampaignAudienceBuilder, { AudienceFilters, DEFAULT_AUDIENCE_FILTERS } from '@/components/campaigns/CampaignAudienceBuilder';
