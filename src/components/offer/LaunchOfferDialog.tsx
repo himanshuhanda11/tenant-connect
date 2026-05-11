@@ -28,7 +28,7 @@ function TimeBlock({ value, label }: { value: number; label: string }) {
     <div className="flex flex-col items-center">
       <div className="relative">
         <div className="absolute inset-0 bg-emerald-400/20 blur-md rounded-lg" />
-        <div className="relative w-12 sm:w-14 h-12 sm:h-14 rounded-lg bg-white/[0.06] border border-white/10 backdrop-blur-md flex items-center justify-center font-mono font-bold text-xl sm:text-2xl tabular-nums text-white">
+        <div className="relative w-11 sm:w-14 h-11 sm:h-14 rounded-lg bg-white/[0.06] border border-white/10 backdrop-blur-md flex items-center justify-center font-mono font-bold text-lg sm:text-2xl tabular-nums text-white">
           {String(value).padStart(2, '0')}
         </div>
       </div>
