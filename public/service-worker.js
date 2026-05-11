@@ -1,5 +1,4 @@
-// Service-worker kill switch: delete old PWA caches, move every tab to network HTML,
-// then unregister. Keep this file published at /sw.js for old installed clients.
+// Duplicate kill switch for clients that previously registered /service-worker.js.
 self.addEventListener('install', (event) => {
   event.waitUntil(self.skipWaiting());
 });
@@ -22,7 +21,6 @@ self.addEventListener('activate', (event) => {
   })());
 });
 
-// Network-only passthrough while the kill switch is briefly active.
 self.addEventListener('fetch', (event) => {
   const request = event.request.mode === 'navigate'
     ? new Request(event.request, { cache: 'reload' })
