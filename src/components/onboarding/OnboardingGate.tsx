@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTenant } from '@/contexts/TenantContext';
 import { useOnboardingProgress } from '@/hooks/useOnboardingProgress';
 import OnboardingStepBar from './OnboardingStepBar';
@@ -8,7 +8,7 @@ import ConnectWhatsAppCard from './ConnectWhatsAppCard';
 import CompleteProfileCard from './CompleteProfileCard';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
-import { Sparkles, ArrowLeft } from 'lucide-react';
+import { Sparkles, ArrowLeft, AlertCircle } from 'lucide-react';
 
 interface Props {
   children: React.ReactNode;
@@ -18,6 +18,7 @@ interface Props {
 
 export default function OnboardingGate({ children, onConnectWhatsApp }: Props) {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { currentTenant } = useTenant();
   const tenantId = currentTenant?.id || null;
   const progress = useOnboardingProgress(tenantId);
@@ -41,6 +42,7 @@ export default function OnboardingGate({ children, onConnectWhatsApp }: Props) {
   }
 
   const isStep1 = progress.currentStep === 1;
+  const planRequired = isStep1 && searchParams.get('reason') === 'plan_required';
   const showChangePlanLink = !isStep1; // step 2 or step 3
   // Modal opens when: step 1 needs it, OR user explicitly clicked "Change plan".
   const modalOpen =
@@ -49,6 +51,20 @@ export default function OnboardingGate({ children, onConnectWhatsApp }: Props) {
   return (
     <div className="space-y-4 sm:space-y-5 max-w-[1100px] mx-auto px-3 py-4 sm:px-6 sm:py-8 animate-fade-in">
       <OnboardingStepBar currentStep={progress.currentStep} />
+
+      {planRequired && (
+        <div className="rounded-2xl border border-primary/20 bg-primary/10 px-4 py-3 text-left shadow-sm">
+          <div className="flex gap-3">
+            <AlertCircle className="mt-0.5 h-5 w-5 flex-shrink-0 text-primary" />
+            <div>
+              <p className="text-sm font-semibold text-foreground">Choose a plan first</p>
+              <p className="mt-0.5 text-xs text-muted-foreground">
+                To connect WhatsApp API, please select a plan. Free plan requires no card. Paid plans include a 30-day trial.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Back to plan selection — visible from step 2 onwards */}
       {showChangePlanLink && (
