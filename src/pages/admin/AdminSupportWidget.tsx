@@ -44,7 +44,7 @@ export default function AdminSupportWidget() {
       .select('event_type, widget_mode')
       .gte('created_at', since);
     if (events) {
-      const e = events as Array<{ event_type: string; widget_mode: string }>;
+      const e = events as unknown as Array<{ event_type: string; widget_mode: string }>;
       setStats({
         views: e.filter((x) => x.event_type === 'view').length,
         clicks: e.filter((x) => x.event_type === 'click').length,
