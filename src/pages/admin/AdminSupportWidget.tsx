@@ -401,8 +401,8 @@ export default function AdminSupportWidget() {
                       <MessageCircle className="h-3.5 w-3.5" /> {settings.cta_text}
                     </div>
                     {settings.show_book_demo && (
-                      <div className="w-full h-9 rounded-lg text-xs font-medium border border-border/60 text-foreground flex items-center justify-center gap-1.5">
-                        <Calendar className="h-3.5 w-3.5" /> Contact Us
+                      <div className="w-full h-9 rounded-lg text-xs font-medium border border-border/60 text-foreground flex items-center justify-center gap-1.5 bg-gradient-to-br from-background via-muted/40 to-background">
+                        <Calendar className="h-3.5 w-3.5 text-primary" /> {settings.book_demo_label}
                       </div>
                     )}
                   </div>
