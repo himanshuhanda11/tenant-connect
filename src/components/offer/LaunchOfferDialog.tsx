@@ -162,10 +162,10 @@ export function LaunchOfferDialog({ open, onOpenChange }: Props) {
                     className="flex justify-center mb-4"
                   >
                     <div className="relative inline-flex">
-                      <div className="absolute inset-0 rounded-full bg-emerald-400/30 blur-md animate-pulse" />
-                      <div className="relative inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/[0.06] border border-emerald-300/30 backdrop-blur-md">
-                        <span className="text-sm">🎁</span>
-                        <span className="text-[10px] font-semibold uppercase tracking-[0.14em] bg-gradient-to-r from-emerald-200 to-emerald-400 bg-clip-text text-transparent">
+                      <div className="absolute inset-0 rounded-full bg-emerald-300/15 blur-md" />
+                      <div className="relative inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/[0.04] border border-emerald-200/20 backdrop-blur-md">
+                        <span className="text-sm opacity-80">🎁</span>
+                        <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-emerald-100/85">
                           Limited Launch Offer
                         </span>
                       </div>
