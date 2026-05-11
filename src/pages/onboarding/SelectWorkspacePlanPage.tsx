@@ -170,7 +170,7 @@ export default function SelectWorkspacePlanPage() {
           </h1>
           <p className={cn('text-sm sm:text-base text-white/70')}>
             {isEligible
-              ? <>Pick any paid plan and start a <span className="text-emerald-300 font-semibold">30-day free trial</span> — no card charged today.</>
+              ? <>Free plan needs <span className="text-emerald-300 font-semibold">no card</span>. Paid plans start a <span className="text-emerald-300 font-semibold">30-day free trial</span> — card required, auto-charges only after the trial ends.</>
               : <>You've used your one free trial. Free plan is always available, or contact admin to activate paid plans.</>}
           </p>
 
@@ -195,7 +195,7 @@ export default function SelectWorkspacePlanPage() {
         <div className="text-center text-xs text-white/60 inline-flex items-center justify-center gap-2 w-full pb-10">
           <ShieldCheck className="w-3.5 h-3.5" />
           {isEligible
-            ? 'No card required • Cancel anytime • 30-day free trial'
+            ? 'Free: no card • Paid: card required for 30-day trial • Cancel anytime'
             : '1 free trial per account • Free plan always available'}
         </div>
       </div>

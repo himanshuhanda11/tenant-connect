@@ -95,8 +95,8 @@ export default function ChoosePlanPage() {
             </span>
           </h1>
           <p className="text-sm sm:text-base text-white/70 mb-4">
-            Pick a plan and enjoy your <span className="text-emerald-300 font-semibold">first month FREE</span> —
-            no card required.
+            Free plan needs <span className="text-emerald-300 font-semibold">no card</span> · Paid plans start a
+            <span className="text-emerald-300 font-semibold"> 30-day free trial</span> (card required, cancel anytime).
           </p>
 
           {isActive && (

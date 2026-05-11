@@ -92,10 +92,10 @@ export default function PricingHero({ isAnnual, setIsAnnual }: PricingHeroProps)
             </span>
             <span className="text-border">•</span>
             <span className="inline-flex items-center gap-1.5">
-              <Sparkles className="w-3.5 h-3.5 text-primary" /> 30-day free trial
+              <Sparkles className="w-3.5 h-3.5 text-primary" /> 30-day free trial on paid plans
             </span>
             <span className="text-border">•</span>
-            <span>No credit card required</span>
+            <span>Free plan needs no card</span>
           </div>
         </motion.div>
       </div>
