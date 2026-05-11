@@ -1720,7 +1720,9 @@ Deno.serve(async (req: Request) => {
       await sb.from("onboarding_events").delete().eq("user_id", userId);
       await sb.from("profiles").delete().eq("id", userId);
       const { error: authErr } = await sb.auth.admin.deleteUser(userId);
-      if (authErr) throw new Error(authErr.message);
+      if (authErr && !/not[\s_]?found/i.test(authErr.message)) {
+        throw new Error(authErr.message);
+      }
 
       await logAction(sb, actor, "PLATFORM_USER_HARD_DELETE", {
         target_table: "auth.users", target_id: userId,
