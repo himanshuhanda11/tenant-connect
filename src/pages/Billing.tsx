@@ -120,11 +120,12 @@ export default function Billing() {
                 trialDaysLeft={billing.is_trialing ? billing.trial_days_left : undefined}
               />
             )}
-            {billing?.has_subscription && (
-              <Button size="sm" variant="outline" className="gap-1.5"
+            {billing?.has_subscription && billing?.stripe_customer_id && (
+              <Button size="sm" variant={showPaymentFailed ? 'destructive' : 'outline'} className="gap-1.5"
                 onClick={() => currentTenant?.id && openPortal.mutate(currentTenant.id)}
                 disabled={openPortal.isPending}>
-                <ExternalLink className="w-3.5 h-3.5" /> Manage Billing
+                <ExternalLink className="w-3.5 h-3.5" />
+                {showPaymentFailed ? 'Update Payment Method' : 'Manage Subscription'}
               </Button>
             )}
             {isTopPlan && (
