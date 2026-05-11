@@ -256,7 +256,9 @@ export default function BookDemo() {
                       alt="AiReatro product specialist ready for your WhatsApp CRM demo"
                       width={1024}
                       height={1280}
-                      loading="lazy"
+                      decoding="async"
+                      // @ts-ignore - fetchpriority is valid HTML attribute
+                      fetchpriority="high"
                       className="relative w-20 h-20 sm:w-24 sm:h-24 rounded-full object-cover object-top ring-2 ring-background"
                     />
                     <span className="absolute bottom-0.5 right-0.5 w-3.5 h-3.5 rounded-full bg-emerald-500 ring-2 ring-background animate-pulse" />
