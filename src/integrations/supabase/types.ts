@@ -15797,6 +15797,7 @@ export type Database = {
       workspace_entitlements: {
         Row: {
           ai_usage_limit: number | null
+          automation_limit: number | null
           billing_cycle: string
           campaign_limit: number | null
           enable_ads: boolean
@@ -15805,6 +15806,7 @@ export type Database = {
           enable_integrations: boolean
           expires_at: string | null
           id: string
+          integration_limit: number | null
           internal_admin_note: string | null
           monthly_broadcast_limit: number | null
           monthly_conversation_limit: number | null
@@ -15817,10 +15819,12 @@ export type Database = {
           trial_ends_at: string | null
           updated_at: string
           updated_by: string | null
+          widget_limit: number | null
           workspace_id: string
         }
         Insert: {
           ai_usage_limit?: number | null
+          automation_limit?: number | null
           billing_cycle?: string
           campaign_limit?: number | null
           enable_ads?: boolean
@@ -15829,6 +15833,7 @@ export type Database = {
           enable_integrations?: boolean
           expires_at?: string | null
           id?: string
+          integration_limit?: number | null
           internal_admin_note?: string | null
           monthly_broadcast_limit?: number | null
           monthly_conversation_limit?: number | null
@@ -15841,10 +15846,12 @@ export type Database = {
           trial_ends_at?: string | null
           updated_at?: string
           updated_by?: string | null
+          widget_limit?: number | null
           workspace_id: string
         }
         Update: {
           ai_usage_limit?: number | null
+          automation_limit?: number | null
           billing_cycle?: string
           campaign_limit?: number | null
           enable_ads?: boolean
@@ -15853,6 +15860,7 @@ export type Database = {
           enable_integrations?: boolean
           expires_at?: string | null
           id?: string
+          integration_limit?: number | null
           internal_admin_note?: string | null
           monthly_broadcast_limit?: number | null
           monthly_conversation_limit?: number | null
@@ -15865,6 +15873,7 @@ export type Database = {
           trial_ends_at?: string | null
           updated_at?: string
           updated_by?: string | null
+          widget_limit?: number | null
           workspace_id?: string
         }
         Relationships: [
@@ -17163,6 +17172,7 @@ export type Database = {
         }
         Returns: string
       }
+      plan_defaults: { Args: { p_plan: string }; Returns: Json }
       plan_rank: { Args: { p_plan: string }; Returns: number }
       platform_revenue_daily: {
         Args: { p_days?: number }
