@@ -107,7 +107,7 @@ export function interpolatePrefill(
   vars: { email?: string | null; workspace?: string | null; plan?: string | null },
 ): string {
   return (template || '')
-    .replaceAll('{{email}}', vars.email || 'unknown')
-    .replaceAll('{{workspace}}', vars.workspace || 'n/a')
-    .replaceAll('{{plan}}', vars.plan || 'n/a');
+    .split('{{email}}').join(vars.email || 'unknown')
+    .split('{{workspace}}').join(vars.workspace || 'n/a')
+    .split('{{plan}}').join(vars.plan || 'n/a');
 }
