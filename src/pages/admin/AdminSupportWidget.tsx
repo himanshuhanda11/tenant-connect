@@ -10,7 +10,8 @@ import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { toast } from '@/hooks/use-toast';
-import { Loader2, Save, ExternalLink, MessageCircle, X, Calendar, BarChart3, MousePointerClick, Eye } from 'lucide-react';
+import { Loader2, Save, ExternalLink, MessageCircle, X, Calendar, BarChart3, MousePointerClick, Eye, Users, Phone as PhoneIcon, Download } from 'lucide-react';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { SupportWidgetSettings, buildWaLink } from '@/lib/supportWidget';
 import { cn } from '@/lib/utils';
 
@@ -28,6 +29,10 @@ export default function AdminSupportWidget() {
   const [stats, setStats] = useState<{
     views: number; clicks: number; iconViews: number; fullViews: number; iconClicks: number; fullClicks: number;
   }>({ views: 0, clicks: 0, iconViews: 0, fullViews: 0, iconClicks: 0, fullClicks: 0 });
+  const [leads, setLeads] = useState<Array<{
+    id: string; lead_name: string | null; lead_phone: string | null;
+    page_url: string | null; widget_mode: string; created_at: string;
+  }>>([]);
 
   const load = async () => {
     setLoading(true);
@@ -54,6 +59,17 @@ export default function AdminSupportWidget() {
         fullClicks: e.filter((x) => x.event_type === 'click' && x.widget_mode === 'full_widget').length,
       });
     }
+
+    // Load captured leads (clicks with name/phone)
+    const { data: leadRows } = await supabase
+      .from('support_widget_events' as any)
+      .select('id, lead_name, lead_phone, page_url, widget_mode, created_at')
+      .eq('event_type', 'click')
+      .not('lead_name', 'is', null)
+      .order('created_at', { ascending: false })
+      .limit(200);
+    if (leadRows) setLeads(leadRows as any);
+
     setLoading(false);
   };
 
@@ -120,6 +136,88 @@ export default function AdminSupportWidget() {
         <StatCard icon={Eye} label="Full views" value={stats.fullViews} />
         <StatCard icon={MousePointerClick} label="Full clicks" value={stats.fullClicks} />
       </div>
+
+      {/* Captured leads (name + mobile from pre-chat form) */}
+      <Card className="rounded-2xl border-border/50">
+        <CardHeader className="flex flex-row items-center justify-between space-y-0">
+          <div>
+            <CardTitle className="text-base flex items-center gap-2">
+              <Users className="h-4 w-4 text-primary" /> Captured Leads
+              <Badge variant="outline" className="rounded-full text-[10px] h-5 ml-1">{leads.length}</Badge>
+            </CardTitle>
+            <CardDescription className="text-xs">Names & mobile numbers submitted via the pre-chat form before opening WhatsApp.</CardDescription>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={leads.length === 0}
+            onClick={() => {
+              const header = 'Name,Phone,Page,Mode,Submitted At\n';
+              const rows = leads.map((l) =>
+                [l.lead_name, l.lead_phone, l.page_url, l.widget_mode, l.created_at]
+                  .map((v) => `"${String(v ?? '').replace(/"/g, '""')}"`)
+                  .join(',')
+              ).join('\n');
+              const blob = new Blob([header + rows], { type: 'text/csv' });
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement('a');
+              a.href = url;
+              a.download = `support-widget-leads-${new Date().toISOString().slice(0, 10)}.csv`;
+              a.click();
+              URL.revokeObjectURL(url);
+            }}
+          >
+            <Download className="h-3.5 w-3.5 mr-1.5" /> Export CSV
+          </Button>
+        </CardHeader>
+        <CardContent>
+          {leads.length === 0 ? (
+            <div className="text-center py-10 text-sm text-muted-foreground">
+              No leads captured yet. Enable "Ask for name & mobile before opening WhatsApp" in the Visibility tab to start collecting.
+            </div>
+          ) : (
+            <div className="rounded-xl border border-border/50 overflow-hidden">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Mobile</TableHead>
+                    <TableHead className="hidden md:table-cell">Page</TableHead>
+                    <TableHead className="hidden sm:table-cell">Mode</TableHead>
+                    <TableHead className="text-right">When</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {leads.map((l) => (
+                    <TableRow key={l.id}>
+                      <TableCell className="font-medium">{l.lead_name || '—'}</TableCell>
+                      <TableCell>
+                        {l.lead_phone ? (
+                          <a
+                            href={`https://wa.me/${l.lead_phone.replace(/[^\d]/g, '')}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1.5 text-primary hover:underline"
+                          >
+                            <PhoneIcon className="h-3 w-3" /> {l.lead_phone}
+                          </a>
+                        ) : '—'}
+                      </TableCell>
+                      <TableCell className="hidden md:table-cell text-xs text-muted-foreground truncate max-w-[200px]">{l.page_url || '—'}</TableCell>
+                      <TableCell className="hidden sm:table-cell">
+                        <Badge variant="outline" className="rounded-full text-[10px]">{l.widget_mode === 'icon_only' ? 'Icon' : 'Full'}</Badge>
+                      </TableCell>
+                      <TableCell className="text-right text-xs text-muted-foreground whitespace-nowrap">
+                        {new Date(l.created_at).toLocaleString()}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
         {/* Settings */}
