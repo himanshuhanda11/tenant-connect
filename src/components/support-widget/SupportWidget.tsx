@@ -309,6 +309,17 @@ export function SupportWidget() {
   if (fullDismissed) return null;
   return (
     <div className={cn('fixed bottom-4 sm:bottom-6 z-[60] flex flex-col items-end gap-3', positionClass)}>
+      {!open && (
+        <button
+          type="button"
+          onClick={handleDismiss}
+          aria-label="Hide for 24 hours"
+          title="Hide for 24 hours"
+          className="self-end -mb-2 h-7 w-7 rounded-full bg-background border border-border shadow-md flex items-center justify-center text-foreground/80 hover:text-foreground hover:scale-110 transition"
+        >
+          <X className="h-3.5 w-3.5" />
+        </button>
+      )}
       {open && (
         <div
           className="w-[calc(100vw-2rem)] sm:w-[360px] max-w-[360px] rounded-2xl bg-background border border-border/60 shadow-2xl shadow-black/20 overflow-hidden animate-in fade-in zoom-in-95 duration-200"
