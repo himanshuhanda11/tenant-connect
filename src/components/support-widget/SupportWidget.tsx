@@ -131,7 +131,9 @@ export function SupportWidget() {
   const waHref = buildWaLink(settings.whatsapp_number, prefill);
   const brand = settings.brand_color || '#25D366';
 
-  const collectLead = !!settings.collect_lead_before_chat && !user;
+  // Always collect lead before opening WhatsApp when the toggle is on,
+  // regardless of whether the visitor is signed in.
+  const collectLead = !!settings.collect_lead_before_chat;
 
   const openWhatsApp = (extraName?: string, extraPhone?: string) => {
     const finalPrefill = (extraName || extraPhone)
@@ -146,7 +148,8 @@ export function SupportWidget() {
   };
 
   const handleCtaClick = () => {
-    if (mode === 'full_widget' && collectLead) {
+    if (collectLead) {
+      setOpen(true);
       setStep('name');
       setErrMsg(null);
       return;
@@ -184,7 +187,7 @@ export function SupportWidget() {
     setTimeout(resetForm, 200);
   };
 
-  if (mode === 'icon_only') {
+  if (mode === 'icon_only' && !collectLead) {
     return (
       <div className={cn('fixed bottom-4 sm:bottom-6 z-[60]', positionClass)}>
         <button
