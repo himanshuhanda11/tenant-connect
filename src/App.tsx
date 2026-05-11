@@ -2,7 +2,7 @@ import { Suspense } from "react";
 import { lazyWithRetry } from "@/lib/lazyWithRetry";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { HelmetProvider } from "react-helmet-async";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { TenantProvider } from "@/contexts/TenantContext";
@@ -32,7 +32,7 @@ const OrganizationPage = lazyWithRetry(() => import("./pages/onboarding/Organiza
 const PasswordPage = lazyWithRetry(() => import("./pages/onboarding/PasswordPage"));
 const AuthCallback = lazyWithRetry(() => import("./pages/AuthCallback"));
 const LegacyOAuthInitiate = lazyWithRetry(() => import("./pages/LegacyOAuthInitiate"));
-const ChoosePlanPage = lazyWithRetry(() => import("./pages/onboarding/ChoosePlanPage"));
+
 const SelectWorkspacePlanPage = lazyWithRetry(() => import("./pages/onboarding/SelectWorkspacePlanPage"));
 const BillingReturnPage = lazyWithRetry(() => import("./pages/onboarding/BillingReturnPage"));
 const CreateWorkspace = lazyWithRetry(() => import("./pages/CreateWorkspace"));
@@ -228,7 +228,7 @@ const App = () => (
                     <Route path="/invite/accept" element={<InviteAccept />} />
                     <Route path="/onboarding/org" element={<OrganizationPage />} />
                     <Route path="/onboarding/password" element={<PasswordPage />} />
-                    <Route path="/choose-plan" element={<ChoosePlanPage />} />
+                    <Route path="/choose-plan" element={<Navigate to="/dashboard" replace />} />
                     <Route path="/select-workspace-plan" element={<SelectWorkspacePlanPage />} />
                     <Route path="/onboarding/plan" element={<SelectWorkspacePlanPage />} />
                     <Route path="/onboarding/billing-return" element={<BillingReturnPage />} />

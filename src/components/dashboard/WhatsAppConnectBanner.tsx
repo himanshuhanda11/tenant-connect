@@ -3,6 +3,8 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { MessageSquare, X, ArrowRight, Wifi } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useTenant } from '@/contexts/TenantContext';
+import { useEntitlements } from '@/hooks/useEntitlements';
+import { useLaunchOfferUI } from '@/components/offer/LaunchOfferProvider';
 import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
 
@@ -10,6 +12,8 @@ export function WhatsAppConnectBanner() {
   const navigate = useNavigate();
   const location = useLocation();
   const { currentTenant } = useTenant();
+  const { data: entitlements } = useEntitlements();
+  const { openDialog } = useLaunchOfferUI();
   const [dismissed, setDismissed] = useState(false);
   const [hasPhone, setHasPhone] = useState<boolean | null>(null);
 
@@ -71,7 +75,15 @@ export function WhatsAppConnectBanner() {
           {/* CTA */}
           <Button
             size="sm"
-            onClick={() => navigate('/choose-plan?next=' + encodeURIComponent('/phone-numbers/connect'))}
+            onClick={() => {
+              // Step 1: pick a plan via the on-dashboard popup. If a plan is
+              // already selected, jump straight to the WhatsApp connect wizard.
+              if (entitlements) {
+                navigate('/phone-numbers/connect');
+              } else {
+                openDialog();
+              }
+            }}
             className="flex-shrink-0 gap-1.5 rounded-xl text-xs font-semibold px-4"
           >
             <MessageSquare className="h-3.5 w-3.5" />
