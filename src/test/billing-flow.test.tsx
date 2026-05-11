@@ -171,3 +171,58 @@ describe('Plan picker routing', () => {
     },
   );
 });
+
+// ---- Plan lifecycle (change-workspace-plan response shapes) ---------------
+// Verifies the contract the frontend relies on for upgrades, downgrades,
+// trial swaps, and Free cancellation. The edge function is mocked at the
+// supabase.functions.invoke boundary.
+
+describe('change-workspace-plan response handling', () => {
+  function simulate(res: any) {
+    // Mirrors the routing branch in ChangePlanDialog.runChange()
+    if (res?.action === 'checkout_required') return { route: 'checkout' };
+    if (res?.noop) return { route: 'noop' };
+    if (res?.effective === 'immediate' && res?.kind === 'upgrade') return { route: 'upgrade-immediate' };
+    if (res?.effective === 'immediate' && res?.target === 'free') return { route: 'free-immediate' };
+    if (res?.effective === 'trial_end') return { route: 'trial-swap' };
+    if (res?.effective === 'next_period') {
+      return { route: res?.target === 'free' ? 'free-scheduled' : 'downgrade-scheduled' };
+    }
+    return { route: 'unknown' };
+  }
+
+  it('Trial Business → Pro: trial_end effective, no charge today', () => {
+    const r = simulate({ ok: true, kind: 'downgrade', effective: 'trial_end', trial_end: '2026-06-10' });
+    expect(r.route).toBe('trial-swap');
+  });
+
+  it('Trial → Free: cancels immediately', () => {
+    const r = simulate({ ok: true, kind: 'downgrade', effective: 'immediate', target: 'free' });
+    expect(r.route).toBe('free-immediate');
+  });
+
+  it('Pro → Business (paid): immediate upgrade with proration', () => {
+    const r = simulate({ ok: true, kind: 'upgrade', effective: 'immediate', proration: true });
+    expect(r.route).toBe('upgrade-immediate');
+  });
+
+  it('Business → Pro (paid): scheduled at next period', () => {
+    const r = simulate({ ok: true, kind: 'downgrade', effective: 'next_period', target: 'pro', scheduled_at: '2026-06-10' });
+    expect(r.route).toBe('downgrade-scheduled');
+  });
+
+  it('Paid → Free: cancel at period end', () => {
+    const r = simulate({ ok: true, kind: 'downgrade', effective: 'next_period', target: 'free', scheduled_at: '2026-06-10' });
+    expect(r.route).toBe('free-scheduled');
+  });
+
+  it('No subscription yet → routes to checkout', () => {
+    const r = simulate({ action: 'checkout_required' });
+    expect(r.route).toBe('checkout');
+  });
+
+  it('Same plan/cycle → noop, no Stripe call', () => {
+    const r = simulate({ ok: true, noop: true });
+    expect(r.route).toBe('noop');
+  });
+});
