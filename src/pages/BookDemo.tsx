@@ -201,7 +201,7 @@ export default function BookDemo() {
             </div>
           </motion.div>
         </div>
-        <Footer />
+        <Suspense fallback={null}><BookDemoBelow /></Suspense>
       </div>
     );
   }
