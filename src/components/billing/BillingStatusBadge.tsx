@@ -14,7 +14,7 @@ export function BillingStatusBadge({
   className,
 }: {
   status: BillingStatusKind;
-  planName?: string;
+  planName?: string | null;
   trialDaysLeft?: number;
   className?: string;
 }) {

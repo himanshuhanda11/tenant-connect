@@ -7,7 +7,7 @@ import { Sparkles, Crown, Gift, Rocket, Building2, Calendar, Lock, ArrowRight, S
 import { cn } from '@/lib/utils';
 import { format, differenceInDays } from 'date-fns';
 import { useSubscription } from '@/hooks/useBilling';
-import { useEntitlements } from '@/hooks/useEntitlements';
+import { useWorkspaceBilling } from '@/hooks/useWorkspaceBilling';
 import { useTrialEligibility } from '@/hooks/useLaunchOffer';
 import { useTenant } from '@/contexts/TenantContext';
 import ChangePlanDialog from '@/components/billing/ChangePlanDialog';
@@ -24,7 +24,7 @@ export default function SubscriptionStatusBanner() {
   const [searchParams, setSearchParams] = useSearchParams();
   const { currentTenant } = useTenant();
   const { data: subscription } = useSubscription();
-  const { data: entitlements } = useEntitlements();
+  const { data: billing } = useWorkspaceBilling();
   const { data: isEligible } = useTrialEligibility();
   const [changeOpen, setChangeOpen] = useState(false);
 
@@ -37,10 +37,12 @@ export default function SubscriptionStatusBanner() {
     }
   }, [searchParams, setSearchParams]);
 
-  const planId = (entitlements?.plan_id ?? subscription?.plan_id ?? 'free').replace(/^plan_/, '');
+  const hasSelectedPlan = !!billing?.has_selected_plan || !!billing?.has_subscription;
+  const planId = (hasSelectedPlan && billing?.plan_id ? billing.plan_id : 'none').replace(/^plan_/, '');
   const meta = planMeta[planId] ?? planMeta.free;
-  const isFree = planId === 'free';
-  const isTrial = (subscription?.status as string) === 'trialing';
+  const isFree = hasSelectedPlan && planId === 'free';
+  const isNoPlan = !hasSelectedPlan;
+  const isTrial = hasSelectedPlan && (subscription?.status as string) === 'trialing';
   const periodEnd = subscription?.current_period_end ? new Date(subscription.current_period_end) : null;
   const daysLeft = periodEnd ? Math.max(0, differenceInDays(periodEnd, new Date())) : null;
 
@@ -66,7 +68,7 @@ export default function SubscriptionStatusBanner() {
             </div>
             <div className="min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
-                <h3 className="font-semibold text-sm sm:text-base text-foreground">{meta.label} Plan</h3>
+                <h3 className="font-semibold text-sm sm:text-base text-foreground">{isNoPlan ? 'No plan selected' : `${meta.label} Plan`}</h3>
                 <Badge variant="outline" className="text-[10px] py-0 h-5 border-border/60">
                   {currentTenant?.name}
                 </Badge>
@@ -82,6 +84,8 @@ export default function SubscriptionStatusBanner() {
                     <Calendar className="w-3 h-3" />
                     Free trial ends: <span className="font-medium text-foreground">{format(periodEnd, 'MMM d, yyyy')}</span>
                   </span>
+                ) : isNoPlan ? (
+                  <span>Choose a plan to activate this workspace</span>
                 ) : isFree ? (
                   <span>No billing cycle · Free forever</span>
                 ) : (
@@ -98,7 +102,7 @@ export default function SubscriptionStatusBanner() {
                     {trialChip.label}
                   </span>
                 )}
-                {!isTrial && isFree && trialChip && (
+                {!isTrial && (isFree || isNoPlan) && trialChip && (
                   <span className={cn(
                     'inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium',
                     trialChip.tone === 'emerald'
@@ -123,7 +127,7 @@ export default function SubscriptionStatusBanner() {
               <Settings2 className="w-3.5 h-3.5" />
               Change plan
             </Button>
-            {isFree && (
+            {(isFree || isNoPlan) && (
               <Button
                 size="sm"
                 className="h-8 text-xs gap-1.5 bg-gradient-to-r from-primary to-emerald-500 border-0"
@@ -141,7 +145,7 @@ export default function SubscriptionStatusBanner() {
       <ChangePlanDialog
         open={changeOpen}
         onOpenChange={setChangeOpen}
-        currentPlanId={planId}
+        currentPlanId={hasSelectedPlan ? planId : undefined}
       />
     </>
   );

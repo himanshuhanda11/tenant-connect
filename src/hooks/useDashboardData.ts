@@ -281,10 +281,11 @@ export function useDashboardData(filters: DashboardFilters) {
 
       // ── PHASE 3 (ADMIN): billing + agents (lowest priority) ──
       if (isAdmin) {
-        const [agentResult, memberResult, entitlementResult] = await Promise.all([
+        const [agentResult, memberResult, entitlementResult, subscriptionResult] = await Promise.all([
           supabase.from('agents').select('id, display_name, is_online, user_id').eq('tenant_id', tId).eq('is_active', true),
           supabase.from('tenant_members').select('id', { count: 'planned', head: true }).eq('tenant_id', tId),
           supabase.from('workspace_entitlements').select('plan').eq('workspace_id', tId).maybeSingle(),
+          supabase.from('subscriptions').select('plan_id,status,stripe_subscription_id').eq('tenant_id', tId).order('created_at', { ascending: false }).limit(1).maybeSingle(),
         ]);
 
         setAgents((agentResult.data || []).map((a, i) => ({
@@ -292,14 +293,14 @@ export function useDashboardData(filters: DashboardFilters) {
           openChats: 0, avgResponseTime: 0, resolvedToday: 0, slaBreaches: 0,
         })));
 
-        let realPlanName = entitlementResult.data?.plan || 'free';
-        if (!entitlementResult.data) {
-          const { data: subData } = await supabase.from('subscriptions').select('plan_id').eq('tenant_id', tId).eq('status', 'active').maybeSingle();
-          if (subData?.plan_id) realPlanName = subData.plan_id.replace('plan_', '');
-        }
+        const inactiveStatuses = new Set(['incomplete', 'incomplete_expired', 'canceled', 'cancelled']);
+        const subData = subscriptionResult.data as any;
+        const subPlan = subData?.plan_id?.replace('plan_', '') || null;
+        const hasConfirmedPlan = !!subData && !inactiveStatuses.has(subData.status) && (subPlan === 'free' || !!subData.stripe_subscription_id);
+        const realPlanName = hasConfirmedPlan ? subPlan : (entitlementResult.data?.plan && entitlementResult.data.plan !== 'free' ? entitlementResult.data.plan : null);
 
         setBilling({
-          planName: realPlanName.charAt(0).toUpperCase() + realPlanName.slice(1),
+          planName: realPlanName ? realPlanName.charAt(0).toUpperCase() + realPlanName.slice(1) : null,
           seatsUsed: memberResult.count || 1, seatsLimit: 10,
           numbersUsed: phones.length, numbersLimit: 5,
           campaignSends: campaignData.reduce((sum, c) => sum + (c.sent_count || 0), 0), campaignLimit: 50000,

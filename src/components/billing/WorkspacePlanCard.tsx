@@ -83,7 +83,7 @@ export function WorkspacePlanCard() {
   // No subscription row at all → user hasn't picked a plan yet.
   // (entitlements default to 'free' on workspace creation, so don't trust them alone.)
   const hasSubscription = !!billing?.has_selected_plan || !!billing?.has_subscription;
-  const planId = hasSubscription ? (billing?.plan_id?.replace('plan_', '') ?? 'free') : 'free';
+  const planId = hasSubscription && billing?.plan_id ? billing.plan_id.replace('plan_', '') : 'free';
   const meta = planMeta[planId] ?? planMeta.free;
   const limits = entitlements?.limits ?? subscription?.plan?.limits_json;
   const isTopPlan = planId === 'business';
