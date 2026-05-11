@@ -102,6 +102,15 @@ export default function WorkspaceCard({
   const isSetup = workspace.status === 'setup';
   const isAttention = workspace.status === 'attention';
   const avatarGradient = getAvatarGradient(workspace.name);
+  const [copied, setCopied] = React.useState(false);
+  const handleCopyId = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+    navigator.clipboard.writeText(workspace.id);
+    setCopied(true);
+    toast.success('Workspace ID copied');
+    setTimeout(() => setCopied(false), 1500);
+  };
 
 
 
