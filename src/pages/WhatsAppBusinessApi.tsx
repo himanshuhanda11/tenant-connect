@@ -1,5 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import PricingHero from '@/components/pricing/PricingHero';
+import PricingCards from '@/components/pricing/PricingCards';
 import {
   MessageCircle,
   Zap,
