@@ -3,35 +3,34 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { BillingOverviewCards } from '@/components/billing/BillingOverviewCards';
 import { MetaBillingNotice } from '@/components/billing/MetaBillingNotice';
 import { UsageOverview } from '@/components/billing/UsageOverview';
-import { PlanCard } from '@/components/billing/PlanCard';
+import { PlanCardsGrid } from '@/components/billing/PlanCardsGrid';
+import { MonthlyYearlyToggle } from '@/components/billing/MonthlyYearlyToggle';
 import { AddOnsSection } from '@/components/billing/AddOnsSection';
 import { MessageCreditsCard } from '@/components/billing/MessageCreditsCard';
 import { BillingSettingsForm } from '@/components/billing/BillingSettingsForm';
 import { BillingFAQ } from '@/components/billing/BillingFAQ';
 import { WorkspacePlanCard } from '@/components/billing/WorkspacePlanCard';
 import { InvoiceHistory } from '@/components/billing/InvoiceHistory';
-import { usePlans, useSubscription } from '@/hooks/useBilling';
+import { useSubscription } from '@/hooks/useBilling';
 import { useEntitlements } from '@/hooks/useEntitlements';
 import { useWorkspaceBilling, useStartCheckout, useOpenBillingPortal, useChangePlan } from '@/hooks/useWorkspaceBilling';
 import { useTenant } from '@/contexts/TenantContext';
 import { PaymentFailedBanner } from '@/components/billing/PaymentFailedBanner';
 import { BillingStatusBadge } from '@/components/billing/BillingStatusBadge';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { LayoutDashboard, CreditCard, BarChart3, Settings, Sparkles, Receipt, ExternalLink } from 'lucide-react';
-import type { Plan } from '@/types/billing';
+import { regionFromCountry, PLAN_RANK, type PlanId } from '@/data/plans.config';
 
 export default function Billing() {
   const [isYearly, setIsYearly] = useState(false);
+  const [planLoading, setPlanLoading] = useState<string | null>(null);
   const [params] = useSearchParams();
   const { currentTenant } = useTenant();
-  const { data: plans } = usePlans();
   const { data: subscription } = useSubscription();
   const { data: entitlements } = useEntitlements();
   const { data: billing, refetch: refetchBilling } = useWorkspaceBilling();
@@ -39,9 +38,11 @@ export default function Billing() {
   const openPortal = useOpenBillingPortal();
   const changePlan = useChangePlan();
 
-  const currentPlanId = billing?.plan_id ?? entitlements?.plan_id ?? subscription?.plan_id ?? 'free';
+  const currentPlanId = (billing?.plan_id ?? entitlements?.plan_id ?? subscription?.plan_id ?? 'free').replace(/^plan_/, '');
   const isTopPlan = currentPlanId === 'business';
   const showPaymentFailed = billing?.status === 'past_due' || billing?.status === 'unpaid' || billing?.last_payment_status === 'failed';
+  const region = useMemo(() => regionFromCountry((currentTenant as any)?.country), [currentTenant]);
+  const country = (currentTenant as any)?.country ?? undefined;
 
   // Handle Stripe return
   useEffect(() => {
