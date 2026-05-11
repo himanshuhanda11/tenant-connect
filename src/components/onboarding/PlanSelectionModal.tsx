@@ -307,7 +307,15 @@ export default function PlanSelectionModal({ open, tenantId, onSelected, onPaidI
                       ))}
                     </ul>
 
-                    {isFree ? (
+                    {isCurrent ? (
+                      <Button
+                        disabled
+                        variant="outline"
+                        className="h-10 rounded-xl border-emerald-300 bg-emerald-50 text-emerald-700 font-semibold text-sm cursor-not-allowed opacity-100"
+                      >
+                        <Check className="w-4 h-4 mr-2" /> Current plan
+                      </Button>
+                    ) : isFree ? (
                       <Button
                         onClick={handleFree}
                         disabled={!!activatingId}
@@ -333,6 +341,8 @@ export default function PlanSelectionModal({ open, tenantId, onSelected, onPaidI
                       >
                         {activatingId === plan.id ? (
                           <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Starting trial…</>
+                        ) : hasActivePlan ? (
+                          <><Sparkles className="w-4 h-4 mr-1.5" /> Switch to {plan.name}</>
                         ) : (
                           <><Sparkles className="w-4 h-4 mr-1.5" /> Start 1 Month Free</>
                         )}
