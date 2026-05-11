@@ -4,6 +4,13 @@ import "./index.css";
 import { startVersionPolling, forceVersionCheck } from "./lib/versionCheck";
 import "./lib/installPlanErrorInterceptor";
 
+if (window.location.hostname === "aireatro.com") {
+  const canonicalUrl = new URL(window.location.href);
+  canonicalUrl.hostname = "www.aireatro.com";
+  canonicalUrl.protocol = "https:";
+  window.location.replace(canonicalUrl.toString());
+}
+
 startVersionPolling();
 
 const CHUNK_ERROR_PATTERNS = [

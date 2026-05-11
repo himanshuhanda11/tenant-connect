@@ -122,7 +122,7 @@ export default function MetaAdsOverview() {
           <div className="flex items-center gap-2 sm:gap-3">
             {isConnected && connectedAccounts[0] && (
               <Button size="sm" className="gap-1.5" asChild>
-                <a href="https://aireatro.com/meta-ads/create" target="_blank" rel="noopener noreferrer">
+                <a href="https://www.aireatro.com/meta-ads/create" target="_blank" rel="noopener noreferrer">
                   <Plus className="h-4 w-4" />
                   Add Campaign
                 </a>

@@ -1,4 +1,4 @@
-/*! Aireatro WhatsApp Widget v1 — https://aireatro.com */
+/*! Aireatro WhatsApp Widget v1 — https://www.aireatro.com */
 (function () {
   if (window.__AireatroWidgetLoaded) return;
   window.__AireatroWidgetLoaded = true;
@@ -216,7 +216,7 @@
         (cfg.showTyping ? el('div', { class: 'aw-typing', style:{ marginTop:'8px' } }, [el('span'), el('span'), el('span')]) : null),
         renderBody(data, prefilled, cta),
       ]),
-      el('div', { class: 'aw-foot' }, cfg.hideBranding ? [] : [el('a', { href: 'https://aireatro.com', target: '_blank', rel: 'noopener' }, ['⚡ Powered by Aireatro'])]),
+      el('div', { class: 'aw-foot' }, cfg.hideBranding ? [] : [el('a', { href: 'https://www.aireatro.com', target: '_blank', rel: 'noopener' }, ['⚡ Powered by Aireatro'])]),
     ]);
     return panel;
   }

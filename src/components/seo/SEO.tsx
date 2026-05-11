@@ -12,7 +12,7 @@ export interface SEOProps {
   children?: React.ReactNode;
 }
 
-const BASE_URL = 'https://aireatro.com';
+const BASE_URL = 'https://www.aireatro.com';
 const DEFAULT_OG_IMAGE = `${BASE_URL}/og-image.png`;
 const SITE_NAME = 'AiReatro Communications';
 

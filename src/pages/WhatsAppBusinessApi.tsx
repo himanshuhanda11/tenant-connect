@@ -293,7 +293,7 @@ const WhatsAppBusinessApi = () => {
     '@type': 'WebPage',
     name: 'WhatsApp Business API | AiReatro',
     description: 'Connect to Official WhatsApp Cloud API. Send verified messages, automate flows, manage team inbox, and measure ROI with AI-powered attribution.',
-    url: 'https://aireatro.com/whatsapp-business-api'
+    url: 'https://www.aireatro.com/whatsapp-business-api'
   };
 
   return (

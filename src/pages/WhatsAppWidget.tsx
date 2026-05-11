@@ -34,7 +34,7 @@ export default function WhatsAppWidgetPublic() {
 <script>
   window.AireatroWidget = ${cfgJson};
 </script>
-<script async src="https://aireatro.com/widget-lite.js"></script>`;
+<script async src="https://www.aireatro.com/widget-lite.js"></script>`;
   }, [cleanPhone, config]);
 
   const copy = async () => {
@@ -51,7 +51,7 @@ export default function WhatsAppWidgetPublic() {
       <Helmet>
         <title>Free WhatsApp Chat Widget for Website | Aireatro</title>
         <meta name="description" content="Create a beautiful WhatsApp chat button for your website in under 2 minutes. Free generator, no signup required. Capture leads instantly." />
-        <link rel="canonical" href="https://aireatro.com/whatsapp-widget" />
+        <link rel="canonical" href="https://www.aireatro.com/whatsapp-widget" />
       </Helmet>
 
       {/* Hero */}

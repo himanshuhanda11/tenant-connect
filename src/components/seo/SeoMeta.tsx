@@ -25,7 +25,7 @@ interface SeoMetaProps {
   fallbackDescription?: string;
 }
 
-const BASE_URL = 'https://aireatro.com';
+const BASE_URL = 'https://www.aireatro.com';
 const DEFAULT_OG_IMAGE = `${BASE_URL}/og-image.png`;
 const SITE_NAME = 'AiReatro Communications';
 const CACHE_TTL = 10 * 60 * 1000; // 10 minutes
@@ -134,7 +134,7 @@ export default function SeoMeta({ route, fallbackTitle, fallbackDescription }: S
   const title = meta?.title || fallbackTitle || `${SITE_NAME}`;
   const description = meta?.description || fallbackDescription || 'AiReatro is an AI-powered WhatsApp Cloud API platform for team inbox, automation, campaigns, and customer engagement.';
   const fullTitle = title.includes('AiReatro') ? title : `${title} | ${SITE_NAME}`;
-  const canonicalUrl = meta?.canonical_url || `${BASE_URL}${route}`;
+  const canonicalUrl = (meta?.canonical_url || `${BASE_URL}${route}`).replace('https://aireatro.com', BASE_URL);
   const robots = meta?.robots || 'index,follow';
   const ogTitle = meta?.og_title || fullTitle;
   const ogDescription = meta?.og_description || description;
