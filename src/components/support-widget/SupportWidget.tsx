@@ -271,15 +271,6 @@ export function SupportWidget() {
                   <MessageCircle className="h-4 w-4" />
                   {settings.cta_text}
                 </button>
-                {settings.show_book_demo && (
-                  <a
-                    href="/contact"
-                    className="w-full h-10 rounded-xl text-sm font-medium border border-border/60 text-foreground hover:bg-muted/60 flex items-center justify-center gap-2 transition"
-                  >
-                    <Calendar className="h-4 w-4" />
-                    Contact Us
-                  </a>
-                )}
               </div>
             </>
           )}
