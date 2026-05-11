@@ -229,7 +229,7 @@ const TeamMembers = () => {
                   : 'Add your first team member to get started.'
                 }
                 actionLabel={!search ? 'Add Member' : undefined}
-                onAction={!search ? () => setShowInviteModal(true) : undefined}
+                onAction={!search ? handleAddMember : undefined}
               />
             ) : (
               <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
