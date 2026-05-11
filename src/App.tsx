@@ -39,6 +39,7 @@ const BillingReturnPage = lazyWithRetry(() => import("./pages/onboarding/Billing
 const CreateWorkspace = lazyWithRetry(() => import("./pages/CreateWorkspace"));
 const SelectWorkspace = lazyWithRetry(() => import("./pages/SelectWorkspace"));
 const NotFound = lazyWithRetry(() => import("./pages/NotFound"));
+const DebugVersion = lazyWithRetry(() => import("./pages/DebugVersion"));
 const Dashboard = lazyWithRetry(() => import("./pages/Dashboard"));
 const Settings = lazyWithRetry(() => import("./pages/Settings"));
 const InboxPage = lazyWithRetry(() => import("./pages/InboxPage"));
@@ -404,6 +405,7 @@ const App = () => (
                       <Route path="backups" element={<AdminBackups />} />
                       <Route path="support-widget" element={<AdminSupportWidget />} />
                     </Route>
+                    <Route path="__debug/version" element={<DebugVersion />} />
                     <Route path="*" element={<NotFound />} />
                   </Routes>
                 </Suspense>
