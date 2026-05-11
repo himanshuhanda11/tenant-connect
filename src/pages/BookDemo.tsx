@@ -419,22 +419,24 @@ export default function BookDemo() {
                               </Button>
                             </PopoverTrigger>
                             <PopoverContent className="w-auto p-0" align="start">
-                              <Calendar
-                                mode="single"
-                                selected={pickedDate}
-                                onSelect={(d) => {
-                                  setPickedDate(d);
-                                  update('preferredDate', d ? format(d, 'yyyy-MM-dd') : '');
-                                  if (d) setDateOpen(false);
-                                }}
-                                disabled={(date) => {
-                                  const today = new Date(); today.setHours(0, 0, 0, 0);
-                                  const max = new Date(); max.setDate(max.getDate() + 60);
-                                  return date < today || date > max || date.getDay() === 0;
-                                }}
-                                initialFocus
-                                className={cn('p-3 pointer-events-auto')}
-                              />
+                              <Suspense fallback={<div className="p-6 text-xs text-muted-foreground">Loading calendar…</div>}>
+                                <Calendar
+                                  mode="single"
+                                  selected={pickedDate}
+                                  onSelect={(d) => {
+                                    setPickedDate(d);
+                                    update('preferredDate', d ? format(d, 'yyyy-MM-dd') : '');
+                                    if (d) setDateOpen(false);
+                                  }}
+                                  disabled={(date) => {
+                                    const today = new Date(); today.setHours(0, 0, 0, 0);
+                                    const max = new Date(); max.setDate(max.getDate() + 60);
+                                    return date < today || date > max || date.getDay() === 0;
+                                  }}
+                                  initialFocus
+                                  className={cn('p-3 pointer-events-auto')}
+                                />
+                              </Suspense>
                             </PopoverContent>
                           </Popover>
                           {errors.preferredDate && <p className="text-[11px] text-destructive">{errors.preferredDate}</p>}
