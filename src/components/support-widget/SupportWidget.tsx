@@ -187,9 +187,20 @@ export function SupportWidget() {
     setTimeout(resetForm, 200);
   };
 
+  const helperLabel = 'Get help to choose the best plan';
+
   if (mode === 'icon_only' && !collectLead) {
     return (
-      <div className={cn('fixed bottom-4 sm:bottom-6 z-[60]', positionClass)}>
+      <div className={cn('fixed bottom-20 sm:bottom-6 z-[60] flex items-center gap-2', positionClass)}>
+        <button
+          type="button"
+          onClick={handleCtaClick}
+          aria-label={helperLabel}
+          className="hidden xs:inline-flex sm:inline-flex items-center gap-1.5 h-10 pl-3 pr-3.5 rounded-full bg-background/95 backdrop-blur border border-border/60 shadow-lg shadow-black/10 text-[12px] font-semibold text-foreground hover:scale-[1.02] active:scale-95 transition-transform"
+        >
+          <Sparkles className="h-3.5 w-3.5" style={{ color: brand }} />
+          <span className="whitespace-nowrap">{helperLabel}</span>
+        </button>
         <button
           type="button"
           onClick={handleCtaClick}
