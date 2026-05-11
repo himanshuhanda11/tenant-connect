@@ -313,7 +313,27 @@ export default function CreateCampaign() {
     }
   };
 
+  const enforceBroadcastCap = (): boolean => {
+    const recipientCount = Math.max(
+      audienceEstimatedCount,
+      audienceFilters?.selected_contacts?.length ?? 0,
+    );
+    if (recipientCount > broadcastCap) {
+      openUpgrade({
+        feature: 'send_campaign',
+        currentPlan: planId,
+        requiredPlan: 'basic',
+        reason: 'quota_exceeded',
+        currentUsage: recipientCount,
+        planLimit: broadcastCap as number,
+      });
+      return false;
+    }
+    return true;
+  };
+
   const handleNext = () => {
+    if (currentStep === 3 && !enforceBroadcastCap()) return;
     if (currentStep < 5) {
       setCurrentStep(currentStep + 1);
     }
@@ -326,6 +346,7 @@ export default function CreateCampaign() {
   };
 
   const handleSubmit = async (sendNow: boolean) => {
+    if (!enforceBroadcastCap()) return;
     setIsSubmitting(true);
     // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 2000));
