@@ -353,15 +353,27 @@ export function SupportWidget() {
         </div>
       )}
 
-      <button
-        type="button"
-        onClick={() => setOpen((o) => !o)}
-        className="h-14 w-14 rounded-full shadow-lg shadow-black/20 hover:scale-105 active:scale-95 transition-transform flex items-center justify-center text-white"
-        style={{ backgroundColor: brand }}
-        aria-label={open ? 'Close support' : 'Open support'}
-      >
-        {open ? <X className="h-6 w-6" /> : <MessageCircle className="h-6 w-6" strokeWidth={2.4} />}
-      </button>
+      <div className="flex items-center gap-2">
+        {!open && (
+          <button
+            type="button"
+            onClick={() => setOpen(true)}
+            className="inline-flex items-center gap-1.5 h-10 pl-3 pr-3.5 rounded-full bg-background/95 backdrop-blur border border-border/60 shadow-lg shadow-black/10 text-[12px] font-semibold text-foreground hover:scale-[1.02] active:scale-95 transition-transform"
+          >
+            <Sparkles className="h-3.5 w-3.5" style={{ color: brand }} />
+            <span className="whitespace-nowrap">Get help to choose the best plan</span>
+          </button>
+        )}
+        <button
+          type="button"
+          onClick={() => setOpen((o) => !o)}
+          className="h-14 w-14 rounded-full shadow-lg shadow-black/20 hover:scale-105 active:scale-95 transition-transform flex items-center justify-center text-white"
+          style={{ backgroundColor: brand }}
+          aria-label={open ? 'Close support' : 'Open support'}
+        >
+          {open ? <X className="h-6 w-6" /> : <MessageCircle className="h-6 w-6" strokeWidth={2.4} />}
+        </button>
+      </div>
     </div>
   );
 }
