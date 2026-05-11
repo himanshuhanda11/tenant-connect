@@ -113,7 +113,7 @@ export function createPricingSchema(plans: Array<{
       price: plan.price,
       priceCurrency: 'USD',
       description: plan.description,
-      url: 'https://aireatro.com/pricing',
+      url: 'https://www.aireatro.com/pricing',
       availability: 'https://schema.org/InStock',
     })),
     aggregateRating: {
@@ -175,7 +175,7 @@ export function createBreadcrumbSchema(items: Array<{ name: string; url: string 
       '@type': 'ListItem',
       position: index + 1,
       name: item.name,
-      item: `https://aireatro.com${item.url}`,
+      item: `https://www.aireatro.com${item.url}`,
     })),
   };
 }
