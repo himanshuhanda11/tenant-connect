@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTenant } from '@/contexts/TenantContext';
 import { useOnboardingProgress } from '@/hooks/useOnboardingProgress';
@@ -8,7 +8,7 @@ import ConnectWhatsAppCard from './ConnectWhatsAppCard';
 import CompleteProfileCard from './CompleteProfileCard';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
-import { Sparkles } from 'lucide-react';
+import { Sparkles, ArrowLeft } from 'lucide-react';
 
 interface Props {
   children: React.ReactNode;
@@ -21,6 +21,10 @@ export default function OnboardingGate({ children, onConnectWhatsApp }: Props) {
   const { currentTenant } = useTenant();
   const tenantId = currentTenant?.id || null;
   const progress = useOnboardingProgress(tenantId);
+
+  // Lets the user re-open the plan picker from step 2 / 3 to upgrade from
+  // Free to a paid plan after they've already moved past step 1.
+  const [planPickerOpen, setPlanPickerOpen] = useState(false);
 
   if (progress.loading) {
     return (
@@ -36,12 +40,39 @@ export default function OnboardingGate({ children, onConnectWhatsApp }: Props) {
     return <>{children}</>;
   }
 
+  const isStep1 = progress.currentStep === 1;
+  const showChangePlanLink = !isStep1; // step 2 or step 3
+  // Modal opens when: step 1 needs it, OR user explicitly clicked "Change plan".
+  const modalOpen =
+    (isStep1 && !progress.planSelectionDismissed) || planPickerOpen;
+
   return (
     <div className="space-y-4 sm:space-y-5 max-w-[1100px] mx-auto px-3 py-4 sm:px-6 sm:py-8 animate-fade-in">
       <OnboardingStepBar currentStep={progress.currentStep} />
 
+      {/* Back to plan selection — visible from step 2 onwards */}
+      {showChangePlanLink && (
+        <div className="flex items-center justify-between gap-3 rounded-xl border border-emerald-100 bg-emerald-50/40 px-3 py-2 sm:px-4 sm:py-2.5">
+          <div className="min-w-0 flex items-center gap-2 text-xs sm:text-sm text-slate-700">
+            <Sparkles className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
+            <span className="truncate">
+              On <span className="font-semibold text-slate-900">{progress.planName ?? 'Free'}</span>?
+              Want to upgrade to a paid plan?
+            </span>
+          </div>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => setPlanPickerOpen(true)}
+            className="flex-shrink-0 h-8 gap-1.5 text-xs border-emerald-300 text-emerald-700 hover:bg-emerald-100 hover:text-emerald-800"
+          >
+            <ArrowLeft className="w-3.5 h-3.5" /> Change plan
+          </Button>
+        </div>
+      )}
+
       {/* Step-specific content */}
-      {progress.currentStep === 1 && (
+      {isStep1 && (
         <div className="rounded-2xl border border-emerald-100 bg-white/70 backdrop-blur p-6 sm:p-10 text-center space-y-4">
           <div>
             <h3 className="text-base sm:text-lg font-semibold text-slate-900">Select a plan to continue</h3>
@@ -64,17 +95,21 @@ export default function OnboardingGate({ children, onConnectWhatsApp }: Props) {
         <CompleteProfileCard onMarkDone={progress.markProfileCompleted} phoneId={progress.primaryPhoneId} />
       )}
 
-      {/* Plan selection modal — auto-opens when needed; user can dismiss to stay on step 1 */}
+      {/* Plan selection modal — auto-opens on step 1, or on demand from step 2/3 */}
       {tenantId && (
         <PlanSelectionModal
-          open={progress.currentStep === 1 && !progress.planSelectionDismissed}
+          open={modalOpen}
           tenantId={tenantId}
           onSelected={(name) => {
             progress.markPlanSelected(name);
+            setPlanPickerOpen(false);
             setTimeout(() => progress.refresh(), 600);
           }}
           onPaidIntent={() => { /* trial activates inline; no redirect */ }}
-          onDismiss={progress.dismissPlanSelection}
+          onDismiss={() => {
+            setPlanPickerOpen(false);
+            if (isStep1) progress.dismissPlanSelection();
+          }}
         />
       )}
     </div>
