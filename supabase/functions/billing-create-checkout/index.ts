@@ -146,8 +146,14 @@ Deno.serve(async (req) => {
       mode: "subscription",
       customer: customerId,
       line_items: [{ price: priceId, quantity: 1 }],
+      // Always collect a payment method, even when the subscription has a trial.
+      // Required so Stripe can auto-charge after the 30-day trial ends.
+      payment_method_collection: "always",
+      payment_method_types: ["card"],
       subscription_data: {
         trial_period_days: 30,
+        // If the card fails when the trial ends, cancel — workspace flips to past_due via webhook.
+        trial_settings: { end_behavior: { missing_payment_method: "cancel" } },
         metadata: {
           workspace_id: workspaceId,
           plan_id: planId,
