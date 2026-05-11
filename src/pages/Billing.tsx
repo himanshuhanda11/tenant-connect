@@ -11,6 +11,7 @@ import { BillingSettingsForm } from '@/components/billing/BillingSettingsForm';
 import { BillingFAQ } from '@/components/billing/BillingFAQ';
 import { WorkspacePlanCard } from '@/components/billing/WorkspacePlanCard';
 import { InvoiceHistory } from '@/components/billing/InvoiceHistory';
+import { ManageSubscriptionCard } from '@/components/billing/ManageSubscriptionCard';
 import { useSubscription } from '@/hooks/useBilling';
 import { useEntitlements } from '@/hooks/useEntitlements';
 import { useWorkspaceBilling, useStartCheckout, useOpenBillingPortal, useChangePlan } from '@/hooks/useWorkspaceBilling';
