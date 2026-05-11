@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { HelmetProvider } from "react-helmet-async";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { TenantProvider } from "@/contexts/TenantContext";
+import { UpgradeModalProvider } from "@/components/billing/UpgradeModal";
 import { PreviewWorkspaceProvider } from "@/contexts/PreviewWorkspaceContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import ScrollToTop from "@/components/ScrollToTop";
@@ -210,6 +211,7 @@ const App = () => (
             <PreviewWorkspaceProvider>
             <TenantProvider>
               <ThemeProvider>
+                <UpgradeModalProvider>
                 <ScrollToTop />
                 <RoutePrefetcher />
                 <RequirePlanSelection>
@@ -410,6 +412,7 @@ const App = () => (
                 </Suspense>
                 </LaunchOfferProvider>
                 </RequirePlanSelection>
+                </UpgradeModalProvider>
               </ThemeProvider>
             </TenantProvider>
             </PreviewWorkspaceProvider>

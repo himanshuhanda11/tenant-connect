@@ -28,6 +28,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useFeatureGate } from '@/hooks/useFeatureGate';
 import { GuideBanner } from '@/components/help/GuideBanner';
 import { WorkflowCard } from '@/components/automation/WorkflowCard';
 import { StarterAutomationCard } from '@/components/automation/StarterAutomationCard';
@@ -86,7 +87,9 @@ export default function AutomationWorkflows() {
   const pausedCount = workflows.filter(w => w.status === 'paused').length;
   const draftCount = workflows.filter(w => w.status === 'draft').length;
 
-  const handleCreateWorkflow = () => {
+  const automationGate = useFeatureGate('create_automation');
+  const handleCreateWorkflow = async () => {
+    if (!(await automationGate.guard())) return;
     setSelectedWorkflow(null);
     setBuilderOpen(true);
   };

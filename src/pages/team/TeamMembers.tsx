@@ -16,6 +16,8 @@ import { TeamBreadcrumb } from '@/components/team/TeamBreadcrumb';
 import { EmptyTeamState } from '@/components/team/EmptyTeamState';
 import { MemberProfileCard } from '@/components/team/MemberProfileCard';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { useFeatureGate } from '@/hooks/useFeatureGate';
+import { Lock } from 'lucide-react';
 
 const TeamMembers = () => {
   const { members, loading, disableMember, enableMember, updateMember, deleteMember, refetch } = useTeamMembers();
@@ -23,6 +25,12 @@ const TeamMembers = () => {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [showInviteModal, setShowInviteModal] = useState(false);
+
+  const inviteGate = useFeatureGate('add_team_member');
+
+  const handleAddMember = async () => {
+    if (await inviteGate.guard()) setShowInviteModal(true);
+  };
 
   const filteredMembers = members.filter(m => {
     const matchesSearch =
@@ -66,8 +74,8 @@ const TeamMembers = () => {
               </TooltipTrigger>
               <TooltipContent>Refresh</TooltipContent>
             </Tooltip>
-            <Button onClick={() => setShowInviteModal(true)} className="rounded-xl gap-2">
-              <UserPlus className="h-4 w-4" />
+            <Button onClick={handleAddMember} className="rounded-xl gap-2">
+              {!inviteGate.allowed && !inviteGate.loading ? <Lock className="h-4 w-4" /> : <UserPlus className="h-4 w-4" />}
               Add Member
             </Button>
           </div>
@@ -221,7 +229,7 @@ const TeamMembers = () => {
                   : 'Add your first team member to get started.'
                 }
                 actionLabel={!search ? 'Add Member' : undefined}
-                onAction={!search ? () => setShowInviteModal(true) : undefined}
+                onAction={!search ? handleAddMember : undefined}
               />
             ) : (
               <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
