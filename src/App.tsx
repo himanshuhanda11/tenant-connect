@@ -204,6 +204,14 @@ function DashboardOnboardingRedirect() {
   return <Navigate to={`/dashboard/onboarding${location.search}`} replace />;
 }
 
+function SupportWidgetWrapper() {
+  const location = useLocation();
+  const isMobile = useIsMobile();
+  const hideOnMobile = location.pathname === '/whatsapp-business-api' && isMobile;
+  if (hideOnMobile) return null;
+  return <SupportWidget />;
+}
+
 const App = () => (
   <HelmetProvider>
     <QueryClientProvider client={queryClient}>
