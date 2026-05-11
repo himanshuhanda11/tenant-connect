@@ -12,7 +12,7 @@ import { toast } from 'sonner';
 import { pricingPlans, type PricingPlan } from '@/data/pricingPlans';
 import { useGeoLocation, type PlanId } from '@/hooks/useGeoLocation';
 import { useNavigate } from 'react-router-dom';
-import { useStartCheckout } from '@/hooks/useWorkspaceBilling';
+import { useStartCheckout, useWorkspaceBilling } from '@/hooks/useWorkspaceBilling';
 
 interface Props {
   open: boolean;
@@ -63,6 +63,9 @@ export default function PlanSelectionModal({ open, tenantId, onSelected, onPaidI
   const { getPlanPrice, formatAmount, region, country } = useGeoLocation() as any;
   const navigate = useNavigate();
   const startCheckout = useStartCheckout();
+  const { data: billing } = useWorkspaceBilling(tenantId);
+  const currentPlanId = (billing?.plan_id || '').replace(/^plan_/, '').toLowerCase();
+  const hasActivePlan = !!billing?.has_subscription || (!!currentPlanId && currentPlanId !== 'free' && billing?.status !== 'cancelled');
 
   const updateArrows = () => {
     const el = scrollerRef.current;
@@ -232,19 +235,25 @@ export default function PlanSelectionModal({ open, tenantId, onSelected, onPaidI
                 const meta = planMeta[plan.id] ?? planMeta.free;
                 const price = getPlanPrice(plan.id as PlanId, false);
                 const isFree = plan.id === 'free';
+                const isCurrent = !!currentPlanId && plan.id.toLowerCase() === currentPlanId;
                 return (
                   <motion.div
                     key={plan.id}
                     data-plan-card
-                    whileHover={{ y: -4 }}
+                    whileHover={{ y: isCurrent ? 0 : -4 }}
                     transition={{ type: 'spring', stiffness: 300, damping: 22 }}
                     className={cn(
                       'snap-center sm:snap-start flex-shrink-0 w-[78vw] max-w-[280px] sm:w-[300px] sm:max-w-none rounded-2xl border bg-gradient-to-b p-4 sm:p-5 flex flex-col relative shadow-sm hover:shadow-xl transition-shadow',
                       meta.gradient,
                       meta.ring,
+                      isCurrent && 'ring-2 ring-emerald-500 border-emerald-500',
                     )}
                   >
-                    {meta.badge && (
+                    {isCurrent ? (
+                      <div className="absolute -top-2.5 right-4 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide shadow-md flex items-center gap-1 bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-emerald-500/30">
+                        <Check className="w-3 h-3" /> Your current plan
+                      </div>
+                    ) : meta.badge && (
                       <div className={cn('absolute -top-2.5 right-4 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide shadow-md flex items-center gap-1', meta.badge.cls)}>
                         {meta.badge.icon} {meta.badge.label}
                       </div>
@@ -298,7 +307,15 @@ export default function PlanSelectionModal({ open, tenantId, onSelected, onPaidI
                       ))}
                     </ul>
 
-                    {isFree ? (
+                    {isCurrent ? (
+                      <Button
+                        disabled
+                        variant="outline"
+                        className="h-10 rounded-xl border-emerald-300 bg-emerald-50 text-emerald-700 font-semibold text-sm cursor-not-allowed opacity-100"
+                      >
+                        <Check className="w-4 h-4 mr-2" /> Current plan
+                      </Button>
+                    ) : isFree ? (
                       <Button
                         onClick={handleFree}
                         disabled={!!activatingId}
@@ -324,6 +341,8 @@ export default function PlanSelectionModal({ open, tenantId, onSelected, onPaidI
                       >
                         {activatingId === plan.id ? (
                           <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Starting trial…</>
+                        ) : hasActivePlan ? (
+                          <><Sparkles className="w-4 h-4 mr-1.5" /> Switch to {plan.name}</>
                         ) : (
                           <><Sparkles className="w-4 h-4 mr-1.5" /> Start 1 Month Free</>
                         )}
