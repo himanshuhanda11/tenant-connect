@@ -65,6 +65,15 @@ export default function ConnectNumber() {
   const { addPhoneNumber } = usePhoneNumbers();
   const { addWaba } = useWABAs();
   const { currentTenant, refreshTenants, setCurrentTenant, tenants } = useTenant();
+  const { data: entitlements, isLoading: entLoading } = useEntitlements();
+
+  // Plan-first guard: must pick a plan before connecting WhatsApp
+  useEffect(() => {
+    if (!entLoading && currentTenant && !entitlements) {
+      toast.info('Choose a plan first — WhatsApp connection is step 2.');
+      navigate('/choose-plan?next=' + encodeURIComponent('/phone-numbers/connect'), { replace: true });
+    }
+  }, [entLoading, entitlements, currentTenant, navigate]);
 
   const [currentStep, setCurrentStep] = useState<Step>('method');
   const [isConnecting, setIsConnecting] = useState(false);
