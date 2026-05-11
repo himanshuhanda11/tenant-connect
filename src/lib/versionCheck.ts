@@ -48,9 +48,9 @@ async function wipeBrowserCaches() {
   }
 }
 
-function hardNavigateToFreshBuild() {
+function hardNavigateToFreshBuild(targetBuildId = CURRENT_BUILD_ID) {
   const url = new URL(window.location.href);
-  url.searchParams.set(CURRENT_BUILD_PARAM, CURRENT_BUILD_ID);
+  url.searchParams.set(CURRENT_BUILD_PARAM, targetBuildId);
   url.searchParams.set(FRESH_BUILD_PARAM, String(Date.now()));
   window.location.replace(url.toString());
 }
@@ -75,7 +75,7 @@ async function checkVersion() {
 
     // Drop any lingering caches before reloading
     await wipeBrowserCaches();
-    hardNavigateToFreshBuild();
+    hardNavigateToFreshBuild(buildId);
   } catch {
     /* network blip — try again next tick */
   }
