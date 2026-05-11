@@ -12807,6 +12807,120 @@ export type Database = {
           },
         ]
       }
+      support_widget_events: {
+        Row: {
+          created_at: string
+          event_type: string
+          id: string
+          page_url: string | null
+          user_agent: string | null
+          user_id: string | null
+          widget_mode: string
+          workspace_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          event_type: string
+          id?: string
+          page_url?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+          widget_mode: string
+          workspace_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          event_type?: string
+          id?: string
+          page_url?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+          widget_mode?: string
+          workspace_id?: string | null
+        }
+        Relationships: []
+      }
+      support_widget_settings: {
+        Row: {
+          brand_color: string
+          created_at: string
+          cta_text: string
+          display_name: string
+          enabled: boolean
+          full_widget_message: string
+          full_widget_subtitle: string
+          full_widget_title: string
+          icon_only_tooltip: string
+          id: string
+          position: string
+          prefilled_message_new: string
+          prefilled_message_paid: string
+          show_book_demo: boolean
+          show_for_free_users: boolean
+          show_for_incomplete_users: boolean
+          show_for_paid_users: boolean
+          show_inside_billing: boolean
+          show_inside_dashboard: boolean
+          show_inside_onboarding: boolean
+          show_on_public_site: boolean
+          updated_at: string
+          welcome_message: string
+          whatsapp_number: string
+        }
+        Insert: {
+          brand_color?: string
+          created_at?: string
+          cta_text?: string
+          display_name?: string
+          enabled?: boolean
+          full_widget_message?: string
+          full_widget_subtitle?: string
+          full_widget_title?: string
+          icon_only_tooltip?: string
+          id?: string
+          position?: string
+          prefilled_message_new?: string
+          prefilled_message_paid?: string
+          show_book_demo?: boolean
+          show_for_free_users?: boolean
+          show_for_incomplete_users?: boolean
+          show_for_paid_users?: boolean
+          show_inside_billing?: boolean
+          show_inside_dashboard?: boolean
+          show_inside_onboarding?: boolean
+          show_on_public_site?: boolean
+          updated_at?: string
+          welcome_message?: string
+          whatsapp_number?: string
+        }
+        Update: {
+          brand_color?: string
+          created_at?: string
+          cta_text?: string
+          display_name?: string
+          enabled?: boolean
+          full_widget_message?: string
+          full_widget_subtitle?: string
+          full_widget_title?: string
+          icon_only_tooltip?: string
+          id?: string
+          position?: string
+          prefilled_message_new?: string
+          prefilled_message_paid?: string
+          show_book_demo?: boolean
+          show_for_free_users?: boolean
+          show_for_incomplete_users?: boolean
+          show_for_paid_users?: boolean
+          show_inside_billing?: boolean
+          show_inside_dashboard?: boolean
+          show_inside_onboarding?: boolean
+          show_on_public_site?: boolean
+          updated_at?: string
+          welcome_message?: string
+          whatsapp_number?: string
+        }
+        Relationships: []
+      }
       suppressed_emails: {
         Row: {
           created_at: string
