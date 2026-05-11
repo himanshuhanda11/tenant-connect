@@ -26,6 +26,12 @@ const TeamMembers = () => {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [showInviteModal, setShowInviteModal] = useState(false);
 
+  const inviteGate = useFeatureGate('add_team_member');
+
+  const handleAddMember = async () => {
+    if (await inviteGate.guard()) setShowInviteModal(true);
+  };
+
   const filteredMembers = members.filter(m => {
     const matchesSearch =
       m.display_name?.toLowerCase().includes(search.toLowerCase()) ||
