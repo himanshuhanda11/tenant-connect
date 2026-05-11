@@ -103,12 +103,8 @@ export function SupportWidget() {
   const [leadName, setLeadName] = useState('');
   const [leadPhone, setLeadPhone] = useState('');
   const [errMsg, setErrMsg] = useState<string | null>(null);
-  const [iconDismissed, setIconDismissed] = useState(() => {
-    try { return sessionStorage.getItem(ICON_DISMISS_KEY) === '1'; } catch { return false; }
-  });
-  const [fullDismissed, setFullDismissed] = useState(() => {
-    try { return sessionStorage.getItem(FULL_DISMISS_KEY) === '1'; } catch { return false; }
-  });
+  const [iconDismissed, setIconDismissed] = useState(() => isDismissed(ICON_DISMISS_KEY));
+  const [fullDismissed, setFullDismissed] = useState(() => isDismissed(FULL_DISMISS_KEY));
   const viewedRef = useRef<string | null>(null);
 
   // Read billing/plan info from currentTenant (best-effort, safe defaults)
