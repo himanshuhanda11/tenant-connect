@@ -15,6 +15,7 @@ export function WhatsAppConnectBanner() {
   const { currentTenant } = useTenant();
   const { data: entitlements } = useEntitlements();
   const { openDialog } = useLaunchOfferUI();
+  const access = useWhatsAppConnectionAccess();
   const [dismissed, setDismissed] = useState(false);
   const [hasPhone, setHasPhone] = useState<boolean | null>(null);
 
