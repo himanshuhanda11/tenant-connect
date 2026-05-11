@@ -92,7 +92,7 @@ export default function SeoEditDrawer({ page, open, onClose }: SeoEditDrawerProp
 
   const previewTitle = form.title || `${page.page_name} - AiReatro`;
   const previewDescription = form.description || 'No description set';
-  const previewUrl = `https://aireatro.com${page.route_path}`;
+  const previewUrl = `https://www.aireatro.com${page.route_path}`;
 
   // SEO score
   const fields = ['title', 'description', 'keywords', 'canonical_url', 'og_title', 'og_description', 'og_image', 'twitter_title', 'twitter_description'];
@@ -173,7 +173,7 @@ export default function SeoEditDrawer({ page, open, onClose }: SeoEditDrawerProp
 
               <div className="space-y-2">
                 <Label htmlFor="canonical_url">Canonical URL</Label>
-                <Input id="canonical_url" value={form.canonical_url || ''} onChange={(e) => handleChange('canonical_url', e.target.value)} placeholder="https://aireatro.com/page" />
+                <Input id="canonical_url" value={form.canonical_url || ''} onChange={(e) => handleChange('canonical_url', e.target.value)} placeholder="https://www.aireatro.com/page" />
               </div>
 
               <div className="space-y-2">
@@ -205,7 +205,7 @@ export default function SeoEditDrawer({ page, open, onClose }: SeoEditDrawerProp
                   </div>
                   <div className="space-y-2">
                     <Label>OG Image URL</Label>
-                    <Input value={form.og_image || ''} onChange={(e) => handleChange('og_image', e.target.value)} placeholder="https://aireatro.com/og-image.png" />
+                    <Input value={form.og_image || ''} onChange={(e) => handleChange('og_image', e.target.value)} placeholder="https://www.aireatro.com/og-image.png" />
                   </div>
                   <div className="space-y-2">
                     <Label>OG Type</Label>
