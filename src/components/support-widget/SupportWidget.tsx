@@ -69,6 +69,8 @@ async function logEvent(
 
 type Step = 'intro' | 'name' | 'phone' | 'connecting';
 
+const ICON_DISMISS_KEY = 'aireatro_support_widget_icon_dismissed';
+
 export function SupportWidget() {
   const settings = useSupportSettings();
   const location = useLocation();
@@ -79,6 +81,9 @@ export function SupportWidget() {
   const [leadName, setLeadName] = useState('');
   const [leadPhone, setLeadPhone] = useState('');
   const [errMsg, setErrMsg] = useState<string | null>(null);
+  const [iconDismissed, setIconDismissed] = useState(() => {
+    try { return sessionStorage.getItem(ICON_DISMISS_KEY) === '1'; } catch { return false; }
+  });
   const viewedRef = useRef<string | null>(null);
 
   // Read billing/plan info from currentTenant (best-effort, safe defaults)
@@ -188,21 +193,38 @@ export function SupportWidget() {
   };
 
   if (mode === 'icon_only' && !collectLead) {
+    if (iconDismissed) return null;
     return (
-      <div className={cn('fixed bottom-4 sm:bottom-6 z-[60]', positionClass)}>
+      <div className={cn('fixed bottom-4 sm:bottom-6 z-[60] flex items-center gap-2', positionClass)}>
         <button
           type="button"
           onClick={handleCtaClick}
           aria-label={settings.icon_only_tooltip}
           title={settings.icon_only_tooltip}
-          className="group relative h-14 w-14 rounded-full shadow-lg shadow-black/20 hover:scale-105 active:scale-95 transition-transform flex items-center justify-center"
+          className="group relative inline-flex items-center gap-2 pl-2 pr-4 py-2 rounded-full shadow-lg shadow-black/20 hover:scale-[1.03] active:scale-95 transition-transform text-white"
           style={{ backgroundColor: brand }}
         >
           <span
-            className="absolute inset-0 rounded-full animate-ping opacity-30"
+            className="absolute inset-0 rounded-full animate-ping opacity-25"
             style={{ backgroundColor: brand }}
           />
-          <MessageCircle className="relative h-6 w-6 text-white" strokeWidth={2.4} />
+          <span className="relative h-10 w-10 rounded-full bg-white/15 flex items-center justify-center">
+            <MessageCircle className="h-5 w-5" strokeWidth={2.4} />
+          </span>
+          <span className="relative text-sm font-semibold whitespace-nowrap pr-1">
+            {settings.cta_text || 'Chat on WhatsApp'}
+          </span>
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            try { sessionStorage.setItem(ICON_DISMISS_KEY, '1'); } catch {}
+            setIconDismissed(true);
+          }}
+          aria-label="Dismiss"
+          className="h-7 w-7 rounded-full bg-background border border-border shadow-md flex items-center justify-center text-foreground/80 hover:text-foreground hover:scale-110 transition"
+        >
+          <X className="h-3.5 w-3.5" />
         </button>
       </div>
     );
