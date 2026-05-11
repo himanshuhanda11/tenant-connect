@@ -189,7 +189,15 @@ Deno.serve(async (req) => {
         const workspaceId = await resolveWorkspace(sub);
         if (workspaceId) {
           await supabase.from("subscriptions").update({
+            plan_id: "free",
             status: "cancelled" as any,
+            stripe_subscription_id: null,
+            stripe_price_id: null,
+            cancel_at_period_end: false,
+            pending_plan_id: null,
+            pending_billing_cycle: null,
+            scheduled_change_at: null,
+            trial_status: "ended",
             canceled_at: new Date().toISOString(),
           }).eq("tenant_id", workspaceId);
           await supabase.rpc("compute_workspace_entitlements", { p_workspace_id: workspaceId });
