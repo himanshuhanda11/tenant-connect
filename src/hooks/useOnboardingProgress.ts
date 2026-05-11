@@ -44,7 +44,8 @@ export function useOnboardingProgress(tenantId: string | null | undefined): Onbo
 
       const [{ data: ent }, { data: sub }, { data: phones }, { data: tenantRow }] = await Promise.all([
         supabase.from('workspace_entitlements').select('plan,status').eq('workspace_id', tenantId).maybeSingle(),
-        supabase.from('subscriptions').select('plan_id').eq('tenant_id', tenantId).in('status', ['active', 'trialing']).maybeSingle(),
+        // Accept any subscription row (active, trialing, past_due, incomplete, etc.) — once a row exists the user has chosen a plan.
+        supabase.from('subscriptions').select('plan_id,status').eq('tenant_id', tenantId).order('created_at', { ascending: false }).limit(1).maybeSingle(),
         supabase.from('phone_numbers').select('id,status').eq('tenant_id', tenantId).order('is_default', { ascending: false }),
         supabase.from('tenants').select('whatsapp_profile_completed' as any).eq('id', tenantId).maybeSingle(),
       ]);
