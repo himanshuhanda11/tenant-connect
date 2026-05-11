@@ -176,6 +176,8 @@ const AdminPhoneNumbers = lazyWithRetry(() => import("./pages/admin/AdminPhoneNu
 const AdminSettings = lazyWithRetry(() => import("./pages/admin/AdminSettings"));
 const AdminIncidents = lazyWithRetry(() => import("./pages/admin/AdminIncidents"));
 const AdminBackups = lazyWithRetry(() => import("./pages/admin/AdminBackups"));
+const AdminSupportWidget = lazyWithRetry(() => import("./pages/admin/AdminSupportWidget"));
+const SupportWidget = lazyWithRetry(() => import("./components/support-widget/SupportWidget").then((m) => ({ default: m.SupportWidget })));
 const QualifiedLeads = lazyWithRetry(() => import("./pages/QualifiedLeads"));
 const TeamOverview = lazyWithRetry(() => import("./pages/team/TeamOverview"));
 const TeamMembers = lazyWithRetry(() => import("./pages/team/TeamMembers"));
@@ -398,9 +400,13 @@ const App = () => (
                       <Route path="incidents" element={<AdminIncidents />} />
                       <Route path="leads" element={<AdminLeads />} />
                       <Route path="backups" element={<AdminBackups />} />
+                      <Route path="support-widget" element={<AdminSupportWidget />} />
                     </Route>
                     <Route path="*" element={<NotFound />} />
                   </Routes>
+                </Suspense>
+                <Suspense fallback={null}>
+                  <SupportWidget />
                 </Suspense>
                 </LaunchOfferProvider>
                 </RequirePlanSelection>
