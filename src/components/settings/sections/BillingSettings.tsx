@@ -12,7 +12,6 @@ import { Progress } from '@/components/ui/progress';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Link } from 'react-router-dom';
 import { useSubscription, useUsage, useInvoices, useTeamUsage, usePhoneUsage } from '@/hooks/useBilling';
-import { useEntitlements } from '@/hooks/useEntitlements';
 import { useWorkspaceBilling } from '@/hooks/useWorkspaceBilling';
 import { format } from 'date-fns';
 import { useState } from 'react';
@@ -25,7 +24,6 @@ export function BillingSettings() {
   const { data: invoices, isLoading: invLoading } = useInvoices();
   const { data: teamUsage } = useTeamUsage();
   const { data: phoneUsage } = usePhoneUsage();
-  const { data: entitlements } = useEntitlements();
   const { data: billing } = useWorkspaceBilling();
   const [changeOpen, setChangeOpen] = useState(false);
 
@@ -314,7 +312,7 @@ export function BillingSettings() {
       <ChangePlanDialog
         open={changeOpen}
         onOpenChange={setChangeOpen}
-        currentPlanId={currentPlanId}
+        currentPlanId={hasSelectedPlan ? currentPlanId : undefined}
       />
     </div>
   );
