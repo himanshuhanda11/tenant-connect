@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation } from 'react-router-dom';
-import { MessageCircle, X, Calendar, ArrowRight, Loader2, CheckCircle2, User, Phone } from 'lucide-react';
+import { MessageCircle, X, ArrowRight, Loader2, CheckCircle2, User, Phone, Sparkles } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
