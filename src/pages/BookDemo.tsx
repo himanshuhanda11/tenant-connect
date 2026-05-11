@@ -225,7 +225,7 @@ export default function BookDemo() {
         <div className="absolute -bottom-32 -left-32 w-[420px] h-[420px] rounded-full bg-emerald-500/10 blur-[120px] pointer-events-none" />
 
         <div className="container mx-auto px-4 relative pt-10 pb-10 sm:pt-16 sm:pb-12 md:pt-24 md:pb-20">
-          <div className="grid lg:grid-cols-[1.05fr_1fr] gap-8 lg:gap-12 items-start max-w-6xl mx-auto">
+          <div className="grid lg:grid-cols-[1.25fr_0.85fr] gap-8 lg:gap-10 items-start max-w-6xl mx-auto">
             <motion.div initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} className="lg:order-2">
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-[11px] sm:text-xs font-semibold tracking-wide uppercase mb-4">
                 <PlayCircle className="w-3.5 h-3.5" />
@@ -298,12 +298,12 @@ export default function BookDemo() {
             <motion.div
               id="book"
               initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
-              className="lg:order-1 relative"
+              className="lg:order-1 relative w-full max-w-md mx-auto lg:max-w-none lg:sticky lg:top-24"
             >
               <div className="absolute -inset-2 bg-gradient-to-br from-primary/25 via-emerald-500/15 to-teal-500/15 rounded-[2rem] blur-2xl opacity-70 pointer-events-none" />
               <Card className="relative border-border/60 shadow-2xl shadow-primary/10 rounded-2xl overflow-hidden bg-card/95 backdrop-blur-xl">
                 <div className="h-1.5 w-full bg-gradient-to-r from-primary via-emerald-500 to-teal-500" />
-                <CardContent className="p-5 sm:p-6 md:p-8">
+                <CardContent className="p-4 sm:p-5 md:p-6">
                   <div className="flex items-center gap-3 mb-6">
                     <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-primary to-emerald-500 flex items-center justify-center shadow-lg shadow-primary/30 ring-1 ring-white/20">
                       <Sparkles className="w-5 h-5 text-white" />
