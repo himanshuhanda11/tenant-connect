@@ -423,7 +423,7 @@ const App = () => (
                   </Routes>
                 </Suspense>
                 <Suspense fallback={null}>
-                  <SupportWidget />
+                  <SupportWidgetWrapper />
                 </Suspense>
                 </LaunchOfferProvider>
                 </RequirePlanSelection>
