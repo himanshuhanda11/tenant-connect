@@ -167,6 +167,7 @@ export default function BookDemo() {
       });
       if (error) console.warn('email notify failed', error);
       setSubmitted(true);
+      if (typeof window !== 'undefined') window.scrollTo({ top: 0, behavior: 'smooth' });
       toast({ title: 'Demo requested 🎉', description: "We've emailed you a confirmation. Our team will reach out shortly." });
     } catch (err: any) {
       console.error('demo_request failed', err);
