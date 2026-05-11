@@ -59,18 +59,23 @@ export function warmCommonRoutes() {
   // Skip on slow connections / data saver.
   const conn = (navigator as any).connection;
   if (conn?.saveData) return;
-  if (conn?.effectiveType && /^(slow-2g|2g)$/.test(conn.effectiveType)) return;
+  if (conn?.effectiveType && /^(slow-2g|2g|3g)$/.test(conn.effectiveType)) return;
+
+  // Only warm the *most likely* next routes from a public marketing page.
+  // Prefetching all 25+ chunks immediately competed with the homepage's own
+  // assets and made first interaction sluggish.
+  const HIGH_PRIORITY = ["/login", "/signup", "/pricing", "/select-workspace"];
 
   const idle: (cb: () => void) => void =
     (window as any).requestIdleCallback?.bind(window) ??
-    ((cb: () => void) => setTimeout(cb, 1500));
+    ((cb: () => void) => setTimeout(cb, 2000));
 
-  const queue = Object.entries(ROUTES);
+  const queue = HIGH_PRIORITY.map((p) => [p, ROUTES[p]] as const).filter(([, fn]) => !!fn);
   const tick = () => {
     const next = queue.shift();
     if (!next) return;
     const [key, importer] = next;
-    run(importer, key);
+    run(importer!, key);
     idle(tick);
   };
   idle(tick);

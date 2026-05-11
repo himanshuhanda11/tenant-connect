@@ -102,11 +102,10 @@ Deno.serve(async (req) => {
     }
 
     const stripe = await getStripe();
-    const price = await stripe.prices.retrieve(priceId);
-    const secretMode = Deno.env.get("STRIPE_SECRET_KEY")?.startsWith("sk_live_") ? "live" : "test";
-    if ((secretMode === "live" && !price.livemode) || (secretMode === "test" && price.livemode)) {
-      return json({ error: `Stripe price ${priceId} does not match the configured ${secretMode} Stripe mode.` }, 503);
-    }
+    // NOTE: We intentionally skip a `stripe.prices.retrieve` livemode sanity-check
+    // here — it added a full network roundtrip on every checkout. Stripe will
+    // reject the session below if the price's mode does not match the secret key,
+    // so the validation still happens, just without the extra latency.
 
     // Look up or create Stripe Customer (per workspace)
     let customerId: string | null = null;

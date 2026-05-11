@@ -23,6 +23,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useTenant } from '@/contexts/TenantContext';
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
 import { useFeatureGate } from '@/hooks/useFeatureGate';
+import { loadFacebookSdk } from '@/lib/loadFacebookSdk';
 
 declare global {
   interface Window { FB: any; }
@@ -301,10 +302,13 @@ export default function MetaAdsSetup() {
 
   const metaAdsGate = useFeatureGate('meta_ads');
 
+  // Preload SDK as soon as the setup page mounts so click is instant
+  useEffect(() => { loadFacebookSdk().catch(() => {}); }, []);
+
   const handleFbLogin = async () => {
     if (!currentTenant?.id) { toast.error('No workspace selected'); return; }
     if (!(await metaAdsGate.guard())) return;
-    if (!window.FB) { toast.error('Facebook SDK not loaded. Please refresh.'); return; }
+    try { await loadFacebookSdk(); } catch { toast.error('Could not load Facebook SDK.'); return; }
     setIsFbLoading(true);
     try {
       window.FB.login((response: any) => {

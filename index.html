@@ -60,20 +60,7 @@
   <body>
     <div id="root"></div>
     <script src="/registerSW.js?v=__CACHE_BUST__"></script>
-    <script src="https://checkout.razorpay.com/v1/checkout.js" async></script>
-    <script>
-      window.fbAsyncInit = function() {
-        FB.init({
-          appId      : '1584691426114330',
-          cookie     : true,
-          xfbml      : true,
-          version    : 'v21.0'
-        });
-      };
-    </script>
-    <script async defer crossorigin="anonymous"
-      src="https://connect.facebook.net/en_US/sdk.js#xfbml=1&version=v21.0&appId=1584691426114330">
-    </script>
+    <!-- Facebook SDK and Razorpay are loaded on-demand from the pages that need them -->
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

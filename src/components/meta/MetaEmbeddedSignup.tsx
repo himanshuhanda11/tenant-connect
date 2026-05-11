@@ -4,6 +4,7 @@ import { MessageSquare, Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useTenant } from '@/contexts/TenantContext';
 import { toast } from 'sonner';
+import { loadFacebookSdk } from '@/lib/loadFacebookSdk';
 
 declare global {
   interface Window {
@@ -23,6 +24,9 @@ export function MetaEmbeddedSignup({ onSuccess, onError, onConnectionError }: Me
   
   // Store WABA + phone IDs received via the MessageEvent listener
   const sessionDataRef = useRef<{ wabaId: string; phoneNumberId: string } | null>(null);
+
+  // Preload Facebook SDK as soon as this component mounts
+  useEffect(() => { loadFacebookSdk().catch(() => {}); }, []);
 
   // Listen for session info from Meta's Embedded Signup popup
   useEffect(() => {
@@ -60,7 +64,7 @@ export function MetaEmbeddedSignup({ onSuccess, onError, onConnectionError }: Me
     return () => window.removeEventListener('message', handler);
   }, []);
 
-  const launchWhatsAppSignup = (e?: React.MouseEvent) => {
+  const launchWhatsAppSignup = async (e?: React.MouseEvent) => {
     e?.preventDefault();
     e?.stopPropagation();
     if (!currentTenant) {
@@ -68,8 +72,10 @@ export function MetaEmbeddedSignup({ onSuccess, onError, onConnectionError }: Me
       return;
     }
 
-    if (!window.FB) {
-      toast.error('Facebook SDK not loaded yet. Please wait a moment and try again.');
+    try {
+      await loadFacebookSdk();
+    } catch {
+      toast.error('Could not load Facebook SDK. Please try again.');
       return;
     }
 
