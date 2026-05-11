@@ -87,10 +87,10 @@ export function startVersionPolling() {
   void clearCachesAfterFreshBuild();
 
   // Initial check shortly after load, then on an interval and on tab focus.
-  setTimeout(checkVersion, 5_000);
-  timer = setInterval(checkVersion, POLL_INTERVAL_MS);
+  setTimeout(() => { void checkVersion(); }, 5_000);
+  timer = setInterval(() => { void checkVersion(); }, POLL_INTERVAL_MS);
   document.addEventListener("visibilitychange", () => {
-    if (document.visibilityState === "visible") checkVersion();
+    if (document.visibilityState === "visible") void checkVersion();
   });
-  window.addEventListener("focus", checkVersion);
+  window.addEventListener("focus", () => { void checkVersion(); });
 }
