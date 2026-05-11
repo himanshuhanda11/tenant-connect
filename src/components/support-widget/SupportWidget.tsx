@@ -69,6 +69,8 @@ async function logEvent(
 
 type Step = 'intro' | 'name' | 'phone' | 'connecting';
 
+const ICON_DISMISS_KEY = 'aireatro_support_widget_icon_dismissed';
+
 export function SupportWidget() {
   const settings = useSupportSettings();
   const location = useLocation();
@@ -79,6 +81,9 @@ export function SupportWidget() {
   const [leadName, setLeadName] = useState('');
   const [leadPhone, setLeadPhone] = useState('');
   const [errMsg, setErrMsg] = useState<string | null>(null);
+  const [iconDismissed, setIconDismissed] = useState(() => {
+    try { return sessionStorage.getItem(ICON_DISMISS_KEY) === '1'; } catch { return false; }
+  });
   const viewedRef = useRef<string | null>(null);
 
   // Read billing/plan info from currentTenant (best-effort, safe defaults)
