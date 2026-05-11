@@ -163,6 +163,7 @@ export default function Billing() {
           {/* Overview Tab */}
           <TabsContent value="overview" className="space-y-5">
             <WorkspacePlanCard />
+            <ManageSubscriptionCard />
             <BillingOverviewCards />
             <div className="grid gap-4 sm:gap-5 lg:grid-cols-2">
               <MessageCreditsCard />
