@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Button } from '@/components/ui/button';
@@ -27,6 +27,7 @@ import {
 import { usePhoneNumbers, useWABAs } from '@/hooks/usePhoneNumbers';
 import { MetaEmbeddedSignup } from '@/components/meta/MetaEmbeddedSignup';
 import { useTenant } from '@/contexts/TenantContext';
+import { useEntitlements } from '@/hooks/useEntitlements';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
@@ -64,6 +65,15 @@ export default function ConnectNumber() {
   const { addPhoneNumber } = usePhoneNumbers();
   const { addWaba } = useWABAs();
   const { currentTenant, refreshTenants, setCurrentTenant, tenants } = useTenant();
+  const { data: entitlements, isLoading: entLoading } = useEntitlements();
+
+  // Plan-first guard: must pick a plan before connecting WhatsApp
+  useEffect(() => {
+    if (!entLoading && currentTenant && !entitlements) {
+      toast.info('Choose a plan first — WhatsApp connection is step 2.');
+      navigate('/choose-plan?next=' + encodeURIComponent('/phone-numbers/connect'), { replace: true });
+    }
+  }, [entLoading, entitlements, currentTenant, navigate]);
 
   const [currentStep, setCurrentStep] = useState<Step>('method');
   const [isConnecting, setIsConnecting] = useState(false);

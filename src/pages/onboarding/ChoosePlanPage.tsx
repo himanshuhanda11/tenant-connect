@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CheckCircle2, Sparkles, Crown, Rocket, Building2, Gift, ArrowRight, ShieldCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -24,6 +24,8 @@ const planIcons: Record<string, JSX.Element> = {
 
 export default function ChoosePlanPage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const nextPath = searchParams.get('next') || '/select-workspace';
   const { user, loading: authLoading } = useAuth();
   const { offer, isActive, secondsLeft, claim, isClaiming, isLoading } = useLaunchOffer();
   const { data: claimCount } = useTodayClaimCount();
@@ -40,9 +42,9 @@ export default function ChoosePlanPage() {
   // If already claimed → onward
   useEffect(() => {
     if (offer?.offer_claimed) {
-      navigate('/select-workspace', { replace: true });
+      navigate(nextPath, { replace: true });
     }
-  }, [offer?.offer_claimed, navigate]);
+  }, [offer?.offer_claimed, navigate, nextPath]);
 
   const handleSelect = async (plan: PricingPlan) => {
     if (isClaiming) return;
@@ -50,7 +52,7 @@ export default function ChoosePlanPage() {
     try {
       await claim(plan.id);
       setSuccess(true);
-      setTimeout(() => navigate('/select-workspace', { replace: true }), 1600);
+      setTimeout(() => navigate(nextPath, { replace: true }), 1600);
     } catch (e: any) {
       toast.error(e?.message ?? 'Could not activate offer');
       setPendingPlan(null);
