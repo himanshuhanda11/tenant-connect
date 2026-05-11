@@ -18,16 +18,16 @@ export default function Pricing() {
     <div className="min-h-screen bg-background">
       <SeoMeta
         route="/pricing"
-        fallbackTitle="Pricing Plans - Aireatro"
-        fallbackDescription="Simple, transparent pricing per workspace. Each workspace includes 1 WhatsApp number."
+        fallbackTitle="Pricing — Simple WhatsApp API Plans | Aireatro"
+        fallbackDescription="Team inbox, automation, campaigns, AI replies and CRM. Start free, scale when you grow. 30-day free trial on all paid plans."
       />
       <Navbar />
       <PricingHero isAnnual={isAnnual} setIsAnnual={setIsAnnual} />
       <PricingCards isAnnual={isAnnual} />
       <PricingTrust />
-      <PricingMetaNote />
       <PricingComparison isAnnual={isAnnual} />
       <PricingAddOns />
+      <PricingMetaNote />
       <PricingFAQ />
       <PricingCTA />
       <Footer />
