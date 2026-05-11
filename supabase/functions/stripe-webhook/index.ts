@@ -91,8 +91,10 @@ Deno.serve(async (req) => {
     const item = sub.items?.data?.[0];
     const priceId = item?.price?.id as string | undefined;
     const lookup = priceId ? priceLookup[priceId] : null;
-    const planId = lookup?.plan || sub.metadata?.plan_id;
-    const billingCycle = lookup?.cycle || sub.metadata?.billing_cycle ||
+    // Prefer metadata.plan_id (set by checkout + change-workspace-plan), fall back to env map
+    const planRaw = sub.metadata?.plan_id || lookup?.plan || "basic";
+    const planId = planRaw.replace(/^plan_/, "");
+    const billingCycle = sub.metadata?.billing_cycle || lookup?.cycle ||
       (item?.price?.recurring?.interval === "year" ? "yearly" : "monthly");
 
     const trialStatus = sub.status === "trialing"
@@ -102,9 +104,18 @@ Deno.serve(async (req) => {
     const currency = (item?.price?.currency || sub.metadata?.currency || "").toUpperCase() || null;
     const pricingRegion = sub.metadata?.pricing_region || null;
 
+    // Read existing pending fields so we can clear them when a scheduled change settles
+    const { data: existing } = await supabase.from("subscriptions")
+      .select("pending_plan_id, pending_billing_cycle")
+      .eq("tenant_id", workspaceId).maybeSingle();
+
+    const clearPending = existing?.pending_plan_id &&
+      existing.pending_plan_id === planId &&
+      (!existing.pending_billing_cycle || existing.pending_billing_cycle === billingCycle);
+
     await supabase.from("subscriptions").upsert({
       tenant_id: workspaceId,
-      plan_id: planId ? (planId.startsWith("plan_") ? planId : `plan_${planId}`) : "plan_basic",
+      plan_id: planId,
       stripe_customer_id: sub.customer,
       stripe_subscription_id: sub.id,
       stripe_price_id: priceId,
@@ -119,6 +130,11 @@ Deno.serve(async (req) => {
       trial_start: sub.trial_start ? new Date(sub.trial_start * 1000).toISOString() : null,
       trial_end: sub.trial_end ? new Date(sub.trial_end * 1000).toISOString() : null,
       trial_status: trialStatus,
+      ...(clearPending ? {
+        pending_plan_id: null,
+        pending_billing_cycle: null,
+        scheduled_change_at: null,
+      } : {}),
     }, { onConflict: "tenant_id" });
 
     // Recompute entitlements (existing helper)
