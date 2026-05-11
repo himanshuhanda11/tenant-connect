@@ -11,6 +11,7 @@ import { BillingSettingsForm } from '@/components/billing/BillingSettingsForm';
 import { BillingFAQ } from '@/components/billing/BillingFAQ';
 import { WorkspacePlanCard } from '@/components/billing/WorkspacePlanCard';
 import { InvoiceHistory } from '@/components/billing/InvoiceHistory';
+import { ManageSubscriptionCard } from '@/components/billing/ManageSubscriptionCard';
 import { useSubscription } from '@/hooks/useBilling';
 import { useEntitlements } from '@/hooks/useEntitlements';
 import { useWorkspaceBilling, useStartCheckout, useOpenBillingPortal, useChangePlan } from '@/hooks/useWorkspaceBilling';
@@ -119,11 +120,12 @@ export default function Billing() {
                 trialDaysLeft={billing.is_trialing ? billing.trial_days_left : undefined}
               />
             )}
-            {billing?.has_subscription && (
-              <Button size="sm" variant="outline" className="gap-1.5"
+            {billing?.has_subscription && billing?.stripe_customer_id && (
+              <Button size="sm" variant={showPaymentFailed ? 'destructive' : 'outline'} className="gap-1.5"
                 onClick={() => currentTenant?.id && openPortal.mutate(currentTenant.id)}
                 disabled={openPortal.isPending}>
-                <ExternalLink className="w-3.5 h-3.5" /> Manage Billing
+                <ExternalLink className="w-3.5 h-3.5" />
+                {showPaymentFailed ? 'Update Payment Method' : 'Manage Subscription'}
               </Button>
             )}
             {isTopPlan && (
@@ -162,6 +164,7 @@ export default function Billing() {
           {/* Overview Tab */}
           <TabsContent value="overview" className="space-y-5">
             <WorkspacePlanCard />
+            <ManageSubscriptionCard />
             <BillingOverviewCards />
             <div className="grid gap-4 sm:gap-5 lg:grid-cols-2">
               <MessageCreditsCard />
