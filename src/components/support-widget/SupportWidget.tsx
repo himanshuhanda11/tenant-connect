@@ -350,7 +350,7 @@ export function SupportWidget() {
                   >
                     <span className="absolute inset-x-0 -top-px h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent opacity-60" />
                     <Calendar className="h-4 w-4 text-primary" />
-                    <span>{settings.book_demo_label}</span>
+                    <span>{settings.book_demo_label || 'Book a Demo'}</span>
                     <ArrowRight className="h-3.5 w-3.5 opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition" />
                   </button>
                 )}
