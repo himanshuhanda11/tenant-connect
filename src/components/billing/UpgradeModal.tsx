@@ -1,18 +1,16 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
-import { Link } from "react-router-dom";
-import { Sparkles, Lock, Check, ArrowRight } from "lucide-react";
+import { Sparkles, Lock } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { toast } from "sonner";
 import { registerUpgradeOpener } from "@/lib/planErrorBus";
+import { PlanCardsGrid } from "@/components/billing/PlanCardsGrid";
+import { MonthlyYearlyToggle } from "@/components/billing/MonthlyYearlyToggle";
+import { useTenant } from "@/contexts/TenantContext";
+import { useStartCheckout, useChangePlan, useWorkspaceBilling } from "@/hooks/useWorkspaceBilling";
+import { regionFromCountry, type PlanId } from "@/data/plans.config";
 
-type PlanId = "free" | "basic" | "pro" | "business";
-
-const PLAN_LABEL: Record<PlanId, string> = {
-  free: "Free",
-  basic: "Basic",
-  pro: "Pro",
-  business: "Business",
+const PLAN_LABEL: Record<string, string> = {
+  free: "Free", basic: "Basic", pro: "Pro", business: "Business",
 };
 
 const FEATURE_LABEL: Record<string, string> = {
@@ -29,13 +27,6 @@ const FEATURE_LABEL: Record<string, string> = {
   ai_reply: "AI auto-reply",
   advanced_reports: "Advanced analytics",
   create_template: "Submit templates",
-};
-
-const PLAN_PERKS: Record<PlanId, string[]> = {
-  free: ["1 team member", "1 automation", "100 conversations/mo"],
-  basic: ["5 team members", "5 automations", "3 flows", "Integrations", "Auto-forms"],
-  pro: ["10 team members", "25 automations", "15 flows", "Meta Ads", "Full AI"],
-  business: ["25 team members", "Unlimited everything", "Enterprise AI", "Priority support"],
 };
 
 export interface UpgradeContext {
@@ -58,26 +49,71 @@ const Ctx = createContext<{
 
 export function UpgradeModalProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<ModalState>({ open: false, feature: "" });
+  const [isYearly, setIsYearly] = useState(false);
+  const [pending, setPending] = useState<string | null>(null);
+
+  const { currentTenant } = useTenant();
+  const { data: billing } = useWorkspaceBilling();
+  const startCheckout = useStartCheckout();
+  const changePlan = useChangePlan();
 
   const open = useCallback((ctx: UpgradeContext) => setState({ ...ctx, open: true }), []);
   const close = useCallback(() => setState((s) => ({ ...s, open: false })), []);
 
-  useEffect(() => {
-    registerUpgradeOpener(open);
-  }, [open]);
+  useEffect(() => { registerUpgradeOpener(open); }, [open]);
 
   const value = useMemo(() => ({ open, close }), [open, close]);
 
-  const currentPlan = (state.currentPlan as PlanId) || "free";
-  const requiredPlan = (state.requiredPlan as PlanId) || "pro";
+  const currentPlan = state.currentPlan || billing?.plan_id?.replace(/^plan_/, "") || "free";
+  const requiredPlan = state.requiredPlan || "pro";
   const featureLabel = FEATURE_LABEL[state.feature] || state.feature;
   const isQuota = state.reason === "quota_exceeded";
+
+  const region = regionFromCountry((currentTenant as any)?.country);
+  const country = (currentTenant as any)?.country ?? undefined;
+
+  const handleSelect = async (planId: PlanId, cycle: "monthly" | "yearly") => {
+    if (!currentTenant?.id) {
+      toast.error("No workspace selected");
+      return;
+    }
+    setPending(planId);
+    try {
+      if (billing?.has_subscription) {
+        await changePlan.mutateAsync({
+          workspaceId: currentTenant.id, planId, billingCycle: cycle,
+        });
+        toast.success("Plan change requested");
+        close();
+        return;
+      }
+      const res = await startCheckout.mutateAsync({
+        workspaceId: currentTenant.id,
+        planId,
+        billingCycle: cycle,
+        region,
+        country,
+        successPath: "/billing?status=success",
+        cancelPath: "/billing?status=cancelled",
+      });
+      if (res?.checkout_url) {
+        window.location.href = res.checkout_url;
+        return;
+      }
+      toast.success("Plan updated");
+      close();
+    } catch (e: any) {
+      toast.error(e?.message || "Could not start checkout");
+    } finally {
+      setPending(null);
+    }
+  };
 
   return (
     <Ctx.Provider value={value}>
       {children}
       <Dialog open={state.open} onOpenChange={(v) => !v && close()}>
-        <DialogContent className="max-w-2xl p-0 overflow-hidden">
+        <DialogContent className="max-w-5xl max-h-[92vh] overflow-y-auto p-0">
           <div className="bg-gradient-to-br from-primary/10 via-background to-background p-6 sm:p-8 border-b border-border/50">
             <DialogHeader className="space-y-3">
               <div className="flex items-center gap-3">
@@ -92,8 +128,8 @@ export function UpgradeModalProvider({ children }: { children: ReactNode }) {
                   </DialogTitle>
                   <DialogDescription className="mt-1">
                     {isQuota && state.planLimit !== undefined
-                      ? `${PLAN_LABEL[currentPlan]} plan includes ${state.planLimit} — you're using ${state.currentUsage ?? state.planLimit}.`
-                      : `${PLAN_LABEL[currentPlan]} plan doesn't include this feature.`}
+                      ? `${PLAN_LABEL[currentPlan] ?? currentPlan} plan includes ${state.planLimit} — you're using ${state.currentUsage ?? state.planLimit}. Pick a plan below to continue.`
+                      : `${PLAN_LABEL[currentPlan] ?? currentPlan} plan doesn't include this. Choose a plan below — checkout opens instantly.`}
                   </DialogDescription>
                 </div>
               </div>
@@ -101,48 +137,22 @@ export function UpgradeModalProvider({ children }: { children: ReactNode }) {
           </div>
 
           <div className="p-6 sm:p-8 space-y-6">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="rounded-xl border border-border/60 p-4 bg-muted/20">
-                <div className="flex items-center justify-between mb-3">
-                  <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Current</span>
-                  <Badge variant="outline">{PLAN_LABEL[currentPlan]}</Badge>
-                </div>
-                <ul className="space-y-1.5 text-sm text-muted-foreground">
-                  {PLAN_PERKS[currentPlan].map((p) => (
-                    <li key={p} className="flex items-start gap-2">
-                      <Check className="h-3.5 w-3.5 mt-0.5 opacity-50" /> {p}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-              <div className="rounded-xl border-2 border-primary/40 p-4 bg-primary/5 relative">
-                <div className="absolute -top-2.5 left-4 px-2 py-0.5 rounded-full bg-primary text-primary-foreground text-[10px] font-bold uppercase tracking-wider">
-                  Recommended
-                </div>
-                <div className="flex items-center justify-between mb-3">
-                  <span className="text-xs font-medium text-primary uppercase tracking-wide">Upgrade to</span>
-                  <Badge className="bg-primary text-primary-foreground">{PLAN_LABEL[requiredPlan]}</Badge>
-                </div>
-                <ul className="space-y-1.5 text-sm">
-                  {PLAN_PERKS[requiredPlan].map((p) => (
-                    <li key={p} className="flex items-start gap-2 text-foreground">
-                      <Check className="h-3.5 w-3.5 mt-0.5 text-primary" /> {p}
-                    </li>
-                  ))}
-                </ul>
-              </div>
+            <div className="flex justify-center">
+              <MonthlyYearlyToggle yearly={isYearly} onChange={setIsYearly} variant="light" />
             </div>
-
-            <div className="flex flex-col sm:flex-row gap-3">
-              <Button asChild size="lg" className="flex-1 gap-2">
-                <Link to="/pricing" onClick={close}>
-                  <Sparkles className="h-4 w-4" /> Upgrade to {PLAN_LABEL[requiredPlan]} <ArrowRight className="h-4 w-4" />
-                </Link>
-              </Button>
-              <Button asChild variant="outline" size="lg" onClick={close}>
-                <Link to="/pricing">Compare plans</Link>
-              </Button>
-            </div>
+            <PlanCardsGrid
+              region={region}
+              cycle={isYearly ? "yearly" : "monthly"}
+              currentPlanId={billing?.plan_id ?? `plan_${currentPlan}`}
+              showFree={false}
+              onSelect={handleSelect}
+              loadingPlanId={pending}
+              variant="light"
+              showTrialBadge={!billing?.has_subscription}
+            />
+            <p className="text-xs text-center text-muted-foreground">
+              Your plan upgrades automatically right after a successful payment.
+            </p>
           </div>
         </DialogContent>
       </Dialog>
@@ -159,7 +169,6 @@ export function useUpgradeModal() {
 /**
  * Parses a Postgres error from a plan-quota trigger and opens the upgrade modal.
  * Format: plan_access_denied:<reason>:<feature>:<current_plan>:<upgrade_to>
- * Returns true if it was a plan error (so caller can suppress toast).
  */
 export function handlePlanError(err: any, open: (ctx: UpgradeContext) => void): boolean {
   const msg: string = err?.message || err?.error?.message || err?.details || "";
