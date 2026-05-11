@@ -12853,6 +12853,9 @@ export type Database = {
       }
       support_widget_settings: {
         Row: {
+          book_demo_label: string
+          book_demo_subtext: string
+          book_demo_url: string
           brand_color: string
           collect_lead_before_chat: boolean
           created_at: string
@@ -12868,6 +12871,8 @@ export type Database = {
           prefilled_message_new: string
           prefilled_message_paid: string
           show_book_demo: boolean
+          show_demo_for_paid_users: boolean
+          show_demo_in_compact: boolean
           show_for_free_users: boolean
           show_for_incomplete_users: boolean
           show_for_paid_users: boolean
@@ -12885,6 +12890,9 @@ export type Database = {
           whatsapp_number: string
         }
         Insert: {
+          book_demo_label?: string
+          book_demo_subtext?: string
+          book_demo_url?: string
           brand_color?: string
           collect_lead_before_chat?: boolean
           created_at?: string
@@ -12900,6 +12908,8 @@ export type Database = {
           prefilled_message_new?: string
           prefilled_message_paid?: string
           show_book_demo?: boolean
+          show_demo_for_paid_users?: boolean
+          show_demo_in_compact?: boolean
           show_for_free_users?: boolean
           show_for_incomplete_users?: boolean
           show_for_paid_users?: boolean
@@ -12917,6 +12927,9 @@ export type Database = {
           whatsapp_number?: string
         }
         Update: {
+          book_demo_label?: string
+          book_demo_subtext?: string
+          book_demo_url?: string
           brand_color?: string
           collect_lead_before_chat?: boolean
           created_at?: string
@@ -12932,6 +12945,8 @@ export type Database = {
           prefilled_message_new?: string
           prefilled_message_paid?: string
           show_book_demo?: boolean
+          show_demo_for_paid_users?: boolean
+          show_demo_in_compact?: boolean
           show_for_free_users?: boolean
           show_for_incomplete_users?: boolean
           show_for_paid_users?: boolean
