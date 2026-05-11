@@ -43,7 +43,7 @@ export function useOnboardingProgress(tenantId: string | null | undefined): Onbo
       setPlanSelectionDismissed(lsPlanDismissed);
 
       const [{ data: ent }, { data: sub }, { data: phones }, { data: tenantRow }] = await Promise.all([
-        supabase.from('workspace_entitlements').select('plan').eq('workspace_id', tenantId).maybeSingle(),
+        supabase.from('workspace_entitlements').select('plan,status').eq('workspace_id', tenantId).maybeSingle(),
         supabase.from('subscriptions').select('plan_id').eq('tenant_id', tenantId).in('status', ['active', 'trialing']).maybeSingle(),
         supabase.from('phone_numbers').select('id,status').eq('tenant_id', tenantId).order('is_default', { ascending: false }),
         supabase.from('tenants').select('whatsapp_profile_completed' as any).eq('id', tenantId).maybeSingle(),
@@ -59,8 +59,8 @@ export function useOnboardingProgress(tenantId: string | null | undefined): Onbo
       const explicitPlan = lsPlan === '1' ? lsPlanName : null;
       const rawSubscriptionPlan = (sub as any)?.plan_id?.replace('plan_', '') || null;
       const subscriptionPlan = rawSubscriptionPlan && rawSubscriptionPlan !== 'free' ? rawSubscriptionPlan : null;
-      const entitlementPlan = (ent as any)?.plan && (ent as any)?.plan !== 'free' ? (ent as any).plan : null;
-      const detectedPlan = lsPlanDismissed ? null : (explicitPlan || subscriptionPlan || entitlementPlan);
+      const entitlementPlan = (ent as any)?.plan || null;
+      const detectedPlan = explicitPlan || subscriptionPlan || entitlementPlan;
       // Failsafe: if user already connected WhatsApp, plan choice is implicit (they passed step 1).
       const hasPlan = !!detectedPlan || hasConnectedPhone;
       setPlanSelected(hasPlan);
