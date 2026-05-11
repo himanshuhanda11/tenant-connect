@@ -45,7 +45,7 @@ function useSupportSettings() {
 }
 
 async function logEvent(
-  event_type: 'view' | 'click',
+  event_type: 'view' | 'click' | 'demo_click',
   widget_mode: 'icon_only' | 'full_widget',
   user_id: string | null,
   workspace_id: string | null,
@@ -163,6 +163,16 @@ export function SupportWidget() {
     window.open(href, '_blank', 'noopener,noreferrer');
   };
 
+  const openBookDemo = () => {
+    logEvent('demo_click', mode, user?.id ?? null, t?.id ?? null);
+    const url = settings.book_demo_url || '/book-demo';
+    if (/^https?:\/\//i.test(url)) {
+      window.open(url, '_blank', 'noopener,noreferrer');
+    } else {
+      window.open(url, '_blank', 'noopener,noreferrer');
+    }
+  };
+
   const handleCtaClick = () => {
     if (collectLead) {
       setOpen(true);
@@ -213,10 +223,27 @@ export function SupportWidget() {
     setTimeout(resetForm, 200);
   };
 
+  const showDemoCompact =
+    settings.show_book_demo &&
+    settings.show_demo_in_compact &&
+    (settings.show_demo_for_paid_users || !isPaidPlan);
+
   if (mode === 'icon_only' && !collectLead) {
     if (iconDismissed) return null;
     return (
       <div className={cn('fixed bottom-4 sm:bottom-6 z-[60] flex items-center gap-2', positionClass)}>
+        {showDemoCompact && (
+          <button
+            type="button"
+            onClick={openBookDemo}
+            aria-label={settings.book_demo_label}
+            title={settings.book_demo_label}
+            className="hidden sm:inline-flex items-center gap-1.5 h-10 px-3 rounded-full bg-gradient-to-br from-background to-muted border border-border/70 shadow-md hover:shadow-lg hover:scale-[1.03] active:scale-95 transition text-foreground text-xs font-semibold"
+          >
+            <Calendar className="h-3.5 w-3.5 text-primary" />
+            {settings.book_demo_label}
+          </button>
+        )}
         <button
           type="button"
           onClick={handleCtaClick}
@@ -316,13 +343,21 @@ export function SupportWidget() {
                   {settings.cta_text}
                 </button>
                 {settings.show_book_demo && (
-                  <a
-                    href="/contact"
-                    className="w-full h-10 rounded-xl text-sm font-medium border border-border/60 text-foreground hover:bg-muted/60 flex items-center justify-center gap-2 transition"
+                  <button
+                    type="button"
+                    onClick={openBookDemo}
+                    className="group relative w-full h-11 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 overflow-hidden border border-border/60 bg-gradient-to-br from-background via-muted/40 to-background hover:from-primary/5 hover:to-primary/10 hover:border-primary/40 active:scale-[0.98] transition shadow-sm hover:shadow-md text-foreground"
                   >
-                    <Calendar className="h-4 w-4" />
-                    Contact Us
-                  </a>
+                    <span className="absolute inset-x-0 -top-px h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent opacity-60" />
+                    <Calendar className="h-4 w-4 text-primary" />
+                    <span>{settings.book_demo_label}</span>
+                    <ArrowRight className="h-3.5 w-3.5 opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition" />
+                  </button>
+                )}
+                {settings.show_book_demo && settings.book_demo_subtext && (
+                  <p className="text-[11px] text-center text-muted-foreground leading-relaxed pt-0.5">
+                    {settings.book_demo_subtext}
+                  </p>
                 )}
               </div>
             </>

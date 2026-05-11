@@ -21,6 +21,11 @@ export interface SupportWidgetSettings {
   prefilled_message_paid: string;
   prefilled_message_new: string;
   show_book_demo: boolean;
+  book_demo_label: string;
+  book_demo_url: string;
+  book_demo_subtext: string;
+  show_demo_in_compact: boolean;
+  show_demo_for_paid_users: boolean;
   collect_lead_before_chat: boolean;
   step_name_label: string;
   step_name_placeholder: string;

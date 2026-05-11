@@ -294,7 +294,21 @@ export default function AdminSupportWidget() {
                     ))}
                   </div>
                 </Field>
-                <ToggleRow label="Show 'Contact Us' button in full widget" checked={settings.show_book_demo} onChange={(v) => update('show_book_demo', v)} disabled={disabled} />
+                <SectionLabel>Book a Demo CTA</SectionLabel>
+                <ToggleRow label="Show 'Book a Demo' button in full widget" checked={settings.show_book_demo} onChange={(v) => update('show_book_demo', v)} disabled={disabled} />
+                <ToggleRow label="Also show compact demo pill next to icon" checked={settings.show_demo_in_compact} onChange={(v) => update('show_demo_in_compact', v)} disabled={disabled} />
+                <ToggleRow label="Show demo CTA to paid / active users" checked={settings.show_demo_for_paid_users} onChange={(v) => update('show_demo_for_paid_users', v)} disabled={disabled} />
+                <div className="px-1 pt-2 grid grid-cols-1 gap-3">
+                  <Field label="Demo button label">
+                    <Input value={settings.book_demo_label} onChange={(e) => update('book_demo_label', e.target.value)} disabled={disabled} />
+                  </Field>
+                  <Field label="Demo URL" hint="Relative (e.g. /book-demo) or full https URL.">
+                    <Input value={settings.book_demo_url} onChange={(e) => update('book_demo_url', e.target.value)} disabled={disabled} placeholder="/book-demo" />
+                  </Field>
+                  <Field label="Helper text under demo button">
+                    <Input value={settings.book_demo_subtext} onChange={(e) => update('book_demo_subtext', e.target.value)} disabled={disabled} />
+                  </Field>
+                </div>
               </TabsContent>
 
               <TabsContent value="visibility" className="space-y-2 pt-4">
@@ -387,8 +401,8 @@ export default function AdminSupportWidget() {
                       <MessageCircle className="h-3.5 w-3.5" /> {settings.cta_text}
                     </div>
                     {settings.show_book_demo && (
-                      <div className="w-full h-9 rounded-lg text-xs font-medium border border-border/60 text-foreground flex items-center justify-center gap-1.5">
-                        <Calendar className="h-3.5 w-3.5" /> Contact Us
+                      <div className="w-full h-9 rounded-lg text-xs font-medium border border-border/60 text-foreground flex items-center justify-center gap-1.5 bg-gradient-to-br from-background via-muted/40 to-background">
+                        <Calendar className="h-3.5 w-3.5 text-primary" /> {settings.book_demo_label}
                       </div>
                     )}
                   </div>
