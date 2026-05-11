@@ -44,8 +44,7 @@ export function useOnboardingProgress(tenantId: string | null | undefined): Onbo
 
       const [{ data: ent }, { data: sub }, { data: phones }, { data: tenantRow }] = await Promise.all([
         supabase.from('workspace_entitlements').select('plan,status').eq('workspace_id', tenantId).maybeSingle(),
-        // Accept any subscription row (active, trialing, past_due, incomplete, etc.) — once a row exists the user has chosen a plan.
-        supabase.from('subscriptions').select('plan_id,status').eq('tenant_id', tenantId).order('created_at', { ascending: false }).limit(1).maybeSingle(),
+        supabase.from('subscriptions').select('plan_id,status,stripe_subscription_id').eq('tenant_id', tenantId).order('created_at', { ascending: false }).limit(1).maybeSingle(),
         supabase.from('phone_numbers').select('id,status').eq('tenant_id', tenantId).order('is_default', { ascending: false }),
         supabase.from('tenants').select('whatsapp_profile_completed' as any).eq('id', tenantId).maybeSingle(),
       ]);
@@ -57,16 +56,18 @@ export function useOnboardingProgress(tenantId: string | null | undefined): Onbo
       const preferred = validPhones.find((p) => p.status === 'connected') || validPhones[0] || null;
       setPrimaryPhoneId(preferred?.id || null);
 
-      const explicitPlan = lsPlan === '1' ? lsPlanName : null;
+      const storedPlan = lsPlan === '1' ? lsPlanName : null;
       // Ignore subscriptions stuck in pre-checkout / failed states — those mean the user
       // started checkout but never completed payment, so the plan is NOT actually selected.
       const PENDING_STATUSES = new Set(['incomplete', 'incomplete_expired', 'canceled', 'cancelled']);
       const subStatus = (sub as any)?.status as string | undefined;
       const rawSubscriptionPlan = subStatus && !PENDING_STATUSES.has(subStatus)
+        && (((sub as any)?.plan_id?.replace('plan_', '') === 'free') || !!(sub as any)?.stripe_subscription_id)
         ? ((sub as any)?.plan_id?.replace('plan_', '') || null)
         : null;
-      const subscriptionPlan = rawSubscriptionPlan && rawSubscriptionPlan !== 'free' ? rawSubscriptionPlan : null;
-      const entitlementPlan = (ent as any)?.plan || null;
+      const subscriptionPlan = rawSubscriptionPlan || null;
+      const entitlementPlan = (ent as any)?.plan && (ent as any).plan !== 'free' ? (ent as any).plan : null;
+      const explicitPlan = storedPlan === 'free' || storedPlan === subscriptionPlan || storedPlan === entitlementPlan ? storedPlan : null;
       const detectedPlan = explicitPlan || subscriptionPlan || entitlementPlan;
       // Failsafe: if user already connected WhatsApp, plan choice is implicit (they passed step 1).
       const hasPlan = !!detectedPlan || hasConnectedPhone;
