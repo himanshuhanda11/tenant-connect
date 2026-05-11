@@ -16,6 +16,8 @@ import { TeamBreadcrumb } from '@/components/team/TeamBreadcrumb';
 import { EmptyTeamState } from '@/components/team/EmptyTeamState';
 import { MemberProfileCard } from '@/components/team/MemberProfileCard';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { useFeatureGate } from '@/hooks/useFeatureGate';
+import { Lock } from 'lucide-react';
 
 const TeamMembers = () => {
   const { members, loading, disableMember, enableMember, updateMember, deleteMember, refetch } = useTeamMembers();
