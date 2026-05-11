@@ -9,7 +9,7 @@ export type WorkspaceBillingStatus = {
   plan_id: string;
   plan_name: string;
   billing_cycle: 'monthly' | 'yearly';
-  status: 'active' | 'trialing' | 'past_due' | 'unpaid' | 'cancelled' | 'canceled' | 'incomplete' | 'incomplete_expired';
+  status: 'active' | 'trialing' | 'past_due' | 'unpaid' | 'cancelled' | 'canceled' | 'incomplete' | 'incomplete_expired' | 'inactive';
   trial_status: 'none' | 'active' | 'ended';
   is_trialing: boolean;
   trial_days_left: number;
@@ -20,6 +20,7 @@ export type WorkspaceBillingStatus = {
   last_payment_status: string | null;
   stripe_customer_id: string | null;
   has_subscription: boolean;
+  has_selected_plan?: boolean;
   pending_plan_id: string | null;
   pending_billing_cycle: 'monthly' | 'yearly' | null;
   scheduled_change_at: string | null;

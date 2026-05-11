@@ -12,8 +12,6 @@ import { BillingFAQ } from '@/components/billing/BillingFAQ';
 import { WorkspacePlanCard } from '@/components/billing/WorkspacePlanCard';
 import { InvoiceHistory } from '@/components/billing/InvoiceHistory';
 import { ManageSubscriptionCard } from '@/components/billing/ManageSubscriptionCard';
-import { useSubscription } from '@/hooks/useBilling';
-import { useEntitlements } from '@/hooks/useEntitlements';
 import { useWorkspaceBilling, useStartCheckout, useOpenBillingPortal, useChangePlan } from '@/hooks/useWorkspaceBilling';
 import { useTenant } from '@/contexts/TenantContext';
 import { PaymentFailedBanner } from '@/components/billing/PaymentFailedBanner';
@@ -32,14 +30,14 @@ export default function Billing() {
   const [planLoading, setPlanLoading] = useState<string | null>(null);
   const [params] = useSearchParams();
   const { currentTenant } = useTenant();
-  const { data: subscription } = useSubscription();
-  const { data: entitlements } = useEntitlements();
   const { data: billing, refetch: refetchBilling } = useWorkspaceBilling();
   const startCheckout = useStartCheckout();
   const openPortal = useOpenBillingPortal();
   const changePlan = useChangePlan();
 
-  const currentPlanId = (billing?.plan_id ?? entitlements?.plan_id ?? subscription?.plan_id ?? 'free').replace(/^plan_/, '');
+  const hasConfirmedSubscription = !!billing?.has_subscription;
+  const hasSelectedPlan = !!billing?.has_selected_plan || hasConfirmedSubscription;
+  const currentPlanId = (hasSelectedPlan ? billing?.plan_id : 'free').replace(/^plan_/, '');
   const isTopPlan = currentPlanId === 'business';
   const showPaymentFailed = billing?.status === 'past_due' || billing?.status === 'unpaid' || billing?.last_payment_status === 'failed';
   const region = useMemo(() => regionFromCountry((currentTenant as any)?.country), [currentTenant]);
@@ -60,7 +58,7 @@ export default function Billing() {
 
   const handleSharedPlanSelect = async (planId: PlanId, cycle: 'monthly' | 'yearly') => {
     if (!currentTenant?.id) return;
-    if (planId === currentPlanId) return;
+    if (hasSelectedPlan && planId === currentPlanId) return;
 
     const targetRank = PLAN_RANK[planId] ?? 0;
     const currentRank = PLAN_RANK[(currentPlanId as PlanId)] ?? 0;
@@ -68,9 +66,9 @@ export default function Billing() {
     setPlanLoading(planId);
     try {
       // No active Stripe sub yet → fresh checkout (skip for free)
-      if (!billing?.has_subscription) {
+      if (!hasConfirmedSubscription) {
         if (planId === 'free') {
-          toast.info('You are already on a free or inactive plan');
+          toast.info('Choose a paid plan to activate billing');
           return;
         }
         const res = await startCheckout.mutateAsync({
@@ -113,14 +111,14 @@ export default function Billing() {
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-2 self-start">
-            {billing?.has_subscription && (
+            {hasConfirmedSubscription && (
               <BillingStatusBadge
                 status={(showPaymentFailed ? 'payment_failed' : (billing.is_trialing ? 'trialing' : billing.status)) as any}
                 planName={billing.plan_name}
                 trialDaysLeft={billing.is_trialing ? billing.trial_days_left : undefined}
               />
             )}
-            {billing?.has_subscription && billing?.stripe_customer_id && (
+            {hasConfirmedSubscription && billing?.stripe_customer_id && (
               <Button size="sm" variant={showPaymentFailed ? 'destructive' : 'outline'} className="gap-1.5"
                 onClick={() => currentTenant?.id && openPortal.mutate(currentTenant.id)}
                 disabled={openPortal.isPending}>
@@ -195,10 +193,10 @@ export default function Billing() {
                 <PlanCardsGrid
                   region={region}
                   cycle={isYearly ? 'yearly' : 'monthly'}
-                  currentPlanId={currentPlanId}
+                  currentPlanId={hasSelectedPlan ? currentPlanId : null}
                   showFree
                   variant="light"
-                  showTrialBadge={!billing?.has_subscription}
+                  showTrialBadge={!hasConfirmedSubscription}
                   loadingPlanId={planLoading}
                   onSelect={handleSharedPlanSelect}
                 />
