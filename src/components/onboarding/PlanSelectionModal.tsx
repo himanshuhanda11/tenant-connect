@@ -7,7 +7,6 @@ import {
   ChevronLeft, ChevronRight, Loader2, ShieldCheck, Users, Flame, Star, X,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { pricingPlans, type PricingPlan } from '@/data/pricingPlans';
 import { useGeoLocation, type PlanId } from '@/hooks/useGeoLocation';
@@ -92,16 +91,17 @@ export default function PlanSelectionModal({ open, tenantId, onSelected, onPaidI
     if (activatingId) return;
     setActivatingId('free');
     try {
-      try {
-        await supabase.from('subscriptions').upsert(
-          { tenant_id: tenantId, plan_id: 'plan_free', status: 'active' } as any,
-          { onConflict: 'tenant_id' },
-        );
-      } catch (e) {
-        console.warn('[PlanSelection] free upsert non-fatal:', e);
-      }
+      await startCheckout.mutateAsync({
+        workspaceId: tenantId,
+        planId: 'free',
+        billingCycle: 'monthly',
+        region,
+        country,
+      });
       onSelected('Free');
       toast.success('Free Lifetime activated 🎉');
+    } catch (e: any) {
+      toast.error(e?.message || 'Could not activate Free plan');
     } finally {
       setActivatingId(null);
     }

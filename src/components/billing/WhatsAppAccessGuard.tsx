@@ -1,4 +1,4 @@
-import { type ReactNode } from 'react';
+import { type ReactNode, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Loader2, Lock, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -21,6 +21,14 @@ interface WhatsAppAccessGuardProps {
 export function WhatsAppAccessGuard({ children }: WhatsAppAccessGuardProps) {
   const access = useWhatsAppConnectionAccess();
   const navigate = useNavigate();
+  const isPlan = access.requiredAction === 'choose_plan';
+  const isPayment = access.requiredAction === 'complete_payment';
+
+  useEffect(() => {
+    if (!access.isLoading && !access.allowed && (isPlan || isPayment) && access.redirectUrl) {
+      navigate(access.redirectUrl, { replace: true });
+    }
+  }, [access.allowed, access.isLoading, access.redirectUrl, isPayment, isPlan, navigate]);
 
   if (access.isLoading) {
     return (
@@ -34,8 +42,15 @@ export function WhatsAppAccessGuard({ children }: WhatsAppAccessGuardProps) {
 
   if (access.allowed) return <>{children}</>;
 
-  const isPlan = access.requiredAction === 'choose_plan';
-  const isPayment = access.requiredAction === 'complete_payment';
+  if (isPlan || isPayment) {
+    return (
+      <DashboardLayout>
+        <div className="flex min-h-[60vh] items-center justify-center">
+          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   const title = isPlan
     ? 'Choose a plan before connecting WhatsApp API'

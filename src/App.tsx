@@ -2,7 +2,7 @@ import { Suspense } from "react";
 import { lazyWithRetry } from "@/lib/lazyWithRetry";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { HelmetProvider } from "react-helmet-async";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { TenantProvider } from "@/contexts/TenantContext";
@@ -34,7 +34,6 @@ const PasswordPage = lazyWithRetry(() => import("./pages/onboarding/PasswordPage
 const AuthCallback = lazyWithRetry(() => import("./pages/AuthCallback"));
 const LegacyOAuthInitiate = lazyWithRetry(() => import("./pages/LegacyOAuthInitiate"));
 
-const SelectWorkspacePlanPage = lazyWithRetry(() => import("./pages/onboarding/SelectWorkspacePlanPage"));
 const BillingReturnPage = lazyWithRetry(() => import("./pages/onboarding/BillingReturnPage"));
 const CreateWorkspace = lazyWithRetry(() => import("./pages/CreateWorkspace"));
 const SelectWorkspace = lazyWithRetry(() => import("./pages/SelectWorkspace"));
@@ -199,6 +198,11 @@ function RouteLoader() {
   );
 }
 
+function DashboardOnboardingRedirect() {
+  const location = useLocation();
+  return <Navigate to={`/dashboard/onboarding${location.search}`} replace />;
+}
+
 const App = () => (
   <HelmetProvider>
     <QueryClientProvider client={queryClient}>
@@ -232,12 +236,13 @@ const App = () => (
                     <Route path="/onboarding/org" element={<OrganizationPage />} />
                     <Route path="/onboarding/password" element={<PasswordPage />} />
                     <Route path="/choose-plan" element={<Navigate to="/dashboard" replace />} />
-                    <Route path="/select-workspace-plan" element={<SelectWorkspacePlanPage />} />
-                    <Route path="/onboarding/plan" element={<SelectWorkspacePlanPage />} />
+                    <Route path="/select-workspace-plan" element={<DashboardOnboardingRedirect />} />
+                    <Route path="/onboarding/plan" element={<DashboardOnboardingRedirect />} />
                     <Route path="/onboarding/billing-return" element={<BillingReturnPage />} />
                     <Route path="/create-workspace" element={<CreateWorkspace />} />
                     <Route path="/select-workspace" element={<SelectWorkspace />} />
                     <Route path="/dashboard" element={<Dashboard />} />
+                    <Route path="/dashboard/onboarding" element={<Dashboard />} />
                     <Route path="/inbox" element={<InboxPage />} />
                     <Route path="/inbox/dashboard" element={<InboxCRMDashboard />} />
                     <Route path="/inbox/mine" element={<InboxPage />} />
