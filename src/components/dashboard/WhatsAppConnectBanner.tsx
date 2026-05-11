@@ -75,7 +75,15 @@ export function WhatsAppConnectBanner() {
           {/* CTA */}
           <Button
             size="sm"
-            onClick={() => navigate('/choose-plan?next=' + encodeURIComponent('/phone-numbers/connect'))}
+            onClick={() => {
+              // Step 1: pick a plan via the on-dashboard popup. If a plan is
+              // already selected, jump straight to the WhatsApp connect wizard.
+              if (entitlements) {
+                navigate('/phone-numbers/connect');
+              } else {
+                openDialog();
+              }
+            }}
             className="flex-shrink-0 gap-1.5 rounded-xl text-xs font-semibold px-4"
           >
             <MessageSquare className="h-3.5 w-3.5" />
