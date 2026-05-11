@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation } from 'react-router-dom';
-import { MessageCircle, X, ArrowRight, Loader2, CheckCircle2, User, Phone, Sparkles } from 'lucide-react';
+import { MessageCircle, X, Calendar, ArrowRight, Loader2, CheckCircle2, User, Phone } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -187,20 +187,9 @@ export function SupportWidget() {
     setTimeout(resetForm, 200);
   };
 
-  const helperLabel = 'Get help to choose the best plan';
-
   if (mode === 'icon_only' && !collectLead) {
     return (
-      <div className={cn('fixed bottom-20 sm:bottom-6 z-[60] flex items-center gap-2', positionClass)}>
-        <button
-          type="button"
-          onClick={handleCtaClick}
-          aria-label={helperLabel}
-          className="hidden xs:inline-flex sm:inline-flex items-center gap-1.5 h-10 pl-3 pr-3.5 rounded-full bg-background/95 backdrop-blur border border-border/60 shadow-lg shadow-black/10 text-[12px] font-semibold text-foreground hover:scale-[1.02] active:scale-95 transition-transform"
-        >
-          <Sparkles className="h-3.5 w-3.5" style={{ color: brand }} />
-          <span className="whitespace-nowrap">{helperLabel}</span>
-        </button>
+      <div className={cn('fixed bottom-4 sm:bottom-6 z-[60]', positionClass)}>
         <button
           type="button"
           onClick={handleCtaClick}
@@ -221,7 +210,7 @@ export function SupportWidget() {
 
   // full_widget
   return (
-    <div className={cn('fixed bottom-20 sm:bottom-6 z-[60] flex flex-col items-end gap-3', positionClass)}>
+    <div className={cn('fixed bottom-4 sm:bottom-6 z-[60] flex flex-col items-end gap-3', positionClass)}>
       {open && (
         <div
           className="w-[calc(100vw-2rem)] sm:w-[360px] max-w-[360px] rounded-2xl bg-background border border-border/60 shadow-2xl shadow-black/20 overflow-hidden animate-in fade-in zoom-in-95 duration-200"
@@ -271,6 +260,15 @@ export function SupportWidget() {
                   <MessageCircle className="h-4 w-4" />
                   {settings.cta_text}
                 </button>
+                {settings.show_book_demo && (
+                  <a
+                    href="/contact"
+                    className="w-full h-10 rounded-xl text-sm font-medium border border-border/60 text-foreground hover:bg-muted/60 flex items-center justify-center gap-2 transition"
+                  >
+                    <Calendar className="h-4 w-4" />
+                    Contact Us
+                  </a>
+                )}
               </div>
             </>
           )}
@@ -353,27 +351,15 @@ export function SupportWidget() {
         </div>
       )}
 
-      <div className="flex items-center gap-2">
-        {!open && (
-          <button
-            type="button"
-            onClick={() => setOpen(true)}
-            className="inline-flex items-center gap-1.5 h-10 pl-3 pr-3.5 rounded-full bg-background/95 backdrop-blur border border-border/60 shadow-lg shadow-black/10 text-[12px] font-semibold text-foreground hover:scale-[1.02] active:scale-95 transition-transform"
-          >
-            <Sparkles className="h-3.5 w-3.5" style={{ color: brand }} />
-            <span className="whitespace-nowrap">Get help to choose the best plan</span>
-          </button>
-        )}
-        <button
-          type="button"
-          onClick={() => setOpen((o) => !o)}
-          className="h-14 w-14 rounded-full shadow-lg shadow-black/20 hover:scale-105 active:scale-95 transition-transform flex items-center justify-center text-white"
-          style={{ backgroundColor: brand }}
-          aria-label={open ? 'Close support' : 'Open support'}
-        >
-          {open ? <X className="h-6 w-6" /> : <MessageCircle className="h-6 w-6" strokeWidth={2.4} />}
-        </button>
-      </div>
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className="h-14 w-14 rounded-full shadow-lg shadow-black/20 hover:scale-105 active:scale-95 transition-transform flex items-center justify-center text-white"
+        style={{ backgroundColor: brand }}
+        aria-label={open ? 'Close support' : 'Open support'}
+      >
+        {open ? <X className="h-6 w-6" /> : <MessageCircle className="h-6 w-6" strokeWidth={2.4} />}
+      </button>
     </div>
   );
 }
