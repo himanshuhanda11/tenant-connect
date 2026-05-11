@@ -7,7 +7,6 @@ import { Sparkles, Crown, Gift, Rocket, Building2, Calendar, Lock, ArrowRight, S
 import { cn } from '@/lib/utils';
 import { format, differenceInDays } from 'date-fns';
 import { useSubscription } from '@/hooks/useBilling';
-import { useEntitlements } from '@/hooks/useEntitlements';
 import { useWorkspaceBilling } from '@/hooks/useWorkspaceBilling';
 import { useTrialEligibility } from '@/hooks/useLaunchOffer';
 import { useTenant } from '@/contexts/TenantContext';
@@ -25,7 +24,6 @@ export default function SubscriptionStatusBanner() {
   const [searchParams, setSearchParams] = useSearchParams();
   const { currentTenant } = useTenant();
   const { data: subscription } = useSubscription();
-  const { data: entitlements } = useEntitlements();
   const { data: billing } = useWorkspaceBilling();
   const { data: isEligible } = useTrialEligibility();
   const [changeOpen, setChangeOpen] = useState(false);
