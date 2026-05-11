@@ -148,7 +148,8 @@ export function SupportWidget() {
   };
 
   const handleCtaClick = () => {
-    if (mode === 'full_widget' && collectLead) {
+    if (collectLead) {
+      setOpen(true);
       setStep('name');
       setErrMsg(null);
       return;
