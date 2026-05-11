@@ -14,7 +14,8 @@
   ],
   "rewrites": [
     { "source": "/version.json", "destination": "/version.json" },
-    { "source": "/((?!assets/).*)", "destination": "/index.html" }
+    { "source": "/registerSW.js", "destination": "/registerSW.js" },
+    { "source": "/((?!assets/|.*\\..*).*)", "destination": "/index.html" }
   ],
   "headers": [
     {
