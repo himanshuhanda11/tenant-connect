@@ -69,9 +69,28 @@ async function logEvent(
 
 type Step = 'intro' | 'name' | 'phone' | 'connecting';
 
-const ICON_DISMISS_KEY = 'aireatro_support_widget_icon_dismissed';
-const FULL_DISMISS_KEY = 'aireatro_support_widget_full_dismissed';
+const ICON_DISMISS_KEY = 'aireatro_support_widget_icon_dismissed_until';
+const FULL_DISMISS_KEY = 'aireatro_support_widget_full_dismissed_until';
 const FULL_MINIMIZED_KEY = 'aireatro_support_widget_full_minimized';
+const DISMISS_DURATION_MS = 24 * 60 * 60 * 1000; // 24 hours
+
+function isDismissed(key: string): boolean {
+  try {
+    const raw = localStorage.getItem(key);
+    if (!raw) return false;
+    const until = parseInt(raw, 10);
+    if (!Number.isFinite(until)) return false;
+    if (Date.now() < until) return true;
+    localStorage.removeItem(key);
+    return false;
+  } catch {
+    return false;
+  }
+}
+
+function setDismissed(key: string) {
+  try { localStorage.setItem(key, String(Date.now() + DISMISS_DURATION_MS)); } catch {}
+}
 
 export function SupportWidget() {
   const settings = useSupportSettings();
@@ -84,12 +103,8 @@ export function SupportWidget() {
   const [leadName, setLeadName] = useState('');
   const [leadPhone, setLeadPhone] = useState('');
   const [errMsg, setErrMsg] = useState<string | null>(null);
-  const [iconDismissed, setIconDismissed] = useState(() => {
-    try { return sessionStorage.getItem(ICON_DISMISS_KEY) === '1'; } catch { return false; }
-  });
-  const [fullDismissed, setFullDismissed] = useState(() => {
-    try { return sessionStorage.getItem(FULL_DISMISS_KEY) === '1'; } catch { return false; }
-  });
+  const [iconDismissed, setIconDismissed] = useState(() => isDismissed(ICON_DISMISS_KEY));
+  const [fullDismissed, setFullDismissed] = useState(() => isDismissed(FULL_DISMISS_KEY));
   const viewedRef = useRef<string | null>(null);
 
   // Read billing/plan info from currentTenant (best-effort, safe defaults)
@@ -210,10 +225,10 @@ export function SupportWidget() {
     setTimeout(resetForm, 200);
   };
 
-  // Dismiss: hide the widget entirely for this session (no FAB).
+  // Dismiss: hide the widget for 24 hours.
   const handleDismiss = () => {
     setOpen(false);
-    try { sessionStorage.setItem(FULL_DISMISS_KEY, '1'); } catch {}
+    setDismissed(FULL_DISMISS_KEY);
     setFullDismissed(true);
     setTimeout(resetForm, 200);
   };
@@ -277,10 +292,11 @@ export function SupportWidget() {
         <button
           type="button"
           onClick={() => {
-            try { sessionStorage.setItem(ICON_DISMISS_KEY, '1'); } catch {}
+            setDismissed(ICON_DISMISS_KEY);
             setIconDismissed(true);
           }}
-          aria-label="Dismiss"
+          aria-label="Hide for 24 hours"
+          title="Hide for 24 hours"
           className="h-7 w-7 rounded-full bg-background border border-border shadow-md flex items-center justify-center text-foreground/80 hover:text-foreground hover:scale-110 transition"
         >
           <X className="h-3.5 w-3.5" />
@@ -293,6 +309,17 @@ export function SupportWidget() {
   if (fullDismissed) return null;
   return (
     <div className={cn('fixed bottom-4 sm:bottom-6 z-[60] flex flex-col items-end gap-3', positionClass)}>
+      {!open && (
+        <button
+          type="button"
+          onClick={handleDismiss}
+          aria-label="Hide for 24 hours"
+          title="Hide for 24 hours"
+          className="self-end -mb-2 h-7 w-7 rounded-full bg-background border border-border shadow-md flex items-center justify-center text-foreground/80 hover:text-foreground hover:scale-110 transition"
+        >
+          <X className="h-3.5 w-3.5" />
+        </button>
+      )}
       {open && (
         <div
           className="w-[calc(100vw-2rem)] sm:w-[360px] max-w-[360px] rounded-2xl bg-background border border-border/60 shadow-2xl shadow-black/20 overflow-hidden animate-in fade-in zoom-in-95 duration-200"
