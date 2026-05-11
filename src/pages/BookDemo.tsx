@@ -421,6 +421,7 @@ export default function BookDemo() {
                                 onSelect={(d) => {
                                   setPickedDate(d);
                                   update('preferredDate', d ? format(d, 'yyyy-MM-dd') : '');
+                                  if (d) setDateOpen(false);
                                 }}
                                 disabled={(date) => {
                                   const today = new Date(); today.setHours(0, 0, 0, 0);
