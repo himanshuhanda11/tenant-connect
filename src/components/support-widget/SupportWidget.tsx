@@ -69,9 +69,28 @@ async function logEvent(
 
 type Step = 'intro' | 'name' | 'phone' | 'connecting';
 
-const ICON_DISMISS_KEY = 'aireatro_support_widget_icon_dismissed';
-const FULL_DISMISS_KEY = 'aireatro_support_widget_full_dismissed';
+const ICON_DISMISS_KEY = 'aireatro_support_widget_icon_dismissed_until';
+const FULL_DISMISS_KEY = 'aireatro_support_widget_full_dismissed_until';
 const FULL_MINIMIZED_KEY = 'aireatro_support_widget_full_minimized';
+const DISMISS_DURATION_MS = 24 * 60 * 60 * 1000; // 24 hours
+
+function isDismissed(key: string): boolean {
+  try {
+    const raw = localStorage.getItem(key);
+    if (!raw) return false;
+    const until = parseInt(raw, 10);
+    if (!Number.isFinite(until)) return false;
+    if (Date.now() < until) return true;
+    localStorage.removeItem(key);
+    return false;
+  } catch {
+    return false;
+  }
+}
+
+function setDismissed(key: string) {
+  try { localStorage.setItem(key, String(Date.now() + DISMISS_DURATION_MS)); } catch {}
+}
 
 export function SupportWidget() {
   const settings = useSupportSettings();
