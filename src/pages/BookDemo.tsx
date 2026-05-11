@@ -82,12 +82,8 @@ const USE_CASES = [
   'Abandoned cart recovery', 'Meta Ads → WhatsApp', 'Internal team inbox', 'Other',
 ];
 
-const WHY_AIREATRO = [
-  { icon: Zap, title: 'Setup in < 10 min', desc: 'Connect your number and start sending in minutes — no developers needed.' },
-  { icon: Bot, title: 'Built-in AI auto-replies', desc: 'Qualify leads 24/7 in 50+ languages with multi-turn AI that hands off to humans cleanly.' },
-  { icon: BarChart3, title: 'True Meta Ads attribution', desc: 'See which CTWA ad, campaign and creative drove every WhatsApp lead and revenue.' },
-  { icon: ShieldCheck, title: 'Official Meta Cloud API', desc: 'Green tick ready, fully compliant, with zero per-message platform fees.' },
-];
+
+
 
 const AGENDA = [
   'Walk through your business use case (5 min)',
