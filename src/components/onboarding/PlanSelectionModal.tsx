@@ -12,6 +12,7 @@ import { toast } from 'sonner';
 import { pricingPlans, type PricingPlan } from '@/data/pricingPlans';
 import { useGeoLocation, type PlanId } from '@/hooks/useGeoLocation';
 import { useNavigate } from 'react-router-dom';
+import { useStartCheckout } from '@/hooks/useWorkspaceBilling';
 
 interface Props {
   open: boolean;
@@ -59,8 +60,9 @@ export default function PlanSelectionModal({ open, tenantId, onSelected, onPaidI
   const scrollerRef = useRef<HTMLDivElement>(null);
   const [canLeft, setCanLeft] = useState(false);
   const [canRight, setCanRight] = useState(true);
-  const { getPlanPrice, formatAmount } = useGeoLocation();
+  const { getPlanPrice, formatAmount, region, country } = useGeoLocation() as any;
   const navigate = useNavigate();
+  const startCheckout = useStartCheckout();
 
   const updateArrows = () => {
     const el = scrollerRef.current;
@@ -106,24 +108,29 @@ export default function PlanSelectionModal({ open, tenantId, onSelected, onPaidI
     if (activatingId) return;
     setActivatingId(plan.id);
     try {
-      const trialEnds = new Date();
-      trialEnds.setDate(trialEnds.getDate() + 30);
-      try {
-        await supabase.from('subscriptions').upsert(
-          {
-            tenant_id: tenantId,
-            plan_id: `plan_${plan.id}`,
-            status: 'trialing',
-            trial_ends_at: trialEnds.toISOString(),
-          } as any,
-          { onConflict: 'tenant_id' },
-        );
-      } catch (e) {
-        console.warn('[PlanSelection] paid trial upsert non-fatal:', e);
+      onPaidIntent?.();
+      const res = await startCheckout.mutateAsync({
+        workspaceId: tenantId,
+        planId: plan.id,
+        billingCycle: 'monthly',
+        region,
+        country,
+        successPath: '/onboarding/billing-return',
+        cancelPath: '/dashboard?payment=cancelled',
+      });
+      if (res?.checkout_url) {
+        window.location.href = res.checkout_url;
+        return;
       }
-      onSelected(plan.name);
-      toast.success(`${plan.name} trial started — 1 month free 🚀`);
-    } finally {
+      toast.error('Could not start checkout');
+      setActivatingId(null);
+    } catch (e: any) {
+      const msg = e?.message || 'Could not start checkout';
+      if (msg.toLowerCase().includes('not configured')) {
+        toast.error('Stripe is not fully configured yet. Please contact support.');
+      } else {
+        toast.error(msg);
+      }
       setActivatingId(null);
     }
   };
