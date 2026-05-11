@@ -75,6 +75,10 @@ export function SupportWidget() {
   const { user } = useAuth();
   const { currentTenant } = useTenant();
   const [open, setOpen] = useState(false);
+  const [step, setStep] = useState<Step>('intro');
+  const [leadName, setLeadName] = useState('');
+  const [leadPhone, setLeadPhone] = useState('');
+  const [errMsg, setErrMsg] = useState<string | null>(null);
   const viewedRef = useRef<string | null>(null);
 
   // Read billing/plan info from currentTenant (best-effort, safe defaults)
@@ -127,9 +131,57 @@ export function SupportWidget() {
   const waHref = buildWaLink(settings.whatsapp_number, prefill);
   const brand = settings.brand_color || '#25D366';
 
+  const collectLead = !!settings.collect_lead_before_chat && !user;
+
+  const openWhatsApp = (extraName?: string, extraPhone?: string) => {
+    const finalPrefill = (extraName || extraPhone)
+      ? `${prefill}${extraName ? `\nName: ${extraName}` : ''}${extraPhone ? `\nPhone: ${extraPhone}` : ''}`
+      : prefill;
+    const href = buildWaLink(settings.whatsapp_number, finalPrefill);
+    logEvent('click', mode, user?.id ?? null, t?.id ?? null, {
+      lead_name: extraName ?? null,
+      lead_phone: extraPhone ?? null,
+    });
+    window.open(href, '_blank', 'noopener,noreferrer');
+  };
+
   const handleCtaClick = () => {
-    logEvent('click', mode, user?.id ?? null, t?.id ?? null);
-    window.open(waHref, '_blank', 'noopener,noreferrer');
+    if (mode === 'full_widget' && collectLead) {
+      setStep('name');
+      setErrMsg(null);
+      return;
+    }
+    openWhatsApp();
+  };
+
+  const submitName = () => {
+    const v = leadName.trim();
+    if (v.length < 2 || v.length > 80) { setErrMsg('Please enter your full name (2–80 characters).'); return; }
+    setErrMsg(null);
+    setStep('phone');
+  };
+
+  const submitPhone = () => {
+    const cleaned = leadPhone.replace(/[^\d+]/g, '');
+    const digits = cleaned.replace(/\D/g, '');
+    if (digits.length < 7 || digits.length > 15) { setErrMsg('Please enter a valid mobile number.'); return; }
+    setErrMsg(null);
+    setStep('connecting');
+    setTimeout(() => {
+      openWhatsApp(leadName.trim(), cleaned);
+    }, 900);
+  };
+
+  const resetForm = () => {
+    setStep('intro');
+    setLeadName('');
+    setLeadPhone('');
+    setErrMsg(null);
+  };
+
+  const handleClose = () => {
+    setOpen(false);
+    setTimeout(resetForm, 200);
   };
 
   if (mode === 'icon_only') {
