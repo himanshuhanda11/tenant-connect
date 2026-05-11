@@ -37,7 +37,7 @@ export default function BillingReturnPage() {
 
   // Poll until webhook activates the subscription
   useEffect(() => {
-    if (!sessionId) { navigate('/onboarding/plan', { replace: true }); return; }
+    if (!sessionId) { navigate('/dashboard/onboarding?step=1', { replace: true }); return; }
     const id = setInterval(() => { setTries((t) => t + 1); refetch(); }, 1500);
     return () => clearInterval(id);
   }, [sessionId, refetch, navigate]);
