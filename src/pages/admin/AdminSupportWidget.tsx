@@ -10,7 +10,8 @@ import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { toast } from '@/hooks/use-toast';
-import { Loader2, Save, ExternalLink, MessageCircle, X, Calendar, BarChart3, MousePointerClick, Eye } from 'lucide-react';
+import { Loader2, Save, ExternalLink, MessageCircle, X, Calendar, BarChart3, MousePointerClick, Eye, Users, Phone as PhoneIcon, Download } from 'lucide-react';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { SupportWidgetSettings, buildWaLink } from '@/lib/supportWidget';
 import { cn } from '@/lib/utils';
 
