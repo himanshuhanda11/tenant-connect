@@ -6,6 +6,16 @@ const POLL_INTERVAL_MS = 2 * 60 * 1000; // every 2 minutes
 const RELOAD_GUARD_KEY = "__lov_version_reload_at";
 const BUILD_STORAGE_KEY = "__lov_current_build_id";
 const CURRENT_BUILD_PARAM = "__build";
+const FRESH_BUILD_PARAM = "__fresh";
+
+function currentBuildFromUrl() {
+  try {
+    const url = new URL(window.location.href);
+    return url.searchParams.get(CURRENT_BUILD_PARAM) || url.searchParams.get(FRESH_BUILD_PARAM);
+  } catch {
+    return null;
+  }
+}
 
 function ensureBuildScopedUrl() {
   try {
@@ -41,7 +51,7 @@ async function wipeBrowserCaches() {
 function hardNavigateToFreshBuild() {
   const url = new URL(window.location.href);
   url.searchParams.set(CURRENT_BUILD_PARAM, CURRENT_BUILD_ID);
-  url.searchParams.set("__fresh", String(Date.now()));
+  url.searchParams.set(FRESH_BUILD_PARAM, String(Date.now()));
   window.location.replace(url.toString());
 }
 
@@ -56,6 +66,7 @@ async function checkVersion() {
     if (!res.ok) return;
     const { buildId } = (await res.json()) as { buildId?: string };
     if (!buildId || buildId === CURRENT_BUILD_ID) return;
+    if (buildId === currentBuildFromUrl()) return;
 
     // Avoid reload loops
     const last = Number(sessionStorage.getItem(RELOAD_GUARD_KEY) || "0");
