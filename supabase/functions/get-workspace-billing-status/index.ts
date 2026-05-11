@@ -34,8 +34,11 @@ Deno.serve(async (req) => {
         .select("country, pricing_region, currency").eq("id", workspaceId).maybeSingle(),
     ]);
 
-    const planId = (sub?.plan_id || "free").replace(/^plan_/, "");
-    const status = sub?.status || "active";
+    const rawStatus = sub?.status || "active";
+    const inactiveStatuses = new Set(["incomplete", "incomplete_expired", "canceled", "cancelled"]);
+    const hasConfirmedSubscription = !!sub?.stripe_subscription_id && !inactiveStatuses.has(rawStatus);
+    const planId = hasConfirmedSubscription ? (sub?.plan_id || "free").replace(/^plan_/, "") : "free";
+    const status = hasConfirmedSubscription ? rawStatus : "inactive";
     const trialEnd = sub?.trial_end ? new Date(sub.trial_end) : null;
     const now = Date.now();
     const trialDaysLeft = trialEnd
@@ -70,7 +73,7 @@ Deno.serve(async (req) => {
       cancel_at_period_end: !!sub?.cancel_at_period_end,
       last_payment_status: sub?.last_payment_status || null,
       stripe_customer_id: sub?.stripe_customer_id || null,
-      has_subscription: !!sub?.stripe_subscription_id,
+      has_subscription: hasConfirmedSubscription,
       pending_plan_id: pendingPlan,
       pending_billing_cycle: sub?.pending_billing_cycle || null,
       scheduled_change_at: scheduledAt?.toISOString() || null,
