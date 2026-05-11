@@ -77,6 +77,38 @@ Deno.serve(async (req) => {
         });
       }
 
+      // ── Billing gate: workspace must have a valid plan before connecting ──
+      const { data: sub } = await supabase
+        .from('subscriptions')
+        .select('plan_id, status, stripe_subscription_id')
+        .eq('tenant_id', tenantId)
+        .maybeSingle();
+
+      const ALLOWED = new Set(['active', 'trialing']);
+      const planId = sub?.plan_id ?? null;
+      const status = sub?.status ?? null;
+      const hasConfirmedSub = !!sub?.stripe_subscription_id;
+
+      // Free plan only counts as selected when an active subscription row exists
+      const freeOk = planId === 'free' && status === 'active';
+      // Paid plan needs a confirmed Stripe subscription in an allowed state
+      const paidOk = !!planId && planId !== 'free' && hasConfirmedSub && ALLOWED.has(String(status));
+
+      if (!freeOk && !paidOk) {
+        const reason = !planId ? 'no_plan_selected'
+          : (planId !== 'free' && !hasConfirmedSub) ? 'payment_incomplete'
+          : 'subscription_blocked';
+        return new Response(
+          JSON.stringify({
+            error: 'upgrade_or_plan_required',
+            reason,
+            plan_id: planId,
+            status,
+          }),
+          { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+        );
+      }
+
       const appId = Deno.env.get('META_APP_ID')!;
       const appSecret = Deno.env.get('META_APP_SECRET')!;
       if (!appId || !appSecret) {
