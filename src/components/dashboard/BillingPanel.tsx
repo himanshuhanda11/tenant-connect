@@ -19,7 +19,7 @@ import {
 import type { BillingUsage } from '@/types/dashboard';
 
 interface BillingPanelProps {
-  data: BillingUsage | null;
+  data: (BillingUsage & { nextPlanMessage?: string | null }) | null;
   loading?: boolean;
 }
 
