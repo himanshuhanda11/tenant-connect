@@ -361,4 +361,22 @@ export function SupportWidget() {
   );
 }
 
+function StepDots({ active, brand }: { active: 0 | 1; brand: string }) {
+  return (
+    <div className="flex items-center gap-1.5">
+      {[0, 1].map((i) => (
+        <span
+          key={i}
+          className="h-1.5 rounded-full transition-all"
+          style={{
+            width: i === active ? 24 : 8,
+            backgroundColor: i <= active ? brand : 'hsl(var(--muted))',
+          }}
+        />
+      ))}
+      <span className="text-[10px] text-muted-foreground ml-1">Step {active + 1} of 2</span>
+    </div>
+  );
+}
+
 export default SupportWidget;
