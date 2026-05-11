@@ -42,6 +42,10 @@ export default function ChangePlanDialog({ open, onOpenChange, currentPlanId, on
 
   const region = regionFromCountry((currentTenant as any)?.country);
   const country = (currentTenant as any)?.country ?? undefined;
+  const hasSelectedPlan = !!billing?.has_selected_plan || !!billing?.has_subscription;
+  const effectiveCurrentPlanId = hasSelectedPlan && billing?.plan_id
+    ? billing.plan_id.replace(/^plan_/, '').toLowerCase()
+    : currentPlanId;
   const periodEnd = billing?.current_period_end ? new Date(billing.current_period_end) : null;
   const periodEndStr = periodEnd?.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
 
@@ -105,7 +109,7 @@ export default function ChangePlanDialog({ open, onOpenChange, currentPlanId, on
     }
 
     // Decide which confirmation to show
-    const current = (billing?.plan_id || currentPlanId || 'free').toLowerCase();
+    const current = (effectiveCurrentPlanId || 'free').toLowerCase();
     if (current === planId && (billing?.billing_cycle ?? 'monthly') === cycle) {
       runChange(planId, cycle); return; // noop fast-path
     }
@@ -149,7 +153,7 @@ export default function ChangePlanDialog({ open, onOpenChange, currentPlanId, on
           <PlanCardsGrid
             region={region}
             cycle={isYearly ? 'yearly' : 'monthly'}
-            currentPlanId={currentPlanId}
+            currentPlanId={effectiveCurrentPlanId}
             showFree
             onSelect={handlePick}
             loadingPlanId={pending}

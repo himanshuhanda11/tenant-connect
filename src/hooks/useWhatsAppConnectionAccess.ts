@@ -73,8 +73,8 @@ export function evaluateWhatsAppAccess(
     };
   }
 
-  const planRedirect = `/onboarding/plan?workspace_id=${workspaceId}&reason=plan_required`;
-  const paymentRedirect = `/onboarding/plan?workspace_id=${workspaceId}&reason=payment_required`;
+  const dashboardPlanRedirect = `/dashboard/onboarding?workspace_id=${workspaceId}&step=1&reason=plan_required`;
+  const paymentRedirect = `/dashboard/onboarding?workspace_id=${workspaceId}&step=1&reason=payment_required`;
   const billingRedirect = `/billing?workspace_id=${workspaceId}&reason=resolve_billing`;
 
   // Step 1 not done — no plan picked yet OR abandoned checkout
@@ -84,8 +84,8 @@ export function evaluateWhatsAppAccess(
       isLoading: false,
       reason: 'no_plan_selected',
       requiredAction: 'choose_plan',
-      redirectUrl: planRedirect,
-      message: 'Choose a plan before connecting WhatsApp API.',
+      redirectUrl: dashboardPlanRedirect,
+      message: 'Please choose a plan before connecting WhatsApp API.',
       currentPlan: null,
       billingStatus: billing.status,
       workspaceId,
