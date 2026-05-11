@@ -53,6 +53,7 @@ import { JsonLd, organizationSchema, softwareApplicationSchema, createFAQSchema 
 
 const WhatsAppBusinessApi = () => {
   const navigate = useNavigate();
+  const [isAnnual, setIsAnnual] = useState(false);
 
   const goSignup = () => navigate('/signup');
   const goDemo = () => navigate('/demo');
