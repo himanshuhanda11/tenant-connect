@@ -34,7 +34,7 @@ Deno.serve(async (req) => {
         .select("country, pricing_region, currency").eq("id", workspaceId).maybeSingle(),
     ]);
 
-    const planId = (sub?.plan_id || "plan_free").replace(/^plan_/, "");
+    const planId = (sub?.plan_id || "free").replace(/^plan_/, "");
     const status = sub?.status || "active";
     const trialEnd = sub?.trial_end ? new Date(sub.trial_end) : null;
     const now = Date.now();
@@ -43,6 +43,17 @@ Deno.serve(async (req) => {
       : 0;
     const isTrialing = status === "trialing" || trialDaysLeft > 0;
     const periodEnd = sub?.current_period_end ? new Date(sub.current_period_end) : null;
+    const pendingPlan = sub?.pending_plan_id || (sub?.cancel_at_period_end ? "free" : null);
+    const scheduledAt = sub?.scheduled_change_at ? new Date(sub.scheduled_change_at) : periodEnd;
+
+    const fmt = (d: Date | null) => d ? d.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" }) : null;
+    let nextPlanMessage: string | null = null;
+    if (pendingPlan && pendingPlan !== planId && scheduledAt) {
+      const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+      nextPlanMessage = pendingPlan === "free"
+        ? `Your ${cap(planId)} plan will end on ${fmt(scheduledAt)} and switch to Free.`
+        : `Your ${cap(planId)} plan will downgrade to ${cap(pendingPlan)} on ${fmt(scheduledAt)}.`;
+    }
 
     return json({
       workspace_id: workspaceId,
@@ -60,6 +71,10 @@ Deno.serve(async (req) => {
       last_payment_status: sub?.last_payment_status || null,
       stripe_customer_id: sub?.stripe_customer_id || null,
       has_subscription: !!sub?.stripe_subscription_id,
+      pending_plan_id: pendingPlan,
+      pending_billing_cycle: sub?.pending_billing_cycle || null,
+      scheduled_change_at: scheduledAt?.toISOString() || null,
+      next_plan_message: nextPlanMessage,
       role: member.role,
       country: tenant?.country || null,
       pricing_region: sub?.pricing_region || tenant?.pricing_region || "OTHER",
