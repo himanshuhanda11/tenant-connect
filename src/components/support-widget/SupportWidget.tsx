@@ -186,7 +186,7 @@ export function SupportWidget() {
     setTimeout(resetForm, 200);
   };
 
-  if (mode === 'icon_only') {
+  if (mode === 'icon_only' && !collectLead) {
     return (
       <div className={cn('fixed bottom-4 sm:bottom-6 z-[60]', positionClass)}>
         <button
