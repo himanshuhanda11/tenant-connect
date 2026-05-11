@@ -5,14 +5,17 @@ self.addEventListener('install', () => {
 
 self.addEventListener('activate', (event) => {
   event.waitUntil((async () => {
-    try {
-      const cacheNames = await caches.keys();
-      await Promise.all(cacheNames.map((cacheName) => caches.delete(cacheName)));
-    } finally {
-      await self.registration.unregister();
-      const clients = await self.clients.matchAll({ type: 'window' });
-      clients.forEach((client) => client.navigate(client.url));
-    }
+    await self.clients.claim();
+    const cacheNames = await caches.keys();
+    await Promise.all(cacheNames.map((cacheName) => caches.delete(cacheName)));
+    const clients = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+    await Promise.all(clients.map((client) => {
+      const url = new URL(client.url);
+      url.searchParams.set('sw-cleanup', Date.now().toString());
+      if (url.hostname === 'aireatro.com') url.hostname = 'www.aireatro.com';
+      return client.navigate(url.toString());
+    }));
+    await self.registration.unregister();
   })());
 });
 
