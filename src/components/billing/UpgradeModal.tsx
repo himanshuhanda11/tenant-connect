@@ -64,7 +64,8 @@ export function UpgradeModalProvider({ children }: { children: ReactNode }) {
 
   const value = useMemo(() => ({ open, close }), [open, close]);
 
-  const currentPlan = state.currentPlan || billing?.plan_id?.replace(/^plan_/, "") || "free";
+  const hasSelectedPlan = !!billing?.has_selected_plan || !!billing?.has_subscription;
+  const currentPlan = state.currentPlan || (hasSelectedPlan ? billing?.plan_id?.replace(/^plan_/, "") : "") || "none";
   const requiredPlan = state.requiredPlan || "pro";
   const featureLabel = FEATURE_LABEL[state.feature] || state.feature;
   const isQuota = state.reason === "quota_exceeded";
@@ -128,8 +129,8 @@ export function UpgradeModalProvider({ children }: { children: ReactNode }) {
                   </DialogTitle>
                   <DialogDescription className="mt-1">
                     {isQuota && state.planLimit !== undefined
-                      ? `${PLAN_LABEL[currentPlan] ?? currentPlan} plan includes ${state.planLimit} — you're using ${state.currentUsage ?? state.planLimit}. Pick a plan below to continue.`
-                      : `${PLAN_LABEL[currentPlan] ?? currentPlan} plan doesn't include this. Choose a plan below — checkout opens instantly.`}
+                      ? `${PLAN_LABEL[currentPlan] ?? 'No selected'} plan includes ${state.planLimit} — you're using ${state.currentUsage ?? state.planLimit}. Pick a plan below to continue.`
+                      : `${PLAN_LABEL[currentPlan] ?? 'No selected'} plan doesn't include this. Choose a plan below — checkout opens instantly.`}
                   </DialogDescription>
                 </div>
               </div>
@@ -143,7 +144,7 @@ export function UpgradeModalProvider({ children }: { children: ReactNode }) {
             <PlanCardsGrid
               region={region}
               cycle={isYearly ? "yearly" : "monthly"}
-              currentPlanId={billing?.plan_id ?? `plan_${currentPlan}`}
+              currentPlanId={hasSelectedPlan ? (billing?.plan_id ?? `plan_${currentPlan}`) : undefined}
               showFree={false}
               onSelect={handleSelect}
               loadingPlanId={pending}
