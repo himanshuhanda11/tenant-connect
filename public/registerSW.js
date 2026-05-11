@@ -13,12 +13,12 @@
   const isBuildStamped = buildId && buildId !== '__CACHE_BUST__';
   const freshUrl = (freshBuildId) => {
     const url = new URL(window.location.href);
+    url.searchParams.set('__build', freshBuildId);
     url.searchParams.set('__fresh', freshBuildId);
     return url.toString();
   };
 
   const latestBuildId = async () => {
-    if (!isBuildStamped) return buildId;
     try {
       const res = await fetch(`/version.json?t=${Date.now()}`, { cache: 'no-store', credentials: 'omit' });
       const version = await res.json();
@@ -53,10 +53,12 @@
 
     const freshBuildId = await latestBuildId();
     const reloadKey = `__aireatro_cache_reset_${freshBuildId}`;
-    const isStaleShell = isBuildStamped && freshBuildId !== buildId;
+    const currentUrlBuild = new URL(window.location.href).searchParams.get('__build');
+    const currentUrlFresh = new URL(window.location.href).searchParams.get('__fresh');
+    const isStaleShell = freshBuildId !== buildId && currentUrlBuild !== freshBuildId && currentUrlFresh !== freshBuildId;
 
     try {
-      if ((hadPersistentCache || isStaleShell) && sessionStorage.getItem(reloadKey) !== '1' && new URL(window.location.href).searchParams.get('__fresh') !== freshBuildId) {
+      if ((hadPersistentCache || isStaleShell) && sessionStorage.getItem(reloadKey) !== '1') {
         sessionStorage.setItem(reloadKey, '1');
         window.location.replace(freshUrl(freshBuildId));
       }
