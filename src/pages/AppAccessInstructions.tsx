@@ -45,12 +45,12 @@ export default function AppAccessInstructions() {
                 <div>
                   <p className="text-sm text-muted-foreground">App URL</p>
                   <a 
-                    href="https://www.aireatro.com" 
+                    href="https://aireatro.com" 
                     target="_blank" 
                     rel="noopener noreferrer"
                     className="font-medium text-primary hover:underline"
                   >
-                    https://www.aireatro.com
+                    https://aireatro.com
                   </a>
                 </div>
                 <div>
@@ -78,7 +78,7 @@ export default function AppAccessInstructions() {
                   <span className="flex-shrink-0 w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center font-semibold">1</span>
                   <div>
                     <p className="font-medium">Visit the application</p>
-                    <p className="text-muted-foreground">Go to <a href="https://www.aireatro.com" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">https://www.aireatro.com</a></p>
+                    <p className="text-muted-foreground">Go to <a href="https://aireatro.com" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">https://aireatro.com</a></p>
                   </div>
                 </li>
                 <li className="flex gap-4">

@@ -143,7 +143,7 @@ export default function Products() {
     '@type': 'WebPage',
     name: 'Products | AiReatro',
     description: 'Explore AiReatro\'s complete WhatsApp Business platform — API integration, marketing tools, automation, and enterprise features.',
-    url: 'https://www.aireatro.com/products'
+    url: 'https://aireatro.com/products'
   };
 
   return (

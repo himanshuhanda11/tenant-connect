@@ -161,7 +161,7 @@ const ClickToWhatsApp = () => {
     '@type': 'WebPage',
     name: 'Click to WhatsApp App | AiReatro',
     description: 'Turn ads, links, QR codes, and buttons into instant WhatsApp conversations with full attribution, AI insights, and automation.',
-    url: 'https://www.aireatro.com/click-to-whatsapp'
+    url: 'https://aireatro.com/click-to-whatsapp'
   };
 
   return (

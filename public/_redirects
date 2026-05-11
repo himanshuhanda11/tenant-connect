@@ -1,3 +1,3 @@
-http://aireatro.com/* https://www.aireatro.com/:splat 301!
-https://aireatro.com/* https://www.aireatro.com/:splat 301!
+http://www.aireatro.com/* https://aireatro.com/:splat 301!
+https://www.aireatro.com/* https://aireatro.com/:splat 301!
 /* /index.html 200

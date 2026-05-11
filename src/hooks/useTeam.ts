@@ -715,7 +715,7 @@ export function useMemberInvites() {
             inviteeName: inviteeName || email.split('@')[0],
             workspaceName: currentTenant.name || 'Aireatro',
             token,
-            appUrl: 'https://www.aireatro.com',
+            appUrl: 'https://aireatro.com',
           },
         });
       } catch (emailErr) {
@@ -757,7 +757,7 @@ export function useMemberInvites() {
               to: invite.email,
               workspaceName: currentTenant?.name || 'Aireatro',
               token: newToken,
-              appUrl: 'https://www.aireatro.com',
+              appUrl: 'https://aireatro.com',
             },
           });
         }

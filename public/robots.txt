@@ -22,4 +22,4 @@ User-agent: facebookexternalhit
 Allow: /
 
 # Sitemap
-Sitemap: https://www.aireatro.com/sitemap.xml
+Sitemap: https://aireatro.com/sitemap.xml

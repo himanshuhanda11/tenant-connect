@@ -9,7 +9,7 @@ import {
   ArrowLeft, CheckCircle2, XCircle, Loader2, RefreshCw, ExternalLink, Code2,
 } from 'lucide-react';
 
-const PUBLIC_WIDGET_URL = 'https://www.aireatro.com/widget.js';
+const PUBLIC_WIDGET_URL = 'https://aireatro.com/widget.js';
 
 type Status = 'idle' | 'loading' | 'ok' | 'fail';
 type Check = { label: string; status: Status; detail?: string };

@@ -196,11 +196,11 @@ export default function FreeWhatsAppApiLifetime() {
           name="keywords" 
           content="free whatsapp api lifetime, whatsapp api free, whatsapp cloud api free, free whatsapp business api, whatsapp api no monthly fee" 
         />
-        <link rel="canonical" href="https://www.aireatro.com/free-whatsapp-api-lifetime" />
+        <link rel="canonical" href="https://aireatro.com/free-whatsapp-api-lifetime" />
         <meta property="og:title" content="Free WhatsApp API Lifetime | No Monthly Fees | Aireatro" />
         <meta property="og:description" content="Get Free WhatsApp API Lifetime access. No monthly fees, official Meta Cloud API." />
         <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://www.aireatro.com/free-whatsapp-api-lifetime" />
+        <meta property="og:url" content="https://aireatro.com/free-whatsapp-api-lifetime" />
         <script type="application/ld+json">{JSON.stringify(faqSchema)}</script>
         <script type="application/ld+json">{JSON.stringify(softwareSchema)}</script>
       </Helmet>
