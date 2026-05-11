@@ -249,18 +249,34 @@ export function SupportWidget() {
           onClick={handleCtaClick}
           aria-label={settings.icon_only_tooltip}
           title={settings.icon_only_tooltip}
-          className="group relative inline-flex items-center gap-2 pl-2 pr-4 py-2 rounded-full shadow-lg shadow-black/20 hover:scale-[1.03] active:scale-95 transition-transform text-white"
+          className="group relative inline-flex items-center gap-2 pl-2 pr-3 sm:pr-4 py-2 rounded-full shadow-lg shadow-black/20 hover:scale-[1.03] active:scale-95 transition-transform text-white"
           style={{ backgroundColor: brand }}
         >
+          {/* Pulse rings — "live" feel */}
           <span
-            className="absolute inset-0 rounded-full animate-ping opacity-25"
+            className="absolute inset-0 rounded-full animate-ping opacity-30"
+            style={{ backgroundColor: brand }}
+          />
+          <span
+            className="absolute inset-0 rounded-full animate-pulse opacity-20"
             style={{ backgroundColor: brand }}
           />
           <span className="relative h-10 w-10 rounded-full bg-white/15 flex items-center justify-center">
             <MessageCircle className="h-5 w-5" strokeWidth={2.4} />
+            {/* Live status dot */}
+            <span className="absolute -top-0.5 -right-0.5 flex h-3 w-3">
+              <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75 animate-ping" />
+              <span className="relative inline-flex h-3 w-3 rounded-full bg-emerald-400 ring-2 ring-white" />
+            </span>
           </span>
-          <span className="relative text-sm font-semibold whitespace-nowrap pr-1">
-            {settings.cta_text || 'Chat on WhatsApp'}
+          <span className="relative flex flex-col items-start leading-tight pr-1">
+            <span className="text-[9px] sm:text-[10px] font-semibold uppercase tracking-wider opacity-90 flex items-center gap-1">
+              <span className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-300 animate-pulse" />
+              Live Chat
+            </span>
+            <span className="text-xs sm:text-sm font-semibold whitespace-nowrap">
+              {settings.cta_text || 'Chat on WhatsApp'}
+            </span>
           </span>
         </button>
         <button
