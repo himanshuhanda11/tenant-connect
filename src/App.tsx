@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { HelmetProvider } from "react-helmet-async";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { TenantProvider } from "@/contexts/TenantContext";
 import { UpgradeModalProvider } from "@/components/billing/UpgradeModal";
@@ -201,6 +202,14 @@ function RouteLoader() {
 function DashboardOnboardingRedirect() {
   const location = useLocation();
   return <Navigate to={`/dashboard/onboarding${location.search}`} replace />;
+}
+
+function SupportWidgetWrapper() {
+  const location = useLocation();
+  const isMobile = useIsMobile();
+  const hideOnMobile = location.pathname === '/whatsapp-business-api' && isMobile;
+  if (hideOnMobile) return null;
+  return <SupportWidget />;
 }
 
 const App = () => (
@@ -414,7 +423,7 @@ const App = () => (
                   </Routes>
                 </Suspense>
                 <Suspense fallback={null}>
-                  <SupportWidget />
+                  <SupportWidgetWrapper />
                 </Suspense>
                 </LaunchOfferProvider>
                 </RequirePlanSelection>
