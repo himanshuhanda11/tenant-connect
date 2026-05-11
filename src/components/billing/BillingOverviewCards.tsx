@@ -85,12 +85,18 @@ export function BillingOverviewCards() {
         </CardHeader>
         <CardContent className="relative">
           <div className="flex items-center gap-2">
-            <span className="text-2xl font-bold">{planName}</span>
+            <span className="text-2xl font-bold">{hasSelectedPlan ? planName : 'Not selected'}</span>
           </div>
           <div className="flex items-center gap-1.5 mt-1.5">
-            <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4 gap-1">
-              <CheckCircle2 className="h-2.5 w-2.5" /> Active
-            </Badge>
+            {hasSelectedPlan ? (
+              <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4 gap-1">
+                <CheckCircle2 className="h-2.5 w-2.5" /> Active
+              </Badge>
+            ) : (
+              <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4 gap-1 text-muted-foreground">
+                Choose a plan to activate
+              </Badge>
+            )}
             {isTopPlan && (
               <Badge className="text-[10px] px-1.5 py-0 h-4 bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-300 border-0">
                 Top Tier
