@@ -11,11 +11,21 @@
   })();
 
   const isBuildStamped = buildId && buildId !== '__CACHE_BUST__';
-  const reloadKey = `__aireatro_cache_reset_${buildId}`;
-  const freshUrl = () => {
+  const freshUrl = (freshBuildId) => {
     const url = new URL(window.location.href);
-    url.searchParams.set('__fresh', buildId);
+    url.searchParams.set('__fresh', freshBuildId);
     return url.toString();
+  };
+
+  const latestBuildId = async () => {
+    if (!isBuildStamped) return buildId;
+    try {
+      const res = await fetch(`/version.json?t=${Date.now()}`, { cache: 'no-store', credentials: 'omit' });
+      const version = await res.json();
+      return version?.buildId || buildId;
+    } catch {
+      return buildId;
+    }
   };
 
   (async () => {
@@ -41,13 +51,17 @@
     console.warn('[cache-bust] Cache Storage wipe skipped:', error);
   }
 
+    const freshBuildId = await latestBuildId();
+    const reloadKey = `__aireatro_cache_reset_${freshBuildId}`;
+    const isStaleShell = isBuildStamped && freshBuildId !== buildId;
+
     try {
-      if (isBuildStamped && sessionStorage.getItem(reloadKey) !== '1' && new URL(window.location.href).searchParams.get('__fresh') !== buildId) {
+      if ((hadPersistentCache || isStaleShell) && sessionStorage.getItem(reloadKey) !== '1' && new URL(window.location.href).searchParams.get('__fresh') !== freshBuildId) {
         sessionStorage.setItem(reloadKey, '1');
-        window.location.replace(freshUrl());
+        window.location.replace(freshUrl(freshBuildId));
       }
     } catch {
-      if (hadPersistentCache) window.location.replace(freshUrl());
+      if (hadPersistentCache || isStaleShell) window.location.replace(freshUrl(freshBuildId));
     }
   })();
 })();
