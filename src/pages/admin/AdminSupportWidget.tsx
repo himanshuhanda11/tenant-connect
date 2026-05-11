@@ -59,6 +59,17 @@ export default function AdminSupportWidget() {
         fullClicks: e.filter((x) => x.event_type === 'click' && x.widget_mode === 'full_widget').length,
       });
     }
+
+    // Load captured leads (clicks with name/phone)
+    const { data: leadRows } = await supabase
+      .from('support_widget_events' as any)
+      .select('id, lead_name, lead_phone, page_url, widget_mode, created_at')
+      .eq('event_type', 'click')
+      .not('lead_name', 'is', null)
+      .order('created_at', { ascending: false })
+      .limit(200);
+    if (leadRows) setLeads(leadRows as any);
+
     setLoading(false);
   };
 
