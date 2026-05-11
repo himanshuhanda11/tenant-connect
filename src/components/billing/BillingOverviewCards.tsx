@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { useSubscription, useTeamUsage, usePhoneUsage, useUsage } from '@/hooks/useBilling';
 import { useEntitlements } from '@/hooks/useEntitlements';
+import { useWorkspaceBilling } from '@/hooks/useWorkspaceBilling';
 import { cn } from '@/lib/utils';
 
 const planIcons: Record<string, React.ReactNode> = {
@@ -46,6 +47,7 @@ export function BillingOverviewCards() {
   const { data: phoneUsage, isLoading: phoneLoading } = usePhoneUsage();
   const { data: usage, isLoading: usageLoading } = useUsage();
   const { data: entitlements } = useEntitlements();
+  const { data: billing } = useWorkspaceBilling();
 
   const isLoading = subLoading || teamLoading || phoneLoading || usageLoading;
 
@@ -62,9 +64,10 @@ export function BillingOverviewCards() {
     );
   }
 
+  const hasSelectedPlan = !!billing?.has_selected_plan || !!billing?.has_subscription;
   const plan = subscription?.plan;
-  const planName = plan?.name || 'Free';
-  const isTopPlan = (entitlements?.plan_id ?? 'free') === 'business';
+  const planName = hasSelectedPlan ? (plan?.name || 'Free') : 'None';
+  const isTopPlan = hasSelectedPlan && (entitlements?.plan_id ?? 'free') === 'business';
   const teamLimit = teamUsage?.limit === -1 ? '∞' : teamUsage?.limit || 0;
   const teamPercent = teamUsage && teamUsage.limit > 0 ? Math.round((teamUsage.used / teamUsage.limit) * 100) : 0;
   const phonePercent = phoneUsage && phoneUsage.limit > 0 ? Math.round((phoneUsage.used / phoneUsage.limit) * 100) : 0;
@@ -82,12 +85,18 @@ export function BillingOverviewCards() {
         </CardHeader>
         <CardContent className="relative">
           <div className="flex items-center gap-2">
-            <span className="text-2xl font-bold">{planName}</span>
+            <span className="text-2xl font-bold">{hasSelectedPlan ? planName : 'Not selected'}</span>
           </div>
           <div className="flex items-center gap-1.5 mt-1.5">
-            <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4 gap-1">
-              <CheckCircle2 className="h-2.5 w-2.5" /> Active
-            </Badge>
+            {hasSelectedPlan ? (
+              <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4 gap-1">
+                <CheckCircle2 className="h-2.5 w-2.5" /> Active
+              </Badge>
+            ) : (
+              <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4 gap-1 text-muted-foreground">
+                Choose a plan to activate
+              </Badge>
+            )}
             {isTopPlan && (
               <Badge className="text-[10px] px-1.5 py-0 h-4 bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-300 border-0">
                 Top Tier
