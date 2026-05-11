@@ -26,7 +26,7 @@ export default function PricingCTA() {
           <div className="relative">
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 backdrop-blur border border-white/15 text-white/90 text-[11px] font-semibold mb-5">
               <Sparkles className="w-3 h-3" />
-              30-day free trial · No credit card
+              Free plan: no card · Paid trial: card required
             </div>
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-background tracking-tight mb-3">
               Start scaling on WhatsApp today
