@@ -60,8 +60,9 @@ export default function PlanSelectionModal({ open, tenantId, onSelected, onPaidI
   const scrollerRef = useRef<HTMLDivElement>(null);
   const [canLeft, setCanLeft] = useState(false);
   const [canRight, setCanRight] = useState(true);
-  const { getPlanPrice, formatAmount } = useGeoLocation();
+  const { getPlanPrice, formatAmount, region, country } = useGeoLocation() as any;
   const navigate = useNavigate();
+  const startCheckout = useStartCheckout();
 
   const updateArrows = () => {
     const el = scrollerRef.current;
