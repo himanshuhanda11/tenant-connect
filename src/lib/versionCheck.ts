@@ -5,6 +5,18 @@ const CURRENT_BUILD_ID = typeof __BUILD_ID__ !== "undefined" ? __BUILD_ID__ : "d
 const POLL_INTERVAL_MS = 2 * 60 * 1000; // every 2 minutes
 const RELOAD_GUARD_KEY = "__lov_version_reload_at";
 const BUILD_STORAGE_KEY = "__lov_current_build_id";
+const CURRENT_BUILD_PARAM = "__build";
+
+function ensureBuildScopedUrl() {
+  try {
+    const url = new URL(window.location.href);
+    if (url.searchParams.get(CURRENT_BUILD_PARAM) === CURRENT_BUILD_ID) return;
+    url.searchParams.set(CURRENT_BUILD_PARAM, CURRENT_BUILD_ID);
+    window.history.replaceState(window.history.state, "", url.toString());
+  } catch {
+    /* ignore */
+  }
+}
 
 async function wipeBrowserCaches() {
   try {
@@ -67,6 +79,8 @@ export function startVersionPolling() {
   // Only run in production builds (dev has its own HMR).
   if (CURRENT_BUILD_ID === "dev") return;
   if (timer) return;
+
+  ensureBuildScopedUrl();
 
   void clearCachesAfterFreshBuild();
 
