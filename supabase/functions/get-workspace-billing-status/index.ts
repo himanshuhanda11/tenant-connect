@@ -34,13 +34,13 @@ Deno.serve(async (req) => {
         .select("country, pricing_region, currency").eq("id", workspaceId).maybeSingle(),
     ]);
 
-    const rawStatus = sub?.status || "active";
+    const rawStatus = sub?.status || "inactive";
     const inactiveStatuses = new Set(["incomplete", "incomplete_expired", "canceled", "cancelled"]);
-    const normalizedSubPlan = (sub?.plan_id || "free").replace(/^plan_/, "");
+    const normalizedSubPlan = sub?.plan_id ? sub.plan_id.replace(/^plan_/, "") : null;
     const hasSelectedPlan = !!sub && !inactiveStatuses.has(rawStatus) &&
-      (normalizedSubPlan === "free" || !!sub?.stripe_subscription_id);
+      !!normalizedSubPlan && (normalizedSubPlan === "free" || !!sub?.stripe_subscription_id);
     const hasConfirmedSubscription = !!sub?.stripe_subscription_id && !inactiveStatuses.has(rawStatus);
-    const planId = hasSelectedPlan ? normalizedSubPlan : "free";
+    const planId = hasSelectedPlan ? normalizedSubPlan : null;
     const status = hasSelectedPlan ? rawStatus : "inactive";
     const trialEnd = sub?.trial_end ? new Date(sub.trial_end) : null;
     const now = Date.now();
@@ -49,8 +49,8 @@ Deno.serve(async (req) => {
       : 0;
     const isTrialing = status === "trialing" || trialDaysLeft > 0;
     const periodEnd = sub?.current_period_end ? new Date(sub.current_period_end) : null;
-    const pendingPlan = sub?.pending_plan_id || (sub?.cancel_at_period_end ? "free" : null);
-    const scheduledAt = sub?.scheduled_change_at ? new Date(sub.scheduled_change_at) : periodEnd;
+    const pendingPlan = hasSelectedPlan ? (sub?.pending_plan_id || (sub?.cancel_at_period_end ? "free" : null)) : null;
+    const scheduledAt = hasSelectedPlan ? (sub?.scheduled_change_at ? new Date(sub.scheduled_change_at) : periodEnd) : null;
 
     const fmt = (d: Date | null) => d ? d.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" }) : null;
     let nextPlanMessage: string | null = null;
@@ -64,7 +64,7 @@ Deno.serve(async (req) => {
     return json({
       workspace_id: workspaceId,
       plan_id: planId,
-      plan_name: planId.charAt(0).toUpperCase() + planId.slice(1),
+      plan_name: planId ? planId.charAt(0).toUpperCase() + planId.slice(1) : null,
       billing_cycle: sub?.billing_cycle || "monthly",
       status,
       trial_status: sub?.trial_status || "none",
