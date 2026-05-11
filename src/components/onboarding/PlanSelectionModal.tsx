@@ -12,6 +12,7 @@ import { toast } from 'sonner';
 import { pricingPlans, type PricingPlan } from '@/data/pricingPlans';
 import { useGeoLocation, type PlanId } from '@/hooks/useGeoLocation';
 import { useNavigate } from 'react-router-dom';
+import { useStartCheckout } from '@/hooks/useWorkspaceBilling';
 
 interface Props {
   open: boolean;
