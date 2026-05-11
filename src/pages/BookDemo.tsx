@@ -404,7 +404,7 @@ export default function BookDemo() {
                       <div className="grid sm:grid-cols-2 gap-3">
                         <div className="space-y-1.5">
                           <Label className="text-xs">Preferred date *</Label>
-                          <Popover>
+                          <Popover open={dateOpen} onOpenChange={setDateOpen}>
                             <PopoverTrigger asChild>
                               <Button type="button" variant="outline"
                                 className={cn('h-10 w-full justify-start text-left font-normal',
