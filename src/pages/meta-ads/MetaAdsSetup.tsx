@@ -299,8 +299,11 @@ export default function MetaAdsSetup() {
     toast.success('Meta permissions refreshed successfully');
   };
 
+  const metaAdsGate = useFeatureGate('meta_ads');
+
   const handleFbLogin = async () => {
     if (!currentTenant?.id) { toast.error('No workspace selected'); return; }
+    if (!(await metaAdsGate.guard())) return;
     if (!window.FB) { toast.error('Facebook SDK not loaded. Please refresh.'); return; }
     setIsFbLoading(true);
     try {
