@@ -30,7 +30,8 @@ async function rpcCheck(tenantId: string, featureKey: string): Promise<FeatureCh
  *   if (!await gate.guard()) return; // shows upgrade modal & aborts
  */
 export function useFeatureGate(featureKey: string) {
-  const { currentTenantId } = useTenant() as any;
+  const { currentTenant } = useTenant();
+  const currentTenantId = currentTenant?.id ?? null;
   const { open } = useUpgradeModal();
   const [state, setState] = useState<FeatureCheck>({ allowed: false, loading: true });
 
