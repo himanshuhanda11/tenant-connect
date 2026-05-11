@@ -134,10 +134,7 @@ export function PlanCardsGrid({
                   <span className={cn('text-xs', dark ? 'text-white/60' : 'text-muted-foreground')}>/mo</span>
                 </div>
               )}
-              {!isFree && cycle === 'yearly' && (
-                <p className={cn('text-[11px] mt-1', dark ? 'text-emerald-300' : 'text-primary')}>Billed yearly · save 20%</p>
-              )}
-              {!isFree && cycle !== 'yearly' && showTrialBadge && !locked && (
+              {!isFree && !locked && (
                 <p className={cn('text-[11px] mt-1 font-medium', dark ? 'text-emerald-300' : 'text-primary')}>
                   {plan.trialDays}-day free trial · card required, cancel anytime
                 </p>
@@ -218,7 +215,7 @@ export function PlanCardsGrid({
               ) : isDowngrade ? (
                 <>Downgrade <ArrowRight className="w-4 h-4" /></>
               ) : (
-                <>{showTrialBadge ? '🎁 Start 30-Day Free Trial' : 'Get ' + plan.name} <ArrowRight className="w-4 h-4" /></>
+                <>🎁 Start 30-Day Free Trial <ArrowRight className="w-4 h-4" /></>
               )}
             </Button>
           </motion.div>

@@ -66,8 +66,11 @@ export function useLaunchOffer() {
       if (error) throw error;
       if ((data as any)?.ok === false) {
         const reason = (data as any)?.reason ?? (data as any)?.error ?? 'Could not activate offer';
-        const err: any = new Error((data as any)?.message ?? reason);
+        const message = (data as any)?.message ?? reason;
+        const err: any = new Error(message);
         err.reason = reason;
+        err.planId = (data as any)?.plan_id ?? planId;
+        err.workspaceId = (data as any)?.workspace_id ?? workspaceId ?? null;
         throw err;
       }
       return data;

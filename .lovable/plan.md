@@ -1,100 +1,58 @@
-# Plan: End-to-End Plan Enforcement
+## Goal
 
-The platform already has the building blocks — `workspace_entitlements` table, `check_plan_access` RPC, `requirePlanAccess` edge helper, `usePlanAccess` / `usePlanGate` hooks, and `<PlanGate>` / `<UpgradePrompt>` components. The gap is that they aren't wired consistently and the `check_plan_access` RPC doesn't yet cover every feature key. This plan closes the gap rather than rebuilding from scratch.
+Make every plan-selection surface in the app behave the same:
 
-## Current state for `paradise-migration-services`
-- Plan: `free`, status `active`
-- AI / Ads / Integrations / Autoforms: all disabled
-- Limits: 100 conv/mo, 0 broadcasts, 5 templates, 0 flows, `team_member_limit` NULL (treated as unlimited — bug)
+- **Free** → instant, no card, no Stripe call.
+- **Basic / Pro / Business** → Stripe Checkout opens, card is captured, 30-day trial starts, Stripe auto-charges after day 30, webhook keeps `subscriptions` + `workspace_entitlements` in sync.
 
-## 1. Database — single source of truth
+## Root cause of "trial started without card"
 
-Migration that:
+The DB function `claim_launch_offer(_plan_id, _workspace_id)` calls `apply_launch_offer_to_tenant`, which **inserts a `trialing` subscription and `active` entitlement for paid plans without ever touching Stripe**. That's why Pro/Business trials activated with no card. The Stripe checkout edge function is already correct (`payment_method_collection: always`, `trial_period_days: 30`, `missing_payment_method: cancel`). The launch-offer RPC is the bypass.
 
-1. **Backfill plan defaults** on every `workspace_entitlements` row based on `plan` (Free/Basic/Pro/Business) using a new `public.plan_defaults(plan)` SQL function. NULL limits get the plan's defaults; never NULL again.
-2. **Extend `check_plan_access`** so every feature key the app uses is covered:
-   - `team_member` (count vs `team_member_limit`)
-   - `automation`, `flow`, `autoform`, `widget`, `integration`, `campaign`, `meta_ads`, `ai_*`
-   - For each: returns `{allowed, reason, current_usage, plan_limit, current_plan, upgrade_to}`
-3. **Add `enforce_plan_access(workspace_id, feature_key)`** SECURITY DEFINER trigger helper that raises on violation.
-4. **Attach BEFORE INSERT triggers** that call `enforce_plan_access` on:
-   `tenant_members`, `agents`, `automation_workflows`, `flows`, `forms` (autoforms), `widgets`, `integrations`, `campaigns`, `meta_ad_accounts`. This is the hard backstop — even raw SQL/API bypass is blocked.
-5. **Tighten RLS** for INSERT on the same tables to additionally require `check_plan_access(...).allowed = true`.
+## Backend changes (one migration)
 
-## 2. Edge functions — server gate
+1. **`apply_launch_offer_to_tenant`** — only apply the FREE plan. For paid plans return `{ok:false, reason:'requires_checkout'}` without writing anything.
+2. **`claim_launch_offer(_plan_id)` (1-arg)** and **`claim_launch_offer(_plan_id, _workspace_id)` (2-arg)** — for paid plans, do **not** mark `has_used_trial`, do **not** call apply, and return `{ok:false, reason:'requires_checkout', plan_id, workspace_id}`. Free plans keep current behavior.
 
-Add `requirePlanAccess(tenantId, featureKey)` (already exists in `_shared/planAccess.ts`) at the top of these functions and return `402 plan_access_denied`:
+This way the trial flag is only consumed once Stripe confirms the subscription via webhook (separate already-tracked logic).
 
-- `create-team-member` (already has `invite_member` — switch to `team_member`)
-- automation/flow create endpoints
-- meta-ads connect/create
-- widget create
-- integrations connect (already partially present; standardize)
-- broadcast/campaign send
+## Edge function audit
 
-## 3. Frontend hook — one entry point
+- `billing-create-checkout` — already correct (free → instant via `billing-apply-plan`; paid → Stripe Checkout with trial + card). No change.
+- `stripe-webhook` — verify it handles `checkout.session.completed`, `customer.subscription.created/updated/deleted`, `invoice.payment_succeeded`, `invoice.payment_failed`, mapping to `trialing` / `active` / `past_due` / `canceled` on `subscriptions` and `workspace_entitlements`. Add any missing event handlers.
 
-Replace ad-hoc checks with one hook `useFeatureGate(featureKey)` returning `{allowed, loading, currentPlan, requiredPlan, currentUsage, planLimit, openUpgrade()}`. Internally calls `check_plan_access` RPC (server-authoritative) and pulls plan label.
+## Frontend changes
 
-Refactor `usePlanGate` and `usePlanAccess` callers to delegate to it.
+1. **`useLaunchOffer.claim`** — when RPC returns `reason:'requires_checkout'`, throw a typed error so callers route to Stripe checkout instead of showing success.
+2. **`SelectWorkspacePlanPage` & `ChangePlanDialog`** — remove the "claim then apply" branch for paid plans entirely; paid always goes via `startCheckout` → `window.location = checkout_url`. Free still uses claim/apply-plan path.
+3. **`LaunchOfferDialog`** — rename CTA from "Claim Free Access" to **"Start 30-Day Free Trial"**, add subtext: *"Card required for paid plans · Free plan needs no card"*. Add a small secondary "Start Free Plan" link that routes free.
+4. **`PlanCardsGrid` / `PricingCards` / pricing page / billing dialogs** — unify CTA labels and trust microcopy:
+   - Free card: button **"Start Free"**, badge **"No card required"**.
+   - Paid cards: button **"Start 30-Day Free Trial"**, badge **"Card required · Cancel anytime"**.
+5. **Billing dashboard (`Billing.tsx`)** — surface trial days left, next billing date, saved card brand/last4, and "Update payment method" link (Stripe customer portal already available via existing `subscription-update` function — wire the button if not already).
 
-## 4. Upgrade modal
+## What this does NOT change
 
-New `<UpgradeModal>` (controlled via `UpgradeModalProvider` context) — premium UI with current vs required plan, feature list, comparison link, "Upgrade" CTA → `/pricing`. Triggered by `openUpgrade(featureKey)`.
+- Region/currency selection (already correct).
+- Stripe price ID resolution (already correct).
+- The free-plan instant activation path.
+- Existing webhook security & idempotency.
 
-Replace inline `<UpgradePrompt>` redirects with the modal where action-blocking is needed (button clicks).
+## Files to touch
 
-## 5. Wire feature gates at click sites
+- New migration replacing the two `claim_launch_offer` overloads + `apply_launch_offer_to_tenant`.
+- `src/hooks/useLaunchOffer.ts`
+- `src/components/billing/ChangePlanDialog.tsx`
+- `src/pages/onboarding/SelectWorkspacePlanPage.tsx`
+- `src/components/offer/LaunchOfferDialog.tsx`
+- `src/components/billing/PlanCardsGrid.tsx`
+- `src/components/pricing/PricingCards.tsx`
+- `src/pages/Billing.tsx` (display-only additions)
+- `supabase/functions/stripe-webhook/index.ts` (only if missing event handlers)
 
-Wrap or intercept the primary CTAs:
-- Team → "Invite member" button & `InviteMemberModal`
-- Automation → "Create workflow"
-- Flows → "New flow"
-- Auto-forms → "New form"
-- Widgets → "Create widget"
-- Integrations → connect buttons
-- Meta Ads → connect / create campaign
-- Campaigns → new campaign / send broadcast
+## Verification
 
-Each calls `featureGate.check()` first; if denied, opens `<UpgradeModal>` and aborts.
-
-For passive UX, keep `<PlanGate>` / Pro badges on cards (already exist) so users see the lock state.
-
-## 6. Plan limits config
-
-Centralize plan defaults in `src/data/plans.config.ts` (single source for UI labels) and mirror them in the SQL `plan_defaults` function so DB and UI agree:
-
-| Plan | Members | Automations | Flows | Widgets | Integrations | Campaigns | Meta Ads | AI |
-|---|---|---|---|---|---|---|---|---|
-| Free | 1 | 1 | 0 | 1 | 0 | 1 | ✗ | ✗ |
-| Basic | 5 | 5 | 3 | 3 | 2 | 5 | ✗ | basic |
-| Pro | 10 | 25 | 15 | 10 | 10 | 25 | ✓ | full |
-| Business | 25 | unlimited | unlimited | unlimited | unlimited | unlimited | ✓ | enterprise |
-
-(Numbers are the proposed defaults; user can adjust before approval.)
-
-## 7. Verification for `paradise-migration-services`
-
-After deploy:
-1. Confirm entitlement row has filled limits.
-2. Hit `/team` → Invite → expect upgrade modal.
-3. Hit `/automation` → New → expect upgrade modal once over limit.
-4. Hit `/meta-ads` → Connect → expect modal (Pro required).
-5. Call `create-team-member` edge function directly → expect `402`.
-6. Try `INSERT INTO automation_workflows` via RPC → expect trigger rejection.
-
-## Files to touch (high level)
-
-- New migration (limits backfill, `plan_defaults`, expanded `check_plan_access`, `enforce_plan_access`, triggers, RLS tightening)
-- `src/hooks/useFeatureGate.ts` (new)
-- `src/components/billing/UpgradeModal.tsx` + `UpgradeModalProvider.tsx` (new)
-- `src/data/plans.config.ts` (limits map)
-- Edits to: `Team.tsx` / `InviteMemberModal.tsx`, `Automation.tsx`, flows pages, autoforms pages, widgets pages, `IntegrationsHub.tsx`, meta-ads pages, campaigns pages
-- Edits to edge functions: `create-team-member`, automation/flow/widget/meta-ads/campaign creators
-
-## Out of scope
-- Building a new pricing/checkout flow (Stripe upgrade already wired via `/pricing`)
-- Changing existing plan tiers/pricing
-- Migrating existing data beyond limit backfill
-
-Approve and I'll execute the migration first, then ship code in this order: hook → modal → click-site wiring → edge function gates.
+- Free plan from onboarding/pricing/billing → no Stripe redirect, workspace usable instantly.
+- Paid plan from any surface → Stripe Checkout opens, card required, returns to `/billing?status=success`, webhook flips status to `trialing` with `trial_ends_at = now()+30d`.
+- Calling old `claim_launch_offer('pro', <ws>)` directly → returns `requires_checkout`, no DB writes.
+- Stripe test card `4000000000000341` (charge fails) at trial end → webhook flips to `past_due`.
