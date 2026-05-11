@@ -270,11 +270,11 @@ export function SupportWidget() {
             </span>
           </span>
           <span className="relative flex flex-col items-start leading-tight pr-1">
-            <span className="text-[9px] sm:text-[10px] font-semibold uppercase tracking-wider opacity-90 flex items-center gap-1">
-              <span className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-300 animate-pulse" />
+            <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-white flex items-center gap-1 whitespace-nowrap drop-shadow-sm">
+              <span className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-300 animate-pulse shadow-[0_0_6px_rgba(110,231,183,0.9)]" />
               Live Chat
             </span>
-            <span className="text-xs sm:text-sm font-semibold whitespace-nowrap">
+            <span className="text-xs sm:text-sm font-semibold whitespace-nowrap text-white/95">
               {settings.cta_text || 'Chat on WhatsApp'}
             </span>
           </span>
