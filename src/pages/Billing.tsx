@@ -37,7 +37,7 @@ export default function Billing() {
 
   const hasConfirmedSubscription = !!billing?.has_subscription;
   const hasSelectedPlan = !!billing?.has_selected_plan || hasConfirmedSubscription;
-  const currentPlanId = (hasSelectedPlan ? billing?.plan_id : 'free').replace(/^plan_/, '');
+  const currentPlanId = (hasSelectedPlan && billing?.plan_id ? billing.plan_id : '').replace(/^plan_/, '');
   const isTopPlan = currentPlanId === 'business';
   const showPaymentFailed = billing?.status === 'past_due' || billing?.status === 'unpaid' || billing?.last_payment_status === 'failed';
   const region = useMemo(() => regionFromCountry((currentTenant as any)?.country), [currentTenant]);
