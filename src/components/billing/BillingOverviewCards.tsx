@@ -47,6 +47,7 @@ export function BillingOverviewCards() {
   const { data: phoneUsage, isLoading: phoneLoading } = usePhoneUsage();
   const { data: usage, isLoading: usageLoading } = useUsage();
   const { data: entitlements } = useEntitlements();
+  const { data: billing } = useWorkspaceBilling();
 
   const isLoading = subLoading || teamLoading || phoneLoading || usageLoading;
 
@@ -63,9 +64,10 @@ export function BillingOverviewCards() {
     );
   }
 
+  const hasSelectedPlan = !!billing?.has_selected_plan || !!billing?.has_subscription;
   const plan = subscription?.plan;
-  const planName = plan?.name || 'Free';
-  const isTopPlan = (entitlements?.plan_id ?? 'free') === 'business';
+  const planName = hasSelectedPlan ? (plan?.name || 'Free') : 'None';
+  const isTopPlan = hasSelectedPlan && (entitlements?.plan_id ?? 'free') === 'business';
   const teamLimit = teamUsage?.limit === -1 ? '∞' : teamUsage?.limit || 0;
   const teamPercent = teamUsage && teamUsage.limit > 0 ? Math.round((teamUsage.used / teamUsage.limit) * 100) : 0;
   const phonePercent = phoneUsage && phoneUsage.limit > 0 ? Math.round((phoneUsage.used / phoneUsage.limit) * 100) : 0;
