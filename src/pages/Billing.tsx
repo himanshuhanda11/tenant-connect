@@ -39,7 +39,8 @@ export default function Billing() {
   const openPortal = useOpenBillingPortal();
   const changePlan = useChangePlan();
 
-  const currentPlanId = (billing?.plan_id ?? entitlements?.plan_id ?? subscription?.plan_id ?? 'free').replace(/^plan_/, '');
+  const hasConfirmedSubscription = !!billing?.has_subscription;
+  const currentPlanId = (hasConfirmedSubscription ? billing?.plan_id : 'free').replace(/^plan_/, '');
   const isTopPlan = currentPlanId === 'business';
   const showPaymentFailed = billing?.status === 'past_due' || billing?.status === 'unpaid' || billing?.last_payment_status === 'failed';
   const region = useMemo(() => regionFromCountry((currentTenant as any)?.country), [currentTenant]);
@@ -68,7 +69,7 @@ export default function Billing() {
     setPlanLoading(planId);
     try {
       // No active Stripe sub yet → fresh checkout (skip for free)
-      if (!billing?.has_subscription) {
+      if (!hasConfirmedSubscription) {
         if (planId === 'free') {
           toast.info('You are already on a free or inactive plan');
           return;
@@ -113,14 +114,14 @@ export default function Billing() {
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-2 self-start">
-            {billing?.has_subscription && (
+            {hasConfirmedSubscription && (
               <BillingStatusBadge
                 status={(showPaymentFailed ? 'payment_failed' : (billing.is_trialing ? 'trialing' : billing.status)) as any}
                 planName={billing.plan_name}
                 trialDaysLeft={billing.is_trialing ? billing.trial_days_left : undefined}
               />
             )}
-            {billing?.has_subscription && billing?.stripe_customer_id && (
+            {hasConfirmedSubscription && billing?.stripe_customer_id && (
               <Button size="sm" variant={showPaymentFailed ? 'destructive' : 'outline'} className="gap-1.5"
                 onClick={() => currentTenant?.id && openPortal.mutate(currentTenant.id)}
                 disabled={openPortal.isPending}>
@@ -198,7 +199,7 @@ export default function Billing() {
                   currentPlanId={currentPlanId}
                   showFree
                   variant="light"
-                  showTrialBadge={!billing?.has_subscription}
+                  showTrialBadge={!hasConfirmedSubscription}
                   loadingPlanId={planLoading}
                   onSelect={handleSharedPlanSelect}
                 />
