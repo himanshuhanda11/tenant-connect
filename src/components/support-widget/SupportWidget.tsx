@@ -163,6 +163,16 @@ export function SupportWidget() {
     window.open(href, '_blank', 'noopener,noreferrer');
   };
 
+  const openBookDemo = () => {
+    logEvent('demo_click', mode === 'hidden' ? 'full_widget' : mode, user?.id ?? null, t?.id ?? null);
+    const url = settings.book_demo_url || '/book-demo';
+    if (/^https?:\/\//i.test(url)) {
+      window.open(url, '_blank', 'noopener,noreferrer');
+    } else {
+      window.open(url, '_blank', 'noopener,noreferrer');
+    }
+  };
+
   const handleCtaClick = () => {
     if (collectLead) {
       setOpen(true);
