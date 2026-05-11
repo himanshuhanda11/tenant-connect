@@ -11,7 +11,7 @@ import { PlanCardsGrid } from '@/components/billing/PlanCardsGrid';
 import { MonthlyYearlyToggle } from '@/components/billing/MonthlyYearlyToggle';
 import { useTenant } from '@/contexts/TenantContext';
 import { useStartCheckout, useChangePlan, useWorkspaceBilling } from '@/hooks/useWorkspaceBilling';
-import { useLaunchOffer, useTrialEligibility } from '@/hooks/useLaunchOffer';
+import { useTrialEligibility } from '@/hooks/useLaunchOffer';
 import { regionFromCountry, type PlanId } from '@/data/plans.config';
 import ContactAdminDialog from './ContactAdminDialog';
 
@@ -30,7 +30,6 @@ type ConfirmKind = 'upgrade' | 'downgrade' | 'free' | 'trial-swap' | null;
 export default function ChangePlanDialog({ open, onOpenChange, currentPlanId, onChanged }: ChangePlanDialogProps) {
   const { currentTenant } = useTenant();
   const { data: billing } = useWorkspaceBilling();
-  const { claim } = useLaunchOffer();
   const { data: isEligible } = useTrialEligibility();
   const startCheckout = useStartCheckout();
   const changePlan = useChangePlan();
@@ -55,7 +54,13 @@ export default function ChangePlanDialog({ open, onOpenChange, currentPlanId, on
     try {
       // Free with no existing sub → instant claim
       if (planId === 'free' && !billing?.has_subscription) {
-        await claim({ planId, workspaceId: currentTenant.id });
+        await startCheckout.mutateAsync({
+          workspaceId: currentTenant.id,
+          planId,
+          billingCycle: 'monthly',
+          region,
+          country,
+        });
         toast.success('Switched to Free plan');
         onChanged?.(); onOpenChange(false); return;
       }
