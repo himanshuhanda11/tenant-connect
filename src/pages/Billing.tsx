@@ -181,39 +181,23 @@ export default function Billing() {
                     <CardDescription>
                       {isTopPlan
                         ? 'You are on the highest tier — all features unlocked'
-                        : 'Select the plan that best fits your needs'}
+                        : 'Same plans, prices and features as the public Pricing page.'}
                     </CardDescription>
                   </div>
-                  <div className="flex items-center gap-3 bg-background rounded-lg px-3 py-2 border">
-                    <Label htmlFor="billing-toggle" className={`text-xs ${!isYearly ? 'font-semibold' : 'text-muted-foreground'}`}>
-                      Monthly
-                    </Label>
-                    <Switch
-                      id="billing-toggle"
-                      checked={isYearly}
-                      onCheckedChange={setIsYearly}
-                    />
-                    <Label htmlFor="billing-toggle" className={`text-xs ${isYearly ? 'font-semibold' : 'text-muted-foreground'}`}>
-                      Yearly
-                      <Badge variant="secondary" className="ml-1.5 text-[10px] px-1.5 py-0">-20%</Badge>
-                    </Label>
-                  </div>
+                  <MonthlyYearlyToggle yearly={isYearly} onChange={setIsYearly} variant="light" />
                 </div>
               </CardHeader>
               <CardContent className="p-4 sm:p-6">
-                <div className="grid gap-4 sm:gap-5 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
-                  {plans?.map((plan) => (
-                    <PlanCard
-                      key={plan.id}
-                      plan={plan}
-                      isCurrentPlan={currentPlanId === plan.id}
-                      isYearly={isYearly}
-                      isRecommended={!isTopPlan && plan.name === 'Pro'}
-                      currentPlanId={currentPlanId}
-                      onSelect={handlePlanSelect}
-                    />
-                  ))}
-                </div>
+                <PlanCardsGrid
+                  region={region}
+                  cycle={isYearly ? 'yearly' : 'monthly'}
+                  currentPlanId={currentPlanId}
+                  showFree
+                  variant="light"
+                  showTrialBadge={!billing?.has_subscription}
+                  loadingPlanId={planLoading}
+                  onSelect={handleSharedPlanSelect}
+                />
               </CardContent>
             </Card>
             <AddOnsSection />
