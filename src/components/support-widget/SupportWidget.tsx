@@ -198,8 +198,18 @@ export function SupportWidget() {
     setErrMsg(null);
   };
 
-  const handleClose = () => {
+  // Minimize: collapse to FAB, remember for the session so it doesn't auto-open again.
+  const handleMinimize = () => {
     setOpen(false);
+    try { sessionStorage.setItem(FULL_MINIMIZED_KEY, '1'); } catch {}
+    setTimeout(resetForm, 200);
+  };
+
+  // Dismiss: hide the widget entirely for this session (no FAB).
+  const handleDismiss = () => {
+    setOpen(false);
+    try { sessionStorage.setItem(FULL_DISMISS_KEY, '1'); } catch {}
+    setFullDismissed(true);
     setTimeout(resetForm, 200);
   };
 
@@ -242,6 +252,7 @@ export function SupportWidget() {
   }
 
   // full_widget
+  if (fullDismissed) return null;
   return (
     <div className={cn('fixed bottom-4 sm:bottom-6 z-[60] flex flex-col items-end gap-3', positionClass)}>
       {open && (
@@ -250,13 +261,24 @@ export function SupportWidget() {
         >
           {/* Header */}
           <div className="px-5 pt-5 pb-4 text-white relative" style={{ backgroundColor: brand }}>
-            <button
-              onClick={handleClose}
-              className="absolute top-3 right-3 h-7 w-7 rounded-full bg-white/15 hover:bg-white/25 flex items-center justify-center transition-colors"
-              aria-label="Close"
-            >
-              <X className="h-3.5 w-3.5" />
-            </button>
+            <div className="absolute top-3 right-3 flex items-center gap-1.5">
+              <button
+                onClick={handleMinimize}
+                className="h-7 w-7 rounded-full bg-white/15 hover:bg-white/25 flex items-center justify-center transition-colors"
+                aria-label="Minimize"
+                title="Minimize"
+              >
+                <Minus className="h-3.5 w-3.5" />
+              </button>
+              <button
+                onClick={handleDismiss}
+                className="h-7 w-7 rounded-full bg-white/15 hover:bg-white/25 flex items-center justify-center transition-colors"
+                aria-label="Close"
+                title="Close"
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+            </div>
             <div className="flex items-center gap-3">
               <div className="h-10 w-10 rounded-full bg-white/20 flex items-center justify-center">
                 <MessageCircle className="h-5 w-5" strokeWidth={2.4} />
