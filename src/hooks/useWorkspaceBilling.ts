@@ -20,6 +20,10 @@ export type WorkspaceBillingStatus = {
   last_payment_status: string | null;
   stripe_customer_id: string | null;
   has_subscription: boolean;
+  pending_plan_id: string | null;
+  pending_billing_cycle: 'monthly' | 'yearly' | null;
+  scheduled_change_at: string | null;
+  next_plan_message: string | null;
   role: 'owner' | 'admin' | 'member' | string;
   entitlements: Record<string, any> | null;
 };
