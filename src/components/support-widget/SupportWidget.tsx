@@ -292,10 +292,11 @@ export function SupportWidget() {
         <button
           type="button"
           onClick={() => {
-            try { sessionStorage.setItem(ICON_DISMISS_KEY, '1'); } catch {}
+            setDismissed(ICON_DISMISS_KEY);
             setIconDismissed(true);
           }}
-          aria-label="Dismiss"
+          aria-label="Hide for 24 hours"
+          title="Hide for 24 hours"
           className="h-7 w-7 rounded-full bg-background border border-border shadow-md flex items-center justify-center text-foreground/80 hover:text-foreground hover:scale-110 transition"
         >
           <X className="h-3.5 w-3.5" />
