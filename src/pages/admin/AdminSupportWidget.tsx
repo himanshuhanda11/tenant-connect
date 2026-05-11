@@ -29,6 +29,10 @@ export default function AdminSupportWidget() {
   const [stats, setStats] = useState<{
     views: number; clicks: number; iconViews: number; fullViews: number; iconClicks: number; fullClicks: number;
   }>({ views: 0, clicks: 0, iconViews: 0, fullViews: 0, iconClicks: 0, fullClicks: 0 });
+  const [leads, setLeads] = useState<Array<{
+    id: string; lead_name: string | null; lead_phone: string | null;
+    page_url: string | null; widget_mode: string; created_at: string;
+  }>>([]);
 
   const load = async () => {
     setLoading(true);
