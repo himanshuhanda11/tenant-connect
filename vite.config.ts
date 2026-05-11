@@ -2,6 +2,7 @@ import { defineConfig, type Plugin } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import { execSync } from "child_process";
+import { readFileSync, writeFileSync } from "fs";
 import { componentTagger } from "lovable-tagger";
 
 const BUILD_ID = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
@@ -19,6 +20,11 @@ const BUILD_BRANCH = process.env.VERCEL_GIT_COMMIT_REF || readGit("git rev-parse
 const versionStampPlugin = (): Plugin => ({
   name: "version-stamp",
   apply: "build",
+  closeBundle() {
+    const indexPath = path.resolve(__dirname, "dist/index.html");
+    const html = readFileSync(indexPath, "utf8").replace(/__CACHE_BUST__/g, encodeURIComponent(BUILD_ID));
+    writeFileSync(indexPath, html, "utf8");
+  },
   generateBundle() {
     this.emitFile({
       type: "asset",
