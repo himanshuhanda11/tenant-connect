@@ -228,7 +228,7 @@ const App = () => (
                     <Route path="/invite/accept" element={<InviteAccept />} />
                     <Route path="/onboarding/org" element={<OrganizationPage />} />
                     <Route path="/onboarding/password" element={<PasswordPage />} />
-                    <Route path="/choose-plan" element={<ChoosePlanPage />} />
+                    <Route path="/choose-plan" element={<Navigate to="/dashboard" replace />} />
                     <Route path="/select-workspace-plan" element={<SelectWorkspacePlanPage />} />
                     <Route path="/onboarding/plan" element={<SelectWorkspacePlanPage />} />
                     <Route path="/onboarding/billing-return" element={<BillingReturnPage />} />
