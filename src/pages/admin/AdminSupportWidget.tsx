@@ -197,6 +197,25 @@ export default function AdminSupportWidget() {
               </TabsContent>
 
               <TabsContent value="visibility" className="space-y-2 pt-4">
+                <SectionLabel>Pre-chat lead capture</SectionLabel>
+                <ToggleRow label="Ask for name & mobile before opening WhatsApp" checked={settings.collect_lead_before_chat} onChange={(v) => update('collect_lead_before_chat', v)} disabled={disabled} />
+                <div className="px-1 pt-2 grid grid-cols-1 gap-3">
+                  <Field label="Step 1 — Name question">
+                    <Input value={settings.step_name_label} onChange={(e) => update('step_name_label', e.target.value)} disabled={disabled} />
+                  </Field>
+                  <Field label="Name placeholder">
+                    <Input value={settings.step_name_placeholder} onChange={(e) => update('step_name_placeholder', e.target.value)} disabled={disabled} />
+                  </Field>
+                  <Field label="Step 2 — Phone question">
+                    <Input value={settings.step_phone_label} onChange={(e) => update('step_phone_label', e.target.value)} disabled={disabled} />
+                  </Field>
+                  <Field label="Phone placeholder">
+                    <Input value={settings.step_phone_placeholder} onChange={(e) => update('step_phone_placeholder', e.target.value)} disabled={disabled} />
+                  </Field>
+                  <Field label="Connect message (shown right before WhatsApp opens)">
+                    <Input value={settings.step_connect_message} onChange={(e) => update('step_connect_message', e.target.value)} disabled={disabled} />
+                  </Field>
+                </div>
                 <SectionLabel>Where it shows</SectionLabel>
                 <ToggleRow label="Public marketing site" checked={settings.show_on_public_site} onChange={(v) => update('show_on_public_site', v)} disabled={disabled} />
                 <ToggleRow label="Inside Dashboard / app" checked={settings.show_inside_dashboard} onChange={(v) => update('show_inside_dashboard', v)} disabled={disabled} />
