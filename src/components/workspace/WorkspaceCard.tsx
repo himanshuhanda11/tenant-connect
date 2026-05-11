@@ -128,6 +128,21 @@ export default function WorkspaceCard({
       )}
 
       <CardContent className="p-4 sm:p-5">
+        {/* Workspace ID with copy */}
+        <div className="flex items-center justify-between mb-3 px-2 py-1.5 rounded-md bg-muted/40 border border-border/50">
+          <span className="text-[11px] font-mono text-muted-foreground truncate">
+            ID: {workspace.id}
+          </span>
+          <button
+            type="button"
+            onClick={handleCopyId}
+            className="ml-2 p-1 rounded hover:bg-accent text-muted-foreground hover:text-foreground transition-colors flex-shrink-0"
+            aria-label="Copy workspace ID"
+          >
+            {copied ? <Check className="w-3.5 h-3.5 text-primary" /> : <Copy className="w-3.5 h-3.5" />}
+          </button>
+        </div>
+
         {/* Header */}
         <div className="flex items-start gap-3 mb-4">
           {/* Premium avatar */}
