@@ -809,6 +809,12 @@ const WhatsAppBusinessApi = () => {
         </div>
       </section>
 
+      {/* ============ 10b. PRICING ============ */}
+      <section id="pricing" className="relative">
+        <PricingHero isAnnual={isAnnual} setIsAnnual={setIsAnnual} />
+        <PricingCards isAnnual={isAnnual} />
+      </section>
+
       {/* ============ 11. FAQ ============ */}
       <section className="py-20 md:py-28 bg-muted/30">
         <div className="container mx-auto px-4">
