@@ -21,6 +21,7 @@ import { useWorkspaceBilling } from '@/hooks/useWorkspaceBilling';
 import { cn } from '@/lib/utils';
 
 const planIcons: Record<string, React.ReactNode> = {
+  None: <CreditCard className="h-5 w-5" />,
   Free: <Gift className="h-5 w-5" />,
   Basic: <Rocket className="h-5 w-5" />,
   Pro: <Crown className="h-5 w-5" />,
@@ -28,6 +29,7 @@ const planIcons: Record<string, React.ReactNode> = {
 };
 
 const planColors: Record<string, string> = {
+  None: 'from-muted/60 to-muted/20',
   Free: 'from-slate-500/10 to-slate-400/5',
   Basic: 'from-blue-500/10 to-cyan-400/5',
   Pro: 'from-violet-500/10 to-purple-400/5',
@@ -35,6 +37,7 @@ const planColors: Record<string, string> = {
 };
 
 const planBadgeColors: Record<string, string> = {
+  None: 'bg-muted text-muted-foreground',
   Free: 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300',
   Basic: 'bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300',
   Pro: 'bg-violet-100 text-violet-700 dark:bg-violet-900/50 dark:text-violet-300',
