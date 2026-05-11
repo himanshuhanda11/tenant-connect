@@ -22,6 +22,7 @@ import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useTenant } from '@/contexts/TenantContext';
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
+import { useFeatureGate } from '@/hooks/useFeatureGate';
 
 declare global {
   interface Window { FB: any; }
