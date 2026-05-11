@@ -74,8 +74,8 @@ const TeamMembers = () => {
               </TooltipTrigger>
               <TooltipContent>Refresh</TooltipContent>
             </Tooltip>
-            <Button onClick={() => setShowInviteModal(true)} className="rounded-xl gap-2">
-              <UserPlus className="h-4 w-4" />
+            <Button onClick={handleAddMember} className="rounded-xl gap-2">
+              {!inviteGate.allowed && !inviteGate.loading ? <Lock className="h-4 w-4" /> : <UserPlus className="h-4 w-4" />}
               Add Member
             </Button>
           </div>
