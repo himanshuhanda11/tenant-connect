@@ -1,5 +1,4 @@
-import { HelpCircle } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
+import { Plus } from 'lucide-react';
 import {
   Accordion,
   AccordionContent,
@@ -8,42 +7,70 @@ import {
 } from '@/components/ui/accordion';
 
 const faqs = [
-  { question: 'How does workspace-based pricing work?', answer: 'Each workspace gets its own WhatsApp phone number and subscription plan. You can create multiple workspaces for different brands or departments, each with their own plan.' },
-  { question: 'Can I upgrade or downgrade my plan?', answer: 'Yes, you can change plans at any time. Upgrades are applied immediately, and downgrades take effect at the next billing cycle.' },
-  { question: 'What are WhatsApp conversation charges?', answer: 'WhatsApp conversation fees are billed separately by Meta based on the type and volume of conversations. The first 1,000 user-initiated conversations per month are free.' },
-  { question: 'Do I need a separate phone number for each workspace?', answer: 'Yes, each workspace is linked to one WhatsApp Business API phone number. This ensures clean separation of contacts, templates, and analytics.' },
-  { question: 'What happens when I hit my plan limits?', answer: "You'll receive alerts as you approach limits. You can add more capacity with add-ons or upgrade to a higher plan." },
-  { question: 'Is the Free plan really free forever?', answer: 'Yes! The Free plan has no time limit. Use it for as long as you need. Scale when you are ready.' },
+  {
+    q: 'Is there really a free plan?',
+    a: 'Yes. The Free plan is free forever with no card required. Upgrade only when you outgrow the limits.',
+  },
+  {
+    q: 'How does the 30-day free trial work?',
+    a: 'All paid plans include a 30-day free trial. No charges until the trial ends. Cancel anytime from Billing.',
+  },
+  {
+    q: 'Do you support the official WhatsApp Business API?',
+    a: 'Yes. Aireatro is built on the Meta-verified Cloud API. No risk of bans, no third-party workarounds.',
+  },
+  {
+    q: 'How does billing work?',
+    a: 'Pay monthly or yearly via Stripe. Yearly plans save 20%. Prices are auto-detected by your region.',
+  },
+  {
+    q: 'Can I cancel or change my plan?',
+    a: 'Anytime. Upgrades apply instantly, downgrades take effect at the next cycle. No lock-in.',
+  },
+  {
+    q: 'How fast is setup?',
+    a: 'Most teams are live in under 10 minutes — guided onboarding, instant phone provisioning, prebuilt flows.',
+  },
+  {
+    q: 'How many team members can I add?',
+    a: 'Free 1 · Basic 5 · Pro 15 · Business 25 agents. Need more? Add the Extra Agents add-on anytime.',
+  },
+  {
+    q: 'Do you offer refunds?',
+    a: 'We offer a generous 30-day trial so you can evaluate risk-free. After that, charges are non-refundable.',
+  },
 ];
 
 export default function PricingFAQ() {
   return (
-    <section className="py-10 md:py-14">
-      <div className="container mx-auto px-4">
+    <section className="py-12 md:py-16">
+      <div className="container mx-auto px-4 max-w-3xl">
         <div className="text-center mb-8">
-          <Badge className="bg-primary/10 text-primary border-primary/20 mb-3">
-            <HelpCircle className="w-3.5 h-3.5 mr-1.5" />
-            FAQ
-          </Badge>
-          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground mb-2">
-            Frequently Asked Questions
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground tracking-tight mb-2">
+            Questions, answered
           </h2>
+          <p className="text-sm text-muted-foreground">
+            Everything you need to know before you start.
+          </p>
         </div>
 
-        <div className="max-w-3xl mx-auto">
-          <Accordion type="single" collapsible className="space-y-2.5">
-            {faqs.map((faq, index) => (
-              <AccordionItem key={index} value={`item-${index}`} className="border border-border rounded-xl px-5 bg-card hover:border-primary/20 transition-colors">
-                <AccordionTrigger className="text-left text-foreground hover:no-underline text-sm sm:text-base py-4">
-                  {faq.question}
-                </AccordionTrigger>
-                <AccordionContent className="text-muted-foreground text-sm pb-4">
-                  {faq.answer}
-                </AccordionContent>
-              </AccordionItem>
-            ))}
-          </Accordion>
-        </div>
+        <Accordion type="single" collapsible className="space-y-2">
+          {faqs.map((faq, i) => (
+            <AccordionItem
+              key={i}
+              value={`faq-${i}`}
+              className="border border-border/60 rounded-xl px-4 sm:px-5 bg-card/60 backdrop-blur-sm hover:border-primary/30 transition-colors data-[state=open]:border-primary/40 data-[state=open]:shadow-sm"
+            >
+              <AccordionTrigger className="text-left text-foreground hover:no-underline text-sm sm:text-[15px] py-4 font-semibold gap-3 [&>svg]:hidden group">
+                <span className="flex-1">{faq.q}</span>
+                <Plus className="w-4 h-4 text-muted-foreground transition-transform duration-300 group-data-[state=open]:rotate-45 flex-shrink-0" />
+              </AccordionTrigger>
+              <AccordionContent className="text-muted-foreground text-sm pb-4 leading-relaxed">
+                {faq.a}
+              </AccordionContent>
+            </AccordionItem>
+          ))}
+        </Accordion>
       </div>
     </section>
   );

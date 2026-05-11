@@ -36,7 +36,7 @@ export default function PricingCards({ isAnnual }: PricingCardsProps) {
   };
 
   return (
-    <section id="pricing-cards" className="py-6 md:py-10">
+    <section id="pricing-cards" className="py-4 md:py-6 scroll-mt-20">
       <div className="container mx-auto px-4">
         <PlanCardsGrid
           region={region}
@@ -46,6 +46,9 @@ export default function PricingCards({ isAnnual }: PricingCardsProps) {
           showTrialBadge
           showFree
         />
+        <p className="text-center text-[11px] text-muted-foreground mt-5">
+          All prices exclude WhatsApp conversation fees billed by Meta · VAT/GST may apply
+        </p>
       </div>
     </section>
   );
