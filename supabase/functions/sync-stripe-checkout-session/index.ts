@@ -59,7 +59,7 @@ Deno.serve(async (req) => {
       ? "active"
       : (subscription.trial_end && Math.floor(Date.now() / 1000) > subscription.trial_end ? "ended" : "none");
 
-    await service.from("subscriptions").upsert({
+    const { error: upsertErr } = await service.from("subscriptions").upsert({
       tenant_id: workspaceId,
       plan_id: planId,
       stripe_customer_id: typeof subscription.customer === "string" ? subscription.customer : subscription.customer?.id,
@@ -80,10 +80,16 @@ Deno.serve(async (req) => {
       pending_billing_cycle: null,
       scheduled_change_at: null,
     }, { onConflict: "tenant_id" });
+    if (upsertErr) {
+      console.error("subscriptions upsert error:", upsertErr);
+      return json({ error: `subscriptions upsert failed: ${upsertErr.message}` }, 500);
+    }
 
-    await service.rpc("compute_workspace_entitlements", { p_workspace_id: workspaceId });
+    const { error: rpcErr } = await service.rpc("compute_workspace_entitlements", { p_workspace_id: workspaceId });
+    if (rpcErr) console.error("compute_workspace_entitlements error:", rpcErr);
     await service.from("tenants").update({ onboarding_status: "plan_selected" })
       .eq("id", workspaceId).eq("onboarding_status", "new");
+
 
     return json({
       ok: true,

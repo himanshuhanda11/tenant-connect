@@ -27,7 +27,7 @@ Deno.serve(async (req) => {
   if (!whSecret || !skKey) return new Response("Stripe secrets not configured", { status: 503 });
 
   const body = await req.text();
-  const { default: Stripe } = await import("https://esm.sh/stripe@14.21.0?target=deno");
+  const { default: Stripe } = await import("https://esm.sh/stripe@17.5.0?target=denonext");
   const stripe = new Stripe(skKey, { apiVersion: "2023-10-16" });
 
   let event: any;

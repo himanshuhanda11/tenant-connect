@@ -68,7 +68,7 @@ export async function getStripe() {
   }
   if (mode === "live" && !key.startsWith("sk_live_")) throw new Error("Stripe live mode requires a live secret key");
   if (mode === "test" && !key.startsWith("sk_test_")) throw new Error("Stripe test mode requires a test secret key");
-  const { default: Stripe } = await import("https://esm.sh/stripe@14.21.0?target=deno");
+  const { default: Stripe } = await import("https://esm.sh/stripe@17.5.0?target=denonext");
   return new Stripe(key, { apiVersion: "2023-10-16" });
 }
 

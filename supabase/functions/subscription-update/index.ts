@@ -72,7 +72,7 @@ Deno.serve(async (req) => {
         if (currentSub.stripe_subscription_id) {
           const stripeKey = Deno.env.get('STRIPE_SECRET_KEY');
           if (stripeKey) {
-            const { default: Stripe } = await import("https://esm.sh/stripe@14.21.0?target=deno");
+            const { default: Stripe } = await import("https://esm.sh/stripe@17.5.0?target=denonext");
             const stripe = new Stripe(stripeKey, { apiVersion: '2023-10-16' });
             await stripe.subscriptions.update(currentSub.stripe_subscription_id, {
               cancel_at_period_end: true,
@@ -161,7 +161,7 @@ Deno.serve(async (req) => {
       if (currentSub?.stripe_subscription_id) {
         const stripeKey = Deno.env.get('STRIPE_SECRET_KEY');
         if (stripeKey) {
-          const { default: Stripe } = await import("https://esm.sh/stripe@14.21.0?target=deno");
+          const { default: Stripe } = await import("https://esm.sh/stripe@17.5.0?target=denonext");
           const stripe = new Stripe(stripeKey, { apiVersion: '2023-10-16' });
           // Schedule downgrade at period end
           await stripe.subscriptions.update(currentSub.stripe_subscription_id, {
