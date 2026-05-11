@@ -6,6 +6,8 @@ import { useTenant } from '@/contexts/TenantContext';
 import { useEntitlements } from '@/hooks/useEntitlements';
 import { useLaunchOfferUI } from '@/components/offer/LaunchOfferProvider';
 import { useWhatsAppConnectionAccess } from '@/hooks/useWhatsAppConnectionAccess';
+import { useWorkspaceBilling } from '@/hooks/useWorkspaceBilling';
+import ChangePlanDialog from '@/components/billing/ChangePlanDialog';
 import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
 
@@ -16,8 +18,10 @@ export function WhatsAppConnectBanner() {
   const { data: entitlements } = useEntitlements();
   const { openDialog } = useLaunchOfferUI();
   const access = useWhatsAppConnectionAccess();
+  const { data: billing } = useWorkspaceBilling();
   const [dismissed, setDismissed] = useState(false);
   const [hasPhone, setHasPhone] = useState<boolean | null>(null);
+  const [changeOpen, setChangeOpen] = useState(false);
 
   // Hide on Instagram pages — they're a separate channel
   const isInstagramRoute = location.pathname.includes('/instagram');
@@ -52,51 +56,72 @@ export function WhatsAppConnectBanner() {
     }
   };
 
+  const hasSelectedPlan = !!billing?.has_selected_plan || !!billing?.has_subscription;
+  const currentPlanId = hasSelectedPlan && billing?.plan_id
+    ? billing.plan_id.replace(/^plan_/, '')
+    : undefined;
+
+  const handleCTA = () => {
+    if (access.allowed) {
+      navigate('/phone-numbers/connect');
+    } else {
+      setChangeOpen(true);
+    }
+  };
+
   return (
-    <div className="hidden md:block fixed bottom-0 left-0 right-0 md:left-[var(--sidebar-width,16.5rem)] z-40 animate-in slide-in-from-bottom-4 duration-500 pointer-events-none">
-      <div className="mx-auto max-w-4xl px-4 pb-4 pointer-events-auto">
-        <div className="relative flex items-center gap-3 rounded-2xl border border-primary/20 bg-background/95 backdrop-blur-xl shadow-lg shadow-primary/5 px-4 py-3 sm:px-5 sm:py-3.5">
-          {/* Pulse indicator */}
-          <div className="relative flex-shrink-0">
-            <div className="absolute inset-0 rounded-full bg-primary/20 animate-ping" />
-            <div className="relative h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center">
-              <Wifi className="h-4 w-4 text-primary" />
+    <>
+      <div className="hidden md:block fixed bottom-0 left-0 right-0 md:left-[var(--sidebar-width,16.5rem)] z-40 animate-in slide-in-from-bottom-4 duration-500 pointer-events-none">
+        <div className="mx-auto max-w-4xl px-4 pb-4 pointer-events-auto">
+          <div className="relative flex items-center gap-3 rounded-2xl border border-primary/20 bg-background/95 backdrop-blur-xl shadow-lg shadow-primary/5 px-4 py-3 sm:px-5 sm:py-3.5">
+            {/* Pulse indicator */}
+            <div className="relative flex-shrink-0">
+              <div className="absolute inset-0 rounded-full bg-primary/20 animate-ping" />
+              <div className="relative h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center">
+                <Wifi className="h-4 w-4 text-primary" />
+              </div>
             </div>
+
+            {/* Text */}
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-foreground leading-tight">
+                {access.allowed ? 'WhatsApp API not connected' : 'Choose a plan to connect WhatsApp'}
+              </p>
+              <p className="text-xs text-muted-foreground mt-0.5 hidden sm:block">
+                {access.allowed
+                  ? 'Connect your number to start sending messages, campaigns & automations'
+                  : access.message || 'Select a plan to unlock WhatsApp API connection'}
+              </p>
+            </div>
+
+            {/* CTA */}
+            <Button
+              size="sm"
+              onClick={handleCTA}
+              className="flex-shrink-0 gap-1.5 rounded-xl text-xs font-semibold px-4"
+            >
+              <MessageSquare className="h-3.5 w-3.5" />
+              {access.allowed ? 'Connect Now' : 'Choose Plan'}
+              <ArrowRight className="h-3 w-3" />
+            </Button>
+
+            {/* Dismiss */}
+            <button
+              onClick={handleDismiss}
+              className="flex-shrink-0 p-1 rounded-lg hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
+              aria-label="Dismiss"
+            >
+              <X className="h-3.5 w-3.5" />
+            </button>
           </div>
-
-          {/* Text */}
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-foreground leading-tight">
-              {access.allowed ? 'WhatsApp API not connected' : 'Choose a plan to connect WhatsApp'}
-            </p>
-            <p className="text-xs text-muted-foreground mt-0.5 hidden sm:block">
-              {access.allowed
-                ? 'Connect your number to start sending messages, campaigns & automations'
-                : access.message || 'Select a plan to unlock WhatsApp API connection'}
-            </p>
-          </div>
-
-          {/* CTA */}
-          <Button
-            size="sm"
-            onClick={() => navigate(access.allowed ? '/phone-numbers/connect' : access.redirectUrl)}
-            className="flex-shrink-0 gap-1.5 rounded-xl text-xs font-semibold px-4"
-          >
-            <MessageSquare className="h-3.5 w-3.5" />
-            {access.allowed ? 'Connect Now' : 'Choose Plan'}
-            <ArrowRight className="h-3 w-3" />
-          </Button>
-
-          {/* Dismiss */}
-          <button
-            onClick={handleDismiss}
-            className="flex-shrink-0 p-1 rounded-lg hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
-            aria-label="Dismiss"
-          >
-            <X className="h-3.5 w-3.5" />
-          </button>
         </div>
       </div>
-    </div>
+
+      <ChangePlanDialog
+        open={changeOpen}
+        onOpenChange={setChangeOpen}
+        currentPlanId={currentPlanId}
+      />
+    </>
   );
 }
