@@ -58,7 +58,13 @@ export function useOnboardingProgress(tenantId: string | null | undefined): Onbo
       setPrimaryPhoneId(preferred?.id || null);
 
       const explicitPlan = lsPlan === '1' ? lsPlanName : null;
-      const rawSubscriptionPlan = (sub as any)?.plan_id?.replace('plan_', '') || null;
+      // Ignore subscriptions stuck in pre-checkout / failed states — those mean the user
+      // started checkout but never completed payment, so the plan is NOT actually selected.
+      const PENDING_STATUSES = new Set(['incomplete', 'incomplete_expired', 'canceled', 'cancelled']);
+      const subStatus = (sub as any)?.status as string | undefined;
+      const rawSubscriptionPlan = subStatus && !PENDING_STATUSES.has(subStatus)
+        ? ((sub as any)?.plan_id?.replace('plan_', '') || null)
+        : null;
       const subscriptionPlan = rawSubscriptionPlan && rawSubscriptionPlan !== 'free' ? rawSubscriptionPlan : null;
       const entitlementPlan = (ent as any)?.plan || null;
       const detectedPlan = explicitPlan || subscriptionPlan || entitlementPlan;
