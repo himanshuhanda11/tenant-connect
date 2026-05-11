@@ -12,6 +12,7 @@ import { Card } from '@/components/ui/card';
 import { WidgetPreview } from '@/components/widgets/WidgetPreview';
 import { DEFAULT_WIDGET_CONFIG, type WidgetConfig } from '@/types/widget';
 import { toast } from '@/hooks/use-toast';
+import SocialProofBar from '@/components/home/SocialProofBar';
 
 export default function WhatsAppWidgetPublic() {
   const [phone, setPhone] = useState('');
