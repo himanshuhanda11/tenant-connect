@@ -1,18 +1,17 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, Suspense, lazy } from 'react';
 import { z } from 'zod';
 import { format } from 'date-fns';
 import { motion } from 'framer-motion';
 import {
   CalendarIcon, Clock, User, Mail, Phone, Building2, Users, Globe,
-  Sparkles, ArrowRight, CheckCircle2, PlayCircle, Zap, ShieldCheck,
-  Bot, BarChart3, MessageCircle, Rocket, Star, Headphones, AlertCircle, X,
+  Sparkles, ArrowRight, CheckCircle2, PlayCircle,
+  Star, Headphones, AlertCircle,
 } from 'lucide-react';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
@@ -21,12 +20,15 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import Navbar from '@/components/layout/Navbar';
-import Footer from '@/components/layout/Footer';
-import SocialProofBar from '@/components/home/SocialProofBar';
 import SeoMeta from '@/components/seo/SeoMeta';
 import { Helmet } from 'react-helmet-async';
 import { cn } from '@/lib/utils';
 import demoSpecialistImg from '@/assets/demo-specialist.jpg';
+
+// Heavy below-the-fold content (Footer + marketing sections) — lazy chunk
+const BookDemoBelow = lazy(() => import('./BookDemoBelow'));
+// Calendar (react-day-picker) is only needed when the date popover opens
+const Calendar = lazy(() => import('@/components/ui/calendar').then(m => ({ default: m.Calendar })));
 
 const schema = z.object({
   fullName: z.string().trim().min(2, 'Please enter your full name').max(80),
