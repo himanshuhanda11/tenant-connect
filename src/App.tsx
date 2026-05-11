@@ -59,6 +59,7 @@ const WidgetAnalytics = lazyWithRetry(() => import("./pages/widgets/WidgetAnalyt
 const PhoneNumbers = lazyWithRetry(() => import("./pages/PhoneNumbers"));
 const PhoneNumbersList = lazyWithRetry(() => import("./pages/phone-numbers/PhoneNumbersList"));
 const ConnectNumber = lazyWithRetry(() => import("./pages/phone-numbers/ConnectNumber"));
+import { WhatsAppAccessGuard } from "@/components/billing/WhatsAppAccessGuard";
 const PhoneNumberDetails = lazyWithRetry(() => import("./pages/phone-numbers/PhoneNumberDetails"));
 const Templates = lazyWithRetry(() => import("./pages/Templates"));
 const CampaignsList = lazyWithRetry(() => import("./pages/campaigns/CampaignsList"));
