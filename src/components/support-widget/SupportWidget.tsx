@@ -45,7 +45,7 @@ function useSupportSettings() {
 }
 
 async function logEvent(
-  event_type: 'view' | 'click',
+  event_type: 'view' | 'click' | 'demo_click',
   widget_mode: 'icon_only' | 'full_widget',
   user_id: string | null,
   workspace_id: string | null,
