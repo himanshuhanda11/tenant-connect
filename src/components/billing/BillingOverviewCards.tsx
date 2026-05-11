@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { useSubscription, useTeamUsage, usePhoneUsage, useUsage } from '@/hooks/useBilling';
 import { useEntitlements } from '@/hooks/useEntitlements';
+import { useWorkspaceBilling } from '@/hooks/useWorkspaceBilling';
 import { cn } from '@/lib/utils';
 
 const planIcons: Record<string, React.ReactNode> = {
