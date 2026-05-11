@@ -113,7 +113,7 @@ export default function Billing() {
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-2 self-start">
-            {billing && (
+            {billing?.has_subscription && (
               <BillingStatusBadge
                 status={(showPaymentFailed ? 'payment_failed' : (billing.is_trialing ? 'trialing' : billing.status)) as any}
                 planName={billing.plan_name}

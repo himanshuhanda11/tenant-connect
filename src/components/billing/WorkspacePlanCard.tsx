@@ -78,12 +78,42 @@ export function WorkspacePlanCard() {
   const { data: phoneUsage } = usePhoneUsage();
   const { data: contactsUsage } = useContactsUsage();
 
+  // No subscription row at all → user hasn't picked a plan yet.
+  // (entitlements default to 'free' on workspace creation, so don't trust them alone.)
+  const hasSubscription = !!(subscription as any)?.id || !!subscription?.plan_id;
   const planId = entitlements?.plan_id ?? (subscription?.plan_id?.replace('plan_', '') ?? 'free');
   const meta = planMeta[planId] ?? planMeta.free;
   const limits = entitlements?.limits ?? subscription?.plan?.limits_json;
   const isTopPlan = planId === 'business';
 
   const goAddOns = () => navigate('/add-ons');
+
+  if (!hasSubscription) {
+    return (
+      <>
+        <Card className="border-dashed border-2 border-emerald-200 bg-emerald-50/30">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Gift className="w-5 h-5 text-emerald-600" />
+              No plan selected yet
+            </CardTitle>
+            <CardDescription>
+              Choose a plan to unlock messaging, automations, and your full workspace.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button
+              onClick={() => setUpgradeOpen(true)}
+              className="gap-2 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white"
+            >
+              Choose your plan <ArrowRight className="w-4 h-4" />
+            </Button>
+          </CardContent>
+        </Card>
+        <UpgradePlanDialog open={upgradeOpen} onOpenChange={setUpgradeOpen} currentPlanId={planId} />
+      </>
+    );
+  }
 
   return (
     <>
