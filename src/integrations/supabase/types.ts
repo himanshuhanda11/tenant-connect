@@ -12724,9 +12724,13 @@ export type Database = {
           current_period_start: string | null
           id: string
           last_payment_status: string | null
+          last_plan_change_at: string | null
           latest_invoice_id: string | null
-          plan_id: string
+          pending_billing_cycle: string | null
+          pending_plan_id: string | null
+          plan_id: string | null
           pricing_region: string | null
+          scheduled_change_at: string | null
           status: Database["public"]["Enums"]["subscription_status"]
           stripe_customer_id: string | null
           stripe_price_id: string | null
@@ -12747,9 +12751,13 @@ export type Database = {
           current_period_start?: string | null
           id?: string
           last_payment_status?: string | null
+          last_plan_change_at?: string | null
           latest_invoice_id?: string | null
-          plan_id: string
+          pending_billing_cycle?: string | null
+          pending_plan_id?: string | null
+          plan_id?: string | null
           pricing_region?: string | null
+          scheduled_change_at?: string | null
           status?: Database["public"]["Enums"]["subscription_status"]
           stripe_customer_id?: string | null
           stripe_price_id?: string | null
@@ -12770,9 +12778,13 @@ export type Database = {
           current_period_start?: string | null
           id?: string
           last_payment_status?: string | null
+          last_plan_change_at?: string | null
           latest_invoice_id?: string | null
-          plan_id?: string
+          pending_billing_cycle?: string | null
+          pending_plan_id?: string | null
+          plan_id?: string | null
           pricing_region?: string | null
+          scheduled_change_at?: string | null
           status?: Database["public"]["Enums"]["subscription_status"]
           stripe_customer_id?: string | null
           stripe_price_id?: string | null
@@ -12784,13 +12796,6 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
-          {
-            foreignKeyName: "subscriptions_plan_id_fkey"
-            columns: ["plan_id"]
-            isOneToOne: false
-            referencedRelation: "plans"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "subscriptions_tenant_id_fkey"
             columns: ["tenant_id"]
