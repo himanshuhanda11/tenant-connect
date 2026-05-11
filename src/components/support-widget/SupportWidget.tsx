@@ -223,10 +223,27 @@ export function SupportWidget() {
     setTimeout(resetForm, 200);
   };
 
+  const showDemoCompact =
+    settings.show_book_demo &&
+    settings.show_demo_in_compact &&
+    (settings.show_demo_for_paid_users || !isPaidPlan);
+
   if (mode === 'icon_only' && !collectLead) {
     if (iconDismissed) return null;
     return (
       <div className={cn('fixed bottom-4 sm:bottom-6 z-[60] flex items-center gap-2', positionClass)}>
+        {showDemoCompact && (
+          <button
+            type="button"
+            onClick={openBookDemo}
+            aria-label={settings.book_demo_label}
+            title={settings.book_demo_label}
+            className="hidden sm:inline-flex items-center gap-1.5 h-10 px-3 rounded-full bg-gradient-to-br from-background to-muted border border-border/70 shadow-md hover:shadow-lg hover:scale-[1.03] active:scale-95 transition text-foreground text-xs font-semibold"
+          >
+            <Calendar className="h-3.5 w-3.5 text-primary" />
+            {settings.book_demo_label}
+          </button>
+        )}
         <button
           type="button"
           onClick={handleCtaClick}
