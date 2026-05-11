@@ -53,7 +53,7 @@ export function LaunchOfferProvider({ children }: { children: ReactNode }) {
 
   return (
     <Ctx.Provider value={{ openDialog, closeDialog }}>
-      <StickyOfferBanner onClaim={openDialog} />
+      <StickyOfferBanner onClaim={openDialog} hidden={open} />
       {children}
       <FloatingOfferWidget onClick={openDialog} hidden={open} />
       <LaunchOfferDialog open={open} onOpenChange={(v) => (v ? setOpen(true) : closeDialog())} />
