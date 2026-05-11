@@ -28,7 +28,7 @@ function TimeBlock({ value, label }: { value: number; label: string }) {
     <div className="flex flex-col items-center">
       <div className="relative">
         <div className="absolute inset-0 bg-emerald-400/20 blur-md rounded-lg" />
-        <div className="relative w-12 sm:w-14 h-12 sm:h-14 rounded-lg bg-white/[0.06] border border-white/10 backdrop-blur-md flex items-center justify-center font-mono font-bold text-xl sm:text-2xl tabular-nums text-white">
+        <div className="relative w-11 sm:w-14 h-11 sm:h-14 rounded-lg bg-white/[0.06] border border-white/10 backdrop-blur-md flex items-center justify-center font-mono font-bold text-lg sm:text-2xl tabular-nums text-white">
           {String(value).padStart(2, '0')}
         </div>
       </div>
@@ -72,7 +72,8 @@ export function LaunchOfferDialog({ open, onOpenChange }: Props) {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         className={cn(
-          'p-0 border-0 bg-transparent shadow-none overflow-visible max-w-md',
+          'p-0 border-0 bg-transparent shadow-none overflow-visible',
+          'w-[calc(100%-2rem)] max-w-[22rem] sm:max-w-md',
           'data-[state=open]:animate-none data-[state=closed]:animate-none',
         )}
       >
@@ -98,21 +99,20 @@ export function LaunchOfferDialog({ open, onOpenChange }: Props) {
               }}
               className="relative w-full"
             >
-              {/* Outer glow halos */}
-              <div className="pointer-events-none absolute -inset-12 -z-10">
-                <div className="absolute top-0 left-1/4 w-64 h-64 rounded-full bg-emerald-500/30 blur-[80px] animate-pulse" />
-                <div className="absolute bottom-0 right-1/4 w-72 h-72 rounded-full bg-primary/25 blur-[100px] animate-pulse" style={{ animationDelay: '1s' }} />
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-56 h-56 rounded-full bg-cyan-400/15 blur-[90px]" />
+              {/* Outer glow halos — softer */}
+              <div className="pointer-events-none absolute -inset-8 -z-10">
+                <div className="absolute top-0 left-1/4 w-48 h-48 rounded-full bg-emerald-500/15 blur-[70px] animate-pulse" />
+                <div className="absolute bottom-0 right-1/4 w-52 h-52 rounded-full bg-primary/12 blur-[80px] animate-pulse" style={{ animationDelay: '1s' }} />
               </div>
 
-              {/* Frosted glass card */}
+              {/* Frosted glass card — lighter */}
               <div
-                className="relative rounded-3xl overflow-hidden border border-white/10 shadow-[0_30px_80px_-20px_rgba(0,0,0,0.6)]"
+                className="relative rounded-2xl sm:rounded-3xl overflow-hidden border border-white/10 shadow-[0_20px_60px_-20px_rgba(0,0,0,0.5)]"
                 style={{
                   background:
-                    'linear-gradient(140deg, rgba(15,23,42,0.92) 0%, rgba(2,6,23,0.96) 50%, rgba(6,30,22,0.92) 100%)',
-                  backdropFilter: 'blur(24px)',
-                  WebkitBackdropFilter: 'blur(24px)',
+                    'linear-gradient(140deg, rgba(15,23,42,0.85) 0%, rgba(2,6,23,0.9) 50%, rgba(6,30,22,0.85) 100%)',
+                  backdropFilter: 'blur(20px)',
+                  WebkitBackdropFilter: 'blur(20px)',
                 }}
               >
                 {/* Top emerald hairline glow */}
@@ -153,7 +153,7 @@ export function LaunchOfferDialog({ open, onOpenChange }: Props) {
                   <X className="w-3.5 h-3.5 text-white/70 group-hover:text-white transition-colors" />
                 </button>
 
-                <div className="relative px-6 sm:px-7 pt-7 pb-6">
+                <div className="relative px-5 sm:px-7 pt-6 pb-5 sm:pb-6">
                   {/* Premium animated badge */}
                   <motion.div
                     initial={{ opacity: 0, y: -8 }}
