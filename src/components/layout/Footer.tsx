@@ -198,7 +198,7 @@ export default function Footer() {
             © 2025 AiReatro.com. All rights reserved.
           </p>
           <div className="flex items-center gap-6 text-sm text-slate-400">
-            <span>🇮🇳 Made in India</span>
+            <span>🇦🇪 Headquartered in Dubai, UAE</span>
             <span className="flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
               All systems operational
