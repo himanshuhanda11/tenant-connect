@@ -67,21 +67,23 @@ export function WhatsAppConnectBanner() {
           {/* Text */}
           <div className="flex-1 min-w-0">
             <p className="text-sm font-medium text-foreground leading-tight">
-              WhatsApp API not connected
+              {access.allowed ? 'WhatsApp API not connected' : 'Choose a plan to connect WhatsApp'}
             </p>
             <p className="text-xs text-muted-foreground mt-0.5 hidden sm:block">
-              Connect your number to start sending messages, campaigns & automations
+              {access.allowed
+                ? 'Connect your number to start sending messages, campaigns & automations'
+                : access.message || 'Select a plan to unlock WhatsApp API connection'}
             </p>
           </div>
 
           {/* CTA */}
           <Button
             size="sm"
-            onClick={() => navigate('/phone-numbers/connect')}
+            onClick={() => navigate(access.allowed ? '/phone-numbers/connect' : access.redirectUrl)}
             className="flex-shrink-0 gap-1.5 rounded-xl text-xs font-semibold px-4"
           >
             <MessageSquare className="h-3.5 w-3.5" />
-            Connect Now
+            {access.allowed ? 'Connect Now' : 'Choose Plan'}
             <ArrowRight className="h-3 w-3" />
           </Button>
 
