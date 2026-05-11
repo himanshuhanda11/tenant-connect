@@ -120,6 +120,10 @@ Deno.serve(async (req) => {
     }
 
     const stripeSub = await stripe.subscriptions.retrieve(sub!.stripe_subscription_id!);
+    const newPrice = await stripe.prices.retrieve(newPriceId);
+    if (newPrice.livemode !== stripeSub.livemode) {
+      return json({ error: `Stripe price ${newPriceId} does not match the current subscription mode.` }, 503);
+    }
     const itemId = stripeSub.items.data[0].id;
     const currentRank = PLAN_RANK[currentPlan] ?? 0;
     const newRank = PLAN_RANK[planId] ?? 0;

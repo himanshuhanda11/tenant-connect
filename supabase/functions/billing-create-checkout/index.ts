@@ -102,6 +102,11 @@ Deno.serve(async (req) => {
     }
 
     const stripe = await getStripe();
+    const price = await stripe.prices.retrieve(priceId);
+    const secretMode = Deno.env.get("STRIPE_SECRET_KEY")?.startsWith("sk_live_") ? "live" : "test";
+    if ((secretMode === "live" && !price.livemode) || (secretMode === "test" && price.livemode)) {
+      return json({ error: `Stripe price ${priceId} does not match the configured ${secretMode} Stripe mode.` }, 503);
+    }
 
     // Look up or create Stripe Customer (per workspace)
     let customerId: string | null = null;
