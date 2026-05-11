@@ -47,8 +47,8 @@ export function WhatsAppConnectBanner() {
   };
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 animate-in slide-in-from-bottom-4 duration-500">
-      <div className="mx-auto max-w-4xl px-4 pb-4">
+    <div className="fixed bottom-0 left-0 right-0 md:left-[var(--sidebar-width,16.5rem)] z-40 animate-in slide-in-from-bottom-4 duration-500 pointer-events-none">
+      <div className="mx-auto max-w-4xl px-4 pb-4 pointer-events-auto">
         <div className="relative flex items-center gap-3 rounded-2xl border border-primary/20 bg-background/95 backdrop-blur-xl shadow-lg shadow-primary/5 px-4 py-3 sm:px-5 sm:py-3.5">
           {/* Pulse indicator */}
           <div className="relative flex-shrink-0">
