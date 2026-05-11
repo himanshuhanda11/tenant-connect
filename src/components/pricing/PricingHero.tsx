@@ -11,9 +11,9 @@ interface PricingHeroProps {
 }
 
 const REGION_LABEL: Record<string, string> = {
-  IN: '🇮🇳 India · INR',
+  IN: '🇮🇳 India · AED',
   GULF: '🌙 Gulf · AED',
-  OTHER: '🌍 Global · USD',
+  OTHER: '🌍 Global · AED',
 };
 
 export default function PricingHero({ isAnnual, setIsAnnual }: PricingHeroProps) {
