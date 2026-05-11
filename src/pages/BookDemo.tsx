@@ -120,6 +120,7 @@ export default function BookDemo() {
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [errors, setErrors] = useState<Partial<Record<keyof FormData, string>>>({});
+  const [showErrorDialog, setShowErrorDialog] = useState(false);
   const [data, setData] = useState<FormData>({
     fullName: '', workEmail: '', phone: '', company: '', website: '',
     teamSize: '', industry: '', useCase: '',
