@@ -7,6 +7,7 @@ import { Progress } from '@/components/ui/progress';
 import { Crown, Rocket, Gift, Building2, ArrowRight, Users, Phone, Bot, Workflow, MessageSquare, Contact, Plus, AlertTriangle } from 'lucide-react';
 import { useEntitlements } from '@/hooks/useEntitlements';
 import { useSubscription, useUsage, useTeamUsage, usePhoneUsage, useContactsUsage } from '@/hooks/useBilling';
+import { useWorkspaceBilling } from '@/hooks/useWorkspaceBilling';
 import { UpgradePlanDialog } from './UpgradePlanDialog';
 import { cn } from '@/lib/utils';
 
@@ -73,6 +74,7 @@ export function WorkspacePlanCard() {
   const navigate = useNavigate();
   const { data: entitlements } = useEntitlements();
   const { data: subscription } = useSubscription();
+  const { data: billing } = useWorkspaceBilling();
   const { data: usage } = useUsage();
   const { data: teamUsage } = useTeamUsage();
   const { data: phoneUsage } = usePhoneUsage();
@@ -80,8 +82,8 @@ export function WorkspacePlanCard() {
 
   // No subscription row at all → user hasn't picked a plan yet.
   // (entitlements default to 'free' on workspace creation, so don't trust them alone.)
-  const hasSubscription = !!(subscription as any)?.id || !!subscription?.plan_id;
-  const planId = entitlements?.plan_id ?? (subscription?.plan_id?.replace('plan_', '') ?? 'free');
+  const hasSubscription = !!billing?.has_subscription;
+  const planId = hasSubscription ? (billing?.plan_id?.replace('plan_', '') ?? 'free') : 'free';
   const meta = planMeta[planId] ?? planMeta.free;
   const limits = entitlements?.limits ?? subscription?.plan?.limits_json;
   const isTopPlan = planId === 'business';
