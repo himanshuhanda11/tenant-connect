@@ -115,6 +115,7 @@ export default function BookDemo() {
     });
   }, [browserTz]);
   const [pickedDate, setPickedDate] = useState<Date | undefined>();
+  const [dateOpen, setDateOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [errors, setErrors] = useState<Partial<Record<keyof FormData, string>>>({});
@@ -166,6 +167,7 @@ export default function BookDemo() {
       });
       if (error) console.warn('email notify failed', error);
       setSubmitted(true);
+      if (typeof window !== 'undefined') window.scrollTo({ top: 0, behavior: 'smooth' });
       toast({ title: 'Demo requested 🎉', description: "We've emailed you a confirmation. Our team will reach out shortly." });
     } catch (err: any) {
       console.error('demo_request failed', err);
@@ -404,7 +406,7 @@ export default function BookDemo() {
                       <div className="grid sm:grid-cols-2 gap-3">
                         <div className="space-y-1.5">
                           <Label className="text-xs">Preferred date *</Label>
-                          <Popover>
+                          <Popover open={dateOpen} onOpenChange={setDateOpen}>
                             <PopoverTrigger asChild>
                               <Button type="button" variant="outline"
                                 className={cn('h-10 w-full justify-start text-left font-normal',
@@ -421,6 +423,7 @@ export default function BookDemo() {
                                 onSelect={(d) => {
                                   setPickedDate(d);
                                   update('preferredDate', d ? format(d, 'yyyy-MM-dd') : '');
+                                  if (d) setDateOpen(false);
                                 }}
                                 disabled={(date) => {
                                   const today = new Date(); today.setHours(0, 0, 0, 0);
