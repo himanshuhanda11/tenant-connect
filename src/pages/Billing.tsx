@@ -62,7 +62,7 @@ export default function Billing() {
 
   const handleSharedPlanSelect = async (planId: PlanId, cycle: 'monthly' | 'yearly') => {
     if (!currentTenant?.id) return;
-    if (planId === currentPlanId) return;
+    if (hasSelectedPlan && planId === currentPlanId) return;
 
     const targetRank = PLAN_RANK[planId] ?? 0;
     const currentRank = PLAN_RANK[(currentPlanId as PlanId)] ?? 0;
@@ -72,7 +72,7 @@ export default function Billing() {
       // No active Stripe sub yet → fresh checkout (skip for free)
       if (!hasConfirmedSubscription) {
         if (planId === 'free') {
-          toast.info('You are already on a free or inactive plan');
+          toast.info('Choose a paid plan to activate billing');
           return;
         }
         const res = await startCheckout.mutateAsync({
@@ -197,7 +197,7 @@ export default function Billing() {
                 <PlanCardsGrid
                   region={region}
                   cycle={isYearly ? 'yearly' : 'monthly'}
-                  currentPlanId={currentPlanId}
+                  currentPlanId={hasSelectedPlan ? currentPlanId : null}
                   showFree
                   variant="light"
                   showTrialBadge={!hasConfirmedSubscription}
