@@ -20,6 +20,10 @@ export type WorkspaceBillingStatus = {
   last_payment_status: string | null;
   stripe_customer_id: string | null;
   has_subscription: boolean;
+  pending_plan_id: string | null;
+  pending_billing_cycle: 'monthly' | 'yearly' | null;
+  scheduled_change_at: string | null;
+  next_plan_message: string | null;
   role: 'owner' | 'admin' | 'member' | string;
   entitlements: Record<string, any> | null;
 };
@@ -106,7 +110,17 @@ export function useChangePlan() {
       });
       if (error) throw error;
       if ((data as any)?.error) throw new Error((data as any).error);
-      return data;
+      return data as {
+        ok?: boolean;
+        action?: 'checkout_required';
+        kind?: 'upgrade' | 'downgrade';
+        effective?: 'immediate' | 'next_period' | 'trial_end';
+        target?: string;
+        scheduled_at?: string | null;
+        trial_end?: string | null;
+        proration?: boolean;
+        noop?: boolean;
+      };
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['workspace-billing-status'] });

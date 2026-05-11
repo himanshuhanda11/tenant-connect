@@ -49,7 +49,7 @@ Deno.serve(async (req) => {
       // Direct upsert as a safety net so onboarding can move on instantly
       await service.from("subscriptions").upsert({
         tenant_id: workspaceId,
-        plan_id: "plan_free",
+        plan_id: "free",
         status: "active" as any,
         billing_cycle: "monthly",
         trial_status: "none",
@@ -126,7 +126,7 @@ Deno.serve(async (req) => {
       customerId = customer.id;
       await service.from("subscriptions").upsert({
         tenant_id: workspaceId,
-        plan_id: `plan_${planId}`,
+        plan_id: planId,
         stripe_customer_id: customerId,
         status: "incomplete" as any,
         billing_cycle: billingCycle,
