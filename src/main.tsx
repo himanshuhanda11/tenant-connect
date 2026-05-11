@@ -4,9 +4,9 @@ import "./index.css";
 import { startVersionPolling, forceVersionCheck } from "./lib/versionCheck";
 import "./lib/installPlanErrorInterceptor";
 
-if (window.location.hostname === "aireatro.com") {
+if (window.location.hostname === "www.aireatro.com") {
   const canonicalUrl = new URL(window.location.href);
-  canonicalUrl.hostname = "www.aireatro.com";
+  canonicalUrl.hostname = "aireatro.com";
   canonicalUrl.protocol = "https:";
   window.location.replace(canonicalUrl.toString());
 }

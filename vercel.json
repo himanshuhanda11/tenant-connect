@@ -7,8 +7,8 @@
   "redirects": [
     {
       "source": "/:path*",
-      "has": [{ "type": "host", "value": "aireatro.com" }],
-      "destination": "https://www.aireatro.com/:path*",
+      "has": [{ "type": "host", "value": "www.aireatro.com" }],
+      "destination": "https://aireatro.com/:path*",
       "permanent": true
     }
   ],

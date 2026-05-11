@@ -12,7 +12,7 @@ self.addEventListener('activate', (event) => {
     await Promise.all(clients.map((client) => {
       const url = new URL(client.url);
       url.searchParams.set('sw-cleanup', Date.now().toString());
-      if (url.hostname === 'aireatro.com') url.hostname = 'www.aireatro.com';
+      if (url.hostname === 'www.aireatro.com') url.hostname = 'aireatro.com';
       return client.navigate(url.toString());
     }));
     await self.registration.unregister();

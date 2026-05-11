@@ -2,16 +2,16 @@
   command = "npm run build"
   publish = "dist"
 
-# Permanent 301 redirect: root domain -> www (primary)
+# Permanent 301 redirect: www -> root domain (primary)
 [[redirects]]
-  from = "https://aireatro.com/*"
-  to = "https://www.aireatro.com/:splat"
+  from = "https://www.aireatro.com/*"
+  to = "https://aireatro.com/:splat"
   status = 301
   force = true
 
 [[redirects]]
-  from = "http://aireatro.com/*"
-  to = "https://www.aireatro.com/:splat"
+  from = "http://www.aireatro.com/*"
+  to = "https://aireatro.com/:splat"
   status = 301
   force = true
 
