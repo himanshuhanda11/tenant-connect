@@ -518,23 +518,68 @@ const WhatsAppBusinessApi = () => {
           </div>
 
           <div className="relative max-w-6xl mx-auto">
-            <div className="hidden lg:block absolute top-12 left-[8%] right-[8%] h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-5">
-              {steps.map((s) => (
-                <div key={s.n} className="relative text-center group">
-                  <div className="relative inline-flex mb-4">
+            {/* Desktop animated track line */}
+            <div className="hidden lg:block absolute top-12 left-[8%] right-[8%] h-[2px] rounded-full bg-gradient-to-r from-primary/10 via-primary/20 to-emerald-500/10 overflow-hidden">
+              <div
+                className="absolute inset-y-0 -left-1/3 w-1/3 bg-gradient-to-r from-transparent via-primary to-transparent blur-[1px]"
+                style={{ animation: 'flowLine 3.5s linear infinite' }}
+              />
+            </div>
+            {/* Mobile vertical animated track */}
+            <div className="lg:hidden absolute left-8 top-8 bottom-8 w-[2px] rounded-full bg-gradient-to-b from-primary/10 via-primary/20 to-emerald-500/10 overflow-hidden">
+              <div
+                className="absolute inset-x-0 -top-1/3 h-1/3 bg-gradient-to-b from-transparent via-primary to-transparent"
+                style={{ animation: 'flowLineV 3.5s linear infinite' }}
+              />
+            </div>
+
+            <style>{`
+              @keyframes flowLine { 0%{transform:translateX(0)} 100%{transform:translateX(450%)} }
+              @keyframes flowLineV { 0%{transform:translateY(0)} 100%{transform:translateY(450%)} }
+              @keyframes pulseRing { 0%,100%{box-shadow:0 0 0 0 hsl(var(--primary)/0.45)} 50%{box-shadow:0 0 0 10px hsl(var(--primary)/0)} }
+            `}</style>
+
+            <div className="grid grid-cols-1 lg:grid-cols-6 gap-y-6 lg:gap-x-3 relative">
+              {steps.map((s, i) => (
+                <div key={s.n} className="relative group flex lg:flex-col items-center lg:text-center gap-4 lg:gap-0 pl-0 lg:pl-0">
+                  {/* Icon */}
+                  <div className="relative inline-flex lg:mb-4 shrink-0 z-10">
                     <div className="absolute inset-0 bg-primary/30 rounded-2xl blur-xl group-hover:blur-2xl transition-all" />
-                    <div className="relative w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-emerald-500 flex items-center justify-center text-white shadow-lg group-hover:scale-110 transition-transform">
+                    <div
+                      className="relative w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-emerald-500 flex items-center justify-center text-white shadow-lg group-hover:scale-110 transition-transform ring-4 ring-background"
+                      style={{ animation: `pulseRing 2.4s ease-in-out ${i * 0.25}s infinite` }}
+                    >
                       <s.icon className="w-7 h-7" />
                     </div>
-                    <span className="absolute -top-1 -right-1 w-6 h-6 rounded-full bg-background border-2 border-primary text-[10px] font-bold flex items-center justify-center text-primary">
+                    <span className="absolute -top-1 -right-1 w-6 h-6 rounded-full bg-background border-2 border-primary text-[10px] font-bold flex items-center justify-center text-primary shadow">
                       {s.n}
                     </span>
                   </div>
-                  <h3 className="font-semibold mb-1 text-sm">{s.title}</h3>
-                  <p className="text-xs text-muted-foreground leading-relaxed">{s.desc}</p>
+
+                  {/* Arrow connector — desktop (between steps) */}
+                  {i < steps.length - 1 && (
+                    <div className="hidden lg:flex absolute top-12 -right-2 -translate-y-1/2 z-20 items-center">
+                      <ChevronRight className="w-5 h-5 text-primary animate-pulse" />
+                    </div>
+                  )}
+
+                  <div className="flex-1 lg:flex-none">
+                    <h3 className="font-semibold mb-1 text-sm">{s.title}</h3>
+                    <p className="text-xs text-muted-foreground leading-relaxed">{s.desc}</p>
+                  </div>
                 </div>
               ))}
+            </div>
+
+            {/* Bottom CTA pill */}
+            <div className="mt-12 flex justify-center">
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 text-xs font-medium text-primary">
+                <span className="relative flex h-2 w-2">
+                  <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75 animate-ping" />
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+                </span>
+                Average go-live time: under 10 minutes
+              </div>
             </div>
           </div>
         </div>
