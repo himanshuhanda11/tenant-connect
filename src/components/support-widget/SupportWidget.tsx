@@ -112,7 +112,17 @@ export function SupportWidget() {
     logEvent('view', mode, user?.id ?? null, t?.id ?? null);
   }, [mode, settings, location.pathname, user?.id, t?.id]);
 
-  if (mode === 'hidden' || !settings) return null;
+  // Hide widget when an onboarding overlay (plan picker) is open
+  const [overlayOpen, setOverlayOpen] = useState(
+    typeof document !== 'undefined' && document.body.dataset.planModalOpen === 'true',
+  );
+  useEffect(() => {
+    const sync = () => setOverlayOpen(document.body.dataset.planModalOpen === 'true');
+    window.addEventListener('aireatro:overlay-change', sync);
+    return () => window.removeEventListener('aireatro:overlay-change', sync);
+  }, []);
+
+  if (mode === 'hidden' || !settings || overlayOpen) return null;
 
   const positionClass = settings.position === 'bottom-left'
     ? 'left-4 sm:left-6'
