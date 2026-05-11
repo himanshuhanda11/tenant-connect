@@ -106,7 +106,7 @@ export default function WorkspaceCard({
   const handleCopyId = (e: React.MouseEvent) => {
     e.stopPropagation();
     e.preventDefault();
-    navigator.clipboard.writeText(workspace.id);
+    navigator.clipboard.writeText(workspace.slug);
     setCopied(true);
     toast.success('Workspace ID copied');
     setTimeout(() => setCopied(false), 1500);
@@ -131,7 +131,7 @@ export default function WorkspaceCard({
         {/* Workspace ID with copy */}
         <div className="flex items-center justify-between mb-3 px-2 py-1.5 rounded-md bg-muted/40 border border-border/50">
           <span className="text-[11px] font-mono text-muted-foreground truncate">
-            ID: {workspace.id}
+            ID: {workspace.slug}
           </span>
           <button
             type="button"

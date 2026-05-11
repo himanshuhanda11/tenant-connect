@@ -493,16 +493,16 @@ export function AppSidebar() {
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-            {!isCollapsed && currentTenant?.id && (
+            {!isCollapsed && currentTenant?.slug && (
               <div className="mt-1.5 mx-1 flex items-center justify-between gap-2 px-2 py-1 rounded-md bg-sidebar-accent/40 border border-sidebar-border/40">
-                <span className="text-[10px] font-mono text-sidebar-foreground/60 truncate" title={currentTenant.id}>
-                  ID: {currentTenant.id.slice(0, 8)}…{currentTenant.id.slice(-4)}
+                <span className="text-[10px] font-mono text-sidebar-foreground/60 truncate" title={currentTenant.slug}>
+                  ID: {currentTenant.slug}
                 </span>
                 <button
                   type="button"
                   onClick={(e) => {
                     e.stopPropagation();
-                    navigator.clipboard.writeText(currentTenant.id);
+                    navigator.clipboard.writeText(currentTenant.slug);
                     toast.success('Workspace ID copied');
                   }}
                   className="p-1 rounded hover:bg-sidebar-accent text-sidebar-foreground/60 hover:text-sidebar-foreground transition-colors flex-shrink-0"
