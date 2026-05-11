@@ -2,6 +2,19 @@
   command = "npm run build"
   publish = "dist"
 
+# Permanent 301 redirect: root domain -> www (primary)
+[[redirects]]
+  from = "https://aireatro.com/*"
+  to = "https://www.aireatro.com/:splat"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "http://aireatro.com/*"
+  to = "https://www.aireatro.com/:splat"
+  status = 301
+  force = true
+
 [build.environment]
   NODE_VERSION = "20"
   NPM_FLAGS = "--legacy-peer-deps"
