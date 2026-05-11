@@ -1,29 +1,13 @@
 import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Label } from '@/components/ui/label';
-import { Switch } from '@/components/ui/switch';
-import { Check, Crown, Rocket, Building2, ArrowRight, Sparkles, Users, Workflow, Bot, Phone, CreditCard, Loader2, Globe, IndianRupee } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { Sparkles, Building2 } from 'lucide-react';
 import { toast } from 'sonner';
-import { usePlatformPlans, type PlatformPlan } from '@/hooks/useEntitlements';
+import { PlanCardsGrid } from '@/components/billing/PlanCardsGrid';
+import { MonthlyYearlyToggle } from '@/components/billing/MonthlyYearlyToggle';
 import { useTenant } from '@/contexts/TenantContext';
-import { supabase } from '@/integrations/supabase/client';
-import { useGeoLocation, type PlanId } from '@/hooks/useGeoLocation';
-
-const planIcons: Record<string, React.ReactNode> = {
-  basic: <Rocket className="w-5 h-5" />,
-  pro: <Crown className="w-5 h-5" />,
-  business: <Building2 className="w-5 h-5" />,
-};
-
-const planColors: Record<string, string> = {
-  basic: 'bg-blue-100 text-blue-600',
-  pro: 'bg-primary/10 text-primary',
-  business: 'bg-amber-100 text-amber-600',
-};
+import { useStartCheckout, useChangePlan, useWorkspaceBilling } from '@/hooks/useWorkspaceBilling';
+import { regionFromCountry, type PlanId } from '@/data/plans.config';
 
 interface UpgradePlanDialogProps {
   open: boolean;
@@ -32,122 +16,68 @@ interface UpgradePlanDialogProps {
 }
 
 export function UpgradePlanDialog({ open, onOpenChange, currentPlanId }: UpgradePlanDialogProps) {
-  const { data: plans } = usePlatformPlans();
   const { currentTenant } = useTenant();
-  const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
-  const [provider, setProvider] = useState<'razorpay' | 'stripe'>('razorpay');
+  const { data: billing } = useWorkspaceBilling();
+  const startCheckout = useStartCheckout();
+  const changePlan = useChangePlan();
+  const [pending, setPending] = useState<string | null>(null);
   const [isYearly, setIsYearly] = useState(false);
-  const [loading, setLoading] = useState(false);
 
-  const isTopPlan = currentPlanId === 'business';
-  const upgradePlans = (plans ?? []).filter(p => p.id !== 'free');
-  const { getPlanPrice, formatAmount } = useGeoLocation();
-  const formatINR = (val: number) => formatAmount(val);
-  const localPrice = (id: string) => getPlanPrice(id.replace(/^plan_/, '').toLowerCase() as PlanId, false);
+  const isTopPlan = (currentPlanId ?? '').replace(/^plan_/, '') === 'business';
+  const region = regionFromCountry((currentTenant as any)?.country);
+  const country = (currentTenant as any)?.country ?? undefined;
 
-  const handleCheckout = async (plan: PlatformPlan) => {
-    if (plan.is_custom) {
-      toast.info('Contact sales for Business pricing');
-      return;
-    }
-
+  const handleSelect = async (planId: PlanId, cycle: 'monthly' | 'yearly') => {
     if (!currentTenant?.id) {
       toast.error('No workspace selected');
       return;
     }
-
-    setLoading(true);
-    setSelectedPlan(plan.id);
-
+    setPending(planId);
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        toast.error('Please sign in to upgrade');
+      // Active sub → in-place plan change via Stripe
+      if (billing?.has_subscription) {
+        await changePlan.mutateAsync({
+          workspaceId: currentTenant.id, planId, billingCycle: cycle,
+        });
+        toast.success('Plan change requested');
+        onOpenChange(false);
         return;
       }
-
-      const res = await supabase.functions.invoke('billing-create-checkout', {
-        body: {
-          workspaceId: currentTenant.id,
-          planId: plan.id,
-          billingCycle: isYearly ? 'yearly' : 'monthly',
-          provider,
-        },
+      // No active sub → fresh Checkout (same path as onboarding)
+      const res = await startCheckout.mutateAsync({
+        workspaceId: currentTenant.id,
+        planId,
+        billingCycle: cycle,
+        region,
+        country,
+        successPath: '/billing?status=success',
+        cancelPath: '/billing?status=cancelled',
       });
-
-      if (res.error) {
-        throw new Error(res.error.message || 'Failed to create checkout');
+      if (res?.checkout_url) {
+        window.location.href = res.checkout_url;
+        return;
       }
-
-      const data = res.data;
-
-      if (provider === 'stripe' && data.checkout_url) {
-        // Redirect to Stripe Checkout
-        window.location.href = data.checkout_url;
-      } else if (provider === 'razorpay' && data.razorpay_order_id) {
-        // Open Razorpay modal
-        openRazorpayCheckout(data, plan);
-      }
-    } catch (err: any) {
-      console.error('Checkout error:', err);
-      toast.error(err.message || 'Failed to initiate checkout');
+      toast.success('Plan updated');
+      onOpenChange(false);
+    } catch (e: any) {
+      toast.error(e?.message || 'Could not update plan');
     } finally {
-      setLoading(false);
-      setSelectedPlan(null);
+      setPending(null);
     }
-  };
-
-  const openRazorpayCheckout = (data: any, plan: PlatformPlan) => {
-    // Check if Razorpay script is loaded
-    if (!(window as any).Razorpay) {
-      toast.error('Razorpay SDK not loaded. Please refresh and try again.');
-      return;
-    }
-
-    const options = {
-      key: data.razorpay_key,
-      amount: data.amount * 100,
-      currency: data.currency,
-      name: 'Aireatro',
-      description: `${plan.name} Plan - ${isYearly ? 'Yearly' : 'Monthly'}`,
-      order_id: data.razorpay_order_id,
-      handler: function (response: any) {
-        toast.success('Payment successful! Your plan is being activated...');
-        // Webhook will handle the rest
-        setTimeout(() => {
-          onOpenChange(false);
-          window.location.reload();
-        }, 2000);
-      },
-      prefill: {
-        email: '', // Will be filled from session
-      },
-      theme: {
-        color: '#25D366',
-      },
-      modal: {
-        ondismiss: function () {
-          toast.info('Payment cancelled');
-        },
-      },
-    };
-
-    const rzp = new (window as any).Razorpay(options);
-    rzp.open();
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Sparkles className="w-5 h-5 text-primary" />
-            {isTopPlan ? 'You\'re on the Business Plan' : 'Upgrade Workspace Plan'}
+            {isTopPlan ? "You're on the Business Plan" : 'Upgrade Workspace Plan'}
           </DialogTitle>
           <DialogDescription>
             {isTopPlan
-              ? 'You\'re already on the highest plan. You can add extra capacity via add-ons.'
-              : 'Plan applies to this workspace only. Includes 1 WhatsApp phone number.'}
+              ? "You're already on the highest plan. You can add extra capacity via add-ons."
+              : 'Same pricing as the public Pricing page. Includes 1 WhatsApp number.'}
           </DialogDescription>
         </DialogHeader>
 
@@ -159,129 +89,24 @@ export function UpgradePlanDialog({ open, onOpenChange, currentPlanId }: Upgrade
             <p className="text-sm text-muted-foreground max-w-sm">
               You have full access to all features. Need more capacity? Check out add-ons for extra team seats, flows, or AI credits.
             </p>
-            <Button variant="outline" onClick={() => onOpenChange(false)} className="gap-2">
-              Got it
-            </Button>
+            <Button variant="outline" onClick={() => onOpenChange(false)}>Got it</Button>
           </div>
         ) : (
           <>
-
-        {/* Billing cycle toggle */}
-        <div className="flex items-center justify-between p-3 rounded-xl bg-muted/50 border border-border/50">
-          <div className="flex items-center gap-3">
-            <span className={cn('text-sm', !isYearly ? 'font-medium text-foreground' : 'text-muted-foreground')}>Monthly</span>
-            <Switch checked={isYearly} onCheckedChange={setIsYearly} />
-            <span className={cn('text-sm', isYearly ? 'font-medium text-foreground' : 'text-muted-foreground')}>Yearly</span>
-            {isYearly && <Badge className="bg-primary/10 text-primary border-primary/20 text-xs">Save 20%</Badge>}
-          </div>
-        </div>
-
-        {/* Provider selector */}
-        <div className="p-3 rounded-xl bg-muted/50 border border-border/50">
-          <p className="text-xs font-medium text-muted-foreground mb-2">Payment method</p>
-          <RadioGroup value={provider} onValueChange={(v) => setProvider(v as any)} className="flex gap-3">
-            <div className="flex items-center gap-2">
-              <RadioGroupItem value="razorpay" id="rp" />
-              <Label htmlFor="rp" className="flex items-center gap-1.5 text-sm cursor-pointer">
-                <IndianRupee className="w-3.5 h-3.5" />
-                Razorpay (India)
-              </Label>
+            <div className="flex justify-center my-2">
+              <MonthlyYearlyToggle yearly={isYearly} onChange={setIsYearly} variant="light" />
             </div>
-            <div className="flex items-center gap-2">
-              <RadioGroupItem value="stripe" id="st" />
-              <Label htmlFor="st" className="flex items-center gap-1.5 text-sm cursor-pointer">
-                <Globe className="w-3.5 h-3.5" />
-                Stripe (International)
-              </Label>
-            </div>
-          </RadioGroup>
-        </div>
-
-        {/* Plan cards */}
-        <div className="grid gap-4 sm:grid-cols-3 mt-2">
-          {upgradePlans.map((plan) => {
-            const isCurrent = currentPlanId === plan.id || currentPlanId === `plan_${plan.id}`;
-            const baseMonthly = localPrice(plan.id) || plan.price_monthly;
-            const price = isYearly ? Math.round(baseMonthly * 0.8) : baseMonthly;
-            const isLoading = loading && selectedPlan === plan.id;
-
-            return (
-              <div
-                key={plan.id}
-                className={cn(
-                  'relative rounded-xl border p-4 flex flex-col gap-3 transition-all',
-                  plan.highlight ? 'border-primary shadow-lg shadow-primary/10 ring-1 ring-primary/20' : 'border-border',
-                  isCurrent && 'border-primary/50 bg-primary/[0.02]'
-                )}
-              >
-                {plan.badge && (
-                  <Badge className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-gradient-to-r from-primary to-emerald-500 text-primary-foreground text-[10px] gap-1">
-                    <Sparkles className="w-2.5 h-2.5" />
-                    {plan.badge}
-                  </Badge>
-                )}
-
-                <div className={cn('w-9 h-9 rounded-lg flex items-center justify-center', planColors[plan.id] || 'bg-muted')}>
-                  {planIcons[plan.id]}
-                </div>
-
-                <div>
-                  <h3 className="font-bold text-lg">{plan.name}</h3>
-                  <p className="text-xs text-muted-foreground">{plan.tagline}</p>
-                </div>
-
-                <div className="text-2xl font-bold">
-                  {plan.is_custom ? 'Custom' : formatINR(price)}
-                  {!plan.is_custom && <span className="text-sm font-normal text-muted-foreground">/mo</span>}
-                  {isYearly && !plan.is_custom && (
-                    <p className="text-xs text-primary font-medium mt-0.5">
-                      Billed {formatINR(price * 12)}/year
-                    </p>
-                  )}
-                </div>
-
-                <div className="grid grid-cols-2 gap-1.5 text-xs">
-                  <span className="flex items-center gap-1"><Users className="w-3 h-3" /> {plan.limits.team_members} members</span>
-                  <span className="flex items-center gap-1"><Workflow className="w-3 h-3" /> {plan.limits.flows === 'unlimited' ? '∞' : plan.limits.flows} flows</span>
-                  <span className="flex items-center gap-1"><Bot className="w-3 h-3" /> {plan.limits.automations === 'unlimited' ? '∞' : plan.limits.automations} automations</span>
-                  <span className="flex items-center gap-1"><Phone className="w-3 h-3" /> 1 number</span>
-                </div>
-
-                <Button
-                  className={cn(
-                    'w-full mt-auto gap-2 text-sm',
-                    plan.highlight && !isCurrent && 'bg-gradient-to-r from-primary to-emerald-500 shadow-lg'
-                  )}
-                  variant={isCurrent ? 'outline' : plan.highlight ? 'default' : 'secondary'}
-                  disabled={isCurrent || isLoading}
-                  onClick={() => handleCheckout(plan)}
-                >
-                  {isLoading ? (
-                    <>
-                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                      Processing...
-                    </>
-                  ) : isCurrent ? (
-                    'Current Plan'
-                  ) : plan.is_custom ? (
-                    <>Contact Us</>
-                  ) : (
-                    <>
-                      <CreditCard className="w-3.5 h-3.5" />
-                      Upgrade via {provider === 'razorpay' ? 'Razorpay' : 'Stripe'}
-                    </>
-                  )}
-                  {!isCurrent && !isLoading && <ArrowRight className="w-3.5 h-3.5" />}
-                </Button>
-              </div>
-            );
-          })}
-        </div>
-
-        <p className="text-xs text-muted-foreground text-center mt-2">
-          Add-ons (extra team seats, flows, AI credits) can be added after upgrading.
-        </p>
-        </>
+            <PlanCardsGrid
+              region={region}
+              cycle={isYearly ? 'yearly' : 'monthly'}
+              currentPlanId={currentPlanId}
+              showFree={false}
+              onSelect={(id, cycle) => handleSelect(id, cycle)}
+              loadingPlanId={pending}
+              variant="light"
+              showTrialBadge={!billing?.has_subscription}
+            />
+          </>
         )}
       </DialogContent>
     </Dialog>
