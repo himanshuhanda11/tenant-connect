@@ -62,6 +62,10 @@ export function UpgradeModalProvider({ children }: { children: ReactNode }) {
   const open = useCallback((ctx: UpgradeContext) => setState({ ...ctx, open: true }), []);
   const close = useCallback(() => setState((s) => ({ ...s, open: false })), []);
 
+  useEffect(() => {
+    registerUpgradeOpener(open);
+  }, [open]);
+
   const value = useMemo(() => ({ open, close }), [open, close]);
 
   const currentPlan = (state.currentPlan as PlanId) || "free";
