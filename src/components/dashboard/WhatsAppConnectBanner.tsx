@@ -18,8 +18,10 @@ export function WhatsAppConnectBanner() {
   const { data: entitlements } = useEntitlements();
   const { openDialog } = useLaunchOfferUI();
   const access = useWhatsAppConnectionAccess();
+  const { data: billing } = useWorkspaceBilling();
   const [dismissed, setDismissed] = useState(false);
   const [hasPhone, setHasPhone] = useState<boolean | null>(null);
+  const [changeOpen, setChangeOpen] = useState(false);
 
   // Hide on Instagram pages — they're a separate channel
   const isInstagramRoute = location.pathname.includes('/instagram');
