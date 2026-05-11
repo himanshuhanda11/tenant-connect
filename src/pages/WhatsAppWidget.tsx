@@ -67,11 +67,13 @@ export default function WhatsAppWidgetPublic() {
             WhatsApp Chat Widget
             <span className="block bg-gradient-to-r from-emerald-500 via-green-500 to-teal-500 bg-clip-text text-transparent">for your website</span>
           </motion.h1>
-          <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="mx-auto mt-5 max-w-2xl text-base md:text-lg text-muted-foreground">
+        <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="mx-auto mt-5 max-w-2xl text-base md:text-lg text-muted-foreground">
             Customize your widget live, copy the snippet, paste it into your site. Setup in less than 2 minutes — no developer needed.
           </motion.p>
         </div>
       </section>
+
+      <SocialProofBar />
 
       {/* Builder */}
       <section className="container mx-auto px-4 py-10 md:py-16">
