@@ -221,7 +221,7 @@ export function SupportWidget() {
 
   // full_widget
   return (
-    <div className={cn('fixed bottom-4 sm:bottom-6 z-[60] flex flex-col items-end gap-3', positionClass)}>
+    <div className={cn('fixed bottom-20 sm:bottom-6 z-[60] flex flex-col items-end gap-3', positionClass)}>
       {open && (
         <div
           className="w-[calc(100vw-2rem)] sm:w-[360px] max-w-[360px] rounded-2xl bg-background border border-border/60 shadow-2xl shadow-black/20 overflow-hidden animate-in fade-in zoom-in-95 duration-200"
