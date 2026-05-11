@@ -57,44 +57,44 @@ export default function Billing() {
     }
   }, [params, refetchBilling]);
 
-  const PLAN_RANK: Record<string, number> = { free: 0, basic: 1, pro: 2, business: 3 };
-  const handlePlanSelect = async (plan: Plan) => {
+  const handleSharedPlanSelect = async (planId: PlanId, cycle: 'monthly' | 'yearly') => {
     if (!currentTenant?.id) return;
-    if (plan.id === currentPlanId) return;
+    if (planId === currentPlanId) return;
 
-    const targetRank = PLAN_RANK[plan.id] ?? 0;
-    const currentRank = PLAN_RANK[currentPlanId] ?? 0;
+    const targetRank = PLAN_RANK[planId] ?? 0;
+    const currentRank = PLAN_RANK[(currentPlanId as PlanId)] ?? 0;
 
-    // No active Stripe sub yet → start fresh checkout (works for upgrade from free)
-    if (!billing?.has_subscription) {
-      if (plan.id === 'free') {
-        toast.info('You are already on a free or inactive plan');
-        return;
-      }
-      try {
+    setPlanLoading(planId);
+    try {
+      // No active Stripe sub yet → fresh checkout (skip for free)
+      if (!billing?.has_subscription) {
+        if (planId === 'free') {
+          toast.info('You are already on a free or inactive plan');
+          return;
+        }
         const res = await startCheckout.mutateAsync({
           workspaceId: currentTenant.id,
-          planId: plan.id,
-          billingCycle: isYearly ? 'yearly' : 'monthly',
+          planId,
+          billingCycle: cycle,
+          region,
+          country,
+          successPath: '/billing?status=success',
+          cancelPath: '/billing?status=cancelled',
         });
         if (res?.checkout_url) { window.location.href = res.checkout_url; return; }
         toast.success('Plan updated');
-      } catch (e: any) {
-        toast.error(e?.message || 'Could not start checkout');
+        return;
       }
-      return;
-    }
 
-    // Active sub → change plan via Stripe
-    try {
+      // Active sub → in-place change
       await changePlan.mutateAsync({
-        workspaceId: currentTenant.id,
-        planId: plan.id,
-        billingCycle: isYearly ? 'yearly' : 'monthly',
+        workspaceId: currentTenant.id, planId, billingCycle: cycle,
       });
       toast.success(targetRank > currentRank ? 'Upgraded! ✨' : 'Downgrade scheduled at period end');
     } catch (e: any) {
       toast.error(e?.message || 'Could not change plan');
+    } finally {
+      setPlanLoading(null);
     }
   };
 
