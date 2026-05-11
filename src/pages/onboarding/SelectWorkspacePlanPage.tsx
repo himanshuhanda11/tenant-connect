@@ -1,31 +1,19 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import {
-  CheckCircle2, Sparkles, Crown, Rocket, Building2, Gift, ArrowRight, ShieldCheck, Lock, X,
-} from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Sparkles, Building2, ShieldCheck, Lock, X } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
-import { pricingPlans, type PricingPlan } from '@/data/pricingPlans';
-import { useGeoLocation, type PlanId } from '@/hooks/useGeoLocation';
+import { PlanCardsGrid } from '@/components/billing/PlanCardsGrid';
+import { MonthlyYearlyToggle } from '@/components/billing/MonthlyYearlyToggle';
+import { regionFromCountry, getPlan, type PlanId } from '@/data/plans.config';
 import { useLaunchOffer, useTrialEligibility } from '@/hooks/useLaunchOffer';
 import { useStartCheckout } from '@/hooks/useWorkspaceBilling';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTenant } from '@/contexts/TenantContext';
 import ContactAdminDialog from '@/components/billing/ContactAdminDialog';
-
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import aireatroLogo from '@/assets/aireatro-logo.png';
-
-const planIcons: Record<string, JSX.Element> = {
-  free: <Gift className="w-5 h-5" />,
-  basic: <Rocket className="w-5 h-5" />,
-  pro: <Crown className="w-5 h-5" />,
-  business: <Building2 className="w-5 h-5" />,
-};
 
 export default function SelectWorkspacePlanPage() {
   const navigate = useNavigate();
@@ -33,8 +21,7 @@ export default function SelectWorkspacePlanPage() {
   const { user, loading: authLoading } = useAuth();
   const { tenants, currentTenant, setCurrentTenant, loading: tenantLoading } = useTenant();
   const { claim, isClaiming } = useLaunchOffer();
-  const { data: isEligible, isLoading: eligLoading, refetch: refetchEligible } = useTrialEligibility();
-  const { getPlanPrice, formatAmount } = useGeoLocation();
+  const { data: isEligible, isLoading: eligLoading } = useTrialEligibility();
   const startCheckout = useStartCheckout();
 
   const [isYearly, setIsYearly] = useState(false);
@@ -42,25 +29,14 @@ export default function SelectWorkspacePlanPage() {
   const [success, setSuccess] = useState(false);
   const [contactOpen, setContactOpen] = useState(false);
 
-  // AED-only pricing globally. Yearly = 20% off (shown as per-month).
-  const PLAN_PRICES_AED: Record<string, { monthly: number; yearlyPerMonth: number }> = {
-    free:     { monthly: 0,   yearlyPerMonth: 0   },
-    basic:    { monthly: 350, yearlyPerMonth: 280 },
-    pro:      { monthly: 550, yearlyPerMonth: 440 },
-    business: { monthly: 850, yearlyPerMonth: 680 },
-  };
-  const getLocalPrice = (planId: string, yearly: boolean): number => {
-    const p = PLAN_PRICES_AED[planId];
-    if (!p) return 0;
-    return yearly ? p.yearlyPerMonth : p.monthly;
-  };
-  const formatLocalAmount = (amount: number): string => `AED ${amount.toLocaleString('en-US')}`;
-
-  // Resolve target workspace (from query param or current tenant)
   const targetWorkspaceId = params.get('workspace_id') || currentTenant?.id || tenants[0]?.id || null;
   const targetWorkspace = useMemo(
     () => tenants.find((t) => t.id === targetWorkspaceId) ?? null,
     [tenants, targetWorkspaceId],
+  );
+  const region = useMemo(
+    () => regionFromCountry((targetWorkspace as any)?.country),
+    [targetWorkspace],
   );
 
   // Auth gate
@@ -75,18 +51,26 @@ export default function SelectWorkspacePlanPage() {
     }
   }, [authLoading, tenantLoading, user, tenants.length, navigate]);
 
-  // Make sure currentTenant matches target so downstream features load right context
+  // Sync currentTenant with target
   useEffect(() => {
     if (targetWorkspace && currentTenant?.id !== targetWorkspace.id) {
       setCurrentTenant(targetWorkspace);
     }
   }, [targetWorkspace, currentTenant?.id, setCurrentTenant]);
 
+  // Cancel-from-Stripe toast
+  useEffect(() => {
+    if (params.get('payment') === 'cancelled') {
+      toast.info('Payment setup was cancelled. Please choose a plan to continue.');
+    }
+  }, [params]);
 
-  const handleSelect = async (plan: PricingPlan) => {
+  const handleSelect = async (planId: PlanId) => {
     if (isClaiming || startCheckout.isPending || !targetWorkspaceId) return;
+    const plan = getPlan(planId);
+    if (!plan) return;
 
-    // FREE plan → instant activation, no Stripe (keeps existing claim flow for trial-eligibility tracking)
+    // FREE → instant activation
     if (plan.id === 'free') {
       setPendingPlan(plan.id);
       try {
@@ -103,17 +87,17 @@ export default function SelectWorkspacePlanPage() {
       return;
     }
 
-    // PAID plan → Stripe Checkout with 30-day trial
+    // PAID → Stripe Checkout (30-day trial via webhook)
     setPendingPlan(plan.id);
     try {
       const res = await startCheckout.mutateAsync({
         workspaceId: targetWorkspaceId,
         planId: plan.id,
         billingCycle: isYearly ? 'yearly' : 'monthly',
-        region: 'GULF',
-        country: 'AE',
+        region,
+        country: (targetWorkspace as any)?.country ?? undefined,
         successPath: '/onboarding/billing-return',
-        cancelPath: '/onboarding/plan',
+        cancelPath: '/onboarding/plan?payment=cancelled',
       });
       if (res?.checkout_url) {
         window.location.href = res.checkout_url;
@@ -130,11 +114,6 @@ export default function SelectWorkspacePlanPage() {
       }
       setPendingPlan(null);
     }
-  };
-
-  const handleContinueFree = async () => {
-    const free = pricingPlans.find((p) => p.id === 'free');
-    if (free) await handleSelect(free);
   };
 
   if (authLoading || tenantLoading || eligLoading) {
@@ -175,7 +154,7 @@ export default function SelectWorkspacePlanPage() {
           )}
           {isEligible ? (
             <Badge className="bg-emerald-400/15 text-emerald-200 border-emerald-300/30 gap-1 mb-3 ml-2">
-              <Sparkles className="w-3 h-3" /> 1 Month FREE on any paid plan
+              <Sparkles className="w-3 h-3" /> 30-Day Free Trial on any paid plan
             </Badge>
           ) : (
             <Badge className="bg-amber-400/15 text-amber-200 border-amber-300/30 gap-1 mb-3 ml-2">
@@ -189,124 +168,34 @@ export default function SelectWorkspacePlanPage() {
               plan
             </span>
           </h1>
-          <p className="text-sm sm:text-base text-white/70">
+          <p className={cn('text-sm sm:text-base text-white/70')}>
             {isEligible
-              ? <>Pick any paid plan and your <span className="text-emerald-300 font-semibold">first month is on us</span> — no card required.</>
+              ? <>Pick any paid plan and start a <span className="text-emerald-300 font-semibold">30-day free trial</span> — no card charged today.</>
               : <>You've used your one free trial. Free plan is always available, or contact admin to activate paid plans.</>}
           </p>
 
-          <div className="mt-5 inline-flex flex-wrap items-center justify-center gap-3 px-4 py-2 rounded-full bg-white/5 border border-white/10">
-            <Label htmlFor="yearly" className={cn('text-xs cursor-pointer', !isYearly ? 'text-white' : 'text-white/60')}>Monthly</Label>
-            <Switch id="yearly" checked={isYearly} onCheckedChange={setIsYearly} />
-            <Label htmlFor="yearly" className={cn('text-xs cursor-pointer flex items-center gap-1.5', isYearly ? 'text-white' : 'text-white/60')}>
-              Yearly
-              <Badge className="bg-emerald-400/20 text-emerald-200 border-0 text-[10px] px-1.5 py-0">−20%</Badge>
-            </Label>
+          <div className="mt-5">
+            <MonthlyYearlyToggle yearly={isYearly} onChange={setIsYearly} variant="dark" />
           </div>
-
         </div>
 
         {/* Plans */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 max-w-6xl mx-auto pb-12">
-          {pricingPlans.map((plan, idx) => {
-            const price = getLocalPrice(plan.id, isYearly);
-            const isPro = plan.highlight;
-            const isFree = plan.id === 'free';
-            const locked = !isFree && isEligible === false;
-            return (
-              <motion.div
-                key={plan.id}
-                initial={{ opacity: 0, y: 24 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: idx * 0.07 }}
-                whileHover={{ y: -4 }}
-                className={cn(
-                  'relative rounded-2xl p-5 backdrop-blur-md flex flex-col',
-                  isPro && !locked
-                    ? 'bg-gradient-to-b from-emerald-500/15 to-white/5 border border-emerald-300/40 shadow-2xl shadow-emerald-500/20 ring-1 ring-emerald-300/30'
-                    : 'bg-white/5 border border-white/10',
-                  locked && 'opacity-90',
-                )}
-              >
-                {!isFree && isEligible && (
-                  <Badge className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-gradient-to-r from-emerald-400 to-primary text-white border-0 text-[10px] px-2.5 py-0.5 gap-1 shadow-lg">
-                    <Sparkles className="w-2.5 h-2.5" /> 1 Month FREE
-                  </Badge>
-                )}
-                {locked && (
-                  <Badge className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-amber-500 text-white border-0 text-[10px] px-2.5 py-0.5 gap-1 shadow-lg">
-                    <Lock className="w-2.5 h-2.5" /> Contact Admin
-                  </Badge>
-                )}
-
-                <div className={cn(
-                  'w-10 h-10 rounded-xl flex items-center justify-center mb-3',
-                  isPro && !locked ? 'bg-emerald-400/20 text-emerald-200' : 'bg-white/10 text-white/80',
-                )}>
-                  {planIcons[plan.id]}
-                </div>
-
-                <h3 className="text-lg font-bold">{plan.name}</h3>
-                <p className="text-xs text-white/60 mb-3 min-h-[2.5em]">{plan.tagline}</p>
-
-                <div className="mb-4">
-                  {isFree ? (
-                    <span className="text-3xl font-bold">Free</span>
-                  ) : (
-                    <div className="flex items-baseline gap-1">
-                      <span className="text-3xl font-bold">{formatLocalAmount(price ?? 0)}</span>
-                      <span className="text-xs text-white/60">/mo</span>
-                    </div>
-                  )}
-                  {!isFree && isEligible && (
-                    <p className="text-[11px] text-emerald-300 font-medium mt-1">First month on us · no card</p>
-                  )}
-                  {!isFree && !isEligible && (
-                    <p className="text-[11px] text-amber-300 font-medium mt-1">Activation via admin</p>
-                  )}
-                </div>
-
-                <ul className="space-y-1.5 mb-5 text-xs text-white/85 flex-1">
-                  {plan.features.slice(0, 4).map((f, i) => (
-                    <li key={i} className="flex items-start gap-1.5">
-                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-300 mt-0.5 flex-shrink-0" />
-                      <span>{f}</span>
-                    </li>
-                  ))}
-                </ul>
-
-                <Button
-                  className={cn(
-                    'w-full font-semibold gap-1.5',
-                    locked
-                      ? 'bg-amber-500/90 hover:bg-amber-500 text-white border-0'
-                      : isPro
-                        ? 'bg-gradient-to-r from-emerald-400 to-primary text-white shadow-lg shadow-emerald-500/30 hover:shadow-xl border-0'
-                        : isFree
-                          ? 'bg-white/10 hover:bg-white/15 text-white border border-white/15'
-                          : 'bg-white text-emerald-900 hover:bg-emerald-50',
-                  )}
-                  disabled={isClaiming}
-                  onClick={() => handleSelect(plan)}
-                >
-                  {isClaiming && pendingPlan === plan.id
-                    ? 'Activating…'
-                    : locked
-                      ? <>🔒 Contact Admin</>
-                        : isFree
-                          ? 'Free Lifetime'
-                          : '🎁 Start Free Month'}
-                  {!locked && <ArrowRight className="w-4 h-4" />}
-                </Button>
-              </motion.div>
-            );
-          })}
+        <div className="pb-12">
+          <PlanCardsGrid
+            region={region}
+            cycle={isYearly ? 'yearly' : 'monthly'}
+            onSelect={(id) => handleSelect(id)}
+            loadingPlanId={pendingPlan}
+            variant="dark"
+            showTrialBadge={!!isEligible}
+            trialLocked={isEligible === false}
+          />
         </div>
 
         <div className="text-center text-xs text-white/60 inline-flex items-center justify-center gap-2 w-full pb-10">
           <ShieldCheck className="w-3.5 h-3.5" />
           {isEligible
-            ? 'No card required • Cancel anytime • Activated instantly'
+            ? 'No card required • Cancel anytime • 30-day free trial'
             : '1 free trial per account • Free plan always available'}
         </div>
       </div>
@@ -314,7 +203,7 @@ export default function SelectWorkspacePlanPage() {
       <ContactAdminDialog
         open={contactOpen}
         onOpenChange={setContactOpen}
-        onContinueFree={handleContinueFree}
+        onContinueFree={() => handleSelect('free')}
         reason="trial_already_used"
       />
 
