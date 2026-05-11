@@ -256,7 +256,7 @@ const App = () => (
                     <Route path="/tags" element={<Tags />} />
                     <Route path="/user-attributes" element={<UserAttributes />} />
                     <Route path="/phone-numbers" element={<PhoneNumbersList />} />
-                    <Route path="/phone-numbers/connect" element={<ConnectNumber />} />
+                    <Route path="/phone-numbers/connect" element={<WhatsAppAccessGuard><ConnectNumber /></WhatsAppAccessGuard>} />
                     <Route path="/phone-numbers/:id" element={<PhoneNumberDetails />} />
                     <Route path="/phone-numbers-legacy" element={<PhoneNumbers />} />
                     <Route path="/templates" element={<Templates />} />
