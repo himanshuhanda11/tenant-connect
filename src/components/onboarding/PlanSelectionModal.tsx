@@ -235,19 +235,25 @@ export default function PlanSelectionModal({ open, tenantId, onSelected, onPaidI
                 const meta = planMeta[plan.id] ?? planMeta.free;
                 const price = getPlanPrice(plan.id as PlanId, false);
                 const isFree = plan.id === 'free';
+                const isCurrent = !!currentPlanId && plan.id.toLowerCase() === currentPlanId;
                 return (
                   <motion.div
                     key={plan.id}
                     data-plan-card
-                    whileHover={{ y: -4 }}
+                    whileHover={{ y: isCurrent ? 0 : -4 }}
                     transition={{ type: 'spring', stiffness: 300, damping: 22 }}
                     className={cn(
                       'snap-center sm:snap-start flex-shrink-0 w-[78vw] max-w-[280px] sm:w-[300px] sm:max-w-none rounded-2xl border bg-gradient-to-b p-4 sm:p-5 flex flex-col relative shadow-sm hover:shadow-xl transition-shadow',
                       meta.gradient,
                       meta.ring,
+                      isCurrent && 'ring-2 ring-emerald-500 border-emerald-500',
                     )}
                   >
-                    {meta.badge && (
+                    {isCurrent ? (
+                      <div className="absolute -top-2.5 right-4 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide shadow-md flex items-center gap-1 bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-emerald-500/30">
+                        <Check className="w-3 h-3" /> Your current plan
+                      </div>
+                    ) : meta.badge && (
                       <div className={cn('absolute -top-2.5 right-4 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide shadow-md flex items-center gap-1', meta.badge.cls)}>
                         {meta.badge.icon} {meta.badge.label}
                       </div>
