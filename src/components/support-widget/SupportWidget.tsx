@@ -236,12 +236,12 @@ export function SupportWidget() {
           <button
             type="button"
             onClick={openBookDemo}
-            aria-label={settings.book_demo_label}
-            title={settings.book_demo_label}
-            className="hidden sm:inline-flex items-center gap-1.5 h-10 px-3 rounded-full bg-gradient-to-br from-background to-muted border border-border/70 shadow-md hover:shadow-lg hover:scale-[1.03] active:scale-95 transition text-foreground text-xs font-semibold"
+            aria-label={settings.book_demo_label || 'Book a Demo'}
+            title={settings.book_demo_label || 'Book a Demo'}
+            className="inline-flex items-center gap-1 h-9 sm:h-10 px-2 sm:px-3 rounded-full bg-gradient-to-br from-background to-muted border border-border/70 shadow-md hover:shadow-lg hover:scale-[1.03] active:scale-95 transition text-foreground text-[10px] sm:text-xs font-semibold max-w-[120px] sm:max-w-none"
           >
-            <Calendar className="h-3.5 w-3.5 text-primary" />
-            {settings.book_demo_label}
+            <Calendar className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-primary shrink-0" />
+            <span className="truncate">{settings.book_demo_label || 'Book a Demo'}</span>
           </button>
         )}
         <button
