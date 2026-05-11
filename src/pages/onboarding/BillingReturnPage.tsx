@@ -17,11 +17,23 @@ export default function BillingReturnPage() {
     if (!sessionId) return;
     let cancelled = false;
     (async () => {
-      await supabase.functions.invoke('sync-stripe-checkout-session', { body: { sessionId } });
+      const { data } = await supabase.functions.invoke('sync-stripe-checkout-session', { body: { sessionId } });
+      // Persist plan locally so onboarding step bar advances immediately,
+      // even if the workspace_entitlements webhook hasn't landed yet.
+      try {
+        const tenantId = (data as any)?.tenant_id || (data as any)?.workspace_id;
+        const planId = ((data as any)?.plan_id || '').replace(/^plan_/, '');
+        if (tenantId && planId && planId !== 'free') {
+          localStorage.setItem(`aireatro:onboarding:${tenantId}:planSelected`, '1');
+          localStorage.setItem(`aireatro:onboarding:${tenantId}:planName`, planId);
+          localStorage.removeItem(`aireatro:onboarding:${tenantId}:planDismissed`);
+        }
+      } catch {}
       if (!cancelled) refetch();
     })().catch(() => undefined);
     return () => { cancelled = true; };
   }, [sessionId, refetch]);
+
 
   // Poll until webhook activates the subscription
   useEffect(() => {
