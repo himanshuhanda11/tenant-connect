@@ -402,7 +402,7 @@ export default function AdminSupportWidget() {
                     </div>
                     {settings.show_book_demo && (
                       <div className="w-full h-9 rounded-lg text-xs font-medium border border-border/60 text-foreground flex items-center justify-center gap-1.5 bg-gradient-to-br from-background via-muted/40 to-background">
-                        <Calendar className="h-3.5 w-3.5 text-primary" /> {settings.book_demo_label}
+                        <Calendar className="h-3.5 w-3.5 text-primary" /> {settings.book_demo_label || 'Book a Demo'}
                       </div>
                     )}
                   </div>
