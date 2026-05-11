@@ -110,12 +110,15 @@ export default function AdminSupportWidget() {
         </div>
       </div>
 
-      {/* Analytics */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <StatCard icon={Eye} label="Views (30d)" value={stats.views} />
-        <StatCard icon={MousePointerClick} label="Clicks (30d)" value={stats.clicks} />
+      {/* Analytics — real data from support_widget_events (last 30 days) */}
+      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
+        <StatCard icon={Eye} label="Total views" value={stats.views} />
+        <StatCard icon={MousePointerClick} label="Total clicks" value={stats.clicks} />
         <StatCard icon={BarChart3} label="CTR" value={`${ctr}%`} />
-        <StatCard icon={MessageCircle} label="Full / Icon clicks" value={`${stats.fullClicks} / ${stats.iconClicks}`} />
+        <StatCard icon={Eye} label="Icon views" value={stats.iconViews} />
+        <StatCard icon={MousePointerClick} label="Icon clicks" value={stats.iconClicks} />
+        <StatCard icon={Eye} label="Full views" value={stats.fullViews} />
+        <StatCard icon={MousePointerClick} label="Full clicks" value={stats.fullClicks} />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
