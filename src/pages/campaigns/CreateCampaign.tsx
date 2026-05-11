@@ -111,7 +111,6 @@ export default function CreateCampaign() {
   const { open: openUpgrade } = useUpgradeModal();
   const planId = entitlements?.plan_id ?? 'free';
   const broadcastCap = planId === 'free' ? 50 : Infinity;
-  const audienceTooLarge = audienceEstimatedCount > broadcastCap || audienceFilters?.selected_contacts?.length > broadcastCap;
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoadingOptions, setIsLoadingOptions] = useState(false);
