@@ -5,8 +5,9 @@ import { motion } from 'framer-motion';
 import {
   CalendarIcon, Clock, User, Mail, Phone, Building2, Users, Globe,
   Sparkles, ArrowRight, CheckCircle2, PlayCircle, Zap, ShieldCheck,
-  Bot, BarChart3, MessageCircle, Rocket, Star, Headphones,
+  Bot, BarChart3, MessageCircle, Rocket, Star, Headphones, AlertCircle, X,
 } from 'lucide-react';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -119,6 +120,7 @@ export default function BookDemo() {
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [errors, setErrors] = useState<Partial<Record<keyof FormData, string>>>({});
+  const [showErrorDialog, setShowErrorDialog] = useState(false);
   const [data, setData] = useState<FormData>({
     fullName: '', workEmail: '', phone: '', company: '', website: '',
     teamSize: '', industry: '', useCase: '',
@@ -137,7 +139,7 @@ export default function BookDemo() {
       const fe: Partial<Record<keyof FormData, string>> = {};
       r.error.errors.forEach((er) => { fe[er.path[0] as keyof FormData] = er.message; });
       setErrors(fe);
-      toast({ title: 'Please complete the form', description: 'A few fields need your attention.', variant: 'destructive' });
+      setShowErrorDialog(true);
       return;
     }
     setSubmitting(true);
@@ -340,7 +342,7 @@ export default function BookDemo() {
                       <div className="space-y-1.5">
                         <Label className="flex items-center gap-1.5 text-xs"><Phone className="w-3.5 h-3.5" /> WhatsApp number *</Label>
                         <Input value={data.phone} onChange={(e) => update('phone', e.target.value)}
-                          placeholder="+91 98xxxxxxxx" className={cn('h-10', errors.phone && 'border-destructive')} />
+                          placeholder="+971 5x xxx xxxx" className={cn('h-10', errors.phone && 'border-destructive')} />
                         {errors.phone && <p className="text-[11px] text-destructive">{errors.phone}</p>}
                       </div>
                       <div className="space-y-1.5">
@@ -590,6 +592,59 @@ export default function BookDemo() {
       </section>
 
       <Footer />
+
+      {/* Premium validation dialog */}
+      <Dialog open={showErrorDialog} onOpenChange={setShowErrorDialog}>
+        <DialogContent className="sm:max-w-md p-0 overflow-hidden border-border/60 bg-card/95 backdrop-blur-xl rounded-2xl">
+          <div className="h-1.5 w-full bg-gradient-to-r from-rose-500 via-orange-500 to-amber-500" />
+          <div className="relative p-5 sm:p-6">
+            <div className="absolute -top-16 -right-16 w-48 h-48 rounded-full bg-rose-500/15 blur-3xl pointer-events-none" />
+            <div className="flex items-start gap-4 mb-4">
+              <div className="relative shrink-0">
+                <div className="absolute -inset-1 rounded-2xl bg-gradient-to-br from-rose-500 to-orange-500 blur-md opacity-60" />
+                <div className="relative w-12 h-12 rounded-2xl bg-gradient-to-br from-rose-500 to-orange-500 flex items-center justify-center shadow-lg ring-1 ring-white/20">
+                  <AlertCircle className="w-6 h-6 text-white" />
+                </div>
+              </div>
+              <div className="flex-1 min-w-0">
+                <h3 className="text-lg font-bold text-foreground leading-tight">Almost there — a few details missing</h3>
+                <p className="text-sm text-muted-foreground mt-1">Please complete the highlighted fields so we can lock your demo slot.</p>
+              </div>
+            </div>
+
+            <div className="rounded-xl border border-rose-500/20 bg-rose-500/5 p-3 max-h-56 overflow-y-auto">
+              <ul className="space-y-2">
+                {Object.entries(errors).filter(([,v]) => v).map(([k, v]) => (
+                  <li key={k} className="flex items-start gap-2 text-sm">
+                    <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-rose-500 shrink-0" />
+                    <span className="text-foreground/90">{v}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 mt-5">
+              <Button variant="outline" onClick={() => setShowErrorDialog(false)} className="sm:w-auto">
+                Cancel
+              </Button>
+              <Button
+                onClick={() => {
+                  setShowErrorDialog(false);
+                  const firstKey = Object.keys(errors).find((k) => errors[k as keyof FormData]);
+                  if (firstKey) {
+                    const el = document.querySelector(`[data-field="${firstKey}"]`) as HTMLElement | null;
+                    el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    setTimeout(() => (el?.querySelector('input,textarea,button') as HTMLElement | null)?.focus(), 400);
+                  }
+                }}
+                className="bg-gradient-to-r from-rose-500 to-orange-500 hover:from-rose-600 hover:to-orange-600 text-white shadow-lg shadow-rose-500/30"
+              >
+                Fix now <ArrowRight className="w-4 h-4 ml-1.5" />
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
