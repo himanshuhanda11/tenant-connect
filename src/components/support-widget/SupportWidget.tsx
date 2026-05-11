@@ -131,7 +131,9 @@ export function SupportWidget() {
   const waHref = buildWaLink(settings.whatsapp_number, prefill);
   const brand = settings.brand_color || '#25D366';
 
-  const collectLead = !!settings.collect_lead_before_chat && !user;
+  // Always collect lead before opening WhatsApp when the toggle is on,
+  // regardless of whether the visitor is signed in.
+  const collectLead = !!settings.collect_lead_before_chat;
 
   const openWhatsApp = (extraName?: string, extraPhone?: string) => {
     const finalPrefill = (extraName || extraPhone)
