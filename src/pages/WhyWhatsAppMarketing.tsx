@@ -167,7 +167,7 @@ const WhyWhatsAppMarketing = () => {
     '@type': 'WebPage',
     name: 'Why WhatsApp Marketing Works | AiReatro',
     description: 'Reach customers where they already are. Deliver instant, personal conversations that convert up to 3× more than email and SMS — safely and at scale.',
-    url: 'https://www.aireatro.com/why-whatsapp-marketing'
+    url: 'https://aireatro.com/why-whatsapp-marketing'
   };
 
   return (

@@ -5,13 +5,13 @@ type GoogleOAuthOptions = {
   extraParams?: Record<string, string>;
 };
 
-const PRODUCTION_ORIGIN = "https://www.aireatro.com";
+const PRODUCTION_ORIGIN = "https://aireatro.com";
 
 function getAuthOrigin() {
   if (typeof window === "undefined") return PRODUCTION_ORIGIN;
 
   const { hostname, origin } = window.location;
-  if (hostname === "aireatro.com" || hostname === "www.aireatro.com") {
+  if (hostname === "aireatro.com" || hostname === "aireatro.com") {
     return PRODUCTION_ORIGIN;
   }
 
@@ -37,16 +37,16 @@ export function buildGoogleAuthRedirectUri(nextPath = "/select-workspace") {
  *
  * Required Google OAuth client config (Google Cloud Console):
  *   Authorized JavaScript origins:
- *     https://www.aireatro.com
+ *     https://aireatro.com
  *     https://aireatro.com
  *   Authorized redirect URIs:
  *     https://fygwjpdasnhaomoqdvcu.supabase.co/auth/v1/callback
- *     https://www.aireatro.com/auth/callback
+ *     https://aireatro.com/auth/callback
  *     https://aireatro.com/auth/callback
  *
  * Required Supabase Auth → URL Configuration:
- *   Site URL:      https://www.aireatro.com
- *   Redirect URLs: https://www.aireatro.com/**, https://aireatro.com/**
+ *   Site URL:      https://aireatro.com
+ *   Redirect URLs: https://aireatro.com/**, https://aireatro.com/**
  */
 export async function signInWithManagedGoogle(options: GoogleOAuthOptions = {}) {
   const { nextPath = "/select-workspace", extraParams } = options;

@@ -171,7 +171,7 @@ export default function WhatsAppForms() {
     '@type': 'WebPage',
     name: 'WhatsApp Forms - AI-Powered Form Builder',
     description: 'Collect data seamlessly with WhatsApp Forms powered by AI. Engage users with forms that open directly inside WhatsApp.',
-    url: 'https://www.aireatro.com/whatsapp-forms',
+    url: 'https://aireatro.com/whatsapp-forms',
   };
 
   return (

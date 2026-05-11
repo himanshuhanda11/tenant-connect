@@ -109,7 +109,7 @@ export default function Terms() {
               For any questions regarding these Terms, please visit our website at:
             </p>
             <p className="text-muted-foreground">
-              <strong>Website:</strong> <a href="https://www.aireatro.com" className="text-primary hover:underline">https://www.aireatro.com</a>
+              <strong>Website:</strong> <a href="https://aireatro.com" className="text-primary hover:underline">https://aireatro.com</a>
             </p>
           </section>
         </div>
