@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation } from 'react-router-dom';
-import { MessageCircle, X, Calendar, HelpCircle } from 'lucide-react';
+import { MessageCircle, X, Calendar, ArrowRight, Loader2, CheckCircle2, User, Phone } from 'lucide-react';
+import { Input } from '@/components/ui/input';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTenant } from '@/contexts/TenantContext';
@@ -48,6 +49,7 @@ async function logEvent(
   widget_mode: 'icon_only' | 'full_widget',
   user_id: string | null,
   workspace_id: string | null,
+  extra?: { lead_name?: string | null; lead_phone?: string | null },
 ) {
   try {
     await supabase.from('support_widget_events' as any).insert({
@@ -57,11 +59,15 @@ async function logEvent(
       workspace_id,
       page_url: window.location.pathname,
       user_agent: navigator.userAgent.slice(0, 255),
+      lead_name: extra?.lead_name ?? null,
+      lead_phone: extra?.lead_phone ?? null,
     });
   } catch (err) {
     console.warn('[SupportWidget] event log failed', err);
   }
 }
+
+type Step = 'intro' | 'name' | 'phone' | 'connecting';
 
 export function SupportWidget() {
   const settings = useSupportSettings();
