@@ -6,6 +6,16 @@ const POLL_INTERVAL_MS = 2 * 60 * 1000; // every 2 minutes
 const RELOAD_GUARD_KEY = "__lov_version_reload_at";
 const BUILD_STORAGE_KEY = "__lov_current_build_id";
 const CURRENT_BUILD_PARAM = "__build";
+const FRESH_BUILD_PARAM = "__fresh";
+
+function currentBuildFromUrl() {
+  try {
+    const url = new URL(window.location.href);
+    return url.searchParams.get(CURRENT_BUILD_PARAM) || url.searchParams.get(FRESH_BUILD_PARAM);
+  } catch {
+    return null;
+  }
+}
 
 function ensureBuildScopedUrl() {
   try {
@@ -38,6 +48,13 @@ async function wipeBrowserCaches() {
   }
 }
 
+function hardNavigateToFreshBuild() {
+  const url = new URL(window.location.href);
+  url.searchParams.set(CURRENT_BUILD_PARAM, CURRENT_BUILD_ID);
+  url.searchParams.set(FRESH_BUILD_PARAM, String(Date.now()));
+  window.location.replace(url.toString());
+}
+
 let timer: ReturnType<typeof setInterval> | null = null;
 
 async function checkVersion() {
@@ -49,6 +66,7 @@ async function checkVersion() {
     if (!res.ok) return;
     const { buildId } = (await res.json()) as { buildId?: string };
     if (!buildId || buildId === CURRENT_BUILD_ID) return;
+    if (buildId === currentBuildFromUrl()) return;
 
     // Avoid reload loops
     const last = Number(sessionStorage.getItem(RELOAD_GUARD_KEY) || "0");
@@ -57,22 +75,27 @@ async function checkVersion() {
 
     // Drop any lingering caches before reloading
     await wipeBrowserCaches();
-    window.location.reload();
+    hardNavigateToFreshBuild();
   } catch {
     /* network blip — try again next tick */
   }
 }
 
 async function clearCachesAfterFreshBuild() {
+  let needsFreshNavigation = false;
+
   try {
     const previousBuildId = localStorage.getItem(BUILD_STORAGE_KEY);
     if (previousBuildId === CURRENT_BUILD_ID) return;
     localStorage.setItem(BUILD_STORAGE_KEY, CURRENT_BUILD_ID);
+    needsFreshNavigation = Boolean(previousBuildId);
   } catch {
     /* localStorage may be unavailable */
   }
 
   await wipeBrowserCaches();
+
+  if (needsFreshNavigation) hardNavigateToFreshBuild();
 }
 
 export function startVersionPolling() {
