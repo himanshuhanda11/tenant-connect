@@ -2,8 +2,9 @@ import React from 'react';
 import { 
   ArrowRight, Users, Phone, Clock, MoreHorizontal,
   CheckCircle, Sparkles, AlertTriangle, Settings, Pencil, Archive,
-  MessageSquare, Wifi, Signal
+  MessageSquare, Wifi, Signal, Copy, Check
 } from 'lucide-react';
+import { toast } from 'sonner';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
