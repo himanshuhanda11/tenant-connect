@@ -107,7 +107,7 @@ export interface ContactsGrowth {
 }
 
 export interface BillingUsage {
-  planName: string;
+  planName: string | null;
   seatsUsed: number;
   seatsLimit: number;
   numbersUsed: number;
