@@ -38,6 +38,13 @@ async function wipeBrowserCaches() {
   }
 }
 
+function hardNavigateToFreshBuild() {
+  const url = new URL(window.location.href);
+  url.searchParams.set(CURRENT_BUILD_PARAM, CURRENT_BUILD_ID);
+  url.searchParams.set("__fresh", String(Date.now()));
+  window.location.replace(url.toString());
+}
+
 let timer: ReturnType<typeof setInterval> | null = null;
 
 async function checkVersion() {
@@ -57,22 +64,27 @@ async function checkVersion() {
 
     // Drop any lingering caches before reloading
     await wipeBrowserCaches();
-    window.location.reload();
+    hardNavigateToFreshBuild();
   } catch {
     /* network blip — try again next tick */
   }
 }
 
 async function clearCachesAfterFreshBuild() {
+  let needsFreshNavigation = false;
+
   try {
     const previousBuildId = localStorage.getItem(BUILD_STORAGE_KEY);
     if (previousBuildId === CURRENT_BUILD_ID) return;
     localStorage.setItem(BUILD_STORAGE_KEY, CURRENT_BUILD_ID);
+    needsFreshNavigation = Boolean(previousBuildId);
   } catch {
     /* localStorage may be unavailable */
   }
 
   await wipeBrowserCaches();
+
+  if (needsFreshNavigation) hardNavigateToFreshBuild();
 }
 
 export function startVersionPolling() {
