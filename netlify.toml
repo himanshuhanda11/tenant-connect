@@ -6,25 +6,6 @@
   NODE_VERSION = "20"
   NPM_FLAGS = "--legacy-peer-deps"
 
-# Canonical domain redirect must run before the SPA fallback.
-[[redirects]]
-  from = "https://aireatro.com/*"
-  to = "https://www.aireatro.com/:splat"
-  status = 301
-  force = true
-
-[[redirects]]
-  from = "http://aireatro.com/*"
-  to = "https://www.aireatro.com/:splat"
-  status = 301
-  force = true
-
-# SPA fallback - all routes serve index.html
-[[redirects]]
-  from = "/*"
-  to = "/index.html"
-  status = 200
-
 # Security & caching headers
 [[headers]]
   for = "/*"
