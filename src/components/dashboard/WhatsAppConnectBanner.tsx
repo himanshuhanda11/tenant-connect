@@ -6,6 +6,8 @@ import { useTenant } from '@/contexts/TenantContext';
 import { useEntitlements } from '@/hooks/useEntitlements';
 import { useLaunchOfferUI } from '@/components/offer/LaunchOfferProvider';
 import { useWhatsAppConnectionAccess } from '@/hooks/useWhatsAppConnectionAccess';
+import { useWorkspaceBilling } from '@/hooks/useWorkspaceBilling';
+import ChangePlanDialog from '@/components/billing/ChangePlanDialog';
 import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
 
