@@ -3,6 +3,8 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { MessageSquare, X, ArrowRight, Wifi } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useTenant } from '@/contexts/TenantContext';
+import { useEntitlements } from '@/hooks/useEntitlements';
+import { useLaunchOfferUI } from '@/components/offer/LaunchOfferProvider';
 import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
 
@@ -10,6 +12,8 @@ export function WhatsAppConnectBanner() {
   const navigate = useNavigate();
   const location = useLocation();
   const { currentTenant } = useTenant();
+  const { data: entitlements } = useEntitlements();
+  const { openDialog } = useLaunchOfferUI();
   const [dismissed, setDismissed] = useState(false);
   const [hasPhone, setHasPhone] = useState<boolean | null>(null);
 
