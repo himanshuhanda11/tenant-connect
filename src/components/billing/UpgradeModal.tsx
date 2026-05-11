@@ -150,3 +150,22 @@ export function useUpgradeModal() {
   if (!ctx) throw new Error("useUpgradeModal must be used inside UpgradeModalProvider");
   return ctx;
 }
+
+/**
+ * Parses a Postgres error from a plan-quota trigger and opens the upgrade modal.
+ * Format: plan_access_denied:<reason>:<feature>:<current_plan>:<upgrade_to>
+ * Returns true if it was a plan error (so caller can suppress toast).
+ */
+export function handlePlanError(err: any, open: (ctx: UpgradeContext) => void): boolean {
+  const msg: string = err?.message || err?.error?.message || err?.details || "";
+  if (!msg.includes("plan_access_denied")) return false;
+  const parts = msg.split("plan_access_denied:")[1]?.split(":") ?? [];
+  const [reason, feature, current_plan, upgrade_to] = parts;
+  open({
+    feature: (feature || "").trim(),
+    currentPlan: (current_plan || "").trim(),
+    requiredPlan: (upgrade_to || "").trim(),
+    reason: (reason || "").trim(),
+  });
+  return true;
+}
