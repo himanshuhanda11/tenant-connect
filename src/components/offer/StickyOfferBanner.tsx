@@ -9,6 +9,7 @@ import { isOfferExcludedPath, isPricingPath } from './excludedPaths';
 
 interface Props {
   onClaim: () => void;
+  hidden?: boolean;
 }
 
 const HIDE_KEY = 'launch_offer_banner_hidden_until_v2';
@@ -19,14 +20,14 @@ function isCurrentlyHidden(): boolean {
   return until > Date.now();
 }
 
-export function StickyOfferBanner({ onClaim }: Props) {
+export function StickyOfferBanner({ onClaim, hidden: hiddenProp }: Props) {
   const { isActive, secondsLeft } = useLaunchOffer();
   const navigate = useNavigate();
   const location = useLocation();
   const [hidden, setHidden] = useState(() => isCurrentlyHidden());
 
   const path = location.pathname;
-  const visible = isActive && !hidden && !isPricingPath(path) && !isOfferExcludedPath(path);
+  const visible = isActive && !hidden && !hiddenProp && !isPricingPath(path) && !isOfferExcludedPath(path);
 
   // Collapse the banner when the user engages with any CTA. It will
   // reappear automatically after HIDE_DURATION_MS so the offer stays visible.
