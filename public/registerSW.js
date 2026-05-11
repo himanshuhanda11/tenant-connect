@@ -10,6 +10,7 @@
     }
   })();
 
+  const isBuildStamped = buildId && buildId !== '__CACHE_BUST__';
   const reloadKey = `__aireatro_cache_reset_${buildId}`;
   const freshUrl = () => {
     const url = new URL(window.location.href);
@@ -41,7 +42,7 @@
   }
 
     try {
-      if (hadPersistentCache && sessionStorage.getItem(reloadKey) !== '1') {
+      if (isBuildStamped && sessionStorage.getItem(reloadKey) !== '1' && new URL(window.location.href).searchParams.get('__fresh') !== buildId) {
         sessionStorage.setItem(reloadKey, '1');
         window.location.replace(freshUrl());
       }
