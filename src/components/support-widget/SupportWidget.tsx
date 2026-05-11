@@ -225,10 +225,10 @@ export function SupportWidget() {
     setTimeout(resetForm, 200);
   };
 
-  // Dismiss: hide the widget entirely for this session (no FAB).
+  // Dismiss: hide the widget for 24 hours.
   const handleDismiss = () => {
     setOpen(false);
-    try { sessionStorage.setItem(FULL_DISMISS_KEY, '1'); } catch {}
+    setDismissed(FULL_DISMISS_KEY);
     setFullDismissed(true);
     setTimeout(resetForm, 200);
   };
