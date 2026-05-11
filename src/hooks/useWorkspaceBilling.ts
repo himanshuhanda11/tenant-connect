@@ -110,7 +110,17 @@ export function useChangePlan() {
       });
       if (error) throw error;
       if ((data as any)?.error) throw new Error((data as any).error);
-      return data;
+      return data as {
+        ok?: boolean;
+        action?: 'checkout_required';
+        kind?: 'upgrade' | 'downgrade';
+        effective?: 'immediate' | 'next_period' | 'trial_end';
+        target?: string;
+        scheduled_at?: string | null;
+        trial_end?: string | null;
+        proration?: boolean;
+        noop?: boolean;
+      };
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['workspace-billing-status'] });
