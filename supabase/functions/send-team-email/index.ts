@@ -306,7 +306,7 @@ Deno.serve(async (req) => {
       const useCaseD = payload.useCase || "";
       const preferredDateD = payload.preferredDate || "";
       const preferredTimeD = payload.preferredTime || "";
-      const timezoneD = payload.timezone || "";
+      const timezoneD = payload.timezone || "UTC";
       const notesD = payload.notes || "";
 
       if (!workEmailD) return json({ error: "Missing workEmail for demo_request" }, 400);
@@ -315,53 +315,206 @@ Deno.serve(async (req) => {
       const year = new Date().getFullYear();
       const submittedAt = new Date().toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short", timeZone: "UTC" }) + " UTC";
 
+      // ---- Build calendar timestamps ----
+      // preferredDateD likely "MMM dd, yyyy" or similar; preferredTimeD like "04:00 PM"
+      const parseToUtc = (dateStr: string, timeStr: string, tz: string): Date | null => {
+        try {
+          const d = new Date(`${dateStr} ${timeStr}`);
+          if (isNaN(d.getTime())) return null;
+          // Treat parsed as local-to-tz. Approximation: get tz offset for that instant.
+          const fmt = new Intl.DateTimeFormat("en-US", { timeZone: tz, timeZoneName: "shortOffset" });
+          const parts = fmt.formatToParts(d).find(p => p.type === "timeZoneName")?.value || "GMT+0";
+          const m = parts.match(/GMT([+-]\d+)(?::(\d+))?/);
+          const offH = m ? parseInt(m[1], 10) : 0;
+          const offM = m && m[2] ? parseInt(m[2], 10) : 0;
+          const offsetMin = offH * 60 + (offH < 0 ? -offM : offM);
+          // d was parsed as local browser time. Re-create as if components are in tz:
+          const utcMs = Date.UTC(d.getFullYear(), d.getMonth(), d.getDate(), d.getHours(), d.getMinutes()) - offsetMin * 60_000;
+          return new Date(utcMs);
+        } catch { return null; }
+      };
+      const startUtc = parseToUtc(preferredDateD, preferredTimeD, timezoneD);
+      const endUtc = startUtc ? new Date(startUtc.getTime() + 25 * 60_000) : null;
+      const toIcsStamp = (d: Date) => d.toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, "");
+
+      let googleCalUrl = "#";
+      let outlookCalUrl = "#";
+      let icsBase64 = "";
+      if (startUtc && endUtc) {
+        const s = toIcsStamp(startUtc);
+        const e = toIcsStamp(endUtc);
+        const title = encodeURIComponent("Aireatro Demo");
+        const details = encodeURIComponent(`Live demo with the Aireatro team.\nTimezone: ${timezoneD}\nContact: +91 93197 11126`);
+        const loc = encodeURIComponent("Google Meet / Zoom (link will be sent)");
+        googleCalUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${s}/${e}&details=${details}&location=${loc}`;
+        outlookCalUrl = `https://outlook.live.com/calendar/0/deeplink/compose?path=/calendar/action/compose&rru=addevent&subject=${title}&body=${details}&location=${loc}&startdt=${startUtc.toISOString()}&enddt=${endUtc.toISOString()}`;
+        const ics = [
+          "BEGIN:VCALENDAR",
+          "VERSION:2.0",
+          "PRODID:-//Aireatro//Demo//EN",
+          "CALSCALE:GREGORIAN",
+          "METHOD:PUBLISH",
+          "BEGIN:VEVENT",
+          `UID:${crypto.randomUUID()}@aireatro.com`,
+          `DTSTAMP:${toIcsStamp(new Date())}`,
+          `DTSTART:${s}`,
+          `DTEND:${e}`,
+          "SUMMARY:Aireatro Demo",
+          `DESCRIPTION:Live demo with the Aireatro team. Timezone: ${timezoneD}`,
+          "LOCATION:Google Meet / Zoom (link will be sent)",
+          `ORGANIZER;CN=Aireatro:mailto:admin@aireatro.com`,
+          `ATTENDEE;CN=${fullNameD}:mailto:${workEmailD}`,
+          "STATUS:CONFIRMED",
+          "END:VEVENT",
+          "END:VCALENDAR",
+        ].join("\r\n");
+        // Base64 encode (Deno)
+        icsBase64 = btoa(unescape(encodeURIComponent(ics)));
+      }
+
       const FONT = `-apple-system,BlinkMacSystemFont,'SF Pro Display','Segoe UI',Roboto,Helvetica,Arial,sans-serif`;
       const INK = "#0B1020";
       const SUB = "#5B6478";
+      const FAINT = "#9AA3B7";
       const HAIR = "#EDF0F6";
-      const PRIMARY = "#16a34a";
+      const BG = "#F5F6FA";
+      const PRIMARY = "#16A34A";
+      const PRIMARY_DARK = "#0F7A35";
+
+      const trustChip = (label: string) =>
+        `<td align="center" style="padding:10px 6px;"><div style="font-size:11px;font-weight:600;color:${INK};background:#F1F5F9;border:1px solid ${HAIR};border-radius:999px;padding:8px 12px;display:inline-block;">${label}</div></td>`;
 
       const customerHtml = `
-<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Your Aireatro demo is booked</title></head>
-<body style="margin:0;padding:0;background:#F6F7FB;font-family:${FONT};">
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#F6F7FB;padding:32px 16px;">
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Your Aireatro demo is confirmed</title></head>
+<body style="margin:0;padding:0;background:${BG};font-family:${FONT};color:${INK};-webkit-font-smoothing:antialiased;">
+  <div style="display:none;max-height:0;overflow:hidden;opacity:0;">Your Aireatro demo for ${preferredDateD} at ${preferredTimeD} (${timezoneD}) is confirmed.</div>
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${BG};padding:48px 16px;">
     <tr><td align="center">
-      <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px;background:#ffffff;border-radius:20px;overflow:hidden;box-shadow:0 4px 24px rgba(15,23,42,0.06);">
-        <tr><td style="padding:40px 40px 8px 40px;">
-          <table role="presentation" width="100%"><tr>
-            <td style="font-weight:700;font-size:18px;color:${INK};letter-spacing:-0.2px;">Aireatro</td>
-            <td align="right" style="font-size:11px;color:${SUB};text-transform:uppercase;letter-spacing:1.2px;">Demo Confirmation</td>
-          </tr></table>
+      <table role="presentation" width="620" cellpadding="0" cellspacing="0" style="max-width:620px;width:100%;">
+        <tr><td align="center" style="padding:0 0 24px;">
+          <div style="font-size:18px;font-weight:700;letter-spacing:-0.2px;color:${INK};">Aireatro</div>
         </td></tr>
-        <tr><td style="padding:24px 40px 8px 40px;">
-          <h1 style="margin:0 0 12px 0;font-size:30px;line-height:1.15;color:${INK};font-weight:700;letter-spacing:-0.6px;">You're on the calendar, ${fullNameD.split(' ')[0]} 🎉</h1>
-          <p style="margin:0 0 24px 0;font-size:15px;line-height:1.6;color:${SUB};">Thanks for booking a demo with Aireatro. Our specialist will confirm your slot and send a calendar invite within a few hours — over email and WhatsApp.</p>
-        </td></tr>
-        <tr><td style="padding:0 40px 8px 40px;">
-          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border:1px solid ${HAIR};border-radius:14px;background:#FBFCFE;">
-            <tr><td style="padding:18px 20px;">
-              <div style="font-size:11px;text-transform:uppercase;letter-spacing:1.2px;color:${SUB};margin-bottom:6px;">Your requested slot</div>
-              <div style="font-size:18px;font-weight:600;color:${INK};">${preferredDateD} · ${preferredTimeD}</div>
-              <div style="font-size:13px;color:${SUB};margin-top:4px;">${timezoneD}</div>
+        <tr><td style="background:#FFFFFF;border-radius:22px;border:1px solid ${HAIR};overflow:hidden;box-shadow:0 8px 28px rgba(15,23,42,0.06);">
+
+          <!-- Hero gradient strip -->
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+            <tr><td style="background:linear-gradient(135deg,#16A34A 0%,#0EA5E9 100%);padding:40px 44px;color:#fff;">
+              <div style="font-size:11px;letter-spacing:2.4px;text-transform:uppercase;opacity:0.85;font-weight:600;">Demo Confirmation</div>
+              <h1 style="margin:10px 0 8px;font-size:30px;font-weight:700;line-height:1.2;letter-spacing:-0.6px;">You're on the calendar, ${fullNameD.split(' ')[0]} 🚀</h1>
+              <p style="margin:0;font-size:15px;line-height:1.6;opacity:0.92;max-width:480px;">Thanks for booking a demo with Aireatro. Our specialist will connect with you at your selected time to show how Aireatro automates your business with WhatsApp API + CRM.</p>
             </td></tr>
           </table>
-        </td></tr>
-        <tr><td style="padding:24px 40px 8px 40px;">
-          <div style="font-size:13px;font-weight:600;color:${INK};margin-bottom:10px;">What we'll cover (25 min)</div>
-          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="font-size:14px;color:${INK};line-height:1.7;">
-            <tr><td style="padding:4px 0;">✓ Walk through your business use case</td></tr>
-            <tr><td style="padding:4px 0;">✓ Live tour of inbox, automation & AI</td></tr>
-            <tr><td style="padding:4px 0;">✓ Meta Ads → WhatsApp attribution demo</td></tr>
-            <tr><td style="padding:4px 0;">✓ Pricing, onboarding & open Q&A</td></tr>
+
+          <!-- Calendar summary card -->
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+            <tr><td style="padding:32px 44px 8px;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border:1px solid ${HAIR};border-radius:16px;overflow:hidden;">
+                <tr>
+                  <td width="92" style="background:linear-gradient(180deg,#16A34A,#0F7A35);color:#fff;text-align:center;padding:18px 0;vertical-align:middle;">
+                    <div style="font-size:11px;text-transform:uppercase;letter-spacing:1.5px;opacity:0.85;font-weight:600;">Demo</div>
+                    <div style="font-size:26px;font-weight:700;line-height:1.1;margin-top:4px;">${preferredTimeD.split(' ')[0] || '—'}</div>
+                    <div style="font-size:11px;opacity:0.85;margin-top:2px;">${preferredTimeD.split(' ')[1] || ''}</div>
+                  </td>
+                  <td style="padding:18px 22px;background:#FBFCFE;">
+                    <div style="font-size:11px;text-transform:uppercase;letter-spacing:1.4px;color:${SUB};font-weight:600;margin-bottom:6px;">Your scheduled session</div>
+                    <div style="font-size:18px;font-weight:700;color:${INK};">${preferredDateD}</div>
+                    <div style="font-size:13px;color:${SUB};margin-top:4px;">${preferredTimeD} · ${timezoneD}</div>
+                  </td>
+                </tr>
+              </table>
+            </td></tr>
           </table>
-        </td></tr>
-        <tr><td style="padding:28px 40px 8px 40px;" align="center">
-          <a href="${baseUrl}/signup" style="display:inline-block;background:${PRIMARY};color:#ffffff;text-decoration:none;font-weight:600;font-size:14px;padding:14px 28px;border-radius:10px;">Explore Aireatro free →</a>
-        </td></tr>
-        <tr><td style="padding:24px 40px 32px 40px;">
-          <hr style="border:none;border-top:1px solid ${HAIR};margin:0 0 16px 0;" />
-          <p style="margin:0;font-size:12px;color:${SUB};line-height:1.6;">Need to reschedule? Just reply to this email or WhatsApp us at +91 93197 11126.</p>
-          <p style="margin:8px 0 0 0;font-size:11px;color:#9aa1ad;">© ${year} Aireatro Communications · aireatro.com</p>
+
+          <!-- Detail grid -->
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+            <tr><td style="padding:18px 44px 0;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border:1px solid ${HAIR};border-radius:14px;">
+                <tr>
+                  <td style="padding:14px 16px;border-right:1px solid ${HAIR};border-bottom:1px solid ${HAIR};width:50%;">
+                    <div style="font-size:10px;color:${FAINT};text-transform:uppercase;letter-spacing:1.2px;font-weight:600;">Name</div>
+                    <div style="font-size:14px;font-weight:600;color:${INK};margin-top:3px;">${fullNameD}</div>
+                  </td>
+                  <td style="padding:14px 16px;border-bottom:1px solid ${HAIR};">
+                    <div style="font-size:10px;color:${FAINT};text-transform:uppercase;letter-spacing:1.2px;font-weight:600;">Business</div>
+                    <div style="font-size:14px;font-weight:600;color:${INK};margin-top:3px;">${companyD || "—"}</div>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding:14px 16px;border-right:1px solid ${HAIR};">
+                    <div style="font-size:10px;color:${FAINT};text-transform:uppercase;letter-spacing:1.2px;font-weight:600;">Meeting Type</div>
+                    <div style="font-size:14px;font-weight:600;color:${INK};margin-top:3px;">${useCaseD || "Live product demo"}</div>
+                  </td>
+                  <td style="padding:14px 16px;">
+                    <div style="font-size:10px;color:${FAINT};text-transform:uppercase;letter-spacing:1.2px;font-weight:600;">Contact</div>
+                    <div style="font-size:14px;font-weight:600;color:${INK};margin-top:3px;">${phoneD || workEmailD}</div>
+                  </td>
+                </tr>
+              </table>
+            </td></tr>
+          </table>
+
+          <!-- Add to calendar -->
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+            <tr><td style="padding:24px 44px 0;">
+              <div style="font-size:13px;font-weight:600;color:${INK};margin-bottom:10px;">📅 Add to your calendar</div>
+              <table role="presentation" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td style="padding-right:8px;"><a href="${googleCalUrl}" style="display:inline-block;background:#FFFFFF;border:1px solid ${HAIR};color:${INK};text-decoration:none;font-weight:600;font-size:13px;padding:10px 16px;border-radius:10px;">Google Calendar</a></td>
+                  <td style="padding-right:8px;"><a href="${outlookCalUrl}" style="display:inline-block;background:#FFFFFF;border:1px solid ${HAIR};color:${INK};text-decoration:none;font-weight:600;font-size:13px;padding:10px 16px;border-radius:10px;">Outlook</a></td>
+                  <td><span style="font-size:12px;color:${SUB};">.ics file attached</span></td>
+                </tr>
+              </table>
+            </td></tr>
+          </table>
+
+          <!-- Agenda -->
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+            <tr><td style="padding:28px 44px 0;">
+              <div style="font-size:13px;font-weight:600;color:${INK};margin-bottom:10px;">What we'll cover (25 min)</div>
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="font-size:14px;color:${INK};line-height:1.75;">
+                <tr><td style="padding:3px 0;">✓ Walk through your business use case</td></tr>
+                <tr><td style="padding:3px 0;">✓ Live tour of inbox, automation & AI</td></tr>
+                <tr><td style="padding:3px 0;">✓ Meta Ads → WhatsApp attribution demo</td></tr>
+                <tr><td style="padding:3px 0;">✓ Pricing, onboarding & open Q&A</td></tr>
+              </table>
+            </td></tr>
+          </table>
+
+          <!-- CTAs -->
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+            <tr><td style="padding:30px 44px 0;" align="center">
+              <table role="presentation" cellpadding="0" cellspacing="0"><tr>
+                <td style="padding-right:10px;">
+                  <a href="${baseUrl}/signup" style="display:inline-block;background:linear-gradient(135deg,${PRIMARY},${PRIMARY_DARK});color:#fff;text-decoration:none;font-weight:600;font-size:14px;padding:14px 26px;border-radius:12px;box-shadow:0 6px 18px rgba(22,163,74,0.32);">Start Free →</a>
+                </td>
+                <td>
+                  <a href="https://wa.me/919319711126" style="display:inline-block;background:#FFFFFF;border:1px solid ${HAIR};color:${INK};text-decoration:none;font-weight:600;font-size:14px;padding:13px 22px;border-radius:12px;">WhatsApp Support</a>
+                </td>
+              </tr></table>
+            </td></tr>
+          </table>
+
+          <!-- Trust strip -->
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+            <tr><td style="padding:28px 32px 8px;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>
+                ${trustChip("Official WhatsApp API")}
+                ${trustChip("< 10 min Setup")}
+                ${trustChip("AI Automation")}
+                ${trustChip("Team Inbox")}
+              </tr></table>
+            </td></tr>
+          </table>
+
+          <!-- Footer -->
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+            <tr><td style="padding:24px 44px 36px;">
+              <hr style="border:none;border-top:1px solid ${HAIR};margin:0 0 16px;" />
+              <p style="margin:0;font-size:12px;color:${SUB};line-height:1.6;">Need to reschedule? Reply to this email or WhatsApp us at +91 93197 11126.</p>
+              <p style="margin:8px 0 0;font-size:11px;color:${FAINT};">© ${year} Aireatro · aireatro.com</p>
+            </td></tr>
+          </table>
+
         </td></tr>
       </table>
     </td></tr>
@@ -370,90 +523,103 @@ Deno.serve(async (req) => {
 
       const safeNotes = String(notesD).replace(/[<>]/g, "");
       const adminHtml = `
-<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>New demo request</title></head>
-<body style="margin:0;padding:0;background:#F6F7FB;font-family:${FONT};">
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#F6F7FB;padding:32px 16px;">
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>New demo booking</title></head>
+<body style="margin:0;padding:0;background:${BG};font-family:${FONT};color:${INK};">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${BG};padding:40px 16px;">
     <tr><td align="center">
-      <table role="presentation" width="560" cellpadding="0" cellspacing="0" style="max-width:560px;background:#ffffff;border-radius:18px;overflow:hidden;box-shadow:0 4px 24px rgba(15,23,42,0.06);">
-        <tr><td style="padding:32px 32px 0 32px;">
+      <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px;background:#fff;border-radius:20px;overflow:hidden;border:1px solid ${HAIR};box-shadow:0 8px 28px rgba(15,23,42,0.06);">
+        <tr><td style="background:linear-gradient(135deg,#0B1020,#1E293B);padding:24px 32px;">
           <table role="presentation" width="100%"><tr>
-            <td style="font-weight:700;font-size:16px;color:${INK};">Aireatro · Control Center</td>
-            <td align="right"><span style="display:inline-block;background:#FEF3C7;color:#92400E;font-size:10px;font-weight:700;padding:5px 10px;border-radius:999px;letter-spacing:0.6px;text-transform:uppercase;">New Demo Request</span></td>
+            <td style="font-weight:700;font-size:15px;color:#fff;letter-spacing:-0.2px;">Aireatro · Control Center</td>
+            <td align="right"><span style="display:inline-block;background:#FCD34D;color:#78350F;font-size:10px;font-weight:700;padding:5px 11px;border-radius:999px;letter-spacing:0.6px;text-transform:uppercase;">New Demo Booking</span></td>
           </tr></table>
         </td></tr>
-        <tr><td style="padding:24px 32px 8px 32px;">
+
+        <tr><td style="padding:26px 32px 8px;">
           <table role="presentation" width="100%"><tr>
             <td width="56" style="vertical-align:top;">
-              <div style="width:48px;height:48px;border-radius:12px;background:linear-gradient(135deg,#16a34a,#0ea5e9);color:#fff;font-size:20px;font-weight:700;text-align:center;line-height:48px;">${initial}</div>
+              <div style="width:48px;height:48px;border-radius:14px;background:linear-gradient(135deg,${PRIMARY},#0EA5E9);color:#fff;font-size:20px;font-weight:700;text-align:center;line-height:48px;">${initial}</div>
             </td>
             <td style="padding-left:14px;">
-              <div style="font-size:18px;font-weight:600;color:${INK};">${fullNameD}</div>
+              <div style="font-size:18px;font-weight:700;color:${INK};">${fullNameD}</div>
               <div style="font-size:13px;color:${SUB};">${workEmailD}${phoneD ? ` · ${phoneD}` : ""}</div>
             </td>
           </tr></table>
         </td></tr>
-        <tr><td style="padding:20px 32px 8px 32px;">
+
+        <!-- Slot highlight -->
+        <tr><td style="padding:18px 32px 0;">
+          <div style="border:1px solid ${HAIR};border-left:4px solid ${PRIMARY};border-radius:12px;padding:14px 16px;background:#F0FDF4;">
+            <div style="font-size:10px;color:${SUB};text-transform:uppercase;letter-spacing:1.2px;font-weight:600;">Requested Slot</div>
+            <div style="font-size:16px;font-weight:700;color:${INK};margin-top:3px;">${preferredDateD} · ${preferredTimeD} <span style="color:${SUB};font-weight:500;font-size:13px;">(${timezoneD})</span></div>
+          </div>
+        </td></tr>
+
+        <tr><td style="padding:18px 32px 0;">
           <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border:1px solid ${HAIR};border-radius:12px;">
             <tr>
-              <td style="padding:14px 16px;border-right:1px solid ${HAIR};border-bottom:1px solid ${HAIR};">
-                <div style="font-size:10px;color:${SUB};text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Company</div>
-                <div style="font-size:14px;font-weight:600;color:${INK};">${companyD || "—"}</div>
+              <td style="padding:13px 16px;border-right:1px solid ${HAIR};border-bottom:1px solid ${HAIR};width:50%;">
+                <div style="font-size:10px;color:${FAINT};text-transform:uppercase;letter-spacing:1px;font-weight:600;">Company</div>
+                <div style="font-size:14px;font-weight:600;color:${INK};margin-top:3px;">${companyD || "—"}</div>
               </td>
-              <td style="padding:14px 16px;border-bottom:1px solid ${HAIR};">
-                <div style="font-size:10px;color:${SUB};text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Website</div>
-                <div style="font-size:14px;font-weight:600;color:${INK};">${websiteD || "—"}</div>
-              </td>
-            </tr>
-            <tr>
-              <td style="padding:14px 16px;border-right:1px solid ${HAIR};border-bottom:1px solid ${HAIR};">
-                <div style="font-size:10px;color:${SUB};text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Team Size</div>
-                <div style="font-size:14px;font-weight:600;color:${INK};">${teamSizeD || "—"}</div>
-              </td>
-              <td style="padding:14px 16px;border-bottom:1px solid ${HAIR};">
-                <div style="font-size:10px;color:${SUB};text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Industry</div>
-                <div style="font-size:14px;font-weight:600;color:${INK};">${industryD || "—"}</div>
+              <td style="padding:13px 16px;border-bottom:1px solid ${HAIR};">
+                <div style="font-size:10px;color:${FAINT};text-transform:uppercase;letter-spacing:1px;font-weight:600;">Website</div>
+                <div style="font-size:14px;font-weight:600;color:${INK};margin-top:3px;">${websiteD || "—"}</div>
               </td>
             </tr>
             <tr>
-              <td colspan="2" style="padding:14px 16px;border-bottom:1px solid ${HAIR};">
-                <div style="font-size:10px;color:${SUB};text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Primary Use Case</div>
-                <div style="font-size:14px;font-weight:600;color:${INK};">${useCaseD || "—"}</div>
+              <td style="padding:13px 16px;border-right:1px solid ${HAIR};border-bottom:1px solid ${HAIR};">
+                <div style="font-size:10px;color:${FAINT};text-transform:uppercase;letter-spacing:1px;font-weight:600;">Team Size</div>
+                <div style="font-size:14px;font-weight:600;color:${INK};margin-top:3px;">${teamSizeD || "—"}</div>
+              </td>
+              <td style="padding:13px 16px;border-bottom:1px solid ${HAIR};">
+                <div style="font-size:10px;color:${FAINT};text-transform:uppercase;letter-spacing:1px;font-weight:600;">Industry</div>
+                <div style="font-size:14px;font-weight:600;color:${INK};margin-top:3px;">${industryD || "—"}</div>
               </td>
             </tr>
             <tr>
-              <td style="padding:14px 16px;border-right:1px solid ${HAIR};">
-                <div style="font-size:10px;color:${SUB};text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Preferred Slot</div>
-                <div style="font-size:14px;font-weight:600;color:${PRIMARY};">${preferredDateD} · ${preferredTimeD}</div>
-              </td>
-              <td style="padding:14px 16px;">
-                <div style="font-size:10px;color:${SUB};text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Timezone</div>
-                <div style="font-size:14px;font-weight:600;color:${INK};">${timezoneD || "—"}</div>
+              <td colspan="2" style="padding:13px 16px;">
+                <div style="font-size:10px;color:${FAINT};text-transform:uppercase;letter-spacing:1px;font-weight:600;">Primary Use Case</div>
+                <div style="font-size:14px;font-weight:600;color:${INK};margin-top:3px;">${useCaseD || "—"}</div>
               </td>
             </tr>
           </table>
         </td></tr>
-        ${safeNotes ? `<tr><td style="padding:16px 32px 0 32px;">
-          <div style="font-size:10px;color:${SUB};text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">Notes</div>
+
+        ${safeNotes ? `<tr><td style="padding:16px 32px 0;">
+          <div style="font-size:10px;color:${FAINT};text-transform:uppercase;letter-spacing:1px;font-weight:600;margin-bottom:6px;">Notes</div>
           <div style="font-size:14px;color:${INK};line-height:1.6;background:#FBFCFE;border:1px solid ${HAIR};border-radius:10px;padding:12px 14px;">${safeNotes}</div>
         </td></tr>` : ""}
-        <tr><td style="padding:24px 32px 8px 32px;" align="center">
-          <a href="mailto:${workEmailD}" style="display:inline-block;background:${INK};color:#ffffff;text-decoration:none;font-weight:600;font-size:13px;padding:12px 22px;border-radius:10px;">Reply to ${fullNameD.split(' ')[0]}</a>
+
+        <!-- Quick actions -->
+        <tr><td style="padding:24px 32px 8px;" align="center">
+          <table role="presentation" cellpadding="0" cellspacing="0"><tr>
+            <td style="padding-right:8px;"><a href="mailto:${workEmailD}?subject=Re:%20Your%20Aireatro%20Demo" style="display:inline-block;background:${INK};color:#fff;text-decoration:none;font-weight:600;font-size:13px;padding:11px 18px;border-radius:10px;">✉ Reply</a></td>
+            ${phoneD ? `<td style="padding-right:8px;"><a href="https://wa.me/${phoneD.replace(/\D/g,'')}" style="display:inline-block;background:${PRIMARY};color:#fff;text-decoration:none;font-weight:600;font-size:13px;padding:11px 18px;border-radius:10px;">💬 WhatsApp</a></td>` : ""}
+            <td><a href="${baseUrl}/admin/leads" style="display:inline-block;background:#FFFFFF;border:1px solid ${HAIR};color:${INK};text-decoration:none;font-weight:600;font-size:13px;padding:10px 18px;border-radius:10px;">Open CRM</a></td>
+          </tr></table>
         </td></tr>
-        <tr><td style="padding:20px 32px 28px 32px;">
-          <hr style="border:none;border-top:1px solid ${HAIR};margin:0 0 12px 0;" />
-          <p style="margin:0;font-size:11px;color:#9aa1ad;">Submitted ${submittedAt} · Aireatro Control Center</p>
+
+        <tr><td style="padding:22px 32px 28px;">
+          <hr style="border:none;border-top:1px solid ${HAIR};margin:0 0 12px;" />
+          <p style="margin:0;font-size:11px;color:${FAINT};">Submitted ${submittedAt} · Aireatro Control Center</p>
         </td></tr>
       </table>
     </td></tr>
   </table>
 </body></html>`;
 
+      const customerAttachments = icsBase64
+        ? [{ filename: "aireatro-demo.ics", content: icsBase64 }]
+        : undefined;
+
       const [c, a] = await Promise.all([
-        sendOne(workEmailD, "Your Aireatro demo is booked ✅", customerHtml),
-        sendOne(ADMIN_EMAIL, `🎯 New demo request: ${fullNameD}${companyD ? ` (${companyD})` : ""}`, adminHtml, workEmailD),
+        sendOne(workEmailD, "Your Aireatro Demo Session is Confirmed 🚀", customerHtml, undefined, customerAttachments),
+        sendOne(ADMIN_EMAIL, `🎯 New demo booking: ${fullNameD}${companyD ? ` (${companyD})` : ""}`, adminHtml, workEmailD),
       ]);
       return json({ success: c.ok && a.ok, customer: c.data, admin: a.data });
     }
+
 
     if (type === "contact_request") {
       const p = (req as any).__parsed;
