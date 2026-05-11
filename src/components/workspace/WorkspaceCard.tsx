@@ -106,7 +106,7 @@ export default function WorkspaceCard({
   const handleCopyId = (e: React.MouseEvent) => {
     e.stopPropagation();
     e.preventDefault();
-    navigator.clipboard.writeText(workspace.id);
+    navigator.clipboard.writeText(workspace.slug);
     setCopied(true);
     toast.success('Workspace ID copied');
     setTimeout(() => setCopied(false), 1500);
