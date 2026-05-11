@@ -86,7 +86,9 @@ export default function AutomationWorkflows() {
   const pausedCount = workflows.filter(w => w.status === 'paused').length;
   const draftCount = workflows.filter(w => w.status === 'draft').length;
 
-  const handleCreateWorkflow = () => {
+  const automationGate = useFeatureGate('create_automation');
+  const handleCreateWorkflow = async () => {
+    if (!(await automationGate.guard())) return;
     setSelectedWorkflow(null);
     setBuilderOpen(true);
   };
