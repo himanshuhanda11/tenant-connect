@@ -1,5 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import PricingHero from '@/components/pricing/PricingHero';
+import PricingCards from '@/components/pricing/PricingCards';
 import {
   MessageCircle,
   Zap,
@@ -51,6 +53,7 @@ import { JsonLd, organizationSchema, softwareApplicationSchema, createFAQSchema 
 
 const WhatsAppBusinessApi = () => {
   const navigate = useNavigate();
+  const [isAnnual, setIsAnnual] = useState(false);
 
   const goSignup = () => navigate('/signup');
   const goDemo = () => navigate('/demo');
@@ -804,6 +807,12 @@ const WhatsAppBusinessApi = () => {
             ))}
           </div>
         </div>
+      </section>
+
+      {/* ============ 10b. PRICING ============ */}
+      <section id="pricing" className="relative">
+        <PricingHero isAnnual={isAnnual} setIsAnnual={setIsAnnual} />
+        <PricingCards isAnnual={isAnnual} />
       </section>
 
       {/* ============ 11. FAQ ============ */}
