@@ -64,7 +64,7 @@ export default function PlanSelectionModal({ open, tenantId, onSelected, onPaidI
   const navigate = useNavigate();
   const startCheckout = useStartCheckout();
   const { data: billing } = useWorkspaceBilling(tenantId);
-  const hasActivePlan = !!billing?.has_subscription;
+  const hasActivePlan = !!billing?.has_selected_plan || !!billing?.has_subscription;
   const currentPlanId = hasActivePlan ? (billing?.plan_id || '').replace(/^plan_/, '').toLowerCase() : '';
 
   const updateArrows = () => {
