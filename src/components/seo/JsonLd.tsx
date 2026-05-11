@@ -25,8 +25,8 @@ export const organizationSchema = {
   '@context': 'https://schema.org',
   '@type': 'Organization',
   name: 'AiReatro Communications',
-  url: 'https://aireatro.com',
-  logo: 'https://aireatro.com/favicon.png',
+  url: 'https://www.aireatro.com',
+  logo: 'https://www.aireatro.com/favicon.png',
   description: 'AI-powered WhatsApp automation platform with team inbox, flow diagnostics, and Meta Ads attribution.',
   email: 'support@aireatro.com',
   sameAs: [
@@ -45,10 +45,10 @@ export const websiteSchema = {
   '@context': 'https://schema.org',
   '@type': 'WebSite',
   name: 'AiReatro Communications',
-  url: 'https://aireatro.com',
+  url: 'https://www.aireatro.com',
   potentialAction: {
     '@type': 'SearchAction',
-    target: 'https://aireatro.com/help?q={search_term_string}',
+    target: 'https://www.aireatro.com/help?q={search_term_string}',
     'query-input': 'required name=search_term_string',
   },
 };
@@ -60,14 +60,14 @@ export const softwareApplicationSchema = {
   name: 'AiReatro Communications',
   applicationCategory: 'BusinessApplication',
   operatingSystem: 'Web',
-  url: 'https://aireatro.com',
+  url: 'https://www.aireatro.com',
   description: 'AI-powered WhatsApp automation platform with team inbox, flow diagnostics, and Meta Ads attribution.',
   offers: {
     '@type': 'Offer',
     price: '0',
     priceCurrency: 'USD',
     description: 'Free trial available',
-    url: 'https://aireatro.com/pricing',
+    url: 'https://www.aireatro.com/pricing',
   },
   aggregateRating: {
     '@type': 'AggregateRating',
@@ -88,7 +88,7 @@ export const aboutPageSchema = {
   '@type': 'AboutPage',
   name: 'About AiReatro Communications',
   description: 'Learn about AiReatro Communications - AI-powered WhatsApp automation platform.',
-  url: 'https://aireatro.com/about',
+  url: 'https://www.aireatro.com/about',
   mainEntity: organizationSchema,
 };
 
