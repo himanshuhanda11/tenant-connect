@@ -211,6 +211,7 @@ const App = () => (
             <PreviewWorkspaceProvider>
             <TenantProvider>
               <ThemeProvider>
+                <UpgradeModalProvider>
                 <ScrollToTop />
                 <RoutePrefetcher />
                 <RequirePlanSelection>
