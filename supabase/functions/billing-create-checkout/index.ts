@@ -49,7 +49,7 @@ Deno.serve(async (req) => {
       // Direct upsert as a safety net so onboarding can move on instantly
       await service.from("subscriptions").upsert({
         tenant_id: workspaceId,
-        plan_id: "plan_free",
+        plan_id: "free",
         status: "active" as any,
         billing_cycle: "monthly",
         trial_status: "none",
