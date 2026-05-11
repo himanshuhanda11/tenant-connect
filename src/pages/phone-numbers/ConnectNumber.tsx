@@ -28,6 +28,7 @@ import { usePhoneNumbers, useWABAs } from '@/hooks/usePhoneNumbers';
 import { MetaEmbeddedSignup } from '@/components/meta/MetaEmbeddedSignup';
 import { useTenant } from '@/contexts/TenantContext';
 import { useEntitlements } from '@/hooks/useEntitlements';
+import { useLaunchOfferUI } from '@/components/offer/LaunchOfferProvider';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
