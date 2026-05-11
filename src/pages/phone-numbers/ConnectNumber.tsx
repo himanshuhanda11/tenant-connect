@@ -66,17 +66,8 @@ export default function ConnectNumber() {
   const { addPhoneNumber } = usePhoneNumbers();
   const { addWaba } = useWABAs();
   const { currentTenant, refreshTenants, setCurrentTenant, tenants } = useTenant();
-  const { data: entitlements, isLoading: entLoading } = useEntitlements();
-  const { openDialog } = useLaunchOfferUI();
-
-  // Plan-first guard: must pick a plan before connecting WhatsApp
-  useEffect(() => {
-    if (!entLoading && currentTenant && !entitlements) {
-      toast.info('Choose a plan first — WhatsApp connection is step 2.');
-      navigate('/dashboard', { replace: true });
-      setTimeout(() => openDialog(), 200);
-    }
-  }, [entLoading, entitlements, currentTenant, navigate, openDialog]);
+  // Note: plan selection is no longer a hard gate — workspaces default to Free
+  // when no entitlements row exists. Users can upgrade later from Billing.
 
   const [currentStep, setCurrentStep] = useState<Step>('method');
   const [isConnecting, setIsConnecting] = useState(false);
