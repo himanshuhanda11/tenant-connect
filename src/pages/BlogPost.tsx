@@ -338,7 +338,7 @@ function WebsiteInternalLinks() {
 
 function toAbsoluteUrl(path?: string | null) {
   if (!path) return undefined;
-  return path.startsWith('http') ? path : `https://aireatro.com${path.startsWith('/') ? path : `/${path}`}`;
+  return path.startsWith('http') ? path : `https://www.aireatro.com${path.startsWith('/') ? path : `/${path}`}`;
 }
 
 function buildBlogPostingSchema(post: {
@@ -354,7 +354,7 @@ function buildBlogPostingSchema(post: {
   schema_jsonld?: any;
 }) {
   if (post.schema_jsonld) return post.schema_jsonld;
-  const url = `https://aireatro.com/blog/${post.slug}`;
+  const url = `https://www.aireatro.com/blog/${post.slug}`;
   return {
     '@context': 'https://schema.org',
     '@type': 'BlogPosting',
