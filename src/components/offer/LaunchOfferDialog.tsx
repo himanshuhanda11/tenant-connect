@@ -252,10 +252,14 @@ export function LaunchOfferDialog({ open, onOpenChange }: Props) {
                         className="relative w-full h-12 rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-white border-0 font-semibold text-sm shadow-lg shadow-emerald-900/30 transition-all duration-200 hover:scale-[1.015] active:scale-[0.99] group/btn"
                       >
                         <Sparkles className="w-4 h-4 mr-2 transition-transform group-hover/btn:rotate-12" />
-                        Claim Free Access
+                        Start 30-Day Free Trial
                         <ArrowRight className="w-4 h-4 ml-2 transition-transform group-hover/btn:translate-x-0.5" />
                       </Button>
                     </div>
+
+                    <p className="text-center text-[10.5px] text-white/55 -mt-1">
+                      Card required for paid plans · Free plan needs no card
+                    </p>
 
                     {/* Secondary CTA */}
                     <Button
