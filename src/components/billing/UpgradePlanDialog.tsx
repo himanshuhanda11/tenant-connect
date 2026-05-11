@@ -23,7 +23,8 @@ export function UpgradePlanDialog({ open, onOpenChange, currentPlanId }: Upgrade
   const [pending, setPending] = useState<string | null>(null);
   const [isYearly, setIsYearly] = useState(false);
 
-  const isTopPlan = (currentPlanId ?? '').replace(/^plan_/, '') === 'business';
+  const effectiveCurrentPlanId = billing?.has_subscription ? currentPlanId : undefined;
+  const isTopPlan = (effectiveCurrentPlanId ?? '').replace(/^plan_/, '') === 'business';
   const region = regionFromCountry((currentTenant as any)?.country);
   const country = (currentTenant as any)?.country ?? undefined;
 
@@ -99,7 +100,7 @@ export function UpgradePlanDialog({ open, onOpenChange, currentPlanId }: Upgrade
             <PlanCardsGrid
               region={region}
               cycle={isYearly ? 'yearly' : 'monthly'}
-              currentPlanId={currentPlanId}
+              currentPlanId={effectiveCurrentPlanId}
               showFree={false}
               onSelect={(id, cycle) => handleSelect(id, cycle)}
               loadingPlanId={pending}
