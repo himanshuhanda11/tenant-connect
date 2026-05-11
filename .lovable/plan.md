@@ -1,115 +1,113 @@
-# Stripe Workspace Billing — Implementation Plan
+## Goal
+Unify plan/pricing data across the public Pricing page, Onboarding Step 1 (Choose Plan), Billing section, and upgrade/change-plan modals — driven by ONE config — and make Stripe Checkout work identically from every entry point.
 
-A complete BYOK Stripe subscription system for Aireatro, billed **per workspace**, with 30-day trial on paid plans, secure webhook-driven updates, and a premium UI.
+## Single Source of Truth
 
-## 1. Secrets to add (you'll be prompted)
+Create `src/data/plans.config.ts` exporting `PLANS` with everything UI + checkout needs:
 
-Stripe credentials:
-- `STRIPE_SECRET_KEY` — `sk_test_...` or `sk_live_...`
-- `STRIPE_WEBHOOK_SECRET` — `whsec_...` (shown after we create the webhook endpoint)
+```ts
+type Region = 'IN' | 'GULF' | 'OTHER';
+type Currency = 'INR' | 'AED' | 'USD';
 
-Stripe Price IDs (6 total — create monthly + yearly products in Stripe first):
-- `STRIPE_PRICE_BASIC_MONTHLY`, `STRIPE_PRICE_BASIC_YEARLY`
-- `STRIPE_PRICE_PRO_MONTHLY`, `STRIPE_PRICE_PRO_YEARLY`
-- `STRIPE_PRICE_BUSINESS_MONTHLY`, `STRIPE_PRICE_BUSINESS_YEARLY`
+export interface PlanConfig {
+  id: 'free' | 'basic' | 'pro' | 'business';
+  name: string;
+  tagline: string;
+  badge?: string;       // "Most Popular"
+  highlight: boolean;
+  cta: { free: string; paid: string };
+  trialDays: number;    // 30 for paid, 0 for free
+  // Region pricing — display values
+  pricing: Record<Region, {
+    currency: Currency;
+    symbol: string;
+    monthly: number;          // per month
+    yearlyPerMonth: number;   // per month when paid yearly (20% off)
+  }>;
+  // Stripe price IDs per region/cycle
+  stripePriceIds: Record<Region, { monthly: string; yearly: string }>;
+  features: string[];
+  limits: { team_members; phone_numbers; contacts; flows; autoforms; automations; ai_features };
+}
+```
 
-You won't paste the values in chat — Lovable will request them via a secure form.
+Currently we only have AED Stripe Price IDs (the 6 you provided). All three regions in `stripePriceIds` will map to those AED IDs for now (matches the current "AED for everyone" decision in memory). When you create INR/USD prices in Stripe later, only this file changes.
 
-## 2. Database (per-workspace billing)
+Helpers in same file:
+- `regionFromCountry(countryCode)` → `IN | GULF | OTHER`
+- `getPlan(id)`, `getPriceForRegion(plan, region, cycle)`, `formatPlanPrice(plan, region, cycle)`
 
-New tables (all RLS-protected, member-readonly, backend-only writes):
+Delete/replace the duplicated price maps:
+- `PLAN_PRICES_AED` in `SelectWorkspacePlanPage.tsx`
+- INR maps in `useGeoLocation` consumers (`UpgradePlanDialog`, `PricingCards`)
+- `src/data/pricingPlans.ts` (migrate consumers, then remove)
 
-- **workspace_billing** (1 row per workspace)
-  `workspace_id, user_id, plan_name, plan_type, billing_cycle, billing_status, trial_status, trial_start, trial_end, stripe_customer_id, stripe_subscription_id, stripe_price_id, current_period_start, current_period_end, cancel_at_period_end, last_payment_status`
+## Shared UI Component
 
-- **billing_events** — raw webhook log, dedup on `stripe_event_id`
+Create `src/components/billing/PlanCardsGrid.tsx` — one premium plan-cards grid used in all 4 places. Props:
 
-- **invoices** — mirrored Stripe invoices: `stripe_invoice_id, amount_paid, amount_due, currency, status, hosted_invoice_url, invoice_pdf, billing_reason`
+```ts
+{
+  region: Region;
+  currentPlanId?: string;          // highlights current plan in Billing
+  showFree?: boolean;              // true on onboarding/pricing, false on upgrade
+  cycle: 'monthly' | 'yearly';
+  onSelect: (planId, cycle) => void;
+  loadingPlanId?: string;
+  variant?: 'dark' | 'light';      // dark = onboarding aurora bg, light = billing/pricing
+}
+```
 
-- **plan_limits** — seeded with Free / Basic / Pro / Business limits (sourced from existing `workspace_entitlements` mapping)
+Cycle toggle (`MonthlyYearlyToggle`) extracted as well.
 
-RLS:
-- Members of a workspace can `SELECT` their billing/invoices.
-- No client `INSERT/UPDATE/DELETE` — all writes via edge functions (service role).
-- `has_workspace_role(user, workspace, 'owner'|'admin')` helper used by checkout/portal/change-plan endpoints.
+## Stripe Checkout — Single Path
 
-## 3. Edge functions
+Keep ONE shared mutation `useStartCheckout` (already in `useWorkspaceBilling.ts`) hitting the `billing-create-checkout` edge function. Verify it accepts `{ workspaceId, planId, billingCycle, region, country }` and resolves the right Stripe Price ID via `resolveStripePriceId` (already region-aware in `_shared/stripe.ts`).
 
-| Function | Purpose | JWT |
-|---|---|---|
-| `create-checkout-session` | Free plan → activates instantly. Paid → creates Stripe customer (if missing), Checkout Session in `subscription` mode with 30-day `trial_period_days`, metadata `{workspace_id, user_id, plan_name, billing_cycle}`. Returns `checkout_url` or `{free: true}`. | required |
-| `create-customer-portal-session` | Returns Stripe billing portal URL for current workspace. | required |
-| `stripe-webhook` | `verify_jwt = false`. Verifies `Stripe-Signature`, dedupes via `stripe_event_id`, processes events listed below, updates `workspace_billing` + `invoices`. | none |
-| `get-workspace-billing-status` | Returns plan, status, trial days left, next invoice date, payment status, computed feature limits. | required |
-| `change-workspace-plan` | Upgrades (immediate + proration) or schedules downgrade at period end. Updates Stripe subscription items. | required |
+Refactor:
+1. `SelectWorkspacePlanPage` — already uses `useStartCheckout`. Switch its plan source + price display to `PLANS` + `regionFromCountry(tenant.country)`. Remove hardcoded `region: 'GULF'`.
+2. `UpgradePlanDialog` — remove the Razorpay/Stripe radio + Razorpay path entirely (we are Stripe-only per your decision), remove `usePlatformPlans`, drive cards from `PLANS`, and call `useStartCheckout` (same hook as onboarding).
+3. `ChangePlanDialog` — same swap to `PLANS` + `useStartCheckout` / `useChangePlan`.
+4. Public `PricingCards` — drive from `PLANS`, with a region switcher (auto-detected, manually overridable).
 
-Webhook events handled: `checkout.session.completed`, `customer.subscription.created/updated/deleted`, `invoice.payment_succeeded/failed/finalized`, `payment_method.attached`.
+## Onboarding Flow Fix
 
-Stripe stub via `npm:stripe@^17` in Deno edge runtime.
+In `SelectWorkspacePlanPage`:
+- **Free** → no Stripe → `claim()` → navigate to `/dashboard` (existing behavior, kept).
+- **Paid** → `useStartCheckout` returns `checkout_url` → `window.location.href = checkout_url`.
+- Success URL: `/onboarding/billing-return?session_id={CHECKOUT_SESSION_ID}` → existing `BillingReturnPage` polls billing status then routes to dashboard / next onboarding step.
+- Cancel URL: `/onboarding/plan?payment=cancelled` → show toast "Payment setup was cancelled. Please choose a plan to continue."
 
-## 4. Onboarding flow changes
+Add a `?payment=cancelled` toast handler on mount.
 
-Step 1 = **Select Plan** (existing pricing page reused, deduped to one source of truth).
-- "Start Free" → calls `create-checkout-session` with `plan_name=free` → workspace marked active → router pushes Step 2.
-- "Start 30-Day Free Trial" (Basic/Pro/Business) → opens Stripe Checkout → `success_url` returns to `/onboarding/step-2?session_id=...` → frontend polls `get-workspace-billing-status` until `trialing|active`.
-- Step 2 = Connect WhatsApp API (existing). Step 3 = Complete profile (existing).
+Workspace already exists by the time the user hits Step 1 (CreateWorkspace flow ran first), so the "create in pending_payment then redirect" sub-step from your spec is unnecessary in our app. The webhook (`stripe-webhook`) already flips status to `trialing`/`active`.
 
-## 5. Workspace Settings → Billing tab
+## Region Detection
 
-Premium card layout showing:
-- Current plan + status badge (Free / Trial Active / Active / Past Due / Canceled / Payment Failed / Upgrade Required)
-- Trial countdown ("12 days left" with progress ring)
-- Next billing date + amount
-- Payment method status pill
-- **Manage Billing** → Stripe portal
-- **Upgrade / Downgrade** modal (uses `change-workspace-plan`)
-- **Cancel Subscription** (cancel at period end with reactivation banner)
-- Invoice history table with PDF download links
-- Past-due alert banner with "Update Payment Method" CTA
+`tenants.country` already exists. Resolve region with `regionFromCountry(country)`. Onboarding passes that region+country into `useStartCheckout` so the edge function can pick the right Price ID via `platform_plans.stripe_prices[region][cycle]`.
 
-## 6. Plan limit enforcement
+(Today all 3 region columns hold the AED price IDs — see "Single Source of Truth" above. Switching to true regional pricing later is a config-only change.)
 
-`useWorkspaceBilling()` hook returns `{plan, status, limits, isFeatureAllowed(key), isWithinLimit(key, current)}`.
+## Files Touched
 
-Backed by existing `workspace_entitlements` (kept as source of truth) + new `plan_limits` table for hard caps. When a user hits a cap, an `<UpgradeModal>` opens with the specific reason and plan recommendation.
+New:
+- `src/data/plans.config.ts`
+- `src/components/billing/PlanCardsGrid.tsx`
+- `src/components/billing/MonthlyYearlyToggle.tsx`
 
-Hide upgrade prompts entirely on Business tier (per existing `plan-tier-ux-constraints-v1` memory).
+Edited:
+- `src/pages/onboarding/SelectWorkspacePlanPage.tsx` — render via `PlanCardsGrid`, region-aware prices, cancel toast
+- `src/components/billing/UpgradePlanDialog.tsx` — strip Razorpay, render via `PlanCardsGrid`, use `useStartCheckout`
+- `src/components/billing/ChangePlanDialog.tsx` — same shared grid + `useChangePlan`
+- `src/components/pricing/PricingCards.tsx` — render via `PlanCardsGrid` + region switcher
+- `src/pages/onboarding/BillingReturnPage.tsx` — verify success/cancel handling matches new redirect URLs
 
-## 7. Security guardrails
+Removed/Deprecated:
+- `src/data/pricingPlans.ts` (after migration)
+- Razorpay code path in `UpgradePlanDialog`
 
-- Workspace ownership/admin role verified server-side on every billing call.
-- Frontend can only read; all status mutations go through Stripe → webhook.
-- `stripe_event_id` UNIQUE constraint prevents replay.
-- Service-role client only inside edge functions; anon client never touches billing tables.
-- No Stripe keys in client bundle.
+No DB or edge-function changes needed — `billing-create-checkout`, `stripe-webhook`, `get-workspace-billing-status`, `change-workspace-plan`, and `_shared/stripe.ts` already support region-aware Stripe lookup.
 
-## 8. Files to create / edit
-
-**New**
-- migration: 4 tables + RLS + plan_limits seed
-- `supabase/functions/create-checkout-session/index.ts`
-- `supabase/functions/create-customer-portal-session/index.ts`
-- `supabase/functions/stripe-webhook/index.ts` (+ config.toml `verify_jwt = false`)
-- `supabase/functions/get-workspace-billing-status/index.ts`
-- `supabase/functions/change-workspace-plan/index.ts`
-- `src/hooks/useWorkspaceBilling.ts`
-- `src/components/billing/PlanCard.tsx`, `BillingStatusBadge.tsx`, `TrialCountdown.tsx`, `UpgradeModal.tsx`, `PaymentFailedBanner.tsx`, `InvoiceTable.tsx`
-- `src/pages/billing/WorkspaceBilling.tsx` (Settings → Billing)
-- `src/pages/onboarding/SelectPlan.tsx` (refactored from existing pricing)
-
-**Edited**
-- existing pricing page → wire CTAs to `create-checkout-session`
-- onboarding router → enforce plan-selected gate before Step 2
-- workspace settings nav → add Billing tab
-- App.tsx routes for billing return URLs
-
-## 9. Order of execution
-
-1. Run DB migration (you approve).
-2. Prompt for the 8 Stripe secrets.
-3. Build edge functions + deploy.
-4. Build hooks + UI components.
-5. Wire onboarding + settings.
-6. Smoke test with `STRIPE_SECRET_KEY=sk_test_...` using Stripe test cards.
-
-Once you approve, I'll start with the migration.
+## Out of Scope
+- Creating real INR/USD Stripe Prices (you've only provided AED IDs; everywhere will keep using those until you add more).
+- Changes to webhook handling (already verified working).
