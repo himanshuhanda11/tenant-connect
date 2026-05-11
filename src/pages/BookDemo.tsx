@@ -115,6 +115,7 @@ export default function BookDemo() {
     });
   }, [browserTz]);
   const [pickedDate, setPickedDate] = useState<Date | undefined>();
+  const [dateOpen, setDateOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [errors, setErrors] = useState<Partial<Record<keyof FormData, string>>>({});
