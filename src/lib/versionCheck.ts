@@ -2,7 +2,7 @@
 declare const __BUILD_ID__: string;
 
 const CURRENT_BUILD_ID = typeof __BUILD_ID__ !== "undefined" ? __BUILD_ID__ : "dev";
-const POLL_INTERVAL_MS = 2 * 60 * 1000; // every 2 minutes
+const POLL_INTERVAL_MS = 30 * 1000; // every 30 seconds
 const RELOAD_GUARD_KEY = "__lov_version_reload_at";
 const BUILD_STORAGE_KEY = "__lov_current_build_id";
 const CURRENT_BUILD_PARAM = "__build";
@@ -107,8 +107,8 @@ export function startVersionPolling() {
 
   void clearCachesAfterFreshBuild();
 
-  // Initial check shortly after load, then on an interval and on tab focus.
-  setTimeout(checkVersion, 5_000);
+  // Run an immediate check, then on an interval and on tab focus.
+  void checkVersion();
   timer = setInterval(checkVersion, POLL_INTERVAL_MS);
   document.addEventListener("visibilitychange", () => {
     if (document.visibilityState === "visible") checkVersion();
