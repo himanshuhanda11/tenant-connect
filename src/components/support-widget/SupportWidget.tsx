@@ -343,13 +343,21 @@ export function SupportWidget() {
                   {settings.cta_text}
                 </button>
                 {settings.show_book_demo && (
-                  <a
-                    href="/contact"
-                    className="w-full h-10 rounded-xl text-sm font-medium border border-border/60 text-foreground hover:bg-muted/60 flex items-center justify-center gap-2 transition"
+                  <button
+                    type="button"
+                    onClick={openBookDemo}
+                    className="group relative w-full h-11 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 overflow-hidden border border-border/60 bg-gradient-to-br from-background via-muted/40 to-background hover:from-primary/5 hover:to-primary/10 hover:border-primary/40 active:scale-[0.98] transition shadow-sm hover:shadow-md text-foreground"
                   >
-                    <Calendar className="h-4 w-4" />
-                    Contact Us
-                  </a>
+                    <span className="absolute inset-x-0 -top-px h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent opacity-60" />
+                    <Calendar className="h-4 w-4 text-primary" />
+                    <span>{settings.book_demo_label}</span>
+                    <ArrowRight className="h-3.5 w-3.5 opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition" />
+                  </button>
+                )}
+                {settings.show_book_demo && settings.book_demo_subtext && (
+                  <p className="text-[11px] text-center text-muted-foreground leading-relaxed pt-0.5">
+                    {settings.book_demo_subtext}
+                  </p>
                 )}
               </div>
             </>
