@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { CheckCircle2, Loader2 } from 'lucide-react';
 import { useWorkspaceBilling } from '@/hooks/useWorkspaceBilling';
+import { supabase } from '@/integrations/supabase/client';
 
 export default function BillingReturnPage() {
   const navigate = useNavigate();
@@ -10,6 +11,17 @@ export default function BillingReturnPage() {
   const { data: billing, refetch } = useWorkspaceBilling();
   const [tries, setTries] = useState(0);
   const sessionId = params.get('session_id');
+
+  // Secure fallback: immediately sync the completed Stripe session instead of relying only on webhooks.
+  useEffect(() => {
+    if (!sessionId) return;
+    let cancelled = false;
+    (async () => {
+      await supabase.functions.invoke('sync-stripe-checkout-session', { body: { sessionId } });
+      if (!cancelled) refetch();
+    })().catch(() => undefined);
+    return () => { cancelled = true; };
+  }, [sessionId, refetch]);
 
   // Poll until webhook activates the subscription
   useEffect(() => {
