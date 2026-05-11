@@ -77,17 +77,6 @@ export default function PlanSelectionModal({ open, tenantId, onSelected, onPaidI
     return () => clearTimeout(t);
   }, [open]);
 
-  // Hide the floating support widget while the plan picker is open
-  useEffect(() => {
-    if (!open) return;
-    document.body.dataset.planModalOpen = 'true';
-    window.dispatchEvent(new Event('aireatro:overlay-change'));
-    return () => {
-      delete document.body.dataset.planModalOpen;
-      window.dispatchEvent(new Event('aireatro:overlay-change'));
-    };
-  }, [open]);
-
   const scrollByCard = (dir: 1 | -1) => {
     const el = scrollerRef.current;
     if (!el) return;

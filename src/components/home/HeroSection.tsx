@@ -173,7 +173,7 @@ export default function HeroSection() {
                   onClick={() => navigate('/demo')}
                 >
                   <Play className="w-4 h-4 mr-2" />
-                  Quick Demo
+                  Book a Demo
                 </Button>
               </motion.div>
 

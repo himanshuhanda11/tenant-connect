@@ -39,13 +39,6 @@ function escapeHtml(str = '') {
     .replace(/>/g, '&gt;');
 }
 
-function preserveNoCacheHead(sourceHtml) {
-  const tags = sourceHtml.match(
-    /<meta\s+http-equiv=["'](?:Cache-Control|Pragma|Expires)["'][^>]*>\s*/gi
-  );
-  return tags ? tags.join('') : '';
-}
-
 function buildJsonLd(route) {
   const url = `${BASE_URL}${route.route_path === '/' ? '' : route.route_path}`;
   const isBlog = route.page_type === 'blog';
@@ -123,7 +116,6 @@ function buildHead(route) {
 
 function injectHead(sourceHtml, route) {
   let html = sourceHtml;
-  const cacheControlHead = preserveNoCacheHead(sourceHtml);
   const stripPatterns = [
     /<title>[\s\S]*?<\/title>\s*/i,
     /<meta\s+name=["']title["'][^>]*>\s*/gi,
@@ -143,9 +135,9 @@ function injectHead(sourceHtml, route) {
   const headBlock = buildHead(route);
   const viewportRe = /(<meta\s+name=["']viewport["'][^>]*>\s*)/i;
   if (viewportRe.test(html)) {
-    html = html.replace(viewportRe, `$1\n    ${cacheControlHead}    ${headBlock}\n    `);
+    html = html.replace(viewportRe, `$1\n    ${headBlock}\n    `);
   } else {
-    html = html.replace(/<head[^>]*>/i, (m) => `${m}\n    ${cacheControlHead}    ${headBlock}\n    `);
+    html = html.replace(/<head[^>]*>/i, (m) => `${m}\n    ${headBlock}\n    `);
   }
   return html;
 }

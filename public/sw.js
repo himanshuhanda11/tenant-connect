@@ -1,31 +1,22 @@
-// Service-worker kill switch: delete old PWA caches, move every tab to network HTML,
-// then unregister. Keep this file published at /sw.js for old installed clients.
-self.addEventListener('install', (event) => {
-  event.waitUntil(self.skipWaiting());
+// Self-destructing service worker: wipes ALL caches and unregisters itself on activate.
+self.addEventListener('install', () => {
+  self.skipWaiting();
 });
 
 self.addEventListener('activate', (event) => {
   event.waitUntil((async () => {
-    await self.clients.claim();
-
-    const cacheNames = await caches.keys();
-    await Promise.all(cacheNames.map((cacheName) => caches.delete(cacheName)));
-
-    const clients = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
-    await Promise.all(clients.map((client) => {
-      const url = new URL(client.url);
-      url.searchParams.set('sw-cleanup', Date.now().toString());
-      return client.navigate(url.toString()).catch(() => undefined);
-    }));
-
-    await self.registration.unregister();
+    try {
+      const cacheNames = await caches.keys();
+      await Promise.all(cacheNames.map((cacheName) => caches.delete(cacheName)));
+    } finally {
+      await self.registration.unregister();
+      const clients = await self.clients.matchAll({ type: 'window' });
+      clients.forEach((client) => client.navigate(client.url));
+    }
   })());
 });
 
-// Network-only passthrough while the kill switch is briefly active.
+// Network-first passthrough: never serve cached responses while still active.
 self.addEventListener('fetch', (event) => {
-  const request = event.request.mode === 'navigate'
-    ? new Request(event.request, { cache: 'reload' })
-    : event.request;
-  event.respondWith(fetch(request).catch(() => new Response('', { status: 504 })));
+  event.respondWith(fetch(event.request).catch(() => new Response('', { status: 504 })));
 });

@@ -4,9 +4,9 @@
   "description": "AI-powered WhatsApp automation, team inbox, flow diagnostics, and Meta Ads attribution.",
   "theme_color": "#25D366",
   "background_color": "#0b140f",
-  "display": "browser",
+  "display": "standalone",
   "orientation": "portrait",
-  "start_url": "/",
+  "start_url": "/dashboard",
   "scope": "/",
   "icons": [
     { "src": "/pwa-192x192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },

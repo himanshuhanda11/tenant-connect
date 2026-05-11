@@ -53,34 +53,12 @@
     <link rel="apple-touch-icon" sizes="180x180" href="/pwa-192x192.png" />
     <link rel="mask-icon" href="/favicon.png" color="#25D366" />
 
-    <!-- PWA manifest intentionally disabled to prevent stale installed-app shells on publish. -->
+    <!-- Manifest -->
+    <link rel="manifest" href="/manifest.webmanifest" />
   </head>
 
   <body>
     <div id="root"></div>
-    <script>
-      // Runs before the app bundle so stale published HTML can jump to the latest build once.
-      (() => {
-        const shellBuild = '__CACHE_BUST__';
-        const stampedBuild = shellBuild && shellBuild !== '__CACHE_BUST__' ? shellBuild : null;
-        fetch(`/version.json?t=${Date.now()}`, { cache: 'no-store', credentials: 'omit' })
-          .then((res) => (res.ok ? res.json() : null))
-          .then((version) => {
-            const latestBuild = version && version.buildId;
-            if (!latestBuild || stampedBuild === latestBuild) return;
-            const url = new URL(window.location.href);
-            const urlBuild = url.searchParams.get('__build') || url.searchParams.get('__fresh');
-            if (urlBuild === latestBuild) return;
-            const reloadKey = `__aireatro_inline_refresh_${latestBuild}`;
-            if (sessionStorage.getItem(reloadKey) === '1') return;
-            sessionStorage.setItem(reloadKey, '1');
-            url.searchParams.set('__build', latestBuild);
-            url.searchParams.set('__fresh', String(Date.now()));
-            window.location.replace(url.toString());
-          })
-          .catch(() => {});
-      })();
-    </script>
     <script src="/registerSW.js?v=__CACHE_BUST__"></script>
     <script src="https://checkout.razorpay.com/v1/checkout.js" async></script>
     <script>
