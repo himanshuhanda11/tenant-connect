@@ -1,4 +1,5 @@
 import { getAdminClient, getUserClient, corsHeaders, json } from '../_shared/supabase.ts';
+import { requirePlanAccess } from '../_shared/planAccess.ts';
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -34,6 +35,10 @@ Deno.serve(async (req) => {
         status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
+
+    // Plan gate: Meta Ads is Pro+ only
+    const gate = await requirePlanAccess(tenantId, 'create_meta_ad_account');
+    if (!gate.ok) return gate.res;
 
     const appId = Deno.env.get('META_APP_ID');
     const appSecret = Deno.env.get('META_APP_SECRET');

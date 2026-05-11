@@ -55,6 +55,8 @@ import {
   CAMPAIGN_TYPE_CONFIG
 } from '@/types/campaign';
 import { useTenant } from '@/contexts/TenantContext';
+import { useEntitlements } from '@/hooks/useEntitlements';
+import { useUpgradeModal } from '@/components/billing/UpgradeModal';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import CampaignAudienceBuilder, { AudienceFilters, DEFAULT_AUDIENCE_FILTERS } from '@/components/campaigns/CampaignAudienceBuilder';
@@ -105,6 +107,10 @@ export default function CreateCampaign() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { currentTenant } = useTenant();
+  const { data: entitlements } = useEntitlements();
+  const { open: openUpgrade } = useUpgradeModal();
+  const planId = entitlements?.plan_id ?? 'free';
+  const broadcastCap = planId === 'free' ? 50 : Infinity;
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoadingOptions, setIsLoadingOptions] = useState(false);
@@ -307,7 +313,27 @@ export default function CreateCampaign() {
     }
   };
 
+  const enforceBroadcastCap = (): boolean => {
+    const recipientCount = Math.max(
+      audienceEstimatedCount,
+      audienceFilters?.selected_contacts?.length ?? 0,
+    );
+    if (recipientCount > broadcastCap) {
+      openUpgrade({
+        feature: 'send_campaign',
+        currentPlan: planId,
+        requiredPlan: 'basic',
+        reason: 'quota_exceeded',
+        currentUsage: recipientCount,
+        planLimit: broadcastCap as number,
+      });
+      return false;
+    }
+    return true;
+  };
+
   const handleNext = () => {
+    if (currentStep === 3 && !enforceBroadcastCap()) return;
     if (currentStep < 5) {
       setCurrentStep(currentStep + 1);
     }
@@ -320,6 +346,7 @@ export default function CreateCampaign() {
   };
 
   const handleSubmit = async (sendNow: boolean) => {
+    if (!enforceBroadcastCap()) return;
     setIsSubmitting(true);
     // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 2000));
