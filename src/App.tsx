@@ -412,6 +412,7 @@ const App = () => (
                 </Suspense>
                 </LaunchOfferProvider>
                 </RequirePlanSelection>
+                </UpgradeModalProvider>
               </ThemeProvider>
             </TenantProvider>
             </PreviewWorkspaceProvider>
