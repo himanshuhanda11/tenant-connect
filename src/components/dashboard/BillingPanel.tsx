@@ -88,6 +88,15 @@ export function BillingPanel({ data, loading }: BillingPanelProps) {
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
+        {/* Pending plan change */}
+        {data?.nextPlanMessage && (
+          <Alert>
+            <AlertTriangle className="h-4 w-4" />
+            <AlertTitle>Scheduled plan change</AlertTitle>
+            <AlertDescription>{data.nextPlanMessage}</AlertDescription>
+          </Alert>
+        )}
+
         {/* Payment issue alert */}
         {data?.hasPaymentIssue && (
           <Alert variant="destructive">
