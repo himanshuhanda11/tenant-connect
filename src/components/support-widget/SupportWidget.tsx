@@ -78,13 +78,8 @@ export function SupportWidget() {
   const location = useLocation();
   const { user } = useAuth();
   const { currentTenant } = useTenant();
-  // Auto-open on desktop unless the user has minimized it this session.
-  const [open, setOpen] = useState(() => {
-    if (typeof window === 'undefined') return false;
-    const isDesktop = window.matchMedia('(min-width: 768px)').matches;
-    if (!isDesktop) return false;
-    try { return sessionStorage.getItem(FULL_MINIMIZED_KEY) !== '1'; } catch { return true; }
-  });
+  // Start minimized so the live WhatsApp trigger is visible on first paint.
+  const [open, setOpen] = useState(false);
   const [step, setStep] = useState<Step>('intro');
   const [leadName, setLeadName] = useState('');
   const [leadPhone, setLeadPhone] = useState('');
