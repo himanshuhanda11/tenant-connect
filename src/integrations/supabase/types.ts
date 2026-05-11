@@ -12812,6 +12812,8 @@ export type Database = {
           created_at: string
           event_type: string
           id: string
+          lead_name: string | null
+          lead_phone: string | null
           page_url: string | null
           user_agent: string | null
           user_id: string | null
@@ -12822,6 +12824,8 @@ export type Database = {
           created_at?: string
           event_type: string
           id?: string
+          lead_name?: string | null
+          lead_phone?: string | null
           page_url?: string | null
           user_agent?: string | null
           user_id?: string | null
@@ -12832,6 +12836,8 @@ export type Database = {
           created_at?: string
           event_type?: string
           id?: string
+          lead_name?: string | null
+          lead_phone?: string | null
           page_url?: string | null
           user_agent?: string | null
           user_id?: string | null
@@ -12843,6 +12849,7 @@ export type Database = {
       support_widget_settings: {
         Row: {
           brand_color: string
+          collect_lead_before_chat: boolean
           created_at: string
           cta_text: string
           display_name: string
@@ -12863,12 +12870,18 @@ export type Database = {
           show_inside_dashboard: boolean
           show_inside_onboarding: boolean
           show_on_public_site: boolean
+          step_connect_message: string
+          step_name_label: string
+          step_name_placeholder: string
+          step_phone_label: string
+          step_phone_placeholder: string
           updated_at: string
           welcome_message: string
           whatsapp_number: string
         }
         Insert: {
           brand_color?: string
+          collect_lead_before_chat?: boolean
           created_at?: string
           cta_text?: string
           display_name?: string
@@ -12889,12 +12902,18 @@ export type Database = {
           show_inside_dashboard?: boolean
           show_inside_onboarding?: boolean
           show_on_public_site?: boolean
+          step_connect_message?: string
+          step_name_label?: string
+          step_name_placeholder?: string
+          step_phone_label?: string
+          step_phone_placeholder?: string
           updated_at?: string
           welcome_message?: string
           whatsapp_number?: string
         }
         Update: {
           brand_color?: string
+          collect_lead_before_chat?: boolean
           created_at?: string
           cta_text?: string
           display_name?: string
@@ -12915,6 +12934,11 @@ export type Database = {
           show_inside_dashboard?: boolean
           show_inside_onboarding?: boolean
           show_on_public_site?: boolean
+          step_connect_message?: string
+          step_name_label?: string
+          step_name_placeholder?: string
+          step_phone_label?: string
+          step_phone_placeholder?: string
           updated_at?: string
           welcome_message?: string
           whatsapp_number?: string

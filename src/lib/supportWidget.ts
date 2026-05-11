@@ -21,6 +21,12 @@ export interface SupportWidgetSettings {
   prefilled_message_paid: string;
   prefilled_message_new: string;
   show_book_demo: boolean;
+  collect_lead_before_chat: boolean;
+  step_name_label: string;
+  step_name_placeholder: string;
+  step_phone_label: string;
+  step_phone_placeholder: string;
+  step_connect_message: string;
 }
 
 export type SupportWidgetMode = 'hidden' | 'icon_only' | 'full_widget';
