@@ -4,6 +4,27 @@ declare const __BUILD_ID__: string;
 const CURRENT_BUILD_ID = typeof __BUILD_ID__ !== "undefined" ? __BUILD_ID__ : "dev";
 const POLL_INTERVAL_MS = 2 * 60 * 1000; // every 2 minutes
 const RELOAD_GUARD_KEY = "__lov_version_reload_at";
+const BUILD_STORAGE_KEY = "__lov_current_build_id";
+
+async function wipeBrowserCaches() {
+  try {
+    if ("serviceWorker" in navigator) {
+      const registrations = await navigator.serviceWorker.getRegistrations();
+      await Promise.all(registrations.map((registration) => registration.unregister()));
+    }
+  } catch {
+    /* ignore */
+  }
+
+  try {
+    if ("caches" in window) {
+      const keys = await caches.keys();
+      await Promise.all(keys.map((k) => caches.delete(k)));
+    }
+  } catch {
+    /* ignore */
+  }
+}
 
 let timer: ReturnType<typeof setInterval> | null = null;
 
@@ -23,24 +44,31 @@ async function checkVersion() {
     sessionStorage.setItem(RELOAD_GUARD_KEY, String(Date.now()));
 
     // Drop any lingering caches before reloading
-    try {
-      if ("caches" in window) {
-        const keys = await caches.keys();
-        await Promise.all(keys.map((k) => caches.delete(k)));
-      }
-    } catch {
-      /* ignore */
-    }
+    await wipeBrowserCaches();
     window.location.reload();
   } catch {
     /* network blip — try again next tick */
   }
 }
 
+async function clearCachesAfterFreshBuild() {
+  try {
+    const previousBuildId = localStorage.getItem(BUILD_STORAGE_KEY);
+    if (previousBuildId === CURRENT_BUILD_ID) return;
+    localStorage.setItem(BUILD_STORAGE_KEY, CURRENT_BUILD_ID);
+  } catch {
+    /* localStorage may be unavailable */
+  }
+
+  await wipeBrowserCaches();
+}
+
 export function startVersionPolling() {
   // Only run in production builds (dev has its own HMR).
   if (CURRENT_BUILD_ID === "dev") return;
   if (timer) return;
+
+  void clearCachesAfterFreshBuild();
 
   // Initial check shortly after load, then on an interval and on tab focus.
   setTimeout(checkVersion, 5_000);
