@@ -13,6 +13,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Link } from 'react-router-dom';
 import { useSubscription, useUsage, useInvoices, useTeamUsage, usePhoneUsage } from '@/hooks/useBilling';
 import { useEntitlements } from '@/hooks/useEntitlements';
+import { useWorkspaceBilling } from '@/hooks/useWorkspaceBilling';
 import { format } from 'date-fns';
 import { useState } from 'react';
 import ChangePlanDialog from '@/components/billing/ChangePlanDialog';
@@ -25,14 +26,16 @@ export function BillingSettings() {
   const { data: teamUsage } = useTeamUsage();
   const { data: phoneUsage } = usePhoneUsage();
   const { data: entitlements } = useEntitlements();
+  const { data: billing } = useWorkspaceBilling();
   const [changeOpen, setChangeOpen] = useState(false);
 
   const isLoading = subLoading || usageLoading || invLoading;
-  const currentPlanId = (entitlements?.plan_id ?? subscription?.plan_id ?? 'free').replace(/^plan_/, '');
+  const hasSelectedPlan = !!billing?.has_selected_plan || !!billing?.has_subscription;
+  const currentPlanId = (hasSelectedPlan && billing?.plan_id ? billing.plan_id : '').replace(/^plan_/, '');
 
-  const planName = subscription?.plan?.name ?? 'Free';
-  const planPrice = subscription?.plan?.price_monthly ?? 0;
-  const billingCycle = subscription?.billing_cycle ?? 'monthly';
+  const planName = hasSelectedPlan ? (billing?.plan_name ?? subscription?.plan?.name ?? 'Free') : 'Not selected';
+  const planPrice = hasSelectedPlan ? (subscription?.plan?.price_monthly ?? 0) : 0;
+  const billingCycle = hasSelectedPlan ? (subscription?.billing_cycle ?? 'monthly') : 'monthly';
 
   const teamUsed = teamUsage?.used ?? 0;
   const teamLimit = teamUsage?.limit ?? 1;
@@ -71,14 +74,16 @@ export function BillingSettings() {
                   <div className="flex items-center justify-between p-4 rounded-lg border border-primary/30 bg-primary/5">
                     <div>
                       <div className="flex items-center gap-2">
-                        <h3 className="text-xl font-bold">{planName} Plan</h3>
+                        <h3 className="text-xl font-bold">{hasSelectedPlan ? `${planName} Plan` : planName}</h3>
                         <Badge className="bg-primary text-primary-foreground">
-                          {subscription?.status === 'active' ? 'Active' : subscription?.status ?? 'Active'}
+                          {hasSelectedPlan ? (subscription?.status === 'active' ? 'Active' : subscription?.status ?? 'Active') : 'Choose plan'}
                         </Badge>
                       </div>
                       <p className="text-sm text-muted-foreground">
-                        {planPrice > 0 ? `₹${planPrice.toLocaleString('en-IN')}/${billingCycle === 'yearly' ? 'year' : 'month'}` : 'Free forever'}
-                        {billingCycle === 'yearly' && ' • Billed yearly'}
+                        {hasSelectedPlan
+                          ? (planPrice > 0 ? `₹${planPrice.toLocaleString('en-IN')}/${billingCycle === 'yearly' ? 'year' : 'month'}` : 'Free forever')
+                          : 'Choose a plan to activate this workspace'}
+                        {hasSelectedPlan && billingCycle === 'yearly' && ' • Billed yearly'}
                       </p>
                     </div>
                     <div className="flex items-center gap-2">
