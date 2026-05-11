@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
 import {
   Gift, Rocket, Crown, Building2, CheckCircle2, Sparkles, ArrowRight, Lock, Loader2, Check,
+  Users, Contact, Workflow, Zap,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -142,6 +143,34 @@ export function PlanCardsGrid({
                 </p>
               )}
             </div>
+
+            {/* Limits grid (agents / contacts / flows / automations) */}
+            {(() => {
+              const fmt = (v: number | 'unlimited') =>
+                v === 'unlimited' ? '∞' : v >= 1000 ? `${(v / 1000).toLocaleString('en-US')}k` : `${v}`;
+              const items = [
+                { icon: Users, label: 'Agents', value: fmt(plan.limits.team_members) },
+                { icon: Contact, label: 'Contacts', value: fmt(plan.limits.contacts) },
+                { icon: Workflow, label: 'Flows', value: fmt(plan.limits.flows) },
+                { icon: Zap, label: 'Automations', value: fmt(plan.limits.automations) },
+              ];
+              return (
+                <div className={cn(
+                  'grid grid-cols-2 gap-1.5 mb-4 rounded-xl p-2.5',
+                  dark ? 'bg-white/5 border border-white/10' : 'bg-muted/40 border border-border/60',
+                )}>
+                  {items.map(({ icon: Icon, label, value }) => (
+                    <div key={label} className="flex items-center gap-1.5">
+                      <Icon className={cn('w-3.5 h-3.5 flex-shrink-0', dark ? 'text-emerald-300' : 'text-primary')} />
+                      <div className="min-w-0 leading-tight">
+                        <div className={cn('text-[11px] font-semibold', dark ? 'text-white' : 'text-foreground')}>{value}</div>
+                        <div className={cn('text-[9px] uppercase tracking-wide', dark ? 'text-white/50' : 'text-muted-foreground')}>{label}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              );
+            })()}
 
             {/* Features */}
             <ul className={cn('space-y-1.5 mb-5 text-xs flex-1', dark ? 'text-white/85' : 'text-foreground/85')}>
