@@ -97,7 +97,7 @@ export default function SelectWorkspacePlanPage() {
         region,
         country: (targetWorkspace as any)?.country ?? undefined,
         successPath: '/onboarding/billing-return',
-        cancelPath: '/onboarding/plan?payment=cancelled',
+        cancelPath: '/dashboard/onboarding?step=1&payment=cancelled',
       });
       if (res?.checkout_url) {
         window.location.href = res.checkout_url;
