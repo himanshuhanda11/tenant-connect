@@ -58,8 +58,16 @@ export async function resolveStripePriceId(
 }
 
 export async function getStripe() {
+  const mode = (Deno.env.get("PAYMENT_MODE") || Deno.env.get("STRIPE_MODE") || "live").toLowerCase();
   const key = Deno.env.get("STRIPE_SECRET_KEY");
-  if (!key) throw new Error("STRIPE_SECRET_KEY not configured");
+  if (!key) throw new Error("Stripe secret key is not configured");
+  if (!key.startsWith("sk_test_") && !key.startsWith("sk_live_")) {
+    if (key.startsWith("pk_")) throw new Error("Stripe secret key is invalid: publishable key was configured instead of secret key");
+    if (key.startsWith("rk_")) throw new Error("Stripe secret key is invalid: restricted key configured instead of full secret key");
+    throw new Error("Stripe secret key format is invalid");
+  }
+  if (mode === "live" && !key.startsWith("sk_live_")) throw new Error("Stripe live mode requires a live secret key");
+  if (mode === "test" && !key.startsWith("sk_test_")) throw new Error("Stripe test mode requires a test secret key");
   const { default: Stripe } = await import("https://esm.sh/stripe@14.21.0?target=deno");
   return new Stripe(key, { apiVersion: "2023-10-16" });
 }
