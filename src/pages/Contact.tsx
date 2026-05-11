@@ -117,9 +117,9 @@ export default function Contact() {
     {
       icon: MapPin,
       title: 'Visit Us',
-      description: 'RZ-D-1/12 A, 2nd Floor, Jeewan Park, Pankha Road, Uttam Nagar',
-      subtext: 'New Delhi, 110059',
-      action: 'https://maps.google.com/?q=Uttam+Nagar+New+Delhi+110059'
+      description: 'Office No. 117, The Business Center, Burjuman',
+      subtext: 'Dubai, UAE',
+      action: 'https://maps.google.com/?q=The+Business+Center+Burjuman+Dubai+UAE'
     }
   ];
 

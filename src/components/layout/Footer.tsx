@@ -87,7 +87,7 @@ export default function Footer() {
               The all-in-one WhatsApp Business API platform for modern businesses. Scale your customer conversations.
             </p>
             <p className="text-slate-400 mb-6 max-w-xs text-xs leading-relaxed">
-              📍 R/O RZ-D-1/12 A, 2nd Floor, Jeewan Park, Pankha Road, Uttam Nagar, New Delhi 110059
+              📍 Office No. 117, The Business Center, Burjuman, Dubai, UAE
             </p>
             <div className="flex items-center gap-3">
               <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="w-9 h-9 rounded-lg bg-slate-800 flex items-center justify-center hover:bg-primary transition-colors">
@@ -198,7 +198,7 @@ export default function Footer() {
             © 2025 AiReatro.com. All rights reserved.
           </p>
           <div className="flex items-center gap-6 text-sm text-slate-400">
-            <span>🇮🇳 Made in India</span>
+            <span>🇦🇪 Headquartered in Dubai, UAE</span>
             <span className="flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
               All systems operational
