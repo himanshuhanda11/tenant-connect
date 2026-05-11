@@ -72,7 +72,8 @@ export function LaunchOfferDialog({ open, onOpenChange }: Props) {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         className={cn(
-          'p-0 border-0 bg-transparent shadow-none overflow-visible max-w-md',
+          'p-0 border-0 bg-transparent shadow-none overflow-visible',
+          'w-[calc(100%-2rem)] max-w-[22rem] sm:max-w-md',
           'data-[state=open]:animate-none data-[state=closed]:animate-none',
         )}
       >
