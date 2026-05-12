@@ -13,6 +13,7 @@ import {
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 import aireatroLogo from '@/assets/aireatro-logo.png';
+import PremiumMobileMenu from './PremiumMobileMenu';
 
 export default function Navbar() {
   const navigate = useNavigate();
