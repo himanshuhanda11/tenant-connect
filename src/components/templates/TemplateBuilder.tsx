@@ -137,7 +137,12 @@ export function TemplateBuilder({
     setUploadingHeader(true);
     try {
       const ext = file.name.split('.').pop() || 'jpg';
-      const path = `templates/${currentTenant?.id || 'shared'}/${Date.now()}.${ext}`;
+      if (!currentTenant?.id) {
+        toast.error('No active workspace');
+        setUploadingHeader(false);
+        return;
+      }
+      const path = `${currentTenant.id}/templates/${Date.now()}.${ext}`;
       const { error: upErr } = await supabase.storage.from('meta-ad-media').upload(path, file, {
         cacheControl: '3600', upsert: false, contentType: file.type,
       });
