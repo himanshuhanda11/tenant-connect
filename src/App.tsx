@@ -13,6 +13,7 @@ import { ThemeProvider } from "@/contexts/ThemeContext";
 import ScrollToTop from "@/components/ScrollToTop";
 import RoutePrefetcher from "@/components/RoutePrefetcher";
 import Index from "./pages/Index";
+import aireatroLogo from "@/assets/aireatro-logo.png";
 import { RequirePermission } from "@/components/auth/RequirePermission";
 import { RequirePlanSelection } from "@/components/auth/RequirePlanSelection";
 import { LaunchOfferProvider } from "@/components/offer/LaunchOfferProvider";
@@ -194,23 +195,17 @@ const queryClient = new QueryClient();
 
 function RouteLoader() {
   return (
-    <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-5">
-      <div className="relative w-[72px] h-[72px]">
-        <div className="absolute -inset-2 rounded-full bg-primary/20 animate-[ping_2s_cubic-bezier(0,0,0.2,1)_infinite]" />
-        <svg className="relative z-10 w-[72px] h-[72px]" viewBox="0 0 36 36">
-          <defs>
-            <linearGradient id="rlg" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="hsl(var(--primary))" />
-              <stop offset="100%" stopColor="hsl(var(--primary) / 0.7)" />
-            </linearGradient>
-          </defs>
-          <path d="M18 2C9.163 2 2 8.268 2 16c0 2.74.84 5.29 2.28 7.43L2 34l10.97-2.88A13.86 13.86 0 0 0 18 32c8.837 0 16-6.268 16-14S26.837 2 18 2z" fill="url(#rlg)" />
-          <path d="M14.5 12.5c-.2.6-.1 1.2.3 1.7l.4.5c-.6 1.1-1.4 2.1-2.3 2.9-.9.9-1.9 1.6-2.9 2.3l-.5-.4c-.5-.4-1.1-.5-1.7-.3l-2.2.7c-.6.2-1 .8-1 1.5 0 2.8 2.3 5.1 5.1 5.1.4 0 .7 0 1.1-.1 3.4-.6 6.6-2.3 9-4.7 2.4-2.4 4.1-5.6 4.7-9 .1-.4.1-.7.1-1.1 0-2.8-2.3-5.1-5.1-5.1-.7 0-1.3.4-1.5 1l-.7 2.2z" fill="white" />
-        </svg>
+    <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-6">
+      <div className="relative flex items-center justify-center">
+        <div className="absolute -inset-6 rounded-full bg-primary/15 blur-2xl animate-[ping_2.2s_cubic-bezier(0,0,0.2,1)_infinite]" />
+        <img
+          src={aireatroLogo}
+          alt="AiReatro Communications"
+          className="relative z-10 w-[220px] max-w-[70vw] h-auto animate-[loader-float_2.4s_ease-in-out_infinite]"
+        />
       </div>
-      <div className="text-lg font-extrabold tracking-tight text-foreground">AiReatro</div>
-      <div className="w-[120px] h-[3px] rounded-full bg-muted overflow-hidden">
-        <div className="h-full bg-primary rounded-full animate-[loader-bar_1.2s_ease-in-out_infinite] origin-left" />
+      <div className="w-[140px] h-[3px] rounded-full bg-muted overflow-hidden">
+        <div className="h-full rounded-full animate-[loader-bar_1.4s_ease-in-out_infinite] origin-left bg-gradient-to-r from-emerald-500 to-blue-600" />
       </div>
     </div>
   );
