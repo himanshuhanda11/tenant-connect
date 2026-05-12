@@ -71,6 +71,7 @@ export default function CampaignDetails() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('overview');
   const { data: dbCampaigns = [], isLoading } = useCampaigns();
+  const { data: jobs = [] } = useCampaignJobs(id);
   
   const dbCampaign = dbCampaigns.find(c => c.id === id);
   
