@@ -111,7 +111,9 @@ export default function CreateCampaign() {
   const { data: entitlements } = useEntitlements();
   const { open: openUpgrade } = useUpgradeModal();
   const planId = entitlements?.plan_id ?? 'free';
-  const broadcastCap = planId === 'free' ? 50 : Infinity;
+  const BROADCAST_CAPS: Record<string, number> = { free: 100, basic: 5000, pro: 50000, business: 1000000 };
+  const broadcastCap = BROADCAST_CAPS[planId] ?? 100;
+  const NEXT_PLAN: Record<string, string> = { free: 'basic', basic: 'pro', pro: 'business', business: 'business' };
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoadingOptions, setIsLoadingOptions] = useState(false);
