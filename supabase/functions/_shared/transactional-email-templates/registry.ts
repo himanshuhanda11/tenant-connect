@@ -12,9 +12,15 @@ export interface TemplateEntry {
 import { template as completeSignupReminder } from './complete-signup-reminder.tsx'
 import { template as createWorkspaceReminder } from './create-workspace-reminder.tsx'
 import { template as contactsExport } from './contacts-export.tsx'
+import { template as contactRequestCustomer } from './contact-request-customer.tsx'
+import { template as contactRequestAdmin } from './contact-request-admin.tsx'
+import { template as contactRequestReply } from './contact-request-reply.tsx'
 
 export const TEMPLATES: Record<string, TemplateEntry> = {
   'complete-signup-reminder': completeSignupReminder,
   'create-workspace-reminder': createWorkspaceReminder,
   'contacts-export': contactsExport,
+  'contact-request-customer': contactRequestCustomer,
+  'contact-request-admin': contactRequestAdmin,
+  'contact-request-reply': contactRequestReply,
 }
