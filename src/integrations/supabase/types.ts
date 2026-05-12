@@ -17065,6 +17065,10 @@ export type Database = {
       }
       generate_contact_ticket_id: { Args: never; Returns: string }
       get_app_secret: { Args: { p_key: string }; Returns: string }
+      get_broadcast_recipient_limit: {
+        Args: { p_tenant_id: string }
+        Returns: number
+      }
       get_offer_claim_count_today: { Args: never; Returns: number }
       get_platform_role: { Args: { _user_id: string }; Returns: string }
       get_team_workload: {

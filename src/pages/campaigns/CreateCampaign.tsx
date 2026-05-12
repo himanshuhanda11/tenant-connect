@@ -111,7 +111,9 @@ export default function CreateCampaign() {
   const { data: entitlements } = useEntitlements();
   const { open: openUpgrade } = useUpgradeModal();
   const planId = entitlements?.plan_id ?? 'free';
-  const broadcastCap = planId === 'free' ? 50 : Infinity;
+  const BROADCAST_CAPS: Record<string, number> = { free: 100, basic: 5000, pro: 50000, business: 1000000 };
+  const broadcastCap = BROADCAST_CAPS[planId] ?? 100;
+  const NEXT_PLAN: Record<string, string> = { free: 'basic', basic: 'pro', pro: 'business', business: 'business' };
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoadingOptions, setIsLoadingOptions] = useState(false);
@@ -331,10 +333,10 @@ export default function CreateCampaign() {
       openUpgrade({
         feature: 'send_campaign',
         currentPlan: planId,
-        requiredPlan: 'basic',
+        requiredPlan: NEXT_PLAN[planId] as any,
         reason: 'quota_exceeded',
         currentUsage: recipientCount,
-        planLimit: broadcastCap as number,
+        planLimit: broadcastCap,
       });
       return false;
     }
@@ -394,7 +396,12 @@ export default function CreateCampaign() {
         },
       });
       if (error) throw error;
-      if ((data as any)?.error) throw new Error((data as any).error);
+      const d = data as any;
+      if (d?.error === 'recipient_limit_exceeded') {
+        openUpgrade({ feature: 'send_campaign', currentPlan: planId, requiredPlan: NEXT_PLAN[planId] as any, reason: 'quota_exceeded', currentUsage: d.requested, planLimit: d.limit });
+        return;
+      }
+      if (d?.error) throw new Error(d.error);
       toast.success(
         sendNow
           ? `Campaign launched — ${(data as any)?.jobs_queued ?? contactIds.length} messages queued`
