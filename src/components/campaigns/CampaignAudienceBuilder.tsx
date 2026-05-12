@@ -746,7 +746,7 @@ export default function CampaignAudienceBuilder({
                       type="date"
                       value={filters.date_from}
                       onChange={(e) => updateFilter('date_from', e.target.value)}
-                      className="h-9 text-sm"
+                      className="h-9 text-sm text-foreground bg-background [color-scheme:light] dark:[color-scheme:dark] [&::-webkit-calendar-picker-indicator]:opacity-70 [&::-webkit-calendar-picker-indicator]:cursor-pointer"
                     />
                   </div>
                   <div className="space-y-1">
@@ -755,10 +755,15 @@ export default function CampaignAudienceBuilder({
                       type="date"
                       value={filters.date_to}
                       onChange={(e) => updateFilter('date_to', e.target.value)}
-                      className="h-9 text-sm"
+                      className="h-9 text-sm text-foreground bg-background [color-scheme:light] dark:[color-scheme:dark] [&::-webkit-calendar-picker-indicator]:opacity-70 [&::-webkit-calendar-picker-indicator]:cursor-pointer"
                     />
                   </div>
                 </div>
+                {filters.assigned_agent && !(filters.date_from || filters.date_to) && (
+                  <p className="text-[11px] text-muted-foreground mt-2">
+                    Tip: combining an agent with a date range will only count contacts <strong>created</strong> in that window and assigned to that agent.
+                  </p>
+                )}
               </FilterSection>
 
               {/* Contact Source */}
