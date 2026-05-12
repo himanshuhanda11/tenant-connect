@@ -86,6 +86,7 @@ export function TemplateBuilder({
   const { currentTenant } = useTenant();
   const [aiValidationOpen, setAiValidationOpen] = useState(false);
   const [uploadingHeader, setUploadingHeader] = useState(false);
+  const [uploadedFileName, setUploadedFileName] = useState<string>('');
 
   const DRAFT_KEY = `template_builder_draft_${currentTenant?.id || 'anon'}`;
   const restoredDraft = mode === 'create' && !initialData?.body ? (() => {
@@ -124,19 +125,46 @@ export function TemplateBuilder({
     return () => clearTimeout(t);
   }, [mode, DRAFT_KEY, name, language, category, headerType, headerContent, body, footer, buttons, variableSamples]);
 
-  const handleHeaderImageUpload = async (file: File) => {
+  const handleHeaderMediaUpload = async (file: File, kind: 'image' | 'video' | 'document') => {
     if (!file) return;
-    if (file.size > 2 * 1024 * 1024) {
-      toast.error('Image must be under 2 MB');
+    const limits: Record<typeof kind, { bytes: number; label: string; accept: (f: File) => boolean; errMsg: string }> = {
+      image: {
+        bytes: 2 * 1024 * 1024,
+        label: '2 MB',
+        accept: (f) => f.type.startsWith('image/'),
+        errMsg: 'Please select an image file (PNG, JPG, WebP)',
+      },
+      video: {
+        bytes: 16 * 1024 * 1024,
+        label: '16 MB',
+        accept: (f) => f.type.startsWith('video/'),
+        errMsg: 'Please select a video file (MP4, 3GP)',
+      },
+      document: {
+        bytes: 20 * 1024 * 1024,
+        label: '20 MB',
+        accept: (f) =>
+          f.type === 'application/pdf' ||
+          f.type.includes('word') ||
+          f.type.includes('excel') ||
+          f.type.includes('spreadsheet') ||
+          f.type.includes('presentation') ||
+          f.type === 'text/plain',
+        errMsg: 'Please select a PDF, DOC, XLS, PPT or TXT file',
+      },
+    };
+    const cfg = limits[kind];
+    if (file.size > cfg.bytes) {
+      toast.error(`${kind.charAt(0).toUpperCase() + kind.slice(1)} must be under ${cfg.label}`);
       return;
     }
-    if (!file.type.startsWith('image/')) {
-      toast.error('Please select an image file');
+    if (!cfg.accept(file)) {
+      toast.error(cfg.errMsg);
       return;
     }
     setUploadingHeader(true);
     try {
-      const ext = file.name.split('.').pop() || 'jpg';
+      const ext = file.name.split('.').pop() || 'bin';
       if (!currentTenant?.id) {
         toast.error('No active workspace');
         setUploadingHeader(false);
@@ -149,13 +177,16 @@ export function TemplateBuilder({
       if (upErr) throw upErr;
       const { data } = supabase.storage.from('meta-ad-media').getPublicUrl(path);
       setHeaderContent(data.publicUrl);
-      toast.success('Image uploaded');
+      setUploadedFileName(file.name);
+      toast.success(`${kind.charAt(0).toUpperCase() + kind.slice(1)} uploaded`);
     } catch (e: any) {
       toast.error(e?.message || 'Upload failed');
     } finally {
       setUploadingHeader(false);
     }
   };
+
+  const handleHeaderImageUpload = (file: File) => handleHeaderMediaUpload(file, 'image');
 
   // Extract variables from body
   const extractedVariables = body.match(/\{\{(\d+)\}\}/g) || [];
@@ -233,7 +264,12 @@ export function TemplateBuilder({
       <div className="flex flex-wrap items-center justify-between gap-3 p-3 rounded-lg border bg-card shadow-sm">
         <div>
           <h2 className="text-lg font-semibold">{mode === 'edit' ? 'Edit Template' : 'Create Template'}</h2>
-          <p className="text-xs text-muted-foreground">Drafts auto-save as you type.</p>
+          <p className="text-xs text-muted-foreground flex items-center gap-1.5 flex-wrap">
+            <span>Drafts auto-save as you type.</span>
+            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 font-medium">
+              <Sparkles className="h-3 w-3" /> Approval / rejection in &lt; 10 min
+            </span>
+          </p>
         </div>
         <div className="flex flex-wrap gap-2">
           {onOpenLibrary && mode === 'create' && (
@@ -374,20 +410,43 @@ export function TemplateBuilder({
               </div>
             )}
 
-            {(headerType === 'image' || headerType === 'video' || headerType === 'document') && (
-              <div className="space-y-3">
-                {headerType === 'image' && (
+            {(headerType === 'image' || headerType === 'video' || headerType === 'document') && (() => {
+              const cfg = {
+                image: {
+                  label: 'Image',
+                  maxLabel: '2 MB',
+                  accept: 'image/png,image/jpeg,image/jpg,image/webp',
+                  hint: 'PNG, JPG or WebP. Recommended 1200×628.',
+                  inputId: 'header-image-upload',
+                },
+                video: {
+                  label: 'Video',
+                  maxLabel: '16 MB',
+                  accept: 'video/mp4,video/3gpp',
+                  hint: 'MP4 or 3GP. Recommended H.264 codec, under 30 sec.',
+                  inputId: 'header-video-upload',
+                },
+                document: {
+                  label: 'Document',
+                  maxLabel: '20 MB',
+                  accept: 'application/pdf,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt',
+                  hint: 'PDF, DOC, XLS, PPT or TXT. PDF is most reliable.',
+                  inputId: 'header-doc-upload',
+                },
+              }[headerType as 'image' | 'video' | 'document'];
+              return (
+                <div className="space-y-3">
                   <div className="space-y-2">
-                    <Label>Upload Image (max 2 MB)</Label>
-                    <div className="flex items-center gap-2">
+                    <Label>Upload {cfg.label} (max {cfg.maxLabel})</Label>
+                    <div className="flex items-center gap-2 flex-wrap">
                       <input
-                        id="header-image-upload"
+                        id={cfg.inputId}
                         type="file"
-                        accept="image/png,image/jpeg,image/jpg,image/webp"
+                        accept={cfg.accept}
                         className="hidden"
                         onChange={(e) => {
                           const f = e.target.files?.[0];
-                          if (f) handleHeaderImageUpload(f);
+                          if (f) handleHeaderMediaUpload(f, headerType as 'image' | 'video' | 'document');
                           e.target.value = '';
                         }}
                       />
@@ -396,43 +455,52 @@ export function TemplateBuilder({
                         variant="outline"
                         size="sm"
                         disabled={uploadingHeader}
-                        onClick={() => document.getElementById('header-image-upload')?.click()}
+                        onClick={() => document.getElementById(cfg.inputId)?.click()}
                       >
                         {uploadingHeader ? (
                           <><Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> Uploading...</>
                         ) : (
-                          <><Upload className="h-4 w-4 mr-1.5" /> Choose image</>
+                          <><Upload className="h-4 w-4 mr-1.5" /> Choose {cfg.label.toLowerCase()}</>
                         )}
                       </Button>
-                      {headerContent && (
-                        <span className="text-xs text-muted-foreground truncate max-w-[200px]">
-                          Uploaded ✓
+                      {headerContent && /^https?:\/\//.test(headerContent) && (
+                        <span className="text-xs text-muted-foreground truncate max-w-[220px]">
+                          {uploadedFileName || 'Uploaded'} ✓
                         </span>
                       )}
                     </div>
-                    {headerContent && /^https?:\/\//.test(headerContent) && (
-                      <img
-                        src={headerContent}
-                        alt="Header preview"
-                        className="max-h-32 rounded border"
-                      />
+                    {headerContent && /^https?:\/\//.test(headerContent) && headerType === 'image' && (
+                      <img src={headerContent} alt="Header preview" className="max-h-32 rounded border" />
                     )}
-                    <p className="text-[11px] text-muted-foreground">PNG, JPG or WebP. Recommended 1200×628.</p>
+                    {headerContent && /^https?:\/\//.test(headerContent) && headerType === 'video' && (
+                      <video src={headerContent} controls className="max-h-40 rounded border w-full bg-black" />
+                    )}
+                    {headerContent && /^https?:\/\//.test(headerContent) && headerType === 'document' && (
+                      <a
+                        href={headerContent}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center gap-2 text-xs text-primary underline"
+                      >
+                        <FileText className="h-3.5 w-3.5" /> Open uploaded document
+                      </a>
+                    )}
+                    <p className="text-[11px] text-muted-foreground">{cfg.hint}</p>
                   </div>
-                )}
-                <div className="space-y-2">
-                  <Label>Or paste media URL</Label>
-                  <Input
-                    value={headerContent}
-                    onChange={(e) => setHeaderContent(e.target.value)}
-                    placeholder={`Enter ${headerType} URL (will be replaced at send time)`}
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    Use {'{{1}}'} as placeholder for dynamic media
-                  </p>
+                  <div className="space-y-2">
+                    <Label>Or paste media URL</Label>
+                    <Input
+                      value={headerContent}
+                      onChange={(e) => setHeaderContent(e.target.value)}
+                      placeholder={`Enter ${headerType} URL (will be replaced at send time)`}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Use {'{{1}}'} as placeholder for dynamic media
+                    </p>
+                  </div>
                 </div>
-              </div>
-            )}
+              );
+            })()}
           </CardContent>
         </Card>
 
