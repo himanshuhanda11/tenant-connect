@@ -35,12 +35,17 @@ import {
 import { WhatsAppPreview } from './WhatsAppPreview';
 import { AIValidationDrawer } from './AIValidationDrawer';
 import { useTenant } from '@/contexts/TenantContext';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
+import { Library, Upload, Loader2, X } from 'lucide-react';
 
 interface TemplateBuilderProps {
   initialData?: Partial<TemplateVersion> & { name?: string; category?: TemplateCategory; language?: string };
   lintResults: LintValidationResult[];
   onValidate: (version: Partial<TemplateVersion>) => void;
   onSave: (data: TemplateBuilderData) => void;
+  onCancel?: () => void;
+  onOpenLibrary?: () => void;
   saving?: boolean;
   mode?: 'create' | 'edit';
 }
@@ -73,29 +78,83 @@ export function TemplateBuilder({
   lintResults,
   onValidate,
   onSave,
+  onCancel,
+  onOpenLibrary,
   saving = false,
   mode = 'create'
 }: TemplateBuilderProps) {
   const { currentTenant } = useTenant();
   const [aiValidationOpen, setAiValidationOpen] = useState(false);
+  const [uploadingHeader, setUploadingHeader] = useState(false);
 
-  const [name, setName] = useState(initialData?.name || '');
-  const [language, setLanguage] = useState(initialData?.language || 'en');
-  const [category, setCategory] = useState<TemplateCategory>(initialData?.category || 'UTILITY');
-  const [headerType, setHeaderType] = useState<HeaderType>(initialData?.header_type || 'none');
-  const [headerContent, setHeaderContent] = useState(initialData?.header_content || '');
-  const [body, setBody] = useState(initialData?.body || '');
-  const [footer, setFooter] = useState(initialData?.footer || '');
+  const DRAFT_KEY = `template_builder_draft_${currentTenant?.id || 'anon'}`;
+  const restoredDraft = mode === 'create' && !initialData?.body ? (() => {
+    try {
+      const raw = localStorage.getItem(DRAFT_KEY);
+      return raw ? JSON.parse(raw) : null;
+    } catch { return null; }
+  })() : null;
+
+  const [name, setName] = useState(initialData?.name || restoredDraft?.name || '');
+  const [language, setLanguage] = useState(initialData?.language || restoredDraft?.language || 'en');
+  const [category, setCategory] = useState<TemplateCategory>(initialData?.category || restoredDraft?.category || 'UTILITY');
+  const [headerType, setHeaderType] = useState<HeaderType>(initialData?.header_type || restoredDraft?.header_type || 'none');
+  const [headerContent, setHeaderContent] = useState(initialData?.header_content || restoredDraft?.header_content || '');
+  const [body, setBody] = useState(initialData?.body || restoredDraft?.body || '');
+  const [footer, setFooter] = useState(initialData?.footer || restoredDraft?.footer || '');
   const [buttons, setButtons] = useState<TemplateButton[]>(
-    (initialData?.buttons as TemplateButton[]) || []
+    (initialData?.buttons as TemplateButton[]) || restoredDraft?.buttons || []
   );
   const [variableSamples, setVariableSamples] = useState<Record<string, string>>(
-    (initialData?.variable_samples as Record<string, string>) || {}
+    (initialData?.variable_samples as Record<string, string>) || restoredDraft?.variable_samples || {}
   );
+
+  // Auto-save draft (create mode only)
+  useEffect(() => {
+    if (mode !== 'create') return;
+    const t = setTimeout(() => {
+      try {
+        localStorage.setItem(DRAFT_KEY, JSON.stringify({
+          name, language, category, header_type: headerType, header_content: headerContent,
+          body, footer, buttons, variable_samples: variableSamples,
+          savedAt: Date.now(),
+        }));
+      } catch {}
+    }, 500);
+    return () => clearTimeout(t);
+  }, [mode, DRAFT_KEY, name, language, category, headerType, headerContent, body, footer, buttons, variableSamples]);
+
+  const handleHeaderImageUpload = async (file: File) => {
+    if (!file) return;
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error('Image must be under 2 MB');
+      return;
+    }
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please select an image file');
+      return;
+    }
+    setUploadingHeader(true);
+    try {
+      const ext = file.name.split('.').pop() || 'jpg';
+      const path = `templates/${currentTenant?.id || 'shared'}/${Date.now()}.${ext}`;
+      const { error: upErr } = await supabase.storage.from('meta-ad-media').upload(path, file, {
+        cacheControl: '3600', upsert: false, contentType: file.type,
+      });
+      if (upErr) throw upErr;
+      const { data } = supabase.storage.from('meta-ad-media').getPublicUrl(path);
+      setHeaderContent(data.publicUrl);
+      toast.success('Image uploaded');
+    } catch (e: any) {
+      toast.error(e?.message || 'Upload failed');
+    } finally {
+      setUploadingHeader(false);
+    }
+  };
 
   // Extract variables from body
   const extractedVariables = body.match(/\{\{(\d+)\}\}/g) || [];
-  const variableNumbers = [...new Set(extractedVariables.map(v => v.replace(/[{}]/g, '')))];
+  const variableNumbers: string[] = Array.from(new Set(extractedVariables.map((v) => v.replace(/[{}]/g, ''))));
 
   // Validate on changes
   useEffect(() => {
@@ -142,6 +201,12 @@ export function TemplateBuilder({
       buttons,
       variable_samples: variableSamples
     });
+    try { localStorage.removeItem(DRAFT_KEY); } catch {}
+  };
+
+  const handleCancel = () => {
+    try { localStorage.removeItem(DRAFT_KEY); } catch {}
+    onCancel?.();
   };
 
   const errors = lintResults.filter(r => r.severity === 'error');
@@ -157,9 +222,37 @@ export function TemplateBuilder({
   };
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      {/* Left: Builder Form */}
-      <div className="space-y-6">
+    <div className="space-y-4">
+      {/* Builder top bar */}
+      <div className="flex flex-wrap items-center justify-between gap-3 p-3 rounded-lg border bg-card">
+        <div>
+          <h2 className="text-lg font-semibold">{mode === 'edit' ? 'Edit Template' : 'Create Template'}</h2>
+          <p className="text-xs text-muted-foreground">Drafts auto-save as you type.</p>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {onOpenLibrary && mode === 'create' && (
+            <Button variant="outline" size="sm" onClick={onOpenLibrary}>
+              <Library className="h-4 w-4 mr-1.5" /> Use from Library
+            </Button>
+          )}
+          {onCancel && (
+            <Button variant="ghost" size="sm" onClick={handleCancel}>
+              <X className="h-4 w-4 mr-1.5" /> Cancel
+            </Button>
+          )}
+          <Button
+            size="sm"
+            onClick={handleSave}
+            disabled={saving || !name || !body || errors.length > 0}
+          >
+            {saving ? 'Saving...' : mode === 'create' ? 'Create Template' : 'Save Changes'}
+          </Button>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Left: Builder Form */}
+        <div className="space-y-6">
         <Card>
           <CardHeader>
             <CardTitle className="text-lg">Template Details</CardTitle>
@@ -275,16 +368,62 @@ export function TemplateBuilder({
             )}
 
             {(headerType === 'image' || headerType === 'video' || headerType === 'document') && (
-              <div className="space-y-2">
-                <Label>Media URL</Label>
-                <Input
-                  value={headerContent}
-                  onChange={(e) => setHeaderContent(e.target.value)}
-                  placeholder={`Enter ${headerType} URL (will be replaced at send time)`}
-                />
-                <p className="text-xs text-muted-foreground">
-                  Use {'{{1}}'} as placeholder for dynamic media
-                </p>
+              <div className="space-y-3">
+                {headerType === 'image' && (
+                  <div className="space-y-2">
+                    <Label>Upload Image (max 2 MB)</Label>
+                    <div className="flex items-center gap-2">
+                      <input
+                        id="header-image-upload"
+                        type="file"
+                        accept="image/png,image/jpeg,image/jpg,image/webp"
+                        className="hidden"
+                        onChange={(e) => {
+                          const f = e.target.files?.[0];
+                          if (f) handleHeaderImageUpload(f);
+                          e.target.value = '';
+                        }}
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        disabled={uploadingHeader}
+                        onClick={() => document.getElementById('header-image-upload')?.click()}
+                      >
+                        {uploadingHeader ? (
+                          <><Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> Uploading...</>
+                        ) : (
+                          <><Upload className="h-4 w-4 mr-1.5" /> Choose image</>
+                        )}
+                      </Button>
+                      {headerContent && (
+                        <span className="text-xs text-muted-foreground truncate max-w-[200px]">
+                          Uploaded ✓
+                        </span>
+                      )}
+                    </div>
+                    {headerContent && /^https?:\/\//.test(headerContent) && (
+                      <img
+                        src={headerContent}
+                        alt="Header preview"
+                        className="max-h-32 rounded border"
+                      />
+                    )}
+                    <p className="text-[11px] text-muted-foreground">PNG, JPG or WebP. Recommended 1200×628.</p>
+                  </div>
+                )}
+                <div className="space-y-2">
+                  <Label>Or paste media URL</Label>
+                  <Input
+                    value={headerContent}
+                    onChange={(e) => setHeaderContent(e.target.value)}
+                    placeholder={`Enter ${headerType} URL (will be replaced at send time)`}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Use {'{{1}}'} as placeholder for dynamic media
+                  </p>
+                </div>
               </div>
             )}
           </CardContent>
@@ -482,7 +621,7 @@ export function TemplateBuilder({
           </CardContent>
         </Card>
 
-        {/* Action Buttons */}
+        {/* AI validate (save lives in top bar) */}
         <div className="flex flex-wrap justify-end gap-3">
           <Button
             variant="outline"
@@ -492,13 +631,6 @@ export function TemplateBuilder({
           >
             <Sparkles className="h-4 w-4" />
             AI Validate
-          </Button>
-          <Button
-            onClick={handleSave}
-            disabled={saving || !name || !body || errors.length > 0}
-            size="lg"
-          >
-            {saving ? 'Saving...' : mode === 'create' ? 'Create Template' : 'Save Changes'}
           </Button>
         </div>
       </div>
@@ -643,6 +775,7 @@ export function TemplateBuilder({
           }
         }}
       />
+      </div>
     </div>
   );
 }
