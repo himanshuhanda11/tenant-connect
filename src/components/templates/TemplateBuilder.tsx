@@ -575,7 +575,7 @@ export function TemplateBuilder({
           </CardContent>
         </Card>
 
-        {/* Action Buttons */}
+        {/* AI validate (save lives in top bar) */}
         <div className="flex flex-wrap justify-end gap-3">
           <Button
             variant="outline"
@@ -585,13 +585,6 @@ export function TemplateBuilder({
           >
             <Sparkles className="h-4 w-4" />
             AI Validate
-          </Button>
-          <Button
-            onClick={handleSave}
-            disabled={saving || !name || !body || errors.length > 0}
-            size="lg"
-          >
-            {saving ? 'Saving...' : mode === 'create' ? 'Create Template' : 'Save Changes'}
           </Button>
         </div>
       </div>
