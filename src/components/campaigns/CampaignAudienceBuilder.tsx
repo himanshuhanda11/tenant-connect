@@ -488,15 +488,20 @@ export default function CampaignAudienceBuilder({
   return (
     <div className="space-y-5">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h3 className="text-lg font-semibold">Target Audience</h3>
-          <p className="text-sm text-muted-foreground">
-            Build your audience with advanced filters
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <Badge variant="outline" className="gap-1">
+      <div className="rounded-2xl border bg-gradient-to-br from-primary/5 via-background to-background p-4 sm:p-5">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div className="flex items-start gap-3">
+            <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+              <Target className="h-5 w-5 text-primary" />
+            </div>
+            <div>
+              <h3 className="text-base sm:text-lg font-semibold leading-tight">Build your target audience</h3>
+              <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
+                Pick from <strong>Segments</strong>, <strong>Tags</strong>, or apply <strong>filters</strong> like agent, lead status, date and source. The estimate updates live on the right.
+              </p>
+            </div>
+          </div>
+          <Badge variant="outline" className="gap-1 self-start sm:self-auto">
             <Filter className="h-3 w-3" />
             {activeFilterCount()} active
           </Badge>
@@ -553,6 +558,37 @@ export default function CampaignAudienceBuilder({
             }}
           >
             <div className="divide-y divide-border">
+              {/* Tags — moved to top so CSV-uploaded "Broadcast Upload" tag is easy to pick */}
+              <FilterSection
+                id="tags"
+                icon={Tag}
+                title="Tags"
+                badge={filters.include_tags.length}
+              >
+                {tags.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">No tags available yet. Upload a CSV or tag contacts first.</p>
+                ) : (
+                  <div className="flex flex-wrap gap-1.5">
+                    {tags.map((tag) => (
+                      <Badge
+                        key={tag.id}
+                        variant={filters.include_tags.includes(tag.id) ? 'default' : 'outline'}
+                        className="cursor-pointer transition-all hover:scale-105"
+                        onClick={() => toggleInArray('include_tags', tag.id)}
+                      >
+                        <div
+                          className="w-2 h-2 rounded-full mr-1.5"
+                          style={{
+                            backgroundColor: tag.color || 'hsl(var(--muted-foreground))',
+                          }}
+                        />
+                        {tag.name}
+                      </Badge>
+                    ))}
+                  </div>
+                )}
+              </FilterSection>
+
               {/* Segments */}
               <FilterSection
                 id="segments"
@@ -587,37 +623,6 @@ export default function CampaignAudienceBuilder({
                           )}
                         </div>
                       </button>
-                    ))}
-                  </div>
-                )}
-              </FilterSection>
-
-              {/* Tags */}
-              <FilterSection
-                id="tags"
-                icon={Tag}
-                title="Tags"
-                badge={filters.include_tags.length}
-              >
-                {tags.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">No tags available</p>
-                ) : (
-                  <div className="flex flex-wrap gap-1.5">
-                    {tags.map((tag) => (
-                      <Badge
-                        key={tag.id}
-                        variant={filters.include_tags.includes(tag.id) ? 'default' : 'outline'}
-                        className="cursor-pointer transition-all hover:scale-105"
-                        onClick={() => toggleInArray('include_tags', tag.id)}
-                      >
-                        <div
-                          className="w-2 h-2 rounded-full mr-1.5"
-                          style={{
-                            backgroundColor: tag.color || 'hsl(var(--muted-foreground))',
-                          }}
-                        />
-                        {tag.name}
-                      </Badge>
                     ))}
                   </div>
                 )}
@@ -746,7 +751,7 @@ export default function CampaignAudienceBuilder({
                       type="date"
                       value={filters.date_from}
                       onChange={(e) => updateFilter('date_from', e.target.value)}
-                      className="h-9 text-sm"
+                      className="h-9 text-sm text-foreground bg-background [color-scheme:light] dark:[color-scheme:dark] [&::-webkit-calendar-picker-indicator]:opacity-70 [&::-webkit-calendar-picker-indicator]:cursor-pointer"
                     />
                   </div>
                   <div className="space-y-1">
@@ -755,10 +760,15 @@ export default function CampaignAudienceBuilder({
                       type="date"
                       value={filters.date_to}
                       onChange={(e) => updateFilter('date_to', e.target.value)}
-                      className="h-9 text-sm"
+                      className="h-9 text-sm text-foreground bg-background [color-scheme:light] dark:[color-scheme:dark] [&::-webkit-calendar-picker-indicator]:opacity-70 [&::-webkit-calendar-picker-indicator]:cursor-pointer"
                     />
                   </div>
                 </div>
+                {filters.assigned_agent && !(filters.date_from || filters.date_to) && (
+                  <p className="text-[11px] text-muted-foreground mt-2">
+                    Tip: combining an agent with a date range will only count contacts <strong>created</strong> in that window and assigned to that agent.
+                  </p>
+                )}
               </FilterSection>
 
               {/* Contact Source */}

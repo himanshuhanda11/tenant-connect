@@ -655,9 +655,18 @@ export default function CreateCampaign() {
                   onImported={(summary) => {
                     setAudienceFilters((prev) => ({
                       ...prev,
-                      source: 'contacts',
+                      source: summary.tagId ? 'tags' : 'contacts',
                       selected_contacts: Array.from(new Set([...(prev.selected_contacts || []), ...summary.contactIds])),
+                      include_tags: summary.tagId
+                        ? Array.from(new Set([...(prev.include_tags || []), summary.tagId]))
+                        : prev.include_tags,
                     }));
+                    if (summary.tagId && !tags.find((t) => t.id === summary.tagId)) {
+                      setTags((prev) => [
+                        ...prev,
+                        { id: summary.tagId!, name: summary.tagName || 'Broadcast Upload', color: '#16a34a' },
+                      ]);
+                    }
                     setAudienceEstimatedCount((prev) => prev + summary.contactIds.length);
                   }}
                 />

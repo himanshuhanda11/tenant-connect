@@ -26,6 +26,8 @@ interface ImportSummary {
   invalid: number;
   duplicates: number;
   contactIds: string[];
+  tagId?: string | null;
+  tagName?: string;
 }
 
 interface Props {
@@ -193,6 +195,8 @@ export function CSVContactUploader({ onImported, defaultCountry = 'IN' }: Props)
         invalid: invalidCount,
         duplicates: duplicateCount,
         contactIds,
+        tagId,
+        tagName: 'Broadcast Upload',
       };
       setImported(summary);
       onImported(summary);
