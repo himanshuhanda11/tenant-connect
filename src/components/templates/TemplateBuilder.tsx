@@ -78,15 +78,26 @@ export function TemplateBuilder({
   lintResults,
   onValidate,
   onSave,
+  onCancel,
+  onOpenLibrary,
   saving = false,
   mode = 'create'
 }: TemplateBuilderProps) {
   const { currentTenant } = useTenant();
   const [aiValidationOpen, setAiValidationOpen] = useState(false);
+  const [uploadingHeader, setUploadingHeader] = useState(false);
 
-  const [name, setName] = useState(initialData?.name || '');
-  const [language, setLanguage] = useState(initialData?.language || 'en');
-  const [category, setCategory] = useState<TemplateCategory>(initialData?.category || 'UTILITY');
+  const DRAFT_KEY = `template_builder_draft_${currentTenant?.id || 'anon'}`;
+  const restoredDraft = mode === 'create' && !initialData?.body ? (() => {
+    try {
+      const raw = localStorage.getItem(DRAFT_KEY);
+      return raw ? JSON.parse(raw) : null;
+    } catch { return null; }
+  })() : null;
+
+  const [name, setName] = useState(initialData?.name || restoredDraft?.name || '');
+  const [language, setLanguage] = useState(initialData?.language || restoredDraft?.language || 'en');
+  const [category, setCategory] = useState<TemplateCategory>(initialData?.category || restoredDraft?.category || 'UTILITY');
   const [headerType, setHeaderType] = useState<HeaderType>(initialData?.header_type || 'none');
   const [headerContent, setHeaderContent] = useState(initialData?.header_content || '');
   const [body, setBody] = useState(initialData?.body || '');
