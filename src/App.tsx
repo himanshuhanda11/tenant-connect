@@ -13,6 +13,7 @@ import { ThemeProvider } from "@/contexts/ThemeContext";
 import ScrollToTop from "@/components/ScrollToTop";
 import RoutePrefetcher from "@/components/RoutePrefetcher";
 import Index from "./pages/Index";
+import aireatroLogo from "@/assets/aireatro-logo.png";
 import { RequirePermission } from "@/components/auth/RequirePermission";
 import { RequirePlanSelection } from "@/components/auth/RequirePlanSelection";
 import { LaunchOfferProvider } from "@/components/offer/LaunchOfferProvider";
