@@ -264,7 +264,12 @@ export function TemplateBuilder({
       <div className="flex flex-wrap items-center justify-between gap-3 p-3 rounded-lg border bg-card shadow-sm">
         <div>
           <h2 className="text-lg font-semibold">{mode === 'edit' ? 'Edit Template' : 'Create Template'}</h2>
-          <p className="text-xs text-muted-foreground">Drafts auto-save as you type.</p>
+          <p className="text-xs text-muted-foreground flex items-center gap-1.5 flex-wrap">
+            <span>Drafts auto-save as you type.</span>
+            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 font-medium">
+              <Sparkles className="h-3 w-3" /> Approval / rejection in &lt; 10 min
+            </span>
+          </p>
         </div>
         <div className="flex flex-wrap gap-2">
           {onOpenLibrary && mode === 'create' && (
