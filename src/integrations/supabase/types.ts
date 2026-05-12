@@ -17247,6 +17247,14 @@ export type Database = {
           tenant_id: string
         }[]
       }
+      mark_campaign_completed_if_done: {
+        Args: { p_campaign_id: string }
+        Returns: boolean
+      }
+      mark_campaign_running: {
+        Args: { p_campaign_id: string }
+        Returns: undefined
+      }
       mark_conversation_read: {
         Args: {
           p_conversation_id: string
