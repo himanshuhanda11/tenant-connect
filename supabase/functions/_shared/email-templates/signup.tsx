@@ -33,6 +33,12 @@ export const SignupEmail = ({
     <Preview>Confirm your email for {siteName}</Preview>
     <Body style={main}>
       <Container style={container}>
+        <Img
+          src="https://aireatro.com/logo.svg"
+          alt="AiReatro"
+          width="160"
+          style={logo}
+        />
         <Heading style={h1}>Confirm your email</Heading>
         <Text style={text}>
           Thanks for signing up for{' '}
