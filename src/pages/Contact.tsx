@@ -135,7 +135,7 @@ export default function Contact() {
     }, 80);
   };
 
-  const uploadAttachmentIfAny = async (ticketId: string): Promise<string | null> => {
+  const uploadAttachmentIfAny = async (folder: string): Promise<string | null> => {
     if (!attachment) return null;
     if (attachment.size > 5 * 1024 * 1024) {
       toast({ title: 'File too large', description: 'Attachments must be 5 MB or less.', variant: 'destructive' });
@@ -147,7 +147,7 @@ export default function Contact() {
       throw new Error('attachment_bad_type');
     }
     const ext = attachment.name.split('.').pop()?.toLowerCase() || 'bin';
-    const path = `${ticketId}/${Date.now()}.${ext}`;
+    const path = `${folder}/${Date.now()}.${ext}`;
     const { error } = await supabase.storage.from('contact-attachments').upload(path, attachment, {
       cacheControl: '3600', contentType: attachment.type, upsert: false,
     });
@@ -195,36 +195,32 @@ export default function Contact() {
         meta_country: data.metaCountry, meta_message_category: data.metaMessageCategory, meta_volume: data.metaVolume,
       });
 
-      const { data: inserted, error: insertError } = await supabase
-        .from('contact_requests')
-        .insert({
-          user_id: user?.id ?? null,
-          full_name: data.fullName,
-          email: data.email,
-          phone: data.phone,
-          business_name: data.businessName || null,
-          country: data.country || null,
-          category,
-          priority: data.priority,
-          subject: data.subject || cat.label,
-          message: data.message,
-          source_page: typeof window !== 'undefined' ? window.location.pathname : '/contact',
-          metadata,
-        })
-        .select('id, ticket_id')
-        .single();
-      if (insertError || !inserted) throw insertError || new Error('Failed to submit');
-
-      // Upload attachment, then patch row
+      // Upload attachment FIRST (using a random folder) so we can store the URL on the row
       let attachmentUrl: string | null = null;
       try {
-        attachmentUrl = await uploadAttachmentIfAny(inserted.ticket_id);
-        if (attachmentUrl) {
-          await supabase.from('contact_requests')
-            .update({ attachment_url: attachmentUrl })
-            .eq('id', inserted.id);
-        }
-      } catch { /* validation toasts already shown */ }
+        attachmentUrl = await uploadAttachmentIfAny(`pending/${crypto.randomUUID()}`);
+      } catch {
+        setSubmitting(false);
+        return;
+      }
+
+      const { data: rpcRows, error: rpcError } = await supabase.rpc('submit_contact_request', {
+        p_full_name: data.fullName,
+        p_email: data.email,
+        p_phone: data.phone,
+        p_business_name: data.businessName || null,
+        p_country: data.country || null,
+        p_category: category,
+        p_priority: data.priority,
+        p_subject: data.subject || cat.label,
+        p_message: data.message,
+        p_source_page: typeof window !== 'undefined' ? window.location.pathname : '/contact',
+        p_metadata: metadata,
+        p_attachment_url: attachmentUrl,
+      });
+      if (rpcError) throw rpcError;
+      const inserted = Array.isArray(rpcRows) ? rpcRows[0] : rpcRows;
+      if (!inserted?.ticket_id) throw new Error('Failed to submit');
 
       // Build metadata lines for admin email
       const metadataLines: string[] = [];

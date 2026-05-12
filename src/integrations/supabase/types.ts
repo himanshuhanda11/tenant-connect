@@ -17427,6 +17427,26 @@ export type Database = {
         }
         Returns: string
       }
+      submit_contact_request: {
+        Args: {
+          p_attachment_url?: string
+          p_business_name: string
+          p_category: Database["public"]["Enums"]["contact_request_category"]
+          p_country: string
+          p_email: string
+          p_full_name: string
+          p_message: string
+          p_metadata: Json
+          p_phone: string
+          p_priority: Database["public"]["Enums"]["contact_request_priority"]
+          p_source_page: string
+          p_subject: string
+        }
+        Returns: {
+          id: string
+          ticket_id: string
+        }[]
+      }
       transfer_conversation: {
         Args: {
           p_conversation_id: string
