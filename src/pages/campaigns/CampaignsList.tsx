@@ -197,14 +197,6 @@ export default function CampaignsList() {
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            <Button variant="outline" size="sm" onClick={() => navigate('/campaigns/library')} className="text-xs sm:text-sm">
-              <FileText className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1.5" />
-              Library
-            </Button>
-            <Button variant="outline" size="sm" className="text-xs sm:text-sm">
-              <Upload className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1.5" />
-              <span className="hidden xs:inline">Import</span>
-            </Button>
             <Button size="sm" onClick={() => navigate('/campaigns/create')} className="ml-auto text-xs sm:text-sm">
               <Plus className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1.5" />
               <span className="hidden xs:inline">Create </span>Campaign
