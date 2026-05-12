@@ -1,0 +1,1 @@
+DELETE FROM public.suppressed_emails WHERE email ILIKE 'info@aireatro.com' OR email ILIKE 'admin@aireatro.com';
