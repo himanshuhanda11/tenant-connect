@@ -195,18 +195,13 @@ export default function Contact() {
         meta_country: data.metaCountry, meta_message_category: data.metaMessageCategory, meta_volume: data.metaVolume,
       });
 
-      // Pre-validate attachment before insert (so we don't create orphan rows on bad files)
-      if (attachment) {
-        if (attachment.size > 5 * 1024 * 1024) {
-          toast({ title: 'File too large', description: 'Attachments must be 5 MB or less.', variant: 'destructive' });
-          setSubmitting(false);
-          return;
-        }
-        if (!/^(image\/|application\/pdf$)/.test(attachment.type)) {
-          toast({ title: 'Unsupported file', description: 'Only images or PDF files are allowed.', variant: 'destructive' });
-          setSubmitting(false);
-          return;
-        }
+      // Upload attachment FIRST (using a random folder) so we can store the URL on the row
+      let attachmentUrl: string | null = null;
+      try {
+        attachmentUrl = await uploadAttachmentIfAny(`pending/${crypto.randomUUID()}`);
+      } catch {
+        setSubmitting(false);
+        return;
       }
 
       const { data: rpcRows, error: rpcError } = await supabase.rpc('submit_contact_request', {
@@ -221,22 +216,11 @@ export default function Contact() {
         p_message: data.message,
         p_source_page: typeof window !== 'undefined' ? window.location.pathname : '/contact',
         p_metadata: metadata,
-        p_attachment_url: null,
+        p_attachment_url: attachmentUrl,
       });
       if (rpcError) throw rpcError;
       const inserted = Array.isArray(rpcRows) ? rpcRows[0] : rpcRows;
       if (!inserted?.ticket_id) throw new Error('Failed to submit');
-
-      // Upload attachment after we have the ticket_id (best-effort; row already exists)
-      try {
-        const attachmentUrl = await uploadAttachmentIfAny(inserted.ticket_id);
-        if (attachmentUrl) {
-          await supabase.rpc('submit_contact_request_attachment' as any, {
-            p_ticket_id: inserted.ticket_id, p_url: attachmentUrl,
-          }).catch(() => { /* ignored — admin email still includes link */ });
-        }
-        (inserted as any).attachment_url = attachmentUrl;
-      } catch { /* validation toasts already shown */ }
 
       // Build metadata lines for admin email
       const metadataLines: string[] = [];
