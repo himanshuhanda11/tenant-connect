@@ -214,12 +214,14 @@ export function LibraryPickerDialog({ open, onOpenChange, onSelect }: Props) {
 
                     {/* Footer row */}
                     <div className="flex items-center justify-between gap-2 relative">
-                      <div className="flex items-center gap-1.5 min-w-0">
+                      <div className="flex items-center gap-1.5 min-w-0 flex-wrap">
                         <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-5 truncate max-w-[140px]">
                           {t.category}
                         </Badge>
-                        <span className="text-[10px] text-muted-foreground inline-flex items-center gap-0.5">
-                          <CheckCircle2 className="h-2.5 w-2.5 text-emerald-500" />
+                        <span className="inline-flex items-center gap-0.5 text-[10px] font-semibold px-1.5 py-0.5 rounded-md border bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20">
+                          <CheckCircle2 className="h-2.5 w-2.5" /> Approved
+                        </span>
+                        <span className="text-[10px] text-muted-foreground">
                           {t.variables.length} vars
                         </span>
                       </div>
