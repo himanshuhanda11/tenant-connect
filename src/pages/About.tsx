@@ -93,7 +93,7 @@ export default function About() {
       <Navbar />
 
       {/* HERO */}
-      <section className="relative pt-28 pb-24 md:pt-36 md:pb-32 overflow-hidden">
+      <section className="relative pt-20 pb-24 md:pt-24 md:pb-32 overflow-hidden">
         {/* gradient mesh */}
         <div className="absolute inset-0 -z-10">
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,hsl(var(--primary)/0.18),transparent_60%)]" />
@@ -105,7 +105,7 @@ export default function About() {
         <div className="container mx-auto px-4">
           <Breadcrumb />
 
-          <div className="max-w-5xl mx-auto text-center mt-8">
+          <div className="max-w-5xl mx-auto text-center mt-6">
             <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-border/60 bg-card/60 backdrop-blur-md text-xs font-medium text-muted-foreground animate-fade-in">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
               About Aireatro
