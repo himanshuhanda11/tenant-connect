@@ -135,7 +135,7 @@ export default function Contact() {
     }, 80);
   };
 
-  const uploadAttachmentIfAny = async (ticketId: string): Promise<string | null> => {
+  const uploadAttachmentIfAny = async (folder: string): Promise<string | null> => {
     if (!attachment) return null;
     if (attachment.size > 5 * 1024 * 1024) {
       toast({ title: 'File too large', description: 'Attachments must be 5 MB or less.', variant: 'destructive' });
@@ -147,7 +147,7 @@ export default function Contact() {
       throw new Error('attachment_bad_type');
     }
     const ext = attachment.name.split('.').pop()?.toLowerCase() || 'bin';
-    const path = `${ticketId}/${Date.now()}.${ext}`;
+    const path = `${folder}/${Date.now()}.${ext}`;
     const { error } = await supabase.storage.from('contact-attachments').upload(path, attachment, {
       cacheControl: '3600', contentType: attachment.type, upsert: false,
     });
