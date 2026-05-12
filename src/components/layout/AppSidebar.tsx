@@ -176,7 +176,7 @@ export function AppSidebar() {
     : crmMenuItems;
 
   const menuGroups: MenuGroup[] = [
-    { label: 'Inbox', icon: Inbox, items: filteredInboxMenuItems, defaultOpen: true },
+    { label: 'Inbox', icon: Inbox, items: filteredInboxMenuItems },
     { label: 'CRM', icon: Contact, items: filteredCrmMenuItems },
     ...(isAgent ? [] : [{ label: 'Channels', icon: Phone, items: channelMenuItems }]),
     ...(isAgent ? [] : [{ label: 'Growth', icon: TrendingUp, items: growthMenuItems }]),
@@ -195,7 +195,6 @@ export function AppSidebar() {
     : settingsMenuItems;
 
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>(() => ({
-    'Inbox': true,
     'Team': location.pathname.startsWith('/team'),
   }));
 
