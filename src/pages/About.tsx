@@ -103,7 +103,7 @@ export default function About() {
         </div>
 
         <div className="container mx-auto px-4">
-          <Breadcrumb items={[{ label: 'Home', href: '/' }, { label: 'About' }]} />
+          <Breadcrumb />
 
           <div className="max-w-5xl mx-auto text-center mt-8">
             <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-border/60 bg-card/60 backdrop-blur-md text-xs font-medium text-muted-foreground animate-fade-in">
