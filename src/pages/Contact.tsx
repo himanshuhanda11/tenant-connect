@@ -780,13 +780,24 @@ function Field({
   label, required, icon: Icon, error, children,
 }: { label: string; required?: boolean; icon?: any; error?: string; children: React.ReactNode }) {
   return (
-    <div className="space-y-1.5">
-      <Label className="text-xs flex items-center gap-1.5">
-        {Icon ? <Icon className="w-3.5 h-3.5 text-muted-foreground" /> : null}
+    <div className="space-y-1.5" data-field-error={error ? 'true' : undefined}>
+      <Label className={cn(
+        "text-xs flex items-center gap-1.5 transition-colors",
+        error && "text-rose-600 dark:text-rose-400"
+      )}>
+        {Icon ? <Icon className={cn("w-3.5 h-3.5 transition-colors", error ? "text-rose-500" : "text-muted-foreground")} /> : null}
         {label} {required ? <span className="text-destructive">*</span> : null}
       </Label>
-      {children}
-      {error ? <p className="text-[11px] text-destructive">{error}</p> : null}
+      <div className={cn(
+        error && "[&_input]:border-rose-300 [&_textarea]:border-rose-300 [&_button[role=combobox]]:border-rose-300 [&_input]:ring-rose-200 [&_textarea]:ring-rose-200 dark:[&_input]:border-rose-500/50 dark:[&_textarea]:border-rose-500/50 dark:[&_button[role=combobox]]:border-rose-500/50"
+      )}>
+        {children}
+      </div>
+      {error ? (
+        <p className="flex items-center gap-1 text-[11px] font-medium text-rose-600 dark:text-rose-400">
+          <AlertTriangle className="w-3 h-3" /> {error}
+        </p>
+      ) : null}
     </div>
   );
 }
