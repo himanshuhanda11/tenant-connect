@@ -64,21 +64,6 @@ import {
   Cell
 } from 'recharts';
 
-const MOCK_TIMELINE_DATA = [
-  { time: '09:00', sent: 0, delivered: 0, read: 0 },
-  { time: '09:30', sent: 450, delivered: 420, read: 180 },
-  { time: '10:00', sent: 980, delivered: 920, read: 520 },
-  { time: '10:30', sent: 1560, delivered: 1480, read: 980 },
-  { time: '11:00', sent: 2100, delivered: 2010, read: 1450 },
-  { time: '11:30', sent: 2450, delivered: 2380, read: 1850 },
-];
-
-const MOCK_ERROR_LOGS = [
-  { id: 1, phone: '+971501234567', error: 'Invalid phone number format', time: '10:15 AM' },
-  { id: 2, phone: '+971509876543', error: 'Recipient blocked sender', time: '10:22 AM' },
-  { id: 3, phone: '+971505555555', error: 'Rate limit exceeded', time: '10:45 AM' },
-];
-
 const PIE_COLORS = ['#10b981', '#3b82f6', '#8b5cf6', '#f59e0b', '#ef4444'];
 
 export default function CampaignDetails() {
