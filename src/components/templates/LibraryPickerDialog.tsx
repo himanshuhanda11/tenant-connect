@@ -233,7 +233,7 @@ export function LibraryPickerDialog({ open, onOpenChange, onSelect }: Props) {
               </div>
             )}
           </div>
-        </ScrollArea>
+        </div>
       </DialogContent>
     </Dialog>
   );
