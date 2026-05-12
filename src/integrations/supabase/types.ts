@@ -311,6 +311,24 @@ export type Database = {
           },
         ]
       }
+      app_secrets: {
+        Row: {
+          key: string
+          updated_at: string
+          value: string
+        }
+        Insert: {
+          key: string
+          updated_at?: string
+          value: string
+        }
+        Update: {
+          key?: string
+          updated_at?: string
+          value?: string
+        }
+        Relationships: []
+      }
       audit_logs: {
         Row: {
           action: string
@@ -17046,6 +17064,7 @@ export type Database = {
         Returns: number
       }
       generate_contact_ticket_id: { Args: never; Returns: string }
+      get_app_secret: { Args: { p_key: string }; Returns: string }
       get_offer_claim_count_today: { Args: never; Returns: number }
       get_platform_role: { Args: { _user_id: string }; Returns: string }
       get_team_workload: {
