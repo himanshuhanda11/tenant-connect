@@ -736,6 +736,7 @@ export function TemplateBuilder({
           }
         }}
       />
+      </div>
     </div>
   );
 }
