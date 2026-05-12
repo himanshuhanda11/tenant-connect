@@ -121,3 +121,5 @@ project_id = "fygwjpdasnhaomoqdvcu"
     verify_jwt = false
   [functions.widget-lead]
     verify_jwt = false
+  [functions.campaign-worker]
+    verify_jwt = false
