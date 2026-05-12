@@ -98,16 +98,59 @@ export function TemplateBuilder({
   const [name, setName] = useState(initialData?.name || restoredDraft?.name || '');
   const [language, setLanguage] = useState(initialData?.language || restoredDraft?.language || 'en');
   const [category, setCategory] = useState<TemplateCategory>(initialData?.category || restoredDraft?.category || 'UTILITY');
-  const [headerType, setHeaderType] = useState<HeaderType>(initialData?.header_type || 'none');
-  const [headerContent, setHeaderContent] = useState(initialData?.header_content || '');
-  const [body, setBody] = useState(initialData?.body || '');
-  const [footer, setFooter] = useState(initialData?.footer || '');
+  const [headerType, setHeaderType] = useState<HeaderType>(initialData?.header_type || restoredDraft?.header_type || 'none');
+  const [headerContent, setHeaderContent] = useState(initialData?.header_content || restoredDraft?.header_content || '');
+  const [body, setBody] = useState(initialData?.body || restoredDraft?.body || '');
+  const [footer, setFooter] = useState(initialData?.footer || restoredDraft?.footer || '');
   const [buttons, setButtons] = useState<TemplateButton[]>(
-    (initialData?.buttons as TemplateButton[]) || []
+    (initialData?.buttons as TemplateButton[]) || restoredDraft?.buttons || []
   );
   const [variableSamples, setVariableSamples] = useState<Record<string, string>>(
-    (initialData?.variable_samples as Record<string, string>) || {}
+    (initialData?.variable_samples as Record<string, string>) || restoredDraft?.variable_samples || {}
   );
+
+  // Auto-save draft (create mode only)
+  useEffect(() => {
+    if (mode !== 'create') return;
+    const t = setTimeout(() => {
+      try {
+        localStorage.setItem(DRAFT_KEY, JSON.stringify({
+          name, language, category, header_type: headerType, header_content: headerContent,
+          body, footer, buttons, variable_samples: variableSamples,
+          savedAt: Date.now(),
+        }));
+      } catch {}
+    }, 500);
+    return () => clearTimeout(t);
+  }, [mode, DRAFT_KEY, name, language, category, headerType, headerContent, body, footer, buttons, variableSamples]);
+
+  const handleHeaderImageUpload = async (file: File) => {
+    if (!file) return;
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error('Image must be under 2 MB');
+      return;
+    }
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please select an image file');
+      return;
+    }
+    setUploadingHeader(true);
+    try {
+      const ext = file.name.split('.').pop() || 'jpg';
+      const path = `templates/${currentTenant?.id || 'shared'}/${Date.now()}.${ext}`;
+      const { error: upErr } = await supabase.storage.from('meta-ad-media').upload(path, file, {
+        cacheControl: '3600', upsert: false, contentType: file.type,
+      });
+      if (upErr) throw upErr;
+      const { data } = supabase.storage.from('meta-ad-media').getPublicUrl(path);
+      setHeaderContent(data.publicUrl);
+      toast.success('Image uploaded');
+    } catch (e: any) {
+      toast.error(e?.message || 'Upload failed');
+    } finally {
+      setUploadingHeader(false);
+    }
+  };
 
   // Extract variables from body
   const extractedVariables = body.match(/\{\{(\d+)\}\}/g) || [];
