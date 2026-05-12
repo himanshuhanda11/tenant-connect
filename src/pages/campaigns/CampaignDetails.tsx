@@ -48,6 +48,7 @@ import {
   CampaignStatus
 } from '@/types/campaign';
 import { useCampaigns } from '@/hooks/useCampaigns';
+import { useCampaignJobs, buildTimeline, jobsToCSV, downloadCSV } from '@/hooks/useCampaignReport';
 import { 
   LineChart, 
   Line, 
@@ -63,21 +64,6 @@ import {
   Cell
 } from 'recharts';
 
-const MOCK_TIMELINE_DATA = [
-  { time: '09:00', sent: 0, delivered: 0, read: 0 },
-  { time: '09:30', sent: 450, delivered: 420, read: 180 },
-  { time: '10:00', sent: 980, delivered: 920, read: 520 },
-  { time: '10:30', sent: 1560, delivered: 1480, read: 980 },
-  { time: '11:00', sent: 2100, delivered: 2010, read: 1450 },
-  { time: '11:30', sent: 2450, delivered: 2380, read: 1850 },
-];
-
-const MOCK_ERROR_LOGS = [
-  { id: 1, phone: '+971501234567', error: 'Invalid phone number format', time: '10:15 AM' },
-  { id: 2, phone: '+971509876543', error: 'Recipient blocked sender', time: '10:22 AM' },
-  { id: 3, phone: '+971505555555', error: 'Rate limit exceeded', time: '10:45 AM' },
-];
-
 const PIE_COLORS = ['#10b981', '#3b82f6', '#8b5cf6', '#f59e0b', '#ef4444'];
 
 export default function CampaignDetails() {
@@ -85,6 +71,7 @@ export default function CampaignDetails() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('overview');
   const { data: dbCampaigns = [], isLoading } = useCampaigns();
+  const { data: jobs = [] } = useCampaignJobs(id);
   
   const dbCampaign = dbCampaigns.find(c => c.id === id);
   
@@ -165,6 +152,16 @@ export default function CampaignDetails() {
     { name: 'Replied', value: campaign.replied_count || 0, color: '#f59e0b' },
   ];
 
+  const timelineData = buildTimeline(jobs);
+  const errorLogs = jobs.filter(j => j.status === 'failed' || j.error_message).slice(0, 100);
+
+  const handleExportCSV = () => {
+    downloadCSV(`${campaign.name.replace(/[^a-z0-9]+/gi,'_')}_recipients.csv`, jobsToCSV(jobs));
+  };
+  const handleExportErrors = () => {
+    downloadCSV(`${campaign.name.replace(/[^a-z0-9]+/gi,'_')}_errors.csv`, jobsToCSV(errorLogs));
+  };
+
   return (
     <DashboardLayout>
       <div className="space-y-6">
@@ -215,7 +212,7 @@ export default function CampaignDetails() {
               <Copy className="h-4 w-4 mr-2" />
               Duplicate
             </Button>
-            <Button variant="outline">
+            <Button variant="outline" onClick={handleExportCSV} disabled={!jobs.length}>
               <Download className="h-4 w-4 mr-2" />
               Export
             </Button>
@@ -332,7 +329,7 @@ export default function CampaignDetails() {
                 <CardContent>
                   <div className="h-64">
                     <ResponsiveContainer width="100%" height="100%">
-                      <LineChart data={MOCK_TIMELINE_DATA}>
+                      <LineChart data={timelineData}>
                         <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
                         <XAxis dataKey="time" className="text-xs" />
                         <YAxis className="text-xs" />
@@ -340,6 +337,7 @@ export default function CampaignDetails() {
                         <Line type="monotone" dataKey="sent" stroke="#10b981" strokeWidth={2} name="Sent" />
                         <Line type="monotone" dataKey="delivered" stroke="#3b82f6" strokeWidth={2} name="Delivered" />
                         <Line type="monotone" dataKey="read" stroke="#8b5cf6" strokeWidth={2} name="Read" />
+                        <Line type="monotone" dataKey="replied" stroke="#f59e0b" strokeWidth={2} name="Replied" />
                       </LineChart>
                     </ResponsiveContainer>
                   </div>
@@ -503,35 +501,41 @@ export default function CampaignDetails() {
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <CardTitle>Error Log</CardTitle>
-                  <Button variant="outline" size="sm">
+                  <Button variant="outline" size="sm" onClick={handleExportErrors} disabled={!errorLogs.length}>
                     <Download className="h-4 w-4 mr-2" />
                     Export Errors
                   </Button>
                 </div>
               </CardHeader>
               <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Phone</TableHead>
-                      <TableHead>Error</TableHead>
-                      <TableHead>Time</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {MOCK_ERROR_LOGS.map(log => (
-                      <TableRow key={log.id}>
-                        <TableCell className="font-mono text-sm">{log.phone}</TableCell>
-                        <TableCell>
-                          <Badge variant="outline" className="text-red-600 bg-red-50">
-                            {log.error}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-muted-foreground">{log.time}</TableCell>
+                {errorLogs.length === 0 ? (
+                  <div className="text-center py-10 text-sm text-muted-foreground">No delivery errors recorded yet.</div>
+                ) : (
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Phone</TableHead>
+                        <TableHead>Error</TableHead>
+                        <TableHead>Time</TableHead>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                    </TableHeader>
+                    <TableBody>
+                      {errorLogs.map(log => (
+                        <TableRow key={log.id}>
+                          <TableCell className="font-mono text-sm">{log.recipient_phone}</TableCell>
+                          <TableCell>
+                            <Badge variant="outline" className="text-red-600 bg-red-50">
+                              {log.error_message || log.error_code || log.skip_reason || 'Unknown error'}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-muted-foreground">
+                            {log.failed_at ? format(new Date(log.failed_at), 'MMM d, h:mm a') : formatDistanceToNow(new Date(log.updated_at), { addSuffix: true })}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
@@ -593,13 +597,13 @@ export default function CampaignDetails() {
                     <p className="text-sm text-muted-foreground">Download detailed analytics and recipient data</p>
                   </div>
                   <div className="flex gap-2">
-                    <Button variant="outline">
+                    <Button variant="outline" onClick={handleExportCSV} disabled={!jobs.length}>
                       <Download className="h-4 w-4 mr-2" />
                       CSV Report
                     </Button>
-                    <Button variant="outline">
+                    <Button variant="outline" onClick={handleExportErrors} disabled={!errorLogs.length}>
                       <Download className="h-4 w-4 mr-2" />
-                      PDF Summary
+                      Errors CSV
                     </Button>
                   </div>
                 </div>
