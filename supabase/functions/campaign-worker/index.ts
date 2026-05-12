@@ -18,15 +18,16 @@ const BATCH_SIZE = 50;
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders });
 
-  const secret = Deno.env.get('PLATFORM_WEBHOOK_SECRET');
-  const provided = req.headers.get('x-worker-secret');
-  if (!secret || provided !== secret) {
-    return j({ error: 'forbidden' }, 403);
-  }
-
   const url = Deno.env.get('SUPABASE_URL')!;
   const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
   const supa = createClient(url, serviceKey);
+
+  // Auth: shared secret stored in app_secrets
+  const provided = req.headers.get('x-worker-secret');
+  const { data: secretVal } = await supa.rpc('get_app_secret', { p_key: 'campaign_worker_secret' });
+  if (!secretVal || provided !== secretVal) {
+    return j({ error: 'forbidden' }, 403);
+  }
 
   try {
     // 1. Activate scheduled campaigns whose time has come
