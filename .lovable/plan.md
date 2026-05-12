@@ -1,64 +1,70 @@
-# Stripe Subscription Lifecycle — Proper SaaS Billing
+## Premium /contact Page + Support Request Center
 
-## Critical issue found first
+Build a complete enquiry & support hub at `/contact` with categorized requests, branded emails to both admin and customer, and an admin management panel.
 
-`public.subscriptions.plan_id` is a **uuid** with FK to `public.plans` (UUIDs like `2f86…`, names "Free/Starter/Professional/Enterprise"). But every edge function (`stripe-webhook`, `change-workspace-plan`, `billing-create-checkout`, `get-workspace-billing-status`) writes/reads it as **text** `"plan_basic" / "plan_pro" / "plan_business" / "plan_free"`. The "real" plans live in `public.platform_plans` (text ids `free/basic/pro/business`).
+### 1. Database (single migration)
 
-Result: every `subscriptions` upsert from Stripe webhooks silently fails type-coercion. **This is the root cause** of "Stripe doesn't sync after plan change."
+Create `contact_requests` table:
+- `id`, `ticket_id` (e.g. `AIR-2026-XXXXX`), `user_id`, `tenant_id` (workspace), `full_name`, `email`, `phone`, `business_name`, `country`, `category`, `priority`, `subject`, `message`, `status` (default `new`), `assigned_to`, `source_page`, `attachment_url`, `metadata jsonb`, `created_at`, `updated_at`, `closed_at`
+- Enum `contact_request_status`: new, open, in_progress, replied, closed, cancelled
+- Enum `contact_request_category`: live_chat, demo, technical, billing, whatsapp_api, meta_charges, payment_plans, account, feature_request, other
+- Enum `contact_request_priority`: low, medium, high, urgent
+- Auxiliary `contact_request_replies` table (reply history; admin → customer)
+- Storage bucket `contact-attachments` (private, signed URLs)
 
-I'll fix the schema to match the code (drop the FK, switch `plan_id` to `text`, point conceptually at `platform_plans.id`).
+**RLS:**
+- Anonymous + authenticated users can INSERT (public contact form)
+- Authenticated users can SELECT only their own (`user_id = auth.uid()`)
+- Platform admins (existing `is_platform_admin()` helper) get full SELECT/UPDATE/DELETE
+- Replies: only platform admins manage; customer can SELECT replies for their own requests
+- Trigger to auto-generate `ticket_id` and `updated_at`
 
-## What I'll build
+### 2. Frontend `/contact` page (`src/pages/Contact.tsx`)
 
-### 1. Schema migration (`subscriptions` table)
-- Drop FK `subscriptions_plan_id_fkey` and convert `plan_id uuid` → `text` (preserving rows by best-effort name mapping; all current rows are 0 anyway).
-- Add columns:
-  - `pending_plan_id text` — plan scheduled to take effect at period end
-  - `pending_billing_cycle text`
-  - `scheduled_change_at timestamptz` — when the pending change applies
-  - `last_plan_change_at timestamptz`
-- Index on `stripe_customer_id`.
+- Reuse existing site Header (`SiteHeader`) and `Footer`
+- **Hero**: "How can we help you?" + subtitle + 4 trust badges
+- **Category grid** (8 cards) with lucide icons, hover/selected states, premium gradient
+- **Dynamic form** (zod + react-hook-form): common fields + category-specific extras (demo date/time/timezone/business type/plan; billing plan/invoice ref/issue type; whatsapp phone/WABA ID/issue/screenshot; meta charges country/category/volume)
+- Phone defaults to `+971` (matches existing brand rule)
+- Attachment upload to `contact-attachments` bucket (≤5MB, image/pdf)
+- Honeypot field + client throttle for spam protection
+- **Success screen**: ticket ID, category, expected response time, "Chat on WhatsApp" CTA + "Back to Home"
+- For `live_chat` category: prominent WhatsApp deeplink prefilled with ticket/email
+- For `demo`: route through existing booking flow but also store in `contact_requests` with category=demo
 
-### 2. `change-workspace-plan` — full rewrite
-Detect the four scenarios and behave correctly:
+### 3. Email templates (transactional)
 
-| From | To | Action |
-|------|----|--------|
-| Trial paid plan | Other paid plan | Stripe `subscriptions.update` swap price, `proration_behavior:'none'`, `trial_end:'unchanged'`. No checkout, no new card. |
-| Trial paid plan | Free | `subscriptions.cancel(prorate:false)` immediately, mark workspace Free. |
-| Active paid | Higher paid (upgrade) | `subscriptions.update` price, `proration_behavior:'always_invoice'`, immediate. |
-| Active paid | Lower paid (downgrade) | Use **Stripe Subscription Schedule** so current item runs to `period_end` then switches to new price. Mirror in `pending_plan_id` + `scheduled_change_at`. |
-| Active paid | Free | `subscriptions.update(cancel_at_period_end:true)`. Mirror as pending `free`. |
-| No sub yet | Paid | Return `{action:'checkout_required'}` so frontend redirects to `billing-create-checkout`. |
-| Same plan/cycle | — | Noop. |
+Two new React Email templates in `supabase/functions/_shared/transactional-email-templates/`:
+- `contact-request-admin.tsx` — fixed `to: 'admin@aireatro.com'`, premium card with ticket ID, category, priority, customer details, message, attachment link, CTA buttons (Open Admin, Reply, WhatsApp)
+- `contact-request-customer.tsx` — branded confirmation with ticket summary, expected response time, CTAs (WhatsApp, Help Center, Book Demo)
 
-All paths: optimistically update `subscriptions` row + call `compute_workspace_entitlements`.
+Both Aireatro-branded (HSL 152 green, white background, mobile responsive). Register in `registry.ts`. Deploy.
 
-### 3. `stripe-webhook` — fixes
-- Fix the broken price→plan lookup: prefer `subscription.metadata.plan_id` first (it's always set on checkout/upgrade), fall back to env map. Also include region-suffixed env vars.
-- On `customer.subscription.updated`: clear `pending_plan_id` if the active price now matches it.
-- On `customer.subscription.deleted`: set `plan_id='free'`, clear stripe sub id, clear pending fields, recompute entitlements.
-- On `invoice.payment_succeeded`: if there was a `pending_plan_id` and the invoice line price matches it, clear pending fields.
+Wire from `/contact` via `supabase.functions.invoke('send-transactional-email', ...)` after insert — two calls, one for each template, with `idempotencyKey` derived from `ticket_id`.
 
-### 4. `get-workspace-billing-status` — extend response
-Return `pending_plan_id`, `pending_billing_cycle`, `scheduled_change_at`, plus a derived `next_plan_message` like *"Your Business plan will downgrade to Pro on June 15"* or *"Your Pro plan will renew at ₹2,999/month on June 15"*.
+### 4. Admin panel
 
-### 5. Frontend (`ChangePlanDialog` + `BillingPanel`)
-- When `has_subscription === true`, never redirect to Stripe Checkout for plan changes — always go through `change-workspace-plan` (it now handles every case, including trial swap and Free).
-- If backend returns `action:'checkout_required'`, then (and only then) start checkout.
-- Add three confirmation dialogs reusing existing `AlertDialog`:
-  - **Upgrade**: "You'll be charged the prorated difference now and unlock {plan} immediately."
-  - **Downgrade**: "You'll keep {currentPlan} until {periodEnd}, then move to {plan}."
-  - **Switch to Free** (paid/trial): "Your subscription will be cancelled. {Trial → immediately. Paid → at period end on {date}.} You'll lose premium features."
-- `BillingPanel`: surface pending change banner ("Downgrading to Pro on Jun 15 — Cancel scheduled change") with a button that calls `change-workspace-plan` with the *current* plan to undo.
+New page `src/pages/admin/AdminContactRequests.tsx`:
+- Table with filters (category / status / priority), search (email / phone / ticket / workspace)
+- Detail drawer: full request, attachment preview, internal notes, reply composer, status changer (open/in_progress/replied/closed/cancelled), assignment dropdown
+- Reply action sends `contact-request-reply` email template (third template) and inserts into `contact_request_replies`, sets status=replied
+- Close → sets `status=closed`, `closed_at=now()`
+- Add route to `AdminLayout` sidebar under existing admin nav
 
-### 6. Tests
-Extend `src/test/billing-flow.test.tsx` with mocked scenarios for: trial→trial swap (no checkout), trial→free (cancel), paid upgrade (proration), paid downgrade (scheduled), paid→free (cancel_at_period_end), undo scheduled change.
+### 5. Routing
 
-## Out of scope
-- I won't touch `billing-create-checkout` flow for first-time paid signup (already correct: collects card + 30-day trial).
-- I won't migrate Razorpay code paths.
-- I won't add new Stripe products/prices — assumes `STRIPE_PRICE_*` envs and/or `platform_plans.stripe_prices` are already set per region.
+- Add `/contact` lazy route in `src/App.tsx`
+- Add `/control/contact-requests` (matching existing control panel pattern) in admin routes
 
-## Risk note
-The schema migration is the only destructive piece. `subscriptions` currently has 0 rows (verified), so converting `plan_id` to `text` is safe. If any rows existed in production we'd map by joining `plans.name` → `platform_plans.id`.
+### Technical notes
+
+- Ticket ID format: `AIR-` + 6-char base36 random, ensured unique via DB trigger retry
+- Use existing `supabase` client, existing `SiteHeader`, `Footer`, `Toaster`, design tokens from `index.css`
+- All categories share one form component with conditional sections; zod schemas per category merged with base schema
+- Storage upload before insert; URL stored on the row
+- Rate limit: simple per-email/per-IP check via DB function (count last 10 min < 5)
+
+### Out of scope
+
+- Captcha (mention as future hardening; honeypot + rate limit used now)
+- Real-time live chat widget (we route to WhatsApp instead, per existing pattern)
