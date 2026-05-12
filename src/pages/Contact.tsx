@@ -195,35 +195,47 @@ export default function Contact() {
         meta_country: data.metaCountry, meta_message_category: data.metaMessageCategory, meta_volume: data.metaVolume,
       });
 
-      const { data: inserted, error: insertError } = await supabase
-        .from('contact_requests')
-        .insert({
-          user_id: user?.id ?? null,
-          full_name: data.fullName,
-          email: data.email,
-          phone: data.phone,
-          business_name: data.businessName || null,
-          country: data.country || null,
-          category,
-          priority: data.priority,
-          subject: data.subject || cat.label,
-          message: data.message,
-          source_page: typeof window !== 'undefined' ? window.location.pathname : '/contact',
-          metadata,
-        })
-        .select('id, ticket_id')
-        .single();
-      if (insertError || !inserted) throw insertError || new Error('Failed to submit');
-
-      // Upload attachment, then patch row
-      let attachmentUrl: string | null = null;
-      try {
-        attachmentUrl = await uploadAttachmentIfAny(inserted.ticket_id);
-        if (attachmentUrl) {
-          await supabase.from('contact_requests')
-            .update({ attachment_url: attachmentUrl })
-            .eq('id', inserted.id);
+      // Pre-validate attachment before insert (so we don't create orphan rows on bad files)
+      if (attachment) {
+        if (attachment.size > 5 * 1024 * 1024) {
+          toast({ title: 'File too large', description: 'Attachments must be 5 MB or less.', variant: 'destructive' });
+          setSubmitting(false);
+          return;
         }
+        if (!/^(image\/|application\/pdf$)/.test(attachment.type)) {
+          toast({ title: 'Unsupported file', description: 'Only images or PDF files are allowed.', variant: 'destructive' });
+          setSubmitting(false);
+          return;
+        }
+      }
+
+      const { data: rpcRows, error: rpcError } = await supabase.rpc('submit_contact_request', {
+        p_full_name: data.fullName,
+        p_email: data.email,
+        p_phone: data.phone,
+        p_business_name: data.businessName || null,
+        p_country: data.country || null,
+        p_category: category,
+        p_priority: data.priority,
+        p_subject: data.subject || cat.label,
+        p_message: data.message,
+        p_source_page: typeof window !== 'undefined' ? window.location.pathname : '/contact',
+        p_metadata: metadata,
+        p_attachment_url: null,
+      });
+      if (rpcError) throw rpcError;
+      const inserted = Array.isArray(rpcRows) ? rpcRows[0] : rpcRows;
+      if (!inserted?.ticket_id) throw new Error('Failed to submit');
+
+      // Upload attachment after we have the ticket_id (best-effort; row already exists)
+      try {
+        const attachmentUrl = await uploadAttachmentIfAny(inserted.ticket_id);
+        if (attachmentUrl) {
+          await supabase.rpc('submit_contact_request_attachment' as any, {
+            p_ticket_id: inserted.ticket_id, p_url: attachmentUrl,
+          }).catch(() => { /* ignored — admin email still includes link */ });
+        }
+        (inserted as any).attachment_url = attachmentUrl;
       } catch { /* validation toasts already shown */ }
 
       // Build metadata lines for admin email
