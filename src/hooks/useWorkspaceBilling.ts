@@ -37,12 +37,27 @@ export function useWorkspaceBilling(workspaceIdOverride?: string) {
     queryKey: ['workspace-billing-status', workspaceId],
     enabled: !!workspaceId,
     refetchInterval: 30_000,
+    retry: (count, err: any) => {
+      const status = err?.context?.status ?? err?.status;
+      if (status === 401 || status === 403) return false;
+      return count < 2;
+    },
     queryFn: async (): Promise<WorkspaceBillingStatus | null> => {
       if (!workspaceId) return null;
+      // Ensure we have a fresh session token before invoking
+      const { data: sessionData } = await supabase.auth.getSession();
+      const token = sessionData?.session?.access_token;
+      if (!token) return null;
+
       const { data, error } = await supabase.functions.invoke('get-workspace-billing-status', {
         body: { workspaceId },
+        headers: { Authorization: `Bearer ${token}` },
       });
-      if (error) throw error;
+      if (error) {
+        const status = (error as any)?.context?.status;
+        if (status === 401 || status === 403) return null;
+        throw error;
+      }
       return data as WorkspaceBillingStatus;
     },
   });
