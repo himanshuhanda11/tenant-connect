@@ -433,7 +433,7 @@ export default function Contact() {
       </section>
 
       {/* Category cards */}
-      <section className="py-12 sm:py-16">
+      <section id="contact-categories" className="py-12 sm:py-16 scroll-mt-24">
         <div className="container mx-auto px-4">
           <div className="max-w-6xl mx-auto">
             <div className="flex items-end justify-between gap-3 mb-6 flex-wrap">
