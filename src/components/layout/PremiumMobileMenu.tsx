@@ -341,6 +341,35 @@ export default function PremiumMobileMenu({ open, onClose }: Props) {
                 </div>
               </div>
             </div>
+
+            {/* Sticky bottom action bar — always visible */}
+            <div className="relative z-20 shrink-0 px-4 pt-3 pb-[max(12px,env(safe-area-inset-bottom))] border-t border-border/50 bg-background/85 backdrop-blur-2xl">
+              <div className="pointer-events-none absolute inset-x-0 -top-6 h-6 bg-gradient-to-t from-background/80 to-transparent" />
+              <div className="flex items-center gap-2.5">
+                <button
+                  onClick={() => go('/login')}
+                  className="h-12 px-4 rounded-2xl border border-border/60 bg-card/70 backdrop-blur-md text-[13.5px] font-semibold text-foreground hover:bg-muted/60 transition active:scale-[0.97]"
+                >
+                  Sign in
+                </button>
+                <button
+                  onClick={() => go('/signup')}
+                  className="group relative flex-1 overflow-hidden h-12 rounded-2xl bg-gradient-to-r from-emerald-400 via-primary to-teal-500 text-[#03150f] font-bold text-[14.5px] shadow-[0_10px_30px_-10px_rgba(16,185,129,0.7)] active:scale-[0.98] transition-transform"
+                >
+                  <span className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-white/40 to-transparent" />
+                  <span className="relative flex items-center justify-center gap-2">
+                    <Sparkles className="w-4 h-4" />
+                    Start Free
+                    <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+                  </span>
+                </button>
+              </div>
+              <div className="mt-2 flex items-center justify-center gap-3 text-[10.5px] text-muted-foreground">
+                <span className="flex items-center gap-1"><CheckCircle2 className="w-3 h-3 text-emerald-500" /> No credit card</span>
+                <span className="opacity-30">•</span>
+                <span className="flex items-center gap-1"><CheckCircle2 className="w-3 h-3 text-emerald-500" /> Setup &lt; 10 min</span>
+              </div>
+            </div>
           </motion.div>
         </>
       )}
