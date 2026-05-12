@@ -112,9 +112,9 @@ export default function AdminContactRequests() {
     setReplies((data as any) || []);
   };
 
-  const updateRequest = async (patch: Partial<ContactRequest>) => {
+  const updateRequest = async (patch: Record<string, any>) => {
     if (!active) return;
-    const { error } = await supabase.from('contact_requests').update(patch).eq('id', active.id);
+    const { error } = await supabase.from('contact_requests').update(patch as any).eq('id', active.id);
     if (error) return toast({ title: 'Update failed', description: error.message, variant: 'destructive' });
     setActive((a) => a ? { ...a, ...patch } as ContactRequest : a);
     setRows((rs) => rs.map(r => r.id === active.id ? { ...r, ...patch } as ContactRequest : r));
