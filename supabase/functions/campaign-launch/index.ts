@@ -67,6 +67,13 @@ Deno.serve(async (req) => {
     if (cErr) return j({ error: 'Failed to load contacts', detail: cErr.message }, 500);
     const valid = (contacts || []).filter((c) => c.wa_id);
 
+    // Per-plan recipient cap
+    const { data: capData } = await supa.rpc('get_broadcast_recipient_limit', { p_tenant_id: body.tenant_id });
+    const cap = typeof capData === 'number' ? capData : 100;
+    if (valid.length > cap) {
+      return j({ error: 'recipient_limit_exceeded', limit: cap, requested: valid.length, current_plan: planAccess?.current_plan }, 402);
+    }
+
     const sendNow = body.send_type === 'now';
     const scheduled_at = sendNow ? null : (body.scheduled_at ? new Date(body.scheduled_at).toISOString() : null);
     if (!sendNow && !scheduled_at) return j({ error: 'scheduled_at required for scheduled campaigns' }, 400);
