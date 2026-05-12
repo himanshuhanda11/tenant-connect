@@ -226,7 +226,7 @@ function AudienceFilterSection({
   onOpenChange,
   children,
 }: AudienceFilterSectionProps) {
-  const [internalOpen, setInternalOpen] = useState(true);
+  const [internalOpen, setInternalOpen] = useState(false);
   const isControlled = typeof isOpen === 'boolean';
   const resolvedOpen = isControlled ? Boolean(isOpen) : internalOpen;
 
