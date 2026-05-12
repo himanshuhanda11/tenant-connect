@@ -60,6 +60,7 @@ import { useUpgradeModal } from '@/components/billing/UpgradeModal';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import CampaignAudienceBuilder, { AudienceFilters, DEFAULT_AUDIENCE_FILTERS } from '@/components/campaigns/CampaignAudienceBuilder';
+import { CSVContactUploader } from '@/components/campaigns/CSVContactUploader';
 
 const STEPS = [
   { id: 1, title: 'Basics', icon: Settings },
@@ -596,16 +597,28 @@ export default function CreateCampaign() {
 
             {/* Step 3: Audience */}
             {currentStep === 3 && (
-              <CampaignAudienceBuilder
-                wizard={wizard}
-                segments={segments}
-                tags={tags}
-                selectedContactsPreview={selectedContactsPreview}
-                audienceFilters={audienceFilters}
-                onFiltersChange={setAudienceFilters}
-                estimatedCount={audienceEstimatedCount}
-                onEstimatedCountChange={setAudienceEstimatedCount}
-              />
+              <div className="space-y-4">
+                <CSVContactUploader
+                  onImported={(summary) => {
+                    setAudienceFilters((prev) => ({
+                      ...prev,
+                      source: 'contacts',
+                      selected_contacts: Array.from(new Set([...(prev.selected_contacts || []), ...summary.contactIds])),
+                    }));
+                    setAudienceEstimatedCount((prev) => prev + summary.contactIds.length);
+                  }}
+                />
+                <CampaignAudienceBuilder
+                  wizard={wizard}
+                  segments={segments}
+                  tags={tags}
+                  selectedContactsPreview={selectedContactsPreview}
+                  audienceFilters={audienceFilters}
+                  onFiltersChange={setAudienceFilters}
+                  estimatedCount={audienceEstimatedCount}
+                  onEstimatedCountChange={setAudienceEstimatedCount}
+                />
+              </div>
             )}
 
             {/* Step 4: Delivery */}
