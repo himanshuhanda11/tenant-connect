@@ -86,6 +86,7 @@ export function TemplateBuilder({
   const { currentTenant } = useTenant();
   const [aiValidationOpen, setAiValidationOpen] = useState(false);
   const [uploadingHeader, setUploadingHeader] = useState(false);
+  const [uploadedFileName, setUploadedFileName] = useState<string>('');
 
   const DRAFT_KEY = `template_builder_draft_${currentTenant?.id || 'anon'}`;
   const restoredDraft = mode === 'create' && !initialData?.body ? (() => {
