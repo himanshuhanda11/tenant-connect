@@ -35,12 +35,17 @@ import {
 import { WhatsAppPreview } from './WhatsAppPreview';
 import { AIValidationDrawer } from './AIValidationDrawer';
 import { useTenant } from '@/contexts/TenantContext';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
+import { Library, Upload, Loader2, X } from 'lucide-react';
 
 interface TemplateBuilderProps {
   initialData?: Partial<TemplateVersion> & { name?: string; category?: TemplateCategory; language?: string };
   lintResults: LintValidationResult[];
   onValidate: (version: Partial<TemplateVersion>) => void;
   onSave: (data: TemplateBuilderData) => void;
+  onCancel?: () => void;
+  onOpenLibrary?: () => void;
   saving?: boolean;
   mode?: 'create' | 'edit';
 }
