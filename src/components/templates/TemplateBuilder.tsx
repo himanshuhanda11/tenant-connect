@@ -201,6 +201,12 @@ export function TemplateBuilder({
       buttons,
       variable_samples: variableSamples
     });
+    try { localStorage.removeItem(DRAFT_KEY); } catch {}
+  };
+
+  const handleCancel = () => {
+    try { localStorage.removeItem(DRAFT_KEY); } catch {}
+    onCancel?.();
   };
 
   const errors = lintResults.filter(r => r.severity === 'error');
