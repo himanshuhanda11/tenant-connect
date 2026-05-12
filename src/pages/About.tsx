@@ -86,9 +86,9 @@ export default function About() {
   return (
     <div className="min-h-screen bg-background text-foreground overflow-x-hidden">
       <SeoMeta
-        title="About Aireatro — Building the Future of Business Communication"
-        description="Aireatro helps businesses automate conversations, manage leads and grow faster on the official WhatsApp Business API. Discover our mission, story and values."
-        canonical="https://aireatro.com/about"
+        route="/about"
+        fallbackTitle="About Aireatro — Building the Future of Business Communication"
+        fallbackDescription="Aireatro helps businesses automate conversations, manage leads and grow faster on the official WhatsApp Business API."
       />
       <Navbar />
 
