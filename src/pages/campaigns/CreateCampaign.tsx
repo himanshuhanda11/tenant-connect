@@ -707,7 +707,11 @@ export default function CreateCampaign() {
                     <div className="grid md:grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <Label>Date & Time</Label>
-                        <Input type="datetime-local" />
+                        <Input
+                          type="datetime-local"
+                          value={wizard.delivery.scheduled_at ? new Date(wizard.delivery.scheduled_at as any).toISOString().slice(0, 16) : ''}
+                          onChange={(e) => updateDelivery('scheduled_at', e.target.value ? new Date(e.target.value) : undefined)}
+                        />
                       </div>
                       <div className="space-y-2">
                         <Label>Timezone</Label>
