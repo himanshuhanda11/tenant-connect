@@ -167,6 +167,7 @@ const ShopifyAutomations = lazyWithRetry(() => import("./pages/shopify/ShopifyAu
 const SeoDashboard = lazyWithRetry(() => import("./pages/developer/SeoDashboard"));
 const AdminLayout = lazyWithRetry(() => import("./pages/admin/AdminLayout"));
 const AdminLeads = lazyWithRetry(() => import("./pages/admin/AdminLeads"));
+const AdminContactRequests = lazyWithRetry(() => import("./pages/admin/AdminContactRequests"));
 const AdminOverview = lazyWithRetry(() => import("./pages/admin/AdminOverview"));
 const AdminWorkspaces = lazyWithRetry(() => import("./pages/admin/AdminWorkspaces"));
 const AdminAccounts = lazyWithRetry(() => import("./pages/admin/AdminAccounts"));
@@ -416,6 +417,7 @@ const App = () => (
                       <Route path="settings" element={<AdminSettings />} />
                       <Route path="incidents" element={<AdminIncidents />} />
                       <Route path="leads" element={<AdminLeads />} />
+                      <Route path="contact-requests" element={<AdminContactRequests />} />
                       <Route path="backups" element={<AdminBackups />} />
                       <Route path="support-widget" element={<AdminSupportWidget />} />
                     </Route>
