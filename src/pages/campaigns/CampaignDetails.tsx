@@ -212,7 +212,7 @@ export default function CampaignDetails() {
               <Copy className="h-4 w-4 mr-2" />
               Duplicate
             </Button>
-            <Button variant="outline">
+            <Button variant="outline" onClick={handleExportCSV} disabled={!jobs.length}>
               <Download className="h-4 w-4 mr-2" />
               Export
             </Button>
