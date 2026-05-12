@@ -488,15 +488,20 @@ export default function CampaignAudienceBuilder({
   return (
     <div className="space-y-5">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h3 className="text-lg font-semibold">Target Audience</h3>
-          <p className="text-sm text-muted-foreground">
-            Build your audience with advanced filters
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <Badge variant="outline" className="gap-1">
+      <div className="rounded-2xl border bg-gradient-to-br from-primary/5 via-background to-background p-4 sm:p-5">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div className="flex items-start gap-3">
+            <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+              <Target className="h-5 w-5 text-primary" />
+            </div>
+            <div>
+              <h3 className="text-base sm:text-lg font-semibold leading-tight">Build your target audience</h3>
+              <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
+                Pick from <strong>Segments</strong>, <strong>Tags</strong>, or apply <strong>filters</strong> like agent, lead status, date and source. The estimate updates live on the right.
+              </p>
+            </div>
+          </div>
+          <Badge variant="outline" className="gap-1 self-start sm:self-auto">
             <Filter className="h-3 w-3" />
             {activeFilterCount()} active
           </Badge>
