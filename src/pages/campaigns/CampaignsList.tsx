@@ -48,8 +48,8 @@ import {
   CheckCircle,
   AlertCircle,
   Loader2,
-  FileText,
-  Upload,
+  Sparkles as _Sparkles2,
+
   Sparkles,
   Zap
 } from 'lucide-react';
