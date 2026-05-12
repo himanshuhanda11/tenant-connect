@@ -368,16 +368,62 @@ export function TemplateBuilder({
             )}
 
             {(headerType === 'image' || headerType === 'video' || headerType === 'document') && (
-              <div className="space-y-2">
-                <Label>Media URL</Label>
-                <Input
-                  value={headerContent}
-                  onChange={(e) => setHeaderContent(e.target.value)}
-                  placeholder={`Enter ${headerType} URL (will be replaced at send time)`}
-                />
-                <p className="text-xs text-muted-foreground">
-                  Use {'{{1}}'} as placeholder for dynamic media
-                </p>
+              <div className="space-y-3">
+                {headerType === 'image' && (
+                  <div className="space-y-2">
+                    <Label>Upload Image (max 2 MB)</Label>
+                    <div className="flex items-center gap-2">
+                      <input
+                        id="header-image-upload"
+                        type="file"
+                        accept="image/png,image/jpeg,image/jpg,image/webp"
+                        className="hidden"
+                        onChange={(e) => {
+                          const f = e.target.files?.[0];
+                          if (f) handleHeaderImageUpload(f);
+                          e.target.value = '';
+                        }}
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        disabled={uploadingHeader}
+                        onClick={() => document.getElementById('header-image-upload')?.click()}
+                      >
+                        {uploadingHeader ? (
+                          <><Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> Uploading...</>
+                        ) : (
+                          <><Upload className="h-4 w-4 mr-1.5" /> Choose image</>
+                        )}
+                      </Button>
+                      {headerContent && (
+                        <span className="text-xs text-muted-foreground truncate max-w-[200px]">
+                          Uploaded ✓
+                        </span>
+                      )}
+                    </div>
+                    {headerContent && /^https?:\/\//.test(headerContent) && (
+                      <img
+                        src={headerContent}
+                        alt="Header preview"
+                        className="max-h-32 rounded border"
+                      />
+                    )}
+                    <p className="text-[11px] text-muted-foreground">PNG, JPG or WebP. Recommended 1200×628.</p>
+                  </div>
+                )}
+                <div className="space-y-2">
+                  <Label>Or paste media URL</Label>
+                  <Input
+                    value={headerContent}
+                    onChange={(e) => setHeaderContent(e.target.value)}
+                    placeholder={`Enter ${headerType} URL (will be replaced at send time)`}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Use {'{{1}}'} as placeholder for dynamic media
+                  </p>
+                </div>
               </div>
             )}
           </CardContent>
