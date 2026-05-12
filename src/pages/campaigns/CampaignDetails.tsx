@@ -501,35 +501,41 @@ export default function CampaignDetails() {
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <CardTitle>Error Log</CardTitle>
-                  <Button variant="outline" size="sm">
+                  <Button variant="outline" size="sm" onClick={handleExportErrors} disabled={!errorLogs.length}>
                     <Download className="h-4 w-4 mr-2" />
                     Export Errors
                   </Button>
                 </div>
               </CardHeader>
               <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Phone</TableHead>
-                      <TableHead>Error</TableHead>
-                      <TableHead>Time</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {MOCK_ERROR_LOGS.map(log => (
-                      <TableRow key={log.id}>
-                        <TableCell className="font-mono text-sm">{log.phone}</TableCell>
-                        <TableCell>
-                          <Badge variant="outline" className="text-red-600 bg-red-50">
-                            {log.error}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-muted-foreground">{log.time}</TableCell>
+                {errorLogs.length === 0 ? (
+                  <div className="text-center py-10 text-sm text-muted-foreground">No delivery errors recorded yet.</div>
+                ) : (
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Phone</TableHead>
+                        <TableHead>Error</TableHead>
+                        <TableHead>Time</TableHead>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                    </TableHeader>
+                    <TableBody>
+                      {errorLogs.map(log => (
+                        <TableRow key={log.id}>
+                          <TableCell className="font-mono text-sm">{log.recipient_phone}</TableCell>
+                          <TableCell>
+                            <Badge variant="outline" className="text-red-600 bg-red-50">
+                              {log.error_message || log.error_code || log.skip_reason || 'Unknown error'}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-muted-foreground">
+                            {log.failed_at ? format(new Date(log.failed_at), 'MMM d, h:mm a') : formatDistanceToNow(new Date(log.updated_at), { addSuffix: true })}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
