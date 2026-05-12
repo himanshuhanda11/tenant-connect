@@ -152,7 +152,7 @@ export function LibraryPickerDialog({ open, onOpenChange, onSelect }: Props) {
         </div>
 
         {/* Templates grid */}
-        <ScrollArea className="flex-1 min-h-0">
+        <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain">
           <div className="px-6 py-5">
             <div className="flex items-center justify-between mb-4">
               <p className="text-xs text-muted-foreground">
