@@ -52,14 +52,23 @@ export function CSVContactUploader({ onImported, defaultCountry = 'IN' }: Props)
     if (fileRef.current) fileRef.current.value = '';
   };
 
-  const downloadSample = () => {
-    const blob = new Blob([SAMPLE_CSV], { type: 'text/csv' });
+  const triggerDownload = (filename: string, content: string) => {
+    const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'broadcast-sample.csv';
+    a.download = filename;
+    a.rel = 'noopener';
+    document.body.appendChild(a);
     a.click();
-    URL.revokeObjectURL(url);
+    setTimeout(() => {
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }, 100);
+  };
+
+  const downloadSample = () => {
+    triggerDownload('broadcast-sample.csv', SAMPLE_CSV);
   };
 
   const downloadInvalid = () => {
@@ -72,13 +81,7 @@ export function CSVContactUploader({ onImported, defaultCountry = 'IN' }: Props)
         [...headers.map((h) => JSON.stringify(r.raw[h] ?? '')), JSON.stringify(r.duplicate ? 'duplicate' : r.reason || 'invalid')].join(','),
       ),
     ].join('\n');
-    const blob = new Blob([csv], { type: 'text/csv' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'broadcast-invalid-rows.csv';
-    a.click();
-    URL.revokeObjectURL(url);
+    triggerDownload('broadcast-invalid-rows.csv', csv);
   };
 
   const handleFile = (file: File) => {
