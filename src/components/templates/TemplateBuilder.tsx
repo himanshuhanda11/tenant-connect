@@ -222,9 +222,37 @@ export function TemplateBuilder({
   };
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      {/* Left: Builder Form */}
-      <div className="space-y-6">
+    <div className="space-y-4">
+      {/* Builder top bar */}
+      <div className="flex flex-wrap items-center justify-between gap-3 p-3 rounded-lg border bg-card">
+        <div>
+          <h2 className="text-lg font-semibold">{mode === 'edit' ? 'Edit Template' : 'Create Template'}</h2>
+          <p className="text-xs text-muted-foreground">Drafts auto-save as you type.</p>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {onOpenLibrary && mode === 'create' && (
+            <Button variant="outline" size="sm" onClick={onOpenLibrary}>
+              <Library className="h-4 w-4 mr-1.5" /> Use from Library
+            </Button>
+          )}
+          {onCancel && (
+            <Button variant="ghost" size="sm" onClick={handleCancel}>
+              <X className="h-4 w-4 mr-1.5" /> Cancel
+            </Button>
+          )}
+          <Button
+            size="sm"
+            onClick={handleSave}
+            disabled={saving || !name || !body || errors.length > 0}
+          >
+            {saving ? 'Saving...' : mode === 'create' ? 'Create Template' : 'Save Changes'}
+          </Button>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Left: Builder Form */}
+        <div className="space-y-6">
         <Card>
           <CardHeader>
             <CardTitle className="text-lg">Template Details</CardTitle>
