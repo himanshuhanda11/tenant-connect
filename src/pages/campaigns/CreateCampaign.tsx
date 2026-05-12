@@ -333,10 +333,10 @@ export default function CreateCampaign() {
       openUpgrade({
         feature: 'send_campaign',
         currentPlan: planId,
-        requiredPlan: 'basic',
+        requiredPlan: NEXT_PLAN[planId] as any,
         reason: 'quota_exceeded',
         currentUsage: recipientCount,
-        planLimit: broadcastCap as number,
+        planLimit: broadcastCap,
       });
       return false;
     }
