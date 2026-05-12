@@ -154,7 +154,7 @@ export function TemplateBuilder({
 
   // Extract variables from body
   const extractedVariables = body.match(/\{\{(\d+)\}\}/g) || [];
-  const variableNumbers = [...new Set(extractedVariables.map(v => v.replace(/[{}]/g, '')))];
+  const variableNumbers: string[] = Array.from(new Set(extractedVariables.map((v) => v.replace(/[{}]/g, ''))));
 
   // Validate on changes
   useEffect(() => {
