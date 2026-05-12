@@ -60,23 +60,41 @@ export function WhatsAppPreview({
                     </div>
                   )}
                   {headerType === 'image' && (
-                    <div className="bg-gray-100 rounded-t-lg p-8 flex items-center justify-center">
-                      <Image className="h-12 w-12 text-gray-400" />
-                    </div>
+                    displayHeader && /^https?:\/\//.test(displayHeader) ? (
+                      <img src={displayHeader} alt="Header" className="rounded-t-lg w-full max-h-48 object-cover" />
+                    ) : (
+                      <div className="bg-gray-100 rounded-t-lg p-8 flex items-center justify-center">
+                        <Image className="h-12 w-12 text-gray-400" />
+                      </div>
+                    )
                   )}
                   {headerType === 'video' && (
-                    <div className="bg-gray-100 rounded-t-lg p-8 flex items-center justify-center">
-                      <Video className="h-12 w-12 text-gray-400" />
-                    </div>
+                    displayHeader && /^https?:\/\//.test(displayHeader) ? (
+                      <video src={displayHeader} controls className="rounded-t-lg w-full max-h-48 bg-black" />
+                    ) : (
+                      <div className="bg-gray-100 rounded-t-lg p-8 flex items-center justify-center">
+                        <Video className="h-12 w-12 text-gray-400" />
+                      </div>
+                    )
                   )}
                   {headerType === 'document' && (
-                    <div className="bg-gray-100 rounded-t-lg p-4 flex items-center gap-3">
-                      <FileText className="h-10 w-10 text-red-500" />
-                      <div>
-                        <p className="text-sm font-medium">Document</p>
-                        <p className="text-xs text-gray-500">PDF • Click to open</p>
+                    displayHeader && /^https?:\/\//.test(displayHeader) ? (
+                      <a href={displayHeader} target="_blank" rel="noreferrer" className="rounded-t-lg p-3 flex items-center gap-3 bg-gray-100 hover:bg-gray-200 transition-colors">
+                        <FileText className="h-10 w-10 text-red-500 shrink-0" />
+                        <div className="min-w-0">
+                          <p className="text-sm font-medium truncate">{decodeURIComponent(displayHeader.split('/').pop() || 'Document')}</p>
+                          <p className="text-xs text-gray-500">Tap to open</p>
+                        </div>
+                      </a>
+                    ) : (
+                      <div className="bg-gray-100 rounded-t-lg p-4 flex items-center gap-3">
+                        <FileText className="h-10 w-10 text-red-500" />
+                        <div>
+                          <p className="text-sm font-medium">Document</p>
+                          <p className="text-xs text-gray-500">PDF • Click to open</p>
+                        </div>
                       </div>
-                    </div>
+                    )
                   )}
                 </div>
               )}
