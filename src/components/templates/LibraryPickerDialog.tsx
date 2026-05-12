@@ -152,7 +152,7 @@ export function LibraryPickerDialog({ open, onOpenChange, onSelect }: Props) {
         </div>
 
         {/* Templates grid */}
-        <ScrollArea className="flex-1 min-h-0">
+        <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain">
           <div className="px-6 py-5">
             <div className="flex items-center justify-between mb-4">
               <p className="text-xs text-muted-foreground">
@@ -205,21 +205,23 @@ export function LibraryPickerDialog({ open, onOpenChange, onSelect }: Props) {
                       </span>
                     </div>
 
-                    {/* Body preview - full content */}
-                    <div className="rounded-lg bg-muted/40 border border-border/40 p-3 mb-3 relative max-h-40 overflow-y-auto">
-                      <p className="text-[12px] leading-relaxed text-foreground/85 whitespace-pre-wrap">
+                    {/* Body preview */}
+                    <div className="rounded-lg bg-muted/40 border border-border/40 p-3 mb-3 relative">
+                      <p className="text-[12px] leading-relaxed text-foreground/85 whitespace-pre-wrap line-clamp-5">
                         {t.body}
                       </p>
                     </div>
 
                     {/* Footer row */}
                     <div className="flex items-center justify-between gap-2 relative">
-                      <div className="flex items-center gap-1.5 min-w-0">
+                      <div className="flex items-center gap-1.5 min-w-0 flex-wrap">
                         <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-5 truncate max-w-[140px]">
                           {t.category}
                         </Badge>
-                        <span className="text-[10px] text-muted-foreground inline-flex items-center gap-0.5">
-                          <CheckCircle2 className="h-2.5 w-2.5 text-emerald-500" />
+                        <span className="inline-flex items-center gap-0.5 text-[10px] font-semibold px-1.5 py-0.5 rounded-md border bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20">
+                          <CheckCircle2 className="h-2.5 w-2.5" /> Approved
+                        </span>
+                        <span className="text-[10px] text-muted-foreground">
                           {t.variables.length} vars
                         </span>
                       </div>
@@ -233,7 +235,7 @@ export function LibraryPickerDialog({ open, onOpenChange, onSelect }: Props) {
               </div>
             )}
           </div>
-        </ScrollArea>
+        </div>
       </DialogContent>
     </Dialog>
   );
