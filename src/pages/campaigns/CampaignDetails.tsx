@@ -329,7 +329,7 @@ export default function CampaignDetails() {
                 <CardContent>
                   <div className="h-64">
                     <ResponsiveContainer width="100%" height="100%">
-                      <LineChart data={MOCK_TIMELINE_DATA}>
+                      <LineChart data={timelineData}>
                         <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
                         <XAxis dataKey="time" className="text-xs" />
                         <YAxis className="text-xs" />
@@ -337,6 +337,7 @@ export default function CampaignDetails() {
                         <Line type="monotone" dataKey="sent" stroke="#10b981" strokeWidth={2} name="Sent" />
                         <Line type="monotone" dataKey="delivered" stroke="#3b82f6" strokeWidth={2} name="Delivered" />
                         <Line type="monotone" dataKey="read" stroke="#8b5cf6" strokeWidth={2} name="Read" />
+                        <Line type="monotone" dataKey="replied" stroke="#f59e0b" strokeWidth={2} name="Replied" />
                       </LineChart>
                     </ResponsiveContainer>
                   </div>
