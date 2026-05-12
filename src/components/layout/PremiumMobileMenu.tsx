@@ -139,18 +139,23 @@ export default function PremiumMobileMenu({ open, onClose }: Props) {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.05 }}
                 onClick={() => go('/pricing')}
-                className="group relative w-full overflow-hidden rounded-2xl p-[1.5px] bg-[conic-gradient(from_0deg,theme(colors.primary.DEFAULT),theme(colors.emerald.400),theme(colors.teal.400),theme(colors.primary.DEFAULT))] animate-[spin_6s_linear_infinite]"
-                style={{ animation: 'spin 8s linear infinite' }}
+                className="group relative w-full overflow-hidden rounded-2xl border border-primary/30 bg-gradient-to-r from-primary/10 via-emerald-500/10 to-teal-500/10 px-4 py-3 active:scale-[0.99] transition-transform"
               >
-                <div className="relative flex items-center gap-3 rounded-[14px] bg-background/90 backdrop-blur-xl px-4 py-2.5">
-                  <div className="relative">
-                    <Sparkles className="w-4 h-4 text-primary" />
-                    <span className="absolute inset-0 blur-md text-primary"><Sparkles className="w-4 h-4" /></span>
-                  </div>
-                  <span className="flex-1 text-left text-[13px] font-semibold text-foreground">
-                    Launch Offer · <span className="text-primary">1 Month Free Access</span>
+                {/* Animated shimmer */}
+                <span className="pointer-events-none absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-[1400ms] ease-out bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+                <span className="pointer-events-none absolute -top-8 -left-8 w-32 h-32 rounded-full bg-primary/20 blur-2xl animate-pulse" />
+                <div className="relative flex items-center gap-2.5">
+                  <span className="relative flex items-center justify-center w-7 h-7 rounded-lg bg-primary/20 border border-primary/30">
+                    <Sparkles className="w-3.5 h-3.5 text-primary" />
                   </span>
-                  <ArrowRight className="w-3.5 h-3.5 text-muted-foreground group-hover:translate-x-0.5 transition-transform" />
+                  <div className="flex-1 text-left leading-tight">
+                    <div className="text-[10px] font-bold uppercase tracking-[0.14em] text-primary/80">Launch Offer</div>
+                    <div className="text-[13.5px] font-semibold text-foreground">1 Month Free Access</div>
+                  </div>
+                  <span className="hidden xs:inline-flex items-center gap-1 px-2 py-1 rounded-md bg-primary text-primary-foreground text-[10.5px] font-bold">
+                    Claim <ArrowRight className="w-3 h-3" />
+                  </span>
+                  <ArrowRight className="xs:hidden w-4 h-4 text-primary group-hover:translate-x-0.5 transition-transform" />
                 </div>
               </motion.button>
 
@@ -303,13 +308,7 @@ export default function PremiumMobileMenu({ open, onClose }: Props) {
                 </div>
               </motion.div>
 
-              {/* Sign in */}
-              <button
-                onClick={() => go('/login')}
-                className="w-full py-3 rounded-2xl border border-border/60 bg-card/60 backdrop-blur-md text-[14px] font-semibold text-foreground hover:bg-muted/60 transition active:scale-[0.98]"
-              >
-                Sign in to your account
-              </button>
+
 
               {/* Footer */}
               <div className="pt-4 mt-2 border-t border-border/50 space-y-4">
@@ -340,6 +339,35 @@ export default function PremiumMobileMenu({ open, onClose }: Props) {
                 <div className="text-center text-[10.5px] text-muted-foreground/70">
                   © {new Date().getFullYear()} Aireatro · v2.4.0
                 </div>
+              </div>
+            </div>
+
+            {/* Sticky bottom action bar — always visible */}
+            <div className="relative z-20 shrink-0 px-4 pt-3 pb-[max(12px,env(safe-area-inset-bottom))] border-t border-border/50 bg-background/85 backdrop-blur-2xl">
+              <div className="pointer-events-none absolute inset-x-0 -top-6 h-6 bg-gradient-to-t from-background/80 to-transparent" />
+              <div className="flex items-center gap-2.5">
+                <button
+                  onClick={() => go('/login')}
+                  className="h-12 px-4 rounded-2xl border border-border/60 bg-card/70 backdrop-blur-md text-[13.5px] font-semibold text-foreground hover:bg-muted/60 transition active:scale-[0.97]"
+                >
+                  Sign in
+                </button>
+                <button
+                  onClick={() => go('/signup')}
+                  className="group relative flex-1 overflow-hidden h-12 rounded-2xl bg-gradient-to-r from-emerald-400 via-primary to-teal-500 text-[#03150f] font-bold text-[14.5px] shadow-[0_10px_30px_-10px_rgba(16,185,129,0.7)] active:scale-[0.98] transition-transform"
+                >
+                  <span className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-white/40 to-transparent" />
+                  <span className="relative flex items-center justify-center gap-2">
+                    <Sparkles className="w-4 h-4" />
+                    Start Free
+                    <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+                  </span>
+                </button>
+              </div>
+              <div className="mt-2 flex items-center justify-center gap-3 text-[10.5px] text-muted-foreground">
+                <span className="flex items-center gap-1"><CheckCircle2 className="w-3 h-3 text-emerald-500" /> No credit card</span>
+                <span className="opacity-30">•</span>
+                <span className="flex items-center gap-1"><CheckCircle2 className="w-3 h-3 text-emerald-500" /> Setup &lt; 10 min</span>
               </div>
             </div>
           </motion.div>
