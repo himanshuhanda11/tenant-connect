@@ -597,13 +597,13 @@ export default function CampaignDetails() {
                     <p className="text-sm text-muted-foreground">Download detailed analytics and recipient data</p>
                   </div>
                   <div className="flex gap-2">
-                    <Button variant="outline">
+                    <Button variant="outline" onClick={handleExportCSV} disabled={!jobs.length}>
                       <Download className="h-4 w-4 mr-2" />
                       CSV Report
                     </Button>
-                    <Button variant="outline">
+                    <Button variant="outline" onClick={handleExportErrors} disabled={!errorLogs.length}>
                       <Download className="h-4 w-4 mr-2" />
-                      PDF Summary
+                      Errors CSV
                     </Button>
                   </div>
                 </div>
