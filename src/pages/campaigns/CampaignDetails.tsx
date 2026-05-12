@@ -152,6 +152,16 @@ export default function CampaignDetails() {
     { name: 'Replied', value: campaign.replied_count || 0, color: '#f59e0b' },
   ];
 
+  const timelineData = buildTimeline(jobs);
+  const errorLogs = jobs.filter(j => j.status === 'failed' || j.error_message).slice(0, 100);
+
+  const handleExportCSV = () => {
+    downloadCSV(`${campaign.name.replace(/[^a-z0-9]+/gi,'_')}_recipients.csv`, jobsToCSV(jobs));
+  };
+  const handleExportErrors = () => {
+    downloadCSV(`${campaign.name.replace(/[^a-z0-9]+/gi,'_')}_errors.csv`, jobsToCSV(errorLogs));
+  };
+
   return (
     <DashboardLayout>
       <div className="space-y-6">
