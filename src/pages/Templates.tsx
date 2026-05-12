@@ -289,71 +289,64 @@ export default function Templates() {
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        {/* Quick Guide */}
-        <QuickGuide {...quickGuides.templates} />
+        {/* Header — hidden while in builder */}
+        {activeTab !== 'builder' && (
+          <>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div>
+                <h1 className="text-2xl font-bold">Message Templates</h1>
+                <p className="text-muted-foreground">
+                  Create, manage, and submit WhatsApp templates for approval.
+                </p>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <Button variant="outline" onClick={() => fetchTemplates(filters)} disabled={loading}>
+                  {loading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <RefreshCw className="h-4 w-4 mr-2" />}
+                  Refresh
+                </Button>
+                <Button variant="outline" onClick={() => setLibraryOpen(true)}>
+                  <Library className="h-4 w-4 mr-2" />
+                  Use from Library
+                </Button>
+                <Button onClick={handleCreateNew}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Create Template
+                </Button>
+              </div>
+            </div>
 
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-bold">Message Templates</h1>
-            <p className="text-muted-foreground">
-              Create, manage, and submit WhatsApp templates for approval.
-            </p>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <Button variant="outline" onClick={() => fetchTemplates(filters)} disabled={loading}>
-              {loading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <RefreshCw className="h-4 w-4 mr-2" />}
-              Refresh
-            </Button>
-            <Button variant="outline" asChild>
-              <Link to="/template-library">
-                <Library className="h-4 w-4 mr-2" />
-                Use from Library
-              </Link>
-            </Button>
-            <Button onClick={handleCreateNew}>
-              <Plus className="h-4 w-4 mr-2" />
-              Create Template
-            </Button>
-          </div>
-        </div>
+            <Alert className="border-primary/20 bg-primary/5">
+              <ShieldCheck className="h-4 w-4 text-primary" />
+              <AlertDescription className="text-sm">
+                Templates require internal approval before submission to Meta. Only Meta-approved templates can be used for outbound messaging.
+              </AlertDescription>
+            </Alert>
 
-        {/* Compliance Info */}
-        <Alert className="border-primary/20 bg-primary/5">
-          <ShieldCheck className="h-4 w-4 text-primary" />
-          <AlertDescription className="text-sm">
-            Templates require internal approval before submission to Meta. Only Meta-approved templates can be used for outbound messaging.
-          </AlertDescription>
-        </Alert>
-
-        {/* Guide Banner */}
-        {templates.length === 0 && !loading && (
-          <GuideBanner
-            title="New to WhatsApp Templates?"
-            description="Learn how to create, submit, and get your templates approved by Meta for outbound messaging."
-            guideUrl="/help/templates"
-            dismissible
-          />
+            {templates.length === 0 && !loading && (
+              <GuideBanner
+                title="New to WhatsApp Templates?"
+                description="Learn how to create, submit, and get your templates approved by Meta for outbound messaging."
+                guideUrl="/help/templates"
+                dismissible
+              />
+            )}
+          </>
         )}
 
-        {/* Tabs */}
         <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)}>
-          <TabsList>
-            <TabsTrigger value="list">
-              <Settings2 className="h-4 w-4 mr-1" />
-              My Templates ({templates.length})
-            </TabsTrigger>
-            <TabsTrigger value="builder" disabled={!isCreating && !editingTemplate}>
-              <Plus className="h-4 w-4 mr-1" />
-              {editingTemplate ? 'Edit Template' : 'Template Builder'}
-            </TabsTrigger>
-            <TabsTrigger value="industry">
-              <BookOpen className="h-4 w-4 mr-1" />
-              Industry Packs
-            </TabsTrigger>
-          </TabsList>
+          {activeTab !== 'builder' && (
+            <TabsList>
+              <TabsTrigger value="list">
+                <Settings2 className="h-4 w-4 mr-1" />
+                My Templates ({templates.length})
+              </TabsTrigger>
+              <TabsTrigger value="builder" disabled={!isCreating && !editingTemplate}>
+                <Plus className="h-4 w-4 mr-1" />
+                {editingTemplate ? 'Edit Template' : 'Template Builder'}
+              </TabsTrigger>
+            </TabsList>
+          )}
 
-          {/* Templates List */}
           <TabsContent value="list" className="mt-4">
             <TemplatesListView
               templates={templates}
@@ -371,8 +364,7 @@ export default function Templates() {
             />
           </TabsContent>
 
-          {/* Template Builder */}
-          <TabsContent value="builder" className="mt-4">
+          <TabsContent value="builder" className="mt-0">
             <TemplateBuilder
               initialData={editingTemplate ? {
                 name: editingTemplate.name,
@@ -388,21 +380,25 @@ export default function Templates() {
               lintResults={currentLintResults}
               onValidate={handleBuilderValidate}
               onSave={handleBuilderSave}
+              onCancel={handleBuilderCancel}
+              onOpenLibrary={() => setLibraryOpen(true)}
               mode={editingTemplate ? 'edit' : 'create'}
             />
-            <div className="flex justify-start mt-4">
-              <Button variant="outline" onClick={handleBuilderCancel}>
-                Cancel
-              </Button>
-            </div>
-          </TabsContent>
-
-          {/* Industry Packs */}
-          <TabsContent value="industry" className="mt-4">
-            <IndustryPacks onUseTemplate={handleUseIndustryTemplate} />
           </TabsContent>
         </Tabs>
       </div>
+
+      <LibraryPickerDialog
+        open={libraryOpen}
+        onOpenChange={setLibraryOpen}
+        onSelect={(sel: LibrarySelection) => {
+          setLibraryTemplateData(sel);
+          setEditingTemplate(null);
+          setEditingVersion(null);
+          setIsCreating(true);
+          setActiveTab('builder');
+        }}
+      />
 
       {/* Preview Dialog */}
       {previewTemplate && (
