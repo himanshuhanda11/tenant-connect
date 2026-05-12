@@ -356,11 +356,57 @@ export default function CreateCampaign() {
 
   const handleSubmit = async (sendNow: boolean) => {
     if (!enforceBroadcastCap()) return;
+    if (!currentTenant?.id) return;
+    const tmpl = templates.find((t) => t.id === wizard.message.template_id);
+    if (!tmpl) {
+      toast.error('Select an approved template first');
+      return;
+    }
+    const contactIds = audienceFilters.selected_contacts || [];
+    if (contactIds.length === 0) {
+      toast.error('Add recipients (upload a CSV or pick contacts) before launching');
+      return;
+    }
+
     setIsSubmitting(true);
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    setIsSubmitting(false);
-    navigate('/campaigns');
+    try {
+      const scheduledAt = !sendNow && wizard.delivery.scheduled_at
+        ? new Date(wizard.delivery.scheduled_at).toISOString()
+        : null;
+      const { data, error } = await supabase.functions.invoke('campaign-launch', {
+        body: {
+          tenant_id: currentTenant.id,
+          name: wizard.basics.name,
+          goal: wizard.basics.goal,
+          campaign_type: wizard.basics.campaign_type,
+          phone_number_id: wizard.basics.phone_number_id,
+          template_id: tmpl.id,
+          template_name: tmpl.name,
+          template_language: tmpl.language || 'en',
+          template_category: tmpl.category,
+          template_variables: wizard.message.variables || {},
+          contact_ids: contactIds,
+          send_type: sendNow ? 'now' : 'scheduled',
+          scheduled_at: scheduledAt,
+          timezone: wizard.delivery.timezone,
+          messages_per_minute: wizard.delivery.messages_per_minute,
+          audience_config: { source: 'csv_or_contacts', selected_contacts: contactIds },
+        },
+      });
+      if (error) throw error;
+      if ((data as any)?.error) throw new Error((data as any).error);
+      toast.success(
+        sendNow
+          ? `Campaign launched — ${(data as any)?.jobs_queued ?? contactIds.length} messages queued`
+          : `Scheduled for ${new Date(scheduledAt!).toLocaleString()}`,
+      );
+      navigate('/campaigns');
+    } catch (e: any) {
+      console.error('campaign-launch error', e);
+      toast.error(e?.message || 'Failed to launch campaign');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const toggleSegment = (segmentId: string, type: 'include' | 'exclude') => {
@@ -661,7 +707,11 @@ export default function CreateCampaign() {
                     <div className="grid md:grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <Label>Date & Time</Label>
-                        <Input type="datetime-local" />
+                        <Input
+                          type="datetime-local"
+                          value={wizard.delivery.scheduled_at ? new Date(wizard.delivery.scheduled_at as any).toISOString().slice(0, 16) : ''}
+                          onChange={(e) => updateDelivery('scheduled_at', e.target.value ? new Date(e.target.value) : undefined)}
+                        />
                       </div>
                       <div className="space-y-2">
                         <Label>Timezone</Label>
