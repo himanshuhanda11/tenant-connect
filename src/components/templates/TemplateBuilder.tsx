@@ -125,19 +125,46 @@ export function TemplateBuilder({
     return () => clearTimeout(t);
   }, [mode, DRAFT_KEY, name, language, category, headerType, headerContent, body, footer, buttons, variableSamples]);
 
-  const handleHeaderImageUpload = async (file: File) => {
+  const handleHeaderMediaUpload = async (file: File, kind: 'image' | 'video' | 'document') => {
     if (!file) return;
-    if (file.size > 2 * 1024 * 1024) {
-      toast.error('Image must be under 2 MB');
+    const limits: Record<typeof kind, { bytes: number; label: string; accept: (f: File) => boolean; errMsg: string }> = {
+      image: {
+        bytes: 2 * 1024 * 1024,
+        label: '2 MB',
+        accept: (f) => f.type.startsWith('image/'),
+        errMsg: 'Please select an image file (PNG, JPG, WebP)',
+      },
+      video: {
+        bytes: 16 * 1024 * 1024,
+        label: '16 MB',
+        accept: (f) => f.type.startsWith('video/'),
+        errMsg: 'Please select a video file (MP4, 3GP)',
+      },
+      document: {
+        bytes: 20 * 1024 * 1024,
+        label: '20 MB',
+        accept: (f) =>
+          f.type === 'application/pdf' ||
+          f.type.includes('word') ||
+          f.type.includes('excel') ||
+          f.type.includes('spreadsheet') ||
+          f.type.includes('presentation') ||
+          f.type === 'text/plain',
+        errMsg: 'Please select a PDF, DOC, XLS, PPT or TXT file',
+      },
+    };
+    const cfg = limits[kind];
+    if (file.size > cfg.bytes) {
+      toast.error(`${kind.charAt(0).toUpperCase() + kind.slice(1)} must be under ${cfg.label}`);
       return;
     }
-    if (!file.type.startsWith('image/')) {
-      toast.error('Please select an image file');
+    if (!cfg.accept(file)) {
+      toast.error(cfg.errMsg);
       return;
     }
     setUploadingHeader(true);
     try {
-      const ext = file.name.split('.').pop() || 'jpg';
+      const ext = file.name.split('.').pop() || 'bin';
       if (!currentTenant?.id) {
         toast.error('No active workspace');
         setUploadingHeader(false);
@@ -150,13 +177,16 @@ export function TemplateBuilder({
       if (upErr) throw upErr;
       const { data } = supabase.storage.from('meta-ad-media').getPublicUrl(path);
       setHeaderContent(data.publicUrl);
-      toast.success('Image uploaded');
+      setUploadedFileName(file.name);
+      toast.success(`${kind.charAt(0).toUpperCase() + kind.slice(1)} uploaded`);
     } catch (e: any) {
       toast.error(e?.message || 'Upload failed');
     } finally {
       setUploadingHeader(false);
     }
   };
+
+  const handleHeaderImageUpload = (file: File) => handleHeaderMediaUpload(file, 'image');
 
   // Extract variables from body
   const extractedVariables = body.match(/\{\{(\d+)\}\}/g) || [];
