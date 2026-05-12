@@ -205,9 +205,9 @@ export function LibraryPickerDialog({ open, onOpenChange, onSelect }: Props) {
                       </span>
                     </div>
 
-                    {/* Body preview - full content */}
-                    <div className="rounded-lg bg-muted/40 border border-border/40 p-3 mb-3 relative max-h-40 overflow-y-auto">
-                      <p className="text-[12px] leading-relaxed text-foreground/85 whitespace-pre-wrap">
+                    {/* Body preview */}
+                    <div className="rounded-lg bg-muted/40 border border-border/40 p-3 mb-3 relative">
+                      <p className="text-[12px] leading-relaxed text-foreground/85 whitespace-pre-wrap line-clamp-5">
                         {t.body}
                       </p>
                     </div>
