@@ -226,7 +226,7 @@ function AudienceFilterSection({
   onOpenChange,
   children,
 }: AudienceFilterSectionProps) {
-  const [internalOpen, setInternalOpen] = useState(true);
+  const [internalOpen, setInternalOpen] = useState(false);
   const isControlled = typeof isOpen === 'boolean';
   const resolvedOpen = isControlled ? Boolean(isOpen) : internalOpen;
 
@@ -558,37 +558,6 @@ export default function CampaignAudienceBuilder({
             }}
           >
             <div className="divide-y divide-border">
-              {/* Tags — moved to top so CSV-uploaded "Broadcast Upload" tag is easy to pick */}
-              <FilterSection
-                id="tags"
-                icon={Tag}
-                title="Tags"
-                badge={filters.include_tags.length}
-              >
-                {tags.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">No tags available yet. Upload a CSV or tag contacts first.</p>
-                ) : (
-                  <div className="flex flex-wrap gap-1.5">
-                    {tags.map((tag) => (
-                      <Badge
-                        key={tag.id}
-                        variant={filters.include_tags.includes(tag.id) ? 'default' : 'outline'}
-                        className="cursor-pointer transition-all hover:scale-105"
-                        onClick={() => toggleInArray('include_tags', tag.id)}
-                      >
-                        <div
-                          className="w-2 h-2 rounded-full mr-1.5"
-                          style={{
-                            backgroundColor: tag.color || 'hsl(var(--muted-foreground))',
-                          }}
-                        />
-                        {tag.name}
-                      </Badge>
-                    ))}
-                  </div>
-                )}
-              </FilterSection>
-
               {/* Segments */}
               <FilterSection
                 id="segments"
@@ -623,6 +592,37 @@ export default function CampaignAudienceBuilder({
                           )}
                         </div>
                       </button>
+                    ))}
+                  </div>
+                )}
+              </FilterSection>
+
+              {/* Tags */}
+              <FilterSection
+                id="tags"
+                icon={Tag}
+                title="Tags"
+                badge={filters.include_tags.length}
+              >
+                {tags.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">No tags available yet. Upload a CSV or tag contacts first.</p>
+                ) : (
+                  <div className="flex flex-wrap gap-1.5">
+                    {tags.map((tag) => (
+                      <Badge
+                        key={tag.id}
+                        variant={filters.include_tags.includes(tag.id) ? 'default' : 'outline'}
+                        className="cursor-pointer transition-all hover:scale-105"
+                        onClick={() => toggleInArray('include_tags', tag.id)}
+                      >
+                        <div
+                          className="w-2 h-2 rounded-full mr-1.5"
+                          style={{
+                            backgroundColor: tag.color || 'hsl(var(--muted-foreground))',
+                          }}
+                        />
+                        {tag.name}
+                      </Badge>
                     ))}
                   </div>
                 )}
