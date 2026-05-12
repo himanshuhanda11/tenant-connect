@@ -55,7 +55,8 @@ export default function Templates() {
     validateTemplate,
   } = useTemplateBuilder();
 
-  const [activeTab, setActiveTab] = useState<'list' | 'builder' | 'industry'>('list');
+  const [activeTab, setActiveTab] = useState<'list' | 'builder'>('list');
+  const [libraryOpen, setLibraryOpen] = useState(false);
   const [editingTemplate, setEditingTemplate] = useState<TemplateType | null>(null);
   const [editingVersion, setEditingVersion] = useState<TemplateVersion | null>(null);
   const [previewTemplate, setPreviewTemplate] = useState<TemplateType | null>(null);
