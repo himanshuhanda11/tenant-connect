@@ -26,6 +26,8 @@ interface ImportSummary {
   invalid: number;
   duplicates: number;
   contactIds: string[];
+  tagId?: string | null;
+  tagName?: string;
 }
 
 interface Props {
