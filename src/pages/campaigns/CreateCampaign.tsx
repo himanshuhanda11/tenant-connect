@@ -60,6 +60,7 @@ import { useUpgradeModal } from '@/components/billing/UpgradeModal';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import CampaignAudienceBuilder, { AudienceFilters, DEFAULT_AUDIENCE_FILTERS } from '@/components/campaigns/CampaignAudienceBuilder';
+import { CSVContactUploader } from '@/components/campaigns/CSVContactUploader';
 
 const STEPS = [
   { id: 1, title: 'Basics', icon: Settings },
