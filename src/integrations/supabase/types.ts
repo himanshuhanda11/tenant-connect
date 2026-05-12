@@ -2411,6 +2411,113 @@ export type Database = {
           },
         ]
       }
+      contact_request_replies: {
+        Row: {
+          author_id: string | null
+          body: string
+          created_at: string
+          id: string
+          is_internal: boolean
+          request_id: string
+        }
+        Insert: {
+          author_id?: string | null
+          body: string
+          created_at?: string
+          id?: string
+          is_internal?: boolean
+          request_id: string
+        }
+        Update: {
+          author_id?: string | null
+          body?: string
+          created_at?: string
+          id?: string
+          is_internal?: boolean
+          request_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contact_request_replies_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "contact_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contact_requests: {
+        Row: {
+          assigned_to: string | null
+          attachment_url: string | null
+          business_name: string | null
+          category: Database["public"]["Enums"]["contact_request_category"]
+          closed_at: string | null
+          country: string | null
+          created_at: string
+          email: string
+          full_name: string
+          id: string
+          message: string
+          metadata: Json
+          phone: string | null
+          priority: Database["public"]["Enums"]["contact_request_priority"]
+          source_page: string | null
+          status: Database["public"]["Enums"]["contact_request_status"]
+          subject: string | null
+          tenant_id: string | null
+          ticket_id: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          assigned_to?: string | null
+          attachment_url?: string | null
+          business_name?: string | null
+          category?: Database["public"]["Enums"]["contact_request_category"]
+          closed_at?: string | null
+          country?: string | null
+          created_at?: string
+          email: string
+          full_name: string
+          id?: string
+          message: string
+          metadata?: Json
+          phone?: string | null
+          priority?: Database["public"]["Enums"]["contact_request_priority"]
+          source_page?: string | null
+          status?: Database["public"]["Enums"]["contact_request_status"]
+          subject?: string | null
+          tenant_id?: string | null
+          ticket_id?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          assigned_to?: string | null
+          attachment_url?: string | null
+          business_name?: string | null
+          category?: Database["public"]["Enums"]["contact_request_category"]
+          closed_at?: string | null
+          country?: string | null
+          created_at?: string
+          email?: string
+          full_name?: string
+          id?: string
+          message?: string
+          metadata?: Json
+          phone?: string | null
+          priority?: Database["public"]["Enums"]["contact_request_priority"]
+          source_page?: string | null
+          status?: Database["public"]["Enums"]["contact_request_status"]
+          subject?: string | null
+          tenant_id?: string | null
+          ticket_id?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       contact_tags: {
         Row: {
           contact_id: string
@@ -16938,6 +17045,7 @@ export type Database = {
         Args: { payload: Json; queue_name: string }
         Returns: number
       }
+      generate_contact_ticket_id: { Args: never; Returns: string }
       get_offer_claim_count_today: { Args: never; Returns: number }
       get_platform_role: { Args: { _user_id: string }; Returns: string }
       get_team_workload: {
@@ -17426,6 +17534,25 @@ export type Database = {
         | "running"
         | "paused"
         | "completed"
+        | "cancelled"
+      contact_request_category:
+        | "live_chat"
+        | "demo"
+        | "technical"
+        | "billing"
+        | "whatsapp_api"
+        | "meta_charges"
+        | "payment_plans"
+        | "account"
+        | "feature_request"
+        | "other"
+      contact_request_priority: "low" | "medium" | "high" | "urgent"
+      contact_request_status:
+        | "new"
+        | "open"
+        | "in_progress"
+        | "replied"
+        | "closed"
         | "cancelled"
       conversation_status: "open" | "closed" | "expired"
       cooldown_scope: "workflow" | "node" | "action"
@@ -17963,6 +18090,27 @@ export const Constants = {
         "running",
         "paused",
         "completed",
+        "cancelled",
+      ],
+      contact_request_category: [
+        "live_chat",
+        "demo",
+        "technical",
+        "billing",
+        "whatsapp_api",
+        "meta_charges",
+        "payment_plans",
+        "account",
+        "feature_request",
+        "other",
+      ],
+      contact_request_priority: ["low", "medium", "high", "urgent"],
+      contact_request_status: [
+        "new",
+        "open",
+        "in_progress",
+        "replied",
+        "closed",
         "cancelled",
       ],
       conversation_status: ["open", "closed", "expired"],
