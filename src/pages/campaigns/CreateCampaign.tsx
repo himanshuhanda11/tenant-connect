@@ -217,7 +217,15 @@ export default function CreateCampaign() {
         toast.error('Failed to load broadcast options');
       }
 
-      setPhoneNumbers((phoneRes.data || []) as PhoneNumberOption[]);
+      const phones = (phoneRes.data || []) as PhoneNumberOption[];
+      setPhoneNumbers(phones);
+      // Auto-select the workspace's WhatsApp number (1 workspace = 1 number)
+      if (phones.length > 0) {
+        setWizard((prev) => ({
+          ...prev,
+          basics: { ...prev.basics, phone_number_id: phones[0].id },
+        }));
+      }
       setTemplates((templateRes.data || []) as TemplateOption[]);
       setSegments((segmentRes.data || []) as SegmentOption[]);
       setTags((tagRes.data || []) as TagOption[]);
@@ -464,34 +472,14 @@ export default function CreateCampaign() {
                     </div>
                   </div>
 
-                  <div className="space-y-2">
-                    <Label>WhatsApp Number *</Label>
-                    <Select
-                      value={wizard.basics.phone_number_id}
-                      onValueChange={(v) => updateBasics('phone_number_id', v)}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select phone number" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {isLoadingOptions ? (
-                          <SelectItem value="loading" disabled>Loading numbers...</SelectItem>
-                        ) : phoneNumbers.length === 0 ? (
-                          <SelectItem value="none" disabled>No connected WhatsApp numbers</SelectItem>
-                        ) : (
-                          phoneNumbers.map((phone) => (
-                            <SelectItem key={phone.id} value={phone.id}>
-                              <span className="inline-flex items-center gap-2">
-                                <Phone className="h-4 w-4 text-primary" />
-                                <span>{phone.display_number || 'Unknown number'}</span>
-                                {phone.verified_name ? <span className="text-muted-foreground">• {phone.verified_name}</span> : null}
-                              </span>
-                            </SelectItem>
-                          ))
-                        )}
-                      </SelectContent>
-                    </Select>
-                  </div>
+                  {!isLoadingOptions && phoneNumbers.length === 0 && (
+                    <Alert variant="destructive">
+                      <Info className="h-4 w-4" />
+                      <AlertDescription>
+                        No connected WhatsApp number found for this workspace. Please connect a number first.
+                      </AlertDescription>
+                    </Alert>
+                  )}
 
                   <Alert className="bg-blue-50 border-blue-200">
                     <Info className="h-4 w-4 text-blue-600" />
