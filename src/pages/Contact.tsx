@@ -162,7 +162,13 @@ export default function Contact() {
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!category) {
-      toast({ title: 'Pick an enquiry type', description: 'Please select what you need help with.', variant: 'destructive' });
+      toast({
+        title: 'Choose an enquiry type first',
+        description: 'Pick the topic that best matches what you need so we can route it to the right team.',
+        className: 'border-amber-200 bg-gradient-to-br from-amber-50 to-white text-amber-950 shadow-xl shadow-amber-500/10 dark:border-amber-500/30 dark:from-amber-950/60 dark:to-slate-950 dark:text-amber-50',
+      });
+      // Smooth scroll to category grid
+      document.getElementById('contact-categories')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       return;
     }
     if (data.website) return; // honeypot
@@ -172,7 +178,46 @@ export default function Contact() {
       const fe: Partial<Record<keyof FormState, string>> = {};
       r.error.errors.forEach((er) => { fe[er.path[0] as keyof FormState] = er.message; });
       setErrors(fe);
-      toast({ title: 'Please complete the required fields', variant: 'destructive' });
+
+      const FIELD_LABELS: Record<string, string> = {
+        fullName: 'Full name',
+        email: 'Email address',
+        phone: 'Phone number',
+        message: 'Your message',
+        businessName: 'Business name',
+        country: 'Country',
+        subject: 'Subject',
+      };
+      const missing = Array.from(new Set(r.error.errors.map(er => String(er.path[0])))).map(k => FIELD_LABELS[k] || k);
+      const count = missing.length;
+
+      toast({
+        title: count === 1 ? '1 field needs your attention' : `${count} fields need your attention`,
+        description: (
+          <div className="mt-1 space-y-1.5">
+            <p className="text-[12.5px] opacity-80">Please review and complete the highlighted fields below:</p>
+            <ul className="flex flex-wrap gap-1.5 pt-1">
+              {missing.map((m) => (
+                <li
+                  key={m}
+                  className="inline-flex items-center gap-1 rounded-full border border-rose-200 bg-rose-50/80 px-2 py-0.5 text-[11px] font-medium text-rose-700 dark:border-rose-500/30 dark:bg-rose-950/40 dark:text-rose-200"
+                >
+                  <span className="h-1.5 w-1.5 rounded-full bg-rose-500" />
+                  {m}
+                </li>
+              ))}
+            </ul>
+          </div>
+        ) as any,
+        className: 'group border-rose-200/80 bg-gradient-to-br from-white via-rose-50/60 to-white text-rose-950 shadow-2xl shadow-rose-500/15 backdrop-blur-xl dark:border-rose-500/30 dark:from-slate-950 dark:via-rose-950/30 dark:to-slate-950 dark:text-rose-50',
+      });
+
+      // Scroll to first field showing an error
+      setTimeout(() => {
+        const firstError = document.querySelector<HTMLElement>('[data-field-error="true"]');
+        firstError?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        firstError?.querySelector<HTMLElement>('input,textarea,select,button')?.focus();
+      }, 80);
       return;
     }
 
@@ -388,7 +433,7 @@ export default function Contact() {
       </section>
 
       {/* Category cards */}
-      <section className="py-12 sm:py-16">
+      <section id="contact-categories" className="py-12 sm:py-16 scroll-mt-24">
         <div className="container mx-auto px-4">
           <div className="max-w-6xl mx-auto">
             <div className="flex items-end justify-between gap-3 mb-6 flex-wrap">
@@ -735,13 +780,24 @@ function Field({
   label, required, icon: Icon, error, children,
 }: { label: string; required?: boolean; icon?: any; error?: string; children: React.ReactNode }) {
   return (
-    <div className="space-y-1.5">
-      <Label className="text-xs flex items-center gap-1.5">
-        {Icon ? <Icon className="w-3.5 h-3.5 text-muted-foreground" /> : null}
+    <div className="space-y-1.5" data-field-error={error ? 'true' : undefined}>
+      <Label className={cn(
+        "text-xs flex items-center gap-1.5 transition-colors",
+        error && "text-rose-600 dark:text-rose-400"
+      )}>
+        {Icon ? <Icon className={cn("w-3.5 h-3.5 transition-colors", error ? "text-rose-500" : "text-muted-foreground")} /> : null}
         {label} {required ? <span className="text-destructive">*</span> : null}
       </Label>
-      {children}
-      {error ? <p className="text-[11px] text-destructive">{error}</p> : null}
+      <div className={cn(
+        error && "[&_input]:border-rose-300 [&_textarea]:border-rose-300 [&_button[role=combobox]]:border-rose-300 [&_input]:ring-rose-200 [&_textarea]:ring-rose-200 dark:[&_input]:border-rose-500/50 dark:[&_textarea]:border-rose-500/50 dark:[&_button[role=combobox]]:border-rose-500/50"
+      )}>
+        {children}
+      </div>
+      {error ? (
+        <p className="flex items-center gap-1 text-[11px] font-medium text-rose-600 dark:text-rose-400">
+          <AlertTriangle className="w-3 h-3" /> {error}
+        </p>
+      ) : null}
     </div>
   );
 }
