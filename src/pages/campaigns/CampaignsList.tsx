@@ -48,7 +48,7 @@ import {
   CheckCircle,
   AlertCircle,
   Loader2,
-  Sparkles as _Sparkles2,
+  
 
   Sparkles,
   Zap
