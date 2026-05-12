@@ -212,15 +212,12 @@ export default function Contact() {
         className: 'group border-rose-200/80 bg-gradient-to-br from-white via-rose-50/60 to-white text-rose-950 shadow-2xl shadow-rose-500/15 backdrop-blur-xl dark:border-rose-500/30 dark:from-slate-950 dark:via-rose-950/30 dark:to-slate-950 dark:text-rose-50',
       });
 
-      // Scroll to first invalid field
-      const firstKey = r.error.errors[0]?.path[0] as string | undefined;
-      if (firstKey) {
-        setTimeout(() => {
-          const el = document.querySelector<HTMLElement>(`[data-field="${firstKey}"]`);
-          el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          el?.querySelector<HTMLElement>('input,textarea,select,button')?.focus();
-        }, 80);
-      }
+      // Scroll to first field showing an error
+      setTimeout(() => {
+        const firstError = document.querySelector<HTMLElement>('[data-field-error="true"]');
+        firstError?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        firstError?.querySelector<HTMLElement>('input,textarea,select,button')?.focus();
+      }, 80);
       return;
     }
 
