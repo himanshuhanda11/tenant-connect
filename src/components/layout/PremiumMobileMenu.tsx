@@ -308,13 +308,7 @@ export default function PremiumMobileMenu({ open, onClose }: Props) {
                 </div>
               </motion.div>
 
-              {/* Sign in */}
-              <button
-                onClick={() => go('/login')}
-                className="w-full py-3 rounded-2xl border border-border/60 bg-card/60 backdrop-blur-md text-[14px] font-semibold text-foreground hover:bg-muted/60 transition active:scale-[0.98]"
-              >
-                Sign in to your account
-              </button>
+
 
               {/* Footer */}
               <div className="pt-4 mt-2 border-t border-border/50 space-y-4">
