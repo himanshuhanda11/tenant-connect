@@ -229,7 +229,8 @@ export function TemplateBuilder({
   return (
     <div className="space-y-4">
       {/* Builder top bar */}
-      <div className="flex flex-wrap items-center justify-between gap-3 p-3 rounded-lg border bg-card">
+      <div className="sticky top-0 z-30 -mx-4 px-4 py-2 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 border-b">
+      <div className="flex flex-wrap items-center justify-between gap-3 p-3 rounded-lg border bg-card shadow-sm">
         <div>
           <h2 className="text-lg font-semibold">{mode === 'edit' ? 'Edit Template' : 'Create Template'}</h2>
           <p className="text-xs text-muted-foreground">Drafts auto-save as you type.</p>
