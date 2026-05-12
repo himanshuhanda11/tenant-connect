@@ -89,4 +89,17 @@ window.addEventListener("unhandledrejection", (e) => {
   void triggerRecovery(reason?.message || String(reason || ""));
 });
 
+// Remove the initial HTML loader once React is about to mount
+const removeInitialLoader = () => {
+  const loader = document.getElementById("initial-loader");
+  if (!loader) return;
+  loader.style.opacity = "0";
+  loader.style.visibility = "hidden";
+  setTimeout(() => loader.remove(), 500);
+};
+
+// Try immediately and also on load
+try { removeInitialLoader(); } catch { /* ignore */ }
+window.addEventListener("load", removeInitialLoader);
+
 createRoot(document.getElementById("root")!).render(<App />);
