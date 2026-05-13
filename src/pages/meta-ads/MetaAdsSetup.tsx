@@ -493,7 +493,7 @@ export default function MetaAdsSetup() {
                 <span className="flex-1 text-sm">
                   Approve the Meta Lead Ads permissions in Facebook to restore lead form syncing.
                 </span>
-                <Button size="sm" onClick={handleFbLogin} disabled={isFbLoading} className="w-fit shrink-0 gap-1.5">
+                <Button type="button" size="sm" onClick={handleFbLogin} disabled={isFbLoading} className="w-fit shrink-0 gap-1.5">
                   {isFbLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Facebook className="h-3.5 w-3.5" />}
                   Reconnect Facebook
                 </Button>
