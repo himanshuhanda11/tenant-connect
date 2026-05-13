@@ -16840,6 +16840,36 @@ export type Database = {
           table_name: string
         }[]
       }
+      campaign_audience_estimate: {
+        Args: {
+          p_assigned_agent?: string
+          p_attributes?: Json
+          p_contact_sources?: string[]
+          p_date_from?: string
+          p_date_to?: string
+          p_exclude_blocked?: boolean
+          p_exclude_recent_days?: number
+          p_exclude_segment_names?: string[]
+          p_exclude_tag_ids?: string[]
+          p_flow_id?: string
+          p_include_segment_names?: string[]
+          p_include_tag_ids?: string[]
+          p_is_unreplied?: boolean
+          p_last_active_from?: string
+          p_last_active_to?: string
+          p_lead_statuses?: string[]
+          p_meta_campaign_id?: string
+          p_opt_in_only?: boolean
+          p_sample_limit?: number
+          p_tag_match_all?: boolean
+          p_tenant_id: string
+          p_unassigned_only?: boolean
+        }
+        Returns: {
+          sample_ids: string[]
+          total: number
+        }[]
+      }
       cancel_conversation_jobs: {
         Args: {
           p_conversation_id: string
