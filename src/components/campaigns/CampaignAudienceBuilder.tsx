@@ -836,18 +836,25 @@ export default function CampaignAudienceBuilder({
                 badge={filters.contact_source ? 1 : 0}
               >
                 <Select
-                  value={filters.contact_source || 'all'}
-                  onValueChange={(v) => updateFilter('contact_source', v === 'all' ? '' : v)}
+                  value={filters.contact_source || SELECT_SENTINELS.none}
+                  onValueChange={(v) =>
+                    updateFilter(
+                      'contact_source',
+                      v === SELECT_SENTINELS.none || v === SELECT_SENTINELS.all ? '' : v
+                    )
+                  }
                 >
                   <SelectTrigger className="h-9">
-                    <SelectValue />
+                    <SelectValue placeholder="Select Source" />
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value={SELECT_SENTINELS.none}>Select Source</SelectItem>
                     {CONTACT_SOURCES.map((s) => (
-                      <SelectItem key={s.value || 'all'} value={s.value || 'all'}>
+                      <SelectItem key={s.value} value={s.value}>
                         {s.label}
                       </SelectItem>
                     ))}
+                    <SelectItem value={SELECT_SENTINELS.all}>All Sources</SelectItem>
                   </SelectContent>
                 </Select>
               </FilterSection>
