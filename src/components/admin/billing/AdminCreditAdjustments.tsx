@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Search, PlusCircle, MinusCircle, Loader2, History, Wallet, Building2 } from "lucide-react";
 import { useAdminApi } from "@/hooks/useAdminApi";
 import { toast } from "sonner";
@@ -30,7 +31,16 @@ interface Tx {
   description: string | null;
   status: string;
   created_at: string;
+  metadata?: { category?: string } | null;
 }
+
+const CATEGORY_OPTIONS = [
+  { value: "bonus", label: "Bonus", desc: "Goodwill / loyalty grant" },
+  { value: "promo", label: "Promotional", desc: "Marketing campaign credits" },
+  { value: "refund", label: "Refund", desc: "Compensation for failed broadcast / outage" },
+  { value: "meta_paid", label: "Meta-paid Allocation", desc: "Customer paid Meta directly" },
+  { value: "adjustment", label: "Manual Adjustment", desc: "Other / corrections" },
+] as const;
 
 export function AdminCreditAdjustments() {
   const { get, post } = useAdminApi();
@@ -45,6 +55,7 @@ export function AdminCreditAdjustments() {
   const [direction, setDirection] = useState<"credit" | "debit">("credit");
   const [amount, setAmount] = useState<number>(100);
   const [reason, setReason] = useState("");
+  const [category, setCategory] = useState<string>("bonus");
   const [submitting, setSubmitting] = useState(false);
 
   const load = async () => {
@@ -77,6 +88,7 @@ export function AdminCreditAdjustments() {
     setDirection(dir);
     setAmount(100);
     setReason("");
+    setCategory(dir === "credit" ? "bonus" : "adjustment");
     setAdjustOpen(true);
   };
 
@@ -87,7 +99,7 @@ export function AdminCreditAdjustments() {
     setSubmitting(true);
     try {
       const signed = direction === "credit" ? amount : -amount;
-      await post("credits/adjust", { workspace_id: selected.tenant_id, amount: signed, reason });
+      await post("credits/adjust", { workspace_id: selected.tenant_id, amount: signed, reason, category });
       toast.success(`Adjusted ${signed > 0 ? "+" : ""}${signed} credits for ${selected.tenants?.name}`);
       setAdjustOpen(false);
       load();
@@ -179,6 +191,22 @@ export function AdminCreditAdjustments() {
           </DialogHeader>
           <div className="space-y-3 py-2">
             <div>
+              <Label className="text-xs">Category</Label>
+              <Select value={category} onValueChange={setCategory}>
+                <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {CATEGORY_OPTIONS.map((c) => (
+                    <SelectItem key={c.value} value={c.value}>
+                      <div className="flex flex-col">
+                        <span className="text-sm">{c.label}</span>
+                        <span className="text-[10px] text-muted-foreground">{c.desc}</span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
               <Label className="text-xs">Amount (credits)</Label>
               <Input type="number" min={1} value={amount} onChange={(e) => setAmount(parseInt(e.target.value) || 0)} />
             </div>
@@ -220,7 +248,14 @@ export function AdminCreditAdjustments() {
                 ) : txs.map((t) => (
                   <TableRow key={t.id}>
                     <TableCell className="text-xs">{format(new Date(t.created_at), "MMM d, HH:mm")}</TableCell>
-                    <TableCell><Badge variant="outline" className="text-[10px] capitalize">{t.type}</Badge></TableCell>
+                    <TableCell>
+                      <div className="flex flex-col gap-0.5">
+                        <Badge variant="outline" className="text-[10px] capitalize w-fit">{t.type}</Badge>
+                        {t.metadata?.category && t.metadata.category !== t.type ? (
+                          <span className="text-[9px] text-muted-foreground capitalize">{t.metadata.category.replace("_", " ")}</span>
+                        ) : null}
+                      </div>
+                    </TableCell>
                     <TableCell className={`text-right tabular-nums text-xs font-medium ${t.amount > 0 ? "text-emerald-600" : "text-rose-600"}`}>{t.amount > 0 ? "+" : ""}{t.amount}</TableCell>
                     <TableCell className="text-right tabular-nums text-xs">{t.balance_after}</TableCell>
                     <TableCell className="text-xs text-muted-foreground truncate max-w-[260px]">{t.description}</TableCell>
