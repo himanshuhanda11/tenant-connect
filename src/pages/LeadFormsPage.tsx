@@ -6,7 +6,7 @@ import { LeadFormRulesPanel } from '@/components/lead-forms/LeadFormRulesPanel';
 import { WebhookHealthPanel } from '@/components/lead-forms/WebhookHealthPanel';
 import { LeadEventsLog } from '@/components/lead-forms/LeadEventsLog';
 import { SEO } from '@/components/seo';
-import { FileText, Zap, Activity, ScrollText, ArrowDownToLine, AlertTriangle, CheckCircle2, XCircle, RefreshCw, ExternalLink, Shield } from 'lucide-react';
+import { FileText, Zap, Activity, ScrollText, ArrowDownToLine, AlertTriangle, CheckCircle2, XCircle, RefreshCw, ExternalLink, Shield, ShieldAlert, Facebook } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
