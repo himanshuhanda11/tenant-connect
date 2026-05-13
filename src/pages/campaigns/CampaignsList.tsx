@@ -105,6 +105,7 @@ export default function CampaignsList() {
   };
 
   const campaigns: Campaign[] = (dbCampaigns || []).map(c => ({
+
     id: c.id,
     tenant_id: c.tenant_id,
     name: c.name,
