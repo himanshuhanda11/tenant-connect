@@ -6,16 +6,17 @@ import { LeadFormRulesPanel } from '@/components/lead-forms/LeadFormRulesPanel';
 import { WebhookHealthPanel } from '@/components/lead-forms/WebhookHealthPanel';
 import { LeadEventsLog } from '@/components/lead-forms/LeadEventsLog';
 import { SEO } from '@/components/seo';
-import { FileText, Zap, Activity, ScrollText, ArrowDownToLine, AlertTriangle, CheckCircle2, XCircle, RefreshCw, ExternalLink, Shield, ShieldAlert, Facebook } from 'lucide-react';
+import { FileText, Zap, Activity, ScrollText, ArrowDownToLine, AlertTriangle, CheckCircle2, XCircle, RefreshCw, ExternalLink, Shield, ShieldAlert, Facebook, Webhook, Loader2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useLeadForms, useLeadFormRules, useLeadEvents, useWebhookHealth } from '@/hooks/useLeadForms';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useTenant } from '@/contexts/TenantContext';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 
 const REQUIRED_META_SCOPES = [
   'ads_read',
@@ -28,12 +29,47 @@ const REQUIRED_META_SCOPES = [
 
 export default function LeadFormsPage() {
   const [activeTab, setActiveTab] = useState('forms');
+  const [subscribingAll, setSubscribingAll] = useState(false);
   const { currentTenant } = useTenant();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { forms } = useLeadForms();
   const { rules } = useLeadFormRules();
   const { events } = useLeadEvents();
   const { subscriptions } = useWebhookHealth();
+
+  const unsubscribedPagesCount = new Set(
+    forms.filter((f: any) => !f.is_webhook_subscribed).map((f: any) => f.page_id)
+  ).size;
+
+  const handleSubscribeAll = async () => {
+    if (!currentTenant?.id) return;
+    setSubscribingAll(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('meta-sync-lead-forms', {
+        body: { tenantId: currentTenant.id, action: 'subscribe_all' },
+      });
+      if (error) throw error;
+      if (data?.reconnect) {
+        toast.error(data.error || 'Reconnect Facebook required', {
+          action: { label: 'Reconnect', onClick: () => navigate('/meta-ads/setup?reauthorize=lead_forms') },
+        });
+      } else if (data?.success) {
+        toast.success(`Subscribed ${data.succeeded}/${data.total} pages to leadgen webhooks`);
+      } else {
+        const failedDetails = (data?.results || []).filter((r: any) => !r.success).slice(0, 2).map((r: any) => `${r.page_name}: ${r.error}`).join(' | ');
+        toast.warning(`${data?.succeeded ?? 0}/${data?.total ?? 0} succeeded. ${data?.failed ?? 0} failed.`, {
+          description: failedDetails,
+        });
+      }
+      await queryClient.invalidateQueries({ queryKey: ['lead-forms'] });
+      await queryClient.invalidateQueries({ queryKey: ['webhook-health'] });
+    } catch (err: any) {
+      toast.error(err?.message || 'Failed to subscribe webhooks');
+    } finally {
+      setSubscribingAll(false);
+    }
+  };
 
   // Check Meta connection & permissions
   const metaAccountQuery = useQuery({
@@ -209,6 +245,34 @@ export default function LeadFormsPage() {
             )}
           </CardContent>
         </Card>
+
+        {/* One-click Subscribe All Webhooks */}
+        {hasLeadsRetrieval && hasPage && unsubscribedPagesCount > 0 && (
+          <Card className="border-amber-300 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/20">
+            <CardContent className="p-4 flex flex-col sm:flex-row sm:items-center gap-3">
+              <div className="shrink-0 w-10 h-10 rounded-full bg-amber-100 dark:bg-amber-900/40 flex items-center justify-center">
+                <Webhook className="h-5 w-5 text-amber-700 dark:text-amber-400" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-amber-900 dark:text-amber-200">
+                  {unsubscribedPagesCount} page{unsubscribedPagesCount === 1 ? '' : 's'} not subscribed to leadgen webhooks
+                </p>
+                <p className="text-xs text-amber-700 dark:text-amber-400 mt-0.5">
+                  New leads won't arrive in real-time until you subscribe. Click below to subscribe all pages at once.
+                </p>
+              </div>
+              <Button
+                size="sm"
+                disabled={subscribingAll}
+                onClick={handleSubscribeAll}
+                className="w-full sm:w-auto shrink-0 bg-amber-600 hover:bg-amber-700 text-white"
+              >
+                {subscribingAll ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> : <Webhook className="h-4 w-4 mr-1.5" />}
+                {subscribingAll ? 'Subscribing…' : 'Subscribe all to webhook'}
+              </Button>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Stats Grid */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
