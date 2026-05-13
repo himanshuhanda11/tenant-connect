@@ -70,6 +70,7 @@ export default function MetaAdsSetup() {
   const autoReauthorizeStarted = useRef(false);
   const [leadAdsReauthRequested, setLeadAdsReauthRequested] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
+  const [wizardStep, setWizardStep] = useState(0); // 0=login, 1=adAccount, 2=page, 3=extras, 4=whatsapp, 5=review
   const [isFbLoading, setIsFbLoading] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [fbConnected, setFbConnected] = useState(false);
@@ -275,6 +276,7 @@ export default function MetaAdsSetup() {
       }));
     }
     toast.success(`Found ${data.adAccounts?.length || 0} ad account(s), ${data.pages?.length || 0} page(s), ${data.instagramAccounts?.length || 0} IG account(s).`);
+    setWizardStep((s) => (s < 1 ? 1 : s));
   };
 
   const persistReauthorization = async (data: any) => {
@@ -643,139 +645,136 @@ export default function MetaAdsSetup() {
             </Card>
           )}
 
-          {/* Facebook Login + Asset Selection Flow */}
-          {!hasExistingConnection && (
-            <Card className="border-0 shadow-lg overflow-hidden">
-              {/* FB Login Header - Always visible */}
-              <CardHeader className={cn("pb-3", fbConnected ? "bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-950/20 dark:to-teal-950/20" : "border-b-2 border-dashed border-blue-300 dark:border-blue-700")}>
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                  <div className="flex items-center gap-3">
-                    <div className={cn("flex items-center justify-center w-10 h-10 rounded-xl", fbConnected ? "bg-emerald-100" : "bg-[#1877F2]")}>
-                      {fbConnected ? <CheckCircle2 className="h-5 w-5 text-emerald-600" /> : <Facebook className="h-5 w-5 text-white" />}
-                    </div>
-                    <div>
-                      <CardTitle className="text-lg">
-                        {fbConnected ? 'Facebook Connected' : 'Connect with Facebook'}
-                      </CardTitle>
-                      <CardDescription>
-                        {fbConnected
-                          ? `Found ${adAccounts.length} ad account(s), ${pages.length} page(s), ${instagramAccounts.length} IG account(s)`
-                          : 'Login to auto-discover Ad Accounts, Pages, Instagram & Business'}
-                      </CardDescription>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    {fbConnected ? (
-                      <>
-                        <Button type="button" size="sm" className="bg-[#1877F2] hover:bg-[#166FE5] text-white gap-1.5 text-xs h-8" onClick={handleFbLogin} disabled={isFbLoading}>
-                          {isFbLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Facebook className="h-3.5 w-3.5" />}
-                          Re-login Facebook
-                        </Button>
-                        <Button type="button" variant="outline" size="sm" className="gap-1 text-xs h-8" onClick={() => { setFbConnected(false); setAdAccounts([]); setPages([]); setInstagramAccounts([]); setBusinesses([]); setLongLivedToken(''); }}>
-                          <RefreshCw className="h-3 w-3" /> Reset
-                        </Button>
-                      </>
-                    ) : (
-                      <Button type="button" className="bg-[#1877F2] hover:bg-[#166FE5] text-white gap-2 h-11 px-6 text-sm" disabled={isFbLoading} onClick={handleFbLogin}>
-                        {isFbLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Facebook className="h-5 w-5" />}
-                        {isFbLoading ? 'Connecting...' : 'Login with Facebook'}
-                      </Button>
-                    )}
-                  </div>
-                </div>
-              </CardHeader>
+          {/* Onboarding Wizard — only shown when not yet connected */}
+          {!hasExistingConnection && (() => {
+            const WIZARD_STEPS = [
+              { id: 0, label: 'Login', icon: Facebook },
+              { id: 1, label: 'Ad Account', icon: BarChart3 },
+              { id: 2, label: 'Facebook Page', icon: Globe },
+              { id: 3, label: 'Extras', icon: Sparkles },
+              { id: 4, label: 'WhatsApp', icon: Phone },
+              { id: 5, label: 'Review', icon: CheckCircle2 },
+            ];
+            const stepValid: Record<number, boolean> = {
+              0: fbConnected,
+              1: !!formData.adAccountId,
+              2: !!formData.pageId,
+              3: true,
+              4: true,
+              5: !!formData.adAccountId,
+            };
+            const goNext = () => setWizardStep((s) => Math.min(5, s + 1));
+            const goBack = () => setWizardStep((s) => Math.max(0, s - 1));
 
-              <CardContent className="p-0">
-                {/* Not connected yet: show scopes & manual token */}
-                {!fbConnected && (
-                  <div className="p-4 sm:p-6 space-y-4">
-                    <div className="flex flex-wrap gap-2">
-                      {['ads_read', 'pages_show_list', 'business_management', 'pages_read_engagement'].map(scope => (
-                        <Badge key={scope} variant="outline" className="text-xs gap-1">
-                          <Shield className="h-3 w-3" /> {scope}
-                        </Badge>
-                      ))}
-                    </div>
-                    <Separator />
-                    <div>
-                      <button className="text-sm text-primary hover:underline flex items-center gap-1" onClick={() => setShowManualToken(!showManualToken)}>
-                        <Zap className="h-3.5 w-3.5" />
-                        {showManualToken ? 'Hide manual token entry' : 'Or enter access token manually'}
+            return (
+              <Card className="border-0 shadow-lg overflow-hidden">
+                {/* Stepper */}
+                <CardHeader className="pb-4 bg-gradient-to-br from-blue-50/60 via-card to-card dark:from-blue-950/20">
+                  <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
+                    {WIZARD_STEPS.map((step, i) => {
+                      const isDone = stepValid[step.id] && step.id < wizardStep;
+                      const isCurrent = step.id === wizardStep;
+                      const Icon = step.icon;
+                      return (
+                        <div key={step.id} className="flex items-center shrink-0">
+                          <button
+                            type="button"
+                            disabled={step.id > wizardStep && !stepValid[step.id - 1]}
+                            onClick={() => (step.id <= wizardStep || stepValid[step.id - 1]) && setWizardStep(step.id)}
+                            className={cn(
+                              "flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all",
+                              isCurrent && "bg-primary text-primary-foreground shadow-sm",
+                              isDone && "text-emerald-700 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/30",
+                              !isCurrent && !isDone && "text-muted-foreground/60",
+                            )}
+                          >
+                            <div className={cn(
+                              "flex items-center justify-center w-5 h-5 rounded-full text-[10px] font-bold shrink-0",
+                              isCurrent && "bg-primary-foreground/20 text-primary-foreground",
+                              isDone && "bg-emerald-500 text-white",
+                              !isCurrent && !isDone && "bg-muted",
+                            )}>
+                              {isDone ? <Check className="h-3 w-3" /> : step.id + 1}
+                            </div>
+                            <span className="hidden sm:inline">{step.label}</span>
+                          </button>
+                          {i < WIZARD_STEPS.length - 1 && (
+                            <div className={cn("w-4 h-px mx-0.5", isDone ? "bg-emerald-300" : "bg-border")} />
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </CardHeader>
+
+                <CardContent className="p-5 sm:p-7 min-h-[340px]">
+                  {/* Step 0: Login */}
+                  {wizardStep === 0 && (
+                    <div className="text-center max-w-md mx-auto py-6 space-y-5">
+                      <div className="mx-auto flex items-center justify-center w-16 h-16 rounded-2xl bg-[#1877F2] shadow-lg shadow-blue-500/30">
+                        <Facebook className="h-8 w-8 text-white" />
+                      </div>
+                      <div className="space-y-1.5">
+                        <h2 className="text-xl font-bold tracking-tight">Login with Facebook</h2>
+                        <p className="text-sm text-muted-foreground">
+                          We'll auto-discover your Ad Accounts, Pages, Instagram & Business — nothing is created or modified.
+                        </p>
+                      </div>
+                      <div className="flex flex-wrap justify-center gap-1.5">
+                        {['ads_read', 'pages_show_list', 'leads_retrieval', 'pages_manage_ads'].map((s) => (
+                          <Badge key={s} variant="outline" className="text-[10px] gap-1">
+                            <Shield className="h-2.5 w-2.5" /> {s}
+                          </Badge>
+                        ))}
+                      </div>
+                      <Button type="button" size="lg" className="bg-[#1877F2] hover:bg-[#166FE5] text-white gap-2 h-12 px-8 w-full sm:w-auto" onClick={handleFbLogin} disabled={isFbLoading}>
+                        {isFbLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Facebook className="h-5 w-5" />}
+                        {isFbLoading ? 'Connecting…' : fbConnected ? 'Re-login Facebook' : 'Continue with Facebook'}
+                      </Button>
+                      {fbConnected && (
+                        <p className="text-xs text-emerald-600 dark:text-emerald-400 flex items-center justify-center gap-1">
+                          <CheckCircle2 className="h-3.5 w-3.5" /> Connected — found {adAccounts.length} ad account(s), {pages.length} page(s)
+                        </p>
+                      )}
+                      <button type="button" onClick={() => setShowManualToken(!showManualToken)} className="text-xs text-muted-foreground hover:text-primary underline-offset-2 hover:underline">
+                        {showManualToken ? 'Hide' : 'Or paste an access token manually'}
                       </button>
                       {showManualToken && (
-                        <div className="mt-3 space-y-3 p-4 rounded-lg bg-muted/50 border">
-                          <Label className="text-sm">Long-Lived Access Token</Label>
-                          <Input placeholder="Paste your Meta access token..." value={manualToken} onChange={(e) => setManualToken(e.target.value)} className="h-10 font-mono text-xs" />
-                          <Button onClick={handleManualTokenSubmit} disabled={isManualLoading || !manualToken.trim()} size="sm" className="gap-2">
-                            {isManualLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowRight className="h-4 w-4" />}
+                        <div className="text-left space-y-2 p-3 rounded-lg bg-muted/40 border">
+                          <Label className="text-xs">Long-Lived Access Token</Label>
+                          <Input placeholder="Paste your Meta access token…" value={manualToken} onChange={(e) => setManualToken(e.target.value)} className="h-9 font-mono text-xs" />
+                          <Button onClick={handleManualTokenSubmit} disabled={isManualLoading || !manualToken.trim()} size="sm" className="gap-1.5 w-full">
+                            {isManualLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <ArrowRight className="h-3.5 w-3.5" />}
                             Fetch Accounts
                           </Button>
-                          <p className="text-xs text-muted-foreground">
-                            Get a token from{' '}
-                            <a href="https://developers.facebook.com/tools/explorer/" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">Graph API Explorer</a>.
-                          </p>
                         </div>
                       )}
                     </div>
-                  </div>
-                )}
+                  )}
 
-                {/* Connected: Steps 1-4 inside the same card */}
-                {fbConnected && (
-                  <div className="divide-y">
-                    {/* Permissions */}
-                    {permissions.length > 0 && (
-                      <div className="p-4 sm:px-6 bg-muted/20">
-                        <div className="flex items-center gap-2 mb-2">
-                          <Shield className="h-4 w-4 text-primary" />
-                          <span className="text-sm font-medium">Granted Permissions</span>
-                        </div>
-                        <div className="flex flex-wrap gap-1.5">
-                          {permissions.filter((p: any) => p.status === 'granted').map((p: any, i: number) => (
-                            <Badge key={i} variant="default" className="text-xs bg-emerald-100 text-emerald-700">
-                              <Check className="h-3 w-3 mr-1" /> {p.permission}
-                            </Badge>
-                          ))}
-                          {permissions.filter((p: any) => p.status !== 'granted').length > 0 && (
-                            <Badge variant="secondary" className="text-xs bg-amber-100 text-amber-700">
-                              <AlertCircle className="h-3 w-3 mr-1" />
-                              {permissions.filter((p: any) => p.status !== 'granted').length} not granted (not required for Ads)
-                            </Badge>
-                          )}
-                        </div>
-                        {missingScopes.length > 0 && (
-                          <p className="text-xs text-amber-600 mt-2">⚠️ Missing: {missingScopes.join(', ')} — some features may be limited.</p>
-                        )}
+                  {/* Step 1: Ad Account */}
+                  {wizardStep === 1 && (
+                    <div className="space-y-4">
+                      <div>
+                        <h2 className="text-lg font-bold flex items-center gap-2">
+                          <BarChart3 className="h-5 w-5 text-indigo-600" /> Select your Ad Account
+                        </h2>
+                        <p className="text-sm text-muted-foreground mt-0.5">Pick the ad account that runs your Click-to-WhatsApp campaigns.</p>
                       </div>
-                    )}
-
-                    {adAccountsError && (
-                      <div className="p-4 sm:px-6">
+                      {adAccountsError && (
                         <Alert className="border-amber-200 bg-amber-50 dark:bg-amber-950/30">
                           <AlertCircle className="h-4 w-4 text-amber-600" />
-                          <AlertDescription className="text-amber-700 text-sm">
-                            <strong>Warning:</strong> {adAccountsError}. You can enter an Ad Account ID manually.
-                          </AlertDescription>
+                          <AlertDescription className="text-amber-700 text-xs">{adAccountsError}</AlertDescription>
                         </Alert>
-                      </div>
-                    )}
-
-                    {/* Step 1: Ad Account */}
-                    <div className="p-4 sm:px-6 space-y-3">
-                      <div className="flex items-center gap-2">
-                        <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-primary text-primary-foreground text-sm font-bold">1</div>
-                        <Building2 className="h-4 w-4 text-primary" />
-                        <span className="text-sm font-semibold">Select Ad Account *</span>
-                        {formData.adAccountId && <Check className="h-4 w-4 text-emerald-600 ml-auto" />}
-                      </div>
+                      )}
                       {adAccounts.length > 0 ? (
-                        <div className="space-y-2">
+                        <div className="space-y-2 max-h-[320px] overflow-y-auto pr-1">
                           {adAccounts.map((acc) => (
                             <div key={acc.id}
                               className={cn('flex items-center gap-3 p-3 rounded-xl border-2 cursor-pointer transition-all hover:border-primary/50',
                                 formData.adAccountId === acc.id ? 'border-primary bg-primary/5' : 'border-transparent bg-muted/40')}
                               onClick={() => setFormData(prev => ({ ...prev, adAccountId: acc.id, adAccountName: acc.name }))}>
-                              <div className={cn('flex items-center justify-center w-5 h-5 rounded-full border-2',
+                              <div className={cn('flex items-center justify-center w-5 h-5 rounded-full border-2 shrink-0',
                                 formData.adAccountId === acc.id ? 'border-primary bg-primary' : 'border-muted-foreground/40')}>
                                 {formData.adAccountId === acc.id && <Check className="h-3 w-3 text-primary-foreground" />}
                               </div>
@@ -783,157 +782,148 @@ export default function MetaAdsSetup() {
                                 <p className="font-medium text-sm truncate">{acc.name || acc.id}</p>
                                 <p className="text-xs text-muted-foreground">{acc.id}</p>
                               </div>
-                              <div className="flex items-center gap-2 flex-shrink-0">
-                                {acc.currency && <Badge variant="secondary" className="text-xs">{acc.currency}</Badge>}
+                              <div className="flex items-center gap-1.5 flex-shrink-0">
+                                {acc.currency && <Badge variant="secondary" className="text-[10px]">{acc.currency}</Badge>}
                                 {getAccountStatusBadge(acc.status)}
                               </div>
                             </div>
                           ))}
                         </div>
                       ) : (
-                        <div className="space-y-3">
+                        <div className="space-y-2">
                           <p className="text-sm text-muted-foreground">No ad accounts found. Enter manually:</p>
                           <Input placeholder="act_123456789" value={formData.adAccountId} onChange={(e) => setFormData(prev => ({ ...prev, adAccountId: e.target.value.trim() }))} />
                           <Input placeholder="Account name (optional)" value={formData.adAccountName} onChange={(e) => setFormData(prev => ({ ...prev, adAccountName: e.target.value }))} />
                         </div>
                       )}
                     </div>
+                  )}
 
-                    {/* Step 2: Page */}
-                    <div className="p-4 sm:px-6 space-y-3">
-                      <div className="flex items-center gap-2">
-                        <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-primary text-primary-foreground text-sm font-bold">2</div>
-                        <Globe className="h-4 w-4 text-blue-500" />
-                        <span className="text-sm font-semibold">Facebook Page</span>
-                        <span className="text-xs text-muted-foreground">(optional)</span>
-                        {formData.pageId && <Check className="h-4 w-4 text-emerald-600 ml-auto" />}
+                  {/* Step 2: Page (single — drives lead form scope) */}
+                  {wizardStep === 2 && (
+                    <div className="space-y-4">
+                      <div>
+                        <h2 className="text-lg font-bold flex items-center gap-2">
+                          <Globe className="h-5 w-5 text-blue-500" /> Choose one Facebook Page
+                        </h2>
+                        <p className="text-sm text-muted-foreground mt-0.5">
+                          Lead forms & captured leads will be scoped to <strong>only this Page</strong>. You can change later by reconnecting.
+                        </p>
                       </div>
                       {pages.length > 0 ? (
-                        <div className="space-y-2">
+                        <div className="space-y-2 max-h-[320px] overflow-y-auto pr-1">
                           {pages.map((page) => (
                             <div key={page.id}
                               className={cn('flex items-center gap-3 p-3 rounded-xl border-2 cursor-pointer transition-all hover:border-primary/50',
                                 formData.pageId === page.id ? 'border-primary bg-primary/5' : 'border-transparent bg-muted/40')}
                               onClick={() => setFormData(prev => ({ ...prev, pageId: page.id, pageName: page.name }))}>
-                              <div className={cn('flex items-center justify-center w-5 h-5 rounded-full border-2',
+                              <div className={cn('flex items-center justify-center w-5 h-5 rounded-full border-2 shrink-0',
                                 formData.pageId === page.id ? 'border-primary bg-primary' : 'border-muted-foreground/40')}>
                                 {formData.pageId === page.id && <Check className="h-3 w-3 text-primary-foreground" />}
                               </div>
-                              <Globe className="h-4 w-4 text-blue-500 flex-shrink-0" />
+                              <div className="w-8 h-8 rounded-lg bg-blue-100 dark:bg-blue-950/40 flex items-center justify-center shrink-0">
+                                <Globe className="h-4 w-4 text-blue-500" />
+                              </div>
                               <div className="flex-1 min-w-0">
                                 <p className="font-medium text-sm truncate">{page.name}</p>
-                                <p className="text-xs text-muted-foreground">ID: {page.id}</p>
+                                <p className="text-xs text-muted-foreground truncate">ID: {page.id}</p>
                               </div>
-                              {page.category && <Badge variant="secondary" className="text-xs">{page.category}</Badge>}
+                              {page.category && <Badge variant="secondary" className="text-[10px]">{page.category}</Badge>}
                             </div>
                           ))}
                         </div>
                       ) : (
-                        <div className="space-y-3">
-                          <p className="text-sm text-muted-foreground">No pages found. Enter manually:</p>
+                        <div className="space-y-2">
                           <Input placeholder="Page ID" value={formData.pageId} onChange={(e) => setFormData(prev => ({ ...prev, pageId: e.target.value.trim() }))} />
                           <Input placeholder="Page Name (optional)" value={formData.pageName} onChange={(e) => setFormData(prev => ({ ...prev, pageName: e.target.value }))} />
                         </div>
                       )}
                     </div>
+                  )}
 
-                    {/* Step 3: Instagram, Business, Pixel */}
-                    <div className="p-4 sm:px-6 space-y-4">
-                      <div className="flex items-center gap-2">
-                        <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-primary text-primary-foreground text-sm font-bold">3</div>
-                        <Sparkles className="h-4 w-4 text-primary" />
-                        <span className="text-sm font-semibold">Additional Assets</span>
-                        <span className="text-xs text-muted-foreground">(auto-discovered)</span>
+                  {/* Step 3: Extras */}
+                  {wizardStep === 3 && (
+                    <div className="space-y-5">
+                      <div>
+                        <h2 className="text-lg font-bold flex items-center gap-2">
+                          <Sparkles className="h-5 w-5 text-primary" /> Optional assets
+                        </h2>
+                        <p className="text-sm text-muted-foreground mt-0.5">Skip if not needed — you can connect these anytime later.</p>
                       </div>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        {/* Instagram */}
+                      <div className="space-y-4">
                         <div className="space-y-2">
                           <Label className="text-sm flex items-center gap-1.5">
                             <Instagram className="h-3.5 w-3.5 text-pink-500" /> Instagram Account
-                            {formData.instagramAccountId && <Check className="h-3.5 w-3.5 text-emerald-600 ml-1" />}
                           </Label>
                           {instagramAccounts.length > 0 ? (
                             <div className="space-y-2">
                               {instagramAccounts.map((ig) => (
                                 <div key={ig.id}
-                                  className={cn('flex items-center gap-3 p-3 rounded-xl border-2 cursor-pointer transition-all hover:border-primary/50',
-                                    formData.instagramAccountId === ig.id ? 'border-primary bg-primary/5' : 'border-transparent bg-muted/40')}
+                                  className={cn('flex items-center gap-3 p-2.5 rounded-lg border-2 cursor-pointer transition-all',
+                                    formData.instagramAccountId === ig.id ? 'border-primary bg-primary/5' : 'border-transparent bg-muted/40 hover:border-primary/40')}
                                   onClick={() => setFormData(prev => ({ ...prev, instagramAccountId: ig.id, instagramUsername: ig.username }))}>
-                                  <div className={cn('flex items-center justify-center w-5 h-5 rounded-full border-2',
-                                    formData.instagramAccountId === ig.id ? 'border-primary bg-primary' : 'border-muted-foreground/40')}>
-                                    {formData.instagramAccountId === ig.id && <Check className="h-3 w-3 text-primary-foreground" />}
-                                  </div>
-                                  <Instagram className="h-4 w-4 text-pink-500 flex-shrink-0" />
+                                  <Instagram className="h-4 w-4 text-pink-500 shrink-0" />
                                   <div className="flex-1 min-w-0">
-                                    <p className="font-medium text-sm truncate">@{ig.username || ig.name}</p>
-                                    <p className="text-xs text-muted-foreground">ID: {ig.id}{ig.linkedPageName ? ` · ${ig.linkedPageName}` : ''}</p>
+                                    <p className="text-sm font-medium truncate">@{ig.username || ig.name}</p>
+                                    <p className="text-[11px] text-muted-foreground truncate">{ig.linkedPageName || ig.id}</p>
                                   </div>
+                                  {formData.instagramAccountId === ig.id && <Check className="h-4 w-4 text-primary shrink-0" />}
                                 </div>
                               ))}
                             </div>
                           ) : (
-                            <p className="text-xs text-muted-foreground p-3 rounded-lg bg-muted/40">No Instagram accounts found linked to your Pages. Connect an IG Business account to a Page first.</p>
+                            <p className="text-xs text-muted-foreground p-2.5 rounded-lg bg-muted/40 border border-dashed">No Instagram Business accounts found linked to your Pages.</p>
                           )}
                         </div>
-                        {/* Business */}
+
                         <div className="space-y-2">
                           <Label className="text-sm flex items-center gap-1.5">
                             <Building2 className="h-3.5 w-3.5 text-blue-600" /> Business
-                            {formData.businessId && <Check className="h-3.5 w-3.5 text-emerald-600 ml-1" />}
                           </Label>
                           {businesses.length > 0 ? (
-                            <div className="space-y-2">
-                              {businesses.map((biz) => (
-                                <div key={biz.id}
-                                  className={cn('flex items-center gap-3 p-3 rounded-xl border-2 cursor-pointer transition-all hover:border-primary/50',
-                                    formData.businessId === biz.id ? 'border-primary bg-primary/5' : 'border-transparent bg-muted/40')}
-                                  onClick={() => setFormData(prev => ({ ...prev, businessId: biz.id, businessName: biz.name }))}>
-                                  <div className={cn('flex items-center justify-center w-5 h-5 rounded-full border-2',
-                                    formData.businessId === biz.id ? 'border-primary bg-primary' : 'border-muted-foreground/40')}>
-                                    {formData.businessId === biz.id && <Check className="h-3 w-3 text-primary-foreground" />}
-                                  </div>
-                                  <div>
-                                    <p className="text-sm font-medium">{biz.name}</p>
-                                    <p className="text-xs text-muted-foreground">{biz.id}</p>
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
+                            <Select value={formData.businessId} onValueChange={(v) => {
+                              const b = businesses.find(x => x.id === v);
+                              setFormData(prev => ({ ...prev, businessId: v, businessName: b?.name || '' }));
+                            }}>
+                              <SelectTrigger><SelectValue placeholder="Select business" /></SelectTrigger>
+                              <SelectContent>
+                                {businesses.map((biz) => (
+                                  <SelectItem key={biz.id} value={biz.id}>{biz.name}</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
                           ) : (
-                            <div className="grid grid-cols-1 gap-2">
-                              <Input placeholder="Business ID" value={formData.businessId}
-                                onChange={(e) => setFormData(prev => ({ ...prev, businessId: e.target.value.trim() }))} />
-                              <Input placeholder="Business Name" value={formData.businessName}
-                                onChange={(e) => setFormData(prev => ({ ...prev, businessName: e.target.value }))} />
-                            </div>
+                            <Input placeholder="Business ID (optional)" value={formData.businessId}
+                              onChange={(e) => setFormData(prev => ({ ...prev, businessId: e.target.value.trim() }))} />
                           )}
                         </div>
-                      </div>
-                      {/* Pixel */}
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <div className="space-y-2">
-                          <Label className="text-sm flex items-center gap-1.5">
-                            <Monitor className="h-3.5 w-3.5 text-violet-600" /> Meta Pixel
-                          </Label>
-                          <Input placeholder="Pixel ID" value={formData.pixelId}
-                            onChange={(e) => setFormData(prev => ({ ...prev, pixelId: e.target.value.trim() }))} />
-                        </div>
-                        <div className="space-y-2">
-                          <Label className="text-sm">&nbsp;</Label>
-                          <Input placeholder="Pixel Name (optional)" value={formData.pixelName}
-                            onChange={(e) => setFormData(prev => ({ ...prev, pixelName: e.target.value }))} />
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          <div className="space-y-2">
+                            <Label className="text-sm flex items-center gap-1.5">
+                              <Monitor className="h-3.5 w-3.5 text-violet-600" /> Pixel ID
+                            </Label>
+                            <Input placeholder="123456789" value={formData.pixelId}
+                              onChange={(e) => setFormData(prev => ({ ...prev, pixelId: e.target.value.trim() }))} />
+                          </div>
+                          <div className="space-y-2">
+                            <Label className="text-sm">Pixel Name</Label>
+                            <Input placeholder="Optional" value={formData.pixelName}
+                              onChange={(e) => setFormData(prev => ({ ...prev, pixelName: e.target.value }))} />
+                          </div>
                         </div>
                       </div>
                     </div>
+                  )}
 
-                    {/* Step 4: WhatsApp Number */}
-                    <div className="p-4 sm:px-6 space-y-3">
-                      <div className="flex items-center gap-2">
-                        <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-primary text-primary-foreground text-sm font-bold">4</div>
-                        <Phone className="h-4 w-4 text-emerald-500" />
-                        <span className="text-sm font-semibold">WhatsApp Number</span>
-                        <span className="text-xs text-muted-foreground">(optional)</span>
-                        {formData.phoneNumberId && <Check className="h-4 w-4 text-emerald-600 ml-auto" />}
+                  {/* Step 4: WhatsApp Number */}
+                  {wizardStep === 4 && (
+                    <div className="space-y-4">
+                      <div>
+                        <h2 className="text-lg font-bold flex items-center gap-2">
+                          <Phone className="h-5 w-5 text-emerald-500" /> WhatsApp Number
+                        </h2>
+                        <p className="text-sm text-muted-foreground mt-0.5">Where Click-to-WhatsApp leads land. Optional but recommended.</p>
                       </div>
                       {phoneNumbers.length > 0 ? (
                         <div className="space-y-2">
@@ -942,33 +932,53 @@ export default function MetaAdsSetup() {
                               className={cn('flex items-center gap-3 p-3 rounded-xl border-2 cursor-pointer transition-all hover:border-primary/50',
                                 formData.phoneNumberId === phone.id ? 'border-primary bg-primary/5' : 'border-transparent bg-muted/40')}
                               onClick={() => setFormData(prev => ({ ...prev, phoneNumberId: phone.id, phoneDisplay: phone.display_number || '' }))}>
-                              <div className={cn('flex items-center justify-center w-5 h-5 rounded-full border-2',
+                              <div className={cn('flex items-center justify-center w-5 h-5 rounded-full border-2 shrink-0',
                                 formData.phoneNumberId === phone.id ? 'border-primary bg-primary' : 'border-muted-foreground/40')}>
                                 {formData.phoneNumberId === phone.id && <Check className="h-3 w-3 text-primary-foreground" />}
                               </div>
-                              <Phone className="h-4 w-4 text-emerald-500 flex-shrink-0" />
+                              <Phone className="h-4 w-4 text-emerald-500 shrink-0" />
                               <div className="flex-1 min-w-0"><p className="font-medium text-sm">{phone.display_number || phone.phone_number_id}</p></div>
-                              {phone.quality_rating === 'GREEN' && <Badge className="bg-emerald-100 text-emerald-700 text-xs">Active</Badge>}
+                              {phone.quality_rating === 'GREEN' && <Badge className="bg-emerald-100 text-emerald-700 text-[10px]">Active</Badge>}
                             </div>
                           ))}
                         </div>
                       ) : (
                         <Alert>
                           <Info className="h-4 w-4" />
-                          <AlertDescription className="text-sm">No WhatsApp numbers connected. Link one from WABA settings first.</AlertDescription>
+                          <AlertDescription className="text-sm">No WhatsApp numbers connected yet. You can skip and link one later.</AlertDescription>
                         </Alert>
                       )}
                     </div>
+                  )}
 
-                    {/* Complete Button */}
-                    <div className="p-4 sm:px-6 bg-muted/20 space-y-4">
-                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-sm">
-                        <div><p className="text-xs text-muted-foreground">Ad Account</p><p className="font-medium truncate">{formData.adAccountName || formData.adAccountId || '—'}</p></div>
-                        <div><p className="text-xs text-muted-foreground">Page</p><p className="font-medium truncate">{formData.pageName || '—'}</p></div>
-                        <div><p className="text-xs text-muted-foreground">WhatsApp</p><p className="font-medium truncate">{formData.phoneDisplay || '—'}</p></div>
-                        <div><p className="text-xs text-muted-foreground">Instagram</p><p className="font-medium truncate">{formData.instagramUsername ? `@${formData.instagramUsername}` : '—'}</p></div>
-                        <div><p className="text-xs text-muted-foreground">Business</p><p className="font-medium truncate">{formData.businessName || '—'}</p></div>
-                        <div><p className="text-xs text-muted-foreground">Live Sync</p><Badge variant={longLivedToken ? 'default' : 'secondary'} className="text-xs">{longLivedToken ? 'Enabled' : 'Manual'}</Badge></div>
+                  {/* Step 5: Review */}
+                  {wizardStep === 5 && (
+                    <div className="space-y-5">
+                      <div>
+                        <h2 className="text-lg font-bold flex items-center gap-2">
+                          <CheckCircle2 className="h-5 w-5 text-emerald-500" /> Review & connect
+                        </h2>
+                        <p className="text-sm text-muted-foreground mt-0.5">Confirm the assets below — you can edit anytime.</p>
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                        <AssetCard icon={BarChart3} label="Ad Account" iconColor="text-indigo-600"
+                          value={formData.adAccountName || formData.adAccountId || 'Not set'}
+                          sublabel={formData.adAccountId || undefined} connected={!!formData.adAccountId} />
+                        <AssetCard icon={Globe} label="Facebook Page" iconColor="text-blue-500"
+                          value={formData.pageName || 'Not set'}
+                          sublabel={formData.pageId || undefined} connected={!!formData.pageId} />
+                        <AssetCard icon={Instagram} label="Instagram" iconColor="text-pink-500"
+                          value={formData.instagramUsername ? `@${formData.instagramUsername}` : 'Skipped'}
+                          connected={!!formData.instagramAccountId} />
+                        <AssetCard icon={Building2} label="Business" iconColor="text-blue-600"
+                          value={formData.businessName || 'Skipped'}
+                          sublabel={formData.businessId || undefined} connected={!!formData.businessId} />
+                        <AssetCard icon={Monitor} label="Meta Pixel" iconColor="text-violet-600"
+                          value={formData.pixelName || formData.pixelId || 'Skipped'}
+                          connected={!!formData.pixelId} />
+                        <AssetCard icon={Phone} label="WhatsApp" iconColor="text-emerald-500"
+                          value={formData.phoneDisplay || 'Skipped'}
+                          connected={!!formData.phoneNumberId} />
                       </div>
                       <Alert className="border-blue-200 bg-blue-50 dark:bg-blue-950/30">
                         <Shield className="h-4 w-4 text-blue-600" />
@@ -976,16 +986,32 @@ export default function MetaAdsSetup() {
                           <strong>Privacy:</strong> AIREATRO only reads ad performance data. We never create or modify your ads.
                         </AlertDescription>
                       </Alert>
-                      <Button onClick={handleComplete} disabled={!canComplete || isConnecting} className="w-full gap-2 h-12 text-base shadow-lg shadow-primary/25" size="lg">
-                        {isConnecting ? <Loader2 className="h-5 w-5 animate-spin" /> : <CheckCircle2 className="h-5 w-5" />}
-                        Enable Click-to-WhatsApp Tracking
-                      </Button>
                     </div>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          )}
+                  )}
+                </CardContent>
+
+                {/* Footer nav */}
+                <div className="flex items-center justify-between gap-3 px-5 sm:px-7 py-4 border-t bg-muted/20">
+                  <Button type="button" variant="ghost" onClick={goBack} disabled={wizardStep === 0} className="gap-1.5">
+                    Back
+                  </Button>
+                  <p className="text-xs text-muted-foreground hidden sm:block">
+                    Step {wizardStep + 1} of {WIZARD_STEPS.length}
+                  </p>
+                  {wizardStep < 5 ? (
+                    <Button type="button" onClick={goNext} disabled={!stepValid[wizardStep]} className="gap-1.5">
+                      Continue <ArrowRight className="h-4 w-4" />
+                    </Button>
+                  ) : (
+                    <Button type="button" onClick={handleComplete} disabled={!canComplete || isConnecting} className="gap-2 shadow-lg shadow-primary/25">
+                      {isConnecting ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
+                      Finish & Connect
+                    </Button>
+                  )}
+                </div>
+              </Card>
+            );
+          })()}
         </div>
       </TooltipProvider>
     </DashboardLayout>
