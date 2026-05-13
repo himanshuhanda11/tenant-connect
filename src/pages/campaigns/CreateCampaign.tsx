@@ -1071,7 +1071,7 @@ export default function CreateCampaign() {
                     Save as Draft
                   </Button>
                   {(() => {
-                    const insufficientCredits = creditsBalance < audienceEstimatedCount;
+                    const insufficientCredits = costEstimate ? !costEstimate.sufficient : (creditsBalance < audienceEstimatedCount);
                     return (
                       <div className="flex items-center gap-3 w-full sm:w-auto">
                         {wizard.delivery.send_type === 'scheduled' ? (
