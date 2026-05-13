@@ -258,6 +258,30 @@ export function LeadFormsList() {
           ))}
         </div>
       )}
+
+      <AlertDialog open={!!backfillForm} onOpenChange={(open) => !open && !backfilling && setBackfillForm(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Backfill historical leads?</AlertDialogTitle>
+            <AlertDialogDescription className="space-y-2">
+              <span className="block">
+                This will fetch up to <strong>{backfillForm?.lead_count}</strong> historical leads from Meta for{' '}
+                <strong>{backfillForm?.form_name}</strong> and import them into your system.
+              </span>
+              <span className="block text-amber-700 dark:text-amber-400 text-xs">
+                ⚠️ Lead-form rules and auto-replies will <strong>NOT</strong> run — old contacts won't be spammed.
+                Leads already imported will be skipped automatically.
+              </span>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={backfilling}>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={(e) => { e.preventDefault(); handleBackfill(); }} disabled={backfilling}>
+              {backfilling ? <><Loader2 className="h-4 w-4 mr-1.5 animate-spin" />Backfilling…</> : 'Start Backfill'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
