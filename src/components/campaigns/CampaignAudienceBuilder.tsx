@@ -502,32 +502,6 @@ export default function CampaignAudienceBuilder({
           )}
         </Section>
 
-        {/* Tags */}
-        <Section icon={Tag} title="Tags" description="Include or exclude tagged contacts" badge={filters.include_tags.length} defaultOpen={false}>
-          <div>
-            <Label className="text-xs">Include tags</Label>
-            <div className="flex flex-wrap gap-1.5 mt-2">
-              {tags.length === 0 && <span className="text-xs text-muted-foreground">No tags yet.</span>}
-              {tags.map((t) => {
-                const on = filters.include_tags.includes(t.id);
-                return (
-                  <button
-                    key={t.id}
-                    type="button"
-                    onClick={() => toggleArray('include_tags', t.id)}
-                    className={cn(
-                      'text-xs rounded-full px-3 py-1 border transition',
-                      on ? 'bg-primary text-primary-foreground border-primary' : 'bg-background hover:bg-muted',
-                    )}
-                  >
-                    {t.name}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        </Section>
-
         {/* Team & Ownership */}
         <Section icon={Users} title="Team & Ownership" description="Assigned agent or unassigned contacts" badge={filters.assigned_agent ? 1 : 0} defaultOpen={true}>
           <div className="space-y-2">
