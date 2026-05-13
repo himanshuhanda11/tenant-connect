@@ -35,6 +35,7 @@ import {
   Trash2,
 } from 'lucide-react';
 import { LEAD_STATUS_OPTIONS, PRIORITY_OPTIONS, MAU_STATUS_OPTIONS } from '@/types/contact';
+import { INBOX_LEAD_STATUSES, INBOX_LEAD_STATUS_LABEL, SELECT_SENTINELS } from '@/lib/inboxLeadStatus';
 import { SegmentFilters } from '@/types/segment';
 import { cn } from '@/lib/utils';
 
