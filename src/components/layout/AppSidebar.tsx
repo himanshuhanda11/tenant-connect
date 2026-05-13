@@ -280,7 +280,7 @@ export function AppSidebar() {
             to={item.url}
             end={item.url === '/dashboard'}
             className={cn(
-              "group/menuitem relative flex items-center gap-2.5 px-2.5 py-[11px] sm:py-[9px] rounded-lg text-[14px] font-medium transition-all duration-200 ease-in-out",
+              "group/menuitem relative flex items-center gap-2.5 px-2.5 py-[11px] sm:py-[10px] rounded-lg text-[15px] font-bold transition-all duration-200 ease-in-out",
               isActive
                 ? "bg-sidebar-accent text-sidebar-accent-foreground shadow-[inset_0_0_0_1px_hsl(var(--sidebar-border))]"
                 : "text-sidebar-foreground hover:text-sidebar-accent-foreground hover:bg-sidebar-accent/70"
