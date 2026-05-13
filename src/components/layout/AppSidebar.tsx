@@ -280,7 +280,7 @@ export function AppSidebar() {
             to={item.url}
             end={item.url === '/dashboard'}
             className={cn(
-              "group/menuitem relative flex items-center gap-2.5 px-2.5 py-[11px] sm:py-[9px] rounded-lg text-[14px] font-medium transition-all duration-200 ease-in-out",
+              "group/menuitem relative flex items-center gap-2.5 px-2.5 py-[11px] sm:py-[10px] rounded-lg text-[15px] font-bold transition-all duration-200 ease-in-out",
               isActive
                 ? "bg-sidebar-accent text-sidebar-accent-foreground shadow-[inset_0_0_0_1px_hsl(var(--sidebar-border))]"
                 : "text-sidebar-foreground hover:text-sidebar-accent-foreground hover:bg-sidebar-accent/70"
@@ -349,7 +349,7 @@ export function AppSidebar() {
           <SidebarGroup>
            <CollapsibleTrigger asChild>
               <button className={cn(
-                "w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-[11px] font-semibold uppercase tracking-[0.08em] transition-all duration-200 ease-in-out border border-transparent",
+                "w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-[13px] font-bold uppercase tracking-[0.08em] transition-all duration-200 ease-in-out border border-transparent",
                 hasActiveItem
                   ? "text-sidebar-primary bg-sidebar-primary/5 border-sidebar-primary/15"
                   : "text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent/40"
