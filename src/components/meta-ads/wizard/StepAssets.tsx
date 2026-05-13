@@ -30,7 +30,7 @@ interface StepAssetsProps {
 }
 
 export function StepAssets({ draft, updateDraft }: StepAssetsProps) {
-  const { connectedAccounts } = useMetaAdAccounts();
+  const { connectedAccounts, campaigns } = useMetaAdAccounts();
   const config = CAMPAIGN_TYPE_CONFIG[draft.campaign_type];
   const account = connectedAccounts[0];
 
@@ -71,25 +71,39 @@ export function StepAssets({ draft, updateDraft }: StepAssetsProps) {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            {(Object.entries(CAMPAIGN_TYPE_CONFIG) as [MetaCampaignType, typeof config][]).map(([key, cfg]) => (
-              <button
-                key={key}
-                onClick={() => updateDraft({ campaign_type: key })}
-                className={cn(
-                  "relative flex flex-col items-start p-4 rounded-xl border-2 transition-all text-left",
-                  draft.campaign_type === key
-                    ? "border-primary bg-primary/5 ring-2 ring-primary/10"
-                    : "border-border hover:border-primary/30 hover:bg-muted/50"
-                )}
-              >
-                <span className="text-2xl mb-2">{cfg.icon}</span>
-                <span className="text-sm font-semibold">{cfg.label}</span>
-                <span className="text-xs text-muted-foreground mt-1">{cfg.description}</span>
-                {draft.campaign_type === key && (
-                  <CheckCircle2 className="absolute top-3 right-3 h-4 w-4 text-primary" />
-                )}
-              </button>
-            ))}
+            {(Object.entries(CAMPAIGN_TYPE_CONFIG) as [MetaCampaignType, typeof config][]).map(([key, cfg]) => {
+              const runningCount = getRunningCount(campaigns, key);
+              return (
+                <button
+                  key={key}
+                  onClick={() => updateDraft({ campaign_type: key })}
+                  className={cn(
+                    "relative flex flex-col items-start p-4 rounded-xl border-2 transition-all text-left",
+                    draft.campaign_type === key
+                      ? "border-primary bg-primary/5 ring-2 ring-primary/10"
+                      : "border-border hover:border-primary/30 hover:bg-muted/50"
+                  )}
+                >
+                  <span className="text-2xl mb-2">{cfg.icon}</span>
+                  <span className="text-sm font-semibold">{cfg.label}</span>
+                  <span className="text-xs text-muted-foreground mt-1">{cfg.description}</span>
+                  {draft.campaign_type === key && (
+                    <CheckCircle2 className="absolute top-3 right-3 h-4 w-4 text-primary" />
+                  )}
+                  {runningCount > 0 && (
+                    <div className="absolute top-3 left-3 flex items-center gap-1">
+                      <span className="relative flex h-2.5 w-2.5">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                        <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500" />
+                      </span>
+                      <Badge variant="outline" className="text-[9px] px-1.5 py-0 bg-emerald-50 text-emerald-700 border-emerald-200">
+                        {runningCount} running
+                      </Badge>
+                    </div>
+                  )}
+                </button>
+              );
+            })}
           </div>
         </CardContent>
       </Card>
