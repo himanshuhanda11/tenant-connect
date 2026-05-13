@@ -609,7 +609,7 @@ export default function CampaignAudienceBuilder({
                     <SelectTrigger className="h-9"><SelectValue placeholder="Select key" /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value={SELECT_SENTINELS.none}>Select key…</SelectItem>
-                      {attributeKeys.data?.map((k) => <SelectItem key={k} value={k}>{k}</SelectItem>)}
+                      {(attributeKeys || []).map((k) => <SelectItem key={k} value={k}>{k}</SelectItem>)}
                     </SelectContent>
                   </Select>
                 </div>
