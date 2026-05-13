@@ -259,11 +259,12 @@ export function ContactsAdvancedFilters({
             </div>
             <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain">
               <div className="p-4 pb-12 space-y-5">
-                {/* Lead State (CRM) */}
+                {/* Lead Status (CRM) — same statuses as Inbox */}
                 <div className="space-y-3">
                   <div className="flex items-center gap-2">
                     <Inbox className="h-4 w-4 text-muted-foreground" />
-                    <Label className="text-sm font-medium">Lead State (CRM)</Label>
+                    <Label className="text-sm font-medium">Lead Status</Label>
+                    <span className="text-[10px] text-muted-foreground ml-auto">Same as Inbox</span>
                   </div>
                   <div className="grid grid-cols-2 gap-2">
                     {LEAD_STATE_OPTIONS.map((opt) => (
@@ -284,86 +285,6 @@ export function ContactsAdvancedFilters({
                 </div>
 
                 <Separator />
-
-                {/* Lead Status */}
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2">
-                    <TrendingUp className="h-4 w-4 text-muted-foreground" />
-                    <Label className="text-sm font-medium">Lead Status</Label>
-                  </div>
-                  <div className="grid grid-cols-2 gap-2">
-                    {LEAD_STATUS_OPTIONS.map((opt) => (
-                      <div key={opt.value} className="flex items-center space-x-2">
-                        <Checkbox
-                          id={`lead-${opt.value}`}
-                          checked={filters.leadStatus?.includes(opt.value)}
-                          onCheckedChange={() => toggleArrayFilter('leadStatus', opt.value)}
-                        />
-                        <Label htmlFor={`lead-${opt.value}`} className="text-sm cursor-pointer">
-                          <Badge variant="secondary" className={cn(opt.color, "text-xs")}>
-                            {opt.label}
-                          </Badge>
-                        </Label>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <Separator />
-
-                {/* Priority */}
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2">
-                    <Users className="h-4 w-4 text-muted-foreground" />
-                    <Label className="text-sm font-medium">Priority Level</Label>
-                  </div>
-                  <div className="grid grid-cols-2 gap-2">
-                    {PRIORITY_OPTIONS.map((opt) => (
-                      <div key={opt.value} className="flex items-center space-x-2">
-                        <Checkbox
-                          id={`priority-${opt.value}`}
-                          checked={filters.priority?.includes(opt.value)}
-                          onCheckedChange={() => toggleArrayFilter('priority', opt.value)}
-                        />
-                        <Label htmlFor={`priority-${opt.value}`} className="text-sm cursor-pointer">
-                          <Badge variant="secondary" className={cn(opt.color, "text-xs")}>
-                            {opt.label}
-                          </Badge>
-                        </Label>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <Separator />
-
-                {/* MAU Status */}
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2">
-                    <Calendar className="h-4 w-4 text-muted-foreground" />
-                    <Label className="text-sm font-medium">MAU Status</Label>
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    {MAU_STATUS_OPTIONS.map((opt) => (
-                      <div key={opt.value} className="flex items-center space-x-2">
-                        <Checkbox
-                          id={`mau-${opt.value}`}
-                          checked={filters.mauStatus?.includes(opt.value)}
-                          onCheckedChange={() => toggleArrayFilter('mauStatus', opt.value)}
-                        />
-                        <Label htmlFor={`mau-${opt.value}`} className="text-sm cursor-pointer">
-                          <Badge variant="secondary" className={cn(opt.color, "text-xs")}>
-                            {opt.label}
-                          </Badge>
-                        </Label>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <Separator />
-
-                {/* Tags */}
                 {availableTags.length > 0 && (
                   <>
                     <div className="space-y-3">
