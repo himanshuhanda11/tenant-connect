@@ -221,29 +221,30 @@ export function InboxCRMOverview({ conversation, onStatusChanged }: InboxCRMOver
 
         {/* Quick Actions */}
         <div className="space-y-2.5">
-          <h4 className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-            Quick Actions
-          </h4>
+          <div className="flex items-center justify-between gap-2">
+            <h4 className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+              Quick Actions
+            </h4>
+            <Badge variant="outline" className={cn("text-[10px] px-2 py-0.5", currentConfig.bgColor, currentConfig.color)}>
+              {currentConfig.label}
+            </Badge>
+          </div>
           <div className="grid grid-cols-2 gap-1.5">
             {quickActions.map(action => {
-              const isCurrentStatus = conversation.crm_status === action.status;
+              const isCurrentStatus = currentStatus === action.status;
+              const isBusy = busy === action.status;
               return (
                 <Button
                   key={action.status}
+                  type="button"
                   variant={isCurrentStatus ? "default" : action.variant as any || "outline"}
                   size="sm"
                   className={cn(
                     "h-auto min-h-[38px] w-full items-start justify-start gap-1.5 px-1.5 py-1.5 text-[10px] leading-tight whitespace-normal",
                     isCurrentStatus && "ring-2 ring-primary/30"
                   )}
-                  onClick={() => {
-                    if (action.status !== 'follow_up_required' && action.status !== 'junk') {
-                      updateStatus(conversation.id, action.status).then(ok => {
-                        if (ok) onStatusChanged?.();
-                      });
-                    }
-                  }}
-                  disabled={isCurrentStatus}
+                  onClick={() => handleQuickAction(action.status)}
+                  disabled={isCurrentStatus || isBusy}
                 >
                   <span className="mt-0.5 flex-shrink-0">{action.icon}</span>
                   <span className="min-w-0 flex-1 text-left leading-tight break-words [overflow-wrap:anywhere]">
@@ -255,6 +256,76 @@ export function InboxCRMOverview({ conversation, onStatusChanged }: InboxCRMOver
           </div>
         </div>
       </div>
+
+      {/* Follow-up Dialog */}
+      <Dialog open={followupDialog} onOpenChange={setFollowupDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Schedule Follow-up</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label className="text-xs font-medium">Follow-up Date</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className={cn("w-full justify-start text-left font-normal mt-1", !followupDate && "text-muted-foreground")}>
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {followupDate ? format(followupDate, 'PPP') : 'Pick a date'}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <DatePicker
+                    mode="single"
+                    selected={followupDate}
+                    onSelect={setFollowupDate}
+                    initialFocus
+                    className="p-3 pointer-events-auto"
+                    disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+            <div>
+              <Label className="text-xs font-medium">Notes</Label>
+              <Textarea
+                placeholder="Add follow-up notes..."
+                value={followupNotes}
+                onChange={e => setFollowupNotes(e.target.value)}
+                className="mt-1"
+                rows={3}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setFollowupDialog(false)}>Cancel</Button>
+            <Button onClick={handleFollowupConfirm} disabled={!followupDate}>Confirm</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Junk Dialog */}
+      <Dialog open={junkDialog} onOpenChange={setJunkDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Mark as Junk</DialogTitle>
+          </DialogHeader>
+          <div>
+            <Label className="text-xs font-medium">Reason</Label>
+            <RadioGroup value={junkReason} onValueChange={setJunkReason} className="mt-2 space-y-2">
+              {JUNK_REASONS.map(r => (
+                <div key={r.value} className="flex items-center gap-2">
+                  <RadioGroupItem value={r.value} id={`qa-${r.value}`} />
+                  <Label htmlFor={`qa-${r.value}`} className="text-sm font-normal cursor-pointer">{r.label}</Label>
+                </div>
+              ))}
+            </RadioGroup>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setJunkDialog(false)}>Cancel</Button>
+            <Button variant="destructive" onClick={handleJunkConfirm} disabled={!junkReason}>Mark as Junk</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
