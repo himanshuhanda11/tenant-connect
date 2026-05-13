@@ -416,8 +416,8 @@ export function InboxChatThread({
             {!isMobile && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="sm" className="h-7 text-xs gap-1 text-muted-foreground hover:text-foreground">
-                    <ArrowRightLeft className="h-3 w-3" /> Transfer
+                  <Button variant="ghost" size="sm" className="h-7 text-xs gap-1 text-muted-foreground hover:text-foreground px-2">
+                    <ArrowRightLeft className="h-3 w-3" /> <span className="hidden xl:inline">Transfer</span>
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-52 p-1">
