@@ -18,7 +18,7 @@ import { useInboxNotification } from '@/hooks/useInboxNotification';
 import { InboxView, InboxFilters, INBOX_VIEW_CONFIG, ConversationStatus } from '@/types/inbox';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { ArrowLeft, Info } from 'lucide-react';
+import { ArrowLeft, Info, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -283,7 +283,7 @@ export default function InboxPage() {
         <div className="absolute inset-0 flex overflow-hidden min-h-0">
           {/* Left: Conversation List */}
           <div
-            className="w-[280px] xl:w-[320px] flex-shrink-0 h-full min-h-0"
+            className="w-[240px] lg:w-[280px] xl:w-[300px] 2xl:w-[320px] flex-shrink-0 h-full min-h-0"
           >
             <InboxConversationListV2
               conversations={filteredConversations}
@@ -326,6 +326,7 @@ export default function InboxPage() {
               availableTags={actions.availableTags}
               teamMembers={actions.teamMembers}
               viewerName={viewerName}
+              onShowInfo={toggleContextPanel}
             />
           </motion.div>
 
@@ -334,7 +335,7 @@ export default function InboxPage() {
             initial={{ opacity: 0, x: 12 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.2, delay: 0.1 }}
-            className="w-[300px] xl:w-[340px] flex-shrink-0 flex-grow-0"
+            className="hidden xl:block w-[280px] 2xl:w-[320px] flex-shrink-0 flex-grow-0"
           >
             <InboxContextPanel
               conversation={selectedConversation}
@@ -346,6 +347,37 @@ export default function InboxPage() {
               availableTags={actions.availableTags}
             />
           </motion.div>
+
+          <AnimatePresence>
+            {showContextPanel && (
+              <motion.div
+                initial={{ opacity: 0, x: 24 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 24 }}
+                transition={{ duration: 0.18 }}
+                className="absolute inset-y-0 right-0 z-30 w-[340px] max-w-[calc(100%-240px)] bg-card shadow-2xl xl:hidden"
+              >
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={toggleContextPanel}
+                  className="absolute right-2 top-2 z-10 h-8 w-8 bg-card/80 shadow-sm backdrop-blur"
+                  aria-label="Close contact details"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+                <InboxContextPanel
+                  conversation={selectedConversation}
+                  events={events}
+                  notes={notes}
+                  onAddNote={addNote}
+                  onAddTag={handleAddTag}
+                  onRemoveTag={handleRemoveTag}
+                  availableTags={actions.availableTags}
+                />
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </TooltipProvider>
     </DashboardLayout>
