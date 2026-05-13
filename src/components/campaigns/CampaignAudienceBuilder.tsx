@@ -428,6 +428,8 @@ export default function CampaignAudienceBuilder({
                       ? 'Last estimate failed — showing previous result.'
                       : estimate.loading
                       ? 'Recalculating with your latest filters…'
+                      : chips.length === 0 && !usingDirectContacts
+                      ? `No filters applied — all ${estimate.total.toLocaleString()} eligible ${estimate.total === 1 ? 'contact is' : 'contacts are'} auto-selected.`
                       : `Matches ${estimate.total.toLocaleString()} ${estimate.total === 1 ? 'contact' : 'contacts'} in this workspace.`}
                   </p>
                 )}

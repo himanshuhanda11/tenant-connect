@@ -269,6 +269,7 @@ export default function CreateCampaign() {
           wizard,
           audienceFilters,
           currentStep,
+          audienceEstimatedCount,
           savedAt: new Date().toISOString(),
         };
         localStorage.setItem(draftKey, JSON.stringify(payload));
@@ -278,7 +279,7 @@ export default function CreateCampaign() {
       }
     }, 800);
     return () => clearTimeout(t);
-  }, [wizard, audienceFilters, currentStep, draftKey, draftLoaded]);
+  }, [wizard, audienceFilters, currentStep, audienceEstimatedCount, draftKey, draftLoaded]);
 
   useEffect(() => {
     const fetchSelectedContacts = async () => {
