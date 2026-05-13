@@ -454,6 +454,18 @@ export default function LeadFormsPage() {
                             </Button>
                           </div>
                         )}
+                        {isPermIssue && (
+                          <div className="mt-1.5 space-y-1 text-[11px] text-muted-foreground">
+                            <p className="text-foreground"><strong>Manual subscribe (no extra permission needed):</strong></p>
+                            <ol className="list-decimal pl-4 space-y-0.5">
+                              <li>Open <a href="https://developers.facebook.com/apps/" target="_blank" rel="noreferrer" className="underline text-primary">Meta App Dashboard</a> → your app → <em>Webhooks</em>.</li>
+                              <li>Select the <strong>Page</strong> product → click <strong>Subscribe to this object</strong>.</li>
+                              <li>Log in as the Page admin for <strong>{r.page_name}</strong> (ID <span className="font-mono">{r.page_id}</span>) and select it.</li>
+                              <li>Tick the <strong>leadgen</strong> field and save. New leads will start flowing immediately.</li>
+                            </ol>
+                            <p className="pt-1">Alternative: in <a href="https://business.facebook.com/settings/pages" target="_blank" rel="noreferrer" className="underline text-primary">Business Settings → Pages</a>, open the Page → <em>Connected apps</em> → add this app and enable <em>leadgen</em>.</p>
+                          </div>
+                        )}
                       </div>
                       {r.success ? (
                         <Badge variant="outline" className="shrink-0 text-[10px] h-5 text-emerald-600 border-emerald-300 bg-emerald-50 dark:bg-emerald-950/30">
