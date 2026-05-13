@@ -20,6 +20,7 @@ export default function Footer() {
       { name: 'Audit Logs', href: '/features/audit-logs' },
       { name: 'Products', href: '/products' },
       { name: 'Pricing', href: '/pricing' },
+      { name: 'Message Pricing', href: '/message-pricing' },
     ],
     solutions: [
       { name: 'WhatsApp Business API', href: '/whatsapp-business-api' },
