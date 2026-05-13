@@ -168,6 +168,7 @@ export default function MessagePricing() {
       !q ||
       x.country_name.toLowerCase().includes(q) ||
       x.country_code.toLowerCase().includes(q) ||
+      x.currency_code.toLowerCase().includes(q) ||
       (DIAL[x.country_code] || '').includes(q),
     );
     if (tab !== 'all') r = r.filter((x) => x[tab] != null);
@@ -240,7 +241,7 @@ export default function MessagePricing() {
                   Country-wise Rates
                 </CardTitle>
                 <CardDescription className="text-xs">
-                  Credits per delivered conversation. Search any country or dial code.
+                  Local currency estimate per delivered conversation, with Aireatro credits shown below.
                 </CardDescription>
               </div>
               <div className="relative w-full sm:w-72">
@@ -314,6 +315,7 @@ export default function MessagePricing() {
                             <div className="flex items-center gap-2">
                               <span className="font-medium">{r.country_name}</span>
                               <Badge variant="outline" className="text-[9px] px-1 h-4">{r.country_code}</Badge>
+                              <Badge variant="secondary" className="text-[9px] px-1 h-4">{r.currency_code}</Badge>
                             </div>
                           </TableCell>
                           <TableCell className="text-xs text-muted-foreground tabular-nums">{DIAL[r.country_code] || '—'}</TableCell>
