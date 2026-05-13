@@ -248,7 +248,14 @@ export function AdminCreditAdjustments() {
                 ) : txs.map((t) => (
                   <TableRow key={t.id}>
                     <TableCell className="text-xs">{format(new Date(t.created_at), "MMM d, HH:mm")}</TableCell>
-                    <TableCell><Badge variant="outline" className="text-[10px] capitalize">{t.type}</Badge></TableCell>
+                    <TableCell>
+                      <div className="flex flex-col gap-0.5">
+                        <Badge variant="outline" className="text-[10px] capitalize w-fit">{t.type}</Badge>
+                        {t.metadata?.category && t.metadata.category !== t.type ? (
+                          <span className="text-[9px] text-muted-foreground capitalize">{t.metadata.category.replace("_", " ")}</span>
+                        ) : null}
+                      </div>
+                    </TableCell>
                     <TableCell className={`text-right tabular-nums text-xs font-medium ${t.amount > 0 ? "text-emerald-600" : "text-rose-600"}`}>{t.amount > 0 ? "+" : ""}{t.amount}</TableCell>
                     <TableCell className="text-right tabular-nums text-xs">{t.balance_after}</TableCell>
                     <TableCell className="text-xs text-muted-foreground truncate max-w-[260px]">{t.description}</TableCell>
