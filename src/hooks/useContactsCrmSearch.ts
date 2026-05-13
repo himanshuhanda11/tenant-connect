@@ -113,12 +113,13 @@ export function useContactsCrmSearch() {
         if (validAttrs.length > 0) params.p_attributes = JSON.stringify(validAttrs);
       }
 
-      // Fetch contacts and count in parallel
+      // Fetch contacts and count in parallel.
+      // Use 'estimated' count to avoid statement timeouts on large tenants.
       const [dataResult, countResult] = await Promise.all([
         (supabase as any).rpc('contacts_crm_search', params),
         supabase
           .from('contacts')
-          .select('id', { count: 'exact', head: true })
+          .select('id', { count: 'estimated', head: true })
           .eq('tenant_id', currentTenant.id),
       ]);
 
@@ -131,14 +132,31 @@ export function useContactsCrmSearch() {
       }));
 
       setContacts(parsed);
-      const nextTotal = (countResult.count !== null && countResult.count !== undefined)
-        ? countResult.count
-        : (parsed.length === pageSize ? (page + 2) * pageSize : page * pageSize + parsed.length);
+
+      // Prefer the exact/estimated count from the count query; if it failed
+      // (e.g. statement timeout), keep the previous known total when possible
+      // and only fall back to a derived value when we have nothing.
+      let nextTotal: number;
+      if (countResult.count !== null && countResult.count !== undefined) {
+        // Estimated count can be 0 on fresh stats — if we actually got rows,
+        // use a derived lower bound instead so the header doesn't show 0.
+        const derivedMin = page * pageSize + parsed.length;
+        nextTotal = Math.max(countResult.count, derivedMin);
+      } else if (totalCount > 0) {
+        nextTotal = totalCount;
+      } else {
+        nextTotal = parsed.length < pageSize
+          ? page * pageSize + parsed.length
+          : (page + 2) * pageSize;
+      }
       setTotalCount(nextTotal);
       if (cacheKey) contactsCache.set(cacheKey, { contacts: parsed, totalCount: nextTotal, ts: Date.now() });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error in contacts_crm_search:', error);
-      if (!isBackground) toast.error('Failed to load contacts');
+      // Don't spam toast on background refetches or transient DB timeouts —
+      // the UI keeps showing cached data in those cases.
+      const isTimeout = error?.code === '57014' || /timeout/i.test(error?.message || '');
+      if (!isBackground && !isTimeout) toast.error('Failed to load contacts');
     } finally {
       setLoading(false);
     }
