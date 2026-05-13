@@ -767,8 +767,8 @@ export default function CreateCampaign() {
                   onEstimatedCountChange={setAudienceEstimatedCount}
                 />
 
-                {/* Live country-wise credit estimate as soon as audience is picked */}
-                <BroadcastCostPreview
+                {/* Premium compact credit estimate (country breakdown lives on /message-pricing) */}
+                <CampaignCreditEstimateCard
                   tenantId={currentTenant?.id}
                   contactIds={(audienceFilters.selected_contacts?.length ? audienceFilters.selected_contacts : audienceFilters.matched_contact_ids) || []}
                   templateCategory={(templates.find(t => t.id === wizard.message.template_id)?.category as string) || 'marketing'}
