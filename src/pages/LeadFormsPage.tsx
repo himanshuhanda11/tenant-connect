@@ -246,6 +246,34 @@ export default function LeadFormsPage() {
           </CardContent>
         </Card>
 
+        {/* One-click Subscribe All Webhooks */}
+        {hasLeadsRetrieval && hasPage && unsubscribedPagesCount > 0 && (
+          <Card className="border-amber-300 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/20">
+            <CardContent className="p-4 flex flex-col sm:flex-row sm:items-center gap-3">
+              <div className="shrink-0 w-10 h-10 rounded-full bg-amber-100 dark:bg-amber-900/40 flex items-center justify-center">
+                <Webhook className="h-5 w-5 text-amber-700 dark:text-amber-400" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-amber-900 dark:text-amber-200">
+                  {unsubscribedPagesCount} page{unsubscribedPagesCount === 1 ? '' : 's'} not subscribed to leadgen webhooks
+                </p>
+                <p className="text-xs text-amber-700 dark:text-amber-400 mt-0.5">
+                  New leads won't arrive in real-time until you subscribe. Click below to subscribe all pages at once.
+                </p>
+              </div>
+              <Button
+                size="sm"
+                disabled={subscribingAll}
+                onClick={handleSubscribeAll}
+                className="w-full sm:w-auto shrink-0 bg-amber-600 hover:bg-amber-700 text-white"
+              >
+                {subscribingAll ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> : <Webhook className="h-4 w-4 mr-1.5" />}
+                {subscribingAll ? 'Subscribing…' : 'Subscribe all to webhook'}
+              </Button>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Stats Grid */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
           {stats.map((stat) => (
