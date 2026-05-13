@@ -438,6 +438,14 @@ export default function CampaignAudienceBuilder({
           : attributeIds;
       }
 
+      if (allowedIds && allowedIds.size === 0) {
+        onEstimatedCountChange(0);
+        if (filters.matched_contact_ids.length > 0) {
+          setFilters({ ...filters, matched_contact_ids: [] });
+        }
+        return;
+      }
+
       if (filters.is_unreplied !== 'all' || filters.exclude_recent_days > 0 || filters.assigned_agent) {
         let summaryQuery = supabase
           .from('contact_inbox_summary')
@@ -510,7 +518,9 @@ export default function CampaignAudienceBuilder({
       for (let from = 0; ; from += PAGE_SIZE) {
         const { data, error } = await buildQuery().range(from, from + PAGE_SIZE - 1);
         if (error) throw error;
-        const ids = (data || []).map((row) => row.id).filter(Boolean);
+        const ids = (data || [])
+          .map((row) => row.id)
+          .filter((id) => Boolean(id) && (!allowedIds || allowedIds.has(id)) && !excludedIds.has(id));
         contactIds.push(...ids);
         if (!data || data.length < PAGE_SIZE) break;
       }
