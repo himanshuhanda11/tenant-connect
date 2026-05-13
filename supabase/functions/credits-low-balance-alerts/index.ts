@@ -67,7 +67,7 @@ Deno.serve(async (req) => {
 
     const { data: wallets, error } = await sb
       .from("message_credits")
-      .select("tenant_id, balance, low_balance_alert_sent_at, tenants:tenant_id(name, owner_user_id)")
+      .select("tenant_id, balance, low_balance_alert_sent_at, tenants:tenant_id(name)")
       .lt("balance", LOW_THRESHOLD)
       .gt("balance", 0)
       .or(`low_balance_alert_sent_at.is.null,low_balance_alert_sent_at.lt.${cooldownIso}`);
@@ -76,8 +76,15 @@ Deno.serve(async (req) => {
 
     let sent = 0;
     for (const w of wallets || []) {
-      const ownerId = (w as any).tenants?.owner_user_id;
       const wsName = (w as any).tenants?.name || "Your workspace";
+      // Find an admin/owner of this workspace
+      const { data: members } = await sb
+        .from("tenant_members")
+        .select("user_id, role")
+        .eq("tenant_id", w.tenant_id)
+        .in("role", ["owner", "admin"])
+        .limit(1);
+      const ownerId = members?.[0]?.user_id;
       if (!ownerId) continue;
       const { data: u } = await sb.auth.admin.getUserById(ownerId);
       const email = u?.user?.email;
