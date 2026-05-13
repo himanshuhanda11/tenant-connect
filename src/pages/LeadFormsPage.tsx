@@ -6,16 +6,17 @@ import { LeadFormRulesPanel } from '@/components/lead-forms/LeadFormRulesPanel';
 import { WebhookHealthPanel } from '@/components/lead-forms/WebhookHealthPanel';
 import { LeadEventsLog } from '@/components/lead-forms/LeadEventsLog';
 import { SEO } from '@/components/seo';
-import { FileText, Zap, Activity, ScrollText, ArrowDownToLine, AlertTriangle, CheckCircle2, XCircle, RefreshCw, ExternalLink, Shield, ShieldAlert, Facebook } from 'lucide-react';
+import { FileText, Zap, Activity, ScrollText, ArrowDownToLine, AlertTriangle, CheckCircle2, XCircle, RefreshCw, ExternalLink, Shield, ShieldAlert, Facebook, Webhook, Loader2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useLeadForms, useLeadFormRules, useLeadEvents, useWebhookHealth } from '@/hooks/useLeadForms';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useTenant } from '@/contexts/TenantContext';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 
 const REQUIRED_META_SCOPES = [
   'ads_read',
