@@ -87,6 +87,7 @@ export interface AudienceFilters {
   include_tags: string[];
   exclude_tags: string[];
   selected_contacts: string[];
+  matched_contact_ids: string[];
   // Advanced filters
   assigned_agent: string;
   lead_states: string[];
@@ -165,6 +166,7 @@ export const DEFAULT_AUDIENCE_FILTERS: AudienceFilters = {
   include_tags: [],
   exclude_tags: [],
   selected_contacts: [],
+  matched_contact_ids: [],
   assigned_agent: '',
   lead_states: [],
   crm_statuses: [],
@@ -180,6 +182,11 @@ export const DEFAULT_AUDIENCE_FILTERS: AudienceFilters = {
   exclude_recent_days: 0,
   opt_in_only: true,
 };
+
+const PAGE_SIZE = 1000;
+
+const areStringArraysEqual = (a: string[], b: string[]) =>
+  a.length === b.length && a.every((value, index) => value === b[index]);
 
 const parseLocalDate = (dateValue: string): Date | null => {
   if (!dateValue) return null;
@@ -343,55 +350,36 @@ export default function CampaignAudienceBuilder({
   const estimateAudience = useCallback(async () => {
     if (!currentTenant?.id) return;
 
-    const hasAdvancedFilters =
-      filters.include_segments.length > 0 ||
-      filters.exclude_segments.length > 0 ||
-      filters.include_tags.length > 0 ||
-      filters.exclude_tags.length > 0 ||
-      filters.assigned_agent !== '' ||
-      filters.lead_states.length > 0 ||
-      filters.crm_statuses.length > 0 ||
-      filters.mau_statuses.length > 0 ||
-      filters.priorities.length > 0 ||
-      filters.date_from !== '' ||
-      filters.date_to !== '' ||
-      filters.meta_campaign_source !== '' ||
-      filters.flow_source !== '' ||
-      filters.contact_source !== '' ||
-      filters.attributes.some((a) => a.key && a.value) ||
-      filters.is_unreplied !== 'all' ||
-      filters.exclude_recent_days > 0;
-
-    // Keep imported direct contacts only when no advanced filter is active
-    if (filters.selected_contacts.length > 0 && !hasAdvancedFilters) {
+    // Uploaded/direct contacts are already an explicit recipient list.
+    if (filters.selected_contacts.length > 0) {
       onEstimatedCountChange(filters.selected_contacts.length);
+      if (filters.matched_contact_ids.length > 0) {
+        setFilters({ ...filters, matched_contact_ids: [] });
+      }
       return;
     }
 
     setIsEstimating(true);
     try {
-      let query = supabase
-        .from('contacts')
-        .select('id', { count: 'exact', head: true })
-        .eq('tenant_id', currentTenant.id);
+      const buildQuery = () => {
+        let query = supabase
+          .from('contacts')
+          .select('id')
+          .eq('tenant_id', currentTenant.id);
 
-      if (filters.opt_in_only) {
-        query = query.eq('opt_out', false);
-      }
-      if (filters.mau_statuses.length > 0) query = query.in('mau_status', filters.mau_statuses as any);
-      if (filters.priorities.length > 0) query = query.in('priority_level', filters.priorities as any);
-      if (filters.lead_states.length > 0) query = query.in('lead_status', filters.lead_states as any);
-      if (filters.crm_statuses.length > 0) query = query.in('deal_stage', filters.crm_statuses as any);
-      if (filters.assigned_agent) query = query.eq('assigned_agent_id', filters.assigned_agent);
-      if (filters.contact_source) query = query.eq('source', filters.contact_source);
-      if (filters.flow_source) query = query.eq('automation_flow', filters.flow_source);
-      if (filters.meta_campaign_source) query = query.eq('campaign_source', filters.meta_campaign_source);
+        if (filters.opt_in_only) query = query.eq('opt_out', false);
+        if (filters.mau_statuses.length > 0) query = query.in('mau_status', filters.mau_statuses as any);
+        if (filters.priorities.length > 0) query = query.in('priority_level', filters.priorities as any);
+        if (filters.lead_states.length > 0) query = query.in('lead_status', filters.lead_states as any);
+        if (filters.crm_statuses.length > 0) query = query.in('deal_stage', filters.crm_statuses as any);
+        if (filters.assigned_agent) query = query.eq('assigned_agent_id', filters.assigned_agent);
+        if (filters.contact_source) query = query.eq('source', filters.contact_source);
+        if (filters.flow_source) query = query.eq('automation_flow', filters.flow_source);
+        if (filters.meta_campaign_source) query = query.eq('campaign_source', filters.meta_campaign_source);
 
-      const selectedSegments = segments.filter((segment) => filters.include_segments.includes(segment.id));
-      const selectedSegmentNames = selectedSegments.map((segment) => segment.name).filter(Boolean);
-      if (selectedSegmentNames.length > 0) {
-        query = query.in('segment', selectedSegmentNames);
-      }
+        const selectedSegments = segments.filter((segment) => filters.include_segments.includes(segment.id));
+        const selectedSegmentNames = selectedSegments.map((segment) => segment.name).filter(Boolean);
+        if (selectedSegmentNames.length > 0) query = query.in('segment', selectedSegmentNames);
 
       let normalizedDateFrom = filters.date_from;
       let normalizedDateTo = filters.date_to;
@@ -406,30 +394,45 @@ export default function CampaignAudienceBuilder({
       const fromBoundaryUtc = getLocalDayStartUtc(normalizedDateFrom);
       const toBoundaryUtc = getLocalDayEndExclusiveUtc(normalizedDateTo);
 
-      if (fromBoundaryUtc) query = query.gte('created_at', fromBoundaryUtc);
-      if (toBoundaryUtc) query = query.lt('created_at', toBoundaryUtc);
+        if (fromBoundaryUtc) query = query.gte('created_at', fromBoundaryUtc);
+        if (toBoundaryUtc) query = query.lt('created_at', toBoundaryUtc);
+
+        return query.order('created_at', { ascending: false });
+      };
 
       let segmentCount: number | null = null;
       if (filters.include_segments.length > 0) {
+        const selectedSegments = segments.filter((segment) => filters.include_segments.includes(segment.id));
         segmentCount = selectedSegments.reduce((total, segment) => total + (segment.contact_count || 0), 0);
       }
 
-      const { count, error } = await query;
-      if (error) throw error;
+      const contactIds: string[] = [];
+      for (let from = 0; ; from += PAGE_SIZE) {
+        const { data, error } = await buildQuery().range(from, from + PAGE_SIZE - 1);
+        if (error) throw error;
+        const ids = (data || []).map((row) => row.id).filter(Boolean);
+        contactIds.push(...ids);
+        if (!data || data.length < PAGE_SIZE) break;
+      }
 
-      const filteredCount = count || 0;
+      const filteredCount = contactIds.length;
 
       if (segmentCount !== null) {
         onEstimatedCountChange(filteredCount > 0 ? Math.min(segmentCount, filteredCount) : segmentCount);
       } else {
         onEstimatedCountChange(filteredCount);
       }
+
+      if (!areStringArraysEqual(filters.matched_contact_ids, contactIds)) {
+        setFilters({ ...filters, matched_contact_ids: contactIds });
+      }
     } catch (err) {
       console.error('Audience estimation error:', err);
+      onEstimatedCountChange(0);
     } finally {
       setIsEstimating(false);
     }
-  }, [currentTenant?.id, filters, segments, onEstimatedCountChange]);
+  }, [currentTenant?.id, filters, segments, onEstimatedCountChange, setFilters]);
 
   useEffect(() => {
     const timer = setTimeout(estimateAudience, 400);
@@ -437,7 +440,11 @@ export default function CampaignAudienceBuilder({
   }, [estimateAudience]);
 
   const updateFilter = <K extends keyof AudienceFilters>(key: K, value: AudienceFilters[K]) => {
-    setFilters({ ...filters, [key]: value });
+    setFilters({
+      ...filters,
+      [key]: value,
+      matched_contact_ids: key === 'matched_contact_ids' ? (value as string[]) : [],
+    });
   };
 
   const toggleInArray = (key: 'include_segments' | 'exclude_segments' | 'include_tags' | 'exclude_tags' | 'lead_states' | 'crm_statuses' | 'mau_statuses' | 'priorities', value: string) => {
@@ -751,7 +758,7 @@ export default function CampaignAudienceBuilder({
                       type="date"
                       value={filters.date_from}
                       onChange={(e) => updateFilter('date_from', e.target.value)}
-                      className="h-9 text-sm text-foreground bg-background [color-scheme:light] dark:[color-scheme:dark] [&::-webkit-calendar-picker-indicator]:opacity-70 [&::-webkit-calendar-picker-indicator]:cursor-pointer"
+                      className="h-9 min-w-0 text-sm font-medium text-foreground bg-card border-input [color-scheme:light] dark:[color-scheme:dark] [&::-webkit-date-and-time-value]:text-foreground [&::-webkit-datetime-edit]:text-foreground [&::-webkit-calendar-picker-indicator]:opacity-70 [&::-webkit-calendar-picker-indicator]:cursor-pointer"
                     />
                   </div>
                   <div className="space-y-1">
@@ -760,7 +767,7 @@ export default function CampaignAudienceBuilder({
                       type="date"
                       value={filters.date_to}
                       onChange={(e) => updateFilter('date_to', e.target.value)}
-                      className="h-9 text-sm text-foreground bg-background [color-scheme:light] dark:[color-scheme:dark] [&::-webkit-calendar-picker-indicator]:opacity-70 [&::-webkit-calendar-picker-indicator]:cursor-pointer"
+                      className="h-9 min-w-0 text-sm font-medium text-foreground bg-card border-input [color-scheme:light] dark:[color-scheme:dark] [&::-webkit-date-and-time-value]:text-foreground [&::-webkit-datetime-edit]:text-foreground [&::-webkit-calendar-picker-indicator]:opacity-70 [&::-webkit-calendar-picker-indicator]:cursor-pointer"
                     />
                   </div>
                 </div>

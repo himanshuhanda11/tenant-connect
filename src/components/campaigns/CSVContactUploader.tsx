@@ -39,6 +39,8 @@ const SAMPLE_CSV = `phone,name,email,city,custom_1,custom_2,tags
 +919876543210,Aman Kumar,aman@example.com,Mumbai,VIP,Order#1234,vip;repeat
 +14155552671,Sara Khan,sara@example.com,New York,Gold,Order#5678,gold`;
 
+const SAMPLE_CSV_HREF = `data:text/csv;charset=utf-8,${encodeURIComponent(SAMPLE_CSV)}`;
+
 export function CSVContactUploader({ onImported, defaultCountry = 'IN' }: Props) {
   const { currentTenant } = useTenant();
   const fileRef = useRef<HTMLInputElement>(null);
@@ -67,10 +69,6 @@ export function CSVContactUploader({ onImported, defaultCountry = 'IN' }: Props)
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
     }, 100);
-  };
-
-  const downloadSample = () => {
-    triggerDownload('broadcast-sample.csv', SAMPLE_CSV);
   };
 
   const downloadInvalid = () => {
@@ -222,9 +220,11 @@ export function CSVContactUploader({ onImported, defaultCountry = 'IN' }: Props)
               Required column: <code className="px-1 bg-muted rounded">phone</code>. Optional: name, email, custom_1, etc. Numbers are normalized to E.164.
             </p>
           </div>
-          <Button variant="ghost" size="sm" onClick={downloadSample}>
-            <Download className="h-3.5 w-3.5 mr-1.5" />
-            Sample
+          <Button variant="ghost" size="sm" asChild>
+            <a href={SAMPLE_CSV_HREF} download="broadcast-sample.csv">
+              <Download className="h-3.5 w-3.5 mr-1.5" />
+              Sample CSV
+            </a>
           </Button>
         </div>
 
