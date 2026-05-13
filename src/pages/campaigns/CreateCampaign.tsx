@@ -1020,6 +1020,9 @@ export default function CreateCampaign() {
                   </Card>
                 </div>
 
+                {/* Message Credits Gate */}
+                <CampaignCreditGate requiredCredits={audienceEstimatedCount} />
+
                 {/* Compliance Checklist */}
                 <Card className="bg-green-50 border-green-200">
                   <CardHeader className="pb-2">
