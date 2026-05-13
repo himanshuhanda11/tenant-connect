@@ -402,6 +402,63 @@ export default function CampaignAudienceBuilder({
 
     setIsEstimating(true);
     try {
+      let allowedIds: Set<string> | null = null;
+      let excludedIds = new Set<string>();
+
+      if (filters.include_tags.length > 0) {
+        const { data, error } = await supabase
+          .from('contact_tags')
+          .select('contact_id')
+          .in('tag_id', filters.include_tags);
+        if (error) throw error;
+        allowedIds = new Set((data || []).map((row) => row.contact_id).filter(Boolean));
+      }
+
+      if (filters.exclude_tags.length > 0) {
+        const { data, error } = await supabase
+          .from('contact_tags')
+          .select('contact_id')
+          .in('tag_id', filters.exclude_tags);
+        if (error) throw error;
+        excludedIds = new Set((data || []).map((row) => row.contact_id).filter(Boolean));
+      }
+
+      const validAttributes = filters.attributes.filter((attribute) => attribute.key && attribute.value);
+      for (const attribute of validAttributes) {
+        const { data, error } = await supabase
+          .from('contact_attributes')
+          .select('contact_id')
+          .eq('tenant_id', currentTenant.id)
+          .eq('key', attribute.key)
+          .ilike('value', `%${attribute.value}%`);
+        if (error) throw error;
+        const attributeIds = new Set((data || []).map((row) => row.contact_id).filter(Boolean));
+        allowedIds = allowedIds
+          ? new Set([...allowedIds].filter((id) => attributeIds.has(id)))
+          : attributeIds;
+      }
+
+      if (filters.is_unreplied !== 'all' || filters.exclude_recent_days > 0 || filters.assigned_agent) {
+        let summaryQuery = supabase
+          .from('contact_inbox_summary')
+          .select('contact_id')
+          .eq('tenant_id', currentTenant.id);
+
+        if (filters.assigned_agent) summaryQuery = summaryQuery.eq('assigned_to', filters.assigned_agent);
+        if (filters.is_unreplied !== 'all') summaryQuery = summaryQuery.eq('is_unreplied', filters.is_unreplied === 'yes');
+        if (filters.exclude_recent_days > 0) {
+          const cutoff = new Date(Date.now() - filters.exclude_recent_days * 24 * 60 * 60 * 1000).toISOString();
+          summaryQuery = summaryQuery.or(`last_message_at.is.null,last_message_at.lt.${cutoff}`);
+        }
+
+        const { data, error } = await summaryQuery;
+        if (error) throw error;
+        const summaryIds = new Set((data || []).map((row) => row.contact_id).filter(Boolean));
+        allowedIds = allowedIds
+          ? new Set([...allowedIds].filter((id) => summaryIds.has(id)))
+          : summaryIds;
+      }
+
       const buildQuery = () => {
         let query = supabase
           .from('contacts')
@@ -413,14 +470,16 @@ export default function CampaignAudienceBuilder({
         if (filters.priorities.length > 0) query = query.in('priority_level', filters.priorities as any);
         if (filters.lead_states.length > 0) query = query.in('lead_status', filters.lead_states as any);
         if (filters.crm_statuses.length > 0) query = query.in('deal_stage', filters.crm_statuses as any);
-        if (filters.assigned_agent) query = query.eq('assigned_agent_id', filters.assigned_agent);
         if (filters.contact_source) query = query.eq('source', filters.contact_source);
         if (filters.flow_source) query = query.eq('automation_flow', filters.flow_source);
         if (filters.meta_campaign_source) query = query.eq('campaign_source', filters.meta_campaign_source);
 
         const selectedSegments = segments.filter((segment) => filters.include_segments.includes(segment.id));
+        const excludedSegments = segments.filter((segment) => filters.exclude_segments.includes(segment.id));
         const selectedSegmentNames = selectedSegments.map((segment) => segment.name).filter(Boolean);
+        const excludedSegmentNames = excludedSegments.map((segment) => segment.name).filter(Boolean);
         if (selectedSegmentNames.length > 0) query = query.in('segment', selectedSegmentNames);
+        if (excludedSegmentNames.length > 0) query = query.not('segment', 'in', `(${excludedSegmentNames.map((name) => `"${name.replace(/"/g, '\\"')}"`).join(',')})`);
 
       let normalizedDateFrom = filters.date_from;
       let normalizedDateTo = filters.date_to;
