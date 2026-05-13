@@ -371,8 +371,8 @@ export default function CampaignAudienceBuilder({
 
     const hasAdvancedFilters = hasAudienceCriteria(filters);
 
-    // Keep imported direct contacts only when no advanced filter is active
-    if (filters.selected_contacts.length > 0 && !hasAdvancedFilters) {
+    // Uploaded/direct contacts are already an explicit recipient list.
+    if (filters.selected_contacts.length > 0) {
       onEstimatedCountChange(filters.selected_contacts.length);
       if (filters.matched_contact_ids.length > 0) {
         setFilters({ ...filters, matched_contact_ids: [] });
@@ -775,7 +775,7 @@ export default function CampaignAudienceBuilder({
                       type="date"
                       value={filters.date_from}
                       onChange={(e) => updateFilter('date_from', e.target.value)}
-                      className="h-9 text-sm text-foreground bg-background [color-scheme:light] dark:[color-scheme:dark] [&::-webkit-calendar-picker-indicator]:opacity-70 [&::-webkit-calendar-picker-indicator]:cursor-pointer"
+                      className="h-9 min-w-0 text-sm font-medium text-foreground bg-card border-input [color-scheme:light] dark:[color-scheme:dark] [&::-webkit-date-and-time-value]:text-foreground [&::-webkit-datetime-edit]:text-foreground [&::-webkit-calendar-picker-indicator]:opacity-70 [&::-webkit-calendar-picker-indicator]:cursor-pointer"
                     />
                   </div>
                   <div className="space-y-1">
@@ -784,7 +784,7 @@ export default function CampaignAudienceBuilder({
                       type="date"
                       value={filters.date_to}
                       onChange={(e) => updateFilter('date_to', e.target.value)}
-                      className="h-9 text-sm text-foreground bg-background [color-scheme:light] dark:[color-scheme:dark] [&::-webkit-calendar-picker-indicator]:opacity-70 [&::-webkit-calendar-picker-indicator]:cursor-pointer"
+                      className="h-9 min-w-0 text-sm font-medium text-foreground bg-card border-input [color-scheme:light] dark:[color-scheme:dark] [&::-webkit-date-and-time-value]:text-foreground [&::-webkit-datetime-edit]:text-foreground [&::-webkit-calendar-picker-indicator]:opacity-70 [&::-webkit-calendar-picker-indicator]:cursor-pointer"
                     />
                   </div>
                 </div>
