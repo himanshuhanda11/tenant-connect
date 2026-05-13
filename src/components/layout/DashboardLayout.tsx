@@ -28,7 +28,6 @@ function MobileHeader() {
         <span className="text-xs font-medium text-foreground">Menu</span>
       </button>
       <div className="flex-1" />
-      <WalletBadge />
     </header>
   );
 }
