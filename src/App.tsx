@@ -82,6 +82,7 @@ const Terms = lazyWithRetry(() => import("./pages/Terms"));
 const AppAccessInstructions = lazyWithRetry(() => import("./pages/AppAccessInstructions"));
 const Products = lazyWithRetry(() => import("./pages/Products"));
 const Pricing = lazyWithRetry(() => import("./pages/Pricing"));
+const MessagePricing = lazyWithRetry(() => import("./pages/MessagePricing"));
 const Help = lazyWithRetry(() => import("./pages/Help"));
 const HelpCenter = lazyWithRetry(() => import("./pages/help/HelpCenter"));
 const HelpCategory = lazyWithRetry(() => import("./pages/help/HelpCategory"));
@@ -357,6 +358,7 @@ const App = () => (
                     <Route path="/app-access-instructions" element={<AppAccessInstructions />} />
                     <Route path="/products" element={<Products />} />
                     <Route path="/pricing" element={<Pricing />} />
+                    <Route path="/message-pricing" element={<MessagePricing />} />
                     <Route path="/help" element={<HelpCenter />} />
                     <Route path="/help/category/:category" element={<HelpCategory />} />
                     <Route path="/help/inbox" element={<InboxGuide />} />

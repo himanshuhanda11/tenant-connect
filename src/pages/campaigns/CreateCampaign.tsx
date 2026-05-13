@@ -61,7 +61,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import CampaignAudienceBuilder, { AudienceFilters, DEFAULT_AUDIENCE_FILTERS } from '@/components/campaigns/CampaignAudienceBuilder';
 import { CSVContactUploader } from '@/components/campaigns/CSVContactUploader';
-import { BroadcastCostPreview } from '@/components/campaigns/BroadcastCostPreview';
+import { CampaignCreditEstimateCard } from '@/components/campaigns/CampaignCreditEstimateCard';
 import type { BroadcastCostEstimate } from '@/hooks/useBroadcastCostEstimate';
 import { useMessageCredits } from '@/hooks/useMessageCredits';
 
@@ -767,8 +767,8 @@ export default function CreateCampaign() {
                   onEstimatedCountChange={setAudienceEstimatedCount}
                 />
 
-                {/* Live country-wise credit estimate as soon as audience is picked */}
-                <BroadcastCostPreview
+                {/* Premium compact credit estimate (country breakdown lives on /message-pricing) */}
+                <CampaignCreditEstimateCard
                   tenantId={currentTenant?.id}
                   contactIds={(audienceFilters.selected_contacts?.length ? audienceFilters.selected_contacts : audienceFilters.matched_contact_ids) || []}
                   templateCategory={(templates.find(t => t.id === wizard.message.template_id)?.category as string) || 'marketing'}
@@ -1037,8 +1037,8 @@ export default function CreateCampaign() {
                   </Card>
                 </div>
 
-                {/* Country-wise Cost & Credit Preview */}
-                <BroadcastCostPreview
+                {/* Premium credit estimate (final review) */}
+                <CampaignCreditEstimateCard
                   tenantId={currentTenant?.id}
                   contactIds={(audienceFilters.selected_contacts?.length ? audienceFilters.selected_contacts : audienceFilters.matched_contact_ids) || []}
                   templateCategory={(templates.find(t => t.id === wizard.message.template_id)?.category as string) || 'marketing'}
