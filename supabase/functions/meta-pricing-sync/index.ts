@@ -49,6 +49,7 @@ Deno.serve(async (req) => {
 
     const aggregates = new Map<string, AggVal>();
     let processed = 0;
+    const errors: { waba: string; message: string }[] = [];
 
     const since = Math.floor((Date.now() - 30 * 86400 * 1000) / 1000);
     const until = Math.floor(Date.now() / 1000);
@@ -60,7 +61,9 @@ Deno.serve(async (req) => {
         const r = await fetch(u, { headers: { Authorization: `Bearer ${w.encrypted_access_token}` } });
         const data = await r.json();
         if (!r.ok) {
-          console.warn(`waba ${w.waba_id} analytics failed`, data?.error?.message);
+          const msg = data?.error?.message || `HTTP ${r.status}`;
+          console.warn(`waba ${w.waba_id} analytics failed`, msg);
+          errors.push({ waba: w.waba_id, message: msg });
           continue;
         }
         processed++;
