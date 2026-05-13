@@ -79,15 +79,22 @@ export default function CampaignsList() {
       if (!raw) { setLocalDraft(null); return; }
       const saved = JSON.parse(raw);
       const w = saved?.wizard || {};
+      const basics = w.basics || {};
+      const af = saved?.audienceFilters || {};
+      const audience =
+        Number(saved?.audienceEstimatedCount) ||
+        (af.selected_contacts?.length ?? 0) ||
+        (af.matched_contact_ids?.length ?? 0) ||
+        0;
       setLocalDraft({
         id: 'local-draft',
         tenant_id: currentTenant.id,
-        name: w.name || w.campaignName || 'Untitled draft',
+        name: basics.name || w.name || w.campaignName || 'Untitled draft',
         campaign_type: 'broadcast',
         status: 'draft' as CampaignStatus,
-        template_id: w.template_id || null,
-        phone_number_id: w.phone_number_id || null,
-        total_recipients: w.total_recipients || 0,
+        template_id: w.message?.template_id || w.template_id || null,
+        phone_number_id: basics.phone_number_id || w.phone_number_id || null,
+        total_recipients: audience,
         created_at: saved?.savedAt || new Date().toISOString(),
         updated_at: saved?.savedAt || new Date().toISOString(),
       } as Campaign);
