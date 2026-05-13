@@ -326,10 +326,10 @@ export default function CreateCampaign() {
 
   const enforceBroadcastCap = (): boolean => {
     const matchedContactIds = audienceFilters.matched_contact_ids || [];
+    const directContactIds = audienceFilters.selected_contacts || [];
     const recipientCount = Math.max(
       audienceEstimatedCount,
-      audienceFilters?.selected_contacts?.length ?? 0,
-      matchedContactIds.length,
+      directContactIds.length > 0 ? directContactIds.length : matchedContactIds.length,
     );
     if (recipientCount > broadcastCap) {
       openUpgrade({
@@ -366,9 +366,9 @@ export default function CreateCampaign() {
       toast.error('Select an approved template first');
       return;
     }
-    const contactIds = audienceFilters.matched_contact_ids?.length
-      ? audienceFilters.matched_contact_ids
-      : audienceFilters.selected_contacts || [];
+    const contactIds = audienceFilters.selected_contacts?.length
+      ? audienceFilters.selected_contacts
+      : audienceFilters.matched_contact_ids || [];
     if (contactIds.length === 0) {
       toast.error('Add recipients or choose an audience filter before launching');
       return;
@@ -396,7 +396,7 @@ export default function CreateCampaign() {
           scheduled_at: scheduledAt,
           timezone: wizard.delivery.timezone,
           messages_per_minute: wizard.delivery.messages_per_minute,
-          audience_config: { source: audienceFilters.matched_contact_ids?.length ? 'filters' : 'csv_or_contacts', selected_contacts: contactIds, filters: audienceFilters },
+          audience_config: { source: audienceFilters.selected_contacts?.length ? 'csv_or_contacts' : 'filters', selected_contacts: contactIds, filters: audienceFilters },
         },
       });
       if (error) throw error;
