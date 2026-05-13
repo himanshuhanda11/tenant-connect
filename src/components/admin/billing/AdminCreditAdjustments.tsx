@@ -55,6 +55,7 @@ export function AdminCreditAdjustments() {
   const [direction, setDirection] = useState<"credit" | "debit">("credit");
   const [amount, setAmount] = useState<number>(100);
   const [reason, setReason] = useState("");
+  const [category, setCategory] = useState<string>("bonus");
   const [submitting, setSubmitting] = useState(false);
 
   const load = async () => {
