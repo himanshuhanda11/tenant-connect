@@ -61,13 +61,12 @@ const SOURCE_LABELS: Record<string, string> = {
   whatsapp: 'WhatsApp',
 };
 
-const LEAD_STATE_OPTIONS = [
-  { value: 'new', label: 'New', className: 'bg-blue-100 text-blue-700' },
-  { value: 'assigned_pending', label: 'Assigned Pending', className: 'bg-amber-100 text-amber-700' },
-  { value: 'claimed', label: 'Claimed', className: 'bg-emerald-100 text-emerald-700' },
-  { value: 'unreplied', label: 'Unreplied', className: 'bg-rose-100 text-rose-700' },
-  { value: 'closed', label: 'Closed', className: 'bg-muted text-muted-foreground' },
-];
+// Lead State (CRM lifecycle) — single source of truth, mirrors Inbox
+const LEAD_STATE_OPTIONS = INBOX_LEAD_STATUSES.map((s) => ({
+  value: s.value,
+  label: s.label,
+  className: s.badgeClass,
+}));
 
 export function ContactsAdvancedFilters({
   filters,
