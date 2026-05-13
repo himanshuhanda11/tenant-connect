@@ -360,13 +360,14 @@ export default function MessagePricing() {
   );
 }
 
-function RateCell({ value }: { value: number | null }) {
+function RateCell({ value }: { value: RateValue | null }) {
   if (value == null) {
     return <TableCell className="text-xs text-right text-muted-foreground">—</TableCell>;
   }
   return (
-    <TableCell className="text-xs text-right tabular-nums font-medium">
-      {value.toFixed(2)}
+    <TableCell className="text-xs text-right tabular-nums">
+      <div className="font-semibold text-foreground">{formatLocalRate(value.localAmount, value.currencyCode)}</div>
+      <div className="text-[10px] text-muted-foreground">{value.credits.toFixed(2)} credits</div>
     </TableCell>
   );
 }
