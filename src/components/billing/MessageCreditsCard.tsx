@@ -117,7 +117,7 @@ export function MessageCreditsCard() {
                     <ShieldCheck className="h-3 w-3" /> Secure Stripe
                   </Badge>
                 </h3>
-                <p className="text-xs text-muted-foreground">Used for WhatsApp template & broadcast messages</p>
+                <p className="text-xs text-muted-foreground">Hybrid billing · inbox replies free · template messages use credits</p>
               </div>
             </div>
             <div className="text-right">
