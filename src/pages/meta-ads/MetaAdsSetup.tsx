@@ -70,6 +70,7 @@ export default function MetaAdsSetup() {
   const autoReauthorizeStarted = useRef(false);
   const [leadAdsReauthRequested, setLeadAdsReauthRequested] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
+  const [wizardStep, setWizardStep] = useState(0); // 0=login, 1=adAccount, 2=page, 3=extras, 4=whatsapp, 5=review
   const [isFbLoading, setIsFbLoading] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [fbConnected, setFbConnected] = useState(false);
