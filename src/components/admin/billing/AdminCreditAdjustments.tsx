@@ -191,6 +191,22 @@ export function AdminCreditAdjustments() {
           </DialogHeader>
           <div className="space-y-3 py-2">
             <div>
+              <Label className="text-xs">Category</Label>
+              <Select value={category} onValueChange={setCategory}>
+                <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {CATEGORY_OPTIONS.map((c) => (
+                    <SelectItem key={c.value} value={c.value}>
+                      <div className="flex flex-col">
+                        <span className="text-sm">{c.label}</span>
+                        <span className="text-[10px] text-muted-foreground">{c.desc}</span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
               <Label className="text-xs">Amount (credits)</Label>
               <Input type="number" min={1} value={amount} onChange={(e) => setAmount(parseInt(e.target.value) || 0)} />
             </div>
