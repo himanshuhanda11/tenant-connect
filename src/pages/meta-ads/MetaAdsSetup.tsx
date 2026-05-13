@@ -68,6 +68,7 @@ export default function MetaAdsSetup() {
   const { currentTenant } = useTenant();
   const queryClient = useQueryClient();
   const autoReauthorizeStarted = useRef(false);
+  const [leadAdsReauthRequested, setLeadAdsReauthRequested] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
   const [isFbLoading, setIsFbLoading] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -348,20 +349,9 @@ export default function MetaAdsSetup() {
     if (searchParams.get('reauthorize') !== 'lead_forms') return;
     if (!currentTenant?.id) return;
 
-    const startReauthorization = () => {
-      if (autoReauthorizeStarted.current || !window.FB) return false;
-      autoReauthorizeStarted.current = true;
-      toast.info('Requesting Meta Lead Ads permissions again');
-      handleFbLogin();
-      return true;
-    };
-
-    if (startReauthorization()) return;
-    const timer = window.setInterval(() => {
-      if (startReauthorization()) window.clearInterval(timer);
-    }, 300);
-
-    return () => window.clearInterval(timer);
+    autoReauthorizeStarted.current = true;
+    setLeadAdsReauthRequested(true);
+    toast.info('Click Reconnect Facebook to approve Meta Lead Ads permissions');
   }, [searchParams, currentTenant?.id]);
 
   const handleManualTokenSubmit = async () => {
@@ -425,7 +415,9 @@ export default function MetaAdsSetup() {
   };
 
   const canComplete = !!formData.adAccountId;
-  const grantedScopes = permissions.filter((p: any) => p.status === 'granted').map((p: any) => p.permission);
+  const grantedScopes = permissions.length > 0
+    ? permissions.filter((p: any) => p.status === 'granted').map((p: any) => p.permission)
+    : ((connectedAccount?.scopes_granted as string[] | null) || []);
   const missingScopes = REQUIRED_SCOPES.filter(s => !grantedScopes.includes(s));
 
   const getAccountStatusBadge = (status: number) => {
