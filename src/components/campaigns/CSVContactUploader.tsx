@@ -42,11 +42,25 @@ interface Props {
   defaultCountry?: string;
 }
 
-const SAMPLE_CSV = `phone,name,email,city,custom_1,custom_2,tags
-+919876543210,Aman Kumar,aman@example.com,Mumbai,VIP,Order#1234,vip;repeat
-+14155552671,Sara Khan,sara@example.com,New York,Gold,Order#5678,gold`;
+const SAMPLE_HEADERS = ['phone', 'name', 'email', 'city', 'custom_1', 'custom_2', 'tags'];
+const SAMPLE_ROWS: Record<string, string>[] = [
+  { phone: '+919876543210', name: 'Aman Kumar', email: 'aman@example.com', city: 'Mumbai', custom_1: 'VIP', custom_2: 'Order#1234', tags: 'vip;repeat' },
+  { phone: '+14155552671', name: 'Sara Khan', email: 'sara@example.com', city: 'New York', custom_1: 'Gold', custom_2: 'Order#5678', tags: 'gold' },
+];
+
+const SAMPLE_CSV = [
+  SAMPLE_HEADERS.join(','),
+  ...SAMPLE_ROWS.map((r) => SAMPLE_HEADERS.map((h) => r[h] ?? '').join(',')),
+].join('\n');
 
 const SAMPLE_CSV_HREF = `data:text/csv;charset=utf-8,${encodeURIComponent(SAMPLE_CSV)}`;
+
+const downloadSampleXlsx = () => {
+  const ws = XLSX.utils.json_to_sheet(SAMPLE_ROWS, { header: SAMPLE_HEADERS });
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Contacts');
+  XLSX.writeFile(wb, 'broadcast-sample.xlsx');
+};
 
 export function CSVContactUploader({ onImported, defaultCountry = 'IN' }: Props) {
   const { currentTenant } = useTenant();
