@@ -870,21 +870,25 @@ export default function CampaignAudienceBuilder({
                   <p className="text-sm text-muted-foreground">No Meta Ads campaigns found</p>
                 ) : (
                   <Select
-                    value={filters.meta_campaign_source || 'all'}
+                    value={filters.meta_campaign_source || SELECT_SENTINELS.none}
                     onValueChange={(v) =>
-                      updateFilter('meta_campaign_source', v === 'all' ? '' : v)
+                      updateFilter(
+                        'meta_campaign_source',
+                        v === SELECT_SENTINELS.none || v === SELECT_SENTINELS.all ? '' : v
+                      )
                     }
                   >
                     <SelectTrigger className="h-9">
-                      <SelectValue placeholder="Select campaign" />
+                      <SelectValue placeholder="Select Campaign" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">All Meta Campaigns</SelectItem>
+                      <SelectItem value={SELECT_SENTINELS.none}>Select Campaign</SelectItem>
                       {metaCampaigns.map((c) => (
                         <SelectItem key={c.id} value={c.id}>
                           {c.name}
                         </SelectItem>
                       ))}
+                      <SelectItem value={SELECT_SENTINELS.all}>All Meta Campaigns</SelectItem>
                     </SelectContent>
                   </Select>
                 )}
