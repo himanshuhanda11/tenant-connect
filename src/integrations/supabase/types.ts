@@ -6865,6 +6865,39 @@ export type Database = {
           },
         ]
       }
+      meta_pricing_sync_runs: {
+        Row: {
+          detail: Json | null
+          error: string | null
+          finished_at: string | null
+          id: string
+          rates_upserted: number
+          started_at: string
+          status: string
+          wabas_processed: number
+        }
+        Insert: {
+          detail?: Json | null
+          error?: string | null
+          finished_at?: string | null
+          id?: string
+          rates_upserted?: number
+          started_at?: string
+          status?: string
+          wabas_processed?: number
+        }
+        Update: {
+          detail?: Json | null
+          error?: string | null
+          finished_at?: string | null
+          id?: string
+          rates_upserted?: number
+          started_at?: string
+          status?: string
+          wabas_processed?: number
+        }
+        Relationships: []
+      }
       meta_webhook_subscriptions: {
         Row: {
           created_at: string
@@ -15500,6 +15533,10 @@ export type Database = {
           effective_to: string | null
           id: string
           rate_per_message: number
+          sample_size: number | null
+          source: string
+          synced_at: string | null
+          synced_waba_id: string | null
           template_category: string
           updated_at: string
         }
@@ -15514,6 +15551,10 @@ export type Database = {
           effective_to?: string | null
           id?: string
           rate_per_message: number
+          sample_size?: number | null
+          source?: string
+          synced_at?: string | null
+          synced_waba_id?: string | null
           template_category: string
           updated_at?: string
         }
@@ -15528,6 +15569,10 @@ export type Database = {
           effective_to?: string | null
           id?: string
           rate_per_message?: number
+          sample_size?: number | null
+          source?: string
+          synced_at?: string | null
+          synced_waba_id?: string | null
           template_category?: string
           updated_at?: string
         }

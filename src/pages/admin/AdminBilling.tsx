@@ -7,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { AdminKPICard } from '@/components/admin/AdminKPICard';
 import { AdminStatusBadge } from '@/components/admin/AdminStatusBadge';
-import { DollarSign, Receipt, RefreshCw, AlertTriangle, FileText, PlusCircle, TrendingUp, ShieldAlert, Download, BarChart3, Wallet, Package } from 'lucide-react';
+import { DollarSign, Receipt, RefreshCw, AlertTriangle, FileText, PlusCircle, TrendingUp, ShieldAlert, Download, BarChart3, Wallet, Package, Globe2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { RevenueChart } from '@/components/admin/billing/RevenueChart';
 import { InvoicesPanel } from '@/components/admin/billing/InvoicesPanel';
@@ -15,6 +15,7 @@ import { RiskEventsPanel } from '@/components/admin/billing/RiskEventsPanel';
 import { BillingEventsTable } from '@/components/admin/billing/BillingEventsTable';
 import { AdminCreditAdjustments } from '@/components/admin/billing/AdminCreditAdjustments';
 import { AdminCreditPackages } from '@/components/admin/billing/AdminCreditPackages';
+import { AdminMetaPricing } from '@/components/admin/billing/AdminMetaPricing';
 
 export default function AdminBilling() {
   const { role } = useOutletContext<{ role: string }>();
@@ -119,6 +120,11 @@ export default function AdminBilling() {
               <Package className="h-3.5 w-3.5" />Credit Packages
             </TabsTrigger>
           )}
+          {isSuperAdmin && (
+            <TabsTrigger value="meta-pricing" className="rounded-lg text-sm gap-1">
+              <Globe2 className="h-3.5 w-3.5" />Meta Pricing
+            </TabsTrigger>
+          )}
         </TabsList>
 
         <TabsContent value="overview" className="mt-4">
@@ -148,6 +154,12 @@ export default function AdminBilling() {
         {isSuperAdmin && (
           <TabsContent value="packages" className="mt-4">
             <AdminCreditPackages />
+          </TabsContent>
+        )}
+
+        {isSuperAdmin && (
+          <TabsContent value="meta-pricing" className="mt-4">
+            <AdminMetaPricing />
           </TabsContent>
         )}
       </Tabs>
