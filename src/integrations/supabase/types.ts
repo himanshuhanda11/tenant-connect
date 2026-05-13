@@ -16984,15 +16984,26 @@ export type Database = {
         }
         Returns: number
       }
-      admin_adjust_message_credits: {
-        Args: {
-          p_admin_id: string
-          p_amount: number
-          p_reason: string
-          p_tenant_id: string
-        }
-        Returns: Json
-      }
+      admin_adjust_message_credits:
+        | {
+            Args: {
+              p_admin_id: string
+              p_amount: number
+              p_reason: string
+              p_tenant_id: string
+            }
+            Returns: Json
+          }
+        | {
+            Args: {
+              p_admin_id: string
+              p_amount: number
+              p_category?: string
+              p_reason: string
+              p_tenant_id: string
+            }
+            Returns: Json
+          }
       agent_performance_stats: {
         Args: { p_days?: number; p_tenant_id: string }
         Returns: {
