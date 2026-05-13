@@ -156,6 +156,12 @@ export default function AdminBilling() {
             <AdminCreditPackages />
           </TabsContent>
         )}
+
+        {isSuperAdmin && (
+          <TabsContent value="meta-pricing" className="mt-4">
+            <AdminMetaPricing />
+          </TabsContent>
+        )}
       </Tabs>
     </div>
   );
