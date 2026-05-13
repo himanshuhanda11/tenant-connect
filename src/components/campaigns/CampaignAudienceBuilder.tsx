@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useMemo, useState, type ElementType, type ReactNode } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type ElementType, type ReactNode } from 'react';
+import { toast } from 'sonner';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -271,6 +272,21 @@ export default function CampaignAudienceBuilder({
   const usingDirectContacts = filters.selected_contacts.length > 0;
   const estimate = useAudienceEstimate(currentTenant?.id, filters, segmentNameById, !usingDirectContacts);
 
+  // Surface estimate errors as toasts (deduplicated by message, throttled)
+  const lastErrorRef = useRef<{ msg: string; at: number } | null>(null);
+  useEffect(() => {
+    if (!estimate.error) return;
+    const msg = estimate.error;
+    const now = Date.now();
+    const last = lastErrorRef.current;
+    if (last && last.msg === msg && now - last.at < 8000) return;
+    lastErrorRef.current = { msg, at: now };
+    toast.error('Could not update audience estimate', {
+      description: msg,
+      duration: 5000,
+    });
+  }, [estimate.error]);
+
   // Push results back up to wizard
   useEffect(() => {
     if (usingDirectContacts) {
@@ -370,7 +386,7 @@ export default function CampaignAudienceBuilder({
           <div className={cn('h-0.5 w-full bg-primary/20 overflow-hidden', !estimate.loading && 'opacity-0 transition-opacity')}>
             <div className="h-full w-1/3 bg-primary animate-[slide-in-right_1.2s_ease-in-out_infinite]" />
           </div>
-          <CardContent className="p-4 sm:p-5">
+          <CardContent className="p-4 sm:p-5" aria-busy={estimate.loading} aria-live="polite">
             <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">
@@ -388,29 +404,42 @@ export default function CampaignAudienceBuilder({
                 </div>
                 <div className="mt-1 flex items-baseline gap-3">
                   {estimate.loading && estimate.updatedAt === null ? (
-                    <Skeleton className="h-10 w-24" />
+                    <>
+                      <Skeleton className="h-9 w-20 sm:h-10 sm:w-28" />
+                      <Skeleton className="h-3 w-14 hidden sm:block" />
+                    </>
                   ) : (
-                    <span className={cn('text-3xl sm:text-4xl font-bold tracking-tight transition-opacity', estimate.loading && 'opacity-60')}>
-                      <AnimatedCount value={estimate.total} />
-                    </span>
+                    <>
+                      <span className={cn('text-3xl sm:text-4xl font-bold tracking-tight transition-opacity', estimate.loading && 'opacity-60')}>
+                        <AnimatedCount value={estimate.total} />
+                      </span>
+                      <span className="text-sm text-muted-foreground">contacts</span>
+                    </>
                   )}
-                  <span className="text-sm text-muted-foreground">contacts</span>
                 </div>
-                <p className="text-xs sm:text-sm text-muted-foreground mt-1 truncate">
-                  {estimate.loading
-                    ? 'Recalculating with your latest filters…'
-                    : `Matches ${estimate.total.toLocaleString()} ${estimate.total === 1 ? 'contact' : 'contacts'} in this workspace.`}
-                </p>
+                {estimate.loading && estimate.updatedAt === null ? (
+                  <Skeleton className="h-3 w-40 sm:w-64 mt-2" />
+                ) : (
+                  <p className="text-xs sm:text-sm text-muted-foreground mt-1 truncate">
+                    {estimate.error
+                      ? 'Last estimate failed — showing previous result.'
+                      : estimate.loading
+                      ? 'Recalculating with your latest filters…'
+                      : `Matches ${estimate.total.toLocaleString()} ${estimate.total === 1 ? 'contact' : 'contacts'} in this workspace.`}
+                  </p>
+                )}
               </div>
               <div className="flex flex-wrap gap-2 sm:flex-col sm:items-end">
                 <Badge variant="secondary" className="gap-1">
                   <Filter className="h-3 w-3" /> {chips.length} filter{chips.length === 1 ? '' : 's'}
                 </Badge>
-                {estimate.updatedAt && !estimate.loading && (
+                {estimate.loading && estimate.updatedAt === null ? (
+                  <Skeleton className="h-5 w-20" />
+                ) : estimate.updatedAt && !estimate.loading ? (
                   <Badge variant="outline" className="gap-1 text-muted-foreground">
                     <Clock className="h-3 w-3" /> {timeAgo(estimate.updatedAt)}
                   </Badge>
-                )}
+                ) : null}
                 {estimate.error && (
                   <Badge variant="destructive" className="text-[10px]">Error</Badge>
                 )}
