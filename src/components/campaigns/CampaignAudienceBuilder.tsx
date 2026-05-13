@@ -905,19 +905,25 @@ export default function CampaignAudienceBuilder({
                   <p className="text-sm text-muted-foreground">No flows found</p>
                 ) : (
                   <Select
-                    value={filters.flow_source || 'all'}
-                    onValueChange={(v) => updateFilter('flow_source', v === 'all' ? '' : v)}
+                    value={filters.flow_source || SELECT_SENTINELS.none}
+                    onValueChange={(v) =>
+                      updateFilter(
+                        'flow_source',
+                        v === SELECT_SENTINELS.none || v === SELECT_SENTINELS.all ? '' : v
+                      )
+                    }
                   >
                     <SelectTrigger className="h-9">
-                      <SelectValue placeholder="Select flow" />
+                      <SelectValue placeholder="Select Flow" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">All Flows</SelectItem>
+                      <SelectItem value={SELECT_SENTINELS.none}>Select Flow</SelectItem>
                       {flows.map((f) => (
                         <SelectItem key={f.id} value={f.id}>
                           {f.name} ({f.status})
                         </SelectItem>
                       ))}
+                      <SelectItem value={SELECT_SENTINELS.all}>All Flows</SelectItem>
                     </SelectContent>
                   </Select>
                 )}
