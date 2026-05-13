@@ -721,35 +721,51 @@ export default function CampaignAudienceBuilder({
                 id="agent"
                 icon={User}
                 title="Assigned Agent"
-                badge={filters.assigned_agent ? 1 : 0}
+                badge={filters.assigned_agent && filters.assigned_agent !== SELECT_SENTINELS.all ? 1 : 0}
               >
                 <Select
-                  value={filters.assigned_agent || 'all'}
-                  onValueChange={(v) => updateFilter('assigned_agent', v === 'all' ? '' : v)}
+                  value={filters.assigned_agent || SELECT_SENTINELS.none}
+                  onValueChange={(v) =>
+                    updateFilter(
+                      'assigned_agent',
+                      v === SELECT_SENTINELS.none || v === SELECT_SENTINELS.all ? '' : v
+                    )
+                  }
                 >
                   <SelectTrigger className="h-9">
-                    <SelectValue placeholder="All agents" />
+                    <SelectValue placeholder="Select Agent" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">All Agents</SelectItem>
-                    {agents.map((agent) => (
-                      <SelectItem key={agent.user_id} value={agent.user_id}>
-                        {agent.display_name || agent.email}
+                    <SelectItem value={SELECT_SENTINELS.none}>Select Agent</SelectItem>
+                    {agents.length === 0 ? (
+                      <SelectItem value="__no_agents__" disabled>
+                        No agents in this workspace
                       </SelectItem>
-                    ))}
+                    ) : (
+                      agents.map((agent) => (
+                        <SelectItem key={agent.user_id} value={agent.user_id}>
+                          {agent.display_name || agent.email || agent.user_id}
+                        </SelectItem>
+                      ))
+                    )}
+                    <SelectItem value={SELECT_SENTINELS.unassigned}>Unassigned</SelectItem>
+                    <SelectItem value={SELECT_SENTINELS.all}>All Agents</SelectItem>
                   </SelectContent>
                 </Select>
               </FilterSection>
 
-              {/* Lead Status */}
+              {/* Lead Status — synced with Inbox CRM stages */}
               <FilterSection
                 id="lead"
                 icon={Zap}
                 title="Lead Status"
                 badge={filters.lead_states.length}
               >
+                <p className="text-xs text-muted-foreground mb-2">
+                  Same statuses as Inbox. Selecting nothing means no lead-status filter.
+                </p>
                 <div className="flex flex-wrap gap-1.5">
-                  {LEAD_STATES.map((state) => (
+                  {INBOX_LEAD_STATUSES.map((state) => (
                     <Badge
                       key={state.value}
                       variant={filters.lead_states.includes(state.value) ? 'default' : 'outline'}
@@ -761,52 +777,16 @@ export default function CampaignAudienceBuilder({
                     </Badge>
                   ))}
                 </div>
-
-                <Separator className="my-2" />
-                <p className="text-xs text-muted-foreground font-medium mb-1.5">CRM Status</p>
-                <div className="flex flex-wrap gap-1.5">
-                  {CRM_STATUSES.map((status) => (
-                    <Badge
-                      key={status.value}
-                      variant={filters.crm_statuses.includes(status.value) ? 'default' : 'outline'}
-                      className="cursor-pointer text-xs"
-                      onClick={() => toggleInArray('crm_statuses', status.value)}
-                    >
-                      {status.label}
-                    </Badge>
-                  ))}
-                </div>
-
-                <Separator className="my-2" />
-                <p className="text-xs text-muted-foreground font-medium mb-1.5">MAU Status</p>
-                <div className="flex flex-wrap gap-1.5">
-                  {MAU_STATUSES.map((status) => (
-                    <Badge
-                      key={status.value}
-                      variant={filters.mau_statuses.includes(status.value) ? 'default' : 'outline'}
-                      className="cursor-pointer text-xs"
-                      onClick={() => toggleInArray('mau_statuses', status.value)}
-                    >
-                      <div className={`w-2 h-2 rounded-full mr-1 ${status.color}`} />
-                      {status.label}
-                    </Badge>
-                  ))}
-                </div>
-
-                <Separator className="my-2" />
-                <p className="text-xs text-muted-foreground font-medium mb-1.5">Priority</p>
-                <div className="flex flex-wrap gap-1.5">
-                  {PRIORITIES.map((p) => (
-                    <Badge
-                      key={p.value}
-                      variant={filters.priorities.includes(p.value) ? 'default' : 'outline'}
-                      className="cursor-pointer text-xs"
-                      onClick={() => toggleInArray('priorities', p.value)}
-                    >
-                      {p.label}
-                    </Badge>
-                  ))}
-                </div>
+                {filters.lead_states.length > 0 && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-7 text-xs mt-2"
+                    onClick={() => updateFilter('lead_states', [])}
+                  >
+                    Clear (All Statuses)
+                  </Button>
+                )}
 
                 <Separator className="my-2" />
                 <p className="text-xs text-muted-foreground font-medium mb-1.5">Reply Status</p>
