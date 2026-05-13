@@ -72,7 +72,37 @@ export default function LeadFormsPage() {
     }
   };
 
-  // Check Meta connection & permissions
+  const handleVerifySubscriptions = async () => {
+    if (!currentTenant?.id) return;
+    setVerifyingSubs(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('meta-sync-lead-forms', {
+        body: { tenantId: currentTenant.id, action: 'verify_subscriptions' },
+      });
+      if (error) throw error;
+      if (data?.success) {
+        const subscribed = data.subscribed ?? 0;
+        const total = data.total ?? 0;
+        if (subscribed === total && total > 0) {
+          toast.success(`Verified: all ${total} page${total === 1 ? '' : 's'} are subscribed on Meta's side`);
+        } else if (total === 0) {
+          toast.info('No pages with lead forms found');
+        } else {
+          toast.warning(`${subscribed}/${total} pages confirmed subscribed on Meta`, {
+            description: 'Pages not subscribed need the app installed via Subscribe-all.',
+          });
+        }
+      } else {
+        toast.error(data?.error || 'Verification failed');
+      }
+      await queryClient.invalidateQueries({ queryKey: ['lead-forms'] });
+      await queryClient.invalidateQueries({ queryKey: ['webhook-health'] });
+    } catch (err: any) {
+      toast.error(err?.message || 'Failed to verify subscriptions');
+    } finally {
+      setVerifyingSubs(false);
+    }
+  };
   const metaAccountQuery = useQuery({
     queryKey: ['meta-ad-accounts-leadforms', currentTenant?.id],
     queryFn: async () => {
