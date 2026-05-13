@@ -52,6 +52,54 @@ export function InboxCRMOverview({ conversation, onStatusChanged }: InboxCRMOver
   const { updateStatus } = useUpdateCRMStatus();
   const leadTemp = getLeadTemp(conversation.lead_score || 0);
   const tempConfig = LEAD_SCORE_CONFIG[leadTemp];
+  const [followupDialog, setFollowupDialog] = useState(false);
+  const [junkDialog, setJunkDialog] = useState(false);
+  const [followupDate, setFollowupDate] = useState<Date>();
+  const [followupNotes, setFollowupNotes] = useState('');
+  const [junkReason, setJunkReason] = useState('');
+  const [busy, setBusy] = useState<CRMStatus | null>(null);
+
+  const currentStatus = (conversation.crm_status || 'new') as CRMStatus;
+  const currentConfig = CRM_STATUS_CONFIG[currentStatus] || CRM_STATUS_CONFIG.new;
+
+  const handleQuickAction = async (status: CRMStatus) => {
+    if (status === 'follow_up_required') {
+      setFollowupDialog(true);
+      return;
+    }
+    if (status === 'junk') {
+      setJunkDialog(true);
+      return;
+    }
+    setBusy(status);
+    const ok = await updateStatus(conversation.id, status);
+    setBusy(null);
+    if (ok) onStatusChanged?.();
+  };
+
+  const handleFollowupConfirm = async () => {
+    if (!followupDate) return;
+    const ok = await updateStatus(conversation.id, 'follow_up_required', {
+      followupAt: followupDate.toISOString(),
+      followupNotes,
+    });
+    if (ok) {
+      setFollowupDialog(false);
+      setFollowupDate(undefined);
+      setFollowupNotes('');
+      onStatusChanged?.();
+    }
+  };
+
+  const handleJunkConfirm = async () => {
+    if (!junkReason) return;
+    const ok = await updateStatus(conversation.id, 'junk', { junkReason });
+    if (ok) {
+      setJunkDialog(false);
+      setJunkReason('');
+      onStatusChanged?.();
+    }
+  };
 
   const quickActions: { label: string; status: CRMStatus; icon: React.ReactNode; variant?: string }[] = [
     { label: 'Mark Contacted', status: 'contacted', icon: <PhoneCall className="h-3.5 w-3.5" /> },
