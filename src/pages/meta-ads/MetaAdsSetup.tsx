@@ -306,10 +306,18 @@ export default function MetaAdsSetup() {
   // Preload SDK as soon as the setup page mounts so click is instant
   useEffect(() => { loadFacebookSdk().catch(() => {}); }, []);
 
-  const handleFbLogin = async () => {
+  const handleFbLogin = (e?: React.MouseEvent) => {
+    e?.preventDefault();
+    e?.stopPropagation();
     if (!currentTenant?.id) { toast.error('No workspace selected'); return; }
-    if (!(await metaAdsGate.guard())) return;
-    try { await loadFacebookSdk(); } catch { toast.error('Could not load Facebook SDK.'); return; }
+    // Synchronous gate check (must not await before FB.login or popup is blocked)
+    if (metaAdsGate.loading) { toast.info('Checking permissions, please try again in a moment.'); return; }
+    if (!metaAdsGate.allowed) { metaAdsGate.guard(); return; }
+    if (!window.FB || typeof window.FB.login !== 'function') {
+      toast.error('Facebook SDK is still loading. Please try again.');
+      loadFacebookSdk().catch(() => {});
+      return;
+    }
     setIsFbLoading(true);
     try {
       window.FB.login((response: any) => {
@@ -485,7 +493,7 @@ export default function MetaAdsSetup() {
                 <span className="flex-1 text-sm">
                   Approve the Meta Lead Ads permissions in Facebook to restore lead form syncing.
                 </span>
-                <Button size="sm" onClick={handleFbLogin} disabled={isFbLoading} className="w-fit shrink-0 gap-1.5">
+                <Button type="button" size="sm" onClick={handleFbLogin} disabled={isFbLoading} className="w-fit shrink-0 gap-1.5">
                   {isFbLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Facebook className="h-3.5 w-3.5" />}
                   Reconnect Facebook
                 </Button>
@@ -521,7 +529,7 @@ export default function MetaAdsSetup() {
                     </div>
                   </div>
                   <div className="flex items-center gap-2 flex-wrap">
-                    <Button size="sm" className="bg-[#1877F2] hover:bg-[#166FE5] text-white gap-1.5 text-xs h-8" onClick={handleFbLogin} disabled={isFbLoading}>
+                    <Button type="button" size="sm" className="bg-[#1877F2] hover:bg-[#166FE5] text-white gap-1.5 text-xs h-8" onClick={handleFbLogin} disabled={isFbLoading}>
                       {isFbLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Facebook className="h-3.5 w-3.5" />}
                       {connectionStatus === 'expired' || connectionStatus === 'missing_scopes' ? 'Reconnect Facebook' : 'Re-login Facebook'}
                     </Button>
@@ -659,16 +667,16 @@ export default function MetaAdsSetup() {
                   <div className="flex items-center gap-2">
                     {fbConnected ? (
                       <>
-                        <Button size="sm" className="bg-[#1877F2] hover:bg-[#166FE5] text-white gap-1.5 text-xs h-8" onClick={handleFbLogin} disabled={isFbLoading}>
+                        <Button type="button" size="sm" className="bg-[#1877F2] hover:bg-[#166FE5] text-white gap-1.5 text-xs h-8" onClick={handleFbLogin} disabled={isFbLoading}>
                           {isFbLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Facebook className="h-3.5 w-3.5" />}
                           Re-login Facebook
                         </Button>
-                        <Button variant="outline" size="sm" className="gap-1 text-xs h-8" onClick={() => { setFbConnected(false); setAdAccounts([]); setPages([]); setInstagramAccounts([]); setBusinesses([]); setLongLivedToken(''); }}>
+                        <Button type="button" variant="outline" size="sm" className="gap-1 text-xs h-8" onClick={() => { setFbConnected(false); setAdAccounts([]); setPages([]); setInstagramAccounts([]); setBusinesses([]); setLongLivedToken(''); }}>
                           <RefreshCw className="h-3 w-3" /> Reset
                         </Button>
                       </>
                     ) : (
-                      <Button className="bg-[#1877F2] hover:bg-[#166FE5] text-white gap-2 h-11 px-6 text-sm" disabled={isFbLoading} onClick={handleFbLogin}>
+                      <Button type="button" className="bg-[#1877F2] hover:bg-[#166FE5] text-white gap-2 h-11 px-6 text-sm" disabled={isFbLoading} onClick={handleFbLogin}>
                         {isFbLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Facebook className="h-5 w-5" />}
                         {isFbLoading ? 'Connecting...' : 'Login with Facebook'}
                       </Button>
