@@ -300,7 +300,8 @@ export default function MessagePricing() {
           </CardContent>
         </Card>
       </div>
-    </DashboardLayout>
+      <Footer />
+    </div>
   );
 }
 
