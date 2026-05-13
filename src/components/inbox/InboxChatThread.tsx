@@ -999,7 +999,7 @@ export function InboxChatThread({
               />
 
               {/* Composer Row */}
-              <div className="flex items-end gap-1.5">
+              <div className="flex min-w-0 items-end gap-1.5">
                 {/* AI Button - Premium text badge */}
                 <Tooltip>
                   <TooltipTrigger asChild>
@@ -1023,7 +1023,7 @@ export function InboxChatThread({
 
                 {/* Main input container with integrated actions */}
                 <div className={cn(
-                  "flex-1 flex items-end rounded-2xl border bg-card transition-all duration-200",
+                  "flex-1 min-w-0 flex items-end rounded-2xl border bg-card transition-all duration-200",
                   "border-border/60 focus-within:border-primary/40 focus-within:ring-1 focus-within:ring-primary/10",
                   "shadow-sm"
                 )}>
@@ -1070,7 +1070,7 @@ export function InboxChatThread({
                     onKeyDown={handleKeyDown}
                     onBlur={() => onTyping?.(false)}
                     className={cn(
-                      "resize-none border-0 bg-transparent shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 px-1",
+                      "min-w-0 resize-none border-0 bg-transparent shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 px-1",
                       isMobile 
                         ? "min-h-[40px] max-h-24 py-2.5 text-sm" 
                         : "min-h-[40px] max-h-32 py-2.5"
