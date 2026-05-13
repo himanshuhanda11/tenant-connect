@@ -73,7 +73,7 @@ Deno.serve(async (req) => {
     const { data: { user }, error: userErr } = await supabase.auth.getUser(token);
     if (userErr || !user) return json({ error: 'Invalid token' }, 401);
 
-    const { tenantId, action, pageId } = await req.json();
+    const { tenantId, action, pageId, formId, maxLeads } = await req.json();
     if (!tenantId) return json({ error: 'Missing tenantId' }, 400);
 
     // Verify membership
