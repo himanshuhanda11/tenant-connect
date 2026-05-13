@@ -99,7 +99,7 @@ export function AdminCreditAdjustments() {
     setSubmitting(true);
     try {
       const signed = direction === "credit" ? amount : -amount;
-      await post("credits/adjust", { workspace_id: selected.tenant_id, amount: signed, reason });
+      await post("credits/adjust", { workspace_id: selected.tenant_id, amount: signed, reason, category });
       toast.success(`Adjusted ${signed > 0 ? "+" : ""}${signed} credits for ${selected.tenants?.name}`);
       setAdjustOpen(false);
       load();
