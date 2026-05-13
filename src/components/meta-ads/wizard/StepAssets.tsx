@@ -9,6 +9,21 @@ import type { MetaCampaignDraft, MetaCampaignType } from '@/types/meta-campaign'
 import { CAMPAIGN_TYPE_CONFIG } from '@/types/meta-campaign';
 import { cn } from '@/lib/utils';
 
+const OBJECTIVE_TO_TYPE: Record<string, MetaCampaignType> = {
+  MESSAGES: 'ctwa',
+  CONVERSATIONS: 'ctwa',
+  TRAFFIC: 'website_traffic',
+  LINK_CLICKS: 'website_traffic',
+  LEAD_GENERATION: 'form_leads',
+};
+
+function getRunningCount(campaigns: any[], type: MetaCampaignType) {
+  return campaigns.filter(c => {
+    const mapped = OBJECTIVE_TO_TYPE[c.campaign_objective || ''];
+    return c.status === 'active' && mapped === type;
+  }).length;
+}
+
 interface StepAssetsProps {
   draft: MetaCampaignDraft;
   updateDraft: (updates: Partial<MetaCampaignDraft>) => void;
