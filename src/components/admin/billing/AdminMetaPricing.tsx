@@ -43,7 +43,17 @@ export function AdminMetaPricing() {
     try {
       const { data, error } = await supabase.functions.invoke('meta-pricing-sync', { method: 'POST' });
       if (error) throw error;
-      toast({ title: 'Sync complete', description: `${data?.rates_upserted ?? 0} rates updated from ${data?.wabas_processed ?? 0} WABA(s).` });
+      const upserted = data?.rates_upserted ?? 0;
+      const total = data?.total_wabas ?? 0;
+      if (upserted === 0 && data?.note) {
+        toast({
+          title: 'Meta did not return pricing data',
+          description: data.note,
+          duration: 12000,
+        });
+      } else {
+        toast({ title: 'Sync complete', description: `${upserted} rates updated from ${total} WABA(s).` });
+      }
       await load();
     } catch (e: any) {
       toast({ title: 'Sync failed', description: e?.message || 'Unknown error', variant: 'destructive' });
