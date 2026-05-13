@@ -37,9 +37,16 @@ import { SEO } from '@/components/seo';
 interface RateRow {
   country_code: string;
   country_name: string;
-  marketing: number | null;
-  utility: number | null;
-  authentication: number | null;
+  currency_code: string;
+  marketing: RateValue | null;
+  utility: RateValue | null;
+  authentication: RateValue | null;
+}
+
+interface RateValue {
+  credits: number;
+  localAmount: number;
+  currencyCode: string;
 }
 
 type SortKey = 'country' | 'marketing' | 'utility' | 'authentication';
@@ -55,6 +62,51 @@ const DIAL: Record<string, string> = {
   RU: '+7', TR: '+90', IL: '+972', EG: '+20', ZA: '+27', NG: '+234', KE: '+254',
   GH: '+233', BR: '+55', MX: '+52', AR: '+54', CL: '+56', CO: '+57', PE: '+51',
   VE: '+58', UY: '+598', OTHER: '—',
+};
+
+const CREDIT_USD_VALUE = 0.02;
+
+// Reference display rates only: convert Aireatro credit usage into each destination country's currency.
+const LOCAL_CURRENCY: Record<string, { code: string; usdRate: number }> = {
+  IN: { code: 'INR', usdRate: 83.4 }, US: { code: 'USD', usdRate: 1 }, CA: { code: 'CAD', usdRate: 1.37 },
+  GB: { code: 'GBP', usdRate: 0.79 }, AE: { code: 'AED', usdRate: 3.67 }, SA: { code: 'SAR', usdRate: 3.75 },
+  QA: { code: 'QAR', usdRate: 3.64 }, KW: { code: 'KWD', usdRate: 0.31 }, OM: { code: 'OMR', usdRate: 0.38 },
+  BH: { code: 'BHD', usdRate: 0.38 }, SG: { code: 'SGD', usdRate: 1.35 }, MY: { code: 'MYR', usdRate: 4.72 },
+  TH: { code: 'THB', usdRate: 36.2 }, ID: { code: 'IDR', usdRate: 16200 }, PH: { code: 'PHP', usdRate: 57.4 },
+  VN: { code: 'VND', usdRate: 25400 }, PK: { code: 'PKR', usdRate: 278 }, BD: { code: 'BDT', usdRate: 117 },
+  LK: { code: 'LKR', usdRate: 300 }, NP: { code: 'NPR', usdRate: 133 }, AU: { code: 'AUD', usdRate: 1.52 },
+  NZ: { code: 'NZD', usdRate: 1.65 }, JP: { code: 'JPY', usdRate: 155 }, KR: { code: 'KRW', usdRate: 1370 },
+  CN: { code: 'CNY', usdRate: 7.25 }, HK: { code: 'HKD', usdRate: 7.82 }, TW: { code: 'TWD', usdRate: 32.3 },
+  DE: { code: 'EUR', usdRate: 0.92 }, FR: { code: 'EUR', usdRate: 0.92 }, IT: { code: 'EUR', usdRate: 0.92 },
+  ES: { code: 'EUR', usdRate: 0.92 }, NL: { code: 'EUR', usdRate: 0.92 }, BE: { code: 'EUR', usdRate: 0.92 },
+  PT: { code: 'EUR', usdRate: 0.92 }, IE: { code: 'EUR', usdRate: 0.92 }, AT: { code: 'EUR', usdRate: 0.92 },
+  SE: { code: 'SEK', usdRate: 10.6 }, NO: { code: 'NOK', usdRate: 10.8 }, DK: { code: 'DKK', usdRate: 6.86 },
+  FI: { code: 'EUR', usdRate: 0.92 }, CH: { code: 'CHF', usdRate: 0.91 }, PL: { code: 'PLN', usdRate: 4.0 },
+  RU: { code: 'RUB', usdRate: 92 }, TR: { code: 'TRY', usdRate: 32.4 }, IL: { code: 'ILS', usdRate: 3.7 },
+  EG: { code: 'EGP', usdRate: 47.8 }, ZA: { code: 'ZAR', usdRate: 18.4 }, NG: { code: 'NGN', usdRate: 1500 },
+  KE: { code: 'KES', usdRate: 129 }, GH: { code: 'GHS', usdRate: 14.6 }, BR: { code: 'BRL', usdRate: 5.15 },
+  MX: { code: 'MXN', usdRate: 17.0 }, AR: { code: 'ARS', usdRate: 1050 }, CL: { code: 'CLP', usdRate: 930 },
+  CO: { code: 'COP', usdRate: 3900 }, PE: { code: 'PEN', usdRate: 3.75 }, VE: { code: 'VES', usdRate: 36.5 },
+  UY: { code: 'UYU', usdRate: 39.2 }, OTHER: { code: 'USD', usdRate: 1 },
+};
+
+const toLocalRate = (countryCode: string, credits: number): RateValue => {
+  const local = LOCAL_CURRENCY[countryCode] || LOCAL_CURRENCY.OTHER;
+  return {
+    credits,
+    localAmount: credits * CREDIT_USD_VALUE * local.usdRate,
+    currencyCode: local.code,
+  };
+};
+
+const formatLocalRate = (amount: number, currencyCode: string) => {
+  const fractionDigits = amount < 1 ? 4 : amount < 10 ? 3 : 2;
+  return new Intl.NumberFormat('en', {
+    style: 'currency',
+    currency: currencyCode,
+    minimumFractionDigits: fractionDigits,
+    maximumFractionDigits: fractionDigits,
+  }).format(amount);
 };
 
 export default function MessagePricing() {
