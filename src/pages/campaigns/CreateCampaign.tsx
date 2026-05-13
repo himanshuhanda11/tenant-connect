@@ -131,6 +131,7 @@ export default function CreateCampaign() {
     selected_contacts: [],
   });
   const [audienceEstimatedCount, setAudienceEstimatedCount] = useState(0);
+  const [costEstimate, setCostEstimate] = useState<BroadcastCostEstimate | null>(null);
   const [draftLoaded, setDraftLoaded] = useState(false);
   const [draftSavedAt, setDraftSavedAt] = useState<Date | null>(null);
   const draftKey = currentTenant?.id ? `campaign-draft:${currentTenant.id}` : null;
