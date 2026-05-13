@@ -120,6 +120,11 @@ export default function AdminBilling() {
               <Package className="h-3.5 w-3.5" />Credit Packages
             </TabsTrigger>
           )}
+          {isSuperAdmin && (
+            <TabsTrigger value="meta-pricing" className="rounded-lg text-sm gap-1">
+              <Globe2 className="h-3.5 w-3.5" />Meta Pricing
+            </TabsTrigger>
+          )}
         </TabsList>
 
         <TabsContent value="overview" className="mt-4">
