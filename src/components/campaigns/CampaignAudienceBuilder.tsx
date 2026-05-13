@@ -474,13 +474,12 @@ export default function CampaignAudienceBuilder({
           .eq('tenant_id', currentTenant.id);
 
         if (filters.opt_in_only) query = query.eq('opt_out', false);
-        if (filters.mau_statuses.length > 0) query = query.in('mau_status', filters.mau_statuses as any);
-        if (filters.priorities.length > 0) query = query.in('priority_level', filters.priorities as any);
-        if (filters.lead_states.length > 0) query = query.in('lead_status', filters.lead_states as any);
-        if (filters.crm_statuses.length > 0) query = query.in('deal_stage', filters.crm_statuses as any);
         if (filters.contact_source) query = query.eq('source', filters.contact_source);
         if (filters.flow_source) query = query.eq('automation_flow', filters.flow_source);
         if (filters.meta_campaign_source) query = query.eq('campaign_source', filters.meta_campaign_source);
+        if (filters.assigned_agent === SELECT_SENTINELS.unassigned) {
+          query = query.is('assigned_agent_id', null);
+        }
 
         const selectedSegments = segments.filter((segment) => filters.include_segments.includes(segment.id));
         const excludedSegments = segments.filter((segment) => filters.exclude_segments.includes(segment.id));
