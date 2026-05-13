@@ -137,7 +137,7 @@ export default function LeadFormsPage() {
       }
     });
     return Array.from(map.values());
-  }, [forms]);
+  }, [forms, connectedPageId]);
 
   // Auto-select the first page when data loads
   useEffect(() => {
