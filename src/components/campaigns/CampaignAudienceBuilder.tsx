@@ -185,25 +185,6 @@ export const DEFAULT_AUDIENCE_FILTERS: AudienceFilters = {
 
 const PAGE_SIZE = 1000;
 
-const hasAudienceCriteria = (filters: AudienceFilters) =>
-  filters.include_segments.length > 0 ||
-  filters.exclude_segments.length > 0 ||
-  filters.include_tags.length > 0 ||
-  filters.exclude_tags.length > 0 ||
-  filters.assigned_agent !== '' ||
-  filters.lead_states.length > 0 ||
-  filters.crm_statuses.length > 0 ||
-  filters.mau_statuses.length > 0 ||
-  filters.priorities.length > 0 ||
-  filters.date_from !== '' ||
-  filters.date_to !== '' ||
-  filters.meta_campaign_source !== '' ||
-  filters.flow_source !== '' ||
-  filters.contact_source !== '' ||
-  filters.attributes.some((a) => a.key && a.value) ||
-  filters.is_unreplied !== 'all' ||
-  filters.exclude_recent_days > 0;
-
 const areStringArraysEqual = (a: string[], b: string[]) =>
   a.length === b.length && a.every((value, index) => value === b[index]);
 
@@ -369,8 +350,6 @@ export default function CampaignAudienceBuilder({
   const estimateAudience = useCallback(async () => {
     if (!currentTenant?.id) return;
 
-    const hasAdvancedFilters = hasAudienceCriteria(filters);
-
     // Uploaded/direct contacts are already an explicit recipient list.
     if (filters.selected_contacts.length > 0) {
       onEstimatedCountChange(filters.selected_contacts.length);
@@ -461,7 +440,11 @@ export default function CampaignAudienceBuilder({
   }, [estimateAudience]);
 
   const updateFilter = <K extends keyof AudienceFilters>(key: K, value: AudienceFilters[K]) => {
-    setFilters({ ...filters, [key]: value });
+    setFilters({
+      ...filters,
+      [key]: value,
+      matched_contact_ids: key === 'matched_contact_ids' ? (value as string[]) : [],
+    });
   };
 
   const toggleInArray = (key: 'include_segments' | 'exclude_segments' | 'include_tags' | 'exclude_tags' | 'lead_states' | 'crm_statuses' | 'mau_statuses' | 'priorities', value: string) => {
