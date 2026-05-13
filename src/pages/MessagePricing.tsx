@@ -37,12 +37,20 @@ import { SEO } from '@/components/seo';
 interface RateRow {
   country_code: string;
   country_name: string;
-  marketing: number | null;
-  utility: number | null;
-  authentication: number | null;
+  currency_code: string;
+  marketing: RateValue | null;
+  utility: RateValue | null;
+  authentication: RateValue | null;
+}
+
+interface RateValue {
+  credits: number;
+  localAmount: number;
+  currencyCode: string;
 }
 
 type SortKey = 'country' | 'marketing' | 'utility' | 'authentication';
+type PricingTab = 'all' | 'marketing' | 'utility' | 'authentication';
 
 // Rough country-code → dial code (display only)
 const DIAL: Record<string, string> = {
@@ -57,12 +65,57 @@ const DIAL: Record<string, string> = {
   VE: '+58', UY: '+598', OTHER: '—',
 };
 
+const CREDIT_USD_VALUE = 0.02;
+
+// Reference display rates only: convert Aireatro credit usage into each destination country's currency.
+const LOCAL_CURRENCY: Record<string, { code: string; usdRate: number }> = {
+  IN: { code: 'INR', usdRate: 83.4 }, US: { code: 'USD', usdRate: 1 }, CA: { code: 'CAD', usdRate: 1.37 },
+  GB: { code: 'GBP', usdRate: 0.79 }, AE: { code: 'AED', usdRate: 3.67 }, SA: { code: 'SAR', usdRate: 3.75 },
+  QA: { code: 'QAR', usdRate: 3.64 }, KW: { code: 'KWD', usdRate: 0.31 }, OM: { code: 'OMR', usdRate: 0.38 },
+  BH: { code: 'BHD', usdRate: 0.38 }, SG: { code: 'SGD', usdRate: 1.35 }, MY: { code: 'MYR', usdRate: 4.72 },
+  TH: { code: 'THB', usdRate: 36.2 }, ID: { code: 'IDR', usdRate: 16200 }, PH: { code: 'PHP', usdRate: 57.4 },
+  VN: { code: 'VND', usdRate: 25400 }, PK: { code: 'PKR', usdRate: 278 }, BD: { code: 'BDT', usdRate: 117 },
+  LK: { code: 'LKR', usdRate: 300 }, NP: { code: 'NPR', usdRate: 133 }, AU: { code: 'AUD', usdRate: 1.52 },
+  NZ: { code: 'NZD', usdRate: 1.65 }, JP: { code: 'JPY', usdRate: 155 }, KR: { code: 'KRW', usdRate: 1370 },
+  CN: { code: 'CNY', usdRate: 7.25 }, HK: { code: 'HKD', usdRate: 7.82 }, TW: { code: 'TWD', usdRate: 32.3 },
+  DE: { code: 'EUR', usdRate: 0.92 }, FR: { code: 'EUR', usdRate: 0.92 }, IT: { code: 'EUR', usdRate: 0.92 },
+  ES: { code: 'EUR', usdRate: 0.92 }, NL: { code: 'EUR', usdRate: 0.92 }, BE: { code: 'EUR', usdRate: 0.92 },
+  PT: { code: 'EUR', usdRate: 0.92 }, IE: { code: 'EUR', usdRate: 0.92 }, AT: { code: 'EUR', usdRate: 0.92 },
+  SE: { code: 'SEK', usdRate: 10.6 }, NO: { code: 'NOK', usdRate: 10.8 }, DK: { code: 'DKK', usdRate: 6.86 },
+  FI: { code: 'EUR', usdRate: 0.92 }, CH: { code: 'CHF', usdRate: 0.91 }, PL: { code: 'PLN', usdRate: 4.0 },
+  RU: { code: 'RUB', usdRate: 92 }, TR: { code: 'TRY', usdRate: 32.4 }, IL: { code: 'ILS', usdRate: 3.7 },
+  EG: { code: 'EGP', usdRate: 47.8 }, ZA: { code: 'ZAR', usdRate: 18.4 }, NG: { code: 'NGN', usdRate: 1500 },
+  KE: { code: 'KES', usdRate: 129 }, GH: { code: 'GHS', usdRate: 14.6 }, BR: { code: 'BRL', usdRate: 5.15 },
+  MX: { code: 'MXN', usdRate: 17.0 }, AR: { code: 'ARS', usdRate: 1050 }, CL: { code: 'CLP', usdRate: 930 },
+  CO: { code: 'COP', usdRate: 3900 }, PE: { code: 'PEN', usdRate: 3.75 }, VE: { code: 'VES', usdRate: 36.5 },
+  UY: { code: 'UYU', usdRate: 39.2 }, OTHER: { code: 'USD', usdRate: 1 },
+};
+
+const toLocalRate = (countryCode: string, credits: number): RateValue => {
+  const local = LOCAL_CURRENCY[countryCode] || LOCAL_CURRENCY.OTHER;
+  return {
+    credits,
+    localAmount: credits * CREDIT_USD_VALUE * local.usdRate,
+    currencyCode: local.code,
+  };
+};
+
+const formatLocalRate = (amount: number, currencyCode: string) => {
+  const fractionDigits = amount < 1 ? 4 : amount < 10 ? 3 : 2;
+  return new Intl.NumberFormat('en', {
+    style: 'currency',
+    currency: currencyCode,
+    minimumFractionDigits: fractionDigits,
+    maximumFractionDigits: fractionDigits,
+  }).format(amount);
+};
+
 export default function MessagePricing() {
   const [rows, setRows] = useState<RateRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState('');
-  const [tab, setTab] = useState<'all' | 'marketing' | 'utility' | 'authentication'>('all');
+  const [tab, setTab] = useState<PricingTab>('all');
   const [sortKey, setSortKey] = useState<SortKey>('country');
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
 
@@ -85,9 +138,11 @@ export default function MessagePricing() {
       for (const r of data || []) {
         const key = `${r.country_code}|${r.country_name}`;
         if (!map.has(key)) {
+          const local = LOCAL_CURRENCY[r.country_code] || LOCAL_CURRENCY.OTHER;
           map.set(key, {
             country_code: r.country_code,
             country_name: r.country_name,
+            currency_code: local.code,
             marketing: null,
             utility: null,
             authentication: null,
@@ -95,9 +150,10 @@ export default function MessagePricing() {
         }
         const row = map.get(key)!;
         const credits = Number(r.rate_per_message) * Number(r.credit_multiplier ?? 1);
-        if (r.template_category === 'marketing') row.marketing = credits;
-        else if (r.template_category === 'utility') row.utility = credits;
-        else if (r.template_category === 'authentication') row.authentication = credits;
+        const localRate = toLocalRate(r.country_code, credits);
+        if (r.template_category === 'marketing') row.marketing = localRate;
+        else if (r.template_category === 'utility') row.utility = localRate;
+        else if (r.template_category === 'authentication') row.authentication = localRate;
       }
       setRows(Array.from(map.values()));
       setLoading(false);
@@ -113,6 +169,7 @@ export default function MessagePricing() {
       !q ||
       x.country_name.toLowerCase().includes(q) ||
       x.country_code.toLowerCase().includes(q) ||
+      x.currency_code.toLowerCase().includes(q) ||
       (DIAL[x.country_code] || '').includes(q),
     );
     if (tab !== 'all') r = r.filter((x) => x[tab] != null);
@@ -122,8 +179,8 @@ export default function MessagePricing() {
       if (sortKey === 'country') {
         av = a.country_name; bv = b.country_name;
       } else {
-        av = a[sortKey] ?? Number.POSITIVE_INFINITY;
-        bv = b[sortKey] ?? Number.POSITIVE_INFINITY;
+        av = a[sortKey]?.localAmount ?? Number.POSITIVE_INFINITY;
+        bv = b[sortKey]?.localAmount ?? Number.POSITIVE_INFINITY;
       }
       if (av < bv) return sortDir === 'asc' ? -1 : 1;
       if (av > bv) return sortDir === 'asc' ? 1 : -1;
@@ -185,7 +242,7 @@ export default function MessagePricing() {
                   Country-wise Rates
                 </CardTitle>
                 <CardDescription className="text-xs">
-                  Credits per delivered conversation. Search any country or dial code.
+                  Local currency estimate per delivered conversation, with Aireatro credits shown below.
                 </CardDescription>
               </div>
               <div className="relative w-full sm:w-72">
@@ -199,7 +256,7 @@ export default function MessagePricing() {
               </div>
             </div>
 
-            <Tabs value={tab} onValueChange={(v) => setTab(v as any)} className="mt-3">
+            <Tabs value={tab} onValueChange={(v) => setTab(v as PricingTab)} className="mt-3">
               <TabsList className="grid grid-cols-4 w-full sm:w-auto">
                 <TabsTrigger value="all" className="text-xs">All</TabsTrigger>
                 <TabsTrigger value="marketing" className="text-xs">Marketing</TabsTrigger>
@@ -259,6 +316,7 @@ export default function MessagePricing() {
                             <div className="flex items-center gap-2">
                               <span className="font-medium">{r.country_name}</span>
                               <Badge variant="outline" className="text-[9px] px-1 h-4">{r.country_code}</Badge>
+                              <Badge variant="secondary" className="text-[9px] px-1 h-4">{r.currency_code}</Badge>
                             </div>
                           </TableCell>
                           <TableCell className="text-xs text-muted-foreground tabular-nums">{DIAL[r.country_code] || '—'}</TableCell>
@@ -305,13 +363,14 @@ export default function MessagePricing() {
   );
 }
 
-function RateCell({ value }: { value: number | null }) {
+function RateCell({ value }: { value: RateValue | null }) {
   if (value == null) {
     return <TableCell className="text-xs text-right text-muted-foreground">—</TableCell>;
   }
   return (
-    <TableCell className="text-xs text-right tabular-nums font-medium">
-      {value.toFixed(2)}
+    <TableCell className="text-xs text-right tabular-nums">
+      <div className="font-semibold text-foreground">{formatLocalRate(value.localAmount, value.currencyCode)}</div>
+      <div className="text-[10px] text-muted-foreground">{value.credits.toFixed(2)} credits</div>
     </TableCell>
   );
 }
