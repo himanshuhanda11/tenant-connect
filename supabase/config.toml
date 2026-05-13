@@ -123,3 +123,6 @@ project_id = "fygwjpdasnhaomoqdvcu"
     verify_jwt = false
   [functions.campaign-worker]
     verify_jwt = false
+
+  [functions.credits-low-balance-alerts]
+    verify_jwt = false
