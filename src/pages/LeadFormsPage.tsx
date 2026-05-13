@@ -47,6 +47,15 @@ export default function LeadFormsPage() {
         .eq('is_active', true)
         .limit(1)
         .maybeSingle();
+      const scopes = (data?.scopes_granted as string[] | null) || [];
+      if (data?.meta_access_token && !scopes.includes('leads_retrieval')) {
+        const { data: refreshed } = await supabase.functions.invoke('meta-sync-lead-forms', {
+          body: { tenantId: currentTenant.id, action: 'refresh_permissions' },
+        });
+        if (Array.isArray(refreshed?.scopes_granted)) {
+          return { ...data, scopes_granted: refreshed.scopes_granted };
+        }
+      }
       return data;
     },
     enabled: !!currentTenant?.id,

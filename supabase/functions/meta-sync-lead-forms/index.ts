@@ -8,11 +8,13 @@ const corsHeaders = {
 const GRAPH = 'https://graph.facebook.com/v21.0';
 
 type MetaAccountRow = {
+  id: string;
   meta_access_token: string | null;
   facebook_page_id: string | null;
   facebook_page_name: string | null;
   status: string | null;
   is_active: boolean | null;
+  scopes_granted?: string[] | null;
 };
 
 type MetaPage = {
@@ -29,7 +31,7 @@ function dedupePages(pages: MetaPage[]) {
     mergedPages.set(page.id, {
       id: page.id,
       name: page.name || mergedPages.get(page.id)?.name || 'Untitled Page',
-      access_token: page.access_token || mergedPages.get(page.id)?.access_token,
+      access_token: mergedPages.get(page.id)?.access_token || page.access_token,
     });
   }
 
@@ -82,7 +84,7 @@ Deno.serve(async (req) => {
 
     const { data: accounts, error: accountsError } = await supabase
       .from('smeksh_meta_ad_accounts')
-      .select('meta_access_token, facebook_page_id, facebook_page_name, status, is_active')
+      .select('id, meta_access_token, facebook_page_id, facebook_page_name, status, is_active, scopes_granted')
       .eq('workspace_id', tenantId)
       .eq('is_active', true);
 
@@ -100,7 +102,9 @@ Deno.serve(async (req) => {
       .map((account) => ({
         id: account.facebook_page_id as string,
         name: account.facebook_page_name || 'Untitled Page',
-        access_token: account.meta_access_token || undefined,
+        // Stored account tokens are user OAuth tokens, not Page tokens. Only /me/accounts tokens
+        // can call /{page_id}/leadgen_forms or /{page_id}/subscribed_apps reliably.
+        access_token: undefined,
       }));
 
     const systemUserToken = Deno.env.get('META_SYSTEM_USER_TOKEN') || null;
@@ -110,7 +114,41 @@ Deno.serve(async (req) => {
     let accessToken = userOAuthToken || systemUserToken || null;
     if (!accessToken) return json({ error: 'No Meta access token configured' }, 400);
 
+    async function refreshStoredScopes() {
+      try {
+        const permsRes = await fetch(`${GRAPH}/me/permissions?access_token=${accessToken}`);
+        const permsData = await permsRes.json();
+        if (!permsRes.ok || permsData?.error || !Array.isArray(permsData?.data)) return;
+
+        const grantedScopes = permsData.data
+          .filter((permission: any) => permission?.status === 'granted' && permission?.permission)
+          .map((permission: any) => permission.permission);
+
+        const currentScopes = connectedAccounts[0]?.scopes_granted || [];
+        const scopesChanged = grantedScopes.length !== currentScopes.length || grantedScopes.some((scope: string) => !currentScopes.includes(scope));
+        if (connectedAccounts[0]?.id && scopesChanged) {
+          await supabase
+            .from('smeksh_meta_ad_accounts')
+            .update({ scopes_granted: grantedScopes })
+            .eq('id', connectedAccounts[0].id)
+            .eq('workspace_id', tenantId);
+          connectedAccounts[0].scopes_granted = grantedScopes;
+        }
+      } catch (scopeError) {
+        console.warn('[meta-sync-lead-forms] Failed to refresh stored permissions:', scopeError);
+      }
+    }
+
+    if (action === 'refresh_permissions') {
+      await refreshStoredScopes();
+      return json({
+        success: true,
+        scopes_granted: connectedAccounts[0]?.scopes_granted || [],
+      });
+    }
+
     if (action === 'sync_forms') {
+      await refreshStoredScopes();
       let pages: MetaPage[] = [];
 
       // CRITICAL: /me/accounts returns page-specific access tokens

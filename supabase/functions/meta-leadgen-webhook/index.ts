@@ -78,7 +78,8 @@ Deno.serve(async (req) => {
           status: 'received',
         };
 
-        // Find workspace by facebook_page_id
+        // Find workspace by selected page first. The stored Meta token is a user token;
+        // fetch the matching Page token below before retrieving lead details.
         const { data: metaAccounts } = await supabase
           .from('smeksh_meta_ad_accounts')
           .select('workspace_id, meta_access_token, facebook_page_id')
@@ -89,7 +90,7 @@ Deno.serve(async (req) => {
 
         if (metaAccounts && metaAccounts.length > 0) {
           tenantId = metaAccounts[0].workspace_id;
-          accessToken = metaAccounts[0].meta_access_token;
+          accessToken = null;
         }
 
         // Also check phone_numbers for page mapping
@@ -137,6 +138,18 @@ Deno.serve(async (req) => {
           last_event_at: new Date().toISOString(),
           event_count_24h: 1, // Will be incremented properly later
         }, { onConflict: 'tenant_id,page_id' });
+
+        const userAccessToken = metaAccounts?.find((account: any) => account.meta_access_token)?.meta_access_token || null;
+        if (userAccessToken && pageId) {
+          try {
+            const pagesRes = await fetch(`${GRAPH}/me/accounts?fields=id,access_token&access_token=${userAccessToken}`);
+            const pagesData = await pagesRes.json();
+            const matchedPage = Array.isArray(pagesData?.data) ? pagesData.data.find((page: any) => page.id === pageId) : null;
+            if (matchedPage?.access_token) accessToken = matchedPage.access_token;
+          } catch (pageTokenError) {
+            console.warn(`[leadgen-webhook] Failed to fetch page access token for page=${pageId}:`, pageTokenError);
+          }
+        }
 
         // Fetch lead details from Meta
         if (!accessToken) {
