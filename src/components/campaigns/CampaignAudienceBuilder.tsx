@@ -576,7 +576,9 @@ export default function CampaignAudienceBuilder({
   const activeFilterCount = () => {
     let count = 0;
     if (filters.include_segments.length > 0) count++;
+    if (filters.exclude_segments.length > 0) count++;
     if (filters.include_tags.length > 0) count++;
+    if (filters.exclude_tags.length > 0) count++;
     if (filters.assigned_agent) count++;
     if (filters.lead_states.length > 0) count++;
     if (filters.crm_statuses.length > 0) count++;
