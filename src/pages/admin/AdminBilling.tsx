@@ -111,7 +111,12 @@ export default function AdminBilling() {
           )}
           {isSuperAdmin && (
             <TabsTrigger value="adjustments" className="rounded-lg text-sm gap-1">
-              <PlusCircle className="h-3.5 w-3.5" />Adjustments
+              <Wallet className="h-3.5 w-3.5" />Credit Wallets
+            </TabsTrigger>
+          )}
+          {isSuperAdmin && (
+            <TabsTrigger value="packages" className="rounded-lg text-sm gap-1">
+              <Package className="h-3.5 w-3.5" />Credit Packages
             </TabsTrigger>
           )}
         </TabsList>
@@ -136,18 +141,13 @@ export default function AdminBilling() {
 
         {isSuperAdmin && (
           <TabsContent value="adjustments" className="mt-4">
-            <Card className="rounded-2xl shadow-sm border-border/50">
-              <CardContent className="py-12 text-center">
-                <div className="h-10 w-10 rounded-xl bg-muted flex items-center justify-center mx-auto mb-3">
-                  <PlusCircle className="h-5 w-5 text-muted-foreground" />
-                </div>
-                <p className="text-sm font-medium mb-1">Manual Adjustments</p>
-                <p className="text-xs text-muted-foreground mb-4">Credit or debit workspaces manually. Available soon.</p>
-                <Button variant="outline" size="sm" className="rounded-xl" disabled>
-                  <PlusCircle className="h-3.5 w-3.5 mr-1" /> New Adjustment
-                </Button>
-              </CardContent>
-            </Card>
+            <AdminCreditAdjustments />
+          </TabsContent>
+        )}
+
+        {isSuperAdmin && (
+          <TabsContent value="packages" className="mt-4">
+            <AdminCreditPackages />
           </TabsContent>
         )}
       </Tabs>
