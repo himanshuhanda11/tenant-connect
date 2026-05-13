@@ -177,7 +177,7 @@ export function InboxCRMOverview({ conversation, onStatusChanged }: InboxCRMOver
                   variant={isCurrentStatus ? "default" : action.variant as any || "outline"}
                   size="sm"
                   className={cn(
-                    "h-auto min-h-[32px] py-1.5 px-2 text-[11px] justify-start gap-1.5 w-full",
+                    "h-auto min-h-[38px] w-full items-start justify-start gap-1.5 px-1.5 py-1.5 text-[10px] leading-tight whitespace-normal",
                     isCurrentStatus && "ring-2 ring-primary/30"
                   )}
                   onClick={() => {
@@ -189,8 +189,8 @@ export function InboxCRMOverview({ conversation, onStatusChanged }: InboxCRMOver
                   }}
                   disabled={isCurrentStatus}
                 >
-                  <span className="flex-shrink-0">{action.icon}</span>
-                  <span className="truncate text-left leading-tight">
+                  <span className="mt-0.5 flex-shrink-0">{action.icon}</span>
+                  <span className="min-w-0 flex-1 text-left leading-tight break-words [overflow-wrap:anywhere]">
                     {isCurrentStatus ? '✓ ' : ''}{action.label}
                   </span>
                 </Button>
