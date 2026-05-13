@@ -127,6 +127,9 @@ export default function CreateCampaign() {
     selected_contacts: [],
   });
   const [audienceEstimatedCount, setAudienceEstimatedCount] = useState(0);
+  const [draftLoaded, setDraftLoaded] = useState(false);
+  const [draftSavedAt, setDraftSavedAt] = useState<Date | null>(null);
+  const draftKey = currentTenant?.id ? `campaign-draft:${currentTenant.id}` : null;
 
   const preselectedContactIds = useMemo(() => {
     const raw = searchParams.get('contacts') || '';
@@ -237,6 +240,45 @@ export default function CreateCampaign() {
 
     fetchOptions();
   }, [currentTenant?.id]);
+
+  // Load draft on mount once we know the workspace
+  useEffect(() => {
+    if (!draftKey || draftLoaded) return;
+    try {
+      const raw = localStorage.getItem(draftKey);
+      if (raw) {
+        const saved = JSON.parse(raw);
+        if (saved?.wizard) setWizard((prev) => ({ ...prev, ...saved.wizard }));
+        if (saved?.audienceFilters) setAudienceFilters((prev) => ({ ...prev, ...saved.audienceFilters }));
+        if (typeof saved?.currentStep === 'number') setCurrentStep(saved.currentStep);
+        if (saved?.savedAt) setDraftSavedAt(new Date(saved.savedAt));
+        toast.info('Draft restored — picking up where you left off');
+      }
+    } catch (e) {
+      console.warn('Failed to load campaign draft', e);
+    }
+    setDraftLoaded(true);
+  }, [draftKey, draftLoaded]);
+
+  // Auto-save draft (debounced) once loaded
+  useEffect(() => {
+    if (!draftKey || !draftLoaded) return;
+    const t = setTimeout(() => {
+      try {
+        const payload = {
+          wizard,
+          audienceFilters,
+          currentStep,
+          savedAt: new Date().toISOString(),
+        };
+        localStorage.setItem(draftKey, JSON.stringify(payload));
+        setDraftSavedAt(new Date());
+      } catch (e) {
+        // quota or serialization failure — ignore silently
+      }
+    }, 800);
+    return () => clearTimeout(t);
+  }, [wizard, audienceFilters, currentStep, draftKey, draftLoaded]);
 
   useEffect(() => {
     const fetchSelectedContacts = async () => {
@@ -411,6 +453,7 @@ export default function CreateCampaign() {
           ? `Campaign launched — ${(data as any)?.jobs_queued ?? contactIds.length} messages queued`
           : `Scheduled for ${new Date(scheduledAt!).toLocaleString()}`,
       );
+      try { if (draftKey) localStorage.removeItem(draftKey); } catch {}
       navigate('/campaigns');
     } catch (e: any) {
       console.error('campaign-launch error', e);
@@ -453,11 +496,37 @@ export default function CreateCampaign() {
             </Button>
             <div className="min-w-0">
               <h1 className="text-xl sm:text-2xl font-bold truncate">Create Campaign</h1>
-              <p className="text-xs sm:text-sm text-muted-foreground">Step {currentStep} of 5</p>
+              <p className="text-xs sm:text-sm text-muted-foreground">
+                Step {currentStep} of 5
+                {draftSavedAt && (
+                  <span className="ml-2 text-emerald-600">
+                    · Draft saved {draftSavedAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  </span>
+                )}
+              </p>
             </div>
           </div>
-          <Button variant="outline" size="sm" className="w-full sm:w-auto" onClick={() => navigate('/campaigns')}>
-            Save Draft
+          <Button
+            variant="outline"
+            size="sm"
+            className="w-full sm:w-auto"
+            onClick={() => {
+              if (draftKey) {
+                try {
+                  localStorage.setItem(
+                    draftKey,
+                    JSON.stringify({ wizard, audienceFilters, currentStep, savedAt: new Date().toISOString() }),
+                  );
+                  setDraftSavedAt(new Date());
+                  toast.success('Draft saved — you can resume later');
+                } catch {
+                  toast.error('Could not save draft');
+                }
+              }
+              navigate('/campaigns');
+            }}
+          >
+            Save Draft & Exit
           </Button>
         </div>
 

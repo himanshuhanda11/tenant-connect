@@ -1,11 +1,18 @@
 import { useRef, useState } from 'react';
 import Papa from 'papaparse';
+import * as XLSX from 'xlsx';
 import { parsePhoneNumberFromString } from 'libphonenumber-js';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Upload, FileSpreadsheet, Download, CheckCircle2, AlertTriangle, Loader2, X } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { supabase } from '@/integrations/supabase/client';
 import { useTenant } from '@/contexts/TenantContext';
 import { toast } from 'sonner';
@@ -35,11 +42,25 @@ interface Props {
   defaultCountry?: string;
 }
 
-const SAMPLE_CSV = `phone,name,email,city,custom_1,custom_2,tags
-+919876543210,Aman Kumar,aman@example.com,Mumbai,VIP,Order#1234,vip;repeat
-+14155552671,Sara Khan,sara@example.com,New York,Gold,Order#5678,gold`;
+const SAMPLE_HEADERS = ['phone', 'name', 'email', 'city', 'custom_1', 'custom_2', 'tags'];
+const SAMPLE_ROWS: Record<string, string>[] = [
+  { phone: '+919876543210', name: 'Aman Kumar', email: 'aman@example.com', city: 'Mumbai', custom_1: 'VIP', custom_2: 'Order#1234', tags: 'vip;repeat' },
+  { phone: '+14155552671', name: 'Sara Khan', email: 'sara@example.com', city: 'New York', custom_1: 'Gold', custom_2: 'Order#5678', tags: 'gold' },
+];
+
+const SAMPLE_CSV = [
+  SAMPLE_HEADERS.join(','),
+  ...SAMPLE_ROWS.map((r) => SAMPLE_HEADERS.map((h) => r[h] ?? '').join(',')),
+].join('\n');
 
 const SAMPLE_CSV_HREF = `data:text/csv;charset=utf-8,${encodeURIComponent(SAMPLE_CSV)}`;
+
+const downloadSampleXlsx = () => {
+  const ws = XLSX.utils.json_to_sheet(SAMPLE_ROWS, { header: SAMPLE_HEADERS });
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Contacts');
+  XLSX.writeFile(wb, 'broadcast-sample.xlsx');
+};
 
 export function CSVContactUploader({ onImported, defaultCountry = 'IN' }: Props) {
   const { currentTenant } = useTenant();
@@ -84,35 +105,58 @@ export function CSVContactUploader({ onImported, defaultCountry = 'IN' }: Props)
     triggerDownload('broadcast-invalid-rows.csv', csv);
   };
 
+  const processRows = (rawRows: Record<string, any>[]) => {
+    const seen = new Set<string>();
+    const parsed: ParsedRow[] = rawRows.map((rawIn) => {
+      const raw: Record<string, string> = {};
+      Object.entries(rawIn || {}).forEach(([k, v]) => {
+        raw[String(k).trim().toLowerCase()] = v == null ? '' : String(v);
+      });
+      const phoneRaw = (raw.phone || raw.mobile || raw.whatsapp || raw.number || '').trim();
+      const name = (raw.name || raw.first_name || raw.full_name || '').trim();
+      if (!phoneRaw) {
+        return { raw, phone: phoneRaw, name, valid: false, reason: 'missing phone' };
+      }
+      const parsedPhone = parsePhoneNumberFromString(phoneRaw, defaultCountry as any);
+      if (!parsedPhone || !parsedPhone.isValid()) {
+        return { raw, phone: phoneRaw, name, valid: false, reason: 'invalid number' };
+      }
+      const normalized = parsedPhone.number.replace('+', '');
+      const dup = seen.has(normalized);
+      seen.add(normalized);
+      return { raw, phone: phoneRaw, name, normalized, valid: true, duplicate: dup };
+    });
+    setRows(parsed);
+  };
+
   const handleFile = (file: File) => {
     setFileName(file.name);
     setImported(null);
+    const lower = file.name.toLowerCase();
+    const isExcel = lower.endsWith('.xlsx') || lower.endsWith('.xls');
+    if (isExcel) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const data = new Uint8Array(e.target?.result as ArrayBuffer);
+          const wb = XLSX.read(data, { type: 'array' });
+          const ws = wb.Sheets[wb.SheetNames[0]];
+          const json = XLSX.utils.sheet_to_json<Record<string, any>>(ws, { defval: '' });
+          processRows(json);
+        } catch (err: any) {
+          toast.error(`Failed to parse Excel file: ${err?.message || err}`);
+        }
+      };
+      reader.onerror = () => toast.error('Failed to read Excel file');
+      reader.readAsArrayBuffer(file);
+      return;
+    }
     Papa.parse<Record<string, string>>(file, {
       header: true,
       skipEmptyLines: true,
       transformHeader: (h) => h.trim().toLowerCase(),
-      complete: (results) => {
-        const seen = new Set<string>();
-        const parsed: ParsedRow[] = results.data.map((raw) => {
-          const phoneRaw = (raw.phone || raw.mobile || raw.whatsapp || raw.number || '').toString().trim();
-          const name = (raw.name || raw.first_name || raw.full_name || '').toString().trim();
-          if (!phoneRaw) {
-            return { raw, phone: phoneRaw, name, valid: false, reason: 'missing phone' };
-          }
-          const parsedPhone = parsePhoneNumberFromString(phoneRaw, defaultCountry as any);
-          if (!parsedPhone || !parsedPhone.isValid()) {
-            return { raw, phone: phoneRaw, name, valid: false, reason: 'invalid number' };
-          }
-          const normalized = parsedPhone.number.replace('+', '');
-          const dup = seen.has(normalized);
-          seen.add(normalized);
-          return { raw, phone: phoneRaw, name, normalized, valid: true, duplicate: dup };
-        });
-        setRows(parsed);
-      },
-      error: (err) => {
-        toast.error(`Failed to parse CSV: ${err.message}`);
-      },
+      complete: (results) => processRows(results.data),
+      error: (err) => toast.error(`Failed to parse CSV: ${err.message}`),
     });
   };
 
@@ -214,18 +258,30 @@ export function CSVContactUploader({ onImported, defaultCountry = 'IN' }: Props)
           <div>
             <h3 className="font-semibold flex items-center gap-2">
               <FileSpreadsheet className="h-4 w-4 text-primary" />
-              Upload contacts from CSV
+              Upload contacts (CSV or Excel)
             </h3>
             <p className="text-xs text-muted-foreground mt-1">
               Required column: <code className="px-1 bg-muted rounded">phone</code>. Optional: name, email, custom_1, etc. Numbers are normalized to E.164.
             </p>
           </div>
-          <Button variant="ghost" size="sm" asChild>
-            <a href={SAMPLE_CSV_HREF} download="broadcast-sample.csv">
-              <Download className="h-3.5 w-3.5 mr-1.5" />
-              Sample CSV
-            </a>
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="sm">
+                <Download className="h-3.5 w-3.5 mr-1.5" />
+                Sample
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem asChild>
+                <a href={SAMPLE_CSV_HREF} download="broadcast-sample.csv">
+                  Download CSV (.csv)
+                </a>
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={downloadSampleXlsx}>
+                Download Excel (.xlsx)
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
 
         {rows.length === 0 && !imported && (
@@ -239,12 +295,12 @@ export function CSVContactUploader({ onImported, defaultCountry = 'IN' }: Props)
             }}
           >
             <Upload className="h-8 w-8 text-muted-foreground" />
-            <p className="text-sm font-medium">Drop CSV here or click to upload</p>
-            <p className="text-xs text-muted-foreground">.csv up to 10 MB</p>
+            <p className="text-sm font-medium">Drop CSV or Excel here, or click to upload</p>
+            <p className="text-xs text-muted-foreground">.csv, .xlsx, .xls up to 10 MB</p>
             <input
               ref={fileRef}
               type="file"
-              accept=".csv,text/csv"
+              accept=".csv,text/csv,.xlsx,.xls,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel"
               className="hidden"
               onChange={(e) => {
                 const f = e.target.files?.[0];
