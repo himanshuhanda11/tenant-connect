@@ -79,6 +79,8 @@ export function useContactsCrmSearch() {
   const [totalCount, setTotalCount] = useState(cached?.totalCount ?? 0);
   const [loading, setLoading] = useState(!cached);
   const inFlightRef = useRef<Promise<void> | null>(null);
+  const totalCountRef = useRef(totalCount);
+  totalCountRef.current = totalCount;
 
   const fetchContacts = useCallback(async (isBackground = false) => {
     if (!currentTenant?.id) return;
