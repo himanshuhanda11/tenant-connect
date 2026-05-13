@@ -87,6 +87,7 @@ export interface AudienceFilters {
   include_tags: string[];
   exclude_tags: string[];
   selected_contacts: string[];
+  matched_contact_ids: string[];
   // Advanced filters
   assigned_agent: string;
   lead_states: string[];
@@ -165,6 +166,7 @@ export const DEFAULT_AUDIENCE_FILTERS: AudienceFilters = {
   include_tags: [],
   exclude_tags: [],
   selected_contacts: [],
+  matched_contact_ids: [],
   assigned_agent: '',
   lead_states: [],
   crm_statuses: [],
@@ -180,6 +182,30 @@ export const DEFAULT_AUDIENCE_FILTERS: AudienceFilters = {
   exclude_recent_days: 0,
   opt_in_only: true,
 };
+
+const PAGE_SIZE = 1000;
+
+const hasAudienceCriteria = (filters: AudienceFilters) =>
+  filters.include_segments.length > 0 ||
+  filters.exclude_segments.length > 0 ||
+  filters.include_tags.length > 0 ||
+  filters.exclude_tags.length > 0 ||
+  filters.assigned_agent !== '' ||
+  filters.lead_states.length > 0 ||
+  filters.crm_statuses.length > 0 ||
+  filters.mau_statuses.length > 0 ||
+  filters.priorities.length > 0 ||
+  filters.date_from !== '' ||
+  filters.date_to !== '' ||
+  filters.meta_campaign_source !== '' ||
+  filters.flow_source !== '' ||
+  filters.contact_source !== '' ||
+  filters.attributes.some((a) => a.key && a.value) ||
+  filters.is_unreplied !== 'all' ||
+  filters.exclude_recent_days > 0;
+
+const areStringArraysEqual = (a: string[], b: string[]) =>
+  a.length === b.length && a.every((value, index) => value === b[index]);
 
 const parseLocalDate = (dateValue: string): Date | null => {
   if (!dateValue) return null;
