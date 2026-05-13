@@ -125,24 +125,9 @@ export function ContactsAdvancedFilters({
         active.push({ key: 'leadState', label: 'Lead State', value: opt?.label || s, color: opt?.className });
       });
     }
-    if (filters.leadStatus?.length) {
-      filters.leadStatus.forEach((s) => {
-        const opt = LEAD_STATUS_OPTIONS.find((o) => o.value === s);
-        active.push({ key: 'leadStatus', label: 'Status', value: opt?.label || s, color: opt?.color });
-      });
-    }
-    if (filters.priority?.length) {
-      filters.priority.forEach((p) => {
-        const opt = PRIORITY_OPTIONS.find((o) => o.value === p);
-        active.push({ key: 'priority', label: 'Priority', value: opt?.label || p, color: opt?.color });
-      });
-    }
-    if (filters.mauStatus?.length) {
-      filters.mauStatus.forEach((m) => {
-        const opt = MAU_STATUS_OPTIONS.find((o) => o.value === m);
-        active.push({ key: 'mauStatus', label: 'MAU', value: opt?.label || m, color: opt?.color });
-      });
-    }
+    // NOTE: Legacy contacts.lead_status (won/lost/proposal), priority_level and mau_status
+    // are intentionally not exposed as audience filters — Inbox CRM lead state above is the
+    // single source of truth.
     if (filters.tags?.length) {
       filters.tags.forEach((t) => {
         const tag = availableTags.find((at) => at.id === t);
