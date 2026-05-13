@@ -42,6 +42,7 @@ const ALLOW_PREFIXES = [
   '/install',
   '/admin',
   '/control',
+  '/message-pricing',
 ];
 
 const ALLOW_EXACT = new Set(['/', '/index']);
