@@ -529,7 +529,7 @@ export default function MetaAdsSetup() {
                     </div>
                   </div>
                   <div className="flex items-center gap-2 flex-wrap">
-                    <Button size="sm" className="bg-[#1877F2] hover:bg-[#166FE5] text-white gap-1.5 text-xs h-8" onClick={handleFbLogin} disabled={isFbLoading}>
+                    <Button type="button" size="sm" className="bg-[#1877F2] hover:bg-[#166FE5] text-white gap-1.5 text-xs h-8" onClick={handleFbLogin} disabled={isFbLoading}>
                       {isFbLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Facebook className="h-3.5 w-3.5" />}
                       {connectionStatus === 'expired' || connectionStatus === 'missing_scopes' ? 'Reconnect Facebook' : 'Re-login Facebook'}
                     </Button>
