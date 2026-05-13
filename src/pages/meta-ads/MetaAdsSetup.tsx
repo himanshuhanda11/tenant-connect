@@ -306,10 +306,18 @@ export default function MetaAdsSetup() {
   // Preload SDK as soon as the setup page mounts so click is instant
   useEffect(() => { loadFacebookSdk().catch(() => {}); }, []);
 
-  const handleFbLogin = async () => {
+  const handleFbLogin = (e?: React.MouseEvent) => {
+    e?.preventDefault();
+    e?.stopPropagation();
     if (!currentTenant?.id) { toast.error('No workspace selected'); return; }
-    if (!(await metaAdsGate.guard())) return;
-    try { await loadFacebookSdk(); } catch { toast.error('Could not load Facebook SDK.'); return; }
+    // Synchronous gate check (must not await before FB.login or popup is blocked)
+    if (metaAdsGate.loading) { toast.info('Checking permissions, please try again in a moment.'); return; }
+    if (!metaAdsGate.allowed) { metaAdsGate.guard(); return; }
+    if (!window.FB || typeof window.FB.login !== 'function') {
+      toast.error('Facebook SDK is still loading. Please try again.');
+      loadFacebookSdk().catch(() => {});
+      return;
+    }
     setIsFbLoading(true);
     try {
       window.FB.login((response: any) => {
