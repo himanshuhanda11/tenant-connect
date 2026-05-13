@@ -43,6 +43,13 @@ export default function Billing() {
   const region = useMemo(() => regionFromCountry((currentTenant as any)?.country), [currentTenant]);
   const country = (currentTenant as any)?.country ?? undefined;
 
+  // Scroll to credits section when ?tab=credits
+  useEffect(() => {
+    if (params.get('tab') === 'credits') {
+      setTimeout(() => document.getElementById('credits')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 200);
+    }
+  }, [params]);
+
   // Handle Stripe return
   useEffect(() => {
     const status = params.get('status');
