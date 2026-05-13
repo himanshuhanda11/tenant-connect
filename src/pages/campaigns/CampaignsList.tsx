@@ -159,6 +159,7 @@ export default function CampaignsList() {
     created_by: c.created_by || undefined,
     error_message: c.error_message || undefined,
   }));
+  const allCampaigns: Campaign[] = localDraft ? [localDraft, ...campaigns] : campaigns;
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [viewMode, setViewMode] = useState<'table' | 'cards'>('table');
