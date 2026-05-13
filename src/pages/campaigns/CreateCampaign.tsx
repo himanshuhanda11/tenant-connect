@@ -451,6 +451,13 @@ export default function CreateCampaign() {
         openUpgrade({ feature: 'send_campaign', currentPlan: planId, requiredPlan: NEXT_PLAN[planId] as any, reason: 'quota_exceeded', currentUsage: d.requested, planLimit: d.limit });
         return;
       }
+      if (d?.error === 'insufficient_credits') {
+        toast.error('Insufficient message credits', {
+          description: `You need ${d.required} credits but only have ${d.available}. Top up to launch.`,
+          action: { label: 'Buy Credits', onClick: () => navigate('/billing?tab=credits') },
+        });
+        return;
+      }
       if (d?.error) throw new Error(d.error);
       toast.success(
         sendNow
