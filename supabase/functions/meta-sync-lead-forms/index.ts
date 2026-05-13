@@ -306,6 +306,90 @@ Deno.serve(async (req) => {
       });
     }
 
+    if (action === 'subscribe_all') {
+      // Subscribe ALL pages that own lead forms in this workspace to leadgen webhooks
+      const { data: formRows } = await supabase
+        .from('meta_lead_forms')
+        .select('page_id, page_name, is_webhook_subscribed')
+        .eq('tenant_id', tenantId);
+
+      const uniquePages = new Map<string, { page_id: string; page_name: string }>();
+      for (const row of (formRows || [])) {
+        if (row.page_id && !uniquePages.has(row.page_id)) {
+          uniquePages.set(row.page_id, { page_id: row.page_id, page_name: row.page_name || 'Untitled' });
+        }
+      }
+
+      // Fetch fresh page tokens from /me/accounts
+      const pageTokens = new Map<string, string>();
+      try {
+        const pagesRes = await fetch(`${GRAPH}/me/accounts?fields=id,name,access_token&access_token=${accessToken}`);
+        const pagesData = await pagesRes.json();
+        if (pagesRes.ok && Array.isArray(pagesData?.data)) {
+          for (const p of pagesData.data) {
+            if (p?.id && p?.access_token) pageTokens.set(p.id, p.access_token);
+          }
+        } else if (pagesData?.error) {
+          return json({
+            success: false,
+            error: friendlyMetaPermissionError(pagesData.error.message || 'Failed to fetch pages'),
+            reconnect: isMissingLeadsRetrieval(pagesData.error.message || ''),
+          }, 400);
+        }
+      } catch (e) {
+        console.error('[subscribe_all] /me/accounts error:', e);
+      }
+
+      const results: Array<{ page_id: string; page_name: string; success: boolean; error?: string }> = [];
+      let succeeded = 0;
+      let failed = 0;
+
+      for (const page of uniquePages.values()) {
+        const pageToken = pageTokens.get(page.page_id);
+        if (!pageToken) {
+          results.push({ ...page, success: false, error: 'No page access token (you may not be admin of this Page)' });
+          failed++;
+          continue;
+        }
+        try {
+          const subRes = await fetch(
+            `${GRAPH}/${page.page_id}/subscribed_apps?subscribed_fields=leadgen&access_token=${pageToken}`,
+            { method: 'POST' }
+          );
+          const subData = await subRes.json();
+          if (subRes.ok && subData.success) {
+            await supabase.from('meta_webhook_subscriptions').upsert({
+              tenant_id: tenantId,
+              page_id: page.page_id,
+              page_name: page.page_name,
+              is_subscribed: true,
+              subscribed_at: new Date().toISOString(),
+            }, { onConflict: 'tenant_id,page_id' });
+            await supabase.from('meta_lead_forms').update({
+              is_webhook_subscribed: true,
+            }).eq('tenant_id', tenantId).eq('page_id', page.page_id);
+            results.push({ ...page, success: true });
+            succeeded++;
+          } else {
+            const errorMessage = subData?.error?.message || 'Subscription failed';
+            results.push({ ...page, success: false, error: friendlyMetaPermissionError(errorMessage) });
+            failed++;
+          }
+        } catch (err) {
+          results.push({ ...page, success: false, error: err instanceof Error ? err.message : 'Unknown error' });
+          failed++;
+        }
+      }
+
+      return json({
+        success: failed === 0,
+        total: uniquePages.size,
+        succeeded,
+        failed,
+        results,
+      });
+    }
+
     if (action === 'subscribe_webhook' && pageId) {
       // Subscribe to leadgen webhooks — MUST use a Page Access Token
       // First try fetching the page token from /me/accounts
