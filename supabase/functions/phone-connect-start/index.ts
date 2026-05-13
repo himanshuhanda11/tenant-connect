@@ -31,7 +31,7 @@ Deno.serve(async (req) => {
     if (!perm.ok) return json({ error: perm.error }, 403);
 
     // Plan gate: connecting a WhatsApp number requires Basic+
-    const planCheck = await requirePlanAccess(workspaceId, "connect_whatsapp_number");
+    const planCheck = await requirePlanAccess(workspaceId, "connect_whatsapp_number", req);
     if (!planCheck.ok) return planCheck.res;
 
     const admin = getAdminClient();
