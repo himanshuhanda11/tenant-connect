@@ -1,0 +1,1 @@
+CREATE POLICY "Public can read active pricing" ON public.whatsapp_meta_pricing_rates FOR SELECT TO anon USING (active = true);
