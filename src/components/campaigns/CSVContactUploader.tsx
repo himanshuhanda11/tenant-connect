@@ -258,18 +258,30 @@ export function CSVContactUploader({ onImported, defaultCountry = 'IN' }: Props)
           <div>
             <h3 className="font-semibold flex items-center gap-2">
               <FileSpreadsheet className="h-4 w-4 text-primary" />
-              Upload contacts from CSV
+              Upload contacts (CSV or Excel)
             </h3>
             <p className="text-xs text-muted-foreground mt-1">
               Required column: <code className="px-1 bg-muted rounded">phone</code>. Optional: name, email, custom_1, etc. Numbers are normalized to E.164.
             </p>
           </div>
-          <Button variant="ghost" size="sm" asChild>
-            <a href={SAMPLE_CSV_HREF} download="broadcast-sample.csv">
-              <Download className="h-3.5 w-3.5 mr-1.5" />
-              Sample CSV
-            </a>
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="sm">
+                <Download className="h-3.5 w-3.5 mr-1.5" />
+                Sample
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem asChild>
+                <a href={SAMPLE_CSV_HREF} download="broadcast-sample.csv">
+                  Download CSV (.csv)
+                </a>
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={downloadSampleXlsx}>
+                Download Excel (.xlsx)
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
 
         {rows.length === 0 && !imported && (
@@ -283,12 +295,12 @@ export function CSVContactUploader({ onImported, defaultCountry = 'IN' }: Props)
             }}
           >
             <Upload className="h-8 w-8 text-muted-foreground" />
-            <p className="text-sm font-medium">Drop CSV here or click to upload</p>
-            <p className="text-xs text-muted-foreground">.csv up to 10 MB</p>
+            <p className="text-sm font-medium">Drop CSV or Excel here, or click to upload</p>
+            <p className="text-xs text-muted-foreground">.csv, .xlsx, .xls up to 10 MB</p>
             <input
               ref={fileRef}
               type="file"
-              accept=".csv,text/csv"
+              accept=".csv,text/csv,.xlsx,.xls,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel"
               className="hidden"
               onChange={(e) => {
                 const f = e.target.files?.[0];
