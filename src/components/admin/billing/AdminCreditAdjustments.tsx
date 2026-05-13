@@ -88,6 +88,7 @@ export function AdminCreditAdjustments() {
     setDirection(dir);
     setAmount(100);
     setReason("");
+    setCategory(dir === "credit" ? "bonus" : "adjustment");
     setAdjustOpen(true);
   };
 
