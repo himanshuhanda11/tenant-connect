@@ -332,19 +332,31 @@ export function ContactsAdvancedFilters({
                     <div className="space-y-1.5">
                       <Label className="text-xs text-muted-foreground">Assigned To</Label>
                       <Select
-                        value={filters.assignedTo || 'all'}
-                        onValueChange={(v) => updateFilter('assignedTo', v === 'all' ? undefined : v)}
+                        value={filters.assignedTo || SELECT_SENTINELS.none}
+                        onValueChange={(v) =>
+                          updateFilter(
+                            'assignedTo',
+                            v === SELECT_SENTINELS.none || v === SELECT_SENTINELS.all ? undefined : v
+                          )
+                        }
                       >
                         <SelectTrigger className="h-8">
-                          <SelectValue placeholder="Any agent" />
+                          <SelectValue placeholder="Select Agent" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="all">Any Agent</SelectItem>
-                          {availableAgents.map(a => (
-                            <SelectItem key={a.id} value={a.id}>
-                              {a.full_name || a.email}
+                          <SelectItem value={SELECT_SENTINELS.none}>Select Agent</SelectItem>
+                          {availableAgents.length === 0 ? (
+                            <SelectItem value="__no_agents__" disabled>
+                              No agents in this workspace
                             </SelectItem>
-                          ))}
+                          ) : (
+                            availableAgents.map((a) => (
+                              <SelectItem key={a.id} value={a.id}>
+                                {a.full_name || a.email || a.id}
+                              </SelectItem>
+                            ))
+                          )}
+                          <SelectItem value={SELECT_SENTINELS.all}>All Agents</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
