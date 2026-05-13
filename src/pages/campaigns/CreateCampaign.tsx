@@ -61,7 +61,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import CampaignAudienceBuilder, { AudienceFilters, DEFAULT_AUDIENCE_FILTERS } from '@/components/campaigns/CampaignAudienceBuilder';
 import { CSVContactUploader } from '@/components/campaigns/CSVContactUploader';
-import { BroadcastCostPreview } from '@/components/campaigns/BroadcastCostPreview';
+import { CampaignCreditEstimateCard } from '@/components/campaigns/CampaignCreditEstimateCard';
 import type { BroadcastCostEstimate } from '@/hooks/useBroadcastCostEstimate';
 import { useMessageCredits } from '@/hooks/useMessageCredits';
 
