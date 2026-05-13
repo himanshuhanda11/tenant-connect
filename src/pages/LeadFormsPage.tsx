@@ -325,7 +325,67 @@ export default function LeadFormsPage() {
           </Card>
         )}
 
-        {/* Stats Grid */}
+        {/* Verify result detail */}
+        {verifyResult && (
+          <Card className="border-border/60">
+            <CardContent className="p-4 space-y-3">
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <Shield className="h-4 w-4 text-primary" />
+                  <p className="text-sm font-semibold text-foreground">
+                    Meta verification: {verifyResult.subscribed}/{verifyResult.total} pages subscribed
+                  </p>
+                </div>
+                <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => setVerifyResult(null)}>
+                  Dismiss
+                </Button>
+              </div>
+              <p className="text-[11px] text-muted-foreground">
+                Live result of <code className="px-1 py-0.5 rounded bg-muted">GET /{'{page-id}'}/subscribed_apps</code>
+                {verifyResult.meta_app_id && <> · matching App ID <code className="px-1 py-0.5 rounded bg-muted">{verifyResult.meta_app_id}</code></>}
+              </p>
+              <div className="space-y-1.5">
+                {verifyResult.results.map((r) => (
+                  <div
+                    key={r.page_id}
+                    className={`flex items-start justify-between gap-2 rounded-lg border px-3 py-2 ${
+                      r.subscribed
+                        ? 'border-emerald-200 dark:border-emerald-800/50 bg-emerald-50/50 dark:bg-emerald-950/20'
+                        : 'border-red-200 dark:border-red-800/50 bg-red-50/50 dark:bg-red-950/20'
+                    }`}
+                  >
+                    <div className="min-w-0 flex-1">
+                      <p className="text-xs font-medium text-foreground truncate">{r.page_name}</p>
+                      <p className="text-[10px] text-muted-foreground truncate font-mono">{r.page_id}</p>
+                      {r.error && (
+                        <p className="text-[11px] text-red-600 dark:text-red-400 mt-1">⚠ {r.error}</p>
+                      )}
+                      {!r.error && !r.subscribed && (
+                        <p className="text-[11px] text-red-700 dark:text-red-400 mt-1">
+                          Your app is NOT installed on this Page on Meta's side.
+                          {r.apps?.length > 0 ? ` ${r.apps.length} other app(s) installed.` : ' No apps installed at all.'}
+                          {' '}Click <strong>Subscribe all</strong> above. If it still fails, the connected user is not an admin of this Page — reconnect Facebook with a user who has Page admin role.
+                        </p>
+                      )}
+                    </div>
+                    {r.subscribed ? (
+                      <Badge variant="outline" className="shrink-0 text-[10px] h-5 text-emerald-600 border-emerald-300 bg-emerald-50 dark:bg-emerald-950/30">
+                        <CheckCircle2 className="h-2.5 w-2.5 mr-0.5" />
+                        Subscribed
+                      </Badge>
+                    ) : (
+                      <Badge variant="outline" className="shrink-0 text-[10px] h-5 text-red-600 border-red-300 bg-red-50 dark:bg-red-950/30">
+                        <XCircle className="h-2.5 w-2.5 mr-0.5" />
+                        Not installed
+                      </Badge>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
           {stats.map((stat) => (
             <div
