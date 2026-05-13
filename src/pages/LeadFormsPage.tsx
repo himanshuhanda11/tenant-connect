@@ -43,6 +43,13 @@ export default function LeadFormsPage() {
     forms.filter((f: any) => !f.is_webhook_subscribed).map((f: any) => f.page_id)
   ).size;
 
+  const [subscribeResult, setSubscribeResult] = useState<{
+    total: number;
+    succeeded: number;
+    failed: number;
+    results: Array<{ page_id: string; page_name: string; success: boolean; error?: string }>;
+  } | null>(null);
+
   const handleSubscribeAll = async () => {
     if (!currentTenant?.id) return;
     setSubscribingAll(true);
@@ -56,11 +63,18 @@ export default function LeadFormsPage() {
           action: { label: 'Reconnect', onClick: () => navigate('/meta-ads/setup?reauthorize=lead_forms') },
         });
       } else if (data?.success) {
+        setSubscribeResult(null);
         toast.success(`Subscribed ${data.succeeded}/${data.total} pages to leadgen webhooks`);
       } else {
-        const failedDetails = (data?.results || []).filter((r: any) => !r.success).slice(0, 2).map((r: any) => `${r.page_name}: ${r.error}`).join(' | ');
+        setSubscribeResult({
+          total: data?.total ?? 0,
+          succeeded: data?.succeeded ?? 0,
+          failed: data?.failed ?? 0,
+          results: data?.results ?? [],
+        });
         toast.warning(`${data?.succeeded ?? 0}/${data?.total ?? 0} succeeded. ${data?.failed ?? 0} failed.`, {
-          description: failedDetails,
+          description: 'See details below to fix the failed pages.',
+          action: { label: 'Reconnect', onClick: () => navigate('/meta-ads/setup?reauthorize=lead_forms') },
         });
       }
       await queryClient.invalidateQueries({ queryKey: ['lead-forms'] });
