@@ -3240,37 +3240,106 @@ export type Database = {
           },
         ]
       }
+      credit_topup_packages: {
+        Row: {
+          active: boolean
+          best_value: boolean
+          created_at: string
+          credits: number
+          currency: string
+          id: string
+          package_name: string
+          price: number
+          recommended: boolean
+          region: string
+          sort_order: number
+          stripe_price_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          best_value?: boolean
+          created_at?: string
+          credits: number
+          currency: string
+          id?: string
+          package_name: string
+          price: number
+          recommended?: boolean
+          region: string
+          sort_order?: number
+          stripe_price_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          best_value?: boolean
+          created_at?: string
+          credits?: number
+          currency?: string
+          id?: string
+          package_name?: string
+          price?: number
+          recommended?: boolean
+          region?: string
+          sort_order?: number
+          stripe_price_id?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       credit_transactions: {
         Row: {
           amount: number
           balance_after: number
+          balance_before: number | null
           created_at: string
           created_by: string | null
           description: string | null
           id: string
+          metadata: Json
           reference_id: string | null
+          related_campaign_id: string | null
+          related_message_id: string | null
+          status: string
+          stripe_checkout_session_id: string | null
+          stripe_payment_intent_id: string | null
           tenant_id: string
           type: string
         }
         Insert: {
           amount: number
           balance_after: number
+          balance_before?: number | null
           created_at?: string
           created_by?: string | null
           description?: string | null
           id?: string
+          metadata?: Json
           reference_id?: string | null
+          related_campaign_id?: string | null
+          related_message_id?: string | null
+          status?: string
+          stripe_checkout_session_id?: string | null
+          stripe_payment_intent_id?: string | null
           tenant_id: string
           type: string
         }
         Update: {
           amount?: number
           balance_after?: number
+          balance_before?: number | null
           created_at?: string
           created_by?: string | null
           description?: string | null
           id?: string
+          metadata?: Json
           reference_id?: string | null
+          related_campaign_id?: string | null
+          related_message_id?: string | null
+          status?: string
+          stripe_checkout_session_id?: string | null
+          stripe_payment_intent_id?: string | null
           tenant_id?: string
           type?: string
         }
@@ -6490,6 +6559,7 @@ export type Database = {
           balance: number
           created_at: string
           id: string
+          last_topup_at: string | null
           tenant_id: string
           total_purchased: number
           total_used: number
@@ -6499,6 +6569,7 @@ export type Database = {
           balance?: number
           created_at?: string
           id?: string
+          last_topup_at?: string | null
           tenant_id: string
           total_purchased?: number
           total_used?: number
@@ -6508,6 +6579,7 @@ export type Database = {
           balance?: number
           created_at?: string
           id?: string
+          last_topup_at?: string | null
           tenant_id?: string
           total_purchased?: number
           total_used?: number
@@ -16813,6 +16885,19 @@ export type Database = {
           total_hours_worked: number
           total_sessions: number
         }[]
+      }
+      apply_credit_purchase: {
+        Args: {
+          p_amount_paid: number
+          p_checkout_session_id: string
+          p_credits: number
+          p_currency: string
+          p_package_id: string
+          p_payment_intent_id: string
+          p_tenant_id: string
+          p_user_id: string
+        }
+        Returns: Json
       }
       apply_launch_offer_to_tenant: {
         Args: { _tenant_id: string }
