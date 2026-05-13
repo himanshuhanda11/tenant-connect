@@ -137,9 +137,11 @@ export default function MessagePricing() {
       for (const r of data || []) {
         const key = `${r.country_code}|${r.country_name}`;
         if (!map.has(key)) {
+          const local = LOCAL_CURRENCY[r.country_code] || LOCAL_CURRENCY.OTHER;
           map.set(key, {
             country_code: r.country_code,
             country_name: r.country_name,
+            currency_code: local.code,
             marketing: null,
             utility: null,
             authentication: null,
@@ -147,9 +149,10 @@ export default function MessagePricing() {
         }
         const row = map.get(key)!;
         const credits = Number(r.rate_per_message) * Number(r.credit_multiplier ?? 1);
-        if (r.template_category === 'marketing') row.marketing = credits;
-        else if (r.template_category === 'utility') row.utility = credits;
-        else if (r.template_category === 'authentication') row.authentication = credits;
+        const localRate = toLocalRate(r.country_code, credits);
+        if (r.template_category === 'marketing') row.marketing = localRate;
+        else if (r.template_category === 'utility') row.utility = localRate;
+        else if (r.template_category === 'authentication') row.authentication = localRate;
       }
       setRows(Array.from(map.values()));
       setLoading(false);
@@ -174,8 +177,8 @@ export default function MessagePricing() {
       if (sortKey === 'country') {
         av = a.country_name; bv = b.country_name;
       } else {
-        av = a[sortKey] ?? Number.POSITIVE_INFINITY;
-        bv = b[sortKey] ?? Number.POSITIVE_INFINITY;
+        av = a[sortKey]?.localAmount ?? Number.POSITIVE_INFINITY;
+        bv = b[sortKey]?.localAmount ?? Number.POSITIVE_INFINITY;
       }
       if (av < bv) return sortDir === 'asc' ? -1 : 1;
       if (av > bv) return sortDir === 'asc' ? 1 : -1;
