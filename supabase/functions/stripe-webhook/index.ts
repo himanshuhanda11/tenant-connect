@@ -153,6 +153,32 @@ Deno.serve(async (req) => {
     switch (event.type) {
       case "checkout.session.completed": {
         const session = event.data.object;
+
+        // ── Message Credits top-up (mode=payment) ──
+        if (session.metadata?.purpose === "message_credits_topup") {
+          const wsId = session.metadata.workspace_id;
+          const userId = session.metadata.user_id || null;
+          const packageId = session.metadata.package_id || null;
+          const credits = parseInt(session.metadata.credits || "0", 10);
+          if (wsId && credits > 0) {
+            const { data: result, error: rpcErr } = await supabase.rpc("apply_credit_purchase", {
+              p_tenant_id: wsId,
+              p_credits: credits,
+              p_checkout_session_id: session.id,
+              p_payment_intent_id: (session.payment_intent as string) || null,
+              p_amount_paid: (session.amount_total ?? 0) / 100,
+              p_currency: (session.currency || "usd").toUpperCase(),
+              p_package_id: packageId,
+              p_user_id: userId,
+            });
+            if (rpcErr) console.error("apply_credit_purchase failed:", rpcErr);
+            await insertEvent("credits_topup_completed", wsId, (session.amount_total ?? 0) / 100, {
+              session_id: session.id, credits, package_id: packageId, result,
+            });
+          }
+          break;
+        }
+
         const workspaceId = await resolveWorkspace(session);
         if (!workspaceId) { console.warn("No workspace for session", session.id); break; }
 
