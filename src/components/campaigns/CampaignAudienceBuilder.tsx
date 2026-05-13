@@ -106,40 +106,7 @@ export interface AudienceFilters {
   opt_in_only: boolean;
 }
 
-const LEAD_STATES = [
-  { value: 'new', label: 'New', color: 'bg-emerald-500' },
-  { value: 'contacted', label: 'Contacted', color: 'bg-blue-500' },
-  { value: 'qualified', label: 'Qualified', color: 'bg-violet-500' },
-  { value: 'proposal', label: 'Proposal', color: 'bg-amber-500' },
-  { value: 'negotiation', label: 'Negotiation', color: 'bg-orange-500' },
-  { value: 'won', label: 'Won', color: 'bg-green-500' },
-  { value: 'lost', label: 'Lost', color: 'bg-red-500' },
-];
-
-const CRM_STATUSES = [
-  { value: 'new', label: 'New' },
-  { value: 'contacted', label: 'Contacted' },
-  { value: 'follow_up_required', label: 'Follow-up Required' },
-  { value: 'converted', label: 'Converted' },
-  { value: 'not_interested', label: 'Not Interested' },
-  { value: 'junk', label: 'Junk' },
-];
-
-const MAU_STATUSES = [
-  { value: 'active', label: 'Active', color: 'bg-green-500' },
-  { value: 'inactive', label: 'Inactive', color: 'bg-amber-500' },
-  { value: 'churned', label: 'Churned', color: 'bg-red-500' },
-];
-
-const PRIORITIES = [
-  { value: 'low', label: 'Low' },
-  { value: 'normal', label: 'Normal' },
-  { value: 'high', label: 'High' },
-  { value: 'urgent', label: 'Urgent' },
-];
-
 const CONTACT_SOURCES = [
-  { value: '', label: 'All Sources' },
   { value: 'ctwa', label: 'Click-to-WhatsApp Ads' },
   { value: 'organic', label: 'Organic' },
   { value: 'api', label: 'API' },
