@@ -377,7 +377,7 @@ export default function CampaignAudienceBuilder({
   return (
     <div className="space-y-5">
       {/* Premium audience summary — sticky so users see live changes while filtering */}
-      <div className="sticky top-2 z-30 -mx-1 px-1">
+      <div className="sticky top-2 z-40 -mx-4 sm:-mx-6 px-4 sm:px-6">
         <Card className={cn(
           'overflow-hidden border-primary/30 bg-gradient-to-br from-primary/10 via-background/95 to-background/95 backdrop-blur-md shadow-lg transition-all',
           estimate.loading && 'ring-2 ring-primary/40',
@@ -500,32 +500,6 @@ export default function CampaignAudienceBuilder({
               })}
             </div>
           )}
-        </Section>
-
-        {/* Tags */}
-        <Section icon={Tag} title="Tags" description="Include or exclude tagged contacts" badge={filters.include_tags.length} defaultOpen={false}>
-          <div>
-            <Label className="text-xs">Include tags</Label>
-            <div className="flex flex-wrap gap-1.5 mt-2">
-              {tags.length === 0 && <span className="text-xs text-muted-foreground">No tags yet.</span>}
-              {tags.map((t) => {
-                const on = filters.include_tags.includes(t.id);
-                return (
-                  <button
-                    key={t.id}
-                    type="button"
-                    onClick={() => toggleArray('include_tags', t.id)}
-                    className={cn(
-                      'text-xs rounded-full px-3 py-1 border transition',
-                      on ? 'bg-primary text-primary-foreground border-primary' : 'bg-background hover:bg-muted',
-                    )}
-                  >
-                    {t.name}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
         </Section>
 
         {/* Team & Ownership */}
@@ -718,6 +692,32 @@ export default function CampaignAudienceBuilder({
                   );
                 })}
               </div>
+            </div>
+          </div>
+        </Section>
+
+        {/* Tags */}
+        <Section icon={Tag} title="Tags" description="Include or exclude tagged contacts" badge={filters.include_tags.length} defaultOpen={false}>
+          <div>
+            <Label className="text-xs">Include tags</Label>
+            <div className="flex flex-wrap gap-1.5 mt-2">
+              {tags.length === 0 && <span className="text-xs text-muted-foreground">No tags yet.</span>}
+              {tags.map((t) => {
+                const on = filters.include_tags.includes(t.id);
+                return (
+                  <button
+                    key={t.id}
+                    type="button"
+                    onClick={() => toggleArray('include_tags', t.id)}
+                    className={cn(
+                      'text-xs rounded-full px-3 py-1 border transition',
+                      on ? 'bg-primary text-primary-foreground border-primary' : 'bg-background hover:bg-muted',
+                    )}
+                  >
+                    {t.name}
+                  </button>
+                );
+              })}
             </div>
           </div>
         </Section>
