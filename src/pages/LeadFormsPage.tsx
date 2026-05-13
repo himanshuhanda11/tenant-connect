@@ -400,7 +400,80 @@ export default function LeadFormsPage() {
           </Card>
         )}
 
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        {/* Subscribe-all result detail */}
+        {subscribeResult && (
+          <Card className="border-border/60">
+            <CardContent className="p-4 space-y-3">
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <Webhook className="h-4 w-4 text-primary" />
+                  <p className="text-sm font-semibold text-foreground">
+                    Subscribe result: {subscribeResult.succeeded}/{subscribeResult.total} succeeded
+                    {subscribeResult.failed > 0 && <span className="text-red-600 dark:text-red-400"> · {subscribeResult.failed} failed</span>}
+                  </p>
+                </div>
+                <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => setSubscribeResult(null)}>
+                  Dismiss
+                </Button>
+              </div>
+              <div className="space-y-1.5">
+                {subscribeResult.results.map((r) => {
+                  const isAdminIssue = !r.success && /no page access token|not.*admin|admin.*page/i.test(r.error || '');
+                  return (
+                    <div
+                      key={r.page_id}
+                      className={`flex items-start justify-between gap-2 rounded-lg border px-3 py-2 ${
+                        r.success
+                          ? 'border-emerald-200 dark:border-emerald-800/50 bg-emerald-50/50 dark:bg-emerald-950/20'
+                          : 'border-red-200 dark:border-red-800/50 bg-red-50/50 dark:bg-red-950/20'
+                      }`}
+                    >
+                      <div className="min-w-0 flex-1">
+                        <p className="text-xs font-medium text-foreground truncate">{r.page_name}</p>
+                        <p className="text-[10px] text-muted-foreground truncate font-mono">{r.page_id}</p>
+                        {r.error && (
+                          <p className="text-[11px] text-red-600 dark:text-red-400 mt-1">⚠ {r.error}</p>
+                        )}
+                        {isAdminIssue && (
+                          <div className="mt-1.5 space-y-1 text-[11px] text-muted-foreground">
+                            <p className="text-foreground"><strong>How to fix:</strong></p>
+                            <ol className="list-decimal pl-4 space-y-0.5">
+                              <li>Open Facebook → this Page → <em>Settings → Page roles</em> and confirm your connected user has <strong>Admin</strong> (Full control) access.</li>
+                              <li>If you're not an admin, ask the Page owner to grant you admin — or have them reconnect Facebook here using their account.</li>
+                              <li>Then click <strong>Reconnect</strong> below and re-run <strong>Subscribe all</strong>.</li>
+                            </ol>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="h-7 text-[11px] mt-1"
+                              onClick={() => navigate('/meta-ads/setup?reauthorize=lead_forms')}
+                            >
+                              <RefreshCw className="h-3 w-3 mr-1" />
+                              Reconnect Facebook
+                            </Button>
+                          </div>
+                        )}
+                      </div>
+                      {r.success ? (
+                        <Badge variant="outline" className="shrink-0 text-[10px] h-5 text-emerald-600 border-emerald-300 bg-emerald-50 dark:bg-emerald-950/30">
+                          <CheckCircle2 className="h-2.5 w-2.5 mr-0.5" />
+                          Subscribed
+                        </Badge>
+                      ) : (
+                        <Badge variant="outline" className="shrink-0 text-[10px] h-5 text-red-600 border-red-300 bg-red-50 dark:bg-red-950/30">
+                          <XCircle className="h-2.5 w-2.5 mr-0.5" />
+                          Failed
+                        </Badge>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+
           {stats.map((stat) => (
             <div
               key={stat.label}
