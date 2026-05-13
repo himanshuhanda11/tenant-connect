@@ -10,6 +10,7 @@ import { useAgentSessionTracker } from '@/hooks/useAgentPerformance';
 import { WhatsAppConnectBanner } from '@/components/dashboard/WhatsAppConnectBanner';
 import { MobileBottomNav } from './MobileBottomNav';
 import { PreviewWorkspaceBanner } from '@/components/admin/PreviewWorkspaceBanner';
+import { WalletBadge } from './WalletBadge';
 
 
 function MobileHeader() {
@@ -27,6 +28,7 @@ function MobileHeader() {
         <span className="text-xs font-medium text-foreground">Menu</span>
       </button>
       <div className="flex-1" />
+      <WalletBadge />
     </header>
   );
 }

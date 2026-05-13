@@ -133,6 +133,22 @@ Deno.serve(async (req) => {
             p_status: 'sent',
             p_wamid: wamid,
           });
+          // Deduct 1 message credit per Meta-accepted template send.
+          // Non-blocking: if the wallet was drained mid-batch, the send already happened;
+          // we just record what we can and surface insufficient_credits in logs.
+          try {
+            const { data: deduct } = await supa.rpc('consume_message_credit', {
+              p_tenant_id: phone.tenant_id,
+              p_campaign_id: job.campaign_id,
+              p_message_id: null,
+              p_description: `Broadcast: ${job.template_name}`,
+            });
+            if (deduct && (deduct as any).ok === false) {
+              console.warn('credit deduction skipped (insufficient_credits)', job.id);
+            }
+          } catch (err) {
+            console.error('credit deduction error', err);
+          }
           // Track campaign source on contact (best-effort, non-blocking)
           await supa
             .from('contacts')
@@ -141,6 +157,7 @@ Deno.serve(async (req) => {
             .is('campaign_source', null);
           okCount++;
         }
+
       } catch (e: any) {
         console.error('send failed', e);
         await supa.rpc('complete_campaign_job', {

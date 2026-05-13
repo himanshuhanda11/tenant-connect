@@ -74,6 +74,19 @@ Deno.serve(async (req) => {
       return j({ error: 'recipient_limit_exceeded', limit: cap, requested: valid.length, current_plan: planAccess?.current_plan }, 402);
     }
 
+    // Message Credits gate — block launch if wallet < required recipients
+    const { data: creditCheck } = await supa.rpc('check_workspace_credits', {
+      p_tenant_id: body.tenant_id,
+      p_required: valid.length,
+    });
+    if (creditCheck && (creditCheck as any).sufficient === false) {
+      return j({
+        error: 'insufficient_credits',
+        available: (creditCheck as any).available ?? 0,
+        required: (creditCheck as any).required ?? valid.length,
+      }, 402);
+    }
+
     const sendNow = body.send_type === 'now';
     const scheduled_at = sendNow ? null : (body.scheduled_at ? new Date(body.scheduled_at).toISOString() : null);
     if (!sendNow && !scheduled_at) return j({ error: 'scheduled_at required for scheduled campaigns' }, 400);

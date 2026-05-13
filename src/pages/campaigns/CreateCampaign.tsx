@@ -61,6 +61,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import CampaignAudienceBuilder, { AudienceFilters, DEFAULT_AUDIENCE_FILTERS } from '@/components/campaigns/CampaignAudienceBuilder';
 import { CSVContactUploader } from '@/components/campaigns/CSVContactUploader';
+import { CampaignCreditGate } from '@/components/campaigns/CampaignCreditGate';
+import { useMessageCredits } from '@/hooks/useMessageCredits';
 
 const STEPS = [
   { id: 1, title: 'Basics', icon: Settings },
@@ -108,6 +110,7 @@ export default function CreateCampaign() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { currentTenant } = useTenant();
+  const { balance: creditsBalance } = useMessageCredits();
   const { data: entitlements } = useEntitlements();
   const { open: openUpgrade } = useUpgradeModal();
   const planId = entitlements?.plan_id ?? 'free';
@@ -446,6 +449,13 @@ export default function CreateCampaign() {
       const d = data as any;
       if (d?.error === 'recipient_limit_exceeded') {
         openUpgrade({ feature: 'send_campaign', currentPlan: planId, requiredPlan: NEXT_PLAN[planId] as any, reason: 'quota_exceeded', currentUsage: d.requested, planLimit: d.limit });
+        return;
+      }
+      if (d?.error === 'insufficient_credits') {
+        toast.error('Insufficient message credits', {
+          description: `You need ${d.required} credits but only have ${d.available}. Top up to launch.`,
+          action: { label: 'Buy Credits', onClick: () => navigate('/billing?tab=credits') },
+        });
         return;
       }
       if (d?.error) throw new Error(d.error);
@@ -1017,6 +1027,9 @@ export default function CreateCampaign() {
                   </Card>
                 </div>
 
+                {/* Message Credits Gate */}
+                <CampaignCreditGate requiredCredits={audienceEstimatedCount} />
+
                 {/* Compliance Checklist */}
                 <Card className="bg-green-50 border-green-200">
                   <CardHeader className="pb-2">
@@ -1050,39 +1063,46 @@ export default function CreateCampaign() {
                   <Button variant="outline" className="w-full sm:w-auto" onClick={() => navigate('/campaigns')}>
                     Save as Draft
                   </Button>
-                  <div className="flex items-center gap-3 w-full sm:w-auto">
-                    {wizard.delivery.send_type === 'scheduled' ? (
-                      <Button
-                        onClick={() => handleSubmit(false)}
-                        disabled={isSubmitting}
-                        className="w-full sm:min-w-32"
-                      >
-                        {isSubmitting ? (
-                          <Loader2 className="h-4 w-4 animate-spin" />
+                  {(() => {
+                    const insufficientCredits = creditsBalance < audienceEstimatedCount;
+                    return (
+                      <div className="flex items-center gap-3 w-full sm:w-auto">
+                        {wizard.delivery.send_type === 'scheduled' ? (
+                          <Button
+                            onClick={() => handleSubmit(false)}
+                            disabled={isSubmitting || insufficientCredits}
+                            className="w-full sm:min-w-32"
+                            title={insufficientCredits ? 'Insufficient message credits' : undefined}
+                          >
+                            {isSubmitting ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              <>
+                                <Calendar className="h-4 w-4 mr-2" />
+                                Schedule Campaign
+                              </>
+                            )}
+                          </Button>
                         ) : (
-                          <>
-                            <Calendar className="h-4 w-4 mr-2" />
-                            Schedule Campaign
-                          </>
+                          <Button
+                            onClick={() => handleSubmit(true)}
+                            disabled={isSubmitting || insufficientCredits}
+                            className="w-full sm:min-w-32 bg-green-600 hover:bg-green-700"
+                            title={insufficientCredits ? 'Insufficient message credits' : undefined}
+                          >
+                            {isSubmitting ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              <>
+                                <Send className="h-4 w-4 mr-2" />
+                                Send Now
+                              </>
+                            )}
+                          </Button>
                         )}
-                      </Button>
-                    ) : (
-                      <Button
-                        onClick={() => handleSubmit(true)}
-                        disabled={isSubmitting}
-                        className="w-full sm:min-w-32 bg-green-600 hover:bg-green-700"
-                      >
-                        {isSubmitting ? (
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                        ) : (
-                          <>
-                            <Send className="h-4 w-4 mr-2" />
-                            Send Now
-                          </>
-                        )}
-                      </Button>
-                    )}
-                  </div>
+                      </div>
+                    );
+                  })()}
                 </div>
               </div>
             )}
