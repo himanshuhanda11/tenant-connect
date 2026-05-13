@@ -17369,6 +17369,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      increment_campaign_credits: {
+        Args: { p_amount: number; p_campaign_id: string }
+        Returns: undefined
+      }
       increment_usage: {
         Args: { p_amount?: number; p_counter: string; p_tenant_id: string }
         Returns: undefined
