@@ -473,7 +473,7 @@ export default function LeadFormsPage() {
           </Card>
         )}
 
-
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
           {stats.map((stat) => (
             <div
               key={stat.label}
