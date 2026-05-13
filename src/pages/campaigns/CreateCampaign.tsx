@@ -1063,39 +1063,46 @@ export default function CreateCampaign() {
                   <Button variant="outline" className="w-full sm:w-auto" onClick={() => navigate('/campaigns')}>
                     Save as Draft
                   </Button>
-                  <div className="flex items-center gap-3 w-full sm:w-auto">
-                    {wizard.delivery.send_type === 'scheduled' ? (
-                      <Button
-                        onClick={() => handleSubmit(false)}
-                        disabled={isSubmitting}
-                        className="w-full sm:min-w-32"
-                      >
-                        {isSubmitting ? (
-                          <Loader2 className="h-4 w-4 animate-spin" />
+                  {(() => {
+                    const insufficientCredits = creditsBalance < audienceEstimatedCount;
+                    return (
+                      <div className="flex items-center gap-3 w-full sm:w-auto">
+                        {wizard.delivery.send_type === 'scheduled' ? (
+                          <Button
+                            onClick={() => handleSubmit(false)}
+                            disabled={isSubmitting || insufficientCredits}
+                            className="w-full sm:min-w-32"
+                            title={insufficientCredits ? 'Insufficient message credits' : undefined}
+                          >
+                            {isSubmitting ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              <>
+                                <Calendar className="h-4 w-4 mr-2" />
+                                Schedule Campaign
+                              </>
+                            )}
+                          </Button>
                         ) : (
-                          <>
-                            <Calendar className="h-4 w-4 mr-2" />
-                            Schedule Campaign
-                          </>
+                          <Button
+                            onClick={() => handleSubmit(true)}
+                            disabled={isSubmitting || insufficientCredits}
+                            className="w-full sm:min-w-32 bg-green-600 hover:bg-green-700"
+                            title={insufficientCredits ? 'Insufficient message credits' : undefined}
+                          >
+                            {isSubmitting ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              <>
+                                <Send className="h-4 w-4 mr-2" />
+                                Send Now
+                              </>
+                            )}
+                          </Button>
                         )}
-                      </Button>
-                    ) : (
-                      <Button
-                        onClick={() => handleSubmit(true)}
-                        disabled={isSubmitting}
-                        className="w-full sm:min-w-32 bg-green-600 hover:bg-green-700"
-                      >
-                        {isSubmitting ? (
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                        ) : (
-                          <>
-                            <Send className="h-4 w-4 mr-2" />
-                            Send Now
-                          </>
-                        )}
-                      </Button>
-                    )}
-                  </div>
+                      </div>
+                    );
+                  })()}
                 </div>
               </div>
             )}
