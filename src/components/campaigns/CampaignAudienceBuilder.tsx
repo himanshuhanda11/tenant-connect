@@ -220,14 +220,6 @@ const formatVisibleDate = (dateValue: string) => {
   return date.toLocaleDateString(undefined, { day: '2-digit', month: 'short', year: 'numeric' });
 };
 
-const chunkArray = <T,>(items: T[], size: number) => {
-  const chunks: T[][] = [];
-  for (let index = 0; index < items.length; index += size) {
-    chunks.push(items.slice(index, index + size));
-  }
-  return chunks;
-};
-
 function VisibleDateInput({
   label,
   value,
@@ -467,6 +459,14 @@ export default function CampaignAudienceBuilder({
           : summaryIds;
       }
 
+      if (allowedIds && allowedIds.size === 0) {
+        onEstimatedCountChange(0);
+        if (filters.matched_contact_ids.length > 0) {
+          setFilters({ ...filters, matched_contact_ids: [] });
+        }
+        return;
+      }
+
       const buildQuery = () => {
         let query = supabase
           .from('contacts')
@@ -508,12 +508,6 @@ export default function CampaignAudienceBuilder({
         return query.order('created_at', { ascending: false });
       };
 
-      let segmentCount: number | null = null;
-      if (filters.include_segments.length > 0) {
-        const selectedSegments = segments.filter((segment) => filters.include_segments.includes(segment.id));
-        segmentCount = selectedSegments.reduce((total, segment) => total + (segment.contact_count || 0), 0);
-      }
-
       const contactIds: string[] = [];
       for (let from = 0; ; from += PAGE_SIZE) {
         const { data, error } = await buildQuery().range(from, from + PAGE_SIZE - 1);
@@ -526,12 +520,7 @@ export default function CampaignAudienceBuilder({
       }
 
       const filteredCount = contactIds.length;
-
-      if (segmentCount !== null) {
-        onEstimatedCountChange(filteredCount > 0 ? Math.min(segmentCount, filteredCount) : segmentCount);
-      } else {
-        onEstimatedCountChange(filteredCount);
-      }
+      onEstimatedCountChange(filteredCount);
 
       if (!areStringArraysEqual(filters.matched_contact_ids, contactIds)) {
         setFilters({ ...filters, matched_contact_ids: contactIds });
