@@ -114,7 +114,33 @@ Deno.serve(async (req) => {
     let accessToken = userOAuthToken || systemUserToken || null;
     if (!accessToken) return json({ error: 'No Meta access token configured' }, 400);
 
+    async function refreshStoredScopes() {
+      try {
+        const permsRes = await fetch(`${GRAPH}/me/permissions?access_token=${accessToken}`);
+        const permsData = await permsRes.json();
+        if (!permsRes.ok || permsData?.error || !Array.isArray(permsData?.data)) return;
+
+        const grantedScopes = permsData.data
+          .filter((permission: any) => permission?.status === 'granted' && permission?.permission)
+          .map((permission: any) => permission.permission);
+
+        const currentScopes = connectedAccounts[0]?.scopes_granted || [];
+        const scopesChanged = grantedScopes.length !== currentScopes.length || grantedScopes.some((scope: string) => !currentScopes.includes(scope));
+        if (connectedAccounts[0]?.id && scopesChanged) {
+          await supabase
+            .from('smeksh_meta_ad_accounts')
+            .update({ scopes_granted: grantedScopes })
+            .eq('id', connectedAccounts[0].id)
+            .eq('workspace_id', tenantId);
+          connectedAccounts[0].scopes_granted = grantedScopes;
+        }
+      } catch (scopeError) {
+        console.warn('[meta-sync-lead-forms] Failed to refresh stored permissions:', scopeError);
+      }
+    }
+
     if (action === 'sync_forms') {
+      await refreshStoredScopes();
       let pages: MetaPage[] = [];
 
       // CRITICAL: /me/accounts returns page-specific access tokens
