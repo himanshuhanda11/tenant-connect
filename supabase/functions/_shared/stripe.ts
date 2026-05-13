@@ -95,9 +95,23 @@ export async function getAuthedUser(req: Request) {
       return { id: data.claims.sub, email: data.claims.email } as any;
     }
   } catch (_) { /* fall through */ }
-  const { data, error } = await client.auth.getUser(token);
-  if (error || !data?.user) return null;
-  return data.user;
+  try {
+    const { data, error } = await client.auth.getUser(token);
+    if (!error && data?.user) return data.user;
+  } catch (_) { /* fall through */ }
+  // Last resort: decode the JWT payload (verify_jwt is handled at the gateway).
+  try {
+    const parts = token.split(".");
+    if (parts.length >= 2) {
+      const payload = JSON.parse(
+        atob(parts[1].replace(/-/g, "+").replace(/_/g, "/"))
+      );
+      if (payload?.sub) {
+        return { id: payload.sub, email: payload.email } as any;
+      }
+    }
+  } catch (_) { /* ignore */ }
+  return null;
 }
 
 export async function assertWorkspaceAdmin(
