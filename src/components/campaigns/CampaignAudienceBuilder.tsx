@@ -470,7 +470,7 @@ export default function CampaignAudienceBuilder({
       const buildQuery = () => {
         let query = supabase
           .from('contacts')
-          .select('id')
+          .select('id, segment')
           .eq('tenant_id', currentTenant.id);
 
         if (filters.opt_in_only) query = query.eq('opt_out', false);
@@ -487,7 +487,6 @@ export default function CampaignAudienceBuilder({
         const selectedSegmentNames = selectedSegments.map((segment) => segment.name).filter(Boolean);
         const excludedSegmentNames = excludedSegments.map((segment) => segment.name).filter(Boolean);
         if (selectedSegmentNames.length > 0) query = query.in('segment', selectedSegmentNames);
-        if (excludedSegmentNames.length > 0) query = query.not('segment', 'in', `(${excludedSegmentNames.map((name) => `"${name.replace(/"/g, '\\"')}"`).join(',')})`);
 
       let normalizedDateFrom = filters.date_from;
       let normalizedDateTo = filters.date_to;
@@ -509,10 +508,15 @@ export default function CampaignAudienceBuilder({
       };
 
       const contactIds: string[] = [];
+      const excludedSegmentNames = segments
+        .filter((segment) => filters.exclude_segments.includes(segment.id))
+        .map((segment) => segment.name)
+        .filter(Boolean);
       for (let from = 0; ; from += PAGE_SIZE) {
         const { data, error } = await buildQuery().range(from, from + PAGE_SIZE - 1);
         if (error) throw error;
         const ids = (data || [])
+          .filter((row) => !row.segment || !excludedSegmentNames.includes(row.segment))
           .map((row) => row.id)
           .filter((id) => Boolean(id) && (!allowedIds || allowedIds.has(id)) && !excludedIds.has(id));
         contactIds.push(...ids);
