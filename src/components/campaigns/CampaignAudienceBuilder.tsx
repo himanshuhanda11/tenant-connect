@@ -408,7 +408,9 @@ export default function CampaignAudienceBuilder({
         return;
       }
 
-      if (filters.assigned_agent) {
+      // Specific agent selected → restrict via inbox summary (covers conversation-level assignment).
+      // Unassigned uses contacts.assigned_agent_id IS NULL on the main query below.
+      if (filters.assigned_agent && filters.assigned_agent !== SELECT_SENTINELS.unassigned) {
         const { data, error } = await supabase
           .from('contact_inbox_summary')
           .select('contact_id')
@@ -416,6 +418,25 @@ export default function CampaignAudienceBuilder({
           .eq('assigned_to', filters.assigned_agent);
         if (error) throw error;
         assignedSummaryIds = new Set((data || []).map((row) => row.contact_id).filter(Boolean));
+      }
+
+      // Lead Status (Inbox CRM) — filter via conversations.crm_status to stay in sync with Inbox
+      if (filters.lead_states.length > 0) {
+        const { data, error } = await supabase
+          .from('conversations')
+          .select('contact_id')
+          .eq('tenant_id', currentTenant.id)
+          .in('crm_status', filters.lead_states as any);
+        if (error) throw error;
+        const leadIds = new Set((data || []).map((row: any) => row.contact_id).filter(Boolean));
+        if (leadIds.size === 0) {
+          onEstimatedCountChange(0);
+          if (filters.matched_contact_ids.length > 0) setFilters({ ...filters, matched_contact_ids: [] });
+          return;
+        }
+        allowedIds = allowedIds
+          ? new Set([...allowedIds].filter((id) => leadIds.has(id)))
+          : leadIds;
       }
 
       if (filters.is_unreplied !== 'all' || filters.exclude_recent_days > 0) {
