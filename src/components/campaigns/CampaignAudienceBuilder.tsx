@@ -377,7 +377,7 @@ export default function CampaignAudienceBuilder({
   return (
     <div className="space-y-5">
       {/* Premium audience summary — sticky so users see live changes while filtering */}
-      <div className="sticky top-2 z-30 -mx-1 px-1">
+      <div className="sticky top-2 z-40 -mx-4 sm:-mx-6 px-4 sm:px-6">
         <Card className={cn(
           'overflow-hidden border-primary/30 bg-gradient-to-br from-primary/10 via-background/95 to-background/95 backdrop-blur-md shadow-lg transition-all',
           estimate.loading && 'ring-2 ring-primary/40',
