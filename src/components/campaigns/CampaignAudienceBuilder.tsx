@@ -516,7 +516,12 @@ export default function CampaignAudienceBuilder({
         if (error) throw error;
         const ids = (data || [])
           .filter((row) => !row.segment || !excludedSegmentNames.includes(row.segment))
-          .filter((row) => !filters.assigned_agent || row.assigned_agent_id === filters.assigned_agent || assignedSummaryIds?.has(row.id))
+          .filter((row) => {
+            const a = filters.assigned_agent;
+            if (!a || a === SELECT_SENTINELS.all) return true;
+            if (a === SELECT_SENTINELS.unassigned) return !row.assigned_agent_id;
+            return row.assigned_agent_id === a || assignedSummaryIds?.has(row.id);
+          })
           .map((row) => row.id)
           .filter((id) => Boolean(id) && (!allowedIds || allowedIds.has(id)) && !excludedIds.has(id));
         contactIds.push(...ids);
