@@ -110,6 +110,7 @@ export default function CreateCampaign() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { currentTenant } = useTenant();
+  const { balance: creditsBalance } = useMessageCredits();
   const { data: entitlements } = useEntitlements();
   const { open: openUpgrade } = useUpgradeModal();
   const planId = entitlements?.plan_id ?? 'free';
