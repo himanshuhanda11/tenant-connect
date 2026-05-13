@@ -851,24 +851,16 @@ export default function CampaignAudienceBuilder({
                 badge={filters.date_from || filters.date_to ? 1 : 0}
               >
                 <div className="grid grid-cols-2 gap-2">
-                  <div className="space-y-1">
-                    <Label className="text-xs text-muted-foreground">From</Label>
-                    <Input
-                      type="date"
-                      value={filters.date_from}
-                      onChange={(e) => updateFilter('date_from', e.target.value)}
-                      className="h-9 min-w-0 text-sm font-medium text-foreground bg-card border-input [color-scheme:light] dark:[color-scheme:dark] [&::-webkit-date-and-time-value]:text-foreground [&::-webkit-datetime-edit]:text-foreground [&::-webkit-calendar-picker-indicator]:opacity-70 [&::-webkit-calendar-picker-indicator]:cursor-pointer"
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <Label className="text-xs text-muted-foreground">To</Label>
-                    <Input
-                      type="date"
-                      value={filters.date_to}
-                      onChange={(e) => updateFilter('date_to', e.target.value)}
-                      className="h-9 min-w-0 text-sm font-medium text-foreground bg-card border-input [color-scheme:light] dark:[color-scheme:dark] [&::-webkit-date-and-time-value]:text-foreground [&::-webkit-datetime-edit]:text-foreground [&::-webkit-calendar-picker-indicator]:opacity-70 [&::-webkit-calendar-picker-indicator]:cursor-pointer"
-                    />
-                  </div>
+                  <VisibleDateInput
+                    label="From"
+                    value={filters.date_from}
+                    onChange={(value) => updateFilter('date_from', value)}
+                  />
+                  <VisibleDateInput
+                    label="To"
+                    value={filters.date_to}
+                    onChange={(value) => updateFilter('date_to', value)}
+                  />
                 </div>
                 {filters.assigned_agent && !(filters.date_from || filters.date_to) && (
                   <p className="text-[11px] text-muted-foreground mt-2">
