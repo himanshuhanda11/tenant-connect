@@ -419,6 +419,7 @@ export default function LeadFormsPage() {
               <div className="space-y-1.5">
                 {subscribeResult.results.map((r) => {
                   const isAdminIssue = !r.success && /no page access token|not.*admin|admin.*page/i.test(r.error || '');
+                  const isPermIssue = !r.success && /pages_manage_metadata|permission|\(#10\)|\(#200\)/i.test(r.error || '');
                   return (
                     <div
                       key={r.page_id}
@@ -451,6 +452,18 @@ export default function LeadFormsPage() {
                               <RefreshCw className="h-3 w-3 mr-1" />
                               Reconnect Facebook
                             </Button>
+                          </div>
+                        )}
+                        {isPermIssue && (
+                          <div className="mt-1.5 space-y-1 text-[11px] text-muted-foreground">
+                            <p className="text-foreground"><strong>Manual subscribe (no extra permission needed):</strong></p>
+                            <ol className="list-decimal pl-4 space-y-0.5">
+                              <li>Open <a href="https://developers.facebook.com/apps/" target="_blank" rel="noreferrer" className="underline text-primary">Meta App Dashboard</a> → your app → <em>Webhooks</em>.</li>
+                              <li>Select the <strong>Page</strong> product → click <strong>Subscribe to this object</strong>.</li>
+                              <li>Log in as the Page admin for <strong>{r.page_name}</strong> (ID <span className="font-mono">{r.page_id}</span>) and select it.</li>
+                              <li>Tick the <strong>leadgen</strong> field and save. New leads will start flowing immediately.</li>
+                            </ol>
+                            <p className="pt-1">Alternative: in <a href="https://business.facebook.com/settings/pages" target="_blank" rel="noreferrer" className="underline text-primary">Business Settings → Pages</a>, open the Page → <em>Connected apps</em> → add this app and enable <em>leadgen</em>.</p>
                           </div>
                         )}
                       </div>
