@@ -58,10 +58,10 @@ Deno.serve(async (req) => {
       return j({ error: 'plan_access_denied', reason: planAccess?.reason, current_plan: planAccess?.current_plan, upgrade_to: planAccess?.upgrade_to, feature: 'send_campaign' }, 402);
     }
 
-    // Resolve recipient phones
+    // Resolve recipient phones + country
     const { data: contacts, error: cErr } = await supa
       .from('contacts')
-      .select('id, wa_id, name')
+      .select('id, wa_id, name, country')
       .eq('tenant_id', body.tenant_id)
       .in('id', body.contact_ids);
     if (cErr) return j({ error: 'Failed to load contacts', detail: cErr.message }, 500);
@@ -74,16 +74,22 @@ Deno.serve(async (req) => {
       return j({ error: 'recipient_limit_exceeded', limit: cap, requested: valid.length, current_plan: planAccess?.current_plan }, 402);
     }
 
-    // Message Credits gate — block launch if wallet < required recipients
-    const { data: creditCheck } = await supa.rpc('check_workspace_credits', {
+    // Server-side cost estimation (country + template category aware)
+    const category = (body.template_category || 'marketing').toLowerCase();
+    const { data: estimate, error: estErr } = await supa.rpc('estimate_broadcast_cost', {
       p_tenant_id: body.tenant_id,
-      p_required: valid.length,
+      p_contact_ids: valid.map((c) => c.id),
+      p_template_category: category,
     });
-    if (creditCheck && (creditCheck as any).sufficient === false) {
+    if (estErr) return j({ error: 'estimate_failed', detail: estErr.message }, 500);
+    const est = estimate as any;
+    if (!est?.sufficient) {
       return j({
         error: 'insufficient_credits',
-        available: (creditCheck as any).available ?? 0,
-        required: (creditCheck as any).required ?? valid.length,
+        available: est?.available ?? 0,
+        required: est?.total_credits ?? 0,
+        breakdown: est?.breakdown ?? [],
+        shortfall: est?.shortfall ?? 0,
       }, 402);
     }
 
@@ -91,7 +97,13 @@ Deno.serve(async (req) => {
     const scheduled_at = sendNow ? null : (body.scheduled_at ? new Date(body.scheduled_at).toISOString() : null);
     if (!sendNow && !scheduled_at) return j({ error: 'scheduled_at required for scheduled campaigns' }, 400);
 
-    // Insert campaign
+    // Build per-country rate map for fast per-job lookup
+    const rateMap = new Map<string, number>();
+    for (const row of (est?.breakdown || [])) {
+      rateMap.set(String(row.country_code), Number(row.rate));
+    }
+
+    // Insert campaign with estimate + breakdown
     const { data: campaign, error: campErr } = await supa
       .from('campaigns')
       .insert({
@@ -99,45 +111,72 @@ Deno.serve(async (req) => {
         name: body.name || 'Untitled broadcast',
         phone_number_id: body.phone_number_id,
         template_id: body.template_id,
-        status: sendNow ? 'scheduled' : 'scheduled', // worker flips to running
+        status: sendNow ? 'scheduled' : 'scheduled',
         scheduled_at: sendNow ? new Date().toISOString() : scheduled_at,
         campaign_type: (body.campaign_type as any) || 'broadcast',
         goal: (body.goal as any) || null,
         timezone: body.timezone || 'UTC',
         messages_per_minute: body.messages_per_minute || 30,
         template_variables: body.template_variables || {},
+        template_category: category,
         audience_source: 'contacts',
         audience_config: body.audience_config || {},
         total_recipients: valid.length,
         queued_count: valid.length,
+        estimated_credits_required: est?.total_credits ?? 0,
+        pricing_breakdown: est?.breakdown ?? [],
+        credit_status: 'reserved',
         created_by: user.id,
       })
       .select('id')
       .single();
     if (campErr) return j({ error: 'Failed to create campaign', detail: campErr.message }, 500);
 
-    // Build template components per contact (variable mapping happens in worker via attributes if needed; for Phase 2 we use per-campaign template_variables uniformly)
     const tmplLang = body.template_language || 'en';
     const tmplVars = body.template_variables || {};
 
-    // Insert jobs in chunks with idempotent upsert
+    // Helper: detect country code from phone (best-effort, fallback OTHER)
+    const cc = (phone: string | null | undefined, fallback?: string): string => {
+      if (fallback) return fallback.toUpperCase();
+      if (!phone) return 'OTHER';
+      const p = phone.replace(/\D/g, '');
+      const prefixes: Array<[string, string]> = [
+        ['971','AE'],['966','SA'],['973','BH'],['974','QA'],['965','KW'],['968','OM'],
+        ['880','BD'],['977','NP'],['92','PK'],['94','LK'],['91','IN'],
+        ['20','EG'],['27','ZA'],['34','ES'],['39','IT'],['33','FR'],['49','DE'],['44','GB'],
+        ['55','BR'],['52','MX'],['54','AR'],['57','CO'],
+        ['60','MY'],['62','ID'],['63','PH'],['65','SG'],['66','TH'],
+        ['81','JP'],['82','KR'],['84','VN'],['86','CN'],['90','TR'],
+        ['7','RU'],['1','US'],
+      ];
+      for (const [pre, code] of prefixes) if (p.startsWith(pre)) return code;
+      return 'OTHER';
+    };
+
     const BATCH = 500;
     let inserted = 0;
     for (let i = 0; i < valid.length; i += BATCH) {
       const slice = valid.slice(i, i + BATCH);
-      const rows = slice.map((c) => ({
-        tenant_id: body.tenant_id,
-        campaign_id: campaign.id,
-        contact_id: c.id,
-        phone_number_id: body.phone_number_id,
-        template_name: body.template_name,
-        template_language: tmplLang,
-        template_variables: tmplVars,
-        recipient_phone: c.wa_id!,
-        recipient_name: c.name,
-        scheduled_at: sendNow ? new Date().toISOString() : scheduled_at,
-        status: 'queued',
-      }));
+      const rows = slice.map((c) => {
+        const code = cc(c.wa_id, (c as any).country);
+        const rate = rateMap.get(code) ?? rateMap.get('OTHER') ?? 1;
+        return {
+          tenant_id: body.tenant_id,
+          campaign_id: campaign.id,
+          contact_id: c.id,
+          phone_number_id: body.phone_number_id,
+          template_name: body.template_name,
+          template_language: tmplLang,
+          template_variables: tmplVars,
+          recipient_phone: c.wa_id!,
+          recipient_name: c.name,
+          scheduled_at: sendNow ? new Date().toISOString() : scheduled_at,
+          status: 'queued',
+          country_code: code,
+          template_category: category,
+          rate_per_message: rate,
+        };
+      });
       const { error: jErr, count } = await supa
         .from('campaign_jobs')
         .upsert(rows, { onConflict: 'campaign_id,contact_id', ignoreDuplicates: true, count: 'exact' });
@@ -148,7 +187,15 @@ Deno.serve(async (req) => {
       }
     }
 
-    return j({ ok: true, campaign_id: campaign.id, jobs_queued: inserted, total_recipients: valid.length, scheduled_at: sendNow ? null : scheduled_at });
+    return j({
+      ok: true,
+      campaign_id: campaign.id,
+      jobs_queued: inserted,
+      total_recipients: valid.length,
+      estimated_credits: est?.total_credits ?? 0,
+      breakdown: est?.breakdown ?? [],
+      scheduled_at: sendNow ? null : scheduled_at,
+    });
   } catch (e: any) {
     console.error('campaign-launch error', e);
     return j({ error: e.message || 'Internal error' }, 500);
