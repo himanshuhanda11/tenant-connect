@@ -82,11 +82,20 @@ export function getServiceClient() {
 export async function getAuthedUser(req: Request) {
   const auth = req.headers.get("Authorization");
   if (!auth?.startsWith("Bearer ")) return null;
-  const anon = createClient(
+  const token = auth.replace("Bearer ", "");
+  const client = createClient(
     Deno.env.get("SUPABASE_URL")!,
-    Deno.env.get("SUPABASE_ANON_KEY")!
+    Deno.env.get("SUPABASE_ANON_KEY")!,
+    { global: { headers: { Authorization: auth } } }
   );
-  const { data, error } = await anon.auth.getUser(auth.replace("Bearer ", ""));
+  // Prefer getClaims (works with signing keys / JWT verification disabled)
+  try {
+    const { data, error } = await (client.auth as any).getClaims(token);
+    if (!error && data?.claims?.sub) {
+      return { id: data.claims.sub, email: data.claims.email } as any;
+    }
+  } catch (_) { /* fall through */ }
+  const { data, error } = await client.auth.getUser(token);
   if (error || !data?.user) return null;
   return data.user;
 }
