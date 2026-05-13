@@ -165,7 +165,7 @@ export default function Billing() {
             <ManageSubscriptionCard />
             <BillingOverviewCards />
             <div className="grid gap-4 sm:gap-5 lg:grid-cols-2">
-              <MessageCreditsCard />
+              <div id="credits"><MessageCreditsCard /></div>
               <BillingFAQ />
             </div>
             <MetaBillingNotice />
