@@ -2377,20 +2377,23 @@ Deno.serve(async (req: Request) => {
       const actor = await requirePlatformRole(req, ["super_admin", "ops"]);
       const sb = adminClient();
       const body = await req.json();
-      const { workspace_id, amount, reason } = body || {};
+      const { workspace_id, amount, reason, category } = body || {};
       if (!workspace_id || typeof amount !== "number" || !reason) {
         throw new Error("workspace_id, amount and reason are required");
       }
+      const allowedCats = ["bonus", "promo", "refund", "meta_paid", "adjustment"];
+      const cat = allowedCats.includes(String(category)) ? String(category) : "adjustment";
       const { data, error } = await sb.rpc("admin_adjust_message_credits", {
         p_tenant_id: workspace_id,
         p_amount: Math.trunc(amount),
         p_reason: String(reason),
         p_admin_id: actor.user.id,
+        p_category: cat,
       });
       if (error) throw new Error(error.message);
       await logAction(sb, actor, "PLATFORM_CREDITS_ADJUSTED", {
         workspace_id, target_table: "message_credits",
-        after: data, note: `Adjustment ${amount} — ${reason}`,
+        after: data, note: `[${cat}] Adjustment ${amount} — ${reason}`,
       });
       return new Response(JSON.stringify(data), {
         headers: { ...corsHeaders, "content-type": "application/json" },
