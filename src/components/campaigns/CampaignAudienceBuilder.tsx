@@ -396,6 +396,7 @@ export default function CampaignAudienceBuilder({
     try {
       let allowedIds: Set<string> | null = null;
       let excludedIds = new Set<string>();
+      let assignedSummaryIds: Set<string> | null = null;
 
       if (filters.include_tags.length > 0) {
         const { data, error } = await supabase
@@ -438,13 +439,22 @@ export default function CampaignAudienceBuilder({
         return;
       }
 
-      if (filters.is_unreplied !== 'all' || filters.exclude_recent_days > 0 || filters.assigned_agent) {
+      if (filters.assigned_agent) {
+        const { data, error } = await supabase
+          .from('contact_inbox_summary')
+          .select('contact_id')
+          .eq('tenant_id', currentTenant.id)
+          .eq('assigned_to', filters.assigned_agent);
+        if (error) throw error;
+        assignedSummaryIds = new Set((data || []).map((row) => row.contact_id).filter(Boolean));
+      }
+
+      if (filters.is_unreplied !== 'all' || filters.exclude_recent_days > 0) {
         let summaryQuery = supabase
           .from('contact_inbox_summary')
           .select('contact_id')
           .eq('tenant_id', currentTenant.id);
 
-        if (filters.assigned_agent) summaryQuery = summaryQuery.eq('assigned_to', filters.assigned_agent);
         if (filters.is_unreplied !== 'all') summaryQuery = summaryQuery.eq('is_unreplied', filters.is_unreplied === 'yes');
         if (filters.exclude_recent_days > 0) {
           const cutoff = new Date(Date.now() - filters.exclude_recent_days * 24 * 60 * 60 * 1000).toISOString();
@@ -470,7 +480,7 @@ export default function CampaignAudienceBuilder({
       const buildQuery = () => {
         let query = supabase
           .from('contacts')
-          .select('id, segment')
+          .select('id, segment, assigned_agent_id')
           .eq('tenant_id', currentTenant.id);
 
         if (filters.opt_in_only) query = query.eq('opt_out', false);
@@ -517,6 +527,7 @@ export default function CampaignAudienceBuilder({
         if (error) throw error;
         const ids = (data || [])
           .filter((row) => !row.segment || !excludedSegmentNames.includes(row.segment))
+          .filter((row) => !filters.assigned_agent || row.assigned_agent_id === filters.assigned_agent || assignedSummaryIds?.has(row.id))
           .map((row) => row.id)
           .filter((id) => Boolean(id) && (!allowedIds || allowedIds.has(id)) && !excludedIds.has(id));
         contactIds.push(...ids);
