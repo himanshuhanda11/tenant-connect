@@ -241,6 +241,45 @@ export default function CreateCampaign() {
     fetchOptions();
   }, [currentTenant?.id]);
 
+  // Load draft on mount once we know the workspace
+  useEffect(() => {
+    if (!draftKey || draftLoaded) return;
+    try {
+      const raw = localStorage.getItem(draftKey);
+      if (raw) {
+        const saved = JSON.parse(raw);
+        if (saved?.wizard) setWizard((prev) => ({ ...prev, ...saved.wizard }));
+        if (saved?.audienceFilters) setAudienceFilters((prev) => ({ ...prev, ...saved.audienceFilters }));
+        if (typeof saved?.currentStep === 'number') setCurrentStep(saved.currentStep);
+        if (saved?.savedAt) setDraftSavedAt(new Date(saved.savedAt));
+        toast.info('Draft restored — picking up where you left off');
+      }
+    } catch (e) {
+      console.warn('Failed to load campaign draft', e);
+    }
+    setDraftLoaded(true);
+  }, [draftKey, draftLoaded]);
+
+  // Auto-save draft (debounced) once loaded
+  useEffect(() => {
+    if (!draftKey || !draftLoaded) return;
+    const t = setTimeout(() => {
+      try {
+        const payload = {
+          wizard,
+          audienceFilters,
+          currentStep,
+          savedAt: new Date().toISOString(),
+        };
+        localStorage.setItem(draftKey, JSON.stringify(payload));
+        setDraftSavedAt(new Date());
+      } catch (e) {
+        // quota or serialization failure — ignore silently
+      }
+    }, 800);
+    return () => clearTimeout(t);
+  }, [wizard, audienceFilters, currentStep, draftKey, draftLoaded]);
+
   useEffect(() => {
     const fetchSelectedContacts = async () => {
       if (!currentTenant?.id || preselectedContactIds.length === 0) {
