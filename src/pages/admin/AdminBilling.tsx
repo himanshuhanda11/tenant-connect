@@ -7,12 +7,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { AdminKPICard } from '@/components/admin/AdminKPICard';
 import { AdminStatusBadge } from '@/components/admin/AdminStatusBadge';
-import { DollarSign, Receipt, RefreshCw, AlertTriangle, FileText, PlusCircle, TrendingUp, ShieldAlert, Download, BarChart3 } from 'lucide-react';
+import { DollarSign, Receipt, RefreshCw, AlertTriangle, FileText, PlusCircle, TrendingUp, ShieldAlert, Download, BarChart3, Wallet, Package } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { RevenueChart } from '@/components/admin/billing/RevenueChart';
 import { InvoicesPanel } from '@/components/admin/billing/InvoicesPanel';
 import { RiskEventsPanel } from '@/components/admin/billing/RiskEventsPanel';
 import { BillingEventsTable } from '@/components/admin/billing/BillingEventsTable';
+import { AdminCreditAdjustments } from '@/components/admin/billing/AdminCreditAdjustments';
+import { AdminCreditPackages } from '@/components/admin/billing/AdminCreditPackages';
 
 export default function AdminBilling() {
   const { role } = useOutletContext<{ role: string }>();
