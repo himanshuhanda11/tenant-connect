@@ -139,6 +139,14 @@ Deno.serve(async (req) => {
       }
     }
 
+    if (action === 'refresh_permissions') {
+      await refreshStoredScopes();
+      return json({
+        success: true,
+        scopes_granted: connectedAccounts[0]?.scopes_granted || [],
+      });
+    }
+
     if (action === 'sync_forms') {
       await refreshStoredScopes();
       let pages: MetaPage[] = [];
