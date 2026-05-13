@@ -358,6 +358,7 @@ const App = () => (
                     <Route path="/app-access-instructions" element={<AppAccessInstructions />} />
                     <Route path="/products" element={<Products />} />
                     <Route path="/pricing" element={<Pricing />} />
+                    <Route path="/message-pricing" element={<MessagePricing />} />
                     <Route path="/help" element={<HelpCenter />} />
                     <Route path="/help/category/:category" element={<HelpCategory />} />
                     <Route path="/help/inbox" element={<InboxGuide />} />
