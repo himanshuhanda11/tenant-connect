@@ -133,18 +133,23 @@ Deno.serve(async (req) => {
             p_status: 'sent',
             p_wamid: wamid,
           });
-          // Deduct 1 message credit per Meta-accepted template send.
-          // Non-blocking: if the wallet was drained mid-batch, the send already happened;
-          // we just record what we can and surface insufficient_credits in logs.
+          // Deduct credits per Meta-accepted message based on country/category rate.
+          const rate = Number(job.rate_per_message ?? 1);
+          const credits = Math.max(1, Math.ceil(rate));
           try {
-            const { data: deduct } = await supa.rpc('consume_message_credit', {
+            const { data: deduct } = await supa.rpc('consume_message_credit_amount', {
               p_tenant_id: phone.tenant_id,
+              p_amount: credits,
               p_campaign_id: job.campaign_id,
-              p_message_id: null,
-              p_description: `Broadcast: ${job.template_name}`,
+              p_job_id: job.id,
+              p_country_code: job.country_code || 'OTHER',
+              p_template_category: job.template_category || 'marketing',
             });
-            if (deduct && (deduct as any).ok === false) {
-              console.warn('credit deduction skipped (insufficient_credits)', job.id);
+            if (deduct && (deduct as any).success === false) {
+              console.warn('credit deduction failed', job.id, deduct);
+            } else {
+              await supa.from('campaign_jobs').update({ credits_used: credits }).eq('id', job.id);
+              await supa.rpc('increment_campaign_credits', { p_campaign_id: job.campaign_id, p_amount: credits }).catch(() => {});
             }
           } catch (err) {
             console.error('credit deduction error', err);
