@@ -1661,7 +1661,9 @@ export type Database = {
           attempts: number | null
           campaign_id: string
           contact_id: string
+          country_code: string | null
           created_at: string
+          credits_used: number | null
           delivered_at: string | null
           error_code: string | null
           error_message: string | null
@@ -1673,6 +1675,7 @@ export type Database = {
           max_attempts: number | null
           phone_number_id: string
           priority: number | null
+          rate_per_message: number | null
           read_at: string | null
           recipient_name: string | null
           recipient_phone: string
@@ -1681,6 +1684,7 @@ export type Database = {
           sent_at: string | null
           skip_reason: string | null
           status: Database["public"]["Enums"]["smeksh_job_status"]
+          template_category: string | null
           template_language: string
           template_name: string
           template_variables: Json | null
@@ -1692,7 +1696,9 @@ export type Database = {
           attempts?: number | null
           campaign_id: string
           contact_id: string
+          country_code?: string | null
           created_at?: string
+          credits_used?: number | null
           delivered_at?: string | null
           error_code?: string | null
           error_message?: string | null
@@ -1704,6 +1710,7 @@ export type Database = {
           max_attempts?: number | null
           phone_number_id: string
           priority?: number | null
+          rate_per_message?: number | null
           read_at?: string | null
           recipient_name?: string | null
           recipient_phone: string
@@ -1712,6 +1719,7 @@ export type Database = {
           sent_at?: string | null
           skip_reason?: string | null
           status?: Database["public"]["Enums"]["smeksh_job_status"]
+          template_category?: string | null
           template_language?: string
           template_name: string
           template_variables?: Json | null
@@ -1723,7 +1731,9 @@ export type Database = {
           attempts?: number | null
           campaign_id?: string
           contact_id?: string
+          country_code?: string | null
           created_at?: string
+          credits_used?: number | null
           delivered_at?: string | null
           error_code?: string | null
           error_message?: string | null
@@ -1735,6 +1745,7 @@ export type Database = {
           max_attempts?: number | null
           phone_number_id?: string
           priority?: number | null
+          rate_per_message?: number | null
           read_at?: string | null
           recipient_name?: string | null
           recipient_phone?: string
@@ -1743,6 +1754,7 @@ export type Database = {
           sent_at?: string | null
           skip_reason?: string | null
           status?: Database["public"]["Enums"]["smeksh_job_status"]
+          template_category?: string | null
           template_language?: string
           template_name?: string
           template_variables?: Json | null
@@ -1946,6 +1958,7 @@ export type Database = {
           ab_split_ratio: number | null
           ab_variant: string | null
           ab_winner_metric: string | null
+          actual_credits_used: number | null
           audience_config: Json | null
           audience_source: string | null
           business_hours_only: boolean | null
@@ -1958,9 +1971,11 @@ export type Database = {
           conversion_tag_id: string | null
           created_at: string
           created_by: string | null
+          credit_status: string | null
           delivered_count: number | null
           description: string | null
           error_message: string | null
+          estimated_credits_required: number | null
           exclude_segments: string[] | null
           exclude_tags: string[] | null
           failed_count: number | null
@@ -1978,6 +1993,7 @@ export type Database = {
           name: string
           paused_at: string | null
           phone_number_id: string
+          pricing_breakdown: Json | null
           processing_count: number | null
           queued_count: number | null
           quiet_hours_end: string | null
@@ -1990,6 +2006,7 @@ export type Database = {
           started_at: string | null
           status: Database["public"]["Enums"]["campaign_status"]
           target_tags: string[] | null
+          template_category: string | null
           template_id: string
           template_variables: Json | null
           tenant_id: string
@@ -2002,6 +2019,7 @@ export type Database = {
           ab_split_ratio?: number | null
           ab_variant?: string | null
           ab_winner_metric?: string | null
+          actual_credits_used?: number | null
           audience_config?: Json | null
           audience_source?: string | null
           business_hours_only?: boolean | null
@@ -2014,9 +2032,11 @@ export type Database = {
           conversion_tag_id?: string | null
           created_at?: string
           created_by?: string | null
+          credit_status?: string | null
           delivered_count?: number | null
           description?: string | null
           error_message?: string | null
+          estimated_credits_required?: number | null
           exclude_segments?: string[] | null
           exclude_tags?: string[] | null
           failed_count?: number | null
@@ -2034,6 +2054,7 @@ export type Database = {
           name: string
           paused_at?: string | null
           phone_number_id: string
+          pricing_breakdown?: Json | null
           processing_count?: number | null
           queued_count?: number | null
           quiet_hours_end?: string | null
@@ -2046,6 +2067,7 @@ export type Database = {
           started_at?: string | null
           status?: Database["public"]["Enums"]["campaign_status"]
           target_tags?: string[] | null
+          template_category?: string | null
           template_id: string
           template_variables?: Json | null
           tenant_id: string
@@ -2058,6 +2080,7 @@ export type Database = {
           ab_split_ratio?: number | null
           ab_variant?: string | null
           ab_winner_metric?: string | null
+          actual_credits_used?: number | null
           audience_config?: Json | null
           audience_source?: string | null
           business_hours_only?: boolean | null
@@ -2070,9 +2093,11 @@ export type Database = {
           conversion_tag_id?: string | null
           created_at?: string
           created_by?: string | null
+          credit_status?: string | null
           delivered_count?: number | null
           description?: string | null
           error_message?: string | null
+          estimated_credits_required?: number | null
           exclude_segments?: string[] | null
           exclude_tags?: string[] | null
           failed_count?: number | null
@@ -2090,6 +2115,7 @@ export type Database = {
           name?: string
           paused_at?: string | null
           phone_number_id?: string
+          pricing_breakdown?: Json | null
           processing_count?: number | null
           queued_count?: number | null
           quiet_hours_end?: string | null
@@ -2102,6 +2128,7 @@ export type Database = {
           started_at?: string | null
           status?: Database["public"]["Enums"]["campaign_status"]
           target_tags?: string[] | null
+          template_category?: string | null
           template_id?: string
           template_variables?: Json | null
           tenant_id?: string
@@ -15461,6 +15488,51 @@ export type Database = {
           },
         ]
       }
+      whatsapp_meta_pricing_rates: {
+        Row: {
+          active: boolean
+          country_code: string
+          country_name: string
+          created_at: string
+          credit_multiplier: number
+          currency: string
+          effective_from: string
+          effective_to: string | null
+          id: string
+          rate_per_message: number
+          template_category: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          country_code: string
+          country_name: string
+          created_at?: string
+          credit_multiplier?: number
+          currency?: string
+          effective_from?: string
+          effective_to?: string | null
+          id?: string
+          rate_per_message: number
+          template_category: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          country_code?: string
+          country_name?: string
+          created_at?: string
+          credit_multiplier?: number
+          currency?: string
+          effective_from?: string
+          effective_to?: string | null
+          id?: string
+          rate_per_message?: number
+          template_category?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       widget_agents: {
         Row: {
           avatar_url: string | null
@@ -17096,6 +17168,17 @@ export type Database = {
         }
         Returns: Json
       }
+      consume_message_credit_amount: {
+        Args: {
+          p_amount: number
+          p_campaign_id: string
+          p_country_code: string
+          p_job_id: string
+          p_template_category: string
+          p_tenant_id: string
+        }
+        Returns: Json
+      }
       contacts_crm_search: {
         Args: {
           p_assigned_to?: string
@@ -17139,6 +17222,7 @@ export type Database = {
           wa_id: string
         }[]
       }
+      country_code_from_phone: { Args: { phone: string }; Returns: string }
       create_tenant_with_owner: {
         Args: { _name: string; _slug: string }
         Returns: {
@@ -17203,6 +17287,14 @@ export type Database = {
       enqueue_email: {
         Args: { payload: Json; queue_name: string }
         Returns: number
+      }
+      estimate_broadcast_cost: {
+        Args: {
+          p_contact_ids: string[]
+          p_template_category: string
+          p_tenant_id: string
+        }
+        Returns: Json
       }
       generate_contact_ticket_id: { Args: never; Returns: string }
       get_app_secret: { Args: { p_key: string }; Returns: string }
@@ -17277,6 +17369,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      increment_campaign_credits: {
+        Args: { p_amount: number; p_campaign_id: string }
+        Returns: undefined
+      }
       increment_usage: {
         Args: { p_amount?: number; p_counter: string; p_tenant_id: string }
         Returns: undefined
@@ -17306,7 +17402,9 @@ export type Database = {
           attempts: number | null
           campaign_id: string
           contact_id: string
+          country_code: string | null
           created_at: string
+          credits_used: number | null
           delivered_at: string | null
           error_code: string | null
           error_message: string | null
@@ -17318,6 +17416,7 @@ export type Database = {
           max_attempts: number | null
           phone_number_id: string
           priority: number | null
+          rate_per_message: number | null
           read_at: string | null
           recipient_name: string | null
           recipient_phone: string
@@ -17326,6 +17425,7 @@ export type Database = {
           sent_at: string | null
           skip_reason: string | null
           status: Database["public"]["Enums"]["smeksh_job_status"]
+          template_category: string | null
           template_language: string
           template_name: string
           template_variables: Json | null

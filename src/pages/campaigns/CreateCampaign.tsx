@@ -61,7 +61,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import CampaignAudienceBuilder, { AudienceFilters, DEFAULT_AUDIENCE_FILTERS } from '@/components/campaigns/CampaignAudienceBuilder';
 import { CSVContactUploader } from '@/components/campaigns/CSVContactUploader';
-import { CampaignCreditGate } from '@/components/campaigns/CampaignCreditGate';
+import { BroadcastCostPreview } from '@/components/campaigns/BroadcastCostPreview';
+import type { BroadcastCostEstimate } from '@/hooks/useBroadcastCostEstimate';
 import { useMessageCredits } from '@/hooks/useMessageCredits';
 
 const STEPS = [
@@ -130,6 +131,7 @@ export default function CreateCampaign() {
     selected_contacts: [],
   });
   const [audienceEstimatedCount, setAudienceEstimatedCount] = useState(0);
+  const [costEstimate, setCostEstimate] = useState<BroadcastCostEstimate | null>(null);
   const [draftLoaded, setDraftLoaded] = useState(false);
   const [draftSavedAt, setDraftSavedAt] = useState<Date | null>(null);
   const draftKey = currentTenant?.id ? `campaign-draft:${currentTenant.id}` : null;
@@ -1027,8 +1029,13 @@ export default function CreateCampaign() {
                   </Card>
                 </div>
 
-                {/* Message Credits Gate */}
-                <CampaignCreditGate requiredCredits={audienceEstimatedCount} />
+                {/* Country-wise Cost & Credit Preview */}
+                <BroadcastCostPreview
+                  tenantId={currentTenant?.id}
+                  contactIds={(audienceFilters.selected_contacts?.length ? audienceFilters.selected_contacts : audienceFilters.matched_contact_ids) || []}
+                  templateCategory={(templates.find(t => t.id === wizard.message.template_id)?.category as string) || 'marketing'}
+                  onEstimateChange={setCostEstimate}
+                />
 
                 {/* Compliance Checklist */}
                 <Card className="bg-green-50 border-green-200">
@@ -1064,7 +1071,7 @@ export default function CreateCampaign() {
                     Save as Draft
                   </Button>
                   {(() => {
-                    const insufficientCredits = creditsBalance < audienceEstimatedCount;
+                    const insufficientCredits = costEstimate ? !costEstimate.sufficient : (creditsBalance < audienceEstimatedCount);
                     return (
                       <div className="flex items-center gap-3 w-full sm:w-auto">
                         {wizard.delivery.send_type === 'scheduled' ? (
