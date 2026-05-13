@@ -584,11 +584,8 @@ export default function CampaignAudienceBuilder({
     if (filters.exclude_segments.length > 0) count++;
     if (filters.include_tags.length > 0) count++;
     if (filters.exclude_tags.length > 0) count++;
-    if (filters.assigned_agent) count++;
+    if (filters.assigned_agent && filters.assigned_agent !== SELECT_SENTINELS.all) count++;
     if (filters.lead_states.length > 0) count++;
-    if (filters.crm_statuses.length > 0) count++;
-    if (filters.mau_statuses.length > 0) count++;
-    if (filters.priorities.length > 0) count++;
     if (filters.date_from || filters.date_to) count++;
     if (filters.contact_source) count++;
     if (filters.meta_campaign_source) count++;
