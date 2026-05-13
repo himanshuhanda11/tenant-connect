@@ -29,12 +29,47 @@ const REQUIRED_META_SCOPES = [
 
 export default function LeadFormsPage() {
   const [activeTab, setActiveTab] = useState('forms');
+  const [subscribingAll, setSubscribingAll] = useState(false);
   const { currentTenant } = useTenant();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { forms } = useLeadForms();
   const { rules } = useLeadFormRules();
   const { events } = useLeadEvents();
   const { subscriptions } = useWebhookHealth();
+
+  const unsubscribedPagesCount = new Set(
+    forms.filter((f: any) => !f.is_webhook_subscribed).map((f: any) => f.page_id)
+  ).size;
+
+  const handleSubscribeAll = async () => {
+    if (!currentTenant?.id) return;
+    setSubscribingAll(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('meta-sync-lead-forms', {
+        body: { tenantId: currentTenant.id, action: 'subscribe_all' },
+      });
+      if (error) throw error;
+      if (data?.reconnect) {
+        toast.error(data.error || 'Reconnect Facebook required', {
+          action: { label: 'Reconnect', onClick: () => navigate('/meta-ads/setup?reauthorize=lead_forms') },
+        });
+      } else if (data?.success) {
+        toast.success(`Subscribed ${data.succeeded}/${data.total} pages to leadgen webhooks`);
+      } else {
+        const failedDetails = (data?.results || []).filter((r: any) => !r.success).slice(0, 2).map((r: any) => `${r.page_name}: ${r.error}`).join(' | ');
+        toast.warning(`${data?.succeeded ?? 0}/${data?.total ?? 0} succeeded. ${data?.failed ?? 0} failed.`, {
+          description: failedDetails,
+        });
+      }
+      await queryClient.invalidateQueries({ queryKey: ['lead-forms'] });
+      await queryClient.invalidateQueries({ queryKey: ['webhook-health'] });
+    } catch (err: any) {
+      toast.error(err?.message || 'Failed to subscribe webhooks');
+    } finally {
+      setSubscribingAll(false);
+    }
+  };
 
   // Check Meta connection & permissions
   const metaAccountQuery = useQuery({
