@@ -108,13 +108,25 @@ Deno.serve(async (req) => {
       if (!error) upserted++;
     }
 
+    const totalWabas = (wabas || []).length;
+    const permissionDenied = errors.length > 0 && errors.every(e =>
+      /permission|#200|#10|access this field/i.test(e.message)
+    );
+    const note = upserted === 0
+      ? (permissionDenied
+          ? `Meta did not return pricing data. The WhatsApp Business Management permission on this app does not include billing insights (cost/conversation_analytics). This is granted only to approved BSPs. Seed rates from Meta's published rate card remain in use.`
+          : (totalWabas === 0
+              ? 'No active WABAs with stored access tokens found.'
+              : `No usable data returned from ${totalWabas} WABA(s).`))
+      : null;
+
     await supa.from('meta_pricing_sync_runs').update({
       status: 'success', finished_at: new Date().toISOString(),
       wabas_processed: processed, rates_upserted: upserted,
-      detail: { aggregates: aggregates.size },
+      detail: { aggregates: aggregates.size, total_wabas: totalWabas, errors, note },
     }).eq('id', runId);
 
-    return j({ ok: true, wabas_processed: processed, rates_upserted: upserted, aggregates: aggregates.size });
+    return j({ ok: true, wabas_processed: processed, rates_upserted: upserted, aggregates: aggregates.size, total_wabas: totalWabas, errors, note });
   } catch (e: any) {
     await supa.from('meta_pricing_sync_runs').update({
       status: 'error', finished_at: new Date().toISOString(), error: e?.message || String(e),
