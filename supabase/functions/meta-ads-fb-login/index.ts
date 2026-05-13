@@ -37,7 +37,7 @@ Deno.serve(async (req) => {
     }
 
     // Plan gate: Meta Ads is Pro+ only
-    const gate = await requirePlanAccess(tenantId, 'create_meta_ad_account');
+    const gate = await requirePlanAccess(tenantId, 'create_meta_ad_account', req);
     if (!gate.ok) return gate.res;
 
     const appId = Deno.env.get('META_APP_ID');

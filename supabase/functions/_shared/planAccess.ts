@@ -1,4 +1,4 @@
-import { getAdminClient, json } from "./supabase.ts";
+import { getAdminClient, getUserClient, json } from "./supabase.ts";
 
 export type PlanAccessResult = {
   allowed: boolean;
@@ -18,9 +18,10 @@ export type PlanAccessResult = {
 export async function requirePlanAccess(
   tenantId: string,
   featureKey: string,
+  req?: Request,
 ): Promise<{ ok: true } | { ok: false; res: Response }> {
-  const admin = getAdminClient();
-  const { data, error } = await admin.rpc("check_plan_access", {
+  const client = req ? getUserClient(req) : getAdminClient();
+  const { data, error } = await client.rpc("check_plan_access", {
     p_tenant_id: tenantId,
     p_feature_key: featureKey,
   });

@@ -68,6 +68,7 @@ export default function MetaAdsSetup() {
   const { currentTenant } = useTenant();
   const queryClient = useQueryClient();
   const autoReauthorizeStarted = useRef(false);
+  const [leadAdsReauthRequested, setLeadAdsReauthRequested] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
   const [isFbLoading, setIsFbLoading] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -348,20 +349,9 @@ export default function MetaAdsSetup() {
     if (searchParams.get('reauthorize') !== 'lead_forms') return;
     if (!currentTenant?.id) return;
 
-    const startReauthorization = () => {
-      if (autoReauthorizeStarted.current || !window.FB) return false;
-      autoReauthorizeStarted.current = true;
-      toast.info('Requesting Meta Lead Ads permissions again');
-      handleFbLogin();
-      return true;
-    };
-
-    if (startReauthorization()) return;
-    const timer = window.setInterval(() => {
-      if (startReauthorization()) window.clearInterval(timer);
-    }, 300);
-
-    return () => window.clearInterval(timer);
+    autoReauthorizeStarted.current = true;
+    setLeadAdsReauthRequested(true);
+    toast.info('Click Reconnect Facebook to approve Meta Lead Ads permissions');
   }, [searchParams, currentTenant?.id]);
 
   const handleManualTokenSubmit = async () => {
@@ -425,7 +415,9 @@ export default function MetaAdsSetup() {
   };
 
   const canComplete = !!formData.adAccountId;
-  const grantedScopes = permissions.filter((p: any) => p.status === 'granted').map((p: any) => p.permission);
+  const grantedScopes = permissions.length > 0
+    ? permissions.filter((p: any) => p.status === 'granted').map((p: any) => p.permission)
+    : ((connectedAccount?.scopes_granted as string[] | null) || []);
   const missingScopes = REQUIRED_SCOPES.filter(s => !grantedScopes.includes(s));
 
   const getAccountStatusBadge = (status: number) => {
@@ -485,6 +477,21 @@ export default function MetaAdsSetup() {
               </Badge>
             )}
           </div>
+
+          {leadAdsReauthRequested && (
+            <Alert className="border-primary/30 bg-primary/5">
+              <Shield className="h-4 w-4" />
+              <AlertDescription className="flex flex-col sm:flex-row sm:items-center gap-3">
+                <span className="flex-1 text-sm">
+                  Approve the Meta Lead Ads permissions in Facebook to restore lead form syncing.
+                </span>
+                <Button size="sm" onClick={handleFbLogin} disabled={isFbLoading} className="w-fit shrink-0 gap-1.5">
+                  {isFbLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Facebook className="h-3.5 w-3.5" />}
+                  Reconnect Facebook
+                </Button>
+              </AlertDescription>
+            </Alert>
+          )}
 
           {/* Connected: Status Bar with Actions */}
           {hasExistingConnection && fbConnected && (

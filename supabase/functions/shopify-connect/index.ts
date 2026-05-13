@@ -33,7 +33,7 @@ Deno.serve(async (req: Request) => {
     }
 
     // Plan gate: connecting a third-party integration requires Pro+
-    const planCheck = await requirePlanAccess(tenantId, "create_integration");
+    const planCheck = await requirePlanAccess(tenantId, "create_integration", req);
     if (!planCheck.ok) return planCheck.res;
 
     // Normalize domain
