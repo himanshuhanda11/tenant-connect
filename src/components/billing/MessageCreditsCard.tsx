@@ -396,18 +396,3 @@ function TxRow({ tx, expanded }: { tx: any; expanded?: boolean }) {
   );
 }
 
-const PILL_TONES: Record<string, string> = {
-  emerald: 'border-emerald-300/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300',
-  amber: 'border-amber-300/40 bg-amber-500/10 text-amber-700 dark:text-amber-300',
-  blue: 'border-blue-300/40 bg-blue-500/10 text-blue-700 dark:text-blue-300',
-  violet: 'border-violet-300/40 bg-violet-500/10 text-violet-700 dark:text-violet-300',
-};
-
-function BillingPill({ tone, title, hint }: { tone: keyof typeof PILL_TONES; title: string; hint: string }) {
-  return (
-    <div className={cn('rounded-lg border px-2.5 py-2', PILL_TONES[tone])}>
-      <p className="text-[11px] font-semibold leading-tight">{title}</p>
-      <p className="text-[10px] opacity-80 leading-tight mt-0.5">{hint}</p>
-    </div>
-  );
-}
