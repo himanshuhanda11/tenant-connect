@@ -52,7 +52,6 @@ export default function PricingMetaNote() {
                       First 1,000 conversations/mo free
                     </Badge>
                   </div>
-                  </div>
                   <div className="flex items-center gap-3">
                     <a
                       href="/message-pricing"
