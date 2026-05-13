@@ -144,8 +144,8 @@ export function useContactsCrmSearch() {
         // use a derived lower bound instead so the header doesn't show 0.
         const derivedMin = page * pageSize + parsed.length;
         nextTotal = Math.max(countResult.count, derivedMin);
-      } else if (totalCount > 0) {
-        nextTotal = totalCount;
+      } else if (totalCountRef.current > 0) {
+        nextTotal = totalCountRef.current;
       } else {
         nextTotal = parsed.length < pageSize
           ? page * pageSize + parsed.length
