@@ -667,16 +667,16 @@ export default function MetaAdsSetup() {
                   <div className="flex items-center gap-2">
                     {fbConnected ? (
                       <>
-                        <Button size="sm" className="bg-[#1877F2] hover:bg-[#166FE5] text-white gap-1.5 text-xs h-8" onClick={handleFbLogin} disabled={isFbLoading}>
+                        <Button type="button" size="sm" className="bg-[#1877F2] hover:bg-[#166FE5] text-white gap-1.5 text-xs h-8" onClick={handleFbLogin} disabled={isFbLoading}>
                           {isFbLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Facebook className="h-3.5 w-3.5" />}
                           Re-login Facebook
                         </Button>
-                        <Button variant="outline" size="sm" className="gap-1 text-xs h-8" onClick={() => { setFbConnected(false); setAdAccounts([]); setPages([]); setInstagramAccounts([]); setBusinesses([]); setLongLivedToken(''); }}>
+                        <Button type="button" variant="outline" size="sm" className="gap-1 text-xs h-8" onClick={() => { setFbConnected(false); setAdAccounts([]); setPages([]); setInstagramAccounts([]); setBusinesses([]); setLongLivedToken(''); }}>
                           <RefreshCw className="h-3 w-3" /> Reset
                         </Button>
                       </>
                     ) : (
-                      <Button className="bg-[#1877F2] hover:bg-[#166FE5] text-white gap-2 h-11 px-6 text-sm" disabled={isFbLoading} onClick={handleFbLogin}>
+                      <Button type="button" className="bg-[#1877F2] hover:bg-[#166FE5] text-white gap-2 h-11 px-6 text-sm" disabled={isFbLoading} onClick={handleFbLogin}>
                         {isFbLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Facebook className="h-5 w-5" />}
                         {isFbLoading ? 'Connecting...' : 'Login with Facebook'}
                       </Button>
