@@ -419,6 +419,7 @@ export default function LeadFormsPage() {
               <div className="space-y-1.5">
                 {subscribeResult.results.map((r) => {
                   const isAdminIssue = !r.success && /no page access token|not.*admin|admin.*page/i.test(r.error || '');
+                  const isPermIssue = !r.success && /pages_manage_metadata|permission|\(#10\)|\(#200\)/i.test(r.error || '');
                   return (
                     <div
                       key={r.page_id}
