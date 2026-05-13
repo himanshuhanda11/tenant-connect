@@ -17010,6 +17010,10 @@ export type Database = {
         Args: { p_user_id: string }
         Returns: boolean
       }
+      check_workspace_credits: {
+        Args: { p_required: number; p_tenant_id: string }
+        Returns: Json
+      }
       claim_conversation: {
         Args: { p_conversation_id: string; p_tenant_id: string }
         Returns: Json
@@ -17070,6 +17074,15 @@ export type Database = {
       compute_workspace_entitlements: {
         Args: { p_workspace_id: string }
         Returns: undefined
+      }
+      consume_message_credit: {
+        Args: {
+          p_campaign_id: string
+          p_description?: string
+          p_message_id: string
+          p_tenant_id: string
+        }
+        Returns: Json
       }
       contacts_crm_search: {
         Args: {
