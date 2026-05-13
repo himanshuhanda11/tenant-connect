@@ -67,8 +67,43 @@ import { Skeleton } from '@/components/ui/skeleton';
 
 export default function CampaignsList() {
   const navigate = useNavigate();
+  const { currentTenant } = useTenant();
   const { data: dbCampaigns, isLoading } = useCampaigns();
-  
+
+  // Load local draft (saved by /campaigns/create) and surface as a virtual draft entry
+  const [localDraft, setLocalDraft] = useState<Campaign | null>(null);
+  useEffect(() => {
+    if (!currentTenant?.id) { setLocalDraft(null); return; }
+    try {
+      const raw = localStorage.getItem(`campaign-draft:${currentTenant.id}`);
+      if (!raw) { setLocalDraft(null); return; }
+      const saved = JSON.parse(raw);
+      const w = saved?.wizard || {};
+      setLocalDraft({
+        id: 'local-draft',
+        tenant_id: currentTenant.id,
+        name: w.name || w.campaignName || 'Untitled draft',
+        campaign_type: 'broadcast',
+        status: 'draft' as CampaignStatus,
+        template_id: w.template_id || null,
+        phone_number_id: w.phone_number_id || null,
+        total_recipients: w.total_recipients || 0,
+        created_at: saved?.savedAt || new Date().toISOString(),
+        updated_at: saved?.savedAt || new Date().toISOString(),
+      } as Campaign);
+    } catch {
+      setLocalDraft(null);
+    }
+  }, [currentTenant?.id, dbCampaigns]);
+
+  const handleRowClick = (campaign: Campaign) => {
+    if (campaign.id === 'local-draft') {
+      navigate('/campaigns/create');
+    } else {
+      navigate(`/campaigns/${campaign.id}`);
+    }
+  };
+
   const campaigns: Campaign[] = (dbCampaigns || []).map(c => ({
     id: c.id,
     tenant_id: c.tenant_id,
