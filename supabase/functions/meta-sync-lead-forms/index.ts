@@ -8,11 +8,13 @@ const corsHeaders = {
 const GRAPH = 'https://graph.facebook.com/v21.0';
 
 type MetaAccountRow = {
+  id: string;
   meta_access_token: string | null;
   facebook_page_id: string | null;
   facebook_page_name: string | null;
   status: string | null;
   is_active: boolean | null;
+  scopes_granted?: string[] | null;
 };
 
 type MetaPage = {
@@ -29,7 +31,7 @@ function dedupePages(pages: MetaPage[]) {
     mergedPages.set(page.id, {
       id: page.id,
       name: page.name || mergedPages.get(page.id)?.name || 'Untitled Page',
-      access_token: page.access_token || mergedPages.get(page.id)?.access_token,
+      access_token: mergedPages.get(page.id)?.access_token || page.access_token,
     });
   }
 
@@ -82,7 +84,7 @@ Deno.serve(async (req) => {
 
     const { data: accounts, error: accountsError } = await supabase
       .from('smeksh_meta_ad_accounts')
-      .select('meta_access_token, facebook_page_id, facebook_page_name, status, is_active')
+      .select('id, meta_access_token, facebook_page_id, facebook_page_name, status, is_active, scopes_granted')
       .eq('workspace_id', tenantId)
       .eq('is_active', true);
 
@@ -100,7 +102,9 @@ Deno.serve(async (req) => {
       .map((account) => ({
         id: account.facebook_page_id as string,
         name: account.facebook_page_name || 'Untitled Page',
-        access_token: account.meta_access_token || undefined,
+        // Stored account tokens are user OAuth tokens, not Page tokens. Only /me/accounts tokens
+        // can call /{page_id}/leadgen_forms or /{page_id}/subscribed_apps reliably.
+        access_token: undefined,
       }));
 
     const systemUserToken = Deno.env.get('META_SYSTEM_USER_TOKEN') || null;
