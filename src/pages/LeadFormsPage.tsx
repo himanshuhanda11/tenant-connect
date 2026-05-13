@@ -72,6 +72,13 @@ export default function LeadFormsPage() {
     }
   };
 
+  const [verifyResult, setVerifyResult] = useState<{
+    total: number;
+    subscribed: number;
+    meta_app_id: string | null;
+    results: Array<{ page_id: string; page_name: string; subscribed: boolean; apps: any[]; error?: string }>;
+  } | null>(null);
+
   const handleVerifySubscriptions = async () => {
     if (!currentTenant?.id) return;
     setVerifyingSubs(true);
@@ -81,15 +88,16 @@ export default function LeadFormsPage() {
       });
       if (error) throw error;
       if (data?.success) {
+        setVerifyResult(data);
         const subscribed = data.subscribed ?? 0;
         const total = data.total ?? 0;
         if (subscribed === total && total > 0) {
-          toast.success(`Verified: all ${total} page${total === 1 ? '' : 's'} are subscribed on Meta's side`);
+          toast.success(`All ${total} page${total === 1 ? '' : 's'} subscribed on Meta ✓`);
         } else if (total === 0) {
           toast.info('No pages with lead forms found');
         } else {
-          toast.warning(`${subscribed}/${total} pages confirmed subscribed on Meta`, {
-            description: 'Pages not subscribed need the app installed via Subscribe-all.',
+          toast.warning(`${subscribed}/${total} pages confirmed subscribed`, {
+            description: 'See the details panel below to fix the rest.',
           });
         }
       } else {
