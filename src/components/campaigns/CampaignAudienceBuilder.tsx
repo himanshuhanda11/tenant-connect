@@ -214,6 +214,47 @@ const getLocalDayEndExclusiveUtc = (dateValue: string): string | null => {
   return new Date(date.getFullYear(), date.getMonth(), date.getDate() + 1, 0, 0, 0, 0).toISOString();
 };
 
+const formatVisibleDate = (dateValue: string) => {
+  const date = parseLocalDate(dateValue);
+  if (!date) return '';
+  return date.toLocaleDateString(undefined, { day: '2-digit', month: 'short', year: 'numeric' });
+};
+
+const chunkArray = <T,>(items: T[], size: number) => {
+  const chunks: T[][] = [];
+  for (let index = 0; index < items.length; index += size) {
+    chunks.push(items.slice(index, index + size));
+  }
+  return chunks;
+};
+
+function VisibleDateInput({
+  label,
+  value,
+  onChange,
+}: {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+}) {
+  return (
+    <div className="space-y-1">
+      <Label className="text-xs text-muted-foreground">{label}</Label>
+      <div className="relative">
+        <Input
+          type="date"
+          value={value}
+          onChange={(event) => onChange(event.target.value)}
+          className="h-10 min-w-0 cursor-pointer bg-card pr-9 text-transparent caret-transparent [color-scheme:light] dark:[color-scheme:dark] [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:right-2 [&::-webkit-calendar-picker-indicator]:opacity-80 [&::-webkit-date-and-time-value]:text-transparent [&::-webkit-datetime-edit]:text-transparent"
+        />
+        <span className="pointer-events-none absolute inset-y-0 left-3 right-9 flex items-center truncate text-sm font-semibold text-foreground">
+          {formatVisibleDate(value) || 'Select date'}
+        </span>
+      </div>
+    </div>
+  );
+}
+
 interface AudienceFilterSectionProps {
   id: string;
   icon: ElementType;
