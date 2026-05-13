@@ -118,6 +118,49 @@ export default function LeadFormsPage() {
           </Alert>
         )}
 
+        {/* Prominent leads_retrieval missing banner */}
+        {!hasLeadsRetrieval && metaAccount && (
+          <Card className="border-red-300 dark:border-red-800 bg-red-50 dark:bg-red-950/20 overflow-hidden">
+            <CardContent className="p-0">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 p-4 sm:p-5">
+                <div className="shrink-0 w-12 h-12 rounded-full bg-red-100 dark:bg-red-900/40 flex items-center justify-center">
+                  <ShieldAlert className="h-6 w-6 text-red-600 dark:text-red-400" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-sm font-semibold text-red-800 dark:text-red-300">
+                    Lead Access Permission Missing
+                  </h3>
+                  <p className="text-xs text-red-700 dark:text-red-400 mt-1 leading-relaxed">
+                    Your stored Meta token is missing the <strong>leads_retrieval</strong> scope.
+                    Without it, Aireatro cannot fetch your Lead Forms or receive new lead submissions.
+                    Click the button to reconnect Facebook and make sure the "Lead Access" toggle is ON.
+                  </p>
+                </div>
+                <Button
+                  size="sm"
+                  className="w-full sm:w-auto shrink-0 bg-red-600 hover:bg-red-700 text-white"
+                  onClick={reconnectToMeta}
+                >
+                  <Facebook className="h-4 w-4 mr-1.5" />
+                  Reconnect Facebook
+                </Button>
+              </div>
+              <div className="px-4 sm:px-5 pb-4 sm:pb-5 pt-0">
+                <div className="rounded-lg bg-white/60 dark:bg-black/20 border border-red-200 dark:border-red-800/50 p-3">
+                  <p className="text-[11px] text-red-700 dark:text-red-400 font-medium mb-1.5">How to fix:</p>
+                  <ol className="text-[11px] text-red-600 dark:text-red-400 space-y-1 list-decimal list-inside">
+                    <li>Click <strong>Reconnect Facebook</strong> above.</li>
+                    <li>In the Facebook popup, click <strong>Edit Settings</strong>.</li>
+                    <li>Toggle <strong>Lead Access (leads_retrieval)</strong> to ON.</li>
+                    <li>Click <strong>Continue</strong> and finish the setup wizard.</li>
+                    <li>Return here and click <strong>Sync from Meta</strong>.</li>
+                  </ol>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Permission Status */}
         <Card className="border-border/60 bg-card">
           <CardContent className="p-4 space-y-4">
