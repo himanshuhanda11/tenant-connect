@@ -138,7 +138,8 @@ export default function MessagePricing() {
   };
 
   return (
-    <DashboardLayout>
+    <div className="min-h-screen bg-background">
+      <Navbar />
       <SEO title="WhatsApp Message Pricing — Aireatro" description="Estimated WhatsApp campaign credit usage by country and template category." />
       <div className="max-w-6xl mx-auto p-4 sm:p-6 space-y-6">
         {/* Hero */}
