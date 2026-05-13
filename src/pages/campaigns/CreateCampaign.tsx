@@ -1037,8 +1037,8 @@ export default function CreateCampaign() {
                   </Card>
                 </div>
 
-                {/* Country-wise Cost & Credit Preview */}
-                <BroadcastCostPreview
+                {/* Premium credit estimate (final review) */}
+                <CampaignCreditEstimateCard
                   tenantId={currentTenant?.id}
                   contactIds={(audienceFilters.selected_contacts?.length ? audienceFilters.selected_contacts : audienceFilters.matched_contact_ids) || []}
                   templateCategory={(templates.find(t => t.id === wizard.message.template_id)?.category as string) || 'marketing'}
