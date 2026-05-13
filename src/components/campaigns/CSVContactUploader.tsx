@@ -105,35 +105,58 @@ export function CSVContactUploader({ onImported, defaultCountry = 'IN' }: Props)
     triggerDownload('broadcast-invalid-rows.csv', csv);
   };
 
+  const processRows = (rawRows: Record<string, any>[]) => {
+    const seen = new Set<string>();
+    const parsed: ParsedRow[] = rawRows.map((rawIn) => {
+      const raw: Record<string, string> = {};
+      Object.entries(rawIn || {}).forEach(([k, v]) => {
+        raw[String(k).trim().toLowerCase()] = v == null ? '' : String(v);
+      });
+      const phoneRaw = (raw.phone || raw.mobile || raw.whatsapp || raw.number || '').trim();
+      const name = (raw.name || raw.first_name || raw.full_name || '').trim();
+      if (!phoneRaw) {
+        return { raw, phone: phoneRaw, name, valid: false, reason: 'missing phone' };
+      }
+      const parsedPhone = parsePhoneNumberFromString(phoneRaw, defaultCountry as any);
+      if (!parsedPhone || !parsedPhone.isValid()) {
+        return { raw, phone: phoneRaw, name, valid: false, reason: 'invalid number' };
+      }
+      const normalized = parsedPhone.number.replace('+', '');
+      const dup = seen.has(normalized);
+      seen.add(normalized);
+      return { raw, phone: phoneRaw, name, normalized, valid: true, duplicate: dup };
+    });
+    setRows(parsed);
+  };
+
   const handleFile = (file: File) => {
     setFileName(file.name);
     setImported(null);
+    const lower = file.name.toLowerCase();
+    const isExcel = lower.endsWith('.xlsx') || lower.endsWith('.xls');
+    if (isExcel) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const data = new Uint8Array(e.target?.result as ArrayBuffer);
+          const wb = XLSX.read(data, { type: 'array' });
+          const ws = wb.Sheets[wb.SheetNames[0]];
+          const json = XLSX.utils.sheet_to_json<Record<string, any>>(ws, { defval: '' });
+          processRows(json);
+        } catch (err: any) {
+          toast.error(`Failed to parse Excel file: ${err?.message || err}`);
+        }
+      };
+      reader.onerror = () => toast.error('Failed to read Excel file');
+      reader.readAsArrayBuffer(file);
+      return;
+    }
     Papa.parse<Record<string, string>>(file, {
       header: true,
       skipEmptyLines: true,
       transformHeader: (h) => h.trim().toLowerCase(),
-      complete: (results) => {
-        const seen = new Set<string>();
-        const parsed: ParsedRow[] = results.data.map((raw) => {
-          const phoneRaw = (raw.phone || raw.mobile || raw.whatsapp || raw.number || '').toString().trim();
-          const name = (raw.name || raw.first_name || raw.full_name || '').toString().trim();
-          if (!phoneRaw) {
-            return { raw, phone: phoneRaw, name, valid: false, reason: 'missing phone' };
-          }
-          const parsedPhone = parsePhoneNumberFromString(phoneRaw, defaultCountry as any);
-          if (!parsedPhone || !parsedPhone.isValid()) {
-            return { raw, phone: phoneRaw, name, valid: false, reason: 'invalid number' };
-          }
-          const normalized = parsedPhone.number.replace('+', '');
-          const dup = seen.has(normalized);
-          seen.add(normalized);
-          return { raw, phone: phoneRaw, name, normalized, valid: true, duplicate: dup };
-        });
-        setRows(parsed);
-      },
-      error: (err) => {
-        toast.error(`Failed to parse CSV: ${err.message}`);
-      },
+      complete: (results) => processRows(results.data),
+      error: (err) => toast.error(`Failed to parse CSV: ${err.message}`),
     });
   };
 
