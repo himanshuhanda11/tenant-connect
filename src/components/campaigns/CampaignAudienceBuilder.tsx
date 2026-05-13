@@ -272,6 +272,21 @@ export default function CampaignAudienceBuilder({
   const usingDirectContacts = filters.selected_contacts.length > 0;
   const estimate = useAudienceEstimate(currentTenant?.id, filters, segmentNameById, !usingDirectContacts);
 
+  // Surface estimate errors as toasts (deduplicated by message, throttled)
+  const lastErrorRef = useRef<{ msg: string; at: number } | null>(null);
+  useEffect(() => {
+    if (!estimate.error) return;
+    const msg = estimate.error;
+    const now = Date.now();
+    const last = lastErrorRef.current;
+    if (last && last.msg === msg && now - last.at < 8000) return;
+    lastErrorRef.current = { msg, at: now };
+    toast.error('Could not update audience estimate', {
+      description: msg,
+      duration: 5000,
+    });
+  }, [estimate.error]);
+
   // Push results back up to wizard
   useEffect(() => {
     if (usingDirectContacts) {
