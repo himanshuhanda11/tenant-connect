@@ -204,6 +204,17 @@ export function LeadFormsList() {
                           Subscribe Webhook
                         </DropdownMenuItem>
                       )}
+                      {form.lead_count > 0 && (
+                        <>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem
+                            onClick={() => setBackfillForm({ form_id: form.form_id, form_name: form.form_name || form.form_id, lead_count: form.lead_count })}
+                          >
+                            <ArrowDownToLine className="h-3.5 w-3.5 mr-2" />
+                            Backfill {form.lead_count} historical leads
+                          </DropdownMenuItem>
+                        </>
+                      )}
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </div>
