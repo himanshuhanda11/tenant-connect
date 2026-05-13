@@ -1,0 +1,1 @@
+DROP FUNCTION IF EXISTS public.contacts_crm_search(uuid, text, text[], boolean, timestamptz, timestamptz, uuid, uuid, uuid, text, uuid[], boolean, jsonb, integer, integer);
