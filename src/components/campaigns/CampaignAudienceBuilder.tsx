@@ -316,23 +316,24 @@ export default function CampaignAudienceBuilder({
           .limit(50),
       ]);
 
-      // For agents, get profile info
+      // For agents, get profile info — keep all active agents even when profile lookup is empty
       if (agentRes.data) {
-        const userIds = agentRes.data.map((a: any) => a.user_id);
+        const userIds = agentRes.data.map((a: any) => a.user_id).filter(Boolean);
+        let profileMap = new Map<string, any>();
         if (userIds.length > 0) {
           const { data: profiles } = await supabase
             .from('profiles')
             .select('id, full_name, email')
             .in('id', userIds);
-          const profileMap = new Map((profiles || []).map((p: any) => [p.id, p]));
-          setAgents(
-            agentRes.data.map((a: any) => ({
-              user_id: a.user_id,
-              display_name: a.display_name || profileMap.get(a.user_id)?.full_name || null,
-              email: profileMap.get(a.user_id)?.email || '',
-            }))
-          );
+          profileMap = new Map((profiles || []).map((p: any) => [p.id, p]));
         }
+        setAgents(
+          agentRes.data.map((a: any) => ({
+            user_id: a.user_id,
+            display_name: a.display_name || profileMap.get(a.user_id)?.full_name || null,
+            email: profileMap.get(a.user_id)?.email || '',
+          }))
+        );
       }
 
       setFlows((flowRes.data || []) as FlowOption[]);
