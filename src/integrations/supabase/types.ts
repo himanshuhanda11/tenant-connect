@@ -6560,6 +6560,7 @@ export type Database = {
           created_at: string
           id: string
           last_topup_at: string | null
+          low_balance_alert_sent_at: string | null
           tenant_id: string
           total_purchased: number
           total_used: number
@@ -6570,6 +6571,7 @@ export type Database = {
           created_at?: string
           id?: string
           last_topup_at?: string | null
+          low_balance_alert_sent_at?: string | null
           tenant_id: string
           total_purchased?: number
           total_used?: number
@@ -6580,6 +6582,7 @@ export type Database = {
           created_at?: string
           id?: string
           last_topup_at?: string | null
+          low_balance_alert_sent_at?: string | null
           tenant_id?: string
           total_purchased?: number
           total_used?: number
@@ -16863,6 +16866,15 @@ export type Database = {
           p_type?: string
         }
         Returns: number
+      }
+      admin_adjust_message_credits: {
+        Args: {
+          p_admin_id: string
+          p_amount: number
+          p_reason: string
+          p_tenant_id: string
+        }
+        Returns: Json
       }
       agent_performance_stats: {
         Args: { p_days?: number; p_tenant_id: string }
