@@ -127,6 +127,9 @@ export default function CreateCampaign() {
     selected_contacts: [],
   });
   const [audienceEstimatedCount, setAudienceEstimatedCount] = useState(0);
+  const [draftLoaded, setDraftLoaded] = useState(false);
+  const [draftSavedAt, setDraftSavedAt] = useState<Date | null>(null);
+  const draftKey = currentTenant?.id ? `campaign-draft:${currentTenant.id}` : null;
 
   const preselectedContactIds = useMemo(() => {
     const raw = searchParams.get('contacts') || '';
