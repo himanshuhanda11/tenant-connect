@@ -146,6 +146,14 @@ export function MessageCreditsCard() {
             </div>
           )}
 
+          {/* Hybrid billing model explainer */}
+          <div className="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-2">
+            <BillingPill tone="emerald" title="Inbox replies" hint="Free · 24h window" />
+            <BillingPill tone="amber" title="Marketing" hint="Full Meta rate" />
+            <BillingPill tone="blue" title="Utility" hint="~40% lower" />
+            <BillingPill tone="violet" title="Authentication" hint="Lower rate" />
+          </div>
+
           {/* Alerts */}
           {noBalance && (
             <div className="mt-4 flex items-start gap-2 p-3 rounded-lg bg-destructive/10 border border-destructive/20">
