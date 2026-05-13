@@ -1140,26 +1140,22 @@ export default function CampaignAudienceBuilder({
                   <div className="flex items-center justify-between">
                     <span className="text-muted-foreground">Agent</span>
                     <span className="font-medium">
-                      {agents.find((a) => a.user_id === filters.assigned_agent)?.display_name || 'Selected'}
+                      {filters.assigned_agent === SELECT_SENTINELS.unassigned
+                        ? 'Unassigned'
+                        : filters.assigned_agent === SELECT_SENTINELS.all
+                          ? 'All Agents'
+                          : agents.find((a) => a.user_id === filters.assigned_agent)?.display_name
+                            || agents.find((a) => a.user_id === filters.assigned_agent)?.email
+                            || 'Selected'}
                     </span>
                   </div>
                 )}
                 {filters.lead_states.length > 0 && (
                   <div className="flex items-center justify-between">
                     <span className="text-muted-foreground">Lead Status</span>
-                    <span className="font-medium">{filters.lead_states.join(', ')}</span>
-                  </div>
-                )}
-                {filters.mau_statuses.length > 0 && (
-                  <div className="flex items-center justify-between">
-                    <span className="text-muted-foreground">MAU Status</span>
-                    <span className="font-medium">{filters.mau_statuses.join(', ')}</span>
-                  </div>
-                )}
-                {filters.priorities.length > 0 && (
-                  <div className="flex items-center justify-between">
-                    <span className="text-muted-foreground">Priority</span>
-                    <span className="font-medium">{filters.priorities.join(', ')}</span>
+                    <span className="font-medium truncate max-w-[160px]">
+                      {filters.lead_states.map((s) => INBOX_LEAD_STATUS_LABEL[s] || s).join(', ')}
+                    </span>
                   </div>
                 )}
                 {(filters.date_from || filters.date_to) && (
