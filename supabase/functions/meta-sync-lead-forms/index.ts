@@ -519,13 +519,180 @@ Deno.serve(async (req) => {
     }
 
     if (action === 'backfill_form_leads') {
-      // Pulls historical leads for one form (or all forms) from Meta Graph and stores them
-      // in lead_events + smeksh_meta_ad_leads. Does NOT run lead-form rules / auto-replies
-      // to avoid spamming old contacts.
-      const { formId, maxLeads = 1000 } = (await Promise.resolve({ formId: (await Promise.resolve({}))?.formId, maxLeads: 1000 })) as any;
-      // Re-read body since we already consumed it above — we have the original body's tenantId/action/pageId
-      // but we need formId/maxLeads from the original parse. They were parsed into the destructured block already.
-      return json({ error: 'Internal: backfill body re-read not implemented this branch' }, 500);
+      // Pulls historical leads for one form (or all forms in tenant) from Meta Graph and
+      // stores them into lead_events + smeksh_meta_ad_leads. Does NOT run lead-form rules
+      // or auto-replies — avoids spamming old contacts. Existing leads are skipped (idempotent).
+      const cap = Math.min(Number(maxLeads) || 1000, 5000);
+
+      // Resolve target forms
+      let formsQuery = supabase
+        .from('meta_lead_forms')
+        .select('form_id, form_name, page_id, page_name')
+        .eq('tenant_id', tenantId);
+      if (formId) formsQuery = formsQuery.eq('form_id', formId);
+      const { data: targetForms } = await formsQuery;
+
+      if (!targetForms || targetForms.length === 0) {
+        return json({ success: false, error: 'No matching lead forms found' }, 404);
+      }
+
+      // Fetch fresh page tokens (one call, used for all pages)
+      const pageTokens = new Map<string, string>();
+      try {
+        const pagesRes = await fetch(`${GRAPH}/me/accounts?fields=id,access_token&access_token=${accessToken}`);
+        const pagesData = await pagesRes.json();
+        if (pagesRes.ok && Array.isArray(pagesData?.data)) {
+          for (const p of pagesData.data) {
+            if (p?.id && p?.access_token) pageTokens.set(p.id, p.access_token);
+          }
+        } else if (pagesData?.error) {
+          return json({
+            success: false,
+            error: friendlyMetaPermissionError(pagesData.error.message || 'Failed to fetch pages'),
+            reconnect: isMissingLeadsRetrieval(pagesData.error.message || ''),
+          }, 400);
+        }
+      } catch (e) {
+        console.error('[backfill] /me/accounts error:', e);
+        return json({ success: false, error: 'Failed to fetch Page tokens from Meta' }, 500);
+      }
+
+      // Workspace_id for smeksh_meta_ad_leads = tenantId in this codebase
+      const workspaceId = tenantId;
+
+      const summary: Array<{
+        form_id: string; form_name: string; page_id: string;
+        fetched: number; inserted: number; skipped: number; error?: string;
+      }> = [];
+      let totalInserted = 0;
+      let totalFetched = 0;
+
+      for (const form of targetForms) {
+        const pageToken = pageTokens.get(form.page_id!);
+        const row = {
+          form_id: form.form_id!,
+          form_name: form.form_name || '',
+          page_id: form.page_id!,
+          fetched: 0,
+          inserted: 0,
+          skipped: 0,
+        } as any;
+
+        if (!pageToken) {
+          row.error = 'No Page Access Token (you must be admin of this Page)';
+          summary.push(row);
+          continue;
+        }
+
+        // Paginate /{form_id}/leads
+        let next: string | null =
+          `${GRAPH}/${form.form_id}/leads?fields=id,created_time,field_data,ad_id,adset_id,campaign_id,form_id&limit=100&access_token=${pageToken}`;
+        let safety = 0;
+        try {
+          while (next && row.fetched < cap && safety < 200) {
+            safety++;
+            const r: Response = await fetch(next);
+            const d: any = await r.json();
+            if (!r.ok || d?.error) {
+              row.error = friendlyMetaPermissionError(d?.error?.message || `HTTP ${r.status}`);
+              break;
+            }
+            const leads = Array.isArray(d?.data) ? d.data : [];
+            row.fetched += leads.length;
+            totalFetched += leads.length;
+
+            for (const lead of leads) {
+              const leadIdStr = String(lead?.id || '');
+              if (!leadIdStr) continue;
+
+              // Idempotency: skip if we already have this lead_id for this tenant
+              const { data: existing } = await supabase
+                .from('lead_events')
+                .select('id')
+                .eq('tenant_id', tenantId)
+                .eq('lead_id', leadIdStr)
+                .limit(1)
+                .maybeSingle();
+
+              if (existing) {
+                row.skipped++;
+                continue;
+              }
+
+              // Normalize field_data into a flat object
+              const normalized: Record<string, any> = {};
+              for (const f of (lead?.field_data || [])) {
+                const key = String(f?.name || '').toLowerCase();
+                const val = Array.isArray(f?.values) ? (f.values.length === 1 ? f.values[0] : f.values) : null;
+                if (key) normalized[key] = val;
+              }
+              normalized.created_time = lead?.created_time || null;
+              normalized.ad_id = lead?.ad_id || null;
+              normalized.adset_id = lead?.adset_id || null;
+              normalized.campaign_id = lead?.campaign_id || null;
+
+              // Insert lead_events row (audit trail / source of truth)
+              await supabase.from('lead_events').insert({
+                tenant_id: tenantId,
+                form_id: form.form_id,
+                lead_id: leadIdStr,
+                page_id: form.page_id,
+                ad_id: lead?.ad_id || null,
+                raw_payload: lead,
+                normalized_data: normalized,
+                status: 'success',
+                error_text: 'Backfilled from Meta Graph (rules not executed)',
+              });
+
+              // Try to derive a phone for ROI lead row
+              const phoneCandidate =
+                normalized.phone_number ||
+                normalized.phone ||
+                normalized.mobile ||
+                normalized.whatsapp_number ||
+                null;
+              const phoneDigits = phoneCandidate ? String(phoneCandidate).replace(/[^\d+]/g, '') : null;
+
+              await supabase.from('smeksh_meta_ad_leads').insert({
+                workspace_id: workspaceId,
+                phone_e164: phoneDigits,
+                meta_lead_id: leadIdStr,
+                meta_ad_id: lead?.ad_id || null,
+                meta_adset_id: lead?.adset_id || null,
+                meta_campaign_id: lead?.campaign_id || null,
+                ad_clicked_at: lead?.created_time ? new Date(lead.created_time).toISOString() : null,
+                attribution_source: 'meta_ads',
+                raw_meta_data: lead,
+              });
+
+              row.inserted++;
+              totalInserted++;
+            }
+
+            next = d?.paging?.next || null;
+          }
+
+          // Update the last_lead_at on the form
+          if (row.inserted > 0) {
+            await supabase
+              .from('meta_lead_forms')
+              .update({ last_lead_at: new Date().toISOString() })
+              .eq('tenant_id', tenantId)
+              .eq('form_id', form.form_id);
+          }
+        } catch (err) {
+          row.error = err instanceof Error ? err.message : 'Unknown error';
+        }
+        summary.push(row);
+      }
+
+      return json({
+        success: true,
+        forms_processed: summary.length,
+        total_fetched: totalFetched,
+        total_inserted: totalInserted,
+        results: summary,
+      });
     }
 
     if (action === 'test_webhook') {
