@@ -214,6 +214,39 @@ const getLocalDayEndExclusiveUtc = (dateValue: string): string | null => {
   return new Date(date.getFullYear(), date.getMonth(), date.getDate() + 1, 0, 0, 0, 0).toISOString();
 };
 
+const formatVisibleDate = (dateValue: string) => {
+  const date = parseLocalDate(dateValue);
+  if (!date) return '';
+  return date.toLocaleDateString(undefined, { day: '2-digit', month: 'short', year: 'numeric' });
+};
+
+function VisibleDateInput({
+  label,
+  value,
+  onChange,
+}: {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+}) {
+  return (
+    <div className="space-y-1">
+      <Label className="text-xs text-muted-foreground">{label}</Label>
+      <div className="relative">
+        <Input
+          type="date"
+          value={value}
+          onChange={(event) => onChange(event.target.value)}
+          className="h-10 min-w-0 cursor-pointer bg-card pr-9 text-transparent caret-transparent [color-scheme:light] dark:[color-scheme:dark] [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:right-2 [&::-webkit-calendar-picker-indicator]:opacity-80 [&::-webkit-date-and-time-value]:text-transparent [&::-webkit-datetime-edit]:text-transparent"
+        />
+        <span className="pointer-events-none absolute inset-y-0 left-3 right-9 flex items-center truncate text-sm font-semibold text-foreground">
+          {formatVisibleDate(value) || 'Select date'}
+        </span>
+      </div>
+    </div>
+  );
+}
+
 interface AudienceFilterSectionProps {
   id: string;
   icon: ElementType;
@@ -361,10 +394,93 @@ export default function CampaignAudienceBuilder({
 
     setIsEstimating(true);
     try {
+      let allowedIds: Set<string> | null = null;
+      let excludedIds = new Set<string>();
+      let assignedSummaryIds: Set<string> | null = null;
+
+      if (filters.include_tags.length > 0) {
+        const { data, error } = await supabase
+          .from('contact_tags')
+          .select('contact_id')
+          .in('tag_id', filters.include_tags);
+        if (error) throw error;
+        allowedIds = new Set((data || []).map((row) => row.contact_id).filter(Boolean));
+      }
+
+      if (filters.exclude_tags.length > 0) {
+        const { data, error } = await supabase
+          .from('contact_tags')
+          .select('contact_id')
+          .in('tag_id', filters.exclude_tags);
+        if (error) throw error;
+        excludedIds = new Set((data || []).map((row) => row.contact_id).filter(Boolean));
+      }
+
+      const validAttributes = filters.attributes.filter((attribute) => attribute.key && attribute.value);
+      for (const attribute of validAttributes) {
+        const { data, error } = await supabase
+          .from('contact_attributes')
+          .select('contact_id')
+          .eq('tenant_id', currentTenant.id)
+          .eq('key', attribute.key)
+          .ilike('value', `%${attribute.value}%`);
+        if (error) throw error;
+        const attributeIds = new Set((data || []).map((row) => row.contact_id).filter(Boolean));
+        allowedIds = allowedIds
+          ? new Set([...allowedIds].filter((id) => attributeIds.has(id)))
+          : attributeIds;
+      }
+
+      if (allowedIds && allowedIds.size === 0) {
+        onEstimatedCountChange(0);
+        if (filters.matched_contact_ids.length > 0) {
+          setFilters({ ...filters, matched_contact_ids: [] });
+        }
+        return;
+      }
+
+      if (filters.assigned_agent) {
+        const { data, error } = await supabase
+          .from('contact_inbox_summary')
+          .select('contact_id')
+          .eq('tenant_id', currentTenant.id)
+          .eq('assigned_to', filters.assigned_agent);
+        if (error) throw error;
+        assignedSummaryIds = new Set((data || []).map((row) => row.contact_id).filter(Boolean));
+      }
+
+      if (filters.is_unreplied !== 'all' || filters.exclude_recent_days > 0) {
+        let summaryQuery = supabase
+          .from('contact_inbox_summary')
+          .select('contact_id')
+          .eq('tenant_id', currentTenant.id);
+
+        if (filters.is_unreplied !== 'all') summaryQuery = summaryQuery.eq('is_unreplied', filters.is_unreplied === 'yes');
+        if (filters.exclude_recent_days > 0) {
+          const cutoff = new Date(Date.now() - filters.exclude_recent_days * 24 * 60 * 60 * 1000).toISOString();
+          summaryQuery = summaryQuery.or(`last_message_at.is.null,last_message_at.lt.${cutoff}`);
+        }
+
+        const { data, error } = await summaryQuery;
+        if (error) throw error;
+        const summaryIds = new Set((data || []).map((row) => row.contact_id).filter(Boolean));
+        allowedIds = allowedIds
+          ? new Set([...allowedIds].filter((id) => summaryIds.has(id)))
+          : summaryIds;
+      }
+
+      if (allowedIds && allowedIds.size === 0) {
+        onEstimatedCountChange(0);
+        if (filters.matched_contact_ids.length > 0) {
+          setFilters({ ...filters, matched_contact_ids: [] });
+        }
+        return;
+      }
+
       const buildQuery = () => {
         let query = supabase
           .from('contacts')
-          .select('id')
+          .select('id, segment, assigned_agent_id')
           .eq('tenant_id', currentTenant.id);
 
         if (filters.opt_in_only) query = query.eq('opt_out', false);
@@ -372,13 +488,14 @@ export default function CampaignAudienceBuilder({
         if (filters.priorities.length > 0) query = query.in('priority_level', filters.priorities as any);
         if (filters.lead_states.length > 0) query = query.in('lead_status', filters.lead_states as any);
         if (filters.crm_statuses.length > 0) query = query.in('deal_stage', filters.crm_statuses as any);
-        if (filters.assigned_agent) query = query.eq('assigned_agent_id', filters.assigned_agent);
         if (filters.contact_source) query = query.eq('source', filters.contact_source);
         if (filters.flow_source) query = query.eq('automation_flow', filters.flow_source);
         if (filters.meta_campaign_source) query = query.eq('campaign_source', filters.meta_campaign_source);
 
         const selectedSegments = segments.filter((segment) => filters.include_segments.includes(segment.id));
+        const excludedSegments = segments.filter((segment) => filters.exclude_segments.includes(segment.id));
         const selectedSegmentNames = selectedSegments.map((segment) => segment.name).filter(Boolean);
+        const excludedSegmentNames = excludedSegments.map((segment) => segment.name).filter(Boolean);
         if (selectedSegmentNames.length > 0) query = query.in('segment', selectedSegmentNames);
 
       let normalizedDateFrom = filters.date_from;
@@ -400,28 +517,25 @@ export default function CampaignAudienceBuilder({
         return query.order('created_at', { ascending: false });
       };
 
-      let segmentCount: number | null = null;
-      if (filters.include_segments.length > 0) {
-        const selectedSegments = segments.filter((segment) => filters.include_segments.includes(segment.id));
-        segmentCount = selectedSegments.reduce((total, segment) => total + (segment.contact_count || 0), 0);
-      }
-
       const contactIds: string[] = [];
+      const excludedSegmentNames = segments
+        .filter((segment) => filters.exclude_segments.includes(segment.id))
+        .map((segment) => segment.name)
+        .filter(Boolean);
       for (let from = 0; ; from += PAGE_SIZE) {
         const { data, error } = await buildQuery().range(from, from + PAGE_SIZE - 1);
         if (error) throw error;
-        const ids = (data || []).map((row) => row.id).filter(Boolean);
+        const ids = (data || [])
+          .filter((row) => !row.segment || !excludedSegmentNames.includes(row.segment))
+          .filter((row) => !filters.assigned_agent || row.assigned_agent_id === filters.assigned_agent || assignedSummaryIds?.has(row.id))
+          .map((row) => row.id)
+          .filter((id) => Boolean(id) && (!allowedIds || allowedIds.has(id)) && !excludedIds.has(id));
         contactIds.push(...ids);
         if (!data || data.length < PAGE_SIZE) break;
       }
 
       const filteredCount = contactIds.length;
-
-      if (segmentCount !== null) {
-        onEstimatedCountChange(filteredCount > 0 ? Math.min(segmentCount, filteredCount) : segmentCount);
-      } else {
-        onEstimatedCountChange(filteredCount);
-      }
+      onEstimatedCountChange(filteredCount);
 
       if (!areStringArraysEqual(filters.matched_contact_ids, contactIds)) {
         setFilters({ ...filters, matched_contact_ids: contactIds });
@@ -473,7 +587,9 @@ export default function CampaignAudienceBuilder({
   const activeFilterCount = () => {
     let count = 0;
     if (filters.include_segments.length > 0) count++;
+    if (filters.exclude_segments.length > 0) count++;
     if (filters.include_tags.length > 0) count++;
+    if (filters.exclude_tags.length > 0) count++;
     if (filters.assigned_agent) count++;
     if (filters.lead_states.length > 0) count++;
     if (filters.crm_statuses.length > 0) count++;
@@ -752,24 +868,16 @@ export default function CampaignAudienceBuilder({
                 badge={filters.date_from || filters.date_to ? 1 : 0}
               >
                 <div className="grid grid-cols-2 gap-2">
-                  <div className="space-y-1">
-                    <Label className="text-xs text-muted-foreground">From</Label>
-                    <Input
-                      type="date"
-                      value={filters.date_from}
-                      onChange={(e) => updateFilter('date_from', e.target.value)}
-                      className="h-9 min-w-0 text-sm font-medium text-foreground bg-card border-input [color-scheme:light] dark:[color-scheme:dark] [&::-webkit-date-and-time-value]:text-foreground [&::-webkit-datetime-edit]:text-foreground [&::-webkit-calendar-picker-indicator]:opacity-70 [&::-webkit-calendar-picker-indicator]:cursor-pointer"
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <Label className="text-xs text-muted-foreground">To</Label>
-                    <Input
-                      type="date"
-                      value={filters.date_to}
-                      onChange={(e) => updateFilter('date_to', e.target.value)}
-                      className="h-9 min-w-0 text-sm font-medium text-foreground bg-card border-input [color-scheme:light] dark:[color-scheme:dark] [&::-webkit-date-and-time-value]:text-foreground [&::-webkit-datetime-edit]:text-foreground [&::-webkit-calendar-picker-indicator]:opacity-70 [&::-webkit-calendar-picker-indicator]:cursor-pointer"
-                    />
-                  </div>
+                  <VisibleDateInput
+                    label="From"
+                    value={filters.date_from}
+                    onChange={(value) => updateFilter('date_from', value)}
+                  />
+                  <VisibleDateInput
+                    label="To"
+                    value={filters.date_to}
+                    onChange={(value) => updateFilter('date_to', value)}
+                  />
                 </div>
                 {filters.assigned_agent && !(filters.date_from || filters.date_to) && (
                   <p className="text-[11px] text-muted-foreground mt-2">
