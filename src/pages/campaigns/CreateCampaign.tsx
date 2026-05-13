@@ -453,6 +453,7 @@ export default function CreateCampaign() {
           ? `Campaign launched — ${(data as any)?.jobs_queued ?? contactIds.length} messages queued`
           : `Scheduled for ${new Date(scheduledAt!).toLocaleString()}`,
       );
+      try { if (draftKey) localStorage.removeItem(draftKey); } catch {}
       navigate('/campaigns');
     } catch (e: any) {
       console.error('campaign-launch error', e);
