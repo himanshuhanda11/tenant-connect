@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useTenant } from '@/contexts/TenantContext';
 import { Link, useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Button } from '@/components/ui/button';
@@ -66,9 +67,45 @@ import { Skeleton } from '@/components/ui/skeleton';
 
 export default function CampaignsList() {
   const navigate = useNavigate();
+  const { currentTenant } = useTenant();
   const { data: dbCampaigns, isLoading } = useCampaigns();
-  
+
+  // Load local draft (saved by /campaigns/create) and surface as a virtual draft entry
+  const [localDraft, setLocalDraft] = useState<Campaign | null>(null);
+  useEffect(() => {
+    if (!currentTenant?.id) { setLocalDraft(null); return; }
+    try {
+      const raw = localStorage.getItem(`campaign-draft:${currentTenant.id}`);
+      if (!raw) { setLocalDraft(null); return; }
+      const saved = JSON.parse(raw);
+      const w = saved?.wizard || {};
+      setLocalDraft({
+        id: 'local-draft',
+        tenant_id: currentTenant.id,
+        name: w.name || w.campaignName || 'Untitled draft',
+        campaign_type: 'broadcast',
+        status: 'draft' as CampaignStatus,
+        template_id: w.template_id || null,
+        phone_number_id: w.phone_number_id || null,
+        total_recipients: w.total_recipients || 0,
+        created_at: saved?.savedAt || new Date().toISOString(),
+        updated_at: saved?.savedAt || new Date().toISOString(),
+      } as Campaign);
+    } catch {
+      setLocalDraft(null);
+    }
+  }, [currentTenant?.id, dbCampaigns]);
+
+  const handleRowClick = (campaign: Campaign) => {
+    if (campaign.id === 'local-draft') {
+      navigate('/campaigns/create');
+    } else {
+      navigate(`/campaigns/${campaign.id}`);
+    }
+  };
+
   const campaigns: Campaign[] = (dbCampaigns || []).map(c => ({
+
     id: c.id,
     tenant_id: c.tenant_id,
     name: c.name,
@@ -122,11 +159,12 @@ export default function CampaignsList() {
     created_by: c.created_by || undefined,
     error_message: c.error_message || undefined,
   }));
+  const allCampaigns: Campaign[] = localDraft ? [localDraft, ...campaigns] : campaigns;
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [viewMode, setViewMode] = useState<'table' | 'cards'>('table');
 
-  const filteredCampaigns = campaigns.filter(campaign => {
+  const filteredCampaigns = allCampaigns.filter(campaign => {
     const matchesSearch = campaign.name.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesStatus = statusFilter === 'all' || campaign.status === statusFilter;
     return matchesSearch && matchesStatus;
@@ -337,7 +375,7 @@ export default function CampaignsList() {
                     </TableRow>
                   ) : (
                     filteredCampaigns.map((campaign) => (
-                      <TableRow key={campaign.id} className="cursor-pointer hover:bg-muted/50" onClick={() => navigate(`/campaigns/${campaign.id}`)}>
+                      <TableRow key={campaign.id} className="cursor-pointer hover:bg-muted/50" onClick={() => handleRowClick(campaign)}>
                         <TableCell>
                           <div>
                             <div className="flex items-center gap-2">
@@ -397,7 +435,7 @@ export default function CampaignsList() {
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
-                              <DropdownMenuItem onClick={() => navigate(`/campaigns/${campaign.id}`)}>
+                              <DropdownMenuItem onClick={() => handleRowClick(campaign)}>
                                 <Eye className="h-4 w-4 mr-2" />
                                 View Details
                               </DropdownMenuItem>
@@ -462,7 +500,7 @@ export default function CampaignsList() {
                   <Card
                     key={campaign.id}
                     className="cursor-pointer active:scale-[0.99] transition-transform border-border/60"
-                    onClick={() => navigate(`/campaigns/${campaign.id}`)}
+                    onClick={() => handleRowClick(campaign)}
                   >
                     <CardContent className="p-4">
                       <div className="flex items-start justify-between gap-3">
@@ -481,7 +519,7 @@ export default function CampaignsList() {
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
-                              <DropdownMenuItem onClick={() => navigate(`/campaigns/${campaign.id}`)}>
+                              <DropdownMenuItem onClick={() => handleRowClick(campaign)}>
                                 <Eye className="h-4 w-4 mr-2" />View Details
                               </DropdownMenuItem>
                               <DropdownMenuItem>
@@ -576,7 +614,7 @@ export default function CampaignsList() {
               <Card 
                 key={campaign.id} 
                 className="cursor-pointer hover:border-primary/50 transition-colors"
-                onClick={() => navigate(`/campaigns/${campaign.id}`)}
+                onClick={() => handleRowClick(campaign)}
               >
                 <CardHeader className="pb-2">
                   <div className="flex items-start justify-between">
