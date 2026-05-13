@@ -2348,6 +2348,130 @@ Deno.serve(async (req: Request) => {
       });
     }
 
+    // ============== MESSAGE CREDITS ADMIN ==============
+
+    // GET /credits/wallets?search=...&limit=50
+    if (req.method === "GET" && path === "credits/wallets") {
+      await requirePlatformRole(req, ["super_admin", "ops", "support"]);
+      const sb = adminClient();
+      const search = url.searchParams.get("search")?.trim() || "";
+      const limit = Math.min(parseInt(url.searchParams.get("limit") || "50"), 200);
+      let q = sb.from("message_credits")
+        .select("tenant_id, balance, total_purchased, total_used, last_topup_at, low_balance_alert_sent_at, updated_at, tenants:tenant_id(name, slug, pricing_region)")
+        .order("updated_at", { ascending: false })
+        .limit(limit);
+      const { data, error } = await q;
+      if (error) throw new Error(error.message);
+      let rows = data || [];
+      if (search) {
+        const s = search.toLowerCase();
+        rows = rows.filter((r: any) => (r.tenants?.name || "").toLowerCase().includes(s) || (r.tenants?.slug || "").toLowerCase().includes(s) || r.tenant_id.includes(s));
+      }
+      return new Response(JSON.stringify({ wallets: rows }), {
+        headers: { ...corsHeaders, "content-type": "application/json" },
+      });
+    }
+
+    // POST /credits/adjust  { workspace_id, amount, reason }
+    if (req.method === "POST" && path === "credits/adjust") {
+      const actor = await requirePlatformRole(req, ["super_admin", "ops"]);
+      const sb = adminClient();
+      const body = await req.json();
+      const { workspace_id, amount, reason } = body || {};
+      if (!workspace_id || typeof amount !== "number" || !reason) {
+        throw new Error("workspace_id, amount and reason are required");
+      }
+      const { data, error } = await sb.rpc("admin_adjust_message_credits", {
+        p_tenant_id: workspace_id,
+        p_amount: Math.trunc(amount),
+        p_reason: String(reason),
+        p_admin_id: actor.user.id,
+      });
+      if (error) throw new Error(error.message);
+      await logAction(sb, actor, "PLATFORM_CREDITS_ADJUSTED", {
+        workspace_id, target_table: "message_credits",
+        after: data, note: `Adjustment ${amount} — ${reason}`,
+      });
+      return new Response(JSON.stringify(data), {
+        headers: { ...corsHeaders, "content-type": "application/json" },
+      });
+    }
+
+    // GET /credits/transactions?workspace_id=...
+    if (req.method === "GET" && path === "credits/transactions") {
+      await requirePlatformRole(req, ["super_admin", "ops", "support"]);
+      const sb = adminClient();
+      const wid = url.searchParams.get("workspace_id");
+      if (!wid) throw new Error("workspace_id required");
+      const { data, error } = await sb.from("credit_transactions")
+        .select("*").eq("tenant_id", wid)
+        .order("created_at", { ascending: false }).limit(200);
+      if (error) throw new Error(error.message);
+      return new Response(JSON.stringify({ transactions: data || [] }), {
+        headers: { ...corsHeaders, "content-type": "application/json" },
+      });
+    }
+
+    // GET /credits/packages
+    if (req.method === "GET" && path === "credits/packages") {
+      await requirePlatformRole(req, ["super_admin", "ops", "support"]);
+      const sb = adminClient();
+      const { data, error } = await sb.from("credit_topup_packages")
+        .select("*").order("region").order("sort_order").order("price");
+      if (error) throw new Error(error.message);
+      return new Response(JSON.stringify({ packages: data || [] }), {
+        headers: { ...corsHeaders, "content-type": "application/json" },
+      });
+    }
+
+    // POST /credits/packages  (create or update)
+    if (req.method === "POST" && path === "credits/packages") {
+      const actor = await requirePlatformRole(req, ["super_admin"]);
+      const sb = adminClient();
+      const body = await req.json();
+      const payload: any = {
+        package_name: body.package_name,
+        credits: Math.trunc(body.credits),
+        price: Number(body.price),
+        currency: body.currency,
+        region: body.region,
+        stripe_price_id: body.stripe_price_id || null,
+        recommended: !!body.recommended,
+        best_value: !!body.best_value,
+        sort_order: Number(body.sort_order || 0),
+        active: body.active !== false,
+        updated_at: new Date().toISOString(),
+      };
+      let result;
+      if (body.id) {
+        const { data, error } = await sb.from("credit_topup_packages").update(payload).eq("id", body.id).select().single();
+        if (error) throw new Error(error.message);
+        result = data;
+        await logAction(sb, actor, "PLATFORM_CREDIT_PACKAGE_UPDATED", { target_table: "credit_topup_packages", target_id: body.id, after: data });
+      } else {
+        const { data, error } = await sb.from("credit_topup_packages").insert(payload).select().single();
+        if (error) throw new Error(error.message);
+        result = data;
+        await logAction(sb, actor, "PLATFORM_CREDIT_PACKAGE_CREATED", { target_table: "credit_topup_packages", target_id: data.id, after: data });
+      }
+      return new Response(JSON.stringify(result), {
+        headers: { ...corsHeaders, "content-type": "application/json" },
+      });
+    }
+
+    // POST /credits/packages/:id/delete
+    if (req.method === "POST" && path.match(/^credits\/packages\/[^/]+\/delete$/)) {
+      const actor = await requirePlatformRole(req, ["super_admin"]);
+      const id = path.split("/")[2];
+      const sb = adminClient();
+      const { error } = await sb.from("credit_topup_packages").delete().eq("id", id);
+      if (error) throw new Error(error.message);
+      await logAction(sb, actor, "PLATFORM_CREDIT_PACKAGE_DELETED", { target_table: "credit_topup_packages", target_id: id });
+      return new Response(JSON.stringify({ success: true }), {
+        headers: { ...corsHeaders, "content-type": "application/json" },
+      });
+    }
+
     return new Response(JSON.stringify({ error: "Not found" }), {
       status: 404, headers: { ...corsHeaders, "content-type": "application/json" },
     });

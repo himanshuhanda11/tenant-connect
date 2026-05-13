@@ -7,12 +7,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { AdminKPICard } from '@/components/admin/AdminKPICard';
 import { AdminStatusBadge } from '@/components/admin/AdminStatusBadge';
-import { DollarSign, Receipt, RefreshCw, AlertTriangle, FileText, PlusCircle, TrendingUp, ShieldAlert, Download, BarChart3 } from 'lucide-react';
+import { DollarSign, Receipt, RefreshCw, AlertTriangle, FileText, PlusCircle, TrendingUp, ShieldAlert, Download, BarChart3, Wallet, Package } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { RevenueChart } from '@/components/admin/billing/RevenueChart';
 import { InvoicesPanel } from '@/components/admin/billing/InvoicesPanel';
 import { RiskEventsPanel } from '@/components/admin/billing/RiskEventsPanel';
 import { BillingEventsTable } from '@/components/admin/billing/BillingEventsTable';
+import { AdminCreditAdjustments } from '@/components/admin/billing/AdminCreditAdjustments';
+import { AdminCreditPackages } from '@/components/admin/billing/AdminCreditPackages';
 
 export default function AdminBilling() {
   const { role } = useOutletContext<{ role: string }>();
@@ -109,7 +111,12 @@ export default function AdminBilling() {
           )}
           {isSuperAdmin && (
             <TabsTrigger value="adjustments" className="rounded-lg text-sm gap-1">
-              <PlusCircle className="h-3.5 w-3.5" />Adjustments
+              <Wallet className="h-3.5 w-3.5" />Credit Wallets
+            </TabsTrigger>
+          )}
+          {isSuperAdmin && (
+            <TabsTrigger value="packages" className="rounded-lg text-sm gap-1">
+              <Package className="h-3.5 w-3.5" />Credit Packages
             </TabsTrigger>
           )}
         </TabsList>
@@ -134,18 +141,13 @@ export default function AdminBilling() {
 
         {isSuperAdmin && (
           <TabsContent value="adjustments" className="mt-4">
-            <Card className="rounded-2xl shadow-sm border-border/50">
-              <CardContent className="py-12 text-center">
-                <div className="h-10 w-10 rounded-xl bg-muted flex items-center justify-center mx-auto mb-3">
-                  <PlusCircle className="h-5 w-5 text-muted-foreground" />
-                </div>
-                <p className="text-sm font-medium mb-1">Manual Adjustments</p>
-                <p className="text-xs text-muted-foreground mb-4">Credit or debit workspaces manually. Available soon.</p>
-                <Button variant="outline" size="sm" className="rounded-xl" disabled>
-                  <PlusCircle className="h-3.5 w-3.5 mr-1" /> New Adjustment
-                </Button>
-              </CardContent>
-            </Card>
+            <AdminCreditAdjustments />
+          </TabsContent>
+        )}
+
+        {isSuperAdmin && (
+          <TabsContent value="packages" className="mt-4">
+            <AdminCreditPackages />
           </TabsContent>
         )}
       </Tabs>
