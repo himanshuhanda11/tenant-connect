@@ -42,6 +42,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useTenant } from '@/contexts/TenantContext';
 import { useAttributeKeys } from '@/hooks/useContactAttributes';
 import { CampaignWizardState } from '@/types/campaign';
+import { INBOX_LEAD_STATUSES, SELECT_SENTINELS, INBOX_LEAD_STATUS_LABEL } from '@/lib/inboxLeadStatus';
 
 interface SegmentOption {
   id: string;
