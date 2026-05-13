@@ -349,7 +349,7 @@ export function AppSidebar() {
           <SidebarGroup>
            <CollapsibleTrigger asChild>
               <button className={cn(
-                "w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-[11px] font-semibold uppercase tracking-[0.08em] transition-all duration-200 ease-in-out border border-transparent",
+                "w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-[13px] font-bold uppercase tracking-[0.08em] transition-all duration-200 ease-in-out border border-transparent",
                 hasActiveItem
                   ? "text-sidebar-primary bg-sidebar-primary/5 border-sidebar-primary/15"
                   : "text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent/40"
