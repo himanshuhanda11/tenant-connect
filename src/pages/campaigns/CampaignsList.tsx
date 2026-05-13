@@ -375,7 +375,7 @@ export default function CampaignsList() {
                     </TableRow>
                   ) : (
                     filteredCampaigns.map((campaign) => (
-                      <TableRow key={campaign.id} className="cursor-pointer hover:bg-muted/50" onClick={() => navigate(`/campaigns/${campaign.id}`)}>
+                      <TableRow key={campaign.id} className="cursor-pointer hover:bg-muted/50" onClick={() => handleRowClick(campaign)}>
                         <TableCell>
                           <div>
                             <div className="flex items-center gap-2">
@@ -435,7 +435,7 @@ export default function CampaignsList() {
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
-                              <DropdownMenuItem onClick={() => navigate(`/campaigns/${campaign.id}`)}>
+                              <DropdownMenuItem onClick={() => handleRowClick(campaign)}>
                                 <Eye className="h-4 w-4 mr-2" />
                                 View Details
                               </DropdownMenuItem>
@@ -500,7 +500,7 @@ export default function CampaignsList() {
                   <Card
                     key={campaign.id}
                     className="cursor-pointer active:scale-[0.99] transition-transform border-border/60"
-                    onClick={() => navigate(`/campaigns/${campaign.id}`)}
+                    onClick={() => handleRowClick(campaign)}
                   >
                     <CardContent className="p-4">
                       <div className="flex items-start justify-between gap-3">
@@ -519,7 +519,7 @@ export default function CampaignsList() {
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
-                              <DropdownMenuItem onClick={() => navigate(`/campaigns/${campaign.id}`)}>
+                              <DropdownMenuItem onClick={() => handleRowClick(campaign)}>
                                 <Eye className="h-4 w-4 mr-2" />View Details
                               </DropdownMenuItem>
                               <DropdownMenuItem>
@@ -614,7 +614,7 @@ export default function CampaignsList() {
               <Card 
                 key={campaign.id} 
                 className="cursor-pointer hover:border-primary/50 transition-colors"
-                onClick={() => navigate(`/campaigns/${campaign.id}`)}
+                onClick={() => handleRowClick(campaign)}
               >
                 <CardHeader className="pb-2">
                   <div className="flex items-start justify-between">
