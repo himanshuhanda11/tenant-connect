@@ -276,6 +276,7 @@ export default function MetaAdsSetup() {
       }));
     }
     toast.success(`Found ${data.adAccounts?.length || 0} ad account(s), ${data.pages?.length || 0} page(s), ${data.instagramAccounts?.length || 0} IG account(s).`);
+    setWizardStep((s) => (s < 1 ? 1 : s));
   };
 
   const persistReauthorization = async (data: any) => {
