@@ -117,7 +117,7 @@ export function MessageCreditsCard() {
                     <ShieldCheck className="h-3 w-3" /> Secure Stripe
                   </Badge>
                 </h3>
-                <p className="text-xs text-muted-foreground">Used for WhatsApp template & broadcast messages</p>
+                <p className="text-xs text-muted-foreground">Hybrid billing · inbox replies free · template messages use credits</p>
               </div>
             </div>
             <div className="text-right">
@@ -145,6 +145,14 @@ export function MessageCreditsCard() {
               <Progress value={usedPct} className="h-2" />
             </div>
           )}
+
+          {/* Hybrid billing model explainer */}
+          <div className="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-2">
+            <BillingPill tone="emerald" title="Inbox replies" hint="Free · 24h window" />
+            <BillingPill tone="amber" title="Marketing" hint="Full Meta rate" />
+            <BillingPill tone="blue" title="Utility" hint="~40% lower" />
+            <BillingPill tone="violet" title="Authentication" hint="Lower rate" />
+          </div>
 
           {/* Alerts */}
           {noBalance && (
@@ -384,6 +392,22 @@ function TxRow({ tx, expanded }: { tx: any; expanded?: boolean }) {
       <span className={cn('text-sm font-semibold tabular-nums', positive ? 'text-emerald-600' : 'text-rose-600')}>
         {positive ? '+' : ''}{tx.amount}
       </span>
+    </div>
+  );
+}
+
+const PILL_TONES: Record<string, string> = {
+  emerald: 'border-emerald-300/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300',
+  amber: 'border-amber-300/40 bg-amber-500/10 text-amber-700 dark:text-amber-300',
+  blue: 'border-blue-300/40 bg-blue-500/10 text-blue-700 dark:text-blue-300',
+  violet: 'border-violet-300/40 bg-violet-500/10 text-violet-700 dark:text-violet-300',
+};
+
+function BillingPill({ tone, title, hint }: { tone: keyof typeof PILL_TONES; title: string; hint: string }) {
+  return (
+    <div className={cn('rounded-lg border px-2.5 py-2', PILL_TONES[tone])}>
+      <p className="text-[11px] font-semibold leading-tight">{title}</p>
+      <p className="text-[10px] opacity-80 leading-tight mt-0.5">{hint}</p>
     </div>
   );
 }
