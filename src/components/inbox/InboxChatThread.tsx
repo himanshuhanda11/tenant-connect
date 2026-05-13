@@ -344,15 +344,15 @@ export function InboxChatThread({
               </Avatar>
               <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-green-500 border-2 border-card rounded-full" />
             </div>
-            <div className="min-w-0">
-              <div className="flex items-center gap-1.5">
-                <h3 className="font-semibold text-sm text-foreground truncate">
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-1.5 min-w-0">
+                <h3 className="font-semibold text-sm text-foreground truncate min-w-0">
                   {conversation.contact?.name || conversation.contact?.wa_id}
                 </h3>
                 <Badge 
                   variant="outline" 
                   className={cn(
-                    "text-[10px] px-1.5 py-0 h-4 font-medium",
+                    "text-[10px] px-1.5 py-0 h-4 font-medium flex-shrink-0",
                     conversation.status === 'open' && "bg-green-50 text-green-700 border-green-200 dark:bg-green-950 dark:text-green-400 dark:border-green-800",
                     conversation.status === 'closed' && "bg-muted text-muted-foreground border-border"
                   )}
