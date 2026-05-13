@@ -31,7 +31,16 @@ interface Tx {
   description: string | null;
   status: string;
   created_at: string;
+  metadata?: { category?: string } | null;
 }
+
+const CATEGORY_OPTIONS = [
+  { value: "bonus", label: "Bonus", desc: "Goodwill / loyalty grant" },
+  { value: "promo", label: "Promotional", desc: "Marketing campaign credits" },
+  { value: "refund", label: "Refund", desc: "Compensation for failed broadcast / outage" },
+  { value: "meta_paid", label: "Meta-paid Allocation", desc: "Customer paid Meta directly" },
+  { value: "adjustment", label: "Manual Adjustment", desc: "Other / corrections" },
+] as const;
 
 export function AdminCreditAdjustments() {
   const { get, post } = useAdminApi();
