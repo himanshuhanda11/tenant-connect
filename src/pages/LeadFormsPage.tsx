@@ -30,6 +30,7 @@ const REQUIRED_META_SCOPES = [
 export default function LeadFormsPage() {
   const [activeTab, setActiveTab] = useState('forms');
   const [subscribingAll, setSubscribingAll] = useState(false);
+  const [verifyingSubs, setVerifyingSubs] = useState(false);
   const { currentTenant } = useTenant();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
