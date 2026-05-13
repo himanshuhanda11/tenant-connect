@@ -1,10 +1,10 @@
-import { useCallback, useEffect, useState, type ElementType, type ReactNode } from 'react';
+import { useCallback, useEffect, useMemo, useState, type ElementType, type ReactNode } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Separator } from '@/components/ui/separator';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Switch } from '@/components/ui/switch';
 import {
   Select,
@@ -18,13 +18,16 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
+import { Calendar as CalendarPicker } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import {
   Calendar,
-  CheckCircle,
+  CheckCircle2,
   ChevronDown,
   ChevronRight,
   Clock,
   Filter,
+  Globe2,
   Megaphone,
   Plus,
   Shield,
@@ -32,7 +35,6 @@ import {
   Tag,
   Target,
   Trash2,
-  User,
   Users,
   Workflow,
   X,
@@ -43,45 +45,18 @@ import { useTenant } from '@/contexts/TenantContext';
 import { useAttributeKeys } from '@/hooks/useContactAttributes';
 import { CampaignWizardState } from '@/types/campaign';
 import { INBOX_LEAD_STATUSES, SELECT_SENTINELS, INBOX_LEAD_STATUS_LABEL } from '@/lib/inboxLeadStatus';
+import { cn } from '@/lib/utils';
+import { useAudienceEstimate } from './audience/useAudienceEstimate';
 
-interface SegmentOption {
-  id: string;
-  name: string;
-  contact_count: number | null;
-}
-
-interface TagOption {
-  id: string;
-  name: string;
-  color: string | null;
-}
-
-interface AgentOption {
-  user_id: string;
-  display_name: string | null;
-  email: string;
-}
-
-interface FlowOption {
-  id: string;
-  name: string;
-  status: string;
-}
-
-interface MetaCampaignOption {
-  id: string;
-  name: string;
-  status: string | null;
-}
-
-interface SelectedContactOption {
-  id: string;
-  name: string | null;
-  wa_id: string | null;
-}
+// ── Types kept backward-compatible with previous AudienceFilters shape ──────────
+interface SegmentOption { id: string; name: string; contact_count: number | null; }
+interface TagOption { id: string; name: string; color: string | null; }
+interface AgentOption { user_id: string; display_name: string | null; email: string; }
+interface FlowOption { id: string; name: string; status: string; }
+interface MetaCampaignOption { id: string; name: string; status: string | null; }
+interface SelectedContactOption { id: string; name: string | null; wa_id: string | null; }
 
 export interface AudienceFilters {
-  // Sources
   source: 'all' | 'segments' | 'tags' | 'contacts' | 'filters';
   include_segments: string[];
   exclude_segments: string[];
@@ -89,7 +64,6 @@ export interface AudienceFilters {
   exclude_tags: string[];
   selected_contacts: string[];
   matched_contact_ids: string[];
-  // Advanced filters
   assigned_agent: string;
   lead_states: string[];
   crm_statuses: string[];
@@ -104,27 +78,6 @@ export interface AudienceFilters {
   is_unreplied: 'all' | 'yes' | 'no';
   exclude_recent_days: number;
   opt_in_only: boolean;
-}
-
-const CONTACT_SOURCES = [
-  { value: 'ctwa', label: 'Click-to-WhatsApp Ads' },
-  { value: 'organic', label: 'Organic' },
-  { value: 'api', label: 'API' },
-  { value: 'import', label: 'CSV Import' },
-  { value: 'manual', label: 'Manual Entry' },
-  { value: 'qr', label: 'QR Code' },
-  { value: 'referral', label: 'Referral' },
-];
-
-interface Props {
-  wizard: CampaignWizardState;
-  segments: SegmentOption[];
-  tags: TagOption[];
-  selectedContactsPreview: SelectedContactOption[];
-  audienceFilters: AudienceFilters;
-  onFiltersChange: (filters: AudienceFilters) => void;
-  estimatedCount: number;
-  onEstimatedCountChange: (count: number) => void;
 }
 
 export const DEFAULT_AUDIENCE_FILTERS: AudienceFilters = {
@@ -151,137 +104,129 @@ export const DEFAULT_AUDIENCE_FILTERS: AudienceFilters = {
   opt_in_only: true,
 };
 
-const PAGE_SIZE = 1000;
+// Friendly label, value matches contacts.source values used elsewhere
+const CONTACT_SOURCES: { value: string; label: string }[] = [
+  { value: 'ctwa', label: 'Facebook / Click-to-WhatsApp Ads' },
+  { value: 'widget', label: 'Website Widget' },
+  { value: 'organic', label: 'WhatsApp (Organic)' },
+  { value: 'import', label: 'CSV Import' },
+  { value: 'broadcast', label: 'Broadcast' },
+  { value: 'manual', label: 'Manual Entry' },
+  { value: 'api', label: 'API' },
+  { value: 'qr', label: 'QR Code' },
+  { value: 'referral', label: 'Referral' },
+];
 
-const areStringArraysEqual = (a: string[], b: string[]) =>
-  a.length === b.length && a.every((value, index) => value === b[index]);
-
-const parseLocalDate = (dateValue: string): Date | null => {
-  if (!dateValue) return null;
-  const [year, month, day] = dateValue.split('-').map(Number);
-  if (!year || !month || !day) return null;
-  return new Date(year, month - 1, day);
-};
-
-const formatDateInputValue = (date: Date): string => {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-};
-
-const getLocalDayStartUtc = (dateValue: string): string | null => {
-  const date = parseLocalDate(dateValue);
-  if (!date) return null;
-  return new Date(date.getFullYear(), date.getMonth(), date.getDate(), 0, 0, 0, 0).toISOString();
-};
-
-const getLocalDayEndExclusiveUtc = (dateValue: string): string | null => {
-  const date = parseLocalDate(dateValue);
-  if (!date) return null;
-  return new Date(date.getFullYear(), date.getMonth(), date.getDate() + 1, 0, 0, 0, 0).toISOString();
-};
-
-const formatVisibleDate = (dateValue: string) => {
-  const date = parseLocalDate(dateValue);
-  if (!date) return '';
-  return date.toLocaleDateString(undefined, { day: '2-digit', month: 'short', year: 'numeric' });
-};
-
-function VisibleDateInput({
-  label,
-  value,
-  onChange,
-}: {
-  label: string;
-  value: string;
-  onChange: (value: string) => void;
-}) {
-  return (
-    <div className="space-y-1">
-      <Label className="text-xs text-muted-foreground">{label}</Label>
-      <div className="relative">
-        <Input
-          type="date"
-          value={value}
-          onChange={(event) => onChange(event.target.value)}
-          className="h-10 min-w-0 cursor-pointer bg-card pr-9 text-transparent caret-transparent [color-scheme:light] dark:[color-scheme:dark] [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:right-2 [&::-webkit-calendar-picker-indicator]:opacity-80 [&::-webkit-date-and-time-value]:text-transparent [&::-webkit-datetime-edit]:text-transparent"
-        />
-        <span className="pointer-events-none absolute inset-y-0 left-3 right-9 flex items-center truncate text-sm font-semibold text-foreground">
-          {formatVisibleDate(value) || 'Select date'}
-        </span>
-      </div>
-    </div>
-  );
+interface Props {
+  wizard: CampaignWizardState;
+  segments: SegmentOption[];
+  tags: TagOption[];
+  selectedContactsPreview: SelectedContactOption[];
+  audienceFilters: AudienceFilters;
+  onFiltersChange: (filters: AudienceFilters) => void;
+  estimatedCount: number;
+  onEstimatedCountChange: (count: number) => void;
 }
 
-interface AudienceFilterSectionProps {
-  id: string;
-  icon: ElementType;
-  title: string;
-  badge?: number | string;
-  isOpen?: boolean;
-  onOpenChange?: (isOpen: boolean) => void;
-  children: ReactNode;
+// ─── Helpers ────────────────────────────────────────────────────────────────────
+const formatDate = (d: Date) =>
+  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+
+const niceDate = (s: string) => {
+  if (!s) return '';
+  const [y, m, d] = s.split('-').map(Number);
+  if (!y || !m || !d) return '';
+  return new Date(y, m - 1, d).toLocaleDateString(undefined, { day: '2-digit', month: 'short', year: 'numeric' });
+};
+
+const timeAgo = (ts: number | null) => {
+  if (!ts) return '';
+  const sec = Math.floor((Date.now() - ts) / 1000);
+  if (sec < 5) return 'just now';
+  if (sec < 60) return `${sec}s ago`;
+  if (sec < 3600) return `${Math.floor(sec / 60)}m ago`;
+  return `${Math.floor(sec / 3600)}h ago`;
+};
+
+// ─── Animated count-up ──────────────────────────────────────────────────────────
+function AnimatedCount({ value }: { value: number }) {
+  const [display, setDisplay] = useState(value);
+  useEffect(() => {
+    if (value === display) return;
+    const start = display;
+    const diff = value - start;
+    const duration = 450;
+    const t0 = performance.now();
+    let raf = 0;
+    const tick = (t: number) => {
+      const p = Math.min(1, (t - t0) / duration);
+      const eased = 1 - Math.pow(1 - p, 3);
+      setDisplay(Math.round(start + diff * eased));
+      if (p < 1) raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [value]); // eslint-disable-line
+  return <>{display.toLocaleString()}</>;
 }
 
-function AudienceFilterSection({
-  id,
+// ─── Section wrapper (premium accordion card) ───────────────────────────────────
+function Section({
   icon: Icon,
   title,
+  description,
   badge,
-  isOpen,
-  onOpenChange,
+  defaultOpen = false,
   children,
-}: AudienceFilterSectionProps) {
-  const [internalOpen, setInternalOpen] = useState(false);
-  const isControlled = typeof isOpen === 'boolean';
-  const resolvedOpen = isControlled ? Boolean(isOpen) : internalOpen;
-
-  const handleOpenChange = (nextOpen: boolean) => {
-    if (!isControlled) {
-      setInternalOpen(nextOpen);
-    }
-    onOpenChange?.(nextOpen);
-  };
-
+}: {
+  icon: ElementType;
+  title: string;
+  description?: string;
+  badge?: number;
+  defaultOpen?: boolean;
+  children: ReactNode;
+}) {
+  const [open, setOpen] = useState(defaultOpen);
   return (
-    <Collapsible open={resolvedOpen} onOpenChange={handleOpenChange}>
-      <CollapsibleTrigger className="w-full">
-        <div className="flex items-center justify-between p-3 rounded-lg hover:bg-muted/50 transition-colors group">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center group-hover:bg-primary/10 transition-colors">
-              <Icon className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
+    <Collapsible open={open} onOpenChange={setOpen}>
+      <Card className={cn('overflow-hidden transition-all', open ? 'ring-1 ring-primary/20 shadow-sm' : 'hover:bg-muted/30')}>
+        <CollapsibleTrigger className="w-full text-left">
+          <div className="flex items-center gap-4 p-4">
+            <div className={cn(
+              'h-10 w-10 rounded-xl flex items-center justify-center transition-colors',
+              open ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground',
+            )}>
+              <Icon className="h-5 w-5" />
             </div>
-            <span className="text-sm font-medium">{title}</span>
-            {badge !== undefined && badge !== 0 && (
-              <Badge variant="secondary" className="text-xs h-5 px-1.5">
-                {badge}
-              </Badge>
-            )}
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2">
+                <span className="font-semibold text-sm">{title}</span>
+                {badge ? (
+                  <Badge variant="secondary" className="h-5 px-1.5 text-[10px]">{badge}</Badge>
+                ) : null}
+              </div>
+              {description && <p className="text-xs text-muted-foreground mt-0.5 truncate">{description}</p>}
+            </div>
+            <ChevronDown className={cn('h-4 w-4 text-muted-foreground transition-transform', open && 'rotate-180')} />
           </div>
-          {resolvedOpen ? (
-            <ChevronDown className="h-4 w-4 text-muted-foreground" />
-          ) : (
-            <ChevronRight className="h-4 w-4 text-muted-foreground" />
-          )}
-        </div>
-      </CollapsibleTrigger>
-      <CollapsibleContent id={`${id}-content`}>
-        <div className="px-3 pb-3 pt-1 ml-11 space-y-3">{children}</div>
-      </CollapsibleContent>
+        </CollapsibleTrigger>
+        <CollapsibleContent>
+          <CardContent className="pt-0 pb-5 px-4 space-y-4 border-t bg-muted/20">
+            <div className="pt-4 space-y-4">{children}</div>
+          </CardContent>
+        </CollapsibleContent>
+      </Card>
     </Collapsible>
   );
 }
 
+// ─── Main component ─────────────────────────────────────────────────────────────
 export default function CampaignAudienceBuilder({
-  wizard,
   segments,
   tags,
   selectedContactsPreview,
   audienceFilters: filters,
   onFiltersChange: setFilters,
-  estimatedCount,
   onEstimatedCountChange,
 }: Props) {
   const { currentTenant } = useTenant();
@@ -289,946 +234,546 @@ export default function CampaignAudienceBuilder({
   const [agents, setAgents] = useState<AgentOption[]>([]);
   const [flows, setFlows] = useState<FlowOption[]>([]);
   const [metaCampaigns, setMetaCampaigns] = useState<MetaCampaignOption[]>([]);
-  const [isEstimating, setIsEstimating] = useState(false);
 
-  // Fetch agents, flows, meta campaigns
+  // Fetch supporting data
   useEffect(() => {
     if (!currentTenant?.id) return;
-
-    const fetchExtras = async () => {
+    let cancelled = false;
+    (async () => {
       const [agentRes, flowRes, metaRes] = await Promise.all([
-        supabase
-          .from('agents')
-          .select('user_id, display_name, is_active')
-          .eq('tenant_id', currentTenant.id)
-          .eq('is_active', true),
-        supabase
-          .from('automation_workflows')
-          .select('id, name, status')
-          .eq('tenant_id', currentTenant.id)
-          .eq('is_deleted', false)
-          .order('name'),
-        (supabase as any)
-          .from('smeksh_meta_ad_campaigns')
-          .select('id, campaign_name, status')
-          .eq('workspace_id', currentTenant.id)
-          .order('created_at', { ascending: false })
-          .limit(50),
+        supabase.from('agents').select('user_id, display_name, is_active').eq('tenant_id', currentTenant.id).eq('is_active', true),
+        supabase.from('automation_workflows').select('id, name, status').eq('tenant_id', currentTenant.id).eq('is_deleted', false).order('name'),
+        (supabase as any).from('smeksh_meta_ad_campaigns').select('id, campaign_name, status').eq('workspace_id', currentTenant.id).order('created_at', { ascending: false }).limit(50),
       ]);
+      if (cancelled) return;
 
-      // For agents, get profile info — keep all active agents even when profile lookup is empty
       if (agentRes.data) {
         const userIds = agentRes.data.map((a: any) => a.user_id).filter(Boolean);
-        let profileMap = new Map<string, any>();
-        if (userIds.length > 0) {
-          const { data: profiles } = await supabase
-            .from('profiles')
-            .select('id, full_name, email')
-            .in('id', userIds);
-          profileMap = new Map((profiles || []).map((p: any) => [p.id, p]));
+        let pmap = new Map<string, any>();
+        if (userIds.length) {
+          const { data } = await supabase.from('profiles').select('id, full_name, email').in('id', userIds);
+          pmap = new Map((data || []).map((p: any) => [p.id, p]));
         }
-        setAgents(
-          agentRes.data.map((a: any) => ({
-            user_id: a.user_id,
-            display_name: a.display_name || profileMap.get(a.user_id)?.full_name || null,
-            email: profileMap.get(a.user_id)?.email || '',
-          }))
-        );
+        setAgents(agentRes.data.map((a: any) => ({
+          user_id: a.user_id,
+          display_name: a.display_name || pmap.get(a.user_id)?.full_name || null,
+          email: pmap.get(a.user_id)?.email || '',
+        })));
       }
-
       setFlows((flowRes.data || []) as FlowOption[]);
-      setMetaCampaigns(
-        ((metaRes.data || []) as Array<{ id: string; campaign_name: string; status: string | null }>).map((item) => ({
-          id: item.id,
-          name: item.campaign_name,
-          status: item.status,
-        }))
-      );
-    };
-
-    fetchExtras();
+      setMetaCampaigns(((metaRes.data || []) as any[]).map((i) => ({ id: i.id, name: i.campaign_name, status: i.status })));
+    })();
+    return () => { cancelled = true; };
   }, [currentTenant?.id]);
 
-  const estimateAudience = useCallback(async () => {
-    if (!currentTenant?.id) return;
+  const segmentNameById = useMemo(() => new Map(segments.map((s) => [s.id, s.name])), [segments]);
 
-    // Uploaded/direct contacts are already an explicit recipient list.
-    if (filters.selected_contacts.length > 0) {
+  const usingDirectContacts = filters.selected_contacts.length > 0;
+  const estimate = useAudienceEstimate(currentTenant?.id, filters, segmentNameById, !usingDirectContacts);
+
+  // Push results back up to wizard
+  useEffect(() => {
+    if (usingDirectContacts) {
       onEstimatedCountChange(filters.selected_contacts.length);
-      if (filters.matched_contact_ids.length > 0) {
-        setFilters({ ...filters, matched_contact_ids: [] });
-      }
+      if (filters.matched_contact_ids.length) setFilters({ ...filters, matched_contact_ids: [] });
       return;
     }
-
-    setIsEstimating(true);
-    try {
-      let allowedIds: Set<string> | null = null;
-      let excludedIds = new Set<string>();
-      let assignedSummaryIds: Set<string> | null = null;
-
-      if (filters.include_tags.length > 0) {
-        const { data, error } = await supabase
-          .from('contact_tags')
-          .select('contact_id')
-          .in('tag_id', filters.include_tags);
-        if (error) throw error;
-        allowedIds = new Set((data || []).map((row) => row.contact_id).filter(Boolean));
-      }
-
-      if (filters.exclude_tags.length > 0) {
-        const { data, error } = await supabase
-          .from('contact_tags')
-          .select('contact_id')
-          .in('tag_id', filters.exclude_tags);
-        if (error) throw error;
-        excludedIds = new Set((data || []).map((row) => row.contact_id).filter(Boolean));
-      }
-
-      const validAttributes = filters.attributes.filter((attribute) => attribute.key && attribute.value);
-      for (const attribute of validAttributes) {
-        const { data, error } = await supabase
-          .from('contact_attributes')
-          .select('contact_id')
-          .eq('tenant_id', currentTenant.id)
-          .eq('key', attribute.key)
-          .ilike('value', `%${attribute.value}%`);
-        if (error) throw error;
-        const attributeIds = new Set((data || []).map((row) => row.contact_id).filter(Boolean));
-        allowedIds = allowedIds
-          ? new Set([...allowedIds].filter((id) => attributeIds.has(id)))
-          : attributeIds;
-      }
-
-      if (allowedIds && allowedIds.size === 0) {
-        onEstimatedCountChange(0);
-        if (filters.matched_contact_ids.length > 0) {
-          setFilters({ ...filters, matched_contact_ids: [] });
-        }
-        return;
-      }
-
-      // Specific agent selected → restrict via inbox summary (covers conversation-level assignment).
-      // Unassigned uses contacts.assigned_agent_id IS NULL on the main query below.
-      if (filters.assigned_agent && filters.assigned_agent !== SELECT_SENTINELS.unassigned) {
-        const { data, error } = await supabase
-          .from('contact_inbox_summary')
-          .select('contact_id')
-          .eq('tenant_id', currentTenant.id)
-          .eq('assigned_to', filters.assigned_agent);
-        if (error) throw error;
-        assignedSummaryIds = new Set((data || []).map((row) => row.contact_id).filter(Boolean));
-      }
-
-      // Lead Status (Inbox CRM) — filter via conversations.crm_status to stay in sync with Inbox
-      if (filters.lead_states.length > 0) {
-        const { data, error } = await supabase
-          .from('conversations')
-          .select('contact_id')
-          .eq('tenant_id', currentTenant.id)
-          .in('crm_status', filters.lead_states as any);
-        if (error) throw error;
-        const leadIds = new Set((data || []).map((row: any) => row.contact_id).filter(Boolean));
-        if (leadIds.size === 0) {
-          onEstimatedCountChange(0);
-          if (filters.matched_contact_ids.length > 0) setFilters({ ...filters, matched_contact_ids: [] });
-          return;
-        }
-        allowedIds = allowedIds
-          ? new Set([...allowedIds].filter((id) => leadIds.has(id)))
-          : leadIds;
-      }
-
-      if (filters.is_unreplied !== 'all' || filters.exclude_recent_days > 0) {
-        let summaryQuery = supabase
-          .from('contact_inbox_summary')
-          .select('contact_id')
-          .eq('tenant_id', currentTenant.id);
-
-        if (filters.is_unreplied !== 'all') summaryQuery = summaryQuery.eq('is_unreplied', filters.is_unreplied === 'yes');
-        if (filters.exclude_recent_days > 0) {
-          const cutoff = new Date(Date.now() - filters.exclude_recent_days * 24 * 60 * 60 * 1000).toISOString();
-          summaryQuery = summaryQuery.or(`last_message_at.is.null,last_message_at.lt.${cutoff}`);
-        }
-
-        const { data, error } = await summaryQuery;
-        if (error) throw error;
-        const summaryIds = new Set((data || []).map((row) => row.contact_id).filter(Boolean));
-        allowedIds = allowedIds
-          ? new Set([...allowedIds].filter((id) => summaryIds.has(id)))
-          : summaryIds;
-      }
-
-      if (allowedIds && allowedIds.size === 0) {
-        onEstimatedCountChange(0);
-        if (filters.matched_contact_ids.length > 0) {
-          setFilters({ ...filters, matched_contact_ids: [] });
-        }
-        return;
-      }
-
-      const buildQuery = () => {
-        let query = supabase
-          .from('contacts')
-          .select('id, segment, assigned_agent_id')
-          .eq('tenant_id', currentTenant.id);
-
-        if (filters.opt_in_only) query = query.eq('opt_out', false);
-        if (filters.contact_source) query = query.eq('source', filters.contact_source);
-        if (filters.flow_source) query = query.eq('automation_flow', filters.flow_source);
-        if (filters.meta_campaign_source) query = query.eq('campaign_source', filters.meta_campaign_source);
-        if (filters.assigned_agent === SELECT_SENTINELS.unassigned) {
-          query = query.is('assigned_agent_id', null);
-        }
-
-        const selectedSegments = segments.filter((segment) => filters.include_segments.includes(segment.id));
-        const excludedSegments = segments.filter((segment) => filters.exclude_segments.includes(segment.id));
-        const selectedSegmentNames = selectedSegments.map((segment) => segment.name).filter(Boolean);
-        const excludedSegmentNames = excludedSegments.map((segment) => segment.name).filter(Boolean);
-        if (selectedSegmentNames.length > 0) query = query.in('segment', selectedSegmentNames);
-
-      let normalizedDateFrom = filters.date_from;
-      let normalizedDateTo = filters.date_to;
-      const fromDate = parseLocalDate(filters.date_from);
-      const toDate = parseLocalDate(filters.date_to);
-
-      if (fromDate && toDate && fromDate.getTime() > toDate.getTime()) {
-        normalizedDateFrom = formatDateInputValue(toDate);
-        normalizedDateTo = formatDateInputValue(fromDate);
-      }
-
-      const fromBoundaryUtc = getLocalDayStartUtc(normalizedDateFrom);
-      const toBoundaryUtc = getLocalDayEndExclusiveUtc(normalizedDateTo);
-
-        if (fromBoundaryUtc) query = query.gte('created_at', fromBoundaryUtc);
-        if (toBoundaryUtc) query = query.lt('created_at', toBoundaryUtc);
-
-        return query.order('created_at', { ascending: false });
-      };
-
-      const contactIds: string[] = [];
-      const excludedSegmentNames = segments
-        .filter((segment) => filters.exclude_segments.includes(segment.id))
-        .map((segment) => segment.name)
-        .filter(Boolean);
-      for (let from = 0; ; from += PAGE_SIZE) {
-        const { data, error } = await buildQuery().range(from, from + PAGE_SIZE - 1);
-        if (error) throw error;
-        const ids = (data || [])
-          .filter((row) => !row.segment || !excludedSegmentNames.includes(row.segment))
-          .filter((row) => {
-            const a = filters.assigned_agent;
-            if (!a || a === SELECT_SENTINELS.all) return true;
-            if (a === SELECT_SENTINELS.unassigned) return !row.assigned_agent_id;
-            return row.assigned_agent_id === a || assignedSummaryIds?.has(row.id);
-          })
-          .map((row) => row.id)
-          .filter((id) => Boolean(id) && (!allowedIds || allowedIds.has(id)) && !excludedIds.has(id));
-        contactIds.push(...ids);
-        if (!data || data.length < PAGE_SIZE) break;
-      }
-
-      const filteredCount = contactIds.length;
-      onEstimatedCountChange(filteredCount);
-
-      if (!areStringArraysEqual(filters.matched_contact_ids, contactIds)) {
-        setFilters({ ...filters, matched_contact_ids: contactIds });
-      }
-    } catch (err) {
-      console.error('Audience estimation error:', err);
-      onEstimatedCountChange(0);
-    } finally {
-      setIsEstimating(false);
+    onEstimatedCountChange(estimate.total);
+    const next = estimate.contactIds;
+    const prev = filters.matched_contact_ids;
+    if (prev.length !== next.length || prev.some((id, i) => id !== next[i])) {
+      setFilters({ ...filters, matched_contact_ids: next });
     }
-  }, [currentTenant?.id, filters, segments, onEstimatedCountChange, setFilters]);
+  }, [estimate.total, estimate.contactIds, usingDirectContacts]); // eslint-disable-line
 
-  useEffect(() => {
-    const timer = setTimeout(estimateAudience, 400);
-    return () => clearTimeout(timer);
-  }, [estimateAudience]);
+  const update = <K extends keyof AudienceFilters>(key: K, value: AudienceFilters[K]) =>
+    setFilters({ ...filters, [key]: value });
 
-  const updateFilter = <K extends keyof AudienceFilters>(key: K, value: AudienceFilters[K]) => {
-    setFilters({
-      ...filters,
-      [key]: value,
-      matched_contact_ids: key === 'matched_contact_ids' ? (value as string[]) : [],
+  const toggleArray = (key: keyof AudienceFilters, value: string) => {
+    const arr = (filters[key] as string[]) || [];
+    update(key, (arr.includes(value) ? arr.filter((v) => v !== value) : [...arr, value]) as any);
+  };
+
+  const clearAll = () => setFilters({ ...DEFAULT_AUDIENCE_FILTERS, selected_contacts: filters.selected_contacts });
+
+  // Active filter chips
+  const chips: { key: string; label: string; onRemove: () => void }[] = [];
+  if (filters.assigned_agent === SELECT_SENTINELS.unassigned) {
+    chips.push({ key: 'agent', label: 'Unassigned', onRemove: () => update('assigned_agent', '') });
+  } else if (filters.assigned_agent) {
+    const a = agents.find((x) => x.user_id === filters.assigned_agent);
+    chips.push({ key: 'agent', label: `Agent: ${a?.display_name || a?.email || 'Selected'}`, onRemove: () => update('assigned_agent', '') });
+  }
+  filters.lead_states.forEach((s) =>
+    chips.push({ key: `ls-${s}`, label: INBOX_LEAD_STATUS_LABEL[s] || s, onRemove: () => update('lead_states', filters.lead_states.filter((x) => x !== s)) }),
+  );
+  if (filters.contact_source) {
+    const src = CONTACT_SOURCES.find((s) => s.value === filters.contact_source);
+    chips.push({ key: 'src', label: `Source: ${src?.label || filters.contact_source}`, onRemove: () => update('contact_source', '') });
+  }
+  if (filters.date_from || filters.date_to) {
+    chips.push({
+      key: 'date',
+      label: `Created: ${niceDate(filters.date_from) || '…'} → ${niceDate(filters.date_to) || '…'}`,
+      onRemove: () => setFilters({ ...filters, date_from: '', date_to: '' }),
     });
-  };
+  }
+  filters.include_tags.forEach((id) => {
+    const t = tags.find((x) => x.id === id);
+    chips.push({ key: `tag-${id}`, label: `Tag: ${t?.name || id}`, onRemove: () => update('include_tags', filters.include_tags.filter((x) => x !== id)) });
+  });
+  filters.exclude_tags.forEach((id) => {
+    const t = tags.find((x) => x.id === id);
+    chips.push({ key: `xtag-${id}`, label: `Exclude tag: ${t?.name || id}`, onRemove: () => update('exclude_tags', filters.exclude_tags.filter((x) => x !== id)) });
+  });
+  if (filters.flow_source) {
+    const f = flows.find((x) => x.id === filters.flow_source);
+    chips.push({ key: 'flow', label: `Flow: ${f?.name || 'Selected'}`, onRemove: () => update('flow_source', '') });
+  }
+  if (filters.meta_campaign_source) {
+    const m = metaCampaigns.find((x) => x.id === filters.meta_campaign_source);
+    chips.push({ key: 'meta', label: `Meta: ${m?.name || 'Selected'}`, onRemove: () => update('meta_campaign_source', '') });
+  }
+  filters.attributes.filter((a) => a.key && a.value).forEach((a, i) =>
+    chips.push({ key: `attr-${i}`, label: `${a.key}: ${a.value}`, onRemove: () => update('attributes', filters.attributes.filter((_, idx) => idx !== i)) }),
+  );
 
-  const toggleInArray = (key: 'include_segments' | 'exclude_segments' | 'include_tags' | 'exclude_tags' | 'lead_states', value: string) => {
-    const current = filters[key];
-    if (current.includes(value)) {
-      updateFilter(key, current.filter((v) => v !== value));
-    } else {
-      updateFilter(key, [...current, value]);
-    }
-  };
-
-  const addAttribute = () => {
-    updateFilter('attributes', [...filters.attributes, { key: '', value: '' }]);
-  };
-
-  const updateAttribute = (index: number, field: 'key' | 'value', val: string) => {
-    const updated = [...filters.attributes];
-    updated[index] = { ...updated[index], [field]: val };
-    updateFilter('attributes', updated);
-  };
-
-  const removeAttribute = (index: number) => {
-    updateFilter('attributes', filters.attributes.filter((_, i) => i !== index));
-  };
-
-  const activeFilterCount = () => {
-    let count = 0;
-    if (filters.include_segments.length > 0) count++;
-    if (filters.exclude_segments.length > 0) count++;
-    if (filters.include_tags.length > 0) count++;
-    if (filters.exclude_tags.length > 0) count++;
-    if (filters.assigned_agent && filters.assigned_agent !== SELECT_SENTINELS.all) count++;
-    if (filters.lead_states.length > 0) count++;
-    if (filters.date_from || filters.date_to) count++;
-    if (filters.contact_source) count++;
-    if (filters.meta_campaign_source) count++;
-    if (filters.flow_source) count++;
-    if (filters.attributes.length > 0) count++;
-    if (filters.is_unreplied !== 'all') count++;
-    if (filters.selected_contacts.length > 0) count++;
-    return count;
-  };
-
-
-  const FilterSection = AudienceFilterSection;
+  // ── Render ────────────────────────────────────────────────────────────────────
+  if (usingDirectContacts) {
+    return (
+      <Card>
+        <CardContent className="p-6 flex items-center gap-4">
+          <div className="h-12 w-12 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
+            <Users className="h-6 w-6" />
+          </div>
+          <div className="flex-1">
+            <p className="text-sm text-muted-foreground">Direct recipient list</p>
+            <p className="text-2xl font-bold">{filters.selected_contacts.length.toLocaleString()} contacts</p>
+            <p className="text-xs text-muted-foreground mt-1">
+              Audience filters are disabled while a direct list is selected.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <div className="space-y-5">
-      {/* Header */}
-      <div className="rounded-2xl border bg-gradient-to-br from-primary/5 via-background to-background p-4 sm:p-5">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-          <div className="flex items-start gap-3">
-            <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
-              <Target className="h-5 w-5 text-primary" />
-            </div>
-            <div>
-              <h3 className="text-base sm:text-lg font-semibold leading-tight">Build your target audience</h3>
-              <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
-                Pick from <strong>Segments</strong>, <strong>Tags</strong>, or apply <strong>filters</strong> like agent, lead status, date and source. The estimate updates live on the right.
+      {/* Premium audience summary */}
+      <Card className="overflow-hidden border-primary/20 bg-gradient-to-br from-primary/5 via-background to-background">
+        <CardContent className="p-6">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+            <div className="flex-1">
+              <div className="flex items-center gap-2 text-xs uppercase tracking-wider text-muted-foreground font-semibold">
+                <Sparkles className="h-3.5 w-3.5 text-primary" />
+                Estimated Audience
+              </div>
+              <div className="mt-1 flex items-baseline gap-3">
+                {estimate.loading && estimate.updatedAt === null ? (
+                  <Skeleton className="h-10 w-24" />
+                ) : (
+                  <span className={cn('text-4xl sm:text-5xl font-bold tracking-tight transition-opacity', estimate.loading && 'opacity-60')}>
+                    <AnimatedCount value={estimate.total} />
+                  </span>
+                )}
+                <span className="text-sm text-muted-foreground">contacts</span>
+              </div>
+              <p className="text-sm text-muted-foreground mt-1">
+                Your selected filters currently match{' '}
+                <span className="font-medium text-foreground">{estimate.total.toLocaleString()}</span>{' '}
+                {estimate.total === 1 ? 'contact' : 'contacts'}.
               </p>
             </div>
-          </div>
-          <Badge variant="outline" className="gap-1 self-start sm:self-auto">
-            <Filter className="h-3 w-3" />
-            {activeFilterCount()} active
-          </Badge>
-        </div>
-      </div>
-
-      {/* Direct Contacts Banner */}
-      {filters.selected_contacts.length > 0 && (
-        <Card className="border-primary/30 bg-primary/5">
-          <CardContent className="pt-4 pb-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-                  <Users className="h-5 w-5 text-primary" />
-                </div>
-                <div>
-                  <p className="font-medium text-sm">
-                    {filters.selected_contacts.length} contacts selected directly
-                  </p>
-                  {selectedContactsPreview.length > 0 && (
-                    <p className="text-xs text-muted-foreground truncate max-w-sm">
-                      {selectedContactsPreview
-                        .slice(0, 4)
-                        .map((c) => c.name || c.wa_id || c.id)
-                        .join(', ')}
-                      {selectedContactsPreview.length > 4
-                        ? ` +${selectedContactsPreview.length - 4} more`
-                        : ''}
-                    </p>
-                  )}
-                </div>
-              </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => updateFilter('selected_contacts', [])}
-              >
-                <X className="h-4 w-4" />
-              </Button>
+            <div className="flex flex-wrap gap-2 sm:flex-col sm:items-end">
+              <Badge variant="secondary" className="gap-1">
+                <Filter className="h-3 w-3" /> {chips.length} filter{chips.length === 1 ? '' : 's'} active
+              </Badge>
+              {estimate.updatedAt && (
+                <Badge variant="outline" className="gap-1 text-muted-foreground">
+                  <Clock className="h-3 w-3" /> Updated {timeAgo(estimate.updatedAt)}
+                </Badge>
+              )}
+              {estimate.error && (
+                <Badge variant="destructive" className="text-[10px]">Error</Badge>
+              )}
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Active chips bar */}
+      {chips.length > 0 && (
+        <div className="flex flex-wrap items-center gap-2">
+          {chips.map((c) => (
+            <Badge key={c.key} variant="secondary" className="pl-2.5 pr-1 py-1 gap-1 group">
+              <span className="text-xs">{c.label}</span>
+              <button
+                onClick={c.onRemove}
+                className="h-4 w-4 rounded-full hover:bg-muted-foreground/20 inline-flex items-center justify-center transition"
+                aria-label={`Remove ${c.label}`}
+              >
+                <X className="h-3 w-3" />
+              </button>
+            </Badge>
+          ))}
+          <Button variant="ghost" size="sm" className="text-xs h-7" onClick={clearAll}>
+            <Trash2 className="h-3 w-3 mr-1" /> Clear all
+          </Button>
+        </div>
       )}
 
-      {/* Filter Sections */}
-      <div className="grid lg:grid-cols-[1fr,320px] gap-5">
-        {/* Left: Filters */}
-        <Card className="overflow-hidden">
-          <div
-            className="overflow-y-auto pr-1"
-            style={{
-              maxHeight: 'min(68vh, var(--radix-popover-content-available-height, 68vh))',
-              scrollbarGutter: 'stable',
-            }}
-          >
-            <div className="divide-y divide-border">
-              {/* Segments */}
-              <FilterSection
-                id="segments"
-                icon={Target}
-                title="Segments"
-                badge={filters.include_segments.length}
-              >
-                {segments.length === 0 ? (
-                  <div className="rounded-lg border border-dashed p-3 text-sm text-muted-foreground">
-                    No saved segments found for this workspace yet.
-                  </div>
-                ) : (
-                  <div className="space-y-1.5">
-                    {segments.map((seg) => (
-                      <button
-                        key={seg.id}
-                        type="button"
-                        className={`w-full flex items-center justify-between p-2.5 rounded-lg border transition-all text-sm text-left
-                          ${filters.include_segments.includes(seg.id)
-                            ? 'border-primary bg-primary/5 ring-1 ring-primary/20'
-                            : 'hover:border-muted-foreground/30'
-                          }`}
-                        onClick={() => toggleInArray('include_segments', seg.id)}
-                      >
-                        <span>{seg.name}</span>
-                        <div className="flex items-center gap-2">
-                          <Badge variant="secondary" className="text-xs">
-                            {(seg.contact_count || 0).toLocaleString()}
-                          </Badge>
-                          {filters.include_segments.includes(seg.id) && (
-                            <CheckCircle className="h-4 w-4 text-primary" />
-                          )}
-                        </div>
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </FilterSection>
-
-
-
-              {/* Assigned Agent */}
-              <FilterSection
-                id="agent"
-                icon={User}
-                title="Assigned Agent"
-                badge={filters.assigned_agent && filters.assigned_agent !== SELECT_SENTINELS.all ? 1 : 0}
-              >
-                <Select
-                  value={filters.assigned_agent || SELECT_SENTINELS.none}
-                  onValueChange={(v) =>
-                    updateFilter(
-                      'assigned_agent',
-                      v === SELECT_SENTINELS.none || v === SELECT_SENTINELS.all ? '' : v
-                    )
-                  }
-                >
-                  <SelectTrigger className="h-9">
-                    <SelectValue placeholder="Select Agent" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value={SELECT_SENTINELS.none}>Select Agent</SelectItem>
-                    {agents.length === 0 ? (
-                      <SelectItem value="__no_agents__" disabled>
-                        No agents in this workspace
-                      </SelectItem>
-                    ) : (
-                      agents.map((agent) => (
-                        <SelectItem key={agent.user_id} value={agent.user_id}>
-                          {agent.display_name || agent.email || agent.user_id}
-                        </SelectItem>
-                      ))
+      {/* Filter sections */}
+      <div className="space-y-3">
+        {/* Segments */}
+        <Section icon={Target} title="Segments" description="Use saved audience segments" badge={filters.include_segments.length || filters.exclude_segments.length} defaultOpen={false}>
+          {segments.length === 0 ? (
+            <p className="text-xs text-muted-foreground">No segments yet. Create one from the Contacts page.</p>
+          ) : (
+            <div className="space-y-2">
+              {segments.map((s) => {
+                const included = filters.include_segments.includes(s.id);
+                return (
+                  <button
+                    key={s.id}
+                    type="button"
+                    onClick={() => toggleArray('include_segments', s.id)}
+                    className={cn(
+                      'w-full flex items-center justify-between gap-3 rounded-lg border p-3 text-left transition',
+                      included ? 'border-primary bg-primary/5' : 'hover:bg-muted/40',
                     )}
-                    <SelectItem value={SELECT_SENTINELS.unassigned}>Unassigned</SelectItem>
-                    <SelectItem value={SELECT_SENTINELS.all}>All Agents</SelectItem>
-                  </SelectContent>
-                </Select>
-              </FilterSection>
-
-              {/* Lead Status — synced with Inbox CRM stages */}
-              <FilterSection
-                id="lead"
-                icon={Zap}
-                title="Lead Status"
-                badge={filters.lead_states.length}
-              >
-                <p className="text-xs text-muted-foreground mb-2">
-                  Same statuses as Inbox. Selecting nothing means no lead-status filter.
-                </p>
-                <div className="flex flex-wrap gap-1.5">
-                  {INBOX_LEAD_STATUSES.map((state) => (
-                    <Badge
-                      key={state.value}
-                      variant={filters.lead_states.includes(state.value) ? 'default' : 'outline'}
-                      className="cursor-pointer transition-all hover:scale-105"
-                      onClick={() => toggleInArray('lead_states', state.value)}
-                    >
-                      <div className={`w-2 h-2 rounded-full mr-1.5 ${state.color}`} />
-                      {state.label}
-                    </Badge>
-                  ))}
-                </div>
-                {filters.lead_states.length > 0 && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-7 text-xs mt-2"
-                    onClick={() => updateFilter('lead_states', [])}
                   >
-                    Clear (All Statuses)
-                  </Button>
-                )}
-
-                <Separator className="my-2" />
-                <p className="text-xs text-muted-foreground font-medium mb-1.5">Reply Status</p>
-                <Select
-                  value={filters.is_unreplied}
-                  onValueChange={(v) => updateFilter('is_unreplied', v as 'all' | 'yes' | 'no')}
-                >
-                  <SelectTrigger className="h-9">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All</SelectItem>
-                    <SelectItem value="yes">Unreplied Only</SelectItem>
-                    <SelectItem value="no">Replied Only</SelectItem>
-                  </SelectContent>
-                </Select>
-              </FilterSection>
-
-              {/* Date Range */}
-              <FilterSection
-                id="date"
-                icon={Calendar}
-                title="Date Range"
-                badge={filters.date_from || filters.date_to ? 1 : 0}
-              >
-                <div className="grid grid-cols-2 gap-2">
-                  <VisibleDateInput
-                    label="From"
-                    value={filters.date_from}
-                    onChange={(value) => updateFilter('date_from', value)}
-                  />
-                  <VisibleDateInput
-                    label="To"
-                    value={filters.date_to}
-                    onChange={(value) => updateFilter('date_to', value)}
-                  />
-                </div>
-                {filters.assigned_agent && !(filters.date_from || filters.date_to) && (
-                  <p className="text-[11px] text-muted-foreground mt-2">
-                    Tip: combining an agent with a date range will only count contacts <strong>created</strong> in that window and assigned to that agent.
-                  </p>
-                )}
-              </FilterSection>
-
-              {/* Contact Source */}
-              <FilterSection
-                id="source"
-                icon={Sparkles}
-                title="Contact Source"
-                badge={filters.contact_source ? 1 : 0}
-              >
-                <Select
-                  value={filters.contact_source || SELECT_SENTINELS.none}
-                  onValueChange={(v) =>
-                    updateFilter(
-                      'contact_source',
-                      v === SELECT_SENTINELS.none || v === SELECT_SENTINELS.all ? '' : v
-                    )
-                  }
-                >
-                  <SelectTrigger className="h-9">
-                    <SelectValue placeholder="Select Source" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value={SELECT_SENTINELS.none}>Select Source</SelectItem>
-                    {CONTACT_SOURCES.map((s) => (
-                      <SelectItem key={s.value} value={s.value}>
-                        {s.label}
-                      </SelectItem>
-                    ))}
-                    <SelectItem value={SELECT_SENTINELS.all}>All Sources</SelectItem>
-                  </SelectContent>
-                </Select>
-              </FilterSection>
-
-              {/* Meta Ads Campaign */}
-              <FilterSection
-                id="meta"
-                icon={Megaphone}
-                title="From Meta Ads"
-                badge={filters.meta_campaign_source ? 1 : 0}
-              >
-                {metaCampaigns.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">No Meta Ads campaigns found</p>
-                ) : (
-                  <Select
-                    value={filters.meta_campaign_source || SELECT_SENTINELS.none}
-                    onValueChange={(v) =>
-                      updateFilter(
-                        'meta_campaign_source',
-                        v === SELECT_SENTINELS.none || v === SELECT_SENTINELS.all ? '' : v
-                      )
-                    }
-                  >
-                    <SelectTrigger className="h-9">
-                      <SelectValue placeholder="Select Campaign" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value={SELECT_SENTINELS.none}>Select Campaign</SelectItem>
-                      {metaCampaigns.map((c) => (
-                        <SelectItem key={c.id} value={c.id}>
-                          {c.name}
-                        </SelectItem>
-                      ))}
-                      <SelectItem value={SELECT_SENTINELS.all}>All Meta Campaigns</SelectItem>
-                    </SelectContent>
-                  </Select>
-                )}
-              </FilterSection>
-
-              {/* Automation / Flow */}
-              <FilterSection
-                id="flow"
-                icon={Workflow}
-                title="From Flow / Automation"
-                badge={filters.flow_source ? 1 : 0}
-              >
-                {flows.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">No flows found</p>
-                ) : (
-                  <Select
-                    value={filters.flow_source || SELECT_SENTINELS.none}
-                    onValueChange={(v) =>
-                      updateFilter(
-                        'flow_source',
-                        v === SELECT_SENTINELS.none || v === SELECT_SENTINELS.all ? '' : v
-                      )
-                    }
-                  >
-                    <SelectTrigger className="h-9">
-                      <SelectValue placeholder="Select Flow" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value={SELECT_SENTINELS.none}>Select Flow</SelectItem>
-                      {flows.map((f) => (
-                        <SelectItem key={f.id} value={f.id}>
-                          {f.name} ({f.status})
-                        </SelectItem>
-                      ))}
-                      <SelectItem value={SELECT_SENTINELS.all}>All Flows</SelectItem>
-                    </SelectContent>
-                  </Select>
-                )}
-              </FilterSection>
-
-              {/* Custom Attributes */}
-              <FilterSection
-                id="attributes"
-                icon={Filter}
-                title="Custom Attributes"
-                badge={filters.attributes.filter((a) => a.key).length}
-              >
-                <div className="space-y-2">
-                  {filters.attributes.map((attr, i) => (
-                    <div key={i} className="flex items-center gap-2">
-                      <Select
-                        value={attr.key || 'select'}
-                        onValueChange={(v) => updateAttribute(i, 'key', v === 'select' ? '' : v)}
-                      >
-                        <SelectTrigger className="h-9 flex-1">
-                          <SelectValue placeholder="Key" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="select" disabled>
-                            Select key
-                          </SelectItem>
-                          {attributeKeys.map((k) => (
-                            <SelectItem key={k} value={k}>
-                              {k}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <Input
-                        className="h-9 flex-1"
-                        placeholder="Value"
-                        value={attr.value}
-                        onChange={(e) => updateAttribute(i, 'value', e.target.value)}
-                      />
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-9 w-9 shrink-0"
-                        onClick={() => removeAttribute(i)}
-                      >
-                        <Trash2 className="h-3.5 w-3.5 text-muted-foreground" />
-                      </Button>
-                    </div>
-                  ))}
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="w-full h-8 text-xs"
-                    onClick={addAttribute}
-                  >
-                    <Plus className="h-3 w-3 mr-1" />
-                    Add Attribute Filter
-                  </Button>
-                </div>
-              </FilterSection>
-
-              {/* Tags */}
-              <FilterSection
-                id="tags"
-                icon={Tag}
-                title="Tags"
-                badge={filters.include_tags.length}
-              >
-                {tags.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">No tags available yet. Upload a CSV or tag contacts first.</p>
-                ) : (
-                  <div className="flex flex-wrap gap-1.5">
-                    {tags.map((tag) => (
-                      <Badge
-                        key={tag.id}
-                        variant={filters.include_tags.includes(tag.id) ? 'default' : 'outline'}
-                        className="cursor-pointer transition-all hover:scale-105"
-                        onClick={() => toggleInArray('include_tags', tag.id)}
-                      >
-                        <div
-                          className="w-2 h-2 rounded-full mr-1.5"
-                          style={{
-                            backgroundColor: tag.color || 'hsl(var(--muted-foreground))',
-                          }}
-                        />
-                        {tag.name}
-                      </Badge>
-                    ))}
-                  </div>
-                )}
-              </FilterSection>
-
-              {/* Exclusions */}
-              <FilterSection id="exclusions" icon={Shield} title="Safety & Exclusions">
-                <div className="space-y-2.5">
-                  <div className="flex items-center justify-between p-2.5 rounded-lg border bg-red-50/50 border-red-200/50">
                     <div className="flex items-center gap-2">
-                      <Shield className="h-4 w-4 text-red-500" />
-                      <span className="text-sm">Opted-out contacts</span>
+                      <CheckCircle2 className={cn('h-4 w-4', included ? 'text-primary' : 'text-muted-foreground/40')} />
+                      <span className="text-sm font-medium">{s.name}</span>
                     </div>
-                    <Badge className="bg-red-100 text-red-700 text-xs">Auto-excluded</Badge>
-                  </div>
+                    <span className="text-xs text-muted-foreground">{s.contact_count ?? 0}</span>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </Section>
 
-                  <div className="flex items-center justify-between p-2.5 rounded-lg border">
-                    <div className="flex items-center gap-2">
-                      <CheckCircle className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm">Opt-in contacts only</span>
-                    </div>
-                    <Switch
-                      checked={filters.opt_in_only}
-                      onCheckedChange={(v) => updateFilter('opt_in_only', v)}
-                    />
-                  </div>
-
-                  <div className="flex items-center justify-between p-2.5 rounded-lg border">
-                    <div className="flex items-center gap-2">
-                      <Clock className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm">Exclude messaged in last 24h</span>
-                    </div>
-                    <Switch
-                      checked={filters.exclude_recent_days > 0}
-                      onCheckedChange={(v) => updateFilter('exclude_recent_days', v ? 1 : 0)}
-                    />
-                  </div>
-
-                  {/* Exclude Tags */}
-                  <div className="space-y-1.5">
-                    <p className="text-xs text-muted-foreground font-medium">Exclude Tags</p>
-                    <div className="flex flex-wrap gap-1.5">
-                      {tags.length === 0 ? (
-                        <span className="text-xs text-muted-foreground">No tags</span>
-                      ) : (
-                        tags.map((tag) => (
-                          <Badge
-                            key={tag.id}
-                            variant={
-                              filters.exclude_tags.includes(tag.id)
-                                ? 'destructive'
-                                : 'outline'
-                            }
-                            className="cursor-pointer text-xs"
-                            onClick={() => toggleInArray('exclude_tags', tag.id)}
-                          >
-                            {tag.name}
-                          </Badge>
-                        ))
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Exclude Segments */}
-                  {segments.length > 0 && (
-                    <div className="space-y-1.5">
-                      <p className="text-xs text-muted-foreground font-medium">Exclude Segments</p>
-                      <div className="space-y-1">
-                        {segments.map((seg) => (
-                          <div
-                            key={seg.id}
-                            className={`flex items-center justify-between p-2 rounded-md border cursor-pointer text-xs transition-all
-                              ${filters.exclude_segments.includes(seg.id)
-                                ? 'border-destructive bg-destructive/5'
-                                : 'hover:border-muted-foreground/30'
-                              }`}
-                            onClick={() => toggleInArray('exclude_segments', seg.id)}
-                          >
-                            <span>{seg.name}</span>
-                            {filters.exclude_segments.includes(seg.id) && (
-                              <X className="h-3 w-3 text-destructive" />
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </FilterSection>
+        {/* Tags */}
+        <Section icon={Tag} title="Tags" description="Include or exclude tagged contacts" badge={filters.include_tags.length} defaultOpen={false}>
+          <div>
+            <Label className="text-xs">Include tags</Label>
+            <div className="flex flex-wrap gap-1.5 mt-2">
+              {tags.length === 0 && <span className="text-xs text-muted-foreground">No tags yet.</span>}
+              {tags.map((t) => {
+                const on = filters.include_tags.includes(t.id);
+                return (
+                  <button
+                    key={t.id}
+                    type="button"
+                    onClick={() => toggleArray('include_tags', t.id)}
+                    className={cn(
+                      'text-xs rounded-full px-3 py-1 border transition',
+                      on ? 'bg-primary text-primary-foreground border-primary' : 'bg-background hover:bg-muted',
+                    )}
+                  >
+                    {t.name}
+                  </button>
+                );
+              })}
             </div>
           </div>
-        </Card>
+        </Section>
 
-        {/* Right: Audience Summary */}
-        <div className="space-y-4">
-          <Card className="border-primary/30 bg-gradient-to-br from-primary/5 to-primary/10 sticky top-4">
-            <CardContent className="pt-5 pb-4 space-y-4">
-              <div className="text-center">
-                <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-3">
-                  <Users className="h-7 w-7 text-primary" />
-                </div>
-                <p className="text-xs text-muted-foreground uppercase tracking-wider font-medium">
-                  Estimated Audience
-                </p>
-                <p className="text-4xl font-bold text-primary mt-1">
-                  {isEstimating ? '...' : estimatedCount.toLocaleString()}
-                </p>
-              </div>
+        {/* Team & Ownership */}
+        <Section icon={Users} title="Team & Ownership" description="Assigned agent or unassigned contacts" badge={filters.assigned_agent ? 1 : 0} defaultOpen={true}>
+          <div className="space-y-2">
+            <Label className="text-xs">Assigned Agent</Label>
+            <Select
+              value={filters.assigned_agent || SELECT_SENTINELS.none}
+              onValueChange={(v) => update('assigned_agent', v === SELECT_SENTINELS.none || v === SELECT_SENTINELS.all ? '' : v)}
+            >
+              <SelectTrigger className="h-10">
+                <SelectValue placeholder="Select agent" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={SELECT_SENTINELS.none}>Select agent…</SelectItem>
+                {agents.map((a) => (
+                  <SelectItem key={a.user_id} value={a.user_id}>
+                    {a.display_name || a.email || a.user_id.slice(0, 8)}
+                  </SelectItem>
+                ))}
+                <SelectItem value={SELECT_SENTINELS.unassigned}>Unassigned contacts</SelectItem>
+                <SelectItem value={SELECT_SENTINELS.all}>All agents (no filter)</SelectItem>
+              </SelectContent>
+            </Select>
+            <p className="text-[11px] text-muted-foreground">
+              Specific agent matches both contact-level and conversation-level assignments.
+            </p>
+          </div>
+        </Section>
 
-              <Separator />
-
-              {/* Active Filters Summary */}
-              <div className="space-y-2 text-xs">
-                {filters.include_segments.length > 0 && (
-                  <div className="flex items-center justify-between">
-                    <span className="text-muted-foreground">Segments</span>
-                    <span className="font-medium">{filters.include_segments.length} included</span>
-                  </div>
-                )}
-                {filters.include_tags.length > 0 && (
-                  <div className="flex items-center justify-between">
-                    <span className="text-muted-foreground">Tags</span>
-                    <span className="font-medium">{filters.include_tags.length} included</span>
-                  </div>
-                )}
-                {filters.assigned_agent && (
-                  <div className="flex items-center justify-between">
-                    <span className="text-muted-foreground">Agent</span>
-                    <span className="font-medium">
-                      {filters.assigned_agent === SELECT_SENTINELS.unassigned
-                        ? 'Unassigned'
-                        : filters.assigned_agent === SELECT_SENTINELS.all
-                          ? 'All Agents'
-                          : agents.find((a) => a.user_id === filters.assigned_agent)?.display_name
-                            || agents.find((a) => a.user_id === filters.assigned_agent)?.email
-                            || 'Selected'}
-                    </span>
-                  </div>
-                )}
-                {filters.lead_states.length > 0 && (
-                  <div className="flex items-center justify-between">
-                    <span className="text-muted-foreground">Lead Status</span>
-                    <span className="font-medium truncate max-w-[160px]">
-                      {filters.lead_states.map((s) => INBOX_LEAD_STATUS_LABEL[s] || s).join(', ')}
-                    </span>
-                  </div>
-                )}
-                {(filters.date_from || filters.date_to) && (
-                  <div className="flex items-center justify-between">
-                    <span className="text-muted-foreground">Date Range</span>
-                    <span className="font-medium">
-                      {filters.date_from || '...'} → {filters.date_to || '...'}
-                    </span>
-                  </div>
-                )}
-                {filters.contact_source && (
-                  <div className="flex items-center justify-between">
-                    <span className="text-muted-foreground">Source</span>
-                    <span className="font-medium capitalize">{filters.contact_source}</span>
-                  </div>
-                )}
-                {filters.meta_campaign_source && (
-                  <div className="flex items-center justify-between">
-                    <span className="text-muted-foreground">Meta Ads</span>
-                    <span className="font-medium truncate max-w-[140px]">
-                      {metaCampaigns.find((c) => c.id === filters.meta_campaign_source)?.name || 'Selected'}
-                    </span>
-                  </div>
-                )}
-                {filters.flow_source && (
-                  <div className="flex items-center justify-between">
-                    <span className="text-muted-foreground">Flow</span>
-                    <span className="font-medium truncate max-w-[140px]">
-                      {flows.find((f) => f.id === filters.flow_source)?.name || 'Selected'}
-                    </span>
-                  </div>
-                )}
-                {filters.selected_contacts.length > 0 && (
-                  <div className="flex items-center justify-between">
-                    <span className="text-muted-foreground">Direct</span>
-                    <span className="font-medium">{filters.selected_contacts.length} contacts</span>
-                  </div>
-                )}
-                {filters.exclude_tags.length > 0 && (
-                  <div className="flex items-center justify-between text-destructive">
-                    <span>Excluded Tags</span>
-                    <span className="font-medium">{filters.exclude_tags.length}</span>
-                  </div>
-                )}
-                {filters.exclude_segments.length > 0 && (
-                  <div className="flex items-center justify-between text-destructive">
-                    <span>Excluded Segments</span>
-                    <span className="font-medium">{filters.exclude_segments.length}</span>
-                  </div>
-                )}
-
-                {activeFilterCount() === 0 && (
-                  <p className="text-center text-muted-foreground py-2">
-                    No filters applied — targeting all opted-in contacts
-                  </p>
-                )}
-              </div>
-
-              {activeFilterCount() > 0 && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="w-full text-xs h-8"
-                  onClick={() => setFilters(DEFAULT_AUDIENCE_FILTERS)}
+        {/* Lead Journey */}
+        <Section icon={Workflow} title="Lead Journey" description="Match Inbox lead status (multi-select)" badge={filters.lead_states.length} defaultOpen={true}>
+          <div className="flex flex-wrap gap-1.5">
+            {INBOX_LEAD_STATUSES.map((s) => {
+              const on = filters.lead_states.includes(s.value);
+              return (
+                <button
+                  key={s.value}
+                  type="button"
+                  onClick={() => toggleArray('lead_states', s.value)}
+                  className={cn(
+                    'text-xs rounded-full px-3 py-1.5 border transition flex items-center gap-1.5',
+                    on ? 'bg-primary text-primary-foreground border-primary' : 'bg-background hover:bg-muted',
+                  )}
                 >
-                  <X className="h-3 w-3 mr-1" />
-                  Clear All Filters
-                </Button>
+                  <span className={cn('h-1.5 w-1.5 rounded-full', s.color)} />
+                  {s.label}
+                </button>
+              );
+            })}
+          </div>
+        </Section>
+
+        {/* Date & Activity */}
+        <DateSection filters={filters} setFilters={setFilters} />
+
+        {/* Contact Source */}
+        <Section icon={Globe2} title="Contact Source" description="Where the contact originated" badge={filters.contact_source ? 1 : 0} defaultOpen={true}>
+          <div className="flex flex-wrap gap-1.5">
+            <button
+              type="button"
+              onClick={() => update('contact_source', '')}
+              className={cn(
+                'text-xs rounded-full px-3 py-1.5 border transition',
+                filters.contact_source === '' ? 'bg-primary text-primary-foreground border-primary' : 'bg-background hover:bg-muted',
               )}
-            </CardContent>
-          </Card>
-        </div>
+            >
+              All Sources
+            </button>
+            {CONTACT_SOURCES.map((s) => {
+              const on = filters.contact_source === s.value;
+              return (
+                <button
+                  key={s.value}
+                  type="button"
+                  onClick={() => update('contact_source', on ? '' : s.value)}
+                  className={cn(
+                    'text-xs rounded-full px-3 py-1.5 border transition',
+                    on ? 'bg-primary text-primary-foreground border-primary' : 'bg-background hover:bg-muted',
+                  )}
+                >
+                  {s.label}
+                </button>
+              );
+            })}
+          </div>
+        </Section>
+
+        {/* Campaigns & Automation */}
+        <Section icon={Megaphone} title="Campaigns & Automation" description="From a flow or Meta ad campaign" badge={(filters.flow_source ? 1 : 0) + (filters.meta_campaign_source ? 1 : 0)}>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div>
+              <Label className="text-xs">Automation Flow</Label>
+              <Select value={filters.flow_source || SELECT_SENTINELS.all} onValueChange={(v) => update('flow_source', v === SELECT_SENTINELS.all ? '' : v)}>
+                <SelectTrigger className="h-10 mt-1.5"><SelectValue placeholder="Any flow" /></SelectTrigger>
+                <SelectContent>
+                  {flows.map((f) => <SelectItem key={f.id} value={f.id}>{f.name}</SelectItem>)}
+                  <SelectItem value={SELECT_SENTINELS.all}>Any flow</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label className="text-xs">Meta Ad Campaign</Label>
+              <Select value={filters.meta_campaign_source || SELECT_SENTINELS.all} onValueChange={(v) => update('meta_campaign_source', v === SELECT_SENTINELS.all ? '' : v)}>
+                <SelectTrigger className="h-10 mt-1.5"><SelectValue placeholder="Any campaign" /></SelectTrigger>
+                <SelectContent>
+                  {metaCampaigns.map((m) => <SelectItem key={m.id} value={m.id}>{m.name}</SelectItem>)}
+                  <SelectItem value={SELECT_SENTINELS.all}>Any campaign</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </Section>
+
+        {/* Advanced Attributes */}
+        <Section icon={Zap} title="Advanced Attributes" description="Custom attribute key + value matches" badge={filters.attributes.filter((a) => a.key && a.value).length}>
+          <div className="space-y-2">
+            {filters.attributes.length === 0 && (
+              <p className="text-xs text-muted-foreground">No attribute filters yet.</p>
+            )}
+            {filters.attributes.map((attr, i) => (
+              <div key={i} className="flex gap-2 items-end">
+                <div className="flex-1">
+                  <Label className="text-[11px]">Key</Label>
+                  <Select value={attr.key || SELECT_SENTINELS.none} onValueChange={(v) => {
+                    const next = [...filters.attributes]; next[i] = { ...attr, key: v === SELECT_SENTINELS.none ? '' : v }; update('attributes', next);
+                  }}>
+                    <SelectTrigger className="h-9"><SelectValue placeholder="Select key" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value={SELECT_SENTINELS.none}>Select key…</SelectItem>
+                      {attributeKeys.data?.map((k) => <SelectItem key={k} value={k}>{k}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="flex-1">
+                  <Label className="text-[11px]">Value contains</Label>
+                  <Input className="h-9" value={attr.value} onChange={(e) => { const next = [...filters.attributes]; next[i] = { ...attr, value: e.target.value }; update('attributes', next); }} />
+                </div>
+                <Button variant="ghost" size="icon" className="h-9 w-9" onClick={() => update('attributes', filters.attributes.filter((_, idx) => idx !== i))}>
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            ))}
+            <Button variant="outline" size="sm" onClick={() => update('attributes', [...filters.attributes, { key: '', value: '' }])}>
+              <Plus className="h-3 w-3 mr-1" /> Add attribute
+            </Button>
+          </div>
+        </Section>
+
+        {/* Safety & Exclusions */}
+        <Section icon={Shield} title="Safety & Exclusions" description="Opt-in, blocked, recently contacted, exclude tags" badge={(filters.exclude_tags.length || 0) + (filters.exclude_recent_days ? 1 : 0)}>
+          <div className="space-y-4">
+            <div className="flex items-center justify-between rounded-lg border p-3">
+              <div>
+                <p className="text-sm font-medium">Opt-in only</p>
+                <p className="text-xs text-muted-foreground">Skip contacts who have opted out</p>
+              </div>
+              <Switch checked={filters.opt_in_only} onCheckedChange={(v) => update('opt_in_only', v)} />
+            </div>
+
+            <div>
+              <Label className="text-xs">Skip contacts messaged in last (days)</Label>
+              <Input
+                type="number"
+                min={0}
+                value={filters.exclude_recent_days || 0}
+                onChange={(e) => update('exclude_recent_days', Math.max(0, parseInt(e.target.value || '0', 10)))}
+                className="h-9 mt-1.5 w-32"
+              />
+            </div>
+
+            <div>
+              <Label className="text-xs">Exclude tags</Label>
+              <div className="flex flex-wrap gap-1.5 mt-2">
+                {tags.length === 0 && <span className="text-xs text-muted-foreground">No tags yet.</span>}
+                {tags.map((t) => {
+                  const on = filters.exclude_tags.includes(t.id);
+                  return (
+                    <button
+                      key={t.id}
+                      type="button"
+                      onClick={() => toggleArray('exclude_tags', t.id)}
+                      className={cn(
+                        'text-xs rounded-full px-3 py-1 border transition',
+                        on ? 'bg-destructive text-destructive-foreground border-destructive' : 'bg-background hover:bg-muted',
+                      )}
+                    >
+                      {t.name}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        </Section>
       </div>
     </div>
+  );
+}
+
+// ─── Date section with presets + popover calendar ───────────────────────────────
+function DateSection({
+  filters,
+  setFilters,
+}: {
+  filters: AudienceFilters;
+  setFilters: (f: AudienceFilters) => void;
+}) {
+  const [pendingFrom, setPendingFrom] = useState<Date | undefined>(filters.date_from ? new Date(filters.date_from) : undefined);
+  const [pendingTo, setPendingTo] = useState<Date | undefined>(filters.date_to ? new Date(filters.date_to) : undefined);
+  const [open, setOpen] = useState(false);
+
+  const applyPreset = (preset: 'today' | 'yesterday' | 'last7' | 'last30' | 'thisMonth') => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    let from: Date;
+    let to: Date = new Date(today);
+    if (preset === 'today') from = today;
+    else if (preset === 'yesterday') {
+      from = new Date(today); from.setDate(from.getDate() - 1);
+      to = new Date(from);
+    } else if (preset === 'last7') { from = new Date(today); from.setDate(from.getDate() - 6); }
+    else if (preset === 'last30') { from = new Date(today); from.setDate(from.getDate() - 29); }
+    else { from = new Date(today.getFullYear(), today.getMonth(), 1); }
+    setFilters({ ...filters, date_from: formatDate(from), date_to: formatDate(to) });
+  };
+
+  const apply = () => {
+    setFilters({
+      ...filters,
+      date_from: pendingFrom ? formatDate(pendingFrom) : '',
+      date_to: pendingTo ? formatDate(pendingTo) : '',
+    });
+    setOpen(false);
+  };
+
+  const clear = () => {
+    setPendingFrom(undefined); setPendingTo(undefined);
+    setFilters({ ...filters, date_from: '', date_to: '' });
+  };
+
+  const hasRange = !!(filters.date_from || filters.date_to);
+
+  return (
+    <Section icon={Calendar} title="Date & Activity" description="When contacts were created" badge={hasRange ? 1 : 0}>
+      <div className="space-y-3">
+        <div className="flex flex-wrap gap-1.5">
+          {[
+            ['today', 'Today'],
+            ['yesterday', 'Yesterday'],
+            ['last7', 'Last 7 days'],
+            ['last30', 'Last 30 days'],
+            ['thisMonth', 'This month'],
+          ].map(([k, label]) => (
+            <button
+              key={k}
+              type="button"
+              onClick={() => applyPreset(k as any)}
+              className="text-xs rounded-full px-3 py-1.5 border bg-background hover:bg-muted transition"
+            >
+              {label}
+            </button>
+          ))}
+          <Popover open={open} onOpenChange={setOpen}>
+            <PopoverTrigger asChild>
+              <button className="text-xs rounded-full px-3 py-1.5 border bg-background hover:bg-muted transition inline-flex items-center gap-1">
+                <Calendar className="h-3 w-3" /> Custom range
+              </button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <CalendarPicker
+                mode="range"
+                selected={{ from: pendingFrom, to: pendingTo }}
+                onSelect={(range: any) => { setPendingFrom(range?.from); setPendingTo(range?.to); }}
+                numberOfMonths={1}
+                className="p-3 pointer-events-auto"
+              />
+              <div className="flex items-center justify-between gap-2 p-3 border-t">
+                <Button variant="ghost" size="sm" onClick={() => { setPendingFrom(undefined); setPendingTo(undefined); }}>Reset</Button>
+                <Button size="sm" onClick={apply}>Apply</Button>
+              </div>
+            </PopoverContent>
+          </Popover>
+          {hasRange && (
+            <button onClick={clear} className="text-xs rounded-full px-3 py-1.5 border bg-background hover:bg-muted transition inline-flex items-center gap-1">
+              <X className="h-3 w-3" /> Clear
+            </button>
+          )}
+        </div>
+        {hasRange && (
+          <p className="text-xs text-muted-foreground">
+            From <span className="font-medium text-foreground">{niceDate(filters.date_from) || '—'}</span> to <span className="font-medium text-foreground">{niceDate(filters.date_to) || '—'}</span>
+          </p>
+        )}
+      </div>
+    </Section>
   );
 }
