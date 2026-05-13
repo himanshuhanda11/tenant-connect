@@ -3,14 +3,18 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { RefreshCw, Loader2, FileText, Zap, Webhook, MoreHorizontal, Filter, AlertTriangle } from 'lucide-react';
+import { RefreshCw, Loader2, FileText, Zap, Webhook, MoreHorizontal, Filter, AlertTriangle, ArrowDownToLine } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
+import { useTenant } from '@/contexts/TenantContext';
+import { toast } from 'sonner';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import {
@@ -20,12 +24,60 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 export function LeadFormsList() {
-  const { forms, loading, syncForms, subscribeWebhook, testWebhook, permissionError } = useLeadForms();
+  const { forms, loading, syncForms, subscribeWebhook, testWebhook, permissionError, refetch } = useLeadForms();
+  const { currentTenant } = useTenant();
   const [syncing, setSyncing] = useState(false);
   const [selectedPageId, setSelectedPageId] = useState<string>('all');
+  const [backfillForm, setBackfillForm] = useState<{ form_id: string; form_name: string; lead_count: number } | null>(null);
+  const [backfilling, setBackfilling] = useState(false);
   const navigate = useNavigate();
+
+  const handleBackfill = async () => {
+    if (!backfillForm || !currentTenant?.id) return;
+    setBackfilling(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('meta-sync-lead-forms', {
+        body: {
+          tenantId: currentTenant.id,
+          action: 'backfill_form_leads',
+          formId: backfillForm.form_id,
+          maxLeads: 5000,
+        },
+      });
+      if (error) throw error;
+      if (data?.success) {
+        const r = data.results?.[0];
+        if (r?.error) {
+          toast.error(`Backfill error: ${r.error}`);
+        } else {
+          toast.success(
+            `Backfilled ${data.total_inserted} new lead${data.total_inserted === 1 ? '' : 's'}`,
+            { description: `Fetched ${data.total_fetched}, skipped ${r?.skipped ?? 0} duplicates. Auto-replies were NOT sent.` }
+          );
+        }
+      } else {
+        toast.error(data?.error || 'Backfill failed');
+      }
+      await refetch();
+    } catch (err: any) {
+      toast.error(err?.message || 'Backfill failed');
+    } finally {
+      setBackfilling(false);
+      setBackfillForm(null);
+    }
+  };
 
   const handleSync = async () => {
     setSyncing(true);
@@ -152,6 +204,17 @@ export function LeadFormsList() {
                           Subscribe Webhook
                         </DropdownMenuItem>
                       )}
+                      {form.lead_count > 0 && (
+                        <>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem
+                            onClick={() => setBackfillForm({ form_id: form.form_id, form_name: form.form_name || form.form_id, lead_count: form.lead_count })}
+                          >
+                            <ArrowDownToLine className="h-3.5 w-3.5 mr-2" />
+                            Backfill {form.lead_count} historical leads
+                          </DropdownMenuItem>
+                        </>
+                      )}
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </div>
@@ -195,6 +258,30 @@ export function LeadFormsList() {
           ))}
         </div>
       )}
+
+      <AlertDialog open={!!backfillForm} onOpenChange={(open) => !open && !backfilling && setBackfillForm(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Backfill historical leads?</AlertDialogTitle>
+            <AlertDialogDescription className="space-y-2">
+              <span className="block">
+                This will fetch up to <strong>{backfillForm?.lead_count}</strong> historical leads from Meta for{' '}
+                <strong>{backfillForm?.form_name}</strong> and import them into your system.
+              </span>
+              <span className="block text-amber-700 dark:text-amber-400 text-xs">
+                ⚠️ Lead-form rules and auto-replies will <strong>NOT</strong> run — old contacts won't be spammed.
+                Leads already imported will be skipped automatically.
+              </span>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={backfilling}>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={(e) => { e.preventDefault(); handleBackfill(); }} disabled={backfilling}>
+              {backfilling ? <><Loader2 className="h-4 w-4 mr-1.5 animate-spin" />Backfilling…</> : 'Start Backfill'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
