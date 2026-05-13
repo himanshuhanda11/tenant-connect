@@ -50,6 +50,7 @@ interface RateValue {
 }
 
 type SortKey = 'country' | 'marketing' | 'utility' | 'authentication';
+type PricingTab = 'all' | 'marketing' | 'utility' | 'authentication';
 
 // Rough country-code → dial code (display only)
 const DIAL: Record<string, string> = {
@@ -114,7 +115,7 @@ export default function MessagePricing() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState('');
-  const [tab, setTab] = useState<'all' | 'marketing' | 'utility' | 'authentication'>('all');
+  const [tab, setTab] = useState<PricingTab>('all');
   const [sortKey, setSortKey] = useState<SortKey>('country');
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
 
@@ -255,7 +256,7 @@ export default function MessagePricing() {
               </div>
             </div>
 
-            <Tabs value={tab} onValueChange={(v) => setTab(v as any)} className="mt-3">
+            <Tabs value={tab} onValueChange={(v) => setTab(v as PricingTab)} className="mt-3">
               <TabsList className="grid grid-cols-4 w-full sm:w-auto">
                 <TabsTrigger value="all" className="text-xs">All</TabsTrigger>
                 <TabsTrigger value="marketing" className="text-xs">Marketing</TabsTrigger>
