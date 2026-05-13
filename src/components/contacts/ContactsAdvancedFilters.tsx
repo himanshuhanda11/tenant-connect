@@ -35,6 +35,7 @@ import {
   Trash2,
 } from 'lucide-react';
 import { LEAD_STATUS_OPTIONS, PRIORITY_OPTIONS, MAU_STATUS_OPTIONS } from '@/types/contact';
+import { INBOX_LEAD_STATUSES, INBOX_LEAD_STATUS_LABEL, SELECT_SENTINELS } from '@/lib/inboxLeadStatus';
 import { SegmentFilters } from '@/types/segment';
 import { cn } from '@/lib/utils';
 
@@ -60,13 +61,12 @@ const SOURCE_LABELS: Record<string, string> = {
   whatsapp: 'WhatsApp',
 };
 
-const LEAD_STATE_OPTIONS = [
-  { value: 'new', label: 'New', className: 'bg-blue-100 text-blue-700' },
-  { value: 'assigned_pending', label: 'Assigned Pending', className: 'bg-amber-100 text-amber-700' },
-  { value: 'claimed', label: 'Claimed', className: 'bg-emerald-100 text-emerald-700' },
-  { value: 'unreplied', label: 'Unreplied', className: 'bg-rose-100 text-rose-700' },
-  { value: 'closed', label: 'Closed', className: 'bg-muted text-muted-foreground' },
-];
+// Lead State (CRM lifecycle) — single source of truth, mirrors Inbox
+const LEAD_STATE_OPTIONS = INBOX_LEAD_STATUSES.map((s) => ({
+  value: s.value,
+  label: s.label,
+  className: s.badgeClass,
+}));
 
 export function ContactsAdvancedFilters({
   filters,
@@ -125,24 +125,9 @@ export function ContactsAdvancedFilters({
         active.push({ key: 'leadState', label: 'Lead State', value: opt?.label || s, color: opt?.className });
       });
     }
-    if (filters.leadStatus?.length) {
-      filters.leadStatus.forEach((s) => {
-        const opt = LEAD_STATUS_OPTIONS.find((o) => o.value === s);
-        active.push({ key: 'leadStatus', label: 'Status', value: opt?.label || s, color: opt?.color });
-      });
-    }
-    if (filters.priority?.length) {
-      filters.priority.forEach((p) => {
-        const opt = PRIORITY_OPTIONS.find((o) => o.value === p);
-        active.push({ key: 'priority', label: 'Priority', value: opt?.label || p, color: opt?.color });
-      });
-    }
-    if (filters.mauStatus?.length) {
-      filters.mauStatus.forEach((m) => {
-        const opt = MAU_STATUS_OPTIONS.find((o) => o.value === m);
-        active.push({ key: 'mauStatus', label: 'MAU', value: opt?.label || m, color: opt?.color });
-      });
-    }
+    // NOTE: Legacy contacts.lead_status (won/lost/proposal), priority_level and mau_status
+    // are intentionally not exposed as audience filters — Inbox CRM lead state above is the
+    // single source of truth.
     if (filters.tags?.length) {
       filters.tags.forEach((t) => {
         const tag = availableTags.find((at) => at.id === t);
@@ -274,11 +259,12 @@ export function ContactsAdvancedFilters({
             </div>
             <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain">
               <div className="p-4 pb-12 space-y-5">
-                {/* Lead State (CRM) */}
+                {/* Lead Status (CRM) — same statuses as Inbox */}
                 <div className="space-y-3">
                   <div className="flex items-center gap-2">
                     <Inbox className="h-4 w-4 text-muted-foreground" />
-                    <Label className="text-sm font-medium">Lead State (CRM)</Label>
+                    <Label className="text-sm font-medium">Lead Status</Label>
+                    <span className="text-[10px] text-muted-foreground ml-auto">Same as Inbox</span>
                   </div>
                   <div className="grid grid-cols-2 gap-2">
                     {LEAD_STATE_OPTIONS.map((opt) => (
@@ -299,86 +285,6 @@ export function ContactsAdvancedFilters({
                 </div>
 
                 <Separator />
-
-                {/* Lead Status */}
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2">
-                    <TrendingUp className="h-4 w-4 text-muted-foreground" />
-                    <Label className="text-sm font-medium">Lead Status</Label>
-                  </div>
-                  <div className="grid grid-cols-2 gap-2">
-                    {LEAD_STATUS_OPTIONS.map((opt) => (
-                      <div key={opt.value} className="flex items-center space-x-2">
-                        <Checkbox
-                          id={`lead-${opt.value}`}
-                          checked={filters.leadStatus?.includes(opt.value)}
-                          onCheckedChange={() => toggleArrayFilter('leadStatus', opt.value)}
-                        />
-                        <Label htmlFor={`lead-${opt.value}`} className="text-sm cursor-pointer">
-                          <Badge variant="secondary" className={cn(opt.color, "text-xs")}>
-                            {opt.label}
-                          </Badge>
-                        </Label>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <Separator />
-
-                {/* Priority */}
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2">
-                    <Users className="h-4 w-4 text-muted-foreground" />
-                    <Label className="text-sm font-medium">Priority Level</Label>
-                  </div>
-                  <div className="grid grid-cols-2 gap-2">
-                    {PRIORITY_OPTIONS.map((opt) => (
-                      <div key={opt.value} className="flex items-center space-x-2">
-                        <Checkbox
-                          id={`priority-${opt.value}`}
-                          checked={filters.priority?.includes(opt.value)}
-                          onCheckedChange={() => toggleArrayFilter('priority', opt.value)}
-                        />
-                        <Label htmlFor={`priority-${opt.value}`} className="text-sm cursor-pointer">
-                          <Badge variant="secondary" className={cn(opt.color, "text-xs")}>
-                            {opt.label}
-                          </Badge>
-                        </Label>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <Separator />
-
-                {/* MAU Status */}
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2">
-                    <Calendar className="h-4 w-4 text-muted-foreground" />
-                    <Label className="text-sm font-medium">MAU Status</Label>
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    {MAU_STATUS_OPTIONS.map((opt) => (
-                      <div key={opt.value} className="flex items-center space-x-2">
-                        <Checkbox
-                          id={`mau-${opt.value}`}
-                          checked={filters.mauStatus?.includes(opt.value)}
-                          onCheckedChange={() => toggleArrayFilter('mauStatus', opt.value)}
-                        />
-                        <Label htmlFor={`mau-${opt.value}`} className="text-sm cursor-pointer">
-                          <Badge variant="secondary" className={cn(opt.color, "text-xs")}>
-                            {opt.label}
-                          </Badge>
-                        </Label>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <Separator />
-
-                {/* Tags */}
                 {availableTags.length > 0 && (
                   <>
                     <div className="space-y-3">
@@ -426,19 +332,31 @@ export function ContactsAdvancedFilters({
                     <div className="space-y-1.5">
                       <Label className="text-xs text-muted-foreground">Assigned To</Label>
                       <Select
-                        value={filters.assignedTo || 'all'}
-                        onValueChange={(v) => updateFilter('assignedTo', v === 'all' ? undefined : v)}
+                        value={filters.assignedTo || SELECT_SENTINELS.none}
+                        onValueChange={(v) =>
+                          updateFilter(
+                            'assignedTo',
+                            v === SELECT_SENTINELS.none || v === SELECT_SENTINELS.all ? undefined : v
+                          )
+                        }
                       >
                         <SelectTrigger className="h-8">
-                          <SelectValue placeholder="Any agent" />
+                          <SelectValue placeholder="Select Agent" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="all">Any Agent</SelectItem>
-                          {availableAgents.map(a => (
-                            <SelectItem key={a.id} value={a.id}>
-                              {a.full_name || a.email}
+                          <SelectItem value={SELECT_SENTINELS.none}>Select Agent</SelectItem>
+                          {availableAgents.length === 0 ? (
+                            <SelectItem value="__no_agents__" disabled>
+                              No agents in this workspace
                             </SelectItem>
-                          ))}
+                          ) : (
+                            availableAgents.map((a) => (
+                              <SelectItem key={a.id} value={a.id}>
+                                {a.full_name || a.email || a.id}
+                              </SelectItem>
+                            ))
+                          )}
+                          <SelectItem value={SELECT_SENTINELS.all}>All Agents</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>

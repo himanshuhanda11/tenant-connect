@@ -94,7 +94,9 @@ export function useContactsCrmSearch() {
       };
 
       if (filters.phoneNumberId) params.p_phone_number_id = filters.phoneNumberId;
-      if (filters.leadStates.length > 0) params.p_lead_states = filters.leadStates;
+      // leadStates now carry Inbox CRM stages (new, contacted, qualified, ...) — same as Inbox.
+      // Sent as p_crm_statuses which filters via conversations.crm_status.
+      if (filters.leadStates.length > 0) params.p_crm_statuses = filters.leadStates;
       if (filters.isUnreplied !== undefined) params.p_is_unreplied = filters.isUnreplied;
       if (filters.dateFrom) params.p_date_from = filters.dateFrom;
       if (filters.dateTo) params.p_date_to = filters.dateTo;

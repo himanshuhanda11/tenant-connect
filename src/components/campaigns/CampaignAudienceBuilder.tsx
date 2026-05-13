@@ -42,6 +42,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useTenant } from '@/contexts/TenantContext';
 import { useAttributeKeys } from '@/hooks/useContactAttributes';
 import { CampaignWizardState } from '@/types/campaign';
+import { INBOX_LEAD_STATUSES, SELECT_SENTINELS, INBOX_LEAD_STATUS_LABEL } from '@/lib/inboxLeadStatus';
 
 interface SegmentOption {
   id: string;
@@ -105,40 +106,7 @@ export interface AudienceFilters {
   opt_in_only: boolean;
 }
 
-const LEAD_STATES = [
-  { value: 'new', label: 'New', color: 'bg-emerald-500' },
-  { value: 'contacted', label: 'Contacted', color: 'bg-blue-500' },
-  { value: 'qualified', label: 'Qualified', color: 'bg-violet-500' },
-  { value: 'proposal', label: 'Proposal', color: 'bg-amber-500' },
-  { value: 'negotiation', label: 'Negotiation', color: 'bg-orange-500' },
-  { value: 'won', label: 'Won', color: 'bg-green-500' },
-  { value: 'lost', label: 'Lost', color: 'bg-red-500' },
-];
-
-const CRM_STATUSES = [
-  { value: 'new', label: 'New' },
-  { value: 'contacted', label: 'Contacted' },
-  { value: 'follow_up_required', label: 'Follow-up Required' },
-  { value: 'converted', label: 'Converted' },
-  { value: 'not_interested', label: 'Not Interested' },
-  { value: 'junk', label: 'Junk' },
-];
-
-const MAU_STATUSES = [
-  { value: 'active', label: 'Active', color: 'bg-green-500' },
-  { value: 'inactive', label: 'Inactive', color: 'bg-amber-500' },
-  { value: 'churned', label: 'Churned', color: 'bg-red-500' },
-];
-
-const PRIORITIES = [
-  { value: 'low', label: 'Low' },
-  { value: 'normal', label: 'Normal' },
-  { value: 'high', label: 'High' },
-  { value: 'urgent', label: 'Urgent' },
-];
-
 const CONTACT_SOURCES = [
-  { value: '', label: 'All Sources' },
   { value: 'ctwa', label: 'Click-to-WhatsApp Ads' },
   { value: 'organic', label: 'Organic' },
   { value: 'api', label: 'API' },
@@ -348,23 +316,24 @@ export default function CampaignAudienceBuilder({
           .limit(50),
       ]);
 
-      // For agents, get profile info
+      // For agents, get profile info — keep all active agents even when profile lookup is empty
       if (agentRes.data) {
-        const userIds = agentRes.data.map((a: any) => a.user_id);
+        const userIds = agentRes.data.map((a: any) => a.user_id).filter(Boolean);
+        let profileMap = new Map<string, any>();
         if (userIds.length > 0) {
           const { data: profiles } = await supabase
             .from('profiles')
             .select('id, full_name, email')
             .in('id', userIds);
-          const profileMap = new Map((profiles || []).map((p: any) => [p.id, p]));
-          setAgents(
-            agentRes.data.map((a: any) => ({
-              user_id: a.user_id,
-              display_name: a.display_name || profileMap.get(a.user_id)?.full_name || null,
-              email: profileMap.get(a.user_id)?.email || '',
-            }))
-          );
+          profileMap = new Map((profiles || []).map((p: any) => [p.id, p]));
         }
+        setAgents(
+          agentRes.data.map((a: any) => ({
+            user_id: a.user_id,
+            display_name: a.display_name || profileMap.get(a.user_id)?.full_name || null,
+            email: profileMap.get(a.user_id)?.email || '',
+          }))
+        );
       }
 
       setFlows((flowRes.data || []) as FlowOption[]);
@@ -439,7 +408,9 @@ export default function CampaignAudienceBuilder({
         return;
       }
 
-      if (filters.assigned_agent) {
+      // Specific agent selected → restrict via inbox summary (covers conversation-level assignment).
+      // Unassigned uses contacts.assigned_agent_id IS NULL on the main query below.
+      if (filters.assigned_agent && filters.assigned_agent !== SELECT_SENTINELS.unassigned) {
         const { data, error } = await supabase
           .from('contact_inbox_summary')
           .select('contact_id')
@@ -447,6 +418,25 @@ export default function CampaignAudienceBuilder({
           .eq('assigned_to', filters.assigned_agent);
         if (error) throw error;
         assignedSummaryIds = new Set((data || []).map((row) => row.contact_id).filter(Boolean));
+      }
+
+      // Lead Status (Inbox CRM) — filter via conversations.crm_status to stay in sync with Inbox
+      if (filters.lead_states.length > 0) {
+        const { data, error } = await supabase
+          .from('conversations')
+          .select('contact_id')
+          .eq('tenant_id', currentTenant.id)
+          .in('crm_status', filters.lead_states as any);
+        if (error) throw error;
+        const leadIds = new Set((data || []).map((row: any) => row.contact_id).filter(Boolean));
+        if (leadIds.size === 0) {
+          onEstimatedCountChange(0);
+          if (filters.matched_contact_ids.length > 0) setFilters({ ...filters, matched_contact_ids: [] });
+          return;
+        }
+        allowedIds = allowedIds
+          ? new Set([...allowedIds].filter((id) => leadIds.has(id)))
+          : leadIds;
       }
 
       if (filters.is_unreplied !== 'all' || filters.exclude_recent_days > 0) {
@@ -484,13 +474,12 @@ export default function CampaignAudienceBuilder({
           .eq('tenant_id', currentTenant.id);
 
         if (filters.opt_in_only) query = query.eq('opt_out', false);
-        if (filters.mau_statuses.length > 0) query = query.in('mau_status', filters.mau_statuses as any);
-        if (filters.priorities.length > 0) query = query.in('priority_level', filters.priorities as any);
-        if (filters.lead_states.length > 0) query = query.in('lead_status', filters.lead_states as any);
-        if (filters.crm_statuses.length > 0) query = query.in('deal_stage', filters.crm_statuses as any);
         if (filters.contact_source) query = query.eq('source', filters.contact_source);
         if (filters.flow_source) query = query.eq('automation_flow', filters.flow_source);
         if (filters.meta_campaign_source) query = query.eq('campaign_source', filters.meta_campaign_source);
+        if (filters.assigned_agent === SELECT_SENTINELS.unassigned) {
+          query = query.is('assigned_agent_id', null);
+        }
 
         const selectedSegments = segments.filter((segment) => filters.include_segments.includes(segment.id));
         const excludedSegments = segments.filter((segment) => filters.exclude_segments.includes(segment.id));
@@ -527,7 +516,12 @@ export default function CampaignAudienceBuilder({
         if (error) throw error;
         const ids = (data || [])
           .filter((row) => !row.segment || !excludedSegmentNames.includes(row.segment))
-          .filter((row) => !filters.assigned_agent || row.assigned_agent_id === filters.assigned_agent || assignedSummaryIds?.has(row.id))
+          .filter((row) => {
+            const a = filters.assigned_agent;
+            if (!a || a === SELECT_SENTINELS.all) return true;
+            if (a === SELECT_SENTINELS.unassigned) return !row.assigned_agent_id;
+            return row.assigned_agent_id === a || assignedSummaryIds?.has(row.id);
+          })
           .map((row) => row.id)
           .filter((id) => Boolean(id) && (!allowedIds || allowedIds.has(id)) && !excludedIds.has(id));
         contactIds.push(...ids);
@@ -561,7 +555,7 @@ export default function CampaignAudienceBuilder({
     });
   };
 
-  const toggleInArray = (key: 'include_segments' | 'exclude_segments' | 'include_tags' | 'exclude_tags' | 'lead_states' | 'crm_statuses' | 'mau_statuses' | 'priorities', value: string) => {
+  const toggleInArray = (key: 'include_segments' | 'exclude_segments' | 'include_tags' | 'exclude_tags' | 'lead_states', value: string) => {
     const current = filters[key];
     if (current.includes(value)) {
       updateFilter(key, current.filter((v) => v !== value));
@@ -590,11 +584,8 @@ export default function CampaignAudienceBuilder({
     if (filters.exclude_segments.length > 0) count++;
     if (filters.include_tags.length > 0) count++;
     if (filters.exclude_tags.length > 0) count++;
-    if (filters.assigned_agent) count++;
+    if (filters.assigned_agent && filters.assigned_agent !== SELECT_SENTINELS.all) count++;
     if (filters.lead_states.length > 0) count++;
-    if (filters.crm_statuses.length > 0) count++;
-    if (filters.mau_statuses.length > 0) count++;
-    if (filters.priorities.length > 0) count++;
     if (filters.date_from || filters.date_to) count++;
     if (filters.contact_source) count++;
     if (filters.meta_campaign_source) count++;
@@ -727,35 +718,51 @@ export default function CampaignAudienceBuilder({
                 id="agent"
                 icon={User}
                 title="Assigned Agent"
-                badge={filters.assigned_agent ? 1 : 0}
+                badge={filters.assigned_agent && filters.assigned_agent !== SELECT_SENTINELS.all ? 1 : 0}
               >
                 <Select
-                  value={filters.assigned_agent || 'all'}
-                  onValueChange={(v) => updateFilter('assigned_agent', v === 'all' ? '' : v)}
+                  value={filters.assigned_agent || SELECT_SENTINELS.none}
+                  onValueChange={(v) =>
+                    updateFilter(
+                      'assigned_agent',
+                      v === SELECT_SENTINELS.none || v === SELECT_SENTINELS.all ? '' : v
+                    )
+                  }
                 >
                   <SelectTrigger className="h-9">
-                    <SelectValue placeholder="All agents" />
+                    <SelectValue placeholder="Select Agent" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">All Agents</SelectItem>
-                    {agents.map((agent) => (
-                      <SelectItem key={agent.user_id} value={agent.user_id}>
-                        {agent.display_name || agent.email}
+                    <SelectItem value={SELECT_SENTINELS.none}>Select Agent</SelectItem>
+                    {agents.length === 0 ? (
+                      <SelectItem value="__no_agents__" disabled>
+                        No agents in this workspace
                       </SelectItem>
-                    ))}
+                    ) : (
+                      agents.map((agent) => (
+                        <SelectItem key={agent.user_id} value={agent.user_id}>
+                          {agent.display_name || agent.email || agent.user_id}
+                        </SelectItem>
+                      ))
+                    )}
+                    <SelectItem value={SELECT_SENTINELS.unassigned}>Unassigned</SelectItem>
+                    <SelectItem value={SELECT_SENTINELS.all}>All Agents</SelectItem>
                   </SelectContent>
                 </Select>
               </FilterSection>
 
-              {/* Lead Status */}
+              {/* Lead Status — synced with Inbox CRM stages */}
               <FilterSection
                 id="lead"
                 icon={Zap}
                 title="Lead Status"
                 badge={filters.lead_states.length}
               >
+                <p className="text-xs text-muted-foreground mb-2">
+                  Same statuses as Inbox. Selecting nothing means no lead-status filter.
+                </p>
                 <div className="flex flex-wrap gap-1.5">
-                  {LEAD_STATES.map((state) => (
+                  {INBOX_LEAD_STATUSES.map((state) => (
                     <Badge
                       key={state.value}
                       variant={filters.lead_states.includes(state.value) ? 'default' : 'outline'}
@@ -767,52 +774,16 @@ export default function CampaignAudienceBuilder({
                     </Badge>
                   ))}
                 </div>
-
-                <Separator className="my-2" />
-                <p className="text-xs text-muted-foreground font-medium mb-1.5">CRM Status</p>
-                <div className="flex flex-wrap gap-1.5">
-                  {CRM_STATUSES.map((status) => (
-                    <Badge
-                      key={status.value}
-                      variant={filters.crm_statuses.includes(status.value) ? 'default' : 'outline'}
-                      className="cursor-pointer text-xs"
-                      onClick={() => toggleInArray('crm_statuses', status.value)}
-                    >
-                      {status.label}
-                    </Badge>
-                  ))}
-                </div>
-
-                <Separator className="my-2" />
-                <p className="text-xs text-muted-foreground font-medium mb-1.5">MAU Status</p>
-                <div className="flex flex-wrap gap-1.5">
-                  {MAU_STATUSES.map((status) => (
-                    <Badge
-                      key={status.value}
-                      variant={filters.mau_statuses.includes(status.value) ? 'default' : 'outline'}
-                      className="cursor-pointer text-xs"
-                      onClick={() => toggleInArray('mau_statuses', status.value)}
-                    >
-                      <div className={`w-2 h-2 rounded-full mr-1 ${status.color}`} />
-                      {status.label}
-                    </Badge>
-                  ))}
-                </div>
-
-                <Separator className="my-2" />
-                <p className="text-xs text-muted-foreground font-medium mb-1.5">Priority</p>
-                <div className="flex flex-wrap gap-1.5">
-                  {PRIORITIES.map((p) => (
-                    <Badge
-                      key={p.value}
-                      variant={filters.priorities.includes(p.value) ? 'default' : 'outline'}
-                      className="cursor-pointer text-xs"
-                      onClick={() => toggleInArray('priorities', p.value)}
-                    >
-                      {p.label}
-                    </Badge>
-                  ))}
-                </div>
+                {filters.lead_states.length > 0 && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-7 text-xs mt-2"
+                    onClick={() => updateFilter('lead_states', [])}
+                  >
+                    Clear (All Statuses)
+                  </Button>
+                )}
 
                 <Separator className="my-2" />
                 <p className="text-xs text-muted-foreground font-medium mb-1.5">Reply Status</p>
@@ -865,18 +836,25 @@ export default function CampaignAudienceBuilder({
                 badge={filters.contact_source ? 1 : 0}
               >
                 <Select
-                  value={filters.contact_source || 'all'}
-                  onValueChange={(v) => updateFilter('contact_source', v === 'all' ? '' : v)}
+                  value={filters.contact_source || SELECT_SENTINELS.none}
+                  onValueChange={(v) =>
+                    updateFilter(
+                      'contact_source',
+                      v === SELECT_SENTINELS.none || v === SELECT_SENTINELS.all ? '' : v
+                    )
+                  }
                 >
                   <SelectTrigger className="h-9">
-                    <SelectValue />
+                    <SelectValue placeholder="Select Source" />
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value={SELECT_SENTINELS.none}>Select Source</SelectItem>
                     {CONTACT_SOURCES.map((s) => (
-                      <SelectItem key={s.value || 'all'} value={s.value || 'all'}>
+                      <SelectItem key={s.value} value={s.value}>
                         {s.label}
                       </SelectItem>
                     ))}
+                    <SelectItem value={SELECT_SENTINELS.all}>All Sources</SelectItem>
                   </SelectContent>
                 </Select>
               </FilterSection>
@@ -892,21 +870,25 @@ export default function CampaignAudienceBuilder({
                   <p className="text-sm text-muted-foreground">No Meta Ads campaigns found</p>
                 ) : (
                   <Select
-                    value={filters.meta_campaign_source || 'all'}
+                    value={filters.meta_campaign_source || SELECT_SENTINELS.none}
                     onValueChange={(v) =>
-                      updateFilter('meta_campaign_source', v === 'all' ? '' : v)
+                      updateFilter(
+                        'meta_campaign_source',
+                        v === SELECT_SENTINELS.none || v === SELECT_SENTINELS.all ? '' : v
+                      )
                     }
                   >
                     <SelectTrigger className="h-9">
-                      <SelectValue placeholder="Select campaign" />
+                      <SelectValue placeholder="Select Campaign" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">All Meta Campaigns</SelectItem>
+                      <SelectItem value={SELECT_SENTINELS.none}>Select Campaign</SelectItem>
                       {metaCampaigns.map((c) => (
                         <SelectItem key={c.id} value={c.id}>
                           {c.name}
                         </SelectItem>
                       ))}
+                      <SelectItem value={SELECT_SENTINELS.all}>All Meta Campaigns</SelectItem>
                     </SelectContent>
                   </Select>
                 )}
@@ -923,19 +905,25 @@ export default function CampaignAudienceBuilder({
                   <p className="text-sm text-muted-foreground">No flows found</p>
                 ) : (
                   <Select
-                    value={filters.flow_source || 'all'}
-                    onValueChange={(v) => updateFilter('flow_source', v === 'all' ? '' : v)}
+                    value={filters.flow_source || SELECT_SENTINELS.none}
+                    onValueChange={(v) =>
+                      updateFilter(
+                        'flow_source',
+                        v === SELECT_SENTINELS.none || v === SELECT_SENTINELS.all ? '' : v
+                      )
+                    }
                   >
                     <SelectTrigger className="h-9">
-                      <SelectValue placeholder="Select flow" />
+                      <SelectValue placeholder="Select Flow" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">All Flows</SelectItem>
+                      <SelectItem value={SELECT_SENTINELS.none}>Select Flow</SelectItem>
                       {flows.map((f) => (
                         <SelectItem key={f.id} value={f.id}>
                           {f.name} ({f.status})
                         </SelectItem>
                       ))}
+                      <SelectItem value={SELECT_SENTINELS.all}>All Flows</SelectItem>
                     </SelectContent>
                   </Select>
                 )}
@@ -1152,26 +1140,22 @@ export default function CampaignAudienceBuilder({
                   <div className="flex items-center justify-between">
                     <span className="text-muted-foreground">Agent</span>
                     <span className="font-medium">
-                      {agents.find((a) => a.user_id === filters.assigned_agent)?.display_name || 'Selected'}
+                      {filters.assigned_agent === SELECT_SENTINELS.unassigned
+                        ? 'Unassigned'
+                        : filters.assigned_agent === SELECT_SENTINELS.all
+                          ? 'All Agents'
+                          : agents.find((a) => a.user_id === filters.assigned_agent)?.display_name
+                            || agents.find((a) => a.user_id === filters.assigned_agent)?.email
+                            || 'Selected'}
                     </span>
                   </div>
                 )}
                 {filters.lead_states.length > 0 && (
                   <div className="flex items-center justify-between">
                     <span className="text-muted-foreground">Lead Status</span>
-                    <span className="font-medium">{filters.lead_states.join(', ')}</span>
-                  </div>
-                )}
-                {filters.mau_statuses.length > 0 && (
-                  <div className="flex items-center justify-between">
-                    <span className="text-muted-foreground">MAU Status</span>
-                    <span className="font-medium">{filters.mau_statuses.join(', ')}</span>
-                  </div>
-                )}
-                {filters.priorities.length > 0 && (
-                  <div className="flex items-center justify-between">
-                    <span className="text-muted-foreground">Priority</span>
-                    <span className="font-medium">{filters.priorities.join(', ')}</span>
+                    <span className="font-medium truncate max-w-[160px]">
+                      {filters.lead_states.map((s) => INBOX_LEAD_STATUS_LABEL[s] || s).join(', ')}
+                    </span>
                   </div>
                 )}
                 {(filters.date_from || filters.date_to) && (
