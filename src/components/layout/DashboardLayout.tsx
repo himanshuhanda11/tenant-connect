@@ -139,7 +139,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           <PreviewWorkspaceBanner />
           <MobileHeader />
           <ScrollToTop />
-          <div className="flex-1 overflow-auto relative bg-muted/20 p-4 sm:p-6 lg:p-8 pb-[calc(8rem+env(safe-area-inset-bottom))] md:pb-20">
+          <div className="flex-1 overflow-auto relative bg-muted/20 p-4 sm:p-6 lg:p-8 pb-[calc(12rem+env(safe-area-inset-bottom))] md:pb-20">
             {children}
           </div>
           {!location.pathname.startsWith('/phone-numbers') && <WhatsAppConnectBanner />}
