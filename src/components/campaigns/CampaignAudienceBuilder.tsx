@@ -555,7 +555,7 @@ export default function CampaignAudienceBuilder({
     });
   };
 
-  const toggleInArray = (key: 'include_segments' | 'exclude_segments' | 'include_tags' | 'exclude_tags' | 'lead_states' | 'crm_statuses' | 'mau_statuses' | 'priorities', value: string) => {
+  const toggleInArray = (key: 'include_segments' | 'exclude_segments' | 'include_tags' | 'exclude_tags' | 'lead_states', value: string) => {
     const current = filters[key];
     if (current.includes(value)) {
       updateFilter(key, current.filter((v) => v !== value));
