@@ -292,15 +292,27 @@ export default function LeadFormsPage() {
                   New leads won't arrive in real-time until you subscribe. Click below to subscribe all pages at once.
                 </p>
               </div>
-              <Button
-                size="sm"
-                disabled={subscribingAll}
-                onClick={handleSubscribeAll}
-                className="w-full sm:w-auto shrink-0 bg-amber-600 hover:bg-amber-700 text-white"
-              >
-                {subscribingAll ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> : <Webhook className="h-4 w-4 mr-1.5" />}
-                {subscribingAll ? 'Subscribing…' : 'Subscribe all to webhook'}
-              </Button>
+              <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto shrink-0">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  disabled={verifyingSubs}
+                  onClick={handleVerifySubscriptions}
+                  className="w-full sm:w-auto border-amber-300 dark:border-amber-700 text-amber-800 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-900/40"
+                >
+                  {verifyingSubs ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> : <Shield className="h-4 w-4 mr-1.5" />}
+                  Verify on Meta
+                </Button>
+                <Button
+                  size="sm"
+                  disabled={subscribingAll}
+                  onClick={handleSubscribeAll}
+                  className="w-full sm:w-auto bg-amber-600 hover:bg-amber-700 text-white"
+                >
+                  {subscribingAll ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> : <Webhook className="h-4 w-4 mr-1.5" />}
+                  {subscribingAll ? 'Subscribing…' : 'Subscribe all'}
+                </Button>
+              </div>
             </CardContent>
           </Card>
         )}
