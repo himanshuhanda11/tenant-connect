@@ -496,11 +496,37 @@ export default function CreateCampaign() {
             </Button>
             <div className="min-w-0">
               <h1 className="text-xl sm:text-2xl font-bold truncate">Create Campaign</h1>
-              <p className="text-xs sm:text-sm text-muted-foreground">Step {currentStep} of 5</p>
+              <p className="text-xs sm:text-sm text-muted-foreground">
+                Step {currentStep} of 5
+                {draftSavedAt && (
+                  <span className="ml-2 text-emerald-600">
+                    · Draft saved {draftSavedAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  </span>
+                )}
+              </p>
             </div>
           </div>
-          <Button variant="outline" size="sm" className="w-full sm:w-auto" onClick={() => navigate('/campaigns')}>
-            Save Draft
+          <Button
+            variant="outline"
+            size="sm"
+            className="w-full sm:w-auto"
+            onClick={() => {
+              if (draftKey) {
+                try {
+                  localStorage.setItem(
+                    draftKey,
+                    JSON.stringify({ wizard, audienceFilters, currentStep, savedAt: new Date().toISOString() }),
+                  );
+                  setDraftSavedAt(new Date());
+                  toast.success('Draft saved — you can resume later');
+                } catch {
+                  toast.error('Could not save draft');
+                }
+              }
+              navigate('/campaigns');
+            }}
+          >
+            Save Draft & Exit
           </Button>
         </div>
 
