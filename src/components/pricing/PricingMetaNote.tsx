@@ -52,14 +52,23 @@ export default function PricingMetaNote() {
                       First 1,000 conversations/mo free
                     </Badge>
                   </div>
-                  <a
-                    href="https://business.whatsapp.com/products/platform-pricing"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-xs text-primary hover:underline inline-flex items-center gap-1 font-medium"
-                  >
-                    Meta's official pricing <ArrowRight className="w-3 h-3" />
-                  </a>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <a
+                      href="/message-pricing"
+                      className="text-xs text-primary hover:underline inline-flex items-center gap-1 font-medium"
+                    >
+                      Country-wise message pricing <ChevronRight className="w-3 h-3" />
+                    </a>
+                    <a
+                      href="https://business.whatsapp.com/products/platform-pricing"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs text-muted-foreground hover:text-foreground hover:underline inline-flex items-center gap-1 font-medium"
+                    >
+                      Meta's official pricing <ArrowRight className="w-3 h-3" />
+                    </a>
+                  </div>
                 </div>
               </div>
             </div>
