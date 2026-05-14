@@ -338,6 +338,11 @@ async function verifySignature(rawBody: string, signatureHeader: string | null):
   return true;
 }
 
+function isMetaLeadgenTestEvent(leadId?: string | null, formId?: string | null, payload?: any): boolean {
+  const ids = [leadId, formId, payload?.page_id].filter(Boolean).map((value) => String(value));
+  return ids.some((value) => /^test_|^test_|^123456789$|^444444444444$/.test(value)) || ids.includes('0');
+}
+
 function normalizeLeadFields(fieldData: any[]): Record<string, string> {
   const result: Record<string, string> = {};
   
