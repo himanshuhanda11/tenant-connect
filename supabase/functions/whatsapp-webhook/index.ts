@@ -142,6 +142,20 @@ function extractNormalizedEvents(payload: any): NormalizedEvent[] {
 
       const waba_id = value?.business_id || value?.waba_id || metadata?.business_id || entry?.id;
 
+      // ── Coexistence webhook fields (history / smb_app_state_sync / smb_message_echoes / account_update) ──
+      const cxFields = new Set(['history', 'smb_app_state_sync', 'smb_message_echoes', 'account_update']);
+      if (cxFields.has(change?.field)) {
+        out.push({
+          kind: 'coexistence_event',
+          field: change.field,
+          waba_id: entry?.id,
+          phone_number_id: value?.metadata?.phone_number_id,
+          value,
+          raw: { entry, change, value },
+        });
+        continue;
+      }
+
       // Process inbound messages
       const messages = value?.messages ?? [];
       const contacts = value?.contacts ?? [];
