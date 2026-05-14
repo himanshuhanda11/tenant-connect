@@ -104,7 +104,7 @@ export function useConnectedPageId() {
 
 export function useLeadForms() {
   const { currentTenant } = useTenant();
-  const { pageId: connectedPageId } = useConnectedPageId();
+  const { pageId: connectedPageId, loading: pageLoading } = useConnectedPageId();
   const [forms, setForms] = useState<LeadForm[]>([]);
   const [loading, setLoading] = useState(true);
   const [permissionError, setPermissionError] = useState<string | null>(null);
