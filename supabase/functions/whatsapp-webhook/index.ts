@@ -421,6 +421,13 @@ async function processEvent(supabase: any, ev: NormalizedEvent, webhookEventId?:
       return;
     }
 
+    // Handle Coexistence events (history / smb_app_state_sync / smb_message_echoes / account_update)
+    if (ev.kind === 'coexistence_event') {
+      await processCoexistenceEvent(supabase, ev);
+      await markEventProcessed(supabase, webhookEventId);
+      return;
+    }
+
     // Find phone number and tenant
     // Use limit(1) instead of single() to avoid PGRST116 when the same Meta phone ID
     // exists across multiple tenants (e.g. after workspace reconnects).
