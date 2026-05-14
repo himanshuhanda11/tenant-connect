@@ -278,6 +278,7 @@ Deno.serve(async (req) => {
           encrypted_access_token: newWabaSystemToken || accessToken,
           token_source: newWabaSystemToken ? 'system_user' : 'embedded_signup',
           status: 'active',
+          onboarding_type: isCoexistence ? 'business_app_coexistence' : 'normal_api',
         }).select().single();
         if (insertErr) {
           console.error('WABA insert error:', insertErr);
