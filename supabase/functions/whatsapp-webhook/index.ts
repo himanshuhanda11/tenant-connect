@@ -3669,7 +3669,7 @@ async function processMessageMutation(
     const { error } = await supabase
       .from('messages')
       .update({
-        body: ev.new_text ?? undefined,
+        text: ev.new_text ?? undefined,
         edited_at: new Date().toISOString(),
       })
       .eq('tenant_id', tenantId)
@@ -3681,7 +3681,7 @@ async function processMessageMutation(
       .from('messages')
       .update({
         revoked_at: new Date().toISOString(),
-        body: null,
+        text: null,
       })
       .eq('tenant_id', tenantId)
       .or(`wamid.eq.${origId},original_message_id.eq.${origId}`);
