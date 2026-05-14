@@ -2,11 +2,11 @@ import { useLeadEvents } from '@/hooks/useLeadForms';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Loader2, ScrollText, RefreshCw, ChevronDown, ChevronUp, Clock, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { Loader2, ScrollText, RefreshCw, ChevronDown, ChevronUp, Clock, AlertCircle, CheckCircle2, type LucideIcon } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { useState } from 'react';
 
-const STATUS_CONFIG: Record<string, { color: string; icon: any }> = {
+const STATUS_CONFIG: Record<string, { color: string; icon: LucideIcon }> = {
   received: { color: 'bg-blue-100 text-blue-700 dark:bg-blue-950/30 dark:text-blue-400', icon: Clock },
   processing: { color: 'bg-amber-100 text-amber-700 dark:bg-amber-950/30 dark:text-amber-400', icon: Clock },
   success: { color: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400', icon: CheckCircle2 },
