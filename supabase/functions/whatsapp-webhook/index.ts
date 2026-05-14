@@ -404,9 +404,12 @@ Deno.serve(async (req) => {
         }
 
         // Determine event type for storage
-        const eventType = ev.kind === 'inbound_message'
-          ? `message_${ev.msg_type}`
-          : `status_${ev.status}`;
+        const eventType =
+          ev.kind === 'inbound_message' ? `message_${ev.msg_type}`
+          : ev.kind === 'template_status_update' ? 'template_status_update'
+          : ev.kind === 'coexistence_event' ? `coexistence_${ev.field}`
+          : ev.kind === 'message_mutation' ? `message_${ev.mutation}`
+          : `status_${(ev as any).status}`;
 
         // Store raw event
         const { data: webhookEvent, error: insertError } = await supabase
