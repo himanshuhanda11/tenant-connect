@@ -170,6 +170,43 @@ function extractNormalizedEvents(payload: any): NormalizedEvent[] {
         const msgType = m?.type || 'unknown';
         const text = m?.text?.body || m?.[msgType]?.caption;
 
+        // Coexistence: ignore unsupported message webhook (error 131060)
+        const msgErrCode = m?.errors?.[0]?.code;
+        if (msgType === 'unsupported' && (String(msgErrCode) === '131060' || msgErrCode === 131060)) {
+          console.log(`[coexistence] ignoring unsupported message webhook (131060) wamid=${m?.id}`);
+          continue;
+        }
+
+        // Coexistence: detect message edit (m.edits or context.edited)
+        const editedFor = m?.edits?.message_id || m?.context?.edited_message_id;
+        if (editedFor || (m?.edits && (m?.text?.body || m?.[msgType]?.caption))) {
+          out.push({
+            kind: 'message_mutation',
+            mutation: 'edit',
+            phone_number_id,
+            waba_id,
+            original_message_id: editedFor || m?.context?.id,
+            new_text: m?.text?.body || m?.[msgType]?.caption,
+            timestamp: m?.timestamp,
+            raw: { entry, change, value, message: m },
+          });
+          continue;
+        }
+
+        // Coexistence: detect revoke (Meta sends m.deleted or system action)
+        if (m?.deleted === true || m?.system?.type === 'revoke' || msgType === 'revoke') {
+          out.push({
+            kind: 'message_mutation',
+            mutation: 'revoke',
+            phone_number_id,
+            waba_id,
+            original_message_id: m?.context?.id || m?.id,
+            timestamp: m?.timestamp,
+            raw: { entry, change, value, message: m },
+          });
+          continue;
+        }
+
         // Handle media types: image, document, audio, video, sticker
         const mediaObj = m?.image || m?.document || m?.audio || m?.video || m?.sticker;
         const media = mediaObj
