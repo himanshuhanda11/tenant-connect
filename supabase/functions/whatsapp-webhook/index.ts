@@ -235,6 +235,11 @@ function generateIdKey(ev: NormalizedEvent): string {
     return `msg:${ev.phone_number_id}:${ev.wamid || 'noid'}:${ev.timestamp || ''}`;
   } else if (ev.kind === 'template_status_update') {
     return `tpl:${ev.waba_id || 'noid'}:${ev.template_name}:${ev.meta_status}`;
+  } else if (ev.kind === 'coexistence_event') {
+    const reqId = ev.value?.request_id || ev.value?.event || '';
+    const phase = ev.value?.phase || '';
+    const ts = ev.value?.timestamp || Date.now();
+    return `cx:${ev.field}:${ev.waba_id || ''}:${ev.phone_number_id || ''}:${reqId}:${phase}:${ts}`;
   } else {
     return `st:${ev.phone_number_id}:${ev.wamid}:${ev.status}:${ev.timestamp || ''}`;
   }
