@@ -14,7 +14,8 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { action, code, tenantId, wabaId: clientWabaId, phoneNumberId: clientPhoneId, pin } = await req.json();
+    const { action, code, tenantId, wabaId: clientWabaId, phoneNumberId: clientPhoneId, pin, mode } = await req.json();
+    const isCoexistence = mode === 'coexistence';
 
     // ── get_config (public) ──────────────────────────────────────────────
     if (action === 'get_config') {
