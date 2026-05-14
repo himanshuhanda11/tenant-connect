@@ -1,6 +1,28 @@
 import { corsHeaders, json, getAdminClient } from "../_shared/supabase.ts";
 
-const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
+// Verified Lovable Emails sender (Mailgun via update.aireatro.com).
+// We route ALL transactional notifications through the Lovable Emails queue
+// because aireatro.com apex is not verified in Resend (only Google Workspace
+// MX exists), which caused admin notifications for demo/signup/invite to
+// silently bounce. update.aireatro.com is delegated to Lovable's NS, has
+// SPF + DKIM, and has proven delivery in email_send_log.
+const SENDER_DOMAIN = "update.aireatro.com";
+const FROM_ADDRESS = "Aireatro <noreply@update.aireatro.com>";
+
+// Strip diacritics + drop non-ASCII so subject lines never break headers
+function asciiSafe(s: string): string {
+  return (s || "")
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^\x20-\x7E]/g, "")
+    .trim();
+}
+
+function genToken(): string {
+  const b = new Uint8Array(32);
+  crypto.getRandomValues(b);
+  return Array.from(b).map((x) => x.toString(16).padStart(2, "0")).join("");
+}
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -8,10 +30,6 @@ Deno.serve(async (req) => {
   }
 
   try {
-    if (!RESEND_API_KEY) {
-      return json({ error: "RESEND_API_KEY not configured" }, 500);
-    }
-
     const __body = await req.json();
     (req as any).__parsed = __body;
     const { type, to, inviteeName, workspaceName, token, appUrl, fullName, email: userEmail } = __body;
@@ -26,36 +44,107 @@ Deno.serve(async (req) => {
     const baseUrl = appUrl || Deno.env.get("APP_URL") || "https://aireatro.com";
     const ADMIN_EMAIL = "admin@aireatro.com";
 
+    const supabase = getAdminClient();
+
+    // Enqueue an email through Lovable's pgmq queue → process-email-queue
+    // → Mailgun. Mirrors the payload contract used by send-transactional-email.
     const sendOne = async (
       toAddr: string,
       subj: string,
       body: string,
       replyTo?: string,
-      attachments?: Array<{ filename: string; content: string }>,
+      _attachments?: Array<{ filename: string; content: string }>,
     ) => {
-      const payload: Record<string, unknown> = {
-        from: "Aireatro <noreply@aireatro.com>",
-        to: [toAddr],
-        subject: subj,
-        html: body,
-        headers: {
-          "List-Unsubscribe": "<mailto:admin@aireatro.com>",
-        },
-      };
-      if (replyTo) payload.reply_to = replyTo;
-      if (attachments && attachments.length) payload.attachments = attachments;
-      const r = await fetch("https://api.resend.com/emails", {
-        method: "POST",
-        headers: {
-          "Authorization": `Bearer ${RESEND_API_KEY}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
+      const recipient = String(toAddr || "").trim().toLowerCase();
+      if (!recipient) return { ok: false, data: { error: "missing recipient" } };
+
+      const messageId = crypto.randomUUID();
+      const cleanSubject = asciiSafe(subj) || "Aireatro";
+
+      // Suppression check (fail-closed)
+      const { data: suppressed } = await supabase
+        .from("suppressed_emails")
+        .select("id")
+        .eq("email", recipient)
+        .maybeSingle();
+
+      if (suppressed) {
+        await supabase.from("email_send_log").insert({
+          message_id: messageId,
+          template_name: `team-email:${type}`,
+          recipient_email: recipient,
+          status: "suppressed",
+        });
+        console.log(`enqueue skip (suppressed) → ${recipient}`);
+        return { ok: true, data: { id: messageId, suppressed: true } };
+      }
+
+      // Get-or-create unsubscribe token (one per address)
+      let unsubToken: string | null = null;
+      const { data: existingTok } = await supabase
+        .from("email_unsubscribe_tokens")
+        .select("token, used_at")
+        .eq("email", recipient)
+        .maybeSingle();
+
+      if (existingTok && !existingTok.used_at) {
+        unsubToken = existingTok.token;
+      } else if (!existingTok) {
+        const t = genToken();
+        await supabase
+          .from("email_unsubscribe_tokens")
+          .upsert({ token: t, email: recipient }, { onConflict: "email", ignoreDuplicates: true });
+        const { data: stored } = await supabase
+          .from("email_unsubscribe_tokens")
+          .select("token")
+          .eq("email", recipient)
+          .maybeSingle();
+        unsubToken = stored?.token ?? t;
+      }
+
+      // Pre-log pending so we have an audit row even if enqueue throws
+      await supabase.from("email_send_log").insert({
+        message_id: messageId,
+        template_name: `team-email:${type}`,
+        recipient_email: recipient,
+        status: "pending",
       });
-      const d = await r.json();
-      console.log(`Resend send → ${toAddr} | ok=${r.ok} | id=${(d as any)?.id || 'none'}`);
-      if (!r.ok) console.error("Resend error:", d);
-      return { ok: r.ok, data: d };
+
+      const idempotencyKey = `team-email:${type}:${messageId}`;
+
+      const { error: enqErr } = await supabase.rpc("enqueue_email", {
+        queue_name: "transactional_emails",
+        payload: {
+          message_id: messageId,
+          to: recipient,
+          from: FROM_ADDRESS,
+          sender_domain: SENDER_DOMAIN,
+          subject: cleanSubject,
+          html: body,
+          text: body.replace(/<style[\s\S]*?<\/style>/gi, "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim(),
+          purpose: "transactional",
+          label: `team-email:${type}`,
+          idempotency_key: idempotencyKey,
+          unsubscribe_token: unsubToken,
+          reply_to: replyTo || undefined,
+          queued_at: new Date().toISOString(),
+        },
+      });
+
+      if (enqErr) {
+        console.error(`enqueue failed → ${recipient}`, enqErr);
+        await supabase.from("email_send_log").insert({
+          message_id: messageId,
+          template_name: `team-email:${type}`,
+          recipient_email: recipient,
+          status: "failed",
+          error_message: `enqueue failed: ${enqErr.message}`,
+        });
+        return { ok: false, data: { error: enqErr.message } };
+      }
+
+      console.log(`enqueued → ${recipient} | id=${messageId} | type=${type}`);
+      return { ok: true, data: { id: messageId, queued: true } };
     };
 
     // New customer signup -> send to both customer and admin
@@ -819,29 +908,12 @@ Deno.serve(async (req) => {
       return json({ error: "Unknown email type" }, 400);
     }
 
-    // Send via Resend
-    const resendRes = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${RESEND_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        from: "Aireatro <noreply@aireatro.com>",
-        to: [to],
-        subject,
-        html,
-      }),
-    });
-
-    const resendData = await resendRes.json();
-
-    if (!resendRes.ok) {
-      console.error("Resend error:", resendData);
-      return json({ error: "Failed to send email", details: resendData }, 500);
+    // Route through Lovable Emails queue (verified update.aireatro.com)
+    const r = await sendOne(String(to), subject, html);
+    if (!r.ok) {
+      return json({ error: "Failed to enqueue email", details: r.data }, 500);
     }
-
-    return json({ success: true, id: resendData.id });
+    return json({ success: true, id: (r.data as any)?.id });
   } catch (err) {
     console.error("send-team-email error:", err);
     return json({ error: err.message }, 500);
