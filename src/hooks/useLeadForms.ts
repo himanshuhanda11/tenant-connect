@@ -72,8 +72,37 @@ export interface WebhookSubscription {
   subscribed_at: string | null;
 }
 
+/** Returns the Facebook Page id selected during the Meta Ads connection (the only page we should show data for). */
+export function useConnectedPageId() {
+  const { currentTenant } = useTenant();
+  const [pageId, setPageId] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    if (!currentTenant?.id) { setPageId(null); setLoading(false); return; }
+    setLoading(true);
+    supabase
+      .from('smeksh_meta_ad_accounts')
+      .select('facebook_page_id')
+      .eq('workspace_id', currentTenant.id)
+      .eq('is_active', true)
+      .limit(1)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (cancelled) return;
+        setPageId((data?.facebook_page_id as string) || null);
+        setLoading(false);
+      });
+    return () => { cancelled = true; };
+  }, [currentTenant?.id]);
+
+  return { pageId, loading };
+}
+
 export function useLeadForms() {
   const { currentTenant } = useTenant();
+  const { pageId: connectedPageId } = useConnectedPageId();
   const [forms, setForms] = useState<LeadForm[]>([]);
   const [loading, setLoading] = useState(true);
   const [permissionError, setPermissionError] = useState<string | null>(null);
