@@ -36,12 +36,25 @@ Deno.serve(async (req) => {
 
     const rawStatus = sub?.status || "inactive";
     const inactiveStatuses = new Set(["incomplete", "incomplete_expired", "canceled", "cancelled"]);
+    const planSource: "stripe" | "manual_admin" | "free" =
+      (sub?.plan_source as any) || (sub?.stripe_subscription_id ? "stripe" : "free");
+    const isManualAdmin = planSource === "manual_admin";
     const normalizedSubPlan = sub?.plan_id ? sub.plan_id.replace(/^plan_/, "") : null;
-    const hasSelectedPlan = !!sub && !inactiveStatuses.has(rawStatus) &&
-      !!normalizedSubPlan && (normalizedSubPlan === "free" || !!sub?.stripe_subscription_id);
-    const hasConfirmedSubscription = !!sub?.stripe_subscription_id && !inactiveStatuses.has(rawStatus);
+    // A plan is considered "selected" if:
+    //  - Stripe path: subscription row exists, not in inactive status, plan known, and either free OR has stripe id
+    //  - Manual admin path: subscription row exists, status active, regardless of stripe id
+    const hasSelectedPlan =
+      !!sub &&
+      !inactiveStatuses.has(rawStatus) &&
+      !!normalizedSubPlan &&
+      (isManualAdmin || normalizedSubPlan === "free" || !!sub?.stripe_subscription_id);
+    // Manual admin assignments count as a confirmed subscription — no Stripe needed.
+    const hasConfirmedSubscription =
+      (!!sub?.stripe_subscription_id && !inactiveStatuses.has(rawStatus)) ||
+      (isManualAdmin && rawStatus === "active");
     const planId = hasSelectedPlan ? normalizedSubPlan : null;
     const status = hasSelectedPlan ? rawStatus : "inactive";
+    const stripeRequired = !isManualAdmin && planId !== null && planId !== "free" && !sub?.stripe_subscription_id;
     const trialEnd = sub?.trial_end ? new Date(sub.trial_end) : null;
     const now = Date.now();
     const trialDaysLeft = trialEnd
@@ -78,6 +91,10 @@ Deno.serve(async (req) => {
       stripe_customer_id: sub?.stripe_customer_id || null,
       has_subscription: hasConfirmedSubscription,
       has_selected_plan: hasSelectedPlan,
+      plan_source: planSource,
+      assigned_by_admin: !!sub?.assigned_by_admin,
+      stripe_required: stripeRequired,
+      is_paid: hasConfirmedSubscription && planId !== "free" && planId !== null,
       pending_plan_id: pendingPlan,
       pending_billing_cycle: sub?.pending_billing_cycle || null,
       scheduled_change_at: scheduledAt?.toISOString() || null,
