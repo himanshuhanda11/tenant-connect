@@ -287,6 +287,8 @@ function generateIdKey(ev: NormalizedEvent): string {
     const phase = ev.value?.phase || '';
     const ts = ev.value?.timestamp || Date.now();
     return `cx:${ev.field}:${ev.waba_id || ''}:${ev.phone_number_id || ''}:${reqId}:${phase}:${ts}`;
+  } else if (ev.kind === 'message_mutation') {
+    return `mut:${ev.mutation}:${ev.phone_number_id}:${ev.original_message_id || 'noid'}:${ev.timestamp || ''}`;
   } else {
     return `st:${ev.phone_number_id}:${ev.wamid}:${ev.status}:${ev.timestamp || ''}`;
   }
