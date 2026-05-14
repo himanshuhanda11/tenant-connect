@@ -475,6 +475,14 @@ export default function AdminWorkspaces() {
                             </Badge>
                           )}
                         </div>
+                      ) : w.owner_phone ? (
+                        <div>
+                          <div className="flex items-center gap-1.5">
+                            <Phone className="h-3 w-3 text-muted-foreground flex-shrink-0" />
+                            <span className="text-xs font-mono">{w.owner_phone}</span>
+                          </div>
+                          <span className="text-[10px] text-muted-foreground">Onboarding contact</span>
+                        </div>
                       ) : (
                         <span className="text-xs text-muted-foreground">Not connected</span>
                       )}
