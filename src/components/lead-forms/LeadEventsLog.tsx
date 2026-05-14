@@ -18,6 +18,8 @@ export function LeadEventsLog() {
   const { events, loading, refetch } = useLeadEvents();
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
+  const isErrorStatus = (status: string) => ['failed', 'error'].includes(status);
+
   if (loading) {
     return <div className="flex justify-center py-16"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>;
   }
@@ -86,9 +88,14 @@ export function LeadEventsLog() {
                   {/* Expanded Detail */}
                   {isExpanded && (
                     <div className="border-t border-border/40 p-3 sm:p-4 bg-muted/20 space-y-3">
-                      {event.error_text && (
+                      {event.error_text && isErrorStatus(event.status) && (
                         <div className="p-2.5 bg-red-50 dark:bg-red-950/30 rounded-lg border border-red-200 dark:border-red-800">
                           <p className="text-xs font-medium text-red-700 dark:text-red-400">Error: {event.error_text}</p>
+                        </div>
+                      )}
+                      {event.error_text && !isErrorStatus(event.status) && (
+                        <div className="p-2.5 bg-muted/40 rounded-lg border border-border/60">
+                          <p className="text-xs font-medium text-muted-foreground">Note: {event.error_text}</p>
                         </div>
                       )}
                       {event.normalized_data && (
