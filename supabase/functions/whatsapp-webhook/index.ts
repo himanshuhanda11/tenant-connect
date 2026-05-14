@@ -3650,3 +3650,42 @@ async function handleSmbMessageEchoes(
 
   console.log(`[coexistence] processed ${echoes.length} smb_message_echoes`);
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// MESSAGE EDIT / REVOKE HANDLER (Coexistence + Cloud API)
+// ─────────────────────────────────────────────────────────────────────────────
+async function processMessageMutation(
+  supabase: any,
+  tenantId: string,
+  ev: NormalizedEvent & { kind: 'message_mutation' }
+) {
+  const origId = ev.original_message_id;
+  if (!origId) {
+    console.log('[mutation] missing original_message_id, skipping');
+    return;
+  }
+
+  if (ev.mutation === 'edit') {
+    const { error } = await supabase
+      .from('messages')
+      .update({
+        body: ev.new_text ?? undefined,
+        edited_at: new Date().toISOString(),
+      })
+      .eq('tenant_id', tenantId)
+      .or(`wamid.eq.${origId},original_message_id.eq.${origId}`);
+    if (error) console.error('[mutation] edit update error:', error);
+    else console.log(`[mutation] edited message ${origId}`);
+  } else if (ev.mutation === 'revoke') {
+    const { error } = await supabase
+      .from('messages')
+      .update({
+        revoked_at: new Date().toISOString(),
+        body: null,
+      })
+      .eq('tenant_id', tenantId)
+      .or(`wamid.eq.${origId},original_message_id.eq.${origId}`);
+    if (error) console.error('[mutation] revoke update error:', error);
+    else console.log(`[mutation] revoked message ${origId}`);
+  }
+}
