@@ -372,7 +372,7 @@ export default function Contact() {
 
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <Button asChild size="lg" className="gap-2">
-                <a href={`https://wa.me/919319711126?text=${waPrefill}`} target="_blank" rel="noopener noreferrer">
+                <a href={`https://wa.me/971586585863?text=${waPrefill}`} target="_blank" rel="noopener noreferrer">
                   <MessageCircle className="w-4 h-4" /> Chat on WhatsApp
                 </a>
               </Button>
@@ -513,7 +513,7 @@ export default function Contact() {
                           <p className="font-semibold text-foreground mb-1">Need an instant reply?</p>
                           <p className="text-muted-foreground text-xs mb-2">Chat with us on WhatsApp now — fastest way to reach our support team.</p>
                           <Button asChild size="sm" className="gap-1.5 bg-emerald-600 hover:bg-emerald-700">
-                            <a href={`https://wa.me/919319711126?text=${encodeURIComponent(`Hi Aireatro Support, I need help with ${selectedCat.label}.`)}`} target="_blank" rel="noopener noreferrer">
+                            <a href={`https://wa.me/971586585863?text=${encodeURIComponent(`Hi Aireatro Support, I need help with ${selectedCat.label}.`)}`} target="_blank" rel="noopener noreferrer">
                               Open WhatsApp <ArrowRight className="w-3.5 h-3.5" />
                             </a>
                           </Button>
@@ -747,8 +747,8 @@ export default function Contact() {
                   <CardContent className="p-5">
                     <Badge variant="secondary" className="mb-2 bg-emerald-500/10 text-emerald-600 border-emerald-500/30">Quick channels</Badge>
                     <div className="space-y-2 text-sm">
-                      <a href="https://wa.me/919319711126" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-foreground hover:text-primary">
-                        <MessageCircle className="w-4 h-4 text-emerald-600" /> WhatsApp · +91 93197 11126
+                      <a href="https://wa.me/971586585863" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-foreground hover:text-primary">
+                        <MessageCircle className="w-4 h-4 text-emerald-600" /> WhatsApp · +971 58 658 5863
                       </a>
                       <a href="mailto:support@aireatro.com" className="flex items-center gap-2 text-foreground hover:text-primary">
                         <Mail className="w-4 h-4 text-primary" /> support@aireatro.com
