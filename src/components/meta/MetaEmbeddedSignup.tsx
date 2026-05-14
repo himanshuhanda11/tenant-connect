@@ -64,9 +64,9 @@ export function MetaEmbeddedSignup({ onSuccess, onError, onConnectionError }: Me
       try {
         const data = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
         if (data.type === 'WA_EMBEDDED_SIGNUP') {
-          if (data.event === 'FINISH') {
-            const { phone_number_id, waba_id } = data.data;
-            console.log('Embedded Signup FINISH — WABA:', waba_id, 'Phone:', phone_number_id);
+          if (data.event === 'FINISH' || data.event === 'FINISH_WHATSAPP_BUSINESS_APP_ONBOARDING') {
+            const { phone_number_id, waba_id } = data.data || {};
+            console.log('Embedded Signup', data.event, '— WABA:', waba_id, 'Phone:', phone_number_id);
             sessionDataRef.current = { wabaId: waba_id, phoneNumberId: phone_number_id };
           } else if (data.event === 'CANCEL') {
             console.warn('Embedded Signup cancelled at step:', data.data?.current_step);
