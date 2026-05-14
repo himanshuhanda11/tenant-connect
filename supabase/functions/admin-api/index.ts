@@ -843,7 +843,7 @@ Deno.serve(async (req: Request) => {
         sb.from("tenant_members").select("*").eq("tenant_id", workspaceId),
         sb.from("phone_numbers").select("id,display_number,verified_name,phone_number_id,waba_account_id,quality_rating,status,messaging_limit,webhook_health,last_webhook_at,is_default,created_at,updated_at").eq("tenant_id", workspaceId).order("created_at", { ascending: false }),
         sb.from("workspace_phone_numbers").select("*").eq("workspace_id", workspaceId).maybeSingle(),
-        sb.from("waba_accounts").select("id,waba_id,business_id,name,status,token_source,created_at,updated_at,coexistence_enabled,coexistence_status,coexistence_eligibility,coexistence_error,coexistence_checked_at").eq("tenant_id", workspaceId).order("created_at", { ascending: false }).maybeSingle(),
+        sb.from("waba_accounts").select("id,waba_id,business_id,name,status,token_source,created_at,updated_at,onboarding_type,coexistence_enabled,coexistence_status,coexistence_eligibility,coexistence_error,coexistence_checked_at").eq("tenant_id", workspaceId).order("created_at", { ascending: false }).maybeSingle(),
         sb.from("tenant_members").select("user_id, created_at").eq("tenant_id", workspaceId).eq("role", "owner").order("created_at", { ascending: true }).maybeSingle(),
       ]);
 
