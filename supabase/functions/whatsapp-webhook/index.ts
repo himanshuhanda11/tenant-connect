@@ -47,6 +47,16 @@ type NormalizedEvent =
       phone_number_id?: string;
       value: any;
       raw: any;
+    }
+  | {
+      kind: 'message_mutation';
+      mutation: 'edit' | 'revoke';
+      phone_number_id: string;
+      waba_id?: string;
+      original_message_id?: string;
+      new_text?: string;
+      timestamp?: string;
+      raw: any;
     };
 
 // Verify webhook signature using META_APP_SECRET
@@ -170,6 +180,43 @@ function extractNormalizedEvents(payload: any): NormalizedEvent[] {
         const msgType = m?.type || 'unknown';
         const text = m?.text?.body || m?.[msgType]?.caption;
 
+        // Coexistence: ignore unsupported message webhook (error 131060)
+        const msgErrCode = m?.errors?.[0]?.code;
+        if (msgType === 'unsupported' && (String(msgErrCode) === '131060' || msgErrCode === 131060)) {
+          console.log(`[coexistence] ignoring unsupported message webhook (131060) wamid=${m?.id}`);
+          continue;
+        }
+
+        // Coexistence: detect message edit (m.edits or context.edited)
+        const editedFor = m?.edits?.message_id || m?.context?.edited_message_id;
+        if (editedFor || (m?.edits && (m?.text?.body || m?.[msgType]?.caption))) {
+          out.push({
+            kind: 'message_mutation',
+            mutation: 'edit',
+            phone_number_id,
+            waba_id,
+            original_message_id: editedFor || m?.context?.id,
+            new_text: m?.text?.body || m?.[msgType]?.caption,
+            timestamp: m?.timestamp,
+            raw: { entry, change, value, message: m },
+          });
+          continue;
+        }
+
+        // Coexistence: detect revoke (Meta sends m.deleted or system action)
+        if (m?.deleted === true || m?.system?.type === 'revoke' || msgType === 'revoke') {
+          out.push({
+            kind: 'message_mutation',
+            mutation: 'revoke',
+            phone_number_id,
+            waba_id,
+            original_message_id: m?.context?.id || m?.id,
+            timestamp: m?.timestamp,
+            raw: { entry, change, value, message: m },
+          });
+          continue;
+        }
+
         // Handle media types: image, document, audio, video, sticker
         const mediaObj = m?.image || m?.document || m?.audio || m?.video || m?.sticker;
         const media = mediaObj
@@ -240,6 +287,8 @@ function generateIdKey(ev: NormalizedEvent): string {
     const phase = ev.value?.phase || '';
     const ts = ev.value?.timestamp || Date.now();
     return `cx:${ev.field}:${ev.waba_id || ''}:${ev.phone_number_id || ''}:${reqId}:${phase}:${ts}`;
+  } else if (ev.kind === 'message_mutation') {
+    return `mut:${ev.mutation}:${ev.phone_number_id}:${ev.original_message_id || 'noid'}:${ev.timestamp || ''}`;
   } else {
     return `st:${ev.phone_number_id}:${ev.wamid}:${ev.status}:${ev.timestamp || ''}`;
   }
@@ -355,9 +404,12 @@ Deno.serve(async (req) => {
         }
 
         // Determine event type for storage
-        const eventType = ev.kind === 'inbound_message'
-          ? `message_${ev.msg_type}`
-          : `status_${ev.status}`;
+        const eventType =
+          ev.kind === 'inbound_message' ? `message_${ev.msg_type}`
+          : ev.kind === 'template_status_update' ? 'template_status_update'
+          : ev.kind === 'coexistence_event' ? `coexistence_${ev.field}`
+          : ev.kind === 'message_mutation' ? `message_${ev.mutation}`
+          : `status_${(ev as any).status}`;
 
         // Store raw event
         const { data: webhookEvent, error: insertError } = await supabase
@@ -456,6 +508,8 @@ async function processEvent(supabase: any, ev: NormalizedEvent, webhookEventId?:
       await processInboundMessage(supabase, tenantId, phoneNumber.id, ev, accessToken);
     } else if (ev.kind === 'message_status') {
       await processStatusUpdate(supabase, tenantId, ev);
+    } else if (ev.kind === 'message_mutation') {
+      await processMessageMutation(supabase, tenantId, ev);
     }
 
     await markEventProcessed(supabase, webhookEventId);
@@ -3595,4 +3649,43 @@ async function handleSmbMessageEchoes(
   }).eq('id', wabaAccountId);
 
   console.log(`[coexistence] processed ${echoes.length} smb_message_echoes`);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// MESSAGE EDIT / REVOKE HANDLER (Coexistence + Cloud API)
+// ─────────────────────────────────────────────────────────────────────────────
+async function processMessageMutation(
+  supabase: any,
+  tenantId: string,
+  ev: NormalizedEvent & { kind: 'message_mutation' }
+) {
+  const origId = ev.original_message_id;
+  if (!origId) {
+    console.log('[mutation] missing original_message_id, skipping');
+    return;
+  }
+
+  if (ev.mutation === 'edit') {
+    const { error } = await supabase
+      .from('messages')
+      .update({
+        text: ev.new_text ?? undefined,
+        edited_at: new Date().toISOString(),
+      })
+      .eq('tenant_id', tenantId)
+      .or(`wamid.eq.${origId},original_message_id.eq.${origId}`);
+    if (error) console.error('[mutation] edit update error:', error);
+    else console.log(`[mutation] edited message ${origId}`);
+  } else if (ev.mutation === 'revoke') {
+    const { error } = await supabase
+      .from('messages')
+      .update({
+        revoked_at: new Date().toISOString(),
+        text: null,
+      })
+      .eq('tenant_id', tenantId)
+      .or(`wamid.eq.${origId},original_message_id.eq.${origId}`);
+    if (error) console.error('[mutation] revoke update error:', error);
+    else console.log(`[mutation] revoked message ${origId}`);
+  }
 }
