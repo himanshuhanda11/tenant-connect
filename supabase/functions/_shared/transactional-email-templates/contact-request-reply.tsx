@@ -6,7 +6,7 @@ import {
 import type { TemplateEntry } from './registry.ts'
 
 const SITE_NAME = 'Aireatro'
-const WA_LINK = 'https://wa.me/919319711126'
+const WA_LINK = 'https://wa.me/971586585863'
 
 interface Props {
   recipientName?: string

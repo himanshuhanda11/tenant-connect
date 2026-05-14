@@ -488,7 +488,7 @@ Deno.serve(async (req) => {
                   <a href="${baseUrl}/signup" style="display:inline-block;background:linear-gradient(135deg,${PRIMARY},${PRIMARY_DARK});color:#fff;text-decoration:none;font-weight:600;font-size:14px;padding:14px 26px;border-radius:12px;box-shadow:0 6px 18px rgba(22,163,74,0.32);">Start Free →</a>
                 </td>
                 <td>
-                  <a href="https://wa.me/919319711126" style="display:inline-block;background:#FFFFFF;border:1px solid ${HAIR};color:${INK};text-decoration:none;font-weight:600;font-size:14px;padding:13px 22px;border-radius:12px;">WhatsApp Support</a>
+                  <a href="https://wa.me/971586585863" style="display:inline-block;background:#FFFFFF;border:1px solid ${HAIR};color:${INK};text-decoration:none;font-weight:600;font-size:14px;padding:13px 22px;border-radius:12px;">WhatsApp Support</a>
                 </td>
               </tr></table>
             </td></tr>

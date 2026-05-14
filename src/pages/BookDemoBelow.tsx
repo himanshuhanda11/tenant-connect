@@ -98,7 +98,7 @@ export default function BookDemoBelow() {
                 </div>
                 <div className="mt-6 pt-6 border-t border-border/60 flex items-center gap-3 text-xs text-muted-foreground">
                   <MessageCircle className="w-4 h-4 text-primary" />
-                  Prefer to chat first? <a href="https://wa.me/919319711126" target="_blank" rel="noreferrer" className="text-primary font-medium hover:underline">WhatsApp us</a>
+                  Prefer to chat first? <a href="https://wa.me/971586585863" target="_blank" rel="noreferrer" className="text-primary font-medium hover:underline">WhatsApp us</a>
                 </div>
               </CardContent>
             </Card>
