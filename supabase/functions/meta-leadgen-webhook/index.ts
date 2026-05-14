@@ -122,6 +122,15 @@ Deno.serve(async (req) => {
           .select('id')
           .single();
 
+        if (eventRow && isMetaLeadgenTestEvent(leadId, formId, leadgenData)) {
+          await supabase.from('lead_events').update({
+            status: 'skipped',
+            normalized_data: { note: 'Meta webhook test event (no real lead details to fetch)' },
+          }).eq('id', eventRow.id);
+          results.push({ leadId, status: 'skipped', reason: 'meta_test_event' });
+          continue;
+        }
+
         if (!tenantId) {
           console.warn(`[leadgen-webhook] No workspace found for page_id=${pageId}`);
           if (eventRow) {
