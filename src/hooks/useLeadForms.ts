@@ -309,23 +309,24 @@ export function useLeadEvents() {
 
 export function useWebhookHealth() {
   const { currentTenant } = useTenant();
-  const { pageId: connectedPageId } = useConnectedPageId();
+  const { pageId: connectedPageId, loading: pageLoading } = useConnectedPageId();
   const [subscriptions, setSubscriptions] = useState<WebhookSubscription[]>([]);
   const [loading, setLoading] = useState(true);
 
   const fetchHealth = useCallback(async () => {
     if (!currentTenant) return;
+    if (pageLoading) return;
+    if (!connectedPageId) { setSubscriptions([]); setLoading(false); return; }
     setLoading(true);
-    let q = supabase
+    const { data, error } = await supabase
       .from('meta_webhook_subscriptions')
       .select('*')
-      .eq('tenant_id', currentTenant.id);
-    if (connectedPageId) q = q.eq('page_id', connectedPageId);
-    const { data, error } = await q;
+      .eq('tenant_id', currentTenant.id)
+      .eq('page_id', connectedPageId);
 
     if (!error && data) setSubscriptions(data as any);
     setLoading(false);
-  }, [currentTenant, connectedPageId]);
+  }, [currentTenant, connectedPageId, pageLoading]);
 
   useEffect(() => { fetchHealth(); }, [fetchHealth]);
 
