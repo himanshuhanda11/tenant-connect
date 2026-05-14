@@ -132,7 +132,9 @@ export function WorkspacePlanCard() {
                 </Badge>
               </CardTitle>
               <CardDescription>
-                Each workspace has its own plan and 1 WhatsApp number.
+                {isAdminAssigned
+                  ? `${meta.label} plan assigned by admin. Contact support to change.`
+                  : 'Each workspace has its own plan and 1 WhatsApp number.'}
               </CardDescription>
             </div>
             <div className="flex items-center gap-2">
@@ -140,7 +142,11 @@ export function WorkspacePlanCard() {
                 <Plus className="w-3.5 h-3.5" />
                 Add-ons
               </Button>
-              {!isTopPlan && (
+              {isAdminAssigned ? (
+                <Button variant="outline" size="sm" onClick={() => navigate('/help')} className="gap-2">
+                  Contact Support
+                </Button>
+              ) : !isTopPlan && (
                 <Button onClick={() => setUpgradeOpen(true)} className="gap-2">
                   Upgrade <ArrowRight className="w-3.5 h-3.5" />
                 </Button>
