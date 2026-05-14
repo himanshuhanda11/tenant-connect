@@ -47,6 +47,16 @@ type NormalizedEvent =
       phone_number_id?: string;
       value: any;
       raw: any;
+    }
+  | {
+      kind: 'message_mutation';
+      mutation: 'edit' | 'revoke';
+      phone_number_id: string;
+      waba_id?: string;
+      original_message_id?: string;
+      new_text?: string;
+      timestamp?: string;
+      raw: any;
     };
 
 // Verify webhook signature using META_APP_SECRET
