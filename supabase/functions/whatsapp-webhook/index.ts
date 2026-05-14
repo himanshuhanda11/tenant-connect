@@ -39,6 +39,14 @@ type NormalizedEvent =
       meta_status: string;
       reason?: string;
       raw: any;
+    }
+  | {
+      kind: 'coexistence_event';
+      field: 'history' | 'smb_app_state_sync' | 'smb_message_echoes' | 'account_update';
+      waba_id?: string;
+      phone_number_id?: string;
+      value: any;
+      raw: any;
     };
 
 // Verify webhook signature using META_APP_SECRET
@@ -134,6 +142,20 @@ function extractNormalizedEvents(payload: any): NormalizedEvent[] {
 
       const waba_id = value?.business_id || value?.waba_id || metadata?.business_id || entry?.id;
 
+      // ── Coexistence webhook fields (history / smb_app_state_sync / smb_message_echoes / account_update) ──
+      const cxFields = new Set(['history', 'smb_app_state_sync', 'smb_message_echoes', 'account_update']);
+      if (cxFields.has(change?.field)) {
+        out.push({
+          kind: 'coexistence_event',
+          field: change.field,
+          waba_id: entry?.id,
+          phone_number_id: value?.metadata?.phone_number_id,
+          value,
+          raw: { entry, change, value },
+        });
+        continue;
+      }
+
       // Process inbound messages
       const messages = value?.messages ?? [];
       const contacts = value?.contacts ?? [];
@@ -213,6 +235,11 @@ function generateIdKey(ev: NormalizedEvent): string {
     return `msg:${ev.phone_number_id}:${ev.wamid || 'noid'}:${ev.timestamp || ''}`;
   } else if (ev.kind === 'template_status_update') {
     return `tpl:${ev.waba_id || 'noid'}:${ev.template_name}:${ev.meta_status}`;
+  } else if (ev.kind === 'coexistence_event') {
+    const reqId = ev.value?.request_id || ev.value?.event || '';
+    const phase = ev.value?.phase || '';
+    const ts = ev.value?.timestamp || Date.now();
+    return `cx:${ev.field}:${ev.waba_id || ''}:${ev.phone_number_id || ''}:${reqId}:${phase}:${ts}`;
   } else {
     return `st:${ev.phone_number_id}:${ev.wamid}:${ev.status}:${ev.timestamp || ''}`;
   }
@@ -390,6 +417,13 @@ async function processEvent(supabase: any, ev: NormalizedEvent, webhookEventId?:
     // Handle template status updates separately (no phone_number_id needed)
     if (ev.kind === 'template_status_update') {
       await processTemplateStatusUpdate(supabase, ev);
+      await markEventProcessed(supabase, webhookEventId);
+      return;
+    }
+
+    // Handle Coexistence events (history / smb_app_state_sync / smb_message_echoes / account_update)
+    if (ev.kind === 'coexistence_event') {
+      await processCoexistenceEvent(supabase, ev);
       await markEventProcessed(supabase, webhookEventId);
       return;
     }
@@ -3175,4 +3209,390 @@ async function executeMetaAdAction(
     default:
       console.log(`Meta ad: unknown action type "${action.type}"`);
   }
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// COEXISTENCE EVENT HANDLERS (history / smb_app_state_sync / smb_message_echoes / account_update)
+// Tenant lookup uses waba_id (account_update may not include phone_number_id)
+// ─────────────────────────────────────────────────────────────────────────
+
+async function processCoexistenceEvent(
+  supabase: any,
+  ev: NormalizedEvent & { kind: 'coexistence_event' }
+) {
+  const { field, waba_id, phone_number_id, value } = ev;
+  console.log(`[coexistence] field=${field} waba_id=${waba_id} phone_number_id=${phone_number_id}`);
+
+  // Resolve waba_account row (preferred). Fall back via phone_number_id.
+  let waba: any = null;
+  if (waba_id) {
+    const { data } = await supabase
+      .from('waba_accounts')
+      .select('id, tenant_id')
+      .eq('waba_id', waba_id)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    waba = data;
+  }
+  if (!waba && phone_number_id) {
+    const { data: phones } = await supabase
+      .from('phone_numbers')
+      .select('id, tenant_id, waba_account_id')
+      .eq('phone_number_id', phone_number_id)
+      .limit(1);
+    const ph = phones?.[0];
+    if (ph) {
+      waba = { id: ph.waba_account_id, tenant_id: ph.tenant_id };
+    }
+  }
+  if (!waba) {
+    console.log(`[coexistence] no waba_account found for waba_id=${waba_id} phone_number_id=${phone_number_id} — ignoring`);
+    return;
+  }
+
+  const tenantId = waba.tenant_id;
+  const wabaAccountId = waba.id;
+
+  if (field === 'account_update') {
+    await handleAccountUpdate(supabase, wabaAccountId, value);
+    return;
+  }
+  if (field === 'history') {
+    await handleHistorySync(supabase, tenantId, wabaAccountId, phone_number_id, value);
+    return;
+  }
+  if (field === 'smb_app_state_sync') {
+    await handleSmbAppStateSync(supabase, tenantId, wabaAccountId, value);
+    return;
+  }
+  if (field === 'smb_message_echoes') {
+    await handleSmbMessageEchoes(supabase, tenantId, wabaAccountId, phone_number_id, value);
+    return;
+  }
+}
+
+async function handleAccountUpdate(supabase: any, wabaAccountId: string, value: any) {
+  const event = value?.event || value?.account_update?.event;
+  if (!event) return;
+
+  if (event === 'PARTNER_REMOVED') {
+    await supabase.from('waba_accounts').update({
+      status: 'disconnected',
+      disconnect_reason: 'partner_removed',
+      updated_at: new Date().toISOString(),
+    }).eq('id', wabaAccountId);
+    console.log(`[coexistence] PARTNER_REMOVED → waba ${wabaAccountId} disconnected`);
+  } else if (event === 'ACCOUNT_OFFBOARDED') {
+    await supabase.from('waba_accounts').update({
+      status: 'disconnected',
+      disconnect_reason: 'account_offboarded',
+      updated_at: new Date().toISOString(),
+    }).eq('id', wabaAccountId);
+    console.log(`[coexistence] ACCOUNT_OFFBOARDED → waba ${wabaAccountId} disconnected`);
+  } else if (event === 'ACCOUNT_RECONNECTED') {
+    await supabase.from('waba_accounts').update({
+      status: 'active',
+      disconnect_reason: null,
+      updated_at: new Date().toISOString(),
+    }).eq('id', wabaAccountId);
+    console.log(`[coexistence] ACCOUNT_RECONNECTED → waba ${wabaAccountId} active`);
+  } else {
+    console.log(`[coexistence] account_update event="${event}" not specifically handled`);
+  }
+}
+
+async function handleHistorySync(
+  supabase: any,
+  tenantId: string,
+  wabaAccountId: string,
+  phoneNumberMetaId: string | undefined,
+  value: any,
+) {
+  const errors = value?.errors || [];
+  const declined = errors.find((e: any) => String(e?.code) === '2593109');
+  if (declined) {
+    await supabase.from('waba_accounts').update({
+      history_sharing_enabled: false,
+      history_sync_status: 'declined',
+      coexistence_error: declined.message || 'history sharing declined (2593109)',
+      updated_at: new Date().toISOString(),
+    }).eq('id', wabaAccountId);
+    console.log(`[coexistence] history sync declined for waba ${wabaAccountId}`);
+    return;
+  }
+
+  const phase = value?.phase || value?.metadata?.phase;
+  const chunkOrder = Number(value?.chunk_order ?? value?.metadata?.chunk_order ?? 0);
+  const progress = Number(value?.progress ?? value?.metadata?.progress ?? 0);
+
+  // Resolve phone DB id (for conversation grouping if needed)
+  let phoneDbId: string | null = null;
+  if (phoneNumberMetaId) {
+    const { data: phones } = await supabase
+      .from('phone_numbers')
+      .select('id')
+      .eq('phone_number_id', phoneNumberMetaId)
+      .limit(1);
+    phoneDbId = phones?.[0]?.id || null;
+  }
+
+  const messages = value?.messages || value?.threads || [];
+  let inserted = 0;
+
+  for (const m of messages) {
+    const wamid = m?.id || m?.wamid;
+    if (!wamid) continue;
+
+    // Skip if already imported
+    const { data: existing } = await supabase
+      .from('messages')
+      .select('id')
+      .eq('wamid', wamid)
+      .eq('tenant_id', tenantId)
+      .limit(1)
+      .maybeSingle();
+    if (existing) continue;
+
+    const fromMe = !!m?.from_me;
+    const direction = fromMe ? 'outbound' : 'inbound';
+    const waId = m?.from || m?.contact_wa_id || m?.wa_id;
+    const text = m?.text?.body || m?.body || null;
+    const tsSec = Number(m?.timestamp || 0);
+    const sentAt = tsSec ? new Date(tsSec * 1000).toISOString() : new Date().toISOString();
+
+    // Resolve / create contact
+    let contactId: string | null = null;
+    if (waId) {
+      const { data: c } = await supabase
+        .from('contacts')
+        .select('id')
+        .eq('tenant_id', tenantId)
+        .eq('wa_id', waId)
+        .limit(1)
+        .maybeSingle();
+      if (c) {
+        contactId = c.id;
+      } else {
+        const { data: nc } = await supabase
+          .from('contacts')
+          .insert({ tenant_id: tenantId, wa_id: waId, name: m?.profile?.name || null })
+          .select('id')
+          .single();
+        contactId = nc?.id || null;
+      }
+    }
+
+    // Resolve / create conversation
+    let conversationId: string | null = null;
+    if (contactId && phoneDbId) {
+      const { data: conv } = await supabase
+        .from('conversations')
+        .select('id')
+        .eq('tenant_id', tenantId)
+        .eq('contact_id', contactId)
+        .eq('phone_number_id', phoneDbId)
+        .limit(1)
+        .maybeSingle();
+      if (conv) {
+        conversationId = conv.id;
+      } else {
+        const { data: nc } = await supabase
+          .from('conversations')
+          .insert({
+            tenant_id: tenantId,
+            contact_id: contactId,
+            phone_number_id: phoneDbId,
+            status: 'open',
+            last_message_at: sentAt,
+          })
+          .select('id')
+          .single();
+        conversationId = nc?.id || null;
+      }
+    }
+
+    if (!conversationId) continue;
+
+    await supabase.from('messages').insert({
+      tenant_id: tenantId,
+      conversation_id: conversationId,
+      wamid,
+      direction,
+      type: 'text',
+      text,
+      status: 'delivered',
+      source: 'history_sync',
+      history_status: phase || 'in_progress',
+      sent_at: sentAt,
+      created_at: sentAt,
+    });
+    inserted++;
+  }
+
+  await supabase.from('waba_accounts').update({
+    history_sync_status: phase || 'in_progress',
+    history_sync_progress: Math.max(progress, chunkOrder * 10),
+    history_sharing_enabled: true,
+    updated_at: new Date().toISOString(),
+  }).eq('id', wabaAccountId);
+
+  console.log(`[coexistence] history sync chunk processed: phase=${phase} progress=${progress} inserted=${inserted}`);
+}
+
+async function handleSmbAppStateSync(
+  supabase: any,
+  tenantId: string,
+  wabaAccountId: string,
+  value: any,
+) {
+  const contacts = value?.contacts || value?.items || [];
+  let upserts = 0;
+
+  for (const c of contacts) {
+    const action = c?.action || 'add';
+    const waId = c?.wa_id || c?.phone || c?.id;
+    if (!waId) continue;
+
+    if (action === 'remove') {
+      // Soft action — leave contact in CRM, just log
+      console.log(`[coexistence] smb_app_state_sync remove wa_id=${waId} (no-op)`);
+      continue;
+    }
+
+    const name = c?.profile?.name || c?.name || null;
+
+    const { data: existing } = await supabase
+      .from('contacts')
+      .select('id')
+      .eq('tenant_id', tenantId)
+      .eq('wa_id', waId)
+      .limit(1)
+      .maybeSingle();
+
+    if (existing) {
+      if (name) {
+        await supabase.from('contacts').update({ name, updated_at: new Date().toISOString() }).eq('id', existing.id);
+      }
+    } else {
+      await supabase.from('contacts').insert({ tenant_id: tenantId, wa_id: waId, name });
+    }
+    upserts++;
+  }
+
+  await supabase.from('waba_accounts').update({
+    contacts_sync_status: value?.phase || 'in_progress',
+    updated_at: new Date().toISOString(),
+  }).eq('id', wabaAccountId);
+
+  console.log(`[coexistence] smb_app_state_sync processed: ${upserts} contacts`);
+}
+
+async function handleSmbMessageEchoes(
+  supabase: any,
+  tenantId: string,
+  wabaAccountId: string,
+  phoneNumberMetaId: string | undefined,
+  value: any,
+) {
+  const echoes = value?.message_echoes || value?.messages || [];
+  if (!phoneNumberMetaId) {
+    console.log('[coexistence] smb_message_echoes missing phone_number_id, skipping');
+    return;
+  }
+  const { data: phones } = await supabase
+    .from('phone_numbers')
+    .select('id')
+    .eq('phone_number_id', phoneNumberMetaId)
+    .limit(1);
+  const phoneDbId = phones?.[0]?.id;
+  if (!phoneDbId) return;
+
+  for (const e of echoes) {
+    const wamid = e?.id || e?.wamid;
+    const toWaId = e?.to || e?.recipient_id;
+    const text = e?.text?.body || e?.body || null;
+    if (!wamid || !toWaId) continue;
+
+    // Skip duplicates
+    const { data: existing } = await supabase
+      .from('messages')
+      .select('id')
+      .eq('wamid', wamid)
+      .eq('tenant_id', tenantId)
+      .limit(1)
+      .maybeSingle();
+    if (existing) continue;
+
+    // Find / create contact
+    let contactId: string | null = null;
+    const { data: c } = await supabase
+      .from('contacts')
+      .select('id')
+      .eq('tenant_id', tenantId)
+      .eq('wa_id', toWaId)
+      .limit(1)
+      .maybeSingle();
+    if (c) contactId = c.id;
+    else {
+      const { data: nc } = await supabase
+        .from('contacts')
+        .insert({ tenant_id: tenantId, wa_id: toWaId })
+        .select('id')
+        .single();
+      contactId = nc?.id || null;
+    }
+    if (!contactId) continue;
+
+    // Find / create conversation
+    let conversationId: string | null = null;
+    const { data: conv } = await supabase
+      .from('conversations')
+      .select('id')
+      .eq('tenant_id', tenantId)
+      .eq('contact_id', contactId)
+      .eq('phone_number_id', phoneDbId)
+      .limit(1)
+      .maybeSingle();
+    if (conv) conversationId = conv.id;
+    else {
+      const { data: nc } = await supabase
+        .from('conversations')
+        .insert({
+          tenant_id: tenantId,
+          contact_id: contactId,
+          phone_number_id: phoneDbId,
+          status: 'open',
+          last_message_at: new Date().toISOString(),
+        })
+        .select('id')
+        .single();
+      conversationId = nc?.id || null;
+    }
+    if (!conversationId) continue;
+
+    const tsSec = Number(e?.timestamp || 0);
+    const sentAt = tsSec ? new Date(tsSec * 1000).toISOString() : new Date().toISOString();
+
+    await supabase.from('messages').insert({
+      tenant_id: tenantId,
+      conversation_id: conversationId,
+      wamid,
+      direction: 'outbound',
+      type: 'text',
+      text,
+      status: 'sent',
+      source: 'whatsapp_business_app',
+      is_echo: true,
+      sent_at: sentAt,
+      created_at: sentAt,
+    });
+  }
+
+  await supabase.from('waba_accounts').update({
+    last_smb_echo_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  }).eq('id', wabaAccountId);
+
+  console.log(`[coexistence] processed ${echoes.length} smb_message_echoes`);
 }

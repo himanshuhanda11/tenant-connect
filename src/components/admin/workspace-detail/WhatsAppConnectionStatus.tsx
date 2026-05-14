@@ -231,7 +231,18 @@ export function WhatsAppConnectionStatus({ waba, phones, workspacePhone }: Props
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1 text-xs text-muted-foreground">
                 <div><span className="font-medium text-foreground">Status:</span> {waba.coexistence_status || '—'}</div>
                 <div><span className="font-medium text-foreground">Eligibility:</span> {waba.coexistence_eligibility || '—'}</div>
+                <div><span className="font-medium text-foreground">is_on_biz_app:</span> {waba.is_on_biz_app === true ? 'true' : waba.is_on_biz_app === false ? 'false' : '—'}</div>
+                <div><span className="font-medium text-foreground">platform_type:</span> {waba.platform_type || '—'}</div>
+                <div><span className="font-medium text-foreground">Contacts sync:</span> {waba.contacts_sync_status || '—'}</div>
+                <div><span className="font-medium text-foreground">History sync:</span> {waba.history_sync_status || '—'} · {waba.history_sync_progress ?? 0}%</div>
+                {waba.onboarding_type === 'business_app_coexistence' && (
+                  <div><span className="font-medium text-foreground">Throughput:</span> 20 mps</div>
+                )}
+                <div><span className="font-medium text-foreground">Last SMB echo:</span> {waba.last_smb_echo_at ? new Date(waba.last_smb_echo_at).toLocaleString() : '—'}</div>
                 <div className="sm:col-span-2"><span className="font-medium text-foreground">Last checked:</span> {waba.coexistence_checked_at ? new Date(waba.coexistence_checked_at).toLocaleString() : '—'}</div>
+                {waba.disconnect_reason && (
+                  <div className="sm:col-span-2 text-destructive"><span className="font-medium">Disconnect reason:</span> {waba.disconnect_reason}</div>
+                )}
                 {waba.coexistence_error && (
                   <div className="sm:col-span-2 text-destructive break-all"><span className="font-medium">Error:</span> {waba.coexistence_error}</div>
                 )}

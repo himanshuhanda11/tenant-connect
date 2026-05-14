@@ -20,6 +20,11 @@ interface CoexistencePayload {
   coexistence_eligibility: string | null;
   coexistence_error: string | null;
   coexistence_checked_at: string;
+  is_on_biz_app?: boolean | null;
+  platform_type?: string | null;
+  contacts_sync_status?: string | null;
+  history_sync_status?: string | null;
+  history_sync_progress?: number | null;
 }
 
 interface MetaEmbeddedSignupProps {
@@ -59,9 +64,9 @@ export function MetaEmbeddedSignup({ onSuccess, onError, onConnectionError }: Me
       try {
         const data = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
         if (data.type === 'WA_EMBEDDED_SIGNUP') {
-          if (data.event === 'FINISH') {
-            const { phone_number_id, waba_id } = data.data;
-            console.log('Embedded Signup FINISH — WABA:', waba_id, 'Phone:', phone_number_id);
+          if (data.event === 'FINISH' || data.event === 'FINISH_WHATSAPP_BUSINESS_APP_ONBOARDING') {
+            const { phone_number_id, waba_id } = data.data || {};
+            console.log('Embedded Signup', data.event, '— WABA:', waba_id, 'Phone:', phone_number_id);
             sessionDataRef.current = { wabaId: waba_id, phoneNumberId: phone_number_id };
           } else if (data.event === 'CANCEL') {
             console.warn('Embedded Signup cancelled at step:', data.data?.current_step);
@@ -271,9 +276,27 @@ export function MetaEmbeddedSignup({ onSuccess, onError, onConnectionError }: Me
             )}
           </div>
           {cxEnabled && (
-            <p className="text-xs text-muted-foreground">
-              WhatsApp Business App can still be used on this number.
-            </p>
+            <>
+              <p className="text-xs text-muted-foreground">
+                WhatsApp Business App is still active · Aireatro API is active · Throughput: 20 mps
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-2 text-xs">
+                <div className="rounded bg-background/60 p-2">
+                  <div className="font-medium text-foreground mb-0.5">Contacts sync</div>
+                  <div className="text-muted-foreground">{cx.contacts_sync_status || 'pending'}</div>
+                </div>
+                <div className="rounded bg-background/60 p-2">
+                  <div className="font-medium text-foreground mb-0.5">Chat history sync</div>
+                  <div className="text-muted-foreground">{cx.history_sync_status || 'pending'} · {cx.history_sync_progress ?? 0}%</div>
+                </div>
+              </div>
+              <p className="text-xs text-muted-foreground italic">
+                Syncing your WhatsApp Business App contacts and chat history. Please keep your WhatsApp Business App open.
+              </p>
+              <p className="text-[11px] text-muted-foreground pt-2 border-t border-border/50">
+                <span className="font-medium text-foreground">To disconnect:</span> open WhatsApp Business App → Settings → Account → Business Platform → Disconnect Account.
+              </p>
+            </>
           )}
           {cxNotEligible && (
             <p className="text-xs text-muted-foreground">
@@ -286,6 +309,7 @@ export function MetaEmbeddedSignup({ onSuccess, onError, onConnectionError }: Me
           <div className="grid grid-cols-1 gap-1 text-xs text-muted-foreground pt-2 border-t border-border/50">
             <div><span className="font-medium text-foreground">WABA ID:</span> {lastResult.wabaId}</div>
             <div><span className="font-medium text-foreground">Phone Number ID:</span> {lastResult.phoneNumberId}</div>
+            {cx.platform_type && <div><span className="font-medium text-foreground">Platform:</span> {cx.platform_type}</div>}
             <div><span className="font-medium text-foreground">Last checked:</span> {new Date(cx.coexistence_checked_at).toLocaleString()}</div>
           </div>
         </div>
