@@ -508,6 +508,8 @@ async function processEvent(supabase: any, ev: NormalizedEvent, webhookEventId?:
       await processInboundMessage(supabase, tenantId, phoneNumber.id, ev, accessToken);
     } else if (ev.kind === 'message_status') {
       await processStatusUpdate(supabase, tenantId, ev);
+    } else if (ev.kind === 'message_mutation') {
+      await processMessageMutation(supabase, tenantId, ev);
     }
 
     await markEventProcessed(supabase, webhookEventId);
