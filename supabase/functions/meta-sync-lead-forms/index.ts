@@ -719,8 +719,8 @@ Deno.serve(async (req) => {
         lead_id: `test_${Date.now()}`,
         page_id: pageId || 'test_page',
         raw_payload: testLead,
+        normalized_data: { note: 'Test webhook simulation (no real lead)' },
         status: 'success',
-        error_text: 'Test webhook simulation',
       });
 
       return json({ success: true, message: 'Test webhook event created' });
