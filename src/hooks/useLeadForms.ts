@@ -278,22 +278,25 @@ export function useLeadFormRules() {
 
 export function useLeadEvents() {
   const { currentTenant } = useTenant();
+  const { pageId: connectedPageId } = useConnectedPageId();
   const [events, setEvents] = useState<LeadEvent[]>([]);
   const [loading, setLoading] = useState(true);
 
   const fetchEvents = useCallback(async (limit = 100) => {
     if (!currentTenant) return;
     setLoading(true);
-    const { data, error } = await supabase
+    let q = supabase
       .from('lead_events')
       .select('*')
       .eq('tenant_id', currentTenant.id)
       .order('created_at', { ascending: false })
       .limit(limit);
-    
+    if (connectedPageId) q = q.eq('page_id', connectedPageId);
+    const { data, error } = await q;
+
     if (!error && data) setEvents(data as any);
     setLoading(false);
-  }, [currentTenant]);
+  }, [currentTenant, connectedPageId]);
 
   useEffect(() => { fetchEvents(); }, [fetchEvents]);
 
@@ -302,22 +305,26 @@ export function useLeadEvents() {
 
 export function useWebhookHealth() {
   const { currentTenant } = useTenant();
+  const { pageId: connectedPageId } = useConnectedPageId();
   const [subscriptions, setSubscriptions] = useState<WebhookSubscription[]>([]);
   const [loading, setLoading] = useState(true);
 
   const fetchHealth = useCallback(async () => {
     if (!currentTenant) return;
     setLoading(true);
-    const { data, error } = await supabase
+    let q = supabase
       .from('meta_webhook_subscriptions')
       .select('*')
       .eq('tenant_id', currentTenant.id);
-    
+    if (connectedPageId) q = q.eq('page_id', connectedPageId);
+    const { data, error } = await q;
+
     if (!error && data) setSubscriptions(data as any);
     setLoading(false);
-  }, [currentTenant]);
+  }, [currentTenant, connectedPageId]);
 
   useEffect(() => { fetchHealth(); }, [fetchHealth]);
 
   return { subscriptions, loading, refetch: fetchHealth };
 }
+
