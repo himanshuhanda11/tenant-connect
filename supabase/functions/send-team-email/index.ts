@@ -908,29 +908,12 @@ Deno.serve(async (req) => {
       return json({ error: "Unknown email type" }, 400);
     }
 
-    // Send via Resend
-    const resendRes = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${RESEND_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        from: "Aireatro <noreply@aireatro.com>",
-        to: [to],
-        subject,
-        html,
-      }),
-    });
-
-    const resendData = await resendRes.json();
-
-    if (!resendRes.ok) {
-      console.error("Resend error:", resendData);
-      return json({ error: "Failed to send email", details: resendData }, 500);
+    // Route through Lovable Emails queue (verified update.aireatro.com)
+    const r = await sendOne(String(to), subject, html);
+    if (!r.ok) {
+      return json({ error: "Failed to enqueue email", details: r.data }, 500);
     }
-
-    return json({ success: true, id: resendData.id });
+    return json({ success: true, id: (r.data as any)?.id });
   } catch (err) {
     console.error("send-team-email error:", err);
     return json({ error: err.message }, 500);
