@@ -420,7 +420,9 @@ export default function MetaAdsSetup() {
 
       if (error) throw error;
       queryClient.invalidateQueries({ queryKey: ['meta-ad-accounts'] });
+      queryClient.invalidateQueries({ queryKey: ['meta-ad-accounts-leadforms'] });
       queryClient.invalidateQueries({ queryKey: ['meta-ad-campaigns'] });
+      window.dispatchEvent(new CustomEvent('meta-account-changed', { detail: { action: 'connect' } }));
       toast.success('Meta Ads connected successfully!');
       navigate('/meta-ads');
     } catch (err: any) {
