@@ -86,8 +86,9 @@ export function useConnectedPageId() {
       .from('smeksh_meta_ad_accounts')
       .select('facebook_page_id, status, is_active, updated_at')
       .eq('workspace_id', currentTenant.id)
+      .eq('status', 'connected')
+      .eq('is_active', true)
       .not('facebook_page_id', 'is', null)
-      .order('is_active', { ascending: false })
       .order('updated_at', { ascending: false })
       .limit(1)
       .then(({ data }) => {
