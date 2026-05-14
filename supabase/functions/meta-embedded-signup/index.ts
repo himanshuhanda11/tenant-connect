@@ -391,8 +391,20 @@ Deno.serve(async (req) => {
           await cleanupOtherPhones(connectedPhoneId);
 
           // ── Register phone for messaging ──
-          // If Meta rate-limits registration (133016) we keep the number in "pending".
+          // Coexistence numbers are already registered via WhatsApp Business App — skip /register entirely.
+          // For the normal flow: if Meta rate-limits registration (133016) we keep the number in "pending".
           // If PIN mismatch (133005) we mark it as verification_required.
+          if (isCoexistence) {
+            // Mark phone as connected — number is live on the Business App side.
+            try {
+              await supabase
+                .from('phone_numbers')
+                .update({ status: 'connected', updated_at: new Date().toISOString() })
+                .eq('id', connectedPhoneId);
+            } catch (e) {
+              console.warn('Failed to mark coexistence phone connected (non-blocking):', e);
+            }
+          } else {
           const registrationPin = pin || '000000';
           let registrationStatus: 'connected' | 'pending' | 'verification_required' = 'pending';
           let registrationWarning: string | undefined;
