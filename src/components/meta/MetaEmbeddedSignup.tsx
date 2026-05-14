@@ -232,9 +232,9 @@ export function MetaEmbeddedSignup({ onSuccess, onError, onConnectionError }: Me
             <Smartphone className="w-4 h-4 text-primary" />
           </div>
           <div className="flex-1 min-w-0">
-            <h4 className="text-sm font-semibold">Connect with WhatsApp Coexistence</h4>
+            <h4 className="text-sm font-semibold">Connect existing WhatsApp Business App number</h4>
             <p className="text-xs text-muted-foreground mt-1">
-              Use Aireatro automation, team inbox, CRM, and campaigns while still using your WhatsApp Business App on the same number.
+              Use the same number in WhatsApp Business App and Aireatro together — keep automation, team inbox, CRM, and campaigns alongside your mobile app.
             </p>
           </div>
         </div>
