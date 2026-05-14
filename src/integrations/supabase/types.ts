@@ -12993,6 +12993,7 @@ export type Database = {
       }
       subscriptions: {
         Row: {
+          assigned_by_admin: string | null
           billing_cycle: string | null
           cancel_at_period_end: boolean | null
           canceled_at: string | null
@@ -13007,6 +13008,7 @@ export type Database = {
           pending_billing_cycle: string | null
           pending_plan_id: string | null
           plan_id: string | null
+          plan_source: string
           pricing_region: string | null
           scheduled_change_at: string | null
           status: Database["public"]["Enums"]["subscription_status"]
@@ -13020,6 +13022,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          assigned_by_admin?: string | null
           billing_cycle?: string | null
           cancel_at_period_end?: boolean | null
           canceled_at?: string | null
@@ -13034,6 +13037,7 @@ export type Database = {
           pending_billing_cycle?: string | null
           pending_plan_id?: string | null
           plan_id?: string | null
+          plan_source?: string
           pricing_region?: string | null
           scheduled_change_at?: string | null
           status?: Database["public"]["Enums"]["subscription_status"]
@@ -13047,6 +13051,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          assigned_by_admin?: string | null
           billing_cycle?: string | null
           cancel_at_period_end?: boolean | null
           canceled_at?: string | null
@@ -13061,6 +13066,7 @@ export type Database = {
           pending_billing_cycle?: string | null
           pending_plan_id?: string | null
           plan_id?: string | null
+          plan_source?: string
           pricing_region?: string | null
           scheduled_change_at?: string | null
           status?: Database["public"]["Enums"]["subscription_status"]
