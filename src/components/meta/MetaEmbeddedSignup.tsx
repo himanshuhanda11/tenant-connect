@@ -20,6 +20,11 @@ interface CoexistencePayload {
   coexistence_eligibility: string | null;
   coexistence_error: string | null;
   coexistence_checked_at: string;
+  is_on_biz_app?: boolean | null;
+  platform_type?: string | null;
+  contacts_sync_status?: string | null;
+  history_sync_status?: string | null;
+  history_sync_progress?: number | null;
 }
 
 interface MetaEmbeddedSignupProps {
