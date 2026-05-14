@@ -344,7 +344,7 @@ Deno.serve(async (req) => {
         const s = toIcsStamp(startUtc);
         const e = toIcsStamp(endUtc);
         const title = encodeURIComponent("Aireatro Demo");
-        const details = encodeURIComponent(`Live demo with the Aireatro team.\nTimezone: ${timezoneD}\nContact: +91 93197 11126`);
+        const details = encodeURIComponent(`Live demo with the Aireatro team.\nTimezone: ${timezoneD}\nContact: +971 58 658 5863`);
         const loc = encodeURIComponent("Google Meet / Zoom (link will be sent)");
         googleCalUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${s}/${e}&details=${details}&location=${loc}`;
         outlookCalUrl = `https://outlook.live.com/calendar/0/deeplink/compose?path=/calendar/action/compose&rru=addevent&subject=${title}&body=${details}&location=${loc}&startdt=${startUtc.toISOString()}&enddt=${endUtc.toISOString()}`;
@@ -510,7 +510,7 @@ Deno.serve(async (req) => {
           <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
             <tr><td style="padding:24px 44px 36px;">
               <hr style="border:none;border-top:1px solid ${HAIR};margin:0 0 16px;" />
-              <p style="margin:0;font-size:12px;color:${SUB};line-height:1.6;">Need to reschedule? Reply to this email or WhatsApp us at +91 93197 11126.</p>
+              <p style="margin:0;font-size:12px;color:${SUB};line-height:1.6;">Need to reschedule? Reply to this email or WhatsApp us at +971 58 658 5863.</p>
               <p style="margin:8px 0 0;font-size:11px;color:${FAINT};">© ${year} Aireatro · aireatro.com</p>
             </td></tr>
           </table>
