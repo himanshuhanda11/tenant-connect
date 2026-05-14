@@ -122,6 +122,15 @@ Deno.serve(async (req) => {
           .select('id')
           .single();
 
+        if (eventRow && isMetaLeadgenTestEvent(leadId, formId, leadgenData)) {
+          await supabase.from('lead_events').update({
+            status: 'skipped',
+            normalized_data: { note: 'Meta webhook test event (no real lead details to fetch)' },
+          }).eq('id', eventRow.id);
+          results.push({ leadId, status: 'skipped', reason: 'meta_test_event' });
+          continue;
+        }
+
         if (!tenantId) {
           console.warn(`[leadgen-webhook] No workspace found for page_id=${pageId}`);
           if (eventRow) {
@@ -327,6 +336,11 @@ async function verifySignature(rawBody: string, signatureHeader: string | null):
     return false;
   }
   return true;
+}
+
+function isMetaLeadgenTestEvent(leadId?: string | null, formId?: string | null, payload?: any): boolean {
+  const ids = [leadId, formId, payload?.page_id].filter(Boolean).map((value) => String(value));
+  return ids.some((value) => /^test_|^test_|^123456789$|^444444444444$/.test(value)) || ids.includes('0');
 }
 
 function normalizeLeadFields(fieldData: any[]): Record<string, string> {

@@ -2,11 +2,11 @@ import { useLeadEvents } from '@/hooks/useLeadForms';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Loader2, ScrollText, RefreshCw, ChevronDown, ChevronUp, Clock, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { Loader2, ScrollText, RefreshCw, ChevronDown, ChevronUp, Clock, AlertCircle, CheckCircle2, type LucideIcon } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { useState } from 'react';
 
-const STATUS_CONFIG: Record<string, { color: string; icon: any }> = {
+const STATUS_CONFIG: Record<string, { color: string; icon: LucideIcon }> = {
   received: { color: 'bg-blue-100 text-blue-700 dark:bg-blue-950/30 dark:text-blue-400', icon: Clock },
   processing: { color: 'bg-amber-100 text-amber-700 dark:bg-amber-950/30 dark:text-amber-400', icon: Clock },
   success: { color: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400', icon: CheckCircle2 },
@@ -17,6 +17,14 @@ const STATUS_CONFIG: Record<string, { color: string; icon: any }> = {
 export function LeadEventsLog() {
   const { events, loading, refetch } = useLeadEvents();
   const [expandedId, setExpandedId] = useState<string | null>(null);
+
+  const isErrorStatus = (status: string) => ['failed', 'error'].includes(status);
+  const isMetaTestEvent = (event: { lead_id: string | null; form_id: string | null; page_id: string | null; raw_payload: Record<string, unknown> | null }) => {
+    const values = [event.lead_id, event.form_id, event.page_id, event.raw_payload?.leadgen_id]
+      .filter(Boolean)
+      .map((value) => String(value));
+    return values.some((value) => value.startsWith('test_') || value === '123456789' || value === '444444444444' || value === '0');
+  };
 
   if (loading) {
     return <div className="flex justify-center py-16"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>;
@@ -47,7 +55,8 @@ export function LeadEventsLog() {
       ) : (
         <div className="space-y-2">
           {events.map((event) => {
-            const config = STATUS_CONFIG[event.status] || STATUS_CONFIG.received;
+            const displayStatus = isMetaTestEvent(event) && isErrorStatus(event.status) ? 'skipped' : event.status;
+            const config = STATUS_CONFIG[displayStatus] || STATUS_CONFIG.received;
             const StatusIcon = config.icon;
             const isExpanded = expandedId === event.id;
 
@@ -67,7 +76,7 @@ export function LeadEventsLog() {
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="font-mono text-xs text-foreground">{event.lead_id?.slice(0, 16) || 'Unknown'}</span>
                         <Badge className={`${config.color} text-[10px] h-4 px-1.5`} variant="secondary">
-                          {event.status}
+                          {displayStatus}
                         </Badge>
                       </div>
                       <div className="flex items-center gap-3 mt-1 text-[11px] text-muted-foreground">
@@ -86,9 +95,14 @@ export function LeadEventsLog() {
                   {/* Expanded Detail */}
                   {isExpanded && (
                     <div className="border-t border-border/40 p-3 sm:p-4 bg-muted/20 space-y-3">
-                      {event.error_text && (
+                      {event.error_text && isErrorStatus(displayStatus) && (
                         <div className="p-2.5 bg-red-50 dark:bg-red-950/30 rounded-lg border border-red-200 dark:border-red-800">
                           <p className="text-xs font-medium text-red-700 dark:text-red-400">Error: {event.error_text}</p>
+                        </div>
+                      )}
+                      {event.error_text && !isErrorStatus(displayStatus) && (
+                        <div className="p-2.5 bg-muted/40 rounded-lg border border-border/60">
+                          <p className="text-xs font-medium text-muted-foreground">Note: {isMetaTestEvent(event) ? 'Meta webhook test event (no real lead details to fetch)' : event.error_text}</p>
                         </div>
                       )}
                       {event.normalized_data && (

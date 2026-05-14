@@ -639,9 +639,11 @@ Deno.serve(async (req) => {
                 page_id: form.page_id,
                 ad_id: lead?.ad_id || null,
                 raw_payload: lead,
-                normalized_data: normalized,
+                normalized_data: {
+                  ...normalized,
+                  note: 'Backfilled from Meta Graph (rules not executed)',
+                },
                 status: 'success',
-                error_text: 'Backfilled from Meta Graph (rules not executed)',
               });
 
               // Try to derive a phone for ROI lead row
