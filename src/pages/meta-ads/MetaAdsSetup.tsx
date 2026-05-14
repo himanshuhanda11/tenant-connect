@@ -204,6 +204,11 @@ export default function MetaAdsSetup() {
       setFbConnected(false); setAdAccounts([]); setPages([]); setPermissions([]); setLongLivedToken(''); setAdAccountsError(null);
       setFormData({ adAccountId: '', adAccountName: '', pageId: '', pageName: '', phoneNumberId: '', phoneDisplay: '', instagramAccountId: '', instagramUsername: '', pixelId: '', pixelName: '', businessId: '', businessName: '' });
       queryClient.invalidateQueries({ queryKey: ['meta-ad-accounts'] });
+      queryClient.invalidateQueries({ queryKey: ['meta-ad-accounts-leadforms'] });
+      queryClient.invalidateQueries({ queryKey: ['lead-forms'] });
+      queryClient.invalidateQueries({ queryKey: ['lead-events'] });
+      queryClient.invalidateQueries({ queryKey: ['webhook-health'] });
+      queryClient.invalidateQueries({ queryKey: ['connected-page-id'] });
       toast.success('Meta Ads disconnected.');
     } catch (err: any) {
       toast.error(err.message || 'Failed to disconnect');
