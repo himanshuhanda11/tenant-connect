@@ -87,6 +87,7 @@ export function WorkspacePlanCard() {
   const meta = planMeta[planId] ?? planMeta.free;
   const limits = entitlements?.limits ?? subscription?.plan?.limits_json;
   const isTopPlan = planId === 'business';
+  const isAdminAssigned = billing?.plan_source === 'manual_admin' || billing?.assigned_by_admin === true;
 
   const goAddOns = () => navigate('/add-ons');
 
