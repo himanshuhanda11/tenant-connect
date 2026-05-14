@@ -15383,6 +15383,7 @@ export type Database = {
           encrypted_access_token: string | null
           id: string
           name: string | null
+          onboarding_type: string
           status: Database["public"]["Enums"]["waba_status"]
           tenant_id: string
           token_source: string | null
@@ -15400,6 +15401,7 @@ export type Database = {
           encrypted_access_token?: string | null
           id?: string
           name?: string | null
+          onboarding_type?: string
           status?: Database["public"]["Enums"]["waba_status"]
           tenant_id: string
           token_source?: string | null
@@ -15417,6 +15419,7 @@ export type Database = {
           encrypted_access_token?: string | null
           id?: string
           name?: string | null
+          onboarding_type?: string
           status?: Database["public"]["Enums"]["waba_status"]
           tenant_id?: string
           token_source?: string | null
