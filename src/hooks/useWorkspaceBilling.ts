@@ -21,6 +21,14 @@ export type WorkspaceBillingStatus = {
   stripe_customer_id: string | null;
   has_subscription: boolean;
   has_selected_plan?: boolean;
+  /** How the plan was assigned: stripe checkout, manual super-admin, or default free */
+  plan_source?: 'stripe' | 'manual_admin' | 'free';
+  /** True when a Super Admin manually assigned this plan (no Stripe required) */
+  assigned_by_admin?: boolean;
+  /** True when Stripe checkout still needs to happen to activate a paid plan */
+  stripe_required?: boolean;
+  /** True when the workspace is on an active paid plan (manual or Stripe) */
+  is_paid?: boolean;
   pending_plan_id: string | null;
   pending_billing_cycle: 'monthly' | 'yearly' | null;
   scheduled_change_at: string | null;

@@ -44,7 +44,7 @@ export function useOnboardingProgress(tenantId: string | null | undefined): Onbo
 
       const [{ data: ent }, { data: sub }, { data: phones }, { data: tenantRow }] = await Promise.all([
         supabase.from('workspace_entitlements').select('plan,status').eq('workspace_id', tenantId).maybeSingle(),
-        supabase.from('subscriptions').select('plan_id,status,stripe_subscription_id').eq('tenant_id', tenantId).order('created_at', { ascending: false }).limit(1).maybeSingle(),
+        supabase.from('subscriptions').select('plan_id,status,stripe_subscription_id,plan_source').eq('tenant_id', tenantId).order('created_at', { ascending: false }).limit(1).maybeSingle(),
         supabase.from('phone_numbers').select('id,status').eq('tenant_id', tenantId).order('is_default', { ascending: false }),
         supabase.from('tenants').select('whatsapp_profile_completed' as any).eq('id', tenantId).maybeSingle(),
       ]);
@@ -59,11 +59,15 @@ export function useOnboardingProgress(tenantId: string | null | undefined): Onbo
       const storedPlan = lsPlan === '1' ? lsPlanName : null;
       // Ignore subscriptions stuck in pre-checkout / failed states — those mean the user
       // started checkout but never completed payment, so the plan is NOT actually selected.
+      // Manually-assigned plans (plan_source = 'manual_admin') always count as selected.
       const PENDING_STATUSES = new Set(['incomplete', 'incomplete_expired', 'canceled', 'cancelled']);
       const subStatus = (sub as any)?.status as string | undefined;
+      const subPlanSource = (sub as any)?.plan_source as string | undefined;
+      const isManualAdminPlan = subPlanSource === 'manual_admin' && subStatus === 'active';
+      const normalizedSubPlan = (sub as any)?.plan_id?.replace('plan_', '') || null;
       const rawSubscriptionPlan = subStatus && !PENDING_STATUSES.has(subStatus)
-        && (((sub as any)?.plan_id?.replace('plan_', '') === 'free') || !!(sub as any)?.stripe_subscription_id)
-        ? ((sub as any)?.plan_id?.replace('plan_', '') || null)
+        && (isManualAdminPlan || normalizedSubPlan === 'free' || !!(sub as any)?.stripe_subscription_id)
+        ? normalizedSubPlan
         : null;
       const subscriptionPlan = rawSubscriptionPlan || null;
       const entitlementPlan = (ent as any)?.plan && (ent as any).plan !== 'free' ? (ent as any).plan : null;

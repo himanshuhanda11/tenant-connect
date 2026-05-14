@@ -1061,6 +1061,30 @@ Deno.serve(async (req: Request) => {
         throw new Error(`Failed to update entitlements: ${entError.message}`);
       }
 
+      // Also upsert subscriptions row so the rest of the app (billing-status,
+      // onboarding gate, WhatsApp connect guard) recognises the plan as
+      // active without requiring Stripe checkout.
+      const isFreePlan = String(planId).toLowerCase() === "free";
+      const { error: subError } = await sb.from("subscriptions").upsert({
+        tenant_id: workspaceId,
+        plan_id: planId,
+        status: "active",
+        billing_cycle: "monthly",
+        plan_source: isFreePlan ? "free" : "manual_admin",
+        assigned_by_admin: isFreePlan ? null : actor.user.id,
+        // Clear any prior Stripe linkage / scheduled changes for clarity
+        cancel_at_period_end: false,
+        pending_plan_id: null,
+        pending_billing_cycle: null,
+        scheduled_change_at: null,
+        last_plan_change_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      }, { onConflict: "tenant_id" });
+      if (subError) {
+        console.error("Subscription upsert error:", subError);
+        // Non-fatal — entitlements already updated, but log loudly
+      }
+
       await logAction(sb, actor, "PLATFORM_PLAN_CHANGED", {
         workspace_id: workspaceId, after: { plan_id: planId, plan_name: plan.name },
         note: `Plan changed to ${plan.name}`,
