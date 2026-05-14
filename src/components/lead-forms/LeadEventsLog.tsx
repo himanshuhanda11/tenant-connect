@@ -19,7 +19,7 @@ export function LeadEventsLog() {
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
   const isErrorStatus = (status: string) => ['failed', 'error'].includes(status);
-  const isMetaTestEvent = (event: { lead_id: string | null; form_id: string | null; page_id: string | null; raw_payload: any }) => {
+  const isMetaTestEvent = (event: { lead_id: string | null; form_id: string | null; page_id: string | null; raw_payload: Record<string, unknown> | null }) => {
     const values = [event.lead_id, event.form_id, event.page_id, event.raw_payload?.leadgen_id]
       .filter(Boolean)
       .map((value) => String(value));
