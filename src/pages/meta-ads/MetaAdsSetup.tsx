@@ -209,6 +209,7 @@ export default function MetaAdsSetup() {
       queryClient.invalidateQueries({ queryKey: ['lead-events'] });
       queryClient.invalidateQueries({ queryKey: ['webhook-health'] });
       queryClient.invalidateQueries({ queryKey: ['connected-page-id'] });
+      window.dispatchEvent(new CustomEvent('meta-account-changed', { detail: { action: 'disconnect' } }));
       toast.success('Meta Ads disconnected.');
     } catch (err: any) {
       toast.error(err.message || 'Failed to disconnect');
