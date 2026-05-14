@@ -209,6 +209,7 @@ export default function MetaAdsSetup() {
       queryClient.invalidateQueries({ queryKey: ['lead-events'] });
       queryClient.invalidateQueries({ queryKey: ['webhook-health'] });
       queryClient.invalidateQueries({ queryKey: ['connected-page-id'] });
+      window.dispatchEvent(new CustomEvent('meta-account-changed', { detail: { action: 'disconnect' } }));
       toast.success('Meta Ads disconnected.');
     } catch (err: any) {
       toast.error(err.message || 'Failed to disconnect');
@@ -419,7 +420,9 @@ export default function MetaAdsSetup() {
 
       if (error) throw error;
       queryClient.invalidateQueries({ queryKey: ['meta-ad-accounts'] });
+      queryClient.invalidateQueries({ queryKey: ['meta-ad-accounts-leadforms'] });
       queryClient.invalidateQueries({ queryKey: ['meta-ad-campaigns'] });
+      window.dispatchEvent(new CustomEvent('meta-account-changed', { detail: { action: 'connect' } }));
       toast.success('Meta Ads connected successfully!');
       navigate('/meta-ads');
     } catch (err: any) {

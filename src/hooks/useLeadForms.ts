@@ -77,6 +77,7 @@ export function useConnectedPageId() {
   const { currentTenant } = useTenant();
   const [pageId, setPageId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [tick, setTick] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
@@ -98,6 +99,23 @@ export function useConnectedPageId() {
         setLoading(false);
       });
     return () => { cancelled = true; };
+  }, [currentTenant?.id, tick]);
+
+  // React to connect/disconnect actions from anywhere in the app
+  useEffect(() => {
+    if (!currentTenant?.id) return;
+    const bump = () => setTick((t) => t + 1);
+    window.addEventListener('meta-account-changed', bump);
+    const channel = supabase
+      .channel(`meta-acc-${currentTenant.id}`)
+      .on('postgres_changes',
+        { event: '*', schema: 'public', table: 'smeksh_meta_ad_accounts', filter: `workspace_id=eq.${currentTenant.id}` },
+        bump)
+      .subscribe();
+    return () => {
+      window.removeEventListener('meta-account-changed', bump);
+      supabase.removeChannel(channel);
+    };
   }, [currentTenant?.id]);
 
   return { pageId, loading };
