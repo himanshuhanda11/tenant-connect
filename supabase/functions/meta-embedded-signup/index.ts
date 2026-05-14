@@ -243,6 +243,7 @@ Deno.serve(async (req) => {
           status: 'active',
           name: wabaData.name,
           business_id: businessId,
+          onboarding_type: isCoexistence ? 'business_app_coexistence' : 'normal_api',
           updated_at: new Date().toISOString(),
         };
 
