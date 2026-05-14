@@ -39,6 +39,14 @@ type NormalizedEvent =
       meta_status: string;
       reason?: string;
       raw: any;
+    }
+  | {
+      kind: 'coexistence_event';
+      field: 'history' | 'smb_app_state_sync' | 'smb_message_echoes' | 'account_update';
+      waba_id?: string;
+      phone_number_id?: string;
+      value: any;
+      raw: any;
     };
 
 // Verify webhook signature using META_APP_SECRET
