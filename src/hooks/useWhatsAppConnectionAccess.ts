@@ -107,8 +107,13 @@ export function evaluateWhatsAppAccess(
     };
   }
 
-  // Paid plan picked but Stripe checkout never confirmed
-  if (!billing.has_subscription) {
+  // Manual super-admin assigned plan — never require Stripe checkout.
+  // The billing-status function already sets has_subscription=true for these,
+  // but we double-check here so a missing flag never blocks access.
+  const isManualAdmin = billing.plan_source === 'manual_admin' || billing.assigned_by_admin === true;
+
+  // Paid plan picked but Stripe checkout never confirmed (skip for manual admin)
+  if (!billing.has_subscription && !isManualAdmin) {
     return {
       allowed: false,
       isLoading: false,
