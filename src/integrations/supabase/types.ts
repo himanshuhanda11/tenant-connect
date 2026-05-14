@@ -6700,11 +6700,14 @@ export type Database = {
           created_at: string
           delivered_at: string | null
           direction: Database["public"]["Enums"]["message_direction"]
+          edited_at: string | null
           error_code: string | null
           error_message: string | null
           failed_at: string | null
+          history_status: string | null
           id: string
           is_auto_reply: boolean
+          is_echo: boolean
           media_bucket: string | null
           media_filename: string | null
           media_mime_type: string | null
@@ -6712,9 +6715,12 @@ export type Database = {
           media_size_bytes: number | null
           media_url: string | null
           metadata: Json | null
+          original_message_id: string | null
           raw: Json | null
           read_at: string | null
+          revoked_at: string | null
           sent_at: string | null
+          source: string
           status: Database["public"]["Enums"]["message_status"]
           tenant_id: string
           text: string | null
@@ -6728,11 +6734,14 @@ export type Database = {
           created_at?: string
           delivered_at?: string | null
           direction: Database["public"]["Enums"]["message_direction"]
+          edited_at?: string | null
           error_code?: string | null
           error_message?: string | null
           failed_at?: string | null
+          history_status?: string | null
           id?: string
           is_auto_reply?: boolean
+          is_echo?: boolean
           media_bucket?: string | null
           media_filename?: string | null
           media_mime_type?: string | null
@@ -6740,9 +6749,12 @@ export type Database = {
           media_size_bytes?: number | null
           media_url?: string | null
           metadata?: Json | null
+          original_message_id?: string | null
           raw?: Json | null
           read_at?: string | null
+          revoked_at?: string | null
           sent_at?: string | null
+          source?: string
           status?: Database["public"]["Enums"]["message_status"]
           tenant_id: string
           text?: string | null
@@ -6756,11 +6768,14 @@ export type Database = {
           created_at?: string
           delivered_at?: string | null
           direction?: Database["public"]["Enums"]["message_direction"]
+          edited_at?: string | null
           error_code?: string | null
           error_message?: string | null
           failed_at?: string | null
+          history_status?: string | null
           id?: string
           is_auto_reply?: boolean
+          is_echo?: boolean
           media_bucket?: string | null
           media_filename?: string | null
           media_mime_type?: string | null
@@ -6768,9 +6783,12 @@ export type Database = {
           media_size_bytes?: number | null
           media_url?: string | null
           metadata?: Json | null
+          original_message_id?: string | null
           raw?: Json | null
           read_at?: string | null
+          revoked_at?: string | null
           sent_at?: string | null
+          source?: string
           status?: Database["public"]["Enums"]["message_status"]
           tenant_id?: string
           text?: string | null
@@ -15379,11 +15397,21 @@ export type Database = {
           coexistence_enabled: boolean
           coexistence_error: string | null
           coexistence_status: string | null
+          contacts_sync_request_id: string | null
+          contacts_sync_status: string | null
           created_at: string
+          disconnect_reason: string | null
           encrypted_access_token: string | null
+          history_sharing_enabled: boolean | null
+          history_sync_progress: number
+          history_sync_request_id: string | null
+          history_sync_status: string | null
           id: string
+          is_on_biz_app: boolean | null
+          last_smb_echo_at: string | null
           name: string | null
           onboarding_type: string
+          platform_type: string | null
           status: Database["public"]["Enums"]["waba_status"]
           tenant_id: string
           token_source: string | null
@@ -15397,11 +15425,21 @@ export type Database = {
           coexistence_enabled?: boolean
           coexistence_error?: string | null
           coexistence_status?: string | null
+          contacts_sync_request_id?: string | null
+          contacts_sync_status?: string | null
           created_at?: string
+          disconnect_reason?: string | null
           encrypted_access_token?: string | null
+          history_sharing_enabled?: boolean | null
+          history_sync_progress?: number
+          history_sync_request_id?: string | null
+          history_sync_status?: string | null
           id?: string
+          is_on_biz_app?: boolean | null
+          last_smb_echo_at?: string | null
           name?: string | null
           onboarding_type?: string
+          platform_type?: string | null
           status?: Database["public"]["Enums"]["waba_status"]
           tenant_id: string
           token_source?: string | null
@@ -15415,11 +15453,21 @@ export type Database = {
           coexistence_enabled?: boolean
           coexistence_error?: string | null
           coexistence_status?: string | null
+          contacts_sync_request_id?: string | null
+          contacts_sync_status?: string | null
           created_at?: string
+          disconnect_reason?: string | null
           encrypted_access_token?: string | null
+          history_sharing_enabled?: boolean | null
+          history_sync_progress?: number
+          history_sync_request_id?: string | null
+          history_sync_status?: string | null
           id?: string
+          is_on_biz_app?: boolean | null
+          last_smb_echo_at?: string | null
           name?: string | null
           onboarding_type?: string
+          platform_type?: string | null
           status?: Database["public"]["Enums"]["waba_status"]
           tenant_id?: string
           token_source?: string | null

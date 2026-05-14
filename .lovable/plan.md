@@ -1,82 +1,96 @@
 
-# WhatsApp Coexistence — Additive Extension Plan
+# WhatsApp Business App Coexistence — Full Meta v4 Spec
 
-Goal: Add Coexistence as a second option alongside the existing Embedded Signup. Existing flow stays untouched.
+Builds on the earlier Coexistence scaffolding (already added: `onboarding_type`, `coexistence_enabled`, `coexistence_status`, `coexistence_eligibility`, `coexistence_error`, `coexistence_checked_at` columns + UI cards + admin badges). This pass completes Meta's full "Onboard WhatsApp Business app users" flow.
 
-## 1. Database (migration)
+## 1. Database migration (additive)
 
-Add columns to `waba_accounts` (existing connection table):
-- `coexistence_enabled boolean default false`
-- `coexistence_status text` (e.g. `enabled`, `disabled`, `pending`, `not_eligible`, `error`)
-- `coexistence_eligibility text` (raw Meta value: `eligible` / `not_eligible` / `unknown`)
-- `coexistence_error text`
-- `coexistence_checked_at timestamptz`
+`waba_accounts`:
+- `is_on_biz_app boolean`
+- `platform_type text`
+- `contacts_sync_request_id text`, `history_sync_request_id text`
+- `contacts_sync_status text`, `history_sync_status text`
+- `history_sync_progress int default 0`
+- `history_sharing_enabled boolean`
+- `last_smb_echo_at timestamptz`
+- `disconnect_reason text`
 
-No RLS changes — inherit existing `waba_accounts` policies (workspace-scoped).
+`messages`:
+- `source text default 'cloud_api'` (`cloud_api` | `whatsapp_business_app` | `history_sync`)
+- `is_echo boolean default false`
+- `original_message_id text`
+- `revoked_at timestamptz`
+- `edited_at timestamptz`
+- `history_status text`
+
+No RLS changes — inherit existing policies.
 
 ## 2. Frontend — `src/components/meta/MetaEmbeddedSignup.tsx`
 
-Keep current button intact. Add a sibling card/button:
-- Title: "Connect with WhatsApp Coexistence"
-- Subtitle: "Use Aireatro automation, team inbox, CRM, and campaigns while still using your WhatsApp Business App on the same number."
-- New handler `launchCoexistenceSignup` calls `FB.login` with the same `config_id` but passes `extras.featureType = 'whatsapp_business_app_onboarding'` (Meta's coexistence feature flag) and `setup.coexistence = true`.
-- Backend POST adds `mode: 'coexistence'`.
-
-The existing "Login with Facebook" button continues to call the normal flow with `featureType: ''`.
+- Coexistence card already exists. Update copy to spec ("Keep using your WhatsApp Business App while Aireatro powers API messaging…").
+- The MessageEvent listener already handles standard `WA_EMBEDDED_SIGNUP` events. Add detection for `event === 'FINISH_WHATSAPP_BUSINESS_APP_ONBOARDING'` (Meta sends this for coexistence) and for `event === 'FINISH'` with the same shape — both populate `sessionDataRef`.
+- The launch already passes `featureType: 'whatsapp_business_app_onboarding'` for coexistence — keep as-is. Bump `sessionInfoVersion` to `'3'` (already set).
+- After backend returns success, render a **sync progress panel** (contacts + history phases, 0–100%, throughput 20 mps badge, plus "WhatsApp Business App is still active" callout and offboarding instructions).
 
 ## 3. Backend — `supabase/functions/meta-embedded-signup/index.ts`
 
-Extend `exchange_code` action:
-- Accept new `mode` field (`'standard'` | `'coexistence'`, default `'standard'`).
-- After existing token exchange + WABA fetch, if `mode === 'coexistence'`:
-  - Call Meta Graph: `GET /{phone_number_id}?fields=is_coexistence_enabled,coexistence_status` (and `/{waba_id}?fields=...` as fallback) using the access token.
-  - Map response into the new columns and persist on the `waba_accounts` row for that WABA.
-  - On error, persist `coexistence_status = 'error'`, `coexistence_error = <message>`, still allow the connection to succeed.
-- Always set `coexistence_checked_at = now()` when checked.
-- Standard flow: leave coexistence columns untouched (default `false` / null).
+In `exchange_code` when `mode === 'coexistence'`:
+- After WABA + phone save, **skip phone `/register` call** (already only runs for clientPhoneId path — gate the registration block on `!isCoexistence`).
+- Replace eligibility probe with the spec call: `GET /{phone_number_id}?fields=is_on_biz_app,platform_type`. Persist:
+  - `coexistence_enabled = is_on_biz_app && platform_type === 'CLOUD_API'`
+  - `is_on_biz_app`, `platform_type`
+  - `coexistence_status = 'active' | 'pending' | 'error'`
+  - `coexistence_checked_at`
+- Subscribe to webhook fields explicitly via `POST /{waba_id}/subscribed_apps` with extended `subscribed_fields=messages,message_template_status_update,phone_number_name_update,phone_number_quality_update,account_update,history,smb_app_state_sync,smb_message_echoes` (Meta uses this on the WABA-level subscription).
+- Trigger sync requests:
+  - `POST /{phone_number_id}/smb_app_data` body `{ messaging_product: 'whatsapp', sync_type: 'smb_app_state_sync' }` → save `contacts_sync_request_id`, `contacts_sync_status='requested'`.
+  - Same with `sync_type: 'history'` → save `history_sync_request_id`, `history_sync_status='requested'`, `history_sync_progress=0`.
+- Return all fields in response so UI can render the sync panel.
 
-Return new fields in response so the UI can display status.
+## 4. Webhook handler — `supabase/functions/whatsapp-webhook/index.ts`
 
-## 4. UI Status Block (post-connect)
+Add new field handlers (do not touch existing message logic):
 
-In the existing post-connect success area inside `MetaEmbeddedSignup.tsx`, after `onSuccess`, render a small status panel when `coexistence_enabled`:
-- ✓ Coexistence Enabled
-- "WhatsApp Business App can still be used on this number"
-- WABA ID, Phone Number ID, Display number
-- Last checked time
+- **history**: iterate messages array. Insert into `messages` with `source='history_sync'`, `direction` from payload, `wamid`, `text/media`, `created_at` from history timestamp. Update `waba_accounts.history_sync_status` from `phase` and bump `history_sync_progress`. On `errors[].code === 2593109`, set `history_sharing_enabled=false`, `history_sync_status='declined'`.
+- **smb_app_state_sync**: iterate contacts array. Upsert into `contacts` table (existing schema) keyed on `(tenant_id, wa_id)`. Honor `action: 'add' | 'remove'` (remove → soft delete via existing pattern, or skip if not supported). Update `contacts_sync_status`.
+- **smb_message_echoes**: insert into `messages` with `direction='outbound'`, `is_echo=true`, `source='whatsapp_business_app'`. Match conversation by `(tenant_id, contact wa_id)`. Update `last_smb_echo_at`.
+- **messages edits/revokes** (`messages[].type === 'message_edit'` / `'message_revoke'` or sibling `edits`/`revokes` arrays): look up by `original_message_id` (wamid) and update existing row (`edited_at`, new text) or set `revoked_at`. Ignore unsupported error 131060 silently.
+- **account_update**: handle `event` values:
+  - `PARTNER_REMOVED` → set `waba_accounts.status='disconnected'`, `disconnect_reason='partner_removed'`.
+  - `ACCOUNT_OFFBOARDED` → same with `'account_offboarded'`.
+  - `ACCOUNT_RECONNECTED` → set `status='active'`, clear `disconnect_reason`.
 
-If not eligible: show the fallback message from the spec.
+Tenant resolution stays via existing `phone_number_id → phone_numbers → tenant_id` lookup (works identically for coexistence numbers).
 
-## 5. Webhook Compatibility
+## 5. Admin status panel — `WhatsAppConnectionStatus.tsx`
 
-No code changes required — the existing webhook handler routes by `phone_number_id` → `waba_accounts` → `tenant_id`. Coexistence numbers use the same Cloud API webhook pipeline. Verified by reading `whatsapp-webhook` handler; no branching needed.
+Extend existing Coexistence block with:
+- `is_on_biz_app` / `platform_type` rows
+- Contacts sync: status badge
+- History sync: status + progress bar (0–100%)
+- Throughput badge (20 mps for coexistence)
+- Last SMB echo timestamp
+- Disconnect reason (when set)
 
-## 6. Super Admin — `src/pages/admin/AdminWorkspaces.tsx` (and detail view)
+## 6. Customer-facing connection result panel
 
-In the WhatsApp connections panel, add columns / fields:
-- Coexistence Enabled (badge)
-- Status
-- Eligibility
-- Last checked
-- Error reason (if any)
+In `MetaEmbeddedSignup.tsx` post-connect, when `coexistence_enabled`:
+- "✓ Connected with WhatsApp Business App Coexistence"
+- "WhatsApp Business App is still active · Aireatro API is active"
+- WABA ID, Phone Number ID, display number
+- Sync progress block (contacts + history phases)
+- Throughput: 20 mps
+- Offboarding note: "To disconnect Cloud API, open WhatsApp Business App → Settings → Account → Business Platform → Disconnect Account." (do NOT call Deregister API)
 
-Read-only display from the new `waba_accounts` columns.
-
-## 7. Error handling
-
-Backend returns explicit error codes for:
-- `not_eligible` — show fallback CTA "Connect normally"
-- `duplicate_number` — already handled by existing unique constraints; surface message
-- `meta_no_coexistence_data` — saved as `coexistence_status='error'`
-- `wrong_number_type` — surfaced from Meta error verbatim
-
-Frontend toast + inline message on each.
+When not eligible / error: existing fallback message stays.
 
 ## Files touched
 
-- `supabase/migrations/<new>` — add 5 columns to `waba_accounts`
-- `supabase/functions/meta-embedded-signup/index.ts` — extend exchange_code
-- `src/components/meta/MetaEmbeddedSignup.tsx` — add coexistence button + status UI
-- `src/pages/admin/AdminWorkspaces.tsx` (or admin WhatsApp view) — display new fields
+- migration (new) — additive columns on `waba_accounts` and `messages`
+- `supabase/functions/meta-embedded-signup/index.ts` — skip register, add status probe, subscribed_fields, sync triggers
+- `supabase/functions/whatsapp-webhook/index.ts` — new field handlers (history / smb_app_state_sync / smb_message_echoes / account_update / edits & revokes)
+- `supabase/functions/admin-api/index.ts` — include new columns in waba select
+- `src/components/meta/MetaEmbeddedSignup.tsx` — new post-connect panel + finish event detection
+- `src/components/admin/workspace-detail/WhatsAppConnectionStatus.tsx` — extended badges
 
-Existing standard signup, inbox, campaigns, automation, CRM, and webhook code remain unchanged.
+Existing standard signup, inbox, campaigns, automation, CRM, and webhook code remain unchanged — all new logic is gated on coexistence-only fields/events.
