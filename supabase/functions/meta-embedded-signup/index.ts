@@ -470,6 +470,7 @@ Deno.serve(async (req) => {
           if (registrationWarning) {
             console.warn('Registration warning (non-blocking):', registrationWarning);
           }
+          } // end !isCoexistence
         }
       } else {
         console.warn('No phone_number_id from client, skipping phone connection');
