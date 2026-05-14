@@ -205,6 +205,33 @@ export function WhatsAppConnectionStatus({ waba, phones, workspacePhone }: Props
             )}
           </div>
         )}
+
+        {/* Coexistence */}
+        {waba && (waba.coexistence_enabled || waba.coexistence_status || waba.coexistence_checked_at) && (
+          <div className="rounded-xl bg-background/70 p-3 ring-1 ring-border/60 space-y-1.5">
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] uppercase tracking-wide font-semibold text-muted-foreground">Coexistence</span>
+              <Badge className={cn(
+                'text-[10px] uppercase tracking-wide font-semibold border-0',
+                waba.coexistence_enabled
+                  ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300'
+                  : waba.coexistence_status === 'error'
+                    ? 'bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-300'
+                    : 'bg-amber-100 text-amber-800 dark:bg-amber-900/50 dark:text-amber-300'
+              )}>
+                {waba.coexistence_enabled ? 'Enabled' : (waba.coexistence_status || 'unknown')}
+              </Badge>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1 text-xs text-muted-foreground">
+              <div><span className="font-medium text-foreground">Status:</span> {waba.coexistence_status || '—'}</div>
+              <div><span className="font-medium text-foreground">Eligibility:</span> {waba.coexistence_eligibility || '—'}</div>
+              <div className="sm:col-span-2"><span className="font-medium text-foreground">Last checked:</span> {waba.coexistence_checked_at ? new Date(waba.coexistence_checked_at).toLocaleString() : '—'}</div>
+              {waba.coexistence_error && (
+                <div className="sm:col-span-2 text-destructive break-all"><span className="font-medium">Error:</span> {waba.coexistence_error}</div>
+              )}
+            </div>
+          </div>
+        )}
       </CardContent>
     </Card>
   );

@@ -14,7 +14,8 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { action, code, tenantId, wabaId: clientWabaId, phoneNumberId: clientPhoneId, pin } = await req.json();
+    const { action, code, tenantId, wabaId: clientWabaId, phoneNumberId: clientPhoneId, pin, mode } = await req.json();
+    const isCoexistence = mode === 'coexistence';
 
     // ── get_config (public) ──────────────────────────────────────────────
     if (action === 'get_config') {
@@ -472,7 +473,76 @@ Deno.serve(async (req) => {
         console.error('Webhook subscription error:', e);
       }
 
-      console.log('Embedded signup complete. Phone connected:', connectedPhoneId);
+      console.log('Embedded signup complete. Phone connected:', connectedPhoneId, 'mode:', mode || 'standard');
+
+      // ── Coexistence: fetch eligibility/status from Meta and persist on WABA ──
+      let coexistencePayload: {
+        coexistence_enabled: boolean;
+        coexistence_status: string | null;
+        coexistence_eligibility: string | null;
+        coexistence_error: string | null;
+        coexistence_checked_at: string;
+      } | null = null;
+
+      if (isCoexistence) {
+        const checkedAt = new Date().toISOString();
+        let cxEnabled = false;
+        let cxStatus: string | null = 'pending';
+        let cxEligibility: string | null = 'unknown';
+        let cxError: string | null = null;
+
+        try {
+          // Try phone-level fields first, fall back to WABA-level
+          const cxPhoneRes = clientPhoneId
+            ? await fetch(
+                `${GRAPH_API_BASE}/${clientPhoneId}?fields=is_coexistence_enabled,coexistence_status,coexistence_eligibility`,
+                { headers: { Authorization: `Bearer ${accessToken}` } }
+              )
+            : null;
+          const cxPhone = cxPhoneRes ? await cxPhoneRes.json() : {};
+          console.log('Coexistence (phone) response:', JSON.stringify(cxPhone));
+
+          if (cxPhone?.error) {
+            // Try WABA-level fallback
+            const cxWabaRes = await fetch(
+              `${GRAPH_API_BASE}/${primaryWabaId}?fields=is_coexistence_enabled,coexistence_status,coexistence_eligibility`,
+              { headers: { Authorization: `Bearer ${accessToken}` } }
+            );
+            const cxWaba = await cxWabaRes.json();
+            console.log('Coexistence (waba) response:', JSON.stringify(cxWaba));
+            if (cxWaba?.error) {
+              cxStatus = 'error';
+              cxError = cxWaba.error.message || cxPhone.error.message || 'Meta returned no coexistence data';
+            } else {
+              cxEnabled = !!cxWaba.is_coexistence_enabled;
+              cxStatus = cxWaba.coexistence_status ?? (cxEnabled ? 'enabled' : 'not_eligible');
+              cxEligibility = cxWaba.coexistence_eligibility ?? (cxEnabled ? 'eligible' : 'not_eligible');
+            }
+          } else {
+            cxEnabled = !!cxPhone.is_coexistence_enabled;
+            cxStatus = cxPhone.coexistence_status ?? (cxEnabled ? 'enabled' : 'not_eligible');
+            cxEligibility = cxPhone.coexistence_eligibility ?? (cxEnabled ? 'eligible' : 'not_eligible');
+          }
+        } catch (e: any) {
+          console.warn('Coexistence fetch threw:', e?.message);
+          cxStatus = 'error';
+          cxError = e?.message || 'Unknown error fetching coexistence status';
+        }
+
+        coexistencePayload = {
+          coexistence_enabled: cxEnabled,
+          coexistence_status: cxStatus,
+          coexistence_eligibility: cxEligibility,
+          coexistence_error: cxError,
+          coexistence_checked_at: checkedAt,
+        };
+
+        try {
+          await supabase.from('waba_accounts').update(coexistencePayload).eq('id', wabaAccountId);
+        } catch (e) {
+          console.warn('Failed to persist coexistence payload (non-blocking):', e);
+        }
+      }
 
       return new Response(JSON.stringify({
         success: true,
@@ -480,6 +550,8 @@ Deno.serve(async (req) => {
         wabaAccountId: wabaAccountId,
         phoneNumberId: connectedPhoneId,
         phoneCount: connectedPhoneId ? 1 : 0,
+        mode: isCoexistence ? 'coexistence' : 'standard',
+        coexistence: coexistencePayload,
       }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 

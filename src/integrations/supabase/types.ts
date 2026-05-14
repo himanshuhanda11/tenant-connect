@@ -15374,6 +15374,11 @@ export type Database = {
       waba_accounts: {
         Row: {
           business_id: string
+          coexistence_checked_at: string | null
+          coexistence_eligibility: string | null
+          coexistence_enabled: boolean
+          coexistence_error: string | null
+          coexistence_status: string | null
           created_at: string
           encrypted_access_token: string | null
           id: string
@@ -15386,6 +15391,11 @@ export type Database = {
         }
         Insert: {
           business_id: string
+          coexistence_checked_at?: string | null
+          coexistence_eligibility?: string | null
+          coexistence_enabled?: boolean
+          coexistence_error?: string | null
+          coexistence_status?: string | null
           created_at?: string
           encrypted_access_token?: string | null
           id?: string
@@ -15398,6 +15408,11 @@ export type Database = {
         }
         Update: {
           business_id?: string
+          coexistence_checked_at?: string | null
+          coexistence_eligibility?: string | null
+          coexistence_enabled?: boolean
+          coexistence_error?: string | null
+          coexistence_status?: string | null
           created_at?: string
           encrypted_access_token?: string | null
           id?: string
