@@ -119,15 +119,17 @@ export function useLeadForms() {
   const fetchForms = useCallback(async () => {
     if (!currentTenant) return;
     setLoading(true);
-    const { data, error } = await supabase
+    let q = supabase
       .from('meta_lead_forms')
       .select('*')
       .eq('tenant_id', currentTenant.id)
       .order('created_at', { ascending: false });
-    
+    if (connectedPageId) q = q.eq('page_id', connectedPageId);
+    const { data, error } = await q;
+
     if (!error && data) setForms(data as any);
     setLoading(false);
-  }, [currentTenant]);
+  }, [currentTenant, connectedPageId]);
 
   useEffect(() => { fetchForms(); }, [fetchForms]);
 
