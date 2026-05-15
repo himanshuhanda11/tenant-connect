@@ -48,6 +48,26 @@ export default function InboxPage() {
   const [selectedId, setSelectedId] = useState<string | null>(conversationId || null);
   const [showContextPanel, setShowContextPanel] = useState(false);
 
+  // Lock the DashboardLayout scroll wrapper while the inbox is mounted so
+  // the chat + right sidebar stay pinned to the viewport (only the message
+  // ScrollArea inside the chat scrolls).
+  useEffect(() => {
+    const wrapper = document.querySelector(
+      'main > div.flex-1.overflow-auto'
+    ) as HTMLElement | null;
+    if (!wrapper) return;
+    const prev = {
+      overflow: wrapper.style.overflow,
+      padding: wrapper.style.padding,
+    };
+    wrapper.style.overflow = 'hidden';
+    wrapper.style.padding = '0';
+    return () => {
+      wrapper.style.overflow = prev.overflow;
+      wrapper.style.padding = prev.padding;
+    };
+  }, []);
+
   useEffect(() => {
     const config = ROUTE_VIEW_MAP[location.pathname];
     if (config) {
