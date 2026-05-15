@@ -180,10 +180,12 @@ export default function PhoneNumberDetails() {
         ? 'WhatsApp connection needs to be re-authorized. Please reconnect this number from WhatsApp setup.'
         : data.error);
 
+      const storedVertical = (number?.raw as any)?.whatsapp_profile_vertical || null;
+
       setBusinessProfile({
         loading: false,
         saving: false,
-        data: data?.profile || {}
+        data: { ...(data?.profile || {}), ...(storedVertical ? { vertical: storedVertical } : {}) }
       });
     } catch (error: any) {
       console.error('Failed to fetch business profile:', error);
@@ -230,7 +232,10 @@ export default function PhoneNumberDetails() {
         try {
           await supabase
             .from('tenants')
-            .update({ whatsapp_profile_completed: true, whatsapp_profile_saved_at: savedAt } as any)
+            .update({
+              whatsapp_profile_completed: true,
+              whatsapp_profile_saved_at: savedAt,
+            } as any)
             .eq('id', number.tenant_id);
         } catch (e) {
           console.warn('[saveBusinessProfile] tenants update failed:', e);
@@ -238,11 +243,22 @@ export default function PhoneNumberDetails() {
         window.dispatchEvent(new CustomEvent('aireatro:wa-profile-saved', { detail: { tenantId: number.tenant_id } }));
       }
 
+      if (number?.id) {
+        try {
+          await supabase
+            .from('phone_numbers')
+            .update({ raw: { ...((number.raw as any) || {}), whatsapp_profile_vertical: businessProfile.data.vertical || null } } as any)
+            .eq('id', number.id);
+          refetch();
+        } catch (e) {
+          console.warn('[saveBusinessProfile] phone metadata update failed:', e);
+        }
+      }
+
       if (data?.meta_blocked || data?.warning) {
         const message = data.warning || 'Meta kept your current WhatsApp profile unchanged.';
         toast.warning(message);
         setBusinessProfile(prev => ({ ...prev, saving: false, warning: message }));
-        await fetchBusinessProfile();
         return;
       }
 

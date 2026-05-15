@@ -71,7 +71,7 @@ export function WorkspaceSettings() {
     resolver: zodResolver(workspaceSchema),
     defaultValues: {
       name: currentTenant?.name || '',
-      industry: '',
+      industry: (currentTenant as any)?.business_category || '',
       timezone: (currentTenant as any)?.timezone || 'UTC',
       language: 'English',
       address: '',
@@ -83,7 +83,7 @@ export function WorkspaceSettings() {
     if (currentTenant) {
       form.reset({
         name: currentTenant.name,
-        industry: '',
+        industry: (currentTenant as any)?.business_category || '',
         timezone: (currentTenant as any)?.timezone || 'UTC',
         language: 'English',
         address: '',
@@ -106,12 +106,13 @@ export function WorkspaceSettings() {
       });
       if (error) throw error;
       if (data?.profile) {
+        const storedVertical = (primaryPhone?.raw as any)?.whatsapp_profile_vertical;
         setWaProfile(data.profile);
         setWaAbout(data.profile.about || '');
         setWaDescription(data.profile.description || '');
         setWaAddress(data.profile.address || '');
         setWaEmail(data.profile.email || '');
-        setWaVertical(data.profile.vertical || 'UNDEFINED');
+        setWaVertical(storedVertical || data.profile.vertical || 'UNDEFINED');
         const websites = data.profile.websites || [];
         setWaWebsite1(websites[0] || '');
         setWaWebsite2(websites[1] || '');
@@ -124,7 +125,7 @@ export function WorkspaceSettings() {
     } finally {
       setWaProfileLoading(false);
     }
-  }, [primaryPhone?.phone_number_id, primaryPhone?.waba_uuid]);
+  }, [currentTenant?.id, primaryPhone?.phone_number_id, primaryPhone?.waba_uuid]);
 
   useEffect(() => {
     fetchWaProfile();
@@ -136,7 +137,7 @@ export function WorkspaceSettings() {
     try {
       const { error } = await supabase
         .from('tenants')
-        .update({ name: data.name })
+        .update({ name: data.name, business_category: data.industry || null, timezone: data.timezone || 'UTC' } as any)
         .eq('id', currentTenant.id);
       if (error) throw error;
       toast.success('Workspace updated successfully');
@@ -174,6 +175,20 @@ export function WorkspaceSettings() {
       });
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
+      setWaProfile((prev: any) => ({ ...(prev || {}), vertical: waVertical }));
+
+      if (primaryPhone?.id) {
+        await supabase
+          .from('phone_numbers')
+          .update({ raw: { ...((primaryPhone.raw as any) || {}), whatsapp_profile_vertical: waVertical } } as any)
+          .eq('id', primaryPhone.id);
+      }
+
+      if (data?.meta_blocked || data?.warning) {
+        toast.warning(data.warning || 'Meta kept the live WhatsApp profile unchanged. Your selected category is saved in Aireatro.');
+        return;
+      }
+
       toast.success('WhatsApp profile updated');
       fetchWaProfile();
     } catch (err: any) {
