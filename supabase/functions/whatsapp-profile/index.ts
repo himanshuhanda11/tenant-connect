@@ -174,7 +174,7 @@ Deno.serve(async (req) => {
         code: 'reconnect_required',
         details: wabaError?.message 
       }), {
-        status: 409,
+        status: 200,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
