@@ -69,7 +69,7 @@ export function MetaEmbeddedSignup({ onSuccess, onError, onConnectionError }: Me
       try {
         const { data: waba } = await supabase
           .from('waba_accounts')
-          .select('waba_id, coexistence_enabled, is_on_biz_app')
+          .select('id, waba_id, coexistence_enabled, is_on_biz_app')
           .eq('tenant_id', currentTenant.id)
           .eq('coexistence_enabled', true as any)
           .maybeSingle();

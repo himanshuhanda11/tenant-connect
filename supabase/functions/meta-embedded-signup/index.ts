@@ -79,25 +79,36 @@ Deno.serve(async (req) => {
       }
 
       // ── Billing gate: workspace must have a valid plan before connecting ──
-      const { data: sub } = await supabase
-        .from('subscriptions')
-        .select('plan_id, status, stripe_subscription_id')
-        .eq('tenant_id', tenantId)
-        .maybeSingle();
+      const [{ data: sub }, { data: ent }] = await Promise.all([
+        supabase
+          .from('subscriptions')
+          .select('plan_id, status, stripe_subscription_id, plan_source, assigned_by_admin, current_period_end')
+          .eq('tenant_id', tenantId)
+          .maybeSingle(),
+        supabase
+          .from('workspace_entitlements')
+          .select('plan, status')
+          .eq('workspace_id', tenantId)
+          .maybeSingle(),
+      ]);
 
-      const ALLOWED = new Set(['active', 'trialing']);
-      const planId = sub?.plan_id ?? null;
-      const status = sub?.status ?? null;
+      const ALLOWED = new Set(['active', 'trialing', 'manual_active']);
+      const entPlan = ent?.plan ? String(ent.plan).replace(/^plan_/, '').toLowerCase() : null;
+      const entActive = (!ent?.status || String(ent.status) === 'active') && !!entPlan && entPlan !== 'free';
+      const planId = (sub?.plan_id ? String(sub.plan_id).replace(/^plan_/, '').toLowerCase() : null) || (entActive ? entPlan : null);
+      const status = sub?.status ?? (entActive ? 'active' : null);
       const hasConfirmedSub = !!sub?.stripe_subscription_id;
+      const periodOk = !sub?.current_period_end || new Date(sub.current_period_end).getTime() > Date.now();
+      const isManualAdmin = sub?.plan_source === 'manual_admin' || !!sub?.assigned_by_admin || (!sub && entActive);
 
-      // Free plan only counts as selected when an active subscription row exists
-      const freeOk = planId === 'free' && status === 'active';
-      // Paid plan needs a confirmed Stripe subscription in an allowed state
-      const paidOk = !!planId && planId !== 'free' && hasConfirmedSub && ALLOWED.has(String(status));
+      // Free plan only counts as selected when an active subscription row exists.
+      const freeOk = planId === 'free' && ALLOWED.has(String(status));
+      // Paid Stripe plans need a confirmed subscription; Super Admin/manual plans do not.
+      const paidOk = !!planId && planId !== 'free' && ALLOWED.has(String(status)) && periodOk && (isManualAdmin || hasConfirmedSub);
 
       if (!freeOk && !paidOk) {
         const reason = !planId ? 'no_plan_selected'
-          : (planId !== 'free' && !hasConfirmedSub) ? 'payment_incomplete'
+          : (planId !== 'free' && !hasConfirmedSub && !isManualAdmin) ? 'payment_incomplete'
           : 'subscription_blocked';
         return new Response(
           JSON.stringify({
