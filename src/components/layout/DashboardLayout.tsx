@@ -143,6 +143,12 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         <main className="flex h-[100dvh] max-h-[100dvh] min-h-0 w-full min-w-0 flex-1 flex-col overflow-hidden">
           <PreviewWorkspaceBanner />
           {!isInboxWorkspace && <MobileHeader />}
+          {/* Desktop: floating Pause-New-Chats pill (always visible) */}
+          <div className="pointer-events-none fixed top-3 right-4 z-40 hidden md:block">
+            <div className="pointer-events-auto">
+              <AgentAvailabilityPill />
+            </div>
+          </div>
           <ScrollToTop />
           <div
             data-dashboard-content
