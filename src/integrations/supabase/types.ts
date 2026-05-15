@@ -74,6 +74,63 @@ export type Database = {
         }
         Relationships: []
       }
+      agent_availability_history: {
+        Row: {
+          agent_user_id: string
+          changed_by: string | null
+          created_at: string
+          custom_reason: string | null
+          id: string
+          is_admin_override: boolean
+          pause_until: string | null
+          paused_at: string | null
+          reason: string | null
+          status: string
+          tenant_id: string
+        }
+        Insert: {
+          agent_user_id: string
+          changed_by?: string | null
+          created_at?: string
+          custom_reason?: string | null
+          id?: string
+          is_admin_override?: boolean
+          pause_until?: string | null
+          paused_at?: string | null
+          reason?: string | null
+          status: string
+          tenant_id: string
+        }
+        Update: {
+          agent_user_id?: string
+          changed_by?: string | null
+          created_at?: string
+          custom_reason?: string | null
+          id?: string
+          is_admin_override?: boolean
+          pause_until?: string | null
+          paused_at?: string | null
+          reason?: string | null
+          status?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_availability_history_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "platform_workspace_directory"
+            referencedColumns: ["workspace_id"]
+          },
+          {
+            foreignKeyName: "agent_availability_history_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       agent_sessions: {
         Row: {
           created_at: string
@@ -141,6 +198,9 @@ export type Database = {
       }
       agents: {
         Row: {
+          auto_resume_enabled: boolean
+          availability_status: string
+          availability_updated_by: string | null
           away_enabled: boolean
           away_message: string | null
           created_at: string
@@ -150,8 +210,13 @@ export type Database = {
           is_online: boolean
           languages: string[] | null
           last_active_at: string | null
+          last_available_at: string | null
           max_open_chats: number | null
           notes: string | null
+          pause_custom_reason: string | null
+          pause_reason: string | null
+          pause_until: string | null
+          paused_at: string | null
           personal_greeting: string | null
           personal_greetings_enabled: boolean
           presence: string | null
@@ -165,6 +230,9 @@ export type Database = {
           weight: number
         }
         Insert: {
+          auto_resume_enabled?: boolean
+          availability_status?: string
+          availability_updated_by?: string | null
           away_enabled?: boolean
           away_message?: string | null
           created_at?: string
@@ -174,8 +242,13 @@ export type Database = {
           is_online?: boolean
           languages?: string[] | null
           last_active_at?: string | null
+          last_available_at?: string | null
           max_open_chats?: number | null
           notes?: string | null
+          pause_custom_reason?: string | null
+          pause_reason?: string | null
+          pause_until?: string | null
+          paused_at?: string | null
           personal_greeting?: string | null
           personal_greetings_enabled?: boolean
           presence?: string | null
@@ -189,6 +262,9 @@ export type Database = {
           weight?: number
         }
         Update: {
+          auto_resume_enabled?: boolean
+          availability_status?: string
+          availability_updated_by?: string | null
           away_enabled?: boolean
           away_message?: string | null
           created_at?: string
@@ -198,8 +274,13 @@ export type Database = {
           is_online?: boolean
           languages?: string[] | null
           last_active_at?: string | null
+          last_available_at?: string | null
           max_open_chats?: number | null
           notes?: string | null
+          pause_custom_reason?: string | null
+          pause_reason?: string | null
+          pause_until?: string | null
+          paused_at?: string | null
           personal_greeting?: string | null
           personal_greetings_enabled?: boolean
           presence?: string | null
@@ -331,6 +412,57 @@ export type Database = {
           value?: string
         }
         Relationships: []
+      }
+      assignment_logs: {
+        Row: {
+          assigned_to_agent_id: string | null
+          assignment_method: string
+          assignment_reason: string | null
+          conversation_id: string | null
+          created_at: string
+          id: string
+          skipped_agents: Json
+          team_id: string | null
+          tenant_id: string
+        }
+        Insert: {
+          assigned_to_agent_id?: string | null
+          assignment_method: string
+          assignment_reason?: string | null
+          conversation_id?: string | null
+          created_at?: string
+          id?: string
+          skipped_agents?: Json
+          team_id?: string | null
+          tenant_id: string
+        }
+        Update: {
+          assigned_to_agent_id?: string | null
+          assignment_method?: string
+          assignment_reason?: string | null
+          conversation_id?: string | null
+          created_at?: string
+          id?: string
+          skipped_agents?: Json
+          team_id?: string | null
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assignment_logs_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "platform_workspace_directory"
+            referencedColumns: ["workspace_id"]
+          },
+          {
+            foreignKeyName: "assignment_logs_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       audit_logs: {
         Row: {
@@ -17174,6 +17306,7 @@ export type Database = {
         }
         Returns: Json
       }
+      auto_resume_paused_agents: { Args: never; Returns: number }
       auto_route_conversation: {
         Args: {
           p_conversation_id: string
