@@ -38,6 +38,11 @@ export function AgentAvailabilityPill({ compact = false }: { compact?: boolean }
     return <div className="h-8 w-24 rounded-full bg-muted/40 animate-pulse" />;
   }
 
+  // Owners don't take chats — hide the pause control on their profile
+  if ((role || '').toLowerCase() === 'owner') {
+    return null;
+  }
+
   const pillLabel = status === 'available' ? 'Pause New Chats' : status === 'paused' ? 'Paused' : 'Offline';
   const isIndefinite = status === 'paused' && !pauseUntil;
   const tooltip = status === 'paused'
