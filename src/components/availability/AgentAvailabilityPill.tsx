@@ -66,9 +66,10 @@ export function AgentAvailabilityPill({ compact = false }: { compact?: boolean }
       return;
     }
     setOpen(false);
+    const until = new Date(Date.now() + minutes * 60_000);
     toast({
       title: 'Paused new chats',
-      description: `You won't receive new chats until ${new Date(Date.now() + minutes * 60_000).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}. Existing chats remain assigned.`,
+      description: `You won't receive new chats until ${formatResumeAt(until)}. Existing chats remain assigned to you.`,
     });
   };
 
