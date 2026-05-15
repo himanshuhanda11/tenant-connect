@@ -41,14 +41,23 @@ export function useAgentAvailability() {
 
   const refresh = useCallback(async () => {
     if (!user || !currentTenant) return;
-    const { data } = await supabase
-      .from('agents')
-      .select('id, availability_status, pause_until, paused_at, pause_reason, pause_custom_reason, role')
-      .eq('user_id', user.id)
-      .eq('tenant_id', currentTenant.id)
-      .maybeSingle();
+    const [{ data }, { data: memberRow }] = await Promise.all([
+      supabase
+        .from('agents')
+        .select('id, availability_status, pause_until, paused_at, pause_reason, pause_custom_reason, role')
+        .eq('user_id', user.id)
+        .eq('tenant_id', currentTenant.id)
+        .maybeSingle(),
+      supabase
+        .from('tenant_members')
+        .select('role')
+        .eq('user_id', user.id)
+        .eq('tenant_id', currentTenant.id)
+        .maybeSingle(),
+    ]);
+    const tenantRole = (memberRow as any)?.role || null;
     if (!data) {
-      setState((s) => ({ ...s, loading: false }));
+      setState((s) => ({ ...s, role: tenantRole, loading: false }));
       return;
     }
     setState({
@@ -58,7 +67,7 @@ export function useAgentAvailability() {
       pausedAt: data.paused_at,
       reason: data.pause_reason,
       customReason: data.pause_custom_reason,
-      role: (data as any).role || null,
+      role: tenantRole || (data as any).role || null,
       loading: false,
     });
   }, [user, currentTenant]);
