@@ -159,40 +159,53 @@ export default function PhoneNumberDetails() {
     };
     error?: string;
     warning?: string;
+    coexistence?: boolean;
+    needsReconnect?: boolean;
+    errorCode?: string;
   }>({ loading: false, saving: false, data: {} });
 
   const fetchBusinessProfile = async () => {
     if (!number?.waba_uuid || !number?.phone_number_id) return;
 
-    setBusinessProfile(prev => ({ ...prev, loading: true, error: undefined }));
-    
+    setBusinessProfile(prev => ({ ...prev, loading: true, error: undefined, warning: undefined }));
+
     try {
       const { data, error } = await supabase.functions.invoke('whatsapp-profile', {
         body: {
           action: 'get',
           phone_number_id: number.phone_number_id,
-          waba_account_id: number.waba_uuid
-        }
+          waba_account_id: number.waba_uuid,
+        },
       });
 
       if (error) throw error;
-      if (data?.error) throw new Error(data.code === 'reconnect_required'
-        ? 'WhatsApp connection needs to be re-authorized. Please reconnect this number from WhatsApp setup.'
-        : data.error);
 
-      const storedVertical = (number?.raw as any)?.whatsapp_profile_vertical || null;
+      if (data?.success === false) {
+        const needsReconnect = data?.code === 'reconnect_required' || data?.code === 'token_expired';
+        setBusinessProfile(prev => ({
+          ...prev,
+          loading: false,
+          error: data?.error || 'Failed to fetch profile',
+          coexistence: !!data?.coexistence,
+          needsReconnect,
+          errorCode: data?.code,
+        }));
+        return;
+      }
 
       setBusinessProfile({
         loading: false,
         saving: false,
-        data: { ...(data?.profile || {}), ...(storedVertical ? { vertical: storedVertical } : {}) }
+        data: data?.profile || {},
+        coexistence: !!data?.coexistence,
+        needsReconnect: false,
       });
     } catch (error: any) {
       console.error('Failed to fetch business profile:', error);
       setBusinessProfile(prev => ({
         ...prev,
         loading: false,
-        error: error.message || 'Failed to fetch profile'
+        error: error.message || 'Failed to fetch profile',
       }));
     }
   };
