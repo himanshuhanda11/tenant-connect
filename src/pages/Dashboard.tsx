@@ -307,24 +307,6 @@ export default function Dashboard() {
               </p>
 
               <div className="mt-3 sm:mt-5 flex flex-wrap items-center gap-2">
-                {billing?.planName && (
-                  <Badge
-                    onClick={() => navigate('/billing')}
-                    className={cn(
-                      "cursor-pointer rounded-full border font-semibold gap-1 px-2.5 py-1 text-[10px] sm:text-xs",
-                      billing.planName.toLowerCase() === 'free'
-                        ? "bg-orange-100 dark:bg-orange-500/15 text-orange-600 dark:text-orange-400 border-orange-300/60 dark:border-orange-500/30"
-                        : "bg-gradient-to-r from-primary/15 to-blue-500/15 text-foreground border-primary/30"
-                    )}
-                  >
-                    <Sparkles className="h-3 w-3" /> {billing.planName} Plan
-                  </Badge>
-                )}
-                {billing?.planName?.toLowerCase() === 'free' && (
-                  <Button size="sm" onClick={() => navigate('/billing')} className="h-7 sm:h-8 text-[11px] px-3 rounded-full gap-1 bg-gradient-to-r from-primary to-emerald-500 hover:opacity-90 shadow-md">
-                    <ArrowUpRight className="h-3.5 w-3.5" /> Upgrade
-                  </Button>
-                )}
                 <Button variant="outline" size="sm" onClick={refetch} className="h-7 sm:h-8 rounded-full text-[11px] gap-1.5 border-border/60 px-3 bg-background/60 backdrop-blur">
                   <RefreshCw className={cn("h-3.5 w-3.5", loading && "animate-spin")} /> Refresh
                 </Button>
