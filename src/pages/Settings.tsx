@@ -65,7 +65,7 @@ export default function Settings() {
       case 'notifications': return <NotificationSettings />;
       case 'advanced': return <AdvancedSettings />;
       case 'appearance': return <AppearanceSettings />;
-      case 'greetings': return <WhatsAppGreetingSettings />;
+      case 'greetings': return <ProfileSettings />;
       default: return <WorkspaceSettings />;
     }
   };
