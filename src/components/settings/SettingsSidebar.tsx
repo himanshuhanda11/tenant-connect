@@ -16,7 +16,7 @@ import {
   Bot,
   Palette,
   UserCircle,
-  HandMetal,
+  
   ChevronDown,
   Check,
 } from 'lucide-react';
