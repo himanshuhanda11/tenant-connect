@@ -425,11 +425,22 @@ export function AppSidebar() {
           <div className={cn("mb-3", isCollapsed && "mb-2")}>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button className={cn(
-                  "w-full flex items-center rounded-xl transition-all duration-200 ease-in-out group",
-                  "hover:bg-sidebar-accent/70",
-                  isCollapsed ? "justify-center p-1.5" : "gap-2.5 px-3 py-2.5"
-                )}>
+                <button
+                  onClick={(e) => {
+                    // When collapsed, clicking the workspace tile should expand the sidebar
+                    // so the user can see the menu below — not open the switcher dropdown.
+                    if (isCollapsed) {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      toggleSidebar();
+                    }
+                  }}
+                  className={cn(
+                    "w-full flex items-center rounded-xl transition-all duration-200 ease-in-out group",
+                    "hover:bg-sidebar-accent/70",
+                    isCollapsed ? "justify-center p-1.5" : "gap-2.5 px-3 py-2.5"
+                  )}
+                >
                   <div className={cn(
                     "flex items-center justify-center rounded-lg font-bold text-white text-xs flex-shrink-0",
                     `bg-gradient-to-br ${workspaceColor}`,
