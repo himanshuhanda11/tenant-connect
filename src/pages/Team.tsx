@@ -20,6 +20,7 @@ import { QuickGuide, quickGuides } from '@/components/help/QuickGuide';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import type { TenantRole } from '@/types/tenant';
+import { TeamAvailabilityPanel } from '@/components/availability/TeamAvailabilityPanel';
 
 const inviteSchema = z.object({
   email: z.string().email('Please enter a valid email'),
