@@ -1,11 +1,13 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useTenant } from '@/contexts/TenantContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 
 export interface GreetingTemplate {
   id: string;
   tenant_id: string;
+  agent_user_id: string | null;
   message_text: string;
   is_active: boolean;
   sort_order: number;
@@ -13,7 +15,9 @@ export interface GreetingTemplate {
   updated_at: string;
 }
 
-const DEFAULT_TEMPLATES = [
+export const MAX_AGENT_GREETINGS = 10;
+
+export const DEFAULT_TEMPLATES = [
   `Hi {{name}}! 👋 This is {{agent_name}} from {{biz}}. Thank you for reaching out — we'd love to assist you. How can we help you today?`,
   `Hello {{name}}! 🌟 I'm {{agent_name}} from {{biz}}. We received your enquiry and would be happy to guide you. Shall we schedule a quick call to discuss?`,
   `Dear {{name}}, thank you for your interest! I'm {{agent_name}} from {{biz}}. We'd be glad to assist you — please let us know how we can help.`,
@@ -28,37 +32,48 @@ const DEFAULT_TEMPLATES = [
 
 export function useGreetingTemplates() {
   const { currentTenant } = useTenant();
+  const { user } = useAuth();
   const queryClient = useQueryClient();
   const tenantId = currentTenant?.id;
+  const userId = user?.id;
 
   const { data: templates = [], isLoading } = useQuery({
-    queryKey: ['greeting-templates', tenantId],
+    queryKey: ['greeting-templates', tenantId, userId],
     queryFn: async () => {
-      if (!tenantId) return [];
+      if (!tenantId || !userId) return [] as GreetingTemplate[];
       const { data, error } = await supabase
         .from('whatsapp_greeting_templates')
         .select('*')
         .eq('tenant_id', tenantId)
+        .eq('agent_user_id', userId)
         .order('sort_order', { ascending: true });
       if (error) throw error;
       return (data || []) as GreetingTemplate[];
     },
-    enabled: !!tenantId,
+    enabled: !!tenantId && !!userId,
   });
 
   const addTemplate = useMutation({
     mutationFn: async (messageText: string) => {
-      if (!tenantId) throw new Error('No workspace selected');
+      if (!tenantId || !userId) throw new Error('Not signed in');
+      if (templates.length >= MAX_AGENT_GREETINGS) {
+        throw new Error(`You can have at most ${MAX_AGENT_GREETINGS} greeting templates`);
+      }
       const { error } = await supabase
         .from('whatsapp_greeting_templates')
-        .insert({ tenant_id: tenantId, message_text: messageText, sort_order: templates.length });
+        .insert({
+          tenant_id: tenantId,
+          agent_user_id: userId,
+          message_text: messageText,
+          sort_order: templates.length,
+        });
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['greeting-templates', tenantId] });
+      queryClient.invalidateQueries({ queryKey: ['greeting-templates', tenantId, userId] });
       toast.success('Greeting template added');
     },
-    onError: () => toast.error('Failed to add template'),
+    onError: (err: any) => toast.error(err?.message || 'Failed to add template'),
   });
 
   const updateTemplate = useMutation({
@@ -70,8 +85,7 @@ export function useGreetingTemplates() {
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['greeting-templates', tenantId] });
-      toast.success('Template updated');
+      queryClient.invalidateQueries({ queryKey: ['greeting-templates', tenantId, userId] });
     },
     onError: () => toast.error('Failed to update template'),
   });
@@ -82,7 +96,7 @@ export function useGreetingTemplates() {
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['greeting-templates', tenantId] });
+      queryClient.invalidateQueries({ queryKey: ['greeting-templates', tenantId, userId] });
       toast.success('Template deleted');
     },
     onError: () => toast.error('Failed to delete template'),
@@ -90,41 +104,36 @@ export function useGreetingTemplates() {
 
   const seedDefaults = useMutation({
     mutationFn: async () => {
-      if (!tenantId) throw new Error('No workspace');
-      const rows = DEFAULT_TEMPLATES.map((msg, i) => ({
+      if (!tenantId || !userId) throw new Error('Not signed in');
+      const remaining = MAX_AGENT_GREETINGS - templates.length;
+      if (remaining <= 0) return;
+      const rows = DEFAULT_TEMPLATES.slice(0, remaining).map((msg, i) => ({
         tenant_id: tenantId,
+        agent_user_id: userId,
         message_text: msg,
-        sort_order: i,
+        sort_order: templates.length + i,
         is_active: true,
       }));
       const { error } = await supabase.from('whatsapp_greeting_templates').insert(rows);
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['greeting-templates', tenantId] });
-      toast.success('Default templates added');
+      queryClient.invalidateQueries({ queryKey: ['greeting-templates', tenantId, userId] });
+      toast.success('Default greetings added');
     },
-    onError: (err: any) => {
-      console.error('Seed templates error:', err);
-      toast.error('Failed to seed templates: ' + (err?.message || 'Unknown error'));
-    },
+    onError: (err: any) => toast.error('Failed to seed templates: ' + (err?.message || 'Unknown error')),
   });
 
-  // Get the primary (first) active greeting template with variables replaced
+  // Get a (random) active greeting template, with variables replaced. Falls back to first DEFAULT.
   const getGreetingMessage = (contactName: string, businessName: string, agentName?: string): string => {
     const agent = agentName || 'our team';
-    const activeTemplates = templates.filter(t => t.is_active);
     const replace = (msg: string) =>
       msg.replace(/\{\{name\}\}/g, contactName).replace(/\{\{biz\}\}/g, businessName).replace(/\{\{agent_name\}\}/g, agent);
-    if (activeTemplates.length === 0) {
-      return replace(DEFAULT_TEMPLATES[0]);
-    }
-    // Always use the first active template (lowest sort_order) for consistency
-    return replace(activeTemplates[0].message_text);
+    const active = templates.filter(t => t.is_active);
+    if (active.length === 0) return replace(DEFAULT_TEMPLATES[0]);
+    const pick = active[Math.floor(Math.random() * active.length)];
+    return replace(pick.message_text);
   };
-
-  // Keep backward compat alias
-  const getRandomMessage = getGreetingMessage;
 
   return {
     templates,
@@ -133,7 +142,8 @@ export function useGreetingTemplates() {
     updateTemplate,
     deleteTemplate,
     seedDefaults,
-    getRandomMessage,
+    getRandomMessage: getGreetingMessage,
     DEFAULT_TEMPLATES,
+    MAX_AGENT_GREETINGS,
   };
 }
