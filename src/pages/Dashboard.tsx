@@ -257,7 +257,7 @@ export default function Dashboard() {
   return (
     <DashboardLayout>
       <OnboardingGate onConnectWhatsApp={() => setEmbeddedSignupOpen(true)}>
-        <div className="space-y-4 sm:space-y-6 max-w-[1280px] mx-auto px-2 pt-0 pb-3 sm:px-6 sm:pt-1 sm:pb-6 animate-fade-in">
+        <div className="space-y-4 sm:space-y-6 max-w-[1280px] mx-auto px-2 pt-0 pb-3 sm:px-6 sm:pt-0 sm:pb-6 -mt-2 sm:-mt-4 lg:-mt-6 animate-fade-in">
 
         {/* Top placement: current Plan badge */}
         {billing?.planName && (
