@@ -20,6 +20,7 @@ import { QuickGuide, quickGuides } from '@/components/help/QuickGuide';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import type { TenantRole } from '@/types/tenant';
+import { TeamAvailabilityPanel } from '@/components/availability/TeamAvailabilityPanel';
 
 const inviteSchema = z.object({
   email: z.string().email('Please enter a valid email'),
@@ -142,6 +143,8 @@ export default function Team() {
       <div className="space-y-6">
         {/* Quick Guide */}
         <QuickGuide {...quickGuides.team} />
+
+        {canManageTeam && <TeamAvailabilityPanel />}
 
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>

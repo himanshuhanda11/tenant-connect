@@ -1,96 +1,137 @@
 
-# WhatsApp Business App Coexistence — Full Meta v4 Spec
+# Agent Availability / Pause Assignment System
 
-Builds on the earlier Coexistence scaffolding (already added: `onboarding_type`, `coexistence_enabled`, `coexistence_status`, `coexistence_eligibility`, `coexistence_error`, `coexistence_checked_at` columns + UI cards + admin badges). This pass completes Meta's full "Onboard WhatsApp Business app users" flow.
+Build a complete pause-new-chat system for agents in the Aireatro CRM, with backend validation, round-robin integration, realtime sync, admin override, and premium mobile-responsive UI.
 
-## 1. Database migration (additive)
+## 1. Database Migration
 
-`waba_accounts`:
-- `is_on_biz_app boolean`
-- `platform_type text`
-- `contacts_sync_request_id text`, `history_sync_request_id text`
-- `contacts_sync_status text`, `history_sync_status text`
-- `history_sync_progress int default 0`
-- `history_sharing_enabled boolean`
-- `last_smb_echo_at timestamptz`
-- `disconnect_reason text`
+**Extend `agents` table** (existing per memory):
+- `availability_status` text default `'available'` — values: `available`, `paused`, `offline`
+- `pause_reason` text nullable — `break`, `lunch`, `meeting`, `busy`, `leave`, `custom`, etc.
+- `pause_custom_reason` text nullable
+- `paused_at` timestamptz nullable
+- `pause_until` timestamptz nullable
+- `last_available_at` timestamptz nullable
+- `auto_resume_enabled` boolean default `true`
+- `availability_updated_by` uuid nullable
 
-`messages`:
-- `source text default 'cloud_api'` (`cloud_api` | `whatsapp_business_app` | `history_sync`)
-- `is_echo boolean default false`
-- `original_message_id text`
-- `revoked_at timestamptz`
-- `edited_at timestamptz`
-- `history_status text`
+**New table `agent_availability_history`** for admin audit:
+- workspace_id (tenant_id), agent_user_id, status, reason, paused_at, pause_until, changed_by, created_at
 
-No RLS changes — inherit existing policies.
+**Extend `assignment_logs`** (or create if missing):
+- workspace_id, conversation_id, assigned_to_agent_id, assignment_method (`round_robin`, `manual`, `admin_override`, `unassigned_queue`), skipped_agents jsonb, assignment_reason text, created_at
 
-## 2. Frontend — `src/components/meta/MetaEmbeddedSignup.tsx`
+**Indexes:** `(tenant_id, availability_status)`, `(tenant_id, pause_until)` on agents.
 
-- Coexistence card already exists. Update copy to spec ("Keep using your WhatsApp Business App while Aireatro powers API messaging…").
-- The MessageEvent listener already handles standard `WA_EMBEDDED_SIGNUP` events. Add detection for `event === 'FINISH_WHATSAPP_BUSINESS_APP_ONBOARDING'` (Meta sends this for coexistence) and for `event === 'FINISH'` with the same shape — both populate `sessionDataRef`.
-- The launch already passes `featureType: 'whatsapp_business_app_onboarding'` for coexistence — keep as-is. Bump `sessionInfoVersion` to `'3'` (already set).
-- After backend returns success, render a **sync progress panel** (contacts + history phases, 0–100%, throughput 20 mps badge, plus "WhatsApp Business App is still active" callout and offboarding instructions).
+**RLS:**
+- Agent: read/update own availability row only
+- Admin/owner: manage any agent in their workspace
+- History: admin/owner read-only
 
-## 3. Backend — `supabase/functions/meta-embedded-signup/index.ts`
+**Auto-resume function + cron:**
+- Postgres function `auto_resume_paused_agents()` flips `availability_status = 'available'` where `pause_until <= now()` and `auto_resume_enabled = true`
+- pg_cron job runs every 1 minute
 
-In `exchange_code` when `mode === 'coexistence'`:
-- After WABA + phone save, **skip phone `/register` call** (already only runs for clientPhoneId path — gate the registration block on `!isCoexistence`).
-- Replace eligibility probe with the spec call: `GET /{phone_number_id}?fields=is_on_biz_app,platform_type`. Persist:
-  - `coexistence_enabled = is_on_biz_app && platform_type === 'CLOUD_API'`
-  - `is_on_biz_app`, `platform_type`
-  - `coexistence_status = 'active' | 'pending' | 'error'`
-  - `coexistence_checked_at`
-- Subscribe to webhook fields explicitly via `POST /{waba_id}/subscribed_apps` with extended `subscribed_fields=messages,message_template_status_update,phone_number_name_update,phone_number_quality_update,account_update,history,smb_app_state_sync,smb_message_echoes` (Meta uses this on the WABA-level subscription).
-- Trigger sync requests:
-  - `POST /{phone_number_id}/smb_app_data` body `{ messaging_product: 'whatsapp', sync_type: 'smb_app_state_sync' }` → save `contacts_sync_request_id`, `contacts_sync_status='requested'`.
-  - Same with `sync_type: 'history'` → save `history_sync_request_id`, `history_sync_status='requested'`, `history_sync_progress=0`.
-- Return all fields in response so UI can render the sync panel.
+## 2. Backend — Edge Functions
 
-## 4. Webhook handler — `supabase/functions/whatsapp-webhook/index.ts`
+### `agent-availability` (new)
+Endpoints:
+- `POST /pause` — body: `{ duration_minutes, reason, custom_reason?, agent_user_id? }`
+  - Verify JWT, get caller workspace + role
+  - If `agent_user_id` differs from caller → require admin/owner
+  - **Last available agent guard:** count active agents with `availability_status='available'` AND `is_active=true` AND not suspended. If `count <= 1` AND target is that agent:
+    - If caller is admin/owner AND `body.force=true` → allow + log warning
+    - Else → return 409 with `{ error: 'last_available_agent', available_count }`
+  - Transaction: update agent row, insert history log
+  - Return updated state
+- `POST /resume` — set status available, clear pause fields, log history
+- `GET /team` — list workspace team availability (admin/owner only)
+- `POST /admin-override` — admin force-pause/force-available/manual reassign
 
-Add new field handlers (do not touch existing message logic):
+### Update `whatsapp-webhook` round-robin block
+Find current round-robin assignment logic. Update SQL/JS to:
+- Filter eligible agents: `is_active=true AND availability_status='available' AND (pause_until IS NULL OR pause_until <= now()) AND status != 'suspended'`
+- Atomically pick next agent using `FOR UPDATE SKIP LOCKED` on a pointer row, OR use `(last_assigned_at ASC NULLS FIRST)` strategy
+- Insert into `assignment_logs` with skipped agents
+- If zero eligible → set conversation to unassigned queue, notify admins via existing notification path
+- Increment pointer only on successful assignment
 
-- **history**: iterate messages array. Insert into `messages` with `source='history_sync'`, `direction` from payload, `wamid`, `text/media`, `created_at` from history timestamp. Update `waba_accounts.history_sync_status` from `phase` and bump `history_sync_progress`. On `errors[].code === 2593109`, set `history_sharing_enabled=false`, `history_sync_status='declined'`.
-- **smb_app_state_sync**: iterate contacts array. Upsert into `contacts` table (existing schema) keyed on `(tenant_id, wa_id)`. Honor `action: 'add' | 'remove'` (remove → soft delete via existing pattern, or skip if not supported). Update `contacts_sync_status`.
-- **smb_message_echoes**: insert into `messages` with `direction='outbound'`, `is_echo=true`, `source='whatsapp_business_app'`. Match conversation by `(tenant_id, contact wa_id)`. Update `last_smb_echo_at`.
-- **messages edits/revokes** (`messages[].type === 'message_edit'` / `'message_revoke'` or sibling `edits`/`revokes` arrays): look up by `original_message_id` (wamid) and update existing row (`edited_at`, new text) or set `revoked_at`. Ignore unsupported error 131060 silently.
-- **account_update**: handle `event` values:
-  - `PARTNER_REMOVED` → set `waba_accounts.status='disconnected'`, `disconnect_reason='partner_removed'`.
-  - `ACCOUNT_OFFBOARDED` → same with `'account_offboarded'`.
-  - `ACCOUNT_RECONNECTED` → set `status='active'`, clear `disconnect_reason`.
+Apply same filter in any other assignment paths (form-based assignment, AI handoff, manual reassignment fallback).
 
-Tenant resolution stays via existing `phone_number_id → phone_numbers → tenant_id` lookup (works identically for coexistence numbers).
+## 3. Frontend
 
-## 5. Admin status panel — `WhatsAppConnectionStatus.tsx`
+### Hook `useAgentAvailability`
+- Subscribe to Supabase realtime on `agents` row (own + team for admin)
+- Returns `{ status, pauseUntil, reason, pause, resume, isLastAvailable }`
+- Auto-refetch on visibility change + reconnect
+- Invalidate React Query keys: `['agents']`, `['team']`, `['inbox-counts']`
 
-Extend existing Coexistence block with:
-- `is_on_biz_app` / `platform_type` rows
-- Contacts sync: status badge
-- History sync: status + progress bar (0–100%)
-- Throughput badge (20 mps for coexistence)
-- Last SMB echo timestamp
-- Disconnect reason (when set)
+### `AgentAvailabilityPill` (top-right header)
+- Pill states: green Available / orange Paused (with countdown) / gray Offline
+- Click → opens `AgentAvailabilityModal` (desktop dropdown popover) or `AgentAvailabilitySheet` (mobile bottom sheet)
+- Mount in `DashboardLayout` header next to existing controls; on mobile mount in `MobileBottomNav` account area
 
-## 6. Customer-facing connection result panel
+### `AgentAvailabilityModal`
+- Glassmorphism card, animated with framer-motion
+- Title "Agent Availability" + subtitle
+- Reason dropdown (optional) with custom text input when "Custom" picked
+- Duration grid: 13 buttons (30m → 30d)
+- Live countdown when paused
+- Action buttons: "Pause" / "Resume now"
+- Last-available-agent error modal:
+  - Title "Can't pause right now" + message
+  - Disabled duration buttons
+  - Helper text + "Okay, stay available" / "View team availability" buttons
+- Admin override warning modal: "All agents will become unavailable" + "Pause Anyway" / "Cancel"
+- Toast on success
 
-In `MetaEmbeddedSignup.tsx` post-connect, when `coexistence_enabled`:
-- "✓ Connected with WhatsApp Business App Coexistence"
-- "WhatsApp Business App is still active · Aireatro API is active"
-- WABA ID, Phone Number ID, display number
-- Sync progress block (contacts + history phases)
-- Throughput: 20 mps
-- Offboarding note: "To disconnect Cloud API, open WhatsApp Business App → Settings → Account → Business Platform → Disconnect Account." (do NOT call Deregister API)
+### `TeamAvailabilityPanel` (admin)
+- New section in Team page: agent list with status badge, pause until + countdown, reason, assigned chats count, last seen
+- Actions per row: Force Available, Force Pause (duration picker), Reassign Chats
+- Realtime subscription on workspace agents
 
-When not eligible / error: existing fallback message stays.
+### Auto-resume on client
+- Timer in hook flips local state when `pause_until` passes; backend cron is source of truth, client UI just animates state change
 
-## Files touched
+## 4. Realtime
 
-- migration (new) — additive columns on `waba_accounts` and `messages`
-- `supabase/functions/meta-embedded-signup/index.ts` — skip register, add status probe, subscribed_fields, sync triggers
-- `supabase/functions/whatsapp-webhook/index.ts` — new field handlers (history / smb_app_state_sync / smb_message_echoes / account_update / edits & revokes)
-- `supabase/functions/admin-api/index.ts` — include new columns in waba select
-- `src/components/meta/MetaEmbeddedSignup.tsx` — new post-connect panel + finish event detection
-- `src/components/admin/workspace-detail/WhatsAppConnectionStatus.tsx` — extended badges
+- Enable realtime on `agents` table (publication add)
+- Hook subscribes to `postgres_changes` filtered by `tenant_id` (admin) or `user_id` (agent)
+- Invalidates inbox/team caches on change
 
-Existing standard signup, inbox, campaigns, automation, CRM, and webhook code remain unchanged — all new logic is gated on coexistence-only fields/events.
+## 5. Edge Cases Covered
+
+- Pause during webhook → assignment SELECT re-checks DB, paused agent skipped before insert
+- All paused → unassigned queue + admin notification
+- Race conditions → DB-level locking + atomic pointer update
+- Auto-resume → cron + client realtime
+- Admin override → `force=true` flag with warning modal
+- Suspended/inactive/deleted → already filtered via `is_active` & status
+- Workspace switch → hook re-subscribes on workspace change
+- Mobile refresh / reconnect → hook refetches on visibilitychange + supabase reconnect
+
+## 6. Files
+
+**Created:**
+- `supabase/migrations/<ts>_agent_availability.sql`
+- `supabase/functions/agent-availability/index.ts`
+- `src/hooks/useAgentAvailability.ts`
+- `src/components/availability/AgentAvailabilityPill.tsx`
+- `src/components/availability/AgentAvailabilityModal.tsx`
+- `src/components/availability/AgentAvailabilitySheet.tsx`
+- `src/components/availability/TeamAvailabilityPanel.tsx`
+- `src/lib/availability.ts` (duration options + helpers)
+
+**Edited:**
+- `supabase/functions/whatsapp-webhook/index.ts` — round-robin filter + assignment_logs
+- Any other assignment edge function (round-robin / form rules) — same filter
+- `src/components/layout/DashboardLayout.tsx` — mount pill
+- `src/components/layout/MobileBottomNav.tsx` — mobile entry
+- `src/pages/team/TeamMembers.tsx` (or Team.tsx) — admin panel section
+- `supabase/config.toml` — register new function (if needed)
+
+## 7. Testing checklist
+
+After build I'll verify: migration applies cleanly, edge function deploys, pill renders desktop + mobile (909px viewport), pause flow works, last-available guard triggers, admin override modal appears, realtime updates propagate, round-robin skips paused agents in webhook code path.
+
+This is a large build (~10 files, 1 migration, 2 edge function changes). Approve to proceed.
