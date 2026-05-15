@@ -146,17 +146,18 @@ Deno.serve(async (req) => {
       }
 
       const now = new Date();
-      const until = new Date(now.getTime() + duration * 60_000);
+      const isIndefinite = duration === 0;
+      const until = isIndefinite ? null : new Date(now.getTime() + duration * 60_000);
 
       const { error } = await admin
         .from('agents')
         .update({
           availability_status: 'paused',
           paused_at: now.toISOString(),
-          pause_until: until.toISOString(),
+          pause_until: until ? until.toISOString() : null,
           pause_reason: reason,
           pause_custom_reason: customReason,
-          auto_resume_enabled: true,
+          auto_resume_enabled: !isIndefinite,
           availability_updated_by: callerId,
         })
         .eq('id', targetAgent.id);
@@ -170,12 +171,12 @@ Deno.serve(async (req) => {
         reason,
         custom_reason: customReason,
         paused_at: now.toISOString(),
-        pause_until: until.toISOString(),
+        pause_until: until ? until.toISOString() : null,
         changed_by: callerId,
         is_admin_override: targetUserId !== callerId || (isLastAvailable && body.force === true),
       });
 
-      return json({ ok: true, status: 'paused', pause_until: until.toISOString() });
+      return json({ ok: true, status: 'paused', pause_until: until ? until.toISOString() : null });
     }
 
     return json({ error: 'unknown_action' }, 400);
