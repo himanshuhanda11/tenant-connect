@@ -20,7 +20,7 @@ function MobileHeader() {
   const isOpen = state === 'expanded';
 
   return (
-    <header className="h-12 sm:h-14 flex items-center gap-3 px-3 sm:px-4 border-b border-border/60 bg-background/95 backdrop-blur-md sticky top-0 z-30 shadow-xs pt-[env(safe-area-inset-top)] md:pt-0" style={{ height: 'calc(3rem + env(safe-area-inset-top))' }}>
+    <header className="flex h-12 items-center gap-3 border-b border-border/60 bg-background/95 px-3 pt-[env(safe-area-inset-top)] shadow-xs backdrop-blur-md sm:h-14 sm:px-4 md:hidden" style={{ height: 'calc(3rem + env(safe-area-inset-top))' }}>
       <button
         onClick={toggleSidebar}
         className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-card hover:bg-accent border border-border/50 shadow-sm transition-all duration-200 active:scale-95"
