@@ -80,9 +80,10 @@ export function useOnboardingProgress(tenantId: string | null | undefined): Onbo
 
       // Source of truth: tenants.whatsapp_profile_completed (auto-set by DB trigger on phone connect).
       // Failsafe: any connected phone implies the WA profile exists on Meta's side.
+      // Source of truth: tenants.whatsapp_profile_completed (set explicitly when user saves WA profile).
       const dbProfileDone = !!(tenantRow as any)?.whatsapp_profile_completed;
       const lsProfile = localStorage.getItem(lsKey(tenantId, 'profileCompleted'));
-      setProfileCompleted(dbProfileDone || hasConnectedPhone || lsProfile === '1');
+      setProfileCompleted(dbProfileDone || lsProfile === '1');
     } catch (e) {
       console.error('[useOnboardingProgress] failed:', e);
     } finally {
