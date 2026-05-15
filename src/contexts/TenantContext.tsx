@@ -63,6 +63,8 @@ export function TenantProvider({ children }: { children: React.ReactNode }) {
             name,
             slug,
             logo_url,
+            timezone,
+            business_category,
             created_at,
             updated_at
           )
@@ -202,7 +204,7 @@ export function TenantProvider({ children }: { children: React.ReactNode }) {
     (async () => {
       const { data } = await supabase
         .from('tenants')
-        .select('id, name, slug, logo_url, created_at, updated_at')
+        .select('id, name, slug, logo_url, timezone, business_category, created_at, updated_at')
         .eq('id', previewTenantId)
         .maybeSingle();
       if (!cancelled && data) {
