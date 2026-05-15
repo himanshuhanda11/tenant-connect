@@ -23,6 +23,8 @@ const TASKS = [
 export default function CompleteProfileCard({ onMarkDone, phoneId }: Props) {
   const navigate = useNavigate();
   const goToProfile = () => {
+    // Mark step 3 as acknowledged so the dashboard renders normally going forward.
+    onMarkDone();
     if (phoneId) navigate(`/phone-numbers/${phoneId}?tab=profile`);
     else navigate('/phone-numbers');
   };
