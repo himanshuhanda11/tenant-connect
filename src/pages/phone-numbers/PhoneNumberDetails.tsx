@@ -287,7 +287,7 @@ export default function PhoneNumberDetails() {
       });
 
       if (error) throw error;
-      if (!data?.success) throw new Error(data?.error || 'Upload failed');
+      if (!data?.success) throw new Error(data?.error || data?.details || 'Upload failed');
 
       toast.success('Profile picture updated successfully! It may take a few minutes to appear on WhatsApp.');
       // Refresh profile to get new picture URL
@@ -855,6 +855,13 @@ export default function PhoneNumberDetails() {
                   </div>
                 ) : (
                   <>
+                    {businessProfile.warning && (
+                      <div className="flex items-start gap-2 rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
+                        <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+                        <span>{businessProfile.warning}</span>
+                      </div>
+                    )}
+
                     {/* Profile Picture */}
                     <div className="flex items-center gap-4 p-4 bg-muted/50 rounded-lg">
                       {businessProfile.data.profile_picture_url ? (
