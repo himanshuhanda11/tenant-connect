@@ -113,7 +113,10 @@ export default function ConfigureAutoReplyCard() {
         </div>
 
         <Button
-          onClick={() => navigate('/settings?section=autoreply')}
+          onClick={() => {
+            dismiss();
+            navigate('/settings?section=autoreply');
+          }}
           className="w-full sm:w-auto h-10 rounded-xl gap-1.5 bg-gradient-to-r from-primary to-emerald-500 hover:opacity-90 shadow-md flex-shrink-0"
         >
           Configure now <ArrowRight className="h-4 w-4" />
