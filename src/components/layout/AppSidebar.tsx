@@ -205,6 +205,7 @@ export function AppSidebar() {
 
   const sidebarScrollRef = useRef<HTMLDivElement>(null);
   const groupRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const pendingExpandedScrollGroupRef = useRef<string | null>(null);
 
   const scrollGroupIntoView = (label: string) => {
     const scrollContainer = sidebarScrollRef.current;
@@ -258,8 +259,14 @@ export function AppSidebar() {
     if (wasCollapsed && !isCollapsed) {
       const el = sidebarScrollRef.current;
       if (!el) return;
+      const targetGroup = pendingExpandedScrollGroupRef.current;
+      pendingExpandedScrollGroupRef.current = null;
       // Wait for the width transition (~200ms) before animating scroll
       const t = window.setTimeout(() => {
+        if (targetGroup) {
+          scrollGroupIntoView(targetGroup);
+          return;
+        }
         const active = el.querySelector<HTMLElement>('[data-active="true"], a[aria-current="page"]');
         if (active && typeof active.scrollIntoView === 'function') {
           try {
@@ -299,6 +306,12 @@ export function AppSidebar() {
   const toggleGroup = (label: string, open: boolean) => {
     setExpandedGroups(prev => ({ ...prev, [label]: open }));
     if (open) scrollGroupIntoView(label);
+  };
+
+  const handleCollapsedWorkspaceClick = () => {
+    pendingExpandedScrollGroupRef.current = 'Workspace';
+    setExpandedGroups(prev => ({ ...prev, Workspace: true }));
+    toggleSidebar();
   };
 
   /* ── Render a single menu item ── */
