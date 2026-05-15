@@ -69,9 +69,11 @@ export function MetaEmbeddedSignup({ onSuccess, onError, onConnectionError }: Me
       try {
         const { data: waba } = await supabase
           .from('waba_accounts')
-          .select('id, waba_id, coexistence_enabled, is_on_biz_app')
+          .select('id, waba_id, coexistence_enabled, is_on_biz_app, onboarding_type, status')
           .eq('tenant_id', currentTenant.id)
-          .eq('coexistence_enabled', true as any)
+          .or('coexistence_enabled.eq.true,onboarding_type.eq.business_app_coexistence')
+          .order('created_at', { ascending: false })
+          .limit(1)
           .maybeSingle();
         if (cancelled || !waba?.waba_id) { setExistingCoexistence(null); return; }
         const { data: phone } = await supabase
