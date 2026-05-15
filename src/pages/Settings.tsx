@@ -21,7 +21,7 @@ const NotificationSettings = lazy(() => import('@/components/settings/sections/N
 const AdvancedSettings = lazy(() => import('@/components/settings/sections/AdvancedSettings').then(m => ({ default: m.AdvancedSettings })));
 const AutoReplySettings = lazy(() => import('@/components/settings/sections/AutoReplySettings').then(m => ({ default: m.AutoReplySettings })));
 const AppearanceSettings = lazy(() => import('@/components/settings/sections/AppearanceSettings').then(m => ({ default: m.AppearanceSettings })));
-const WhatsAppGreetingSettings = lazy(() => import('@/components/settings/sections/WhatsAppGreetingSettings').then(m => ({ default: m.WhatsAppGreetingSettings })));
+
 
 function SectionFallback() {
   return (
