@@ -48,23 +48,20 @@ export default function InboxPage() {
   const [selectedId, setSelectedId] = useState<string | null>(conversationId || null);
   const [showContextPanel, setShowContextPanel] = useState(false);
 
-  // Lock the DashboardLayout scroll wrapper while the inbox is mounted so
-  // the chat + right sidebar stay pinned to the viewport (only the message
-  // ScrollArea inside the chat scrolls).
+  // Prevent the browser window/body from becoming the inbox scroll container.
+  // The inbox panels manage their own internal scroll areas, so the composer
+  // and panel headers stay locked in view.
   useEffect(() => {
-    const wrapper = document.querySelector(
-      'main > div.flex-1.overflow-auto'
-    ) as HTMLElement | null;
-    if (!wrapper) return;
-    const prev = {
-      overflow: wrapper.style.overflow,
-      padding: wrapper.style.padding,
-    };
-    wrapper.style.overflow = 'hidden';
-    wrapper.style.padding = '0';
+    const previousHtmlOverflow = document.documentElement.style.overflow;
+    const previousBodyOverflow = document.body.style.overflow;
+    const previousWindowScroll = window.scrollY;
+    document.documentElement.style.overflow = 'hidden';
+    document.body.style.overflow = 'hidden';
+    window.scrollTo(0, 0);
     return () => {
-      wrapper.style.overflow = prev.overflow;
-      wrapper.style.padding = prev.padding;
+      document.documentElement.style.overflow = previousHtmlOverflow;
+      document.body.style.overflow = previousBodyOverflow;
+      window.scrollTo(0, previousWindowScroll);
     };
   }, []);
 
@@ -222,7 +219,7 @@ export default function InboxPage() {
     return (
       <DashboardLayout>
         <TooltipProvider>
-          <div className="fixed inset-x-0 top-[calc(3rem+env(safe-area-inset-top))] bottom-[calc(3.75rem+env(safe-area-inset-bottom))] md:bottom-0 z-20 flex flex-col bg-background overflow-hidden">
+          <div className="absolute inset-0 z-20 flex min-h-0 flex-col overflow-hidden bg-background md:bottom-0">
             <AnimatePresence mode="wait">
               {!selectedId ? (
                 <motion.div key="list" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="h-full">
@@ -300,7 +297,7 @@ export default function InboxPage() {
   return (
     <DashboardLayout>
       <TooltipProvider>
-        <div className="absolute inset-0 flex overflow-hidden min-h-0">
+        <div className="absolute inset-0 flex min-h-0 overflow-hidden">
           {/* Left: Conversation List */}
           <div
             className="w-[240px] lg:w-[280px] xl:w-[300px] 2xl:w-[320px] flex-shrink-0 h-full min-h-0"
@@ -355,7 +352,7 @@ export default function InboxPage() {
             initial={{ opacity: 0, x: 12 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.2, delay: 0.1 }}
-            className="hidden lg:block w-[280px] xl:w-[300px] 2xl:w-[320px] flex-shrink-0 flex-grow-0 border-l"
+            className="hidden h-full min-h-0 w-[280px] flex-shrink-0 flex-grow-0 overflow-hidden border-l lg:block xl:w-[300px] 2xl:w-[320px]"
           >
             <InboxContextPanel
               conversation={selectedConversation}
