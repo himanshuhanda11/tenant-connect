@@ -667,7 +667,11 @@ export default function Dashboard() {
             </DialogDescription>
           </DialogHeader>
           <MetaEmbeddedSignup
-            onSuccess={() => { setEmbeddedSignupOpen(false); refetch(); }}
+            onSuccess={() => {
+              setEmbeddedSignupOpen(false);
+              window.dispatchEvent(new CustomEvent('aireatro:wa-connected'));
+              refetch();
+            }}
             onError={(error) => console.error('Embedded signup error:', error)}
           />
         </DialogContent>
