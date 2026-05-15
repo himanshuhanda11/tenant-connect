@@ -246,49 +246,36 @@ Deno.serve(async (req) => {
         || existingWabaAny?.[0]
         || null;
 
+      // Always prefer the freshly obtained OAuth/embedded-signup token — it is scoped to
+      // THIS WABA (including newly-claimed coexistence WABAs) and lasts 60 days. The
+      // global META_SYSTEM_USER_TOKEN is only useful when the system user has been
+      // explicitly assigned to the WABA in Business Manager — for new/coexistence WABAs
+      // it almost always lacks permission and breaks profile/webhook/messaging calls.
       let wabaAccountId: string;
       if (existingWaba) {
-        const hasSystemUserToken = existingWaba.token_source === 'system_user' && existingWaba.encrypted_access_token;
-
         const updatePayload: any = {
           tenant_id: effectiveTenantId, // Move WABA to current workspace
           status: 'active',
           name: wabaData.name,
           business_id: businessId,
           onboarding_type: isCoexistence ? 'business_app_coexistence' : 'normal_api',
+          encrypted_access_token: accessToken,
+          token_source: 'embedded_signup',
           updated_at: new Date().toISOString(),
         };
-
-        // Check for System User token in secrets as fallback
-        const systemUserToken = Deno.env.get('META_SYSTEM_USER_TOKEN');
-
-        if (!hasSystemUserToken) {
-          if (systemUserToken) {
-            updatePayload.encrypted_access_token = systemUserToken;
-            updatePayload.token_source = 'system_user';
-            console.log('Updating WABA with System User token from secrets');
-          } else {
-            updatePayload.encrypted_access_token = accessToken;
-            updatePayload.token_source = 'embedded_signup';
-            console.log('Updating WABA with new Embedded Signup token');
-          }
-        } else {
-          console.log('Preserving existing System User token for WABA');
-        }
+        console.log('Updating WABA with fresh Embedded Signup token');
 
         await supabase.from('waba_accounts').update(updatePayload).eq('id', existingWaba.id);
         wabaAccountId = existingWaba.id;
         console.log('Updated WABA:', wabaAccountId);
       } else {
-        // Use System User token from secrets if available for new WABA records
-        const newWabaSystemToken = Deno.env.get('META_SYSTEM_USER_TOKEN');
         const { data: newWaba, error: insertErr } = await supabase.from('waba_accounts').insert({
           tenant_id: effectiveTenantId,
           waba_id: primaryWabaId,
           business_id: businessId,
           name: wabaData.name,
-          encrypted_access_token: newWabaSystemToken || accessToken,
-          token_source: newWabaSystemToken ? 'system_user' : 'embedded_signup',
+          encrypted_access_token: accessToken,
+          token_source: 'embedded_signup',
           status: 'active',
           onboarding_type: isCoexistence ? 'business_app_coexistence' : 'normal_api',
         }).select().single();
