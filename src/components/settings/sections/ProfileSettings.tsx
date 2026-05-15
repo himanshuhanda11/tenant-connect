@@ -50,12 +50,11 @@ export function ProfileSettings() {
       try {
         const { data } = await supabase
           .from('agents')
-          .select('personal_greeting, away_message, away_enabled')
+          .select('away_message, away_enabled')
           .eq('user_id', user.id)
           .eq('tenant_id', currentTenant.id)
           .maybeSingle();
         if (data) {
-          setPersonalGreeting(data.personal_greeting || '');
           setAwayMessage(data.away_message || '');
           setAwayEnabled(data.away_enabled || false);
         }
