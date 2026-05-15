@@ -259,6 +259,31 @@ export default function Dashboard() {
       <OnboardingGate onConnectWhatsApp={() => setEmbeddedSignupOpen(true)}>
         <div className="space-y-4 sm:space-y-6 max-w-[1280px] mx-auto px-2 py-3 sm:px-6 sm:py-6 animate-fade-in">
 
+        {/* Top placement: current Plan badge */}
+        {billing?.planName && (
+          <div className="flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-border/50 bg-card/60 backdrop-blur px-3 py-2 sm:px-4 sm:py-2.5 shadow-xs">
+            <div className="flex items-center gap-2 min-w-0">
+              <span className="text-[10px] sm:text-[11px] uppercase tracking-wider font-semibold text-muted-foreground">Current plan</span>
+              <Badge
+                onClick={() => navigate('/billing')}
+                className={cn(
+                  "cursor-pointer rounded-full border font-semibold gap-1 px-2.5 py-1 text-[10px] sm:text-xs",
+                  billing.planName.toLowerCase() === 'free'
+                    ? "bg-orange-100 dark:bg-orange-500/15 text-orange-600 dark:text-orange-400 border-orange-300/60 dark:border-orange-500/30"
+                    : "bg-gradient-to-r from-primary/15 to-blue-500/15 text-foreground border-primary/30"
+                )}
+              >
+                <Sparkles className="h-3 w-3" /> {billing.planName} Plan
+              </Badge>
+            </div>
+            {billing.planName.toLowerCase() === 'free' && (
+              <Button size="sm" onClick={() => navigate('/billing')} className="h-7 sm:h-8 text-[11px] px-3 rounded-full gap-1 bg-gradient-to-r from-primary to-emerald-500 hover:opacity-90 shadow-md">
+                <ArrowUpRight className="h-3.5 w-3.5" /> Upgrade
+              </Button>
+            )}
+          </div>
+        )}
+
         {/* ═══════════════════════════════════════════════
             SECTION 1: PREMIUM HERO
         ═══════════════════════════════════════════════ */}
