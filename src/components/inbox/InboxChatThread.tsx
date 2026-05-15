@@ -137,7 +137,7 @@ export function InboxChatThread({
   viewerName,
 }: InboxChatThreadProps) {
   const { user } = useAuth();
-  const { getRandomMessage } = useGreetingTemplates();
+  const { getRandomMessage, hasActiveGreeting } = useGreetingTemplates();
   const [messageText, setMessageText] = useState('');
   const [showTemplates, setShowTemplates] = useState(false);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
