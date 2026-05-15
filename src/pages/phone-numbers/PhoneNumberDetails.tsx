@@ -243,6 +243,18 @@ export default function PhoneNumberDetails() {
         window.dispatchEvent(new CustomEvent('aireatro:wa-profile-saved', { detail: { tenantId: number.tenant_id } }));
       }
 
+      if (number?.id) {
+        try {
+          await supabase
+            .from('phone_numbers')
+            .update({ raw: { ...((number.raw as any) || {}), whatsapp_profile_vertical: businessProfile.data.vertical || null } } as any)
+            .eq('id', number.id);
+          refetch();
+        } catch (e) {
+          console.warn('[saveBusinessProfile] phone metadata update failed:', e);
+        }
+      }
+
       if (data?.meta_blocked || data?.warning) {
         const message = data.warning || 'Meta kept your current WhatsApp profile unchanged.';
         toast.warning(message);
