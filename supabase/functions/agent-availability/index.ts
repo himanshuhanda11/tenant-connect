@@ -15,7 +15,8 @@ const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
 const SUPABASE_ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY')!;
 const SERVICE_ROLE = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 
-const ALLOWED_DURATIONS = new Set([30, 60, 120, 240, 480, 720, 1440, 2880, 4320, 5760, 10080, 21600, 43200, 86400, 129600]);
+// 0 = indefinite / permanent (no auto-resume)
+const ALLOWED_DURATIONS = new Set([0, 30, 60, 120, 240, 480, 720, 1440, 2880, 4320, 5760, 10080, 21600, 43200, 86400, 129600]);
 const ALLOWED_REASONS = new Set(['break', 'lunch', 'meeting', 'busy', 'leave', 'custom']);
 
 function json(body: unknown, status = 200) {
@@ -145,17 +146,18 @@ Deno.serve(async (req) => {
       }
 
       const now = new Date();
-      const until = new Date(now.getTime() + duration * 60_000);
+      const isIndefinite = duration === 0;
+      const until = isIndefinite ? null : new Date(now.getTime() + duration * 60_000);
 
       const { error } = await admin
         .from('agents')
         .update({
           availability_status: 'paused',
           paused_at: now.toISOString(),
-          pause_until: until.toISOString(),
+          pause_until: until ? until.toISOString() : null,
           pause_reason: reason,
           pause_custom_reason: customReason,
-          auto_resume_enabled: true,
+          auto_resume_enabled: !isIndefinite,
           availability_updated_by: callerId,
         })
         .eq('id', targetAgent.id);
@@ -169,12 +171,12 @@ Deno.serve(async (req) => {
         reason,
         custom_reason: customReason,
         paused_at: now.toISOString(),
-        pause_until: until.toISOString(),
+        pause_until: until ? until.toISOString() : null,
         changed_by: callerId,
         is_admin_override: targetUserId !== callerId || (isLastAvailable && body.force === true),
       });
 
-      return json({ ok: true, status: 'paused', pause_until: until.toISOString() });
+      return json({ ok: true, status: 'paused', pause_until: until ? until.toISOString() : null });
     }
 
     return json({ error: 'unknown_action' }, 400);
