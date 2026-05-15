@@ -18493,7 +18493,12 @@ export type Database = {
         | "REJECTED"
         | "PAUSED"
       wa_validation_risk: "LOW" | "MEDIUM" | "HIGH"
-      waba_status: "pending" | "active" | "suspended" | "disconnected"
+      waba_status:
+        | "pending"
+        | "active"
+        | "suspended"
+        | "disconnected"
+        | "disabled"
       workflow_run_status:
         | "running"
         | "success"
@@ -19088,7 +19093,13 @@ export const Constants = {
         "PAUSED",
       ],
       wa_validation_risk: ["LOW", "MEDIUM", "HIGH"],
-      waba_status: ["pending", "active", "suspended", "disconnected"],
+      waba_status: [
+        "pending",
+        "active",
+        "suspended",
+        "disconnected",
+        "disabled",
+      ],
       workflow_run_status: [
         "running",
         "success",
