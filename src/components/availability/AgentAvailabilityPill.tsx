@@ -14,14 +14,6 @@ import { cn } from '@/lib/utils';
 import { useAgentAvailability } from '@/hooks/useAgentAvailability';
 import { PAUSE_DURATIONS, PAUSE_REASONS, formatCountdown, formatResumeAt } from '@/lib/availability';
 
-function StatusDot({ status }: { status: 'available' | 'paused' | 'offline' }) {
-  const cls = status === 'available'
-    ? 'bg-emerald-500 shadow-[0_0_0_3px_rgba(16,185,129,0.18)]'
-    : status === 'paused'
-    ? 'bg-amber-500 shadow-[0_0_0_3px_rgba(245,158,11,0.18)]'
-    : 'bg-muted-foreground shadow-[0_0_0_3px_rgba(120,120,120,0.18)]';
-  return <span className={cn('h-2 w-2 rounded-full', cls)} />;
-}
 
 export function AgentAvailabilityPill({ compact = false }: { compact?: boolean }) {
   const isMobile = useIsMobile();
