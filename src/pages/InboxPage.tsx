@@ -53,14 +53,29 @@ export default function InboxPage() {
   // and panel headers stay locked in view.
   useEffect(() => {
     const previousHtmlOverflow = document.documentElement.style.overflow;
+    const previousHtmlHeight = document.documentElement.style.height;
     const previousBodyOverflow = document.body.style.overflow;
+    const previousBodyHeight = document.body.style.height;
+    const previousBodyPosition = document.body.style.position;
+    const previousBodyWidth = document.body.style.width;
+    const previousBodyTop = document.body.style.top;
     const previousWindowScroll = window.scrollY;
     document.documentElement.style.overflow = 'hidden';
+    document.documentElement.style.height = '100dvh';
     document.body.style.overflow = 'hidden';
+    document.body.style.height = '100dvh';
+    document.body.style.position = 'fixed';
+    document.body.style.width = '100%';
+    document.body.style.top = `-${previousWindowScroll}px`;
     window.scrollTo(0, 0);
     return () => {
       document.documentElement.style.overflow = previousHtmlOverflow;
+      document.documentElement.style.height = previousHtmlHeight;
       document.body.style.overflow = previousBodyOverflow;
+      document.body.style.height = previousBodyHeight;
+      document.body.style.position = previousBodyPosition;
+      document.body.style.width = previousBodyWidth;
+      document.body.style.top = previousBodyTop;
       window.scrollTo(0, previousWindowScroll);
     };
   }, []);
