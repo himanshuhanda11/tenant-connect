@@ -204,6 +204,36 @@ export function AppSidebar() {
   }, [location.pathname]);
 
   const sidebarScrollRef = useRef<HTMLDivElement>(null);
+  const groupRefs = useRef<Record<string, HTMLDivElement | null>>({});
+
+  const scrollGroupIntoView = (label: string) => {
+    const scrollContainer = sidebarScrollRef.current;
+    const groupEl = groupRefs.current[label];
+    if (!scrollContainer || !groupEl) return;
+
+    const keepVisible = (behavior: ScrollBehavior = 'smooth') => {
+      const containerRect = scrollContainer.getBoundingClientRect();
+      const groupRect = groupEl.getBoundingClientRect();
+      const bottomOverflow = groupRect.bottom - containerRect.bottom;
+      const topOverflow = containerRect.top - groupRect.top;
+
+      if (bottomOverflow > 0) {
+        scrollContainer.scrollTo({
+          top: scrollContainer.scrollTop + bottomOverflow + 12,
+          behavior,
+        });
+      } else if (topOverflow > 0) {
+        scrollContainer.scrollTo({
+          top: Math.max(0, scrollContainer.scrollTop - topOverflow - 12),
+          behavior,
+        });
+      }
+    };
+
+    requestAnimationFrame(() => keepVisible('smooth'));
+    window.setTimeout(() => keepVisible('smooth'), 140);
+    window.setTimeout(() => keepVisible('auto'), 320);
+  };
 
   // Persist sidebar scroll position across route changes / refreshes
   useEffect(() => {
@@ -266,7 +296,10 @@ export function AppSidebar() {
   };
 
   const isGroupActive = (items: MenuItem[]) => items.some(item => isRouteActive(item.url));
-  const toggleGroup = (label: string) => setExpandedGroups(prev => ({ ...prev, [label]: !prev[label] }));
+  const toggleGroup = (label: string, open: boolean) => {
+    setExpandedGroups(prev => ({ ...prev, [label]: open }));
+    if (open) scrollGroupIntoView(label);
+  };
 
   /* ── Render a single menu item ── */
   const renderMenuItem = (item: MenuItem, nested = false) => {
@@ -375,8 +408,13 @@ export function AppSidebar() {
     }
 
     return (
-      <div key={group.label}>
-        <Collapsible open={isOpen} onOpenChange={() => toggleGroup(group.label)} className="mt-1.5 border-t border-sidebar-border/30 pt-1.5 first:border-t-0 first:pt-0">
+      <div
+        key={group.label}
+        ref={(node) => {
+          groupRefs.current[group.label] = node;
+        }}
+      >
+        <Collapsible open={isOpen} onOpenChange={(open) => toggleGroup(group.label, open)} className="mt-1.5 border-t border-sidebar-border/30 pt-1.5 first:border-t-0 first:pt-0">
           <SidebarGroup>
            <CollapsibleTrigger asChild>
               <button className={cn(
