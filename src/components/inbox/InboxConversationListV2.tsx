@@ -297,7 +297,7 @@ export function InboxConversationListV2({
       </div>
 
       {/* Conversation List */}
-      <div className="flex-1 overflow-y-auto overflow-x-hidden">
+      <div data-scroll-lock-allow className="flex-1 overscroll-contain overflow-y-auto overflow-x-hidden">
         {loading ? (
           <div className="p-3 space-y-2">
             {[...Array(6)].map((_, i) => (
