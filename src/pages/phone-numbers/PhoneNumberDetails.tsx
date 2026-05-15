@@ -159,40 +159,53 @@ export default function PhoneNumberDetails() {
     };
     error?: string;
     warning?: string;
+    coexistence?: boolean;
+    needsReconnect?: boolean;
+    errorCode?: string;
   }>({ loading: false, saving: false, data: {} });
 
   const fetchBusinessProfile = async () => {
     if (!number?.waba_uuid || !number?.phone_number_id) return;
 
-    setBusinessProfile(prev => ({ ...prev, loading: true, error: undefined }));
-    
+    setBusinessProfile(prev => ({ ...prev, loading: true, error: undefined, warning: undefined }));
+
     try {
       const { data, error } = await supabase.functions.invoke('whatsapp-profile', {
         body: {
           action: 'get',
           phone_number_id: number.phone_number_id,
-          waba_account_id: number.waba_uuid
-        }
+          waba_account_id: number.waba_uuid,
+        },
       });
 
       if (error) throw error;
-      if (data?.error) throw new Error(data.code === 'reconnect_required'
-        ? 'WhatsApp connection needs to be re-authorized. Please reconnect this number from WhatsApp setup.'
-        : data.error);
 
-      const storedVertical = (number?.raw as any)?.whatsapp_profile_vertical || null;
+      if (data?.success === false) {
+        const needsReconnect = data?.code === 'reconnect_required' || data?.code === 'token_expired';
+        setBusinessProfile(prev => ({
+          ...prev,
+          loading: false,
+          error: data?.error || 'Failed to fetch profile',
+          coexistence: !!data?.coexistence,
+          needsReconnect,
+          errorCode: data?.code,
+        }));
+        return;
+      }
 
       setBusinessProfile({
         loading: false,
         saving: false,
-        data: { ...(data?.profile || {}), ...(storedVertical ? { vertical: storedVertical } : {}) }
+        data: data?.profile || {},
+        coexistence: !!data?.coexistence,
+        needsReconnect: false,
       });
     } catch (error: any) {
       console.error('Failed to fetch business profile:', error);
       setBusinessProfile(prev => ({
         ...prev,
         loading: false,
-        error: error.message || 'Failed to fetch profile'
+        error: error.message || 'Failed to fetch profile',
       }));
     }
   };
@@ -200,41 +213,47 @@ export default function PhoneNumberDetails() {
   const saveBusinessProfile = async () => {
     if (!number?.waba_uuid || !number?.phone_number_id) return;
 
-    setBusinessProfile(prev => ({ ...prev, saving: true, error: undefined }));
-    
+    setBusinessProfile(prev => ({ ...prev, saving: true, error: undefined, warning: undefined }));
+
     try {
       const { data, error } = await supabase.functions.invoke('whatsapp-profile', {
         body: {
           action: 'update',
           phone_number_id: number.phone_number_id,
           waba_account_id: number.waba_uuid,
-          profile_data: businessProfile.data
-        }
+          profile_data: businessProfile.data,
+        },
       });
 
       if (error) throw error;
-      if (data?.error) throw new Error(data.error);
 
+      // Failure path — surface the real Meta reason and (if applicable) a coexistence/reconnect cue.
       if (data?.success === false) {
-        const message = data.error || 'Meta did not accept the WhatsApp profile update.';
-        toast.error(message);
+        const message = data?.error || 'Meta did not accept the WhatsApp profile update.';
+        const needsReconnect = data?.code === 'reconnect_required' || data?.code === 'token_expired' || data?.code === 'meta_permission_required';
+        const isCoex = !!data?.coexistence || data?.code === 'coexistence_blocked';
+        if (isCoex) toast.warning(message);
+        else toast.error(message);
         setBusinessProfile(prev => ({
           ...prev,
           saving: false,
-          warning: message,
+          error: isCoex ? undefined : message,
+          warning: isCoex ? message : undefined,
+          coexistence: isCoex || prev.coexistence,
+          needsReconnect,
+          errorCode: data?.code,
         }));
         return;
       }
 
-      // Mark onboarding step 3 as done at the workspace level (source of truth = tenants table).
+      // Success — mark onboarding step + re-fetch authoritative profile from Meta.
       if (number?.tenant_id) {
-        const savedAt = new Date().toISOString();
         try {
           await supabase
             .from('tenants')
             .update({
               whatsapp_profile_completed: true,
-              whatsapp_profile_saved_at: savedAt,
+              whatsapp_profile_saved_at: new Date().toISOString(),
             } as any)
             .eq('id', number.tenant_id);
         } catch (e) {
@@ -243,34 +262,18 @@ export default function PhoneNumberDetails() {
         window.dispatchEvent(new CustomEvent('aireatro:wa-profile-saved', { detail: { tenantId: number.tenant_id } }));
       }
 
-      if (number?.id) {
-        try {
-          await supabase
-            .from('phone_numbers')
-            .update({ raw: { ...((number.raw as any) || {}), whatsapp_profile_vertical: businessProfile.data.vertical || null } } as any)
-            .eq('id', number.id);
-          refetch();
-        } catch (e) {
-          console.warn('[saveBusinessProfile] phone metadata update failed:', e);
-        }
-      }
-
-      if (data?.meta_blocked || data?.warning) {
-        const message = data.warning || 'Meta kept your current WhatsApp profile unchanged.';
-        toast.warning(message);
-        setBusinessProfile(prev => ({ ...prev, saving: false, warning: message }));
-        return;
-      }
-
-      toast.success('WhatsApp Profile Completed Successfully');
-      setBusinessProfile(prev => ({ ...prev, saving: false, warning: undefined }));
+      toast.success('WhatsApp business profile updated successfully.');
+      setBusinessProfile(prev => ({ ...prev, saving: false, warning: undefined, error: undefined, needsReconnect: false }));
+      // Authoritative re-fetch from Meta so UI reflects what was actually stored.
+      await fetchBusinessProfile();
     } catch (error: any) {
       console.error('Failed to save business profile:', error);
-      toast.error(error.message || 'Failed to update profile');
+      const msg = error.message || 'Failed to update profile';
+      toast.error(msg);
       setBusinessProfile(prev => ({
         ...prev,
         saving: false,
-        error: error.message || 'Failed to update profile'
+        error: msg,
       }));
     }
   };
@@ -870,19 +873,55 @@ export default function PhoneNumberDetails() {
                     <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
                   </div>
                 ) : businessProfile.error ? (
-                  <div className="flex items-center gap-2 text-destructive py-4">
-                    <AlertCircle className="h-5 w-5" />
-                    <span>{businessProfile.error}</span>
-                    <Button variant="outline" size="sm" onClick={fetchBusinessProfile} className="ml-auto">
-                      Retry
-                    </Button>
+                  <div className="space-y-3">
+                    <div className="flex items-start gap-2 rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
+                      <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+                      <span className="flex-1">{businessProfile.error}</span>
+                      <Button variant="outline" size="sm" onClick={fetchBusinessProfile}>
+                        Retry
+                      </Button>
+                    </div>
+                    {businessProfile.needsReconnect && (
+                      <Button
+                        variant="default"
+                        size="sm"
+                        onClick={() => navigate('/whatsapp-setup')}
+                      >
+                        <RefreshCw className="h-4 w-4 mr-2" />
+                        Reconnect WhatsApp
+                      </Button>
+                    )}
                   </div>
                 ) : (
                   <>
-                    {businessProfile.warning && (
-                      <div className="flex items-start gap-2 rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
+                    {businessProfile.coexistence && (
+                      <div className="flex items-start gap-2 rounded-lg border border-amber-500/30 bg-amber-500/10 p-3 text-sm text-amber-900 dark:text-amber-200">
                         <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
-                        <span>{businessProfile.warning}</span>
+                        <div className="flex-1 space-y-1">
+                          <p className="font-medium">WhatsApp Business App Coexistence</p>
+                          <p className="text-xs opacity-90">
+                            This number is connected via Coexistence with the WhatsApp Business App.
+                            Some profile fields (about, description, profile picture, address, category)
+                            need to be edited inside the WhatsApp Business App on the device that owns
+                            this number. Edits made here may be rejected by Meta — your connection stays active.
+                          </p>
+                        </div>
+                      </div>
+                    )}
+
+                    {businessProfile.warning && (
+                      <div className="flex items-start gap-2 rounded-lg border border-amber-500/30 bg-amber-500/10 p-3 text-sm text-amber-900 dark:text-amber-200">
+                        <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+                        <span className="flex-1">{businessProfile.warning}</span>
+                        {businessProfile.needsReconnect && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => navigate('/whatsapp-setup')}
+                          >
+                            Reconnect
+                          </Button>
+                        )}
                       </div>
                     )}
 
