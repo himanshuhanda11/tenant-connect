@@ -209,7 +209,7 @@ export function AgentAvailabilityPill({ compact = false }: { compact?: boolean }
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 pt-1">
-          {PAUSE_DURATIONS.map((d) => (
+          {PAUSE_DURATIONS.filter((d) => d.minutes !== 0).map((d) => (
             <Button
               key={d.minutes}
               variant="outline"
@@ -222,6 +222,17 @@ export function AgentAvailabilityPill({ compact = false }: { compact?: boolean }
             </Button>
           ))}
         </div>
+
+        <Button
+          variant="outline"
+          size="sm"
+          disabled={submitting !== null}
+          onClick={() => doPause(0)}
+          className="w-full justify-center h-10 text-xs mt-2 border-dashed border-amber-500/40 text-amber-700 dark:text-amber-300 hover:bg-amber-500/10 hover:border-amber-500/60"
+        >
+          <Pause className="h-3.5 w-3.5 mr-1.5" />
+          {submitting === 0 ? '…' : 'Pause indefinitely · until I resume'}
+        </Button>
 
         {status === 'available' && (
           <p className="text-[11px] text-muted-foreground pt-2">
