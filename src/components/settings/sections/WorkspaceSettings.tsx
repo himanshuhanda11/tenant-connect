@@ -41,6 +41,16 @@ const verticals = [
   'NONPROFIT', 'PROF_SERVICES', 'RETAIL', 'TRAVEL', 'RESTAURANT', 'NOT_A_BIZ'
 ];
 
+const getStoredWaVertical = (tenantId?: string) => {
+  if (!tenantId || typeof window === 'undefined') return null;
+  return window.localStorage.getItem(`wa_profile_vertical:${tenantId}`);
+};
+
+const setStoredWaVertical = (tenantId: string | undefined, vertical: string) => {
+  if (!tenantId || typeof window === 'undefined') return;
+  window.localStorage.setItem(`wa_profile_vertical:${tenantId}`, vertical);
+};
+
 export function WorkspaceSettings() {
   const { currentTenant, currentRole, refreshTenants } = useTenant();
   const { phoneNumbers } = usePhoneNumbers();
@@ -106,12 +116,13 @@ export function WorkspaceSettings() {
       });
       if (error) throw error;
       if (data?.profile) {
+        const storedVertical = getStoredWaVertical(currentTenant?.id);
         setWaProfile(data.profile);
         setWaAbout(data.profile.about || '');
         setWaDescription(data.profile.description || '');
         setWaAddress(data.profile.address || '');
         setWaEmail(data.profile.email || '');
-        setWaVertical(data.profile.vertical || 'UNDEFINED');
+        setWaVertical(storedVertical || data.profile.vertical || 'UNDEFINED');
         const websites = data.profile.websites || [];
         setWaWebsite1(websites[0] || '');
         setWaWebsite2(websites[1] || '');
@@ -124,7 +135,7 @@ export function WorkspaceSettings() {
     } finally {
       setWaProfileLoading(false);
     }
-  }, [primaryPhone?.phone_number_id, primaryPhone?.waba_uuid]);
+  }, [currentTenant?.id, primaryPhone?.phone_number_id, primaryPhone?.waba_uuid]);
 
   useEffect(() => {
     fetchWaProfile();
@@ -174,6 +185,14 @@ export function WorkspaceSettings() {
       });
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
+      setStoredWaVertical(currentTenant?.id, waVertical);
+      setWaProfile((prev: any) => ({ ...(prev || {}), vertical: waVertical }));
+
+      if (data?.meta_blocked || data?.warning) {
+        toast.warning(data.warning || 'Meta kept the live WhatsApp profile unchanged. Your selected category is saved in Aireatro.');
+        return;
+      }
+
       toast.success('WhatsApp profile updated');
       fetchWaProfile();
     } catch (err: any) {
