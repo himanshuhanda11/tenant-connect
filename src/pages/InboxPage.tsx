@@ -54,28 +54,69 @@ export default function InboxPage() {
   useEffect(() => {
     const previousHtmlOverflow = document.documentElement.style.overflow;
     const previousHtmlHeight = document.documentElement.style.height;
+    const previousHtmlOverscroll = document.documentElement.style.overscrollBehavior;
     const previousBodyOverflow = document.body.style.overflow;
     const previousBodyHeight = document.body.style.height;
     const previousBodyPosition = document.body.style.position;
     const previousBodyWidth = document.body.style.width;
     const previousBodyTop = document.body.style.top;
+    const previousBodyOverscroll = document.body.style.overscrollBehavior;
     const previousWindowScroll = window.scrollY;
+
+    let touchStartY = 0;
+    const getScrollable = (target: EventTarget | null) => {
+      if (!(target instanceof Element)) return null;
+      return target.closest<HTMLElement>('[data-scroll-lock-allow], [data-radix-scroll-area-viewport]');
+    };
+    const isScrollable = (el: HTMLElement) => el.scrollHeight > el.clientHeight + 1;
+    const stopScrollChain = (el: HTMLElement | null, deltaY: number, event: Event) => {
+      if (!el || !isScrollable(el)) {
+        event.preventDefault();
+        return;
+      }
+      const atTop = el.scrollTop <= 0;
+      const atBottom = Math.ceil(el.scrollTop + el.clientHeight) >= el.scrollHeight;
+      if ((atTop && deltaY < 0) || (atBottom && deltaY > 0)) {
+        event.preventDefault();
+      }
+    };
+    const handleTouchStart = (event: TouchEvent) => {
+      touchStartY = event.touches[0]?.clientY ?? 0;
+    };
+    const handleTouchMove = (event: TouchEvent) => {
+      const currentY = event.touches[0]?.clientY ?? touchStartY;
+      stopScrollChain(getScrollable(event.target), touchStartY - currentY, event);
+    };
+    const handleWheel = (event: WheelEvent) => {
+      stopScrollChain(getScrollable(event.target), event.deltaY, event);
+    };
+
     document.documentElement.style.overflow = 'hidden';
     document.documentElement.style.height = '100dvh';
+    document.documentElement.style.overscrollBehavior = 'none';
     document.body.style.overflow = 'hidden';
     document.body.style.height = '100dvh';
     document.body.style.position = 'fixed';
     document.body.style.width = '100%';
     document.body.style.top = `-${previousWindowScroll}px`;
+    document.body.style.overscrollBehavior = 'none';
+    window.addEventListener('touchstart', handleTouchStart, { passive: true });
+    window.addEventListener('touchmove', handleTouchMove, { passive: false });
+    window.addEventListener('wheel', handleWheel, { passive: false });
     window.scrollTo(0, 0);
     return () => {
+      window.removeEventListener('touchstart', handleTouchStart);
+      window.removeEventListener('touchmove', handleTouchMove);
+      window.removeEventListener('wheel', handleWheel);
       document.documentElement.style.overflow = previousHtmlOverflow;
       document.documentElement.style.height = previousHtmlHeight;
+      document.documentElement.style.overscrollBehavior = previousHtmlOverscroll;
       document.body.style.overflow = previousBodyOverflow;
       document.body.style.height = previousBodyHeight;
       document.body.style.position = previousBodyPosition;
       document.body.style.width = previousBodyWidth;
       document.body.style.top = previousBodyTop;
+      document.body.style.overscrollBehavior = previousBodyOverscroll;
       window.scrollTo(0, previousWindowScroll);
     };
   }, []);
