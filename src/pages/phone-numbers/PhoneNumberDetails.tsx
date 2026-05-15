@@ -180,10 +180,20 @@ export default function PhoneNumberDetails() {
         ? 'WhatsApp connection needs to be re-authorized. Please reconnect this number from WhatsApp setup.'
         : data.error);
 
+      let storedVertical: string | null = null;
+      if (number?.tenant_id) {
+        const { data: tenantProfile } = await supabase
+          .from('tenants')
+          .select('business_category')
+          .eq('id', number.tenant_id)
+          .maybeSingle();
+        storedVertical = (tenantProfile as any)?.business_category || null;
+      }
+
       setBusinessProfile({
         loading: false,
         saving: false,
-        data: data?.profile || {}
+        data: { ...(data?.profile || {}), ...(storedVertical ? { vertical: storedVertical } : {}) }
       });
     } catch (error: any) {
       console.error('Failed to fetch business profile:', error);
@@ -230,7 +240,11 @@ export default function PhoneNumberDetails() {
         try {
           await supabase
             .from('tenants')
-            .update({ whatsapp_profile_completed: true, whatsapp_profile_saved_at: savedAt } as any)
+            .update({
+              whatsapp_profile_completed: true,
+              whatsapp_profile_saved_at: savedAt,
+              business_category: businessProfile.data.vertical || null,
+            } as any)
             .eq('id', number.tenant_id);
         } catch (e) {
           console.warn('[saveBusinessProfile] tenants update failed:', e);
