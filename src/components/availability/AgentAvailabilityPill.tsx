@@ -129,6 +129,11 @@ export function AgentAvailabilityPill({ compact = false }: { compact?: boolean }
           {formatCountdown(pauseUntil)}
         </span>
       )}
+      {status === 'paused' && !pauseUntil && (
+        <span className="hidden sm:inline-flex items-center gap-1 ml-0.5 pl-2 border-l border-white/30 text-[10px] opacity-95">
+          Indefinite
+        </span>
+      )}
     </button>
   );
 
