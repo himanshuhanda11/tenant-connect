@@ -152,7 +152,7 @@ export function AgentGreetingsCard() {
             </div>
             <div>
               <CardTitle className="text-lg sm:text-xl tracking-tight flex items-center gap-2">
-                My WhatsApp Greetings
+                Direct Chat Greetings
                 <Badge variant="secondary" className="text-[10px] gap-1">
                   <ShieldCheck className="w-3 h-3" /> Personal
                 </Badge>
