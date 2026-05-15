@@ -158,8 +158,8 @@ export function AgentGreetingsCard() {
                 </Badge>
               </CardTitle>
               <CardDescription className="mt-1 max-w-xl">
-                Up to {MAX_AGENT_GREETINGS} personal openers. When enabled, one is randomly sent
-                for chats assigned to you — and the workspace auto-reply is skipped for those chats.
+                Up to {MAX_AGENT_GREETINGS} personal openers used by the <strong>Open in Direct Chat</strong> button
+                in the inbox. Independent from workspace auto-reply and away messages.
               </CardDescription>
             </div>
           </div>
