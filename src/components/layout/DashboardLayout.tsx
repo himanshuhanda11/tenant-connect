@@ -138,11 +138,11 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   }
   return (
     <SidebarProvider>
-      <div className="flex h-svh min-h-0 w-full overflow-hidden bg-background">
+      <div className="flex h-[100dvh] max-h-[100dvh] min-h-0 w-full overflow-hidden bg-background">
         <AppSidebar />
-        <main className="flex h-svh min-h-0 w-full min-w-0 flex-1 flex-col overflow-hidden">
+        <main className="flex h-[100dvh] max-h-[100dvh] min-h-0 w-full min-w-0 flex-1 flex-col overflow-hidden">
           <PreviewWorkspaceBanner />
-          <MobileHeader />
+          {!isInboxWorkspace && <MobileHeader />}
           <ScrollToTop />
           <div
             data-dashboard-content
