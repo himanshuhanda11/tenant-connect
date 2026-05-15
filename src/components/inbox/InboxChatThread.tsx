@@ -138,6 +138,21 @@ export function InboxChatThread({
 }: InboxChatThreadProps) {
   const { user } = useAuth();
   const { getRandomMessage } = useGreetingTemplates();
+  const [personalGreetingsEnabled, setPersonalGreetingsEnabled] = useState(false);
+
+  // Load agent's personal greetings toggle
+  useEffect(() => {
+    if (!user?.id || !conversation?.tenant_id) return;
+    (async () => {
+      const { data } = await supabase
+        .from('agents')
+        .select('personal_greetings_enabled')
+        .eq('user_id', user.id)
+        .eq('tenant_id', conversation.tenant_id)
+        .maybeSingle();
+      setPersonalGreetingsEnabled(!!data?.personal_greetings_enabled);
+    })();
+  }, [user?.id, conversation?.tenant_id]);
   const [messageText, setMessageText] = useState('');
   const [showTemplates, setShowTemplates] = useState(false);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
@@ -387,6 +402,9 @@ export function InboxChatThread({
                 <TooltipTrigger asChild>
                   <a
                     href={(() => {
+                      if (!personalGreetingsEnabled) {
+                        return `https://wa.me/${conversation.contact?.wa_id}`;
+                      }
                       const name = conversation.contact?.name || conversation.contact?.first_name || 'there';
                       const biz = conversation.phone_number_verified_name || 'our company';
                       // Use assigned agent's name if available, otherwise fall back to viewer's name
