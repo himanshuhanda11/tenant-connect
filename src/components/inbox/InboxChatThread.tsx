@@ -430,33 +430,6 @@ export function InboxChatThread({
               </Tooltip>
             )}
 
-            {/* Pause / Resume AI Bot */}
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant={conversation.is_intervened ? 'default' : 'ghost'}
-                  size="sm"
-                  onClick={() => onSetIntervene(!conversation.is_intervened)}
-                  className={cn(
-                    "h-7 text-xs gap-1 px-2",
-                    conversation.is_intervened
-                      ? "bg-amber-500 hover:bg-amber-600 text-white"
-                      : "text-muted-foreground hover:text-foreground"
-                  )}
-                >
-                  <Bot className="h-3.5 w-3.5" />
-                  <span className="hidden xl:inline">
-                    {conversation.is_intervened ? 'Resume Bot' : 'Pause Bot'}
-                  </span>
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                {conversation.is_intervened
-                  ? 'AI bot is paused — you have taken over. Click to resume automation.'
-                  : 'Pause AI bot for this chat and take over manually'}
-              </TooltipContent>
-            </Tooltip>
-
             {/* Transfer - desktop only */}
             {!isMobile && (
               <DropdownMenu>
@@ -537,14 +510,6 @@ export function InboxChatThread({
                   <span className="w-2 h-2 rounded-full bg-muted-foreground" /> Resolved
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  onClick={() => onSetIntervene(!conversation.is_intervened)}
-                  className="gap-2 rounded-md"
-                >
-                  <Bot className="h-3.5 w-3.5" />
-                  {conversation.is_intervened ? 'Resume AI Bot' : 'Pause AI Bot'}
-                </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => setShowTemplates(true)} className="gap-2 rounded-md">
                   <FileText className="h-3.5 w-3.5" /> Send Template
                 </DropdownMenuItem>
