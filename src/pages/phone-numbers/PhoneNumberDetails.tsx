@@ -175,6 +175,9 @@ export default function PhoneNumberDetails() {
       });
 
       if (error) throw error;
+      if (data?.error) throw new Error(data.code === 'reconnect_required'
+        ? 'WhatsApp connection needs to be re-authorized. Please reconnect this number from WhatsApp setup.'
+        : data.error);
 
       setBusinessProfile({
         loading: false,
