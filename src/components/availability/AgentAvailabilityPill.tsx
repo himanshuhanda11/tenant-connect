@@ -95,20 +95,38 @@ export function AgentAvailabilityPill({ compact = false }: { compact?: boolean }
       type="button"
       onClick={() => setOpen(true)}
       title={tooltip}
+      aria-label={tooltip}
       className={cn(
-        'group inline-flex items-center gap-2 rounded-full border border-border/60 bg-background/70 backdrop-blur-md px-2.5 py-1 text-xs font-medium transition-all hover:border-border hover:shadow-sm active:scale-[0.98]',
-        compact && 'px-2 py-0.5'
+        'group relative inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-semibold tracking-tight transition-all duration-200 active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:ring-offset-background',
+        // Premium gradient + glow per state
+        status === 'available' &&
+          'text-white bg-gradient-to-br from-emerald-500 to-emerald-600 shadow-[0_4px_14px_-4px_rgba(16,185,129,0.55)] hover:shadow-[0_6px_18px_-4px_rgba(16,185,129,0.7)] hover:from-emerald-500 hover:to-emerald-700 focus-visible:ring-emerald-400',
+        status === 'paused' &&
+          'text-white bg-gradient-to-br from-amber-500 to-orange-600 shadow-[0_4px_14px_-4px_rgba(245,158,11,0.55)] hover:shadow-[0_6px_18px_-4px_rgba(245,158,11,0.7)] focus-visible:ring-amber-400',
+        status === 'offline' &&
+          'text-foreground bg-muted/80 border border-border hover:bg-muted',
+        compact && 'px-2.5 py-1'
       )}
     >
-      <StatusDot status={status} />
-      <span className={cn('text-foreground', compact && 'hidden sm:inline')}>{pillLabel}</span>
+      <span className="relative flex h-2 w-2">
+        {status === 'available' && (
+          <span className="absolute inline-flex h-full w-full rounded-full bg-white/70 opacity-75 animate-ping" />
+        )}
+        <span className={cn(
+          'relative inline-flex h-2 w-2 rounded-full',
+          status === 'available' && 'bg-white',
+          status === 'paused' && 'bg-white',
+          status === 'offline' && 'bg-muted-foreground'
+        )} />
+      </span>
+      {status === 'paused' ? (
+        <Pause className="h-3 w-3" />
+      ) : null}
+      <span>{pillLabel}</span>
       {status === 'paused' && pauseUntil && (
-        <span className="hidden sm:inline text-[10px] text-muted-foreground tabular-nums">
+        <span className="hidden sm:inline-flex items-center gap-1 ml-0.5 pl-2 border-l border-white/30 text-[10px] tabular-nums opacity-95">
           {formatCountdown(pauseUntil)}
         </span>
-      )}
-      {status === 'available' && !compact && (
-        <span className="hidden md:inline text-[10px] text-muted-foreground">· Pause</span>
       )}
     </button>
   );
@@ -117,19 +135,41 @@ export function AgentAvailabilityPill({ compact = false }: { compact?: boolean }
     <div className="flex flex-col">
       <div className="px-1 pb-3 border-b border-border/50">
         <div className="flex items-center gap-2">
-          <StatusDot status={status} />
+          <span className={cn(
+            'inline-flex h-6 w-6 items-center justify-center rounded-full',
+            status === 'available' && 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400',
+            status === 'paused' && 'bg-amber-500/15 text-amber-600 dark:text-amber-400',
+            status === 'offline' && 'bg-muted text-muted-foreground'
+          )}>
+            {status === 'paused' ? <Pause className="h-3 w-3" /> : <CheckCircle2 className="h-3.5 w-3.5" />}
+          </span>
           <h3 className="text-sm font-semibold">Agent Availability</h3>
         </div>
         <p className="text-xs text-muted-foreground mt-1">
           Pause new chat assignments without affecting your current conversations.
         </p>
         {status === 'paused' && pauseUntil && (
-          <div className="mt-3 flex items-center justify-between rounded-lg bg-amber-500/10 border border-amber-500/30 px-3 py-2 text-xs">
-            <div>
-              <div className="font-medium text-amber-700 dark:text-amber-300">{formatPausedUntil(pauseUntil)}</div>
-              <div className="text-amber-700/70 dark:text-amber-300/70 tabular-nums">{formatCountdown(pauseUntil)} remaining</div>
+          <div className="mt-3 rounded-xl bg-gradient-to-br from-amber-500/10 to-orange-500/10 border border-amber-500/30 px-3 py-3 text-xs space-y-2.5">
+            <div className="flex items-start gap-2.5">
+              <CalendarClock className="h-4 w-4 mt-0.5 text-amber-600 dark:text-amber-400 shrink-0" />
+              <div className="flex-1 min-w-0">
+                <div className="text-[10px] uppercase tracking-wider font-medium text-amber-700/80 dark:text-amber-300/80">
+                  Resumes
+                </div>
+                <div className="font-semibold text-sm text-amber-700 dark:text-amber-200 leading-tight">
+                  {formatResumeAt(pauseUntil)}
+                </div>
+                <div className="text-[11px] text-amber-700/70 dark:text-amber-300/70 mt-0.5">
+                  {new Date(pauseUntil).toLocaleString([], { weekday: 'long', month: 'long', day: 'numeric', hour: 'numeric', minute: '2-digit' })}
+                </div>
+                <div className="text-[11px] text-amber-700/80 dark:text-amber-300/80 tabular-nums mt-0.5">
+                  · {formatCountdown(pauseUntil)} remaining
+                </div>
+              </div>
             </div>
-            <Button size="sm" variant="outline" onClick={doResume}>Resume now</Button>
+            <Button size="sm" variant="outline" className="w-full border-amber-500/40 hover:bg-amber-500/10" onClick={doResume}>
+              <CheckCircle2 className="h-3.5 w-3.5 mr-1.5" /> Resume now — accept new chats
+            </Button>
           </div>
         )}
       </div>
