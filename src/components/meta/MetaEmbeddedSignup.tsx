@@ -277,10 +277,22 @@ export function MetaEmbeddedSignup({ onSuccess, onError, onConnectionError }: Me
             <Smartphone className="w-4 h-4 text-primary" />
           </div>
           <div className="flex-1 min-w-0">
-            <h4 className="text-sm font-semibold">Connect existing WhatsApp Business App number</h4>
+            <h4 className="text-sm font-semibold">
+              {existingCoexistence ? 'Reconnect WhatsApp Business App (Coexistence)' : 'Connect existing WhatsApp Business App number'}
+            </h4>
             <p className="text-xs text-muted-foreground mt-1">
-              Use the same number in WhatsApp Business App and Aireatro together — keep automation, team inbox, CRM, and campaigns alongside your mobile app.
+              {existingCoexistence
+                ? `Refresh your Meta authorization for ${existingCoexistence.displayNumber || 'your linked number'} — your existing setup, contacts and history sync stay intact.`
+                : 'Use the same number in WhatsApp Business App and Aireatro together — keep automation, team inbox, CRM, and campaigns alongside your mobile app.'}
             </p>
+            {existingCoexistence && (
+              <div className="mt-2 text-[11px] text-muted-foreground space-y-0.5">
+                <div><span className="font-medium text-foreground">WABA ID:</span> {existingCoexistence.wabaId}</div>
+                {existingCoexistence.phoneNumberId && (
+                  <div><span className="font-medium text-foreground">Phone Number ID:</span> {existingCoexistence.phoneNumberId}</div>
+                )}
+              </div>
+            )}
           </div>
         </div>
         <Button
@@ -291,11 +303,16 @@ export function MetaEmbeddedSignup({ onSuccess, onError, onConnectionError }: Me
           className="w-full"
         >
           {loadingMode === 'coexistence' ? (
-            <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Connecting with Coexistence...</>
+            <><Loader2 className="w-4 h-4 mr-2 animate-spin" />{existingCoexistence ? 'Reconnecting…' : 'Connecting with Coexistence...'}</>
           ) : (
-            <><Smartphone className="w-4 h-4 mr-2" />Connect with Coexistence</>
+            <><Smartphone className="w-4 h-4 mr-2" />{existingCoexistence ? 'Reconnect with Coexistence' : 'Connect with Coexistence'}</>
           )}
         </Button>
+        {existingCoexistence && (
+          <p className="text-[11px] text-muted-foreground italic">
+            Reconnecting reuses your existing WABA and phone number — you won't need to re-enter business details.
+          </p>
+        )}
       </div>
 
       <p className="text-xs text-muted-foreground text-center">
