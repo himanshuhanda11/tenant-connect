@@ -537,6 +537,14 @@ export function InboxChatThread({
                   <span className="w-2 h-2 rounded-full bg-muted-foreground" /> Resolved
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onClick={() => onSetIntervene(!conversation.is_intervened)}
+                  className="gap-2 rounded-md"
+                >
+                  <Bot className="h-3.5 w-3.5" />
+                  {conversation.is_intervened ? 'Resume AI Bot' : 'Pause AI Bot'}
+                </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => setShowTemplates(true)} className="gap-2 rounded-md">
                   <FileText className="h-3.5 w-3.5" /> Send Template
                 </DropdownMenuItem>
