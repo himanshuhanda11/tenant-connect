@@ -209,6 +209,7 @@ export function MetaEmbeddedSignup({ onSuccess, onError, onConnectionError }: Me
               toast.success(`WhatsApp connected! ${result.phoneCount || 0} phone number(s) linked.`);
             }
 
+            window.dispatchEvent(new CustomEvent('aireatro:wa-connected'));
             onSuccess?.({
               wabaId: result.wabaId,
               phoneNumberId: result.phoneNumberId,
