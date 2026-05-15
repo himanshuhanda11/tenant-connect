@@ -71,7 +71,7 @@ export function WorkspaceSettings() {
     resolver: zodResolver(workspaceSchema),
     defaultValues: {
       name: currentTenant?.name || '',
-      industry: '',
+      industry: (currentTenant as any)?.business_category || '',
       timezone: (currentTenant as any)?.timezone || 'UTC',
       language: 'English',
       address: '',
@@ -83,7 +83,7 @@ export function WorkspaceSettings() {
     if (currentTenant) {
       form.reset({
         name: currentTenant.name,
-        industry: '',
+        industry: (currentTenant as any)?.business_category || '',
         timezone: (currentTenant as any)?.timezone || 'UTC',
         language: 'English',
         address: '',
@@ -137,7 +137,7 @@ export function WorkspaceSettings() {
     try {
       const { error } = await supabase
         .from('tenants')
-        .update({ name: data.name })
+        .update({ name: data.name, business_category: data.industry || null, timezone: data.timezone || 'UTC' } as any)
         .eq('id', currentTenant.id);
       if (error) throw error;
       toast.success('Workspace updated successfully');
