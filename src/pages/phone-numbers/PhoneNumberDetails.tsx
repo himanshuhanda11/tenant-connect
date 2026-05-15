@@ -873,19 +873,55 @@ export default function PhoneNumberDetails() {
                     <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
                   </div>
                 ) : businessProfile.error ? (
-                  <div className="flex items-center gap-2 text-destructive py-4">
-                    <AlertCircle className="h-5 w-5" />
-                    <span>{businessProfile.error}</span>
-                    <Button variant="outline" size="sm" onClick={fetchBusinessProfile} className="ml-auto">
-                      Retry
-                    </Button>
+                  <div className="space-y-3">
+                    <div className="flex items-start gap-2 rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
+                      <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+                      <span className="flex-1">{businessProfile.error}</span>
+                      <Button variant="outline" size="sm" onClick={fetchBusinessProfile}>
+                        Retry
+                      </Button>
+                    </div>
+                    {businessProfile.needsReconnect && (
+                      <Button
+                        variant="default"
+                        size="sm"
+                        onClick={() => navigate('/whatsapp-setup')}
+                      >
+                        <RefreshCw className="h-4 w-4 mr-2" />
+                        Reconnect WhatsApp
+                      </Button>
+                    )}
                   </div>
                 ) : (
                   <>
-                    {businessProfile.warning && (
-                      <div className="flex items-start gap-2 rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
+                    {businessProfile.coexistence && (
+                      <div className="flex items-start gap-2 rounded-lg border border-amber-500/30 bg-amber-500/10 p-3 text-sm text-amber-900 dark:text-amber-200">
                         <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
-                        <span>{businessProfile.warning}</span>
+                        <div className="flex-1 space-y-1">
+                          <p className="font-medium">WhatsApp Business App Coexistence</p>
+                          <p className="text-xs opacity-90">
+                            This number is connected via Coexistence with the WhatsApp Business App.
+                            Some profile fields (about, description, profile picture, address, category)
+                            need to be edited inside the WhatsApp Business App on the device that owns
+                            this number. Edits made here may be rejected by Meta — your connection stays active.
+                          </p>
+                        </div>
+                      </div>
+                    )}
+
+                    {businessProfile.warning && (
+                      <div className="flex items-start gap-2 rounded-lg border border-amber-500/30 bg-amber-500/10 p-3 text-sm text-amber-900 dark:text-amber-200">
+                        <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+                        <span className="flex-1">{businessProfile.warning}</span>
+                        {businessProfile.needsReconnect && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => navigate('/whatsapp-setup')}
+                          >
+                            Reconnect
+                          </Button>
+                        )}
                       </div>
                     )}
 
