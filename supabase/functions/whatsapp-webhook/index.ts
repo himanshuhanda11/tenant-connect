@@ -1253,10 +1253,26 @@ async function handleAgentAutoReply(
     let replyText: string | null = null;
     let replyType: 'away' | 'greeting' = 'greeting';
 
-    if (isOfficeHours && agent.personal_greeting) {
-      replyText = agent.personal_greeting;
-      replyType = 'greeting';
-    } else if (!isOfficeHours && agent.away_message) {
+    if (isOfficeHours) {
+      // Prefer personal greetings library if enabled
+      if (agent.personal_greetings_enabled) {
+        const { data: greetingRows } = await supabase
+          .from('whatsapp_greeting_templates')
+          .select('message_text')
+          .eq('tenant_id', tenantId)
+          .eq('agent_user_id', conv.assigned_to)
+          .eq('is_active', true);
+        if (greetingRows && greetingRows.length > 0) {
+          const pick = greetingRows[Math.floor(Math.random() * greetingRows.length)];
+          replyText = pick.message_text;
+          replyType = 'greeting';
+        }
+      }
+      if (!replyText && agent.personal_greeting) {
+        replyText = agent.personal_greeting;
+        replyType = 'greeting';
+      }
+    } else if (agent.away_message) {
       replyText = agent.away_message;
       replyType = 'away';
     }
