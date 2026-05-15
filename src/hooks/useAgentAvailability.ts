@@ -12,6 +12,7 @@ export interface AgentAvailabilityState {
   pausedAt: string | null;
   reason: string | null;
   customReason: string | null;
+  role: string | null;
   loading: boolean;
 }
 
@@ -34,6 +35,7 @@ export function useAgentAvailability() {
     pausedAt: null,
     reason: null,
     customReason: null,
+    role: null,
     loading: true,
   });
 
@@ -41,7 +43,7 @@ export function useAgentAvailability() {
     if (!user || !currentTenant) return;
     const { data } = await supabase
       .from('agents')
-      .select('id, availability_status, pause_until, paused_at, pause_reason, pause_custom_reason')
+      .select('id, availability_status, pause_until, paused_at, pause_reason, pause_custom_reason, role')
       .eq('user_id', user.id)
       .eq('tenant_id', currentTenant.id)
       .maybeSingle();
@@ -56,6 +58,7 @@ export function useAgentAvailability() {
       pausedAt: data.paused_at,
       reason: data.pause_reason,
       customReason: data.pause_custom_reason,
+      role: (data as any).role || null,
       loading: false,
     });
   }, [user, currentTenant]);
@@ -75,15 +78,16 @@ export function useAgentAvailability() {
         (payload: any) => {
           const row = payload.new;
           if (!row || row.tenant_id !== currentTenant.id) return;
-          setState({
+          setState((prev) => ({
             agentId: row.id,
             status: (row.availability_status as AvailabilityStatus) || 'available',
             pauseUntil: row.pause_until,
             pausedAt: row.paused_at,
             reason: row.pause_reason,
             customReason: row.pause_custom_reason,
+            role: row.role ?? prev.role,
             loading: false,
-          });
+          }));
           qc.invalidateQueries({ queryKey: ['team-availability', currentTenant.id] });
         }
       )

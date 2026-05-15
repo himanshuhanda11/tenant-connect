@@ -17,7 +17,7 @@ import { PAUSE_DURATIONS, PAUSE_REASONS, formatCountdown, formatResumeAt } from 
 
 export function AgentAvailabilityPill({ compact = false }: { compact?: boolean }) {
   const isMobile = useIsMobile();
-  const { status, pauseUntil, loading, pause, resume } = useAgentAvailability();
+  const { status, pauseUntil, role, loading, pause, resume } = useAgentAvailability();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
@@ -36,6 +36,11 @@ export function AgentAvailabilityPill({ compact = false }: { compact?: boolean }
 
   if (loading) {
     return <div className="h-8 w-24 rounded-full bg-muted/40 animate-pulse" />;
+  }
+
+  // Owners don't take chats — hide the pause control on their profile
+  if ((role || '').toLowerCase() === 'owner') {
+    return null;
   }
 
   const pillLabel = status === 'available' ? 'Pause New Chats' : status === 'paused' ? 'Paused' : 'Offline';
