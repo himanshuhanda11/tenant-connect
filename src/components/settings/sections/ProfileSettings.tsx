@@ -7,11 +7,12 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
-import { User, Mail, Lock, Camera, Save, Loader2, MessageSquare, Clock } from 'lucide-react';
+import { User, Mail, Lock, Camera, Save, Loader2, Clock } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTenant } from '@/contexts/TenantContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { AgentGreetingsCard } from './AgentGreetingsCard';
 
 export function ProfileSettings() {
   const { user, profile } = useAuth();
