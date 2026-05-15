@@ -423,86 +423,89 @@ export function AppSidebar() {
         >
           {/* ── Workspace Switcher ── */}
           <div className={cn("mb-3", isCollapsed && "mb-2")}>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button
-                  onClick={(e) => {
-                    // When collapsed, clicking the workspace tile should expand the sidebar
-                    // so the user can see the menu below — not open the switcher dropdown.
-                    if (isCollapsed) {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      toggleSidebar();
-                    }
-                  }}
-                  className={cn(
-                    "w-full flex items-center rounded-xl transition-all duration-200 ease-in-out group",
-                    "hover:bg-sidebar-accent/70",
-                    isCollapsed ? "justify-center p-1.5" : "gap-2.5 px-3 py-2.5"
-                  )}
-                >
-                  <div className={cn(
-                    "flex items-center justify-center rounded-lg font-bold text-white text-xs flex-shrink-0",
-                    `bg-gradient-to-br ${workspaceColor}`,
-                    isCollapsed ? "h-9 w-9 rounded-xl" : "w-8 h-8"
-                  )}>
-                    {currentTenant?.name?.slice(0, 1).toUpperCase() || <Building2 className="w-4 h-4" />}
-                  </div>
-                  {!isCollapsed && (
-                    <>
-                      <div className="flex-1 min-w-0 text-left">
-                        <p className="text-[12px] font-semibold text-sidebar-foreground truncate">
-                          {currentTenant?.name || 'Select'}
+            {isCollapsed ? (
+              <button
+                type="button"
+                onClick={toggleSidebar}
+                className={cn(
+                  "w-full flex items-center justify-center rounded-xl transition-all duration-200 ease-in-out group p-1.5",
+                  "hover:bg-sidebar-accent/70"
+                )}
+              >
+                <div className={cn(
+                  "flex items-center justify-center rounded-xl font-bold text-white text-xs flex-shrink-0 h-9 w-9",
+                  `bg-gradient-to-br ${workspaceColor}`
+                )}>
+                  {currentTenant?.name?.slice(0, 1).toUpperCase() || <Building2 className="w-4 h-4" />}
+                </div>
+              </button>
+            ) : (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button
+                    className={cn(
+                      "w-full flex items-center rounded-xl transition-all duration-200 ease-in-out group gap-2.5 px-3 py-2.5",
+                      "hover:bg-sidebar-accent/70"
+                    )}
+                  >
+                    <div className={cn(
+                      "flex items-center justify-center rounded-lg font-bold text-white text-xs flex-shrink-0 w-8 h-8",
+                      `bg-gradient-to-br ${workspaceColor}`
+                    )}>
+                      {currentTenant?.name?.slice(0, 1).toUpperCase() || <Building2 className="w-4 h-4" />}
+                    </div>
+                    <div className="flex-1 min-w-0 text-left">
+                      <p className="text-[12px] font-semibold text-sidebar-foreground truncate">
+                        {currentTenant?.name || 'Select'}
+                      </p>
+                      {currentRole && (
+                        <p className={cn("text-[10px] font-medium capitalize", roleConfig[currentRole]?.color || "text-sidebar-foreground") }>
+                          {currentRole}
                         </p>
-                        {currentRole && (
-                          <p className={cn("text-[10px] font-medium capitalize", roleConfig[currentRole]?.color || "text-sidebar-foreground") }>
-                            {currentRole}
-                          </p>
-                        )}
-                      </div>
-                      <ChevronDown className="w-3 h-3 text-sidebar-foreground/50 group-hover:text-sidebar-foreground" strokeWidth={1.5} />
-                    </>
-                  )}
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" className="w-64 p-1.5 bg-popover shadow-2xl border border-border text-popover-foreground">
-                <div className="px-2 py-1.5 mb-1">
-                  <p className="text-[10px] font-semibold text-popover-foreground/60 uppercase tracking-wider">Switch Workspace</p>
-                </div>
-                <div className="max-h-[240px] overflow-y-auto space-y-0.5">
-                  {tenants.map(tenant => {
-                    const isSelected = currentTenant?.id === tenant.id;
-                    const tenantColor = getAvatarColor(tenant.name);
-                    return (
-                      <DropdownMenuItem
-                        key={tenant.id}
-                        onClick={() => setCurrentTenant(tenant)}
-                        className={cn(
-                          "flex items-center gap-2.5 p-2 rounded-lg cursor-pointer text-popover-foreground/85 hover:text-popover-foreground focus:text-popover-foreground focus:bg-accent",
-                          isSelected && "bg-sidebar-primary/10 text-popover-foreground"
-                        )}
-                      >
-                        <div className={cn("flex items-center justify-center w-7 h-7 rounded-lg font-bold text-white text-[10px]", `bg-gradient-to-br ${tenantColor}`)}>
-                          {tenant.name.slice(0, 1).toUpperCase()}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-[12px] font-medium truncate">{tenant.name}</p>
-                          <p className={cn("text-[10px] capitalize", roleConfig[tenant.role]?.color || "text-popover-foreground/60")}>{tenant.role}</p>
-                        </div>
-                        {isSelected && <Check className="w-3.5 h-3.5 text-sidebar-primary" strokeWidth={1.5} />}
-                      </DropdownMenuItem>
-                    );
-                  })}
-                </div>
-                <DropdownMenuSeparator className="my-1 bg-border" />
-                <DropdownMenuItem onClick={() => navigate('/select-workspace')} className="gap-2.5 p-2 rounded-lg text-popover-foreground/70 hover:text-popover-foreground focus:text-popover-foreground focus:bg-accent">
-                  <div className="w-7 h-7 rounded-lg border border-dashed border-border flex items-center justify-center">
-                    <Plus className="w-3 h-3" strokeWidth={1.5} />
+                      )}
+                    </div>
+                    <ChevronDown className="w-3 h-3 text-sidebar-foreground/50 group-hover:text-sidebar-foreground" strokeWidth={1.5} />
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="w-64 p-1.5 bg-popover shadow-2xl border border-border text-popover-foreground">
+                  <div className="px-2 py-1.5 mb-1">
+                    <p className="text-[10px] font-semibold text-popover-foreground/60 uppercase tracking-wider">Switch Workspace</p>
                   </div>
-                  <span className="text-[12px]">Create or Switch</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+                  <div className="max-h-[240px] overflow-y-auto space-y-0.5">
+                    {tenants.map(tenant => {
+                      const isSelected = currentTenant?.id === tenant.id;
+                      const tenantColor = getAvatarColor(tenant.name);
+                      return (
+                        <DropdownMenuItem
+                          key={tenant.id}
+                          onClick={() => setCurrentTenant(tenant)}
+                          className={cn(
+                            "flex items-center gap-2.5 p-2 rounded-lg cursor-pointer text-popover-foreground/85 hover:text-popover-foreground focus:text-popover-foreground focus:bg-accent",
+                            isSelected && "bg-sidebar-primary/10 text-popover-foreground"
+                          )}
+                        >
+                          <div className={cn("flex items-center justify-center w-7 h-7 rounded-lg font-bold text-white text-[10px]", `bg-gradient-to-br ${tenantColor}`)}>
+                            {tenant.name.slice(0, 1).toUpperCase()}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-[12px] font-medium truncate">{tenant.name}</p>
+                            <p className={cn("text-[10px] capitalize", roleConfig[tenant.role]?.color || "text-popover-foreground/60")}>{tenant.role}</p>
+                          </div>
+                          {isSelected && <Check className="w-3.5 h-3.5 text-sidebar-primary" strokeWidth={1.5} />}
+                        </DropdownMenuItem>
+                      );
+                    })}
+                  </div>
+                  <DropdownMenuSeparator className="my-1 bg-border" />
+                  <DropdownMenuItem onClick={() => navigate('/select-workspace')} className="gap-2.5 p-2 rounded-lg text-popover-foreground/70 hover:text-popover-foreground focus:text-popover-foreground focus:bg-accent">
+                    <div className="w-7 h-7 rounded-lg border border-dashed border-border flex items-center justify-center">
+                      <Plus className="w-3 h-3" strokeWidth={1.5} />
+                    </div>
+                    <span className="text-[12px]">Create or Switch</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
             {!isCollapsed && currentTenant?.slug && (
               <div className="mt-1.5 mx-1 flex items-center justify-between gap-2 px-2 py-1 rounded-md bg-sidebar-accent/40 border border-sidebar-border/40">
                 <span className="text-[10px] font-mono text-sidebar-foreground/60 truncate" title={currentTenant.slug}>
