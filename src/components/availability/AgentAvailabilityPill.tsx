@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Clock, AlertTriangle, Users, ShieldAlert, Pause, CheckCircle2, CalendarClock } from 'lucide-react';
+import { AlertTriangle, Users, ShieldAlert, Pause, CheckCircle2, CalendarClock } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
