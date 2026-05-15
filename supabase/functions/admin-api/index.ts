@@ -1866,11 +1866,29 @@ Deno.serve(async (req: Request) => {
         tenantIds = (owned || []).map((r: any) => r.tenant_id);
       }
       if (!tenantIds.length) throw new Error("No workspaces to update");
-      // Try update workspace_entitlements first
+      const isFreePlan = String(body.plan).toLowerCase() === "free";
+      // Update entitlements + subscriptions so the rest of the app (billing-status,
+      // onboarding gate, WhatsApp connect guard) treats this as an active manual plan
+      // without requiring Stripe checkout.
       for (const tid of tenantIds) {
         const { error: eErr } = await sb.from("workspace_entitlements")
-          .upsert({ workspace_id: tid, plan: body.plan, updated_at: new Date().toISOString() }, { onConflict: "workspace_id" });
+          .upsert({ workspace_id: tid, plan: body.plan, status: "active", updated_at: new Date().toISOString() }, { onConflict: "workspace_id" });
         if (eErr) console.warn("[change-plan] entitlements upsert", eErr.message);
+        const { error: sErr } = await sb.from("subscriptions").upsert({
+          tenant_id: tid,
+          plan_id: body.plan,
+          status: "active",
+          billing_cycle: "monthly",
+          plan_source: isFreePlan ? "free" : "manual_admin",
+          assigned_by_admin: isFreePlan ? null : actor.user.id,
+          cancel_at_period_end: false,
+          pending_plan_id: null,
+          pending_billing_cycle: null,
+          scheduled_change_at: null,
+          last_plan_change_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        }, { onConflict: "tenant_id" });
+        if (sErr) console.warn("[change-plan] subscriptions upsert", sErr.message);
       }
       await logAction(sb, actor, "PLATFORM_USER_PLAN_CHANGED", {
         target_table: "workspace_entitlements", target_id: userId,
