@@ -1210,7 +1210,7 @@ async function handleAgentAutoReply(
     // 2. Get the assigned agent's auto-reply settings
     const { data: agent } = await supabase
       .from('agents')
-      .select('personal_greeting, away_message, away_enabled, display_name, user_id, timezone')
+      .select('personal_greeting, personal_greetings_enabled, away_message, away_enabled, display_name, user_id, timezone')
       .eq('user_id', conv.assigned_to)
       .eq('tenant_id', tenantId)
       .maybeSingle();
