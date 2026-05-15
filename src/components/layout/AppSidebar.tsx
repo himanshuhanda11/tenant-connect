@@ -496,6 +496,7 @@ export function AppSidebar() {
       <SidebarContent className="overflow-hidden">
         <div
           ref={sidebarScrollRef}
+          data-scroll-lock-allow
           className={cn(
             "flex min-h-0 flex-1 flex-col overflow-y-auto overflow-x-hidden overscroll-contain",
             isCollapsed
