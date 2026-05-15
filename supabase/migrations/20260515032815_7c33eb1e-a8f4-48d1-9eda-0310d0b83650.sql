@@ -1,0 +1,1 @@
+ALTER TABLE public.agents ALTER COLUMN personal_greetings_enabled SET DEFAULT true;
