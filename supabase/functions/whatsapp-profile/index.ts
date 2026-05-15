@@ -170,10 +170,11 @@ Deno.serve(async (req) => {
 
     if (wabaError || !wabaAccount?.encrypted_access_token) {
       return new Response(JSON.stringify({ 
-        error: 'WABA account not found or no access token',
+        error: 'WhatsApp connection needs to be re-authorized. Please reconnect this number via WhatsApp setup.',
+        code: 'reconnect_required',
         details: wabaError?.message 
       }), {
-        status: 404,
+        status: 409,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
