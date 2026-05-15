@@ -11,6 +11,7 @@ import { WhatsAppConnectBanner } from '@/components/dashboard/WhatsAppConnectBan
 import { MobileBottomNav } from './MobileBottomNav';
 import { PreviewWorkspaceBanner } from '@/components/admin/PreviewWorkspaceBanner';
 import { AgentAvailabilityPill } from '@/components/availability/AgentAvailabilityPill';
+import { cn } from '@/lib/utils';
 
 
 
@@ -19,7 +20,7 @@ function MobileHeader() {
   const isOpen = state === 'expanded';
 
   return (
-    <header className="h-12 sm:h-14 flex items-center gap-3 px-3 sm:px-4 border-b border-border/60 bg-background/95 backdrop-blur-md sticky top-0 z-30 shadow-xs pt-[env(safe-area-inset-top)] md:pt-0" style={{ height: 'calc(3rem + env(safe-area-inset-top))' }}>
+    <header className="flex h-12 items-center gap-3 border-b border-border/60 bg-background/95 px-3 pt-[env(safe-area-inset-top)] shadow-xs backdrop-blur-md sm:h-14 sm:px-4 md:hidden" style={{ height: 'calc(3rem + env(safe-area-inset-top))' }}>
       <button
         onClick={toggleSidebar}
         className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-card hover:bg-accent border border-border/50 shadow-sm transition-all duration-200 active:scale-95"
@@ -48,8 +49,10 @@ interface DashboardLayoutProps {
 
 export function DashboardLayout({ children }: DashboardLayoutProps) {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user, loading: authLoading } = useAuth();
   const { loading: tenantLoading, currentTenant } = useTenant();
+  const isInboxWorkspace = location.pathname.startsWith('/inbox') && !location.pathname.startsWith('/inbox/dashboard');
   // Skip onboarding/role-based redirects when a super admin is previewing.
   const isPreview = typeof window !== 'undefined' && !!sessionStorage.getItem('preview_workspace_id');
   const [onboardingChecked, setOnboardingChecked] = useState(isPreview);
@@ -135,16 +138,24 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   }
   return (
     <SidebarProvider>
-      <div className="min-h-screen flex w-full bg-background">
+      <div className="flex h-svh min-h-0 w-full overflow-hidden bg-background">
         <AppSidebar />
-        <main className="flex-1 flex flex-col min-w-0 w-full">
+        <main className="flex h-svh min-h-0 w-full min-w-0 flex-1 flex-col overflow-hidden">
           <PreviewWorkspaceBanner />
           <MobileHeader />
           <ScrollToTop />
-          <div className="flex-1 overflow-auto relative bg-muted/20 p-4 sm:p-6 lg:p-8 pb-[calc(12rem+env(safe-area-inset-bottom))] md:pb-20">
+          <div
+            data-dashboard-content
+            className={cn(
+              "relative min-h-0 flex-1 bg-muted/20",
+              isInboxWorkspace
+                ? "overflow-hidden p-0"
+                : "overflow-auto p-4 pb-[calc(12rem+env(safe-area-inset-bottom))] sm:p-6 md:pb-20 lg:p-8"
+            )}
+          >
             {children}
           </div>
-          {!location.pathname.startsWith('/phone-numbers') && <WhatsAppConnectBanner />}
+          {!isInboxWorkspace && !location.pathname.startsWith('/phone-numbers') && <WhatsAppConnectBanner />}
           <MobileBottomNav />
         </main>
       </div>
