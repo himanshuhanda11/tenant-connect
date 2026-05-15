@@ -241,7 +241,7 @@ export function SupportWidget() {
   if (mode === 'icon_only' && !collectLead) {
     if (iconDismissed) return null;
     return (
-      <div className={cn('fixed bottom-4 sm:bottom-6 z-[60] flex items-center gap-2', positionClass)}>
+      <div className={cn('fixed bottom-4 sm:bottom-6 z-[60] flex items-center gap-3', positionClass)}>
         {showDemoCompact && (
           <button
             type="button"
@@ -262,13 +262,15 @@ export function SupportWidget() {
           className="group relative inline-flex items-center gap-2 pl-2 pr-3 sm:pr-4 py-2 rounded-full shadow-lg shadow-black/20 hover:scale-[1.03] active:scale-95 transition-transform text-white"
           style={{ backgroundColor: brand }}
         >
-          {/* Pulse rings — "live" feel */}
+          {/* Pulse rings — "live" feel (decorative, must not intercept clicks) */}
           <span
-            className="absolute inset-0 rounded-full animate-ping opacity-30"
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0 rounded-full animate-ping opacity-30"
             style={{ backgroundColor: brand }}
           />
           <span
-            className="absolute inset-0 rounded-full animate-pulse opacity-20"
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0 rounded-full animate-pulse opacity-20"
             style={{ backgroundColor: brand }}
           />
           <span className="relative h-10 w-10 rounded-full bg-white/15 flex items-center justify-center">
@@ -297,7 +299,7 @@ export function SupportWidget() {
           }}
           aria-label="Hide for 24 hours"
           title="Hide for 24 hours"
-          className="h-7 w-7 rounded-full bg-background border border-border shadow-md flex items-center justify-center text-foreground/80 hover:text-foreground hover:scale-110 transition"
+          className="relative z-10 h-7 w-7 rounded-full bg-background border border-border shadow-md flex items-center justify-center text-foreground/80 hover:text-foreground hover:scale-110 transition"
         >
           <X className="h-3.5 w-3.5" />
         </button>
