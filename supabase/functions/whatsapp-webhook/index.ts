@@ -1247,32 +1247,13 @@ async function handleAgentAutoReply(
     const endMinutes = bhEnd.split(':').reduce((h: string, m: string) => parseInt(h) * 60 + parseInt(m));
     const isOfficeHours = currentMinutesOfDay >= startMinutes && currentMinutesOfDay < endMinutes;
 
-    // Determine which message to send:
-    // - Office hours → personal_greeting
-    // - Outside office hours → away_message (if available)
+    // Personal Direct Chat greeting library is NOT used for inbound auto-reply.
+    // It only powers the "Open in Direct Chat" wa.me link in the inbox.
+    // Here we only handle away_message (outside business hours).
     let replyText: string | null = null;
-    let replyType: 'away' | 'greeting' = 'greeting';
+    let replyType: 'away' | 'greeting' = 'away';
 
-    if (isOfficeHours) {
-      // Prefer personal greetings library if enabled
-      if (agent.personal_greetings_enabled) {
-        const { data: greetingRows } = await supabase
-          .from('whatsapp_greeting_templates')
-          .select('message_text')
-          .eq('tenant_id', tenantId)
-          .eq('agent_user_id', conv.assigned_to)
-          .eq('is_active', true);
-        if (greetingRows && greetingRows.length > 0) {
-          const pick = greetingRows[Math.floor(Math.random() * greetingRows.length)];
-          replyText = pick.message_text;
-          replyType = 'greeting';
-        }
-      }
-      if (!replyText && agent.personal_greeting) {
-        replyText = agent.personal_greeting;
-        replyType = 'greeting';
-      }
-    } else if (agent.away_message) {
+    if (!isOfficeHours && agent.away_enabled && agent.away_message) {
       replyText = agent.away_message;
       replyType = 'away';
     }
