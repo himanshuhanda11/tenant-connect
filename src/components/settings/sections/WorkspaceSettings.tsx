@@ -41,16 +41,6 @@ const verticals = [
   'NONPROFIT', 'PROF_SERVICES', 'RETAIL', 'TRAVEL', 'RESTAURANT', 'NOT_A_BIZ'
 ];
 
-const getStoredWaVertical = (tenantId?: string) => {
-  if (!tenantId || typeof window === 'undefined') return null;
-  return window.localStorage.getItem(`wa_profile_vertical:${tenantId}`);
-};
-
-const setStoredWaVertical = (tenantId: string | undefined, vertical: string) => {
-  if (!tenantId || typeof window === 'undefined') return;
-  window.localStorage.setItem(`wa_profile_vertical:${tenantId}`, vertical);
-};
-
 export function WorkspaceSettings() {
   const { currentTenant, currentRole, refreshTenants } = useTenant();
   const { phoneNumbers } = usePhoneNumbers();
@@ -116,7 +106,7 @@ export function WorkspaceSettings() {
       });
       if (error) throw error;
       if (data?.profile) {
-        const storedVertical = getStoredWaVertical(currentTenant?.id);
+        const storedVertical = (currentTenant as any)?.business_category;
         setWaProfile(data.profile);
         setWaAbout(data.profile.about || '');
         setWaDescription(data.profile.description || '');
@@ -185,8 +175,15 @@ export function WorkspaceSettings() {
       });
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
-      setStoredWaVertical(currentTenant?.id, waVertical);
       setWaProfile((prev: any) => ({ ...(prev || {}), vertical: waVertical }));
+
+      if (currentTenant?.id) {
+        await supabase
+          .from('tenants')
+          .update({ business_category: waVertical, updated_at: new Date().toISOString() } as any)
+          .eq('id', currentTenant.id);
+        refreshTenants();
+      }
 
       if (data?.meta_blocked || data?.warning) {
         toast.warning(data.warning || 'Meta kept the live WhatsApp profile unchanged. Your selected category is saved in Aireatro.');
