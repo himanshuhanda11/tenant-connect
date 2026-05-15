@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Circle, Clock, AlertTriangle, X, Users, ShieldAlert } from 'lucide-react';
+import { Clock, AlertTriangle, Users, ShieldAlert, Pause, CheckCircle2, CalendarClock } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
@@ -12,7 +12,7 @@ import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { useAgentAvailability } from '@/hooks/useAgentAvailability';
-import { PAUSE_DURATIONS, PAUSE_REASONS, formatCountdown, formatPausedUntil } from '@/lib/availability';
+import { PAUSE_DURATIONS, PAUSE_REASONS, formatCountdown, formatResumeAt } from '@/lib/availability';
 
 function StatusDot({ status }: { status: 'available' | 'paused' | 'offline' }) {
   const cls = status === 'available'
