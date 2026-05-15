@@ -25,6 +25,7 @@ import {
 import { sidebarDescriptions } from '@/data/sidebarDescriptions';
 import { cn } from '@/lib/utils';
 import aireatroLogo from '@/assets/aireatro-logo.png';
+import { AgentAvailabilityPill } from '@/components/availability/AgentAvailabilityPill';
 
 interface MenuItem {
   title: string;
