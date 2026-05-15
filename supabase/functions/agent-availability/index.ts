@@ -15,7 +15,8 @@ const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
 const SUPABASE_ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY')!;
 const SERVICE_ROLE = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 
-const ALLOWED_DURATIONS = new Set([30, 60, 120, 240, 480, 720, 1440, 2880, 4320, 5760, 10080, 21600, 43200, 86400, 129600]);
+// 0 = indefinite / permanent (no auto-resume)
+const ALLOWED_DURATIONS = new Set([0, 30, 60, 120, 240, 480, 720, 1440, 2880, 4320, 5760, 10080, 21600, 43200, 86400, 129600]);
 const ALLOWED_REASONS = new Set(['break', 'lunch', 'meeting', 'busy', 'leave', 'custom']);
 
 function json(body: unknown, status = 200) {
