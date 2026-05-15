@@ -101,9 +101,16 @@ export function useOnboardingProgress(tenantId: string | null | undefined): Onbo
         setProfileCompleted(true);
       }
     };
+    const refreshHandler = () => { load(); };
     window.addEventListener('aireatro:wa-profile-saved', handler as EventListener);
-    return () => window.removeEventListener('aireatro:wa-profile-saved', handler as EventListener);
-  }, [tenantId]);
+    window.addEventListener('aireatro:wa-connected', refreshHandler as EventListener);
+    window.addEventListener('aireatro:onboarding-refresh', refreshHandler as EventListener);
+    return () => {
+      window.removeEventListener('aireatro:wa-profile-saved', handler as EventListener);
+      window.removeEventListener('aireatro:wa-connected', refreshHandler as EventListener);
+      window.removeEventListener('aireatro:onboarding-refresh', refreshHandler as EventListener);
+    };
+  }, [tenantId, load]);
 
   const markProfileCompleted = useCallback(async () => {
     if (!tenantId) return;
