@@ -15656,6 +15656,51 @@ export type Database = {
         }
         Relationships: []
       }
+      whatsapp_profile_logs: {
+        Row: {
+          action: string
+          created_at: string
+          error_code: string | null
+          error_message: string | null
+          id: string
+          meta_response: Json | null
+          phone_number_id: string | null
+          request_payload: Json | null
+          status: string
+          tenant_id: string | null
+          waba_account_id: string | null
+          workspace_id: string | null
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          error_code?: string | null
+          error_message?: string | null
+          id?: string
+          meta_response?: Json | null
+          phone_number_id?: string | null
+          request_payload?: Json | null
+          status: string
+          tenant_id?: string | null
+          waba_account_id?: string | null
+          workspace_id?: string | null
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          error_code?: string | null
+          error_message?: string | null
+          id?: string
+          meta_response?: Json | null
+          phone_number_id?: string | null
+          request_payload?: Json | null
+          status?: string
+          tenant_id?: string | null
+          waba_account_id?: string | null
+          workspace_id?: string | null
+        }
+        Relationships: []
+      }
       widget_agents: {
         Row: {
           avatar_url: string | null
