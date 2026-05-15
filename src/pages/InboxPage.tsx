@@ -330,12 +330,12 @@ export default function InboxPage() {
             />
           </motion.div>
 
-          {/* Right: Context Panel */}
+          {/* Right: Context Panel (inline at lg+) */}
           <motion.div
             initial={{ opacity: 0, x: 12 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.2, delay: 0.1 }}
-            className="hidden xl:block w-[280px] 2xl:w-[320px] flex-shrink-0 flex-grow-0"
+            className="hidden lg:block w-[280px] xl:w-[300px] 2xl:w-[320px] flex-shrink-0 flex-grow-0 border-l"
           >
             <InboxContextPanel
               conversation={selectedConversation}
@@ -348,34 +348,46 @@ export default function InboxPage() {
             />
           </motion.div>
 
+          {/* Overlay variant (below lg) with backdrop so it doesn't visually overlap chat */}
           <AnimatePresence>
             {showContextPanel && (
-              <motion.div
-                initial={{ opacity: 0, x: 24 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: 24 }}
-                transition={{ duration: 0.18 }}
-                className="absolute inset-y-0 right-0 z-30 w-[340px] max-w-[calc(100%-240px)] bg-card shadow-2xl xl:hidden"
-              >
-                <Button
-                  variant="ghost"
-                  size="icon"
+              <>
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.15 }}
                   onClick={toggleContextPanel}
-                  className="absolute right-2 top-2 z-10 h-8 w-8 bg-card/80 shadow-sm backdrop-blur"
-                  aria-label="Close contact details"
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-                <InboxContextPanel
-                  conversation={selectedConversation}
-                  events={events}
-                  notes={notes}
-                  onAddNote={addNote}
-                  onAddTag={handleAddTag}
-                  onRemoveTag={handleRemoveTag}
-                  availableTags={actions.availableTags}
+                  className="absolute inset-0 z-20 bg-background/60 backdrop-blur-sm lg:hidden"
+                  aria-hidden="true"
                 />
-              </motion.div>
+                <motion.div
+                  initial={{ x: '100%' }}
+                  animate={{ x: 0 }}
+                  exit={{ x: '100%' }}
+                  transition={{ type: 'spring', damping: 28, stiffness: 260 }}
+                  className="absolute inset-y-0 right-0 z-30 w-[min(360px,85%)] bg-card shadow-2xl border-l lg:hidden"
+                >
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={toggleContextPanel}
+                    className="absolute right-2 top-2 z-10 h-8 w-8 bg-card/80 shadow-sm backdrop-blur"
+                    aria-label="Close contact details"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                  <InboxContextPanel
+                    conversation={selectedConversation}
+                    events={events}
+                    notes={notes}
+                    onAddNote={addNote}
+                    onAddTag={handleAddTag}
+                    onRemoveTag={handleRemoveTag}
+                    availableTags={actions.availableTags}
+                  />
+                </motion.div>
+              </>
             )}
           </AnimatePresence>
         </div>
