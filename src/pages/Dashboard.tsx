@@ -25,6 +25,7 @@ import { formatDistanceToNow } from 'date-fns';
 
 const MessagesAreaChart = lazy(() => import('@/components/dashboard/MessagesAreaChart'));
 const SubscriptionStatusBanner = lazy(() => import('@/components/dashboard/SubscriptionStatusBanner'));
+const ConfigureAutoReplyCard = lazy(() => import('@/components/dashboard/ConfigureAutoReplyCard'));
 
 
 /* ─── Tone Map ─── */
