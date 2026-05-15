@@ -45,8 +45,12 @@ export function useOnboardingProgress(tenantId: string | null | undefined): Onbo
       const [{ data: ent }, { data: sub }, { data: phones }, { data: tenantRow }] = await Promise.all([
         supabase.from('workspace_entitlements').select('plan,status').eq('workspace_id', tenantId).maybeSingle(),
         supabase.from('subscriptions').select('plan_id,status,stripe_subscription_id,plan_source').eq('tenant_id', tenantId).order('created_at', { ascending: false }).limit(1).maybeSingle(),
-        supabase.from('phone_numbers').select('id,status').eq('tenant_id', tenantId).order('is_default', { ascending: false }),
-        supabase.from('tenants').select('whatsapp_profile_completed' as any).eq('id', tenantId).maybeSingle(),
+        supabase
+          .from('phone_numbers')
+          .select('id,status,created_at,waba_accounts(onboarding_type,coexistence_enabled)')
+          .eq('tenant_id', tenantId)
+          .order('is_default', { ascending: false }),
+        supabase.from('tenants').select('whatsapp_profile_completed,whatsapp_profile_saved_at' as any).eq('id', tenantId).maybeSingle(),
       ]);
 
       const phoneList = (phones as any[]) || [];
@@ -78,12 +82,25 @@ export function useOnboardingProgress(tenantId: string | null | undefined): Onbo
       setPlanSelected(hasPlan);
       setPlanName(detectedPlan ? detectedPlan.charAt(0).toUpperCase() + detectedPlan.slice(1) : (hasConnectedPhone ? 'Free' : null));
 
-      // Source of truth: tenants.whatsapp_profile_completed (auto-set by DB trigger on phone connect).
-      // Failsafe: any connected phone implies the WA profile exists on Meta's side.
       // Source of truth: tenants.whatsapp_profile_completed (set explicitly when user saves WA profile).
       const dbProfileDone = !!(tenantRow as any)?.whatsapp_profile_completed;
+      const savedAt = (tenantRow as any)?.whatsapp_profile_saved_at ? new Date((tenantRow as any).whatsapp_profile_saved_at).getTime() : null;
+      const coexistencePhoneCreatedAt = validPhones
+        .map((p: any) => {
+          const waba = Array.isArray(p.waba_accounts) ? p.waba_accounts[0] : p.waba_accounts;
+          const isCoexistence = waba?.onboarding_type === 'business_app_coexistence' || waba?.coexistence_enabled === true;
+          return isCoexistence && p.created_at ? new Date(p.created_at).getTime() : null;
+        })
+        .filter((ts): ts is number => typeof ts === 'number' && Number.isFinite(ts))
+        .sort((a, b) => a - b)[0] ?? null;
+      const looksAutoCompletedOnConnect = !!(
+        dbProfileDone &&
+        savedAt &&
+        coexistencePhoneCreatedAt &&
+        Math.abs(savedAt - coexistencePhoneCreatedAt) < 30_000
+      );
       const lsProfile = localStorage.getItem(lsKey(tenantId, 'profileCompleted'));
-      setProfileCompleted(dbProfileDone || lsProfile === '1');
+      setProfileCompleted((dbProfileDone && !looksAutoCompletedOnConnect) || lsProfile === '1');
     } catch (e) {
       console.error('[useOnboardingProgress] failed:', e);
     } finally {
@@ -99,6 +116,7 @@ export function useOnboardingProgress(tenantId: string | null | undefined): Onbo
     const handler = (e: Event) => {
       const detail = (e as CustomEvent).detail as { tenantId?: string } | undefined;
       if (!detail?.tenantId || detail.tenantId === tenantId) {
+          localStorage.setItem(lsKey(tenantId, 'profileCompleted'), '1');
         setProfileCompleted(true);
       }
     };
@@ -115,6 +133,7 @@ export function useOnboardingProgress(tenantId: string | null | undefined): Onbo
 
   const markProfileCompleted = useCallback(async () => {
     if (!tenantId) return;
+    localStorage.setItem(lsKey(tenantId, 'profileCompleted'), '1');
     setProfileCompleted(true);
     try {
       await supabase
