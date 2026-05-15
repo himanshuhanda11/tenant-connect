@@ -158,6 +158,7 @@ export default function PhoneNumberDetails() {
       vertical?: string;
     };
     error?: string;
+    warning?: string;
   }>({ loading: false, saving: false, data: {} });
 
   const fetchBusinessProfile = async () => {
@@ -210,6 +211,18 @@ export default function PhoneNumberDetails() {
       });
 
       if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+
+      if (data?.success === false) {
+        const message = data.error || 'Meta did not accept the WhatsApp profile update.';
+        toast.error(message);
+        setBusinessProfile(prev => ({
+          ...prev,
+          saving: false,
+          warning: message,
+        }));
+        return;
+      }
 
       // Mark onboarding step 3 as done at the workspace level (source of truth = tenants table).
       if (number?.tenant_id) {
@@ -226,7 +239,7 @@ export default function PhoneNumberDetails() {
       }
 
       toast.success('WhatsApp Profile Completed Successfully');
-      setBusinessProfile(prev => ({ ...prev, saving: false }));
+      setBusinessProfile(prev => ({ ...prev, saving: false, warning: undefined }));
     } catch (error: any) {
       console.error('Failed to save business profile:', error);
       toast.error(error.message || 'Failed to update profile');
