@@ -54,9 +54,9 @@ export function useOnboardingProgress(tenantId: string | null | undefined): Onbo
       ]);
 
       const phoneList = (phones as any[]) || [];
-      const validPhones = phoneList.filter((p) => !['disconnected', 'banned'].includes(p.status));
+      const validPhones = phoneList.filter((p) => !['disconnected', 'banned', 'pending'].includes(p.status));
       const hasConnectedPhone = validPhones.some((p) => p.status === 'connected');
-      setWhatsappConnected(validPhones.length > 0);
+      setWhatsappConnected(hasConnectedPhone);
       const preferred = validPhones.find((p) => p.status === 'connected') || validPhones[0] || null;
       setPrimaryPhoneId(preferred?.id || null);
 
