@@ -27,8 +27,7 @@ export function ProfileSettings() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [changingPassword, setChangingPassword] = useState(false);
 
-  // Agent auto-reply
-  const [personalGreeting, setPersonalGreeting] = useState('');
+  // Agent away-message
   const [awayMessage, setAwayMessage] = useState('');
   const [awayEnabled, setAwayEnabled] = useState(false);
   const [savingAutoReply, setSavingAutoReply] = useState(false);
