@@ -301,6 +301,27 @@ Deno.serve(async (req) => {
         console.log('Created WABA:', wabaAccountId);
       }
 
+      // Fallback: if Meta did not return a phone_number_id (common for Coexistence /
+      // FINISH_WHATSAPP_BUSINESS_APP_ONBOARDING), look it up from the WABA.
+      if (!clientPhoneId) {
+        try {
+          const listRes = await fetch(
+            `${GRAPH_API_BASE}/${primaryWabaId}/phone_numbers?fields=id,display_phone_number,verified_name,quality_rating,messaging_limit_tier`,
+            { headers: { Authorization: `Bearer ${accessToken}` } }
+          );
+          const listData = await listRes.json();
+          const first = listData?.data?.[0];
+          if (first?.id) {
+            clientPhoneId = first.id;
+            console.log('Resolved phone_number_id from WABA listing:', clientPhoneId);
+          } else {
+            console.warn('WABA has no phone numbers yet:', JSON.stringify(listData));
+          }
+        } catch (e) {
+          console.warn('Failed to list WABA phone numbers (non-blocking):', e);
+        }
+      }
+
       // Only connect the single phone number selected in the popup
       if (clientPhoneId) {
         console.log('Connecting single phone:', clientPhoneId);
