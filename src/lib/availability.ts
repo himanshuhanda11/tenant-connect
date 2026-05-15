@@ -20,6 +20,8 @@ export const PAUSE_DURATIONS: PauseDuration[] = [
   { label: 'Pause for 7 days', short: '7d', minutes: 10080 },
   { label: 'Pause for 15 days', short: '15d', minutes: 21600 },
   { label: 'Pause for 30 days', short: '30d', minutes: 43200 },
+  { label: 'Pause for 60 days', short: '60d', minutes: 86400 },
+  { label: 'Pause for 90 days', short: '90d', minutes: 129600 },
 ];
 
 export const PAUSE_REASONS = [
@@ -46,12 +48,20 @@ export function formatCountdown(target: string | Date | null | undefined): strin
   return `${s}s`;
 }
 
-export function formatPausedUntil(target: string | Date | null | undefined): string {
+export function formatResumeAt(target: string | Date | null | undefined): string {
   if (!target) return '';
   const d = new Date(target);
-  const sameDay = new Date().toDateString() === d.toDateString();
-  if (sameDay) {
-    return `Paused until ${d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}`;
-  }
-  return `Paused until ${d.toLocaleString([], { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}`;
+  const now = new Date();
+  const sameDay = now.toDateString() === d.toDateString();
+  const tomorrow = new Date(now); tomorrow.setDate(tomorrow.getDate() + 1);
+  const isTomorrow = tomorrow.toDateString() === d.toDateString();
+  const time = d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+  if (sameDay) return `Today at ${time}`;
+  if (isTomorrow) return `Tomorrow at ${time}`;
+  return d.toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' }) + ` at ${time}`;
+}
+
+export function formatPausedUntil(target: string | Date | null | undefined): string {
+  if (!target) return '';
+  return `Resumes ${formatResumeAt(target).toLowerCase()}`;
 }
