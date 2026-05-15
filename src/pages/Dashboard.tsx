@@ -25,6 +25,7 @@ import { formatDistanceToNow } from 'date-fns';
 
 const MessagesAreaChart = lazy(() => import('@/components/dashboard/MessagesAreaChart'));
 const SubscriptionStatusBanner = lazy(() => import('@/components/dashboard/SubscriptionStatusBanner'));
+const ConfigureAutoReplyCard = lazy(() => import('@/components/dashboard/ConfigureAutoReplyCard'));
 
 
 /* ─── Tone Map ─── */
@@ -351,6 +352,11 @@ export default function Dashboard() {
           <PremiumStatusTile icon={CreditCard} label="Credits" tone="violet"
             value={`₹${creditsBalance.toLocaleString()}`} sub="Wallet balance" onClick={() => navigate('/billing')} />
         </div>
+
+        {/* Highlight: configure auto-replies for incoming messages */}
+        <Suspense fallback={null}>
+          <ConfigureAutoReplyCard />
+        </Suspense>
 
         {/* ═══════════════════════════════════════════════
             SECTION 3: SETUP PROGRESS
