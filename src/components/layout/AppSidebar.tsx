@@ -444,7 +444,7 @@ export function AppSidebar() {
                 <ChevronRight className={cn("w-3 h-3 transition-transform duration-200 ease-in-out", isOpen && "rotate-90")} strokeWidth={1.5} />
               </button>
             </CollapsibleTrigger>
-            <CollapsibleContent className="animate-accordion-down data-[state=closed]:animate-accordion-up">
+            <CollapsibleContent className="overflow-hidden data-[state=open]:animate-collapsible-down data-[state=closed]:animate-collapsible-up">
               <SidebarGroupContent className="mt-0.5">
                 <SidebarMenu className="space-y-0.5">
                   {group.items.map(item => renderMenuItem(item, true))}
@@ -508,7 +508,7 @@ export function AppSidebar() {
             {isCollapsed ? (
               <button
                 type="button"
-                onClick={toggleSidebar}
+                onClick={handleCollapsedWorkspaceClick}
                 className={cn(
                   "w-full flex items-center justify-center rounded-xl transition-all duration-200 ease-in-out group p-1.5",
                   "hover:bg-sidebar-accent/70"
