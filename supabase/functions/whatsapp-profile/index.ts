@@ -29,6 +29,33 @@ const metaErrorResponse = (fallbackError: string, data: any, action: string) => 
   });
 };
 
+const normalizeText = (value: unknown) => String(value ?? '').trim();
+
+const normalizeWebsites = (value: unknown) => Array.isArray(value)
+  ? value.map((site) => normalizeText(site)).filter(Boolean)
+  : [];
+
+const profileMatchesRequested = (currentProfile: any, requestedProfile: Record<string, any>) => {
+  const textFields = ['about', 'address', 'description', 'email', 'vertical'];
+
+  for (const field of textFields) {
+    if (Object.prototype.hasOwnProperty.call(requestedProfile, field)) {
+      if (normalizeText(currentProfile?.[field]) !== normalizeText(requestedProfile[field])) {
+        return false;
+      }
+    }
+  }
+
+  if (Object.prototype.hasOwnProperty.call(requestedProfile, 'websites')) {
+    const currentWebsites = normalizeWebsites(currentProfile?.websites);
+    const requestedWebsites = normalizeWebsites(requestedProfile.websites);
+    if (currentWebsites.length !== requestedWebsites.length) return false;
+    return currentWebsites.every((site, index) => site === requestedWebsites[index]);
+  }
+
+  return true;
+};
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -235,14 +262,14 @@ Deno.serve(async (req) => {
 
       const updatePayload: Record<string, any> = { messaging_product: 'whatsapp' };
       
-      if (profile_data.about) updatePayload.about = profile_data.about;
-      if (profile_data.address) updatePayload.address = profile_data.address;
-      if (profile_data.description) updatePayload.description = profile_data.description;
-      if (profile_data.email) updatePayload.email = profile_data.email;
+      if (profile_data.about !== undefined) updatePayload.about = normalizeText(profile_data.about);
+      if (profile_data.address !== undefined) updatePayload.address = normalizeText(profile_data.address);
+      if (profile_data.description !== undefined) updatePayload.description = normalizeText(profile_data.description);
+      if (profile_data.email !== undefined) updatePayload.email = normalizeText(profile_data.email);
       if (profile_data.websites && profile_data.websites.length > 0) {
         updatePayload.websites = profile_data.websites.filter((w: string) => w.trim());
       }
-      if (profile_data.vertical) updatePayload.vertical = profile_data.vertical;
+      if (profile_data.vertical !== undefined) updatePayload.vertical = normalizeText(profile_data.vertical);
 
       console.log('Profile UPDATE payload:', JSON.stringify(updatePayload));
 
@@ -262,6 +289,27 @@ Deno.serve(async (req) => {
       console.log('Profile UPDATE response:', JSON.stringify(data));
 
       if (!response.ok) {
+        const isPermissionError = data?.error?.code === 200 || /permission/i.test(data?.error?.message || '');
+        if (isPermissionError) {
+          const verifyRes = await fetch(
+            `${WHATSAPP_API_BASE}/${phone_number_id}/whatsapp_business_profile?fields=about,address,description,email,websites,vertical`,
+            { headers: { 'Authorization': `Bearer ${accessToken}` } }
+          );
+          const verifyData = await verifyRes.json();
+          const currentProfile = verifyData?.data?.[0] || {};
+
+          if (verifyRes.ok && profileMatchesRequested(currentProfile, updatePayload)) {
+            console.log('Meta returned permission error, but profile already matches requested values. Treating as success.');
+            return new Response(JSON.stringify({ 
+              success: true,
+              already_synced: true,
+              message: 'Profile already matches the requested details'
+            }), {
+              status: 200,
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            });
+          }
+        }
         return metaErrorResponse('Failed to update profile', data, 'update');
       }
 
