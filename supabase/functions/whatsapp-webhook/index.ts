@@ -1241,11 +1241,22 @@ async function handleAgentAutoReply(
       // Valid IANA timezone
       const nowLocal = new Date().toLocaleString('en-US', { timeZone: rawTz, hour12: false });
       const timeParts = nowLocal.split(', ')[1]?.split(':') || [];
-      currentMinutesOfDay = (parseInt(timeParts[0] || '0') * 60) + parseInt(timeParts[1] || '0');
+      const hh = parseInt(timeParts[0] || '0');
+      const mm = parseInt(timeParts[1] || '0');
+      // en-US with hour12:false returns "24" at midnight — normalize to 0
+      currentMinutesOfDay = ((hh % 24) * 60) + mm;
     }
-    const startMinutes = bhStart.split(':').reduce((h: string, m: string) => parseInt(h) * 60 + parseInt(m));
-    const endMinutes = bhEnd.split(':').reduce((h: string, m: string) => parseInt(h) * 60 + parseInt(m));
-    const isOfficeHours = currentMinutesOfDay >= startMinutes && currentMinutesOfDay < endMinutes;
+    const toMin = (s: string) => {
+      const [h, m] = s.split(':');
+      return (parseInt(h || '0') * 60) + parseInt(m || '0');
+    };
+    const startMinutes = toMin(bhStart);
+    const endMinutes = toMin(bhEnd);
+    // Support overnight windows (e.g. 22:00 – 06:00)
+    const isOfficeHours = startMinutes <= endMinutes
+      ? (currentMinutesOfDay >= startMinutes && currentMinutesOfDay < endMinutes)
+      : (currentMinutesOfDay >= startMinutes || currentMinutesOfDay < endMinutes);
+    console.log(`[agent-auto-reply] tz=${rawTz} now=${currentMinutesOfDay}m bh=${bhStart}-${bhEnd} office=${isOfficeHours} agent=${conv.assigned_to} away_enabled=${agent.away_enabled} has_away=${!!agent.away_message}`);
 
     // Personal Direct Chat greeting library is NOT used for inbound auto-reply.
     // It only powers the "Open in Direct Chat" wa.me link in the inbox.
