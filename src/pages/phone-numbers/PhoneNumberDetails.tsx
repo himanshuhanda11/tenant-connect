@@ -259,7 +259,6 @@ export default function PhoneNumberDetails() {
         const message = data.warning || 'Meta kept your current WhatsApp profile unchanged.';
         toast.warning(message);
         setBusinessProfile(prev => ({ ...prev, saving: false, warning: message }));
-        await fetchBusinessProfile();
         return;
       }
 
