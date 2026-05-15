@@ -35,6 +35,7 @@ export function useAgentAvailability() {
     pausedAt: null,
     reason: null,
     customReason: null,
+    role: null,
     loading: true,
   });
 
@@ -42,7 +43,7 @@ export function useAgentAvailability() {
     if (!user || !currentTenant) return;
     const { data } = await supabase
       .from('agents')
-      .select('id, availability_status, pause_until, paused_at, pause_reason, pause_custom_reason')
+      .select('id, availability_status, pause_until, paused_at, pause_reason, pause_custom_reason, role')
       .eq('user_id', user.id)
       .eq('tenant_id', currentTenant.id)
       .maybeSingle();
@@ -57,6 +58,7 @@ export function useAgentAvailability() {
       pausedAt: data.paused_at,
       reason: data.pause_reason,
       customReason: data.pause_custom_reason,
+      role: (data as any).role || null,
       loading: false,
     });
   }, [user, currentTenant]);
