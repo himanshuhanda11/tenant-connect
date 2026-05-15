@@ -6,6 +6,7 @@ export interface Tenant {
   slug: string;
   logo_url: string | null;
   timezone: string;
+  business_category?: string | null;
   created_at: string;
   updated_at: string;
 }
