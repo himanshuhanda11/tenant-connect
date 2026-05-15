@@ -488,7 +488,7 @@ export function InboxChatThread({
             )}
 
             {!isMobile && onShowInfo && (
-              <Button variant="ghost" size="icon" onClick={onShowInfo} className="h-7 w-7 text-muted-foreground hover:text-foreground xl:hidden">
+              <Button variant="ghost" size="icon" onClick={onShowInfo} className="h-7 w-7 text-muted-foreground hover:text-foreground lg:hidden">
                 <Info className="h-4 w-4" />
               </Button>
             )}
