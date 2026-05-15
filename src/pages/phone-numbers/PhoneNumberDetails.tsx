@@ -213,41 +213,47 @@ export default function PhoneNumberDetails() {
   const saveBusinessProfile = async () => {
     if (!number?.waba_uuid || !number?.phone_number_id) return;
 
-    setBusinessProfile(prev => ({ ...prev, saving: true, error: undefined }));
-    
+    setBusinessProfile(prev => ({ ...prev, saving: true, error: undefined, warning: undefined }));
+
     try {
       const { data, error } = await supabase.functions.invoke('whatsapp-profile', {
         body: {
           action: 'update',
           phone_number_id: number.phone_number_id,
           waba_account_id: number.waba_uuid,
-          profile_data: businessProfile.data
-        }
+          profile_data: businessProfile.data,
+        },
       });
 
       if (error) throw error;
-      if (data?.error) throw new Error(data.error);
 
+      // Failure path — surface the real Meta reason and (if applicable) a coexistence/reconnect cue.
       if (data?.success === false) {
-        const message = data.error || 'Meta did not accept the WhatsApp profile update.';
-        toast.error(message);
+        const message = data?.error || 'Meta did not accept the WhatsApp profile update.';
+        const needsReconnect = data?.code === 'reconnect_required' || data?.code === 'token_expired' || data?.code === 'meta_permission_required';
+        const isCoex = !!data?.coexistence || data?.code === 'coexistence_blocked';
+        if (isCoex) toast.warning(message);
+        else toast.error(message);
         setBusinessProfile(prev => ({
           ...prev,
           saving: false,
-          warning: message,
+          error: isCoex ? undefined : message,
+          warning: isCoex ? message : undefined,
+          coexistence: isCoex || prev.coexistence,
+          needsReconnect,
+          errorCode: data?.code,
         }));
         return;
       }
 
-      // Mark onboarding step 3 as done at the workspace level (source of truth = tenants table).
+      // Success — mark onboarding step + re-fetch authoritative profile from Meta.
       if (number?.tenant_id) {
-        const savedAt = new Date().toISOString();
         try {
           await supabase
             .from('tenants')
             .update({
               whatsapp_profile_completed: true,
-              whatsapp_profile_saved_at: savedAt,
+              whatsapp_profile_saved_at: new Date().toISOString(),
             } as any)
             .eq('id', number.tenant_id);
         } catch (e) {
@@ -256,34 +262,18 @@ export default function PhoneNumberDetails() {
         window.dispatchEvent(new CustomEvent('aireatro:wa-profile-saved', { detail: { tenantId: number.tenant_id } }));
       }
 
-      if (number?.id) {
-        try {
-          await supabase
-            .from('phone_numbers')
-            .update({ raw: { ...((number.raw as any) || {}), whatsapp_profile_vertical: businessProfile.data.vertical || null } } as any)
-            .eq('id', number.id);
-          refetch();
-        } catch (e) {
-          console.warn('[saveBusinessProfile] phone metadata update failed:', e);
-        }
-      }
-
-      if (data?.meta_blocked || data?.warning) {
-        const message = data.warning || 'Meta kept your current WhatsApp profile unchanged.';
-        toast.warning(message);
-        setBusinessProfile(prev => ({ ...prev, saving: false, warning: message }));
-        return;
-      }
-
-      toast.success('WhatsApp Profile Completed Successfully');
-      setBusinessProfile(prev => ({ ...prev, saving: false, warning: undefined }));
+      toast.success('WhatsApp business profile updated successfully.');
+      setBusinessProfile(prev => ({ ...prev, saving: false, warning: undefined, error: undefined, needsReconnect: false }));
+      // Authoritative re-fetch from Meta so UI reflects what was actually stored.
+      await fetchBusinessProfile();
     } catch (error: any) {
       console.error('Failed to save business profile:', error);
-      toast.error(error.message || 'Failed to update profile');
+      const msg = error.message || 'Failed to update profile';
+      toast.error(msg);
       setBusinessProfile(prev => ({
         ...prev,
         saving: false,
-        error: error.message || 'Failed to update profile'
+        error: msg,
       }));
     }
   };
