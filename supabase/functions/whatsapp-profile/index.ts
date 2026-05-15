@@ -29,6 +29,33 @@ const metaErrorResponse = (fallbackError: string, data: any, action: string) => 
   });
 };
 
+const normalizeText = (value: unknown) => String(value ?? '').trim();
+
+const normalizeWebsites = (value: unknown) => Array.isArray(value)
+  ? value.map((site) => normalizeText(site)).filter(Boolean)
+  : [];
+
+const profileMatchesRequested = (currentProfile: any, requestedProfile: Record<string, any>) => {
+  const textFields = ['about', 'address', 'description', 'email', 'vertical'];
+
+  for (const field of textFields) {
+    if (Object.prototype.hasOwnProperty.call(requestedProfile, field)) {
+      if (normalizeText(currentProfile?.[field]) !== normalizeText(requestedProfile[field])) {
+        return false;
+      }
+    }
+  }
+
+  if (Object.prototype.hasOwnProperty.call(requestedProfile, 'websites')) {
+    const currentWebsites = normalizeWebsites(currentProfile?.websites);
+    const requestedWebsites = normalizeWebsites(requestedProfile.websites);
+    if (currentWebsites.length !== requestedWebsites.length) return false;
+    return currentWebsites.every((site, index) => site === requestedWebsites[index]);
+  }
+
+  return true;
+};
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
