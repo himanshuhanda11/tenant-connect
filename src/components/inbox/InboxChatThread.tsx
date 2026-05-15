@@ -402,6 +402,9 @@ export function InboxChatThread({
                 <TooltipTrigger asChild>
                   <a
                     href={(() => {
+                      if (!personalGreetingsEnabled) {
+                        return `https://wa.me/${conversation.contact?.wa_id}`;
+                      }
                       const name = conversation.contact?.name || conversation.contact?.first_name || 'there';
                       const biz = conversation.phone_number_verified_name || 'our company';
                       // Use assigned agent's name if available, otherwise fall back to viewer's name
