@@ -204,6 +204,37 @@ export function AppSidebar() {
   }, [location.pathname]);
 
   const sidebarScrollRef = useRef<HTMLDivElement>(null);
+  const groupRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const pendingExpandedScrollGroupRef = useRef<string | null>(null);
+
+  const scrollGroupIntoView = (label: string) => {
+    const scrollContainer = sidebarScrollRef.current;
+    const groupEl = groupRefs.current[label];
+    if (!scrollContainer || !groupEl) return;
+
+    const keepVisible = (behavior: ScrollBehavior = 'smooth') => {
+      const containerRect = scrollContainer.getBoundingClientRect();
+      const groupRect = groupEl.getBoundingClientRect();
+      const bottomOverflow = groupRect.bottom - containerRect.bottom;
+      const topOverflow = containerRect.top - groupRect.top;
+
+      if (bottomOverflow > 0) {
+        scrollContainer.scrollTo({
+          top: scrollContainer.scrollTop + bottomOverflow + 12,
+          behavior,
+        });
+      } else if (topOverflow > 0) {
+        scrollContainer.scrollTo({
+          top: Math.max(0, scrollContainer.scrollTop - topOverflow - 12),
+          behavior,
+        });
+      }
+    };
+
+    requestAnimationFrame(() => keepVisible('smooth'));
+    window.setTimeout(() => keepVisible('smooth'), 140);
+    window.setTimeout(() => keepVisible('auto'), 320);
+  };
 
   // Persist sidebar scroll position across route changes / refreshes
   useEffect(() => {
@@ -228,8 +259,14 @@ export function AppSidebar() {
     if (wasCollapsed && !isCollapsed) {
       const el = sidebarScrollRef.current;
       if (!el) return;
+      const targetGroup = pendingExpandedScrollGroupRef.current;
+      pendingExpandedScrollGroupRef.current = null;
       // Wait for the width transition (~200ms) before animating scroll
       const t = window.setTimeout(() => {
+        if (targetGroup) {
+          scrollGroupIntoView(targetGroup);
+          return;
+        }
         const active = el.querySelector<HTMLElement>('[data-active="true"], a[aria-current="page"]');
         if (active && typeof active.scrollIntoView === 'function') {
           try {
@@ -266,7 +303,16 @@ export function AppSidebar() {
   };
 
   const isGroupActive = (items: MenuItem[]) => items.some(item => isRouteActive(item.url));
-  const toggleGroup = (label: string) => setExpandedGroups(prev => ({ ...prev, [label]: !prev[label] }));
+  const toggleGroup = (label: string, open: boolean) => {
+    setExpandedGroups(prev => ({ ...prev, [label]: open }));
+    if (open) scrollGroupIntoView(label);
+  };
+
+  const handleCollapsedWorkspaceClick = () => {
+    pendingExpandedScrollGroupRef.current = 'Workspace';
+    setExpandedGroups(prev => ({ ...prev, Workspace: true }));
+    toggleSidebar();
+  };
 
   /* ── Render a single menu item ── */
   const renderMenuItem = (item: MenuItem, nested = false) => {
@@ -375,8 +421,13 @@ export function AppSidebar() {
     }
 
     return (
-      <div key={group.label}>
-        <Collapsible open={isOpen} onOpenChange={() => toggleGroup(group.label)} className="mt-1.5 border-t border-sidebar-border/30 pt-1.5 first:border-t-0 first:pt-0">
+      <div
+        key={group.label}
+        ref={(node) => {
+          groupRefs.current[group.label] = node;
+        }}
+      >
+        <Collapsible open={isOpen} onOpenChange={(open) => toggleGroup(group.label, open)} className="mt-1.5 border-t border-sidebar-border/30 pt-1.5 first:border-t-0 first:pt-0">
           <SidebarGroup>
            <CollapsibleTrigger asChild>
               <button className={cn(
@@ -393,7 +444,7 @@ export function AppSidebar() {
                 <ChevronRight className={cn("w-3 h-3 transition-transform duration-200 ease-in-out", isOpen && "rotate-90")} strokeWidth={1.5} />
               </button>
             </CollapsibleTrigger>
-            <CollapsibleContent className="animate-accordion-down data-[state=closed]:animate-accordion-up">
+            <CollapsibleContent className="overflow-hidden data-[state=open]:animate-collapsible-down data-[state=closed]:animate-collapsible-up">
               <SidebarGroupContent className="mt-0.5">
                 <SidebarMenu className="space-y-0.5">
                   {group.items.map(item => renderMenuItem(item, true))}
@@ -457,7 +508,7 @@ export function AppSidebar() {
             {isCollapsed ? (
               <button
                 type="button"
-                onClick={toggleSidebar}
+                onClick={handleCollapsedWorkspaceClick}
                 className={cn(
                   "w-full flex items-center justify-center rounded-xl transition-all duration-200 ease-in-out group p-1.5",
                   "hover:bg-sidebar-accent/70"
