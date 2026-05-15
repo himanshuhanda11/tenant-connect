@@ -106,7 +106,7 @@ export function WorkspaceSettings() {
       });
       if (error) throw error;
       if (data?.profile) {
-        const storedVertical = (currentTenant as any)?.business_category;
+        const storedVertical = (primaryPhone?.raw as any)?.whatsapp_profile_vertical;
         setWaProfile(data.profile);
         setWaAbout(data.profile.about || '');
         setWaDescription(data.profile.description || '');
@@ -177,12 +177,11 @@ export function WorkspaceSettings() {
       if (data?.error) throw new Error(data.error);
       setWaProfile((prev: any) => ({ ...(prev || {}), vertical: waVertical }));
 
-      if (currentTenant?.id) {
+      if (primaryPhone?.id) {
         await supabase
-          .from('tenants')
-          .update({ business_category: waVertical, updated_at: new Date().toISOString() } as any)
-          .eq('id', currentTenant.id);
-        refreshTenants();
+          .from('phone_numbers')
+          .update({ raw: { ...((primaryPhone.raw as any) || {}), whatsapp_profile_vertical: waVertical } } as any)
+          .eq('id', primaryPhone.id);
       }
 
       if (data?.meta_blocked || data?.warning) {
