@@ -143,6 +143,8 @@ export default function Team() {
         {/* Quick Guide */}
         <QuickGuide {...quickGuides.team} />
 
+        {canManageTeam && <TeamAvailabilityPanel />}
+
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <h1 className="text-2xl font-bold text-foreground">Team</h1>
