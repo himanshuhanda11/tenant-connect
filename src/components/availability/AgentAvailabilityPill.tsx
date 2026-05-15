@@ -154,23 +154,36 @@ export function AgentAvailabilityPill({ compact = false }: { compact?: boolean }
         <p className="text-xs text-muted-foreground mt-1">
           Pause new chat assignments without affecting your current conversations.
         </p>
-        {status === 'paused' && pauseUntil && (
+        {status === 'paused' && (
           <div className="mt-3 rounded-xl bg-gradient-to-br from-amber-500/10 to-orange-500/10 border border-amber-500/30 px-3 py-3 text-xs space-y-2.5">
             <div className="flex items-start gap-2.5">
               <CalendarClock className="h-4 w-4 mt-0.5 text-amber-600 dark:text-amber-400 shrink-0" />
               <div className="flex-1 min-w-0">
                 <div className="text-[10px] uppercase tracking-wider font-medium text-amber-700/80 dark:text-amber-300/80">
-                  Resumes
+                  {pauseUntil ? 'Resumes' : 'Status'}
                 </div>
-                <div className="font-semibold text-sm text-amber-700 dark:text-amber-200 leading-tight">
-                  {formatResumeAt(pauseUntil)}
-                </div>
-                <div className="text-[11px] text-amber-700/70 dark:text-amber-300/70 mt-0.5">
-                  {new Date(pauseUntil).toLocaleString([], { weekday: 'long', month: 'long', day: 'numeric', hour: 'numeric', minute: '2-digit' })}
-                </div>
-                <div className="text-[11px] text-amber-700/80 dark:text-amber-300/80 tabular-nums mt-0.5">
-                  · {formatCountdown(pauseUntil)} remaining
-                </div>
+                {pauseUntil ? (
+                  <>
+                    <div className="font-semibold text-sm text-amber-700 dark:text-amber-200 leading-tight">
+                      {formatResumeAt(pauseUntil)}
+                    </div>
+                    <div className="text-[11px] text-amber-700/70 dark:text-amber-300/70 mt-0.5">
+                      {new Date(pauseUntil).toLocaleString([], { weekday: 'long', month: 'long', day: 'numeric', hour: 'numeric', minute: '2-digit' })}
+                    </div>
+                    <div className="text-[11px] text-amber-700/80 dark:text-amber-300/80 tabular-nums mt-0.5">
+                      · {formatCountdown(pauseUntil)} remaining
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="font-semibold text-sm text-amber-700 dark:text-amber-200 leading-tight">
+                      Paused indefinitely
+                    </div>
+                    <div className="text-[11px] text-amber-700/70 dark:text-amber-300/70 mt-0.5">
+                      You won't receive new chats until you resume manually.
+                    </div>
+                  </>
+                )}
               </div>
             </div>
             <Button size="sm" variant="outline" className="w-full border-amber-500/40 hover:bg-amber-500/10" onClick={doResume}>
