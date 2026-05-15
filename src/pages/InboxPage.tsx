@@ -352,7 +352,7 @@ export default function InboxPage() {
             initial={{ opacity: 0, x: 12 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.2, delay: 0.1 }}
-            className="hidden h-full min-h-0 w-[280px] flex-shrink-0 flex-grow-0 overflow-hidden border-l lg:block xl:w-[300px] 2xl:w-[320px]"
+            className="hidden h-full min-h-0 w-[300px] flex-shrink-0 flex-grow-0 overflow-hidden border-l xl:block 2xl:w-[320px]"
           >
             <InboxContextPanel
               conversation={selectedConversation}
@@ -375,7 +375,7 @@ export default function InboxPage() {
                   exit={{ opacity: 0 }}
                   transition={{ duration: 0.15 }}
                   onClick={toggleContextPanel}
-                  className="absolute inset-0 z-20 bg-background/60 backdrop-blur-sm lg:hidden"
+                  className="absolute inset-0 z-20 bg-background/60 backdrop-blur-sm xl:hidden"
                   aria-hidden="true"
                 />
                 <motion.div
@@ -383,7 +383,7 @@ export default function InboxPage() {
                   animate={{ x: 0 }}
                   exit={{ x: '100%' }}
                   transition={{ type: 'spring', damping: 28, stiffness: 260 }}
-                  className="absolute inset-y-0 right-0 z-30 w-[min(360px,85%)] bg-card shadow-2xl border-l lg:hidden"
+                  className="absolute inset-y-0 right-0 z-30 w-[min(360px,85%)] bg-card shadow-2xl border-l xl:hidden"
                 >
                   <Button
                     variant="ghost"
