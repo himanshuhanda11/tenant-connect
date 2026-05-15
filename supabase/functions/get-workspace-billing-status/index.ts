@@ -36,24 +36,31 @@ Deno.serve(async (req) => {
 
     const rawStatus = sub?.status || "inactive";
     const inactiveStatuses = new Set(["incomplete", "incomplete_expired", "canceled", "cancelled"]);
+    // Entitlement fallback: if a Super Admin set workspace_entitlements.plan to a non-free
+    // plan (status='active') but no subscription row exists yet, treat it as a manual_admin
+    // plan so the user is not blocked behind the upgrade / Stripe gate.
+    const entPlanRaw = (ent as any)?.plan ? String((ent as any).plan).toLowerCase() : null;
+    const entActive = ((ent as any)?.status || "active") === "active";
+    const entIsManualPlan = entPlanRaw && entPlanRaw !== "free" && entActive;
+    const useEntitlementFallback = !sub && entIsManualPlan;
+
     const planSource: "stripe" | "manual_admin" | "free" =
-      (sub?.plan_source as any) || (sub?.stripe_subscription_id ? "stripe" : "free");
+      (sub?.plan_source as any) || (sub?.stripe_subscription_id ? "stripe" : (useEntitlementFallback ? "manual_admin" : "free"));
     const isManualAdmin = planSource === "manual_admin";
-    const normalizedSubPlan = sub?.plan_id ? sub.plan_id.replace(/^plan_/, "") : null;
-    // A plan is considered "selected" if:
-    //  - Stripe path: subscription row exists, not in inactive status, plan known, and either free OR has stripe id
-    //  - Manual admin path: subscription row exists, status active, regardless of stripe id
+    const normalizedSubPlan = sub?.plan_id
+      ? sub.plan_id.replace(/^plan_/, "")
+      : (useEntitlementFallback ? entPlanRaw : null);
+    const effectiveStatus = sub ? rawStatus : (useEntitlementFallback ? "active" : rawStatus);
     const hasSelectedPlan =
-      !!sub &&
-      !inactiveStatuses.has(rawStatus) &&
+      (!!sub || useEntitlementFallback) &&
+      !inactiveStatuses.has(effectiveStatus) &&
       !!normalizedSubPlan &&
       (isManualAdmin || normalizedSubPlan === "free" || !!sub?.stripe_subscription_id);
-    // Manual admin assignments count as a confirmed subscription — no Stripe needed.
     const hasConfirmedSubscription =
       (!!sub?.stripe_subscription_id && !inactiveStatuses.has(rawStatus)) ||
-      (isManualAdmin && rawStatus === "active");
+      (isManualAdmin && (effectiveStatus === "active"));
     const planId = hasSelectedPlan ? normalizedSubPlan : null;
-    const status = hasSelectedPlan ? rawStatus : "inactive";
+    const status = hasSelectedPlan ? effectiveStatus : "inactive";
     const stripeRequired = !isManualAdmin && planId !== null && planId !== "free" && !sub?.stripe_subscription_id;
     const trialEnd = sub?.trial_end ? new Date(sub.trial_end) : null;
     const now = Date.now();
