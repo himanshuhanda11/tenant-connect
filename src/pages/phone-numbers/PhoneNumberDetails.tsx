@@ -158,6 +158,7 @@ export default function PhoneNumberDetails() {
       vertical?: string;
     };
     error?: string;
+    warning?: string;
   }>({ loading: false, saving: false, data: {} });
 
   const fetchBusinessProfile = async () => {
@@ -210,6 +211,18 @@ export default function PhoneNumberDetails() {
       });
 
       if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+
+      if (data?.success === false) {
+        const message = data.error || 'Meta did not accept the WhatsApp profile update.';
+        toast.error(message);
+        setBusinessProfile(prev => ({
+          ...prev,
+          saving: false,
+          warning: message,
+        }));
+        return;
+      }
 
       // Mark onboarding step 3 as done at the workspace level (source of truth = tenants table).
       if (number?.tenant_id) {
@@ -226,7 +239,7 @@ export default function PhoneNumberDetails() {
       }
 
       toast.success('WhatsApp Profile Completed Successfully');
-      setBusinessProfile(prev => ({ ...prev, saving: false }));
+      setBusinessProfile(prev => ({ ...prev, saving: false, warning: undefined }));
     } catch (error: any) {
       console.error('Failed to save business profile:', error);
       toast.error(error.message || 'Failed to update profile');
@@ -274,7 +287,7 @@ export default function PhoneNumberDetails() {
       });
 
       if (error) throw error;
-      if (!data?.success) throw new Error(data?.error || 'Upload failed');
+      if (!data?.success) throw new Error(data?.error || data?.details || 'Upload failed');
 
       toast.success('Profile picture updated successfully! It may take a few minutes to appear on WhatsApp.');
       // Refresh profile to get new picture URL
@@ -842,6 +855,13 @@ export default function PhoneNumberDetails() {
                   </div>
                 ) : (
                   <>
+                    {businessProfile.warning && (
+                      <div className="flex items-start gap-2 rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
+                        <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+                        <span>{businessProfile.warning}</span>
+                      </div>
+                    )}
+
                     {/* Profile Picture */}
                     <div className="flex items-center gap-4 p-4 bg-muted/50 rounded-lg">
                       {businessProfile.data.profile_picture_url ? (
