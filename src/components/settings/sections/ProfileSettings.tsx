@@ -233,9 +233,6 @@ export function ProfileSettings() {
         </CardContent>
       </Card>
 
-      {/* Personal WhatsApp Greetings (multi-template) */}
-      <AgentGreetingsCard />
-
       {/* Away message */}
       <Card>
         <CardHeader>
@@ -321,6 +318,9 @@ export function ProfileSettings() {
           )}
         </CardContent>
       </Card>
+
+      {/* Direct Chat Greetings (multi-template) */}
+      <AgentGreetingsCard />
 
       {/* Change Password */}
       <Card>
