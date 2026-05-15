@@ -12,6 +12,7 @@ export interface AgentAvailabilityState {
   pausedAt: string | null;
   reason: string | null;
   customReason: string | null;
+  role: string | null;
   loading: boolean;
 }
 
