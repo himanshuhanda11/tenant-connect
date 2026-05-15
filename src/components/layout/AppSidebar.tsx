@@ -631,6 +631,11 @@ export function AppSidebar() {
 
       {/* ── Footer — Platform + Floating tile ── */}
       <SidebarFooter className={cn("gap-2 border-t border-sidebar-border", isCollapsed ? "px-1.5 py-2" : "px-3 py-3")}>
+        {!isCollapsed && (
+          <div className="flex justify-center pb-1">
+            <AgentAvailabilityPill />
+          </div>
+        )}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <button className={cn(
