@@ -137,7 +137,7 @@ export function InboxChatThread({
   viewerName,
 }: InboxChatThreadProps) {
   const { user } = useAuth();
-  const { getRandomMessage } = useGreetingTemplates();
+  const { getRandomMessage, hasActiveGreeting } = useGreetingTemplates();
   const [messageText, setMessageText] = useState('');
   const [showTemplates, setShowTemplates] = useState(false);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
@@ -387,6 +387,8 @@ export function InboxChatThread({
                 <TooltipTrigger asChild>
                   <a
                     href={(() => {
+                      const waId = conversation.contact?.wa_id;
+                      if (!hasActiveGreeting) return `https://wa.me/${waId}`;
                       const name = conversation.contact?.name || conversation.contact?.first_name || 'there';
                       const biz = conversation.phone_number_verified_name || 'our company';
                       // Use assigned agent's name if available, otherwise fall back to viewer's name
@@ -396,7 +398,7 @@ export function InboxChatThread({
                       const agentName = assignedAgent?.full_name 
                         || viewerName || user?.user_metadata?.full_name || 'our team';
                       const randomMsg = getRandomMessage(name, biz, agentName);
-                      return `https://wa.me/${conversation.contact?.wa_id}?text=${encodeURIComponent(randomMsg)}`;
+                      return `https://wa.me/${waId}?text=${encodeURIComponent(randomMsg)}`;
                     })()}
                     target="_blank"
                     rel="noopener noreferrer"
@@ -408,7 +410,7 @@ export function InboxChatThread({
                     <span className="hidden text-[11px] font-medium xl:inline">Direct Chat</span>
                   </a>
                 </TooltipTrigger>
-                <TooltipContent>Open in Direct Chat with greeting</TooltipContent>
+                <TooltipContent>{hasActiveGreeting ? 'Open in Direct Chat with greeting' : 'Open in Direct Chat'}</TooltipContent>
               </Tooltip>
             )}
 
