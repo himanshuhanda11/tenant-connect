@@ -153,6 +153,7 @@ export type Database = {
           max_open_chats: number | null
           notes: string | null
           personal_greeting: string | null
+          personal_greetings_enabled: boolean
           presence: string | null
           role: string | null
           skills: string[] | null
@@ -176,6 +177,7 @@ export type Database = {
           max_open_chats?: number | null
           notes?: string | null
           personal_greeting?: string | null
+          personal_greetings_enabled?: boolean
           presence?: string | null
           role?: string | null
           skills?: string[] | null
@@ -199,6 +201,7 @@ export type Database = {
           max_open_chats?: number | null
           notes?: string | null
           personal_greeting?: string | null
+          personal_greetings_enabled?: boolean
           presence?: string | null
           role?: string | null
           skills?: string[] | null
@@ -15550,6 +15553,7 @@ export type Database = {
       }
       whatsapp_greeting_templates: {
         Row: {
+          agent_user_id: string | null
           created_at: string
           id: string
           is_active: boolean
@@ -15559,6 +15563,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          agent_user_id?: string | null
           created_at?: string
           id?: string
           is_active?: boolean
@@ -15568,6 +15573,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          agent_user_id?: string | null
           created_at?: string
           id?: string
           is_active?: boolean

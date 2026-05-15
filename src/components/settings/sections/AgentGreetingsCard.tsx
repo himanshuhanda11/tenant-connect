@@ -1,12 +1,29 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { MessageSquare, Plus, Trash2, Edit2, Check, X, Sparkles, Eye, Search, MessageCircle } from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
+import {
+  HandMetal,
+  Plus,
+  Trash2,
+  Edit2,
+  Check,
+  X,
+  Sparkles,
+  Eye,
+  Search,
+  MessageCircle,
+  ShieldCheck,
+} from 'lucide-react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Input } from '@/components/ui/input';
-import { useGreetingTemplates } from '@/hooks/useGreetingTemplates';
+import { Label } from '@/components/ui/label';
+import { useGreetingTemplates, MAX_AGENT_GREETINGS } from '@/hooks/useGreetingTemplates';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
+import { useTenant } from '@/contexts/TenantContext';
+import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 
 const VARIABLES = [
@@ -21,7 +38,9 @@ const renderPreview = (text: string) =>
     .replace(/\{\{biz\}\}/g, 'Aireatro')
     .replace(/\{\{agent_name\}\}/g, 'Alex');
 
-export function WhatsAppGreetingSettings() {
+export function AgentGreetingsCard() {
+  const { user } = useAuth();
+  const { currentTenant } = useTenant();
   const {
     templates,
     isLoading,
@@ -31,24 +50,58 @@ export function WhatsAppGreetingSettings() {
     seedDefaults,
   } = useGreetingTemplates();
 
+  const [enabled, setEnabled] = useState(false);
+  const [savingFlag, setSavingFlag] = useState(false);
+  const [loadedFlag, setLoadedFlag] = useState(false);
+
   const [newMessage, setNewMessage] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editText, setEditText] = useState('');
-  const [seeded, setSeeded] = useState(false);
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState<'all' | 'active' | 'disabled'>('all');
 
+  // Load enable flag
   useEffect(() => {
-    if (!isLoading && templates.length === 0 && !seeded) {
-      setSeeded(true);
-      seedDefaults.mutate();
+    if (!user?.id || !currentTenant?.id) return;
+    (async () => {
+      const { data } = await supabase
+        .from('agents')
+        .select('personal_greetings_enabled')
+        .eq('user_id', user.id)
+        .eq('tenant_id', currentTenant.id)
+        .maybeSingle();
+      setEnabled(!!data?.personal_greetings_enabled);
+      setLoadedFlag(true);
+    })();
+  }, [user?.id, currentTenant?.id]);
+
+  const toggleEnabled = async (next: boolean) => {
+    if (!user?.id || !currentTenant?.id) return;
+    setEnabled(next);
+    setSavingFlag(true);
+    try {
+      const { error } = await supabase
+        .from('agents')
+        .update({ personal_greetings_enabled: next })
+        .eq('user_id', user.id)
+        .eq('tenant_id', currentTenant.id);
+      if (error) throw error;
+      toast.success(next ? 'Personal greetings enabled' : 'Personal greetings disabled');
+    } catch (err: any) {
+      setEnabled(!next);
+      toast.error(err?.message || 'Failed to update');
+    } finally {
+      setSavingFlag(false);
     }
-  }, [isLoading, templates.length]);
+  };
+
+  const atLimit = templates.length >= MAX_AGENT_GREETINGS;
 
   const handleAdd = () => {
-    if (!newMessage.trim()) return;
-    addTemplate.mutate(newMessage.trim());
-    setNewMessage('');
+    if (!newMessage.trim() || atLimit) return;
+    addTemplate.mutate(newMessage.trim(), {
+      onSuccess: () => setNewMessage(''),
+    });
   };
 
   const insertVariable = (token: string, target: 'new' | 'edit') => {
@@ -63,9 +116,16 @@ export function WhatsAppGreetingSettings() {
 
   const saveEdit = () => {
     if (!editingId || !editText.trim()) return;
-    updateTemplate.mutate({ id: editingId, message_text: editText.trim() });
-    setEditingId(null);
-    setEditText('');
+    updateTemplate.mutate(
+      { id: editingId, message_text: editText.trim() },
+      {
+        onSuccess: () => {
+          setEditingId(null);
+          setEditText('');
+          toast.success('Greeting updated');
+        },
+      }
+    );
   };
 
   const activeCount = templates.filter((t) => t.is_active).length;
@@ -81,48 +141,62 @@ export function WhatsAppGreetingSettings() {
   }, [templates, filter, search]);
 
   return (
-    <div className="space-y-6">
-      {/* Premium hero header */}
-      <div className="relative overflow-hidden rounded-2xl border border-border bg-gradient-to-br from-primary/10 via-background to-background p-6 sm:p-8">
-        <div className="absolute -top-20 -right-20 w-64 h-64 rounded-full bg-primary/10 blur-3xl pointer-events-none" />
-        <div className="relative flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <Card className="overflow-hidden border-border/60">
+      {/* Hero header */}
+      <div className="relative overflow-hidden bg-gradient-to-br from-primary/10 via-background to-background p-6 sm:p-7 border-b border-border/60">
+        <div className="absolute -top-16 -right-16 w-56 h-56 rounded-full bg-primary/15 blur-3xl pointer-events-none" />
+        <div className="relative flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
           <div className="flex items-start gap-4">
             <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center shadow-lg shadow-primary/20 shrink-0">
-              <MessageSquare className="w-6 h-6 text-primary-foreground" />
+              <HandMetal className="w-6 h-6 text-primary-foreground" />
             </div>
             <div>
-              <h2 className="text-xl sm:text-2xl font-semibold tracking-tight text-foreground">
-                WhatsApp Greetings
-              </h2>
-              <p className="text-sm text-muted-foreground mt-1 max-w-xl">
-                Personalized opening messages sent when agents click "Open in WhatsApp". One is randomly selected each time for a natural feel.
-              </p>
+              <CardTitle className="text-lg sm:text-xl tracking-tight flex items-center gap-2">
+                My WhatsApp Greetings
+                <Badge variant="secondary" className="text-[10px] gap-1">
+                  <ShieldCheck className="w-3 h-3" /> Personal
+                </Badge>
+              </CardTitle>
+              <CardDescription className="mt-1 max-w-xl">
+                Up to {MAX_AGENT_GREETINGS} personal openers. When enabled, one is randomly sent
+                for chats assigned to you — and the workspace auto-reply is skipped for those chats.
+              </CardDescription>
             </div>
           </div>
-          <div className="flex items-center gap-2 flex-wrap">
-            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-background/60 border border-border backdrop-blur-sm">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-              <span className="text-xs font-medium text-foreground">{activeCount} active</span>
+          <div className="flex items-center gap-3 shrink-0">
+            <div className="flex flex-col items-end">
+              <span className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium">
+                {enabled ? 'Active' : 'Disabled'}
+              </span>
+              <span className="text-[11px] text-muted-foreground/80">
+                {activeCount}/{templates.length} selected
+              </span>
             </div>
-            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-background/60 border border-border backdrop-blur-sm">
-              <span className="w-2 h-2 rounded-full bg-muted-foreground/40" />
-              <span className="text-xs font-medium text-muted-foreground">{disabledCount} disabled</span>
-            </div>
+            <Switch checked={enabled} onCheckedChange={toggleEnabled} disabled={!loadedFlag || savingFlag} />
           </div>
         </div>
       </div>
 
-      {/* Composer + Live Preview */}
-      <div className="grid gap-4 lg:grid-cols-5">
-        <Card className="lg:col-span-3 border-border/60 shadow-sm">
-          <CardContent className="p-5 space-y-4">
+      <CardContent className={cn('p-5 sm:p-6 space-y-6', !enabled && 'opacity-90')}>
+        {!enabled && (
+          <div className="rounded-lg border border-dashed border-border bg-muted/30 px-4 py-3 text-xs text-muted-foreground">
+            Turn on the toggle above to use your personal greeting library on assigned chats.
+            Templates below stay saved either way.
+          </div>
+        )}
+
+        {/* Composer + Live Preview */}
+        <div className="grid gap-4 lg:grid-cols-5">
+          <div className="lg:col-span-3 space-y-3 rounded-xl border border-border/60 bg-card/50 p-4">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                <Label className="text-sm font-semibold flex items-center gap-2">
                   <Plus className="w-4 h-4 text-primary" />
-                  Compose New Greeting
-                </h3>
-                <p className="text-xs text-muted-foreground mt-0.5">Use variables to personalize each message</p>
+                  New Greeting
+                </Label>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  {templates.length}/{MAX_AGENT_GREETINGS} used · variables personalize each send
+                </p>
               </div>
             </div>
 
@@ -143,36 +217,37 @@ export function WhatsAppGreetingSettings() {
             <Textarea
               value={newMessage}
               onChange={(e) => setNewMessage(e.target.value)}
-              placeholder="Hi {{name}}! 👋 Welcome to {{biz}}. How can we help today?"
+              placeholder="Hi {{name}}! 👋 This is {{agent_name}} from {{biz}}. How can we help today?"
               rows={4}
               maxLength={500}
               className="resize-none text-sm"
+              disabled={atLimit}
             />
 
             <div className="flex items-center justify-between">
               <span className="text-xs text-muted-foreground">{newMessage.length}/500</span>
               <Button
                 onClick={handleAdd}
-                disabled={!newMessage.trim() || addTemplate.isPending}
+                disabled={!newMessage.trim() || addTemplate.isPending || atLimit}
                 size="sm"
                 className="gap-1.5 bg-gradient-to-r from-primary to-primary/80 hover:opacity-90"
               >
                 <Plus className="h-4 w-4" />
-                Add Greeting
+                {atLimit ? 'Limit reached' : 'Add Greeting'}
               </Button>
             </div>
-          </CardContent>
-        </Card>
+          </div>
 
-        {/* WhatsApp-style live preview */}
-        <Card className="lg:col-span-2 border-border/60 shadow-sm overflow-hidden">
-          <CardContent className="p-0">
-            <div className="flex items-center gap-2 px-4 py-3 border-b border-border bg-muted/30">
+          {/* Live preview */}
+          <div className="lg:col-span-2 rounded-xl border border-border/60 overflow-hidden bg-card/50">
+            <div className="flex items-center gap-2 px-4 py-2.5 border-b border-border bg-muted/30">
               <Eye className="w-3.5 h-3.5 text-muted-foreground" />
-              <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Live Preview</span>
+              <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">
+                Live Preview
+              </span>
             </div>
             <div
-              className="p-4 min-h-[180px] flex items-end"
+              className="p-4 min-h-[170px] flex items-end"
               style={{
                 backgroundImage:
                   'radial-gradient(circle at 1px 1px, hsl(var(--muted-foreground) / 0.08) 1px, transparent 0)',
@@ -183,7 +258,7 @@ export function WhatsAppGreetingSettings() {
                 <p className="text-sm leading-relaxed whitespace-pre-wrap break-words">
                   {newMessage.trim()
                     ? renderPreview(newMessage)
-                    : 'Hi Sarah! 👋 Welcome to Aireatro. How can we help today?'}
+                    : 'Hi Sarah! 👋 This is Alex from Aireatro. How can we help today?'}
                 </p>
                 <div className="flex items-center justify-end gap-1 mt-1">
                   <span className="text-[10px] text-white/80">12:34</span>
@@ -191,16 +266,14 @@ export function WhatsAppGreetingSettings() {
                 </div>
               </div>
             </div>
-          </CardContent>
-        </Card>
-      </div>
+          </div>
+        </div>
 
-      {/* Templates list */}
-      <Card className="border-border/60 shadow-sm">
-        <CardContent className="p-5 space-y-4">
+        {/* Library */}
+        <div className="space-y-3">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div className="flex items-center gap-2">
-              <h3 className="text-sm font-semibold text-foreground">Greeting Library</h3>
+              <h3 className="text-sm font-semibold text-foreground">My Greeting Library</h3>
               <Badge variant="secondary" className="text-[10px]">{templates.length}</Badge>
             </div>
             <div className="flex items-center gap-2">
@@ -239,7 +312,7 @@ export function WhatsAppGreetingSettings() {
               ))}
             </div>
           ) : filtered.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-12 text-center border-2 border-dashed border-border rounded-lg">
+            <div className="flex flex-col items-center justify-center py-10 text-center border-2 border-dashed border-border rounded-lg">
               <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center mb-3">
                 <MessageCircle className="w-6 h-6 text-muted-foreground/60" />
               </div>
@@ -248,7 +321,7 @@ export function WhatsAppGreetingSettings() {
               </p>
               <p className="text-xs text-muted-foreground mt-1 max-w-xs">
                 {templates.length === 0
-                  ? 'Add your first template above or load our curated defaults.'
+                  ? 'Add your first opener above or load 10 curated defaults.'
                   : 'Try adjusting the search or filter.'}
               </p>
               {templates.length === 0 && (
@@ -260,7 +333,7 @@ export function WhatsAppGreetingSettings() {
                   className="mt-4 gap-1.5"
                 >
                   <Sparkles className="h-3.5 w-3.5" />
-                  Load Defaults
+                  Load 10 Defaults
                 </Button>
               )}
             </div>
@@ -317,11 +390,17 @@ export function WhatsAppGreetingSettings() {
                             variant={template.is_active ? 'default' : 'secondary'}
                             className={cn(
                               'text-[10px] h-5 gap-1',
-                              template.is_active && 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/20 hover:bg-emerald-500/20'
+                              template.is_active &&
+                                'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/20 hover:bg-emerald-500/20'
                             )}
                           >
-                            <span className={cn('w-1.5 h-1.5 rounded-full', template.is_active ? 'bg-emerald-500' : 'bg-muted-foreground/50')} />
-                            {template.is_active ? 'Active' : 'Disabled'}
+                            <span
+                              className={cn(
+                                'w-1.5 h-1.5 rounded-full',
+                                template.is_active ? 'bg-emerald-500' : 'bg-muted-foreground/50'
+                              )}
+                            />
+                            {template.is_active ? 'Selected' : 'Off'}
                           </Badge>
                           <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
                             <Button
@@ -342,7 +421,9 @@ export function WhatsAppGreetingSettings() {
                             </Button>
                             <Switch
                               checked={template.is_active}
-                              onCheckedChange={(checked) => updateTemplate.mutate({ id: template.id, is_active: checked })}
+                              onCheckedChange={(checked) =>
+                                updateTemplate.mutate({ id: template.id, is_active: checked })
+                              }
                               className="scale-75 ml-0.5"
                             />
                           </div>
@@ -357,8 +438,8 @@ export function WhatsAppGreetingSettings() {
               })}
             </div>
           )}
-        </CardContent>
-      </Card>
-    </div>
+        </div>
+      </CardContent>
+    </Card>
   );
 }
