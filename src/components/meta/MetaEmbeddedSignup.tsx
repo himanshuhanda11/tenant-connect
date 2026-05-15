@@ -48,10 +48,50 @@ export function MetaEmbeddedSignup({ onSuccess, onError, onConnectionError }: Me
     displayNumber?: string;
     coexistence?: CoexistencePayload | null;
   } | null>(null);
+  const [existingCoexistence, setExistingCoexistence] = useState<{
+    wabaId: string;
+    phoneNumberId?: string | null;
+    displayNumber?: string | null;
+  } | null>(null);
 
   const sessionDataRef = useRef<{ wabaId: string; phoneNumberId: string } | null>(null);
 
   useEffect(() => { loadFacebookSdk().catch(() => {}); }, []);
+
+  // Detect existing coexistence connection so we can show Reconnect instead of full setup
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      if (!currentTenant?.id) {
+        setExistingCoexistence(null);
+        return;
+      }
+      try {
+        const { data: waba } = await supabase
+          .from('waba_accounts')
+          .select('waba_id, coexistence_enabled, is_on_biz_app')
+          .eq('tenant_id', currentTenant.id)
+          .eq('coexistence_enabled', true as any)
+          .maybeSingle();
+        if (cancelled || !waba?.waba_id) { setExistingCoexistence(null); return; }
+        const { data: phone } = await supabase
+          .from('phone_numbers')
+          .select('phone_number_id, display_number')
+          .eq('tenant_id', currentTenant.id)
+          .eq('waba_account_id', (waba as any).id ?? null)
+          .maybeSingle();
+        if (cancelled) return;
+        setExistingCoexistence({
+          wabaId: (waba as any).waba_id,
+          phoneNumberId: (phone as any)?.phone_number_id ?? null,
+          displayNumber: (phone as any)?.display_number ?? null,
+        });
+      } catch {
+        if (!cancelled) setExistingCoexistence(null);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [currentTenant?.id, lastResult?.mode]);
 
   useEffect(() => {
     const handler = (event: MessageEvent) => {
