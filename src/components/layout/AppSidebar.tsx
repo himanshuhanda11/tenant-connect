@@ -218,6 +218,28 @@ export function AppSidebar() {
     return () => el.removeEventListener('scroll', onScroll);
   }, []);
 
+  // When the sidebar expands from collapsed, smoothly scroll to top so the
+  // user can see all inner tabs immediately.
+  const prevCollapsedRef = useRef(isCollapsed);
+  useEffect(() => {
+    const wasCollapsed = prevCollapsedRef.current;
+    prevCollapsedRef.current = isCollapsed;
+    if (wasCollapsed && !isCollapsed) {
+      const el = sidebarScrollRef.current;
+      if (!el) return;
+      // Wait for the width transition (~200ms) before animating scroll
+      const t = window.setTimeout(() => {
+        try {
+          el.scrollTo({ top: 0, behavior: 'smooth' });
+        } catch {
+          el.scrollTop = 0;
+        }
+        sessionStorage.setItem('sidebar_scroll_top', '0');
+      }, 60);
+      return () => window.clearTimeout(t);
+    }
+  }, [isCollapsed]);
+
   const handleSignOut = async () => {
     setCurrentTenant(null);
     await signOut();
