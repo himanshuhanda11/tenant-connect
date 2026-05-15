@@ -46,8 +46,10 @@ export function AgentAvailabilityPill({ compact = false }: { compact?: boolean }
     return <div className="h-8 w-24 rounded-full bg-muted/40 animate-pulse" />;
   }
 
-  const pillLabel = status === 'available' ? 'Available' : status === 'paused' ? 'Paused' : 'Offline';
-  const tooltip = status === 'paused' && pauseUntil ? `${formatPausedUntil(pauseUntil)} · ${formatCountdown(pauseUntil)}` : pillLabel;
+  const pillLabel = status === 'available' ? 'Pause New Chats' : status === 'paused' ? 'Paused' : 'Offline';
+  const tooltip = status === 'paused' && pauseUntil
+    ? `Paused · resumes ${formatResumeAt(pauseUntil)}`
+    : status === 'available' ? 'Available — click to pause new chats' : 'Offline';
 
   const doPause = async (minutes: number, opts: { force?: boolean } = {}) => {
     setSubmitting(minutes);
