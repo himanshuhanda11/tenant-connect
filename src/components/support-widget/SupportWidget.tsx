@@ -241,7 +241,7 @@ export function SupportWidget() {
   if (mode === 'icon_only' && !collectLead) {
     if (iconDismissed) return null;
     return (
-      <div className={cn('fixed bottom-4 sm:bottom-6 z-[60] flex items-center gap-2', positionClass)}>
+      <div className={cn('fixed bottom-4 sm:bottom-6 z-[60] flex items-center gap-3', positionClass)}>
         {showDemoCompact && (
           <button
             type="button"
