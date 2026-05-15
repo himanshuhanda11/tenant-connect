@@ -17,7 +17,7 @@ import { PAUSE_DURATIONS, PAUSE_REASONS, formatCountdown, formatResumeAt } from 
 
 export function AgentAvailabilityPill({ compact = false }: { compact?: boolean }) {
   const isMobile = useIsMobile();
-  const { status, pauseUntil, loading, pause, resume } = useAgentAvailability();
+  const { status, pauseUntil, role, loading, pause, resume } = useAgentAvailability();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
