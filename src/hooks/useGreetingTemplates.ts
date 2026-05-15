@@ -135,6 +135,8 @@ export function useGreetingTemplates() {
     return replace(pick.message_text);
   };
 
+  const hasActiveGreeting = templates.some(t => t.is_active);
+
   return {
     templates,
     isLoading,
@@ -143,6 +145,7 @@ export function useGreetingTemplates() {
     deleteTemplate,
     seedDefaults,
     getRandomMessage: getGreetingMessage,
+    hasActiveGreeting,
     DEFAULT_TEMPLATES,
     MAX_AGENT_GREETINGS,
   };
