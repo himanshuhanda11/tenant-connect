@@ -180,15 +180,7 @@ export default function PhoneNumberDetails() {
         ? 'WhatsApp connection needs to be re-authorized. Please reconnect this number from WhatsApp setup.'
         : data.error);
 
-      let storedVertical: string | null = null;
-      if (number?.tenant_id) {
-        const { data: tenantProfile } = await supabase
-          .from('tenants')
-          .select('business_category')
-          .eq('id', number.tenant_id)
-          .maybeSingle();
-        storedVertical = (tenantProfile as any)?.business_category || null;
-      }
+      const storedVertical = (number?.raw as any)?.whatsapp_profile_vertical || null;
 
       setBusinessProfile({
         loading: false,
@@ -243,7 +235,6 @@ export default function PhoneNumberDetails() {
             .update({
               whatsapp_profile_completed: true,
               whatsapp_profile_saved_at: savedAt,
-              business_category: businessProfile.data.vertical || null,
             } as any)
             .eq('id', number.tenant_id);
         } catch (e) {
