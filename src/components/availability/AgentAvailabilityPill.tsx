@@ -39,8 +39,9 @@ export function AgentAvailabilityPill({ compact = false }: { compact?: boolean }
   }
 
   const pillLabel = status === 'available' ? 'Pause New Chats' : status === 'paused' ? 'Paused' : 'Offline';
-  const tooltip = status === 'paused' && pauseUntil
-    ? `Paused · resumes ${formatResumeAt(pauseUntil)}`
+  const isIndefinite = status === 'paused' && !pauseUntil;
+  const tooltip = status === 'paused'
+    ? (isIndefinite ? 'Paused indefinitely — click to resume' : `Paused · resumes ${formatResumeAt(pauseUntil)}`)
     : status === 'available' ? 'Available — click to pause new chats' : 'Offline';
 
   const doPause = async (minutes: number, opts: { force?: boolean } = {}) => {
@@ -66,11 +67,18 @@ export function AgentAvailabilityPill({ compact = false }: { compact?: boolean }
       return;
     }
     setOpen(false);
-    const until = new Date(Date.now() + minutes * 60_000);
-    toast({
-      title: 'Paused new chats',
-      description: `You won't receive new chats until ${formatResumeAt(until)}. Existing chats remain assigned to you.`,
-    });
+    if (minutes === 0) {
+      toast({
+        title: 'Paused indefinitely',
+        description: `You won't receive new chats until you resume. Existing chats remain assigned to you.`,
+      });
+    } else {
+      const until = new Date(Date.now() + minutes * 60_000);
+      toast({
+        title: 'Paused new chats',
+        description: `You won't receive new chats until ${formatResumeAt(until)}. Existing chats remain assigned to you.`,
+      });
+    }
   };
 
   const doResume = async () => {
