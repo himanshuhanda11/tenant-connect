@@ -8,6 +8,27 @@ const corsHeaders = {
 const WHATSAPP_API_VERSION = 'v21.0';
 const WHATSAPP_API_BASE = `https://graph.facebook.com/${WHATSAPP_API_VERSION}`;
 
+const jsonResponse = (body: Record<string, unknown>, status = 200) => new Response(JSON.stringify(body), {
+  status,
+  headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+});
+
+const metaErrorResponse = (fallbackError: string, data: any, action: string) => {
+  const metaMessage = data?.error?.message || 'Unknown error';
+  const metaCode = data?.error?.code;
+  const isPermissionError = metaCode === 200 || /permission/i.test(metaMessage);
+
+  return jsonResponse({
+    success: false,
+    error: isPermissionError
+      ? 'Meta rejected this WhatsApp profile update because the connected number is missing profile update permission. Please reconnect this number from WhatsApp setup, then try again.'
+      : fallbackError,
+    code: isPermissionError ? 'meta_permission_required' : 'meta_api_error',
+    details: metaMessage,
+    action,
+  });
+};
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -130,13 +151,7 @@ Deno.serve(async (req) => {
       console.log('Profile picture update response:', JSON.stringify(profileData));
 
       if (!profileRes.ok) {
-        return new Response(JSON.stringify({ 
-          error: 'Failed to set profile picture',
-          details: profileData.error?.message || JSON.stringify(profileData)
-        }), {
-          status: profileRes.status,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
+        return metaErrorResponse('Failed to set profile picture', profileData, 'upload_picture');
       }
 
       return new Response(JSON.stringify({ 
@@ -247,13 +262,7 @@ Deno.serve(async (req) => {
       console.log('Profile UPDATE response:', JSON.stringify(data));
 
       if (!response.ok) {
-        return new Response(JSON.stringify({ 
-          error: 'Failed to update profile',
-          details: data.error?.message || 'Unknown error'
-        }), {
-          status: response.status,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
+        return metaErrorResponse('Failed to update profile', data, 'update');
       }
 
       return new Response(JSON.stringify({ 
