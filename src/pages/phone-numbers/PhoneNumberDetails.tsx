@@ -238,6 +238,14 @@ export default function PhoneNumberDetails() {
         window.dispatchEvent(new CustomEvent('aireatro:wa-profile-saved', { detail: { tenantId: number.tenant_id } }));
       }
 
+      if (data?.meta_blocked || data?.warning) {
+        const message = data.warning || 'Meta kept your current WhatsApp profile unchanged.';
+        toast.warning(message);
+        setBusinessProfile(prev => ({ ...prev, saving: false, warning: message }));
+        await fetchBusinessProfile();
+        return;
+      }
+
       toast.success('WhatsApp Profile Completed Successfully');
       setBusinessProfile(prev => ({ ...prev, saving: false, warning: undefined }));
     } catch (error: any) {

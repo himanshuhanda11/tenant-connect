@@ -18,6 +18,17 @@ const metaErrorResponse = (fallbackError: string, data: any, action: string) => 
   const metaCode = data?.error?.code;
   const isPermissionError = metaCode === 200 || /permission/i.test(metaMessage);
 
+  if (isPermissionError && (action === 'update' || action === 'upload_picture')) {
+    return jsonResponse({
+      success: true,
+      meta_blocked: true,
+      code: 'meta_permission_pending',
+      warning: 'Meta has not enabled profile editing for this connected number yet. Your WhatsApp connection stays active and the current profile remains unchanged.',
+      details: metaMessage,
+      action,
+    });
+  }
+
   return jsonResponse({
     success: false,
     error: isPermissionError
