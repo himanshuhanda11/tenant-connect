@@ -353,6 +353,11 @@ export default function Dashboard() {
             value={`₹${creditsBalance.toLocaleString()}`} sub="Wallet balance" onClick={() => navigate('/billing')} />
         </div>
 
+        {/* Highlight: configure auto-replies for incoming messages */}
+        <Suspense fallback={null}>
+          <ConfigureAutoReplyCard />
+        </Suspense>
+
         {/* ═══════════════════════════════════════════════
             SECTION 3: SETUP PROGRESS
         ═══════════════════════════════════════════════ */}
