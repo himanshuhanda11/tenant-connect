@@ -48,10 +48,18 @@
     <!-- Favicon & PWA Icons -->
     <link rel="icon" href="/favicon.ico" sizes="48x48" type="image/x-icon" />
     <link rel="icon" href="/favicon-32x32.png" sizes="32x32" type="image/png" />
-    <link rel="icon" href="/favicon.png" sizes="any" type="image/png" />
     <link rel="apple-touch-icon" href="/pwa-192x192.png" />
     <link rel="apple-touch-icon" sizes="180x180" href="/pwa-192x192.png" />
-    <link rel="mask-icon" href="/favicon.png" color="#25D366" />
+    <link rel="mask-icon" href="/logo.svg" color="#25D366" />
+
+    <!-- Resource hints: warm up Supabase + Google Fonts connections -->
+    <link rel="preconnect" href="https://fygwjpdasnhaomoqdvcu.supabase.co" crossorigin />
+    <link rel="dns-prefetch" href="https://fygwjpdasnhaomoqdvcu.supabase.co" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+    <!-- Preload the initial loader logo so first paint isn't blocked -->
+    <link rel="preload" as="image" href="/aireatro-logo.png" fetchpriority="high" />
 
     <!-- Manifest -->
     <link rel="manifest" href="/manifest.webmanifest" />
