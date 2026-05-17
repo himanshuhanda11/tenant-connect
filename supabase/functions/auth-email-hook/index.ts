@@ -20,7 +20,7 @@ const EMAIL_SUBJECTS: Record<string, string> = {
   signup: 'Confirm your email',
   invite: "You've been invited",
   magiclink: 'Your login link',
-  recovery: 'Reset your password',
+  recovery: 'AiReatro password reset link',
   email_change: 'Confirm your new email',
   reauthentication: 'Your verification code',
 }
@@ -36,7 +36,7 @@ const EMAIL_TEMPLATES: Record<string, React.ComponentType<any>> = {
 }
 
 // Configuration
-const SITE_NAME = "aireatro"
+const SITE_NAME = "AiReatro"
 const SENDER_DOMAIN = "update.aireatro.com"
 const ROOT_DOMAIN = "aireatro.com"
 const FROM_DOMAIN = "update.aireatro.com" // Domain shown in From address (may be root or sender subdomain)

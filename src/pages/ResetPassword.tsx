@@ -65,6 +65,8 @@ export default function ResetPassword() {
 
       if (error) throw error;
 
+      await supabase.auth.signOut({ scope: 'global' });
+
       setIsSuccess(true);
       toast.success('Password updated successfully!');
       
