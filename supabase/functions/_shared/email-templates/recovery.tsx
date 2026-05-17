@@ -25,27 +25,35 @@ export const RecoveryEmail = ({
 }: RecoveryEmailProps) => (
   <Html lang="en" dir="ltr">
     <Head />
-    <Preview>Reset your password for {siteName}</Preview>
+    <Preview>Choose a new AiReatro password securely</Preview>
     <Body style={main}>
       <Container style={container}>
-        <Img
-          src="https://aireatro.com/logo.svg"
-          alt="AiReatro"
-          width="160"
-          style={logo}
-        />
-        <Heading style={h1}>Reset your password</Heading>
+        <Container style={card}>
+          <Img
+            src="https://aireatro.com/logo.svg"
+            alt="AiReatro"
+            width="156"
+            style={logo}
+          />
+          <Text style={eyebrow}>Secure account recovery</Text>
+          <Heading style={h1}>Reset your password</Heading>
+          <Text style={text}>
+            We received a request to create a new password for your AiReatro
+            account. Use the secure button below to continue.
+          </Text>
+          <Button style={button} href={confirmationUrl}>
+            Reset Password
+          </Button>
+          <Text style={linkHelp}>
+            Button not working? Copy and paste this link into your browser:
+          </Text>
+          <Text style={linkText}>{confirmationUrl}</Text>
+        </Container>
         <Text style={text}>
-          We received a request to reset your password for {siteName}. Click
-          the button below to choose a new password.
+          This link expires soon for your protection. If you didn't request a
+          password reset, you can safely ignore this email.
         </Text>
-        <Button style={button} href={confirmationUrl}>
-          Reset Password
-        </Button>
-        <Text style={footer}>
-          If you didn't request a password reset, you can safely ignore this
-          email. Your password will not be changed.
-        </Text>
+        <Text style={footer}>© AiReatro — WhatsApp CRM automation</Text>
       </Container>
     </Body>
   </Html>
@@ -53,27 +61,56 @@ export const RecoveryEmail = ({
 
 export default RecoveryEmail
 
-const main = { backgroundColor: '#ffffff', fontFamily: 'Arial, sans-serif' }
-const container = { padding: '20px 25px' }
-const logo = { margin: '0 auto 24px', display: 'block' as const }
+const main = {
+  backgroundColor: '#ffffff',
+  fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif',
+}
+const container = { padding: '28px 18px', maxWidth: '560px', margin: '0 auto' }
+const card = {
+  backgroundColor: '#f8faf9',
+  border: '1px solid #dfe8e3',
+  borderRadius: '18px',
+  padding: '34px 28px',
+}
+const logo = { margin: '0 0 28px', display: 'block' as const }
+const eyebrow = {
+  color: 'hsl(142, 70%, 34%)',
+  fontSize: '12px',
+  fontWeight: '700' as const,
+  letterSpacing: '0.08em',
+  margin: '0 0 10px',
+  textTransform: 'uppercase' as const,
+}
 const h1 = {
-  fontSize: '22px',
-  fontWeight: 'bold' as const,
-  color: '#000000',
-  margin: '0 0 20px',
+  fontSize: '28px',
+  lineHeight: '1.2',
+  fontWeight: '700' as const,
+  color: 'hsl(220, 20%, 10%)',
+  margin: '0 0 16px',
 }
 const text = {
-  fontSize: '14px',
-  color: '#55575d',
-  lineHeight: '1.5',
-  margin: '0 0 25px',
+  fontSize: '15px',
+  color: 'hsl(220, 10%, 46%)',
+  lineHeight: '1.65',
+  margin: '22px 0 0',
 }
 const button = {
-  backgroundColor: '#000000',
+  backgroundColor: 'hsl(142, 70%, 45%)',
   color: '#ffffff',
-  fontSize: '14px',
-  borderRadius: '8px',
-  padding: '12px 20px',
+  fontSize: '15px',
+  fontWeight: '700' as const,
+  borderRadius: '10px',
+  padding: '14px 22px',
   textDecoration: 'none',
+  display: 'inline-block',
+  margin: '8px 0 24px',
 }
-const footer = { fontSize: '12px', color: '#999999', margin: '30px 0 0' }
+const linkHelp = { fontSize: '12px', color: 'hsl(220, 10%, 46%)', margin: '0 0 8px' }
+const linkText = {
+  color: 'hsl(142, 70%, 34%)',
+  fontSize: '12px',
+  lineHeight: '1.55',
+  wordBreak: 'break-all' as const,
+  margin: '0',
+}
+const footer = { fontSize: '12px', color: '#9aa5a0', margin: '16px 0 0', textAlign: 'center' as const }
