@@ -53,6 +53,10 @@ export const RecoveryEmail = ({
           This link expires soon for your protection. If you didn't request a
           password reset, you can safely ignore this email.
         </Text>
+        <Text style={footer}>
+          Sent by AiReatro from noreply@update.aireatro.com. Add this address to
+          your contacts so future password reset emails land in your inbox.
+        </Text>
         <Text style={footer}>© AiReatro — WhatsApp CRM automation</Text>
       </Container>
     </Body>
