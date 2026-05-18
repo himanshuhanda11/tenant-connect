@@ -15,6 +15,8 @@ import { template as contactsExport } from './contacts-export.tsx'
 import { template as contactRequestCustomer } from './contact-request-customer.tsx'
 import { template as contactRequestAdmin } from './contact-request-admin.tsx'
 import { template as contactRequestReply } from './contact-request-reply.tsx'
+import { template as loginNotificationCustomer } from './login-notification-customer.tsx'
+import { template as loginNotificationAdmin } from './login-notification-admin.tsx'
 
 export const TEMPLATES: Record<string, TemplateEntry> = {
   'complete-signup-reminder': completeSignupReminder,
@@ -23,4 +25,6 @@ export const TEMPLATES: Record<string, TemplateEntry> = {
   'contact-request-customer': contactRequestCustomer,
   'contact-request-admin': contactRequestAdmin,
   'contact-request-reply': contactRequestReply,
+  'login-notification-customer': loginNotificationCustomer,
+  'login-notification-admin': loginNotificationAdmin,
 }
