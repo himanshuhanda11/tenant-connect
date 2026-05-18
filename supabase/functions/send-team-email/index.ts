@@ -1,7 +1,7 @@
 import { corsHeaders, json, getAdminClient } from "../_shared/supabase.ts";
 
-// Project email sender: all Aireatro app emails must be sent from admin@aireatro.com.
-const SENDER_DOMAIN = "aireatro.com";
+// Internal verified sender route; recipients still see admin@aireatro.com below.
+const SENDER_DOMAIN = "update.aireatro.com";
 const FROM_ADDRESS = "Aireatro <admin@aireatro.com>";
 
 // Strip diacritics + drop non-ASCII so subject lines never break headers
