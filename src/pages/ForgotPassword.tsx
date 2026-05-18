@@ -73,10 +73,10 @@ export default function ForgotPassword() {
                 <h2 className="text-2xl font-semibold tracking-tight">Check your email</h2>
                 <p className="text-muted-foreground">
                   If an account exists for <span className="font-medium text-foreground">{email}</span>, 
-                  you'll receive a password reset link shortly from <span className="font-medium text-foreground">admin@update.aireatro.com</span>.
+                  you'll receive a password reset link shortly from <span className="font-medium text-foreground">admin@aireatro.com</span>.
                 </p>
                 <p className="text-xs text-muted-foreground pt-2">
-                  Can't find it? Check your <span className="font-medium">Spam</span>, <span className="font-medium">Junk</span> or <span className="font-medium">Promotions</span> folder and search for "AiReatro password reset". Add admin@update.aireatro.com to your contacts to ensure future delivery.
+                  Can't find it? Check your <span className="font-medium">Spam</span>, <span className="font-medium">Junk</span> or <span className="font-medium">Promotions</span> folder and search for "AiReatro password reset". Add the sender to your contacts to ensure future delivery.
                 </p>
               </div>
 

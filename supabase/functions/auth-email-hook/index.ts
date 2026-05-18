@@ -39,7 +39,7 @@ const EMAIL_TEMPLATES: Record<string, React.ComponentType<any>> = {
 const SITE_NAME = "AiReatro"
 const SENDER_DOMAIN = "update.aireatro.com"
 const ROOT_DOMAIN = "aireatro.com"
-const FROM_DOMAIN = "update.aireatro.com" // Verified sender subdomain used for reliable inbox delivery
+const FROM_DOMAIN = "aireatro.com" // Domain shown in From address (may be root or sender subdomain)
 const FROM_ADDRESS = `${SITE_NAME} <admin@${FROM_DOMAIN}>`
 
 // Sample data for preview mode ONLY (not used in actual email sending).
