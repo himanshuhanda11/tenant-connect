@@ -5,8 +5,8 @@ import { TEMPLATES } from '../_shared/transactional-email-templates/registry.ts'
 
 // Configuration baked in at scaffold time.
 const SITE_NAME = "Aireatro"
-// Use the project email domain for all visible and authenticated app emails.
-const SENDER_DOMAIN = "aireatro.com"
+// Internal verified sender route; recipients still see admin@aireatro.com below.
+const SENDER_DOMAIN = "update.aireatro.com"
 const FROM_DOMAIN = "aireatro.com"
 const FROM_ADDRESS = `${SITE_NAME} <admin@${FROM_DOMAIN}>`
 
