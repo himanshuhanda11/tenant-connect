@@ -1,6 +1,29 @@
 import { sendLovableEmail } from 'npm:@lovable.dev/email-js'
 import { createClient } from 'npm:@supabase/supabase-js@2'
 
+const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY')
+
+async function sendViaResend(payload: Record<string, unknown>): Promise<boolean> {
+  if (!RESEND_API_KEY) return false
+  const response = await fetch('https://api.resend.com/emails', {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${RESEND_API_KEY}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      from: payload.from,
+      to: [payload.to],
+      reply_to: payload.reply_to,
+      subject: payload.subject,
+      html: payload.html,
+      text: payload.text,
+      headers: { 'X-Aireatro-Message-ID': payload.message_id },
+    }),
+  })
+  if (response.ok) return true
+  const errorText = await response.text()
+  console.warn('Resend delivery failed, falling back to managed email', { error: errorText.slice(0, 500) })
+  return false
+}
+
 const MAX_RETRIES = 5
 const DEFAULT_BATCH_SIZE = 10
 const DEFAULT_SEND_DELAY_MS = 200
