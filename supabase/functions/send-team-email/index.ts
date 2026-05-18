@@ -1,10 +1,10 @@
 import { corsHeaders, json, getAdminClient } from "../_shared/supabase.ts";
 
-// Verified Lovable Emails sender.
+// Verified Lovable Emails sender (Mailgun via update.aireatro.com).
 // We route ALL transactional notifications through the Lovable Emails queue
 // so admin notifications, signup emails, and contact notifications share
-// the same verified sender identity as auth emails.
-const SENDER_DOMAIN = "aireatro.com";
+// the same verified sender route as auth emails.
+const SENDER_DOMAIN = "update.aireatro.com";
 const FROM_ADDRESS = "Aireatro <admin@aireatro.com>";
 
 // Strip diacritics + drop non-ASCII so subject lines never break headers
