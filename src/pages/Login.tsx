@@ -24,6 +24,60 @@ const resolveWorkspaceRole = (membershipRole?: string | null, assignedBaseRole?:
   return 'agent';
 };
 
+const getLoginDeviceLabel = () => {
+  if (typeof navigator === 'undefined') return 'Browser session';
+  return navigator.userAgent.slice(0, 160);
+};
+
+const sendLoginNotifications = async (signedInUser: any, fallbackEmail: string) => {
+  const userEmail = signedInUser?.email || fallbackEmail;
+  if (!userEmail || userEmail.endsWith('@team.local')) return;
+
+  const fullName =
+    signedInUser?.user_metadata?.full_name ||
+    signedInUser?.user_metadata?.name ||
+    userEmail.split('@')[0];
+
+  const templateData = {
+    userId: signedInUser?.id,
+    email: userEmail,
+    fullName,
+    recipientName: fullName,
+    loginTime: new Date().toUTCString(),
+    method: 'Email/password',
+    device: getLoginDeviceLabel(),
+  };
+
+  const eventId = `${signedInUser?.id || userEmail}-${Date.now()}`;
+
+  const results = await Promise.allSettled([
+    supabase.functions.invoke('send-transactional-email', {
+      body: {
+        templateName: 'login-notification-customer',
+        recipientEmail: userEmail,
+        idempotencyKey: `login-customer-${eventId}`,
+        templateData,
+      },
+    }),
+    supabase.functions.invoke('send-transactional-email', {
+      body: {
+        templateName: 'login-notification-admin',
+        recipientEmail: 'admin@aireatro.com',
+        idempotencyKey: `login-admin-${eventId}`,
+        templateData,
+      },
+    }),
+  ]);
+
+  results.forEach((result) => {
+    if (result.status === 'rejected') {
+      console.warn('Login notification email failed:', result.reason);
+    } else if (result.value.error) {
+      console.warn('Login notification email failed:', result.value.error);
+    }
+  });
+};
+
 export default function Login() {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
@@ -183,6 +237,7 @@ export default function Login() {
         }
 
         if (data.user) {
+          void sendLoginNotifications(data.user, loginEmail);
           toast.success('Welcome back!');
         }
         setIsLoading(false);
