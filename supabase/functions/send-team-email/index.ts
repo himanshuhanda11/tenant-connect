@@ -5,7 +5,7 @@ import { corsHeaders, json, getAdminClient } from "../_shared/supabase.ts";
 // so admin notifications, signup emails, and contact notifications share
 // the same verified sender route as auth emails.
 const SENDER_DOMAIN = "update.aireatro.com";
-const FROM_ADDRESS = "Aireatro <admin@aireatro.com>";
+const FROM_ADDRESS = "Aireatro <admin@update.aireatro.com>";
 
 // Strip diacritics + drop non-ASCII so subject lines never break headers
 function asciiSafe(s: string): string {
