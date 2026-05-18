@@ -1,14 +1,6 @@
 import { corsHeaders, json, getAdminClient } from "../_shared/supabase.ts";
 
-// Verified Lovable Emails sender (Mailgun via update.aireatro.com).
-// We route ALL transactional notifications through the Lovable Emails queue
-// because aireatro.com apex is not verified in Resend (only Google Workspace
-// MX exists), which caused admin notifications for demo/signup/invite to
-// silently bounce. update.aireatro.com is delegated to Lovable's NS, has
-// SPF + DKIM, and has proven delivery in email_send_log.
-// SENDER_DOMAIN is the verified DKIM/sender subdomain (delegated to Lovable NS).
-// It is NEVER visible to recipients — only used internally for authentication.
-// Recipients only see FROM_ADDRESS in their "From" header.
+// Internal verified sender route; recipients still see admin@aireatro.com below.
 const SENDER_DOMAIN = "update.aireatro.com";
 const FROM_ADDRESS = "Aireatro <admin@aireatro.com>";
 
