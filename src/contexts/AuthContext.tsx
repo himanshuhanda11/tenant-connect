@@ -17,6 +17,17 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+const getLoginDeviceLabel = () => {
+  if (typeof navigator === 'undefined') return 'Browser session';
+  return navigator.userAgent.slice(0, 160);
+};
+
+const shouldSkipLoginNotification = (email?: string | null) => {
+  if (!email || email.endsWith('@team.local')) return true;
+  if (typeof window !== 'undefined' && window.location.pathname.includes('reset-password')) return true;
+  return false;
+};
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUserState] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
@@ -25,6 +36,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Keep a ref to the current user id so we can skip unnecessary setUser calls
   // that would create new object references and cascade re-renders through the app.
   const userIdRef = useRef<string | null>(null);
+  const lastLoginNotificationRef = useRef<{ key: string; at: number } | null>(null);
 
   // Stable setUser: only updates state if the user id actually changed
   const setUser = (newUser: User | null) => {
@@ -51,6 +63,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       setSession(session);
       setUser(session?.user ?? null);
+
+      if (event === 'SIGNED_IN' && session?.user && !shouldSkipLoginNotification(session.user.email)) {
+        const notificationKey = `${session.user.id}:${session.user.last_sign_in_at || ''}`;
+        const last = lastLoginNotificationRef.current;
+        if (!last || last.key !== notificationKey || Date.now() - last.at > 60_000) {
+          lastLoginNotificationRef.current = { key: notificationKey, at: Date.now() };
+          setTimeout(() => {
+            sendLoginNotifications(session.user).catch((err) => {
+              console.warn('[Auth] Login notification email failed:', err);
+            });
+          }, 0);
+        }
+      }
 
       // Defer profile fetch and onboarding step update
       if (session?.user) {
@@ -140,6 +165,54 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (!error && data) {
       setProfile(data as Profile);
     }
+  };
+
+  const sendLoginNotifications = async (signedInUser: User) => {
+    const userEmail = signedInUser.email;
+    if (shouldSkipLoginNotification(userEmail)) return;
+
+    const fullName =
+      signedInUser.user_metadata?.full_name ||
+      signedInUser.user_metadata?.name ||
+      userEmail!.split('@')[0];
+
+    const templateData = {
+      userId: signedInUser.id,
+      email: userEmail,
+      fullName,
+      recipientName: fullName,
+      loginTime: new Date().toUTCString(),
+      method: signedInUser.app_metadata?.provider === 'google' ? 'Google' : 'Email/password',
+      device: getLoginDeviceLabel(),
+    };
+
+    const eventId = `${signedInUser.id}-${signedInUser.last_sign_in_at || Date.now()}`;
+    const results = await Promise.allSettled([
+      supabase.functions.invoke('send-transactional-email', {
+        body: {
+          templateName: 'login-notification-customer',
+          recipientEmail: userEmail,
+          idempotencyKey: `login-customer-${eventId}`,
+          templateData,
+        },
+      }),
+      supabase.functions.invoke('send-transactional-email', {
+        body: {
+          templateName: 'login-notification-admin',
+          recipientEmail: 'admin@aireatro.com',
+          idempotencyKey: `login-admin-${eventId}`,
+          templateData,
+        },
+      }),
+    ]);
+
+    results.forEach((result) => {
+      if (result.status === 'rejected') {
+        console.warn('[Auth] Login notification email failed:', result.reason);
+      } else if (result.value.error) {
+        console.warn('[Auth] Login notification email failed:', result.value.error);
+      }
+    });
   };
 
   const signUp = async (email: string, password: string, fullName: string) => {
