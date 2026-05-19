@@ -16,6 +16,7 @@ import Index from "./pages/Index";
 import aireatroLogo from "@/assets/aireatro-logo.png";
 import { RequirePermission } from "@/components/auth/RequirePermission";
 import { RequirePlanSelection } from "@/components/auth/RequirePlanSelection";
+import { WhatsAppVerificationGate } from "@/components/auth/WhatsAppVerificationGate";
 import { LaunchOfferProvider } from "@/components/offer/LaunchOfferProvider";
 import {
   META_ADS_ATTRIBUTION_PERMISSIONS,
@@ -35,6 +36,7 @@ const OrganizationPage = lazyWithRetry(() => import("./pages/onboarding/Organiza
 const PasswordPage = lazyWithRetry(() => import("./pages/onboarding/PasswordPage"));
 const AuthCallback = lazyWithRetry(() => import("./pages/AuthCallback"));
 const LegacyOAuthInitiate = lazyWithRetry(() => import("./pages/LegacyOAuthInitiate"));
+const VerifyWhatsApp = lazyWithRetry(() => import("./pages/VerifyWhatsApp"));
 
 const BillingReturnPage = lazyWithRetry(() => import("./pages/onboarding/BillingReturnPage"));
 const CreateWorkspace = lazyWithRetry(() => import("./pages/CreateWorkspace"));
@@ -255,14 +257,15 @@ const App = () => (
                     <Route path="/forgot-password" element={<ForgotPassword />} />
                     <Route path="/reset-password" element={<ResetPassword />} />
                     <Route path="/invite/accept" element={<InviteAccept />} />
+                    <Route path="/verify-whatsapp" element={<VerifyWhatsApp />} />
                     <Route path="/onboarding/org" element={<OrganizationPage />} />
                     <Route path="/onboarding/password" element={<PasswordPage />} />
                     <Route path="/choose-plan" element={<Navigate to="/dashboard" replace />} />
                     <Route path="/select-workspace-plan" element={<DashboardOnboardingRedirect />} />
                     <Route path="/onboarding/plan" element={<DashboardOnboardingRedirect />} />
                     <Route path="/onboarding/billing-return" element={<BillingReturnPage />} />
-                    <Route path="/create-workspace" element={<CreateWorkspace />} />
-                    <Route path="/select-workspace" element={<SelectWorkspace />} />
+                    <Route path="/create-workspace" element={<WhatsAppVerificationGate><CreateWorkspace /></WhatsAppVerificationGate>} />
+                    <Route path="/select-workspace" element={<WhatsAppVerificationGate><SelectWorkspace /></WhatsAppVerificationGate>} />
                     <Route path="/dashboard" element={<Dashboard />} />
                     <Route path="/dashboard/onboarding" element={<Dashboard />} />
                     <Route path="/inbox" element={<InboxPage />} />

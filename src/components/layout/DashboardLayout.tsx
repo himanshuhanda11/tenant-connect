@@ -56,6 +56,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   // Skip onboarding/role-based redirects when a super admin is previewing.
   const isPreview = typeof window !== 'undefined' && !!sessionStorage.getItem('preview_workspace_id');
   const [onboardingChecked, setOnboardingChecked] = useState(isPreview);
+  const [waVerificationChecked, setWaVerificationChecked] = useState(isPreview);
   // Track user id to avoid re-running onboarding check on token refreshes
   const [checkedUserId, setCheckedUserId] = useState<string | null>(null);
 
@@ -105,6 +106,33 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     checkOnboarding();
   }, [user, authLoading, navigate, checkedUserId]);
 
+  // WhatsApp OTP verification gate — required for new signups only.
+  // Existing users are grandfathered via whatsapp_verification_required=false in DB.
+  useEffect(() => {
+    if (authLoading || !user || isPreview) {
+      if (isPreview) setWaVerificationChecked(true);
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase
+        .from('profiles')
+        .select('whatsapp_verified, whatsapp_verification_required')
+        .eq('id', user.id)
+        .maybeSingle();
+      if (cancelled) return;
+      const mustVerify =
+        data && (data as any).whatsapp_verification_required && !(data as any).whatsapp_verified;
+      if (mustVerify) {
+        const next = encodeURIComponent(location.pathname + location.search);
+        navigate(`/verify-whatsapp?next=${next}`, { replace: true });
+      } else {
+        setWaVerificationChecked(true);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [user, authLoading, isPreview, navigate, location.pathname, location.search]);
+
   useEffect(() => {
     if (!authLoading && !user) {
       navigate('/login');
@@ -122,7 +150,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   }, [user, authLoading, tenantLoading, currentTenant, onboardingChecked, navigate, isPreview]);
 
   // Show loading while auth or tenant data is being fetched
-  if (authLoading || tenantLoading || !onboardingChecked) {
+  if (authLoading || tenantLoading || !onboardingChecked || !waVerificationChecked) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-4">
