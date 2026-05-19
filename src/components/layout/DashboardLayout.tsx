@@ -106,10 +106,8 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     checkOnboarding();
   }, [user, authLoading, navigate, checkedUserId]);
 
-  // WhatsApp OTP verification gate.
-  // - New signups (whatsapp_verification_required=true) must verify once.
-  // - All verified users must also have a trusted device for THIS browser (30 days).
-  // Existing users without verification_required who lack a trusted device are NOT blocked.
+  // WhatsApp OTP verification gate. Only enforced when the platform-wide
+  // `whatsapp_otp_enabled` flag is true (super-admin toggle in /control).
   useEffect(() => {
     if (authLoading || !user || isPreview) {
       if (isPreview) setWaVerificationChecked(true);
@@ -117,6 +115,18 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     }
     let cancelled = false;
     (async () => {
+      const { data: flagRow } = await supabase
+        .from('platform_settings')
+        .select('value')
+        .eq('key', 'whatsapp_otp_enabled')
+        .maybeSingle();
+      if (cancelled) return;
+      const otpEnabled = (flagRow as any)?.value === true;
+      if (!otpEnabled) {
+        setWaVerificationChecked(true);
+        return;
+      }
+
       const { data } = await supabase
         .from('profiles')
         .select('whatsapp_verified, whatsapp_verification_required')
