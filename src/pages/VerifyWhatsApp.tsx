@@ -91,6 +91,17 @@ export default function VerifyWhatsApp() {
       return;
     }
     (async () => {
+      // If the platform flag is off, the entire OTP gate is disabled — just continue.
+      const { data: flagRow } = await supabase
+        .from('platform_settings')
+        .select('value')
+        .eq('key', 'whatsapp_otp_enabled')
+        .maybeSingle();
+      if ((flagRow as any)?.value !== true) {
+        navigate(next, { replace: true });
+        return;
+      }
+
       const { data } = await supabase
         .from('profiles')
         .select('whatsapp_verified, whatsapp_verification_required, whatsapp_country_code, whatsapp_number')

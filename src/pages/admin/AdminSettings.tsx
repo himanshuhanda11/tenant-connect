@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { toast } from '@/hooks/use-toast';
-import { Loader2, Shield, Zap, Globe, Bot, FileText, AlertTriangle, RefreshCw } from 'lucide-react';
+import { Loader2, Shield, Zap, Globe, Bot, FileText, AlertTriangle, RefreshCw, MessageCircle } from 'lucide-react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -57,6 +57,13 @@ const platformFlags: FlagConfig[] = [
     label: 'AI Features (Global)',
     description: 'Enable or disable AI-powered features platform-wide.',
     icon: Bot,
+    superOnly: true,
+  },
+  {
+    key: 'whatsapp_otp_enabled',
+    label: 'WhatsApp OTP Verification',
+    description: 'Requires every new signup to verify via WhatsApp OTP and re-verify on new devices (30-day trust). Keep OFF until the Aireatro WABA secrets are configured.',
+    icon: MessageCircle,
     superOnly: true,
   },
 ];
