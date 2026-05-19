@@ -35,6 +35,7 @@ const OrganizationPage = lazyWithRetry(() => import("./pages/onboarding/Organiza
 const PasswordPage = lazyWithRetry(() => import("./pages/onboarding/PasswordPage"));
 const AuthCallback = lazyWithRetry(() => import("./pages/AuthCallback"));
 const LegacyOAuthInitiate = lazyWithRetry(() => import("./pages/LegacyOAuthInitiate"));
+const VerifyWhatsApp = lazyWithRetry(() => import("./pages/VerifyWhatsApp"));
 
 const BillingReturnPage = lazyWithRetry(() => import("./pages/onboarding/BillingReturnPage"));
 const CreateWorkspace = lazyWithRetry(() => import("./pages/CreateWorkspace"));
@@ -255,6 +256,7 @@ const App = () => (
                     <Route path="/forgot-password" element={<ForgotPassword />} />
                     <Route path="/reset-password" element={<ResetPassword />} />
                     <Route path="/invite/accept" element={<InviteAccept />} />
+                    <Route path="/verify-whatsapp" element={<VerifyWhatsApp />} />
                     <Route path="/onboarding/org" element={<OrganizationPage />} />
                     <Route path="/onboarding/password" element={<PasswordPage />} />
                     <Route path="/choose-plan" element={<Navigate to="/dashboard" replace />} />
