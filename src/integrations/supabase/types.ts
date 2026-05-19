@@ -7845,6 +7845,10 @@ export type Database = {
           id: string
           industry: string | null
           onboarding_step: string | null
+          otp_attempt_count: number
+          otp_code_hash: string | null
+          otp_expires_at: string | null
+          otp_last_sent_at: string | null
           phone_number: string | null
           primary_goal: string | null
           step_completed_at: string | null
@@ -7858,6 +7862,12 @@ export type Database = {
           trial_workspace_id: string | null
           updated_at: string
           website_url: string | null
+          whatsapp_country_code: string | null
+          whatsapp_e164: string | null
+          whatsapp_number: string | null
+          whatsapp_verification_required: boolean
+          whatsapp_verified: boolean
+          whatsapp_verified_at: string | null
         }
         Insert: {
           avatar_url?: string | null
@@ -7870,6 +7880,10 @@ export type Database = {
           id: string
           industry?: string | null
           onboarding_step?: string | null
+          otp_attempt_count?: number
+          otp_code_hash?: string | null
+          otp_expires_at?: string | null
+          otp_last_sent_at?: string | null
           phone_number?: string | null
           primary_goal?: string | null
           step_completed_at?: string | null
@@ -7883,6 +7897,12 @@ export type Database = {
           trial_workspace_id?: string | null
           updated_at?: string
           website_url?: string | null
+          whatsapp_country_code?: string | null
+          whatsapp_e164?: string | null
+          whatsapp_number?: string | null
+          whatsapp_verification_required?: boolean
+          whatsapp_verified?: boolean
+          whatsapp_verified_at?: string | null
         }
         Update: {
           avatar_url?: string | null
@@ -7895,6 +7915,10 @@ export type Database = {
           id?: string
           industry?: string | null
           onboarding_step?: string | null
+          otp_attempt_count?: number
+          otp_code_hash?: string | null
+          otp_expires_at?: string | null
+          otp_last_sent_at?: string | null
           phone_number?: string | null
           primary_goal?: string | null
           step_completed_at?: string | null
@@ -7908,6 +7932,12 @@ export type Database = {
           trial_workspace_id?: string | null
           updated_at?: string
           website_url?: string | null
+          whatsapp_country_code?: string | null
+          whatsapp_e164?: string | null
+          whatsapp_number?: string | null
+          whatsapp_verification_required?: boolean
+          whatsapp_verified?: boolean
+          whatsapp_verified_at?: string | null
         }
         Relationships: []
       }
