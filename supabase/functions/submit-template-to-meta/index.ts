@@ -208,8 +208,18 @@ if (bodyVars && version.variable_samples) {
       });
     }
 
+    // Meta requires template names to be lowercase letters, numbers, and underscores only
+    const sanitizedName = String(template.name || '')
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9_\s-]/g, '')
+      .replace(/[\s-]+/g, '_')
+      .replace(/_+/g, '_')
+      .replace(/^_+|_+$/g, '')
+      .slice(0, 512);
+
     const requestPayload = {
-      name: template.name,
+      name: sanitizedName,
       language: template.language,
       category: template.category,
       components,
@@ -244,7 +254,7 @@ if (bodyVars && version.variable_samples) {
         request_payload: requestPayload,
         response_payload: metaResult,
         meta_template_id: metaResult.id || null,
-        meta_status: metaResponse.ok ? 'PENDING' : 'FAILED',
+        meta_status: metaResponse.ok ? 'pending' : 'rejected',
         rejection_reason: metaResult.error?.message || null,
       })
       .select()
