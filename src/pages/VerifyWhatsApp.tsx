@@ -77,11 +77,13 @@ export default function VerifyWhatsApp() {
   const [cooldown, setCooldown] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [checking, setChecking] = useState(true);
+  const [reauthMode, setReauthMode] = useState(false);
   const tickRef = useRef<number | null>(null);
+  const autoSentRef = useRef(false);
 
   const next = params.get('next') || '/select-workspace';
 
-  // Redirect away if already verified or grandfathered
+  // Decide initial step: signup-verify (enter number) vs reauth (auto-send to stored number)
   useEffect(() => {
     if (authLoading) return;
     if (!user) {
@@ -91,16 +93,50 @@ export default function VerifyWhatsApp() {
     (async () => {
       const { data } = await supabase
         .from('profiles')
-        .select('whatsapp_verified, whatsapp_verification_required')
+        .select('whatsapp_verified, whatsapp_verification_required, whatsapp_country_code, whatsapp_number')
         .eq('id', user.id)
         .maybeSingle();
-      if (data && (!data.whatsapp_verification_required || data.whatsapp_verified)) {
+
+      const verified = !!(data as any)?.whatsapp_verified;
+      const required = !!(data as any)?.whatsapp_verification_required;
+      const storedDial = (data as any)?.whatsapp_country_code as string | undefined;
+      const storedNumber = (data as any)?.whatsapp_number as string | undefined;
+
+      if (verified) {
+        try {
+          const { getDeviceHash } = await import('@/lib/auth/deviceId');
+          const deviceHash = await getDeviceHash();
+          const { data: trusted } = await supabase.rpc('is_device_trusted', {
+            _device_hash: deviceHash,
+          });
+          if (trusted) {
+            navigate(next, { replace: true });
+            return;
+          }
+        } catch {/* fall through to reauth */}
+
+        if (storedDial && storedNumber) {
+          const match = COUNTRIES.find((c) => c.dial === storedDial);
+          if (match) setCountry(match);
+          setNumber(storedNumber);
+          setReauthMode(true);
+        }
+      } else if (!required) {
         navigate(next, { replace: true });
         return;
       }
+
       setChecking(false);
     })();
   }, [user, authLoading, navigate, next]);
+
+  useEffect(() => {
+    if (checking || !reauthMode || autoSentRef.current) return;
+    if (!number) return;
+    autoSentRef.current = true;
+    void sendOtp();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [checking, reauthMode, number]);
 
   useEffect(() => {
     if (cooldown <= 0) return;
@@ -131,10 +167,6 @@ export default function VerifyWhatsApp() {
         setError((data as any)?.error || fnErr?.message || 'Could not send code. Please try again.');
         return;
       }
-      if ((data as any)?.alreadyVerified) {
-        navigate(next, { replace: true });
-        return;
-      }
       setStep('otp');
       setCooldown(RESEND_COOLDOWN);
       setOtp('');
@@ -153,8 +185,10 @@ export default function VerifyWhatsApp() {
     }
     setVerifying(true);
     try {
+      const { getDeviceHash } = await import('@/lib/auth/deviceId');
+      const deviceHash = await getDeviceHash();
       const { data, error: fnErr } = await supabase.functions.invoke('whatsapp-otp-verify', {
-        body: { code },
+        body: { code, device_hash: deviceHash },
       });
       if (fnErr || (data as any)?.error) {
         setError((data as any)?.error || fnErr?.message || 'Verification failed.');
