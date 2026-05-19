@@ -627,8 +627,23 @@ export function useTemplateBuilder(): UseTemplateBuilderReturn {
       }
 
       if (!template.waba_account_id) {
+        const { data: wabaAccounts } = await supabase
+          .from('waba_accounts')
+          .select('id')
+          .eq('tenant_id', currentTenant.id)
+          .eq('status', 'active')
+          .limit(1);
+
+        const activeWabaId = wabaAccounts?.[0]?.id;
+        if (activeWabaId) {
+          await supabase
+            .from('templates')
+            .update({ waba_account_id: activeWabaId })
+            .eq('id', templateId);
+        } else {
         toast.error('Connect a WhatsApp Business Account before submitting for approval.');
         return false;
+        }
       }
 
       // Auto-approve internally if still in draft (skip internal review like AISensy)
