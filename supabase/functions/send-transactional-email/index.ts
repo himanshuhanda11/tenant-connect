@@ -312,6 +312,7 @@ Deno.serve(async (req) => {
       message_id: messageId,
       to: effectiveRecipient,
         from: FROM_ADDRESS,
+      reply_to: REPLY_TO_ADDRESS,
       sender_domain: SENDER_DOMAIN,
       subject: resolvedSubject,
       html,
