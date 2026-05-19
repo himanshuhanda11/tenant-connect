@@ -16,6 +16,7 @@ import Index from "./pages/Index";
 import aireatroLogo from "@/assets/aireatro-logo.png";
 import { RequirePermission } from "@/components/auth/RequirePermission";
 import { RequirePlanSelection } from "@/components/auth/RequirePlanSelection";
+import { WhatsAppVerificationGate } from "@/components/auth/WhatsAppVerificationGate";
 import { LaunchOfferProvider } from "@/components/offer/LaunchOfferProvider";
 import {
   META_ADS_ATTRIBUTION_PERMISSIONS,
@@ -263,8 +264,8 @@ const App = () => (
                     <Route path="/select-workspace-plan" element={<DashboardOnboardingRedirect />} />
                     <Route path="/onboarding/plan" element={<DashboardOnboardingRedirect />} />
                     <Route path="/onboarding/billing-return" element={<BillingReturnPage />} />
-                    <Route path="/create-workspace" element={<CreateWorkspace />} />
-                    <Route path="/select-workspace" element={<SelectWorkspace />} />
+                    <Route path="/create-workspace" element={<WhatsAppVerificationGate><CreateWorkspace /></WhatsAppVerificationGate>} />
+                    <Route path="/select-workspace" element={<WhatsAppVerificationGate><SelectWorkspace /></WhatsAppVerificationGate>} />
                     <Route path="/dashboard" element={<Dashboard />} />
                     <Route path="/dashboard/onboarding" element={<Dashboard />} />
                     <Route path="/inbox" element={<InboxPage />} />
