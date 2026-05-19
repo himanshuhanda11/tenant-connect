@@ -109,6 +109,20 @@ export function TemplateBuilder({
   const [variableSamples, setVariableSamples] = useState<Record<string, string>>(
     (initialData?.variable_samples as Record<string, string>) || restoredDraft?.variable_samples || {}
   );
+  const initialDataKey = initialData ? JSON.stringify(initialData) : '';
+
+  useEffect(() => {
+    if (!initialData) return;
+    setName(initialData.name || '');
+    setLanguage(initialData.language || 'en');
+    setCategory(initialData.category || 'UTILITY');
+    setHeaderType(initialData.header_type || 'none');
+    setHeaderContent(initialData.header_content || '');
+    setBody(initialData.body || '');
+    setFooter(initialData.footer || '');
+    setButtons((initialData.buttons as TemplateButton[]) || []);
+    setVariableSamples((initialData.variable_samples as Record<string, string>) || {});
+  }, [initialDataKey]);
 
   // Auto-save draft (create mode only)
   useEffect(() => {

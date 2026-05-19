@@ -105,6 +105,8 @@ export function TemplatesListView({
     return template.status !== 'APPROVED';
   };
 
+  const submitApprovalLabel = 'Submit for approval';
+
   const canEdit = (template: Template) => {
     return template.internal_status === 'draft' || template.internal_status === 'changes_requested';
   };
@@ -249,7 +251,7 @@ export function TemplatesListView({
                         )}
                         {canSubmitToMeta(template) && (
                           <DropdownMenuItem onClick={() => onSubmitToMeta(template)}>
-                            <Send className="h-4 w-4 mr-2" />Submit to Meta
+                            <Send className="h-4 w-4 mr-2" />{submitApprovalLabel}
                           </DropdownMenuItem>
                         )}
                         <DropdownMenuSeparator />
@@ -286,6 +288,12 @@ export function TemplatesListView({
                       Score {template.template_score}
                     </span>
                   </div>
+                  {canSubmitToMeta(template) && (
+                    <Button size="sm" className="mt-3 w-full" onClick={() => onSubmitToMeta(template)}>
+                      <Send className="h-3.5 w-3.5 mr-1.5" />
+                      {submitApprovalLabel}
+                    </Button>
+                  )}
                 </div>
               ))}
             </div>
@@ -301,7 +309,7 @@ export function TemplatesListView({
                   <TableHead>Meta Status</TableHead>
                   <TableHead>Score</TableHead>
                   <TableHead>Last Updated</TableHead>
-                  <TableHead className="w-[50px]"></TableHead>
+                  <TableHead className="w-[210px] text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -335,7 +343,14 @@ export function TemplatesListView({
                       {format(new Date(template.updated_at), 'MMM d, yyyy')}
                     </TableCell>
                     <TableCell>
-                      <DropdownMenu>
+                      <div className="flex items-center justify-end gap-2">
+                        {canSubmitToMeta(template) && (
+                          <Button size="sm" onClick={() => onSubmitToMeta(template)}>
+                            <Send className="h-3.5 w-3.5 mr-1.5" />
+                            {submitApprovalLabel}
+                          </Button>
+                        )}
+                        <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button variant="ghost" size="icon">
                             <MoreHorizontal className="h-4 w-4" />
@@ -355,7 +370,7 @@ export function TemplatesListView({
                           {canSubmitToMeta(template) && (
                             <DropdownMenuItem onClick={() => onSubmitToMeta(template)}>
                               <Send className="h-4 w-4 mr-2" />
-                              Submit to Meta
+                              {submitApprovalLabel}
                             </DropdownMenuItem>
                           )}
                           <DropdownMenuSeparator />
@@ -377,6 +392,7 @@ export function TemplatesListView({
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}

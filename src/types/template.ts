@@ -75,7 +75,7 @@ export interface TemplateLintResult {
 export interface Template {
   id: string;
   tenant_id: string;
-  waba_account_id: string;
+  waba_account_id: string | null;
   name: string;
   language: string;
   category: TemplateCategory;

@@ -189,7 +189,8 @@ export function useTemplateBuilder(): UseTemplateBuilderReturn {
     
     setSaving(true);
     try {
-      // Get active WABA account
+      // Get active WABA account when available. Drafts can be created before
+      // WhatsApp is connected; submission still requires a connected account.
       const { data: wabaAccounts } = await supabase
         .from('waba_accounts')
         .select('id')
@@ -198,10 +199,6 @@ export function useTemplateBuilder(): UseTemplateBuilderReturn {
         .limit(1);
       
       const wabaAccountId = wabaAccounts?.[0]?.id;
-      if (!wabaAccountId) {
-        toast.error('No active WABA account found. Please connect one first.');
-        return null;
-      }
 
       // Get current user
       const { data: { user } } = await supabase.auth.getUser();
@@ -211,7 +208,7 @@ export function useTemplateBuilder(): UseTemplateBuilderReturn {
         .from('templates')
         .insert({
           tenant_id: currentTenant.id,
-          waba_account_id: wabaAccountId,
+          waba_account_id: wabaAccountId || null,
           name: data.name,
           language: data.language,
           category: data.category,
@@ -278,8 +275,8 @@ export function useTemplateBuilder(): UseTemplateBuilderReturn {
         .update({ template_score: score })
         .eq('id', template.id);
       
-      toast.success('Template created successfully');
-      return { ...template, current_version: version } as any;
+      toast.success('Template created. You can submit it for approval next.');
+      return { ...template, current_version_id: version.id, current_version: version } as any;
     } catch (error: any) {
       console.error('Error creating template:', error);
       const raw = error?.message || error?.error_description || '';
@@ -627,6 +624,27 @@ export function useTemplateBuilder(): UseTemplateBuilderReturn {
       if (!template) {
         toast.error('Template not found');
         return false;
+      }
+
+      if (!template.waba_account_id) {
+        const { data: wabaAccounts } = await supabase
+          .from('waba_accounts')
+          .select('id')
+          .eq('tenant_id', currentTenant.id)
+          .eq('status', 'active')
+          .limit(1);
+
+        const activeWabaId = wabaAccounts?.[0]?.id;
+        if (activeWabaId) {
+          const { error: attachError } = await supabase
+            .from('templates')
+            .update({ waba_account_id: activeWabaId })
+            .eq('id', templateId);
+          if (attachError) throw attachError;
+        } else {
+          toast.error('Connect a WhatsApp Business Account before submitting for approval.');
+          return false;
+        }
       }
 
       // Auto-approve internally if still in draft (skip internal review like AISensy)

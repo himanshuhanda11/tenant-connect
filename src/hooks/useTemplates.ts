@@ -339,24 +339,20 @@ export function useTemplates() {
     if (!currentTenant?.id) return null;
 
     try {
-      // Get WABA account
+      // Get WABA account when available. Draft templates can exist before
+      // WhatsApp is connected; approval submission still requires a connection.
       const { data: wabaData } = await supabase
         .from('waba_accounts')
         .select('id')
         .eq('tenant_id', currentTenant.id)
         .eq('status', 'active')
-        .single();
-
-      if (!wabaData) {
-        toast.error('No active WhatsApp Business Account found');
-        return null;
-      }
+        .maybeSingle();
 
       const { data, error } = await supabase
         .from('templates')
         .insert({
           tenant_id: currentTenant.id,
-          waba_account_id: wabaData.id,
+          waba_account_id: wabaData?.id || null,
           name: templateData.name,
           category: templateData.category || 'UTILITY',
           status: 'PENDING',
@@ -369,7 +365,7 @@ export function useTemplates() {
 
       if (error) throw error;
 
-      toast.success('Template created! Submit to Meta for approval.');
+      toast.success('Template created! Submit it for approval when ready.');
       fetchTemplates();
       return data;
     } catch (error: any) {

@@ -149,9 +149,10 @@ export default function Templates() {
   };
 
   const handleBuilderSave = async (data: TemplateBuilderData) => {
+    let savedTemplate: TemplateType | null = null;
     if (editingTemplate) {
       // Update existing template version
-      await updateVersion(editingTemplate.id, {
+      const savedVersion = await updateVersion(editingTemplate.id, {
         header_type: data.header_type,
         header_content: data.header_content,
         body: data.body,
@@ -159,9 +160,10 @@ export default function Templates() {
         buttons: data.buttons,
         variable_samples: data.variable_samples,
       });
+      savedTemplate = savedVersion ? editingTemplate : null;
     } else {
       // Create new template
-      await createTemplate({
+      savedTemplate = await createTemplate({
         name: data.name,
         category: data.category,
         language: data.language,
@@ -173,6 +175,9 @@ export default function Templates() {
         variable_samples: data.variable_samples,
       });
     }
+
+    if (!savedTemplate) return;
+
     setEditingTemplate(null);
     setEditingVersion(null);
     setIsCreating(false);
