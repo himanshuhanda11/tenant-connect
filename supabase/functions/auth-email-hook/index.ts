@@ -39,8 +39,12 @@ const EMAIL_TEMPLATES: Record<string, React.ComponentType<any>> = {
 const SITE_NAME = "AiReatro"
 const SENDER_DOMAIN = "update.aireatro.com"
 const ROOT_DOMAIN = "aireatro.com"
-const FROM_DOMAIN = "aireatro.com" // Domain shown in From address (may be root or sender subdomain)
-const FROM_ADDRESS = `${SITE_NAME} <admin@${FROM_DOMAIN}>`
+// IMPORTANT: From-domain MUST equal SENDER_DOMAIN for strict DMARC alignment.
+// Using the root domain (aireatro.com) here causes Gmail/Outlook to quarantine
+// because the root SPF does not include Lovable's MTAs and DKIM is signed by
+// the subdomain. Sending from update.aireatro.com aligns both SPF and DKIM.
+const FROM_DOMAIN = SENDER_DOMAIN
+const FROM_ADDRESS = `${SITE_NAME} <noreply@${FROM_DOMAIN}>`
 
 // Sample data for preview mode ONLY (not used in actual email sending).
 // URLs are baked in at scaffold time from the project's real data.
