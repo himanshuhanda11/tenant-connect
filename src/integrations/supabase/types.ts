@@ -14886,6 +14886,36 @@ export type Database = {
           },
         ]
       }
+      trusted_devices: {
+        Row: {
+          created_at: string
+          device_hash: string
+          expires_at: string
+          id: string
+          last_used_at: string
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          device_hash: string
+          expires_at?: string
+          id?: string
+          last_used_at?: string
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          device_hash?: string
+          expires_at?: string
+          id?: string
+          last_used_at?: string
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       usage_counters: {
         Row: {
           campaigns_created: number | null
@@ -17724,6 +17754,7 @@ export type Database = {
         Returns: Json
       }
       is_agent_role: { Args: { p_tenant_id: string }; Returns: boolean }
+      is_device_trusted: { Args: { _device_hash: string }; Returns: boolean }
       is_platform_admin: { Args: { _user_id: string }; Returns: boolean }
       is_platform_user: { Args: { allowed_roles: string[] }; Returns: boolean }
       is_super_admin: { Args: never; Returns: boolean }
