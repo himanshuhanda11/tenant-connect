@@ -37,6 +37,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // that would create new object references and cascade re-renders through the app.
   const userIdRef = useRef<string | null>(null);
   const lastLoginNotificationRef = useRef<{ key: string; at: number } | null>(null);
+  // Track whether we've processed the initial auth event. Supabase fires SIGNED_IN
+  // on every page load when a session is restored — that should NOT trigger a
+  // "new login" email. Only genuine sign-ins after mount should notify.
+  const hasProcessedInitialAuthRef = useRef(false);
+
+  const LOGIN_NOTIFICATION_TTL_MS = 12 * 60 * 60 * 1000; // 12 hours
+  const LOGIN_NOTIFICATION_STORAGE_KEY = 'aireatro:last-login-notification';
+
+  const readPersistedLoginNotification = (): { key: string; at: number } | null => {
+    try {
+      const raw = localStorage.getItem(LOGIN_NOTIFICATION_STORAGE_KEY);
+      if (!raw) return null;
+      const parsed = JSON.parse(raw);
+      if (parsed && typeof parsed.key === 'string' && typeof parsed.at === 'number') {
+        return parsed;
+      }
+    } catch {}
+    return null;
+  };
+
+  const writePersistedLoginNotification = (key: string) => {
+    try {
+      localStorage.setItem(LOGIN_NOTIFICATION_STORAGE_KEY, JSON.stringify({ key, at: Date.now() }));
+    } catch {}
+  };
 
   // Stable setUser: only updates state if the user id actually changed
   const setUser = (newUser: User | null) => {
