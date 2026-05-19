@@ -21,6 +21,25 @@ interface TemplateComponent {
   }>;
 }
 
+const META_TEMPLATE_PERMISSION_SUBCODE = 2388185;
+
+const getMetaPermissionGuidance = (metaError: any) => {
+  const isPermissionSetupError = metaError?.code === 10 && metaError?.error_subcode === META_TEMPLATE_PERMISSION_SUBCODE;
+
+  if (!isPermissionSetupError) return null;
+
+  return {
+    code: 'WABA_TEMPLATE_PERMISSION_DENIED',
+    title: 'WhatsApp account cannot create templates yet',
+    message: 'This WhatsApp Business Account does not currently allow template creation with the connected access token.',
+    next_steps: [
+      'Add or verify the payment method on the WhatsApp Business Account.',
+      'Make sure the connected business/system user has full control of this WhatsApp account.',
+      'Reconnect WhatsApp from Settings so the token is refreshed with whatsapp_business_management permission.',
+    ],
+  };
+};
+
 Deno.serve(async (req) => {
   // Handle CORS preflight
   if (req.method === 'OPTIONS') {
@@ -287,6 +306,28 @@ Deno.serve(async (req) => {
     }
 
     if (!metaResponse.ok) {
+      const permissionGuidance = getMetaPermissionGuidance(metaResult.error);
+
+      if (permissionGuidance) {
+        await supabase
+          .from('templates')
+          .update({
+            rejection_reason: permissionGuidance.message,
+          })
+          .eq('id', template_id);
+
+        return new Response(JSON.stringify({
+          success: false,
+          error: permissionGuidance.title,
+          details: metaResult.error,
+          guidance: permissionGuidance,
+          submission_log_id: submissionLog?.id,
+        }), {
+          status: 200,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
       // Update template status to reflect rejection
       await supabase
         .from('templates')
