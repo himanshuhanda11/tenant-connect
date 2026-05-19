@@ -254,6 +254,7 @@ export default function PhoneNumbers() {
                       </DialogHeader>
                       <div className="py-4">
                         <MetaEmbeddedSignup
+                          defaultMode="coexistence"
                           onSuccess={(data) => {
                             setEmbeddedSignupOpen(false);
                             setMetaError(null);
