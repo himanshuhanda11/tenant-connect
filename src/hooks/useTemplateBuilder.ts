@@ -280,9 +280,18 @@ export function useTemplateBuilder(): UseTemplateBuilderReturn {
       
       toast.success('Template created successfully');
       return { ...template, current_version: version } as any;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error creating template:', error);
-      toast.error('Failed to create template');
+      const raw = error?.message || error?.error_description || '';
+      let friendly = 'Failed to create template';
+      if (/duplicate key|unique constraint|already exists/i.test(raw)) {
+        friendly = 'A template with this name + language already exists. Pick a different name.';
+      } else if (/row-level security|permission denied|violates row-level/i.test(raw)) {
+        friendly = 'You do not have permission to create templates in this workspace (admin role required).';
+      } else if (raw) {
+        friendly = `Failed to create template: ${raw}`;
+      }
+      toast.error(friendly);
       return null;
     } finally {
       setSaving(false);
