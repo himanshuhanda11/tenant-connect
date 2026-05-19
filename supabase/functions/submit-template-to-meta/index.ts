@@ -254,7 +254,7 @@ if (bodyVars && version.variable_samples) {
         request_payload: requestPayload,
         response_payload: metaResult,
         meta_template_id: metaResult.id || null,
-        meta_status: metaResponse.ok ? 'PENDING' : 'FAILED',
+        meta_status: metaResponse.ok ? 'pending' : 'rejected',
         rejection_reason: metaResult.error?.message || null,
       })
       .select()
