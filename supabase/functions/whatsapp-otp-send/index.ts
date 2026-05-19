@@ -207,8 +207,8 @@ Deno.serve(async (req) => {
     const { error: updErr } = await admin
       .from("profiles")
       .update({
-        whatsapp_number: number,
-        whatsapp_country_code: country_code,
+        whatsapp_number: storedNumber,
+        whatsapp_country_code: storedCountry,
         whatsapp_e164: e164,
         otp_code_hash: hash,
         otp_expires_at: expires,
