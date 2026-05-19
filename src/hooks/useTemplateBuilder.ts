@@ -636,13 +636,14 @@ export function useTemplateBuilder(): UseTemplateBuilderReturn {
 
         const activeWabaId = wabaAccounts?.[0]?.id;
         if (activeWabaId) {
-          await supabase
+          const { error: attachError } = await supabase
             .from('templates')
             .update({ waba_account_id: activeWabaId })
             .eq('id', templateId);
+          if (attachError) throw attachError;
         } else {
-        toast.error('Connect a WhatsApp Business Account before submitting for approval.');
-        return false;
+          toast.error('Connect a WhatsApp Business Account before submitting for approval.');
+          return false;
         }
       }
 
