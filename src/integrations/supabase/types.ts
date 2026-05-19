@@ -14206,7 +14206,7 @@ export type Database = {
           template_score: number | null
           tenant_id: string
           updated_at: string
-          waba_account_id: string
+          waba_account_id: string | null
         }
         Insert: {
           category?: Database["public"]["Enums"]["template_category"]
@@ -14225,7 +14225,7 @@ export type Database = {
           template_score?: number | null
           tenant_id: string
           updated_at?: string
-          waba_account_id: string
+          waba_account_id?: string | null
         }
         Update: {
           category?: Database["public"]["Enums"]["template_category"]
@@ -14244,7 +14244,7 @@ export type Database = {
           template_score?: number | null
           tenant_id?: string
           updated_at?: string
-          waba_account_id?: string
+          waba_account_id?: string | null
         }
         Relationships: [
           {
