@@ -372,9 +372,18 @@ export function useTemplates() {
       toast.success('Template created! Submit to Meta for approval.');
       fetchTemplates();
       return data;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error creating template:', error);
-      toast.error('Failed to create template');
+      const raw = error?.message || '';
+      let friendly = 'Failed to create template';
+      if (/duplicate key|unique constraint|already exists/i.test(raw)) {
+        friendly = 'A template with this name + language already exists.';
+      } else if (/row-level security|permission denied/i.test(raw)) {
+        friendly = 'You do not have permission to create templates (admin role required).';
+      } else if (raw) {
+        friendly = `Failed to create template: ${raw}`;
+      }
+      toast.error(friendly);
       return null;
     }
   };
