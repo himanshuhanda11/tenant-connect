@@ -45,6 +45,7 @@ const ROOT_DOMAIN = "aireatro.com"
 // the subdomain. Sending from update.aireatro.com aligns both SPF and DKIM.
 const FROM_DOMAIN = SENDER_DOMAIN
 const FROM_ADDRESS = `${SITE_NAME} <noreply@${FROM_DOMAIN}>`
+const REPLY_TO_ADDRESS = 'admin@aireatro.com'
 
 // Sample data for preview mode ONLY (not used in actual email sending).
 // URLs are baked in at scaffold time from the project's real data.
