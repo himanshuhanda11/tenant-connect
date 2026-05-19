@@ -89,11 +89,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setSession(session);
       setUser(session?.user ?? null);
 
-      if (event === 'SIGNED_IN' && session?.user && !shouldSkipLoginNotification(session.user.email)) {
+      // Only notify on a GENUINE post-mount sign-in. The first SIGNED_IN event
+      // after page load just means the existing session was restored, not that
+      // the user actually logged in. Without this guard, customers received a
+      // "new login detected" email on every reload, tab focus, or token refresh.
+      const isInitialAuthEvent = !hasProcessedInitialAuthRef.current;
+      hasProcessedInitialAuthRef.current = true;
+
+      if (
+        !isInitialAuthEvent &&
+        event === 'SIGNED_IN' &&
+        session?.user &&
+        !shouldSkipLoginNotification(session.user.email)
+      ) {
         const notificationKey = `${session.user.id}:${session.user.last_sign_in_at || ''}`;
-        const last = lastLoginNotificationRef.current;
-        if (!last || last.key !== notificationKey || Date.now() - last.at > 60_000) {
+        const inMemory = lastLoginNotificationRef.current;
+        const persisted = readPersistedLoginNotification();
+        const alreadyNotified =
+          (inMemory && inMemory.key === notificationKey) ||
+          (persisted && persisted.key === notificationKey && Date.now() - persisted.at < LOGIN_NOTIFICATION_TTL_MS);
+
+        if (!alreadyNotified) {
           lastLoginNotificationRef.current = { key: notificationKey, at: Date.now() };
+          writePersistedLoginNotification(notificationKey);
           setTimeout(() => {
             sendLoginNotifications(session.user).catch((err) => {
               console.warn('[Auth] Login notification email failed:', err);
