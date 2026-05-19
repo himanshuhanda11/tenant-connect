@@ -105,6 +105,8 @@ export function TemplatesListView({
     return template.status !== 'APPROVED';
   };
 
+  const submitApprovalLabel = 'Submit for approval';
+
   const canEdit = (template: Template) => {
     return template.internal_status === 'draft' || template.internal_status === 'changes_requested';
   };
@@ -249,7 +251,7 @@ export function TemplatesListView({
                         )}
                         {canSubmitToMeta(template) && (
                           <DropdownMenuItem onClick={() => onSubmitToMeta(template)}>
-                            <Send className="h-4 w-4 mr-2" />Submit to Meta
+                            <Send className="h-4 w-4 mr-2" />{submitApprovalLabel}
                           </DropdownMenuItem>
                         )}
                         <DropdownMenuSeparator />
@@ -286,6 +288,12 @@ export function TemplatesListView({
                       Score {template.template_score}
                     </span>
                   </div>
+                  {canSubmitToMeta(template) && (
+                    <Button size="sm" className="mt-3 w-full" onClick={() => onSubmitToMeta(template)}>
+                      <Send className="h-3.5 w-3.5 mr-1.5" />
+                      {submitApprovalLabel}
+                    </Button>
+                  )}
                 </div>
               ))}
             </div>
