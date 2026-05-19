@@ -7,8 +7,10 @@ import { TEMPLATES } from '../_shared/transactional-email-templates/registry.ts'
 const SITE_NAME = "Aireatro"
 // Internal verified sender route; recipients still see admin@aireatro.com below.
 const SENDER_DOMAIN = "update.aireatro.com"
-const FROM_DOMAIN = "aireatro.com"
-const FROM_ADDRESS = `${SITE_NAME} <admin@${FROM_DOMAIN}>`
+// From-domain MUST equal SENDER_DOMAIN for strict SPF + DKIM alignment under
+// the root DMARC p=quarantine policy. Using the root domain causes spam folder.
+const FROM_DOMAIN = SENDER_DOMAIN
+const FROM_ADDRESS = `${SITE_NAME} <noreply@${FROM_DOMAIN}>`
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
