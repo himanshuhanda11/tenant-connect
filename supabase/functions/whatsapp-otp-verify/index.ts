@@ -1,4 +1,7 @@
 // Verifies a WhatsApp OTP submitted by the authenticated user.
+// On success: marks profile verified AND (if device_hash provided) upserts a
+// trusted-device row valid for 30 days so subsequent logins from this browser
+// skip OTP.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 
 const corsHeaders = {
@@ -9,6 +12,7 @@ const corsHeaders = {
 };
 
 const MAX_ATTEMPTS = 5;
+const TRUSTED_DEVICE_DAYS = 30;
 
 async function sha256Hex(input: string): Promise<string> {
   const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(input));
@@ -46,6 +50,11 @@ Deno.serve(async (req) => {
 
     const body = await req.json().catch(() => ({}));
     const code = String(body?.code || "").trim();
+    const deviceHash = typeof body?.device_hash === "string" && body.device_hash.length >= 16
+      ? String(body.device_hash).slice(0, 128)
+      : null;
+    const userAgent = (req.headers.get("user-agent") || "").slice(0, 256);
+
     if (!/^\d{6}$/.test(code)) {
       return new Response(
         JSON.stringify({ error: "Invalid OTP. Please check and try again." }),
@@ -67,13 +76,6 @@ Deno.serve(async (req) => {
         status: 404,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
-    }
-
-    if (profile.whatsapp_verified) {
-      return new Response(
-        JSON.stringify({ ok: true, alreadyVerified: true }),
-        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
-      );
     }
 
     if (!profile.otp_code_hash || !profile.otp_expires_at) {
@@ -109,30 +111,61 @@ Deno.serve(async (req) => {
       );
     }
 
-    // ✅ Success — mark verified and clear OTP fields
+    // ✅ Success — mark verified (idempotent) and clear OTP fields
+    const profileUpdate: Record<string, unknown> = {
+      otp_code_hash: null,
+      otp_expires_at: null,
+      otp_attempt_count: 0,
+    };
+    if (!profile.whatsapp_verified) {
+      profileUpdate.whatsapp_verified = true;
+      profileUpdate.whatsapp_verified_at = new Date().toISOString();
+    }
     const { error: updErr } = await admin
       .from("profiles")
-      .update({
-        whatsapp_verified: true,
-        whatsapp_verified_at: new Date().toISOString(),
-        otp_code_hash: null,
-        otp_expires_at: null,
-        otp_attempt_count: 0,
-      })
+      .update(profileUpdate)
       .eq("id", userId);
 
     if (updErr) {
-      console.error("[whatsapp-otp-verify] update failed", updErr);
+      console.error("[whatsapp-otp-verify] profile update failed", updErr);
       return new Response(JSON.stringify({ error: "Could not mark verified" }), {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    return new Response(JSON.stringify({ ok: true }), {
-      status: 200,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    // Trust this device for 30 days (only when caller provided a device hash)
+    let trustedDevice = false;
+    if (deviceHash) {
+      const expiresAt = new Date(
+        Date.now() + TRUSTED_DEVICE_DAYS * 24 * 60 * 60 * 1000,
+      ).toISOString();
+      const { error: devErr } = await admin
+        .from("trusted_devices")
+        .upsert(
+          {
+            user_id: userId,
+            device_hash: deviceHash,
+            user_agent: userAgent,
+            last_used_at: new Date().toISOString(),
+            expires_at: expiresAt,
+          },
+          { onConflict: "user_id,device_hash" },
+        );
+      if (devErr) {
+        console.warn("[whatsapp-otp-verify] trusted_device upsert failed", devErr);
+      } else {
+        trustedDevice = true;
+      }
+    }
+
+    return new Response(
+      JSON.stringify({ ok: true, trustedDevice, trustedDays: TRUSTED_DEVICE_DAYS }),
+      {
+        status: 200,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      },
+    );
   } catch (err) {
     console.error("[whatsapp-otp-verify] fatal", err);
     return new Response(JSON.stringify({ error: "Unexpected error" }), {

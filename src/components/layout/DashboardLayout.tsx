@@ -106,8 +106,10 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     checkOnboarding();
   }, [user, authLoading, navigate, checkedUserId]);
 
-  // WhatsApp OTP verification gate — required for new signups only.
-  // Existing users are grandfathered via whatsapp_verification_required=false in DB.
+  // WhatsApp OTP verification gate.
+  // - New signups (whatsapp_verification_required=true) must verify once.
+  // - All verified users must also have a trusted device for THIS browser (30 days).
+  // Existing users without verification_required who lack a trusted device are NOT blocked.
   useEffect(() => {
     if (authLoading || !user || isPreview) {
       if (isPreview) setWaVerificationChecked(true);
@@ -121,8 +123,26 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         .eq('id', user.id)
         .maybeSingle();
       if (cancelled) return;
-      const mustVerify =
-        data && (data as any).whatsapp_verification_required && !(data as any).whatsapp_verified;
+
+      const required = !!(data as any)?.whatsapp_verification_required;
+      const verified = !!(data as any)?.whatsapp_verified;
+
+      let mustVerify = required && !verified;
+
+      if (!mustVerify && verified) {
+        try {
+          const { getDeviceHash } = await import('@/lib/auth/deviceId');
+          const deviceHash = await getDeviceHash();
+          const { data: trusted } = await supabase.rpc('is_device_trusted', {
+            _device_hash: deviceHash,
+          });
+          if (!trusted) mustVerify = true;
+        } catch {
+          // Fail-open on RPC errors.
+        }
+      }
+
+      if (cancelled) return;
       if (mustVerify) {
         const next = encodeURIComponent(location.pathname + location.search);
         navigate(`/verify-whatsapp?next=${next}`, { replace: true });
