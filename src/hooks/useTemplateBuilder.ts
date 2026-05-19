@@ -76,6 +76,32 @@ interface UpdateVersionData {
   variable_samples?: Record<string, string>;
 }
 
+interface MetaSubmissionResponse {
+  success?: boolean;
+  error?: string;
+  guidance?: {
+    code?: string;
+    title?: string;
+    message?: string;
+    next_steps?: string[];
+  };
+}
+
+const getTemplateSubmissionErrorMessage = (error: unknown, data?: MetaSubmissionResponse | null) => {
+  if (data?.guidance?.message) {
+    const nextStep = data.guidance.next_steps?.[0];
+    return nextStep ? `${data.guidance.message} ${nextStep}` : data.guidance.message;
+  }
+
+  if (data?.error) return data.error;
+
+  if (error && typeof error === 'object' && 'message' in error) {
+    return String((error as { message?: unknown }).message || 'Failed to submit template to Meta');
+  }
+
+  return 'Failed to submit template to Meta';
+};
+
 export function useTemplateBuilder(): UseTemplateBuilderReturn {
   const { currentTenant } = useTenant();
   const [templates, setTemplates] = useState<Template[]>([]);
@@ -674,26 +700,29 @@ export function useTemplateBuilder(): UseTemplateBuilderReturn {
       // Run quick lint check but don't block submission for non-critical issues
       // Meta will validate and reject if there are real issues
 
-      const { data, error } = await supabase.functions.invoke('submit-template-to-meta', {
+      const { data, error } = await supabase.functions.invoke<MetaSubmissionResponse>('submit-template-to-meta', {
         body: {
           template_id: templateId,
           version_id: template.current_version_id
         }
       });
       
-      if (error) throw error;
+      if (error) {
+        toast.error(getTemplateSubmissionErrorMessage(error, data));
+        return false;
+      }
       
       if (data.success) {
         setCurrentTemplate(prev => prev ? { ...prev, status: 'PENDING', internal_status: 'approved' } : null);
         toast.success('Template submitted to Meta for review');
         return true;
       } else {
-        toast.error(data.error || 'Failed to submit template');
+        toast.error(getTemplateSubmissionErrorMessage(null, data));
         return false;
       }
     } catch (error) {
       console.error('Error submitting to Meta:', error);
-      toast.error('Failed to submit template to Meta');
+      toast.error(getTemplateSubmissionErrorMessage(error));
       return false;
     }
   }, [currentTenant?.id, lintResults]);
