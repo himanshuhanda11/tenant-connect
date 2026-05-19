@@ -242,6 +242,11 @@ if (bodyVars && version.variable_samples) {
     const metaResult = await metaResponse.json();
     console.log('Meta API response:', metaResult);
 
+    // Persist sanitized name back to template so the UI/DB stays consistent
+    if (sanitizedName && sanitizedName !== template.name) {
+      await supabase.from('templates').update({ name: sanitizedName }).eq('id', template_id);
+    }
+
     // Create submission log
     const { data: submissionLog, error: logError } = await supabase
       .from('template_submission_logs')
