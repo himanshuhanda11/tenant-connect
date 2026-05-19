@@ -28,6 +28,7 @@ interface CoexistencePayload {
 }
 
 interface MetaEmbeddedSignupProps {
+  defaultMode?: SignupMode;
   onSuccess?: (data: {
     wabaId: string;
     phoneNumberId: string;
@@ -38,7 +39,7 @@ interface MetaEmbeddedSignupProps {
   onConnectionError?: (errorMessage: string) => void;
 }
 
-export function MetaEmbeddedSignup({ onSuccess, onError, onConnectionError }: MetaEmbeddedSignupProps) {
+export function MetaEmbeddedSignup({ defaultMode = 'standard', onSuccess, onError, onConnectionError }: MetaEmbeddedSignupProps) {
   const { currentTenant } = useTenant();
   const [loadingMode, setLoadingMode] = useState<SignupMode | null>(null);
   const [lastResult, setLastResult] = useState<{
@@ -262,15 +263,15 @@ export function MetaEmbeddedSignup({ onSuccess, onError, onConnectionError }: Me
     <div className="space-y-4">
       <Button
         type="button"
-        onClick={(e) => launchSignup('standard', e)}
+        onClick={(e) => launchSignup(defaultMode, e)}
         disabled={loadingMode !== null}
         className="w-full h-12"
         size="lg"
       >
-        {loadingMode === 'standard' ? (
-          <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Connecting to WhatsApp...</>
+        {loadingMode === defaultMode ? (
+          <><Loader2 className="w-4 h-4 mr-2 animate-spin" />{defaultMode === 'coexistence' ? 'Reconnecting…' : 'Connecting to WhatsApp...'}</>
         ) : (
-          <><MessageSquare className="w-4 h-4 mr-2" />Login with Facebook</>
+          <><MessageSquare className="w-4 h-4 mr-2" />{defaultMode === 'coexistence' ? 'Reconnect authorization' : 'Login with Facebook'}</>
         )}
       </Button>
 
