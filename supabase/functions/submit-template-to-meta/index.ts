@@ -208,8 +208,18 @@ if (bodyVars && version.variable_samples) {
       });
     }
 
+    // Meta requires template names to be lowercase letters, numbers, and underscores only
+    const sanitizedName = String(template.name || '')
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9_\s-]/g, '')
+      .replace(/[\s-]+/g, '_')
+      .replace(/_+/g, '_')
+      .replace(/^_+|_+$/g, '')
+      .slice(0, 512);
+
     const requestPayload = {
-      name: template.name,
+      name: sanitizedName,
       language: template.language,
       category: template.category,
       components,
