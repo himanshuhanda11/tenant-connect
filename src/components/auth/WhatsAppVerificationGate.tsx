@@ -6,12 +6,9 @@ import { useAuth } from '@/contexts/AuthContext';
 import { getDeviceHash } from '@/lib/auth/deviceId';
 
 /**
- * Blocks access until:
- *   1. (signup gate) `whatsapp_verification_required` users have `whatsapp_verified = true`
- *   2. (login gate) the current browser is registered in `trusted_devices` (30-day window)
- *
- * Existing users are grandfathered via `whatsapp_verification_required = false`,
- * but ALL verified users still need a trusted device per browser.
+ * Blocks access until the WhatsApp OTP gate is satisfied. The gate itself is
+ * only enforced when the global `whatsapp_otp_enabled` flag in
+ * `platform_settings` is true — super admins can toggle it from /control.
  */
 export function WhatsAppVerificationGate({ children }: { children: ReactNode }) {
   const { user, loading } = useAuth();
@@ -32,6 +29,19 @@ export function WhatsAppVerificationGate({ children }: { children: ReactNode }) 
     }
     let cancelled = false;
     (async () => {
+      // 1. Feature flag — if disabled, skip the entire gate.
+      const { data: flagRow } = await supabase
+        .from('platform_settings')
+        .select('value')
+        .eq('key', 'whatsapp_otp_enabled')
+        .maybeSingle();
+      if (cancelled) return;
+      const otpEnabled = (flagRow as any)?.value === true;
+      if (!otpEnabled) {
+        setState('allowed');
+        return;
+      }
+
       const { data: profile } = await supabase
         .from('profiles')
         .select('whatsapp_verified, whatsapp_verification_required')
@@ -42,13 +52,11 @@ export function WhatsAppVerificationGate({ children }: { children: ReactNode }) 
       const required = !!(profile as any)?.whatsapp_verification_required;
       const verified = !!(profile as any)?.whatsapp_verified;
 
-      // Signup gate
       if (required && !verified) {
         setState('blocked');
         return;
       }
 
-      // Login gate — only enforced for users who have ever verified.
       if (verified) {
         try {
           const deviceHash = await getDeviceHash();
@@ -60,7 +68,7 @@ export function WhatsAppVerificationGate({ children }: { children: ReactNode }) 
             return;
           }
         } catch {
-          // On RPC error, fail-open to avoid locking users out.
+          // Fail-open on RPC error.
         }
       }
 
