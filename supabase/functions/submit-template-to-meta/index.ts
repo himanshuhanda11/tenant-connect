@@ -116,97 +116,114 @@ Deno.serve(async (req) => {
     }
 
     // Build Meta API payload
-    const components: TemplateComponent[] = [];
+    const components: any[] = [];
+    const isAuthentication = String(template.category || '').toUpperCase() === 'AUTHENTICATION';
 
-    // Header component
-    if (version.header_type && version.header_type !== 'none') {
-      const headerComponent: TemplateComponent = {
-        type: 'HEADER',
-      };
+    if (isAuthentication) {
+      // AUTHENTICATION templates have a fixed structure — Meta auto-generates the body text.
+      // BODY must NOT include `text`; instead it accepts `add_security_recommendation`.
+      // FOOTER accepts `code_expiration_minutes`. BUTTONS must be a single OTP button.
+      components.push({
+        type: 'BODY',
+        add_security_recommendation: true,
+      });
 
-      if (version.header_type === 'text') {
-        headerComponent.format = 'TEXT';
-        headerComponent.text = version.header_content || '';
-        
-// Check for variables in header
-const headerVars = (version.header_content || '').match(/\{\{(\d+)\}\}/g);
-if (headerVars && version.variable_samples) {
-  const samples = version.variable_samples as Record<string, string>;
-  headerComponent.example = {
-    header_text: headerVars.map((v: string) => {
-      const num = v.match(/\d+/)?.[0];
-      return num ? (samples[`header_${num}`] || samples[num] || 'Sample') : 'Sample';
-    }),
-  };
-        }
-      } else if (['image', 'video', 'document'].includes(version.header_type)) {
-        headerComponent.format = version.header_type.toUpperCase() as 'IMAGE' | 'VIDEO' | 'DOCUMENT';
-      }
-
-      components.push(headerComponent);
-    }
-
-    // Body component (required)
-    const bodyComponent: TemplateComponent = {
-      type: 'BODY',
-      text: version.body,
-    };
-
-// Check for variables in body
-const bodyVars = version.body.match(/\{\{(\d+)\}\}/g);
-if (bodyVars && version.variable_samples) {
-  const samples = version.variable_samples as Record<string, string>;
-  bodyComponent.example = {
-    body_text: [bodyVars.map((v: string) => {
-      const num = v.match(/\d+/)?.[0];
-      return num ? (samples[num] || `Sample ${num}`) : 'Sample';
-        })],
-      };
-    }
-
-    components.push(bodyComponent);
-
-    // Footer component
-    if (version.footer) {
+      const expiryMatch = String(version.footer || '').match(/(\d+)/);
+      const codeExpirationMinutes = expiryMatch ? Math.min(90, Math.max(1, parseInt(expiryMatch[1], 10))) : 5;
       components.push({
         type: 'FOOTER',
-        text: version.footer,
+        code_expiration_minutes: codeExpirationMinutes,
       });
-    }
 
-    // Buttons component
-    const buttons = version.buttons as Array<{
-      type: 'QUICK_REPLY' | 'URL' | 'PHONE_NUMBER';
-      text: string;
-      url?: string;
-      phone_number?: string;
-    }> | null;
-
-    if (buttons && buttons.length > 0) {
       components.push({
         type: 'BUTTONS',
-        buttons: buttons.map(btn => {
-          if (btn.type === 'URL') {
-            return {
-              type: 'URL',
-              text: btn.text,
-              url: btn.url,
-            };
-          } else if (btn.type === 'PHONE_NUMBER') {
-            return {
-              type: 'PHONE_NUMBER',
-              text: btn.text,
-              phone_number: btn.phone_number,
-            };
-          } else {
-            return {
-              type: 'QUICK_REPLY',
-              text: btn.text,
+        buttons: [
+          {
+            type: 'OTP',
+            otp_type: 'COPY_CODE',
+            text: 'Copy code',
+          },
+        ],
+      });
+    } else {
+      // Header component
+      if (version.header_type && version.header_type !== 'none') {
+        const headerComponent: TemplateComponent = {
+          type: 'HEADER',
+        };
+
+        if (version.header_type === 'text') {
+          headerComponent.format = 'TEXT';
+          headerComponent.text = version.header_content || '';
+
+          const headerVars = (version.header_content || '').match(/\{\{(\d+)\}\}/g);
+          if (headerVars && version.variable_samples) {
+            const samples = version.variable_samples as Record<string, string>;
+            headerComponent.example = {
+              header_text: headerVars.map((v: string) => {
+                const num = v.match(/\d+/)?.[0];
+                return num ? (samples[`header_${num}`] || samples[num] || 'Sample') : 'Sample';
+              }),
             };
           }
-        }),
-      });
+        } else if (['image', 'video', 'document'].includes(version.header_type)) {
+          headerComponent.format = version.header_type.toUpperCase() as 'IMAGE' | 'VIDEO' | 'DOCUMENT';
+        }
+
+        components.push(headerComponent);
+      }
+
+      // Body component (required)
+      const bodyComponent: TemplateComponent = {
+        type: 'BODY',
+        text: version.body,
+      };
+
+      const bodyVars = version.body.match(/\{\{(\d+)\}\}/g);
+      if (bodyVars && version.variable_samples) {
+        const samples = version.variable_samples as Record<string, string>;
+        bodyComponent.example = {
+          body_text: [bodyVars.map((v: string) => {
+            const num = v.match(/\d+/)?.[0];
+            return num ? (samples[num] || `Sample ${num}`) : 'Sample';
+          })],
+        };
+      }
+
+      components.push(bodyComponent);
+
+      // Footer component
+      if (version.footer) {
+        components.push({
+          type: 'FOOTER',
+          text: version.footer,
+        });
+      }
+
+      // Buttons component
+      const buttons = version.buttons as Array<{
+        type: 'QUICK_REPLY' | 'URL' | 'PHONE_NUMBER';
+        text: string;
+        url?: string;
+        phone_number?: string;
+      }> | null;
+
+      if (buttons && buttons.length > 0) {
+        components.push({
+          type: 'BUTTONS',
+          buttons: buttons.map(btn => {
+            if (btn.type === 'URL') {
+              return { type: 'URL', text: btn.text, url: btn.url };
+            } else if (btn.type === 'PHONE_NUMBER') {
+              return { type: 'PHONE_NUMBER', text: btn.text, phone_number: btn.phone_number };
+            } else {
+              return { type: 'QUICK_REPLY', text: btn.text };
+            }
+          }),
+        });
+      }
     }
+
 
     // Meta requires template names to be lowercase letters, numbers, and underscores only
     const sanitizedName = String(template.name || '')
