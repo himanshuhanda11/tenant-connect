@@ -158,29 +158,30 @@ Deno.serve(async (req) => {
 
     const body = await req.json().catch(() => ({}));
     const { country_code, number } = body || {};
-    const e164 = normalizeE164(country_code, number);
-    if (!e164) {
-      return new Response(
-        JSON.stringify({ error: "Please enter a valid WhatsApp number." }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
-      );
-    }
 
     const admin = createClient(SUPABASE_URL, SERVICE_KEY);
-
-    // Check resend cooldown
     const { data: profile } = await admin
       .from("profiles")
       .select(
-        "id, whatsapp_verified, otp_last_sent_at",
+        "id, whatsapp_verified, otp_last_sent_at, whatsapp_e164, whatsapp_country_code, whatsapp_number",
       )
       .eq("id", userId)
       .maybeSingle();
 
-    if (profile?.whatsapp_verified) {
+    // If caller didn't supply a number (re-verify on a new device flow) and the
+    // user already has a saved WhatsApp number, reuse it. Otherwise require input.
+    let e164 = normalizeE164(country_code, number);
+    let storedCountry = country_code as string | undefined;
+    let storedNumber = number as string | undefined;
+    if (!e164 && profile?.whatsapp_e164) {
+      e164 = profile.whatsapp_e164 as string;
+      storedCountry = (profile.whatsapp_country_code as string) || storedCountry;
+      storedNumber = (profile.whatsapp_number as string) || storedNumber;
+    }
+    if (!e164) {
       return new Response(
-        JSON.stringify({ ok: true, alreadyVerified: true }),
-        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+        JSON.stringify({ error: "Please enter a valid WhatsApp number." }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
 
