@@ -116,12 +116,20 @@ Deno.serve(async (req) => {
             .eq('language', mt.language)
             .maybeSingle();
 
+          // Map Meta status to internal_status: anything synced from Meta
+          // has already left the draft stage internally.
+          const internalStatus =
+            metaStatus === 'APPROVED' ? 'approved'
+            : metaStatus === 'REJECTED' ? 'changes_requested'
+            : 'pending_review';
+
           if (existing) {
             await supabase
               .from('templates')
               .update({
                 components_json: components,
                 status: metaStatus,
+                internal_status: internalStatus,
                 category: mt.category || 'UTILITY',
                 meta_template_id: mt.id || '',
                 last_synced_at: new Date().toISOString(),
@@ -137,11 +145,13 @@ Deno.serve(async (req) => {
                 language: mt.language,
                 category: mt.category || 'UTILITY',
                 status: metaStatus,
+                internal_status: internalStatus,
                 components_json: components,
                 meta_template_id: mt.id || '',
                 last_synced_at: new Date().toISOString(),
               });
           }
+
 
           totalSynced++;
         }
