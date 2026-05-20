@@ -157,9 +157,9 @@ export function TemplatesListView({
         <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
           <CardTitle className="text-lg">My Templates</CardTitle>
           <div className="flex flex-wrap gap-2">
-            <Button variant="outline" size="sm" onClick={onRefresh}>
-              <RefreshCw className="h-4 w-4 mr-1" />
-              Sync from Meta
+            <Button variant="outline" size="sm" onClick={onRefresh} disabled={syncing}>
+              <RefreshCw className={`h-4 w-4 mr-1 ${syncing ? 'animate-spin' : ''}`} />
+              {syncing ? 'Syncing…' : 'Sync from Meta'}
             </Button>
             <Button size="sm" onClick={onCreateNew}>
               <Plus className="h-4 w-4 mr-1" />
