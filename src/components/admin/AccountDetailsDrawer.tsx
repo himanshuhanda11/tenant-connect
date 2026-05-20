@@ -498,7 +498,26 @@ export function AccountDetailsDrawer({ userId, onClose }: Props) {
                       description: 'This deletes the auth user, profile, and any owned workspaces. This cannot be undone.',
                       confirmLabel: 'Delete forever',
                       destructive: true,
-                      run: () => post(`users/${userId}/delete`, {}),
+                      run: async () => {
+                        try {
+                          return await post(`users/${userId}/delete`, {});
+                        } catch (e: any) {
+                          const b = e?.body;
+                          if (e?.status === 409 && b?.blocked) {
+                            const wsList = (b.workspaces || []).map((w: any) => `• ${w.name || w.id}`).join('\n');
+                            const phList = (b.phone_numbers || []).map((p: any) => `• ${p.number}`).join('\n');
+                            const detail = [
+                              b.message,
+                              wsList && `\nWorkspaces:\n${wsList}`,
+                              phList && `\nWhatsApp numbers:\n${phList}`,
+                              '\n\nForce-delete EVERYTHING (workspaces, numbers, contacts, messages) for this account? This cannot be undone.',
+                            ].filter(Boolean).join('');
+                            if (!window.confirm(detail)) throw new Error('Cancelled');
+                            return await post(`users/${userId}/delete`, { force: true, reason: 'Force-deleted by super admin' });
+                          }
+                          throw e;
+                        }
+                      },
                       successMsg: 'Account deleted',
                     })} />
                   <ActionBtn icon={UserCircle2} label="Edit profile"
