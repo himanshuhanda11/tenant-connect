@@ -18532,6 +18532,7 @@ export type Database = {
         | "custom"
       template_category: "MARKETING" | "UTILITY" | "AUTHENTICATION"
       template_status:
+        | "DRAFT"
         | "PENDING"
         | "APPROVED"
         | "REJECTED"
@@ -19129,6 +19130,7 @@ export const Constants = {
       ],
       template_category: ["MARKETING", "UTILITY", "AUTHENTICATION"],
       template_status: [
+        "DRAFT",
         "PENDING",
         "APPROVED",
         "REJECTED",
