@@ -313,10 +313,11 @@ export function TemplateBuilder({
           )}
           <Button
             size="sm"
-            onClick={handleSave}
+            onClick={handlePrimary}
             disabled={saving || !name || !body || errors.length > 0}
+            className="hidden sm:inline-flex"
           >
-            {saving ? 'Saving...' : mode === 'create' ? 'Create Template' : 'Save Changes'}
+            {saving ? 'Submitting...' : mode === 'create' ? 'Submit for Approval' : 'Update & Resubmit'}
           </Button>
         </div>
       </div>
