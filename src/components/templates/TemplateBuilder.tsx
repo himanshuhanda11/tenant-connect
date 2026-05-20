@@ -881,6 +881,41 @@ export function TemplateBuilder({
         }}
       />
       </div>
+
+      {/* Sticky mobile action bar */}
+      <div className="sm:hidden sticky bottom-0 left-0 right-0 -mx-4 px-4 py-3 bg-background/95 backdrop-blur border-t z-30">
+        <Button
+          className="w-full"
+          onClick={handlePrimary}
+          disabled={saving || !name || !body || errors.length > 0}
+        >
+          {saving ? 'Submitting...' : mode === 'create' ? 'Submit for Approval' : 'Update & Resubmit'}
+        </Button>
+      </div>
+
+      <AlertDialog open={confirmResubmit} onOpenChange={setConfirmResubmit}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Resubmit approved template?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This template is already approved by Meta. Updating and resubmitting will create a new version that must be re-reviewed. Until it’s approved again, the previously approved version remains active.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={async () => {
+                setConfirmResubmit(false);
+                if (onSaveAndSubmit) await onSaveAndSubmit(buildData());
+                else await onSave(buildData());
+                try { localStorage.removeItem(DRAFT_KEY); } catch {}
+              }}
+            >
+              Yes, update & resubmit
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
