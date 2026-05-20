@@ -409,7 +409,7 @@ export default function Templates() {
               filters={filters}
               onFiltersChange={setFilters}
               onCreateNew={handleCreateNew}
-              onRefresh={() => fetchTemplates(filters)}
+              onRefresh={handleSyncFromMeta}
             />
           </TabsContent>
 
