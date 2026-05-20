@@ -351,12 +351,21 @@ export function TemplateBuilder({
             </Button>
           )}
           <Button
+            variant="outline"
             size="sm"
-            onClick={handlePrimary}
-            disabled={saving || !name || !body || errors.length > 0}
+            onClick={handleSaveDraft}
+            disabled={!canSaveDraft}
             className="hidden sm:inline-flex"
           >
-            {saving ? 'Submitting...' : mode === 'create' ? 'Submit for Approval' : 'Update & Resubmit'}
+            {savingDraft ? (<><Loader2 className="h-4 w-4 mr-1.5 animate-spin" />Saving…</>) : 'Save as Draft'}
+          </Button>
+          <Button
+            size="sm"
+            onClick={handleSubmitForApproval}
+            disabled={!canSubmit}
+            className="hidden sm:inline-flex"
+          >
+            {submittingForApproval ? (<><Loader2 className="h-4 w-4 mr-1.5 animate-spin" />Submitting…</>) : mode === 'create' ? 'Submit for Approval' : 'Update & Resubmit'}
           </Button>
         </div>
       </div>
