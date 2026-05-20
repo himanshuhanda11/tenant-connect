@@ -270,12 +270,10 @@ export function TemplatesListView({
                       Score {template.template_score}
                     </span>
                   </div>
-                  {canSubmitToMeta(template) && (
-                    <Button size="sm" className="mt-3 w-full" onClick={() => onSubmitToMeta(template)}>
-                      <Send className="h-3.5 w-3.5 mr-1.5" />
-                      {submitApprovalLabel}
-                    </Button>
-                  )}
+                  <Button size="sm" variant="outline" className="mt-3 w-full" onClick={() => onEdit(template)}>
+                    <Edit className="h-3.5 w-3.5 mr-1.5" />
+                    Edit Template
+                  </Button>
                 </div>
               ))}
             </div>
