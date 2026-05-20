@@ -22,9 +22,10 @@ window.addEventListener("load", () => {
 });
 
 window.addEventListener("vite:preloadError", (event) => {
-  if (isChunkLoadError((event as ErrorEvent).error)) {
+  const preloadError = (event as Event & { payload?: unknown }).payload;
+  if (isChunkLoadError(preloadError)) {
     event.preventDefault();
-    void recoverFromChunkLoadError((event as ErrorEvent).error, "vite:preloadError");
+    void recoverFromChunkLoadError(preloadError, "vite:preloadError");
   }
 });
 
