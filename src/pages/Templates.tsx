@@ -44,6 +44,7 @@ interface LibraryTemplateState {
 
 export default function Templates() {
   const location = useLocation();
+  const { currentTenant } = useTenant();
   const {
     templates,
     loading,
@@ -66,6 +67,7 @@ export default function Templates() {
   const [editingTemplate, setEditingTemplate] = useState<TemplateType | null>(null);
   const [editingVersion, setEditingVersion] = useState<TemplateVersion | null>(null);
   const [previewTemplate, setPreviewTemplate] = useState<TemplateType | null>(null);
+  const [syncingMeta, setSyncingMeta] = useState(false);
   const [reviewModalTemplate, setReviewModalTemplate] = useState<TemplateType | null>(null);
   const [isCreating, setIsCreating] = useState(false);
   const [currentLintResults, setCurrentLintResults] = useState<any[]>([]);
