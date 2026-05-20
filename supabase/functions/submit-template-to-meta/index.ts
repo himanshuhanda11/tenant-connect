@@ -11,6 +11,7 @@ interface TemplateComponent {
   text?: string;
   example?: {
     header_text?: string[];
+    header_handle?: string[];
     body_text?: string[][];
   };
   buttons?: Array<{
