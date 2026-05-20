@@ -136,6 +136,27 @@ export default function Templates() {
     await deleteTemplate(template.id);
   };
 
+  const handleSyncFromMeta = async () => {
+    if (!currentTenant?.id) {
+      toast.error('No workspace selected');
+      return;
+    }
+    setSyncingMeta(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('sync-templates', {
+        body: { tenant_id: currentTenant.id },
+      });
+      if (error) throw error;
+      toast.success(`Synced ${data?.count ?? 0} templates from Meta`);
+      await fetchTemplates(filters);
+    } catch (e: any) {
+      console.error('sync-templates error', e);
+      toast.error(e?.message || 'Failed to sync from Meta. Make sure WhatsApp is connected.');
+    } finally {
+      setSyncingMeta(false);
+    }
+  };
+
   const handleRequestReview = (template: TemplateType) => {
     setReviewModalTemplate(template);
   };
