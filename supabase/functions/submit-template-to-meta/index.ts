@@ -188,6 +188,19 @@ Deno.serve(async (req) => {
           }
         } else if (['image', 'video', 'document'].includes(version.header_type)) {
           headerComponent.format = version.header_type.toUpperCase() as 'IMAGE' | 'VIDEO' | 'DOCUMENT';
+          const samples = (version.variable_samples || {}) as Record<string, string>;
+          const handle = samples.header_handle || samples.header_media_handle;
+          if (!handle) {
+            return new Response(JSON.stringify({
+              success: false,
+              error: `A sample ${version.header_type} is required for media headers. Please upload a sample file in the template builder before submitting.`,
+              code: 'MEDIA_HEADER_SAMPLE_REQUIRED',
+            }), {
+              status: 400,
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            });
+          }
+          headerComponent.example = { header_handle: [handle] };
         }
 
         components.push(headerComponent);
