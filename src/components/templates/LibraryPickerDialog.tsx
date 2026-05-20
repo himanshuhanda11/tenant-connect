@@ -1,11 +1,9 @@
 import { useState, useMemo } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
-import { Search, Library, Sparkles, ArrowRight, CheckCircle2, Flame, LayoutGrid, List } from 'lucide-react';
-import { PRE_APPROVED_TEMPLATES, TEMPLATE_CATEGORIES, TEMPLATE_INDUSTRIES, PreApprovedTemplate } from '@/data/preApprovedTemplates';
+import { Search, Library, ArrowRight, CheckCircle2 } from 'lucide-react';
+import { PRE_APPROVED_TEMPLATES, PreApprovedTemplate } from '@/data/preApprovedTemplates';
 import { cn } from '@/lib/utils';
 
 export interface LibrarySelection {
@@ -27,34 +25,30 @@ const META_BADGE: Record<string, string> = {
   AUTHENTICATION: 'bg-purple-500/10 text-purple-600 border-purple-500/20 dark:text-purple-400',
 };
 
+const TABS = [
+  { id: 'ALL', label: 'All', dot: 'bg-muted-foreground' },
+  { id: 'MARKETING', label: 'Marketing', dot: 'bg-blue-500' },
+  { id: 'UTILITY', label: 'Utility', dot: 'bg-emerald-500' },
+  { id: 'AUTHENTICATION', label: 'Authentication', dot: 'bg-purple-500' },
+] as const;
+
 export function LibraryPickerDialog({ open, onOpenChange, onSelect }: Props) {
   const [search, setSearch] = useState('');
-  const [category, setCategory] = useState<string>('All');
-  const [industry, setIndustry] = useState<string>('All');
   const [metaCat, setMetaCat] = useState<'ALL' | 'UTILITY' | 'MARKETING' | 'AUTHENTICATION'>('ALL');
-  const [view, setView] = useState<'grid' | 'list'>('grid');
-
-  const popular = useMemo(
-    () => [...PRE_APPROVED_TEMPLATES].sort((a, b) => b.downloads - a.downloads).slice(0, 6),
-    []
-  );
 
   const list = useMemo(() => {
+    const q = search.toLowerCase();
     return PRE_APPROVED_TEMPLATES.filter((t) => {
-      const q = search.toLowerCase();
       const matchesSearch =
-        !search ||
+        !q ||
         t.name.toLowerCase().includes(q) ||
         t.description.toLowerCase().includes(q) ||
         t.body.toLowerCase().includes(q) ||
-        (t.industry || '').toLowerCase().includes(q) ||
         t.tags.some((tag) => tag.toLowerCase().includes(q));
-      const matchesCat = category === 'All' || t.category === category;
-      const matchesInd = industry === 'All' || t.industry === industry;
       const matchesMeta = metaCat === 'ALL' || t.metaCategory === metaCat;
-      return matchesSearch && matchesCat && matchesInd && matchesMeta;
+      return matchesSearch && matchesMeta;
     });
-  }, [search, category, industry, metaCat]);
+  }, [search, metaCat]);
 
   const handlePick = (t: PreApprovedTemplate) => {
     onSelect({
@@ -66,19 +60,22 @@ export function LibraryPickerDialog({ open, onOpenChange, onSelect }: Props) {
     onOpenChange(false);
   };
 
+  const countFor = (id: string) =>
+    id === 'ALL' ? PRE_APPROVED_TEMPLATES.length : PRE_APPROVED_TEMPLATES.filter((t) => t.metaCategory === id).length;
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-5xl w-[95vw] max-h-[90vh] flex flex-col p-0 gap-0 overflow-hidden">
+      <DialogContent className="max-w-3xl w-[95vw] max-h-[90vh] flex flex-col p-0 gap-0 overflow-hidden">
         {/* Header */}
-        <DialogHeader className="px-6 pt-6 pb-4 border-b bg-gradient-to-br from-primary/5 via-background to-background">
+        <DialogHeader className="px-6 pt-6 pb-4 border-b">
           <div className="flex items-center gap-3">
             <div className="h-10 w-10 rounded-xl bg-primary/10 grid place-items-center">
               <Library className="h-5 w-5 text-primary" />
             </div>
             <div>
-              <DialogTitle className="text-xl">Template Library</DialogTitle>
+              <DialogTitle className="text-xl">Choose a template</DialogTitle>
               <DialogDescription className="text-xs">
-                {PRE_APPROVED_TEMPLATES.length}+ ready-made WhatsApp templates · Pick one to pre-fill the builder
+                Pick a ready-made template to start. You can edit it before submitting.
               </DialogDescription>
             </div>
           </div>
@@ -87,160 +84,45 @@ export function LibraryPickerDialog({ open, onOpenChange, onSelect }: Props) {
           <div className="relative mt-4">
             <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search by name, tag or keyword..."
+              placeholder="Search templates..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="pl-10 h-11 bg-background border-border/60 focus-visible:ring-primary"
+              className="pl-10 h-11"
             />
           </div>
 
-          {/* Meta category filter */}
-          <div className="flex items-center gap-1.5 mt-3 flex-wrap">
-            {([
-              { id: 'ALL', label: 'All Types', dot: 'bg-muted-foreground' },
-              { id: 'UTILITY', label: 'Utility', dot: 'bg-emerald-500' },
-              { id: 'MARKETING', label: 'Marketing', dot: 'bg-blue-500' },
-              { id: 'AUTHENTICATION', label: 'Auth', dot: 'bg-purple-500' },
-            ] as const).map((m) => (
+          {/* Simple category tabs */}
+          <div className="flex items-center gap-2 mt-3 flex-wrap">
+            {TABS.map((m) => (
               <button
                 key={m.id}
                 onClick={() => setMetaCat(m.id)}
                 className={cn(
-                  'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition-all',
+                  'inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-sm font-medium border transition-all',
                   metaCat === m.id
-                    ? 'bg-foreground text-background border-foreground shadow-sm'
+                    ? 'bg-foreground text-background border-foreground'
                     : 'bg-background text-muted-foreground border-border/60 hover:border-foreground/40'
                 )}
               >
-                <span className={cn('h-1.5 w-1.5 rounded-full', m.dot)} />
+                <span className={cn('h-2 w-2 rounded-full', m.dot)} />
                 {m.label}
+                <span className={cn(
+                  'text-[10px] px-1.5 rounded-full',
+                  metaCat === m.id ? 'bg-background/20' : 'bg-muted'
+                )}>
+                  {countFor(m.id)}
+                </span>
               </button>
             ))}
           </div>
         </DialogHeader>
 
-        {/* Industry tabs - horizontal scroll */}
-        <div className="border-b bg-muted/20 px-6 py-3">
-          <ScrollArea className="w-full">
-            <div className="flex items-center gap-2 pb-2">
-              <button
-                onClick={() => setCategory('All')}
-                className={cn(
-                  'shrink-0 inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium border transition-all whitespace-nowrap',
-                  category === 'All'
-                    ? 'bg-primary text-primary-foreground border-primary shadow-sm'
-                    : 'bg-background text-foreground border-border/60 hover:border-primary/50 hover:bg-accent'
-                )}
-              >
-                All
-                <Badge variant="secondary" className="h-4 px-1.5 text-[10px] bg-background/30">
-                  {PRE_APPROVED_TEMPLATES.length}
-                </Badge>
-              </button>
-              {TEMPLATE_CATEGORIES.filter(c => c.name !== 'All').map((c) => (
-                <button
-                  key={c.name}
-                  onClick={() => setCategory(c.name)}
-                  className={cn(
-                    'shrink-0 inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium border transition-all whitespace-nowrap',
-                    category === c.name
-                      ? 'bg-primary text-primary-foreground border-primary shadow-sm'
-                      : 'bg-background text-foreground border-border/60 hover:border-primary/50 hover:bg-accent'
-                  )}
-                >
-                  {c.name}
-                  <Badge variant="secondary" className={cn(
-                    'h-4 px-1.5 text-[10px]',
-                    category === c.name ? 'bg-background/30' : 'bg-muted'
-                  )}>
-                    {c.count}
-                  </Badge>
-                </button>
-              ))}
-            </div>
-            <ScrollBar orientation="horizontal" className="h-1.5" />
-          </ScrollArea>
-
-          {/* Industry filter */}
-          <ScrollArea className="w-full mt-2">
-            <div className="flex items-center gap-1.5 pb-1.5">
-              <span className="shrink-0 text-[10px] uppercase tracking-wide text-muted-foreground font-semibold mr-1">Industry</span>
-              {TEMPLATE_INDUSTRIES.map((i) => (
-                <button
-                  key={i.name}
-                  onClick={() => setIndustry(i.name)}
-                  className={cn(
-                    'shrink-0 inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-medium border transition-all whitespace-nowrap',
-                    industry === i.name
-                      ? 'bg-foreground/90 text-background border-foreground'
-                      : 'bg-background text-muted-foreground border-border/50 hover:border-foreground/40'
-                  )}
-                >
-                  {i.name}
-                  <span className="text-[9px] opacity-70">{i.count}</span>
-                </button>
-              ))}
-            </div>
-            <ScrollBar orientation="horizontal" className="h-1.5" />
-          </ScrollArea>
-        </div>
-
-        {/* Templates grid */}
+        {/* Templates list */}
         <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain">
           <div className="px-6 py-5">
-            {/* Popular row — only when no filters applied */}
-            {!search && category === 'All' && industry === 'All' && metaCat === 'ALL' && (
-              <div className="mb-6">
-                <div className="flex items-center gap-2 mb-3">
-                  <Flame className="h-4 w-4 text-orange-500" />
-                  <h3 className="text-sm font-semibold">Popular templates</h3>
-                  <span className="text-[10px] text-muted-foreground">Most used by businesses</span>
-                </div>
-                <ScrollArea className="w-full">
-                  <div className="flex gap-2 pb-2">
-                    {popular.map((t) => (
-                      <button
-                        key={`pop-${t.id}`}
-                        onClick={() => handlePick(t)}
-                        className="shrink-0 w-[220px] text-left rounded-lg border border-border/60 bg-card p-3 hover:border-primary hover:shadow-md transition-all"
-                      >
-                        <div className="flex items-center justify-between gap-2 mb-1">
-                          <p className="font-semibold text-xs truncate">{t.name}</p>
-                          <span className={cn('text-[9px] font-semibold px-1.5 rounded border', META_BADGE[t.metaCategory])}>
-                            {t.metaCategory[0]}
-                          </span>
-                        </div>
-                        <p className="text-[10px] text-muted-foreground line-clamp-2">{t.description}</p>
-                        <p className="text-[9px] text-muted-foreground mt-1">{t.downloads.toLocaleString()} uses</p>
-                      </button>
-                    ))}
-                  </div>
-                  <ScrollBar orientation="horizontal" className="h-1.5" />
-                </ScrollArea>
-              </div>
-            )}
-
-            <div className="flex items-center justify-between mb-4">
-              <p className="text-xs text-muted-foreground">
-                Showing <span className="font-semibold text-foreground">{list.length}</span> templates
-              </p>
-              <div className="inline-flex items-center rounded-md border border-border/60 p-0.5 bg-background">
-                <button
-                  onClick={() => setView('grid')}
-                  className={cn('p-1.5 rounded', view === 'grid' ? 'bg-muted text-foreground' : 'text-muted-foreground')}
-                  aria-label="Grid view"
-                >
-                  <LayoutGrid className="h-3.5 w-3.5" />
-                </button>
-                <button
-                  onClick={() => setView('list')}
-                  className={cn('p-1.5 rounded', view === 'list' ? 'bg-muted text-foreground' : 'text-muted-foreground')}
-                  aria-label="List view"
-                >
-                  <List className="h-3.5 w-3.5" />
-                </button>
-              </div>
-            </div>
+            <p className="text-xs text-muted-foreground mb-4">
+              Showing <span className="font-semibold text-foreground">{list.length}</span> templates
+            </p>
 
             {list.length === 0 ? (
               <div className="text-center py-16">
@@ -251,65 +133,52 @@ export function LibraryPickerDialog({ open, onOpenChange, onSelect }: Props) {
                 <p className="text-xs text-muted-foreground mt-1">Try a different search or category.</p>
               </div>
             ) : (
-              <div className={cn('grid gap-3', view === 'grid' ? 'grid-cols-1 md:grid-cols-2' : 'grid-cols-1')}>
+              <div className="flex flex-col gap-3">
                 {list.map((t) => (
                   <button
                     key={t.id}
                     onClick={() => handlePick(t)}
-                    className="group text-left rounded-xl border border-border/60 bg-card p-4 hover:border-primary hover:shadow-lg hover:shadow-primary/5 transition-all relative overflow-hidden"
+                    className="group text-left rounded-xl border border-border/60 bg-card p-5 hover:border-primary hover:shadow-md transition-all"
                   >
-                    {/* Hover glow */}
-                    <div className="absolute inset-0 bg-gradient-to-br from-primary/0 via-primary/0 to-primary/5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
-
                     {/* Header row */}
-                    <div className="flex items-start justify-between gap-2 mb-2 relative">
+                    <div className="flex items-start justify-between gap-3 mb-3">
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-1.5 flex-wrap mb-1">
-                          <h4 className="font-semibold text-sm leading-tight truncate">{t.name}</h4>
-                          {t.isTrending && (
-                            <span className="inline-flex items-center gap-0.5 text-[9px] font-bold text-orange-600 bg-orange-500/10 border border-orange-500/20 px-1.5 py-0.5 rounded-full">
-                              🔥 HOT
-                            </span>
-                          )}
-                          {t.isNew && (
-                            <span className="inline-flex items-center gap-0.5 text-[9px] font-bold text-emerald-600 bg-emerald-500/10 border border-emerald-500/20 px-1.5 py-0.5 rounded-full">
-                              NEW
-                            </span>
-                          )}
-                        </div>
-                        <p className="text-[11px] text-muted-foreground line-clamp-1">{t.description}</p>
+                        <h4 className="font-semibold text-base leading-tight mb-1">{t.name}</h4>
+                        <p className="text-xs text-muted-foreground line-clamp-2">{t.description}</p>
                       </div>
                       <span className={cn(
-                        'shrink-0 text-[10px] font-semibold px-2 py-0.5 rounded-md border',
+                        'shrink-0 text-[11px] font-semibold px-2 py-1 rounded-md border',
                         META_BADGE[t.metaCategory]
                       )}>
                         {t.metaCategory}
                       </span>
                     </div>
 
-                    {/* Body preview */}
-                    <div className="rounded-lg bg-muted/40 border border-border/40 p-3 mb-3 relative">
-                      <p className="text-[12px] leading-relaxed text-foreground/85 whitespace-pre-wrap line-clamp-5">
+                    {/* Body preview - bigger */}
+                    <div className="rounded-lg bg-muted/40 border border-border/40 p-4 mb-3">
+                      <p className="text-sm leading-relaxed text-foreground/85 whitespace-pre-wrap line-clamp-6">
                         {t.body}
                       </p>
                     </div>
 
                     {/* Footer row */}
-                    <div className="flex items-center justify-between gap-2 relative">
-                      <div className="flex items-center gap-1.5 min-w-0 flex-wrap">
-                        <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-5 truncate max-w-[140px]">
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <Badge variant="outline" className="text-[11px]">
                           {t.category}
                         </Badge>
-                        <span className="inline-flex items-center gap-0.5 text-[10px] font-semibold px-1.5 py-0.5 rounded-md border bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20">
-                          <CheckCircle2 className="h-2.5 w-2.5" /> Approved
+                        <span className="inline-flex items-center gap-1 text-[11px] font-medium text-emerald-600 dark:text-emerald-400">
+                          <CheckCircle2 className="h-3 w-3" /> Pre-approved style
                         </span>
-                        <span className="text-[10px] text-muted-foreground">
-                          {t.variables.length} vars
-                        </span>
+                        {t.variables.length > 0 && (
+                          <span className="text-[11px] text-muted-foreground">
+                            {t.variables.length} variable{t.variables.length === 1 ? '' : 's'}
+                          </span>
+                        )}
                       </div>
-                      <span className="inline-flex items-center gap-1 text-[11px] font-medium text-primary opacity-70 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all">
-                        <Sparkles className="h-3 w-3" /> Use
-                        <ArrowRight className="h-3 w-3" />
+                      <span className="inline-flex items-center gap-1 text-sm font-medium text-primary opacity-80 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all">
+                        Use
+                        <ArrowRight className="h-3.5 w-3.5" />
                       </span>
                     </div>
                   </button>
