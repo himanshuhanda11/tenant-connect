@@ -462,7 +462,7 @@ export default function CreateCampaign() {
           scheduled_at: scheduledAt,
           timezone: wizard.delivery.timezone,
           messages_per_minute: wizard.delivery.messages_per_minute,
-          audience_config: { source: audienceFilters.selected_contacts?.length ? 'csv_or_contacts' : 'filters', selected_contacts: contactIds, filters: audienceFilters },
+          audience_config: { source: audienceMode, selected_contacts: contactIds, uploaded_contacts: uploadedContactIds, filters: audienceFilters },
         },
       });
       if (error) throw error;
