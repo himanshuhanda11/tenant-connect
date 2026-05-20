@@ -452,78 +452,142 @@ export default function Templates() {
         }}
       />
 
-      {/* Preview Dialog */}
+      {/* Preview Dialog — premium, scrollable, with live WhatsApp preview */}
       {previewTemplate && (
         <Dialog open={!!previewTemplate} onOpenChange={() => setPreviewTemplate(null)}>
-          <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>{previewTemplate.name}</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                <div>
-                  <span className="text-muted-foreground">Category:</span>{' '}
-                  <span className="font-medium">{previewTemplate.category}</span>
-                </div>
-                <div>
-                  <span className="text-muted-foreground">Language:</span>{' '}
-                  <span className="font-medium">{previewTemplate.language}</span>
-                </div>
-                <div>
-                  <span className="text-muted-foreground">Internal Status:</span>{' '}
-                  <span className="font-medium">{previewTemplate.internal_status}</span>
-                </div>
-                <div>
-                  <span className="text-muted-foreground">Meta Status:</span>{' '}
-                  <span className="font-medium">{previewTemplate.status}</span>
+          <DialogContent className="max-w-4xl p-0 gap-0 overflow-hidden max-h-[92vh] flex flex-col">
+            {/* Sticky header */}
+            <DialogHeader className="px-6 pt-6 pb-4 border-b bg-gradient-to-br from-background to-muted/30 shrink-0">
+              <div className="flex items-start justify-between gap-4">
+                <div className="min-w-0 flex-1">
+                  <DialogTitle className="text-xl font-semibold truncate">
+                    {previewTemplate.name}
+                  </DialogTitle>
+                  <div className="flex flex-wrap items-center gap-2 mt-2">
+                    <Badge variant="secondary" className="font-normal">{previewTemplate.category}</Badge>
+                    <Badge variant="outline" className="font-normal uppercase">{previewTemplate.language}</Badge>
+                    <Badge
+                      variant={
+                        previewTemplate.status === 'APPROVED' ? 'default'
+                        : previewTemplate.status === 'REJECTED' ? 'destructive'
+                        : 'secondary'
+                      }
+                      className="font-normal"
+                    >
+                      {previewTemplate.status}
+                    </Badge>
+                  </div>
                 </div>
               </div>
+            </DialogHeader>
 
-              {previewTemplate.current_version && (
-                <div className="space-y-2">
-                  <h4 className="font-medium">Content</h4>
-                  {previewTemplate.current_version.header_content && (
-                    <div className="p-3 bg-muted rounded-lg">
-                      <span className="text-xs text-muted-foreground">Header:</span>
-                      <p>{previewTemplate.current_version.header_content}</p>
+            {/* Scrollable body */}
+            <ScrollArea className="flex-1 min-h-0">
+              <div className="grid md:grid-cols-2 gap-6 p-6">
+                {/* Left: details */}
+                <div className="space-y-5">
+                  <div>
+                    <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">
+                      Template Details
+                    </h4>
+                    <div className="rounded-lg border bg-card divide-y">
+                      <div className="flex justify-between px-4 py-3 text-sm">
+                        <span className="text-muted-foreground">Category</span>
+                        <span className="font-medium">{previewTemplate.category}</span>
+                      </div>
+                      <div className="flex justify-between px-4 py-3 text-sm">
+                        <span className="text-muted-foreground">Language</span>
+                        <span className="font-medium uppercase">{previewTemplate.language}</span>
+                      </div>
+                      <div className="flex justify-between px-4 py-3 text-sm">
+                        <span className="text-muted-foreground">Internal Status</span>
+                        <span className="font-medium capitalize">{previewTemplate.internal_status}</span>
+                      </div>
+                      <div className="flex justify-between px-4 py-3 text-sm">
+                        <span className="text-muted-foreground">Meta Status</span>
+                        <span className="font-medium">{previewTemplate.status}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {previewTemplate.current_version && (
+                    <div>
+                      <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">
+                        Raw Content
+                      </h4>
+                      <div className="space-y-2">
+                        {previewTemplate.current_version.header_content && (
+                          <div className="rounded-lg border bg-muted/40 p-3">
+                            <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Header</span>
+                            <p className="text-sm mt-1 break-words">{previewTemplate.current_version.header_content}</p>
+                          </div>
+                        )}
+                        <div className="rounded-lg border bg-muted/40 p-3">
+                          <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Body</span>
+                          <p className="text-sm mt-1 whitespace-pre-wrap break-words">{previewTemplate.current_version.body}</p>
+                        </div>
+                        {previewTemplate.current_version.footer && (
+                          <div className="rounded-lg border bg-muted/40 p-3">
+                            <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Footer</span>
+                            <p className="text-sm mt-1 text-muted-foreground break-words">{previewTemplate.current_version.footer}</p>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   )}
-                  <div className="p-3 bg-muted rounded-lg">
-                    <span className="text-xs text-muted-foreground">Body:</span>
-                    <p className="whitespace-pre-wrap">{previewTemplate.current_version.body}</p>
-                  </div>
-                  {previewTemplate.current_version.footer && (
-                    <div className="p-3 bg-muted rounded-lg">
-                      <span className="text-xs text-muted-foreground">Footer:</span>
-                      <p className="text-sm text-muted-foreground">{previewTemplate.current_version.footer}</p>
+
+                  {previewTemplate.rejection_reason && (
+                    <Alert variant="destructive">
+                      <AlertDescription>
+                        <strong className="block mb-1">Rejection Reason</strong>
+                        {previewTemplate.rejection_reason}
+                      </AlertDescription>
+                    </Alert>
+                  )}
+                </div>
+
+                {/* Right: live WhatsApp preview */}
+                <div className="md:sticky md:top-0">
+                  <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">
+                    Live Preview
+                  </h4>
+                  {previewTemplate.current_version ? (
+                    <WhatsAppPreview
+                      headerType={previewTemplate.current_version.header_type}
+                      headerContent={previewTemplate.current_version.header_content || ''}
+                      body={previewTemplate.current_version.body}
+                      footer={previewTemplate.current_version.footer || ''}
+                      buttons={previewTemplate.current_version.buttons || []}
+                      variableSamples={previewTemplate.current_version.variable_samples || {}}
+                    />
+                  ) : (
+                    <div className="rounded-lg border border-dashed p-8 text-center text-sm text-muted-foreground">
+                      No content version available
                     </div>
                   )}
                 </div>
-              )}
+              </div>
+            </ScrollArea>
 
-              {previewTemplate.rejection_reason && (
-                <Alert variant="destructive">
-                  <AlertDescription>
-                    <strong>Rejection Reason:</strong> {previewTemplate.rejection_reason}
-                  </AlertDescription>
-                </Alert>
-              )}
-
-              <div className="flex gap-2 justify-end">
-                <Button variant="outline" onClick={() => setPreviewTemplate(null)}>
-                  Close
-                </Button>
-                <Button onClick={() => {
+            {/* Sticky footer actions */}
+            <div className="flex items-center justify-end gap-2 px-6 py-4 border-t bg-background/95 backdrop-blur shrink-0">
+              <Button variant="outline" onClick={() => setPreviewTemplate(null)}>
+                Close
+              </Button>
+              <Button
+                onClick={() => {
                   setPreviewTemplate(null);
                   handleEdit(previewTemplate);
-                }}>
-                  Edit Template
-                </Button>
-              </div>
+                }}
+              >
+                <Pencil className="h-4 w-4 mr-2" />
+                Edit Template
+              </Button>
             </div>
           </DialogContent>
         </Dialog>
       )}
+
 
       {/* Internal Review Modal */}
       {reviewModalTemplate && (
