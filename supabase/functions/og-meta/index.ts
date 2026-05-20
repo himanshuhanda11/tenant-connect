@@ -32,19 +32,19 @@ interface MetaInfo {
 }
 
 const BASE_URL = "https://aireatro.com";
-const DEFAULT_OG_IMAGE = `${BASE_URL}/og-image.png`;
+const DEFAULT_OG_IMAGE = `${BASE_URL}/og-image.jpg?v=3`;
 
 function defaults(path: string): MetaInfo {
   return {
-    title: "AiReatro - WhatsApp Business API Platform",
-    description: "Connect, engage, and grow with WhatsApp Business API. Automate conversations, send campaigns, and manage customer relationships.",
-    ogTitle: "AiReatro - WhatsApp Business API Platform",
-    ogDescription: "Connect, engage, and grow with WhatsApp Business API.",
+    title: "AiReatro — AI-Powered WhatsApp CRM & Automation Platform",
+    description: "Engage, automate & scale conversations with the Official WhatsApp Business API. Team inbox, AI auto-replies, campaigns & CRM — start free.",
+    ogTitle: "AiReatro — AI-Powered WhatsApp CRM & Automation Platform",
+    ogDescription: "Engage, automate & scale conversations with the Official WhatsApp Business API. Team inbox, AI auto-replies, campaigns & CRM — start free.",
     ogImage: DEFAULT_OG_IMAGE,
     ogType: "website",
     twitterCard: "summary_large_image",
-    twitterTitle: "AiReatro - WhatsApp Business API Platform",
-    twitterDescription: "Connect, engage, and grow with WhatsApp Business API.",
+    twitterTitle: "AiReatro — AI-Powered WhatsApp CRM & Automation Platform",
+    twitterDescription: "Engage, automate & scale conversations with the Official WhatsApp Business API. Team inbox, AI auto-replies, campaigns & CRM — start free.",
     twitterImage: DEFAULT_OG_IMAGE,
     canonicalUrl: `${BASE_URL}${path}`,
     robots: "index,follow",
