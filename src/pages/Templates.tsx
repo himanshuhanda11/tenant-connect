@@ -117,6 +117,7 @@ export default function Templates() {
 
   const handleDuplicate = async (template: TemplateType) => {
     await duplicateTemplate(template.id);
+    await fetchTemplates(filters);
   };
 
   const handleArchive = async (template: TemplateType) => {
