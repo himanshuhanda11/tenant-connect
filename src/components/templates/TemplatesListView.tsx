@@ -279,19 +279,7 @@ export function TemplatesListView({
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => onEdit(template)}>
-                          <Edit className="h-4 w-4 mr-2" />Edit Template
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => onDuplicate(template)}>
-                          <Copy className="h-4 w-4 mr-2" />Duplicate Template
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => onView(template)}>
-                          <Eye className="h-4 w-4 mr-2" />View Status
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem onClick={() => onDelete(template)} className="text-destructive">
-                          <Trash2 className="h-4 w-4 mr-2" />Delete Template
-                        </DropdownMenuItem>
+                        {renderActions(template)}
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </div>
