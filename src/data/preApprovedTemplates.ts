@@ -1,10 +1,11 @@
-// Pre-approved WhatsApp Business templates - 50 templates across all categories
-// These templates follow Meta's guidelines and have high approval rates
+// Pre-approved WhatsApp Business templates — 100+ templates across all industries
+// Meta-compliant formatting · used by global teams
 
 export interface PreApprovedTemplate {
   id: number;
   name: string;
-  category: 'E-commerce' | 'Marketing' | 'Notifications' | 'Appointments' | 'Support' | 'Payments' | 'Authentication' | 'Logistics' | 'HR & Recruitment' | 'Education' | 'Healthcare' | 'Real Estate' | 'Travel' | 'Food & Delivery';
+  category: string;
+  industry?: string;
   metaCategory: 'UTILITY' | 'MARKETING' | 'AUTHENTICATION';
   icon: string;
   description: string;
@@ -18,699 +19,2263 @@ export interface PreApprovedTemplate {
 }
 
 export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
-  // E-commerce Templates (1-10)
   {
-    id: 1,
-    name: 'Order Confirmation',
-    category: 'E-commerce',
-    metaCategory: 'UTILITY',
-    icon: 'Package',
-    description: 'Confirm orders with details, amount, and tracking information',
-    body: 'Hi {{1}}! 🎉\n\nThank you for your order #{{2}}!\n\nOrder Total: ₹{{3}}\nEstimated Delivery: {{4}}\n\nTrack your order: {{5}}\n\nNeed help? Reply to this message!',
-    variables: ['Customer Name', 'Order ID', 'Total Amount', 'Delivery Date', 'Tracking URL'],
-    tags: ['transactional', 'order', 'confirmation'],
-    status: 'approved',
-    downloads: 12500
+    "id": 101,
+    "name": "Flash Sale Alert",
+    "category": "Marketing",
+    "industry": "E-commerce",
+    "metaCategory": "MARKETING",
+    "icon": "Zap",
+    "description": "Drive urgency with limited-hour flash sales",
+    "body": "⚡ FLASH SALE — {{1}}!\n\nHi {{2}}, enjoy up to {{3}}% off across {{4}}.\n\nUse code: *{{5}}*\nEnds in: {{6}}\n\nShop now: {{7}}",
+    "variables": [
+      "Sale Name",
+      "Customer Name",
+      "Discount %",
+      "Category",
+      "Promo Code",
+      "Time Left",
+      "Shop URL"
+    ],
+    "tags": [
+      "sale",
+      "urgency",
+      "ecommerce"
+    ],
+    "status": "approved",
+    "downloads": 14200,
+    "isTrending": true
   },
   {
-    id: 2,
-    name: 'Shipping Update',
-    category: 'E-commerce',
-    metaCategory: 'UTILITY',
-    icon: 'Truck',
-    description: 'Keep customers informed about their shipment status',
-    body: 'Hi {{1}},\n\n📦 Your order is on the way!\n\nOrder #{{2}} has been shipped.\n\nCarrier: {{3}}\nTracking: {{4}}\n\nEstimated delivery: {{5}}\n\nTrack live: {{6}}',
-    variables: ['Customer Name', 'Order ID', 'Carrier Name', 'Tracking Number', 'Delivery Date', 'Tracking URL'],
-    tags: ['shipping', 'tracking', 'update'],
-    status: 'approved',
-    downloads: 11200
+    "id": 102,
+    "name": "Abandoned Cart Offer",
+    "category": "Marketing",
+    "industry": "E-commerce",
+    "metaCategory": "MARKETING",
+    "icon": "ShoppingCart",
+    "description": "Recover carts with an exclusive incentive",
+    "body": "Hi {{1}},\n\nYou left {{2}} in your cart 🛒\n\nWe saved it for you and added *{{3}}% off* with code *{{4}}*.\n\nComplete checkout: {{5}}\n\nOffer expires in {{6}} hours.",
+    "variables": [
+      "Customer Name",
+      "Items",
+      "Discount %",
+      "Promo Code",
+      "Checkout URL",
+      "Hours"
+    ],
+    "tags": [
+      "cart",
+      "recovery",
+      "discount"
+    ],
+    "status": "approved",
+    "downloads": 5396,
+    "isTrending": true
   },
   {
-    id: 3,
-    name: 'Delivery Completed',
-    category: 'E-commerce',
-    metaCategory: 'UTILITY',
-    icon: 'CheckCircle2',
-    description: 'Confirm successful order delivery to customers',
-    body: '📬 Delivered!\n\nHi {{1}},\n\nGreat news! Your order #{{2}} has been delivered.\n\nDelivered to: {{3}}\nTime: {{4}}\n\nEnjoy your purchase! 🎉\n\nRate your experience: {{5}}',
-    variables: ['Customer Name', 'Order ID', 'Address', 'Delivery Time', 'Feedback URL'],
-    tags: ['delivery', 'completed', 'confirmation'],
-    status: 'approved',
-    downloads: 9400
+    "id": 103,
+    "name": "Festival Sale",
+    "category": "Marketing",
+    "industry": "E-commerce",
+    "metaCategory": "MARKETING",
+    "icon": "Sparkles",
+    "description": "Festive promotion with site-wide offers",
+    "body": "🎉 {{1}} Sale is LIVE!\n\nHi {{2}}, celebrate with us — up to {{3}}% off everything.\n\nFree shipping on orders above {{4}}.\n\nShop: {{5}}",
+    "variables": [
+      "Festival Name",
+      "Customer Name",
+      "Discount %",
+      "Min Order",
+      "Shop URL"
+    ],
+    "tags": [
+      "festival",
+      "sale",
+      "seasonal"
+    ],
+    "status": "approved",
+    "downloads": 3218
   },
   {
-    id: 4,
-    name: 'Abandoned Cart Recovery',
-    category: 'E-commerce',
-    metaCategory: 'MARKETING',
-    icon: 'ShoppingCart',
-    description: 'Recover abandoned carts with personalized reminders',
-    body: 'Hi {{1}},\n\n🛒 You left something behind!\n\nYour cart is waiting:\n{{2}}\n\nTotal: ₹{{3}}\n\n✨ Complete your order: {{4}}\n\nNeed help? We\'re here for you!',
-    variables: ['Customer Name', 'Cart Items', 'Total', 'Checkout URL'],
-    tags: ['cart', 'recovery', 'reminder'],
-    status: 'approved',
-    downloads: 10300
+    "id": 104,
+    "name": "New Collection Launch",
+    "category": "Marketing",
+    "industry": "E-commerce",
+    "metaCategory": "MARKETING",
+    "icon": "Sparkles",
+    "description": "Announce a new product collection",
+    "body": "Hi {{1}} 👋\n\nOur new *{{2}}* collection just dropped.\n\nEarly access for our customers — explore: {{3}}",
+    "variables": [
+      "Customer Name",
+      "Collection Name",
+      "Collection URL"
+    ],
+    "tags": [
+      "launch",
+      "collection",
+      "new"
+    ],
+    "status": "approved",
+    "downloads": 6747
   },
   {
-    id: 5,
-    name: 'Order Refund Processed',
-    category: 'E-commerce',
-    metaCategory: 'UTILITY',
-    icon: 'RefreshCw',
-    description: 'Confirm refund processing to customers',
-    body: '💰 Refund Processed!\n\nHi {{1}},\n\nYour refund for order #{{2}} has been processed.\n\nAmount: ₹{{3}}\nMethod: {{4}}\n\nExpect it within {{5}} business days.\n\nQuestions? Reply here.',
-    variables: ['Customer Name', 'Order ID', 'Refund Amount', 'Payment Method', 'Days'],
-    tags: ['refund', 'order', 'processed'],
-    status: 'approved',
-    downloads: 6800
+    "id": 105,
+    "name": "Back in Stock",
+    "category": "Marketing",
+    "industry": "E-commerce",
+    "metaCategory": "MARKETING",
+    "icon": "Package",
+    "description": "Notify wishlisted customers product is restocked",
+    "body": "Good news {{1}}!\n\n*{{2}}* is back in stock 🎉\n\nQuantities are limited — grab it: {{3}}",
+    "variables": [
+      "Customer Name",
+      "Product Name",
+      "Product URL"
+    ],
+    "tags": [
+      "back-in-stock",
+      "wishlist"
+    ],
+    "status": "approved",
+    "downloads": 3272
   },
   {
-    id: 6,
-    name: 'Order Delayed Notification',
-    category: 'E-commerce',
-    metaCategory: 'UTILITY',
-    icon: 'Clock',
-    description: 'Notify customers about order delays proactively',
-    body: 'Hi {{1}},\n\n⚠️ Order Update\n\nWe wanted to let you know that order #{{2}} is slightly delayed.\n\nNew Expected Delivery: {{3}}\nReason: {{4}}\n\nWe apologize for the inconvenience.\n\nTrack status: {{5}}',
-    variables: ['Customer Name', 'Order ID', 'New Date', 'Delay Reason', 'Track URL'],
-    tags: ['delay', 'notification', 'order'],
-    status: 'approved',
-    downloads: 4500,
-    isNew: true
+    "id": 106,
+    "name": "Limited-Time Offer",
+    "category": "Marketing",
+    "industry": "E-commerce",
+    "metaCategory": "MARKETING",
+    "icon": "Clock",
+    "description": "24-48 hour exclusive offer for engaged customers",
+    "body": "Hi {{1}}, exclusive {{2}}-hour offer 🎁\n\n{{3}}% off your next order with code *{{4}}*.\n\nShop now: {{5}}",
+    "variables": [
+      "Customer Name",
+      "Hours",
+      "Discount %",
+      "Promo Code",
+      "Shop URL"
+    ],
+    "tags": [
+      "limited",
+      "offer",
+      "discount"
+    ],
+    "status": "approved",
+    "downloads": 6349
   },
   {
-    id: 7,
-    name: 'Product Back in Stock',
-    category: 'E-commerce',
-    metaCategory: 'MARKETING',
-    icon: 'Bell',
-    description: 'Notify customers when wished items are available',
-    body: '🔔 Back in Stock!\n\nHi {{1}},\n\nGreat news! {{2}} is back in stock!\n\n💰 Price: ₹{{3}}\n\nGrab yours before it\'s gone: {{4}}\n\nLimited quantities available!',
-    variables: ['Customer Name', 'Product Name', 'Price', 'Product URL'],
-    tags: ['restock', 'alert', 'wishlist'],
-    status: 'approved',
-    downloads: 6100
+    "id": 107,
+    "name": "COD Order Confirmation",
+    "category": "Marketing",
+    "industry": "E-commerce",
+    "metaCategory": "MARKETING",
+    "icon": "BadgeCheck",
+    "description": "Soft-confirm a cash-on-delivery order",
+    "body": "Hi {{1}}, please confirm your COD order #{{2}} of {{3}}.\n\nReply *YES* to confirm or *NO* to cancel within {{4}} hours.",
+    "variables": [
+      "Customer Name",
+      "Order ID",
+      "Amount",
+      "Hours"
+    ],
+    "tags": [
+      "cod",
+      "confirmation",
+      "order"
+    ],
+    "status": "approved",
+    "downloads": 3750
   },
   {
-    id: 8,
-    name: 'Product Review Request',
-    category: 'E-commerce',
-    metaCategory: 'UTILITY',
-    icon: 'Star',
-    description: 'Request product reviews after delivery',
-    body: 'Hi {{1}},\n\nHow are you enjoying {{2}}? 🌟\n\nWe\'d love to hear your thoughts!\n\n⭐ Leave a review: {{3}}\n\nYour feedback helps other customers and helps us improve.\n\nThank you!',
-    variables: ['Customer Name', 'Product Name', 'Review URL'],
-    tags: ['review', 'feedback', 'product'],
-    status: 'approved',
-    downloads: 7200
+    "id": 108,
+    "name": "VIP Customer Offer",
+    "category": "Marketing",
+    "industry": "E-commerce",
+    "metaCategory": "MARKETING",
+    "icon": "Crown",
+    "description": "Reward loyal customers with VIP-only deals",
+    "body": "Hi {{1}} 👑\n\nAs a VIP, here's *{{2}}% off* exclusively for you.\n\nUse code: *{{3}}* — valid till {{4}}.\n\nShop: {{5}}",
+    "variables": [
+      "Customer Name",
+      "Discount %",
+      "Promo Code",
+      "Expiry Date",
+      "Shop URL"
+    ],
+    "tags": [
+      "vip",
+      "loyalty",
+      "exclusive"
+    ],
+    "status": "approved",
+    "downloads": 2044
   },
   {
-    id: 9,
-    name: 'Exchange Request Approved',
-    category: 'E-commerce',
-    metaCategory: 'UTILITY',
-    icon: 'ArrowLeftRight',
-    description: 'Confirm exchange request approval',
-    body: 'Hi {{1}},\n\n✅ Exchange Approved!\n\nYour exchange for order #{{2}} has been approved.\n\nOriginal: {{3}}\nExchange for: {{4}}\n\nSchedule pickup: {{5}}\n\nNew item ships after we receive the return.',
-    variables: ['Customer Name', 'Order ID', 'Original Item', 'New Item', 'Pickup URL'],
-    tags: ['exchange', 'return', 'approved'],
-    status: 'approved',
-    downloads: 3800,
-    isNew: true
+    "id": 109,
+    "name": "Upsell / Cross-sell",
+    "category": "Marketing",
+    "industry": "E-commerce",
+    "metaCategory": "MARKETING",
+    "icon": "Layers",
+    "description": "Suggest complementary products after purchase",
+    "body": "Hi {{1}}, customers who bought *{{2}}* loved these too 💡\n\nView picks: {{3}}\n\nUse *{{4}}* for {{5}}% off.",
+    "variables": [
+      "Customer Name",
+      "Last Product",
+      "Recommendations URL",
+      "Promo Code",
+      "Discount %"
+    ],
+    "tags": [
+      "upsell",
+      "recommendations"
+    ],
+    "status": "approved",
+    "downloads": 3578
   },
   {
-    id: 10,
-    name: 'COD Order Reminder',
-    category: 'E-commerce',
-    metaCategory: 'UTILITY',
-    icon: 'Wallet',
-    description: 'Remind customers about Cash on Delivery orders',
-    body: 'Hi {{1}},\n\n📦 Your COD order #{{2}} is arriving!\n\nPlease keep ₹{{3}} ready for payment.\n\nDelivery: {{4}}\n\nNot available? Reschedule: {{5}}\n\nThank you!',
-    variables: ['Customer Name', 'Order ID', 'Amount', 'Delivery Slot', 'Reschedule URL'],
-    tags: ['cod', 'payment', 'reminder'],
-    status: 'approved',
-    downloads: 5600
-  },
-
-  // Marketing Templates (11-18)
-  {
-    id: 11,
-    name: 'Flash Sale Alert',
-    category: 'Marketing',
-    metaCategory: 'MARKETING',
-    icon: 'Zap',
-    description: 'Create urgency with limited-time promotional offers',
-    body: '⚡ FLASH SALE, {{1}}!\n\nGet {{2}}% OFF for the next {{3}} hours only!\n\nUse code: {{4}}\n\n🛒 Shop now: {{5}}\n\nHurry, limited stock!',
-    variables: ['Customer Name', 'Discount %', 'Hours', 'Promo Code', 'Shop URL'],
-    tags: ['marketing', 'sale', 'urgent'],
-    status: 'approved',
-    downloads: 8700,
-    isTrending: true
+    "id": 110,
+    "name": "Order Discount Coupon",
+    "category": "Marketing",
+    "industry": "E-commerce",
+    "metaCategory": "MARKETING",
+    "icon": "Gift",
+    "description": "Reward customers with a discount on next order",
+    "body": "Thank you for shopping with us, {{1}}! 💝\n\nHere's *{{2}}% off* your next order with code *{{3}}*.\n\nValid until {{4}}. Shop: {{5}}",
+    "variables": [
+      "Customer Name",
+      "Discount %",
+      "Promo Code",
+      "Expiry Date",
+      "Shop URL"
+    ],
+    "tags": [
+      "discount",
+      "coupon",
+      "retention"
+    ],
+    "status": "approved",
+    "downloads": 5381
   },
   {
-    id: 12,
-    name: 'Welcome Message',
-    category: 'Marketing',
-    metaCategory: 'MARKETING',
-    icon: 'UserPlus',
-    description: 'Welcome new subscribers with a warm greeting',
-    body: 'Welcome to {{1}}, {{2}}! 🎉\n\nWe\'re thrilled to have you with us.\n\nHere\'s what you can expect:\n✅ Exclusive offers\n✅ Early access to sales\n✅ Personalized recommendations\n\nReply HELP anytime for assistance!',
-    variables: ['Brand Name', 'Customer Name'],
-    tags: ['welcome', 'onboarding', 'greeting'],
-    status: 'approved',
-    downloads: 15600
+    "id": 111,
+    "name": "Property Launch",
+    "category": "Marketing",
+    "industry": "Real Estate",
+    "metaCategory": "MARKETING",
+    "icon": "Building",
+    "description": "Announce a new project launch to leads",
+    "body": "🏗️ New Launch — {{1}}\n\nHi {{2}}, presenting *{{3}}* in {{4}}.\n\nStarting at {{5}}. Pre-launch prices for limited buyers.\n\nBrochure: {{6}}",
+    "variables": [
+      "Project Type",
+      "Customer Name",
+      "Project Name",
+      "Location",
+      "Starting Price",
+      "Brochure URL"
+    ],
+    "tags": [
+      "property",
+      "launch",
+      "realestate"
+    ],
+    "status": "approved",
+    "downloads": 8258
   },
   {
-    id: 13,
-    name: 'Birthday Offer',
-    category: 'Marketing',
-    metaCategory: 'MARKETING',
-    icon: 'Gift',
-    description: 'Celebrate customers with special birthday discounts',
-    body: '🎂 Happy Birthday, {{1}}!\n\nCelebrate with a special gift from us:\n\n🎁 {{2}}% OFF your next purchase!\n\nUse code: {{3}}\nValid until: {{4}}\n\nTreat yourself: {{5}}\n\nHave an amazing day!',
-    variables: ['Customer Name', 'Discount %', 'Birthday Code', 'Expiry Date', 'Shop URL'],
-    tags: ['birthday', 'offer', 'personalized'],
-    status: 'approved',
-    downloads: 6500
+    "id": 112,
+    "name": "Site Visit Booking",
+    "category": "Marketing",
+    "industry": "Real Estate",
+    "metaCategory": "MARKETING",
+    "icon": "MapPin",
+    "description": "Invite leads to book a site visit",
+    "body": "Hi {{1}}, book a free site visit for *{{2}}* in {{3}}.\n\nPick a time: {{4}}\n\nOur consultant {{5}} will assist you.",
+    "variables": [
+      "Customer Name",
+      "Project Name",
+      "Location",
+      "Booking URL",
+      "Agent Name"
+    ],
+    "tags": [
+      "site-visit",
+      "booking",
+      "realestate"
+    ],
+    "status": "approved",
+    "downloads": 8073
   },
   {
-    id: 14,
-    name: 'Referral Invite',
-    category: 'Marketing',
-    metaCategory: 'MARKETING',
-    icon: 'Users',
-    description: 'Encourage customers to refer friends',
-    body: 'Hi {{1}},\n\n💝 Share the love!\n\nInvite friends to {{2}} and you BOTH get ₹{{3}} off!\n\nYour referral code: {{4}}\n\nShare now: {{5}}\n\nThe more you share, the more you earn!',
-    variables: ['Customer Name', 'Brand Name', 'Reward Amount', 'Referral Code', 'Share Link'],
-    tags: ['referral', 'reward', 'invite'],
-    status: 'approved',
-    downloads: 5800
+    "id": 113,
+    "name": "Price Drop Alert",
+    "category": "Marketing",
+    "industry": "Real Estate",
+    "metaCategory": "MARKETING",
+    "icon": "TrendingDown",
+    "description": "Notify interested buyers about a price reduction",
+    "body": "Hi {{1}}, prices for *{{2}}* are down by {{3}}% this week.\n\nNew price: {{4}}\n\nReserve a unit: {{5}}",
+    "variables": [
+      "Customer Name",
+      "Project Name",
+      "Drop %",
+      "New Price",
+      "Reserve URL"
+    ],
+    "tags": [
+      "price-drop",
+      "alert"
+    ],
+    "status": "approved",
+    "downloads": 6774
   },
   {
-    id: 15,
-    name: 'Limited Time Bundle',
-    category: 'Marketing',
-    metaCategory: 'MARKETING',
-    icon: 'Sparkles',
-    description: 'Promote exclusive bundle offers',
-    body: '✨ Exclusive Bundle!\n\nHi {{1}},\n\n{{2}} - Only ₹{{3}}!\n\nYou save: ₹{{4}} ({{5}}% off)\n\n⏰ Offer ends: {{6}}\n\n🛒 Grab yours: {{7}}\n\nLimited quantities!',
-    variables: ['Customer Name', 'Bundle Name', 'Bundle Price', 'Savings', 'Discount %', 'Expiry', 'Shop URL'],
-    tags: ['bundle', 'offer', 'limited'],
-    status: 'approved',
-    downloads: 7600
+    "id": 114,
+    "name": "New Project Launch",
+    "category": "Marketing",
+    "industry": "Real Estate",
+    "metaCategory": "MARKETING",
+    "icon": "Sparkles",
+    "description": "Pre-launch announcement for HNI buyers",
+    "body": "Exclusive pre-launch invite, {{1}}.\n\n*{{2}}* by {{3}} — only {{4}} units in this phase.\n\nEOI link: {{5}}",
+    "variables": [
+      "Customer Name",
+      "Project Name",
+      "Developer",
+      "Units",
+      "EOI URL"
+    ],
+    "tags": [
+      "prelaunch",
+      "exclusive"
+    ],
+    "status": "approved",
+    "downloads": 9150
   },
   {
-    id: 16,
-    name: 'Loyalty Points Update',
-    category: 'Marketing',
-    metaCategory: 'MARKETING',
-    icon: 'Heart',
-    description: 'Update customers on their loyalty rewards balance',
-    body: '⭐ Points Update!\n\nHi {{1}},\n\nYou\'ve earned {{2}} points!\n\nTotal balance: {{3}} points\n\n🎁 Redeem rewards: {{4}}\n\nKeep shopping to earn more!',
-    variables: ['Customer Name', 'New Points', 'Total Points', 'Rewards URL'],
-    tags: ['loyalty', 'points', 'rewards'],
-    status: 'approved',
-    downloads: 5400
+    "id": 115,
+    "name": "Loan Assistance",
+    "category": "Marketing",
+    "industry": "Real Estate",
+    "metaCategory": "MARKETING",
+    "icon": "Wallet",
+    "description": "Offer home-loan assistance on a property",
+    "body": "Hi {{1}}, get pre-approved home loans for *{{2}}* starting at {{3}}% p.a.\n\nCheck eligibility in 2 mins: {{4}}",
+    "variables": [
+      "Customer Name",
+      "Project Name",
+      "Interest Rate",
+      "Eligibility URL"
+    ],
+    "tags": [
+      "loan",
+      "finance"
+    ],
+    "status": "approved",
+    "downloads": 2977
   },
   {
-    id: 17,
-    name: 'VIP Early Access',
-    category: 'Marketing',
-    metaCategory: 'MARKETING',
-    icon: 'Crown',
-    description: 'Give VIP customers early access to sales',
-    body: '👑 VIP Early Access!\n\nHi {{1}},\n\nAs a valued VIP member, you get exclusive early access to our {{2}}!\n\n🔓 Access starts: {{3}}\n💰 Extra {{4}}% off with code: {{5}}\n\nShop before everyone else: {{6}}',
-    variables: ['Customer Name', 'Sale Name', 'Start Time', 'Extra Discount', 'VIP Code', 'Shop URL'],
-    tags: ['vip', 'early-access', 'exclusive'],
-    status: 'approved',
-    downloads: 4200,
-    isNew: true
+    "id": 116,
+    "name": "Open House Invite",
+    "category": "Marketing",
+    "industry": "Real Estate",
+    "metaCategory": "MARKETING",
+    "icon": "DoorOpen",
+    "description": "Invite leads to an open-house weekend",
+    "body": "Hi {{1}}, you're invited to our Open House for *{{2}}* on {{3}}.\n\nTime: {{4}}\nAddress: {{5}}\n\nRSVP: {{6}}",
+    "variables": [
+      "Customer Name",
+      "Property",
+      "Date",
+      "Time",
+      "Address",
+      "RSVP URL"
+    ],
+    "tags": [
+      "openhouse",
+      "invite"
+    ],
+    "status": "approved",
+    "downloads": 5285
   },
   {
-    id: 18,
-    name: 'Seasonal Campaign',
-    category: 'Marketing',
-    metaCategory: 'MARKETING',
-    icon: 'Calendar',
-    description: 'Promote seasonal offers and festivals',
-    body: '🎊 {{1}} Special!\n\nHi {{2}},\n\nCelebrate with amazing deals!\n\n🎁 Up to {{3}}% OFF sitewide\n🏷️ Use code: {{4}}\n⏰ Valid: {{5}} - {{6}}\n\nShop festive deals: {{7}}',
-    variables: ['Festival Name', 'Customer Name', 'Discount', 'Code', 'Start Date', 'End Date', 'Shop URL'],
-    tags: ['seasonal', 'festival', 'campaign'],
-    status: 'approved',
-    downloads: 8900,
-    isTrending: true
-  },
-
-  // Appointment Templates (19-24)
-  {
-    id: 19,
-    name: 'Appointment Reminder',
-    category: 'Appointments',
-    metaCategory: 'UTILITY',
-    icon: 'Calendar',
-    description: 'Remind customers of upcoming appointments with details',
-    body: 'Hello {{1}},\n\nThis is a reminder for your appointment:\n\n📅 Date: {{2}}\n⏰ Time: {{3}}\n📍 Location: {{4}}\n\nNeed to reschedule? Reply YES or call us.\n\nSee you soon!',
-    variables: ['Customer Name', 'Date', 'Time', 'Location'],
-    tags: ['reminder', 'appointment', 'scheduling'],
-    status: 'approved',
-    downloads: 9800
+    "id": 117,
+    "name": "New Batch Enrollment",
+    "category": "Marketing",
+    "industry": "Education",
+    "metaCategory": "MARKETING",
+    "icon": "GraduationCap",
+    "description": "Open enrollment for a new course batch",
+    "body": "Hi {{1}}, new batch for *{{2}}* starts {{3}}.\n\nDuration: {{4}} · Mode: {{5}}\n\nEnroll: {{6}}\n\nEarly-bird offer ends {{7}}.",
+    "variables": [
+      "Student Name",
+      "Course",
+      "Start Date",
+      "Duration",
+      "Mode",
+      "Enroll URL",
+      "Offer Deadline"
+    ],
+    "tags": [
+      "enrollment",
+      "course"
+    ],
+    "status": "approved",
+    "downloads": 8945
   },
   {
-    id: 20,
-    name: 'Appointment Confirmation',
-    category: 'Appointments',
-    metaCategory: 'UTILITY',
-    icon: 'CheckCircle2',
-    description: 'Confirm newly booked appointments instantly',
-    body: '✅ Appointment Confirmed!\n\nHi {{1}},\n\nYour appointment is booked:\n\n📅 {{2}} at {{3}}\n👨‍⚕️ With: {{4}}\n📍 {{5}}\n\nAdd to calendar: {{6}}\n\nSee you there!',
-    variables: ['Customer Name', 'Date', 'Time', 'Provider Name', 'Location', 'Calendar Link'],
-    tags: ['confirmation', 'appointment', 'booking'],
-    status: 'approved',
-    downloads: 8100
+    "id": 118,
+    "name": "Webinar Invite",
+    "category": "Marketing",
+    "industry": "Education",
+    "metaCategory": "MARKETING",
+    "icon": "Video",
+    "description": "Invite leads to a free webinar",
+    "body": "Hi {{1}}, join our free webinar on *{{2}}*.\n\n📅 {{3}} at {{4}}\nSpeaker: {{5}}\n\nRegister: {{6}}",
+    "variables": [
+      "Customer Name",
+      "Webinar Topic",
+      "Date",
+      "Time",
+      "Speaker",
+      "Register URL"
+    ],
+    "tags": [
+      "webinar",
+      "free",
+      "invite"
+    ],
+    "status": "approved",
+    "downloads": 2732
   },
   {
-    id: 21,
-    name: 'Appointment Cancellation',
-    category: 'Appointments',
-    metaCategory: 'UTILITY',
-    icon: 'XCircle',
-    description: 'Confirm appointment cancellations professionally',
-    body: 'Hi {{1}},\n\n❌ Appointment Cancelled\n\nYour appointment on {{2}} at {{3}} has been cancelled.\n\nReschedule: {{4}}\n\nWe hope to see you soon!',
-    variables: ['Customer Name', 'Date', 'Time', 'Booking URL'],
-    tags: ['cancellation', 'appointment', 'reschedule'],
-    status: 'approved',
-    downloads: 4300
+    "id": 119,
+    "name": "Free Demo Class",
+    "category": "Marketing",
+    "industry": "Education",
+    "metaCategory": "MARKETING",
+    "icon": "Play",
+    "description": "Offer a free trial class",
+    "body": "Hi {{1}}, attend a free demo class for *{{2}}* this {{3}}.\n\nBook your slot: {{4}}",
+    "variables": [
+      "Student Name",
+      "Course",
+      "Day",
+      "Booking URL"
+    ],
+    "tags": [
+      "demo",
+      "free",
+      "class"
+    ],
+    "status": "approved",
+    "downloads": 7633
   },
   {
-    id: 22,
-    name: 'Appointment Rescheduled',
-    category: 'Appointments',
-    metaCategory: 'UTILITY',
-    icon: 'RefreshCw',
-    description: 'Confirm rescheduled appointment details',
-    body: '🔄 Appointment Rescheduled\n\nHi {{1}},\n\nYour appointment has been moved to:\n\n📅 New Date: {{2}}\n⏰ New Time: {{3}}\n📍 Location: {{4}}\n\nNeed to change again? Reply YES.',
-    variables: ['Customer Name', 'New Date', 'New Time', 'Location'],
-    tags: ['reschedule', 'appointment', 'update'],
-    status: 'approved',
-    downloads: 5100
+    "id": 120,
+    "name": "Course Launch",
+    "category": "Marketing",
+    "industry": "Education",
+    "metaCategory": "MARKETING",
+    "icon": "BookOpen",
+    "description": "Launch a new course or program",
+    "body": "Hi {{1}}, our new program *{{2}}* is now live 🎓\n\nIncludes {{3}} live sessions + lifetime access.\n\nFee: {{4}} (early-bird {{5}}% off)\n\nEnroll: {{6}}",
+    "variables": [
+      "Student Name",
+      "Program",
+      "Sessions",
+      "Fee",
+      "Discount %",
+      "Enroll URL"
+    ],
+    "tags": [
+      "launch",
+      "program"
+    ],
+    "status": "approved",
+    "downloads": 9864
   },
   {
-    id: 23,
-    name: 'Slot Available Alert',
-    category: 'Appointments',
-    metaCategory: 'UTILITY',
-    icon: 'AlertCircle',
-    description: 'Notify about newly available appointment slots',
-    body: 'Hi {{1}},\n\n🎉 Good news! A slot just opened up!\n\n📅 {{2}} at {{3}}\n👨‍⚕️ With: {{4}}\n\nBook now before it\'s taken: {{5}}\n\nThis slot is in high demand!',
-    variables: ['Customer Name', 'Date', 'Time', 'Provider', 'Book URL'],
-    tags: ['availability', 'slot', 'booking'],
-    status: 'approved',
-    downloads: 3200,
-    isNew: true
+    "id": 121,
+    "name": "Student Reminder",
+    "category": "Marketing",
+    "industry": "Education",
+    "metaCategory": "MARKETING",
+    "icon": "Bell",
+    "description": "Re-engage students who paused learning",
+    "body": "Hi {{1}}, you're {{2}}% through *{{3}}*. Pick up where you left off 💪\n\nContinue: {{4}}",
+    "variables": [
+      "Student Name",
+      "Progress %",
+      "Course",
+      "Resume URL"
+    ],
+    "tags": [
+      "reminder",
+      "engagement"
+    ],
+    "status": "approved",
+    "downloads": 6508
   },
   {
-    id: 24,
-    name: 'Service Completion',
-    category: 'Appointments',
-    metaCategory: 'UTILITY',
-    icon: 'CheckCircle',
-    description: 'Follow up after service completion',
-    body: 'Hi {{1}},\n\nThank you for visiting {{2}}! ✨\n\nService: {{3}}\nDate: {{4}}\n\nWe hope you had a great experience.\n\n⭐ Rate us: {{5}}\n\nBook your next appointment: {{6}}',
-    variables: ['Customer Name', 'Business Name', 'Service', 'Date', 'Review URL', 'Book URL'],
-    tags: ['follow-up', 'completion', 'feedback'],
-    status: 'approved',
-    downloads: 4800
-  },
-
-  // Payments Templates (25-28)
-  {
-    id: 25,
-    name: 'Payment Reminder',
-    category: 'Payments',
-    metaCategory: 'UTILITY',
-    icon: 'CreditCard',
-    description: 'Remind customers about pending payments professionally',
-    body: 'Hi {{1}},\n\n⚠️ Payment Reminder\n\nYour payment of ₹{{2}} for invoice #{{3}} is due on {{4}}.\n\nPay now: {{5}}\n\nQuestions? Reply to this message.\n\nThank you!',
-    variables: ['Customer Name', 'Amount', 'Invoice ID', 'Due Date', 'Payment URL'],
-    tags: ['payment', 'reminder', 'invoice'],
-    status: 'approved',
-    downloads: 7400
+    "id": 122,
+    "name": "Exam Preparation",
+    "category": "Marketing",
+    "industry": "Education",
+    "metaCategory": "MARKETING",
+    "icon": "BookOpen",
+    "description": "Promote a crash course or exam prep batch",
+    "body": "Hi {{1}}, *{{2}}* crash course starts {{3}}.\n\n{{4}} hours of focused prep with mock tests.\n\nEnroll: {{5}}",
+    "variables": [
+      "Student Name",
+      "Exam",
+      "Start Date",
+      "Hours",
+      "Enroll URL"
+    ],
+    "tags": [
+      "exam",
+      "prep"
+    ],
+    "status": "approved",
+    "downloads": 2377
   },
   {
-    id: 26,
-    name: 'Payment Received',
-    category: 'Payments',
-    metaCategory: 'UTILITY',
-    icon: 'CheckCircle',
-    description: 'Confirm payment received',
-    body: 'Hi {{1}},\n\n✅ Payment Received!\n\nAmount: ₹{{2}}\nTransaction ID: {{3}}\nDate: {{4}}\n\nInvoice: {{5}}\n\nThank you for your payment!',
-    variables: ['Customer Name', 'Amount', 'Transaction ID', 'Date', 'Invoice URL'],
-    tags: ['payment', 'confirmation', 'receipt'],
-    status: 'approved',
-    downloads: 8200
+    "id": 123,
+    "name": "Health Package Promo",
+    "category": "Marketing",
+    "industry": "Healthcare",
+    "metaCategory": "MARKETING",
+    "icon": "HeartPulse",
+    "description": "Promote preventive health checkup packages",
+    "body": "Hi {{1}}, our *{{2}}* health package is now at {{3}} (was {{4}}).\n\nIncludes {{5}} tests + free consultation.\n\nBook: {{6}}",
+    "variables": [
+      "Patient Name",
+      "Package",
+      "New Price",
+      "Old Price",
+      "Tests",
+      "Booking URL"
+    ],
+    "tags": [
+      "health",
+      "package",
+      "checkup"
+    ],
+    "status": "approved",
+    "downloads": 2825
   },
   {
-    id: 27,
-    name: 'Payment Failed',
-    category: 'Payments',
-    metaCategory: 'UTILITY',
-    icon: 'AlertTriangle',
-    description: 'Notify about failed payment attempts',
-    body: 'Hi {{1}},\n\n❌ Payment Failed\n\nYour payment of ₹{{2}} could not be processed.\n\nReason: {{3}}\n\nPlease retry: {{4}}\n\nNeed help? Reply to this message.',
-    variables: ['Customer Name', 'Amount', 'Failure Reason', 'Retry URL'],
-    tags: ['payment', 'failed', 'retry'],
-    status: 'approved',
-    downloads: 4100
+    "id": 124,
+    "name": "Free Consultation",
+    "category": "Marketing",
+    "industry": "Healthcare",
+    "metaCategory": "MARKETING",
+    "icon": "Stethoscope",
+    "description": "Offer a free first consultation",
+    "body": "Hi {{1}}, book a *free* consultation with Dr. {{2}} ({{3}}) this week.\n\nSlots: {{4}}",
+    "variables": [
+      "Patient Name",
+      "Doctor",
+      "Specialty",
+      "Booking URL"
+    ],
+    "tags": [
+      "consultation",
+      "free"
+    ],
+    "status": "approved",
+    "downloads": 2585
   },
   {
-    id: 28,
-    name: 'Subscription Renewal',
-    category: 'Payments',
-    metaCategory: 'UTILITY',
-    icon: 'RefreshCw',
-    description: 'Notify customers about upcoming subscription renewals',
-    body: 'Hi {{1}},\n\n🔄 Subscription Renewal Notice\n\nYour {{2}} subscription renews on {{3}}.\n\nAmount: ₹{{4}}/{{5}}\n\nManage subscription: {{6}}\n\nQuestions? Reply here.',
-    variables: ['Customer Name', 'Plan Name', 'Renewal Date', 'Amount', 'Period', 'Manage URL'],
-    tags: ['subscription', 'renewal', 'billing'],
-    status: 'approved',
-    downloads: 5200
-  },
-
-  // Support Templates (29-32)
-  {
-    id: 29,
-    name: 'Feedback Request',
-    category: 'Support',
-    metaCategory: 'UTILITY',
-    icon: 'Star',
-    description: 'Request customer feedback after purchase or service',
-    body: 'Hi {{1}},\n\nThank you for choosing {{2}}! 🙏\n\nWe\'d love to hear about your experience.\n\n⭐ Rate us: {{3}}\n\nYour feedback helps us improve!\n\nTake 30 seconds to share your thoughts.',
-    variables: ['Customer Name', 'Brand Name', 'Feedback Link'],
-    tags: ['feedback', 'review', 'rating'],
-    status: 'approved',
-    downloads: 8900
+    "id": 125,
+    "name": "Vaccination Camp",
+    "category": "Marketing",
+    "industry": "Healthcare",
+    "metaCategory": "MARKETING",
+    "icon": "Syringe",
+    "description": "Promote vaccination drive",
+    "body": "Hi {{1}}, a {{2}} vaccination camp is open on {{3}} at {{4}}.\n\nFee: {{5}}. Register: {{6}}",
+    "variables": [
+      "Patient Name",
+      "Vaccine",
+      "Date",
+      "Venue",
+      "Fee",
+      "Register URL"
+    ],
+    "tags": [
+      "vaccination",
+      "camp"
+    ],
+    "status": "approved",
+    "downloads": 8524
   },
   {
-    id: 30,
-    name: 'Service Ticket Created',
-    category: 'Support',
-    metaCategory: 'UTILITY',
-    icon: 'Ticket',
-    description: 'Confirm support ticket creation',
-    body: 'Hi {{1}},\n\n🎫 Ticket Created\n\nYour support request has been received.\n\nTicket ID: {{2}}\nSubject: {{3}}\nPriority: {{4}}\n\nExpected response: Within {{5}} hours\n\nTrack status: {{6}}',
-    variables: ['Customer Name', 'Ticket ID', 'Subject', 'Priority', 'SLA Hours', 'Track URL'],
-    tags: ['support', 'ticket', 'created'],
-    status: 'approved',
-    downloads: 5600
+    "id": 126,
+    "name": "Doctor Availability",
+    "category": "Marketing",
+    "industry": "Healthcare",
+    "metaCategory": "MARKETING",
+    "icon": "UserCheck",
+    "description": "Inform patients of new doctor availability",
+    "body": "Hi {{1}}, Dr. {{2}} ({{3}}) is now consulting at {{4}}.\n\nBook an appointment: {{5}}",
+    "variables": [
+      "Patient Name",
+      "Doctor",
+      "Specialty",
+      "Clinic",
+      "Booking URL"
+    ],
+    "tags": [
+      "doctor",
+      "availability"
+    ],
+    "status": "approved",
+    "downloads": 6425
   },
   {
-    id: 31,
-    name: 'Ticket Resolved',
-    category: 'Support',
-    metaCategory: 'UTILITY',
-    icon: 'CheckCircle2',
-    description: 'Notify when support ticket is resolved',
-    body: 'Hi {{1}},\n\n✅ Ticket Resolved!\n\nYour ticket #{{2}} has been resolved.\n\nResolution: {{3}}\n\nWas this helpful?\n👍 Reply YES if resolved\n👎 Reply NO to reopen\n\nThank you for your patience!',
-    variables: ['Customer Name', 'Ticket ID', 'Resolution Summary'],
-    tags: ['support', 'resolved', 'ticket'],
-    status: 'approved',
-    downloads: 4800
+    "id": 127,
+    "name": "Wellness Campaign",
+    "category": "Marketing",
+    "industry": "Healthcare",
+    "metaCategory": "MARKETING",
+    "icon": "Activity",
+    "description": "Promote a wellness or fitness campaign",
+    "body": "Hi {{1}} 🌿\n\nJoin our *{{2}}* wellness program — {{3}} weeks, expert-led.\n\nEarly bird: {{4}}\n\nJoin: {{5}}",
+    "variables": [
+      "Customer Name",
+      "Program",
+      "Weeks",
+      "Price",
+      "Join URL"
+    ],
+    "tags": [
+      "wellness",
+      "campaign"
+    ],
+    "status": "approved",
+    "downloads": 6970
   },
   {
-    id: 32,
-    name: 'Store Location',
-    category: 'Support',
-    metaCategory: 'UTILITY',
-    icon: 'MapPin',
-    description: 'Share store location and directions',
-    body: '📍 Find Us!\n\nHi {{1}},\n\nOur nearest store:\n\n{{2}}\n{{3}}\n\n🕐 Hours: {{4}}\n📞 Call: {{5}}\n\n🗺️ Get directions: {{6}}',
-    variables: ['Customer Name', 'Store Name', 'Address', 'Hours', 'Phone', 'Maps URL'],
-    tags: ['location', 'directions', 'store'],
-    status: 'approved',
-    downloads: 3900
-  },
-
-  // Authentication Templates (33-35)
-  {
-    id: 33,
-    name: 'OTP Verification',
-    category: 'Authentication',
-    metaCategory: 'AUTHENTICATION',
-    icon: 'Shield',
-    description: 'Secure authentication with one-time passwords',
-    body: '🔐 Your verification code is: {{1}}\n\nValid for {{2}} minutes.\n\nDo not share this code with anyone.\n\nDidn\'t request this? Ignore this message.',
-    variables: ['OTP Code', 'Validity Minutes'],
-    tags: ['security', 'otp', 'verification'],
-    status: 'approved',
-    downloads: 22100,
-    isTrending: true
+    "id": 128,
+    "name": "Holiday Package",
+    "category": "Marketing",
+    "industry": "Travel",
+    "metaCategory": "MARKETING",
+    "icon": "Plane",
+    "description": "Promote a curated holiday package",
+    "body": "Hi {{1}} ✈️\n\n*{{2}}* in {{3}} from {{4}} per person.\n\nIncludes: {{5}}\n\nBook by {{6}}: {{7}}",
+    "variables": [
+      "Customer Name",
+      "Package Name",
+      "Destination",
+      "Price",
+      "Inclusions",
+      "Deadline",
+      "Booking URL"
+    ],
+    "tags": [
+      "holiday",
+      "package",
+      "travel"
+    ],
+    "status": "approved",
+    "downloads": 7502
   },
   {
-    id: 34,
-    name: 'Password Reset',
-    category: 'Authentication',
-    metaCategory: 'AUTHENTICATION',
-    icon: 'Key',
-    description: 'Secure password reset link delivery',
-    body: '🔑 Password Reset Request\n\nHi {{1}},\n\nWe received a request to reset your password.\n\nReset now: {{2}}\n\nThis link expires in {{3}} minutes.\n\nDidn\'t request this? Ignore this message.',
-    variables: ['Customer Name', 'Reset URL', 'Expiry Minutes'],
-    tags: ['security', 'password', 'reset'],
-    status: 'approved',
-    downloads: 14200
+    "id": 129,
+    "name": "Flight Deals",
+    "category": "Marketing",
+    "industry": "Travel",
+    "metaCategory": "MARKETING",
+    "icon": "PlaneTakeoff",
+    "description": "Share flash flight deals on a route",
+    "body": "✈️ {{1}} → {{2}} from {{3}}!\n\nTravel: {{4}}\n\nBook: {{5}}",
+    "variables": [
+      "Origin",
+      "Destination",
+      "Price",
+      "Travel Window",
+      "Book URL"
+    ],
+    "tags": [
+      "flight",
+      "deal"
+    ],
+    "status": "approved",
+    "downloads": 2068
   },
   {
-    id: 35,
-    name: 'Login Alert',
-    category: 'Authentication',
-    metaCategory: 'UTILITY',
-    icon: 'AlertTriangle',
-    description: 'Alert users about new login activity',
-    body: '⚠️ New Login Detected\n\nHi {{1}},\n\nNew login to your account:\n\n📍 Location: {{2}}\n📱 Device: {{3}}\n🕐 Time: {{4}}\n\nNot you? Secure your account: {{5}}',
-    variables: ['Customer Name', 'Location', 'Device', 'Time', 'Security URL'],
-    tags: ['security', 'login', 'alert'],
-    status: 'approved',
-    downloads: 7800
-  },
-
-  // Notifications Templates (36-40)
-  {
-    id: 36,
-    name: 'Event Reminder',
-    category: 'Notifications',
-    metaCategory: 'UTILITY',
-    icon: 'Ticket',
-    description: 'Remind attendees about upcoming events',
-    body: '🎪 Event Reminder!\n\nHi {{1}},\n\n{{2}} is {{3}}!\n\n📅 {{4}} at {{5}}\n📍 {{6}}\n\n🎟️ Your ticket: {{7}}\n\nSee you there!',
-    variables: ['Attendee Name', 'Event Name', 'Time Until', 'Date', 'Time', 'Venue', 'Ticket Link'],
-    tags: ['event', 'reminder', 'ticket'],
-    status: 'approved',
-    downloads: 7200
+    "id": 130,
+    "name": "Visa Assistance",
+    "category": "Marketing",
+    "industry": "Travel",
+    "metaCategory": "MARKETING",
+    "icon": "FileCheck",
+    "description": "Promote visa services for a destination",
+    "body": "Hi {{1}}, planning to visit {{2}}? Our visa team can help — {{3}}% approval rate.\n\nFree eligibility check: {{4}}",
+    "variables": [
+      "Customer Name",
+      "Country",
+      "Approval %",
+      "Eligibility URL"
+    ],
+    "tags": [
+      "visa",
+      "travel"
+    ],
+    "status": "approved",
+    "downloads": 8009
   },
   {
-    id: 37,
-    name: 'Waitlist Confirmation',
-    category: 'Notifications',
-    metaCategory: 'UTILITY',
-    icon: 'Clock',
-    description: 'Confirm customers have joined a waitlist',
-    body: '⏳ You\'re on the list!\n\nHi {{1}},\n\nYou\'ve joined the waitlist for {{2}}.\n\nPosition: #{{3}}\n\nWe\'ll notify you when it\'s your turn.\n\nTrack status: {{4}}',
-    variables: ['Customer Name', 'Product/Service', 'Position', 'Status URL'],
-    tags: ['waitlist', 'queue', 'confirmation'],
-    status: 'approved',
-    downloads: 4100
+    "id": 131,
+    "name": "Honeymoon Offer",
+    "category": "Marketing",
+    "industry": "Travel",
+    "metaCategory": "MARKETING",
+    "icon": "Heart",
+    "description": "Promote curated honeymoon packages",
+    "body": "Hi {{1}} 💕\n\nCurated honeymoon in *{{2}}* — {{3}} nights, from {{4}} per couple.\n\nView itinerary: {{5}}",
+    "variables": [
+      "Customer Name",
+      "Destination",
+      "Nights",
+      "Price",
+      "Itinerary URL"
+    ],
+    "tags": [
+      "honeymoon",
+      "romance"
+    ],
+    "status": "approved",
+    "downloads": 9666
   },
   {
-    id: 38,
-    name: 'Account Verified',
-    category: 'Notifications',
-    metaCategory: 'UTILITY',
-    icon: 'CheckCircle2',
-    description: 'Confirm account verification completion',
-    body: '✅ Account Verified!\n\nHi {{1}},\n\nCongratulations! Your account has been verified.\n\nYou now have access to:\n✓ {{2}}\n✓ {{3}}\n✓ {{4}}\n\nGet started: {{5}}',
-    variables: ['Customer Name', 'Feature 1', 'Feature 2', 'Feature 3', 'Dashboard URL'],
-    tags: ['verification', 'account', 'confirmed'],
-    status: 'approved',
-    downloads: 5600
+    "id": 132,
+    "name": "Seasonal Travel Campaign",
+    "category": "Marketing",
+    "industry": "Travel",
+    "metaCategory": "MARKETING",
+    "icon": "Sun",
+    "description": "Seasonal escape promotions",
+    "body": "Hi {{1}}, escape the {{2}} season — {{3}} packages from {{4}}.\n\nLimited slots, book: {{5}}",
+    "variables": [
+      "Customer Name",
+      "Season",
+      "Destination",
+      "Price",
+      "Booking URL"
+    ],
+    "tags": [
+      "seasonal",
+      "travel"
+    ],
+    "status": "approved",
+    "downloads": 3074
   },
   {
-    id: 39,
-    name: 'Price Drop Alert',
-    category: 'Notifications',
-    metaCategory: 'MARKETING',
-    icon: 'TrendingDown',
-    description: 'Alert customers about price drops on wishlisted items',
-    body: '📉 Price Drop!\n\nHi {{1}},\n\n{{2}} just got cheaper!\n\nWas: ₹{{3}}\nNow: ₹{{4}}\n\nYou save: ₹{{5}} ({{6}}% off)\n\nGrab it now: {{7}}',
-    variables: ['Customer Name', 'Product Name', 'Old Price', 'New Price', 'Savings', 'Discount %', 'Product URL'],
-    tags: ['price', 'alert', 'wishlist'],
-    status: 'approved',
-    downloads: 6300,
-    isTrending: true
+    "id": 133,
+    "name": "Weekend Offer",
+    "category": "Marketing",
+    "industry": "Restaurants & Food",
+    "metaCategory": "MARKETING",
+    "icon": "UtensilsCrossed",
+    "description": "Promote a weekend dining offer",
+    "body": "Hi {{1}} 🍽️\n\nThis weekend at {{2}} — {{3}} on all mains.\n\nReserve: {{4}}",
+    "variables": [
+      "Customer Name",
+      "Restaurant",
+      "Offer",
+      "Reserve URL"
+    ],
+    "tags": [
+      "weekend",
+      "offer",
+      "dining"
+    ],
+    "status": "approved",
+    "downloads": 9506
   },
   {
-    id: 40,
-    name: 'Document Ready',
-    category: 'Notifications',
-    metaCategory: 'UTILITY',
-    icon: 'FileText',
-    description: 'Notify when documents are ready for download',
-    body: 'Hi {{1}},\n\n📄 Your document is ready!\n\nDocument: {{2}}\nType: {{3}}\n\nDownload now: {{4}}\n\nThis link expires in {{5}} days.\n\nQuestions? Reply here.',
-    variables: ['Customer Name', 'Document Name', 'Document Type', 'Download URL', 'Expiry Days'],
-    tags: ['document', 'ready', 'download'],
-    status: 'approved',
-    downloads: 4800
-  },
-
-  // Logistics Templates (41-43)
-  {
-    id: 41,
-    name: 'Pickup Scheduled',
-    category: 'Logistics',
-    metaCategory: 'UTILITY',
-    icon: 'Truck',
-    description: 'Confirm pickup scheduling for returns/exchanges',
-    body: 'Hi {{1}},\n\n📦 Pickup Scheduled!\n\nOrder #{{2}} pickup details:\n\n📅 Date: {{3}}\n⏰ Time Slot: {{4}}\n📍 Address: {{5}}\n\nReschedule: {{6}}',
-    variables: ['Customer Name', 'Order ID', 'Date', 'Time Slot', 'Address', 'Reschedule URL'],
-    tags: ['pickup', 'logistics', 'return'],
-    status: 'approved',
-    downloads: 4200
+    "id": 134,
+    "name": "Combo Meal",
+    "category": "Marketing",
+    "industry": "Restaurants & Food",
+    "metaCategory": "MARKETING",
+    "icon": "Utensils",
+    "description": "Promote a value combo meal",
+    "body": "Hi {{1}}, try our new {{2}} combo for {{3}} 🤤\n\nOrder now: {{4}}",
+    "variables": [
+      "Customer Name",
+      "Combo Name",
+      "Price",
+      "Order URL"
+    ],
+    "tags": [
+      "combo",
+      "meal"
+    ],
+    "status": "approved",
+    "downloads": 9589
   },
   {
-    id: 42,
-    name: 'Out for Delivery',
-    category: 'Logistics',
-    metaCategory: 'UTILITY',
-    icon: 'Navigation',
-    description: 'Notify customers when package is out for delivery',
-    body: '🚚 Out for Delivery!\n\nHi {{1}},\n\nYour order #{{2}} is out for delivery!\n\n📍 Current location: {{3}}\n⏰ ETA: {{4}}\n\nDelivery partner: {{5}} ({{6}})\n\nTrack live: {{7}}',
-    variables: ['Customer Name', 'Order ID', 'Location', 'ETA', 'Partner Name', 'Phone', 'Track URL'],
-    tags: ['delivery', 'out-for-delivery', 'tracking'],
-    status: 'approved',
-    downloads: 8900,
-    isNew: true
+    "id": 135,
+    "name": "Table Booking",
+    "category": "Marketing",
+    "industry": "Restaurants & Food",
+    "metaCategory": "MARKETING",
+    "icon": "CalendarCheck",
+    "description": "Encourage advance table reservations",
+    "body": "Hi {{1}}, secure your table at *{{2}}* this {{3}}.\n\nReserve: {{4}}",
+    "variables": [
+      "Customer Name",
+      "Restaurant",
+      "Day",
+      "Reserve URL"
+    ],
+    "tags": [
+      "booking",
+      "table"
+    ],
+    "status": "approved",
+    "downloads": 9129
   },
   {
-    id: 43,
-    name: 'Delivery Attempt Failed',
-    category: 'Logistics',
-    metaCategory: 'UTILITY',
-    icon: 'AlertCircle',
-    description: 'Notify about failed delivery attempts',
-    body: 'Hi {{1}},\n\n⚠️ Delivery Attempt Failed\n\nWe tried to deliver order #{{2}} but couldn\'t reach you.\n\nReason: {{3}}\n\nReschedule delivery: {{4}}\n\nNext attempt: {{5}}\n\nNeed help? Reply here.',
-    variables: ['Customer Name', 'Order ID', 'Reason', 'Reschedule URL', 'Next Attempt'],
-    tags: ['delivery', 'failed', 'reschedule'],
-    status: 'approved',
-    downloads: 3600
-  },
-
-  // Food & Delivery Templates (44-46)
-  {
-    id: 44,
-    name: 'Order Being Prepared',
-    category: 'Food & Delivery',
-    metaCategory: 'UTILITY',
-    icon: 'ChefHat',
-    description: 'Update customers when their food order is being prepared',
-    body: '👨‍🍳 Preparing Your Order!\n\nHi {{1}},\n\nYour order #{{2}} is being prepared!\n\n🍽️ Items: {{3}}\n⏰ Ready in: {{4}} mins\n\n📍 Pickup at: {{5}}\n\nTrack: {{6}}',
-    variables: ['Customer Name', 'Order ID', 'Items', 'Prep Time', 'Location', 'Track URL'],
-    tags: ['food', 'preparation', 'order'],
-    status: 'approved',
-    downloads: 6700
+    "id": 136,
+    "name": "Festival Food Deals",
+    "category": "Marketing",
+    "industry": "Restaurants & Food",
+    "metaCategory": "MARKETING",
+    "icon": "Sparkles",
+    "description": "Festive special menu announcement",
+    "body": "🎉 {{1}} Special Menu!\n\nHi {{2}}, our festive menu is live — try {{3}} signature dishes.\n\nOrder/reserve: {{4}}",
+    "variables": [
+      "Festival",
+      "Customer Name",
+      "Dish Count",
+      "URL"
+    ],
+    "tags": [
+      "festival",
+      "menu"
+    ],
+    "status": "approved",
+    "downloads": 9268
   },
   {
-    id: 45,
-    name: 'Food Ready for Pickup',
-    category: 'Food & Delivery',
-    metaCategory: 'UTILITY',
-    icon: 'UtensilsCrossed',
-    description: 'Notify when food order is ready for pickup',
-    body: '🎉 Your Order is Ready!\n\nHi {{1}},\n\nOrder #{{2}} is ready for pickup!\n\n📍 {{3}}\n🕐 Open until: {{4}}\n\nOrder Code: {{5}}\n\nEnjoy your meal! 🍽️',
-    variables: ['Customer Name', 'Order ID', 'Restaurant Address', 'Closing Time', 'Pickup Code'],
-    tags: ['food', 'ready', 'pickup'],
-    status: 'approved',
-    downloads: 5400
+    "id": 137,
+    "name": "Free Delivery Campaign",
+    "category": "Marketing",
+    "industry": "Restaurants & Food",
+    "metaCategory": "MARKETING",
+    "icon": "Bike",
+    "description": "Free delivery promotion",
+    "body": "Hi {{1}} 🛵 Free delivery on orders above {{2}} this week.\n\nUse code: *{{3}}*\n\nOrder: {{4}}",
+    "variables": [
+      "Customer Name",
+      "Min Order",
+      "Promo Code",
+      "Order URL"
+    ],
+    "tags": [
+      "delivery",
+      "free"
+    ],
+    "status": "approved",
+    "downloads": 2727
   },
   {
-    id: 46,
-    name: 'Table Reservation Confirmed',
-    category: 'Food & Delivery',
-    metaCategory: 'UTILITY',
-    icon: 'Utensils',
-    description: 'Confirm restaurant table reservations',
-    body: '🍽️ Reservation Confirmed!\n\nHi {{1}},\n\nYour table is booked!\n\n📅 {{2}} at {{3}}\n👥 {{4}} guests\n📍 {{5}}\n\nReservation code: {{6}}\n\nModify: {{7}}',
-    variables: ['Customer Name', 'Date', 'Time', 'Guest Count', 'Restaurant', 'Code', 'Modify URL'],
-    tags: ['reservation', 'table', 'restaurant'],
-    status: 'approved',
-    downloads: 4800
-  },
-
-  // HR & Recruitment Templates (47-48)
-  {
-    id: 47,
-    name: 'Interview Schedule',
-    category: 'HR & Recruitment',
-    metaCategory: 'UTILITY',
-    icon: 'Briefcase',
-    description: 'Schedule interviews with candidates',
-    body: 'Hi {{1}},\n\n🎯 Interview Scheduled!\n\nPosition: {{2}}\n📅 Date: {{3}}\n⏰ Time: {{4}}\n📍 {{5}}\n\nInterviewer: {{6}}\n\nConfirm attendance: Reply YES\n\nGood luck! 🍀',
-    variables: ['Candidate Name', 'Position', 'Date', 'Time', 'Location/Link', 'Interviewer Name'],
-    tags: ['interview', 'recruitment', 'schedule'],
-    status: 'approved',
-    downloads: 3800
+    "id": 138,
+    "name": "Appointment Offer",
+    "category": "Marketing",
+    "industry": "Beauty & Salon",
+    "metaCategory": "MARKETING",
+    "icon": "Scissors",
+    "description": "Promote discounted salon appointments",
+    "body": "Hi {{1}} 💇\n\nFlat {{2}}% off on {{3}} this week at {{4}}.\n\nBook: {{5}}",
+    "variables": [
+      "Customer Name",
+      "Discount %",
+      "Service",
+      "Salon",
+      "Booking URL"
+    ],
+    "tags": [
+      "salon",
+      "offer"
+    ],
+    "status": "approved",
+    "downloads": 3233
   },
   {
-    id: 48,
-    name: 'Offer Letter Sent',
-    category: 'HR & Recruitment',
-    metaCategory: 'UTILITY',
-    icon: 'Award',
-    description: 'Notify candidates about offer letters',
-    body: '🎉 Congratulations {{1}}!\n\nWe\'re excited to offer you the position of {{2}} at {{3}}!\n\n📧 Your offer letter has been sent to: {{4}}\n\nPlease respond by: {{5}}\n\nQuestions? Reply here.\n\nWelcome to the team! 🙌',
-    variables: ['Candidate Name', 'Position', 'Company', 'Email', 'Deadline'],
-    tags: ['offer', 'recruitment', 'hr'],
-    status: 'approved',
-    downloads: 2900
-  },
-
-  // Healthcare Templates (49-50)
-  {
-    id: 49,
-    name: 'Lab Report Ready',
-    category: 'Healthcare',
-    metaCategory: 'UTILITY',
-    icon: 'Stethoscope',
-    description: 'Notify patients when lab reports are ready',
-    body: 'Hi {{1}},\n\n🏥 Lab Report Ready\n\nYour {{2}} report is now available.\n\nReport ID: {{3}}\nTest Date: {{4}}\n\n📥 Download: {{5}}\n\nFor medical advice, please consult your doctor.',
-    variables: ['Patient Name', 'Test Name', 'Report ID', 'Test Date', 'Download URL'],
-    tags: ['healthcare', 'lab', 'report'],
-    status: 'approved',
-    downloads: 5200
+    "id": 139,
+    "name": "Bridal Package",
+    "category": "Marketing",
+    "industry": "Beauty & Salon",
+    "metaCategory": "MARKETING",
+    "icon": "Crown",
+    "description": "Promote bridal beauty packages",
+    "body": "Hi {{1}} 👰\n\nOur Bridal Glow package — {{2}} sessions, {{3}}.\n\nIncludes: {{4}}\n\nConsult: {{5}}",
+    "variables": [
+      "Customer Name",
+      "Sessions",
+      "Price",
+      "Inclusions",
+      "Consult URL"
+    ],
+    "tags": [
+      "bridal",
+      "package"
+    ],
+    "status": "approved",
+    "downloads": 8930
   },
   {
-    id: 50,
-    name: 'Prescription Reminder',
-    category: 'Healthcare',
-    metaCategory: 'UTILITY',
-    icon: 'Pill',
-    description: 'Remind patients about medication schedules',
-    body: '💊 Medication Reminder\n\nHi {{1}},\n\nTime to take your medication:\n\n💊 {{2}}\n📋 Dosage: {{3}}\n⏰ Time: {{4}}\n\nRefill available at: {{5}}\n\nStay healthy! 🌟',
-    variables: ['Patient Name', 'Medication', 'Dosage', 'Time', 'Pharmacy URL'],
-    tags: ['healthcare', 'medication', 'reminder'],
-    status: 'approved',
-    downloads: 4100
+    "id": 140,
+    "name": "Membership Promotion",
+    "category": "Marketing",
+    "industry": "Beauty & Salon",
+    "metaCategory": "MARKETING",
+    "icon": "Star",
+    "description": "Offer a beauty membership plan",
+    "body": "Hi {{1}}, join our {{2}} membership — {{3}} services/month at {{4}}.\n\nDetails: {{5}}",
+    "variables": [
+      "Customer Name",
+      "Plan",
+      "Services",
+      "Price",
+      "Details URL"
+    ],
+    "tags": [
+      "membership",
+      "plan"
+    ],
+    "status": "approved",
+    "downloads": 4116
+  },
+  {
+    "id": 141,
+    "name": "Festival Makeover",
+    "category": "Marketing",
+    "industry": "Beauty & Salon",
+    "metaCategory": "MARKETING",
+    "icon": "Sparkles",
+    "description": "Festive makeover packages",
+    "body": "✨ {{1}} Glow Up!\n\nHi {{2}}, book your festive makeover by {{3}} and save {{4}}%.\n\nReserve: {{5}}",
+    "variables": [
+      "Festival",
+      "Customer Name",
+      "Deadline",
+      "Discount %",
+      "Reserve URL"
+    ],
+    "tags": [
+      "festival",
+      "makeover"
+    ],
+    "status": "approved",
+    "downloads": 1654
+  },
+  {
+    "id": 142,
+    "name": "Free Demo Booking",
+    "category": "Marketing",
+    "industry": "SaaS & CRM",
+    "metaCategory": "MARKETING",
+    "icon": "Calendar",
+    "description": "Invite leads to a product demo",
+    "body": "Hi {{1}}, see how *{{2}}* can help {{3}} grow on WhatsApp.\n\nBook a 20-min demo: {{4}}",
+    "variables": [
+      "Lead Name",
+      "Product",
+      "Business Type",
+      "Booking URL"
+    ],
+    "tags": [
+      "demo",
+      "saas"
+    ],
+    "status": "approved",
+    "downloads": 6623
+  },
+  {
+    "id": 143,
+    "name": "Upgrade Plan",
+    "category": "Marketing",
+    "industry": "SaaS & CRM",
+    "metaCategory": "MARKETING",
+    "icon": "TrendingUp",
+    "description": "Encourage plan upgrade based on usage",
+    "body": "Hi {{1}}, you've hit {{2}}% of your {{3}} plan limit.\n\nUpgrade to *{{4}}* for {{5}} and unlock {{6}}.\n\nUpgrade: {{7}}",
+    "variables": [
+      "Customer Name",
+      "Usage %",
+      "Current Plan",
+      "New Plan",
+      "Price",
+      "Benefits",
+      "Upgrade URL"
+    ],
+    "tags": [
+      "upgrade",
+      "plan"
+    ],
+    "status": "approved",
+    "downloads": 1349
+  },
+  {
+    "id": 144,
+    "name": "Free Trial Invite",
+    "category": "Marketing",
+    "industry": "SaaS & CRM",
+    "metaCategory": "MARKETING",
+    "icon": "Gift",
+    "description": "Invite a lead to start a free trial",
+    "body": "Hi {{1}}, try *{{2}}* free for {{3}} days — no card required.\n\nStart: {{4}}",
+    "variables": [
+      "Lead Name",
+      "Product",
+      "Days",
+      "Signup URL"
+    ],
+    "tags": [
+      "trial",
+      "free"
+    ],
+    "status": "approved",
+    "downloads": 7423
+  },
+  {
+    "id": 145,
+    "name": "Webinar Campaign",
+    "category": "Marketing",
+    "industry": "SaaS & CRM",
+    "metaCategory": "MARKETING",
+    "icon": "Video",
+    "description": "SaaS product webinar invite",
+    "body": "Hi {{1}}, join our live session: *{{2}}* on {{3}} ({{4}}).\n\nSeats limited — register: {{5}}",
+    "variables": [
+      "Lead Name",
+      "Topic",
+      "Date",
+      "Time",
+      "Register URL"
+    ],
+    "tags": [
+      "webinar",
+      "saas"
+    ],
+    "status": "approved",
+    "downloads": 6192
+  },
+  {
+    "id": 146,
+    "name": "Feature Launch",
+    "category": "Marketing",
+    "industry": "SaaS & CRM",
+    "metaCategory": "MARKETING",
+    "icon": "Sparkles",
+    "description": "Announce a new product feature",
+    "body": "Hi {{1}} 🎉\n\nWe just launched *{{2}}* — {{3}}.\n\nSee it in action: {{4}}",
+    "variables": [
+      "Customer Name",
+      "Feature",
+      "Benefit",
+      "Demo URL"
+    ],
+    "tags": [
+      "feature",
+      "launch"
+    ],
+    "status": "approved",
+    "downloads": 8879
+  },
+  {
+    "id": 147,
+    "name": "Reactivate Inactive User",
+    "category": "Marketing",
+    "industry": "SaaS & CRM",
+    "metaCategory": "MARKETING",
+    "icon": "RefreshCw",
+    "description": "Win back dormant users",
+    "body": "Hi {{1}}, we miss you 👋\n\nWe've shipped {{2}} new features since you were last active.\n\nLog back in and get {{3}} on your next renewal: {{4}}",
+    "variables": [
+      "User Name",
+      "Feature Count",
+      "Discount",
+      "Login URL"
+    ],
+    "tags": [
+      "reactivation",
+      "retention"
+    ],
+    "status": "approved",
+    "downloads": 4097
+  },
+  {
+    "id": 148,
+    "name": "EMI Offer",
+    "category": "Marketing",
+    "industry": "Finance & Insurance",
+    "metaCategory": "MARKETING",
+    "icon": "CreditCard",
+    "description": "Promote no-cost EMI offers",
+    "body": "Hi {{1}}, shop now & pay later — *No-cost EMI* up to {{2}} months on orders above {{3}}.\n\nApply: {{4}}",
+    "variables": [
+      "Customer Name",
+      "Months",
+      "Min Order",
+      "Apply URL"
+    ],
+    "tags": [
+      "emi",
+      "finance"
+    ],
+    "status": "approved",
+    "downloads": 2611
+  },
+  {
+    "id": 149,
+    "name": "Policy Renewal",
+    "category": "Marketing",
+    "industry": "Finance & Insurance",
+    "metaCategory": "MARKETING",
+    "icon": "ShieldCheck",
+    "description": "Insurance policy renewal nudge",
+    "body": "Hi {{1}}, your {{2}} policy ({{3}}) expires on {{4}}.\n\nRenew in 2 mins: {{5}}",
+    "variables": [
+      "Customer Name",
+      "Policy Type",
+      "Policy No",
+      "Expiry Date",
+      "Renew URL"
+    ],
+    "tags": [
+      "insurance",
+      "renewal"
+    ],
+    "status": "approved",
+    "downloads": 3255
+  },
+  {
+    "id": 150,
+    "name": "Investment Plan",
+    "category": "Marketing",
+    "industry": "Finance & Insurance",
+    "metaCategory": "MARKETING",
+    "icon": "TrendingUp",
+    "description": "Promote investment / SIP plans",
+    "body": "Hi {{1}}, start a SIP from just {{2}}/month with expected returns of {{3}}% p.a.\n\nExplore: {{4}}",
+    "variables": [
+      "Customer Name",
+      "Min Amount",
+      "Returns %",
+      "Explore URL"
+    ],
+    "tags": [
+      "investment",
+      "sip"
+    ],
+    "status": "approved",
+    "downloads": 7131
+  },
+  {
+    "id": 151,
+    "name": "Credit Card Offer",
+    "category": "Marketing",
+    "industry": "Finance & Insurance",
+    "metaCategory": "MARKETING",
+    "icon": "CreditCard",
+    "description": "Pre-approved credit-card offer",
+    "body": "Hi {{1}}, you're pre-approved for the *{{2}}* card 🎉\n\nLifetime free · {{3}} welcome benefits.\n\nApply: {{4}}",
+    "variables": [
+      "Customer Name",
+      "Card Name",
+      "Benefits",
+      "Apply URL"
+    ],
+    "tags": [
+      "credit-card",
+      "offer"
+    ],
+    "status": "approved",
+    "downloads": 9882
+  },
+  {
+    "id": 152,
+    "name": "Test Drive Booking",
+    "category": "Marketing",
+    "industry": "Automobile",
+    "metaCategory": "MARKETING",
+    "icon": "Car",
+    "description": "Invite leads to a test drive",
+    "body": "Hi {{1}} 🚗\n\nBook a free test drive for the new *{{2}}* at {{3}}.\n\nPick a slot: {{4}}",
+    "variables": [
+      "Customer Name",
+      "Model",
+      "Dealership",
+      "Booking URL"
+    ],
+    "tags": [
+      "test-drive",
+      "auto"
+    ],
+    "status": "approved",
+    "downloads": 4652
+  },
+  {
+    "id": 153,
+    "name": "Service Reminder",
+    "category": "Marketing",
+    "industry": "Automobile",
+    "metaCategory": "MARKETING",
+    "icon": "Wrench",
+    "description": "Remind customers for vehicle service",
+    "body": "Hi {{1}}, your *{{2}}* ({{3}}) is due for service.\n\nBook a slot at {{4}}: {{5}}",
+    "variables": [
+      "Customer Name",
+      "Vehicle",
+      "Reg No",
+      "Service Center",
+      "Booking URL"
+    ],
+    "tags": [
+      "service",
+      "reminder"
+    ],
+    "status": "approved",
+    "downloads": 5540
+  },
+  {
+    "id": 154,
+    "name": "New Car Launch",
+    "category": "Marketing",
+    "industry": "Automobile",
+    "metaCategory": "MARKETING",
+    "icon": "Sparkles",
+    "description": "Announce a new vehicle launch",
+    "body": "Hi {{1}} 🎉\n\nThe all-new *{{2}}* is here — starting {{3}}.\n\nBook a test drive: {{4}}",
+    "variables": [
+      "Customer Name",
+      "Model",
+      "Starting Price",
+      "Booking URL"
+    ],
+    "tags": [
+      "launch",
+      "auto"
+    ],
+    "status": "approved",
+    "downloads": 3274
+  },
+  {
+    "id": 155,
+    "name": "Exchange Offer",
+    "category": "Marketing",
+    "industry": "Automobile",
+    "metaCategory": "MARKETING",
+    "icon": "RefreshCw",
+    "description": "Vehicle exchange / trade-in offer",
+    "body": "Hi {{1}}, upgrade your ride 🚘\n\nGet up to {{2}} extra exchange bonus on your old *{{3}}*.\n\nValuate now: {{4}}",
+    "variables": [
+      "Customer Name",
+      "Bonus",
+      "Vehicle",
+      "Valuation URL"
+    ],
+    "tags": [
+      "exchange",
+      "auto"
+    ],
+    "status": "approved",
+    "downloads": 9749
+  },
+  {
+    "id": 201,
+    "name": "OTP Verification",
+    "category": "Authentication",
+    "industry": "Authentication",
+    "metaCategory": "AUTHENTICATION",
+    "icon": "KeyRound",
+    "description": "One-time password verification",
+    "body": "{{1}} is your verification code. Do not share this code with anyone. It expires in {{2}} minutes.",
+    "variables": [
+      "OTP",
+      "Minutes"
+    ],
+    "tags": [
+      "otp",
+      "auth"
+    ],
+    "status": "approved",
+    "downloads": 24500
+  },
+  {
+    "id": 202,
+    "name": "Login Verification",
+    "category": "Authentication",
+    "industry": "Authentication",
+    "metaCategory": "AUTHENTICATION",
+    "icon": "Lock",
+    "description": "Verify a login attempt",
+    "body": "Hi {{1}}, use code *{{2}}* to log in to {{3}}. The code expires in {{4}} minutes. Never share it.",
+    "variables": [
+      "Customer Name",
+      "OTP",
+      "App Name",
+      "Minutes"
+    ],
+    "tags": [
+      "login",
+      "verification"
+    ],
+    "status": "approved",
+    "downloads": 8536
+  },
+  {
+    "id": 203,
+    "name": "Password Reset",
+    "category": "Authentication",
+    "industry": "Authentication",
+    "metaCategory": "AUTHENTICATION",
+    "icon": "RefreshCw",
+    "description": "Send a password-reset code",
+    "body": "Hi {{1}}, your password reset code is *{{2}}*. It expires in {{3}} minutes.",
+    "variables": [
+      "Customer Name",
+      "OTP",
+      "Minutes"
+    ],
+    "tags": [
+      "password",
+      "reset"
+    ],
+    "status": "approved",
+    "downloads": 7452
+  },
+  {
+    "id": 204,
+    "name": "Secure Login Alert",
+    "category": "Authentication",
+    "industry": "Authentication",
+    "metaCategory": "UTILITY",
+    "icon": "ShieldAlert",
+    "description": "Notify on new device login",
+    "body": "Hi {{1}}, a new login to your account was detected from {{2}} on {{3}}.\n\nIf this wasn't you, secure your account: {{4}}",
+    "variables": [
+      "Customer Name",
+      "Device/Location",
+      "Time",
+      "Secure URL"
+    ],
+    "tags": [
+      "security",
+      "alert"
+    ],
+    "status": "approved",
+    "downloads": 1652
+  },
+  {
+    "id": 205,
+    "name": "Order Confirmation",
+    "category": "Notifications",
+    "industry": "E-commerce",
+    "metaCategory": "UTILITY",
+    "icon": "Package",
+    "description": "Confirm a customer order",
+    "body": "Hi {{1}}, your order #{{2}} for {{3}} is confirmed.\n\nEstimated delivery: {{4}}\n\nTrack: {{5}}",
+    "variables": [
+      "Customer Name",
+      "Order ID",
+      "Amount",
+      "Delivery Date",
+      "Track URL"
+    ],
+    "tags": [
+      "order",
+      "confirmation"
+    ],
+    "status": "approved",
+    "downloads": 8613
+  },
+  {
+    "id": 206,
+    "name": "Shipping Update",
+    "category": "Notifications",
+    "industry": "E-commerce",
+    "metaCategory": "UTILITY",
+    "icon": "Truck",
+    "description": "Share shipping details",
+    "body": "Hi {{1}}, your order #{{2}} has been shipped via {{3}}.\n\nTracking: {{4}}\nETA: {{5}}",
+    "variables": [
+      "Customer Name",
+      "Order ID",
+      "Carrier",
+      "Tracking No",
+      "ETA"
+    ],
+    "tags": [
+      "shipping",
+      "tracking"
+    ],
+    "status": "approved",
+    "downloads": 8862
+  },
+  {
+    "id": 207,
+    "name": "Out for Delivery",
+    "category": "Notifications",
+    "industry": "Logistics",
+    "metaCategory": "UTILITY",
+    "icon": "Navigation",
+    "description": "Order is out for delivery",
+    "body": "Hi {{1}} 🚚 Your order #{{2}} is out for delivery.\n\nDelivery partner: {{3}} ({{4}})\nETA: {{5}}",
+    "variables": [
+      "Customer Name",
+      "Order ID",
+      "Partner",
+      "Phone",
+      "ETA"
+    ],
+    "tags": [
+      "delivery",
+      "out-for-delivery"
+    ],
+    "status": "approved",
+    "downloads": 3707
+  },
+  {
+    "id": 208,
+    "name": "Delivered Confirmation",
+    "category": "Notifications",
+    "industry": "E-commerce",
+    "metaCategory": "UTILITY",
+    "icon": "CheckCircle2",
+    "description": "Confirm successful delivery",
+    "body": "Hi {{1}}, your order #{{2}} was delivered on {{3}}.\n\nLove it? Rate us: {{4}}",
+    "variables": [
+      "Customer Name",
+      "Order ID",
+      "Time",
+      "Feedback URL"
+    ],
+    "tags": [
+      "delivered",
+      "feedback"
+    ],
+    "status": "approved",
+    "downloads": 7978
+  },
+  {
+    "id": 209,
+    "name": "Return Confirmation",
+    "category": "Notifications",
+    "industry": "E-commerce",
+    "metaCategory": "UTILITY",
+    "icon": "RefreshCw",
+    "description": "Confirm a return request",
+    "body": "Hi {{1}}, your return for order #{{2}} ({{3}}) has been initiated.\n\nPickup: {{4}}\nRefund of {{5}} will be processed in {{6}} days.",
+    "variables": [
+      "Customer Name",
+      "Order ID",
+      "Items",
+      "Pickup Date",
+      "Refund Amount",
+      "Days"
+    ],
+    "tags": [
+      "return",
+      "refund"
+    ],
+    "status": "approved",
+    "downloads": 6795
+  },
+  {
+    "id": 210,
+    "name": "Appointment Reminder",
+    "category": "Appointments",
+    "industry": "Healthcare",
+    "metaCategory": "UTILITY",
+    "icon": "Bell",
+    "description": "Remind about an upcoming appointment",
+    "body": "Hi {{1}}, reminder for your appointment with {{2}} on {{3}} at {{4}}.\n\nLocation: {{5}}\n\nReschedule: {{6}}",
+    "variables": [
+      "Customer Name",
+      "Provider",
+      "Date",
+      "Time",
+      "Location",
+      "Reschedule URL"
+    ],
+    "tags": [
+      "appointment",
+      "reminder"
+    ],
+    "status": "approved",
+    "downloads": 3833
+  },
+  {
+    "id": 211,
+    "name": "Booking Confirmation",
+    "category": "Appointments",
+    "industry": "Travel",
+    "metaCategory": "UTILITY",
+    "icon": "CalendarCheck",
+    "description": "Confirm a booking",
+    "body": "Hi {{1}}, your booking *{{2}}* is confirmed.\n\nReference: {{3}}\nDate: {{4}}\nDetails: {{5}}",
+    "variables": [
+      "Customer Name",
+      "Booking Name",
+      "Reference",
+      "Date",
+      "Details URL"
+    ],
+    "tags": [
+      "booking",
+      "confirmation"
+    ],
+    "status": "approved",
+    "downloads": 2395
+  },
+  {
+    "id": 212,
+    "name": "Meeting Reminder",
+    "category": "Appointments",
+    "industry": "SaaS & CRM",
+    "metaCategory": "UTILITY",
+    "icon": "Video",
+    "description": "Remind a customer about a meeting",
+    "body": "Hi {{1}}, reminder for our meeting *{{2}}* on {{3}} at {{4}}.\n\nJoin: {{5}}",
+    "variables": [
+      "Customer Name",
+      "Meeting Title",
+      "Date",
+      "Time",
+      "Join URL"
+    ],
+    "tags": [
+      "meeting",
+      "reminder"
+    ],
+    "status": "approved",
+    "downloads": 5036
+  },
+  {
+    "id": 213,
+    "name": "Reschedule Notification",
+    "category": "Appointments",
+    "industry": "Healthcare",
+    "metaCategory": "UTILITY",
+    "icon": "Clock",
+    "description": "Notify of a rescheduled appointment",
+    "body": "Hi {{1}}, your appointment with {{2}} has been rescheduled to {{3}} at {{4}}.\n\nReply *YES* to confirm or pick another slot: {{5}}",
+    "variables": [
+      "Customer Name",
+      "Provider",
+      "New Date",
+      "New Time",
+      "Reschedule URL"
+    ],
+    "tags": [
+      "reschedule",
+      "appointment"
+    ],
+    "status": "approved",
+    "downloads": 5056
+  },
+  {
+    "id": 214,
+    "name": "Payment Received",
+    "category": "Payments",
+    "industry": "E-commerce",
+    "metaCategory": "UTILITY",
+    "icon": "CheckCircle2",
+    "description": "Acknowledge a successful payment",
+    "body": "Hi {{1}}, we've received your payment of {{2}} for {{3}}.\n\nTransaction ID: {{4}}\nReceipt: {{5}}",
+    "variables": [
+      "Customer Name",
+      "Amount",
+      "Reason",
+      "Txn ID",
+      "Receipt URL"
+    ],
+    "tags": [
+      "payment",
+      "received"
+    ],
+    "status": "approved",
+    "downloads": 5715
+  },
+  {
+    "id": 215,
+    "name": "Invoice Generated",
+    "category": "Payments",
+    "industry": "SaaS & CRM",
+    "metaCategory": "UTILITY",
+    "icon": "FileText",
+    "description": "Send a new invoice",
+    "body": "Hi {{1}}, invoice #{{2}} for {{3}} is ready.\n\nDue: {{4}}\nPay: {{5}}",
+    "variables": [
+      "Customer Name",
+      "Invoice No",
+      "Amount",
+      "Due Date",
+      "Pay URL"
+    ],
+    "tags": [
+      "invoice",
+      "billing"
+    ],
+    "status": "approved",
+    "downloads": 3477
+  },
+  {
+    "id": 216,
+    "name": "Subscription Renewal",
+    "category": "Payments",
+    "industry": "SaaS & CRM",
+    "metaCategory": "UTILITY",
+    "icon": "RefreshCw",
+    "description": "Notify upcoming subscription renewal",
+    "body": "Hi {{1}}, your *{{2}}* plan renews on {{3}} for {{4}}.\n\nManage: {{5}}",
+    "variables": [
+      "Customer Name",
+      "Plan",
+      "Renewal Date",
+      "Amount",
+      "Manage URL"
+    ],
+    "tags": [
+      "subscription",
+      "renewal"
+    ],
+    "status": "approved",
+    "downloads": 8337
+  },
+  {
+    "id": 217,
+    "name": "Payment Failed",
+    "category": "Payments",
+    "industry": "SaaS & CRM",
+    "metaCategory": "UTILITY",
+    "icon": "AlertCircle",
+    "description": "Notify a failed payment",
+    "body": "Hi {{1}}, your payment of {{2}} for {{3}} failed.\n\nReason: {{4}}\nRetry: {{5}}",
+    "variables": [
+      "Customer Name",
+      "Amount",
+      "Reason",
+      "Failure Reason",
+      "Retry URL"
+    ],
+    "tags": [
+      "payment",
+      "failed"
+    ],
+    "status": "approved",
+    "downloads": 4600
+  },
+  {
+    "id": 218,
+    "name": "Refund Processed",
+    "category": "Payments",
+    "industry": "E-commerce",
+    "metaCategory": "UTILITY",
+    "icon": "RefreshCw",
+    "description": "Confirm refund processed",
+    "body": "Hi {{1}}, a refund of {{2}} for order #{{3}} has been processed to {{4}}.\n\nIt should reflect in {{5}}.",
+    "variables": [
+      "Customer Name",
+      "Amount",
+      "Order ID",
+      "Method",
+      "Days"
+    ],
+    "tags": [
+      "refund",
+      "processed"
+    ],
+    "status": "approved",
+    "downloads": 5054
+  },
+  {
+    "id": 219,
+    "name": "Ticket Created",
+    "category": "Support",
+    "industry": "SaaS & CRM",
+    "metaCategory": "UTILITY",
+    "icon": "Headphones",
+    "description": "Acknowledge a new support ticket",
+    "body": "Hi {{1}}, ticket *#{{2}}* has been created for: {{3}}.\n\nOur team will respond within {{4}} hours.",
+    "variables": [
+      "Customer Name",
+      "Ticket ID",
+      "Subject",
+      "SLA Hours"
+    ],
+    "tags": [
+      "ticket",
+      "support"
+    ],
+    "status": "approved",
+    "downloads": 5499
+  },
+  {
+    "id": 220,
+    "name": "Ticket Resolved",
+    "category": "Support",
+    "industry": "SaaS & CRM",
+    "metaCategory": "UTILITY",
+    "icon": "CheckCircle2",
+    "description": "Notify ticket resolution",
+    "body": "Hi {{1}}, ticket *#{{2}}* has been resolved.\n\nResolution: {{3}}\n\nRate your experience: {{4}}",
+    "variables": [
+      "Customer Name",
+      "Ticket ID",
+      "Resolution",
+      "Feedback URL"
+    ],
+    "tags": [
+      "ticket",
+      "resolved"
+    ],
+    "status": "approved",
+    "downloads": 4371
+  },
+  {
+    "id": 221,
+    "name": "Feedback Request",
+    "category": "Support",
+    "industry": "SaaS & CRM",
+    "metaCategory": "UTILITY",
+    "icon": "Star",
+    "description": "Ask for feedback after support",
+    "body": "Hi {{1}}, thanks for contacting us about {{2}}.\n\nHow did we do? Rate us: {{3}}",
+    "variables": [
+      "Customer Name",
+      "Topic",
+      "Feedback URL"
+    ],
+    "tags": [
+      "feedback",
+      "nps"
+    ],
+    "status": "approved",
+    "downloads": 2238
+  },
+  {
+    "id": 222,
+    "name": "Support Follow-up",
+    "category": "Support",
+    "industry": "SaaS & CRM",
+    "metaCategory": "UTILITY",
+    "icon": "MessageSquare",
+    "description": "Follow up on an open ticket",
+    "body": "Hi {{1}}, following up on ticket *#{{2}}*.\n\nIs your issue resolved? Reply *YES* to close or share more details.",
+    "variables": [
+      "Customer Name",
+      "Ticket ID"
+    ],
+    "tags": [
+      "followup",
+      "support"
+    ],
+    "status": "approved",
+    "downloads": 6769
+  },
+  {
+    "id": 223,
+    "name": "Attendance Alert",
+    "category": "Notifications",
+    "industry": "Education",
+    "metaCategory": "UTILITY",
+    "icon": "UserCheck",
+    "description": "Notify parents of student attendance",
+    "body": "Hi {{1}}, {{2}} was marked *{{3}}* on {{4}}.\n\nFor queries, contact {{5}}.",
+    "variables": [
+      "Parent Name",
+      "Student",
+      "Status",
+      "Date",
+      "Contact"
+    ],
+    "tags": [
+      "attendance",
+      "education"
+    ],
+    "status": "approved",
+    "downloads": 3440
+  },
+  {
+    "id": 224,
+    "name": "Fee Reminder",
+    "category": "Notifications",
+    "industry": "Education",
+    "metaCategory": "UTILITY",
+    "icon": "Wallet",
+    "description": "Remind about fee due",
+    "body": "Hi {{1}}, fee of {{2}} for {{3}} ({{4}}) is due on {{5}}.\n\nPay: {{6}}",
+    "variables": [
+      "Parent Name",
+      "Amount",
+      "Student",
+      "Term",
+      "Due Date",
+      "Pay URL"
+    ],
+    "tags": [
+      "fee",
+      "reminder"
+    ],
+    "status": "approved",
+    "downloads": 7663
+  },
+  {
+    "id": 225,
+    "name": "Result Published",
+    "category": "Notifications",
+    "industry": "Education",
+    "metaCategory": "UTILITY",
+    "icon": "GraduationCap",
+    "description": "Notify result publication",
+    "body": "Hi {{1}}, results for *{{2}}* are out 🎓\n\nView: {{3}}",
+    "variables": [
+      "Student/Parent",
+      "Exam",
+      "Result URL"
+    ],
+    "tags": [
+      "result",
+      "exam"
+    ],
+    "status": "approved",
+    "downloads": 4977
+  },
+  {
+    "id": 226,
+    "name": "Parent Notification",
+    "category": "Notifications",
+    "industry": "Education",
+    "metaCategory": "UTILITY",
+    "icon": "MessageSquare",
+    "description": "General parent notification",
+    "body": "Hi {{1}}, an update about {{2}}: {{3}}\n\nFor details, visit {{4}}.",
+    "variables": [
+      "Parent Name",
+      "Student",
+      "Update",
+      "Details URL"
+    ],
+    "tags": [
+      "parent",
+      "notification"
+    ],
+    "status": "approved",
+    "downloads": 4636
+  },
+  {
+    "id": 227,
+    "name": "Appointment Confirmation",
+    "category": "Appointments",
+    "industry": "Healthcare",
+    "metaCategory": "UTILITY",
+    "icon": "Stethoscope",
+    "description": "Confirm a healthcare appointment",
+    "body": "Hi {{1}}, your appointment with Dr. {{2}} on {{3}} at {{4}} is confirmed.\n\nLocation: {{5}}\nReschedule: {{6}}",
+    "variables": [
+      "Patient Name",
+      "Doctor",
+      "Date",
+      "Time",
+      "Location",
+      "Reschedule URL"
+    ],
+    "tags": [
+      "healthcare",
+      "appointment"
+    ],
+    "status": "approved",
+    "downloads": 4479
+  },
+  {
+    "id": 228,
+    "name": "Lab Report Ready",
+    "category": "Notifications",
+    "industry": "Healthcare",
+    "metaCategory": "UTILITY",
+    "icon": "FileText",
+    "description": "Notify lab report availability",
+    "body": "Hi {{1}}, your *{{2}}* report is ready.\n\nReport ID: {{3}}\nDownload: {{4}}",
+    "variables": [
+      "Patient Name",
+      "Test",
+      "Report ID",
+      "Download URL"
+    ],
+    "tags": [
+      "lab",
+      "report"
+    ],
+    "status": "approved",
+    "downloads": 6467
+  },
+  {
+    "id": 229,
+    "name": "Prescription Reminder",
+    "category": "Notifications",
+    "industry": "Healthcare",
+    "metaCategory": "UTILITY",
+    "icon": "Pill",
+    "description": "Remind to refill prescription",
+    "body": "Hi {{1}}, your prescription *{{2}}* runs out on {{3}}.\n\nRefill: {{4}}",
+    "variables": [
+      "Patient Name",
+      "Medication",
+      "Date",
+      "Refill URL"
+    ],
+    "tags": [
+      "prescription",
+      "refill"
+    ],
+    "status": "approved",
+    "downloads": 9455
+  },
+  {
+    "id": 230,
+    "name": "Medicine Reminder",
+    "category": "Notifications",
+    "industry": "Healthcare",
+    "metaCategory": "UTILITY",
+    "icon": "Bell",
+    "description": "Daily medicine schedule reminder",
+    "body": "Hi {{1}} 💊 Time to take *{{2}}* ({{3}}).\n\nReply *TAKEN* to log.",
+    "variables": [
+      "Patient Name",
+      "Medicine",
+      "Dose"
+    ],
+    "tags": [
+      "medicine",
+      "reminder"
+    ],
+    "status": "approved",
+    "downloads": 6873
+  },
+  {
+    "id": 231,
+    "name": "Workspace Invite",
+    "category": "Notifications",
+    "industry": "SaaS & CRM",
+    "metaCategory": "UTILITY",
+    "icon": "Users",
+    "description": "Invite a teammate to a workspace",
+    "body": "Hi {{1}}, {{2}} invited you to join *{{3}}* on {{4}}.\n\nAccept: {{5}}",
+    "variables": [
+      "Invitee Name",
+      "Inviter",
+      "Workspace",
+      "Product",
+      "Accept URL"
+    ],
+    "tags": [
+      "invite",
+      "workspace"
+    ],
+    "status": "approved",
+    "downloads": 5253
+  },
+  {
+    "id": 232,
+    "name": "Team Member Added",
+    "category": "Notifications",
+    "industry": "SaaS & CRM",
+    "metaCategory": "UTILITY",
+    "icon": "UserPlus",
+    "description": "Notify admin of new team member",
+    "body": "Hi {{1}}, {{2}} has joined your *{{3}}* workspace as *{{4}}*.\n\nManage roles: {{5}}",
+    "variables": [
+      "Admin Name",
+      "Member",
+      "Workspace",
+      "Role",
+      "Manage URL"
+    ],
+    "tags": [
+      "team",
+      "onboarding"
+    ],
+    "status": "approved",
+    "downloads": 8202
+  },
+  {
+    "id": 233,
+    "name": "Trial Expiry Reminder",
+    "category": "Notifications",
+    "industry": "SaaS & CRM",
+    "metaCategory": "UTILITY",
+    "icon": "Clock",
+    "description": "Remind a user about trial ending",
+    "body": "Hi {{1}}, your free trial of *{{2}}* ends in {{3}} days.\n\nUpgrade to keep your data: {{4}}",
+    "variables": [
+      "Customer Name",
+      "Product",
+      "Days",
+      "Upgrade URL"
+    ],
+    "tags": [
+      "trial",
+      "expiry"
+    ],
+    "status": "approved",
+    "downloads": 5596
+  },
+  {
+    "id": 234,
+    "name": "Plan Activated",
+    "category": "Notifications",
+    "industry": "SaaS & CRM",
+    "metaCategory": "UTILITY",
+    "icon": "CheckCircle2",
+    "description": "Confirm a plan activation",
+    "body": "Hi {{1}}, your *{{2}}* plan is active 🎉\n\nNext billing: {{3}} · Amount: {{4}}\n\nManage: {{5}}",
+    "variables": [
+      "Customer Name",
+      "Plan",
+      "Next Billing",
+      "Amount",
+      "Manage URL"
+    ],
+    "tags": [
+      "plan",
+      "activation"
+    ],
+    "status": "approved",
+    "downloads": 3853
+  },
+  {
+    "id": 235,
+    "name": "Usage Limit Warning",
+    "category": "Notifications",
+    "industry": "SaaS & CRM",
+    "metaCategory": "UTILITY",
+    "icon": "AlertTriangle",
+    "description": "Warn about approaching usage limit",
+    "body": "Hi {{1}}, you've used {{2}}% of your {{3}} quota on the *{{4}}* plan.\n\nUpgrade for more: {{5}}",
+    "variables": [
+      "Customer Name",
+      "Usage %",
+      "Metric",
+      "Plan",
+      "Upgrade URL"
+    ],
+    "tags": [
+      "usage",
+      "limit"
+    ],
+    "status": "approved",
+    "downloads": 9328
+  },
+  {
+    "id": 236,
+    "name": "Transaction Alert",
+    "category": "Notifications",
+    "industry": "Finance & Insurance",
+    "metaCategory": "UTILITY",
+    "icon": "CreditCard",
+    "description": "Alert about a transaction",
+    "body": "Hi {{1}}, {{2}} of {{3}} on a/c *{{4}} on {{5}}.\nAvailable balance: {{6}}.\n\nNot you? Block card: {{7}}",
+    "variables": [
+      "Customer Name",
+      "Type",
+      "Amount",
+      "Account",
+      "Time",
+      "Balance",
+      "Block URL"
+    ],
+    "tags": [
+      "transaction",
+      "banking"
+    ],
+    "status": "approved",
+    "downloads": 3198
+  },
+  {
+    "id": 237,
+    "name": "KYC Reminder",
+    "category": "Notifications",
+    "industry": "Finance & Insurance",
+    "metaCategory": "UTILITY",
+    "icon": "FileCheck",
+    "description": "Remind for KYC update",
+    "body": "Hi {{1}}, please complete your KYC for a/c *{{2}} by {{3}} to avoid service disruption.\n\nUpdate: {{4}}",
+    "variables": [
+      "Customer Name",
+      "Account",
+      "Deadline",
+      "KYC URL"
+    ],
+    "tags": [
+      "kyc",
+      "compliance"
+    ],
+    "status": "approved",
+    "downloads": 4192
+  },
+  {
+    "id": 238,
+    "name": "Account Update",
+    "category": "Notifications",
+    "industry": "Finance & Insurance",
+    "metaCategory": "UTILITY",
+    "icon": "UserCog",
+    "description": "Notify of an account update",
+    "body": "Hi {{1}}, your {{2}} for a/c *{{3}} was updated on {{4}}.\n\nIf this wasn't you, contact us immediately: {{5}}",
+    "variables": [
+      "Customer Name",
+      "Field",
+      "Account",
+      "Time",
+      "Contact URL"
+    ],
+    "tags": [
+      "account",
+      "update"
+    ],
+    "status": "approved",
+    "downloads": 8805
+  },
+  {
+    "id": 239,
+    "name": "Statement Ready",
+    "category": "Notifications",
+    "industry": "Finance & Insurance",
+    "metaCategory": "UTILITY",
+    "icon": "FileText",
+    "description": "Monthly statement availability",
+    "body": "Hi {{1}}, your statement for {{2}} ({{3}}) is ready.\n\nDownload: {{4}}",
+    "variables": [
+      "Customer Name",
+      "Month",
+      "Account",
+      "Download URL"
+    ],
+    "tags": [
+      "statement",
+      "banking"
+    ],
+    "status": "approved",
+    "downloads": 5632
+  },
+  {
+    "id": 240,
+    "name": "Pickup Scheduled",
+    "category": "Logistics",
+    "industry": "Logistics",
+    "metaCategory": "UTILITY",
+    "icon": "Truck",
+    "description": "Confirm a pickup schedule",
+    "body": "Hi {{1}}, pickup for AWB *{{2}}* is scheduled on {{3}} between {{4}}.\n\nReschedule: {{5}}",
+    "variables": [
+      "Customer Name",
+      "AWB",
+      "Date",
+      "Time Slot",
+      "Reschedule URL"
+    ],
+    "tags": [
+      "pickup",
+      "logistics"
+    ],
+    "status": "approved",
+    "downloads": 2378
+  },
+  {
+    "id": 241,
+    "name": "Shipment Delayed",
+    "category": "Logistics",
+    "industry": "Logistics",
+    "metaCategory": "UTILITY",
+    "icon": "AlertCircle",
+    "description": "Notify shipment delay",
+    "body": "Hi {{1}}, your shipment *{{2}}* is delayed due to {{3}}.\n\nNew ETA: {{4}}. We apologise for the inconvenience.",
+    "variables": [
+      "Customer Name",
+      "AWB",
+      "Reason",
+      "New ETA"
+    ],
+    "tags": [
+      "delay",
+      "shipment"
+    ],
+    "status": "approved",
+    "downloads": 2877
+  },
+  {
+    "id": 242,
+    "name": "Driver Arriving",
+    "category": "Logistics",
+    "industry": "Logistics",
+    "metaCategory": "UTILITY",
+    "icon": "Navigation",
+    "description": "Driver-arriving notification",
+    "body": "Hi {{1}}, your driver {{2}} ({{3}}) is arriving in {{4}} mins for pickup/delivery of *{{5}}*.",
+    "variables": [
+      "Customer Name",
+      "Driver",
+      "Phone",
+      "Minutes",
+      "AWB"
+    ],
+    "tags": [
+      "driver",
+      "arriving"
+    ],
+    "status": "approved",
+    "downloads": 3926
+  },
+  {
+    "id": 243,
+    "name": "Delivery Completed",
+    "category": "Logistics",
+    "industry": "Logistics",
+    "metaCategory": "UTILITY",
+    "icon": "CheckCircle2",
+    "description": "Confirm logistics delivery",
+    "body": "Hi {{1}}, AWB *{{2}}* was delivered on {{3}} to {{4}}.\n\nFeedback: {{5}}",
+    "variables": [
+      "Customer Name",
+      "AWB",
+      "Time",
+      "Receiver",
+      "Feedback URL"
+    ],
+    "tags": [
+      "delivery",
+      "completed"
+    ],
+    "status": "approved",
+    "downloads": 8736
   }
 ];
 
+const uniq = <T>(arr: T[]): T[] => Array.from(new Set(arr));
+
 export const TEMPLATE_CATEGORIES = [
   { name: 'All', count: PRE_APPROVED_TEMPLATES.length },
-  { name: 'E-commerce', count: PRE_APPROVED_TEMPLATES.filter(t => t.category === 'E-commerce').length },
-  { name: 'Marketing', count: PRE_APPROVED_TEMPLATES.filter(t => t.category === 'Marketing').length },
-  { name: 'Appointments', count: PRE_APPROVED_TEMPLATES.filter(t => t.category === 'Appointments').length },
-  { name: 'Payments', count: PRE_APPROVED_TEMPLATES.filter(t => t.category === 'Payments').length },
-  { name: 'Support', count: PRE_APPROVED_TEMPLATES.filter(t => t.category === 'Support').length },
-  { name: 'Authentication', count: PRE_APPROVED_TEMPLATES.filter(t => t.category === 'Authentication').length },
-  { name: 'Notifications', count: PRE_APPROVED_TEMPLATES.filter(t => t.category === 'Notifications').length },
-  { name: 'Logistics', count: PRE_APPROVED_TEMPLATES.filter(t => t.category === 'Logistics').length },
-  { name: 'Food & Delivery', count: PRE_APPROVED_TEMPLATES.filter(t => t.category === 'Food & Delivery').length },
-  { name: 'HR & Recruitment', count: PRE_APPROVED_TEMPLATES.filter(t => t.category === 'HR & Recruitment').length },
-  { name: 'Healthcare', count: PRE_APPROVED_TEMPLATES.filter(t => t.category === 'Healthcare').length },
+  ...uniq(PRE_APPROVED_TEMPLATES.map((t) => t.category)).map((name) => ({
+    name,
+    count: PRE_APPROVED_TEMPLATES.filter((t) => t.category === name).length,
+  })),
+];
+
+export const TEMPLATE_INDUSTRIES = [
+  { name: 'All', count: PRE_APPROVED_TEMPLATES.length },
+  ...uniq(PRE_APPROVED_TEMPLATES.map((t) => t.industry).filter(Boolean)).map((name) => ({
+    name,
+    count: PRE_APPROVED_TEMPLATES.filter((t) => t.industry === name).length,
+  })),
 ];
