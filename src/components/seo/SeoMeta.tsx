@@ -26,7 +26,7 @@ interface SeoMetaProps {
 }
 
 const BASE_URL = 'https://aireatro.com';
-const DEFAULT_OG_IMAGE = `${BASE_URL}/og-image.png`;
+const DEFAULT_OG_IMAGE = `${BASE_URL}/og-image.png?v=4`;
 const SITE_NAME = 'AiReatro Communications';
 const CACHE_TTL = 10 * 60 * 1000; // 10 minutes
 
