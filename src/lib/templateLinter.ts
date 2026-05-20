@@ -191,6 +191,33 @@ export const LINT_RULES: LintRule[] = [
     }
   },
   {
+    code: 'MEDIA_HEADER_SAMPLE_REQUIRED',
+    name: 'Media header sample is required',
+    severity: 'error',
+    validate: (_, version) => {
+      if (!['image', 'video', 'document'].includes(version.header_type || '')) return null;
+
+      const samples = version.variable_samples || {};
+      const hasSample = Boolean(
+        samples.header_handle ||
+        samples.header_media_handle ||
+        samples.header_media_url ||
+        (version.header_content && /^https?:\/\//i.test(version.header_content))
+      );
+
+      if (!hasSample) {
+        return {
+          rule_code: 'MEDIA_HEADER_SAMPLE_REQUIRED',
+          severity: 'error',
+          message: `Upload a sample ${version.header_type} before submitting this template`,
+          field: 'header',
+          suggestion: 'Choose a sample file in the Header section so Meta can review the media header.'
+        };
+      }
+      return null;
+    }
+  },
+  {
     code: 'FOOTER_LENGTH',
     name: 'Footer length limit',
     severity: 'error',
