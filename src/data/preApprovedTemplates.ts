@@ -1,5 +1,5 @@
-// Pre-approved WhatsApp Business templates — 100+ templates across all industries
-// Meta-compliant formatting · used by global teams
+// Pre-approved WhatsApp Business templates — 100+ ready-to-use globally
+// Each template includes a plain-English example preview and clear use case.
 
 export interface PreApprovedTemplate {
   id: number;
@@ -9,7 +9,9 @@ export interface PreApprovedTemplate {
   metaCategory: 'UTILITY' | 'MARKETING' | 'AUTHENTICATION';
   icon: string;
   description: string;
+  useCase: string;
   body: string;
+  example: string;
   variables: string[];
   tags: string[];
   status: 'approved';
@@ -44,7 +46,9 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
     ],
     "status": "approved",
     "downloads": 14200,
-    "isTrending": true
+    "isTrending": true,
+    "example": "⚡ FLASH SALE — Summer Splash!\n\nHi Alex, enjoy up to 30% off across Footwear.\n\nUse code: *SAVE30*\nEnds in: 2 hours\n\nShop now: shop.bright.co",
+    "useCase": "Send to opted-in customers to drive engagement, sales or awareness."
   },
   {
     "id": 102,
@@ -70,7 +74,9 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
     ],
     "status": "approved",
     "downloads": 9167,
-    "isTrending": true
+    "isTrending": true,
+    "example": "Hi Alex,\n\nYou left Aurora Sneakers (x1) in your cart 🛒\n\nWe saved it for you and added *30% off* with code *SAVE30*.\n\nComplete checkout: bright.co/checkout\n\nOffer expires in 4 hours.",
+    "useCase": "Send to opted-in customers to drive engagement, sales or awareness."
   },
   {
     "id": 103,
@@ -94,7 +100,9 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "seasonal"
     ],
     "status": "approved",
-    "downloads": 4544
+    "downloads": 4544,
+    "example": "🎉 Diwali Sale is LIVE!\n\nHi Alex, celebrate with us — up to 30% off everything.\n\nFree shipping on orders above $50.\n\nShop: shop.bright.co",
+    "useCase": "Send to opted-in customers to drive engagement, sales or awareness."
   },
   {
     "id": 104,
@@ -116,7 +124,9 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "new"
     ],
     "status": "approved",
-    "downloads": 7496
+    "downloads": 7496,
+    "example": "Hi Alex 👋\n\nOur new *Alex* collection just dropped.\n\nEarly access for our customers — explore: bright.co/go",
+    "useCase": "Send to opted-in customers to drive engagement, sales or awareness."
   },
   {
     "id": 105,
@@ -137,7 +147,9 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "wishlist"
     ],
     "status": "approved",
-    "downloads": 5452
+    "downloads": 5452,
+    "example": "Good news Alex!\n\n*Aurora Sneakers* is back in stock 🎉\n\nQuantities are limited — grab it: Aurora Sneakers",
+    "useCase": "Send to opted-in customers to drive engagement, sales or awareness."
   },
   {
     "id": 106,
@@ -161,7 +173,9 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "discount"
     ],
     "status": "approved",
-    "downloads": 7847
+    "downloads": 7847,
+    "example": "Hi Alex, exclusive 4-hour offer 🎁\n\n30% off your next order with code *SAVE30*.\n\nShop now: shop.bright.co",
+    "useCase": "Send to opted-in customers to drive engagement, sales or awareness."
   },
   {
     "id": 107,
@@ -184,7 +198,9 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "order"
     ],
     "status": "approved",
-    "downloads": 3783
+    "downloads": 3783,
+    "example": "Hi Alex, please confirm your COD order ##10248 of $129.00.\n\nReply *YES* to confirm or *NO* to cancel within 4 hours.",
+    "useCase": "Send to opted-in customers to drive engagement, sales or awareness."
   },
   {
     "id": 108,
@@ -208,7 +224,9 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "exclusive"
     ],
     "status": "approved",
-    "downloads": 9626
+    "downloads": 9626,
+    "example": "Hi Alex 👑\n\nAs a VIP, here's *30% off* exclusively for you.\n\nUse code: *SAVE30* — valid till Dec 31, 2026.\n\nShop: shop.bright.co",
+    "useCase": "Send to opted-in customers to drive engagement, sales or awareness."
   },
   {
     "id": 109,
@@ -231,7 +249,9 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "recommendations"
     ],
     "status": "approved",
-    "downloads": 7831
+    "downloads": 7831,
+    "example": "Hi Alex, customers who bought *Aurora Sneakers* loved these too 💡\n\nView picks: bright.co/go\n\nUse *SAVE30* for 30% off.",
+    "useCase": "Send to opted-in customers to drive engagement, sales or awareness."
   },
   {
     "id": 110,
@@ -255,7 +275,9 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "retention"
     ],
     "status": "approved",
-    "downloads": 8342
+    "downloads": 8342,
+    "example": "Thank you for shopping with us, Alex! 💝\n\nHere's *30% off* your next order with code *SAVE30*.\n\nValid until Dec 31, 2026. Shop: shop.bright.co",
+    "useCase": "Send to opted-in customers to drive engagement, sales or awareness."
   },
   {
     "id": 111,
@@ -280,7 +302,9 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "realestate"
     ],
     "status": "approved",
-    "downloads": 1384
+    "downloads": 1384,
+    "example": "🏗️ New Launch — Sample\n\nHi Alex, presenting *Alex* in Downtown Store.\n\nStarting at $129.00. Pre-launch prices for limited buyers.\n\nBrochure: bright.co/go",
+    "useCase": "Send to opted-in customers to drive engagement, sales or awareness."
   },
   {
     "id": 112,
@@ -304,7 +328,9 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "realestate"
     ],
     "status": "approved",
-    "downloads": 3556
+    "downloads": 3556,
+    "example": "Hi Alex, book a free site visit for *Alex* in Downtown Store.\n\nPick a time: bright.co/book\n\nOur consultant Priya will assist you.",
+    "useCase": "Send to opted-in customers to drive engagement, sales or awareness."
   },
   {
     "id": 113,
@@ -327,7 +353,9 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "alert"
     ],
     "status": "approved",
-    "downloads": 9358
+    "downloads": 9358,
+    "example": "Hi Alex, prices for *Alex* are down by 20% this week.\n\nNew price: $129.00\n\nReserve a unit: bright.co/go",
+    "useCase": "Send to opted-in customers to drive engagement, sales or awareness."
   },
   {
     "id": 114,
@@ -350,7 +378,9 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "exclusive"
     ],
     "status": "approved",
-    "downloads": 2617
+    "downloads": 2617,
+    "example": "Exclusive pre-launch invite, Alex.\n\n*Alex* by Sample — only Sample units in this phase.\n\nEOI link: bright.co/go",
+    "useCase": "Send to opted-in customers to drive engagement, sales or awareness."
   },
   {
     "id": 115,
@@ -372,7 +402,9 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "finance"
     ],
     "status": "approved",
-    "downloads": 7584
+    "downloads": 7584,
+    "example": "Hi Alex, get pre-approved home loans for *Alex* starting at Sample% p.a.\n\nCheck eligibility in 2 mins: bright.co/go",
+    "useCase": "Send to opted-in customers to drive engagement, sales or awareness."
   },
   {
     "id": 116,
@@ -396,7 +428,9 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "invite"
     ],
     "status": "approved",
-    "downloads": 1192
+    "downloads": 1192,
+    "example": "Hi Alex, you're invited to our Open House for *Sample* on Mon, 18 Aug.\n\nTime: 6:30 PM\nAddress: 221B Baker Street\n\nRSVP: bright.co/rsvp",
+    "useCase": "Send to opted-in customers to drive engagement, sales or awareness."
   },
   {
     "id": 117,
@@ -421,7 +455,9 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "course"
     ],
     "status": "approved",
-    "downloads": 2869
+    "downloads": 2869,
+    "example": "Hi Alex, new batch for *Spoken English* starts Mon, 18 Aug.\n\nDuration: Sample · Mode: Sample\n\nEnroll: bright.co/go\n\nEarly-bird offer ends 30% off.",
+    "useCase": "Send to opted-in customers to drive engagement, sales or awareness."
   },
   {
     "id": 118,
@@ -446,7 +482,9 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "invite"
     ],
     "status": "approved",
-    "downloads": 3150
+    "downloads": 3150,
+    "example": "Hi Alex, join our free webinar on *Sample*.\n\n📅 Mon, 18 Aug at 6:30 PM\nSpeaker: Sample\n\nRegister: bright.co/go",
+    "useCase": "Send to opted-in customers to drive engagement, sales or awareness."
   },
   {
     "id": 119,
@@ -469,7 +507,9 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "class"
     ],
     "status": "approved",
-    "downloads": 5453
+    "downloads": 5453,
+    "example": "Hi Alex, attend a free demo class for *Spoken English* this Sample.\n\nBook your slot: bright.co/book",
+    "useCase": "Send to opted-in customers to drive engagement, sales or awareness."
   },
   {
     "id": 120,
@@ -493,7 +533,9 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "program"
     ],
     "status": "approved",
-    "downloads": 6541
+    "downloads": 6541,
+    "example": "Hi Alex, our new program *MBA 2026* is now live 🎓\n\nIncludes Sample live sessions + lifetime access.\n\nFee: $99.00 (early-bird 30% off)\n\nEnroll: bright.co/go",
+    "useCase": "Send to opted-in customers to drive engagement, sales or awareness."
   },
   {
     "id": 121,
@@ -515,7 +557,9 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "engagement"
     ],
     "status": "approved",
-    "downloads": 3500
+    "downloads": 3500,
+    "example": "Hi Alex, you're 20% through *Spoken English*. Pick up where you left off 💪\n\nContinue: bright.co/go",
+    "useCase": "Send to opted-in customers to drive engagement, sales or awareness."
   },
   {
     "id": 122,
@@ -538,7 +582,9 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "prep"
     ],
     "status": "approved",
-    "downloads": 8302
+    "downloads": 8302,
+    "example": "Hi Alex, *Sample* crash course starts Mon, 18 Aug.\n\n4 hours of focused prep with mock tests.\n\nEnroll: bright.co/go",
+    "useCase": "Send to opted-in customers to drive engagement, sales or awareness."
   },
   {
     "id": 123,
@@ -563,7 +609,9 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "checkup"
     ],
     "status": "approved",
-    "downloads": 8194
+    "downloads": 8194,
+    "example": "Hi Alex, our *Sample* health package is now at $129.00 (was $129.00).\n\nIncludes Sample tests + free consultation.\n\nBook: bright.co/book",
+    "useCase": "Send to opted-in customers to drive engagement, sales or awareness."
   },
   {
     "id": 124,
@@ -585,7 +633,9 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "free"
     ],
     "status": "approved",
-    "downloads": 9079
+    "downloads": 9079,
+    "example": "Hi Alex, book a *free* consultation with Dr. Dr. Kim (Sample) this week.\n\nSlots: bright.co/book",
+    "useCase": "Send to opted-in customers to drive engagement, sales or awareness."
   },
   {
     "id": 125,
@@ -609,7 +659,9 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "camp"
     ],
     "status": "approved",
-    "downloads": 8615
+    "downloads": 8615,
+    "example": "Hi Alex, a Sample vaccination camp is open on Mon, 18 Aug at Hilton, 5th Ave.\n\nFee: $99.00. Register: bright.co/go",
+    "useCase": "Send to opted-in customers to drive engagement, sales or awareness."
   },
   {
     "id": 126,
@@ -632,7 +684,9 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "availability"
     ],
     "status": "approved",
-    "downloads": 9223
+    "downloads": 9223,
+    "example": "Hi Alex, Dr. Dr. Kim (Sample) is now consulting at CareWell Clinic.\n\nBook an appointment: bright.co/book",
+    "useCase": "Send to opted-in customers to drive engagement, sales or awareness."
   },
   {
     "id": 127,
@@ -655,7 +709,9 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "campaign"
     ],
     "status": "approved",
-    "downloads": 2670
+    "downloads": 2670,
+    "example": "Hi Alex 🌿\n\nJoin our *MBA 2026* wellness program — Sample weeks, expert-led.\n\nEarly bird: $129.00\n\nJoin: bright.co/go",
+    "useCase": "Send to opted-in customers to drive engagement, sales or awareness."
   },
   {
     "id": 128,
@@ -681,7 +737,9 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "travel"
     ],
     "status": "approved",
-    "downloads": 5795
+    "downloads": 5795,
+    "example": "Hi Alex ✈️\n\n*Alex* in Sample from $129.00 per person.\n\nIncludes: Sample\n\nBook by Sample: bright.co/book",
+    "useCase": "Send to opted-in customers to drive engagement, sales or awareness."
   },
   {
     "id": 129,
@@ -704,7 +762,9 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "deal"
     ],
     "status": "approved",
-    "downloads": 6200
+    "downloads": 6200,
+    "example": "✈️ Sample → Sample from $129.00!\n\nTravel: Sample\n\nBook: bright.co/go",
+    "useCase": "Send to opted-in customers to drive engagement, sales or awareness."
   },
   {
     "id": 130,
@@ -726,7 +786,9 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "travel"
     ],
     "status": "approved",
-    "downloads": 4467
+    "downloads": 4467,
+    "example": "Hi Alex, planning to visit 3? Our visa team can help — 20% approval rate.\n\nFree eligibility check: bright.co/go",
+    "useCase": "Send to opted-in customers to drive engagement, sales or awareness."
   },
   {
     "id": 131,
@@ -749,7 +811,9 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "romance"
     ],
     "status": "approved",
-    "downloads": 5053
+    "downloads": 5053,
+    "example": "Hi Alex 💕\n\nCurated honeymoon in *Sample* — Sample nights, from $129.00 per couple.\n\nView itinerary: bright.co/go",
+    "useCase": "Send to opted-in customers to drive engagement, sales or awareness."
   },
   {
     "id": 132,
@@ -772,7 +836,9 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "travel"
     ],
     "status": "approved",
-    "downloads": 5220
+    "downloads": 5220,
+    "example": "Hi Alex, escape the Sample season — Sample packages from $129.00.\n\nLimited slots, book: bright.co/book",
+    "useCase": "Send to opted-in customers to drive engagement, sales or awareness."
   },
   {
     "id": 133,
@@ -795,7 +861,9 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "dining"
     ],
     "status": "approved",
-    "downloads": 8679
+    "downloads": 8679,
+    "example": "Hi Alex 🍽️\n\nThis weekend at Olive & Oak — 30% off on all mains.\n\nReserve: bright.co/go",
+    "useCase": "Send to opted-in customers to drive engagement, sales or awareness."
   },
   {
     "id": 134,
@@ -817,7 +885,9 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "meal"
     ],
     "status": "approved",
-    "downloads": 7818
+    "downloads": 7818,
+    "example": "Hi Alex, try our new Alex combo for $129.00 🤤\n\nOrder now: #10248",
+    "useCase": "Send to opted-in customers to drive engagement, sales or awareness."
   },
   {
     "id": 135,
@@ -839,7 +909,9 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "table"
     ],
     "status": "approved",
-    "downloads": 5961
+    "downloads": 5961,
+    "example": "Hi Alex, secure your table at *Olive & Oak* this Sample.\n\nReserve: bright.co/go",
+    "useCase": "Send to opted-in customers to drive engagement, sales or awareness."
   },
   {
     "id": 136,
@@ -861,7 +933,9 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "menu"
     ],
     "status": "approved",
-    "downloads": 4918
+    "downloads": 4918,
+    "example": "🎉 Sample Special Menu!\n\nHi Alex, our festive menu is live — try 3 signature dishes.\n\nOrder/reserve: bright.co/go",
+    "useCase": "Send to opted-in customers to drive engagement, sales or awareness."
   },
   {
     "id": 137,
@@ -883,7 +957,9 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "free"
     ],
     "status": "approved",
-    "downloads": 8815
+    "downloads": 8815,
+    "example": "Hi Alex 🛵 Free delivery on orders above $50 this week.\n\nUse code: *SAVE30*\n\nOrder: #10248",
+    "useCase": "Send to opted-in customers to drive engagement, sales or awareness."
   },
   {
     "id": 138,
@@ -906,7 +982,9 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "offer"
     ],
     "status": "approved",
-    "downloads": 5136
+    "downloads": 5136,
+    "example": "Hi Alex 💇\n\nFlat 30% off on Premium Plan this week at Sample.\n\nBook: bright.co/book",
+    "useCase": "Send to opted-in customers to drive engagement, sales or awareness."
   },
   {
     "id": 139,
@@ -929,7 +1007,9 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "package"
     ],
     "status": "approved",
-    "downloads": 6377
+    "downloads": 6377,
+    "example": "Hi Alex 👰\n\nOur Bridal Glow package — Sample sessions, $129.00.\n\nIncludes: Sample\n\nConsult: bright.co/go",
+    "useCase": "Send to opted-in customers to drive engagement, sales or awareness."
   },
   {
     "id": 140,
@@ -952,7 +1032,9 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "plan"
     ],
     "status": "approved",
-    "downloads": 2172
+    "downloads": 2172,
+    "example": "Hi Alex, join our Pro Monthly membership — Premium Plan services/month at $129.00.\n\nDetails: 25 minutes",
+    "useCase": "Send to opted-in customers to drive engagement, sales or awareness."
   },
   {
     "id": 141,
@@ -975,7 +1057,9 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "makeover"
     ],
     "status": "approved",
-    "downloads": 2682
+    "downloads": 2682,
+    "example": "✨ Sample Glow Up!\n\nHi Alex, book your festive makeover by Sample and save 30%.\n\nReserve: bright.co/go",
+    "useCase": "Send to opted-in customers to drive engagement, sales or awareness."
   },
   {
     "id": 142,
@@ -997,7 +1081,9 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "saas"
     ],
     "status": "approved",
-    "downloads": 5615
+    "downloads": 5615,
+    "example": "Hi Alex, see how *Aurora Sneakers* can help Sample grow on WhatsApp.\n\nBook a 20-min demo: bright.co/book",
+    "useCase": "Send to opted-in customers to drive engagement, sales or awareness."
   },
   {
     "id": 143,
@@ -1022,7 +1108,9 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "plan"
     ],
     "status": "approved",
-    "downloads": 2971
+    "downloads": 2971,
+    "example": "Hi Alex, you've hit 20% of your Pro Monthly plan limit.\n\nUpgrade to *Pro Monthly* for $129.00 and unlock Sample.\n\nUpgrade: bright.co/go",
+    "useCase": "Send to opted-in customers to drive engagement, sales or awareness."
   },
   {
     "id": 144,
@@ -1044,7 +1132,9 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "free"
     ],
     "status": "approved",
-    "downloads": 6154
+    "downloads": 6154,
+    "example": "Hi Alex, try *Aurora Sneakers* free for 3 days — no card required.\n\nStart: bright.co/go",
+    "useCase": "Send to opted-in customers to drive engagement, sales or awareness."
   },
   {
     "id": 145,
@@ -1067,7 +1157,9 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "saas"
     ],
     "status": "approved",
-    "downloads": 1917
+    "downloads": 1917,
+    "example": "Hi Alex, join our live session: *Sample* on Mon, 18 Aug (6:30 PM).\n\nSeats limited — register: bright.co/go",
+    "useCase": "Send to opted-in customers to drive engagement, sales or awareness."
   },
   {
     "id": 146,
@@ -1089,7 +1181,9 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "launch"
     ],
     "status": "approved",
-    "downloads": 9215
+    "downloads": 9215,
+    "example": "Hi Alex 🎉\n\nWe just launched *AI Auto-Reply* — Sample.\n\nSee it in action: bright.co/go",
+    "useCase": "Send to opted-in customers to drive engagement, sales or awareness."
   },
   {
     "id": 147,
@@ -1111,7 +1205,9 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "retention"
     ],
     "status": "approved",
-    "downloads": 2654
+    "downloads": 2654,
+    "example": "Hi alex, we miss you 👋\n\nWe've shipped 3 new features since you were last active.\n\nLog back in and get 30 on your next renewal: bright.co/login",
+    "useCase": "Send to opted-in customers to drive engagement, sales or awareness."
   },
   {
     "id": 148,
@@ -1133,7 +1229,9 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "finance"
     ],
     "status": "approved",
-    "downloads": 1999
+    "downloads": 1999,
+    "example": "Hi Alex, shop now & pay later — *No-cost EMI* up to Sample months on orders above $50.\n\nApply: bright.co/go",
+    "useCase": "Send to opted-in customers to drive engagement, sales or awareness."
   },
   {
     "id": 149,
@@ -1156,7 +1254,9 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "renewal"
     ],
     "status": "approved",
-    "downloads": 2502
+    "downloads": 2502,
+    "example": "Hi Alex, your Sample policy (Sample) expires on Dec 31, 2026.\n\nRenew in 2 mins: bright.co/renew",
+    "useCase": "Send to opted-in customers to drive engagement, sales or awareness."
   },
   {
     "id": 150,
@@ -1178,7 +1278,9 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "sip"
     ],
     "status": "approved",
-    "downloads": 7673
+    "downloads": 7673,
+    "example": "Hi Alex, start a SIP from just $129.00/month with expected returns of 20% p.a.\n\nExplore: bright.co/go",
+    "useCase": "Send to opted-in customers to drive engagement, sales or awareness."
   },
   {
     "id": 151,
@@ -1200,7 +1302,9 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "offer"
     ],
     "status": "approved",
-    "downloads": 6157
+    "downloads": 6157,
+    "example": "Hi Alex, you're pre-approved for the *Alex* card 🎉\n\nLifetime free · Sample welcome benefits.\n\nApply: bright.co/go",
+    "useCase": "Send to opted-in customers to drive engagement, sales or awareness."
   },
   {
     "id": 152,
@@ -1222,7 +1326,9 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "auto"
     ],
     "status": "approved",
-    "downloads": 5222
+    "downloads": 5222,
+    "example": "Hi Alex 🚗\n\nBook a free test drive for the new *Sample* at Sample.\n\nPick a slot: bright.co/book",
+    "useCase": "Send to opted-in customers to drive engagement, sales or awareness."
   },
   {
     "id": 153,
@@ -1245,7 +1351,9 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "reminder"
     ],
     "status": "approved",
-    "downloads": 5886
+    "downloads": 5886,
+    "example": "Hi Alex, your *White Toyota - ABC 482* (Sample) is due for service.\n\nBook a slot at Premium Plan: bright.co/book",
+    "useCase": "Send to opted-in customers to drive engagement, sales or awareness."
   },
   {
     "id": 154,
@@ -1267,7 +1375,9 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "auto"
     ],
     "status": "approved",
-    "downloads": 6633
+    "downloads": 6633,
+    "example": "Hi Alex 🎉\n\nThe all-new *Sample* is here — starting $129.00.\n\nBook a test drive: bright.co/book",
+    "useCase": "Send to opted-in customers to drive engagement, sales or awareness."
   },
   {
     "id": 155,
@@ -1289,7 +1399,9 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "auto"
     ],
     "status": "approved",
-    "downloads": 2167
+    "downloads": 2167,
+    "example": "Hi Alex, upgrade your ride 🚘\n\nGet up to Sample extra exchange bonus on your old *White Toyota - ABC 482*.\n\nValuate now: bright.co/go",
+    "useCase": "Send to opted-in customers to drive engagement, sales or awareness."
   },
   {
     "id": 201,
@@ -1309,7 +1421,9 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "auth"
     ],
     "status": "approved",
-    "downloads": 24500
+    "downloads": 24500,
+    "example": "482913 is your verification code. Do not share this code with anyone. It expires in 15 minutes.",
+    "useCase": "Send one-time codes for sign-in or verification flows."
   },
   {
     "id": 202,
@@ -1331,7 +1445,9 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "verification"
     ],
     "status": "approved",
-    "downloads": 1005
+    "downloads": 1005,
+    "example": "Hi Alex, use code *482913* to log in to Alex. The code expires in 15 minutes. Never share it.",
+    "useCase": "Send one-time codes for sign-in or verification flows."
   },
   {
     "id": 203,
@@ -1352,7 +1468,9 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "reset"
     ],
     "status": "approved",
-    "downloads": 3590
+    "downloads": 3590,
+    "example": "Hi Alex, your password reset code is *482913*. It expires in 15 minutes.",
+    "useCase": "Send one-time codes for sign-in or verification flows."
   },
   {
     "id": 204,
@@ -1374,7 +1492,9 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "alert"
     ],
     "status": "approved",
-    "downloads": 4868
+    "downloads": 4868,
+    "example": "Hi Alex, a new login to your account was detected from Downtown Store on 6:30 PM.\n\nIf this wasn't you, secure your account: bright.co/go",
+    "useCase": "Send transactional updates that customers are expecting (orders, bookings, accounts)."
   },
   {
     "id": 205,
@@ -1397,7 +1517,9 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "confirmation"
     ],
     "status": "approved",
-    "downloads": 6565
+    "downloads": 6565,
+    "example": "Hi Alex, your order ##10248 for $129.00 is confirmed.\n\nEstimated delivery: Wed, 20 Aug\n\nTrack: bright.co/go",
+    "useCase": "Send transactional updates that customers are expecting (orders, bookings, accounts)."
   },
   {
     "id": 206,
@@ -1420,7 +1542,9 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "tracking"
     ],
     "status": "approved",
-    "downloads": 3556
+    "downloads": 3556,
+    "example": "Hi Alex, your order ##10248 has been shipped via Sample.\n\nTracking: Sample\nETA: 25 minutes",
+    "useCase": "Send transactional updates that customers are expecting (orders, bookings, accounts)."
   },
   {
     "id": 207,
@@ -1443,7 +1567,9 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "out-for-delivery"
     ],
     "status": "approved",
-    "downloads": 1080
+    "downloads": 1080,
+    "example": "Hi Alex 🚚 Your order ##10248 is out for delivery.\n\nDelivery partner: Sample (+1 555 010 4421)\nETA: 25 minutes",
+    "useCase": "Send transactional updates that customers are expecting (orders, bookings, accounts)."
   },
   {
     "id": 208,
@@ -1465,7 +1591,9 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "feedback"
     ],
     "status": "approved",
-    "downloads": 9323
+    "downloads": 9323,
+    "example": "Hi Alex, your order ##10248 was delivered on 6:30 PM.\n\nLove it? Rate us: bright.co/feedback",
+    "useCase": "Send transactional updates that customers are expecting (orders, bookings, accounts)."
   },
   {
     "id": 209,
@@ -1489,7 +1617,9 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "refund"
     ],
     "status": "approved",
-    "downloads": 2217
+    "downloads": 2217,
+    "example": "Hi Alex, your return for order ##10248 (Aurora Sneakers (x1)) has been initiated.\n\nPickup: Wed, 20 Aug\nRefund of $45.00 will be processed in 3 days.",
+    "useCase": "Send transactional updates that customers are expecting (orders, bookings, accounts)."
   },
   {
     "id": 210,
@@ -1513,7 +1643,9 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "reminder"
     ],
     "status": "approved",
-    "downloads": 2164
+    "downloads": 2164,
+    "example": "Hi Alex, reminder for your appointment with X-1001 on Mon, 18 Aug at 6:30 PM.\n\nLocation: Downtown Store\n\nReschedule: bright.co/reschedule",
+    "useCase": "Send transactional updates that customers are expecting (orders, bookings, accounts)."
   },
   {
     "id": 211,
@@ -1536,7 +1668,9 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "confirmation"
     ],
     "status": "approved",
-    "downloads": 6350
+    "downloads": 6350,
+    "example": "Hi Alex, your booking *Alex* is confirmed.\n\nReference: REF-9921\nDate: Mon, 18 Aug\nDetails: 25 minutes",
+    "useCase": "Send transactional updates that customers are expecting (orders, bookings, accounts)."
   },
   {
     "id": 212,
@@ -1559,7 +1693,9 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "reminder"
     ],
     "status": "approved",
-    "downloads": 8791
+    "downloads": 8791,
+    "example": "Hi Alex, reminder for our meeting *Sample* on Mon, 18 Aug at 6:30 PM.\n\nJoin: bright.co/go",
+    "useCase": "Send transactional updates that customers are expecting (orders, bookings, accounts)."
   },
   {
     "id": 213,
@@ -1582,7 +1718,9 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "appointment"
     ],
     "status": "approved",
-    "downloads": 2644
+    "downloads": 2644,
+    "example": "Hi Alex, your appointment with X-1001 has been rescheduled to Mon, 18 Aug at 6:30 PM.\n\nReply *YES* to confirm or pick another slot: bright.co/reschedule",
+    "useCase": "Send transactional updates that customers are expecting (orders, bookings, accounts)."
   },
   {
     "id": 214,
@@ -1605,7 +1743,9 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "received"
     ],
     "status": "approved",
-    "downloads": 4960
+    "downloads": 4960,
+    "example": "Hi Alex, we've received your payment of $129.00 for incomplete documents.\n\nTransaction ID: X-1003\nReceipt: bright.co/go",
+    "useCase": "Send transactional updates that customers are expecting (orders, bookings, accounts)."
   },
   {
     "id": 215,
@@ -1628,7 +1768,9 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "billing"
     ],
     "status": "approved",
-    "downloads": 7665
+    "downloads": 7665,
+    "example": "Hi Alex, invoice #Sample for $129.00 is ready.\n\nDue: Aug 30\nPay: bright.co/go",
+    "useCase": "Send transactional updates that customers are expecting (orders, bookings, accounts)."
   },
   {
     "id": 216,
@@ -1651,7 +1793,9 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "renewal"
     ],
     "status": "approved",
-    "downloads": 8691
+    "downloads": 8691,
+    "example": "Hi Alex, your *Pro Monthly* plan renews on Mon, 18 Aug for $129.00.\n\nManage: bright.co/account",
+    "useCase": "Send transactional updates that customers are expecting (orders, bookings, accounts)."
   },
   {
     "id": 217,
@@ -1674,7 +1818,9 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "failed"
     ],
     "status": "approved",
-    "downloads": 6928
+    "downloads": 6928,
+    "example": "Hi Alex, your payment of $129.00 for incomplete documents failed.\n\nReason: incomplete documents\nRetry: bright.co/go",
+    "useCase": "Send transactional updates that customers are expecting (orders, bookings, accounts)."
   },
   {
     "id": 218,
@@ -1697,7 +1843,9 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "processed"
     ],
     "status": "approved",
-    "downloads": 1915
+    "downloads": 1915,
+    "example": "Hi Alex, a refund of $129.00 for order ##10248 has been processed to Sample.\n\nIt should reflect in 3.",
+    "useCase": "Send transactional updates that customers are expecting (orders, bookings, accounts)."
   },
   {
     "id": 219,
@@ -1719,7 +1867,9 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "support"
     ],
     "status": "approved",
-    "downloads": 7391
+    "downloads": 7391,
+    "example": "Hi Alex, ticket *#TCK-882* has been created for: Sample.\n\nOur team will respond within 4 hours.",
+    "useCase": "Send transactional updates that customers are expecting (orders, bookings, accounts)."
   },
   {
     "id": 220,
@@ -1741,7 +1891,9 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "resolved"
     ],
     "status": "approved",
-    "downloads": 4977
+    "downloads": 4977,
+    "example": "Hi Alex, ticket *#TCK-882* has been resolved.\n\nResolution: Sample\n\nRate your experience: bright.co/feedback",
+    "useCase": "Send transactional updates that customers are expecting (orders, bookings, accounts)."
   },
   {
     "id": 221,
@@ -1762,7 +1914,9 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "nps"
     ],
     "status": "approved",
-    "downloads": 5024
+    "downloads": 5024,
+    "example": "Hi Alex, thanks for contacting us about Sample.\n\nHow did we do? Rate us: bright.co/feedback",
+    "useCase": "Send transactional updates that customers are expecting (orders, bookings, accounts)."
   },
   {
     "id": 222,
@@ -1782,7 +1936,9 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "support"
     ],
     "status": "approved",
-    "downloads": 2072
+    "downloads": 2072,
+    "example": "Hi Alex, following up on ticket *#TCK-882*.\n\nIs your issue resolved? Reply *YES* to close or share more details.",
+    "useCase": "Send transactional updates that customers are expecting (orders, bookings, accounts)."
   },
   {
     "id": 223,
@@ -1805,7 +1961,9 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "education"
     ],
     "status": "approved",
-    "downloads": 4752
+    "downloads": 4752,
+    "example": "Hi Alex, Sample was marked *Confirmed* on Mon, 18 Aug.\n\nFor queries, contact +1 800 555 0199.",
+    "useCase": "Send transactional updates that customers are expecting (orders, bookings, accounts)."
   },
   {
     "id": 224,
@@ -1829,7 +1987,9 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "reminder"
     ],
     "status": "approved",
-    "downloads": 1178
+    "downloads": 1178,
+    "example": "Hi Alex, fee of $129.00 for Sample (Sample) is due on Aug 30.\n\nPay: bright.co/go",
+    "useCase": "Send transactional updates that customers are expecting (orders, bookings, accounts)."
   },
   {
     "id": 225,
@@ -1850,7 +2010,9 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "exam"
     ],
     "status": "approved",
-    "downloads": 2825
+    "downloads": 2825,
+    "example": "Hi Sample, results for *Sample* are out 🎓\n\nView: bright.co/go",
+    "useCase": "Send transactional updates that customers are expecting (orders, bookings, accounts)."
   },
   {
     "id": 226,
@@ -1872,7 +2034,9 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "notification"
     ],
     "status": "approved",
-    "downloads": 2222
+    "downloads": 2222,
+    "example": "Hi Alex, an update about Sample: Inbox v2.0\n\nFor details, visit 25 minutes.",
+    "useCase": "Send transactional updates that customers are expecting (orders, bookings, accounts)."
   },
   {
     "id": 227,
@@ -1896,7 +2060,9 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "appointment"
     ],
     "status": "approved",
-    "downloads": 5614
+    "downloads": 5614,
+    "example": "Hi Alex, your appointment with Dr. Dr. Kim on Mon, 18 Aug at 6:30 PM is confirmed.\n\nLocation: Downtown Store\nReschedule: bright.co/reschedule",
+    "useCase": "Send transactional updates that customers are expecting (orders, bookings, accounts)."
   },
   {
     "id": 228,
@@ -1918,7 +2084,9 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "report"
     ],
     "status": "approved",
-    "downloads": 7939
+    "downloads": 7939,
+    "example": "Hi Alex, your *Sample* report is ready.\n\nReport ID: X-1002\nDownload: bright.co/go",
+    "useCase": "Send transactional updates that customers are expecting (orders, bookings, accounts)."
   },
   {
     "id": 229,
@@ -1940,7 +2108,9 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "refill"
     ],
     "status": "approved",
-    "downloads": 4885
+    "downloads": 4885,
+    "example": "Hi Alex, your prescription *Sample* runs out on Mon, 18 Aug.\n\nRefill: bright.co/go",
+    "useCase": "Send transactional updates that customers are expecting (orders, bookings, accounts)."
   },
   {
     "id": 230,
@@ -1961,7 +2131,9 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "reminder"
     ],
     "status": "approved",
-    "downloads": 3701
+    "downloads": 3701,
+    "example": "Hi Alex 💊 Time to take *Sample* (Sample).\n\nReply *TAKEN* to log.",
+    "useCase": "Send transactional updates that customers are expecting (orders, bookings, accounts)."
   },
   {
     "id": 231,
@@ -1984,7 +2156,9 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "workspace"
     ],
     "status": "approved",
-    "downloads": 1607
+    "downloads": 1607,
+    "example": "Hi Alex, Sample invited you to join *Sample* on Aurora Sneakers.\n\nAccept: bright.co/go",
+    "useCase": "Send transactional updates that customers are expecting (orders, bookings, accounts)."
   },
   {
     "id": 232,
@@ -2007,7 +2181,9 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "onboarding"
     ],
     "status": "approved",
-    "downloads": 1870
+    "downloads": 1870,
+    "example": "Hi Alex, Sample has joined your *Sample* workspace as *Sample*.\n\nManage roles: bright.co/account",
+    "useCase": "Send transactional updates that customers are expecting (orders, bookings, accounts)."
   },
   {
     "id": 233,
@@ -2029,7 +2205,9 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "expiry"
     ],
     "status": "approved",
-    "downloads": 5203
+    "downloads": 5203,
+    "example": "Hi Alex, your free trial of *Aurora Sneakers* ends in 3 days.\n\nUpgrade to keep your data: bright.co/go",
+    "useCase": "Send transactional updates that customers are expecting (orders, bookings, accounts)."
   },
   {
     "id": 234,
@@ -2052,7 +2230,9 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "activation"
     ],
     "status": "approved",
-    "downloads": 4029
+    "downloads": 4029,
+    "example": "Hi Alex, your *Pro Monthly* plan is active 🎉\n\nNext billing: Sample · Amount: $129.00\n\nManage: bright.co/account",
+    "useCase": "Send transactional updates that customers are expecting (orders, bookings, accounts)."
   },
   {
     "id": 235,
@@ -2075,7 +2255,9 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "limit"
     ],
     "status": "approved",
-    "downloads": 8597
+    "downloads": 8597,
+    "example": "Hi Alex, you've used 20% of your Sample quota on the *Pro Monthly* plan.\n\nUpgrade for more: bright.co/go",
+    "useCase": "Send transactional updates that customers are expecting (orders, bookings, accounts)."
   },
   {
     "id": 236,
@@ -2100,7 +2282,9 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "banking"
     ],
     "status": "approved",
-    "downloads": 5537
+    "downloads": 5537,
+    "example": "Hi Alex, Sample of $129.00 on a/c *3 on 6:30 PM.\nAvailable balance: $320.00.\n\nNot you? Block card: bright.co/go",
+    "useCase": "Send transactional updates that customers are expecting (orders, bookings, accounts)."
   },
   {
     "id": 237,
@@ -2122,7 +2306,9 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "compliance"
     ],
     "status": "approved",
-    "downloads": 6016
+    "downloads": 6016,
+    "example": "Hi Alex, please complete your KYC for a/c *3 by Sample to avoid service disruption.\n\nUpdate: bright.co/go",
+    "useCase": "Send transactional updates that customers are expecting (orders, bookings, accounts)."
   },
   {
     "id": 238,
@@ -2145,7 +2331,9 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "update"
     ],
     "status": "approved",
-    "downloads": 4461
+    "downloads": 4461,
+    "example": "Hi Alex, your Sample for a/c *3 was updated on 6:30 PM.\n\nIf this wasn't you, contact us immediately: bright.co/go",
+    "useCase": "Send transactional updates that customers are expecting (orders, bookings, accounts)."
   },
   {
     "id": 239,
@@ -2167,7 +2355,9 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "banking"
     ],
     "status": "approved",
-    "downloads": 6488
+    "downloads": 6488,
+    "example": "Hi Alex, your statement for Sample (3) is ready.\n\nDownload: bright.co/go",
+    "useCase": "Send transactional updates that customers are expecting (orders, bookings, accounts)."
   },
   {
     "id": 240,
@@ -2190,7 +2380,9 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "logistics"
     ],
     "status": "approved",
-    "downloads": 6084
+    "downloads": 6084,
+    "example": "Hi Alex, pickup for AWB *Sample* is scheduled on Mon, 18 Aug between 6:30 PM.\n\nReschedule: bright.co/reschedule",
+    "useCase": "Send transactional updates that customers are expecting (orders, bookings, accounts)."
   },
   {
     "id": 241,
@@ -2212,7 +2404,9 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "shipment"
     ],
     "status": "approved",
-    "downloads": 5158
+    "downloads": 5158,
+    "example": "Hi Alex, your shipment *Sample* is delayed due to incomplete documents.\n\nNew ETA: 25 minutes. We apologise for the inconvenience.",
+    "useCase": "Send transactional updates that customers are expecting (orders, bookings, accounts)."
   },
   {
     "id": 242,
@@ -2235,7 +2429,9 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "arriving"
     ],
     "status": "approved",
-    "downloads": 7978
+    "downloads": 7978,
+    "example": "Hi Alex, your driver Sample (+1 555 010 4421) is arriving in 15 mins for pickup/delivery of *Sample*.",
+    "useCase": "Send transactional updates that customers are expecting (orders, bookings, accounts)."
   },
   {
     "id": 243,
@@ -2258,7 +2454,9 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "completed"
     ],
     "status": "approved",
-    "downloads": 1960
+    "downloads": 1960,
+    "example": "Hi Alex, AWB *Sample* was delivered on 6:30 PM to Sample.\n\nFeedback: bright.co/feedback",
+    "useCase": "Send transactional updates that customers are expecting (orders, bookings, accounts)."
   },
   {
     "id": 244,
@@ -2279,7 +2477,9 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "account"
     ],
     "status": "approved",
-    "downloads": 2589
+    "downloads": 2589,
+    "example": "Hi Alex, your account on *Aurora Sneakers* has been verified ✅\n\nGet started: bright.co/go",
+    "useCase": "Send transactional updates that customers are expecting (orders, bookings, accounts)."
   },
   {
     "id": 245,
@@ -2300,7 +2500,9 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "security"
     ],
     "status": "approved",
-    "downloads": 9343
+    "downloads": 9343,
+    "example": "Hi Alex, two-factor authentication is now enabled on your *Aurora Sneakers* account.\n\nIf this wasn't you, contact support: bright.co/help",
+    "useCase": "Send transactional updates that customers are expecting (orders, bookings, accounts)."
   },
   {
     "id": 246,
@@ -2323,7 +2525,9 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "refund"
     ],
     "status": "approved",
-    "downloads": 2668
+    "downloads": 2668,
+    "example": "Hi Alex, your Sample #REF-9921 has been cancelled.\n\nRefund of $129.00 will be processed in 3.",
+    "useCase": "Send transactional updates that customers are expecting (orders, bookings, accounts)."
   },
   {
     "id": 247,
@@ -2345,7 +2549,9 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "renewal"
     ],
     "status": "approved",
-    "downloads": 2967
+    "downloads": 2967,
+    "example": "Hi Alex, your Sample expires on Dec 31, 2026. Renew in 2 mins to avoid service disruption: bright.co/renew",
+    "useCase": "Send transactional updates that customers are expecting (orders, bookings, accounts)."
   },
   {
     "id": 248,
@@ -2367,7 +2573,9 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "verification"
     ],
     "status": "approved",
-    "downloads": 6000
+    "downloads": 6000,
+    "example": "Hi Alex, please confirm the delivery address for order ##10248:\n\n221B Baker Street\n\nReply *YES* to confirm or update: Mon, 18 Aug",
+    "useCase": "Send transactional updates that customers are expecting (orders, bookings, accounts)."
   },
   {
     "id": 249,
@@ -2389,7 +2597,9 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "reservation"
     ],
     "status": "approved",
-    "downloads": 4309
+    "downloads": 4309,
+    "example": "Hi Alex, we've reserved *Aurora Sneakers* in your cart for 4 hours.\n\nComplete checkout: bright.co/checkout",
+    "useCase": "Send transactional updates that customers are expecting (orders, bookings, accounts)."
   },
   {
     "id": 250,
@@ -2411,7 +2621,9 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "activation"
     ],
     "status": "approved",
-    "downloads": 7008
+    "downloads": 7008,
+    "example": "Hi Alex, your *Premium Plan* service is now active.\n\nValid till: 12 months\nManage: bright.co/account",
+    "useCase": "Send transactional updates that customers are expecting (orders, bookings, accounts)."
   }
 ];
 

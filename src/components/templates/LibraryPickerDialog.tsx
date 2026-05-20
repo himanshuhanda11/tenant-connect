@@ -211,7 +211,7 @@ export function LibraryPickerDialog({ open, onOpenChange, onSelect }: Props) {
                           </span>
                         </div>
                         <p className="text-[10px] text-muted-foreground line-clamp-2">{t.description}</p>
-                        <p className="text-[9px] text-muted-foreground mt-1">{t.downloads.toLocaleString()} uses</p>
+                        <p className="text-[9px] text-muted-foreground mt-1">{t.industry} · {t.downloads.toLocaleString()} uses</p>
                       </button>
                     ))}
                   </div>
@@ -287,12 +287,22 @@ export function LibraryPickerDialog({ open, onOpenChange, onSelect }: Props) {
                       </span>
                     </div>
 
-                    {/* Body preview */}
-                    <div className="rounded-lg bg-muted/40 border border-border/40 p-3 mb-3 relative">
-                      <p className="text-[12px] leading-relaxed text-foreground/85 whitespace-pre-wrap line-clamp-5">
-                        {t.body}
+                    {/* Body preview — plain-English example so users instantly understand */}
+                    <div className="rounded-lg bg-[#e7f5db]/40 dark:bg-emerald-950/30 border border-emerald-500/15 p-3 mb-2 relative">
+                      <div className="flex items-center gap-1 mb-1.5">
+                        <span className="text-[9px] uppercase tracking-wide font-semibold text-emerald-700 dark:text-emerald-400">Preview</span>
+                        <span className="text-[9px] text-muted-foreground">· how customers see it</span>
+                      </div>
+                      <p className="text-[12px] leading-relaxed text-foreground/90 whitespace-pre-wrap line-clamp-5">
+                        {t.example || t.body}
                       </p>
                     </div>
+                    {t.useCase && (
+                      <p className="text-[10.5px] text-muted-foreground mb-3 line-clamp-2">
+                        <span className="font-semibold text-foreground/70">When to use: </span>
+                        {t.useCase}
+                      </p>
+                    )}
 
                     {/* Footer row */}
                     <div className="flex items-center justify-between gap-2 relative">
