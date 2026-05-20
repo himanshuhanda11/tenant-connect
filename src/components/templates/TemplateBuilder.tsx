@@ -267,18 +267,38 @@ export function TemplateBuilder({
     variable_samples: variableSamples,
   });
 
-  const handlePrimary = async () => {
+  // Separate local locks so each button has its own loading state and
+  // multi-click protection (independent of parent `saving` prop).
+  const [savingDraft, setSavingDraft] = useState(false);
+  const [submittingForApproval, setSubmittingForApproval] = useState(false);
+
+  const handleSaveDraft = async () => {
+    if (savingDraft || submittingForApproval) return;
+    setSavingDraft(true);
+    try {
+      await onSave(buildData());
+      try { localStorage.removeItem(DRAFT_KEY); } catch { /* best-effort */ }
+    } finally {
+      setSavingDraft(false);
+    }
+  };
+
+  const handleSubmitForApproval = async () => {
+    if (savingDraft || submittingForApproval) return;
     if (mode === 'edit' && wasApproved && !confirmResubmit) {
       setConfirmResubmit(true);
       return;
     }
-    if (onSaveAndSubmit) {
-      await onSaveAndSubmit(buildData());
-    } else {
-      await onSave(buildData());
-    }
-    try { localStorage.removeItem(DRAFT_KEY); } catch {
-      // Draft storage is best-effort only.
+    setSubmittingForApproval(true);
+    try {
+      if (onSaveAndSubmit) {
+        await onSaveAndSubmit(buildData());
+      } else {
+        await onSave(buildData());
+      }
+      try { localStorage.removeItem(DRAFT_KEY); } catch { /* best-effort */ }
+    } finally {
+      setSubmittingForApproval(false);
     }
   };
 
@@ -292,6 +312,10 @@ export function TemplateBuilder({
   const errors = lintResults.filter(r => r.severity === 'error');
   const warnings = lintResults.filter(r => r.severity === 'warning');
   const infos = lintResults.filter(r => r.severity === 'info');
+
+  const busy = saving || savingDraft || submittingForApproval;
+  const canSaveDraft = !!name && !!body && !busy;
+  const canSubmit = canSaveDraft && errors.length === 0;
 
   const getSeverityIcon = (severity: string) => {
     switch (severity) {
