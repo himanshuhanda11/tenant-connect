@@ -434,9 +434,7 @@ export default function CreateCampaign() {
       toast.error('Select an approved template first');
       return;
     }
-    const contactIds = audienceFilters.selected_contacts?.length
-      ? audienceFilters.selected_contacts
-      : audienceFilters.matched_contact_ids || [];
+    const contactIds = finalContactIds;
     if (contactIds.length === 0) {
       toast.error('Add recipients or choose an audience filter before launching');
       return;
