@@ -160,15 +160,86 @@ export function LibraryPickerDialog({ open, onOpenChange, onSelect }: Props) {
             </div>
             <ScrollBar orientation="horizontal" className="h-1.5" />
           </ScrollArea>
+
+          {/* Industry filter */}
+          <ScrollArea className="w-full mt-2">
+            <div className="flex items-center gap-1.5 pb-1.5">
+              <span className="shrink-0 text-[10px] uppercase tracking-wide text-muted-foreground font-semibold mr-1">Industry</span>
+              {TEMPLATE_INDUSTRIES.map((i) => (
+                <button
+                  key={i.name}
+                  onClick={() => setIndustry(i.name)}
+                  className={cn(
+                    'shrink-0 inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-medium border transition-all whitespace-nowrap',
+                    industry === i.name
+                      ? 'bg-foreground/90 text-background border-foreground'
+                      : 'bg-background text-muted-foreground border-border/50 hover:border-foreground/40'
+                  )}
+                >
+                  {i.name}
+                  <span className="text-[9px] opacity-70">{i.count}</span>
+                </button>
+              ))}
+            </div>
+            <ScrollBar orientation="horizontal" className="h-1.5" />
+          </ScrollArea>
         </div>
 
         {/* Templates grid */}
         <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain">
           <div className="px-6 py-5">
+            {/* Popular row — only when no filters applied */}
+            {!search && category === 'All' && industry === 'All' && metaCat === 'ALL' && (
+              <div className="mb-6">
+                <div className="flex items-center gap-2 mb-3">
+                  <Flame className="h-4 w-4 text-orange-500" />
+                  <h3 className="text-sm font-semibold">Popular templates</h3>
+                  <span className="text-[10px] text-muted-foreground">Most used by businesses</span>
+                </div>
+                <ScrollArea className="w-full">
+                  <div className="flex gap-2 pb-2">
+                    {popular.map((t) => (
+                      <button
+                        key={`pop-${t.id}`}
+                        onClick={() => handlePick(t)}
+                        className="shrink-0 w-[220px] text-left rounded-lg border border-border/60 bg-card p-3 hover:border-primary hover:shadow-md transition-all"
+                      >
+                        <div className="flex items-center justify-between gap-2 mb-1">
+                          <p className="font-semibold text-xs truncate">{t.name}</p>
+                          <span className={cn('text-[9px] font-semibold px-1.5 rounded border', META_BADGE[t.metaCategory])}>
+                            {t.metaCategory[0]}
+                          </span>
+                        </div>
+                        <p className="text-[10px] text-muted-foreground line-clamp-2">{t.description}</p>
+                        <p className="text-[9px] text-muted-foreground mt-1">{t.downloads.toLocaleString()} uses</p>
+                      </button>
+                    ))}
+                  </div>
+                  <ScrollBar orientation="horizontal" className="h-1.5" />
+                </ScrollArea>
+              </div>
+            )}
+
             <div className="flex items-center justify-between mb-4">
               <p className="text-xs text-muted-foreground">
                 Showing <span className="font-semibold text-foreground">{list.length}</span> templates
               </p>
+              <div className="inline-flex items-center rounded-md border border-border/60 p-0.5 bg-background">
+                <button
+                  onClick={() => setView('grid')}
+                  className={cn('p-1.5 rounded', view === 'grid' ? 'bg-muted text-foreground' : 'text-muted-foreground')}
+                  aria-label="Grid view"
+                >
+                  <LayoutGrid className="h-3.5 w-3.5" />
+                </button>
+                <button
+                  onClick={() => setView('list')}
+                  className={cn('p-1.5 rounded', view === 'list' ? 'bg-muted text-foreground' : 'text-muted-foreground')}
+                  aria-label="List view"
+                >
+                  <List className="h-3.5 w-3.5" />
+                </button>
+              </div>
             </div>
 
             {list.length === 0 ? (
