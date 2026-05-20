@@ -267,18 +267,38 @@ export function TemplateBuilder({
     variable_samples: variableSamples,
   });
 
-  const handlePrimary = async () => {
+  // Separate local locks so each button has its own loading state and
+  // multi-click protection (independent of parent `saving` prop).
+  const [savingDraft, setSavingDraft] = useState(false);
+  const [submittingForApproval, setSubmittingForApproval] = useState(false);
+
+  const handleSaveDraft = async () => {
+    if (savingDraft || submittingForApproval) return;
+    setSavingDraft(true);
+    try {
+      await onSave(buildData());
+      try { localStorage.removeItem(DRAFT_KEY); } catch { /* best-effort */ }
+    } finally {
+      setSavingDraft(false);
+    }
+  };
+
+  const handleSubmitForApproval = async () => {
+    if (savingDraft || submittingForApproval) return;
     if (mode === 'edit' && wasApproved && !confirmResubmit) {
       setConfirmResubmit(true);
       return;
     }
-    if (onSaveAndSubmit) {
-      await onSaveAndSubmit(buildData());
-    } else {
-      await onSave(buildData());
-    }
-    try { localStorage.removeItem(DRAFT_KEY); } catch {
-      // Draft storage is best-effort only.
+    setSubmittingForApproval(true);
+    try {
+      if (onSaveAndSubmit) {
+        await onSaveAndSubmit(buildData());
+      } else {
+        await onSave(buildData());
+      }
+      try { localStorage.removeItem(DRAFT_KEY); } catch { /* best-effort */ }
+    } finally {
+      setSubmittingForApproval(false);
     }
   };
 
@@ -292,6 +312,10 @@ export function TemplateBuilder({
   const errors = lintResults.filter(r => r.severity === 'error');
   const warnings = lintResults.filter(r => r.severity === 'warning');
   const infos = lintResults.filter(r => r.severity === 'info');
+
+  const busy = saving || savingDraft || submittingForApproval;
+  const canSaveDraft = !!name && !!body && !busy;
+  const canSubmit = canSaveDraft && errors.length === 0;
 
   const getSeverityIcon = (severity: string) => {
     switch (severity) {
@@ -327,12 +351,21 @@ export function TemplateBuilder({
             </Button>
           )}
           <Button
+            variant="outline"
             size="sm"
-            onClick={handlePrimary}
-            disabled={saving || !name || !body || errors.length > 0}
+            onClick={handleSaveDraft}
+            disabled={!canSaveDraft}
             className="hidden sm:inline-flex"
           >
-            {saving ? 'Submitting...' : mode === 'create' ? 'Submit for Approval' : 'Update & Resubmit'}
+            {savingDraft ? (<><Loader2 className="h-4 w-4 mr-1.5 animate-spin" />Saving…</>) : 'Save as Draft'}
+          </Button>
+          <Button
+            size="sm"
+            onClick={handleSubmitForApproval}
+            disabled={!canSubmit}
+            className="hidden sm:inline-flex"
+          >
+            {submittingForApproval ? (<><Loader2 className="h-4 w-4 mr-1.5 animate-spin" />Submitting…</>) : mode === 'create' ? 'Submit for Approval' : 'Update & Resubmit'}
           </Button>
         </div>
       </div>
@@ -899,13 +932,21 @@ export function TemplateBuilder({
       </div>
 
       {/* Sticky mobile action bar */}
-      <div className="sm:hidden sticky bottom-0 left-0 right-0 -mx-4 px-4 py-3 bg-background/95 backdrop-blur border-t z-30">
+      <div className="sm:hidden sticky bottom-0 left-0 right-0 -mx-4 px-4 py-3 bg-background/95 backdrop-blur border-t z-30 flex gap-2">
         <Button
-          className="w-full"
-          onClick={handlePrimary}
-          disabled={saving || !name || !body || errors.length > 0}
+          variant="outline"
+          className="flex-1"
+          onClick={handleSaveDraft}
+          disabled={!canSaveDraft}
         >
-          {saving ? 'Submitting...' : mode === 'create' ? 'Submit for Approval' : 'Update & Resubmit'}
+          {savingDraft ? (<><Loader2 className="h-4 w-4 mr-1.5 animate-spin" />Saving…</>) : 'Save Draft'}
+        </Button>
+        <Button
+          className="flex-1"
+          onClick={handleSubmitForApproval}
+          disabled={!canSubmit}
+        >
+          {submittingForApproval ? (<><Loader2 className="h-4 w-4 mr-1.5 animate-spin" />Submitting…</>) : mode === 'create' ? 'Submit for Approval' : 'Update & Resubmit'}
         </Button>
       </div>
 

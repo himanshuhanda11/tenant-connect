@@ -1,6 +1,6 @@
 export type HeaderType = 'none' | 'text' | 'image' | 'video' | 'document';
 export type InternalStatus = 'draft' | 'in_review' | 'approved' | 'changes_requested';
-export type MetaStatus = 'PENDING' | 'APPROVED' | 'REJECTED' | 'PAUSED' | 'DISABLED';
+export type MetaStatus = 'DRAFT' | 'PENDING' | 'APPROVED' | 'REJECTED' | 'PAUSED' | 'DISABLED';
 export type ApprovalStatus = 'pending' | 'in_review' | 'approved' | 'changes_requested';
 export type TemplateCategory = 'MARKETING' | 'UTILITY' | 'AUTHENTICATION';
 export type LintSeverity = 'error' | 'warning' | 'info';

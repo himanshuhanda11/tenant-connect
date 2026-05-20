@@ -240,7 +240,7 @@ export function useTemplateBuilder(): UseTemplateBuilderReturn {
           category: data.category,
           meta_template_id: `local_${Date.now()}`,
           internal_status: 'draft',
-          status: 'PENDING',
+          status: 'DRAFT',
           created_by: user?.id,
           template_score: 100
         } as any)
@@ -301,7 +301,8 @@ export function useTemplateBuilder(): UseTemplateBuilderReturn {
         .update({ template_score: score })
         .eq('id', template.id);
       
-      toast.success('Template created. You can submit it for approval next.');
+      toast.success('Draft saved. Submit it for approval when ready.');
+      await fetchTemplates();
       return { ...template, current_version_id: version.id, current_version: version } as any;
     } catch (error: any) {
       console.error('Error creating template:', error);
@@ -435,38 +436,59 @@ export function useTemplateBuilder(): UseTemplateBuilderReturn {
 
   const duplicateTemplate = useCallback(async (id: string): Promise<Template | null> => {
     if (!currentTenant?.id) return null;
-    
+
     try {
       const { data: original } = await supabase
         .from('templates')
         .select('*, versions:template_versions(*)')
         .eq('id', id)
         .single();
-      
+
       if (!original) throw new Error('Template not found');
-      
+
       const versions = (original as any).versions as TemplateVersion[];
       const latestVersion = versions?.sort(
         (a, b) => b.version_number - a.version_number
       )[0];
-      
-      return await createTemplate({
-        name: `${original.name} (Copy)`,
+
+      // Build a unique lowercase/underscore name (Meta naming rules)
+      const baseName = `${original.name}_copy`.toLowerCase().replace(/[^a-z0-9_]/g, '_').slice(0, 480);
+      let candidate = baseName;
+      for (let i = 1; i < 50; i++) {
+        const { data: exists } = await supabase
+          .from('templates')
+          .select('id')
+          .eq('tenant_id', currentTenant.id)
+          .eq('name', candidate)
+          .eq('language', original.language)
+          .maybeSingle();
+        if (!exists) break;
+        candidate = `${baseName}_${i}`;
+      }
+
+      const duplicated = await createTemplate({
+        name: candidate,
         language: original.language,
         category: original.category,
         header_type: (latestVersion?.header_type as HeaderType) || 'none',
         header_content: latestVersion?.header_content || undefined,
         body: latestVersion?.body || '',
         footer: latestVersion?.footer || undefined,
-        buttons: latestVersion?.buttons as TemplateButton[] || [],
-        variable_samples: latestVersion?.variable_samples as Record<string, string> || {}
+        buttons: (latestVersion?.buttons as TemplateButton[]) || [],
+        variable_samples: (latestVersion?.variable_samples as Record<string, string>) || {}
       });
+
+      if (duplicated) {
+        toast.success('Template duplicated successfully.');
+        await fetchTemplates();
+      }
+      return duplicated;
     } catch (error) {
       console.error('Error duplicating template:', error);
       toast.error('Failed to duplicate template');
       return null;
     }
-  }, [currentTenant?.id, createTemplate]);
+  }, [currentTenant?.id, createTemplate, fetchTemplates]);
 
   const archiveTemplate = useCallback(async (id: string): Promise<boolean> => {
     try {

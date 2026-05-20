@@ -77,10 +77,12 @@ export function TemplatesListView({
 
   const getMetaStatusBadge = (status: MetaStatus) => {
     switch (status) {
+      case 'DRAFT':
+        return <Badge variant="secondary" className="bg-gray-500/15 text-gray-700 dark:text-gray-300 border-gray-400/30">Draft</Badge>;
       case 'APPROVED':
-        return <Badge className="bg-green-500">Approved</Badge>;
+        return <Badge className="bg-green-500 hover:bg-green-500">Approved</Badge>;
       case 'PENDING':
-        return <Badge variant="secondary">Pending</Badge>;
+        return <Badge className="bg-yellow-500 hover:bg-yellow-500 text-yellow-950">Pending</Badge>;
       case 'REJECTED':
         return <Badge variant="destructive">Rejected</Badge>;
       case 'PAUSED':
@@ -101,8 +103,51 @@ export function TemplatesListView({
     }
   };
 
-  // Editing is always allowed; if approved, builder will warn before resubmitting.
-  const canEdit = (_template: Template) => true;
+  // Status helpers — drives which actions are exposed in the menus.
+  const isDraftLike = (t: Template) => t.status === 'DRAFT' || t.status === 'REJECTED';
+  const isPendingLike = (t: Template) => t.status === 'PENDING' || t.status === 'PAUSED';
+  const canSubmit = (t: Template) => t.status === 'DRAFT' || t.status === 'REJECTED';
+  const canEdit = (t: Template) =>
+    t.status === 'DRAFT' || t.status === 'REJECTED' || t.status === 'APPROVED';
+  const canDelete = (t: Template) => t.status === 'DRAFT' || t.status === 'REJECTED' || t.status === 'DISABLED';
+
+  const renderActions = (template: Template) => (
+    <>
+      {canEdit(template) && (
+        <DropdownMenuItem onClick={() => onEdit(template)}>
+          <Edit className="h-4 w-4 mr-2" />
+          {template.status === 'APPROVED' ? 'Edit & Resubmit' : 'Edit Template'}
+        </DropdownMenuItem>
+      )}
+      {!canEdit(template) && (
+        <DropdownMenuItem onClick={() => onView(template)}>
+          <Eye className="h-4 w-4 mr-2" />View Template
+        </DropdownMenuItem>
+      )}
+      {canSubmit(template) && (
+        <DropdownMenuItem onClick={() => onSubmitToMeta(template)}>
+          <Send className="h-4 w-4 mr-2" />
+          {template.status === 'REJECTED' ? 'Resubmit for Approval' : 'Submit for Approval'}
+        </DropdownMenuItem>
+      )}
+      <DropdownMenuItem onClick={() => onDuplicate(template)}>
+        <Copy className="h-4 w-4 mr-2" />Duplicate Template
+      </DropdownMenuItem>
+      {canEdit(template) && (
+        <DropdownMenuItem onClick={() => onView(template)}>
+          <Eye className="h-4 w-4 mr-2" />View Status
+        </DropdownMenuItem>
+      )}
+      {canDelete(template) && (
+        <>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem onClick={() => onDelete(template)} className="text-destructive">
+            <Trash2 className="h-4 w-4 mr-2" />Delete Template
+          </DropdownMenuItem>
+        </>
+      )}
+    </>
+  );
 
   return (
     <Card>
@@ -158,6 +203,7 @@ export function TemplatesListView({
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Meta</SelectItem>
+              <SelectItem value="DRAFT">Draft</SelectItem>
               <SelectItem value="PENDING">Pending</SelectItem>
               <SelectItem value="APPROVED">Approved</SelectItem>
               <SelectItem value="REJECTED">Rejected</SelectItem>
@@ -234,19 +280,7 @@ export function TemplatesListView({
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => onEdit(template)}>
-                          <Edit className="h-4 w-4 mr-2" />Edit Template
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => onDuplicate(template)}>
-                          <Copy className="h-4 w-4 mr-2" />Duplicate Template
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => onView(template)}>
-                          <Eye className="h-4 w-4 mr-2" />View Status
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem onClick={() => onDelete(template)} className="text-destructive">
-                          <Trash2 className="h-4 w-4 mr-2" />Delete Template
-                        </DropdownMenuItem>
+                        {renderActions(template)}
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </div>
@@ -270,10 +304,21 @@ export function TemplatesListView({
                       Score {template.template_score}
                     </span>
                   </div>
-                  <Button size="sm" variant="outline" className="mt-3 w-full" onClick={() => onEdit(template)}>
-                    <Edit className="h-3.5 w-3.5 mr-1.5" />
-                    Edit Template
-                  </Button>
+                  {canSubmit(template) ? (
+                    <Button size="sm" className="mt-3 w-full" onClick={() => onSubmitToMeta(template)}>
+                      <Send className="h-3.5 w-3.5 mr-1.5" />
+                      {template.status === 'REJECTED' ? 'Resubmit for Approval' : 'Submit for Approval'}
+                    </Button>
+                  ) : canEdit(template) ? (
+                    <Button size="sm" variant="outline" className="mt-3 w-full" onClick={() => onEdit(template)}>
+                      <Edit className="h-3.5 w-3.5 mr-1.5" />
+                      {template.status === 'APPROVED' ? 'Edit & Resubmit' : 'Edit Template'}
+                    </Button>
+                  ) : (
+                    <Button size="sm" variant="outline" className="mt-3 w-full" onClick={() => onView(template)}>
+                      <Eye className="h-3.5 w-3.5 mr-1.5" />View Template
+                    </Button>
+                  )}
                 </div>
               ))}
             </div>
@@ -324,35 +369,25 @@ export function TemplatesListView({
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center justify-end gap-2">
-                        <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon">
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => onEdit(template)}>
-                            <Edit className="h-4 w-4 mr-2" />
-                            Edit Template
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => onDuplicate(template)}>
-                            <Copy className="h-4 w-4 mr-2" />
-                            Duplicate Template
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => onView(template)}>
-                            <Eye className="h-4 w-4 mr-2" />
-                            View Status
-                          </DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem
-                            onClick={() => onDelete(template)}
-                            className="text-destructive"
+                        {canSubmit(template) && (
+                          <Button
+                            size="sm"
+                            onClick={() => onSubmitToMeta(template)}
                           >
-                            <Trash2 className="h-4 w-4 mr-2" />
-                            Delete Template
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+                            <Send className="h-3.5 w-3.5 mr-1.5" />
+                            {template.status === 'REJECTED' ? 'Resubmit' : 'Submit for Approval'}
+                          </Button>
+                        )}
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon">
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            {renderActions(template)}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </div>
                     </TableCell>
                   </TableRow>

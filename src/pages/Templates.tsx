@@ -117,6 +117,7 @@ export default function Templates() {
 
   const handleDuplicate = async (template: TemplateType) => {
     await duplicateTemplate(template.id);
+    await fetchTemplates(filters);
   };
 
   const handleArchive = async (template: TemplateType) => {
@@ -174,6 +175,18 @@ export default function Templates() {
       });
     }
     return savedTemplate;
+  };
+
+  // Save-as-draft action — saves and returns to list so the draft is visible.
+  const handleBuilderSaveDraftOnly = async (data: TemplateBuilderData) => {
+    const saved = await handleBuilderSave(data);
+    if (!saved) return;
+    setEditingTemplate(null);
+    setEditingVersion(null);
+    setIsCreating(false);
+    setLibraryTemplateData(null);
+    setActiveTab('list');
+    await fetchTemplates(filters);
   };
 
   const handleBuilderSaveAndSubmit = async (data: TemplateBuilderData) => {
@@ -386,7 +399,7 @@ export default function Templates() {
               } : undefined}
               lintResults={currentLintResults}
               onValidate={handleBuilderValidate}
-              onSave={async (d) => { await handleBuilderSave(d); }}
+              onSave={handleBuilderSaveDraftOnly}
               onSaveAndSubmit={handleBuilderSaveAndSubmit}
               wasApproved={editingTemplate?.status === 'APPROVED'}
               onCancel={handleBuilderCancel}
