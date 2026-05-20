@@ -106,6 +106,38 @@ Deno.serve(async (req) => {
           const components = mt.components || [];
           const metaStatus = mt.status || 'PENDING';
 
+          // Parse Meta components into version fields
+          const headerComp = components.find((c: any) => c.type === 'HEADER');
+          const bodyComp = components.find((c: any) => c.type === 'BODY');
+          const footerComp = components.find((c: any) => c.type === 'FOOTER');
+          const buttonsComp = components.find((c: any) => c.type === 'BUTTONS');
+
+          let headerType: 'none' | 'text' | 'image' | 'video' | 'document' = 'none';
+          let headerContent: string | null = null;
+          if (headerComp) {
+            const fmt = String(headerComp.format || 'TEXT').toUpperCase();
+            if (fmt === 'TEXT') { headerType = 'text'; headerContent = headerComp.text || null; }
+            else if (fmt === 'IMAGE') { headerType = 'image'; headerContent = headerComp.example?.header_handle?.[0] || null; }
+            else if (fmt === 'VIDEO') { headerType = 'video'; headerContent = headerComp.example?.header_handle?.[0] || null; }
+            else if (fmt === 'DOCUMENT') { headerType = 'document'; headerContent = headerComp.example?.header_handle?.[0] || null; }
+          }
+
+          const bodyText: string = bodyComp?.text || '';
+          const footerText: string | null = footerComp?.text || null;
+          const buttons = Array.isArray(buttonsComp?.buttons)
+            ? buttonsComp.buttons.map((b: any) => ({
+                type: String(b.type || 'QUICK_REPLY').toLowerCase(),
+                text: b.text || '',
+                url: b.url,
+                phone_number: b.phone_number,
+              }))
+            : [];
+
+          // Build variable samples from body example values
+          const variableSamples: Record<string, string> = {};
+          const bodyExamples: string[] = bodyComp?.example?.body_text?.[0] || [];
+          bodyExamples.forEach((val: string, idx: number) => { variableSamples[String(idx + 1)] = val; });
+
           // Upsert: match by name + waba_account_id + language
           const { data: existing } = await supabase
             .from('templates')
@@ -116,12 +148,12 @@ Deno.serve(async (req) => {
             .eq('language', mt.language)
             .maybeSingle();
 
-          // Map Meta status to internal_status: anything synced from Meta
-          // has already left the draft stage internally.
           const internalStatus =
             metaStatus === 'APPROVED' ? 'approved'
             : metaStatus === 'REJECTED' ? 'changes_requested'
             : 'pending_review';
+
+          let templateId: string | null = existing?.id || null;
 
           if (existing) {
             await supabase
@@ -136,7 +168,7 @@ Deno.serve(async (req) => {
               })
               .eq('id', existing.id);
           } else {
-            await supabase
+            const { data: inserted } = await supabase
               .from('templates')
               .insert({
                 tenant_id,
@@ -149,12 +181,51 @@ Deno.serve(async (req) => {
                 components_json: components,
                 meta_template_id: mt.id || '',
                 last_synced_at: new Date().toISOString(),
-              });
+              })
+              .select('id')
+              .single();
+            templateId = inserted?.id || null;
           }
 
+          // Always create / refresh a template_versions row so View & Edit
+          // can render the actual header/body/footer/buttons.
+          if (templateId && bodyText) {
+            const { data: lastVersion } = await supabase
+              .from('template_versions')
+              .select('version_number')
+              .eq('template_id', templateId)
+              .order('version_number', { ascending: false })
+              .limit(1)
+              .maybeSingle();
+
+            const nextVersionNumber = (lastVersion?.version_number || 0) + 1;
+
+            const { data: newVersion } = await supabase
+              .from('template_versions')
+              .insert({
+                template_id: templateId,
+                version_number: nextVersionNumber,
+                header_type: headerType,
+                header_content: headerContent,
+                body: bodyText,
+                footer: footerText,
+                buttons,
+                variable_samples: variableSamples,
+              })
+              .select('id')
+              .single();
+
+            if (newVersion?.id) {
+              await supabase
+                .from('templates')
+                .update({ current_version_id: newVersion.id })
+                .eq('id', templateId);
+            }
+          }
 
           totalSynced++;
         }
+
       } catch (err) {
         console.error(`Error syncing templates for WABA ${waba.waba_id}:`, err);
       }
