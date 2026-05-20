@@ -251,7 +251,7 @@ export function LibraryPickerDialog({ open, onOpenChange, onSelect }: Props) {
                 <p className="text-xs text-muted-foreground mt-1">Try a different search or category.</p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div className={cn('grid gap-3', view === 'grid' ? 'grid-cols-1 md:grid-cols-2' : 'grid-cols-1')}>
                 {list.map((t) => (
                   <button
                     key={t.id}
