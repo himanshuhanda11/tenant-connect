@@ -143,7 +143,9 @@ export function TemplateBuilder({
           body, footer, buttons, variable_samples: variableSamples,
           savedAt: Date.now(),
         }));
-      } catch {}
+      } catch {
+        // Draft storage is best-effort only.
+      }
     }, 500);
     return () => clearTimeout(t);
   }, [mode, DRAFT_KEY, name, language, category, headerType, headerContent, body, footer, buttons, variableSamples]);
@@ -200,10 +202,15 @@ export function TemplateBuilder({
       if (upErr) throw upErr;
       const { data } = supabase.storage.from('meta-ad-media').getPublicUrl(path);
       setHeaderContent(data.publicUrl);
+      setVariableSamples((prev) => ({
+        ...prev,
+        header_media_url: data.publicUrl,
+        header_media_type: kind,
+      }));
       setUploadedFileName(file.name);
       toast.success(`${kind.charAt(0).toUpperCase() + kind.slice(1)} uploaded`);
-    } catch (e: any) {
-      toast.error(e?.message || 'Upload failed');
+    } catch (e: unknown) {
+      toast.error(e instanceof Error ? e.message : 'Upload failed');
     } finally {
       setUploadingHeader(false);
     }
@@ -270,11 +277,15 @@ export function TemplateBuilder({
     } else {
       await onSave(buildData());
     }
-    try { localStorage.removeItem(DRAFT_KEY); } catch {}
+    try { localStorage.removeItem(DRAFT_KEY); } catch {
+      // Draft storage is best-effort only.
+    }
   };
 
   const handleCancel = () => {
-    try { localStorage.removeItem(DRAFT_KEY); } catch {}
+    try { localStorage.removeItem(DRAFT_KEY); } catch {
+      // Draft storage is best-effort only.
+    }
     onCancel?.();
   };
 
@@ -468,6 +479,7 @@ export function TemplateBuilder({
                   inputId: 'header-doc-upload',
                 },
               }[headerType as 'image' | 'video' | 'document'];
+              const hasSample = Boolean(variableSamples.header_handle || variableSamples.header_media_url || (headerContent && /^https?:\/\//.test(headerContent)));
               return (
                 <div className="space-y-3">
                   <div className="space-y-2">
@@ -497,9 +509,9 @@ export function TemplateBuilder({
                           <><Upload className="h-4 w-4 mr-1.5" /> Choose {cfg.label.toLowerCase()}</>
                         )}
                       </Button>
-                      {headerContent && /^https?:\/\//.test(headerContent) && (
-                        <span className="text-xs text-muted-foreground truncate max-w-[220px]">
-                          {uploadedFileName || 'Uploaded'} ✓
+                      {hasSample && (
+                        <span className="text-xs text-emerald-600 dark:text-emerald-400 truncate max-w-[220px] font-medium">
+                          {uploadedFileName || 'Sample ready'} ✓
                         </span>
                       )}
                     </div>
@@ -519,7 +531,7 @@ export function TemplateBuilder({
                         <FileText className="h-3.5 w-3.5" /> Open uploaded document
                       </a>
                     )}
-                    <p className="text-[11px] text-muted-foreground">{cfg.hint}</p>
+                    <p className="text-[11px] text-muted-foreground">{cfg.hint} A sample file is required for Meta approval.</p>
                   </div>
                   <div className="space-y-2">
                     <Label>Or paste media URL</Label>
@@ -912,7 +924,9 @@ export function TemplateBuilder({
                 setConfirmResubmit(false);
                 if (onSaveAndSubmit) await onSaveAndSubmit(buildData());
                 else await onSave(buildData());
-                try { localStorage.removeItem(DRAFT_KEY); } catch {}
+                try { localStorage.removeItem(DRAFT_KEY); } catch {
+                  // Draft storage is best-effort only.
+                }
               }}
             >
               Yes, update & resubmit

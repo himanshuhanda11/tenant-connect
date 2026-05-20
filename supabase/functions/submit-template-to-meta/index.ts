@@ -23,6 +23,56 @@ interface TemplateComponent {
 }
 
 const META_TEMPLATE_PERMISSION_SUBCODE = 2388185;
+const WHATSAPP_API_VERSION = 'v21.0';
+const WHATSAPP_API_BASE = `https://graph.facebook.com/${WHATSAPP_API_VERSION}`;
+
+const isHttpUrl = (value: unknown) => /^https?:\/\//i.test(String(value || '').trim());
+
+const uploadTemplateSampleToMeta = async ({
+  mediaUrl,
+  accessToken,
+  fallbackType,
+}: {
+  mediaUrl: string;
+  accessToken: string;
+  fallbackType: string;
+}) => {
+  const appId = Deno.env.get('META_APP_ID');
+  if (!appId) {
+    throw new Error('META_APP_ID is not configured for template media sample uploads.');
+  }
+
+  const mediaResponse = await fetch(mediaUrl);
+  if (!mediaResponse.ok) {
+    throw new Error('Could not download the uploaded header sample. Please upload the file again.');
+  }
+
+  const fileBytes = await mediaResponse.arrayBuffer();
+  const mimeType = mediaResponse.headers.get('content-type')?.split(';')[0] || (
+    fallbackType === 'image' ? 'image/jpeg' : fallbackType === 'video' ? 'video/mp4' : 'application/pdf'
+  );
+
+  const sessionRes = await fetch(
+    `${WHATSAPP_API_BASE}/${appId}/uploads?file_length=${fileBytes.byteLength}&file_type=${encodeURIComponent(mimeType)}&access_token=${accessToken}`,
+    { method: 'POST' },
+  );
+  const sessionData = await sessionRes.json();
+  if (!sessionRes.ok || !sessionData.id) {
+    throw new Error(sessionData?.error?.message || 'Meta could not start the sample media upload.');
+  }
+
+  const uploadRes = await fetch(`${WHATSAPP_API_BASE}/${sessionData.id}`, {
+    method: 'POST',
+    headers: { Authorization: `OAuth ${accessToken}`, file_offset: '0', 'Content-Type': mimeType },
+    body: new Uint8Array(fileBytes),
+  });
+  const uploadData = await uploadRes.json();
+  if (!uploadRes.ok || !uploadData.h) {
+    throw new Error(uploadData?.error?.message || 'Meta could not upload the sample media.');
+  }
+
+  return uploadData.h as string;
+};
 
 const getMetaPermissionGuidance = (metaError: any) => {
   const isPermissionSetupError = metaError?.code === 10 && metaError?.error_subcode === META_TEMPLATE_PERMISSION_SUBCODE;
@@ -189,7 +239,37 @@ Deno.serve(async (req) => {
         } else if (['image', 'video', 'document'].includes(version.header_type)) {
           headerComponent.format = version.header_type.toUpperCase() as 'IMAGE' | 'VIDEO' | 'DOCUMENT';
           const samples = (version.variable_samples || {}) as Record<string, string>;
-          const handle = samples.header_handle || samples.header_media_handle;
+          let handle = samples.header_handle || samples.header_media_handle;
+          const sampleUrl = samples.header_media_url || version.header_content;
+          if (!handle && isHttpUrl(sampleUrl)) {
+            try {
+              handle = await uploadTemplateSampleToMeta({
+                mediaUrl: String(sampleUrl),
+                accessToken,
+                fallbackType: version.header_type,
+              });
+              await supabase
+                .from('template_versions')
+                .update({
+                  variable_samples: {
+                    ...samples,
+                    header_handle: handle,
+                    header_media_url: String(sampleUrl),
+                  },
+                })
+                .eq('id', version_id);
+            } catch (uploadError) {
+              const message = uploadError instanceof Error ? uploadError.message : 'Sample media upload failed.';
+              return new Response(JSON.stringify({
+                success: false,
+                error: message,
+                code: 'MEDIA_HEADER_SAMPLE_UPLOAD_FAILED',
+              }), {
+                status: 400,
+                headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+              });
+            }
+          }
           if (!handle) {
             return new Response(JSON.stringify({
               success: false,
