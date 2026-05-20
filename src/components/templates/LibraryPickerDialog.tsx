@@ -30,20 +30,31 @@ const META_BADGE: Record<string, string> = {
 export function LibraryPickerDialog({ open, onOpenChange, onSelect }: Props) {
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState<string>('All');
+  const [industry, setIndustry] = useState<string>('All');
   const [metaCat, setMetaCat] = useState<'ALL' | 'UTILITY' | 'MARKETING' | 'AUTHENTICATION'>('ALL');
+  const [view, setView] = useState<'grid' | 'list'>('grid');
+
+  const popular = useMemo(
+    () => [...PRE_APPROVED_TEMPLATES].sort((a, b) => b.downloads - a.downloads).slice(0, 6),
+    []
+  );
 
   const list = useMemo(() => {
     return PRE_APPROVED_TEMPLATES.filter((t) => {
+      const q = search.toLowerCase();
       const matchesSearch =
         !search ||
-        t.name.toLowerCase().includes(search.toLowerCase()) ||
-        t.description.toLowerCase().includes(search.toLowerCase()) ||
-        t.tags.some((tag) => tag.toLowerCase().includes(search.toLowerCase()));
+        t.name.toLowerCase().includes(q) ||
+        t.description.toLowerCase().includes(q) ||
+        t.body.toLowerCase().includes(q) ||
+        (t.industry || '').toLowerCase().includes(q) ||
+        t.tags.some((tag) => tag.toLowerCase().includes(q));
       const matchesCat = category === 'All' || t.category === category;
+      const matchesInd = industry === 'All' || t.industry === industry;
       const matchesMeta = metaCat === 'ALL' || t.metaCategory === metaCat;
-      return matchesSearch && matchesCat && matchesMeta;
+      return matchesSearch && matchesCat && matchesInd && matchesMeta;
     });
-  }, [search, category, metaCat]);
+  }, [search, category, industry, metaCat]);
 
   const handlePick = (t: PreApprovedTemplate) => {
     onSelect({
