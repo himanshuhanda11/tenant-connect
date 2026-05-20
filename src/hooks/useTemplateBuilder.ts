@@ -301,7 +301,8 @@ export function useTemplateBuilder(): UseTemplateBuilderReturn {
         .update({ template_score: score })
         .eq('id', template.id);
       
-      toast.success('Template created. You can submit it for approval next.');
+      toast.success('Draft saved. Submit it for approval when ready.');
+      await fetchTemplates();
       return { ...template, current_version_id: version.id, current_version: version } as any;
     } catch (error: any) {
       console.error('Error creating template:', error);
