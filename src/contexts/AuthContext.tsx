@@ -17,17 +17,6 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const getLoginDeviceLabel = () => {
-  if (typeof navigator === 'undefined') return 'Browser session';
-  return navigator.userAgent.slice(0, 160);
-};
-
-const shouldSkipLoginNotification = (email?: string | null) => {
-  if (!email || email.endsWith('@team.local')) return true;
-  if (typeof window !== 'undefined' && window.location.pathname.includes('reset-password')) return true;
-  return false;
-};
-
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUserState] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
@@ -36,32 +25,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Keep a ref to the current user id so we can skip unnecessary setUser calls
   // that would create new object references and cascade re-renders through the app.
   const userIdRef = useRef<string | null>(null);
-  const lastLoginNotificationRef = useRef<{ key: string; at: number } | null>(null);
-  // Track whether we've processed the initial auth event. Supabase fires SIGNED_IN
-  // on every page load when a session is restored — that should NOT trigger a
-  // "new login" email. Only genuine sign-ins after mount should notify.
-  const hasProcessedInitialAuthRef = useRef(false);
 
-  const LOGIN_NOTIFICATION_TTL_MS = 12 * 60 * 60 * 1000; // 12 hours
-  const LOGIN_NOTIFICATION_STORAGE_KEY = 'aireatro:last-login-notification';
 
-  const readPersistedLoginNotification = (): { key: string; at: number } | null => {
-    try {
-      const raw = localStorage.getItem(LOGIN_NOTIFICATION_STORAGE_KEY);
-      if (!raw) return null;
-      const parsed = JSON.parse(raw);
-      if (parsed && typeof parsed.key === 'string' && typeof parsed.at === 'number') {
-        return parsed;
-      }
-    } catch {}
-    return null;
-  };
-
-  const writePersistedLoginNotification = (key: string) => {
-    try {
-      localStorage.setItem(LOGIN_NOTIFICATION_STORAGE_KEY, JSON.stringify({ key, at: Date.now() }));
-    } catch {}
-  };
 
   // Stable setUser: only updates state if the user id actually changed
   const setUser = (newUser: User | null) => {
@@ -89,36 +54,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setSession(session);
       setUser(session?.user ?? null);
 
-      // Only notify on a GENUINE post-mount sign-in. The first SIGNED_IN event
-      // after page load just means the existing session was restored, not that
-      // the user actually logged in. Without this guard, customers received a
-      // "new login detected" email on every reload, tab focus, or token refresh.
-      const isInitialAuthEvent = !hasProcessedInitialAuthRef.current;
-      hasProcessedInitialAuthRef.current = true;
+      // Login notification emails intentionally removed — only signup-time
+      // emails are sent. Login, re-login, token refresh, session restore,
+      // and workspace switches must never trigger notification emails.
 
-      if (
-        !isInitialAuthEvent &&
-        event === 'SIGNED_IN' &&
-        session?.user &&
-        !shouldSkipLoginNotification(session.user.email)
-      ) {
-        const notificationKey = `${session.user.id}:${session.user.last_sign_in_at || ''}`;
-        const inMemory = lastLoginNotificationRef.current;
-        const persisted = readPersistedLoginNotification();
-        const alreadyNotified =
-          (inMemory && inMemory.key === notificationKey) ||
-          (persisted && persisted.key === notificationKey && Date.now() - persisted.at < LOGIN_NOTIFICATION_TTL_MS);
 
-        if (!alreadyNotified) {
-          lastLoginNotificationRef.current = { key: notificationKey, at: Date.now() };
-          writePersistedLoginNotification(notificationKey);
-          setTimeout(() => {
-            sendLoginNotifications(session.user).catch((err) => {
-              console.warn('[Auth] Login notification email failed:', err);
-            });
-          }, 0);
-        }
-      }
 
       // Defer profile fetch and onboarding step update
       if (session?.user) {
@@ -210,53 +150,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const sendLoginNotifications = async (signedInUser: User) => {
-    const userEmail = signedInUser.email;
-    if (shouldSkipLoginNotification(userEmail)) return;
 
-    const fullName =
-      signedInUser.user_metadata?.full_name ||
-      signedInUser.user_metadata?.name ||
-      userEmail!.split('@')[0];
 
-    const templateData = {
-      userId: signedInUser.id,
-      email: userEmail,
-      fullName,
-      recipientName: fullName,
-      loginTime: new Date().toUTCString(),
-      method: signedInUser.app_metadata?.provider === 'google' ? 'Google' : 'Email/password',
-      device: getLoginDeviceLabel(),
-    };
-
-    const eventId = `${signedInUser.id}-${signedInUser.last_sign_in_at || Date.now()}`;
-    const results = await Promise.allSettled([
-      supabase.functions.invoke('send-transactional-email', {
-        body: {
-          templateName: 'login-notification-customer',
-          recipientEmail: userEmail,
-          idempotencyKey: `login-customer-${eventId}`,
-          templateData,
-        },
-      }),
-      supabase.functions.invoke('send-transactional-email', {
-        body: {
-          templateName: 'login-notification-admin',
-          recipientEmail: 'admin@aireatro.com',
-          idempotencyKey: `login-admin-${eventId}`,
-          templateData,
-        },
-      }),
-    ]);
-
-    results.forEach((result) => {
-      if (result.status === 'rejected') {
-        console.warn('[Auth] Login notification email failed:', result.reason);
-      } else if (result.value.error) {
-        console.warn('[Auth] Login notification email failed:', result.value.error);
-      }
-    });
-  };
 
   const signUp = async (email: string, password: string, fullName: string) => {
     const redirectUrl = `${window.location.origin}/`;
