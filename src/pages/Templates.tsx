@@ -386,7 +386,9 @@ export default function Templates() {
               } : undefined}
               lintResults={currentLintResults}
               onValidate={handleBuilderValidate}
-              onSave={handleBuilderSave}
+              onSave={async (d) => { await handleBuilderSave(d); }}
+              onSaveAndSubmit={handleBuilderSaveAndSubmit}
+              wasApproved={editingTemplate?.status === 'APPROVED'}
               onCancel={handleBuilderCancel}
               onOpenLibrary={() => setLibraryOpen(true)}
               mode={editingTemplate ? 'edit' : 'create'}
