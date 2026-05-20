@@ -410,6 +410,7 @@ export default function Templates() {
               onFiltersChange={setFilters}
               onCreateNew={handleCreateNew}
               onRefresh={handleSyncFromMeta}
+              syncing={syncingMeta}
             />
           </TabsContent>
 
