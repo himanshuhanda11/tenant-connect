@@ -239,7 +239,37 @@ Deno.serve(async (req) => {
         } else if (['image', 'video', 'document'].includes(version.header_type)) {
           headerComponent.format = version.header_type.toUpperCase() as 'IMAGE' | 'VIDEO' | 'DOCUMENT';
           const samples = (version.variable_samples || {}) as Record<string, string>;
-          const handle = samples.header_handle || samples.header_media_handle;
+          let handle = samples.header_handle || samples.header_media_handle;
+          const sampleUrl = samples.header_media_url || version.header_content;
+          if (!handle && isHttpUrl(sampleUrl)) {
+            try {
+              handle = await uploadTemplateSampleToMeta({
+                mediaUrl: String(sampleUrl),
+                accessToken,
+                fallbackType: version.header_type,
+              });
+              await supabase
+                .from('template_versions')
+                .update({
+                  variable_samples: {
+                    ...samples,
+                    header_handle: handle,
+                    header_media_url: String(sampleUrl),
+                  },
+                })
+                .eq('id', version_id);
+            } catch (uploadError) {
+              const message = uploadError instanceof Error ? uploadError.message : 'Sample media upload failed.';
+              return new Response(JSON.stringify({
+                success: false,
+                error: message,
+                code: 'MEDIA_HEADER_SAMPLE_UPLOAD_FAILED',
+              }), {
+                status: 400,
+                headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+              });
+            }
+          }
           if (!handle) {
             return new Response(JSON.stringify({
               success: false,
