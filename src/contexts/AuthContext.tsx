@@ -150,53 +150,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const sendLoginNotifications = async (signedInUser: User) => {
-    const userEmail = signedInUser.email;
-    if (shouldSkipLoginNotification(userEmail)) return;
 
-    const fullName =
-      signedInUser.user_metadata?.full_name ||
-      signedInUser.user_metadata?.name ||
-      userEmail!.split('@')[0];
 
-    const templateData = {
-      userId: signedInUser.id,
-      email: userEmail,
-      fullName,
-      recipientName: fullName,
-      loginTime: new Date().toUTCString(),
-      method: signedInUser.app_metadata?.provider === 'google' ? 'Google' : 'Email/password',
-      device: getLoginDeviceLabel(),
-    };
-
-    const eventId = `${signedInUser.id}-${signedInUser.last_sign_in_at || Date.now()}`;
-    const results = await Promise.allSettled([
-      supabase.functions.invoke('send-transactional-email', {
-        body: {
-          templateName: 'login-notification-customer',
-          recipientEmail: userEmail,
-          idempotencyKey: `login-customer-${eventId}`,
-          templateData,
-        },
-      }),
-      supabase.functions.invoke('send-transactional-email', {
-        body: {
-          templateName: 'login-notification-admin',
-          recipientEmail: 'admin@aireatro.com',
-          idempotencyKey: `login-admin-${eventId}`,
-          templateData,
-        },
-      }),
-    ]);
-
-    results.forEach((result) => {
-      if (result.status === 'rejected') {
-        console.warn('[Auth] Login notification email failed:', result.reason);
-      } else if (result.value.error) {
-        console.warn('[Auth] Login notification email failed:', result.value.error);
-      }
-    });
-  };
 
   const signUp = async (email: string, password: string, fullName: string) => {
     const redirectUrl = `${window.location.origin}/`;
