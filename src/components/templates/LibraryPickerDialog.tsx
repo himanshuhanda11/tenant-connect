@@ -4,8 +4,8 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
-import { Search, Library, Sparkles, ArrowRight, CheckCircle2 } from 'lucide-react';
-import { PRE_APPROVED_TEMPLATES, TEMPLATE_CATEGORIES, PreApprovedTemplate } from '@/data/preApprovedTemplates';
+import { Search, Library, Sparkles, ArrowRight, CheckCircle2, Flame, LayoutGrid, List } from 'lucide-react';
+import { PRE_APPROVED_TEMPLATES, TEMPLATE_CATEGORIES, TEMPLATE_INDUSTRIES, PreApprovedTemplate } from '@/data/preApprovedTemplates';
 import { cn } from '@/lib/utils';
 
 export interface LibrarySelection {
