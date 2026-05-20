@@ -101,15 +101,8 @@ export function TemplatesListView({
     }
   };
 
-  const canSubmitToMeta = (template: Template) => {
-    return template.status !== 'APPROVED';
-  };
-
-  const submitApprovalLabel = 'Submit for approval';
-
-  const canEdit = (template: Template) => {
-    return template.internal_status === 'draft' || template.internal_status === 'changes_requested';
-  };
+  // Editing is always allowed; if approved, builder will warn before resubmitting.
+  const canEdit = (_template: Template) => true;
 
   return (
     <Card>
