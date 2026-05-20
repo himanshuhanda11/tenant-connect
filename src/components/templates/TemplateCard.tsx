@@ -19,6 +19,7 @@ const categoryConfig: Record<TemplateCategory, { color: string; icon: string; la
 };
 
 const statusConfig: Record<TemplateStatus, { color: string; label: string }> = {
+  DRAFT: { color: 'bg-gray-500/10 text-gray-600 border-gray-200', label: 'Draft' },
   APPROVED: { color: 'bg-green-500/10 text-green-600 border-green-200', label: 'Approved' },
   PENDING: { color: 'bg-yellow-500/10 text-yellow-600 border-yellow-200', label: 'Pending' },
   REJECTED: { color: 'bg-red-500/10 text-red-600 border-red-200', label: 'Rejected' },
