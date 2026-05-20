@@ -132,6 +132,9 @@ export default function CreateCampaign() {
   });
   const [audienceEstimatedCount, setAudienceEstimatedCount] = useState(0);
   const [costEstimate, setCostEstimate] = useState<BroadcastCostEstimate | null>(null);
+  type AudienceMode = 'filters' | 'upload' | 'both';
+  const [audienceMode, setAudienceMode] = useState<AudienceMode>('filters');
+  const [uploadedContactIds, setUploadedContactIds] = useState<string[]>([]);
   const [draftLoaded, setDraftLoaded] = useState(false);
   const [draftSavedAt, setDraftSavedAt] = useState<Date | null>(null);
   const draftKey = currentTenant?.id ? `campaign-draft:${currentTenant.id}` : null;
@@ -355,6 +358,26 @@ export default function CreateCampaign() {
     }));
   };
 
+  const finalContactIds = useMemo(() => {
+    const matched = audienceFilters.matched_contact_ids || [];
+    const direct = audienceFilters.selected_contacts || [];
+    if (audienceMode === 'upload') {
+      return Array.from(new Set(uploadedContactIds));
+    }
+    if (audienceMode === 'both') {
+      const base = direct.length > 0 ? direct : matched;
+      return Array.from(new Set([...base, ...uploadedContactIds]));
+    }
+    // filters
+    return direct.length > 0 ? direct : matched;
+  }, [audienceMode, audienceFilters.matched_contact_ids, audienceFilters.selected_contacts, uploadedContactIds]);
+
+  const finalEstimatedCount = useMemo(() => {
+    if (audienceMode === 'upload') return uploadedContactIds.length;
+    if (audienceMode === 'both') return finalContactIds.length;
+    return audienceEstimatedCount;
+  }, [audienceMode, audienceEstimatedCount, uploadedContactIds.length, finalContactIds.length]);
+
   const canProceed = () => {
     switch (currentStep) {
       case 1:
@@ -362,7 +385,9 @@ export default function CreateCampaign() {
       case 2:
         return wizard.message.template_id;
       case 3:
-        return audienceEstimatedCount > 0 || audienceFilters.selected_contacts.length > 0 || 
+        if (audienceMode === 'upload') return uploadedContactIds.length > 0;
+        if (audienceMode === 'both') return finalContactIds.length > 0;
+        return audienceEstimatedCount > 0 || audienceFilters.selected_contacts.length > 0 ||
                audienceFilters.include_segments.length > 0 || audienceFilters.include_tags.length > 0 ||
                audienceFilters.assigned_agent !== '' || audienceFilters.lead_states.length > 0;
       case 4:
@@ -373,12 +398,7 @@ export default function CreateCampaign() {
   };
 
   const enforceBroadcastCap = (): boolean => {
-    const matchedContactIds = audienceFilters.matched_contact_ids || [];
-    const directContactIds = audienceFilters.selected_contacts || [];
-    const recipientCount = Math.max(
-      audienceEstimatedCount,
-      directContactIds.length > 0 ? directContactIds.length : matchedContactIds.length,
-    );
+    const recipientCount = Math.max(finalEstimatedCount, finalContactIds.length);
     if (recipientCount > broadcastCap) {
       openUpgrade({
         feature: 'send_campaign',
@@ -414,9 +434,7 @@ export default function CreateCampaign() {
       toast.error('Select an approved template first');
       return;
     }
-    const contactIds = audienceFilters.selected_contacts?.length
-      ? audienceFilters.selected_contacts
-      : audienceFilters.matched_contact_ids || [];
+    const contactIds = finalContactIds;
     if (contactIds.length === 0) {
       toast.error('Add recipients or choose an audience filter before launching');
       return;
@@ -444,7 +462,7 @@ export default function CreateCampaign() {
           scheduled_at: scheduledAt,
           timezone: wizard.delivery.timezone,
           messages_per_minute: wizard.delivery.messages_per_minute,
-          audience_config: { source: audienceFilters.selected_contacts?.length ? 'csv_or_contacts' : 'filters', selected_contacts: contactIds, filters: audienceFilters },
+          audience_config: { source: audienceMode, selected_contacts: contactIds, uploaded_contacts: uploadedContactIds, filters: audienceFilters },
         },
       });
       if (error) throw error;
@@ -737,40 +755,132 @@ export default function CreateCampaign() {
             {/* Step 3: Audience */}
             {currentStep === 3 && (
               <div className="space-y-4">
-                <CSVContactUploader
-                  onImported={(summary) => {
-                    setAudienceFilters((prev) => ({
-                      ...prev,
-                      source: summary.tagId ? 'tags' : 'contacts',
-                      selected_contacts: Array.from(new Set([...(prev.selected_contacts || []), ...summary.contactIds])),
-                      include_tags: summary.tagId
-                        ? Array.from(new Set([...(prev.include_tags || []), summary.tagId]))
-                        : prev.include_tags,
-                    }));
-                    if (summary.tagId && !tags.find((t) => t.id === summary.tagId)) {
-                      setTags((prev) => [
-                        ...prev,
-                        { id: summary.tagId!, name: summary.tagName || 'Broadcast Upload', color: '#16a34a' },
-                      ]);
-                    }
-                    setAudienceEstimatedCount((prev) => prev + summary.contactIds.length);
-                  }}
-                />
-                <CampaignAudienceBuilder
-                  wizard={wizard}
-                  segments={segments}
-                  tags={tags}
-                  selectedContactsPreview={selectedContactsPreview}
-                  audienceFilters={audienceFilters}
-                  onFiltersChange={setAudienceFilters}
-                  estimatedCount={audienceEstimatedCount}
-                  onEstimatedCountChange={setAudienceEstimatedCount}
-                />
+                {/* Premium audience source mode selector */}
+                <Card className="overflow-hidden border-primary/30 bg-gradient-to-br from-primary/5 via-background to-background">
+                  <CardContent className="p-4 sm:p-5 space-y-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2 text-[11px] uppercase tracking-wider font-semibold text-muted-foreground">
+                          <Sparkles className="h-3.5 w-3.5 text-primary" /> Audience source
+                        </div>
+                        <p className="text-sm text-muted-foreground mt-1">
+                          Choose how to build this campaign's recipient list — filter existing contacts, upload a fresh list, or combine both.
+                        </p>
+                      </div>
+                      <Badge variant="secondary" className="gap-1 shrink-0">
+                        <Users className="h-3 w-3" />
+                        {finalEstimatedCount.toLocaleString()} total
+                      </Badge>
+                    </div>
 
-                {/* Premium compact credit estimate (country breakdown lives on /message-pricing) */}
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                      {([
+                        { id: 'filters', icon: Target, title: 'Filter contacts', desc: 'Pick from existing workspace contacts using smart filters.' },
+                        { id: 'upload', icon: Upload, title: 'Upload list', desc: 'Send only to contacts from your CSV / Excel file.' },
+                        { id: 'both', icon: Plus, title: 'Combine both', desc: 'Merge filtered audience with your uploaded list.' },
+                      ] as { id: AudienceMode; icon: typeof Target; title: string; desc: string }[]).map((opt) => {
+                        const active = audienceMode === opt.id;
+                        const Icon = opt.icon;
+                        return (
+                          <button
+                            key={opt.id}
+                            type="button"
+                            onClick={() => setAudienceMode(opt.id)}
+                            className={`text-left rounded-xl border p-3 transition-all ${
+                              active
+                                ? 'border-primary bg-primary/10 ring-2 ring-primary/30 shadow-sm'
+                                : 'border-border hover:border-primary/40 hover:bg-muted/40'
+                            }`}
+                          >
+                            <div className="flex items-center gap-2">
+                              <div className={`h-8 w-8 rounded-lg flex items-center justify-center ${active ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}`}>
+                                <Icon className="h-4 w-4" />
+                              </div>
+                              <span className="text-sm font-semibold">{opt.title}</span>
+                              {active && <CheckCircle className="h-4 w-4 text-primary ml-auto" />}
+                            </div>
+                            <p className="text-[11px] text-muted-foreground mt-2 leading-snug">{opt.desc}</p>
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    {/* Live breakdown */}
+                    <div className="grid grid-cols-3 gap-2 pt-1">
+                      <div className="rounded-lg border bg-card p-3 text-center">
+                        <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Filtered</p>
+                        <p className="text-lg font-bold mt-0.5">
+                          {audienceMode === 'upload' ? '—' : audienceEstimatedCount.toLocaleString()}
+                        </p>
+                      </div>
+                      <div className="rounded-lg border bg-card p-3 text-center">
+                        <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Uploaded</p>
+                        <p className="text-lg font-bold mt-0.5">
+                          {audienceMode === 'filters' ? '—' : uploadedContactIds.length.toLocaleString()}
+                        </p>
+                      </div>
+                      <div className="rounded-lg border border-primary/40 bg-primary/5 p-3 text-center">
+                        <p className="text-[10px] uppercase tracking-wide text-primary/80 font-semibold">Will receive</p>
+                        <p className="text-lg font-bold mt-0.5 text-primary">
+                          {finalEstimatedCount.toLocaleString()}
+                        </p>
+                      </div>
+                    </div>
+
+                    {audienceMode === 'filters' && audienceEstimatedCount === 0 && !audienceFilters.assigned_agent && audienceFilters.lead_states.length === 0 && (
+                      <p className="text-xs text-muted-foreground">
+                        Tip: with no filters applied, <span className="font-medium text-foreground">all eligible workspace contacts are auto-selected</span>.
+                      </p>
+                    )}
+                    {uploadedContactIds.length > 0 && (
+                      <div className="flex items-center justify-between text-xs bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-900 text-emerald-800 dark:text-emerald-200 rounded-lg px-3 py-2">
+                        <span>{uploadedContactIds.length.toLocaleString()} contacts imported from your file.</span>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 text-xs text-emerald-700 dark:text-emerald-200 hover:bg-emerald-100 dark:hover:bg-emerald-900"
+                          onClick={() => setUploadedContactIds([])}
+                        >
+                          <X className="h-3 w-3 mr-1" /> Clear upload
+                        </Button>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+
+                {/* Upload block */}
+                {(audienceMode === 'upload' || audienceMode === 'both') && (
+                  <CSVContactUploader
+                    onImported={(summary) => {
+                      setUploadedContactIds((prev) => Array.from(new Set([...prev, ...summary.contactIds])));
+                      if (summary.tagId && !tags.find((t) => t.id === summary.tagId)) {
+                        setTags((prev) => [
+                          ...prev,
+                          { id: summary.tagId!, name: summary.tagName || 'Broadcast Upload', color: '#16a34a' },
+                        ]);
+                      }
+                    }}
+                  />
+                )}
+
+                {/* Filter builder */}
+                {(audienceMode === 'filters' || audienceMode === 'both') && (
+                  <CampaignAudienceBuilder
+                    wizard={wizard}
+                    segments={segments}
+                    tags={tags}
+                    selectedContactsPreview={selectedContactsPreview}
+                    audienceFilters={audienceFilters}
+                    onFiltersChange={setAudienceFilters}
+                    estimatedCount={audienceEstimatedCount}
+                    onEstimatedCountChange={setAudienceEstimatedCount}
+                  />
+                )}
+
+                {/* Premium compact credit estimate */}
                 <CampaignCreditEstimateCard
                   tenantId={currentTenant?.id}
-                  contactIds={(audienceFilters.selected_contacts?.length ? audienceFilters.selected_contacts : audienceFilters.matched_contact_ids) || []}
+                  contactIds={finalContactIds}
                   templateCategory={(templates.find(t => t.id === wizard.message.template_id)?.category as string) || 'marketing'}
                   onEstimateChange={setCostEstimate}
                 />

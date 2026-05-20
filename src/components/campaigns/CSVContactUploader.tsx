@@ -46,6 +46,7 @@ const SAMPLE_HEADERS = ['phone', 'name', 'email', 'city', 'custom_1', 'custom_2'
 const SAMPLE_ROWS: Record<string, string>[] = [
   { phone: '+919876543210', name: 'Aman Kumar', email: 'aman@example.com', city: 'Mumbai', custom_1: 'VIP', custom_2: 'Order#1234', tags: 'vip;repeat' },
   { phone: '+14155552671', name: 'Sara Khan', email: 'sara@example.com', city: 'New York', custom_1: 'Gold', custom_2: 'Order#5678', tags: 'gold' },
+  { phone: '+971501234567', name: 'Ahmed Ali', email: 'ahmed@example.com', city: 'Dubai', custom_1: 'Silver', custom_2: 'Order#9012', tags: 'new' },
 ];
 
 const SAMPLE_CSV = [
@@ -53,13 +54,67 @@ const SAMPLE_CSV = [
   ...SAMPLE_ROWS.map((r) => SAMPLE_HEADERS.map((h) => r[h] ?? '').join(',')),
 ].join('\n');
 
-const SAMPLE_CSV_HREF = `data:text/csv;charset=utf-8,${encodeURIComponent(SAMPLE_CSV)}`;
+const downloadBlob = (filename: string, blob: Blob) => {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.rel = 'noopener';
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(() => {
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }, 200);
+};
+
+const downloadSampleCsv = () => {
+  // BOM so Excel opens UTF-8 correctly
+  const blob = new Blob(['\ufeff' + SAMPLE_CSV], { type: 'text/csv;charset=utf-8;' });
+  downloadBlob('broadcast-sample.csv', blob);
+};
 
 const downloadSampleXlsx = () => {
-  const ws = XLSX.utils.json_to_sheet(SAMPLE_ROWS, { header: SAMPLE_HEADERS });
   const wb = XLSX.utils.book_new();
+
+  const ws = XLSX.utils.json_to_sheet(SAMPLE_ROWS, { header: SAMPLE_HEADERS });
+  (ws as any)['!cols'] = [
+    { wch: 18 }, { wch: 20 }, { wch: 28 }, { wch: 14 }, { wch: 14 }, { wch: 16 }, { wch: 18 },
+  ];
   XLSX.utils.book_append_sheet(wb, ws, 'Contacts');
-  XLSX.writeFile(wb, 'broadcast-sample.xlsx');
+
+  const instructions: string[][] = [
+    ['Aireatro Broadcast — Contact List Template'],
+    [''],
+    ['How to use this file'],
+    ['1. Fill the "Contacts" sheet with your recipients.'],
+    ['2. Required column: phone (E.164 format, e.g. +919876543210).'],
+    ['3. Optional columns become contact attributes and can be used as template variables.'],
+    ['4. Save as .xlsx or .csv and upload it in the campaign wizard.'],
+    [''],
+    ['Column reference'],
+    ['phone', 'Required. E.164 format preferred. India numbers without + will assume +91.'],
+    ['name', 'Optional. Used as {{1}} fallback in templates if mapped.'],
+    ['email', 'Optional. Stored as contact attribute.'],
+    ['city', 'Optional. Stored as contact attribute.'],
+    ['custom_1', 'Optional. Stored as contact attribute, usable as template variable.'],
+    ['custom_2', 'Optional. Stored as contact attribute, usable as template variable.'],
+    ['tags', 'Optional. Semicolon-separated list (e.g. "vip;repeat").'],
+    [''],
+    ['Notes'],
+    ['• Duplicates (same phone) are merged automatically.'],
+    ['• Invalid numbers are skipped — download the invalid list after upload.'],
+    ['• Maximum file size: 10 MB.'],
+  ];
+  const wsInfo = XLSX.utils.aoa_to_sheet(instructions);
+  (wsInfo as any)['!cols'] = [{ wch: 22 }, { wch: 80 }];
+  XLSX.utils.book_append_sheet(wb, wsInfo, 'Instructions');
+
+  const out = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+  const blob = new Blob([out], {
+    type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  });
+  downloadBlob('broadcast-sample.xlsx', blob);
 };
 
 export function CSVContactUploader({ onImported, defaultCountry = 'IN' }: Props) {
@@ -272,10 +327,8 @@ export function CSVContactUploader({ onImported, defaultCountry = 'IN' }: Props)
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem asChild>
-                <a href={SAMPLE_CSV_HREF} download="broadcast-sample.csv">
-                  Download CSV (.csv)
-                </a>
+              <DropdownMenuItem onClick={downloadSampleCsv}>
+                Download CSV (.csv)
               </DropdownMenuItem>
               <DropdownMenuItem onClick={downloadSampleXlsx}>
                 Download Excel (.xlsx)
