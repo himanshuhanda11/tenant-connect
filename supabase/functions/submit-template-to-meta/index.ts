@@ -422,6 +422,59 @@ Deno.serve(async (req) => {
         });
       }
 
+      // Handle "Content in this language already exists" (subcode 2388024)
+      // The template already exists on Meta — link it back to our record instead of failing.
+      if (metaResult.error?.error_subcode === 2388024) {
+        try {
+          const lookupUrl = `https://graph.facebook.com/v21.0/${wabaId}/message_templates?name=${encodeURIComponent(sanitizedName)}&limit=50`;
+          const lookupRes = await fetch(lookupUrl, {
+            headers: { 'Authorization': `Bearer ${accessToken}` },
+          });
+          const lookupJson = await lookupRes.json();
+          const match = Array.isArray(lookupJson?.data)
+            ? lookupJson.data.find((t: any) => t.name === sanitizedName && t.language === template.language)
+            : null;
+
+          if (match?.id) {
+            const linkedStatus = String(match.status || 'PENDING').toUpperCase();
+            await supabase
+              .from('templates')
+              .update({
+                meta_template_id: match.id,
+                status: linkedStatus === 'APPROVED' ? 'APPROVED' : linkedStatus === 'REJECTED' ? 'REJECTED' : 'PENDING',
+                current_version_id: version_id,
+                rejection_reason: null,
+              })
+              .eq('id', template_id);
+
+            return new Response(JSON.stringify({
+              success: true,
+              meta_template_id: match.id,
+              linked_existing: true,
+              status: linkedStatus,
+              message: 'This template already exists on Meta and has been linked to your draft.',
+              submission_log_id: submissionLog?.id,
+            }), {
+              status: 200,
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            });
+          }
+        } catch (lookupErr) {
+          console.error('Failed to lookup existing Meta template:', lookupErr);
+        }
+
+        return new Response(JSON.stringify({
+          success: false,
+          error: `A template named "${sanitizedName}" already exists on Meta for language "${template.language}". Please rename your template or delete the existing one in WhatsApp Manager.`,
+          code: 'TEMPLATE_NAME_EXISTS',
+          details: metaResult.error,
+          submission_log_id: submissionLog?.id,
+        }), {
+          status: 409,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
       // Update template status to reflect rejection
       await supabase
         .from('templates')
@@ -441,6 +494,7 @@ Deno.serve(async (req) => {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
+
 
     // Update template with Meta template ID and pending status
     await supabase
