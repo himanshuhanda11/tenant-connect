@@ -1183,70 +1183,25 @@ export default function CreateCampaign() {
                   </CardContent>
                 </Card>
 
-                {/* Action Buttons */}
-                <div className="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-between gap-3 pt-4 border-t">
-                  <Button variant="outline" className="w-full sm:w-auto" onClick={() => navigate('/campaigns')}>
-                    Save as Draft
-                  </Button>
-                  {(() => {
-                    const insufficientCredits = costEstimate ? !costEstimate.sufficient : (creditsBalance < audienceEstimatedCount);
-                    return (
-                      <div className="flex items-center gap-3 w-full sm:w-auto">
-                        {wizard.delivery.send_type === 'scheduled' ? (
-                          <Button
-                            onClick={() => handleSubmit(false)}
-                            disabled={isSubmitting || insufficientCredits}
-                            className="w-full sm:min-w-32"
-                            title={insufficientCredits ? 'Insufficient message credits' : undefined}
-                          >
-                            {isSubmitting ? (
-                              <Loader2 className="h-4 w-4 animate-spin" />
-                            ) : (
-                              <>
-                                <Calendar className="h-4 w-4 mr-2" />
-                                Schedule Campaign
-                              </>
-                            )}
-                          </Button>
-                        ) : (
-                          <Button
-                            onClick={() => handleSubmit(true)}
-                            disabled={isSubmitting || insufficientCredits}
-                            className="w-full sm:min-w-32 bg-green-600 hover:bg-green-700"
-                            title={insufficientCredits ? 'Insufficient message credits' : undefined}
-                          >
-                            {isSubmitting ? (
-                              <Loader2 className="h-4 w-4 animate-spin" />
-                            ) : (
-                              <>
-                                <Send className="h-4 w-4 mr-2" />
-                                Send Now
-                              </>
-                            )}
-                          </Button>
-                        )}
-                      </div>
-                    );
-                  })()}
-                </div>
               </div>
             )}
+
           </CardContent>
         </Card>
 
-        {/* Navigation Buttons */}
-        {currentStep < 5 && (
-          <div className="fixed left-0 right-0 z-30 border-t bg-background/95 backdrop-blur px-4 py-3 flex items-center justify-between gap-3 bottom-[calc(56px+env(safe-area-inset-bottom))] md:static md:border-0 md:bg-transparent md:backdrop-blur-0 md:p-0">
-            <Button
-              variant="outline"
-              size="lg"
-              className="flex-1 sm:flex-none h-11"
-              onClick={handleBack}
-              disabled={currentStep === 1}
-            >
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back
-            </Button>
+        {/* Sticky Navigation Buttons (always visible across all steps) */}
+        <div className="sticky z-30 border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 -mx-4 sm:mx-0 px-4 sm:px-5 py-3 flex items-center justify-between gap-3 bottom-[calc(56px+env(safe-area-inset-bottom))] md:bottom-0 sm:rounded-xl sm:shadow-lg sm:border">
+          <Button
+            variant="outline"
+            size="lg"
+            className="flex-1 sm:flex-none h-11"
+            onClick={handleBack}
+            disabled={currentStep === 1}
+          >
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back
+          </Button>
+          {currentStep < 5 ? (
             <Button
               size="lg"
               className="flex-1 sm:flex-none h-11"
@@ -1256,8 +1211,46 @@ export default function CreateCampaign() {
               Continue
               <ArrowRight className="h-4 w-4 ml-2" />
             </Button>
-          </div>
-        )}
+          ) : (
+            (() => {
+              const insufficientCredits = costEstimate ? !costEstimate.sufficient : (creditsBalance < audienceEstimatedCount);
+              const scheduled = wizard.delivery.send_type === 'scheduled';
+              return (
+                <div className="flex items-center gap-2 flex-1 sm:flex-none justify-end">
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    className="hidden sm:inline-flex h-11"
+                    onClick={() => navigate('/campaigns')}
+                  >
+                    Save as Draft
+                  </Button>
+                  <Button
+                    size="lg"
+                    onClick={() => handleSubmit(!scheduled)}
+                    disabled={isSubmitting || insufficientCredits}
+                    className={`flex-1 sm:flex-none h-11 sm:min-w-40 ${scheduled ? '' : 'bg-green-600 hover:bg-green-700'}`}
+                    title={insufficientCredits ? 'Insufficient message credits' : undefined}
+                  >
+                    {isSubmitting ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : scheduled ? (
+                      <>
+                        <Calendar className="h-4 w-4 mr-2" />
+                        Schedule Campaign
+                      </>
+                    ) : (
+                      <>
+                        <Send className="h-4 w-4 mr-2" />
+                        Send Now
+                      </>
+                    )}
+                  </Button>
+                </div>
+              );
+            })()
+          )}
+        </div>
       </div>
     </DashboardLayout>
   );
