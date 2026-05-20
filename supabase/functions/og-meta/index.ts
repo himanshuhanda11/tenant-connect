@@ -32,7 +32,7 @@ interface MetaInfo {
 }
 
 const BASE_URL = "https://aireatro.com";
-const DEFAULT_OG_IMAGE = `${BASE_URL}/og-image.jpg?v=3`;
+const DEFAULT_OG_IMAGE = `${BASE_URL}/og-image.png?v=4`;
 
 function defaults(path: string): MetaInfo {
   return {
@@ -70,8 +70,11 @@ function generateHtml(m: MetaInfo, url: string): string {
   <meta property="og:title" content="${escapeHtml(m.ogTitle)}">
   <meta property="og:description" content="${escapeHtml(m.ogDescription)}">
   <meta property="og:image" content="${escapeHtml(m.ogImage)}">
+  <meta property="og:image:secure_url" content="${escapeHtml(m.ogImage)}">
+  <meta property="og:image:type" content="image/png">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="AiReatro — AI-Powered WhatsApp CRM & Automation Platform">
   <meta property="og:site_name" content="AiReatro Communications">
   <meta name="twitter:card" content="${escapeHtml(m.twitterCard)}">
   <meta name="twitter:site" content="@AiReatro">

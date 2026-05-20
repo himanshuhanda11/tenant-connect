@@ -13,7 +13,7 @@ export interface SEOProps {
 }
 
 const BASE_URL = 'https://aireatro.com';
-const DEFAULT_OG_IMAGE = `${BASE_URL}/og-image.jpg?v=3`;
+const DEFAULT_OG_IMAGE = `${BASE_URL}/og-image.png?v=4`;
 const SITE_NAME = 'AiReatro Communications';
 
 export default function SEO({
