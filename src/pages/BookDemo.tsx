@@ -47,16 +47,17 @@ const schema = z.object({
 
 type FormData = z.infer<typeof schema>;
 
-// 24-hour coverage in 30-min increments
+// Demo slots: 2:00 PM to 8:00 PM in 30-min increments
 const TIME_SLOTS: string[] = (() => {
   const out: string[] = [];
-  for (let h = 0; h < 24; h++) {
+  for (let h = 14; h < 20; h++) {
     for (const m of [0, 30]) {
       const period = h < 12 ? 'AM' : 'PM';
       const hour12 = ((h + 11) % 12) + 1;
       out.push(`${String(hour12).padStart(2, '0')}:${m === 0 ? '00' : '30'} ${period}`);
     }
   }
+  out.push('08:00 PM');
   return out;
 })();
 
