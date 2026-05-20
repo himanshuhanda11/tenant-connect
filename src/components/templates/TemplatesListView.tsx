@@ -101,15 +101,8 @@ export function TemplatesListView({
     }
   };
 
-  const canSubmitToMeta = (template: Template) => {
-    return template.status !== 'APPROVED';
-  };
-
-  const submitApprovalLabel = 'Submit for approval';
-
-  const canEdit = (template: Template) => {
-    return template.internal_status === 'draft' || template.internal_status === 'changes_requested';
-  };
+  // Editing is always allowed; if approved, builder will warn before resubmitting.
+  const canEdit = (_template: Template) => true;
 
   return (
     <Card>
@@ -241,29 +234,18 @@ export function TemplatesListView({
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => onView(template)}>
-                          <Eye className="h-4 w-4 mr-2" />View
+                        <DropdownMenuItem onClick={() => onEdit(template)}>
+                          <Edit className="h-4 w-4 mr-2" />Edit Template
                         </DropdownMenuItem>
-                        {canEdit(template) && (
-                          <DropdownMenuItem onClick={() => onEdit(template)}>
-                            <Edit className="h-4 w-4 mr-2" />Edit Draft
-                          </DropdownMenuItem>
-                        )}
-                        {canSubmitToMeta(template) && (
-                          <DropdownMenuItem onClick={() => onSubmitToMeta(template)}>
-                            <Send className="h-4 w-4 mr-2" />{submitApprovalLabel}
-                          </DropdownMenuItem>
-                        )}
-                        <DropdownMenuSeparator />
                         <DropdownMenuItem onClick={() => onDuplicate(template)}>
-                          <Copy className="h-4 w-4 mr-2" />Duplicate
+                          <Copy className="h-4 w-4 mr-2" />Duplicate Template
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => onArchive(template)}>
-                          <Archive className="h-4 w-4 mr-2" />Archive
+                        <DropdownMenuItem onClick={() => onView(template)}>
+                          <Eye className="h-4 w-4 mr-2" />View Status
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem onClick={() => onDelete(template)} className="text-destructive">
-                          <Trash2 className="h-4 w-4 mr-2" />Delete
+                          <Trash2 className="h-4 w-4 mr-2" />Delete Template
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
@@ -288,12 +270,10 @@ export function TemplatesListView({
                       Score {template.template_score}
                     </span>
                   </div>
-                  {canSubmitToMeta(template) && (
-                    <Button size="sm" className="mt-3 w-full" onClick={() => onSubmitToMeta(template)}>
-                      <Send className="h-3.5 w-3.5 mr-1.5" />
-                      {submitApprovalLabel}
-                    </Button>
-                  )}
+                  <Button size="sm" variant="outline" className="mt-3 w-full" onClick={() => onEdit(template)}>
+                    <Edit className="h-3.5 w-3.5 mr-1.5" />
+                    Edit Template
+                  </Button>
                 </div>
               ))}
             </div>
@@ -344,12 +324,6 @@ export function TemplatesListView({
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center justify-end gap-2">
-                        {canSubmitToMeta(template) && (
-                          <Button size="sm" onClick={() => onSubmitToMeta(template)}>
-                            <Send className="h-3.5 w-3.5 mr-1.5" />
-                            {submitApprovalLabel}
-                          </Button>
-                        )}
                         <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button variant="ghost" size="icon">
@@ -357,38 +331,25 @@ export function TemplatesListView({
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => onView(template)}>
-                            <Eye className="h-4 w-4 mr-2" />
-                            View
+                          <DropdownMenuItem onClick={() => onEdit(template)}>
+                            <Edit className="h-4 w-4 mr-2" />
+                            Edit Template
                           </DropdownMenuItem>
-                          {canEdit(template) && (
-                            <DropdownMenuItem onClick={() => onEdit(template)}>
-                              <Edit className="h-4 w-4 mr-2" />
-                              Edit Draft
-                            </DropdownMenuItem>
-                          )}
-                          {canSubmitToMeta(template) && (
-                            <DropdownMenuItem onClick={() => onSubmitToMeta(template)}>
-                              <Send className="h-4 w-4 mr-2" />
-                              {submitApprovalLabel}
-                            </DropdownMenuItem>
-                          )}
-                          <DropdownMenuSeparator />
                           <DropdownMenuItem onClick={() => onDuplicate(template)}>
                             <Copy className="h-4 w-4 mr-2" />
-                            Duplicate
+                            Duplicate Template
                           </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => onArchive(template)}>
-                            <Archive className="h-4 w-4 mr-2" />
-                            Archive
+                          <DropdownMenuItem onClick={() => onView(template)}>
+                            <Eye className="h-4 w-4 mr-2" />
+                            View Status
                           </DropdownMenuItem>
                           <DropdownMenuSeparator />
-                          <DropdownMenuItem 
+                          <DropdownMenuItem
                             onClick={() => onDelete(template)}
                             className="text-destructive"
                           >
                             <Trash2 className="h-4 w-4 mr-2" />
-                            Delete
+                            Delete Template
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>

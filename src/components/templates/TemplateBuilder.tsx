@@ -9,6 +9,10 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { 
   Plus, 
   Trash2, 
@@ -43,11 +47,13 @@ interface TemplateBuilderProps {
   initialData?: Partial<TemplateVersion> & { name?: string; category?: TemplateCategory; language?: string };
   lintResults: LintValidationResult[];
   onValidate: (version: Partial<TemplateVersion>) => void;
-  onSave: (data: TemplateBuilderData) => void;
+  onSave: (data: TemplateBuilderData) => void | Promise<void>;
+  onSaveAndSubmit?: (data: TemplateBuilderData) => void | Promise<void>;
   onCancel?: () => void;
   onOpenLibrary?: () => void;
   saving?: boolean;
   mode?: 'create' | 'edit';
+  wasApproved?: boolean;
 }
 
 export interface TemplateBuilderData {
@@ -78,15 +84,18 @@ export function TemplateBuilder({
   lintResults,
   onValidate,
   onSave,
+  onSaveAndSubmit,
   onCancel,
   onOpenLibrary,
   saving = false,
-  mode = 'create'
+  mode = 'create',
+  wasApproved = false,
 }: TemplateBuilderProps) {
   const { currentTenant } = useTenant();
   const [aiValidationOpen, setAiValidationOpen] = useState(false);
   const [uploadingHeader, setUploadingHeader] = useState(false);
   const [uploadedFileName, setUploadedFileName] = useState<string>('');
+  const [confirmResubmit, setConfirmResubmit] = useState(false);
 
   const DRAFT_KEY = `template_builder_draft_${currentTenant?.id || 'anon'}`;
   const restoredDraft = mode === 'create' && !initialData?.body ? (() => {
@@ -239,18 +248,28 @@ export function TemplateBuilder({
     setBody(body + `{{${nextVar}}}`);
   };
 
-  const handleSave = () => {
-    onSave({
-      name,
-      language,
-      category,
-      header_type: headerType,
-      header_content: headerContent || undefined,
-      body,
-      footer: footer || undefined,
-      buttons,
-      variable_samples: variableSamples
-    });
+  const buildData = (): TemplateBuilderData => ({
+    name,
+    language,
+    category,
+    header_type: headerType,
+    header_content: headerContent || undefined,
+    body,
+    footer: footer || undefined,
+    buttons,
+    variable_samples: variableSamples,
+  });
+
+  const handlePrimary = async () => {
+    if (mode === 'edit' && wasApproved && !confirmResubmit) {
+      setConfirmResubmit(true);
+      return;
+    }
+    if (onSaveAndSubmit) {
+      await onSaveAndSubmit(buildData());
+    } else {
+      await onSave(buildData());
+    }
     try { localStorage.removeItem(DRAFT_KEY); } catch {}
   };
 
@@ -298,10 +317,11 @@ export function TemplateBuilder({
           )}
           <Button
             size="sm"
-            onClick={handleSave}
+            onClick={handlePrimary}
             disabled={saving || !name || !body || errors.length > 0}
+            className="hidden sm:inline-flex"
           >
-            {saving ? 'Saving...' : mode === 'create' ? 'Create Template' : 'Save Changes'}
+            {saving ? 'Submitting...' : mode === 'create' ? 'Submit for Approval' : 'Update & Resubmit'}
           </Button>
         </div>
       </div>
@@ -865,6 +885,41 @@ export function TemplateBuilder({
         }}
       />
       </div>
+
+      {/* Sticky mobile action bar */}
+      <div className="sm:hidden sticky bottom-0 left-0 right-0 -mx-4 px-4 py-3 bg-background/95 backdrop-blur border-t z-30">
+        <Button
+          className="w-full"
+          onClick={handlePrimary}
+          disabled={saving || !name || !body || errors.length > 0}
+        >
+          {saving ? 'Submitting...' : mode === 'create' ? 'Submit for Approval' : 'Update & Resubmit'}
+        </Button>
+      </div>
+
+      <AlertDialog open={confirmResubmit} onOpenChange={setConfirmResubmit}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Resubmit approved template?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This template is already approved by Meta. Updating and resubmitting will create a new version that must be re-reviewed. Until it’s approved again, the previously approved version remains active.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={async () => {
+                setConfirmResubmit(false);
+                if (onSaveAndSubmit) await onSaveAndSubmit(buildData());
+                else await onSave(buildData());
+                try { localStorage.removeItem(DRAFT_KEY); } catch {}
+              }}
+            >
+              Yes, update & resubmit
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
