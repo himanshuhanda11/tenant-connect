@@ -303,10 +303,21 @@ export function TemplatesListView({
                       Score {template.template_score}
                     </span>
                   </div>
-                  <Button size="sm" variant="outline" className="mt-3 w-full" onClick={() => onEdit(template)}>
-                    <Edit className="h-3.5 w-3.5 mr-1.5" />
-                    Edit Template
-                  </Button>
+                  {canSubmit(template) ? (
+                    <Button size="sm" className="mt-3 w-full" onClick={() => onSubmitToMeta(template)}>
+                      <Send className="h-3.5 w-3.5 mr-1.5" />
+                      {template.status === 'REJECTED' ? 'Resubmit for Approval' : 'Submit for Approval'}
+                    </Button>
+                  ) : canEdit(template) ? (
+                    <Button size="sm" variant="outline" className="mt-3 w-full" onClick={() => onEdit(template)}>
+                      <Edit className="h-3.5 w-3.5 mr-1.5" />
+                      {template.status === 'APPROVED' ? 'Edit & Resubmit' : 'Edit Template'}
+                    </Button>
+                  ) : (
+                    <Button size="sm" variant="outline" className="mt-3 w-full" onClick={() => onView(template)}>
+                      <Eye className="h-3.5 w-3.5 mr-1.5" />View Template
+                    </Button>
+                  )}
                 </div>
               ))}
             </div>
