@@ -176,6 +176,18 @@ export default function Templates() {
     return savedTemplate;
   };
 
+  // Save-as-draft action — saves and returns to list so the draft is visible.
+  const handleBuilderSaveDraftOnly = async (data: TemplateBuilderData) => {
+    const saved = await handleBuilderSave(data);
+    if (!saved) return;
+    setEditingTemplate(null);
+    setEditingVersion(null);
+    setIsCreating(false);
+    setLibraryTemplateData(null);
+    setActiveTab('list');
+    await fetchTemplates(filters);
+  };
+
   const handleBuilderSaveAndSubmit = async (data: TemplateBuilderData) => {
     const saved = await handleBuilderSave(data);
     if (!saved) return;
