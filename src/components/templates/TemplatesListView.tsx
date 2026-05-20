@@ -368,35 +368,25 @@ export function TemplatesListView({
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center justify-end gap-2">
-                        <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon">
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => onEdit(template)}>
-                            <Edit className="h-4 w-4 mr-2" />
-                            Edit Template
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => onDuplicate(template)}>
-                            <Copy className="h-4 w-4 mr-2" />
-                            Duplicate Template
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => onView(template)}>
-                            <Eye className="h-4 w-4 mr-2" />
-                            View Status
-                          </DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem
-                            onClick={() => onDelete(template)}
-                            className="text-destructive"
+                        {canSubmit(template) && (
+                          <Button
+                            size="sm"
+                            onClick={() => onSubmitToMeta(template)}
                           >
-                            <Trash2 className="h-4 w-4 mr-2" />
-                            Delete Template
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+                            <Send className="h-3.5 w-3.5 mr-1.5" />
+                            {template.status === 'REJECTED' ? 'Resubmit' : 'Submit for Approval'}
+                          </Button>
+                        )}
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon">
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            {renderActions(template)}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </div>
                     </TableCell>
                   </TableRow>
