@@ -132,6 +132,11 @@ export default function CreateCampaign() {
   });
   const [audienceEstimatedCount, setAudienceEstimatedCount] = useState(0);
   const [costEstimate, setCostEstimate] = useState<BroadcastCostEstimate | null>(null);
+  type AudienceMode = 'filters' | 'upload' | 'both';
+  const [audienceMode, setAudienceMode] = useState<AudienceMode>(
+    preselectedContactIds.length > 0 ? 'upload' : 'filters',
+  );
+  const [uploadedContactIds, setUploadedContactIds] = useState<string[]>([]);
   const [draftLoaded, setDraftLoaded] = useState(false);
   const [draftSavedAt, setDraftSavedAt] = useState<Date | null>(null);
   const draftKey = currentTenant?.id ? `campaign-draft:${currentTenant.id}` : null;
