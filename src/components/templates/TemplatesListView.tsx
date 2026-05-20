@@ -77,10 +77,12 @@ export function TemplatesListView({
 
   const getMetaStatusBadge = (status: MetaStatus) => {
     switch (status) {
+      case 'DRAFT':
+        return <Badge variant="secondary" className="bg-gray-500/15 text-gray-700 dark:text-gray-300 border-gray-400/30">Draft</Badge>;
       case 'APPROVED':
-        return <Badge className="bg-green-500">Approved</Badge>;
+        return <Badge className="bg-green-500 hover:bg-green-500">Approved</Badge>;
       case 'PENDING':
-        return <Badge variant="secondary">Pending</Badge>;
+        return <Badge className="bg-yellow-500 hover:bg-yellow-500 text-yellow-950">Pending</Badge>;
       case 'REJECTED':
         return <Badge variant="destructive">Rejected</Badge>;
       case 'PAUSED':
