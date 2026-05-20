@@ -111,7 +111,7 @@ export function TemplatesListView({
   const canSubmit = (t: Template) => t.status === 'DRAFT' || t.status === 'REJECTED';
   const canEdit = (t: Template) =>
     t.status === 'DRAFT' || t.status === 'REJECTED' || t.status === 'APPROVED';
-  const canDelete = (t: Template) => t.status === 'DRAFT' || t.status === 'REJECTED' || t.status === 'DISABLED';
+  const canDelete = (_t: Template) => true;
 
   const renderActions = (template: Template) => (
     <>
