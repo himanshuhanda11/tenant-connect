@@ -1,17 +1,7 @@
 import { lazy, ComponentType } from 'react';
-
-const CHUNK_ERROR_PATTERNS = [
-  'Failed to fetch dynamically imported module',
-  'Loading chunk',
-  'Loading CSS chunk',
-];
+import { isChunkLoadError, recoverFromChunkLoadError } from './chunkRecovery';
 
 const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
-
-const isChunkError = (error: unknown) => {
-  const message = error instanceof Error ? error.message : String(error ?? '');
-  return CHUNK_ERROR_PATTERNS.some((pattern) => message.includes(pattern));
-};
 
 export function lazyWithRetry<T extends ComponentType<any>>(
   importFn: () => Promise<{ default: T }>,
@@ -26,7 +16,12 @@ export function lazyWithRetry<T extends ComponentType<any>>(
       } catch (error) {
         lastError = error;
 
-        if (!isChunkError(error) || attempt === retries) {
+        if (!isChunkLoadError(error)) {
+          throw error;
+        }
+
+        if (attempt === retries) {
+          await recoverFromChunkLoadError(error, 'lazyWithRetry');
           throw error;
         }
 
