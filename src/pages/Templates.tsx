@@ -14,6 +14,12 @@ import { GuideBanner } from '@/components/help/GuideBanner';
 import { Template as TemplateType, TemplateVersion, InternalStatus, MetaStatus, TemplateCategory, HeaderType } from '@/types/template';
 import { toast } from 'sonner';
 import { lintTemplate } from '@/lib/templateLinter';
+import { supabase } from '@/integrations/supabase/client';
+import { useTenant } from '@/contexts/TenantContext';
+import { WhatsAppPreview } from '@/components/templates/WhatsAppPreview';
+import { Badge } from '@/components/ui/badge';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Pencil } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
