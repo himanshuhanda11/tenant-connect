@@ -567,7 +567,7 @@ export default function Templates() {
                   )}
                 </div>
               </div>
-            </ScrollArea>
+            </div>
 
             {/* Sticky footer actions */}
             <div className="flex items-center justify-end gap-2 px-6 py-4 border-t bg-background/95 backdrop-blur shrink-0">
