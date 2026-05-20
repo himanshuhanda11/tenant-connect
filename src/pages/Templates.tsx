@@ -482,7 +482,7 @@ export default function Templates() {
             </DialogHeader>
 
             {/* Scrollable body */}
-            <ScrollArea className="flex-1 min-h-0">
+            <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain">
               <div className="grid md:grid-cols-2 gap-6 p-6">
                 {/* Left: details */}
                 <div className="space-y-5">
@@ -567,7 +567,7 @@ export default function Templates() {
                   )}
                 </div>
               </div>
-            </ScrollArea>
+            </div>
 
             {/* Sticky footer actions */}
             <div className="flex items-center justify-end gap-2 px-6 py-4 border-t bg-background/95 backdrop-blur shrink-0">
