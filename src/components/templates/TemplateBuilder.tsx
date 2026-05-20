@@ -244,18 +244,28 @@ export function TemplateBuilder({
     setBody(body + `{{${nextVar}}}`);
   };
 
-  const handleSave = () => {
-    onSave({
-      name,
-      language,
-      category,
-      header_type: headerType,
-      header_content: headerContent || undefined,
-      body,
-      footer: footer || undefined,
-      buttons,
-      variable_samples: variableSamples
-    });
+  const buildData = (): TemplateBuilderData => ({
+    name,
+    language,
+    category,
+    header_type: headerType,
+    header_content: headerContent || undefined,
+    body,
+    footer: footer || undefined,
+    buttons,
+    variable_samples: variableSamples,
+  });
+
+  const handlePrimary = async () => {
+    if (mode === 'edit' && wasApproved && !confirmResubmit) {
+      setConfirmResubmit(true);
+      return;
+    }
+    if (onSaveAndSubmit) {
+      await onSaveAndSubmit(buildData());
+    } else {
+      await onSave(buildData());
+    }
     try { localStorage.removeItem(DRAFT_KEY); } catch {}
   };
 
