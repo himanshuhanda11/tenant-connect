@@ -34,6 +34,7 @@ interface TemplatesListViewProps {
   onArchive: (template: Template) => void;
   onDelete: (template: Template) => void;
   onRefresh: () => void;
+  syncing?: boolean;
   onCreateNew: () => void;
   filters: {
     search: string;
