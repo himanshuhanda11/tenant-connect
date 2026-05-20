@@ -211,7 +211,7 @@ export function LibraryPickerDialog({ open, onOpenChange, onSelect }: Props) {
                           </span>
                         </div>
                         <p className="text-[10px] text-muted-foreground line-clamp-2">{t.description}</p>
-                        <p className="text-[9px] text-muted-foreground mt-1">{t.downloads.toLocaleString()} uses</p>
+                        <p className="text-[9px] text-muted-foreground mt-1">{t.industry} · {t.downloads.toLocaleString()} uses</p>
                       </button>
                     ))}
                   </div>
