@@ -32,7 +32,7 @@ interface MetaInfo {
 }
 
 const BASE_URL = "https://aireatro.com";
-const DEFAULT_OG_IMAGE = `${BASE_URL}/og-image.png?v=4`;
+const DEFAULT_OG_IMAGE = `${BASE_URL}/og-image.png?v=5`;
 
 function defaults(path: string): MetaInfo {
   return {

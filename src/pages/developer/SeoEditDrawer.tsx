@@ -205,7 +205,7 @@ export default function SeoEditDrawer({ page, open, onClose }: SeoEditDrawerProp
                   </div>
                   <div className="space-y-2">
                     <Label>OG Image URL</Label>
-                    <Input value={form.og_image || ''} onChange={(e) => handleChange('og_image', e.target.value)} placeholder="https://aireatro.com/og-image.png?v=4" />
+                    <Input value={form.og_image || ''} onChange={(e) => handleChange('og_image', e.target.value)} placeholder="https://aireatro.com/og-image.png?v=5" />
                   </div>
                   <div className="space-y-2">
                     <Label>OG Type</Label>
