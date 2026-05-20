@@ -203,6 +203,7 @@ export function TemplatesListView({
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Meta</SelectItem>
+              <SelectItem value="DRAFT">Draft</SelectItem>
               <SelectItem value="PENDING">Pending</SelectItem>
               <SelectItem value="APPROVED">Approved</SelectItem>
               <SelectItem value="REJECTED">Rejected</SelectItem>
