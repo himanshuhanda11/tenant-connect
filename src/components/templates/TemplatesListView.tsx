@@ -103,8 +103,51 @@ export function TemplatesListView({
     }
   };
 
-  // Editing is always allowed; if approved, builder will warn before resubmitting.
-  const canEdit = (_template: Template) => true;
+  // Status helpers — drives which actions are exposed in the menus.
+  const isDraftLike = (t: Template) => t.status === 'DRAFT' || t.status === 'REJECTED';
+  const isPendingLike = (t: Template) => t.status === 'PENDING' || t.status === 'PAUSED';
+  const canSubmit = (t: Template) => t.status === 'DRAFT' || t.status === 'REJECTED';
+  const canEdit = (t: Template) =>
+    t.status === 'DRAFT' || t.status === 'REJECTED' || t.status === 'APPROVED';
+  const canDelete = (t: Template) => t.status === 'DRAFT' || t.status === 'REJECTED' || t.status === 'DISABLED';
+
+  const renderActions = (template: Template) => (
+    <>
+      {canEdit(template) && (
+        <DropdownMenuItem onClick={() => onEdit(template)}>
+          <Edit className="h-4 w-4 mr-2" />
+          {template.status === 'APPROVED' ? 'Edit & Resubmit' : 'Edit Template'}
+        </DropdownMenuItem>
+      )}
+      {!canEdit(template) && (
+        <DropdownMenuItem onClick={() => onView(template)}>
+          <Eye className="h-4 w-4 mr-2" />View Template
+        </DropdownMenuItem>
+      )}
+      {canSubmit(template) && (
+        <DropdownMenuItem onClick={() => onSubmitToMeta(template)}>
+          <Send className="h-4 w-4 mr-2" />
+          {template.status === 'REJECTED' ? 'Resubmit for Approval' : 'Submit for Approval'}
+        </DropdownMenuItem>
+      )}
+      <DropdownMenuItem onClick={() => onDuplicate(template)}>
+        <Copy className="h-4 w-4 mr-2" />Duplicate Template
+      </DropdownMenuItem>
+      {canEdit(template) && (
+        <DropdownMenuItem onClick={() => onView(template)}>
+          <Eye className="h-4 w-4 mr-2" />View Status
+        </DropdownMenuItem>
+      )}
+      {canDelete(template) && (
+        <>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem onClick={() => onDelete(template)} className="text-destructive">
+            <Trash2 className="h-4 w-4 mr-2" />Delete Template
+          </DropdownMenuItem>
+        </>
+      )}
+    </>
+  );
 
   return (
     <Card>
