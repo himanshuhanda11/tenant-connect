@@ -143,7 +143,9 @@ export function TemplateBuilder({
           body, footer, buttons, variable_samples: variableSamples,
           savedAt: Date.now(),
         }));
-      } catch {}
+      } catch {
+        // Draft storage is best-effort only.
+      }
     }, 500);
     return () => clearTimeout(t);
   }, [mode, DRAFT_KEY, name, language, category, headerType, headerContent, body, footer, buttons, variableSamples]);
@@ -207,8 +209,8 @@ export function TemplateBuilder({
       }));
       setUploadedFileName(file.name);
       toast.success(`${kind.charAt(0).toUpperCase() + kind.slice(1)} uploaded`);
-    } catch (e: any) {
-      toast.error(e?.message || 'Upload failed');
+    } catch (e: unknown) {
+      toast.error(e instanceof Error ? e.message : 'Upload failed');
     } finally {
       setUploadingHeader(false);
     }
