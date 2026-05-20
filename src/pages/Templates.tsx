@@ -148,10 +148,9 @@ export default function Templates() {
     setCurrentLintResults(results);
   };
 
-  const handleBuilderSave = async (data: TemplateBuilderData) => {
+  const handleBuilderSave = async (data: TemplateBuilderData): Promise<TemplateType | null> => {
     let savedTemplate: TemplateType | null = null;
     if (editingTemplate) {
-      // Update existing template version
       const savedVersion = await updateVersion(editingTemplate.id, {
         header_type: data.header_type,
         header_content: data.header_content,
@@ -162,7 +161,6 @@ export default function Templates() {
       });
       savedTemplate = savedVersion ? editingTemplate : null;
     } else {
-      // Create new template
       savedTemplate = await createTemplate({
         name: data.name,
         category: data.category,
@@ -175,9 +173,13 @@ export default function Templates() {
         variable_samples: data.variable_samples,
       });
     }
+    return savedTemplate;
+  };
 
-    if (!savedTemplate) return;
-
+  const handleBuilderSaveAndSubmit = async (data: TemplateBuilderData) => {
+    const saved = await handleBuilderSave(data);
+    if (!saved) return;
+    await submitToMeta(saved.id);
     setEditingTemplate(null);
     setEditingVersion(null);
     setIsCreating(false);
