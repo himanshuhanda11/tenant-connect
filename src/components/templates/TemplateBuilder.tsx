@@ -932,13 +932,21 @@ export function TemplateBuilder({
       </div>
 
       {/* Sticky mobile action bar */}
-      <div className="sm:hidden sticky bottom-0 left-0 right-0 -mx-4 px-4 py-3 bg-background/95 backdrop-blur border-t z-30">
+      <div className="sm:hidden sticky bottom-0 left-0 right-0 -mx-4 px-4 py-3 bg-background/95 backdrop-blur border-t z-30 flex gap-2">
         <Button
-          className="w-full"
-          onClick={handlePrimary}
-          disabled={saving || !name || !body || errors.length > 0}
+          variant="outline"
+          className="flex-1"
+          onClick={handleSaveDraft}
+          disabled={!canSaveDraft}
         >
-          {saving ? 'Submitting...' : mode === 'create' ? 'Submit for Approval' : 'Update & Resubmit'}
+          {savingDraft ? (<><Loader2 className="h-4 w-4 mr-1.5 animate-spin" />Saving…</>) : 'Save Draft'}
+        </Button>
+        <Button
+          className="flex-1"
+          onClick={handleSubmitForApproval}
+          disabled={!canSubmit}
+        >
+          {submittingForApproval ? (<><Loader2 className="h-4 w-4 mr-1.5 animate-spin" />Submitting…</>) : mode === 'create' ? 'Submit for Approval' : 'Update & Resubmit'}
         </Button>
       </div>
 
