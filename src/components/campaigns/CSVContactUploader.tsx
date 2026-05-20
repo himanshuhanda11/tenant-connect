@@ -327,10 +327,8 @@ export function CSVContactUploader({ onImported, defaultCountry = 'IN' }: Props)
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem asChild>
-                <a href={SAMPLE_CSV_HREF} download="broadcast-sample.csv">
-                  Download CSV (.csv)
-                </a>
+              <DropdownMenuItem onClick={downloadSampleCsv}>
+                Download CSV (.csv)
               </DropdownMenuItem>
               <DropdownMenuItem onClick={downloadSampleXlsx}>
                 Download Excel (.xlsx)
