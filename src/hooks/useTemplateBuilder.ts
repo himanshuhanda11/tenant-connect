@@ -240,7 +240,7 @@ export function useTemplateBuilder(): UseTemplateBuilderReturn {
           category: data.category,
           meta_template_id: `local_${Date.now()}`,
           internal_status: 'draft',
-          status: 'PENDING',
+          status: 'DRAFT',
           created_by: user?.id,
           template_score: 100
         } as any)
