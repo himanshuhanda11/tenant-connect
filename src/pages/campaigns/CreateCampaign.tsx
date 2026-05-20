@@ -358,6 +358,26 @@ export default function CreateCampaign() {
     }));
   };
 
+  const finalContactIds = useMemo(() => {
+    const matched = audienceFilters.matched_contact_ids || [];
+    const direct = audienceFilters.selected_contacts || [];
+    if (audienceMode === 'upload') {
+      return Array.from(new Set(uploadedContactIds));
+    }
+    if (audienceMode === 'both') {
+      const base = direct.length > 0 ? direct : matched;
+      return Array.from(new Set([...base, ...uploadedContactIds]));
+    }
+    // filters
+    return direct.length > 0 ? direct : matched;
+  }, [audienceMode, audienceFilters.matched_contact_ids, audienceFilters.selected_contacts, uploadedContactIds]);
+
+  const finalEstimatedCount = useMemo(() => {
+    if (audienceMode === 'upload') return uploadedContactIds.length;
+    if (audienceMode === 'both') return finalContactIds.length;
+    return audienceEstimatedCount;
+  }, [audienceMode, audienceEstimatedCount, uploadedContactIds.length, finalContactIds.length]);
+
   const canProceed = () => {
     switch (currentStep) {
       case 1:
@@ -365,7 +385,9 @@ export default function CreateCampaign() {
       case 2:
         return wizard.message.template_id;
       case 3:
-        return audienceEstimatedCount > 0 || audienceFilters.selected_contacts.length > 0 || 
+        if (audienceMode === 'upload') return uploadedContactIds.length > 0;
+        if (audienceMode === 'both') return finalContactIds.length > 0;
+        return audienceEstimatedCount > 0 || audienceFilters.selected_contacts.length > 0 ||
                audienceFilters.include_segments.length > 0 || audienceFilters.include_tags.length > 0 ||
                audienceFilters.assigned_agent !== '' || audienceFilters.lead_states.length > 0;
       case 4:
@@ -376,12 +398,7 @@ export default function CreateCampaign() {
   };
 
   const enforceBroadcastCap = (): boolean => {
-    const matchedContactIds = audienceFilters.matched_contact_ids || [];
-    const directContactIds = audienceFilters.selected_contacts || [];
-    const recipientCount = Math.max(
-      audienceEstimatedCount,
-      directContactIds.length > 0 ? directContactIds.length : matchedContactIds.length,
-    );
+    const recipientCount = Math.max(finalEstimatedCount, finalContactIds.length);
     if (recipientCount > broadcastCap) {
       openUpgrade({
         feature: 'send_campaign',
