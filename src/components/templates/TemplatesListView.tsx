@@ -56,6 +56,7 @@ export function TemplatesListView({
   onArchive,
   onDelete,
   onRefresh,
+  syncing = false,
   onCreateNew,
   filters,
   onFiltersChange
