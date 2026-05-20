@@ -43,11 +43,13 @@ interface TemplateBuilderProps {
   initialData?: Partial<TemplateVersion> & { name?: string; category?: TemplateCategory; language?: string };
   lintResults: LintValidationResult[];
   onValidate: (version: Partial<TemplateVersion>) => void;
-  onSave: (data: TemplateBuilderData) => void;
+  onSave: (data: TemplateBuilderData) => void | Promise<void>;
+  onSaveAndSubmit?: (data: TemplateBuilderData) => void | Promise<void>;
   onCancel?: () => void;
   onOpenLibrary?: () => void;
   saving?: boolean;
   mode?: 'create' | 'edit';
+  wasApproved?: boolean;
 }
 
 export interface TemplateBuilderData {
