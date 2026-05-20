@@ -4,7 +4,7 @@ import { useTenant } from '@/contexts/TenantContext';
 import { toast } from 'sonner';
 
 export type TemplateCategory = 'MARKETING' | 'UTILITY' | 'AUTHENTICATION';
-export type TemplateStatus = 'PENDING' | 'APPROVED' | 'REJECTED' | 'PAUSED' | 'DISABLED';
+export type TemplateStatus = 'DRAFT' | 'PENDING' | 'APPROVED' | 'REJECTED' | 'PAUSED' | 'DISABLED';
 
 export interface Template {
   id: string;
