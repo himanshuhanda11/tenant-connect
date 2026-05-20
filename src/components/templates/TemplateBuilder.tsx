@@ -277,11 +277,15 @@ export function TemplateBuilder({
     } else {
       await onSave(buildData());
     }
-    try { localStorage.removeItem(DRAFT_KEY); } catch {}
+    try { localStorage.removeItem(DRAFT_KEY); } catch {
+      // Draft storage is best-effort only.
+    }
   };
 
   const handleCancel = () => {
-    try { localStorage.removeItem(DRAFT_KEY); } catch {}
+    try { localStorage.removeItem(DRAFT_KEY); } catch {
+      // Draft storage is best-effort only.
+    }
     onCancel?.();
   };
 
@@ -920,7 +924,9 @@ export function TemplateBuilder({
                 setConfirmResubmit(false);
                 if (onSaveAndSubmit) await onSaveAndSubmit(buildData());
                 else await onSave(buildData());
-                try { localStorage.removeItem(DRAFT_KEY); } catch {}
+                try { localStorage.removeItem(DRAFT_KEY); } catch {
+                  // Draft storage is best-effort only.
+                }
               }}
             >
               Yes, update & resubmit
