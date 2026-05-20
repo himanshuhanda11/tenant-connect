@@ -69,7 +69,7 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "discount"
     ],
     "status": "approved",
-    "downloads": 5396,
+    "downloads": 9167,
     "isTrending": true
   },
   {
@@ -94,7 +94,7 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "seasonal"
     ],
     "status": "approved",
-    "downloads": 3218
+    "downloads": 4544
   },
   {
     "id": 104,
@@ -116,7 +116,7 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "new"
     ],
     "status": "approved",
-    "downloads": 6747
+    "downloads": 7496
   },
   {
     "id": 105,
@@ -137,7 +137,7 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "wishlist"
     ],
     "status": "approved",
-    "downloads": 3272
+    "downloads": 5452
   },
   {
     "id": 106,
@@ -161,7 +161,7 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "discount"
     ],
     "status": "approved",
-    "downloads": 6349
+    "downloads": 7847
   },
   {
     "id": 107,
@@ -184,7 +184,7 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "order"
     ],
     "status": "approved",
-    "downloads": 3750
+    "downloads": 3783
   },
   {
     "id": 108,
@@ -208,7 +208,7 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "exclusive"
     ],
     "status": "approved",
-    "downloads": 2044
+    "downloads": 9626
   },
   {
     "id": 109,
@@ -231,7 +231,7 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "recommendations"
     ],
     "status": "approved",
-    "downloads": 3578
+    "downloads": 7831
   },
   {
     "id": 110,
@@ -255,7 +255,7 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "retention"
     ],
     "status": "approved",
-    "downloads": 5381
+    "downloads": 8342
   },
   {
     "id": 111,
@@ -280,7 +280,7 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "realestate"
     ],
     "status": "approved",
-    "downloads": 8258
+    "downloads": 1384
   },
   {
     "id": 112,
@@ -304,7 +304,7 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "realestate"
     ],
     "status": "approved",
-    "downloads": 8073
+    "downloads": 3556
   },
   {
     "id": 113,
@@ -327,7 +327,7 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "alert"
     ],
     "status": "approved",
-    "downloads": 6774
+    "downloads": 9358
   },
   {
     "id": 114,
@@ -350,7 +350,7 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "exclusive"
     ],
     "status": "approved",
-    "downloads": 9150
+    "downloads": 2617
   },
   {
     "id": 115,
@@ -372,7 +372,7 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "finance"
     ],
     "status": "approved",
-    "downloads": 2977
+    "downloads": 7584
   },
   {
     "id": 116,
@@ -396,7 +396,7 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "invite"
     ],
     "status": "approved",
-    "downloads": 5285
+    "downloads": 1192
   },
   {
     "id": 117,
@@ -421,7 +421,7 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "course"
     ],
     "status": "approved",
-    "downloads": 8945
+    "downloads": 2869
   },
   {
     "id": 118,
@@ -446,7 +446,7 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "invite"
     ],
     "status": "approved",
-    "downloads": 2732
+    "downloads": 3150
   },
   {
     "id": 119,
@@ -469,7 +469,7 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "class"
     ],
     "status": "approved",
-    "downloads": 7633
+    "downloads": 5453
   },
   {
     "id": 120,
@@ -493,7 +493,7 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "program"
     ],
     "status": "approved",
-    "downloads": 9864
+    "downloads": 6541
   },
   {
     "id": 121,
@@ -515,7 +515,7 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "engagement"
     ],
     "status": "approved",
-    "downloads": 6508
+    "downloads": 3500
   },
   {
     "id": 122,
@@ -538,7 +538,7 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "prep"
     ],
     "status": "approved",
-    "downloads": 2377
+    "downloads": 8302
   },
   {
     "id": 123,
@@ -563,7 +563,7 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "checkup"
     ],
     "status": "approved",
-    "downloads": 2825
+    "downloads": 8194
   },
   {
     "id": 124,
@@ -585,7 +585,7 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "free"
     ],
     "status": "approved",
-    "downloads": 2585
+    "downloads": 9079
   },
   {
     "id": 125,
@@ -609,7 +609,7 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "camp"
     ],
     "status": "approved",
-    "downloads": 8524
+    "downloads": 8615
   },
   {
     "id": 126,
@@ -632,7 +632,7 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "availability"
     ],
     "status": "approved",
-    "downloads": 6425
+    "downloads": 9223
   },
   {
     "id": 127,
@@ -655,7 +655,7 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "campaign"
     ],
     "status": "approved",
-    "downloads": 6970
+    "downloads": 2670
   },
   {
     "id": 128,
@@ -681,7 +681,7 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "travel"
     ],
     "status": "approved",
-    "downloads": 7502
+    "downloads": 5795
   },
   {
     "id": 129,
@@ -704,7 +704,7 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "deal"
     ],
     "status": "approved",
-    "downloads": 2068
+    "downloads": 6200
   },
   {
     "id": 130,
@@ -726,7 +726,7 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "travel"
     ],
     "status": "approved",
-    "downloads": 8009
+    "downloads": 4467
   },
   {
     "id": 131,
@@ -749,7 +749,7 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "romance"
     ],
     "status": "approved",
-    "downloads": 9666
+    "downloads": 5053
   },
   {
     "id": 132,
@@ -772,7 +772,7 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "travel"
     ],
     "status": "approved",
-    "downloads": 3074
+    "downloads": 5220
   },
   {
     "id": 133,
@@ -795,7 +795,7 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "dining"
     ],
     "status": "approved",
-    "downloads": 9506
+    "downloads": 8679
   },
   {
     "id": 134,
@@ -817,7 +817,7 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "meal"
     ],
     "status": "approved",
-    "downloads": 9589
+    "downloads": 7818
   },
   {
     "id": 135,
@@ -839,7 +839,7 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "table"
     ],
     "status": "approved",
-    "downloads": 9129
+    "downloads": 5961
   },
   {
     "id": 136,
@@ -861,7 +861,7 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "menu"
     ],
     "status": "approved",
-    "downloads": 9268
+    "downloads": 4918
   },
   {
     "id": 137,
@@ -883,7 +883,7 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "free"
     ],
     "status": "approved",
-    "downloads": 2727
+    "downloads": 8815
   },
   {
     "id": 138,
@@ -906,7 +906,7 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "offer"
     ],
     "status": "approved",
-    "downloads": 3233
+    "downloads": 5136
   },
   {
     "id": 139,
@@ -929,7 +929,7 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "package"
     ],
     "status": "approved",
-    "downloads": 8930
+    "downloads": 6377
   },
   {
     "id": 140,
@@ -952,7 +952,7 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "plan"
     ],
     "status": "approved",
-    "downloads": 4116
+    "downloads": 2172
   },
   {
     "id": 141,
@@ -975,7 +975,7 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "makeover"
     ],
     "status": "approved",
-    "downloads": 1654
+    "downloads": 2682
   },
   {
     "id": 142,
@@ -997,7 +997,7 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "saas"
     ],
     "status": "approved",
-    "downloads": 6623
+    "downloads": 5615
   },
   {
     "id": 143,
@@ -1022,7 +1022,7 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "plan"
     ],
     "status": "approved",
-    "downloads": 1349
+    "downloads": 2971
   },
   {
     "id": 144,
@@ -1044,7 +1044,7 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "free"
     ],
     "status": "approved",
-    "downloads": 7423
+    "downloads": 6154
   },
   {
     "id": 145,
@@ -1067,7 +1067,7 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "saas"
     ],
     "status": "approved",
-    "downloads": 6192
+    "downloads": 1917
   },
   {
     "id": 146,
@@ -1089,7 +1089,7 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "launch"
     ],
     "status": "approved",
-    "downloads": 8879
+    "downloads": 9215
   },
   {
     "id": 147,
@@ -1111,7 +1111,7 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "retention"
     ],
     "status": "approved",
-    "downloads": 4097
+    "downloads": 2654
   },
   {
     "id": 148,
@@ -1133,7 +1133,7 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "finance"
     ],
     "status": "approved",
-    "downloads": 2611
+    "downloads": 1999
   },
   {
     "id": 149,
@@ -1156,7 +1156,7 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "renewal"
     ],
     "status": "approved",
-    "downloads": 3255
+    "downloads": 2502
   },
   {
     "id": 150,
@@ -1178,7 +1178,7 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "sip"
     ],
     "status": "approved",
-    "downloads": 7131
+    "downloads": 7673
   },
   {
     "id": 151,
@@ -1200,7 +1200,7 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "offer"
     ],
     "status": "approved",
-    "downloads": 9882
+    "downloads": 6157
   },
   {
     "id": 152,
@@ -1222,7 +1222,7 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "auto"
     ],
     "status": "approved",
-    "downloads": 4652
+    "downloads": 5222
   },
   {
     "id": 153,
@@ -1245,7 +1245,7 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "reminder"
     ],
     "status": "approved",
-    "downloads": 5540
+    "downloads": 5886
   },
   {
     "id": 154,
@@ -1267,7 +1267,7 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "auto"
     ],
     "status": "approved",
-    "downloads": 3274
+    "downloads": 6633
   },
   {
     "id": 155,
@@ -1289,7 +1289,7 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "auto"
     ],
     "status": "approved",
-    "downloads": 9749
+    "downloads": 2167
   },
   {
     "id": 201,
@@ -1331,7 +1331,7 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "verification"
     ],
     "status": "approved",
-    "downloads": 8536
+    "downloads": 1005
   },
   {
     "id": 203,
@@ -1352,7 +1352,7 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "reset"
     ],
     "status": "approved",
-    "downloads": 7452
+    "downloads": 3590
   },
   {
     "id": 204,
@@ -1374,7 +1374,7 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "alert"
     ],
     "status": "approved",
-    "downloads": 1652
+    "downloads": 4868
   },
   {
     "id": 205,
@@ -1397,7 +1397,7 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "confirmation"
     ],
     "status": "approved",
-    "downloads": 8613
+    "downloads": 6565
   },
   {
     "id": 206,
@@ -1420,7 +1420,7 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "tracking"
     ],
     "status": "approved",
-    "downloads": 8862
+    "downloads": 3556
   },
   {
     "id": 207,
@@ -1443,7 +1443,7 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "out-for-delivery"
     ],
     "status": "approved",
-    "downloads": 3707
+    "downloads": 1080
   },
   {
     "id": 208,
@@ -1465,7 +1465,7 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "feedback"
     ],
     "status": "approved",
-    "downloads": 7978
+    "downloads": 9323
   },
   {
     "id": 209,
@@ -1489,7 +1489,7 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "refund"
     ],
     "status": "approved",
-    "downloads": 6795
+    "downloads": 2217
   },
   {
     "id": 210,
@@ -1513,7 +1513,7 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "reminder"
     ],
     "status": "approved",
-    "downloads": 3833
+    "downloads": 2164
   },
   {
     "id": 211,
@@ -1536,7 +1536,7 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "confirmation"
     ],
     "status": "approved",
-    "downloads": 2395
+    "downloads": 6350
   },
   {
     "id": 212,
@@ -1559,7 +1559,7 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "reminder"
     ],
     "status": "approved",
-    "downloads": 5036
+    "downloads": 8791
   },
   {
     "id": 213,
@@ -1582,7 +1582,7 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "appointment"
     ],
     "status": "approved",
-    "downloads": 5056
+    "downloads": 2644
   },
   {
     "id": 214,
@@ -1605,7 +1605,7 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "received"
     ],
     "status": "approved",
-    "downloads": 5715
+    "downloads": 4960
   },
   {
     "id": 215,
@@ -1628,7 +1628,7 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "billing"
     ],
     "status": "approved",
-    "downloads": 3477
+    "downloads": 7665
   },
   {
     "id": 216,
@@ -1651,7 +1651,7 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "renewal"
     ],
     "status": "approved",
-    "downloads": 8337
+    "downloads": 8691
   },
   {
     "id": 217,
@@ -1674,7 +1674,7 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "failed"
     ],
     "status": "approved",
-    "downloads": 4600
+    "downloads": 6928
   },
   {
     "id": 218,
@@ -1697,7 +1697,7 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "processed"
     ],
     "status": "approved",
-    "downloads": 5054
+    "downloads": 1915
   },
   {
     "id": 219,
@@ -1719,7 +1719,7 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "support"
     ],
     "status": "approved",
-    "downloads": 5499
+    "downloads": 7391
   },
   {
     "id": 220,
@@ -1741,7 +1741,7 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "resolved"
     ],
     "status": "approved",
-    "downloads": 4371
+    "downloads": 4977
   },
   {
     "id": 221,
@@ -1762,7 +1762,7 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "nps"
     ],
     "status": "approved",
-    "downloads": 2238
+    "downloads": 5024
   },
   {
     "id": 222,
@@ -1782,7 +1782,7 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "support"
     ],
     "status": "approved",
-    "downloads": 6769
+    "downloads": 2072
   },
   {
     "id": 223,
@@ -1805,7 +1805,7 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "education"
     ],
     "status": "approved",
-    "downloads": 3440
+    "downloads": 4752
   },
   {
     "id": 224,
@@ -1829,7 +1829,7 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "reminder"
     ],
     "status": "approved",
-    "downloads": 7663
+    "downloads": 1178
   },
   {
     "id": 225,
@@ -1850,7 +1850,7 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "exam"
     ],
     "status": "approved",
-    "downloads": 4977
+    "downloads": 2825
   },
   {
     "id": 226,
@@ -1872,7 +1872,7 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "notification"
     ],
     "status": "approved",
-    "downloads": 4636
+    "downloads": 2222
   },
   {
     "id": 227,
@@ -1896,7 +1896,7 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "appointment"
     ],
     "status": "approved",
-    "downloads": 4479
+    "downloads": 5614
   },
   {
     "id": 228,
@@ -1918,7 +1918,7 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "report"
     ],
     "status": "approved",
-    "downloads": 6467
+    "downloads": 7939
   },
   {
     "id": 229,
@@ -1940,7 +1940,7 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "refill"
     ],
     "status": "approved",
-    "downloads": 9455
+    "downloads": 4885
   },
   {
     "id": 230,
@@ -1961,7 +1961,7 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "reminder"
     ],
     "status": "approved",
-    "downloads": 6873
+    "downloads": 3701
   },
   {
     "id": 231,
@@ -1984,7 +1984,7 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "workspace"
     ],
     "status": "approved",
-    "downloads": 5253
+    "downloads": 1607
   },
   {
     "id": 232,
@@ -2007,7 +2007,7 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "onboarding"
     ],
     "status": "approved",
-    "downloads": 8202
+    "downloads": 1870
   },
   {
     "id": 233,
@@ -2029,7 +2029,7 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "expiry"
     ],
     "status": "approved",
-    "downloads": 5596
+    "downloads": 5203
   },
   {
     "id": 234,
@@ -2052,7 +2052,7 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "activation"
     ],
     "status": "approved",
-    "downloads": 3853
+    "downloads": 4029
   },
   {
     "id": 235,
@@ -2075,7 +2075,7 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "limit"
     ],
     "status": "approved",
-    "downloads": 9328
+    "downloads": 8597
   },
   {
     "id": 236,
@@ -2100,7 +2100,7 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "banking"
     ],
     "status": "approved",
-    "downloads": 3198
+    "downloads": 5537
   },
   {
     "id": 237,
@@ -2122,7 +2122,7 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "compliance"
     ],
     "status": "approved",
-    "downloads": 4192
+    "downloads": 6016
   },
   {
     "id": 238,
@@ -2145,7 +2145,7 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "update"
     ],
     "status": "approved",
-    "downloads": 8805
+    "downloads": 4461
   },
   {
     "id": 239,
@@ -2167,7 +2167,7 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "banking"
     ],
     "status": "approved",
-    "downloads": 5632
+    "downloads": 6488
   },
   {
     "id": 240,
@@ -2190,7 +2190,7 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "logistics"
     ],
     "status": "approved",
-    "downloads": 2378
+    "downloads": 6084
   },
   {
     "id": 241,
@@ -2212,7 +2212,7 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "shipment"
     ],
     "status": "approved",
-    "downloads": 2877
+    "downloads": 5158
   },
   {
     "id": 242,
@@ -2235,7 +2235,7 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "arriving"
     ],
     "status": "approved",
-    "downloads": 3926
+    "downloads": 7978
   },
   {
     "id": 243,
@@ -2258,7 +2258,160 @@ export const PRE_APPROVED_TEMPLATES: PreApprovedTemplate[] = [
       "completed"
     ],
     "status": "approved",
-    "downloads": 8736
+    "downloads": 1960
+  },
+  {
+    "id": 244,
+    "name": "Account Verified",
+    "category": "Notifications",
+    "industry": "SaaS & CRM",
+    "metaCategory": "UTILITY",
+    "icon": "BadgeCheck",
+    "description": "Confirm account verification",
+    "body": "Hi {{1}}, your account on *{{2}}* has been verified ✅\n\nGet started: {{3}}",
+    "variables": [
+      "Customer Name",
+      "Product",
+      "Get Started URL"
+    ],
+    "tags": [
+      "verified",
+      "account"
+    ],
+    "status": "approved",
+    "downloads": 2589
+  },
+  {
+    "id": 245,
+    "name": "2FA Enabled",
+    "category": "Authentication",
+    "industry": "SaaS & CRM",
+    "metaCategory": "UTILITY",
+    "icon": "ShieldCheck",
+    "description": "Confirm two-factor authentication enabled",
+    "body": "Hi {{1}}, two-factor authentication is now enabled on your *{{2}}* account.\n\nIf this wasn't you, contact support: {{3}}",
+    "variables": [
+      "Customer Name",
+      "Product",
+      "Support URL"
+    ],
+    "tags": [
+      "2fa",
+      "security"
+    ],
+    "status": "approved",
+    "downloads": 9343
+  },
+  {
+    "id": 246,
+    "name": "Cancellation Confirmation",
+    "category": "Notifications",
+    "industry": "E-commerce",
+    "metaCategory": "UTILITY",
+    "icon": "XCircle",
+    "description": "Confirm an order or booking cancellation",
+    "body": "Hi {{1}}, your {{2}} #{{3}} has been cancelled.\n\nRefund of {{4}} will be processed in {{5}}.",
+    "variables": [
+      "Customer Name",
+      "Type",
+      "Reference",
+      "Amount",
+      "Days"
+    ],
+    "tags": [
+      "cancellation",
+      "refund"
+    ],
+    "status": "approved",
+    "downloads": 2668
+  },
+  {
+    "id": 247,
+    "name": "Document Expiry",
+    "category": "Notifications",
+    "industry": "Finance & Insurance",
+    "metaCategory": "UTILITY",
+    "icon": "FileWarning",
+    "description": "Notify of document expiry",
+    "body": "Hi {{1}}, your {{2}} expires on {{3}}. Renew in 2 mins to avoid service disruption: {{4}}",
+    "variables": [
+      "Customer Name",
+      "Document",
+      "Expiry Date",
+      "Renew URL"
+    ],
+    "tags": [
+      "expiry",
+      "renewal"
+    ],
+    "status": "approved",
+    "downloads": 2967
+  },
+  {
+    "id": 248,
+    "name": "Address Verification",
+    "category": "Notifications",
+    "industry": "Logistics",
+    "metaCategory": "UTILITY",
+    "icon": "MapPin",
+    "description": "Verify delivery address",
+    "body": "Hi {{1}}, please confirm the delivery address for order #{{2}}:\n\n{{3}}\n\nReply *YES* to confirm or update: {{4}}",
+    "variables": [
+      "Customer Name",
+      "Order ID",
+      "Address",
+      "Update URL"
+    ],
+    "tags": [
+      "address",
+      "verification"
+    ],
+    "status": "approved",
+    "downloads": 6000
+  },
+  {
+    "id": 249,
+    "name": "Stock Allocation",
+    "category": "Notifications",
+    "industry": "E-commerce",
+    "metaCategory": "UTILITY",
+    "icon": "Package",
+    "description": "Notify when wish-listed item is reserved for customer",
+    "body": "Hi {{1}}, we've reserved *{{2}}* in your cart for {{3}} hours.\n\nComplete checkout: {{4}}",
+    "variables": [
+      "Customer Name",
+      "Product",
+      "Hours",
+      "Checkout URL"
+    ],
+    "tags": [
+      "stock",
+      "reservation"
+    ],
+    "status": "approved",
+    "downloads": 4309
+  },
+  {
+    "id": 250,
+    "name": "Service Activation",
+    "category": "Notifications",
+    "industry": "SaaS & CRM",
+    "metaCategory": "UTILITY",
+    "icon": "Power",
+    "description": "Confirm service activation",
+    "body": "Hi {{1}}, your *{{2}}* service is now active.\n\nValid till: {{3}}\nManage: {{4}}",
+    "variables": [
+      "Customer Name",
+      "Service",
+      "Validity",
+      "Manage URL"
+    ],
+    "tags": [
+      "service",
+      "activation"
+    ],
+    "status": "approved",
+    "downloads": 7008
   }
 ];
 
@@ -2274,7 +2427,7 @@ export const TEMPLATE_CATEGORIES = [
 
 export const TEMPLATE_INDUSTRIES = [
   { name: 'All', count: PRE_APPROVED_TEMPLATES.length },
-  ...uniq(PRE_APPROVED_TEMPLATES.map((t) => t.industry).filter(Boolean)).map((name) => ({
+  ...uniq(PRE_APPROVED_TEMPLATES.map((t) => t.industry).filter(Boolean) as string[]).map((name) => ({
     name,
     count: PRE_APPROVED_TEMPLATES.filter((t) => t.industry === name).length,
   })),
