@@ -50,7 +50,7 @@ export function AgentGreetingsCard() {
     seedDefaults,
   } = useGreetingTemplates();
 
-  const [enabled, setEnabled] = useState(false);
+  const [enabled, setEnabled] = useState(true);
   const [savingFlag, setSavingFlag] = useState(false);
   const [loadedFlag, setLoadedFlag] = useState(false);
 
