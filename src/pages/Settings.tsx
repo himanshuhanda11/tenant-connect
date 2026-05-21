@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { SettingsSidebar, SettingsMobileNav } from '@/components/settings/SettingsSidebar';
 import { Skeleton } from '@/components/ui/skeleton';
+import { AgentGreetingsCard } from '@/components/settings/sections/AgentGreetingsCard';
 import { useTenant } from '@/contexts/TenantContext';
 
 const ProfileSettings = lazy(() => import('@/components/settings/sections/ProfileSettings').then(m => ({ default: m.ProfileSettings })));
