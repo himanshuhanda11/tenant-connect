@@ -41,12 +41,12 @@ interface SettingsSection {
 
 const settingsSections: SettingsSection[] = [
   { id: 'profile', label: 'My Profile', icon: UserCircle, group: 'Account' },
-  { id: 'workspace', label: 'Workspace', icon: Building2, group: 'Account' },
   { id: 'appearance', label: 'Appearance', icon: Palette, group: 'Account' },
   { id: 'notifications', label: 'Notifications', icon: Bell, group: 'Account' },
   { id: 'whatsapp', label: 'WhatsApp Number', icon: Phone, group: 'Channels' },
   { id: 'messaging', label: 'Messaging', icon: MessageSquare, group: 'Channels' },
   
+  { id: 'workspace', label: 'Workspace', icon: Building2, group: 'Workspace' },
   { id: 'inbox', label: 'Inbox', icon: Inbox, group: 'Workspace' },
   { id: 'autoreply', label: 'Auto-Reply', icon: Bot, group: 'Workspace' },
   { id: 'automation', label: 'Automation', icon: Zap, group: 'Workspace' },
