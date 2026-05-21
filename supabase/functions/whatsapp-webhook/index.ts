@@ -528,11 +528,32 @@ async function processInboundMessage(
 ) {
   // Determine lead source from referral data (CTWA ads, organic, etc.)
   const referralData = ev.raw?.message?.referral || ev.raw?.value?.contacts?.[0]?.referral;
-  const contactSource = referralData?.source_type === 'ad' ? 'meta_ads' 
-    : referralData ? 'referral' 
+  let contactSource: string = referralData?.source_type === 'ad' ? 'meta_ads'
+    : referralData ? 'referral'
     : 'organic';
-  const campaignSourceId = referralData?.source_id || null;
+  let campaignSourceId: string | null = referralData?.source_id || null;
   const campaignSourceUrl = referralData?.source_url || null;
+
+  // QR Code attribution — match inbound text to an active QR campaign's prefilled message
+  let qrCampaignMatch: { id: string; campaign_name: string } | null = null;
+  if (!referralData && ev.text) {
+    const normalized = ev.text.trim().toLowerCase().slice(0, 1000);
+    if (normalized.length > 0) {
+      const { data: qrCampaigns } = await supabase
+        .from('qr_campaigns')
+        .select('id, campaign_name, prefilled_message')
+        .eq('tenant_id', tenantId)
+        .eq('status', 'active');
+      const match = (qrCampaigns || []).find((c: any) =>
+        (c.prefilled_message || '').trim().toLowerCase() === normalized
+      );
+      if (match) {
+        qrCampaignMatch = { id: match.id, campaign_name: match.campaign_name };
+        contactSource = 'whatsapp_qr_code';
+        campaignSourceId = `QR - ${match.campaign_name}`;
+      }
+    }
+  }
 
   // Upsert contact
   const contactPayload: any = {
@@ -550,14 +571,21 @@ async function processInboundMessage(
     .eq('wa_id', ev.from_wa_id)
     .maybeSingle();
 
+  const isBrandNewContact = !existingContactCheck;
+
   if (!existingContactCheck) {
-    // New contact — set source
     contactPayload.source = contactSource;
     contactPayload.campaign_source = campaignSourceId;
-  } else if (!existingContactCheck.source && referralData) {
-    // Existing contact with no source — update it
+  } else if (!existingContactCheck.source && (referralData || qrCampaignMatch)) {
     contactPayload.source = contactSource;
     contactPayload.campaign_source = campaignSourceId;
+  }
+
+  // If QR matched and contact had no prior source, count as a QR lead
+  if (qrCampaignMatch && (isBrandNewContact || !existingContactCheck?.source)) {
+    await supabase.rpc('increment_qr_lead', { _campaign_id: qrCampaignMatch.id }).catch((e: any) => {
+      console.error('increment_qr_lead failed', e);
+    });
   }
 
   const { data: contact, error: contactError } = await supabase

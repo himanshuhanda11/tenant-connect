@@ -23,6 +23,8 @@ import {
   CheckCircle2,
   Loader2,
   Wand2,
+  Upload,
+  X,
 } from 'lucide-react';
 import { usePhoneNumbers } from '@/hooks/usePhoneNumbers';
 import { useTenant } from '@/contexts/TenantContext';
@@ -78,7 +80,9 @@ export default function QrGeneratorCreate() {
   const [template, setTemplate] = useState<typeof POSTER_TEMPLATES[number]['id']>('premium');
   const [saving, setSaving] = useState(false);
   const [qrDataUrl, setQrDataUrl] = useState<string>('');
+  const [logoDataUrl, setLogoDataUrl] = useState<string>('');
   const posterRef = useRef<HTMLDivElement>(null);
+  const logoInputRef = useRef<HTMLInputElement>(null);
 
   // Hydrate edit mode
   useEffect(() => {
@@ -91,6 +95,7 @@ export default function QrGeneratorCreate() {
     if (cfg.bg) setBg(cfg.bg);
     if (cfg.size) setSize(cfg.size);
     if (cfg.template) setTemplate(cfg.template);
+    if (cfg.logoUrl) setLogoDataUrl(cfg.logoUrl);
   }, [editing]);
 
   // Apply template
@@ -117,18 +122,53 @@ export default function QrGeneratorCreate() {
     return `https://wa.me/${phone}${message ? `?text=${encodeURIComponent(message)}` : ''}`;
   }, [numberE164, message]);
 
-  // Render QR
+  // Render QR (with optional center logo)
   useEffect(() => {
     let cancelled = false;
     (async () => {
       try {
-        const url = await QRCodeStyling.toDataURL(publicUrl, {
-          width: SIZE_PRESETS[size],
+        const targetSize = SIZE_PRESETS[size];
+        const canvas = document.createElement('canvas');
+        await QRCodeStyling.toCanvas(canvas, publicUrl, {
+          width: targetSize,
           margin: 2,
           color: { dark: fg, light: bg },
           errorCorrectionLevel: 'H',
         });
-        if (!cancelled) setQrDataUrl(url);
+
+        if (logoDataUrl) {
+          const ctx = canvas.getContext('2d');
+          if (ctx) {
+            const logo = new Image();
+            logo.crossOrigin = 'anonymous';
+            await new Promise<void>((resolve, reject) => {
+              logo.onload = () => resolve();
+              logo.onerror = () => reject(new Error('logo load failed'));
+              logo.src = logoDataUrl;
+            }).catch(() => {});
+            if (logo.complete && logo.naturalWidth > 0) {
+              const logoSize = Math.round(canvas.width * 0.22);
+              const x = (canvas.width - logoSize) / 2;
+              const y = (canvas.height - logoSize) / 2;
+              const pad = Math.round(logoSize * 0.12);
+              // White rounded backdrop for scanability
+              const r = Math.round(logoSize * 0.18);
+              ctx.fillStyle = bg;
+              ctx.beginPath();
+              const bx = x - pad, by = y - pad, bw = logoSize + pad * 2, bh = logoSize + pad * 2;
+              ctx.moveTo(bx + r, by);
+              ctx.arcTo(bx + bw, by, bx + bw, by + bh, r);
+              ctx.arcTo(bx + bw, by + bh, bx, by + bh, r);
+              ctx.arcTo(bx, by + bh, bx, by, r);
+              ctx.arcTo(bx, by, bx + bw, by, r);
+              ctx.closePath();
+              ctx.fill();
+              ctx.drawImage(logo, x, y, logoSize, logoSize);
+            }
+          }
+        }
+
+        if (!cancelled) setQrDataUrl(canvas.toDataURL('image/png'));
       } catch (e) {
         console.error(e);
       }
@@ -136,7 +176,7 @@ export default function QrGeneratorCreate() {
     return () => {
       cancelled = true;
     };
-  }, [publicUrl, size, fg, bg]);
+  }, [publicUrl, size, fg, bg, logoDataUrl]);
 
   const downloadDataUrl = (data: string, filename: string) => {
     const a = document.createElement('a');
@@ -181,6 +221,26 @@ export default function QrGeneratorCreate() {
     toast.success('Trackable link copied');
   };
 
+  const handleLogoUpload = async (file: File | null) => {
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please upload a PNG, JPG or SVG image');
+      return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error('Logo must be under 2MB');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      setLogoDataUrl(String(reader.result || ''));
+      toast.success('Logo added to QR');
+    };
+    reader.onerror = () => toast.error('Failed to read logo');
+    reader.readAsDataURL(file);
+  };
+
+
   const handleSave = async () => {
     if (!campaignName.trim()) {
       toast.error('Enter a campaign name');
@@ -199,7 +259,7 @@ export default function QrGeneratorCreate() {
         prefilled_message: message,
         cta_text: cta,
         qr_link: publicUrl,
-        qr_design_config: { fg, bg, size, template },
+        qr_design_config: { fg, bg, size, template, logoUrl: logoDataUrl || null },
         qr_image_url: qrDataUrl,
         status: 'active',
       };
@@ -385,6 +445,54 @@ export default function QrGeneratorCreate() {
                     ))}
                   </div>
                 </div>
+
+                <div>
+                  <Label className="mb-2 block text-xs uppercase tracking-wider text-muted-foreground">
+                    Center logo <span className="text-[10px] normal-case text-muted-foreground/70">(optional)</span>
+                  </Label>
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-dashed border-border bg-card">
+                      {logoDataUrl ? (
+                        <img src={logoDataUrl} alt="Logo" className="h-full w-full object-contain" />
+                      ) : (
+                        <Upload className="h-5 w-5 text-muted-foreground" />
+                      )}
+                    </div>
+                    <div className="flex flex-1 flex-wrap gap-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => logoInputRef.current?.click()}
+                      >
+                        <Upload className="mr-1.5 h-3.5 w-3.5" />
+                        {logoDataUrl ? 'Replace logo' : 'Upload logo'}
+                      </Button>
+                      {logoDataUrl && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="text-destructive hover:text-destructive"
+                          onClick={() => setLogoDataUrl('')}
+                        >
+                          <X className="mr-1.5 h-3.5 w-3.5" /> Remove
+                        </Button>
+                      )}
+                      <input
+                        ref={logoInputRef}
+                        type="file"
+                        accept="image/png,image/jpeg,image/svg+xml,image/webp"
+                        className="hidden"
+                        onChange={(e) => handleLogoUpload(e.target.files?.[0] || null)}
+                      />
+                      <p className="basis-full text-[11px] text-muted-foreground">
+                        PNG/JPG/SVG · under 2MB · centered with white backdrop for scanability
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
               </div>
             </Card>
           </div>
