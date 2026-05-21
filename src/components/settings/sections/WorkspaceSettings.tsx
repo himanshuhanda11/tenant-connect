@@ -554,6 +554,9 @@ export function WorkspaceSettings() {
               </Card>
             </>
           )}
+
+          {/* Direct Chat random greetings (10 messages library) */}
+          <AgentGreetingsCard />
         </TabsContent>
 
         <TabsContent value="advanced" className="space-y-6 mt-6">
