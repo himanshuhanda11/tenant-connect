@@ -221,6 +221,26 @@ export default function QrGeneratorCreate() {
     toast.success('Trackable link copied');
   };
 
+  const handleLogoUpload = async (file: File | null) => {
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please upload a PNG, JPG or SVG image');
+      return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error('Logo must be under 2MB');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      setLogoDataUrl(String(reader.result || ''));
+      toast.success('Logo added to QR');
+    };
+    reader.onerror = () => toast.error('Failed to read logo');
+    reader.readAsDataURL(file);
+  };
+
+
   const handleSave = async () => {
     if (!campaignName.trim()) {
       toast.error('Enter a campaign name');
