@@ -133,7 +133,7 @@ export default function QrGeneratorList() {
   const handleDuplicate = async (c: QrCampaign) => {
     const { id, created_at, updated_at, scan_count, lead_count, slug, ...rest } = c as any;
     const newSlug = `${slug}-copy-${Math.random().toString(36).slice(2, 5)}`;
-    const base = import.meta.env.VITE_SUPABASE_URL;
+    const origin = typeof window !== 'undefined' ? window.location.origin : 'https://app.aireatro.com';
     await (await import('@/hooks/useQrCampaigns')).useQrCampaigns;
     // simpler — call create via list mutator
     const { supabase } = await import('@/integrations/supabase/client');
@@ -141,7 +141,7 @@ export default function QrGeneratorList() {
     await supabase.from('qr_campaigns' as any).insert({
       ...rest,
       slug: newSlug,
-      qr_link: `${base}/functions/v1/qr-redirect/${newSlug}`,
+      qr_link: `${origin}/q/${newSlug}`,
       campaign_name: `${c.campaign_name} (copy)`,
       user_id: u.user!.id,
       scan_count: 0,
