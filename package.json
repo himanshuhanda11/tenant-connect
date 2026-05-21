@@ -54,6 +54,7 @@
     "embla-carousel-react": "^8.6.0",
     "emoji-picker-react": "^4.16.1",
     "framer-motion": "^12.34.3",
+    "html2canvas": "^1.4.1",
     "input-otp": "^1.4.2",
     "libphonenumber-js": "^1.13.1",
     "lucide-react": "^0.462.0",
