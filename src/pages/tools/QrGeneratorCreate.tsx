@@ -122,18 +122,53 @@ export default function QrGeneratorCreate() {
     return `https://wa.me/${phone}${message ? `?text=${encodeURIComponent(message)}` : ''}`;
   }, [numberE164, message]);
 
-  // Render QR
+  // Render QR (with optional center logo)
   useEffect(() => {
     let cancelled = false;
     (async () => {
       try {
-        const url = await QRCodeStyling.toDataURL(publicUrl, {
-          width: SIZE_PRESETS[size],
+        const targetSize = SIZE_PRESETS[size];
+        const canvas = document.createElement('canvas');
+        await QRCodeStyling.toCanvas(canvas, publicUrl, {
+          width: targetSize,
           margin: 2,
           color: { dark: fg, light: bg },
           errorCorrectionLevel: 'H',
         });
-        if (!cancelled) setQrDataUrl(url);
+
+        if (logoDataUrl) {
+          const ctx = canvas.getContext('2d');
+          if (ctx) {
+            const logo = new Image();
+            logo.crossOrigin = 'anonymous';
+            await new Promise<void>((resolve, reject) => {
+              logo.onload = () => resolve();
+              logo.onerror = () => reject(new Error('logo load failed'));
+              logo.src = logoDataUrl;
+            }).catch(() => {});
+            if (logo.complete && logo.naturalWidth > 0) {
+              const logoSize = Math.round(canvas.width * 0.22);
+              const x = (canvas.width - logoSize) / 2;
+              const y = (canvas.height - logoSize) / 2;
+              const pad = Math.round(logoSize * 0.12);
+              // White rounded backdrop for scanability
+              const r = Math.round(logoSize * 0.18);
+              ctx.fillStyle = bg;
+              ctx.beginPath();
+              const bx = x - pad, by = y - pad, bw = logoSize + pad * 2, bh = logoSize + pad * 2;
+              ctx.moveTo(bx + r, by);
+              ctx.arcTo(bx + bw, by, bx + bw, by + bh, r);
+              ctx.arcTo(bx + bw, by + bh, bx, by + bh, r);
+              ctx.arcTo(bx, by + bh, bx, by, r);
+              ctx.arcTo(bx, by, bx + bw, by, r);
+              ctx.closePath();
+              ctx.fill();
+              ctx.drawImage(logo, x, y, logoSize, logoSize);
+            }
+          }
+        }
+
+        if (!cancelled) setQrDataUrl(canvas.toDataURL('image/png'));
       } catch (e) {
         console.error(e);
       }
@@ -141,7 +176,7 @@ export default function QrGeneratorCreate() {
     return () => {
       cancelled = true;
     };
-  }, [publicUrl, size, fg, bg]);
+  }, [publicUrl, size, fg, bg, logoDataUrl]);
 
   const downloadDataUrl = (data: string, filename: string) => {
     const a = document.createElement('a');
