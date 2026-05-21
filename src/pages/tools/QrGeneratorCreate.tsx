@@ -239,7 +239,7 @@ export default function QrGeneratorCreate() {
         prefilled_message: message,
         cta_text: cta,
         qr_link: publicUrl,
-        qr_design_config: { fg, bg, size, template },
+        qr_design_config: { fg, bg, size, template, logoUrl: logoDataUrl || null },
         qr_image_url: qrDataUrl,
         status: 'active',
       };
