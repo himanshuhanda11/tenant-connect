@@ -119,8 +119,12 @@ export default function QrGeneratorList() {
       }));
   }, [campaigns]);
 
+  const friendlyLink = (c: QrCampaign) => {
+    const origin = typeof window !== 'undefined' ? window.location.origin : 'https://app.aireatro.com';
+    return c.slug ? `${origin}/q/${c.slug}` : c.qr_link;
+  };
   const handleCopyLink = (c: QrCampaign) => {
-    navigator.clipboard.writeText(c.qr_link);
+    navigator.clipboard.writeText(friendlyLink(c));
     toast.success('Link copied');
   };
 
@@ -133,7 +137,7 @@ export default function QrGeneratorList() {
   const handleDuplicate = async (c: QrCampaign) => {
     const { id, created_at, updated_at, scan_count, lead_count, slug, ...rest } = c as any;
     const newSlug = `${slug}-copy-${Math.random().toString(36).slice(2, 5)}`;
-    const base = import.meta.env.VITE_SUPABASE_URL;
+    const origin = typeof window !== 'undefined' ? window.location.origin : 'https://app.aireatro.com';
     await (await import('@/hooks/useQrCampaigns')).useQrCampaigns;
     // simpler — call create via list mutator
     const { supabase } = await import('@/integrations/supabase/client');
@@ -141,7 +145,7 @@ export default function QrGeneratorList() {
     await supabase.from('qr_campaigns' as any).insert({
       ...rest,
       slug: newSlug,
-      qr_link: `${base}/functions/v1/qr-redirect/${newSlug}`,
+      qr_link: `${origin}/q/${newSlug}`,
       campaign_name: `${c.campaign_name} (copy)`,
       user_id: u.user!.id,
       scan_count: 0,
@@ -345,7 +349,7 @@ export default function QrGeneratorList() {
                           <DropdownMenuItem onClick={() => navigate(`/tools/qr-generator/${c.id}`)}>
                             <Edit className="mr-2 h-3.5 w-3.5" /> Edit
                           </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => window.open(c.qr_link, '_blank')}>
+                          <DropdownMenuItem onClick={() => window.open(friendlyLink(c), '_blank')}>
                             <ExternalLink className="mr-2 h-3.5 w-3.5" /> View
                           </DropdownMenuItem>
                           <DropdownMenuItem onClick={() => handleDuplicate(c)}>

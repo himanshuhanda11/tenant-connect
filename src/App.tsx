@@ -63,6 +63,7 @@ const PhoneNumbers = lazyWithRetry(() => import("./pages/PhoneNumbers"));
 const PhoneNumbersList = lazyWithRetry(() => import("./pages/phone-numbers/PhoneNumbersList"));
 const QrGeneratorList = lazyWithRetry(() => import("./pages/tools/QrGeneratorList"));
 const QrGeneratorCreate = lazyWithRetry(() => import("./pages/tools/QrGeneratorCreate"));
+const QrRedirect = lazyWithRetry(() => import("./pages/tools/QrRedirect"));
 const ConnectNumber = lazyWithRetry(() => import("./pages/phone-numbers/ConnectNumber"));
 import { WhatsAppAccessGuard } from "@/components/billing/WhatsAppAccessGuard";
 const PhoneNumberDetails = lazyWithRetry(() => import("./pages/phone-numbers/PhoneNumberDetails"));
@@ -251,6 +252,7 @@ const App = () => (
                   <Routes>
                     <Route path="/" element={<Index />} />
                     <Route path="/index" element={<Index />} />
+                    <Route path="/q/:slug" element={<QrRedirect />} />
                     
                     <Route path="/auth/callback" element={<AuthCallback />} />
                     <Route path="/~oauth/initiate" element={<LegacyOAuthInitiate />} />

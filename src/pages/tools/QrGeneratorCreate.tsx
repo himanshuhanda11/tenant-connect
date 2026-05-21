@@ -113,8 +113,8 @@ export default function QrGeneratorCreate() {
   }, [campaignName, editing]);
 
   const publicUrl = useMemo(() => {
-    const base = import.meta.env.VITE_SUPABASE_URL;
-    return `${base}/functions/v1/qr-redirect/${slug}`;
+    const origin = typeof window !== 'undefined' ? window.location.origin : 'https://app.aireatro.com';
+    return `${origin}/q/${slug}`;
   }, [slug]);
 
   const waUrl = useMemo(() => {
