@@ -68,14 +68,12 @@ Deno.serve(async (req) => {
     referrer: req.headers.get("referer")?.slice(0, 500) || null,
   });
 
-  // Increment scan count
-  await supabase.rpc("increment_qr_scan", { _campaign_id: campaign.id }).catch(() => {
-    // Fallback: best-effort update
-    supabase
-      .from("qr_campaigns")
-      .update({ scan_count: (undefined as any) })
-      .eq("id", campaign.id);
-  });
+  // Increment scan count (best-effort)
+  try {
+    await supabase.rpc("increment_qr_scan", { _campaign_id: campaign.id });
+  } catch (e) {
+    console.error("increment_qr_scan failed", e);
+  }
 
   const phone = String(campaign.whatsapp_number).replace(/[^0-9]/g, "");
   const text = encodeURIComponent(campaign.prefilled_message || "");
