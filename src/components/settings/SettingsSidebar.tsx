@@ -16,7 +16,7 @@ import {
   Bot,
   Palette,
   UserCircle,
-  
+  Sparkles,
   ChevronDown,
   Check,
 } from 'lucide-react';
@@ -45,6 +45,7 @@ const settingsSections: SettingsSection[] = [
   { id: 'notifications', label: 'Notifications', icon: Bell, group: 'Account' },
   { id: 'whatsapp', label: 'WhatsApp Number', icon: Phone, group: 'Channels' },
   { id: 'messaging', label: 'Messaging', icon: MessageSquare, group: 'Channels' },
+  { id: 'greetings', label: 'Direct Chat Greetings', icon: Sparkles, group: 'Channels' },
   
   { id: 'workspace', label: 'Workspace', icon: Building2, group: 'Workspace' },
   { id: 'inbox', label: 'Inbox', icon: Inbox, group: 'Workspace' },
