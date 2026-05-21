@@ -23,6 +23,8 @@ import {
   CheckCircle2,
   Loader2,
   Wand2,
+  Upload,
+  X,
 } from 'lucide-react';
 import { usePhoneNumbers } from '@/hooks/usePhoneNumbers';
 import { useTenant } from '@/contexts/TenantContext';
