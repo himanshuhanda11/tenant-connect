@@ -218,6 +218,74 @@ export default function QrGeneratorList() {
           <StatCard icon={Sparkles} label="Best Campaign" value={stats.best?.campaign_name?.slice(0, 14) || '—'} accent="from-amber-500 to-orange-500" />
         </div>
 
+        {/* Charts */}
+        {campaigns.length > 0 && (
+          <div className="grid gap-4 lg:grid-cols-3">
+            <Card className="p-5 lg:col-span-2">
+              <div className="mb-3 flex items-center justify-between">
+                <div>
+                  <h3 className="text-base font-semibold">Daily Scans</h3>
+                  <p className="text-xs text-muted-foreground">Last 14 days</p>
+                </div>
+                <Badge variant="outline" className="text-[10px]">
+                  {scans.length} total
+                </Badge>
+              </div>
+              <div className="h-56 w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={dailySeries} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
+                    <defs>
+                      <linearGradient id="qrScanFill" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="hsl(152 70% 45%)" stopOpacity={0.45} />
+                        <stop offset="100%" stopColor="hsl(152 70% 45%)" stopOpacity={0} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+                    <XAxis dataKey="date" tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" />
+                    <YAxis allowDecimals={false} tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" />
+                    <Tooltip
+                      contentStyle={{
+                        background: 'hsl(var(--popover))',
+                        border: '1px solid hsl(var(--border))',
+                        borderRadius: 8,
+                        fontSize: 12,
+                      }}
+                    />
+                    <Area type="monotone" dataKey="scans" stroke="hsl(152 70% 40%)" strokeWidth={2} fill="url(#qrScanFill)" />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+            </Card>
+
+            <Card className="p-5">
+              <div className="mb-3">
+                <h3 className="text-base font-semibold">Top Campaigns</h3>
+                <p className="text-xs text-muted-foreground">Scans vs. leads</p>
+              </div>
+              <div className="h-56 w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={perCampaign} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+                    <XAxis dataKey="name" tick={{ fontSize: 10 }} stroke="hsl(var(--muted-foreground))" interval={0} />
+                    <YAxis allowDecimals={false} tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" />
+                    <Tooltip
+                      contentStyle={{
+                        background: 'hsl(var(--popover))',
+                        border: '1px solid hsl(var(--border))',
+                        borderRadius: 8,
+                        fontSize: 12,
+                      }}
+                    />
+                    <Bar dataKey="scans" fill="hsl(152 70% 45%)" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="leads" fill="hsl(199 89% 55%)" radius={[4, 4, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </Card>
+          </div>
+        )}
+
+
         {/* Search */}
         {campaigns.length > 0 && (
           <div className="relative max-w-md">
