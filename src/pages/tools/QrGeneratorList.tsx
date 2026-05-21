@@ -87,6 +87,38 @@ export default function QrGeneratorList() {
     return { totalScans, totalLeads, conv, best };
   }, [campaigns]);
 
+  // Daily scans series (last 14 days)
+  const dailySeries = useMemo(() => {
+    const days = 14;
+    const buckets: Record<string, number> = {};
+    for (let i = days - 1; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      const key = d.toISOString().slice(0, 10);
+      buckets[key] = 0;
+    }
+    (scans as any[]).forEach((s) => {
+      const key = String(s.created_at).slice(0, 10);
+      if (key in buckets) buckets[key] += 1;
+    });
+    return Object.entries(buckets).map(([date, scans]) => ({
+      date: new Date(date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }),
+      scans,
+    }));
+  }, [scans]);
+
+  // Per-campaign performance
+  const perCampaign = useMemo(() => {
+    return [...campaigns]
+      .sort((a, b) => (b.scan_count || 0) - (a.scan_count || 0))
+      .slice(0, 6)
+      .map((c) => ({
+        name: c.campaign_name.length > 16 ? c.campaign_name.slice(0, 14) + '…' : c.campaign_name,
+        scans: c.scan_count || 0,
+        leads: c.lead_count || 0,
+      }));
+  }, [campaigns]);
+
   const handleCopyLink = (c: QrCampaign) => {
     navigator.clipboard.writeText(c.qr_link);
     toast.success('Link copied');
