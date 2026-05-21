@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { useGreetingTemplates } from '@/hooks/useGreetingTemplates';
 import { useAuth } from '@/contexts/AuthContext';
+import { useTenant } from '@/contexts/TenantContext';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -137,8 +138,15 @@ export function InboxChatThread({
   viewerName,
 }: InboxChatThreadProps) {
   const { user } = useAuth();
+  const { currentRole } = useTenant();
   const { getRandomMessage } = useGreetingTemplates();
   const [personalGreetingsEnabled, setPersonalGreetingsEnabled] = useState(true);
+  // For owner/admin, random workspace greetings only fire on chats they have claimed (assigned to themselves).
+  // Agents keep their existing per-agent greeting behavior unchanged.
+  const isOwnerOrAdmin = currentRole === 'owner' || currentRole === 'admin';
+  const greetingApplies = isOwnerOrAdmin
+    ? conversation?.assigned_to === user?.id
+    : true;
 
   // Load agent's personal greetings toggle (default ON unless explicitly disabled)
   useEffect(() => {
@@ -403,7 +411,7 @@ export function InboxChatThread({
                 <TooltipTrigger asChild>
                   <a
                     href={(() => {
-                      if (!personalGreetingsEnabled) {
+                      if (!personalGreetingsEnabled || !greetingApplies) {
                         return `https://wa.me/${conversation.contact?.wa_id}`;
                       }
                       const name = conversation.contact?.name || conversation.contact?.first_name || 'there';
