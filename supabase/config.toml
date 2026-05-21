@@ -123,3 +123,6 @@ project_id = "fygwjpdasnhaomoqdvcu"
 
   [functions.credits-low-balance-alerts]
     verify_jwt = false
+
+  [functions.qr-redirect]
+    verify_jwt = false
