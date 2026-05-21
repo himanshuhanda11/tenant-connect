@@ -349,7 +349,7 @@ export default function QrGeneratorList() {
                           <DropdownMenuItem onClick={() => navigate(`/tools/qr-generator/${c.id}`)}>
                             <Edit className="mr-2 h-3.5 w-3.5" /> Edit
                           </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => window.open(c.qr_link, '_blank')}>
+                          <DropdownMenuItem onClick={() => window.open(friendlyLink(c), '_blank')}>
                             <ExternalLink className="mr-2 h-3.5 w-3.5" /> View
                           </DropdownMenuItem>
                           <DropdownMenuItem onClick={() => handleDuplicate(c)}>
