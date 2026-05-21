@@ -130,7 +130,10 @@ export function useGreetingTemplates() {
     const replace = (msg: string) =>
       msg.replace(/\{\{name\}\}/g, contactName).replace(/\{\{biz\}\}/g, businessName).replace(/\{\{agent_name\}\}/g, agent);
     const active = templates.filter(t => t.is_active);
-    if (active.length === 0) return replace(DEFAULT_TEMPLATES[0]);
+    if (active.length === 0) {
+      const pick = DEFAULT_TEMPLATES[Math.floor(Math.random() * DEFAULT_TEMPLATES.length)];
+      return replace(pick);
+    }
     const pick = active[Math.floor(Math.random() * active.length)];
     return replace(pick.message_text);
   };
