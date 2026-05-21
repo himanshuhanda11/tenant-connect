@@ -80,7 +80,9 @@ export default function QrGeneratorCreate() {
   const [template, setTemplate] = useState<typeof POSTER_TEMPLATES[number]['id']>('premium');
   const [saving, setSaving] = useState(false);
   const [qrDataUrl, setQrDataUrl] = useState<string>('');
+  const [logoDataUrl, setLogoDataUrl] = useState<string>('');
   const posterRef = useRef<HTMLDivElement>(null);
+  const logoInputRef = useRef<HTMLInputElement>(null);
 
   // Hydrate edit mode
   useEffect(() => {
