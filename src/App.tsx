@@ -61,6 +61,8 @@ const WidgetTest = lazyWithRetry(() => import("./pages/widgets/WidgetTest"));
 const WidgetAnalytics = lazyWithRetry(() => import("./pages/widgets/WidgetAnalytics"));
 const PhoneNumbers = lazyWithRetry(() => import("./pages/PhoneNumbers"));
 const PhoneNumbersList = lazyWithRetry(() => import("./pages/phone-numbers/PhoneNumbersList"));
+const QrGeneratorList = lazyWithRetry(() => import("./pages/tools/QrGeneratorList"));
+const QrGeneratorCreate = lazyWithRetry(() => import("./pages/tools/QrGeneratorCreate"));
 const ConnectNumber = lazyWithRetry(() => import("./pages/phone-numbers/ConnectNumber"));
 import { WhatsAppAccessGuard } from "@/components/billing/WhatsAppAccessGuard";
 const PhoneNumberDetails = lazyWithRetry(() => import("./pages/phone-numbers/PhoneNumberDetails"));
@@ -309,6 +311,9 @@ const App = () => (
                     <Route path="/widgets/:id/leads" element={<WidgetLeads />} />
                     <Route path="/widgets/:id/analytics" element={<WidgetAnalytics />} />
                     <Route path="/widgets/:id/test" element={<WidgetTest />} />
+                    <Route path="/tools/qr-generator" element={<QrGeneratorList />} />
+                    <Route path="/tools/qr-generator/create" element={<QrGeneratorCreate />} />
+                    <Route path="/tools/qr-generator/:id" element={<QrGeneratorCreate />} />
                     <Route path="/team" element={<TeamOverview />} />
                     <Route path="/team/overview" element={<TeamOverview />} />
                     <Route path="/team/members" element={<TeamMembers />} />

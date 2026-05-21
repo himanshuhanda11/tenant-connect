@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useLocation, useNavigate, Link } from 'react-router-dom';
-import { LayoutDashboard, Users, Settings, LogOut, ChevronDown, ChevronRight, Plus, Inbox, Contact, Phone, FileText, Send, Zap, CreditCard, Shield, UsersRound, Route, Clock, ScrollText, Tag, ListFilter, HelpCircle, Megaphone, BarChart3, Link2, Target, Workflow, Cog, Building2, TrendingUp, Headphones, Check, Puzzle, PanelLeftClose, PanelLeft, User, ChevronUp, ExternalLink, AlertTriangle, Ban, UserX, MessageCircle, CalendarClock, CheckCircle2, ShieldBan, Instagram, PlugZap, Sparkles, Copy } from 'lucide-react';
+import { LayoutDashboard, Users, Settings, LogOut, ChevronDown, ChevronRight, Plus, Inbox, Contact, Phone, FileText, Send, Zap, CreditCard, Shield, UsersRound, Route, Clock, ScrollText, Tag, ListFilter, HelpCircle, Megaphone, BarChart3, Link2, Target, Workflow, Cog, Building2, TrendingUp, Headphones, Check, Puzzle, PanelLeftClose, PanelLeft, User, ChevronUp, ExternalLink, AlertTriangle, Ban, UserX, MessageCircle, CalendarClock, CheckCircle2, ShieldBan, Instagram, PlugZap, Sparkles, Copy, QrCode } from 'lucide-react';
 import { toast } from 'sonner';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from '@/components/ui/sidebar';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
@@ -71,6 +71,7 @@ const growthMenuItems: MenuItem[] = [
   { title: 'Form Rules', url: '/automation/form-rules', icon: FileText, key: 'form-rules', isNew: true, docUrl: '/help/form-rules' },
   { title: 'Flows', url: '/flows', icon: Workflow, key: 'flows', docUrl: '/help/automation' },
   { title: 'Website Widget', url: '/widgets', icon: MessageCircle, key: 'widgets', isNew: true },
+  { title: 'QR Code', url: '/tools/qr-generator', icon: QrCode, key: 'qr-generator', isNew: true },
 ];
 
 const metaAdsMenuItems: MenuItem[] = [
