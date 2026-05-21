@@ -7941,6 +7941,122 @@ export type Database = {
         }
         Relationships: []
       }
+      qr_campaigns: {
+        Row: {
+          campaign_name: string
+          created_at: string
+          cta_text: string | null
+          id: string
+          lead_count: number
+          prefilled_message: string
+          qr_design_config: Json
+          qr_image_url: string | null
+          qr_link: string
+          scan_count: number
+          slug: string
+          status: string
+          tenant_id: string
+          updated_at: string
+          user_id: string
+          whatsapp_number: string
+        }
+        Insert: {
+          campaign_name: string
+          created_at?: string
+          cta_text?: string | null
+          id?: string
+          lead_count?: number
+          prefilled_message?: string
+          qr_design_config?: Json
+          qr_image_url?: string | null
+          qr_link: string
+          scan_count?: number
+          slug: string
+          status?: string
+          tenant_id: string
+          updated_at?: string
+          user_id: string
+          whatsapp_number: string
+        }
+        Update: {
+          campaign_name?: string
+          created_at?: string
+          cta_text?: string | null
+          id?: string
+          lead_count?: number
+          prefilled_message?: string
+          qr_design_config?: Json
+          qr_image_url?: string | null
+          qr_link?: string
+          scan_count?: number
+          slug?: string
+          status?: string
+          tenant_id?: string
+          updated_at?: string
+          user_id?: string
+          whatsapp_number?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "qr_campaigns_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "platform_workspace_directory"
+            referencedColumns: ["workspace_id"]
+          },
+          {
+            foreignKeyName: "qr_campaigns_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      qr_scan_events: {
+        Row: {
+          browser: string | null
+          created_at: string
+          device_type: string | null
+          id: string
+          ip_hash: string | null
+          qr_campaign_id: string
+          referrer: string | null
+          tenant_id: string
+          user_agent: string | null
+        }
+        Insert: {
+          browser?: string | null
+          created_at?: string
+          device_type?: string | null
+          id?: string
+          ip_hash?: string | null
+          qr_campaign_id: string
+          referrer?: string | null
+          tenant_id: string
+          user_agent?: string | null
+        }
+        Update: {
+          browser?: string | null
+          created_at?: string
+          device_type?: string | null
+          id?: string
+          ip_hash?: string | null
+          qr_campaign_id?: string
+          referrer?: string | null
+          tenant_id?: string
+          user_agent?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "qr_scan_events_qr_campaign_id_fkey"
+            columns: ["qr_campaign_id"]
+            isOneToOne: false
+            referencedRelation: "qr_campaigns"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       qualified_leads: {
         Row: {
           captured: Json
