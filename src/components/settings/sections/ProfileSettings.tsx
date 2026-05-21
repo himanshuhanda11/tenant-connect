@@ -12,7 +12,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useTenant } from '@/contexts/TenantContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { AgentGreetingsCard } from './AgentGreetingsCard';
+
 
 export function ProfileSettings() {
   const { user, profile } = useAuth();
@@ -319,8 +319,6 @@ export function ProfileSettings() {
         </CardContent>
       </Card>
 
-      {/* Direct Chat Greetings (multi-template) */}
-      <AgentGreetingsCard />
 
       {/* Change Password */}
       <Card>
