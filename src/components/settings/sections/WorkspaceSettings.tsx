@@ -19,7 +19,7 @@ import { usePhoneNumbers } from '@/hooks/usePhoneNumbers';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { ContactAdminDialog } from '@/components/settings/ContactAdminDialog';
-import { AgentGreetingsCard } from '@/components/settings/sections/AgentGreetingsCard';
+
 
 const workspaceSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters').max(100),
@@ -554,9 +554,6 @@ export function WorkspaceSettings() {
               </Card>
             </>
           )}
-
-          {/* Direct Chat random greetings (10 messages library) */}
-          <AgentGreetingsCard />
         </TabsContent>
 
         <TabsContent value="advanced" className="space-y-6 mt-6">
