@@ -40,6 +40,17 @@ import {
   Sparkles,
 } from 'lucide-react';
 import { useQrCampaigns, useQrAnalytics, type QrCampaign } from '@/hooks/useQrCampaigns';
+import {
+  ResponsiveContainer,
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  Tooltip,
+  CartesianGrid,
+  BarChart,
+  Bar,
+} from 'recharts';
 
 function StatCard({ icon: Icon, label, value, accent }: any) {
   return (
