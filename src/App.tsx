@@ -252,6 +252,7 @@ const App = () => (
                   <Routes>
                     <Route path="/" element={<Index />} />
                     <Route path="/index" element={<Index />} />
+                    <Route path="/q/:slug" element={<QrRedirect />} />
                     
                     <Route path="/auth/callback" element={<AuthCallback />} />
                     <Route path="/~oauth/initiate" element={<LegacyOAuthInitiate />} />
