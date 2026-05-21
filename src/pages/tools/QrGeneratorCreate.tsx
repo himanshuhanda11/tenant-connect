@@ -95,6 +95,7 @@ export default function QrGeneratorCreate() {
     if (cfg.bg) setBg(cfg.bg);
     if (cfg.size) setSize(cfg.size);
     if (cfg.template) setTemplate(cfg.template);
+    if (cfg.logoUrl) setLogoDataUrl(cfg.logoUrl);
   }, [editing]);
 
   // Apply template
