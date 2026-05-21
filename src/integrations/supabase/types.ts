@@ -17861,6 +17861,7 @@ export type Database = {
         Args: { p_amount: number; p_campaign_id: string }
         Returns: undefined
       }
+      increment_qr_lead: { Args: { _campaign_id: string }; Returns: undefined }
       increment_qr_scan: { Args: { _campaign_id: string }; Returns: undefined }
       increment_usage: {
         Args: { p_amount?: number; p_counter: string; p_tenant_id: string }
