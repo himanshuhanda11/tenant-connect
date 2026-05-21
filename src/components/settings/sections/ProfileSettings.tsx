@@ -319,8 +319,6 @@ export function ProfileSettings() {
         </CardContent>
       </Card>
 
-      {/* Direct Chat Greetings (multi-template) */}
-      <AgentGreetingsCard />
 
       {/* Change Password */}
       <Card>
