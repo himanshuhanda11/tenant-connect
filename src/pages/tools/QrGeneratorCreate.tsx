@@ -445,6 +445,54 @@ export default function QrGeneratorCreate() {
                     ))}
                   </div>
                 </div>
+
+                <div>
+                  <Label className="mb-2 block text-xs uppercase tracking-wider text-muted-foreground">
+                    Center logo <span className="text-[10px] normal-case text-muted-foreground/70">(optional)</span>
+                  </Label>
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-dashed border-border bg-card">
+                      {logoDataUrl ? (
+                        <img src={logoDataUrl} alt="Logo" className="h-full w-full object-contain" />
+                      ) : (
+                        <Upload className="h-5 w-5 text-muted-foreground" />
+                      )}
+                    </div>
+                    <div className="flex flex-1 flex-wrap gap-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => logoInputRef.current?.click()}
+                      >
+                        <Upload className="mr-1.5 h-3.5 w-3.5" />
+                        {logoDataUrl ? 'Replace logo' : 'Upload logo'}
+                      </Button>
+                      {logoDataUrl && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="text-destructive hover:text-destructive"
+                          onClick={() => setLogoDataUrl('')}
+                        >
+                          <X className="mr-1.5 h-3.5 w-3.5" /> Remove
+                        </Button>
+                      )}
+                      <input
+                        ref={logoInputRef}
+                        type="file"
+                        accept="image/png,image/jpeg,image/svg+xml,image/webp"
+                        className="hidden"
+                        onChange={(e) => handleLogoUpload(e.target.files?.[0] || null)}
+                      />
+                      <p className="basis-full text-[11px] text-muted-foreground">
+                        PNG/JPG/SVG · under 2MB · centered with white backdrop for scanability
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
               </div>
             </Card>
           </div>
