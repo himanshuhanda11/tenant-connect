@@ -50,7 +50,7 @@ export function AgentGreetingsCard() {
     seedDefaults,
   } = useGreetingTemplates();
 
-  const [enabled, setEnabled] = useState(false);
+  const [enabled, setEnabled] = useState(true);
   const [savingFlag, setSavingFlag] = useState(false);
   const [loadedFlag, setLoadedFlag] = useState(false);
 
@@ -60,7 +60,7 @@ export function AgentGreetingsCard() {
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState<'all' | 'active' | 'disabled'>('all');
 
-  // Load enable flag
+  // Load enable flag (default ON unless explicitly disabled)
   useEffect(() => {
     if (!user?.id || !currentTenant?.id) return;
     (async () => {
@@ -70,7 +70,7 @@ export function AgentGreetingsCard() {
         .eq('user_id', user.id)
         .eq('tenant_id', currentTenant.id)
         .maybeSingle();
-      setEnabled(!!data?.personal_greetings_enabled);
+      setEnabled(data?.personal_greetings_enabled !== false);
       setLoadedFlag(true);
     })();
   }, [user?.id, currentTenant?.id]);
@@ -80,11 +80,17 @@ export function AgentGreetingsCard() {
     setEnabled(next);
     setSavingFlag(true);
     try {
+      // Upsert so it works for workspace owners who may not have an agents row
       const { error } = await supabase
         .from('agents')
-        .update({ personal_greetings_enabled: next })
-        .eq('user_id', user.id)
-        .eq('tenant_id', currentTenant.id);
+        .upsert(
+          {
+            user_id: user.id,
+            tenant_id: currentTenant.id,
+            personal_greetings_enabled: next,
+          },
+          { onConflict: 'tenant_id,user_id' }
+        );
       if (error) throw error;
       toast.success(next ? 'Personal greetings enabled' : 'Personal greetings disabled');
     } catch (err: any) {

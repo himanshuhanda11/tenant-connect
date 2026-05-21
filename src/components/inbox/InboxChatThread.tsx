@@ -138,9 +138,9 @@ export function InboxChatThread({
 }: InboxChatThreadProps) {
   const { user } = useAuth();
   const { getRandomMessage } = useGreetingTemplates();
-  const [personalGreetingsEnabled, setPersonalGreetingsEnabled] = useState(false);
+  const [personalGreetingsEnabled, setPersonalGreetingsEnabled] = useState(true);
 
-  // Load agent's personal greetings toggle
+  // Load agent's personal greetings toggle (default ON unless explicitly disabled)
   useEffect(() => {
     if (!user?.id || !conversation?.tenant_id) return;
     (async () => {
@@ -150,7 +150,8 @@ export function InboxChatThread({
         .eq('user_id', user.id)
         .eq('tenant_id', conversation.tenant_id)
         .maybeSingle();
-      setPersonalGreetingsEnabled(!!data?.personal_greetings_enabled);
+      // Default to TRUE when no agent row (e.g. workspace owner) or column null
+      setPersonalGreetingsEnabled(data?.personal_greetings_enabled !== false);
     })();
   }, [user?.id, conversation?.tenant_id]);
   const [messageText, setMessageText] = useState('');
