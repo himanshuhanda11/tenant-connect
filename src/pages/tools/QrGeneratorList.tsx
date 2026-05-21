@@ -119,8 +119,12 @@ export default function QrGeneratorList() {
       }));
   }, [campaigns]);
 
+  const friendlyLink = (c: QrCampaign) => {
+    const origin = typeof window !== 'undefined' ? window.location.origin : 'https://app.aireatro.com';
+    return c.slug ? `${origin}/q/${c.slug}` : c.qr_link;
+  };
   const handleCopyLink = (c: QrCampaign) => {
-    navigator.clipboard.writeText(c.qr_link);
+    navigator.clipboard.writeText(friendlyLink(c));
     toast.success('Link copied');
   };
 
