@@ -926,9 +926,16 @@ async function processInboundMessage(
           const SUPA_URL = Deno.env.get('SUPABASE_URL')!;
           const SVC_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
           const hdrs = { 'Content-Type': 'application/json', Authorization: `Bearer ${SVC_KEY}` };
+          const rawInteractive = (ev as any).raw?.message?.interactive;
+          const buttonReplyId = rawInteractive?.button_reply?.id || (ev as any).raw?.message?.button?.payload || null;
+          const listReplyId = rawInteractive?.list_reply?.id || null;
           const resumeRes = await fetch(`${SUPA_URL}/functions/v1/flow-engine`, {
             method: 'POST', headers: hdrs,
-            body: JSON.stringify({ action: 'resume', tenant_id: tenantId, contact_id: contactId, message_text: (ev as any).text ?? '' }),
+            body: JSON.stringify({
+              action: 'resume', tenant_id: tenantId, contact_id: contactId,
+              message_text: (ev as any).text ?? '',
+              button_id: buttonReplyId, list_id: listReplyId,
+            }),
           });
           const resumeJson: any = await resumeRes.json().catch(() => ({}));
           if (resumeJson?.skipped === 'no_waiting') {
