@@ -1174,6 +1174,7 @@ export function InboxChatThread({
                   )}
                 </Button>
               </div>
+              )}
             </>
           )}
         </div>
