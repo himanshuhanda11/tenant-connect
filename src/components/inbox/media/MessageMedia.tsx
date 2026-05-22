@@ -62,7 +62,15 @@ export function MessageMedia({ message, isOutbound }: MessageMediaProps) {
       );
 
     case 'audio':
-      return <AudioPreview url={media_url || ''} isOutbound={isOutbound} mediaBucket={media_bucket || undefined} mediaPath={media_path || undefined} />;
+      return (
+        <VoicePlayer
+          url={media_url || ''}
+          isOutbound={isOutbound}
+          mediaBucket={media_bucket || undefined}
+          mediaPath={media_path || undefined}
+          fileName={fileName}
+        />
+      );
 
     case 'sticker':
       return <StickerPreview url={media_url || ''} />;
