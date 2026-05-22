@@ -238,6 +238,7 @@ const FlowBuilder = () => {
   const [isDraggingNew, setIsDraggingNew] = useState(false);
   const [dragNodeType, setDragNodeType] = useState<string | null>(null);
   const [connecting, setConnecting] = useState<string | null>(null);
+  const [connectingHandle, setConnectingHandle] = useState<{ id: string; label: string; index: number } | null>(null);
   
   // Modal states
   const [testModalOpen, setTestModalOpen] = useState(false);
