@@ -1165,7 +1165,7 @@ const FlowBuilder = () => {
                                           await updateNode(node.node_key, { config: cfg });
                                           // Remove the matching edge if present
                                           const edge = edges.find((ed: any) => ed.source_node_key === node.node_key && ed.source_handle === c.id);
-                                          if (edge) await deleteEdge(edge.source_node_key, edge.target_node_key, c.id);
+                                          if (edge) await deleteEdge((edge as any).edge_key);
                                         }}
                                         className="w-4 h-4 rounded-full bg-muted hover:bg-destructive hover:text-destructive-foreground text-muted-foreground flex items-center justify-center transition-colors"
                                       >
