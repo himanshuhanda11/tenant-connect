@@ -15,6 +15,7 @@ import RoutePrefetcher from "@/components/RoutePrefetcher";
 import Index from "./pages/Index";
 import aireatroLogo from "@/assets/aireatro-logo.png";
 import { RequirePermission } from "@/components/auth/RequirePermission";
+import { RequireSuperAdmin } from "@/components/auth/RequireSuperAdmin";
 import { RequirePlanSelection } from "@/components/auth/RequirePlanSelection";
 import { WhatsAppVerificationGate } from "@/components/auth/WhatsAppVerificationGate";
 import { LaunchOfferProvider } from "@/components/offer/LaunchOfferProvider";
