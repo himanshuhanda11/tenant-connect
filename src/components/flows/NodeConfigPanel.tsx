@@ -61,6 +61,11 @@ export function NodeConfigPanel({ node, onUpdate }: NodeConfigPanelProps) {
         <TemplateConfig config={config} updateConfig={updateConfig} />
       )}
 
+      {/* Collect Form */}
+      {node.node_type === 'collect-form' && (
+        <CollectFormConfig config={config} updateConfig={updateConfig} />
+      )}
+
       {/* Condition */}
       {node.node_type === 'condition' && (
         <ConditionConfig config={config} updateConfig={updateConfig} />
@@ -696,5 +701,103 @@ function AddSegmentConfig({ config, updateConfig }: ConfigProps) {
         onChange={(e) => updateConfig({ segment: e.target.value })}
       />
     </div>
+  );
+}
+
+interface FormField {
+  key: string;
+  label: string;
+  type: string;
+  required?: boolean;
+}
+
+function CollectFormConfig({ config, updateConfig }: ConfigProps) {
+  const fields: FormField[] = config.fields || [];
+  const setField = (idx: number, patch: Partial<FormField>) => {
+    const next = [...fields];
+    next[idx] = { ...next[idx], ...patch };
+    updateConfig({ fields: next });
+  };
+  const removeField = (idx: number) =>
+    updateConfig({ fields: fields.filter((_, i) => i !== idx) });
+  const addField = () =>
+    updateConfig({
+      fields: [...fields, { key: `field_${fields.length + 1}`, label: '', type: 'text', required: true }],
+    });
+
+  return (
+    <>
+      <div className="space-y-2">
+        <Label className="text-xs">Intro Message (optional)</Label>
+        <Textarea
+          className="min-h-[60px] text-sm"
+          placeholder="Great! I just need a few details..."
+          value={config.intro || ''}
+          onChange={(e) => updateConfig({ intro: e.target.value })}
+        />
+      </div>
+
+      <div className="space-y-2">
+        <Label className="text-xs">Fields to Collect ({fields.length})</Label>
+        {fields.map((f, idx) => (
+          <div key={idx} className="rounded-lg border border-border p-2.5 space-y-2 bg-muted/30">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] text-muted-foreground">Question {idx + 1}</span>
+              <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => removeField(idx)}>
+                <Trash2 className="w-3 h-3 text-destructive" />
+              </Button>
+            </div>
+            <Input
+              className="text-sm"
+              placeholder="Question text (e.g. What is your name?)"
+              value={f.label}
+              onChange={(e) => setField(idx, { label: e.target.value })}
+            />
+            <div className="grid grid-cols-2 gap-2">
+              <Input
+                className="text-xs"
+                placeholder="save_as (e.g. name)"
+                value={f.key}
+                onChange={(e) => setField(idx, { key: e.target.value.replace(/\s+/g, '_').toLowerCase() })}
+              />
+              <Select value={f.type || 'text'} onValueChange={(v) => setField(idx, { type: v })}>
+                <SelectTrigger className="h-9 text-xs"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="text">Text</SelectItem>
+                  <SelectItem value="email">Email</SelectItem>
+                  <SelectItem value="phone">Phone</SelectItem>
+                  <SelectItem value="number">Number</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <label className="flex items-center gap-2 text-xs text-muted-foreground">
+              <input
+                type="checkbox"
+                checked={f.required ?? true}
+                onChange={(e) => setField(idx, { required: e.target.checked })}
+              />
+              Required
+            </label>
+          </div>
+        ))}
+        <Button variant="outline" size="sm" className="w-full gap-1.5 text-xs" onClick={addField}>
+          <Plus className="w-3.5 h-3.5" /> Add Question
+        </Button>
+      </div>
+
+      <div className="space-y-2">
+        <Label className="text-xs">Completion Message (optional)</Label>
+        <Textarea
+          className="min-h-[50px] text-sm"
+          placeholder="Thanks! We've saved your details."
+          value={config.completion_message || ''}
+          onChange={(e) => updateConfig({ completion_message: e.target.value })}
+        />
+      </div>
+
+      <p className="text-[10px] text-muted-foreground">
+        Customer is asked one question at a time. Answers are saved as contact attributes using the <em>save_as</em> key.
+      </p>
+    </>
   );
 }

@@ -84,6 +84,7 @@ import {
   ArrowDown,
   Loader2,
   Star,
+  ClipboardList,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useFlowBuilder } from '@/hooks/useFlows';
@@ -116,6 +117,7 @@ const nodeCategories = [
       { type: 'media', label: 'Media', icon: Image, description: 'Send image, video, or audio' },
       { type: 'document', label: 'Document', icon: FileText, description: 'Send a document file' },
       { type: 'template', label: 'Template', icon: Send, description: 'Send an approved template' },
+      { type: 'collect-form', label: 'Collect Info (Form)', icon: ClipboardList, description: 'Ask customer to fill multiple details, one question at a time' },
     ],
   },
   {
@@ -177,6 +179,7 @@ const nodeColors: Record<string, { bg: string; border: string; icon: string }> =
   media: { bg: 'bg-blue-500/10', border: 'border-blue-500/50', icon: 'text-blue-600' },
   document: { bg: 'bg-blue-500/10', border: 'border-blue-500/50', icon: 'text-blue-600' },
   template: { bg: 'bg-blue-500/10', border: 'border-blue-500/50', icon: 'text-blue-600' },
+  'collect-form': { bg: 'bg-indigo-500/10', border: 'border-indigo-500/50', icon: 'text-indigo-600' },
   condition: { bg: 'bg-amber-500/10', border: 'border-amber-500/50', icon: 'text-amber-600' },
   switch: { bg: 'bg-amber-500/10', border: 'border-amber-500/50', icon: 'text-amber-600' },
   delay: { bg: 'bg-slate-500/10', border: 'border-slate-500/50', icon: 'text-slate-600' },
