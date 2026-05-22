@@ -228,7 +228,9 @@ const FlowBuilder = () => {
   const [flowName, setFlowName] = useState('');
   const [selectedNodeKey, setSelectedNodeKey] = useState<string | null>(null);
   const [rightPanelTab, setRightPanelTab] = useState('settings');
-  const [zoom, setZoom] = useState(100);
+  const [zoom, setZoom] = useState(80);
+  const [isPanning, setIsPanning] = useState(false);
+  const panStart = useRef<{ x: number; y: number; sl: number; st: number } | null>(null);
   const [expandedCategories, setExpandedCategories] = useState<string[]>(['Messages']);
   const [isDraggingNew, setIsDraggingNew] = useState(false);
   const [dragNodeType, setDragNodeType] = useState<string | null>(null);
