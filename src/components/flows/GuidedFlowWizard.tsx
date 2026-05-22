@@ -130,7 +130,7 @@ export const GuidedFlowWizard: React.FC<GuidedFlowWizardProps> = ({ open, onOpen
   };
 
   const canNext = (() => {
-    if (step === 0) return !!goal;
+    if (step === 0) return !!goal && (goal !== 'custom' || customIndustry.trim().length > 1);
     if (step === 1) return !!trigger && (trigger !== 'keyword' || keyword.trim().length > 0);
     if (step === 2) return welcome.trim().length > 0;
     if (step === 3) return question.trim().length > 0;
