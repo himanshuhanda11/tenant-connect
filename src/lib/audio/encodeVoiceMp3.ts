@@ -38,7 +38,8 @@ export async function encodeVoiceToMp3(blob: Blob): Promise<File> {
     const finalChunk = encoder.flush();
     if (finalChunk.length) chunks.push(finalChunk);
 
-    return new File(chunks, `voice-${Date.now()}.mp3`, { type: 'audio/mpeg' });
+    const blobParts = chunks.map((chunk) => new Uint8Array(chunk));
+    return new File(blobParts, `voice-${Date.now()}.mp3`, { type: 'audio/mpeg' });
   } finally {
     try { await ctx.close(); } catch {}
   }
