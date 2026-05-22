@@ -704,7 +704,11 @@ const FlowBuilder = () => {
                 </button>
                 {expandedCategories.includes('Prebuilt Flow') && (
                   <div className="ml-2 mt-1 space-y-1 pl-4 border-l border-border">
-                    {PREBUILT_FLOWS.map((pf) => (
+                    {[...PREBUILT_FLOWS].sort((a, b) => {
+                      const aSa = a.category === 'study_abroad' ? 1 : 0;
+                      const bSa = b.category === 'study_abroad' ? 1 : 0;
+                      return aSa - bSa;
+                    }).map((pf) => (
                       <Tooltip key={pf.id} delayDuration={300}>
                         <TooltipTrigger asChild>
                           <button
