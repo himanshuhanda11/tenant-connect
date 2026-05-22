@@ -79,13 +79,16 @@ Deno.serve(async (req) => {
     const allowedTypes = [
       'image/jpeg', 'image/png', 'image/gif', 'image/webp',
       'video/mp4', 'video/3gpp',
-      'audio/aac', 'audio/mp4', 'audio/mpeg', 'audio/ogg',
+      'audio/aac', 'audio/mp4', 'audio/mpeg', 'audio/ogg', 'audio/webm', 'audio/amr',
       'application/pdf',
       'application/vnd.ms-excel',
       'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
       'application/msword',
       'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
     ];
+
+    // Normalize codec-suffixed mime types like "audio/ogg;codecs=opus"
+    const baseType = (file.type || '').split(';')[0].trim().toLowerCase();
 
     if (!allowedTypes.includes(file.type)) {
       return new Response(JSON.stringify({ error: `File type ${file.type} not allowed` }), {
