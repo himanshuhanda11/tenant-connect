@@ -68,6 +68,7 @@ export default function Templates() {
   const [editingVersion, setEditingVersion] = useState<TemplateVersion | null>(null);
   const [previewTemplate, setPreviewTemplate] = useState<TemplateType | null>(null);
   const [syncingMeta, setSyncingMeta] = useState(false);
+  const [submittingTemplateId, setSubmittingTemplateId] = useState<string | null>(null);
   const [reviewModalTemplate, setReviewModalTemplate] = useState<TemplateType | null>(null);
   const [isCreating, setIsCreating] = useState(false);
   const [currentLintResults, setCurrentLintResults] = useState<any[]>([]);
@@ -118,9 +119,15 @@ export default function Templates() {
       toast.error('No version to submit');
       return;
     }
+    if (submittingTemplateId) return;
     // submitToMeta now auto-approves internally, no need to check internal_status
-    await submitToMeta(template.id);
-    fetchTemplates(filters);
+    setSubmittingTemplateId(template.id);
+    try {
+      await submitToMeta(template.id);
+      await fetchTemplates(filters);
+    } finally {
+      setSubmittingTemplateId(null);
+    }
   };
 
   const handleDuplicate = async (template: TemplateType) => {
@@ -221,7 +228,8 @@ export default function Templates() {
   const handleBuilderSaveAndSubmit = async (data: TemplateBuilderData) => {
     const saved = await handleBuilderSave(data);
     if (!saved) return;
-    await submitToMeta(saved.id);
+    const submitted = await submitToMeta(saved.id);
+    if (!submitted) return;
     setEditingTemplate(null);
     setEditingVersion(null);
     setIsCreating(false);
@@ -406,6 +414,7 @@ export default function Templates() {
               onDuplicate={handleDuplicate}
               onArchive={handleArchive}
               onDelete={handleDelete}
+              submittingTemplateId={submittingTemplateId}
               filters={filters}
               onFiltersChange={setFilters}
               onCreateNew={handleCreateNew}
