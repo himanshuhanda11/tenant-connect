@@ -97,9 +97,41 @@ export function FormPreviewDialog({ open, onOpenChange, templateId, templateName
               <div className="flex items-center justify-center py-8 text-sm text-muted-foreground">
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" /> Loading template…
               </div>
-            ) : !template && !templateName ? (
+            ) : !template && !templateName && !(builderFields && builderFields.length) ? (
               <div className="text-sm text-muted-foreground py-6 text-center">
-                No template selected yet. Pick a template in the Form step.
+                No template selected yet. Pick a template or add fields in the Form step.
+              </div>
+            ) : builderFields && builderFields.length > 0 && !template ? (
+              <div className="rounded-2xl bg-[#0b1f1c]/5 dark:bg-[#0b1f1c] p-4">
+                <div className="mx-auto max-w-[320px] space-y-2">
+                  {introMessage && (
+                    <div className="ml-auto max-w-[85%] bg-[hsl(152,42%,52%)] text-white rounded-2xl rounded-tr-sm px-3 py-2 text-sm shadow-sm whitespace-pre-wrap">
+                      {introMessage}
+                    </div>
+                  )}
+                  <div className="ml-auto max-w-[90%] bg-background dark:bg-muted rounded-2xl rounded-tr-sm px-3 py-3 text-sm shadow-sm border border-border space-y-2">
+                    <div className="font-semibold text-xs text-muted-foreground uppercase tracking-wide">
+                      {templateName || 'Your Form'}
+                    </div>
+                    {builderFields.map((f: any, i: number) => (
+                      <div key={f.id || i} className="space-y-0.5">
+                        <div className="text-xs font-medium">
+                          {f.label || `Field ${i + 1}`}
+                          {f.required && <span className="text-destructive ml-0.5">*</span>}
+                        </div>
+                        <div className="h-7 rounded-md bg-muted/60 border border-border/60 px-2 text-[11px] text-muted-foreground flex items-center">
+                          {f.placeholder || (f.type === 'select' ? 'Select an option…' : `Enter ${f.label?.toLowerCase() || 'value'}…`)}
+                        </div>
+                      </div>
+                    ))}
+                    <button className="w-full mt-1 bg-[hsl(152,42%,52%)] text-white rounded-md text-xs py-1.5 font-medium">
+                      Submit
+                    </button>
+                  </div>
+                </div>
+                <div className="text-center mt-3 text-[10px] text-muted-foreground">
+                  WhatsApp-style form preview ({builderFields.length} field{builderFields.length === 1 ? '' : 's'})
+                </div>
               </div>
             ) : (
               <div className="rounded-2xl bg-[#0b1f1c]/5 dark:bg-[#0b1f1c] p-4">
