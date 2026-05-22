@@ -31,8 +31,13 @@ export default function MailLogin() {
       if (!token) throw new Error("No active session");
 
       const res = await fetch(
-        `https://${import.meta.env.VITE_SUPABASE_PROJECT_ID}.supabase.co/functions/v1/admin-api/me`,
-        { headers: { Authorization: `Bearer ${token}` } }
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/admin-api/me`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+          },
+        }
       );
       if (!res.ok) {
         await supabase.auth.signOut();
@@ -47,7 +52,7 @@ export default function MailLogin() {
       }
       const params = new URLSearchParams(window.location.search);
       const redirect = params.get("redirect") || "/mail";
-      navigate(redirect, { replace: true });
+      window.location.replace(redirect);
     } catch (e: any) {
       await supabase.auth.signOut();
       setError(e?.message || "Access verification failed");
