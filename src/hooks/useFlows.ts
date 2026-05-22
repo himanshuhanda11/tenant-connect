@@ -83,7 +83,8 @@ export interface FlowDiagnostic {
   node_key: string | null;
 }
 
-const FLOW_START_RIGHT_GAP = 560;
+const FLOW_START_RIGHT_GAP = 520;
+const FLOW_NODE_VERTICAL_GAP = 170;
 
 function positionNodesToRightOfStart<T extends { position_x: number; position_y: number }>(
   templateNodes: T[],
@@ -91,15 +92,15 @@ function positionNodesToRightOfStart<T extends { position_x: number; position_y:
 ) {
   if (templateNodes.length === 0) return templateNodes;
 
-  const minTemplateX = Math.min(...templateNodes.map(n => n.position_x));
-  const minTemplateY = Math.min(...templateNodes.map(n => n.position_y));
   const anchorX = startNode.position_x + FLOW_START_RIGHT_GAP;
   const anchorY = startNode.position_y;
 
-  return templateNodes.map(node => ({
+  return [...templateNodes]
+    .sort((a, b) => a.position_y - b.position_y || a.position_x - b.position_x)
+    .map((node, index) => ({
     ...node,
-    position_x: anchorX + (node.position_x - minTemplateX),
-    position_y: anchorY + (node.position_y - minTemplateY),
+    position_x: anchorX,
+    position_y: anchorY + index * FLOW_NODE_VERTICAL_GAP,
   }));
 }
 
