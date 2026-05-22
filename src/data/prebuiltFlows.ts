@@ -15,7 +15,7 @@ export interface PrebuiltFlow {
   name: string;
   description: string;
   emoji: string;
-  category: 'study_abroad' | 'real_estate' | 'ecommerce' | 'healthcare' | 'general' | 'visa' | 'travel' | 'support' | 'followup';
+  category: 'study_abroad' | 'real_estate' | 'ecommerce' | 'healthcare' | 'general' | 'visa' | 'travel' | 'support' | 'followup' | 'restaurant' | 'salon' | 'fitness' | 'education' | 'automotive' | 'finance' | 'events' | 'hospitality' | 'professional';
   nodes: PrebuiltFlowNode[];
 }
 
@@ -499,6 +499,214 @@ export const PREBUILT_FLOWS: PrebuiltFlow[] = [
       { node_key: 'final', node_type: 'text-buttons', label: 'Final Touchpoint', position_x: 400, position_y: 900, config: { message: 'Hey {{first_name}}, this is our final note. Reply anytime — we are here when you are ready 🙌' } },
     ],
   },
+  // ────────────────────────────────────────────────────────────
+  // COMMON BUSINESS TEMPLATES (15 new)
+  // ────────────────────────────────────────────────────────────
+  {
+    id: 'restaurant_reservation', name: 'Restaurant – Reservation', emoji: '🍽️', category: 'restaurant',
+    description: 'Take a table booking: party size, date/time, special requests → confirm',
+    nodes: [
+      { node_key: 'welcome', node_type: 'text-buttons', label: 'Welcome', position_x: 400, position_y: 100, config: { message: 'Hi {{first_name}} 👋 Welcome to our restaurant! Would you like to book a table?', buttons: ['Book Table', 'See Menu', 'Order Takeaway'] } },
+      { node_key: 'ask_pax', node_type: 'text-buttons', label: 'Party Size', position_x: 400, position_y: 260, config: { message: 'How many guests?', buttons: ['2', '3-4', '5-6', '7+'], save_variable: 'party_size' } },
+      { node_key: 'ask_date', node_type: 'text-buttons', label: 'Date & Time', position_x: 400, position_y: 420, config: { message: 'Which date and time would you prefer?\nExample: Friday 8 PM', save_variable: 'reservation_time' } },
+      { node_key: 'ask_special', node_type: 'text-buttons', label: 'Special Request', position_x: 400, position_y: 580, config: { message: 'Any special requests? (birthday, allergies, seating)', buttons: ['None', 'Birthday', 'Window Seat', 'Allergies'], save_variable: 'special_request' } },
+      { node_key: 'tag_res', node_type: 'add-tag', label: 'Tag Reservation', position_x: 400, position_y: 740, config: { action: 'add', tag: 'Reservation' } },
+      { node_key: 'assign_host', node_type: 'assign-agent', label: 'Notify Host', position_x: 400, position_y: 900, config: { strategy: 'round_robin' } },
+      { node_key: 'confirm', node_type: 'text-buttons', label: 'Confirm', position_x: 400, position_y: 1060, config: { message: 'Your reservation request is in! Our host will confirm shortly. ✅' } },
+    ],
+  },
+  {
+    id: 'restaurant_takeaway', name: 'Restaurant – Takeaway Order', emoji: '🥡', category: 'restaurant',
+    description: 'Menu category → item → quantity → address → confirmation',
+    nodes: [
+      { node_key: 'welcome', node_type: 'text-buttons', label: 'Welcome', position_x: 400, position_y: 100, config: { message: 'Hi {{first_name}} 🥡 What would you like to order?', buttons: ['Starters', 'Mains', 'Desserts', 'Drinks'] } },
+      { node_key: 'ask_items', node_type: 'text-buttons', label: 'Items', position_x: 400, position_y: 260, config: { message: 'Please type the items and quantity.\nExample: 2 Margherita, 1 Coke', save_variable: 'order_items' } },
+      { node_key: 'ask_mode', node_type: 'text-buttons', label: 'Pickup or Delivery', position_x: 400, position_y: 420, config: { message: 'Pickup or delivery?', buttons: ['Pickup', 'Delivery'], save_variable: 'fulfilment' } },
+      { node_key: 'ask_address', node_type: 'text-buttons', label: 'Address', position_x: 400, position_y: 580, config: { message: 'Please share the delivery address (skip if pickup).', save_variable: 'address' } },
+      { node_key: 'tag_order', node_type: 'add-tag', label: 'Tag Order', position_x: 400, position_y: 740, config: { action: 'add', tag: 'Takeaway-Order' } },
+      { node_key: 'assign_kitchen', node_type: 'assign-agent', label: 'Send to Kitchen', position_x: 400, position_y: 900, config: { strategy: 'round_robin' } },
+    ],
+  },
+  {
+    id: 'salon_booking', name: 'Salon – Appointment Booking', emoji: '💇', category: 'salon',
+    description: 'Service → preferred stylist → date/time → confirm',
+    nodes: [
+      { node_key: 'welcome', node_type: 'text-buttons', label: 'Welcome', position_x: 400, position_y: 100, config: { message: 'Hi {{first_name}} 💇 Which service would you like?', buttons: ['Haircut', 'Hair Color', 'Facial', 'Spa', 'Bridal'] } },
+      { node_key: 'ask_stylist', node_type: 'text-buttons', label: 'Stylist', position_x: 400, position_y: 260, config: { message: 'Any preferred stylist?', buttons: ['Any', 'Senior', 'Specialist'], save_variable: 'stylist_pref' } },
+      { node_key: 'ask_time', node_type: 'text-buttons', label: 'Date / Time', position_x: 400, position_y: 420, config: { message: 'Pick a slot.\nExample: Saturday 4 PM', save_variable: 'slot' } },
+      { node_key: 'tag', node_type: 'add-tag', label: 'Tag Booking', position_x: 400, position_y: 580, config: { action: 'add', tag: 'Salon-Booking' } },
+      { node_key: 'assign', node_type: 'assign-agent', label: 'Assign Receptionist', position_x: 400, position_y: 740, config: { strategy: 'round_robin' } },
+      { node_key: 'confirm', node_type: 'text-buttons', label: 'Confirm', position_x: 400, position_y: 900, config: { message: 'Booking received ✅ Our team will confirm your appointment shortly.' } },
+    ],
+  },
+  {
+    id: 'spa_wellness', name: 'Spa & Wellness Booking', emoji: '🧖', category: 'salon',
+    description: 'Treatment, therapist gender, duration → assign',
+    nodes: [
+      { node_key: 'welcome', node_type: 'text-buttons', label: 'Welcome', position_x: 400, position_y: 100, config: { message: 'Welcome to our spa 🧖 Which treatment would you like?', buttons: ['Swedish', 'Deep Tissue', 'Aromatherapy', 'Couples'] } },
+      { node_key: 'duration', node_type: 'text-buttons', label: 'Duration', position_x: 400, position_y: 260, config: { message: 'How long would you like?', buttons: ['60 min', '90 min', '120 min'], save_variable: 'duration' } },
+      { node_key: 'therapist', node_type: 'text-buttons', label: 'Therapist', position_x: 400, position_y: 420, config: { message: 'Any preference for therapist?', buttons: ['Female', 'Male', 'No preference'], save_variable: 'therapist_pref' } },
+      { node_key: 'slot', node_type: 'text-buttons', label: 'Slot', position_x: 400, position_y: 580, config: { message: 'Preferred date and time?', save_variable: 'slot' } },
+      { node_key: 'tag', node_type: 'add-tag', label: 'Tag Spa Lead', position_x: 400, position_y: 740, config: { action: 'add', tag: 'Spa-Booking' } },
+      { node_key: 'assign', node_type: 'assign-agent', label: 'Assign Manager', position_x: 400, position_y: 900, config: { strategy: 'round_robin' } },
+    ],
+  },
+  {
+    id: 'gym_membership', name: 'Gym – Membership Enquiry', emoji: '💪', category: 'fitness',
+    description: 'Goal, plan, trial booking → assign trainer',
+    nodes: [
+      { node_key: 'welcome', node_type: 'text-buttons', label: 'Welcome', position_x: 400, position_y: 100, config: { message: 'Hi {{first_name}} 💪 What is your fitness goal?', buttons: ['Weight Loss', 'Muscle Gain', 'General Fitness', 'Personal Training'], save_variable: 'goal' } },
+      { node_key: 'plan', node_type: 'text-buttons', label: 'Plan', position_x: 400, position_y: 260, config: { message: 'Which plan are you interested in?', buttons: ['Monthly', 'Quarterly', 'Yearly'], save_variable: 'plan' } },
+      { node_key: 'trial', node_type: 'text-buttons', label: 'Free Trial', position_x: 400, position_y: 420, config: { message: 'Would you like a free trial session?', buttons: ['Yes, tomorrow', 'This week', 'Just info'] } },
+      { node_key: 'tag', node_type: 'add-tag', label: 'Tag Gym Lead', position_x: 400, position_y: 580, config: { action: 'add', tag: 'Gym-Lead' } },
+      { node_key: 'assign', node_type: 'assign-agent', label: 'Assign Trainer', position_x: 400, position_y: 740, config: { strategy: 'round_robin' } },
+    ],
+  },
+  {
+    id: 'yoga_studio', name: 'Yoga Studio – Class Booking', emoji: '🧘', category: 'fitness',
+    description: 'Class type, level, schedule → assign instructor',
+    nodes: [
+      { node_key: 'welcome', node_type: 'text-buttons', label: 'Welcome', position_x: 400, position_y: 100, config: { message: 'Namaste {{first_name}} 🧘 Which class interests you?', buttons: ['Hatha', 'Vinyasa', 'Power Yoga', 'Meditation'] } },
+      { node_key: 'level', node_type: 'text-buttons', label: 'Level', position_x: 400, position_y: 260, config: { message: 'What is your level?', buttons: ['Beginner', 'Intermediate', 'Advanced'], save_variable: 'level' } },
+      { node_key: 'mode', node_type: 'text-buttons', label: 'Mode', position_x: 400, position_y: 420, config: { message: 'Online or studio?', buttons: ['Online', 'Studio', 'Both'] } },
+      { node_key: 'tag', node_type: 'add-tag', label: 'Tag Yoga Lead', position_x: 400, position_y: 580, config: { action: 'add', tag: 'Yoga-Lead' } },
+      { node_key: 'assign', node_type: 'assign-agent', label: 'Assign Instructor', position_x: 400, position_y: 740, config: { strategy: 'round_robin' } },
+    ],
+  },
+  {
+    id: 'dental_clinic', name: 'Dental Clinic – Appointment', emoji: '🦷', category: 'healthcare',
+    description: 'Concern, preferred slot, insurance → assign dentist',
+    nodes: [
+      { node_key: 'welcome', node_type: 'text-buttons', label: 'Welcome', position_x: 400, position_y: 100, config: { message: 'Hi {{first_name}} 🦷 What is your concern?', buttons: ['Cleaning', 'Pain', 'Braces', 'Implants', 'Consultation'], save_variable: 'concern' } },
+      { node_key: 'slot', node_type: 'text-buttons', label: 'Slot', position_x: 400, position_y: 260, config: { message: 'Preferred day and time?', save_variable: 'slot' } },
+      { node_key: 'insurance', node_type: 'text-buttons', label: 'Insurance', position_x: 400, position_y: 420, config: { message: 'Do you have dental insurance?', buttons: ['Yes', 'No', 'Not sure'], save_variable: 'insurance' } },
+      { node_key: 'tag', node_type: 'add-tag', label: 'Tag Patient', position_x: 400, position_y: 580, config: { action: 'add', tag: 'Dental-Lead' } },
+      { node_key: 'assign', node_type: 'assign-agent', label: 'Assign Dentist', position_x: 400, position_y: 740, config: { strategy: 'round_robin' } },
+    ],
+  },
+  {
+    id: 'doctor_clinic', name: 'Doctor / Clinic – Appointment', emoji: '🩺', category: 'healthcare',
+    description: 'Specialty, symptoms, preferred time → assign doctor',
+    nodes: [
+      { node_key: 'welcome', node_type: 'text-buttons', label: 'Welcome', position_x: 400, position_y: 100, config: { message: 'Hi {{first_name}} 🩺 Which specialty do you need?', buttons: ['General', 'Pediatrician', 'Skin', 'Cardiology', 'Other'], save_variable: 'specialty' } },
+      { node_key: 'symptoms', node_type: 'text-buttons', label: 'Symptoms', position_x: 400, position_y: 260, config: { message: 'Briefly describe your symptoms.', save_variable: 'symptoms' } },
+      { node_key: 'slot', node_type: 'text-buttons', label: 'Slot', position_x: 400, position_y: 420, config: { message: 'Preferred day and time?', save_variable: 'slot' } },
+      { node_key: 'tag', node_type: 'add-tag', label: 'Tag Patient', position_x: 400, position_y: 580, config: { action: 'add', tag: 'Clinic-Lead' } },
+      { node_key: 'assign', node_type: 'assign-agent', label: 'Assign Doctor', position_x: 400, position_y: 740, config: { strategy: 'round_robin' } },
+    ],
+  },
+  {
+    id: 'ecom_order_status', name: 'E-commerce – Order Status', emoji: '📦', category: 'ecommerce',
+    description: 'Ask order ID, route to order team',
+    nodes: [
+      { node_key: 'welcome', node_type: 'text-buttons', label: 'Welcome', position_x: 400, position_y: 100, config: { message: 'Hi {{first_name}} 📦 How can we help?', buttons: ['Order Status', 'Return / Refund', 'Product Question', 'Talk to Human'] } },
+      { node_key: 'order_id', node_type: 'text-buttons', label: 'Order ID', position_x: 400, position_y: 260, config: { message: 'Please share your order ID.', save_variable: 'order_id' } },
+      { node_key: 'tag', node_type: 'add-tag', label: 'Tag Support', position_x: 400, position_y: 420, config: { action: 'add', tag: 'Ecom-Support' } },
+      { node_key: 'assign', node_type: 'assign-agent', label: 'Assign Agent', position_x: 400, position_y: 580, config: { strategy: 'round_robin' } },
+    ],
+  },
+  {
+    id: 'ecom_abandoned_cart', name: 'E-commerce – Abandoned Cart Recovery', emoji: '🛒', category: 'ecommerce',
+    description: 'Delay → reminder → offer code',
+    nodes: [
+      { node_key: 'delay', node_type: 'delay', label: 'Wait 1 hour', position_x: 400, position_y: 100, config: { duration: 1, unit: 'hours' } },
+      { node_key: 'reminder', node_type: 'text-buttons', label: 'Reminder', position_x: 400, position_y: 260, config: { message: 'Hi {{first_name}} 👋 You left items in your cart. Want to complete the order?', buttons: ['Resume', 'Need Help', 'Not Now'] } },
+      { node_key: 'delay2', node_type: 'delay', label: 'Wait 24h', position_x: 400, position_y: 420, config: { duration: 24, unit: 'hours' } },
+      { node_key: 'offer', node_type: 'text-buttons', label: 'Offer Code', position_x: 400, position_y: 580, config: { message: 'Special for you: use code SAVE10 for 10% off — valid 24h only ⏰' } },
+    ],
+  },
+  {
+    id: 'car_dealer', name: 'Car Dealership – Test Drive', emoji: '🚗', category: 'automotive',
+    description: 'Model, budget, test drive slot → assign sales',
+    nodes: [
+      { node_key: 'welcome', node_type: 'text-buttons', label: 'Welcome', position_x: 400, position_y: 100, config: { message: 'Hi {{first_name}} 🚗 Which model interests you?', buttons: ['Sedan', 'SUV', 'EV', 'Hatchback'] } },
+      { node_key: 'budget', node_type: 'text-buttons', label: 'Budget', position_x: 400, position_y: 260, config: { message: 'Your budget range?', buttons: ['<10L', '10–20L', '20–40L', '40L+'], save_variable: 'budget' } },
+      { node_key: 'testdrive', node_type: 'text-buttons', label: 'Test Drive', position_x: 400, position_y: 420, config: { message: 'Would you like to book a free test drive?', buttons: ['Yes – this week', 'Next week', 'Just info'] } },
+      { node_key: 'tag', node_type: 'add-tag', label: 'Tag Auto Lead', position_x: 400, position_y: 580, config: { action: 'add', tag: 'Auto-Lead' } },
+      { node_key: 'assign', node_type: 'assign-agent', label: 'Assign Sales', position_x: 400, position_y: 740, config: { strategy: 'round_robin' } },
+    ],
+  },
+  {
+    id: 'insurance_quote', name: 'Insurance – Quote Request', emoji: '🛡️', category: 'finance',
+    description: 'Insurance type, age, sum insured → assign advisor',
+    nodes: [
+      { node_key: 'welcome', node_type: 'text-buttons', label: 'Welcome', position_x: 400, position_y: 100, config: { message: 'Hi {{first_name}} 🛡️ Which insurance are you exploring?', buttons: ['Health', 'Life', 'Auto', 'Travel', 'Home'], save_variable: 'insurance_type' } },
+      { node_key: 'age', node_type: 'text-buttons', label: 'Age', position_x: 400, position_y: 260, config: { message: 'Your age?', buttons: ['<30', '30–45', '45–60', '60+'], save_variable: 'age' } },
+      { node_key: 'sum', node_type: 'text-buttons', label: 'Sum Insured', position_x: 400, position_y: 420, config: { message: 'Desired sum insured?', buttons: ['<5L', '5–10L', '10–25L', '25L+'], save_variable: 'sum_insured' } },
+      { node_key: 'tag', node_type: 'add-tag', label: 'Tag Insurance', position_x: 400, position_y: 580, config: { action: 'add', tag: 'Insurance-Lead' } },
+      { node_key: 'assign', node_type: 'assign-agent', label: 'Assign Advisor', position_x: 400, position_y: 740, config: { strategy: 'round_robin' } },
+    ],
+  },
+  {
+    id: 'loan_enquiry', name: 'Loan – Eligibility Check', emoji: '🏦', category: 'finance',
+    description: 'Loan type, amount, income, employment → assign loan officer',
+    nodes: [
+      { node_key: 'welcome', node_type: 'text-buttons', label: 'Welcome', position_x: 400, position_y: 100, config: { message: 'Hi {{first_name}} 🏦 Which loan are you looking for?', buttons: ['Personal', 'Home', 'Business', 'Auto', 'Education'], save_variable: 'loan_type' } },
+      { node_key: 'amount', node_type: 'text-buttons', label: 'Amount', position_x: 400, position_y: 260, config: { message: 'Loan amount required?', buttons: ['<5L', '5–25L', '25L–1Cr', '1Cr+'], save_variable: 'amount' } },
+      { node_key: 'income', node_type: 'text-buttons', label: 'Income', position_x: 400, position_y: 420, config: { message: 'Monthly income?', buttons: ['<25k', '25–75k', '75k–2L', '2L+'], save_variable: 'income' } },
+      { node_key: 'employment', node_type: 'text-buttons', label: 'Employment', position_x: 400, position_y: 580, config: { message: 'Employment type?', buttons: ['Salaried', 'Self-employed', 'Business', 'Other'], save_variable: 'employment' } },
+      { node_key: 'tag', node_type: 'add-tag', label: 'Tag Loan Lead', position_x: 400, position_y: 740, config: { action: 'add', tag: 'Loan-Lead' } },
+      { node_key: 'assign', node_type: 'assign-agent', label: 'Assign Officer', position_x: 400, position_y: 900, config: { strategy: 'round_robin' } },
+    ],
+  },
+  {
+    id: 'coaching_demo', name: 'Coaching / EdTech – Demo Booking', emoji: '📚', category: 'education',
+    description: 'Class, subject, preferred slot → assign counselor',
+    nodes: [
+      { node_key: 'welcome', node_type: 'text-buttons', label: 'Welcome', position_x: 400, position_y: 100, config: { message: 'Hi {{first_name}} 📚 Which class or course are you exploring?', buttons: ['Class 9-10', 'Class 11-12', 'JEE/NEET', 'College', 'Skill Course'], save_variable: 'class' } },
+      { node_key: 'subject', node_type: 'text-buttons', label: 'Subject', position_x: 400, position_y: 260, config: { message: 'Which subject?', buttons: ['Maths', 'Science', 'English', 'Coding', 'Multiple'], save_variable: 'subject' } },
+      { node_key: 'demo', node_type: 'text-buttons', label: 'Free Demo', position_x: 400, position_y: 420, config: { message: 'Would you like a free demo class?', buttons: ['Yes – today', 'This week', 'Just info'] } },
+      { node_key: 'tag', node_type: 'add-tag', label: 'Tag Edu Lead', position_x: 400, position_y: 580, config: { action: 'add', tag: 'Education-Lead' } },
+      { node_key: 'assign', node_type: 'assign-agent', label: 'Assign Counselor', position_x: 400, position_y: 740, config: { strategy: 'round_robin' } },
+    ],
+  },
+  {
+    id: 'event_planner', name: 'Event Planner – Enquiry', emoji: '🎉', category: 'events',
+    description: 'Event type, date, guest count, budget → assign planner',
+    nodes: [
+      { node_key: 'welcome', node_type: 'text-buttons', label: 'Welcome', position_x: 400, position_y: 100, config: { message: 'Hi {{first_name}} 🎉 What kind of event?', buttons: ['Wedding', 'Birthday', 'Corporate', 'Anniversary', 'Other'], save_variable: 'event_type' } },
+      { node_key: 'date', node_type: 'text-buttons', label: 'Date', position_x: 400, position_y: 260, config: { message: 'When is the event?', save_variable: 'event_date' } },
+      { node_key: 'guests', node_type: 'text-buttons', label: 'Guests', position_x: 400, position_y: 420, config: { message: 'Approximate guest count?', buttons: ['<50', '50–150', '150–500', '500+'], save_variable: 'guests' } },
+      { node_key: 'budget', node_type: 'text-buttons', label: 'Budget', position_x: 400, position_y: 580, config: { message: 'Approximate budget?', buttons: ['<5L', '5–15L', '15–50L', '50L+'], save_variable: 'budget' } },
+      { node_key: 'tag', node_type: 'add-tag', label: 'Tag Event', position_x: 400, position_y: 740, config: { action: 'add', tag: 'Event-Lead' } },
+      { node_key: 'assign', node_type: 'assign-agent', label: 'Assign Planner', position_x: 400, position_y: 900, config: { strategy: 'round_robin' } },
+    ],
+  },
+  {
+    id: 'hotel_booking', name: 'Hotel / Resort – Room Booking', emoji: '🏨', category: 'hospitality',
+    description: 'Check-in/out, guests, room type → assign reservations',
+    nodes: [
+      { node_key: 'welcome', node_type: 'text-buttons', label: 'Welcome', position_x: 400, position_y: 100, config: { message: 'Hi {{first_name}} 🏨 Looking for a stay with us?', buttons: ['Book Room', 'Check Rates', 'Group Booking'] } },
+      { node_key: 'dates', node_type: 'text-buttons', label: 'Dates', position_x: 400, position_y: 260, config: { message: 'Check-in and check-out dates?', save_variable: 'dates' } },
+      { node_key: 'guests', node_type: 'text-buttons', label: 'Guests', position_x: 400, position_y: 420, config: { message: 'Number of guests?', buttons: ['1', '2', '3-4', '5+'], save_variable: 'guests' } },
+      { node_key: 'room', node_type: 'text-buttons', label: 'Room Type', position_x: 400, position_y: 580, config: { message: 'Room preference?', buttons: ['Standard', 'Deluxe', 'Suite', 'Villa'], save_variable: 'room_type' } },
+      { node_key: 'tag', node_type: 'add-tag', label: 'Tag Booking', position_x: 400, position_y: 740, config: { action: 'add', tag: 'Hotel-Booking' } },
+      { node_key: 'assign', node_type: 'assign-agent', label: 'Assign Reservations', position_x: 400, position_y: 900, config: { strategy: 'round_robin' } },
+    ],
+  },
+  {
+    id: 'law_firm', name: 'Law Firm – Consultation', emoji: '⚖️', category: 'professional',
+    description: 'Practice area, urgency, brief → assign lawyer',
+    nodes: [
+      { node_key: 'welcome', node_type: 'text-buttons', label: 'Welcome', position_x: 400, position_y: 100, config: { message: 'Hi {{first_name}} ⚖️ Which area do you need help with?', buttons: ['Family', 'Property', 'Criminal', 'Corporate', 'Other'], save_variable: 'practice_area' } },
+      { node_key: 'urgency', node_type: 'text-buttons', label: 'Urgency', position_x: 400, position_y: 260, config: { message: 'How urgent is your matter?', buttons: ['Urgent', 'This week', 'Just exploring'], save_variable: 'urgency' } },
+      { node_key: 'brief', node_type: 'text-buttons', label: 'Brief', position_x: 400, position_y: 420, config: { message: 'Briefly describe your matter (confidential).', save_variable: 'brief' } },
+      { node_key: 'tag', node_type: 'add-tag', label: 'Tag Legal', position_x: 400, position_y: 580, config: { action: 'add', tag: 'Legal-Lead' } },
+      { node_key: 'assign', node_type: 'assign-agent', label: 'Assign Lawyer', position_x: 400, position_y: 740, config: { strategy: 'round_robin' } },
+    ],
+  },
+  {
+    id: 'interior_designer', name: 'Interior Designer – Project', emoji: '🛋️', category: 'professional',
+    description: 'Property type, scope, budget, timeline → assign designer',
+    nodes: [
+      { node_key: 'welcome', node_type: 'text-buttons', label: 'Welcome', position_x: 400, position_y: 100, config: { message: 'Hi {{first_name}} 🛋️ Which space are you designing?', buttons: ['Full Home', 'Kitchen', 'Living Room', 'Office'], save_variable: 'space' } },
+      { node_key: 'size', node_type: 'text-buttons', label: 'Size', position_x: 400, position_y: 260, config: { message: 'Approximate size (sq ft)?', buttons: ['<500', '500–1000', '1000–2000', '2000+'], save_variable: 'sqft' } },
+      { node_key: 'budget', node_type: 'text-buttons', label: 'Budget', position_x: 400, position_y: 420, config: { message: 'Budget range?', buttons: ['<5L', '5–15L', '15–40L', '40L+'], save_variable: 'budget' } },
+      { node_key: 'timeline', node_type: 'text-buttons', label: 'Timeline', position_x: 400, position_y: 580, config: { message: 'When do you want to start?', buttons: ['Immediately', '1–3 months', '3–6 months', 'Later'] } },
+      { node_key: 'tag', node_type: 'add-tag', label: 'Tag Interior', position_x: 400, position_y: 740, config: { action: 'add', tag: 'Interior-Lead' } },
+      { node_key: 'assign', node_type: 'assign-agent', label: 'Assign Designer', position_x: 400, position_y: 900, config: { strategy: 'round_robin' } },
+    ],
+  },
 ];
 
 export const PREBUILT_FLOW_CATEGORIES: Record<string, { label: string; color: string }> = {
@@ -511,4 +719,13 @@ export const PREBUILT_FLOW_CATEGORIES: Record<string, { label: string; color: st
   travel: { label: 'Travel', color: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300' },
   support: { label: 'Support', color: 'bg-fuchsia-100 text-fuchsia-700 dark:bg-fuchsia-900/30 dark:text-fuchsia-300' },
   followup: { label: 'Follow-up', color: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300' },
+  restaurant: { label: 'Restaurant', color: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300' },
+  salon: { label: 'Salon & Spa', color: 'bg-pink-100 text-pink-700 dark:bg-pink-900/30 dark:text-pink-300' },
+  fitness: { label: 'Fitness & Yoga', color: 'bg-lime-100 text-lime-700 dark:bg-lime-900/30 dark:text-lime-300' },
+  education: { label: 'Education', color: 'bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-300' },
+  automotive: { label: 'Automotive', color: 'bg-zinc-100 text-zinc-700 dark:bg-zinc-900/30 dark:text-zinc-300' },
+  finance: { label: 'Finance', color: 'bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-300' },
+  events: { label: 'Events', color: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300' },
+  hospitality: { label: 'Hospitality', color: 'bg-sky-100 text-sky-700 dark:bg-sky-900/30 dark:text-sky-300' },
+  professional: { label: 'Professional', color: 'bg-stone-100 text-stone-700 dark:bg-stone-900/30 dark:text-stone-300' },
 };

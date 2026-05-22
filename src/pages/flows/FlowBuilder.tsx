@@ -860,6 +860,17 @@ const FlowBuilder = () => {
                     onMouseDown={(e) => handleNodeMouseDown(e, node.node_key)}
                     onClick={() => handleNodeClick(node.node_key)}
                   >
+                    {/* Dedicated drag handle */}
+                    <div
+                      className={cn(
+                        "absolute -top-3 left-1/2 -translate-x-1/2 z-20 px-3 py-1 rounded-full bg-primary text-primary-foreground text-[10px] font-semibold shadow-lg flex items-center gap-1 select-none",
+                        draggingNode === node.node_key ? 'cursor-grabbing' : 'cursor-grab hover:scale-105 transition-transform'
+                      )}
+                      onMouseDown={(e) => handleNodeMouseDown(e, node.node_key)}
+                      title="Drag to move"
+                    >
+                      <GripVertical className="w-3 h-3" /> Drag
+                    </div>
                     <FlowStartPanel
                       triggers={triggers}
                       metaAds={campaignsForFlows.length > 0 ? campaignsForFlows : undefined}
