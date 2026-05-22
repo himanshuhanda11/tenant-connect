@@ -178,7 +178,12 @@ function extractNormalizedEvents(payload: any): NormalizedEvent[] {
         if (!msgFrom) continue;
 
         const msgType = m?.type || 'unknown';
-        const text = m?.text?.body || m?.[msgType]?.caption;
+        const text =
+          m?.text?.body ||
+          m?.[msgType]?.caption ||
+          m?.interactive?.button_reply?.title ||
+          m?.interactive?.list_reply?.title ||
+          m?.button?.text;
 
         // Coexistence: ignore unsupported message webhook (error 131060)
         const msgErrCode = m?.errors?.[0]?.code;
