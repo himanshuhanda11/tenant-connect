@@ -207,6 +207,42 @@ const getNodeIcon = (type: string) => {
   return MessageSquare;
 };
 
+// Visible interactive choices (buttons/list items) on a node
+type NodeChoice = { id: string; label: string; index: number; next?: string };
+const getNodeChoices = (node: any): NodeChoice[] => {
+  const cfg = node?.config || {};
+  if (node?.node_type === 'text-buttons') {
+    const raw = Array.isArray(cfg.buttons) ? cfg.buttons : [];
+    return raw.slice(0, 3).map((b: any, i: number) => ({
+      id: `btn_${node.node_key}_${i}`,
+      label: (typeof b === 'string' ? b : b?.label ?? '').toString() || `Button ${i + 1}`,
+      index: i,
+      next: typeof b === 'string' ? undefined : b?.next,
+    }));
+  }
+  if (node?.node_type === 'list-message') {
+    const raw = Array.isArray(cfg.items) ? cfg.items : (Array.isArray(cfg.sections) ? cfg.sections : []);
+    return raw.slice(0, 10).map((it: any, i: number) => ({
+      id: `list_${node.node_key}_${i}`,
+      label: (it?.title ?? '').toString() || `Option ${i + 1}`,
+      index: i,
+      next: it?.next,
+    }));
+  }
+  return [];
+};
+
+// Pixel Y-offset of the row center within a node card (used for edge anchors)
+const HEADER_H = 50;
+const MSG_H = 36;
+const ROW_H = 32;
+const ROW_GAP = 6;
+const rowYOffset = (index: number, node: any) => {
+  const cfg = node?.config || {};
+  const hasMsg = !!(cfg.message || cfg.body);
+  return HEADER_H + (hasMsg ? MSG_H : 8) + 8 + index * (ROW_H + ROW_GAP) + ROW_H / 2;
+};
+
 const FlowBuilder = () => {
   const navigate = useNavigate();
   const { id } = useParams();
@@ -238,6 +274,7 @@ const FlowBuilder = () => {
   const [isDraggingNew, setIsDraggingNew] = useState(false);
   const [dragNodeType, setDragNodeType] = useState<string | null>(null);
   const [connecting, setConnecting] = useState<string | null>(null);
+  const [connectingHandle, setConnectingHandle] = useState<{ id: string; label: string; index: number } | null>(null);
   
   // Modal states
   const [testModalOpen, setTestModalOpen] = useState(false);
@@ -381,8 +418,31 @@ const FlowBuilder = () => {
 
     const newNode = await addNode(nodeType, pos);
     if (newNode && sourceKey && sourceKey !== newNode.node_key) {
-      await addEdge(sourceKey, newNode.node_key);
+      await addEdge(sourceKey, newNode.node_key, connectingHandle?.id);
+      if (connectingHandle) {
+        const srcNode = nodes.find(n => n.node_key === sourceKey);
+        if (srcNode?.node_type === 'text-buttons') {
+          const cfg = { ...(srcNode.config || {}) };
+          const btns = Array.isArray(cfg.buttons) ? [...cfg.buttons] : [];
+          const idx = connectingHandle.index;
+          if (btns[idx]) {
+            btns[idx] = typeof btns[idx] === 'string' ? { label: btns[idx], next: newNode.node_key } : { ...btns[idx], next: newNode.node_key };
+            cfg.buttons = btns;
+            await updateNode(sourceKey, { config: cfg });
+          }
+        } else if (srcNode?.node_type === 'list-message') {
+          const cfg = { ...(srcNode.config || {}) };
+          const items = Array.isArray(cfg.items) ? [...cfg.items] : (Array.isArray(cfg.sections) ? [...cfg.sections] : []);
+          const idx = connectingHandle.index;
+          if (items[idx]) {
+            items[idx] = { ...items[idx], next: newNode.node_key };
+            cfg.items = items;
+            await updateNode(sourceKey, { config: cfg });
+          }
+        }
+      }
       setConnecting(null);
+      setConnectingHandle(null);
       toast.success('Node added and connected');
     } else if (newNode) {
       toast.success('Node added — select another node and click again to connect');
@@ -449,29 +509,67 @@ const FlowBuilder = () => {
 
 
   const handleNodeClick = (nodeKey: string) => {
-    if (!draggingNode) {
-      setSelectedNodeKey(nodeKey);
-      setRightPanelTab('settings');
+    if (draggingNode) return;
+    if (connecting && connecting !== nodeKey) {
+      handleAddConnection(nodeKey);
+      return;
     }
+    setSelectedNodeKey(nodeKey);
+    setRightPanelTab('settings');
   };
 
   const handleAddConnection = async (sourceKey: string) => {
     if (connecting) {
       if (connecting !== sourceKey) {
-        await addEdge(connecting, sourceKey);
-        toast.success('Nodes connected');
+        const handle = connectingHandle?.id;
+        await addEdge(connecting, sourceKey, handle);
+        // If this came from a button/list handle, also persist the `next` on the choice config
+        if (connectingHandle) {
+          const srcNode = nodes.find(n => n.node_key === connecting);
+          if (srcNode) {
+            const cfg = { ...(srcNode.config || {}) };
+            if (srcNode.node_type === 'text-buttons') {
+              const btns = Array.isArray(cfg.buttons) ? [...cfg.buttons] : [];
+              const idx = connectingHandle.index;
+              if (btns[idx]) {
+                btns[idx] = typeof btns[idx] === 'string'
+                  ? { label: btns[idx], next: sourceKey }
+                  : { ...btns[idx], next: sourceKey };
+                cfg.buttons = btns;
+                await updateNode(connecting, { config: cfg });
+              }
+            } else if (srcNode.node_type === 'list-message') {
+              const items = Array.isArray(cfg.items) ? [...cfg.items] : (Array.isArray(cfg.sections) ? [...cfg.sections] : []);
+              const idx = connectingHandle.index;
+              if (items[idx]) {
+                items[idx] = { ...items[idx], next: sourceKey };
+                cfg.items = items;
+                await updateNode(connecting, { config: cfg });
+              }
+            }
+          }
+        }
+        toast.success('Connected');
       }
       setConnecting(null);
+      setConnectingHandle(null);
     } else {
       setConnecting(sourceKey);
+      setConnectingHandle(null);
       toast.info('Now click the target node to connect', { duration: 2000 });
     }
+  };
+
+  const handleStartHandleConnect = (sourceKey: string, handle: { id: string; label: string; index: number }) => {
+    setConnecting(sourceKey);
+    setConnectingHandle(handle);
+    toast.info(`Click target node for "${handle.label}"`, { duration: 2500 });
   };
 
   // ESC cancels connect mode
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && connecting) setConnecting(null);
+      if (e.key === 'Escape' && connecting) { setConnecting(null); setConnectingHandle(null); }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
@@ -845,7 +943,7 @@ const FlowBuilder = () => {
                 <span className="text-sm font-medium">Click a node (or pick from left) to connect</span>
               </div>
               <button
-                onClick={() => setConnecting(null)}
+                onClick={() => { setConnecting(null); setConnectingHandle(null); }}
                 className="text-xs px-3 py-1.5 rounded-md bg-white/20 hover:bg-white/30 transition-colors font-medium"
                 title="Cancel (Esc)"
               >
@@ -872,28 +970,51 @@ const FlowBuilder = () => {
 
             {/* SVG for edges */}
             <svg className="absolute inset-0 w-full h-full pointer-events-none" style={{ minWidth: '2000px', minHeight: '1500px' }}>
+              <defs>
+                <marker id="flowArrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+                  <path d="M 0 0 L 10 5 L 0 10 z" fill="hsl(var(--primary))" />
+                </marker>
+              </defs>
               {edges.map((edge) => {
                 const sourceNode = nodes.find(n => n.node_key === edge.source_node_key);
                 const targetNode = nodes.find(n => n.node_key === edge.target_node_key);
                 if (!sourceNode || !targetNode) return null;
-                
-                const x1 = sourceNode.position_x + 100;
-                const y1 = sourceNode.position_y + 60;
+
+                // Default: bottom-center → top-center
+                let x1 = sourceNode.position_x + 100;
+                let y1 = sourceNode.position_y + 60;
+                let fromRight = false;
+
+                // If the edge comes from a button/list handle, anchor on the row's right side
+                const sh = (edge as any).source_handle as string | undefined;
+                if (sh) {
+                  const choices = getNodeChoices(sourceNode);
+                  const idx = choices.findIndex(c => c.id === sh);
+                  if (idx >= 0) {
+                    const rowY = rowYOffset(idx, sourceNode);
+                    x1 = sourceNode.position_x + 200;
+                    y1 = sourceNode.position_y + rowY;
+                    fromRight = true;
+                  }
+                }
+
                 const x2 = targetNode.position_x + 100;
                 const y2 = targetNode.position_y;
-                
-                const midY = (y1 + y2) / 2;
-                
+
+                const d = fromRight
+                  ? `M ${x1} ${y1} C ${x1 + 80} ${y1}, ${x2} ${y2 - 80}, ${x2} ${y2}`
+                  : `M ${x1} ${y1} C ${x1} ${(y1 + y2) / 2}, ${x2} ${(y1 + y2) / 2}, ${x2} ${y2}`;
+
                 return (
                   <g key={edge.edge_key}>
                     <path
-                      d={`M ${x1} ${y1} C ${x1} ${midY}, ${x2} ${midY}, ${x2} ${y2}`}
+                      d={d}
                       stroke="hsl(var(--primary))"
                       strokeWidth="2"
                       fill="none"
                       strokeDasharray={connecting ? "5,5" : "none"}
+                      markerEnd="url(#flowArrow)"
                     />
-                    <circle cx={x2} cy={y2} r="4" fill="hsl(var(--primary))" />
                   </g>
                 );
               })}
@@ -988,13 +1109,63 @@ const FlowBuilder = () => {
                   </div>
                   
                   {/* Node body */}
-                  <div className="px-3 py-2.5 text-xs text-muted-foreground">
-                    {node.config?.message ? (
-                      <span className="line-clamp-2">{node.config.message}</span>
-                    ) : (
-                      <span className="italic opacity-70">Click to configure</span>
-                    )}
-                  </div>
+                  {(() => {
+                    const choices = getNodeChoices(node);
+                    const hasMsg = !!(node.config?.message || node.config?.body);
+                    return (
+                      <div className="px-3 pt-2 pb-3 text-xs text-muted-foreground">
+                        {hasMsg ? (
+                          <div className="line-clamp-2 mb-2 text-foreground/80">{node.config.message || node.config.body}</div>
+                        ) : (choices.length === 0 && (
+                          <span className="italic opacity-70">Click to configure</span>
+                        ))}
+                        {choices.length > 0 && (
+                          <div className="space-y-1.5 relative">
+                            {choices.map((c) => {
+                              const targetExists = c.next && nodes.some(n => n.node_key === c.next);
+                              const isActive = connecting === node.node_key && connectingHandle?.id === c.id;
+                              return (
+                                <div
+                                  key={c.id}
+                                  data-no-drag
+                                  className={cn(
+                                    'group relative flex items-center justify-between gap-2 rounded-md border bg-background px-2.5 h-8 text-[12px] font-medium transition-all',
+                                    isActive ? 'border-green-500 ring-2 ring-green-500/40' : 'border-border hover:border-primary/60',
+                                    targetExists && 'border-primary/40 bg-primary/5'
+                                  )}
+                                >
+                                  <span className="truncate text-foreground">{c.label}</span>
+                                  {targetExists && (
+                                    <span className="text-[10px] text-primary truncate max-w-[60px]" title={nodes.find(n => n.node_key === c.next)?.label}>
+                                      → {nodes.find(n => n.node_key === c.next)?.label}
+                                    </span>
+                                  )}
+                                  {/* Per-row connect handle */}
+                                  <button
+                                    title={targetExists ? 'Re-link this button' : 'Connect this button to a node'}
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleStartHandleConnect(node.node_key, { id: c.id, label: c.label, index: c.index });
+                                    }}
+                                    className={cn(
+                                      'absolute -right-[14px] top-1/2 -translate-y-1/2 w-5 h-5 rounded-full shadow-md border-2 border-background flex items-center justify-center transition-all',
+                                      isActive
+                                        ? 'bg-green-500 scale-125 animate-pulse'
+                                        : targetExists
+                                          ? 'bg-primary hover:scale-125'
+                                          : 'bg-muted-foreground/60 hover:bg-primary hover:scale-125'
+                                    )}
+                                  >
+                                    <Plus className="w-3 h-3 text-white" />
+                                  </button>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })()}
 
                   {/* Input connection point (top) */}
                   <button 
@@ -1007,16 +1178,18 @@ const FlowBuilder = () => {
                     {connecting && <ArrowDown className="w-3 h-3 mx-auto text-white" />}
                   </button>
                   
-                  {/* Output connection point (bottom) */}
-                  <button 
-                    className={cn(
-                      "absolute -bottom-3 left-1/2 -translate-x-1/2 w-5 h-5 rounded-full shadow-lg transition-all flex items-center justify-center",
-                      connecting === node.node_key ? 'bg-green-500 scale-125' : 'bg-primary hover:scale-125 hover:bg-primary/90'
-                    )}
-                    onClick={(e) => { e.stopPropagation(); handleAddConnection(node.node_key); }}
-                  >
-                    <Plus className="w-3 h-3 text-primary-foreground" />
-                  </button>
+                  {/* Output connection point (bottom — default next) */}
+                  {getNodeChoices(node).length === 0 && (
+                    <button 
+                      className={cn(
+                        "absolute -bottom-3 left-1/2 -translate-x-1/2 w-5 h-5 rounded-full shadow-lg transition-all flex items-center justify-center",
+                        connecting === node.node_key && !connectingHandle ? 'bg-green-500 scale-125' : 'bg-primary hover:scale-125 hover:bg-primary/90'
+                      )}
+                      onClick={(e) => { e.stopPropagation(); setConnectingHandle(null); handleAddConnection(node.node_key); }}
+                    >
+                      <Plus className="w-3 h-3 text-primary-foreground" />
+                    </button>
+                  )}
 
                   {/* Delete button */}
                   {selectedNodeKey === node.node_key && (
