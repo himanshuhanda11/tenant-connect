@@ -61,9 +61,13 @@ export const GuidedFlowWizard: React.FC<GuidedFlowWizardProps> = ({ open, onOpen
   React.useEffect(() => {
     if (goal && !flowName) {
       const g = GOALS.find(x => x.id === goal);
-      if (g) setFlowName(g.name);
+      if (g) setFlowName(goal === 'custom' && customIndustry ? `${customIndustry} Flow` : g.name);
     }
-  }, [goal, flowName]);
+    if (goal === 'custom' && customIndustry) {
+      setFlowName(`${customIndustry} Flow`);
+      setWelcome(`Hi 👋 Thanks for contacting ${customIndustry}! How can we help you today?`);
+    }
+  }, [goal, customIndustry]);
 
   const handleCreate = async () => {
     if (!currentTenant?.id) {
