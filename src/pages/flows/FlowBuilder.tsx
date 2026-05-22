@@ -770,7 +770,7 @@ const FlowBuilder = () => {
               <ZoomIn className="w-4 h-4" />
             </Button>
             <Separator orientation="vertical" className="h-5 mx-1" />
-            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setZoom(100)}>
+            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setZoom(80)}>
               <Maximize2 className="w-4 h-4" />
             </Button>
             <Separator orientation="vertical" className="h-5 mx-1" />
