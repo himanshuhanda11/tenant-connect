@@ -78,6 +78,47 @@ async function sendWhatsAppTemplate(tenantId: string, phoneNumberId: string, toW
   return res.ok;
 }
 
+// Send interactive button/list message directly via Graph API (send-text-message doesn't support interactive payloads)
+async function sendInteractive(
+  supabase: any,
+  tenantId: string,
+  phoneNumberId: string,
+  toWaId: string,
+  interactive: any,
+  displayText: string,
+) {
+  const { data: pn } = await supabase
+    .from("phone_numbers")
+    .select("phone_number_id, waba_account:waba_accounts!inner(encrypted_access_token, status)")
+    .eq("id", phoneNumberId).eq("tenant_id", tenantId).maybeSingle();
+  const token = (pn as any)?.waba_account?.encrypted_access_token;
+  if (!token || !pn?.phone_number_id) return { ok: false, error: "no_token" };
+  const payload = { messaging_product: "whatsapp", recipient_type: "individual", to: toWaId, type: "interactive", interactive };
+  const res = await fetch(`https://graph.facebook.com/v21.0/${pn.phone_number_id}/messages`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  const json = await res.json().catch(() => ({}));
+  const wamid = json?.messages?.[0]?.id;
+  // best-effort log to messages table so the outbound bubble shows in inbox
+  try {
+    const { data: contact } = await supabase.from("contacts").select("id").eq("tenant_id", tenantId).eq("wa_id", toWaId).maybeSingle();
+    if (contact?.id) {
+      const { data: conv } = await supabase.from("conversations").select("id")
+        .eq("tenant_id", tenantId).eq("phone_number_id", phoneNumberId).eq("contact_id", contact.id).maybeSingle();
+      if (conv?.id) {
+        await supabase.from("messages").insert({
+          tenant_id: tenantId, conversation_id: conv.id, direction: "outbound",
+          type: "interactive", text: displayText, wamid, status: res.ok ? "sent" : "failed",
+          sent_at: new Date().toISOString(),
+        });
+      }
+    }
+  } catch (_) { /* ignore log errors */ }
+  return { ok: res.ok, wamid, json };
+}
+
 // 24-hour window check
 async function within24h(supabase: any, tenantId: string, contactId: string): Promise<boolean> {
   const { data } = await supabase
