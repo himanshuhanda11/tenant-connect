@@ -439,8 +439,31 @@ const FlowBuilder = () => {
     }
   };
 
+  const [validationOpen, setValidationOpen] = useState(false);
+  const [publishing, setPublishing] = useState(false);
+  const flowIssues: FlowIssue[] = useMemo(
+    () => validateFlow({ nodes: nodes as any, edges: edges as any, triggers: triggers as any }),
+    [nodes, edges, triggers]
+  );
+  const issueSummary = useMemo(() => summariseIssues(flowIssues), [flowIssues]);
+
   const handlePublish = async () => {
-    await publishFlow();
+    if (!issueSummary.canPublish) {
+      setValidationOpen(true);
+      toast.error(`${issueSummary.errors} error${issueSummary.errors > 1 ? 's' : ''} must be fixed before publishing`);
+      return;
+    }
+    setValidationOpen(true);
+  };
+
+  const confirmPublish = async () => {
+    setPublishing(true);
+    try {
+      await publishFlow();
+      setValidationOpen(false);
+    } finally {
+      setPublishing(false);
+    }
   };
 
   if (loading) {
