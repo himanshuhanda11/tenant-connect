@@ -782,15 +782,63 @@ export function CreateFormRuleModal({ open, onOpenChange, editingRule, createRul
               </div>
             )}
 
-            {/* Step 3: Form Selection / Builder */}
             {currentStep === 3 && (
               <div className="space-y-3 sm:space-y-4">
                 <div className="text-center mb-4 sm:mb-6">
                   <h3 className="text-base sm:text-lg font-semibold">Configure Your Form</h3>
-                  <p className="text-xs sm:text-sm text-muted-foreground">Use an existing template or build a custom form</p>
+                  <p className="text-xs sm:text-sm text-muted-foreground">Pick how it's delivered, then choose or build the form</p>
                 </div>
 
-                {/* Intro Message – first field */}
+                {/* Delivery Mode */}
+                <div className="space-y-2">
+                  <Label className="text-sm font-semibold">Delivery Mode</Label>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setDeliveryMode('conversational')}
+                      className={cn(
+                        "flex items-start gap-2 p-3 rounded-xl border-2 text-left transition-all",
+                        deliveryMode === 'conversational'
+                          ? "bg-primary/5 border-primary shadow-sm"
+                          : "border-border hover:border-primary/30"
+                      )}
+                    >
+                      <MessageCircle className={cn("w-4 h-4 mt-0.5 shrink-0", deliveryMode === 'conversational' ? 'text-primary' : 'text-muted-foreground')} />
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium">Conversational</p>
+                        <p className="text-[10px] text-muted-foreground leading-snug">Bot asks one question at a time in chat. Works everywhere.</p>
+                      </div>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setDeliveryMode('native_flow')}
+                      className={cn(
+                        "flex items-start gap-2 p-3 rounded-xl border-2 text-left transition-all",
+                        deliveryMode === 'native_flow'
+                          ? "bg-primary/5 border-primary shadow-sm"
+                          : "border-border hover:border-primary/30"
+                      )}
+                    >
+                      <LayoutGrid className={cn("w-4 h-4 mt-0.5 shrink-0", deliveryMode === 'native_flow' ? 'text-primary' : 'text-muted-foreground')} />
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium">Native Flow Pop-up</p>
+                        <p className="text-[10px] text-muted-foreground leading-snug">Single screen, fill all & submit. Requires a published WhatsApp Flow template.</p>
+                      </div>
+                    </button>
+                  </div>
+                  {deliveryMode === 'native_flow' && formMode !== 'template' && (
+                    <div className="p-2.5 rounded-lg bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900 flex gap-2">
+                      <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                      <p className="text-[11px] text-amber-800 dark:text-amber-200 leading-snug">
+                        Native pop-up forms require a WhatsApp Flow template registered in Meta Business Manager. Switch source to <strong>WhatsApp Template</strong> below, or pick Conversational.
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                <Separator className="my-2" />
+
+                {/* Intro Message */}
                 <div className="space-y-3">
                   <Label className="text-sm font-semibold">Intro Message</Label>
                   <Textarea
@@ -804,41 +852,116 @@ export function CreateFormRuleModal({ open, onOpenChange, editingRule, createRul
 
                 <Separator className="my-2" />
 
-                {/* Mode Switcher */}
-                <div className="grid grid-cols-2 gap-2 p-1 bg-muted rounded-xl">
-                  <button
-                    type="button"
-                    onClick={() => setFormMode('template')}
-                    className={cn(
-                      "flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg text-sm font-medium transition-all",
-                      formMode === 'template'
-                        ? "bg-background shadow-sm text-foreground"
-                        : "text-muted-foreground hover:text-foreground"
-                    )}
-                  >
-                    <FileText className="w-4 h-4" />
-                    Use Template
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setFormMode('builder')}
-                    className={cn(
-                      "flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg text-sm font-medium transition-all",
-                      formMode === 'builder'
-                        ? "bg-background shadow-sm text-foreground"
-                        : "text-muted-foreground hover:text-foreground"
-                    )}
-                  >
-                    <Plus className="w-4 h-4" />
-                    Build Form
-                  </button>
+                {/* Source Switcher (3 tabs) */}
+                <div className="space-y-2">
+                  <Label className="text-sm font-semibold">Form Source</Label>
+                  <div className="grid grid-cols-3 gap-1.5 p-1 bg-muted rounded-xl">
+                    <button
+                      type="button"
+                      onClick={() => setFormMode('saved')}
+                      className={cn(
+                        "flex flex-col items-center justify-center gap-1 py-2 px-2 rounded-lg text-xs font-medium transition-all",
+                        formMode === 'saved'
+                          ? "bg-background shadow-sm text-foreground"
+                          : "text-muted-foreground hover:text-foreground"
+                      )}
+                    >
+                      <FolderOpen className="w-4 h-4" />
+                      Saved Form
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setFormMode('builder')}
+                      className={cn(
+                        "flex flex-col items-center justify-center gap-1 py-2 px-2 rounded-lg text-xs font-medium transition-all",
+                        formMode === 'builder'
+                          ? "bg-background shadow-sm text-foreground"
+                          : "text-muted-foreground hover:text-foreground"
+                      )}
+                    >
+                      <Plus className="w-4 h-4" />
+                      Build New
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setFormMode('template')}
+                      className={cn(
+                        "flex flex-col items-center justify-center gap-1 py-2 px-2 rounded-lg text-xs font-medium transition-all",
+                        formMode === 'template'
+                          ? "bg-background shadow-sm text-foreground"
+                          : "text-muted-foreground hover:text-foreground"
+                      )}
+                    >
+                      <FileText className="w-4 h-4" />
+                      WhatsApp Template
+                    </button>
+                  </div>
                 </div>
+
+                {/* Saved Form Mode */}
+                {formMode === 'saved' && (
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <Label className="text-sm font-semibold">Pick a saved form *</Label>
+                      {savedFormId && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 px-2 text-xs text-muted-foreground hover:text-destructive"
+                          onClick={() => { setSavedFormId(''); setSavedVersionId(''); }}
+                        >
+                          <X className="w-3.5 h-3.5 mr-1" /> Clear
+                        </Button>
+                      )}
+                    </div>
+                    <Select
+                      value={savedFormId}
+                      onValueChange={(val) => {
+                        setSavedFormId(val);
+                        const f = savedForms.find(s => s.id === val);
+                        setSavedVersionId(f?.active_version_id || '');
+                      }}
+                    >
+                      <SelectTrigger className="h-12">
+                        <SelectValue placeholder={savedForms.length === 0 ? 'No saved forms yet — build one first' : 'Select a saved form'} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {savedForms.length === 0 ? (
+                          <div className="py-2 px-3 text-sm text-muted-foreground">
+                            No saved forms. Switch to "Build New" to create one — it will be saved here for reuse.
+                          </div>
+                        ) : (
+                          savedForms.map(f => (
+                            <SelectItem key={f.id} value={f.id}>
+                              <div className="flex items-center gap-2">
+                                <FolderOpen className="w-4 h-4 text-muted-foreground" />
+                                <span>{f.name}</span>
+                              </div>
+                            </SelectItem>
+                          ))
+                        )}
+                      </SelectContent>
+                    </Select>
+                    {savedFormId && (
+                      <div className="p-3 rounded-lg bg-primary/5 border border-primary/20 flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                          <FolderOpen className="w-5 h-5 text-primary" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium truncate">{savedForms.find(f => f.id === savedFormId)?.name}</p>
+                          <p className="text-xs text-muted-foreground">Reusing existing form — no duplicate created</p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
 
                 {/* Template Mode */}
                 {formMode === 'template' && (
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
-                      <Label className="text-sm font-semibold">WhatsApp Form Template *</Label>
+                      <Label className="text-sm font-semibold">WhatsApp Template *</Label>
                       {formId && (
                         <Button
                           type="button"
@@ -853,7 +976,7 @@ export function CreateFormRuleModal({ open, onOpenChange, editingRule, createRul
                     </div>
                     <Select value={formId} onValueChange={setFormId}>
                       <SelectTrigger className="h-12">
-                        <SelectValue placeholder="Select a form template" />
+                        <SelectValue placeholder="Select a WhatsApp template" />
                       </SelectTrigger>
                       <SelectContent>
                         {templates.length === 0 ? (
