@@ -461,7 +461,7 @@ const FlowBuilder = () => {
     const y = Math.max(0, (e.clientY - rect.top) / (zoom / 100));
 
     // Remember source for auto-connect: selected node, or currently-connecting source
-    const autoConnectSource = connecting || selectedNodeKey;
+    const autoConnectSource = connecting;
     const newNode = await addNode(nodeType, { x, y });
     setIsDraggingNew(false);
 
