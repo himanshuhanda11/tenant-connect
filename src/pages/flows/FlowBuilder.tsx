@@ -530,14 +530,49 @@ const FlowBuilder = () => {
 
       {/* Main Content */}
       <div className="flex-1 flex overflow-hidden">
-        {/* Left Sidebar - Node Palette */}
+        {/* Left Sidebar - Node Palette (hidden on mobile, replaced by step list) */}
+        {!isMobile && (
         <div className="w-72 border-r bg-card flex flex-col shrink-0">
           <div className="p-3 border-b">
-            <Input placeholder="Search nodes..." className="h-9" />
+            <Input
+              placeholder="Search nodes..."
+              className="h-9"
+              value={paletteSearch}
+              onChange={(e) => setPaletteSearch(e.target.value)}
+            />
           </div>
           <ScrollArea className="flex-1">
             <div className="p-3 space-y-1">
-              {nodeCategories.map((category) => (
+              {/* Favorites */}
+              {favorites.length > 0 && !paletteSearch && (
+                <div className="mb-2">
+                  <div className="px-2 pb-1 text-[10px] uppercase tracking-wider text-muted-foreground">⭐ Favorites</div>
+                  <div className="space-y-1">
+                    {nodeCategories.flatMap(c => c.nodes).filter(n => favorites.includes(n.type)).map(node => (
+                      <div
+                        key={`fav-${node.type}`}
+                        draggable={!(node as any).pro}
+                        onDragStart={(e) => handlePaletteDragStart(e, node.type)}
+                        onDragEnd={handlePaletteDragEnd}
+                        className="flex items-center gap-2.5 p-2 rounded-lg text-sm cursor-grab hover:bg-muted active:cursor-grabbing"
+                      >
+                        <div className={cn('w-7 h-7 rounded-lg flex items-center justify-center', nodeColors[node.type]?.bg || 'bg-muted')}>
+                          <node.icon className={cn('w-4 h-4', nodeColors[node.type]?.icon || 'text-muted-foreground')} />
+                        </div>
+                        <span className="flex-1 truncate">{node.label}</span>
+                      </div>
+                    ))}
+                  </div>
+                  <Separator className="my-2" />
+                </div>
+              )}
+              {nodeCategories.map((category) => {
+                const filtered = category.nodes.filter(n =>
+                  !paletteSearch || n.label.toLowerCase().includes(paletteSearch.toLowerCase())
+                );
+                if (paletteSearch && filtered.length === 0) return null;
+                const isOpen = paletteSearch ? true : expandedCategories.includes(category.label);
+                return (
                 <div key={category.label} className="mb-1">
                   <button
                     className="w-full flex items-center gap-2 p-2.5 rounded-lg hover:bg-muted text-sm font-medium transition-colors"
@@ -550,12 +585,12 @@ const FlowBuilder = () => {
                     )}
                     <ChevronRight className={cn(
                       'w-4 h-4 transition-transform text-muted-foreground',
-                      expandedCategories.includes(category.label) && 'rotate-90'
+                      isOpen && 'rotate-90'
                     )} />
                   </button>
-                    {expandedCategories.includes(category.label) && (
+                    {isOpen && (
                     <div className="ml-2 mt-1 space-y-1 pl-4 border-l border-border">
-                      {category.nodes.map((node) => (
+                      {filtered.map((node) => (
                         <Tooltip key={node.type} delayDuration={300}>
                           <TooltipTrigger asChild>
                             <div
