@@ -799,7 +799,20 @@ export function CreateFormRuleModal({ open, onOpenChange, editingRule, createRul
                 {/* Template Mode */}
                 {formMode === 'template' && (
                   <div className="space-y-3">
-                    <Label className="text-sm font-semibold">WhatsApp Form Template *</Label>
+                    <div className="flex items-center justify-between">
+                      <Label className="text-sm font-semibold">WhatsApp Form Template *</Label>
+                      {formId && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 px-2 text-xs text-muted-foreground hover:text-destructive"
+                          onClick={() => setFormId('')}
+                        >
+                          <X className="w-3.5 h-3.5 mr-1" /> Clear
+                        </Button>
+                      )}
+                    </div>
                     <Select value={formId} onValueChange={setFormId}>
                       <SelectTrigger className="h-12">
                         <SelectValue placeholder="Select a form template" />
@@ -825,13 +838,22 @@ export function CreateFormRuleModal({ open, onOpenChange, editingRule, createRul
                         <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
                           <FileText className="w-5 h-5 text-primary" />
                         </div>
-                        <div className="flex-1">
-                          <p className="font-medium">{selectedForm.name}</p>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium truncate">{selectedForm.name}</p>
                           <p className="text-xs text-muted-foreground">Ready to send</p>
                         </div>
                         <Button variant="ghost" size="sm" className="text-primary" onClick={() => setPreviewOpen(true)}>
                           <Eye className="w-4 h-4 mr-1" />
-                          Preview & Test
+                          Preview
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                          onClick={() => setFormId('')}
+                          aria-label="Remove template"
+                        >
+                          <X className="w-4 h-4" />
                         </Button>
                       </div>
                     )}
@@ -840,18 +862,33 @@ export function CreateFormRuleModal({ open, onOpenChange, editingRule, createRul
 
                 {/* Builder Mode */}
                 {formMode === 'builder' && (
-                  <FormBuilder
-                    fields={builderFields}
-                    onChange={setBuilderFields}
-                    formName={builderFormName}
-                    onFormNameChange={setBuilderFormName}
-                    ifThenRules={ifThenRules}
-                    onIfThenRulesChange={setIfThenRules}
-                    webhookUrl={webhookUrl}
-                    onWebhookUrlChange={setWebhookUrl}
-                    formSettings={formSettings}
-                    onFormSettingsChange={setFormSettings}
-                  />
+                  <>
+                    <div className="flex items-center justify-end">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="h-8"
+                        onClick={() => setPreviewOpen(true)}
+                        disabled={builderFields.length === 0}
+                      >
+                        <Eye className="w-4 h-4 mr-1.5" />
+                        Preview form
+                      </Button>
+                    </div>
+                    <FormBuilder
+                      fields={builderFields}
+                      onChange={setBuilderFields}
+                      formName={builderFormName}
+                      onFormNameChange={setBuilderFormName}
+                      ifThenRules={ifThenRules}
+                      onIfThenRulesChange={setIfThenRules}
+                      webhookUrl={webhookUrl}
+                      onWebhookUrlChange={setWebhookUrl}
+                      formSettings={formSettings}
+                      onFormSettingsChange={setFormSettings}
+                    />
+                  </>
                 )}
 
                 <Separator className="my-4" />
