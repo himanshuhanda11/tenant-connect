@@ -27,6 +27,8 @@ import {
 } from "@/lib/metaAdsPermissions";
 
 const Login = lazyWithRetry(() => import("./pages/Login"));
+const MailLogin = lazyWithRetry(() => import("./pages/MailLogin"));
+const IS_MAIL_HOST = typeof window !== "undefined" && window.location.hostname === "mail.aireatro.com";
 const Toaster = lazyWithRetry(() => import("@/components/ui/toaster").then((module) => ({ default: module.Toaster })));
 const Sonner = lazyWithRetry(() => import("@/components/ui/sonner").then((module) => ({ default: module.Toaster })));
 const ForgotPassword = lazyWithRetry(() => import("./pages/ForgotPassword"));
