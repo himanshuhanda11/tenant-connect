@@ -473,10 +473,13 @@ const FlowBuilder = () => {
 
 
   const handleNodeClick = (nodeKey: string) => {
-    if (!draggingNode) {
-      setSelectedNodeKey(nodeKey);
-      setRightPanelTab('settings');
+    if (draggingNode) return;
+    if (connecting && connecting !== nodeKey) {
+      handleAddConnection(nodeKey);
+      return;
     }
+    setSelectedNodeKey(nodeKey);
+    setRightPanelTab('settings');
   };
 
   const handleAddConnection = async (sourceKey: string) => {
