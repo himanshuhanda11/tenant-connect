@@ -275,7 +275,7 @@ const App = () => (
                     <Route path="/dashboard" element={<Dashboard />} />
                     <Route path="/dashboard/onboarding" element={<Dashboard />} />
                     <Route path="/inbox" element={<InboxPage />} />
-                    <Route path="/mail" element={<Mail />} />
+                    <Route path="/mail" element={<RequireSuperAdmin><Mail /></RequireSuperAdmin>} />
                     <Route path="/inbox/dashboard" element={<InboxCRMDashboard />} />
                     <Route path="/inbox/mine" element={<InboxPage />} />
                     <Route path="/inbox/unassigned" element={<InboxPage />} />
