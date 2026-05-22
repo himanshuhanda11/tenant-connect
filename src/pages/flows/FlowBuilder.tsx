@@ -117,6 +117,7 @@ const nodeCategories = [
       { type: 'media', label: 'Media', icon: Image, description: 'Send image, video, or audio' },
       { type: 'document', label: 'Document', icon: FileText, description: 'Send a document file' },
       { type: 'template', label: 'Template', icon: Send, description: 'Send an approved template' },
+      { type: 'collect-form', label: 'Collect Info (Form)', icon: ClipboardList, description: 'Ask customer to fill multiple details, one question at a time' },
     ],
   },
   {
