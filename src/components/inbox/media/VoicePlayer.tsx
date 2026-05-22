@@ -5,6 +5,7 @@ import { useMediaUrl } from '@/hooks/useMediaUrl';
 import { Button } from '@/components/ui/button';
 
 interface VoicePlayerProps {
+  messageId?: string;
   url: string;
   isOutbound: boolean;
   mediaBucket?: string;
@@ -37,8 +38,8 @@ function useFakeWaveform(seed: string) {
   }, [seed]);
 }
 
-export function VoicePlayer({ url, isOutbound, mediaBucket, mediaPath, fileName }: VoicePlayerProps) {
-  const { url: mediaUrl, refresh, loading: refreshing, hasStoragePath } = useMediaUrl(url, mediaBucket, mediaPath);
+export function VoicePlayer({ messageId, url, isOutbound, mediaBucket, mediaPath, fileName }: VoicePlayerProps) {
+  const { url: mediaUrl, refresh, loading: refreshing, hasRefreshSource } = useMediaUrl(url, mediaBucket, mediaPath, messageId);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [playing, setPlaying] = useState(false);
   const [duration, setDuration] = useState(0);
@@ -84,7 +85,7 @@ export function VoicePlayer({ url, isOutbound, mediaBucket, mediaPath, fileName 
   };
 
   const handleError = async () => {
-    if (hasStoragePath) {
+    if (hasRefreshSource) {
       const u = await refresh();
       if (!u) setErrored(true);
     } else {
@@ -100,7 +101,7 @@ export function VoicePlayer({ url, isOutbound, mediaBucket, mediaPath, fileName 
       )}>
         <AlertCircle className="h-4 w-4 text-destructive" />
         <span className="text-sm flex-1">Voice message unavailable</span>
-        {hasStoragePath && (
+        {hasRefreshSource && (
           <Button
             size="sm" variant="ghost" className="h-7 px-2 text-xs"
             onClick={async () => { setErrored(false); const u = await refresh(); if (!u) setErrored(true); }}
