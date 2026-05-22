@@ -377,8 +377,18 @@ const FlowBuilder = () => {
     const x = Math.max(0, (e.clientX - rect.left) / (zoom / 100));
     const y = Math.max(0, (e.clientY - rect.top) / (zoom / 100));
 
-    await addNode(nodeType, { x, y });
+    // Remember source for auto-connect: selected node, or currently-connecting source
+    const autoConnectSource = connecting || selectedNodeKey;
+    const newNode = await addNode(nodeType, { x, y });
     setIsDraggingNew(false);
+
+    // Auto-wire the new node so users don't need to click connection dots
+    if (newNode && autoConnectSource && autoConnectSource !== newNode.node_key) {
+      await addEdge(autoConnectSource, newNode.node_key);
+      setConnecting(null);
+      setSelectedNodeKey(newNode.node_key);
+      toast.success('Connected to previous node');
+    }
   };
 
   const handleCanvasDragOver = (e: React.DragEvent) => {
