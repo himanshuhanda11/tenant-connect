@@ -619,7 +619,8 @@ const FlowBuilder = () => {
                     </div>
                   )}
                 </div>
-              ))}
+                );
+              })}
 
               {/* Prebuilt Flow Category */}
               <div className="mb-1">
@@ -667,6 +668,9 @@ const FlowBuilder = () => {
             </div>
           </ScrollArea>
         </div>
+        )}
+
+
 
         {/* Canvas */}
         <div 
