@@ -284,7 +284,7 @@ export const GuidedFlowWizard: React.FC<GuidedFlowWizardProps> = ({ open, onOpen
           )}
         </div>
 
-        <div className="border-t px-6 py-3 flex items-center justify-between bg-muted/30">
+        <div className="border-t px-4 sm:px-6 py-3 flex items-center justify-between gap-2 bg-muted/30 shrink-0">
           <Button variant="ghost" onClick={() => setStep(Math.max(0, step - 1))} disabled={step === 0 || creating}>
             <ChevronLeft className="w-4 h-4 mr-1" /> Back
           </Button>
