@@ -76,6 +76,7 @@ import { usePhoneNumbers } from '@/hooks/usePhoneNumbers';
 import { usePlanGate } from '@/hooks/usePlanGate';
 import { UpgradePrompt } from '@/components/billing/UpgradePrompt';
 import { UpgradePlanDialog } from '@/components/billing/UpgradePlanDialog';
+import { GuidedFlowWizard } from '@/components/flows/GuidedFlowWizard';
 
 const quickCreateOptions = [
   { label: 'Lead Qualification', icon: Target, description: 'Qualify and score incoming leads', emoji: '🎯' },
@@ -746,6 +747,7 @@ const FlowsHub = () => {
         </Tabs>
       </div>
       <UpgradePlanDialog open={upgradeOpen} onOpenChange={setUpgradeOpen} currentPlanId={currentPlan} />
+      <GuidedFlowWizard open={guidedOpen} onOpenChange={setGuidedOpen} />
     </DashboardLayout>
   );
 };
