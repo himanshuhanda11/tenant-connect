@@ -177,7 +177,130 @@ async function executeNode(supabase: any, ctx: any, node: any): Promise<{ next?:
         return { next: targets[0] };
       }
 
-      case "template": {
+      case "text-buttons":
+      case "text_buttons":
+      case "buttons": {
+        const nodeKey = node.node_key ?? node.id;
+        const body = fillVars(cfg.message ?? cfg.text ?? cfg.body ?? "", ctx.vars);
+        // Normalize buttons: accept ["English","Hindi"] or [{label,next}]
+        const rawButtons = Array.isArray(cfg.buttons) ? cfg.buttons : [];
+        const buttons = rawButtons
+          .map((b: any, i: number) => {
+            const label = (typeof b === "string" ? b : b?.label ?? "").toString().trim();
+            const next = typeof b === "string" ? undefined : b?.next || undefined;
+            return label ? { id: `btn_${nodeKey}_${i}`, label: label.slice(0, 20), next } : null;
+          })
+          .filter(Boolean)
+          .slice(0, 3);
+        if (!body || buttons.length === 0) {
+          await finishStep("skipped", { reason: "missing_body_or_buttons" });
+          const targets = nextNodes(ctx.edges, nodeKey);
+          return { next: targets[0] };
+        }
+        if (ctx.contactWaId && ctx.phoneNumberId) {
+          if (await within24h(supabase, ctx.tenantId, ctx.contactId)) {
+            const interactive = {
+              type: "button",
+              body: { text: body.slice(0, 1024) },
+              action: {
+                buttons: buttons.map((b: any) => ({ type: "reply", reply: { id: b.id, title: b.label } })),
+              },
+            };
+            const r = await sendInteractive(supabase, ctx.tenantId, ctx.phoneNumberId, ctx.contactWaId, interactive, body);
+            if (!r.ok) throw new Error("send_buttons_failed");
+            await bumpAnalytics(supabase, ctx.tenantId, ctx.flowId, "messages_sent");
+          } else if (cfg.fallback_template) {
+            await sendWhatsAppTemplate(ctx.tenantId, ctx.phoneNumberId, ctx.contactWaId, cfg.fallback_template.name, cfg.fallback_template.language ?? "en_US", cfg.fallback_template.components ?? []);
+          } else {
+            await logError(supabase, ctx.tenantId, ctx.flowId, ctx.runId, nodeKey, "Outside 24h window — buttons require an inbound message in last 24h", {}, "warning");
+          }
+        }
+        // Build choice map (id + lowercased label → target)
+        const choiceMap: Record<string, string> = {};
+        for (const b of buttons) {
+          const target = b.next || nextNodes(ctx.edges, nodeKey, b.id)[0];
+          if (target) {
+            choiceMap[b.id] = target;
+            choiceMap[b.label.toLowerCase()] = target;
+          }
+        }
+        const waitingFor = {
+          node_key: nodeKey,
+          expected_type: "button",
+          field_key: cfg.save_as ?? null,
+          __choices: choiceMap,
+          __button_labels: buttons.map((b: any) => b.label),
+        };
+        await supabase.from("contact_flow_state").upsert({
+          tenant_id: ctx.tenantId, contact_id: ctx.contactId, flow_id: ctx.flowId, run_id: ctx.runId,
+          current_node_key: nodeKey, waiting_for: waitingFor, variables: ctx.vars,
+          expires_at: new Date(Date.now() + 24 * 3600 * 1000).toISOString(),
+        }, { onConflict: "tenant_id,contact_id,flow_id" });
+        await supabase.from("flow_runs").update({ status: "waiting", current_node_key: nodeKey, variables: ctx.vars }).eq("id", ctx.runId);
+        await finishStep("waiting", { waiting_for: waitingFor });
+        return { suspend: true };
+      }
+
+      case "list-message":
+      case "list_message":
+      case "list": {
+        const nodeKey = node.node_key ?? node.id;
+        const body = fillVars(cfg.body ?? cfg.message ?? "", ctx.vars);
+        const items: any[] = Array.isArray(cfg.items) ? cfg.items : (Array.isArray(cfg.sections) ? cfg.sections : []);
+        const normalized = items
+          .map((it: any, i: number) => {
+            const title = (it?.title ?? "").toString().trim();
+            return title ? { id: `list_${nodeKey}_${i}`, title: title.slice(0, 24), description: (it?.description ?? "").toString().slice(0, 72), next: it?.next || undefined } : null;
+          })
+          .filter(Boolean)
+          .slice(0, 10);
+        if (!body || normalized.length === 0) {
+          await finishStep("skipped", { reason: "missing_body_or_items" });
+          const targets = nextNodes(ctx.edges, nodeKey);
+          return { next: targets[0] };
+        }
+        if (ctx.contactWaId && ctx.phoneNumberId) {
+          if (await within24h(supabase, ctx.tenantId, ctx.contactId)) {
+            const interactive: any = {
+              type: "list",
+              header: cfg.header ? { type: "text", text: String(cfg.header).slice(0, 60) } : undefined,
+              body: { text: body.slice(0, 1024) },
+              action: {
+                button: (cfg.button_label || "Choose").toString().slice(0, 20),
+                sections: [{ title: (cfg.header || "Options").toString().slice(0, 24), rows: normalized.map((n: any) => ({ id: n.id, title: n.title, description: n.description })) }],
+              },
+            };
+            const r = await sendInteractive(supabase, ctx.tenantId, ctx.phoneNumberId, ctx.contactWaId, interactive, body);
+            if (!r.ok) throw new Error("send_list_failed");
+            await bumpAnalytics(supabase, ctx.tenantId, ctx.flowId, "messages_sent");
+          } else {
+            await logError(supabase, ctx.tenantId, ctx.flowId, ctx.runId, nodeKey, "Outside 24h window — list requires an inbound message in last 24h", {}, "warning");
+          }
+        }
+        const choiceMap: Record<string, string> = {};
+        for (const n of normalized) {
+          const target = n.next || nextNodes(ctx.edges, nodeKey, n.id)[0];
+          if (target) {
+            choiceMap[n.id] = target;
+            choiceMap[n.title.toLowerCase()] = target;
+          }
+        }
+        const waitingFor = {
+          node_key: nodeKey,
+          expected_type: "list",
+          field_key: cfg.save_as ?? null,
+          __choices: choiceMap,
+        };
+        await supabase.from("contact_flow_state").upsert({
+          tenant_id: ctx.tenantId, contact_id: ctx.contactId, flow_id: ctx.flowId, run_id: ctx.runId,
+          current_node_key: nodeKey, waiting_for: waitingFor, variables: ctx.vars,
+          expires_at: new Date(Date.now() + 24 * 3600 * 1000).toISOString(),
+        }, { onConflict: "tenant_id,contact_id,flow_id" });
+        await supabase.from("flow_runs").update({ status: "waiting", current_node_key: nodeKey, variables: ctx.vars }).eq("id", ctx.runId);
+        await finishStep("waiting", { waiting_for: waitingFor });
+        return { suspend: true };
+      }
+
         if (ctx.contactWaId && ctx.phoneNumberId && cfg.template_name) {
           const ok = await sendWhatsAppTemplate(ctx.tenantId, ctx.phoneNumberId, ctx.contactWaId, cfg.template_name, cfg.language_code ?? "en_US", cfg.components ?? []);
           if (!ok) throw new Error("send_template_failed");
