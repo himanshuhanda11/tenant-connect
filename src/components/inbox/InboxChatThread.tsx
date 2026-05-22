@@ -159,6 +159,7 @@ export function InboxChatThread({
   const [showTemplates, setShowTemplates] = useState(false);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [showAISuggestions, setShowAISuggestions] = useState(false);
+  const [recordingVoice, setRecordingVoice] = useState(false);
   const [aiDraft, setAiDraft] = useState<any>(null);
   const [aiIntent, setAiIntent] = useState<'sales' | 'support' | 'complaint' | 'inquiry' | 'urgent' | 'spam'>('inquiry');
   const [aiHealth, setAiHealth] = useState<'good' | 'warning' | 'critical'>('good');
