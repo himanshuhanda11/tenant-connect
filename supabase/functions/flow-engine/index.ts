@@ -301,6 +301,7 @@ async function executeNode(supabase: any, ctx: any, node: any): Promise<{ next?:
         return { suspend: true };
       }
 
+      case "template": {
         if (ctx.contactWaId && ctx.phoneNumberId && cfg.template_name) {
           const ok = await sendWhatsAppTemplate(ctx.tenantId, ctx.phoneNumberId, ctx.contactWaId, cfg.template_name, cfg.language_code ?? "en_US", cfg.components ?? []);
           if (!ok) throw new Error("send_template_failed");
