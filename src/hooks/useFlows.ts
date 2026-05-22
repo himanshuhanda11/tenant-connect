@@ -578,7 +578,21 @@ export function useFlowBuilder(flowId: string | undefined) {
         .eq('flow_id', flowId)
         .order('created_at');
 
-      setNodes(nodesData || []);
+      const normalizedNodes = (nodesData || []) as FlowNode[];
+      const { nodes: positionedNodes, changed: changedNodes } = moveOverlappingNodesRightOfStart(normalizedNodes);
+      setNodes(positionedNodes);
+      if (changedNodes.length > 0) {
+        changedNodes.forEach((node) => {
+          supabase
+            .from('flow_nodes')
+            .update({ position_x: node.position_x, position_y: node.position_y })
+            .eq('flow_id', flowId)
+            .eq('node_key', node.node_key)
+            .then(({ error }) => {
+              if (error) console.error('Failed to save normalized node position', error);
+            });
+        });
+      }
 
       // Fetch edges
       const { data: edgesData } = await supabase
