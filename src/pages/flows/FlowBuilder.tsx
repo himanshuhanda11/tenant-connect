@@ -732,10 +732,33 @@ const FlowBuilder = () => {
           className={cn(
             'flex-1 relative overflow-auto',
             isDraggingNew && 'bg-primary/5',
-            draggingNode && 'cursor-grabbing'
+            draggingNode && 'cursor-grabbing',
+            isPanning && 'cursor-grabbing',
+            !draggingNode && !isPanning && 'cursor-grab'
           )}
           onDrop={handleCanvasDrop}
           onDragOver={handleCanvasDragOver}
+          onMouseDown={(e) => {
+            if (e.button !== 0) return;
+            const target = e.target as HTMLElement;
+            // Only pan when clicking empty canvas (not nodes/controls)
+            if (target.closest('[data-flow-node], button, input, textarea, select, [data-no-pan]')) return;
+            if (!canvasRef.current) return;
+            setIsPanning(true);
+            panStart.current = {
+              x: e.clientX,
+              y: e.clientY,
+              sl: canvasRef.current.scrollLeft,
+              st: canvasRef.current.scrollTop,
+            };
+          }}
+          onMouseMove={(e) => {
+            if (!isPanning || !panStart.current || !canvasRef.current) return;
+            canvasRef.current.scrollLeft = panStart.current.sl - (e.clientX - panStart.current.x);
+            canvasRef.current.scrollTop = panStart.current.st - (e.clientY - panStart.current.y);
+          }}
+          onMouseUp={() => { setIsPanning(false); panStart.current = null; }}
+          onMouseLeave={() => { setIsPanning(false); panStart.current = null; }}
         >
           {/* Zoom + auto-arrange controls */}
           <div className="absolute top-4 left-4 flex items-center gap-1 bg-card/90 backdrop-blur border rounded-xl shadow-lg p-1.5 z-10">
