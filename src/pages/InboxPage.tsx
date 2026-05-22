@@ -232,7 +232,8 @@ export default function InboxPage() {
   }, [selectedId, actions]);
 
   const handleSendMessage = useCallback((msg: { text?: string; template?: string; media?: File }) => {
-    if (selectedId) actions.sendMessage(selectedId, msg);
+    if (selectedId) return actions.sendMessage(selectedId, msg);
+    return Promise.resolve();
   }, [selectedId, actions]);
 
   const handleClaim = useCallback(() => {

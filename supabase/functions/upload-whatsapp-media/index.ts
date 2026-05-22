@@ -97,10 +97,10 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Check file size (50MB max)
-    const maxSize = 50 * 1024 * 1024;
+    // Check file size. WhatsApp audio max is 16MB; other media remains 50MB here.
+    const maxSize = baseType.startsWith('audio/') ? 16 * 1024 * 1024 : 50 * 1024 * 1024;
     if (file.size > maxSize) {
-      return new Response(JSON.stringify({ error: 'File size exceeds 50MB limit' }), {
+      return new Response(JSON.stringify({ error: `File size exceeds ${Math.floor(maxSize / 1024 / 1024)}MB limit` }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
@@ -210,8 +210,20 @@ Deno.serve(async (req) => {
               console.error('Meta media upload failed, falling back to link:', metaJson);
             }
           } catch (e) {
-            console.error('Meta media upload exception, falling back to link:', e);
+            console.error('Meta media upload exception:', e);
           }
+        }
+
+        if (mediaType === 'audio' && !mediaRef.id) {
+          return new Response(JSON.stringify({
+            ok: true,
+            url: mediaUrl,
+            mediaType,
+            sent: false,
+            error: 'WhatsApp rejected this voice file before sending. Please retry recording.',
+          }), {
+            status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
         }
 
         const messagePayload: any = {
