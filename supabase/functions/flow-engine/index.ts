@@ -599,7 +599,7 @@ async function actionStart(supabase: any, params: any) {
 }
 
 async function actionResume(supabase: any, params: any) {
-  const { tenant_id, contact_id, message_text } = params;
+  const { tenant_id, contact_id, message_text, button_id, list_id } = params;
   const { data: states } = await supabase.from("contact_flow_state").select("*, flows!inner(id,status), flow_runs!inner(*)")
     .eq("tenant_id", tenant_id).eq("contact_id", contact_id).not("waiting_for", "is", null);
   if (!states?.length) return { skipped: "no_waiting" };
@@ -610,29 +610,35 @@ async function actionResume(supabase: any, params: any) {
 
   const waiting = state.waiting_for ?? {};
   const answer = String(message_text ?? "").trim();
-  // basic validation
   const type = waiting.expected_type ?? "text";
-  let valid = answer.length > 0;
+  let valid = answer.length > 0 || !!button_id || !!list_id;
   if (type === "email") valid = /^\S+@\S+\.\S+$/.test(answer);
   else if (type === "phone") valid = /^[+0-9\s\-()]{6,}$/.test(answer);
   else if (type === "number") valid = !isNaN(parseFloat(answer));
 
   const vars = { ...(state.variables ?? {}) };
-  if (!valid) {
-    // re-prompt (do nothing — keep waiting). Could send "invalid" message.
-    return { reprompt: true };
-  }
+  if (!valid) return { reprompt: true };
+
   if (waiting.field_key) {
     vars[waiting.field_key] = answer;
-    // save to contact
     const { data: c } = await supabase.from("contacts").select("custom_data").eq("id", contact_id).maybeSingle();
     await supabase.from("contacts").update({ custom_data: { ...(c?.custom_data ?? {}), [waiting.field_key]: answer } }).eq("id", contact_id);
   } else {
     vars[waiting.node_key] = answer;
   }
-  // If this was a collect-form field, store into form progress and re-enter the same node
+
+  // Determine next node — button/list choice overrides default edge
   let resumeKey: string | undefined;
-  if (waiting.__form_node) {
+  const choices: Record<string, string> | undefined = waiting.__choices;
+  if (choices) {
+    const lookup = (button_id || list_id || answer || "").toString();
+    resumeKey =
+      choices[lookup] ||
+      choices[lookup.toLowerCase()] ||
+      choices[answer.toLowerCase()];
+  }
+  // collect-form: re-enter same node for next field
+  if (!resumeKey && waiting.__form_node) {
     vars.__forms = vars.__forms || {};
     const prog = vars.__forms[waiting.__form_node] || { index: 0, answers: {} };
     if (waiting.field_key) prog.answers[waiting.field_key] = answer;
@@ -640,7 +646,7 @@ async function actionResume(supabase: any, params: any) {
     vars.__forms[waiting.__form_node] = prog;
     resumeKey = waiting.__form_node;
   }
-  // clear waiting and advance
+
   await supabase.from("contact_flow_state").update({ waiting_for: null, variables: vars }).eq("id", state.id);
   const targets = nextNodes(flow.edges, waiting.node_key);
   const next = resumeKey ?? targets[0];
