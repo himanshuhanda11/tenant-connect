@@ -144,9 +144,9 @@ Deno.serve(async (req) => {
 
     // Determine media type for WhatsApp
     let mediaType = 'document';
-    if (file.type.startsWith('image/')) mediaType = 'image';
-    else if (file.type.startsWith('video/')) mediaType = 'video';
-    else if (file.type.startsWith('audio/')) mediaType = 'audio';
+    if (baseType.startsWith('image/')) mediaType = 'image';
+    else if (baseType.startsWith('video/')) mediaType = 'video';
+    else if (baseType.startsWith('audio/')) mediaType = 'audio';
 
     console.log('Upload successful:', { filePath, mediaType });
 
