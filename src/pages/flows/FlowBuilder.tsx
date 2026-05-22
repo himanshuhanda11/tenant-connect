@@ -368,6 +368,26 @@ const FlowBuilder = () => {
     setDragNodeType(null);
   };
 
+  // Click-to-add: places the node near the source and auto-connects
+  const handlePaletteClick = async (nodeType: string) => {
+    const sourceKey = connecting || selectedNodeKey;
+    const sourceNode = sourceKey ? nodes.find(n => n.node_key === sourceKey) : null;
+    const pos = sourceNode
+      ? { x: sourceNode.position_x + (sourceNode.node_type === 'start' ? 0 : 240), y: sourceNode.position_y + (sourceNode.node_type === 'start' ? 760 : 180) }
+      : { x: 500, y: 300 };
+
+    const newNode = await addNode(nodeType, pos);
+    if (newNode && sourceKey && sourceKey !== newNode.node_key) {
+      await addEdge(sourceKey, newNode.node_key);
+      setConnecting(null);
+      toast.success('Node added and connected');
+    } else if (newNode) {
+      toast.success('Node added — select another node and click again to connect');
+    }
+    if (newNode) setSelectedNodeKey(newNode.node_key);
+  };
+
+
   const handleCanvasDrop = async (e: React.DragEvent) => {
     e.preventDefault();
     const nodeType = e.dataTransfer.getData('nodeType');
