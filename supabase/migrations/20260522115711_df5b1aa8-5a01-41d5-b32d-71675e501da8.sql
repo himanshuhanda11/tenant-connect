@@ -1,0 +1,1 @@
+UPDATE form_rules SET form_version_id = 'a0cc59da-0e18-456e-9ec8-8a6a417e6cbe' WHERE id = '70995730-3d82-4ab1-b113-6f1a45616c6a' AND form_version_id IS NULL;
