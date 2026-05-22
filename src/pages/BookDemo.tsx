@@ -1,4 +1,5 @@
-import React, { useMemo, useState, Suspense, lazy } from 'react';
+import React, { useMemo, useState, Suspense } from 'react';
+import { lazyWithRetry } from '@/lib/lazyWithRetry';
 import { z } from 'zod';
 import { format } from 'date-fns';
 import { motion } from 'framer-motion';
@@ -26,9 +27,9 @@ import { cn } from '@/lib/utils';
 import demoSpecialistImg from '@/assets/demo-specialist.jpg';
 
 // Heavy below-the-fold content (Footer + marketing sections) — lazy chunk
-const BookDemoBelow = lazy(() => import('./BookDemoBelow'));
+const BookDemoBelow = lazyWithRetry(() => import('./BookDemoBelow'));
 // Calendar (react-day-picker) is only needed when the date popover opens
-const Calendar = lazy(() => import('@/components/ui/calendar').then(m => ({ default: m.Calendar })));
+const Calendar = lazyWithRetry(() => import('@/components/ui/calendar').then(m => ({ default: m.Calendar })));
 
 const schema = z.object({
   fullName: z.string().trim().min(2, 'Please enter your full name').max(80),
