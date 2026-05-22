@@ -64,6 +64,8 @@ import type { IFThenRule, FormBuilderState } from '@/components/automation/form-
 import { DEFAULT_FORM_STATE } from '@/components/automation/form-builder/types';
 import { supabase } from '@/integrations/supabase/client';
 import { useTenant } from '@/contexts/TenantContext';
+import { TriggerConfigPanel, isTriggerConfigValid } from '@/components/automation/form-rule/TriggerConfigPanel';
+import { FormPreviewDialog } from '@/components/automation/form-rule/FormPreviewDialog';
 
 interface CreateFormRuleModalProps {
   open: boolean;
@@ -154,6 +156,7 @@ export function CreateFormRuleModal({ open, onOpenChange, editingRule, createRul
   const [ifThenRules, setIfThenRules] = useState<IFThenRule[]>([]);
   const [webhookUrl, setWebhookUrl] = useState('');
   const [formSettings, setFormSettings] = useState<FormBuilderState['settings']>(DEFAULT_FORM_STATE.settings);
+  const [previewOpen, setPreviewOpen] = useState(false);
 
   // Track previous open state to only reset on open transition
   const prevOpenRef = React.useRef(false);
@@ -501,7 +504,7 @@ export function CreateFormRuleModal({ open, onOpenChange, editingRule, createRul
 
   const canProceed = () => {
     switch (currentStep) {
-      case 1: return !!triggerType;
+      case 1: return !!triggerType && isTriggerConfigValid(triggerType, triggerConfig);
       case 2: return true; // Conditions are optional
       case 3: return formMode === 'template' ? !!formId : (builderFields.length > 0 && !!builderFormName.trim());
       case 4: return true; // Safety has defaults
@@ -631,82 +634,12 @@ export function CreateFormRuleModal({ open, onOpenChange, editingRule, createRul
                   })}
                 </div>
 
-                {/* Trigger-specific config */}
-                {triggerType === 'keyword' && (
-                  <div className="space-y-3 p-4 rounded-xl bg-purple-50 border border-purple-200 mt-4">
-                    <Label className="text-sm font-semibold text-purple-700">Keywords to Match</Label>
-                    <div className="flex gap-2">
-                      <Input
-                        value={keywordInput}
-                        onChange={(e) => setKeywordInput(e.target.value)}
-                        onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addKeyword())}
-                        placeholder="Type keyword and press Enter"
-                        className="h-9 bg-white"
-                      />
-                      <Button type="button" size="sm" onClick={addKeyword} className="bg-purple-600 hover:bg-purple-700">
-                        <Plus className="w-4 h-4" />
-                      </Button>
-                    </div>
-                    {triggerConfig.keywords && triggerConfig.keywords.length > 0 && (
-                      <div className="flex flex-wrap gap-2">
-                        {triggerConfig.keywords.map(keyword => (
-                          <Badge key={keyword} variant="secondary" className="text-sm gap-1.5 bg-white">
-                            {keyword}
-                            <button onClick={() => removeKeyword(keyword)} className="hover:text-destructive">
-                              <X className="w-3 h-3" />
-                            </button>
-                          </Badge>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {triggerType === 'ai_intent' && (
-                  <div className="p-4 rounded-xl bg-violet-50 border border-violet-200 mt-4">
-                    <div className="flex items-center gap-2 mb-3">
-                      <Brain className="w-5 h-5 text-violet-600" />
-                      <Label className="text-sm font-semibold text-violet-700">AI Intent Detection</Label>
-                    </div>
-                    <Select
-                      value={(triggerConfig as any).intent || ''}
-                      onValueChange={(val) => setTriggerConfig({ ...triggerConfig, intent: val } as any)}
-                    >
-                      <SelectTrigger className="h-10 bg-white">
-                        <SelectValue placeholder="Select intent to detect" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="purchase_intent">Purchase Intent</SelectItem>
-                        <SelectItem value="support_request">Support Request</SelectItem>
-                        <SelectItem value="pricing_inquiry">Pricing Inquiry</SelectItem>
-                        <SelectItem value="product_info">Product Information</SelectItem>
-                        <SelectItem value="complaint">Complaint</SelectItem>
-                        <SelectItem value="feedback">Feedback</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                )}
-
-                {triggerType === 'source' && (
-                  <div className="p-4 rounded-xl bg-amber-50 border border-amber-200 mt-4">
-                    <Label className="text-sm font-semibold text-amber-700 mb-3 block">Entry Source</Label>
-                    <Select
-                      value={triggerConfig.sources?.[0] || ''}
-                      onValueChange={(val) => setTriggerConfig({ ...triggerConfig, sources: [val] })}
-                    >
-                      <SelectTrigger className="h-10 bg-white">
-                        <SelectValue placeholder="Select traffic source" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="meta_ads">Meta Ads (Click-to-WhatsApp)</SelectItem>
-                        <SelectItem value="qr_code">QR Code</SelectItem>
-                        <SelectItem value="website">Website Widget</SelectItem>
-                        <SelectItem value="organic">Organic</SelectItem>
-                        <SelectItem value="api">API/External</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                )}
+                {/* Trigger-specific config (all triggers handled in one place) */}
+                <TriggerConfigPanel
+                  triggerType={triggerType}
+                  config={triggerConfig}
+                  onChange={setTriggerConfig}
+                />
               </div>
             )}
 
@@ -896,9 +829,9 @@ export function CreateFormRuleModal({ open, onOpenChange, editingRule, createRul
                           <p className="font-medium">{selectedForm.name}</p>
                           <p className="text-xs text-muted-foreground">Ready to send</p>
                         </div>
-                        <Button variant="ghost" size="sm" className="text-primary">
+                        <Button variant="ghost" size="sm" className="text-primary" onClick={() => setPreviewOpen(true)}>
                           <Eye className="w-4 h-4 mr-1" />
-                          Preview
+                          Preview & Test
                         </Button>
                       </div>
                     )}
@@ -1168,6 +1101,14 @@ export function CreateFormRuleModal({ open, onOpenChange, editingRule, createRul
           </div>
         </div>
       </DialogContent>
+      <FormPreviewDialog
+        open={previewOpen}
+        onOpenChange={setPreviewOpen}
+        templateId={formId || null}
+        templateName={selectedForm?.name || builderFormName || null}
+        introMessage={introMessage}
+        variables={{}}
+      />
     </Dialog>
   );
 }

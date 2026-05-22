@@ -60,6 +60,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { usePlanGate } from '@/hooks/usePlanGate';
 import { UpgradePrompt } from '@/components/billing/UpgradePrompt';
 import { UpgradePlanDialog } from '@/components/billing/UpgradePlanDialog';
+import { FormRulesExplainer } from '@/components/automation/form-rule/FormRulesExplainer';
 
 const triggerIconMap: Record<string, React.ElementType> = {
   first_message: MessageSquare,
@@ -119,6 +120,7 @@ export default function AutoFormRules() {
   return (
     <DashboardLayout>
       <QuickGuide {...quickGuides.formRules} className="mb-4" />
+      <div className="px-3 sm:px-6 pt-4"><FormRulesExplainer /></div>
       {autoformsLocked && (
         <UpgradePrompt
           currentPlan={currentPlan}
