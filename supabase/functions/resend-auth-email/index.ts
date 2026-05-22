@@ -125,7 +125,7 @@ Deno.serve(async (req) => {
   // optional but recommended — store the hook secret as SUPABASE_AUTH_HOOK_SECRET.
   const rawBody = await req.text();
 
-  const hookSecret = Deno.env.get("SUPABASE_AUTH_HOOK_SECRET");
+  const hookSecret = Deno.env.get("AUTH_HOOK_SECRET") ?? Deno.env.get("SUPABASE_AUTH_HOOK_SECRET");
   if (hookSecret) {
     try {
       const id = req.headers.get("webhook-id") || req.headers.get("svix-id");
