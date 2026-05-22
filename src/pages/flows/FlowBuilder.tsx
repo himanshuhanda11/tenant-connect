@@ -377,8 +377,18 @@ const FlowBuilder = () => {
     const x = Math.max(0, (e.clientX - rect.left) / (zoom / 100));
     const y = Math.max(0, (e.clientY - rect.top) / (zoom / 100));
 
-    await addNode(nodeType, { x, y });
+    // Remember source for auto-connect: selected node, or currently-connecting source
+    const autoConnectSource = connecting || selectedNodeKey;
+    const newNode = await addNode(nodeType, { x, y });
     setIsDraggingNew(false);
+
+    // Auto-wire the new node so users don't need to click connection dots
+    if (newNode && autoConnectSource && autoConnectSource !== newNode.node_key) {
+      await addEdge(autoConnectSource, newNode.node_key);
+      setConnecting(null);
+      setSelectedNodeKey(newNode.node_key);
+      toast.success('Connected to previous node');
+    }
   };
 
   const handleCanvasDragOver = (e: React.DragEvent) => {
@@ -426,12 +436,23 @@ const FlowBuilder = () => {
     if (connecting) {
       if (connecting !== sourceKey) {
         await addEdge(connecting, sourceKey);
+        toast.success('Nodes connected');
       }
       setConnecting(null);
     } else {
       setConnecting(sourceKey);
+      toast.info('Now click the target node to connect', { duration: 2000 });
     }
   };
+
+  // ESC cancels connect mode
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && connecting) setConnecting(null);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [connecting]);
 
   const handleSave = async () => {
     if (flowName !== flow?.name) {
@@ -683,7 +704,11 @@ const FlowBuilder = () => {
                 </button>
                 {expandedCategories.includes('Prebuilt Flow') && (
                   <div className="ml-2 mt-1 space-y-1 pl-4 border-l border-border">
-                    {PREBUILT_FLOWS.map((pf) => (
+                    {[...PREBUILT_FLOWS].sort((a, b) => {
+                      const aSa = a.category === 'study_abroad' ? 1 : 0;
+                      const bSa = b.category === 'study_abroad' ? 1 : 0;
+                      return aSa - bSa;
+                    }).map((pf) => (
                       <Tooltip key={pf.id} delayDuration={300}>
                         <TooltipTrigger asChild>
                           <button
@@ -787,8 +812,18 @@ const FlowBuilder = () => {
 
           {/* Connection indicator */}
           {connecting && (
-            <div className="absolute top-4 right-4 bg-primary text-primary-foreground px-4 py-2 rounded-lg shadow-lg z-10 animate-pulse">
-              Click on target node to connect
+            <div className="absolute top-4 right-4 bg-primary text-primary-foreground px-4 py-2.5 rounded-xl shadow-lg z-10 flex items-center gap-3">
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full bg-white animate-pulse" />
+                <span className="text-sm font-medium">Click target node to connect</span>
+              </div>
+              <button
+                onClick={() => setConnecting(null)}
+                className="text-xs px-2 py-1 rounded-md bg-white/20 hover:bg-white/30 transition-colors"
+                title="Cancel (Esc)"
+              >
+                ← Back
+              </button>
             </div>
           )}
 
