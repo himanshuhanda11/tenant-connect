@@ -94,6 +94,10 @@ import { AINodeGenerator } from '@/components/flows/AINodeGenerator';
 import { FlowAnalytics } from '@/components/flows/FlowAnalytics';
 import { FlowStartPanel } from '@/components/flows/FlowStartPanel';
 import { NodeConfigPanel } from '@/components/flows/NodeConfigPanel';
+import { FlowMiniMap } from '@/components/flows/FlowMiniMap';
+import { FlowHealthPill } from '@/components/flows/FlowHealthPill';
+import { MobileStepList } from '@/components/flows/MobileStepList';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { useMetaAdAccounts } from '@/hooks/useMetaAdAccounts';
 import { PREBUILT_FLOWS, PREBUILT_FLOW_CATEGORIES, PrebuiltFlow } from '@/data/prebuiltFlows';
 
