@@ -677,11 +677,13 @@ const FlowBuilder = () => {
                               draggable={!node.pro}
                               onDragStart={(e) => handlePaletteDragStart(e, node.type)}
                               onDragEnd={handlePaletteDragEnd}
+                              onClick={() => !node.pro && handlePaletteClick(node.type)}
                               className={cn(
                                 'group flex items-center gap-2.5 p-2.5 rounded-lg text-sm transition-all select-none',
-                                node.pro ? 'cursor-not-allowed opacity-50' : 'cursor-grab hover:bg-muted active:cursor-grabbing active:scale-95 active:bg-primary/10'
+                                node.pro ? 'cursor-not-allowed opacity-50' : 'cursor-pointer hover:bg-muted active:scale-95 active:bg-primary/10'
                               )}
                             >
+
                               <div className={cn('w-7 h-7 rounded-lg flex items-center justify-center',
                                 nodeColors[node.type]?.bg || 'bg-muted')}>
                                 <node.icon className={cn('w-4 h-4', nodeColors[node.type]?.icon || 'text-muted-foreground')} />
