@@ -528,6 +528,11 @@ const FlowBuilder = () => {
     if (connecting) {
       if (connecting !== sourceKey) {
         const handle = connectingHandle?.id;
+        // Replace any existing edge from this handle so we never stack duplicates
+        if (handle) {
+          const stale = edges.filter((ed: any) => ed.source_node_key === connecting && ed.source_handle === handle);
+          for (const ed of stale) await deleteEdge((ed as any).edge_key);
+        }
         await addEdge(connecting, sourceKey, handle);
         // If this came from a button/list handle, also persist the `next` on the choice config
         if (connectingHandle) {
