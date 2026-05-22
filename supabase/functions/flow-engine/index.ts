@@ -465,10 +465,20 @@ async function actionResume(supabase: any, params: any) {
   } else {
     vars[waiting.node_key] = answer;
   }
+  // If this was a collect-form field, store into form progress and re-enter the same node
+  let resumeKey: string | undefined;
+  if (waiting.__form_node) {
+    vars.__forms = vars.__forms || {};
+    const prog = vars.__forms[waiting.__form_node] || { index: 0, answers: {} };
+    if (waiting.field_key) prog.answers[waiting.field_key] = answer;
+    prog.index = (waiting.__form_index ?? prog.index) + 1;
+    vars.__forms[waiting.__form_node] = prog;
+    resumeKey = waiting.__form_node;
+  }
   // clear waiting and advance
   await supabase.from("contact_flow_state").update({ waiting_for: null, variables: vars }).eq("id", state.id);
   const targets = nextNodes(flow.edges, waiting.node_key);
-  const next = targets[0];
+  const next = resumeKey ?? targets[0];
   if (!next) {
     await supabase.from("flow_runs").update({ status: "completed", ended_at: new Date().toISOString() }).eq("id", run.id);
     await bumpAnalytics(supabase, tenant_id, state.flow_id, "runs_completed");
