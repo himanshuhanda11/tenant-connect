@@ -1021,6 +1021,14 @@ export function InboxChatThread({
               />
 
               {/* Composer Row */}
+              {recordingVoice ? (
+                <VoiceRecorder
+                  onCancel={() => setRecordingVoice(false)}
+                  onSend={async (file) => {
+                    await Promise.resolve(onSendMessage({ media: file }));
+                  }}
+                />
+              ) : (
               <div className="flex min-w-0 items-end gap-1.5">
                 {/* AI Button - Premium text badge */}
                 <Tooltip>
