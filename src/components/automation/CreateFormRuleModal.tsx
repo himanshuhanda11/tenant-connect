@@ -156,6 +156,7 @@ export function CreateFormRuleModal({ open, onOpenChange, editingRule, createRul
   const [ifThenRules, setIfThenRules] = useState<IFThenRule[]>([]);
   const [webhookUrl, setWebhookUrl] = useState('');
   const [formSettings, setFormSettings] = useState<FormBuilderState['settings']>(DEFAULT_FORM_STATE.settings);
+  const [previewOpen, setPreviewOpen] = useState(false);
 
   // Track previous open state to only reset on open transition
   const prevOpenRef = React.useRef(false);
