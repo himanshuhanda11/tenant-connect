@@ -547,9 +547,16 @@ const FlowBuilder = () => {
             {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
             Save
           </Button>
-          <Button size="sm" className="gap-2 shadow-lg shadow-primary/20" onClick={handlePublish}>
+          <Button
+            size="sm"
+            className={cn(
+              'gap-2 shadow-lg shadow-primary/20',
+              !issueSummary.canPublish && 'bg-destructive hover:bg-destructive/90'
+            )}
+            onClick={handlePublish}
+          >
             <Upload className="w-4 h-4" />
-            Publish
+            {issueSummary.canPublish ? 'Publish' : `Fix ${issueSummary.errors}`}
           </Button>
         </div>
       </div>
