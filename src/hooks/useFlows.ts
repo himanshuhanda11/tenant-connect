@@ -83,6 +83,26 @@ export interface FlowDiagnostic {
   node_key: string | null;
 }
 
+const FLOW_START_RIGHT_GAP = 560;
+
+function positionNodesToRightOfStart<T extends { position_x: number; position_y: number }>(
+  templateNodes: T[],
+  startNode: { position_x: number; position_y: number }
+) {
+  if (templateNodes.length === 0) return templateNodes;
+
+  const minTemplateX = Math.min(...templateNodes.map(n => n.position_x));
+  const minTemplateY = Math.min(...templateNodes.map(n => n.position_y));
+  const anchorX = startNode.position_x + FLOW_START_RIGHT_GAP;
+  const anchorY = startNode.position_y;
+
+  return templateNodes.map(node => ({
+    ...node,
+    position_x: anchorX + (node.position_x - minTemplateX),
+    position_y: anchorY + (node.position_y - minTemplateY),
+  }));
+}
+
 export function useFlows() {
   const { currentTenant } = useTenant();
   const { user } = useAuth();
