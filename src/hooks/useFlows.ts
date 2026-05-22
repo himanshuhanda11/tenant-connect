@@ -871,21 +871,19 @@ export function useFlowBuilder(flowId: string | undefined) {
     try {
       // Anchor loaded nodes to the RIGHT of the existing Start node so they don't overlap FlowStartPanel
       const startNode = nodes.find(n => n.node_type === 'start');
-      const anchorX = startNode ? startNode.position_x + 560 : 600; // FlowStartPanel is ~480px wide + gap
-      const anchorY = startNode ? startNode.position_y : 200;
-      const minTemplateY = Math.min(...prebuilt.nodes.map(n => n.position_y));
-      const minTemplateX = Math.min(...prebuilt.nodes.map(n => n.position_x));
-      const offsetY = anchorY - minTemplateY;
-      const offsetX = anchorX - minTemplateX;
+      const positionedNodes = positionNodesToRightOfStart(
+        prebuilt.nodes,
+        startNode || { position_x: 40, position_y: 120 }
+      );
 
-      const newNodes = prebuilt.nodes.map(n => ({
+      const newNodes = positionedNodes.map(n => ({
         tenant_id: currentTenant.id,
         flow_id: flowId,
         node_key: `${n.node_key}_${Date.now()}`,
         node_type: n.node_type,
         label: n.label,
-        position_x: n.position_x + offsetX,
-        position_y: n.position_y + offsetY,
+        position_x: n.position_x,
+        position_y: n.position_y,
         config: n.config,
       }));
 
