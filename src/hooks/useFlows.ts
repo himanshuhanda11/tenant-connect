@@ -83,6 +83,58 @@ export interface FlowDiagnostic {
   node_key: string | null;
 }
 
+const FLOW_START_RIGHT_GAP = 560;
+
+function positionNodesToRightOfStart<T extends { position_x: number; position_y: number }>(
+  templateNodes: T[],
+  startNode: { position_x: number; position_y: number }
+) {
+  if (templateNodes.length === 0) return templateNodes;
+
+  const minTemplateX = Math.min(...templateNodes.map(n => n.position_x));
+  const minTemplateY = Math.min(...templateNodes.map(n => n.position_y));
+  const anchorX = startNode.position_x + FLOW_START_RIGHT_GAP;
+  const anchorY = startNode.position_y;
+
+  return templateNodes.map(node => ({
+    ...node,
+    position_x: anchorX + (node.position_x - minTemplateX),
+    position_y: anchorY + (node.position_y - minTemplateY),
+  }));
+}
+
+function moveOverlappingNodesRightOfStart(flowNodes: FlowNode[]) {
+  const startNode = flowNodes.find(n => n.node_type === 'start');
+  if (!startNode) return { nodes: flowNodes, changed: [] as FlowNode[] };
+
+  const crowdedNodes = flowNodes.filter(n =>
+    n.node_type !== 'start' && n.position_x < startNode.position_x + 420
+  );
+
+  const hasStartOverlap = crowdedNodes.some(n =>
+    n.position_x + 220 > startNode.position_x - 24 &&
+    n.position_y + 130 > startNode.position_y - 24 &&
+    n.position_y < startNode.position_y + 680
+  );
+
+  if (!hasStartOverlap || crowdedNodes.length === 0) return { nodes: flowNodes, changed: [] as FlowNode[] };
+
+  const minCrowdedX = Math.min(...crowdedNodes.map(n => n.position_x));
+  const offsetX = startNode.position_x + FLOW_START_RIGHT_GAP - minCrowdedX;
+  if (offsetX <= 0) return { nodes: flowNodes, changed: [] as FlowNode[] };
+
+  const crowdedKeys = new Set(crowdedNodes.map(n => n.node_key));
+  const changed: FlowNode[] = [];
+  const nodes = flowNodes.map(node => {
+    if (!crowdedKeys.has(node.node_key)) return node;
+    const moved = { ...node, position_x: node.position_x + offsetX };
+    changed.push(moved);
+    return moved;
+  });
+
+  return { nodes, changed };
+}
+
 export function useFlows() {
   const { currentTenant } = useTenant();
   const { user } = useAuth();
@@ -163,10 +215,11 @@ export function useFlows() {
         config: {},
       };
 
-      // Get quick create sample nodes if applicable
-      const sampleNodes = data.quickCreateKey
+      // Get quick create sample nodes if applicable and place them to the right of Flow Start
+      const rawSampleNodes = data.quickCreateKey
         ? getQuickCreateNodes(data.quickCreateKey, currentTenant.id, newFlow.id)
         : [];
+      const sampleNodes = positionNodesToRightOfStart(rawSampleNodes, startNode);
 
       await supabase.from('flow_nodes').insert([startNode, ...sampleNodes]);
 
@@ -227,8 +280,11 @@ export function useFlows() {
         config: {},
       };
       
-      // Create sample nodes based on template category
-      const sampleNodes = getTemplateSampleNodes(template, currentTenant.id, newFlow.id);
+      // Create sample nodes based on template category and place them to the right of Flow Start
+      const sampleNodes = positionNodesToRightOfStart(
+        getTemplateSampleNodes(template, currentTenant.id, newFlow.id),
+        startNode
+      );
       
       await supabase.from('flow_nodes').insert([startNode, ...sampleNodes]);
       
@@ -522,7 +578,21 @@ export function useFlowBuilder(flowId: string | undefined) {
         .eq('flow_id', flowId)
         .order('created_at');
 
-      setNodes(nodesData || []);
+      const normalizedNodes = (nodesData || []) as FlowNode[];
+      const { nodes: positionedNodes, changed: changedNodes } = moveOverlappingNodesRightOfStart(normalizedNodes);
+      setNodes(positionedNodes);
+      if (changedNodes.length > 0) {
+        changedNodes.forEach((node) => {
+          supabase
+            .from('flow_nodes')
+            .update({ position_x: node.position_x, position_y: node.position_y })
+            .eq('flow_id', flowId)
+            .eq('node_key', node.node_key)
+            .then(({ error }) => {
+              if (error) console.error('Failed to save normalized node position', error);
+            });
+        });
+      }
 
       // Fetch edges
       const { data: edgesData } = await supabase
@@ -847,21 +917,19 @@ export function useFlowBuilder(flowId: string | undefined) {
     try {
       // Anchor loaded nodes to the RIGHT of the existing Start node so they don't overlap FlowStartPanel
       const startNode = nodes.find(n => n.node_type === 'start');
-      const anchorX = startNode ? startNode.position_x + 560 : 600; // FlowStartPanel is ~480px wide + gap
-      const anchorY = startNode ? startNode.position_y : 200;
-      const minTemplateY = Math.min(...prebuilt.nodes.map(n => n.position_y));
-      const minTemplateX = Math.min(...prebuilt.nodes.map(n => n.position_x));
-      const offsetY = anchorY - minTemplateY;
-      const offsetX = anchorX - minTemplateX;
+      const positionedNodes = positionNodesToRightOfStart(
+        prebuilt.nodes,
+        startNode || { position_x: 40, position_y: 120 }
+      );
 
-      const newNodes = prebuilt.nodes.map(n => ({
+      const newNodes = positionedNodes.map(n => ({
         tenant_id: currentTenant.id,
         flow_id: flowId,
         node_key: `${n.node_key}_${Date.now()}`,
         node_type: n.node_type,
         label: n.label,
-        position_x: n.position_x + offsetX,
-        position_y: n.position_y + offsetY,
+        position_x: n.position_x,
+        position_y: n.position_y,
         config: n.config,
       }));
 
