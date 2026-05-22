@@ -504,7 +504,7 @@ export function CreateFormRuleModal({ open, onOpenChange, editingRule, createRul
 
   const canProceed = () => {
     switch (currentStep) {
-      case 1: return !!triggerType;
+      case 1: return !!triggerType && isTriggerConfigValid(triggerType, triggerConfig);
       case 2: return true; // Conditions are optional
       case 3: return formMode === 'template' ? !!formId : (builderFields.length > 0 && !!builderFormName.trim());
       case 4: return true; // Safety has defaults
