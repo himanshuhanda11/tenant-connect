@@ -459,6 +459,47 @@ Deno.serve(async (req) => {
 
           if (match?.id) {
             const linkedStatus = String(match.status || 'PENDING').toUpperCase();
+
+            // If the existing Meta template is REJECTED, don't re-link to it —
+            // delete it and retry the create so the resubmission is fresh.
+            if (linkedStatus === 'REJECTED') {
+              try {
+                const deleteUrl = `https://graph.facebook.com/v21.0/${wabaId}/message_templates?name=${encodeURIComponent(sanitizedName)}`;
+                await fetch(deleteUrl, {
+                  method: 'DELETE',
+                  headers: { 'Authorization': `Bearer ${accessToken}` },
+                });
+              } catch (delErr) {
+                console.error('Failed to delete existing rejected template:', delErr);
+              }
+
+              const retryRes = await doMetaPost();
+              const retryJson = await retryRes.json();
+              if (retryRes.ok && retryJson?.id) {
+                await supabase
+                  .from('templates')
+                  .update({
+                    meta_template_id: retryJson.id,
+                    status: 'PENDING',
+                    current_version_id: version_id,
+                    rejection_reason: null,
+                  })
+                  .eq('id', template_id);
+
+                return new Response(JSON.stringify({
+                  success: true,
+                  meta_template_id: retryJson.id,
+                  status: 'PENDING',
+                  resubmitted_after_delete: true,
+                  submission_log_id: submissionLog?.id,
+                  message: 'Previous rejected template removed and resubmitted to Meta.',
+                }), {
+                  status: 200,
+                  headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+                });
+              }
+            }
+
             await supabase
               .from('templates')
               .update({
