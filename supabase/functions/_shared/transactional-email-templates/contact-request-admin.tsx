@@ -135,7 +135,7 @@ const Row: React.FC<{ label: string; value?: string; link?: string }> = ({ label
 
 export const template = {
   component: ContactRequestAdminEmail,
-  to: 'admin@aireatro.com',
+  to: 'info@aireatro.com',
   subject: (d: Record<string, any>) =>
     `New Aireatro Contact Request – ${d.categoryLabel || 'Enquiry'} – ${d.ticketId || ''}`.trim(),
   displayName: 'Contact request — admin notification',

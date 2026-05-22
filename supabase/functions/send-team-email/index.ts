@@ -3,7 +3,7 @@ import { corsHeaders, json, getAdminClient } from "../_shared/supabase.ts";
 // Use the verified aireatro.com domain in Resend.
 const SENDER_DOMAIN = "aireatro.com";
 const FROM_ADDRESS = "Aireatro <noreply@aireatro.com>";
-const REPLY_TO_ADDRESS = "admin@aireatro.com";
+const REPLY_TO_ADDRESS = "info@aireatro.com";
 
 
 // Strip diacritics + drop non-ASCII so subject lines never break headers
@@ -39,7 +39,7 @@ Deno.serve(async (req) => {
     }
 
     const baseUrl = appUrl || Deno.env.get("APP_URL") || "https://aireatro.com";
-    const ADMIN_EMAIL = "admin@aireatro.com";
+    const ADMIN_EMAIL = "info@aireatro.com";
 
     const supabase = getAdminClient();
 
@@ -479,7 +479,7 @@ Deno.serve(async (req) => {
           "SUMMARY:Aireatro Demo",
           `DESCRIPTION:Live demo with the Aireatro team. Timezone: ${timezoneD}`,
           "LOCATION:Google Meet / Zoom (link will be sent)",
-          `ORGANIZER;CN=Aireatro:mailto:admin@aireatro.com`,
+          `ORGANIZER;CN=Aireatro:mailto:info@aireatro.com`,
           `ATTENDEE;CN=${fullNameD}:mailto:${workEmailD}`,
           "STATUS:CONFIRMED",
           "END:VEVENT",

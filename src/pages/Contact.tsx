@@ -294,11 +294,11 @@ export default function Contact() {
         },
       }).catch((e) => console.warn('customer email failed', e));
 
-      // Admin notification (template has fixed `to: admin@aireatro.com`)
+      // Admin notification (template has fixed `to: info@aireatro.com`)
       supabase.functions.invoke('send-transactional-email', {
         body: {
           templateName: 'contact-request-admin',
-          recipientEmail: 'admin@aireatro.com',
+          recipientEmail: 'info@aireatro.com',
           idempotencyKey: `contact-admin-${inserted.ticket_id}`,
           templateData: {
             ...sharedPayload,
