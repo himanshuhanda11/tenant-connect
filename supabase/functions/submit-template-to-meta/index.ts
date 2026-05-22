@@ -611,13 +611,20 @@ Deno.serve(async (req) => {
       }
 
       // Update template status to reflect rejection
+      const metaErr = metaResult.error || {};
+      const richReason = [
+        metaErr.error_user_title,
+        metaErr.error_user_msg || metaErr.message,
+        metaErr.error_subcode ? `(subcode ${metaErr.error_subcode}${metaErr.code ? `, code ${metaErr.code}` : ''})` : (metaErr.code ? `(code ${metaErr.code})` : ''),
+      ].filter(Boolean).join(' — ');
       await supabase
         .from('templates')
         .update({
           status: 'REJECTED',
-          rejection_reason: metaResult.error?.message || 'Unknown error from Meta',
+          rejection_reason: richReason || 'Unknown error from Meta',
         })
         .eq('id', template_id);
+
 
       return new Response(JSON.stringify({
         success: false,
