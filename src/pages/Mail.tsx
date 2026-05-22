@@ -51,7 +51,7 @@ interface Account { id: string; address: string; display_name: string | null; }
 interface TenantMember { user_id: string; full_name?: string | null; email?: string | null; }
 
 export default function Mail() {
-  const { currentTenant } = useTenant() as { currentTenant: { id: string } | null };
+  const { currentTenant, tenants, loading: tenantLoading, setCurrentTenant } = useTenant();
   const tenantId = currentTenant?.id;
 
   const [userId, setUserId] = useState<string | null>(null);
@@ -72,6 +72,12 @@ export default function Mail() {
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => setUserId(data.user?.id ?? null));
   }, []);
+
+  useEffect(() => {
+    if (!tenantId && !tenantLoading && tenants.length > 0) {
+      setCurrentTenant(tenants[0]);
+    }
+  }, [tenantId, tenantLoading, tenants, setCurrentTenant]);
 
   const reload = useCallback(async () => {
     if (!tenantId) return;
@@ -181,7 +187,13 @@ export default function Mail() {
     [conversations]);
 
   if (!tenantId) {
-    return <DashboardLayout><div className="p-8 text-muted-foreground">Select a workspace to use Mail.</div></DashboardLayout>;
+    return (
+      <DashboardLayout>
+        <div className="flex min-h-screen items-center justify-center bg-background p-8 text-muted-foreground">
+          {tenantLoading ? <Loader2 className="h-5 w-5 animate-spin text-primary" /> : "No mail workspace is available for this super admin account."}
+        </div>
+      </DashboardLayout>
+    );
   }
 
   return (

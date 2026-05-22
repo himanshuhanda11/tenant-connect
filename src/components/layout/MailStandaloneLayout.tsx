@@ -1,6 +1,7 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 import { Loader2 } from "lucide-react";
 
 /**
@@ -15,14 +16,25 @@ import { Loader2 } from "lucide-react";
  * one level up by <RequireSuperAdmin />.
  */
 export function MailStandaloneLayout({ children }: { children: React.ReactNode }) {
-  const { user, loading } = useAuth();
+  const { user, session, loading } = useAuth();
   const navigate = useNavigate();
+  const [hasStoredSession, setHasStoredSession] = useState(false);
 
   useEffect(() => {
-    if (!loading && !user) navigate("/login", { replace: true });
-  }, [user, loading, navigate]);
+    if (loading || user || session) {
+      if (user || session) setHasStoredSession(true);
+      return;
+    }
+    let cancelled = false;
+    supabase.auth.getSession().then(({ data }) => {
+      if (cancelled) return;
+      if (data.session) setHasStoredSession(true);
+      else navigate("/login", { replace: true });
+    });
+    return () => { cancelled = true; };
+  }, [user, session, loading, navigate]);
 
-  if (loading || !user) {
+  if (loading || (!user && !session && !hasStoredSession)) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <Loader2 className="w-6 h-6 text-primary animate-spin" />

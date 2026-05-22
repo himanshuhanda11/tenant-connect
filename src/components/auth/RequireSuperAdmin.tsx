@@ -2,7 +2,8 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAdminApi } from "@/hooks/useAdminApi";
-import { Loader2, Lock, LogOut, ArrowLeft } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { Loader2, Lock, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 
@@ -19,19 +20,23 @@ export function RequireSuperAdmin({ children }: { children: React.ReactNode }) {
   const { get } = useAdminApi();
   const navigate = useNavigate();
   const [role, setRole] = useState<string | null>(null);
+  const [sessionEmail, setSessionEmail] = useState<string | null>(null);
   const [checking, setChecking] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (authLoading) return;
-    if (!user) {
-      const next = encodeURIComponent(window.location.pathname + window.location.search);
-      navigate(`/login?redirect=${next}`);
-      return;
-    }
     let cancelled = false;
     (async () => {
       try {
+        const { data: { session } } = await supabase.auth.getSession();
+        const activeUser = user ?? session?.user ?? null;
+        if (!activeUser) {
+          const next = encodeURIComponent(window.location.pathname + window.location.search);
+          navigate(`/login?redirect=${next}`, { replace: true });
+          return;
+        }
+        if (!cancelled) setSessionEmail(activeUser.email ?? null);
         const data = await get("me");
         if (!cancelled) setRole(data?.role ?? null);
       } catch (e: any) {
@@ -66,7 +71,7 @@ export function RequireSuperAdmin({ children }: { children: React.ReactNode }) {
               <h1 className="text-xl font-semibold">Restricted area</h1>
               <p className="text-sm text-muted-foreground">
                 This portal is reserved for Aireatro platform super admins.
-                Your account ({user?.email}) does not have access.
+                Your account ({sessionEmail || user?.email}) does not have access.
               </p>
             </div>
             <div className="flex flex-col gap-2 pt-2">
