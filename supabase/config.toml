@@ -126,3 +126,7 @@ project_id = "fygwjpdasnhaomoqdvcu"
 
   [functions.qr-redirect]
     verify_jwt = false
+
+  [functions.send-team-email]
+    verify_jwt = false
+
