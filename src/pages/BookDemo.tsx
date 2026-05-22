@@ -1,4 +1,5 @@
-import React, { useMemo, useState, Suspense, lazy } from 'react';
+import React, { useMemo, useState, Suspense } from 'react';
+import { lazyWithRetry } from '@/lib/lazyWithRetry';
 import { z } from 'zod';
 import { format } from 'date-fns';
 import { motion } from 'framer-motion';
