@@ -1164,8 +1164,11 @@ export function InboxChatThread({
                       : "bg-muted hover:bg-muted/80 text-muted-foreground"
                   )}
                   variant={messageText.trim() ? "default" : "secondary"}
-                  onClick={handleSend}
-                  disabled={!messageText.trim()}
+                  onClick={() => {
+                    if (messageText.trim()) handleSend();
+                    else setRecordingVoice(true);
+                  }}
+                  title={messageText.trim() ? 'Send message' : 'Record voice message'}
                 >
                   {messageText.trim() ? (
                     <Send className="h-[18px] w-[18px]" />
