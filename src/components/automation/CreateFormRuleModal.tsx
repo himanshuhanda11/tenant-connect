@@ -1101,6 +1101,14 @@ export function CreateFormRuleModal({ open, onOpenChange, editingRule, createRul
           </div>
         </div>
       </DialogContent>
+      <FormPreviewDialog
+        open={previewOpen}
+        onOpenChange={setPreviewOpen}
+        templateId={formId || null}
+        templateName={selectedForm?.name || builderFormName || null}
+        introMessage={introMessage}
+        variables={{}}
+      />
     </Dialog>
   );
 }
