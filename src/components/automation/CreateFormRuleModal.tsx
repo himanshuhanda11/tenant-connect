@@ -829,9 +829,9 @@ export function CreateFormRuleModal({ open, onOpenChange, editingRule, createRul
                           <p className="font-medium">{selectedForm.name}</p>
                           <p className="text-xs text-muted-foreground">Ready to send</p>
                         </div>
-                        <Button variant="ghost" size="sm" className="text-primary">
+                        <Button variant="ghost" size="sm" className="text-primary" onClick={() => setPreviewOpen(true)}>
                           <Eye className="w-4 h-4 mr-1" />
-                          Preview
+                          Preview & Test
                         </Button>
                       </div>
                     )}
