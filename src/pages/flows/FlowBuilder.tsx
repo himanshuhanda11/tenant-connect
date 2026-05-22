@@ -886,6 +886,7 @@ const FlowBuilder = () => {
               return (
                 <div
                   key={node.node_key}
+                  data-flow-node
                   className={cn(
                     'absolute w-[200px] bg-card rounded-xl border-2 shadow-lg select-none transition-shadow',
                     draggingNode === node.node_key ? 'cursor-grabbing shadow-2xl z-50 scale-105' : 'cursor-grab hover:shadow-xl',
