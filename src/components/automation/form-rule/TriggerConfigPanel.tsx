@@ -375,7 +375,7 @@ export function isTriggerConfigValid(triggerType: FormRuleTriggerType, config: F
     case 'tag_added': return !!config.tag_id;
     case 'source': return (config.sources?.length || 0) > 0;
     case 'scheduled':
-      if ((config.schedule_mode || 'delay') === 'delay') return (config.delay_value || 0) > 0;
+      if ((config.schedule_mode || 'delay') === 'delay') return ((config.delay_value ?? 15)) > 0;
       return !!config.schedule_cron;
     case 'ai_intent': return !!config.intent;
     case 'ad_click': return true;
