@@ -436,12 +436,23 @@ const FlowBuilder = () => {
     if (connecting) {
       if (connecting !== sourceKey) {
         await addEdge(connecting, sourceKey);
+        toast.success('Nodes connected');
       }
       setConnecting(null);
     } else {
       setConnecting(sourceKey);
+      toast.info('Now click the target node to connect', { duration: 2000 });
     }
   };
+
+  // ESC cancels connect mode
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && connecting) setConnecting(null);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [connecting]);
 
   const handleSave = async () => {
     if (flowName !== flow?.name) {
