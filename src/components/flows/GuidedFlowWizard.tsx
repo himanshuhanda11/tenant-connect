@@ -114,7 +114,7 @@ export const GuidedFlowWizard: React.FC<GuidedFlowWizardProps> = ({ open, onOpen
 
       toast.success('Flow created! Opening builder…');
       onOpenChange(false);
-      navigate(`/flows/${flow.id}`);
+      navigate(`/flows/builder/${flow.id}`);
     } catch (e: any) {
       console.error(e);
       toast.error(e.message || 'Failed to create flow');
