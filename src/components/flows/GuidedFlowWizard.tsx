@@ -10,7 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import {
   Plane, GraduationCap, Headphones, CalendarCheck2, Building2, Megaphone, MessageSquare,
-  ChevronRight, ChevronLeft, Sparkles, Check, Loader2,
+  ChevronRight, ChevronLeft, Sparkles, Check, Loader2, Wand2,
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useTenant } from '@/contexts/TenantContext';
