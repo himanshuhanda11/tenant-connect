@@ -1,6 +1,7 @@
 import { DocumentPreview } from './DocumentPreview';
 import { ImagePreview } from './ImagePreview';
 import { VideoPreview } from './VideoPreview';
+import { VoicePlayer } from './VoicePlayer';
 import { Music, RefreshCw } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useState } from 'react';
