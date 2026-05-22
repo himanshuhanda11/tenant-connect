@@ -14136,11 +14136,16 @@ export type Database = {
         Row: {
           created_at: string
           id: string
+          meta_error_code: number | null
+          meta_error_details: Json | null
+          meta_error_subcode: number | null
+          meta_error_title: string | null
           meta_status: string | null
           meta_template_id: string | null
           rejection_reason: string | null
           request_payload: Json | null
           response_payload: Json | null
+          step: string | null
           submitted_by: string | null
           template_id: string
           tenant_id: string
@@ -14151,11 +14156,16 @@ export type Database = {
         Insert: {
           created_at?: string
           id?: string
+          meta_error_code?: number | null
+          meta_error_details?: Json | null
+          meta_error_subcode?: number | null
+          meta_error_title?: string | null
           meta_status?: string | null
           meta_template_id?: string | null
           rejection_reason?: string | null
           request_payload?: Json | null
           response_payload?: Json | null
+          step?: string | null
           submitted_by?: string | null
           template_id: string
           tenant_id: string
@@ -14166,11 +14176,16 @@ export type Database = {
         Update: {
           created_at?: string
           id?: string
+          meta_error_code?: number | null
+          meta_error_details?: Json | null
+          meta_error_subcode?: number | null
+          meta_error_title?: string | null
           meta_status?: string | null
           meta_template_id?: string | null
           rejection_reason?: string | null
           request_payload?: Json | null
           response_payload?: Json | null
+          step?: string | null
           submitted_by?: string | null
           template_id?: string
           tenant_id?: string

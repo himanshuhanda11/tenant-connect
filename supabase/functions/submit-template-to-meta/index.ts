@@ -377,10 +377,24 @@ Deno.serve(async (req) => {
         });
         const delJson = await delRes.json().catch(() => ({}));
         console.log('Deleted previous rejected Meta template:', delRes.status, delJson);
+        await supabase.from('template_submission_logs').insert({
+          template_id, version_id,
+          waba_account_id: template.waba_account_id,
+          submitted_by: userId, tenant_id: template.tenant_id,
+          step: 'deleted',
+          meta_status: delRes.ok ? 'pending' : 'rejected',
+          response_payload: delJson,
+          meta_error_code: delJson?.error?.code ?? null,
+          meta_error_subcode: delJson?.error?.error_subcode ?? null,
+          meta_error_title: delJson?.error?.error_user_title ?? null,
+          meta_error_details: delJson?.error ?? null,
+          rejection_reason: delJson?.error?.message ?? null,
+        });
       } catch (delErr) {
         console.error('Failed to delete previous rejected template (continuing):', delErr);
       }
     }
+
 
     // Submit to Meta
     const metaUrl = `https://graph.facebook.com/v21.0/${wabaId}/message_templates`;
@@ -405,6 +419,7 @@ Deno.serve(async (req) => {
     }
 
     // Create submission log
+    const isOk = metaResponse.ok && metaResult.id;
     const { data: submissionLog, error: logError } = await supabase
       .from('template_submission_logs')
       .insert({
@@ -416,8 +431,13 @@ Deno.serve(async (req) => {
         request_payload: requestPayload,
         response_payload: metaResult,
         meta_template_id: metaResult.id || null,
-        meta_status: metaResponse.ok ? 'pending' : 'rejected',
-        rejection_reason: metaResult.error?.message || null,
+        meta_status: isOk ? 'pending' : 'rejected',
+        step: isOk ? 'posted' : 'rejected',
+        rejection_reason: metaResult.error?.error_user_msg || metaResult.error?.message || null,
+        meta_error_code: metaResult.error?.code ?? null,
+        meta_error_subcode: metaResult.error?.error_subcode ?? null,
+        meta_error_title: metaResult.error?.error_user_title ?? null,
+        meta_error_details: metaResult.error ?? null,
       })
       .select()
       .single();
@@ -425,6 +445,7 @@ Deno.serve(async (req) => {
     if (logError) {
       console.error('Error creating submission log:', logError);
     }
+
 
     if (!metaResponse.ok) {
       const permissionGuidance = getMetaPermissionGuidance(metaResult.error);
@@ -590,13 +611,20 @@ Deno.serve(async (req) => {
       }
 
       // Update template status to reflect rejection
+      const metaErr = metaResult.error || {};
+      const richReason = [
+        metaErr.error_user_title,
+        metaErr.error_user_msg || metaErr.message,
+        metaErr.error_subcode ? `(subcode ${metaErr.error_subcode}${metaErr.code ? `, code ${metaErr.code}` : ''})` : (metaErr.code ? `(code ${metaErr.code})` : ''),
+      ].filter(Boolean).join(' — ');
       await supabase
         .from('templates')
         .update({
           status: 'REJECTED',
-          rejection_reason: metaResult.error?.message || 'Unknown error from Meta',
+          rejection_reason: richReason || 'Unknown error from Meta',
         })
         .eq('id', template_id);
+
 
       return new Response(JSON.stringify({
         success: false,

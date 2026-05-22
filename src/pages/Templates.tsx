@@ -17,6 +17,7 @@ import { lintTemplate } from '@/lib/templateLinter';
 import { supabase } from '@/integrations/supabase/client';
 import { useTenant } from '@/contexts/TenantContext';
 import { WhatsAppPreview } from '@/components/templates/WhatsAppPreview';
+import { TemplateSubmissionTimeline } from '@/components/templates/TemplateSubmissionTimeline';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Pencil } from 'lucide-react';
@@ -548,12 +549,22 @@ export default function Templates() {
                   {previewTemplate.rejection_reason && (
                     <Alert variant="destructive">
                       <AlertDescription>
-                        <strong className="block mb-1">Rejection Reason</strong>
+                        <strong className="block mb-1">Latest Rejection Reason</strong>
                         {previewTemplate.rejection_reason}
                       </AlertDescription>
                     </Alert>
                   )}
+
+                  <div>
+                    <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">
+                      Submission Timeline
+                    </h4>
+                    <div className="rounded-lg border bg-card p-3">
+                      <TemplateSubmissionTimeline templateId={previewTemplate.id} />
+                    </div>
+                  </div>
                 </div>
+
 
                 {/* Right: live WhatsApp preview */}
                 <div className="md:sticky md:top-0">

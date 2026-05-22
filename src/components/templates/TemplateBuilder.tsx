@@ -477,7 +477,20 @@ export function TemplateBuilder({
 
             {headerType === 'text' && (
               <div className="space-y-2">
-                <Label>Header Text</Label>
+                <div className="flex items-center justify-between">
+                  <Label>Header Text</Label>
+                  {headerContent && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="h-7 text-destructive hover:text-destructive"
+                      onClick={() => setHeaderContent('')}
+                    >
+                      <X className="h-3.5 w-3.5 mr-1" /> Remove
+                    </Button>
+                  )}
+                </div>
                 <Input
                   value={headerContent}
                   onChange={(e) => setHeaderContent(e.target.value)}
@@ -487,6 +500,7 @@ export function TemplateBuilder({
                 <p className="text-xs text-muted-foreground">{headerContent.length}/60</p>
               </div>
             )}
+
 
             {(headerType === 'image' || headerType === 'video' || headerType === 'document') && (() => {
               const cfg = {
@@ -547,6 +561,23 @@ export function TemplateBuilder({
                           {uploadedFileName || 'Sample ready'} ✓
                         </span>
                       )}
+                      {(hasSample || headerContent) && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="h-8 text-destructive hover:text-destructive"
+                          onClick={() => {
+                            setHeaderContent('');
+                            setUploadedFileName('');
+                            const { header_handle, header_media_handle, header_media_url, ...rest } = (variableSamples || {}) as any;
+                            setVariableSamples(rest);
+                          }}
+                        >
+                          <X className="h-3.5 w-3.5 mr-1" /> Remove
+                        </Button>
+                      )}
+
                     </div>
                     {headerContent && /^https?:\/\//.test(headerContent) && headerType === 'image' && (
                       <img src={headerContent} alt="Header preview" className="max-h-32 rounded border" />
