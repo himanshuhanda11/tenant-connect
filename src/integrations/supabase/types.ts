@@ -3725,6 +3725,41 @@ export type Database = {
           },
         ]
       }
+      email_conversation_viewers: {
+        Row: {
+          conversation_id: string
+          id: string
+          is_typing: boolean
+          last_seen_at: string
+          tenant_id: string
+          user_id: string
+        }
+        Insert: {
+          conversation_id: string
+          id?: string
+          is_typing?: boolean
+          last_seen_at?: string
+          tenant_id: string
+          user_id: string
+        }
+        Update: {
+          conversation_id?: string
+          id?: string
+          is_typing?: boolean
+          last_seen_at?: string
+          tenant_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_conversation_viewers_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "email_conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       email_conversations: {
         Row: {
           account_id: string | null
@@ -3736,14 +3771,19 @@ export type Database = {
           from_name: string | null
           has_attachments: boolean
           id: string
+          is_spam: boolean
           is_starred: boolean
           last_inbound_at: string | null
           last_message_at: string | null
           last_message_preview: string | null
           message_count: number
           priority: Database["public"]["Enums"]["email_priority"]
+          resolved_at: string | null
+          resolved_by: string | null
+          snoozed_until: string | null
           status: Database["public"]["Enums"]["email_conversation_status"]
           subject: string | null
+          tags: string[]
           tenant_id: string
           thread_key: string | null
           unread_count: number
@@ -3759,14 +3799,19 @@ export type Database = {
           from_name?: string | null
           has_attachments?: boolean
           id?: string
+          is_spam?: boolean
           is_starred?: boolean
           last_inbound_at?: string | null
           last_message_at?: string | null
           last_message_preview?: string | null
           message_count?: number
           priority?: Database["public"]["Enums"]["email_priority"]
+          resolved_at?: string | null
+          resolved_by?: string | null
+          snoozed_until?: string | null
           status?: Database["public"]["Enums"]["email_conversation_status"]
           subject?: string | null
+          tags?: string[]
           tenant_id: string
           thread_key?: string | null
           unread_count?: number
@@ -3782,14 +3827,19 @@ export type Database = {
           from_name?: string | null
           has_attachments?: boolean
           id?: string
+          is_spam?: boolean
           is_starred?: boolean
           last_inbound_at?: string | null
           last_message_at?: string | null
           last_message_preview?: string | null
           message_count?: number
           priority?: Database["public"]["Enums"]["email_priority"]
+          resolved_at?: string | null
+          resolved_by?: string | null
+          snoozed_until?: string | null
           status?: Database["public"]["Enums"]["email_conversation_status"]
           subject?: string | null
+          tags?: string[]
           tenant_id?: string
           thread_key?: string | null
           unread_count?: number
@@ -3801,6 +3851,50 @@ export type Database = {
             columns: ["account_id"]
             isOneToOne: false
             referencedRelation: "email_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      email_drafts: {
+        Row: {
+          bcc_emails: string[]
+          body_html: string | null
+          body_text: string | null
+          cc_emails: string[]
+          conversation_id: string
+          id: string
+          tenant_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          bcc_emails?: string[]
+          body_html?: string | null
+          body_text?: string | null
+          cc_emails?: string[]
+          conversation_id: string
+          id?: string
+          tenant_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          bcc_emails?: string[]
+          body_html?: string | null
+          body_text?: string | null
+          cc_emails?: string[]
+          conversation_id?: string
+          id?: string
+          tenant_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_drafts_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "email_conversations"
             referencedColumns: ["id"]
           },
         ]
@@ -4083,6 +4177,81 @@ export type Database = {
           send_delay_ms?: number
           transactional_email_ttl_minutes?: number
           updated_at?: string
+        }
+        Relationships: []
+      }
+      email_signatures: {
+        Row: {
+          created_at: string
+          html: string
+          id: string
+          is_default: boolean
+          name: string
+          tenant_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          html?: string
+          id?: string
+          is_default?: boolean
+          name?: string
+          tenant_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          html?: string
+          id?: string
+          is_default?: boolean
+          name?: string
+          tenant_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      email_templates: {
+        Row: {
+          body_html: string | null
+          body_text: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          is_shared: boolean
+          name: string
+          subject: string | null
+          tenant_id: string
+          updated_at: string
+          variables: Json
+        }
+        Insert: {
+          body_html?: string | null
+          body_text?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_shared?: boolean
+          name: string
+          subject?: string | null
+          tenant_id: string
+          updated_at?: string
+          variables?: Json
+        }
+        Update: {
+          body_html?: string | null
+          body_text?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_shared?: boolean
+          name?: string
+          subject?: string | null
+          tenant_id?: string
+          updated_at?: string
+          variables?: Json
         }
         Relationships: []
       }
