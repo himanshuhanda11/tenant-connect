@@ -1095,6 +1095,7 @@ export function useInboxActions() {
 
         if (err) throw err;
         if (!result?.ok) throw new Error(result?.error || 'Upload failed');
+        if (result?.sent === false) throw new Error(result?.error || 'Failed to send media');
 
         window.dispatchEvent(new CustomEvent('inbox-update', { detail: { conversationId } }));
         return;
