@@ -173,6 +173,58 @@ async function executeNode(supabase: any, ctx: any, node: any): Promise<{ next?:
         return { suspend: true };
       }
 
+      case "collect_form":
+      case "collect-form": {
+        const fields: any[] = Array.isArray(cfg.fields) ? cfg.fields : [];
+        const nodeKey = node.node_key ?? node.id;
+        ctx.vars.__forms = ctx.vars.__forms || {};
+        const progress = ctx.vars.__forms[nodeKey] || { index: 0, answers: {} };
+        // First entry — send intro message if configured
+        if (progress.index === 0 && cfg.intro && ctx.contactWaId && ctx.phoneNumberId) {
+          if (await within24h(supabase, ctx.tenantId, ctx.contactId)) {
+            await sendWhatsAppText(ctx.tenantId, ctx.phoneNumberId, ctx.contactWaId, fillVars(String(cfg.intro), ctx.vars));
+          }
+        }
+        if (progress.index >= fields.length) {
+          // Form complete — send completion message and advance
+          if (cfg.completion_message && ctx.contactWaId && ctx.phoneNumberId) {
+            if (await within24h(supabase, ctx.tenantId, ctx.contactId)) {
+              await sendWhatsAppText(ctx.tenantId, ctx.phoneNumberId, ctx.contactWaId, fillVars(String(cfg.completion_message), ctx.vars));
+            }
+          }
+          // expose collected answers under nodeKey for downstream nodes
+          ctx.vars[nodeKey] = progress.answers;
+          delete ctx.vars.__forms[nodeKey];
+          const targets = nextNodes(ctx.edges, nodeKey);
+          await finishStep("done", { collected: progress.answers, next: targets[0] });
+          return { next: targets[0] };
+        }
+        const field = fields[progress.index];
+        const prompt = fillVars(String(field.label ?? field.prompt ?? ""), ctx.vars);
+        if (prompt && ctx.contactWaId && ctx.phoneNumberId) {
+          if (await within24h(supabase, ctx.tenantId, ctx.contactId)) {
+            await sendWhatsAppText(ctx.tenantId, ctx.phoneNumberId, ctx.contactWaId, prompt);
+          }
+        }
+        ctx.vars.__forms[nodeKey] = progress;
+        const waitingFor = {
+          node_key: nodeKey,
+          expected_type: field.type ?? "text",
+          field_key: field.key ?? null,
+          __form_node: nodeKey,
+          __form_index: progress.index,
+          required: field.required ?? true,
+        };
+        await supabase.from("contact_flow_state").upsert({
+          tenant_id: ctx.tenantId, contact_id: ctx.contactId, flow_id: ctx.flowId, run_id: ctx.runId,
+          current_node_key: nodeKey, waiting_for: waitingFor, variables: ctx.vars,
+          expires_at: new Date(Date.now() + 24 * 3600 * 1000).toISOString(),
+        }, { onConflict: "tenant_id,contact_id,flow_id" });
+        await supabase.from("flow_runs").update({ status: "waiting", current_node_key: nodeKey, variables: ctx.vars }).eq("id", ctx.runId);
+        await finishStep("waiting", { waiting_for: waitingFor, form_progress: progress.index + 1, total: fields.length });
+        return { suspend: true };
+      }
+
       case "condition":
       case "if": {
         const targets = nextNodes(ctx.edges, node.node_key ?? node.id);
