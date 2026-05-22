@@ -91,6 +91,11 @@ const getMetaPermissionGuidance = (metaError: any) => {
   };
 };
 
+const getMetaErrorMessage = (metaError: any) =>
+  metaError?.error_user_msg || metaError?.error_user_title || metaError?.message || 'Failed to submit template to Meta';
+
+const isTemplateLanguageDeleting = (metaError: any) => Number(metaError?.error_subcode) === 2388023;
+
 Deno.serve(async (req) => {
   // Handle CORS preflight
   if (req.method === 'OPTIONS') {
