@@ -1323,7 +1323,7 @@ const FlowBuilder = () => {
         onPublish={confirmPublish}
         onFocusNode={(key) => {
           const node = nodes.find((n: any) => n.node_key === key);
-          if (node) setSelectedNodeId(node.id);
+          if (node) setSelectedNodeKey(node.node_key);
         }}
       />
     </div>
