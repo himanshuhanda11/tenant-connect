@@ -64,6 +64,8 @@ import type { IFThenRule, FormBuilderState } from '@/components/automation/form-
 import { DEFAULT_FORM_STATE } from '@/components/automation/form-builder/types';
 import { supabase } from '@/integrations/supabase/client';
 import { useTenant } from '@/contexts/TenantContext';
+import { TriggerConfigPanel, isTriggerConfigValid } from '@/components/automation/form-rule/TriggerConfigPanel';
+import { FormPreviewDialog } from '@/components/automation/form-rule/FormPreviewDialog';
 
 interface CreateFormRuleModalProps {
   open: boolean;
