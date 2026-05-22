@@ -16,14 +16,20 @@ import type { FlowNode } from '@/hooks/useFlows';
 interface NodeConfigPanelProps {
   node: FlowNode;
   onUpdate: (nodeKey: string, updates: Partial<FlowNode>) => void;
+  allNodes?: FlowNode[];
 }
 
-export function NodeConfigPanel({ node, onUpdate }: NodeConfigPanelProps) {
+export function NodeConfigPanel({ node, onUpdate, allNodes = [] }: NodeConfigPanelProps) {
   const config = node.config || {};
 
   const updateConfig = (patch: Record<string, any>) => {
     onUpdate(node.node_key, { config: { ...config, ...patch } });
   };
+
+  // Other nodes available as branch targets (exclude current + start)
+  const branchTargets = allNodes
+    .filter((n) => n.node_key !== node.node_key && n.node_type !== 'start')
+    .map((n) => ({ key: n.node_key, label: n.label || n.node_type.replace(/-/g, ' ') }));
 
   return (
     <div className="space-y-4">
@@ -38,12 +44,12 @@ export function NodeConfigPanel({ node, onUpdate }: NodeConfigPanelProps) {
 
       {/* Text + Buttons */}
       {node.node_type === 'text-buttons' && (
-        <TextButtonsConfig config={config} updateConfig={updateConfig} />
+        <TextButtonsConfig config={config} updateConfig={updateConfig} branchTargets={branchTargets} />
       )}
 
       {/* List Message */}
       {node.node_type === 'list-message' && (
-        <ListMessageConfig config={config} updateConfig={updateConfig} />
+        <ListMessageConfig config={config} updateConfig={updateConfig} branchTargets={branchTargets} />
       )}
 
       {/* Media */}
