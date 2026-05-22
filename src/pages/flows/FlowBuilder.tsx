@@ -915,8 +915,10 @@ const FlowBuilder = () => {
             )}
           </div>
         </div>
+        )}
 
         {/* Right Panel */}
+        {!isMobile && (
         <div className="w-80 border-l bg-card flex flex-col shrink-0">
           <Tabs value={rightPanelTab} onValueChange={setRightPanelTab} className="flex-1 flex flex-col">
             <TabsList className="w-full rounded-none border-b h-11 bg-transparent p-0">
