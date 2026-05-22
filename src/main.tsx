@@ -12,6 +12,15 @@ if (window.location.hostname === "www.aireatro.com") {
   window.location.replace(canonicalUrl.toString());
 }
 
+// Mail subdomain: keep users on mail.aireatro.com and default the root path to the Mail app.
+// Do NOT redirect off the hostname — only rewrite the path for the SPA router.
+if (window.location.hostname === "mail.aireatro.com") {
+  const p = window.location.pathname;
+  if (p === "/" || p === "") {
+    window.history.replaceState({}, "", "/mail" + window.location.search + window.location.hash);
+  }
+}
+
 startVersionPolling();
 
 // Reset the reload counter once the app boots successfully.
