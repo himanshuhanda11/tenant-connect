@@ -27,6 +27,8 @@ import {
 } from "@/lib/metaAdsPermissions";
 
 const Login = lazyWithRetry(() => import("./pages/Login"));
+const MailLogin = lazyWithRetry(() => import("./pages/MailLogin"));
+const IS_MAIL_HOST = typeof window !== "undefined" && window.location.hostname === "mail.aireatro.com";
 const Toaster = lazyWithRetry(() => import("@/components/ui/toaster").then((module) => ({ default: module.Toaster })));
 const Sonner = lazyWithRetry(() => import("@/components/ui/sonner").then((module) => ({ default: module.Toaster })));
 const ForgotPassword = lazyWithRetry(() => import("./pages/ForgotPassword"));
@@ -259,7 +261,7 @@ const App = () => (
                     
                     <Route path="/auth/callback" element={<AuthCallback />} />
                     <Route path="/~oauth/initiate" element={<LegacyOAuthInitiate />} />
-                    <Route path="/login" element={<Login />} />
+                    <Route path="/login" element={IS_MAIL_HOST ? <MailLogin /> : <Login />} />
                     <Route path="/signup" element={<SignupPage />} />
                     <Route path="/forgot-password" element={<ForgotPassword />} />
                     <Route path="/reset-password" element={<ResetPassword />} />
