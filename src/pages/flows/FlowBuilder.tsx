@@ -904,7 +904,7 @@ const FlowBuilder = () => {
                 <span className="text-sm font-medium">Click a node (or pick from left) to connect</span>
               </div>
               <button
-                onClick={() => setConnecting(null)}
+                onClick={() => { setConnecting(null); setConnectingHandle(null); }}
                 className="text-xs px-3 py-1.5 rounded-md bg-white/20 hover:bg-white/30 transition-colors font-medium"
                 title="Cancel (Esc)"
               >
