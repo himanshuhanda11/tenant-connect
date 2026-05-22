@@ -142,22 +142,23 @@ export const GuidedFlowWizard: React.FC<GuidedFlowWizardProps> = ({ open, onOpen
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl p-0 overflow-hidden">
-        <DialogHeader className="px-6 pt-6 pb-3 border-b">
+      <DialogContent className="max-w-3xl p-0 overflow-hidden max-h-[92vh] flex flex-col">
+        <DialogHeader className="px-4 sm:px-6 pt-5 pb-3 border-b">
           <DialogTitle className="flex items-center gap-2">
             <Sparkles className="w-5 h-5 text-primary" /> Guided Flow Builder
           </DialogTitle>
-          <div className="flex items-center gap-1.5 mt-3 overflow-x-auto pb-1">
+          {/* Step pills — wrap on small screens, compact on mobile */}
+          <div className="flex flex-wrap items-center gap-1.5 mt-3">
             {STEPS.map((label, i) => (
               <React.Fragment key={label}>
                 <div className={cn(
-                  'flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] shrink-0',
+                  'flex items-center gap-1 px-2 py-1 rounded-full text-[10px] sm:text-[11px] shrink-0',
                   i < step && 'bg-primary/10 text-primary',
-                  i === step && 'bg-primary text-primary-foreground',
+                  i === step && 'bg-primary text-primary-foreground shadow-sm shadow-primary/30',
                   i > step && 'bg-muted text-muted-foreground',
                 )}>
-                  {i < step ? <Check className="w-3 h-3" /> : <span className="w-4 text-center">{i + 1}</span>}
-                  {label}
+                  {i < step ? <Check className="w-3 h-3" /> : <span className="w-3.5 text-center font-semibold">{i + 1}</span>}
+                  <span className="hidden xs:inline sm:inline">{label}</span>
                 </div>
                 {i < STEPS.length - 1 && <ChevronRight className="w-3 h-3 text-muted-foreground/40 shrink-0" />}
               </React.Fragment>
@@ -165,25 +166,41 @@ export const GuidedFlowWizard: React.FC<GuidedFlowWizardProps> = ({ open, onOpen
           </div>
         </DialogHeader>
 
-        <div className="px-6 py-5 min-h-[340px]">
+        <div className="px-4 sm:px-6 py-5 min-h-[340px] overflow-y-auto flex-1">
           {step === 0 && (
-            <div className="grid grid-cols-2 gap-3">
-              {GOALS.map(g => (
-                <button
-                  key={g.id}
-                  onClick={() => setGoal(g.id)}
-                  className={cn(
-                    'text-left p-3 rounded-xl border-2 transition-all hover:shadow-md',
-                    goal === g.id ? 'border-primary bg-primary/5' : 'border-border',
-                  )}
-                >
-                  <div className={cn('w-9 h-9 rounded-lg bg-gradient-to-br flex items-center justify-center text-white mb-2', g.color)}>
-                    <g.icon className="w-5 h-5" />
-                  </div>
-                  <p className="font-medium text-sm">{g.name}</p>
-                  <p className="text-[11px] text-muted-foreground mt-0.5">{g.desc}</p>
-                </button>
-              ))}
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {GOALS.map(g => (
+                  <button
+                    key={g.id}
+                    onClick={() => setGoal(g.id)}
+                    className={cn(
+                      'text-left p-3 rounded-xl border-2 transition-all hover:shadow-md',
+                      goal === g.id ? 'border-primary bg-primary/5' : 'border-border',
+                    )}
+                  >
+                    <div className={cn('w-9 h-9 rounded-lg bg-gradient-to-br flex items-center justify-center text-white mb-2', g.color)}>
+                      <g.icon className="w-5 h-5" />
+                    </div>
+                    <p className="font-medium text-sm">{g.name}</p>
+                    <p className="text-[11px] text-muted-foreground mt-0.5">{g.desc}</p>
+                  </button>
+                ))}
+              </div>
+              {goal === 'custom' && (
+                <div className="rounded-xl border-2 border-primary/40 bg-primary/5 p-4 space-y-2 animate-fade-in">
+                  <Label className="text-xs font-medium">What's your business / industry?</Label>
+                  <Input
+                    value={customIndustry}
+                    onChange={e => setCustomIndustry(e.target.value)}
+                    placeholder="e.g. Restaurant, Clinic, Construction, Salon, Gym…"
+                    autoFocus
+                  />
+                  <p className="text-[11px] text-muted-foreground">
+                    We'll tailor the welcome message, question and assignment for <strong>{customIndustry || 'your business'}</strong>.
+                  </p>
+                </div>
+              )}
             </div>
           )}
 
