@@ -54,6 +54,24 @@ export default function Contacts() {
   const [showCreateSegment, setShowCreateSegment] = useState(false);
   const [showAddContact, setShowAddContact] = useState(false);
   const [viewCounts, setViewCounts] = useState<Record<string, number>>({});
+  const [contactDetailsMap, setContactDetailsMap] = useState<Record<string, Partial<Contact>>>({});
+
+  // Enrich CRM rows with full contact details (country, source, language, opt-in, etc.)
+  useEffect(() => {
+    if (!currentTenant?.id || crmContacts.length === 0) return;
+    const ids = crmContacts.map(c => c.contact_id);
+    (async () => {
+      const { data, error } = await supabase
+        .from('contacts')
+        .select('id, country, language, timezone, source, campaign_source, first_message, first_message_time, entry_point, referrer_url, segment, lead_status, priority_level, mau_status, opt_in_status, opt_in_source, opt_in_timestamp, opt_out, notes, last_seen, created_at')
+        .eq('tenant_id', currentTenant.id)
+        .in('id', ids);
+      if (error) { console.error('enrich contacts error', error); return; }
+      const map: Record<string, Partial<Contact>> = {};
+      (data || []).forEach((c: any) => { map[c.id] = c; });
+      setContactDetailsMap(map);
+    })();
+  }, [crmContacts, currentTenant?.id]);
 
   useEffect(() => {
     const fetchOptions = async () => {
