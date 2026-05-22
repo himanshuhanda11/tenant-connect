@@ -45,6 +45,7 @@ const NotFound = lazyWithRetry(() => import("./pages/NotFound"));
 const Dashboard = lazyWithRetry(() => import("./pages/Dashboard"));
 const Settings = lazyWithRetry(() => import("./pages/Settings"));
 const InboxPage = lazyWithRetry(() => import("./pages/InboxPage"));
+const Mail = lazyWithRetry(() => import("./pages/Mail"));
 const InboxCRMDashboard = lazyWithRetry(() => import("./pages/inbox/InboxCRMDashboard"));
 const Contacts = lazyWithRetry(() => import("./pages/Contacts"));
 const ContactSegments = lazyWithRetry(() => import("./pages/ContactSegments"));
