@@ -834,22 +834,23 @@ const FlowBuilder = () => {
           </div>
           <FlowMiniMap nodes={nodes as any} edges={edges as any} selectedNodeKey={selectedNodeKey} />
 
-          {/* Connection indicator */}
+          {/* Connection indicator — bottom center */}
           {connecting && (
-            <div className="absolute top-4 right-4 bg-primary text-primary-foreground px-4 py-2.5 rounded-xl shadow-lg z-10 flex items-center gap-3">
+            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground px-4 py-2.5 rounded-xl shadow-2xl z-20 flex items-center gap-3">
               <div className="flex items-center gap-2">
                 <div className="w-2 h-2 rounded-full bg-white animate-pulse" />
-                <span className="text-sm font-medium">Click target node to connect</span>
+                <span className="text-sm font-medium">Click a node (or pick from left) to connect</span>
               </div>
               <button
                 onClick={() => setConnecting(null)}
-                className="text-xs px-2 py-1 rounded-md bg-white/20 hover:bg-white/30 transition-colors"
+                className="text-xs px-3 py-1.5 rounded-md bg-white/20 hover:bg-white/30 transition-colors font-medium"
                 title="Cancel (Esc)"
               >
                 ← Back
               </button>
             </div>
           )}
+
 
           {/* Canvas content with zoom */}
           <div 
