@@ -175,23 +175,27 @@ export const FlowStartPanel: React.FC<FlowStartPanelProps> = ({
   ].reduce((a, b) => a + b, 0);
 
   // Keyword handlers
+  const commitKeyword = (raw: string) => {
+    const newKeyword = raw.trim().toLowerCase();
+    if (!newKeyword) return;
+    if (keywords.includes(newKeyword)) { setKeywordInput(''); return; }
+    const updatedKeywords = [...keywords, newKeyword];
+    setKeywords(updatedKeywords);
+    const existingKeywordTrigger = triggers.find(t => t.trigger_type === 'keyword');
+    if (existingKeywordTrigger) {
+      onUpdateTrigger(existingKeywordTrigger.id, {
+        config: { ...existingKeywordTrigger.config, keywords: updatedKeywords }
+      });
+    } else {
+      onAddTrigger('keyword', { keywords: updatedKeywords });
+    }
+    setKeywordInput('');
+  };
+
   const handleKeywordKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter' && keywordInput.trim()) {
+    if ((e.key === 'Enter' || e.key === ',') && keywordInput.trim()) {
       e.preventDefault();
-      const newKeyword = keywordInput.trim().toLowerCase();
-      if (!keywords.includes(newKeyword)) {
-        const updatedKeywords = [...keywords, newKeyword];
-        setKeywords(updatedKeywords);
-        const existingKeywordTrigger = triggers.find(t => t.trigger_type === 'keyword');
-        if (existingKeywordTrigger) {
-          onUpdateTrigger(existingKeywordTrigger.id, {
-            config: { ...existingKeywordTrigger.config, keywords: updatedKeywords }
-          });
-        } else {
-          onAddTrigger('keyword', { keywords: updatedKeywords });
-        }
-      }
-      setKeywordInput('');
+      commitKeyword(keywordInput);
     }
   };
 
@@ -431,17 +435,23 @@ export const FlowStartPanel: React.FC<FlowStartPanelProps> = ({
                 </Tooltip>
               </div>
               
-              <div className="relative">
+              <div className="flex gap-1.5">
                 <Input
-                  placeholder="Type keyword, press Enter..."
+                  placeholder="Type a keyword, then press Enter or Add"
                   value={keywordInput}
                   onChange={(e) => setKeywordInput(e.target.value)}
                   onKeyDown={handleKeywordKeyDown}
-                  className="h-9 text-sm pr-8 bg-background border-dashed"
+                  onBlur={() => keywordInput.trim() && commitKeyword(keywordInput)}
+                  className="h-9 text-sm bg-background border-dashed flex-1"
                 />
-                <div className="absolute right-2 top-1/2 -translate-y-1/2">
-                  <Plus className="w-4 h-4 text-muted-foreground" />
-                </div>
+                <button
+                  type="button"
+                  onClick={() => commitKeyword(keywordInput)}
+                  disabled={!keywordInput.trim()}
+                  className="h-9 px-3 rounded-md bg-primary text-primary-foreground text-xs font-medium disabled:opacity-40 hover:bg-primary/90 transition-colors flex items-center gap-1"
+                >
+                  <Plus className="w-3.5 h-3.5" /> Add
+                </button>
               </div>
               
               {keywords.length > 0 && (
