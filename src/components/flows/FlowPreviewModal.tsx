@@ -84,9 +84,9 @@ export const FlowPreviewModal: React.FC<FlowPreviewModalProps> = ({
 
       // Add buttons for text-buttons node
       if (node.node_type === 'text-buttons' && node.config?.buttons) {
-        message.buttons = node.config.buttons.map((b: string, idx: number) => ({
+        message.buttons = node.config.buttons.map((b: any, idx: number) => ({
           id: String(idx),
-          label: b,
+          label: typeof b === 'string' ? b : (b?.label ?? ''),
         }));
       }
 
