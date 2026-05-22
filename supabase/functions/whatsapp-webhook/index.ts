@@ -1903,6 +1903,20 @@ async function sendFormRuleTemplate(
     template = tmpl;
   }
 
+  // Fallback: resolve builder form by name when form_mode is 'builder' but form_version_id is missing
+  if (!template && !rule.form_version_id && rule.form_variables?.form_mode === 'builder' && rule.form_template_name) {
+    const { data: formRow } = await supabase
+      .from('forms')
+      .select('id, active_version_id')
+      .eq('tenant_id', tenantId)
+      .eq('name', rule.form_template_name)
+      .maybeSingle();
+    if (formRow?.active_version_id) {
+      console.log(`Resolved builder form "${rule.form_template_name}" → version ${formRow.active_version_id}`);
+      rule.form_version_id = formRow.active_version_id;
+    }
+  }
+
   // If no WhatsApp template found, check for builder-mode form (form_version_id)
   if (!template && rule.form_version_id) {
     console.log('No WA template found, using builder-mode form version:', rule.form_version_id);
