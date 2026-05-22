@@ -743,7 +743,7 @@ const FlowsHub = () => {
         </Tabs>
       </div>
       <UpgradePlanDialog open={upgradeOpen} onOpenChange={setUpgradeOpen} currentPlanId={currentPlan} />
-      <GuidedFlowWizard open={guidedOpen} onOpenChange={setGuidedOpen} />
+      
     </DashboardLayout>
   );
 };
