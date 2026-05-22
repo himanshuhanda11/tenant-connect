@@ -420,6 +420,85 @@ export const PREBUILT_FLOWS: PrebuiltFlow[] = [
       },
     ],
   },
+  // ────────────────────────────────────────────────────────────
+  // STEP 3 — Premium prebuilt flows (Visa, Travel, Real Estate, Support, Follow-up)
+  // ────────────────────────────────────────────────────────────
+  {
+    id: 'visa_immigration',
+    name: 'Visa & Immigration',
+    description: 'Capture destination, visa type, budget & timeline, then book a consultation',
+    emoji: '🛂',
+    category: 'visa',
+    nodes: [
+      { node_key: 'welcome', node_type: 'text-buttons', label: 'Welcome', position_x: 400, position_y: 100, config: { message: 'Hi {{first_name}} 👋 Welcome to our Visa & Immigration desk. We help you with a smooth visa journey.\n\nWhich country are you applying for?', buttons: ['🇨🇦 Canada', '🇦🇺 Australia', '🇬🇧 UK', '🇺🇸 USA', 'Other'] } },
+      { node_key: 'ask_visa_type', node_type: 'text-buttons', label: 'Visa Type', position_x: 400, position_y: 260, config: { message: 'Which visa type do you need?', buttons: ['Study', 'Work', 'PR / Immigration', 'Tourist', 'Business'], save_variable: 'visa_type' } },
+      { node_key: 'ask_budget', node_type: 'text-buttons', label: 'Budget', position_x: 400, position_y: 420, config: { message: 'What is your overall budget (in USD) for the visa process?', buttons: ['<5k', '5k–15k', '15k–30k', '30k+'], save_variable: 'budget' } },
+      { node_key: 'ask_timeline', node_type: 'text-buttons', label: 'Timeline', position_x: 400, position_y: 580, config: { message: 'When are you planning to apply?', buttons: ['This month', '1–3 months', '3–6 months', '6+ months'], save_variable: 'timeline' } },
+      { node_key: 'tag_qualified', node_type: 'add-tag', label: 'Tag Qualified', position_x: 400, position_y: 740, config: { action: 'add', tag: 'Visa-Qualified' } },
+      { node_key: 'assign_consultant', node_type: 'assign-agent', label: 'Assign Consultant', position_x: 400, position_y: 900, config: { strategy: 'round_robin' } },
+      { node_key: 'book_consult', node_type: 'text-buttons', label: 'Book Consultation', position_x: 400, position_y: 1060, config: { message: 'Thanks {{first_name}} ✅ A visa consultant has been assigned. Would you like to book a free 15-min consultation now?', buttons: ['Book Now', 'Tomorrow', 'Just WhatsApp'] } },
+    ],
+  },
+  {
+    id: 'travel_agency',
+    name: 'Travel Agency',
+    description: 'Destination, dates, budget & passengers → route to a travel expert',
+    emoji: '✈️',
+    category: 'travel',
+    nodes: [
+      { node_key: 'welcome', node_type: 'text-buttons', label: 'Welcome', position_x: 400, position_y: 100, config: { message: 'Hi {{first_name}} ✈️ Where would you like to travel?', buttons: ['Maldives', 'Dubai', 'Europe', 'Thailand', 'Other'] } },
+      { node_key: 'ask_dates', node_type: 'text-buttons', label: 'Travel Dates', position_x: 400, position_y: 260, config: { message: 'When are you planning to travel?\nExample: 15 Dec – 22 Dec', save_variable: 'travel_dates' } },
+      { node_key: 'ask_budget', node_type: 'text-buttons', label: 'Budget', position_x: 400, position_y: 420, config: { message: 'What is your per-person budget?', buttons: ['<$500', '$500–$1500', '$1500–$3000', '$3000+'], save_variable: 'budget' } },
+      { node_key: 'ask_pax', node_type: 'text-buttons', label: 'Passengers', position_x: 400, position_y: 580, config: { message: 'How many people are travelling?', buttons: ['1', '2', '3–4', '5+'], save_variable: 'passengers' } },
+      { node_key: 'tag_travel', node_type: 'add-tag', label: 'Tag Travel Lead', position_x: 400, position_y: 740, config: { action: 'add', tag: 'Travel-Lead' } },
+      { node_key: 'assign_expert', node_type: 'assign-agent', label: 'Assign Travel Expert', position_x: 400, position_y: 900, config: { strategy: 'round_robin' } },
+    ],
+  },
+  {
+    id: 'real_estate_basic',
+    name: 'Real Estate',
+    description: 'Property type, budget, city & timeline → assign sales agent',
+    emoji: '🏠',
+    category: 'real_estate',
+    nodes: [
+      { node_key: 'welcome', node_type: 'text-buttons', label: 'Welcome', position_x: 400, position_y: 100, config: { message: 'Hi {{first_name}} 🏠 Are you looking to BUY or RENT?', buttons: ['Buy', 'Rent', 'Investment'], save_variable: 'intent' } },
+      { node_key: 'ask_type', node_type: 'text-buttons', label: 'Property Type', position_x: 400, position_y: 260, config: { message: 'What type of property?', buttons: ['Apartment', 'Villa', 'Plot', 'Commercial'], save_variable: 'property_type' } },
+      { node_key: 'ask_budget', node_type: 'text-buttons', label: 'Budget', position_x: 400, position_y: 420, config: { message: 'What is your budget range?', buttons: ['<50L', '50L–1Cr', '1–2Cr', '2Cr+'], save_variable: 'budget' } },
+      { node_key: 'ask_city', node_type: 'text-buttons', label: 'City / Area', position_x: 400, position_y: 580, config: { message: 'Which city or area are you interested in?', save_variable: 'city' } },
+      { node_key: 'ask_timeline', node_type: 'text-buttons', label: 'Timeline', position_x: 400, position_y: 740, config: { message: 'When do you plan to finalise?', buttons: ['Immediately', '1–3 months', '3–6 months', 'Just exploring'], save_variable: 'timeline' } },
+      { node_key: 'tag_re', node_type: 'add-tag', label: 'Tag Real Estate Lead', position_x: 400, position_y: 900, config: { action: 'add', tag: 'Real-Estate-Lead' } },
+      { node_key: 'assign_agent', node_type: 'assign-agent', label: 'Assign Sales Agent', position_x: 400, position_y: 1060, config: { strategy: 'round_robin' } },
+    ],
+  },
+  {
+    id: 'whatsapp_support',
+    name: 'WhatsApp Support',
+    description: 'Welcome → issue selection → route to right department → human handover',
+    emoji: '🎧',
+    category: 'support',
+    nodes: [
+      { node_key: 'welcome', node_type: 'text-buttons', label: 'Support Welcome', position_x: 400, position_y: 100, config: { message: 'Hi {{first_name}} 👋 Welcome to support. How can we help you today?', buttons: ['Billing', 'Technical', 'Order Status', 'Other'] } },
+      { node_key: 'route_check', node_type: 'condition', label: 'Route to Dept', position_x: 400, position_y: 260, config: { keyword: 'Billing' } },
+      { node_key: 'tag_dept', node_type: 'add-tag', label: 'Tag Department', position_x: 400, position_y: 420, config: { action: 'add', tag: 'Support-Ticket' } },
+      { node_key: 'assign_human', node_type: 'assign-agent', label: 'Human Handover', position_x: 400, position_y: 580, config: { strategy: 'round_robin' } },
+      { node_key: 'ack', node_type: 'text-buttons', label: 'Acknowledge', position_x: 400, position_y: 740, config: { message: 'Thanks! Our team will reply within a few minutes. Your ticket is on the way 📨' } },
+    ],
+  },
+  {
+    id: 'missed_lead_followup',
+    name: 'Missed Lead Follow-up',
+    description: 'Delay → reminder → follow-up; stops automatically when the lead replies',
+    emoji: '⏰',
+    category: 'followup',
+    nodes: [
+      { node_key: 'delay_1h', node_type: 'delay', label: 'Wait 1 Hour', position_x: 400, position_y: 100, config: { duration: 1, unit: 'hours' } },
+      { node_key: 'reminder', node_type: 'text-buttons', label: 'Gentle Reminder', position_x: 400, position_y: 260, config: { message: 'Hi {{first_name}} 👋 just checking in — did you get a chance to review what we discussed?', buttons: ['Yes', 'Need more info', 'Not now'] } },
+      { node_key: 'delay_24h', node_type: 'delay', label: 'Wait 24 Hours', position_x: 400, position_y: 420, config: { duration: 24, unit: 'hours' } },
+      { node_key: 'followup', node_type: 'text-buttons', label: 'Follow-up', position_x: 400, position_y: 580, config: { message: 'Hi {{first_name}}, sharing one last note — would you like me to keep this open or close it?', buttons: ['Keep Open', 'Close', 'Call Me'] } },
+      { node_key: 'delay_72h', node_type: 'delay', label: 'Wait 3 Days', position_x: 400, position_y: 740, config: { duration: 72, unit: 'hours' } },
+      { node_key: 'final', node_type: 'text-buttons', label: 'Final Touchpoint', position_x: 400, position_y: 900, config: { message: 'Hey {{first_name}}, this is our final note. Reply anytime — we are here when you are ready 🙌' } },
+    ],
+  },
 ];
 
 export const PREBUILT_FLOW_CATEGORIES: Record<string, { label: string; color: string }> = {
@@ -428,4 +507,8 @@ export const PREBUILT_FLOW_CATEGORIES: Record<string, { label: string; color: st
   ecommerce: { label: 'E-commerce', color: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300' },
   healthcare: { label: 'Healthcare', color: 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300' },
   general: { label: 'General', color: 'bg-slate-100 text-slate-700 dark:bg-slate-900/30 dark:text-slate-300' },
+  visa: { label: 'Visa', color: 'bg-cyan-100 text-cyan-700 dark:bg-cyan-900/30 dark:text-cyan-300' },
+  travel: { label: 'Travel', color: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300' },
+  support: { label: 'Support', color: 'bg-fuchsia-100 text-fuchsia-700 dark:bg-fuchsia-900/30 dark:text-fuchsia-300' },
+  followup: { label: 'Follow-up', color: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300' },
 };
