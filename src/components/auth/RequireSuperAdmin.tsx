@@ -70,9 +70,6 @@ export function RequireSuperAdmin({ children }: { children: React.ReactNode }) {
               </p>
             </div>
             <div className="flex flex-col gap-2 pt-2">
-              <Button onClick={() => (window.location.href = "https://app.aireatro.com/dashboard")} className="w-full">
-                <ArrowLeft className="w-4 h-4 mr-2" /> Go to your dashboard
-              </Button>
               <Button variant="outline" onClick={() => signOut()} className="w-full">
                 <LogOut className="w-4 h-4 mr-2" /> Sign out
               </Button>
