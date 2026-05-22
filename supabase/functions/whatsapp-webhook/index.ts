@@ -763,14 +763,15 @@ async function processInboundMessage(
 
         if (mediaResp.ok) {
           const mediaBuffer = await mediaResp.arrayBuffer();
-          const ext = (mediaMimeType?.split('/')[1] || 'bin').split(';')[0];
+          const storageContentType = (mediaMimeType || mediaResp.headers.get('content-type') || 'application/octet-stream').split(';')[0].trim().toLowerCase();
+          const ext = (storageContentType.split('/')[1] || 'bin').split('+')[0];
           const filePath = `${tenantId}/${ev.from_wa_id}/${Date.now()}-${ev.media.id}.${ext}`;
 
           // Step 3: Upload to Supabase storage
           const { error: uploadErr } = await supabase.storage
             .from('wa-media')
             .upload(filePath, mediaBuffer, {
-              contentType: mediaMimeType || 'application/octet-stream',
+              contentType: storageContentType,
               upsert: false,
             });
 

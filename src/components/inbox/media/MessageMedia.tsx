@@ -64,6 +64,7 @@ export function MessageMedia({ message, isOutbound }: MessageMediaProps) {
     case 'audio':
       return (
         <VoicePlayer
+          messageId={message.id}
           url={media_url || ''}
           isOutbound={isOutbound}
           mediaBucket={media_bucket || undefined}
