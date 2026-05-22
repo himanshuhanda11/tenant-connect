@@ -272,7 +272,7 @@ export const GuidedFlowWizard: React.FC<GuidedFlowWizardProps> = ({ open, onOpen
                 <Input value={flowName} onChange={e => setFlowName(e.target.value)} placeholder="My new flow" />
               </div>
               <div className="rounded-xl border bg-muted/30 p-4 space-y-1.5 text-xs">
-                <p><Badge variant="outline" className="mr-2">Goal</Badge>{GOALS.find(g => g.id === goal)?.name}</p>
+                <p><Badge variant="outline" className="mr-2">Goal</Badge>{goal === 'custom' ? `Custom — ${customIndustry || 'your business'}` : GOALS.find(g => g.id === goal)?.name}</p>
                 <p><Badge variant="outline" className="mr-2">Trigger</Badge>{TRIGGERS.find(t => t.id === trigger)?.name}{trigger === 'keyword' && ` — "${keyword}"`}</p>
                 <p><Badge variant="outline" className="mr-2">Welcome</Badge><span className="text-muted-foreground line-clamp-1">{welcome}</span></p>
                 <p><Badge variant="outline" className="mr-2">Question</Badge><span className="text-muted-foreground line-clamp-1">{question}</span></p>
