@@ -62,7 +62,7 @@ export async function fetchConversations(tenantId: string, userId: string | null
   }
 
   if (f.accountId) q = q.eq("account_id", f.accountId);
-  if (f.priority) q = q.eq("priority", f.priority);
+  if (f.priority) q = q.eq("priority", f.priority as "low" | "normal" | "high" | "urgent");
   if (f.tag) q = q.contains("tags", [f.tag]);
   if (f.search.trim()) {
     const s = f.search.trim().replace(/[%_]/g, "");
