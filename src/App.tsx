@@ -461,6 +461,7 @@ const App = () => (
                     </Route>
                     <Route path="*" element={<NotFound />} />
                   </Routes>
+                  )}
                 </Suspense>
                 <Suspense fallback={null}>
                   <SupportWidgetWrapper />
