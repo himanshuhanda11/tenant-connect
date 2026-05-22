@@ -83,6 +83,7 @@ import {
   Circle,
   ArrowDown,
   Loader2,
+  Star,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useFlowBuilder } from '@/hooks/useFlows';
