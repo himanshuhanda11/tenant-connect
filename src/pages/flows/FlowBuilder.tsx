@@ -683,8 +683,17 @@ const FlowBuilder = () => {
 
 
 
-        {/* Canvas */}
-        <div 
+        {/* Canvas or Mobile Step List */}
+        {isMobile ? (
+          <MobileStepList
+            nodes={nodes as any}
+            selectedNodeKey={selectedNodeKey}
+            onSelect={(k) => { setSelectedNodeKey(k); setRightPanelTab('settings'); }}
+            onDelete={(k) => { deleteNode(k); if (selectedNodeKey === k) setSelectedNodeKey(null); }}
+            onAdd={() => addNode('text-buttons', { x: 200, y: 80 + nodes.length * 160 })}
+          />
+        ) : (
+        <div
           ref={canvasRef}
           className={cn(
             'flex-1 relative overflow-auto',
@@ -694,8 +703,8 @@ const FlowBuilder = () => {
           onDrop={handleCanvasDrop}
           onDragOver={handleCanvasDragOver}
         >
-          {/* Zoom controls */}
-          <div className="absolute top-4 left-4 flex items-center gap-1 bg-card border rounded-xl shadow-lg p-1.5 z-10">
+          {/* Zoom + auto-arrange controls */}
+          <div className="absolute top-4 left-4 flex items-center gap-1 bg-card/90 backdrop-blur border rounded-xl shadow-lg p-1.5 z-10">
             <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setZoom(Math.max(25, zoom - 10))}>
               <ZoomOut className="w-4 h-4" />
             </Button>
@@ -707,7 +716,17 @@ const FlowBuilder = () => {
             <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setZoom(100)}>
               <Maximize2 className="w-4 h-4" />
             </Button>
+            <Separator orientation="vertical" className="h-5 mx-1" />
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={autoArrange}>
+                  <AlignCenter className="w-4 h-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Auto-arrange (top-down)</TooltipContent>
+            </Tooltip>
           </div>
+          <FlowMiniMap nodes={nodes as any} edges={edges as any} selectedNodeKey={selectedNodeKey} />
 
           {/* Connection indicator */}
           {connecting && (
