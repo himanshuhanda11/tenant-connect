@@ -78,6 +78,7 @@ import {
   MousePointer,
   Layers,
   Plus,
+  Minus,
   Trash2,
   GripVertical,
   Circle,
