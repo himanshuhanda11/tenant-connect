@@ -773,7 +773,7 @@ function ThreadPane({
 
 /* -------- Right context drawer -------- */
 function ContextDrawer({ conv }: { conv: Conv }) {
-  const [notes, setNotes] = useState<{ id: string; body: string; created_at: string; user_id: string }[]>([]);
+  const [notes, setNotes] = useState<{ id: string; body: string; created_at: string; author_id: string }[]>([]);
   const [noteText, setNoteText] = useState("");
   const [viewers, setViewers] = useState<{ user_id: string; last_seen_at: string }[]>([]);
 
