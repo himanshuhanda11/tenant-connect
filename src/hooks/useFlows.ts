@@ -875,7 +875,7 @@ export function useFlowBuilder(flowId: string | undefined) {
 
       // Create edges: start → first node, then chain sequentially
       const edgesToInsert: any[] = [];
-      const startNode = nodes.find(n => n.node_type === 'start');
+
       
       if (startNode && insertedNodes && insertedNodes.length > 0) {
         edgesToInsert.push({
