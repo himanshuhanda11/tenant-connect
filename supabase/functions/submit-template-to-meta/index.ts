@@ -91,6 +91,11 @@ const getMetaPermissionGuidance = (metaError: any) => {
   };
 };
 
+const getMetaErrorMessage = (metaError: any) =>
+  metaError?.error_user_msg || metaError?.error_user_title || metaError?.message || 'Failed to submit template to Meta';
+
+const isTemplateLanguageDeleting = (metaError: any) => Number(metaError?.error_subcode) === 2388023;
+
 Deno.serve(async (req) => {
   // Handle CORS preflight
   if (req.method === 'OPTIONS') {
@@ -498,6 +503,29 @@ Deno.serve(async (req) => {
                   headers: { ...corsHeaders, 'Content-Type': 'application/json' },
                 });
               }
+
+              if (isTemplateLanguageDeleting(retryJson?.error)) {
+                const retryMessage = getMetaErrorMessage(retryJson.error);
+                await supabase
+                  .from('templates')
+                  .update({
+                    status: 'PENDING',
+                    current_version_id: version_id,
+                    rejection_reason: retryMessage,
+                  })
+                  .eq('id', template_id);
+
+                return new Response(JSON.stringify({
+                  success: true,
+                  status: 'PENDING',
+                  retry_after_seconds: 60,
+                  submission_log_id: submissionLog?.id,
+                  message: 'Meta is clearing the previous rejected version. The template is marked pending; try Sync from Meta shortly.',
+                }), {
+                  status: 200,
+                  headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+                });
+              }
             }
 
             await supabase
@@ -534,6 +562,29 @@ Deno.serve(async (req) => {
           submission_log_id: submissionLog?.id,
         }), {
           status: 409,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      if (isTemplateLanguageDeleting(metaResult.error)) {
+        const metaMessage = getMetaErrorMessage(metaResult.error);
+        await supabase
+          .from('templates')
+          .update({
+            status: 'PENDING',
+            current_version_id: version_id,
+            rejection_reason: metaMessage,
+          })
+          .eq('id', template_id);
+
+        return new Response(JSON.stringify({
+          success: true,
+          status: 'PENDING',
+          retry_after_seconds: 60,
+          submission_log_id: submissionLog?.id,
+          message: 'Meta is clearing the previous rejected version. The template is marked pending; try Sync from Meta shortly.',
+        }), {
+          status: 200,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       }
