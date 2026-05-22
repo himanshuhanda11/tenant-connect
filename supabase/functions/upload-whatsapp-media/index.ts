@@ -186,14 +186,42 @@ Deno.serve(async (req) => {
 
         const accessToken = phoneNumber.waba_account.encrypted_access_token;
 
-        // Build WhatsApp API payload
+        // Build WhatsApp API payload.
+        // For audio (voice notes) and when link-based delivery is risky, upload the
+        // bytes directly to Meta's /media endpoint and reference the returned media_id.
+        // Meta error 131053 ("Media upload error") on browser-recorded m4a/ogg is a
+        // known issue when using `link`; uploading first is far more reliable.
+        let mediaRef: any = { link: mediaUrl };
+        if (mediaType === 'audio') {
+          try {
+            const metaForm = new FormData();
+            metaForm.append('messaging_product', 'whatsapp');
+            metaForm.append('type', baseType);
+            metaForm.append('file', new Blob([fileBuffer], { type: baseType }), file.name);
+            const metaUpload = await fetch(
+              `https://graph.facebook.com/v18.0/${phoneNumber.phone_number_id}/media`,
+              { method: 'POST', headers: { 'Authorization': `Bearer ${accessToken}` }, body: metaForm }
+            );
+            const metaJson = await metaUpload.json();
+            if (metaUpload.ok && metaJson.id) {
+              mediaRef = { id: metaJson.id };
+              console.log('Meta media uploaded:', metaJson.id);
+            } else {
+              console.error('Meta media upload failed, falling back to link:', metaJson);
+            }
+          } catch (e) {
+            console.error('Meta media upload exception, falling back to link:', e);
+          }
+        }
+
         const messagePayload: any = {
           messaging_product: 'whatsapp',
           recipient_type: 'individual',
           to: conversation.contact.wa_id,
           type: mediaType,
-          [mediaType]: { link: mediaUrl },
+          [mediaType]: mediaRef,
         };
+
         if (caption) messagePayload[mediaType].caption = caption;
 
         // Claim on reply for media messages
