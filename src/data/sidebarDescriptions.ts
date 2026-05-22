@@ -95,8 +95,9 @@ export const sidebarDescriptions: Record<string, SidebarItemMeta> = {
   },
   flows: {
     key: 'flows',
-    title: 'Flows',
-    description: 'Build interactive WhatsApp Flows with drag-and-drop designer. Create surveys, booking forms, and multi-step experiences.',
+    title: 'Chatbot Flows',
+    description: 'Build interactive WhatsApp chatbot flows with a drag-and-drop designer. Create surveys, booking flows, and multi-step experiences.',
+
     helpSlug: 'automation-workflows',
     icon: '🔀',
     category: 'growth'
