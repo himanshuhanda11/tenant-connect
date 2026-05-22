@@ -333,7 +333,35 @@ Deno.serve(async (req) => {
     actor_type: "system",
     event_type: "message_received",
     payload: { from: fromParsed.email, subject },
-  });
+  // Fire automation runner (don't block on it)
+  try {
+    fetch(`${Deno.env.get("SUPABASE_URL")}/functions/v1/email-automation-runner`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}`,
+      },
+      body: JSON.stringify({
+        tenant_id: account.tenant_id,
+        conversation_id: conversationId,
+        message_id: msg.id,
+        trigger_type: "message_received",
+      }),
+    }).catch((e) => console.error("[automation-runner]", e));
+
+    // Fire AI classify async (no await)
+    fetch(`${Deno.env.get("SUPABASE_URL")}/functions/v1/email-ai-classify`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}`,
+      },
+      body: JSON.stringify({ conversation_id: conversationId, message_id: msg.id }),
+    }).catch((e) => console.error("[ai-classify]", e));
+  } catch (e) {
+    console.error("[resend-inbound] post-hooks failed", e);
+  }
+
 
   return new Response(JSON.stringify({ ok: true, conversation_id: conversationId, message_id: msg.id }), {
     status: 200,
