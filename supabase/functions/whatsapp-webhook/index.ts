@@ -906,13 +906,39 @@ async function processInboundMessage(
       (async () => {
         try {
           const formTriggered = await handleFormRules(supabase, tenantId, phoneNumberId, conversationId, contactId, ev, isNewConversation);
-          // If a form was just triggered by this message, tag it so bell stays silent
           if (formTriggered && ev.wamid) {
             await supabase.from('messages').update({ metadata: { is_form_response: true } })
               .eq('tenant_id', tenantId).eq('wamid', ev.wamid);
           }
         } catch (e) {
           console.error('Form rules engine error:', e);
+        }
+      })();
+
+      // Flow engine (gated per-tenant by tenants.flow_engine_enabled inside the function)
+      (async () => {
+        try {
+          const SUPA_URL = Deno.env.get('SUPABASE_URL')!;
+          const SVC_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+          const hdrs = { 'Content-Type': 'application/json', Authorization: `Bearer ${SVC_KEY}` };
+          const resumeRes = await fetch(`${SUPA_URL}/functions/v1/flow-engine`, {
+            method: 'POST', headers: hdrs,
+            body: JSON.stringify({ action: 'resume', tenant_id: tenantId, contact_id: contactId, message_text: (ev as any).text ?? '' }),
+          });
+          const resumeJson: any = await resumeRes.json().catch(() => ({}));
+          if (resumeJson?.skipped === 'no_waiting') {
+            await fetch(`${SUPA_URL}/functions/v1/flow-engine`, {
+              method: 'POST', headers: hdrs,
+              body: JSON.stringify({
+                action: 'dispatch', tenant_id: tenantId, phone_number_id: phoneNumberId,
+                trigger_type: 'whatsapp_message', contact_id: contactId, conversation_id: conversationId,
+                contact_wa_id: ev.from_wa_id, message_text: (ev as any).text ?? '',
+                idempotency_key: ev.wamid, payload: { wamid: ev.wamid },
+              }),
+            });
+          }
+        } catch (e) {
+          console.error('Flow engine error:', e);
         }
       })();
     }
