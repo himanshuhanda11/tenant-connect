@@ -124,6 +124,7 @@ const EXTENDED_TRIGGER_OPTIONS = [
 export function CreateFormRuleModal({ open, onOpenChange, editingRule, createRule, updateRule, onSaved }: CreateFormRuleModalProps) {
   const { templates } = useTemplates();
   const { currentTenant } = useTenant();
+  const { forms: savedForms, refetch: refetchSavedForms } = useSavedForms();
   const [saving, setSaving] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
 
@@ -150,8 +151,18 @@ export function CreateFormRuleModal({ open, onOpenChange, editingRule, createRul
   // Keyword input state
   const [keywordInput, setKeywordInput] = useState('');
 
-  // Form builder state
-  const [formMode, setFormMode] = useState<'template' | 'builder'>('template');
+  // Delivery mode: how the customer experiences the form
+  // 'conversational' = bot asks one Q at a time in chat (works always)
+  // 'native_flow'    = WhatsApp pop-up form (single screen, fill & submit) — needs a Flow-enabled template
+  const [deliveryMode, setDeliveryMode] = useState<'conversational' | 'native_flow'>('conversational');
+
+  // Form source: where the schema/content comes from
+  // 'saved'    = pick a previously-saved form from the library
+  // 'builder'  = build a new one inline (will be saved to library)
+  // 'template' = use an existing WhatsApp message template (required for native_flow)
+  const [formMode, setFormMode] = useState<'saved' | 'builder' | 'template'>('builder');
+  const [savedFormId, setSavedFormId] = useState<string>('');
+  const [savedVersionId, setSavedVersionId] = useState<string>('');
   const [builderFields, setBuilderFields] = useState<FormField[]>([]);
   const [builderFormName, setBuilderFormName] = useState('');
   const [savingForm, setSavingForm] = useState(false);
