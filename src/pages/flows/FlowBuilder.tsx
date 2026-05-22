@@ -459,14 +459,49 @@ const FlowBuilder = () => {
   const handleAddConnection = async (sourceKey: string) => {
     if (connecting) {
       if (connecting !== sourceKey) {
-        await addEdge(connecting, sourceKey);
-        toast.success('Nodes connected');
+        const handle = connectingHandle?.id;
+        await addEdge(connecting, sourceKey, handle);
+        // If this came from a button/list handle, also persist the `next` on the choice config
+        if (connectingHandle) {
+          const srcNode = nodes.find(n => n.node_key === connecting);
+          if (srcNode) {
+            const cfg = { ...(srcNode.config || {}) };
+            if (srcNode.node_type === 'text-buttons') {
+              const btns = Array.isArray(cfg.buttons) ? [...cfg.buttons] : [];
+              const idx = connectingHandle.index;
+              if (btns[idx]) {
+                btns[idx] = typeof btns[idx] === 'string'
+                  ? { label: btns[idx], next: sourceKey }
+                  : { ...btns[idx], next: sourceKey };
+                cfg.buttons = btns;
+                await updateNode(connecting, { config: cfg });
+              }
+            } else if (srcNode.node_type === 'list-message') {
+              const items = Array.isArray(cfg.items) ? [...cfg.items] : (Array.isArray(cfg.sections) ? [...cfg.sections] : []);
+              const idx = connectingHandle.index;
+              if (items[idx]) {
+                items[idx] = { ...items[idx], next: sourceKey };
+                cfg.items = items;
+                await updateNode(connecting, { config: cfg });
+              }
+            }
+          }
+        }
+        toast.success('Connected');
       }
       setConnecting(null);
+      setConnectingHandle(null);
     } else {
       setConnecting(sourceKey);
+      setConnectingHandle(null);
       toast.info('Now click the target node to connect', { duration: 2000 });
     }
+  };
+
+  const handleStartHandleConnect = (sourceKey: string, handle: { id: string; label: string; index: number }) => {
+    setConnecting(sourceKey);
+    setConnectingHandle(handle);
+    toast.info(`Click target node for "${handle.label}"`, { duration: 2500 });
   };
 
   // ESC cancels connect mode
