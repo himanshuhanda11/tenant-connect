@@ -895,16 +895,18 @@ const FlowBuilder = () => {
                     onMouseDown={(e) => handleNodeMouseDown(e, node.node_key)}
                     onClick={() => handleNodeClick(node.node_key)}
                   >
-                    {/* Dedicated drag handle */}
+                    {/* Wide top drag bar — drag from anywhere on this strip */}
                     <div
                       className={cn(
-                        "absolute -top-3 left-1/2 -translate-x-1/2 z-20 px-3 py-1 rounded-full bg-primary text-primary-foreground text-[10px] font-semibold shadow-lg flex items-center gap-1 select-none",
-                        draggingNode === node.node_key ? 'cursor-grabbing' : 'cursor-grab hover:scale-105 transition-transform'
+                        "absolute -top-7 left-0 right-0 h-7 rounded-t-2xl bg-primary/90 text-primary-foreground text-[11px] font-semibold shadow-lg flex items-center justify-center gap-2 select-none z-20",
+                        draggingNode === node.node_key ? 'cursor-grabbing' : 'cursor-grab hover:bg-primary transition-colors'
                       )}
                       onMouseDown={(e) => handleNodeMouseDown(e, node.node_key)}
-                      title="Drag to move"
+                      title="Drag to move Flow Start"
                     >
-                      <GripVertical className="w-3 h-3" /> Drag
+                      <GripVertical className="w-3.5 h-3.5" />
+                      Drag Flow Start
+                      <GripVertical className="w-3.5 h-3.5" />
                     </div>
                     <FlowStartPanel
                       triggers={triggers}
@@ -914,16 +916,21 @@ const FlowBuilder = () => {
                       onDeleteTrigger={deleteTrigger}
                       onToggleTrigger={toggleTrigger}
                     />
-                    {/* Output connection point (bottom) */}
-                    <button 
+                    {/* Add Next Step button — clearer than the small dot */}
+                    <button
                       className={cn(
-                        "absolute -bottom-3 left-1/2 -translate-x-1/2 w-5 h-5 rounded-full shadow-lg transition-all flex items-center justify-center",
-                        connecting === node.node_key ? 'bg-green-500 scale-125' : 'bg-primary hover:scale-125 hover:bg-primary/90'
+                        "absolute -bottom-5 left-1/2 -translate-x-1/2 px-4 py-1.5 rounded-full shadow-lg flex items-center gap-1.5 text-xs font-semibold transition-all whitespace-nowrap z-20",
+                        connecting === node.node_key
+                          ? 'bg-green-500 text-white scale-105 animate-pulse'
+                          : 'bg-primary text-primary-foreground hover:scale-105 hover:bg-primary/90'
                       )}
                       onClick={(e) => { e.stopPropagation(); handleAddConnection(node.node_key); }}
+                      title="Click then choose any node from the left to connect"
                     >
-                      <Plus className="w-3 h-3 text-primary-foreground" />
+                      <Plus className="w-3.5 h-3.5" />
+                      {connecting === node.node_key ? 'Pick a node…' : 'Add Next Step'}
                     </button>
+
                   </div>
                 );
               }
