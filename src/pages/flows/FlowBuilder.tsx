@@ -228,7 +228,9 @@ const FlowBuilder = () => {
   const [flowName, setFlowName] = useState('');
   const [selectedNodeKey, setSelectedNodeKey] = useState<string | null>(null);
   const [rightPanelTab, setRightPanelTab] = useState('settings');
-  const [zoom, setZoom] = useState(100);
+  const [zoom, setZoom] = useState(80);
+  const [isPanning, setIsPanning] = useState(false);
+  const panStart = useRef<{ x: number; y: number; sl: number; st: number } | null>(null);
   const [expandedCategories, setExpandedCategories] = useState<string[]>(['Messages']);
   const [isDraggingNew, setIsDraggingNew] = useState(false);
   const [dragNodeType, setDragNodeType] = useState<string | null>(null);
@@ -730,10 +732,33 @@ const FlowBuilder = () => {
           className={cn(
             'flex-1 relative overflow-auto',
             isDraggingNew && 'bg-primary/5',
-            draggingNode && 'cursor-grabbing'
+            draggingNode && 'cursor-grabbing',
+            isPanning && 'cursor-grabbing',
+            !draggingNode && !isPanning && 'cursor-grab'
           )}
           onDrop={handleCanvasDrop}
           onDragOver={handleCanvasDragOver}
+          onMouseDown={(e) => {
+            if (e.button !== 0) return;
+            const target = e.target as HTMLElement;
+            // Only pan when clicking empty canvas (not nodes/controls)
+            if (target.closest('[data-flow-node], button, input, textarea, select, [data-no-pan]')) return;
+            if (!canvasRef.current) return;
+            setIsPanning(true);
+            panStart.current = {
+              x: e.clientX,
+              y: e.clientY,
+              sl: canvasRef.current.scrollLeft,
+              st: canvasRef.current.scrollTop,
+            };
+          }}
+          onMouseMove={(e) => {
+            if (!isPanning || !panStart.current || !canvasRef.current) return;
+            canvasRef.current.scrollLeft = panStart.current.sl - (e.clientX - panStart.current.x);
+            canvasRef.current.scrollTop = panStart.current.st - (e.clientY - panStart.current.y);
+          }}
+          onMouseUp={() => { setIsPanning(false); panStart.current = null; }}
+          onMouseLeave={() => { setIsPanning(false); panStart.current = null; }}
         >
           {/* Zoom + auto-arrange controls */}
           <div className="absolute top-4 left-4 flex items-center gap-1 bg-card/90 backdrop-blur border rounded-xl shadow-lg p-1.5 z-10">
@@ -745,7 +770,7 @@ const FlowBuilder = () => {
               <ZoomIn className="w-4 h-4" />
             </Button>
             <Separator orientation="vertical" className="h-5 mx-1" />
-            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setZoom(100)}>
+            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setZoom(80)}>
               <Maximize2 className="w-4 h-4" />
             </Button>
             <Separator orientation="vertical" className="h-5 mx-1" />
@@ -821,6 +846,7 @@ const FlowBuilder = () => {
                 return (
                   <div
                     key={node.node_key}
+                    data-flow-node
                     className={cn(
                       'absolute select-none transition-shadow',
                       draggingNode === node.node_key ? 'cursor-grabbing shadow-2xl z-50' : 'cursor-grab hover:shadow-xl',
@@ -860,6 +886,7 @@ const FlowBuilder = () => {
               return (
                 <div
                   key={node.node_key}
+                  data-flow-node
                   className={cn(
                     'absolute w-[200px] bg-card rounded-xl border-2 shadow-lg select-none transition-shadow',
                     draggingNode === node.node_key ? 'cursor-grabbing shadow-2xl z-50 scale-105' : 'cursor-grab hover:shadow-xl',
