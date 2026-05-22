@@ -30,6 +30,7 @@ const GOALS = [
   { id: 'booking', name: 'Appointment Booking', icon: CalendarCheck2, color: 'from-violet-500 to-fuchsia-500', desc: 'Service → slot → confirmation' },
   { id: 'realestate', name: 'Real Estate', icon: Building2, color: 'from-slate-500 to-gray-700', desc: 'Property enquiry → site visit' },
   { id: 'campaign', name: 'Bulk Campaign', icon: Megaphone, color: 'from-red-500 to-orange-500', desc: 'Broadcast → reply → route' },
+  { id: 'custom', name: 'Custom Business', icon: Wand2, color: 'from-primary to-emerald-500', desc: 'Any other industry — you name it' },
 ];
 
 const TRIGGERS = [
