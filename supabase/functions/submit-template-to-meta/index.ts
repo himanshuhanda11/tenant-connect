@@ -357,10 +357,30 @@ Deno.serve(async (req) => {
 
     console.log('Meta API payload:', JSON.stringify(requestPayload, null, 2));
 
+    // If the template was previously REJECTED, Meta still has it occupying that
+    // name+language slot. Trying to create again returns subcode 2388024 ("Content
+    // in this language already exists") and we end up linking back to the old
+    // REJECTED entry — so the UI keeps showing "Rejected". Delete the old Meta
+    // template first so the new submission lands as PENDING.
+    const wasRejected = String(template.status || '').toUpperCase() === 'REJECTED';
+    if (wasRejected && sanitizedName) {
+      try {
+        const deleteUrl = `https://graph.facebook.com/v21.0/${wabaId}/message_templates?name=${encodeURIComponent(sanitizedName)}`;
+        const delRes = await fetch(deleteUrl, {
+          method: 'DELETE',
+          headers: { 'Authorization': `Bearer ${accessToken}` },
+        });
+        const delJson = await delRes.json().catch(() => ({}));
+        console.log('Deleted previous rejected Meta template:', delRes.status, delJson);
+      } catch (delErr) {
+        console.error('Failed to delete previous rejected template (continuing):', delErr);
+      }
+    }
+
     // Submit to Meta
     const metaUrl = `https://graph.facebook.com/v21.0/${wabaId}/message_templates`;
-    
-    const metaResponse = await fetch(metaUrl, {
+
+    const doMetaPost = () => fetch(metaUrl, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${accessToken}`,
@@ -368,6 +388,8 @@ Deno.serve(async (req) => {
       },
       body: JSON.stringify(requestPayload),
     });
+
+    let metaResponse = await doMetaPost();
 
     const metaResult = await metaResponse.json();
     console.log('Meta API response:', metaResult);
@@ -437,6 +459,47 @@ Deno.serve(async (req) => {
 
           if (match?.id) {
             const linkedStatus = String(match.status || 'PENDING').toUpperCase();
+
+            // If the existing Meta template is REJECTED, don't re-link to it —
+            // delete it and retry the create so the resubmission is fresh.
+            if (linkedStatus === 'REJECTED') {
+              try {
+                const deleteUrl = `https://graph.facebook.com/v21.0/${wabaId}/message_templates?name=${encodeURIComponent(sanitizedName)}`;
+                await fetch(deleteUrl, {
+                  method: 'DELETE',
+                  headers: { 'Authorization': `Bearer ${accessToken}` },
+                });
+              } catch (delErr) {
+                console.error('Failed to delete existing rejected template:', delErr);
+              }
+
+              const retryRes = await doMetaPost();
+              const retryJson = await retryRes.json();
+              if (retryRes.ok && retryJson?.id) {
+                await supabase
+                  .from('templates')
+                  .update({
+                    meta_template_id: retryJson.id,
+                    status: 'PENDING',
+                    current_version_id: version_id,
+                    rejection_reason: null,
+                  })
+                  .eq('id', template_id);
+
+                return new Response(JSON.stringify({
+                  success: true,
+                  meta_template_id: retryJson.id,
+                  status: 'PENDING',
+                  resubmitted_after_delete: true,
+                  submission_log_id: submissionLog?.id,
+                  message: 'Previous rejected template removed and resubmitted to Meta.',
+                }), {
+                  status: 200,
+                  headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+                });
+              }
+            }
+
             await supabase
               .from('templates')
               .update({
