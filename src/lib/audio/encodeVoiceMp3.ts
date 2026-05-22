@@ -1,4 +1,18 @@
-import { Mp3Encoder } from 'lamejs';
+import lameSource from 'lamejs/lame.all.js?raw';
+
+type Mp3EncoderCtor = new (channels: number, sampleRate: number, kbps: number) => {
+  encodeBuffer(input: Int16Array): Int8Array;
+  flush(): Int8Array;
+};
+
+let Mp3Encoder: Mp3EncoderCtor | null = null;
+
+function getMp3Encoder() {
+  if (Mp3Encoder) return Mp3Encoder;
+  const loader = new Function(`${lameSource}; return lamejs;`);
+  Mp3Encoder = loader().Mp3Encoder as Mp3EncoderCtor;
+  return Mp3Encoder;
+}
 
 function floatTo16BitPcm(input: Float32Array) {
   const output = new Int16Array(input.length);
@@ -26,7 +40,8 @@ export async function encodeVoiceToMp3(blob: Blob): Promise<File> {
   try {
     const audioBuffer = await ctx.decodeAudioData(await blob.arrayBuffer());
     const pcm = floatTo16BitPcm(downmixToMono(audioBuffer));
-    const encoder = new Mp3Encoder(1, audioBuffer.sampleRate, 64);
+    const Encoder = getMp3Encoder();
+    const encoder = new Encoder(1, audioBuffer.sampleRate, 64);
     const chunks: Int8Array[] = [];
     const blockSize = 1152;
 
