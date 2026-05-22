@@ -41,6 +41,7 @@ function useFakeWaveform(seed: string) {
 export function VoicePlayer({ messageId, url, isOutbound, mediaBucket, mediaPath, fileName }: VoicePlayerProps) {
   const { url: mediaUrl, refresh, loading: refreshing, hasRefreshSource } = useMediaUrl(url, mediaBucket, mediaPath, messageId);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const hydrateAttemptedRef = useRef(false);
   const [playing, setPlaying] = useState(false);
   const [duration, setDuration] = useState(0);
   const [current, setCurrent] = useState(0);
@@ -57,6 +58,12 @@ export function VoicePlayer({ messageId, url, isOutbound, mediaBucket, mediaPath
     if (!a) return;
     a.playbackRate = SPEEDS[speedIdx];
   }, [speedIdx]);
+
+  useEffect(() => {
+    if (isValid || !hasRefreshSource || hydrateAttemptedRef.current) return;
+    hydrateAttemptedRef.current = true;
+    void refresh().then((u) => { if (!u) setErrored(true); });
+  }, [hasRefreshSource, isValid, refresh]);
 
   const togglePlay = async () => {
     const a = audioRef.current;
