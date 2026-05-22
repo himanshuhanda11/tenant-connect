@@ -15,7 +15,7 @@ export interface PrebuiltFlow {
   name: string;
   description: string;
   emoji: string;
-  category: 'study_abroad' | 'real_estate' | 'ecommerce' | 'healthcare' | 'general';
+  category: 'study_abroad' | 'real_estate' | 'ecommerce' | 'healthcare' | 'general' | 'visa' | 'travel' | 'support' | 'followup';
   nodes: PrebuiltFlowNode[];
 }
 
