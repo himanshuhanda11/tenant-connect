@@ -3639,6 +3639,98 @@ export type Database = {
         }
         Relationships: []
       }
+      email_ai_suggestions: {
+        Row: {
+          content: Json
+          conversation_id: string
+          created_at: string
+          created_by: string | null
+          id: string
+          kind: string
+          model: string | null
+          tenant_id: string
+        }
+        Insert: {
+          content: Json
+          conversation_id: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          kind: string
+          model?: string | null
+          tenant_id: string
+        }
+        Update: {
+          content?: Json
+          conversation_id?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          kind?: string
+          model?: string | null
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_ai_suggestions_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "email_conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      email_analytics_daily: {
+        Row: {
+          account_id: string | null
+          avg_first_response_seconds: number | null
+          avg_resolution_seconds: number | null
+          by_agent: Json
+          by_tag: Json
+          conversations_new: number
+          conversations_resolved: number
+          created_at: string
+          day: string
+          id: string
+          tenant_id: string
+          updated_at: string
+          volume_in: number
+          volume_out: number
+        }
+        Insert: {
+          account_id?: string | null
+          avg_first_response_seconds?: number | null
+          avg_resolution_seconds?: number | null
+          by_agent?: Json
+          by_tag?: Json
+          conversations_new?: number
+          conversations_resolved?: number
+          created_at?: string
+          day: string
+          id?: string
+          tenant_id: string
+          updated_at?: string
+          volume_in?: number
+          volume_out?: number
+        }
+        Update: {
+          account_id?: string | null
+          avg_first_response_seconds?: number | null
+          avg_resolution_seconds?: number | null
+          by_agent?: Json
+          by_tag?: Json
+          conversations_new?: number
+          conversations_resolved?: number
+          created_at?: string
+          day?: string
+          id?: string
+          tenant_id?: string
+          updated_at?: string
+          volume_in?: number
+          volume_out?: number
+        }
+        Relationships: []
+      }
       email_attachments: {
         Row: {
           content_id: string | null
@@ -3688,6 +3780,115 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      email_automation_runs: {
+        Row: {
+          actions_taken: Json
+          automation_id: string | null
+          conversation_id: string | null
+          created_at: string
+          error: string | null
+          id: string
+          matched: boolean
+          message_id: string | null
+          tenant_id: string
+          trigger_type: string | null
+        }
+        Insert: {
+          actions_taken?: Json
+          automation_id?: string | null
+          conversation_id?: string | null
+          created_at?: string
+          error?: string | null
+          id?: string
+          matched?: boolean
+          message_id?: string | null
+          tenant_id: string
+          trigger_type?: string | null
+        }
+        Update: {
+          actions_taken?: Json
+          automation_id?: string | null
+          conversation_id?: string | null
+          created_at?: string
+          error?: string | null
+          id?: string
+          matched?: boolean
+          message_id?: string | null
+          tenant_id?: string
+          trigger_type?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_automation_runs_automation_id_fkey"
+            columns: ["automation_id"]
+            isOneToOne: false
+            referencedRelation: "email_automations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "email_automation_runs_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "email_conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "email_automation_runs_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "email_messages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      email_automations: {
+        Row: {
+          actions: Json
+          conditions: Json
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          is_active: boolean
+          last_run_at: string | null
+          name: string
+          run_count: number
+          tenant_id: string
+          trigger: Json
+          updated_at: string
+        }
+        Insert: {
+          actions?: Json
+          conditions?: Json
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          last_run_at?: string | null
+          name: string
+          run_count?: number
+          tenant_id: string
+          trigger?: Json
+          updated_at?: string
+        }
+        Update: {
+          actions?: Json
+          conditions?: Json
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          last_run_at?: string | null
+          name?: string
+          run_count?: number
+          tenant_id?: string
+          trigger?: Json
+          updated_at?: string
+        }
+        Relationships: []
       }
       email_conversation_labels: {
         Row: {
@@ -4210,6 +4411,87 @@ export type Database = {
           tenant_id?: string
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      email_sla_breaches: {
+        Row: {
+          breach_type: string
+          breached_at: string
+          conversation_id: string
+          id: string
+          policy_id: string | null
+          resolved_at: string | null
+          tenant_id: string
+        }
+        Insert: {
+          breach_type: string
+          breached_at?: string
+          conversation_id: string
+          id?: string
+          policy_id?: string | null
+          resolved_at?: string | null
+          tenant_id: string
+        }
+        Update: {
+          breach_type?: string
+          breached_at?: string
+          conversation_id?: string
+          id?: string
+          policy_id?: string | null
+          resolved_at?: string | null
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_sla_breaches_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "email_conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "email_sla_breaches_policy_id_fkey"
+            columns: ["policy_id"]
+            isOneToOne: false
+            referencedRelation: "email_sla_policies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      email_sla_policies: {
+        Row: {
+          business_hours: Json
+          created_at: string
+          first_response_minutes: number
+          id: string
+          is_default: boolean
+          name: string
+          resolution_minutes: number
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          business_hours?: Json
+          created_at?: string
+          first_response_minutes?: number
+          id?: string
+          is_default?: boolean
+          name: string
+          resolution_minutes?: number
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          business_hours?: Json
+          created_at?: string
+          first_response_minutes?: number
+          id?: string
+          is_default?: boolean
+          name?: string
+          resolution_minutes?: number
+          tenant_id?: string
+          updated_at?: string
         }
         Relationships: []
       }
