@@ -183,10 +183,14 @@ Deno.serve(async (req) => {
     .maybeSingle();
   let isAllowed = !!memberCheck;
   if (!isAllowed) {
-    const { data: isSuper } = await admin.rpc("is_platform_user", {
-      _roles: ["super_admin"],
-    } as any).then((r: any) => ({ data: r.data })).catch(() => ({ data: false }));
-    isAllowed = !!isSuper;
+    const { data: pa } = await admin
+      .from("platform_admins")
+      .select("user_id")
+      .eq("user_id", userId)
+      .eq("is_active", true)
+      .in("role", ["super_admin"])
+      .maybeSingle();
+    isAllowed = !!pa;
   }
   if (!isAllowed) {
     return new Response(JSON.stringify({ error: "forbidden" }), {
