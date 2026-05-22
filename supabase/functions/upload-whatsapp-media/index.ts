@@ -90,7 +90,7 @@ Deno.serve(async (req) => {
     // Normalize codec-suffixed mime types like "audio/ogg;codecs=opus"
     const baseType = (file.type || '').split(';')[0].trim().toLowerCase();
 
-    if (!allowedTypes.includes(file.type)) {
+    if (!allowedTypes.includes(baseType)) {
       return new Response(JSON.stringify({ error: `File type ${file.type} not allowed` }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
