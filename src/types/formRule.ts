@@ -35,8 +35,16 @@ export interface FormRuleTriggerConfig {
   tag_name?: string;
   
   // For scheduled trigger
+  schedule_mode?: 'delay' | 'recurring';
+  delay_value?: number;
+  delay_unit?: 'minutes' | 'hours' | 'days';
   schedule_cron?: string;
   timezone?: string;
+
+  // For ai_intent trigger
+  intent?: string;
+  sample_utterances?: string[];
+  confidence_threshold?: number;
 }
 
 export interface FormRuleCondition {
