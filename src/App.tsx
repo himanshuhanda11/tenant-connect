@@ -254,6 +254,14 @@ const App = () => (
                 <RequirePlanSelection>
                 <LaunchOfferProvider>
                 <Suspense fallback={<RouteLoader />}>
+                  {IS_MAIL_HOST ? (
+                    <Routes>
+                      <Route path="/auth/callback" element={<AuthCallback />} />
+                      <Route path="/login" element={<MailLogin />} />
+                      <Route path="/mail" element={<RequireSuperAdmin><Mail /></RequireSuperAdmin>} />
+                      <Route path="*" element={<Navigate to="/mail" replace />} />
+                    </Routes>
+                  ) : (
                   <Routes>
                     <Route path="/" element={<Index />} />
                     <Route path="/index" element={<Index />} />
