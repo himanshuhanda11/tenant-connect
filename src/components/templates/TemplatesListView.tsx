@@ -19,7 +19,8 @@ import {
   Archive,
   Trash2,
   Filter,
-  RefreshCw
+  RefreshCw,
+  Loader2
 } from 'lucide-react';
 import { Template, InternalStatus, MetaStatus, TemplateCategory } from '@/types/template';
 import { format } from 'date-fns';
@@ -35,6 +36,7 @@ interface TemplatesListViewProps {
   onDelete: (template: Template) => void;
   onRefresh: () => void;
   syncing?: boolean;
+  submittingTemplateId?: string | null;
   onCreateNew: () => void;
   filters: {
     search: string;
@@ -57,6 +59,7 @@ export function TemplatesListView({
   onDelete,
   onRefresh,
   syncing = false,
+  submittingTemplateId = null,
   onCreateNew,
   filters,
   onFiltersChange
@@ -108,17 +111,25 @@ export function TemplatesListView({
   // Status helpers — drives which actions are exposed in the menus.
   const isDraftLike = (t: Template) => t.status === 'DRAFT' || t.status === 'REJECTED';
   const isPendingLike = (t: Template) => t.status === 'PENDING' || t.status === 'PAUSED';
-  const canSubmit = (t: Template) => t.status === 'DRAFT' || t.status === 'REJECTED';
+  const canSubmit = (t: Template) => t.status === 'DRAFT';
   const canEdit = (t: Template) =>
     t.status === 'DRAFT' || t.status === 'REJECTED' || t.status === 'APPROVED';
   const canDelete = (_t: Template) => true;
+  const getEditLabel = (template: Template) => {
+    if (template.status === 'APPROVED') return 'Edit & Resubmit';
+    if (template.status === 'REJECTED') return 'Fix & Resubmit';
+    return 'Edit Template';
+  };
 
-  const renderActions = (template: Template) => (
+  const renderActions = (template: Template) => {
+    const isSubmitting = submittingTemplateId === template.id;
+
+    return (
     <>
       {canEdit(template) && (
         <DropdownMenuItem onClick={() => onEdit(template)}>
           <Edit className="h-4 w-4 mr-2" />
-          {template.status === 'APPROVED' ? 'Edit & Resubmit' : 'Edit Template'}
+          {getEditLabel(template)}
         </DropdownMenuItem>
       )}
       {!canEdit(template) && (
@@ -127,9 +138,9 @@ export function TemplatesListView({
         </DropdownMenuItem>
       )}
       {canSubmit(template) && (
-        <DropdownMenuItem onClick={() => onSubmitToMeta(template)}>
-          <Send className="h-4 w-4 mr-2" />
-          {template.status === 'REJECTED' ? 'Resubmit for Approval' : 'Submit for Approval'}
+        <DropdownMenuItem disabled={isSubmitting} onClick={() => onSubmitToMeta(template)}>
+          {isSubmitting ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Send className="h-4 w-4 mr-2" />}
+          {isSubmitting ? 'Submitting…' : 'Submit for Approval'}
         </DropdownMenuItem>
       )}
       <DropdownMenuItem onClick={() => onDuplicate(template)}>
@@ -149,7 +160,8 @@ export function TemplatesListView({
         </>
       )}
     </>
-  );
+    );
+  };
 
   return (
     <Card>
