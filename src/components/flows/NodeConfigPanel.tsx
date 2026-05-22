@@ -134,28 +134,35 @@ export function NodeConfigPanel({ node, onUpdate, allNodes = [] }: NodeConfigPan
 // Sub-components for each node type
 // ──────────────────────────────────────────────
 
+interface BranchTarget { key: string; label: string }
 interface ConfigProps {
   config: Record<string, any>;
   updateConfig: (patch: Record<string, any>) => void;
+  branchTargets?: BranchTarget[];
 }
 
-function TextButtonsConfig({ config, updateConfig }: ConfigProps) {
-  const buttons: string[] = config.buttons || [];
+// Normalize a button row to { label, next } regardless of legacy string format
+type ButtonRow = { label: string; next?: string };
+function normalizeButtons(raw: any): ButtonRow[] {
+  if (!Array.isArray(raw)) return [];
+  return raw.map((b) =>
+    typeof b === 'string' ? { label: b } : { label: b?.label ?? '', next: b?.next ?? undefined }
+  );
+}
 
-  const setButton = (idx: number, value: string) => {
-    const next = [...buttons];
-    next[idx] = value;
-    updateConfig({ buttons: next });
+function TextButtonsConfig({ config, updateConfig, branchTargets = [] }: ConfigProps) {
+  const buttons: ButtonRow[] = normalizeButtons(config.buttons);
+
+  const writeButtons = (next: ButtonRow[]) => updateConfig({ buttons: next });
+  const setLabel = (idx: number, value: string) => {
+    const next = [...buttons]; next[idx] = { ...next[idx], label: value }; writeButtons(next);
   };
-
-  const removeButton = (idx: number) => {
-    updateConfig({ buttons: buttons.filter((_, i) => i !== idx) });
+  const setNext = (idx: number, value: string) => {
+    const next = [...buttons]; next[idx] = { ...next[idx], next: value || undefined }; writeButtons(next);
   };
-
+  const removeButton = (idx: number) => writeButtons(buttons.filter((_, i) => i !== idx));
   const addButton = () => {
-    if (buttons.length < 3) {
-      updateConfig({ buttons: [...buttons, ''] });
-    }
+    if (buttons.length < 3) writeButtons([...buttons, { label: '' }]);
   };
 
   return (
@@ -164,7 +171,7 @@ function TextButtonsConfig({ config, updateConfig }: ConfigProps) {
         <Label className="text-xs">Message Text</Label>
         <Textarea
           className="min-h-[100px] text-sm"
-          placeholder="Enter your message..."
+          placeholder="e.g. Select your preferred language:"
           value={config.message || ''}
           onChange={(e) => updateConfig({ message: e.target.value })}
         />
@@ -173,36 +180,50 @@ function TextButtonsConfig({ config, updateConfig }: ConfigProps) {
         </p>
       </div>
       <div className="space-y-2">
-        <Label className="text-xs">Buttons ({buttons.length}/3)</Label>
+        <Label className="text-xs flex items-center justify-between">
+          <span>Buttons ({buttons.length}/3)</span>
+          {branchTargets.length === 0 && (
+            <span className="text-[10px] text-amber-600">Add more nodes to enable branching</span>
+          )}
+        </Label>
         {buttons.map((btn, idx) => (
-          <div key={idx} className="flex gap-2">
-            <Input
-              value={btn}
-              placeholder={`Button ${idx + 1} label`}
-              onChange={(e) => setButton(idx, e.target.value)}
-              className="text-sm"
-            />
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-9 w-9 shrink-0"
-              onClick={() => removeButton(idx)}
-            >
-              <Trash2 className="w-3.5 h-3.5 text-destructive" />
-            </Button>
+          <div key={idx} className="rounded-lg border border-border p-2.5 space-y-2 bg-muted/30">
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] font-semibold text-muted-foreground w-12 shrink-0">Button {idx + 1}</span>
+              <Input
+                value={btn.label}
+                placeholder="e.g. English"
+                onChange={(e) => setLabel(idx, e.target.value)}
+                className="text-sm h-9"
+              />
+              <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={() => removeButton(idx)}>
+                <Trash2 className="w-3.5 h-3.5 text-destructive" />
+              </Button>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] text-muted-foreground w-12 shrink-0">Go to →</span>
+              <Select value={btn.next || '__default'} onValueChange={(v) => setNext(idx, v === '__default' ? '' : v)}>
+                <SelectTrigger className="h-8 text-xs">
+                  <SelectValue placeholder="Next node…" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__default">Default (follow edge)</SelectItem>
+                  {branchTargets.map((t) => (
+                    <SelectItem key={t.key} value={t.key}>{t.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         ))}
         {buttons.length < 3 && (
-          <Button
-            variant="outline"
-            size="sm"
-            className="w-full gap-1.5 text-xs"
-            onClick={addButton}
-          >
+          <Button variant="outline" size="sm" className="w-full gap-1.5 text-xs" onClick={addButton}>
             <Plus className="w-3.5 h-3.5" /> Add Button
           </Button>
         )}
-        <p className="text-[10px] text-muted-foreground">Max 3 buttons allowed by WhatsApp</p>
+        <p className="text-[10px] text-muted-foreground">
+          Max 3 buttons (WhatsApp limit). Each button can route to a different node.
+        </p>
       </div>
     </>
   );
