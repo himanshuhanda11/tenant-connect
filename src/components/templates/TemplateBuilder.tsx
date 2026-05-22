@@ -561,6 +561,23 @@ export function TemplateBuilder({
                           {uploadedFileName || 'Sample ready'} ✓
                         </span>
                       )}
+                      {(hasSample || headerContent) && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="h-8 text-destructive hover:text-destructive"
+                          onClick={() => {
+                            setHeaderContent('');
+                            setUploadedFileName('');
+                            const { header_handle, header_media_handle, header_media_url, ...rest } = (variableSamples || {}) as any;
+                            setVariableSamples(rest);
+                          }}
+                        >
+                          <X className="h-3.5 w-3.5 mr-1" /> Remove
+                        </Button>
+                      )}
+
                     </div>
                     {headerContent && /^https?:\/\//.test(headerContent) && headerType === 'image' && (
                       <img src={headerContent} alt="Header preview" className="max-h-32 rounded border" />
