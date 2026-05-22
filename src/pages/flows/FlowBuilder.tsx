@@ -316,7 +316,33 @@ const FlowBuilder = () => {
     };
   }, [draggingNode, dragOffset.x, dragOffset.y, zoom, updateNode]);
 
+  // Keyboard shortcuts: Delete = remove selected node, Ctrl/Cmd+S = save
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement | null;
+      const inField = target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable);
+      if (!inField && (e.key === 'Delete' || e.key === 'Backspace') && selectedNodeKey) {
+        const node = nodes.find(n => n.node_key === selectedNodeKey);
+        if (node && node.node_type !== 'start') {
+          deleteNode(selectedNodeKey);
+          setSelectedNodeKey(null);
+        }
+      }
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
+        e.preventDefault();
+        if (flowName !== flow?.name) saveFlow({ name: flowName });
+        else toast.success('Already saved');
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [selectedNodeKey, nodes, deleteNode, flowName, flow?.name, saveFlow]);
+
+  useEffect(() => { if (!saving && flow) setLastSavedAt(new Date()); }, [saving, flow]);
+
   const selectedNode = nodes.find(n => n.node_key === selectedNodeKey);
+
+
 
   const toggleCategory = (label: string) => {
     setExpandedCategories((prev) =>
