@@ -175,23 +175,27 @@ export const FlowStartPanel: React.FC<FlowStartPanelProps> = ({
   ].reduce((a, b) => a + b, 0);
 
   // Keyword handlers
+  const commitKeyword = (raw: string) => {
+    const newKeyword = raw.trim().toLowerCase();
+    if (!newKeyword) return;
+    if (keywords.includes(newKeyword)) { setKeywordInput(''); return; }
+    const updatedKeywords = [...keywords, newKeyword];
+    setKeywords(updatedKeywords);
+    const existingKeywordTrigger = triggers.find(t => t.trigger_type === 'keyword');
+    if (existingKeywordTrigger) {
+      onUpdateTrigger(existingKeywordTrigger.id, {
+        config: { ...existingKeywordTrigger.config, keywords: updatedKeywords }
+      });
+    } else {
+      onAddTrigger('keyword', { keywords: updatedKeywords });
+    }
+    setKeywordInput('');
+  };
+
   const handleKeywordKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter' && keywordInput.trim()) {
+    if ((e.key === 'Enter' || e.key === ',') && keywordInput.trim()) {
       e.preventDefault();
-      const newKeyword = keywordInput.trim().toLowerCase();
-      if (!keywords.includes(newKeyword)) {
-        const updatedKeywords = [...keywords, newKeyword];
-        setKeywords(updatedKeywords);
-        const existingKeywordTrigger = triggers.find(t => t.trigger_type === 'keyword');
-        if (existingKeywordTrigger) {
-          onUpdateTrigger(existingKeywordTrigger.id, {
-            config: { ...existingKeywordTrigger.config, keywords: updatedKeywords }
-          });
-        } else {
-          onAddTrigger('keyword', { keywords: updatedKeywords });
-        }
-      }
-      setKeywordInput('');
+      commitKeyword(keywordInput);
     }
   };
 
