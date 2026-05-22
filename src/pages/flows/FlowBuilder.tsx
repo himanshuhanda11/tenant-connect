@@ -207,6 +207,42 @@ const getNodeIcon = (type: string) => {
   return MessageSquare;
 };
 
+// Visible interactive choices (buttons/list items) on a node
+type NodeChoice = { id: string; label: string; index: number; next?: string };
+const getNodeChoices = (node: any): NodeChoice[] => {
+  const cfg = node?.config || {};
+  if (node?.node_type === 'text-buttons') {
+    const raw = Array.isArray(cfg.buttons) ? cfg.buttons : [];
+    return raw.slice(0, 3).map((b: any, i: number) => ({
+      id: `btn_${node.node_key}_${i}`,
+      label: (typeof b === 'string' ? b : b?.label ?? '').toString() || `Button ${i + 1}`,
+      index: i,
+      next: typeof b === 'string' ? undefined : b?.next,
+    }));
+  }
+  if (node?.node_type === 'list-message') {
+    const raw = Array.isArray(cfg.items) ? cfg.items : (Array.isArray(cfg.sections) ? cfg.sections : []);
+    return raw.slice(0, 10).map((it: any, i: number) => ({
+      id: `list_${node.node_key}_${i}`,
+      label: (it?.title ?? '').toString() || `Option ${i + 1}`,
+      index: i,
+      next: it?.next,
+    }));
+  }
+  return [];
+};
+
+// Pixel Y-offset of the row center within a node card (used for edge anchors)
+const HEADER_H = 50;
+const MSG_H = 36;
+const ROW_H = 32;
+const ROW_GAP = 6;
+const rowYOffset = (index: number, node: any) => {
+  const cfg = node?.config || {};
+  const hasMsg = !!(cfg.message || cfg.body);
+  return HEADER_H + (hasMsg ? MSG_H : 8) + 8 + index * (ROW_H + ROW_GAP) + ROW_H / 2;
+};
+
 const FlowBuilder = () => {
   const navigate = useNavigate();
   const { id } = useParams();
