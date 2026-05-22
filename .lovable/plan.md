@@ -1,88 +1,56 @@
-## Goal
+# Flow Builder Premium Redesign — Step 1 of 3
 
-Make the Auto-Form Rules feature fully functional end-to-end, with each trigger card properly configurable, integrated with the new QR Code Scan module, plus form preview + live testing and a premium UI. Add an in-app explainer for each step so you can teach customers.
+You asked for a complete UI/UX overhaul of `/flows` while preserving every existing feature, trigger, table, webhook, template, team-routing, and saved flow. This is a very large task touching 5,600+ lines across 10 files, plus mobile/tablet variants and a guided mode. To do this safely without breaking your live flows, I'll split it into 3 STEPS (you confirmed Step 1 first).
 
----
+## Step 1 Scope (this approval)
 
-## What I'll fix
+### A. Audit & Safety (no behavior change)
+- Inventory current files: `FlowBuilder.tsx` (1142), `FlowsHub.tsx` (745), `FlowStartPanel.tsx`, `NodeConfigPanel.tsx`, `WorkflowBuilder.tsx`, modals (Preview/Test/History/Analytics/AI).
+- Map data flow: existing `automation_workflows`, `automation_nodes`, `automation_edges`, `automation_runs`, triggers (keyword/QR/tag/source/AI intent/scheduled/inbound), template send, team routing, webhook execution.
+- Keep ALL existing types, hooks (`useAutomationWorkflows`, `useFormRules`, `useQrCampaigns`, `useTags`), and edge functions untouched.
+- Add a `LegacyFlowBuilder` alias as a fallback toggle (env-flag) so any saved flow that doesn't load in the new UI can be opened in the old one. Zero data migration.
 
-### 1. WHEN step — every trigger card must collect its config
+### B. New Premium Layout (visual + UX redesign only — same data model)
+1. **Sticky Glass Header** — editable title, status badge (Draft/Published/Paused), auto-save indicator, last-edited timestamp, Undo/Redo, Save Draft, Test, Preview, Publish, Version History.
+2. **Left Node Library** — grouped (Triggers, Messages, Questions, Conditions, CRM, Team, Delay, Webhook, End, Prebuilt), search, favorites (localStorage), drag-to-canvas + quick-add.
+3. **Center Canvas** — refined React Flow canvas: soft grid, minimap, zoom controls, auto-arrange (dagre), snap, keyboard shortcuts (Del/Ctrl+Z/Ctrl+D/Space-pan), animated curved edges color-coded (success/fail/wait), node shapes by category (rect/diamond/circle/pill), inline "+" add-between-nodes, broken-connection warnings.
+4. **Right Settings Panel** — per-node config with title, description, validated fields, Preview/Test/Duplicate/Delete/Save. Uses existing `NodeConfigPanel` logic refactored into a cleaner shell.
+5. **Flow Health Score** — top-right pill showing % of nodes validly configured + connected.
 
-Today some cards (Scheduled, AI Intent, Tag Added, Traffic Source) jump to step 2 without asking for their trigger details. After selecting a card, an inline configuration panel will appear with the right inputs:
+### C. Guided Mode (new entry)
+- "Create with Guide" button on `/flows` hub opens 7-step wizard (Goal → Trigger → Welcome → Questions → Conditions → Assign → Publish).
+- Goal presets: Visa, Travel, Lead Qualification, Support, Appointment, Real Estate, Bulk Campaign.
+- Wizard outputs a normal `automation_workflows` row + nodes/edges — fully compatible with existing executor.
 
-| Card | Config collected |
-|---|---|
-| First Message | (none — already works) |
-| Keyword Match | keywords list + match type (contains / exact / starts-with / regex) |
-| Meta Ad Click | Ad account + campaign / adset multi-select (from existing Meta Ads data) |
-| QR Code Scan | dropdown of QR campaigns from the new `/qr-campaigns` module |
-| Traffic Source | multi-select (organic, meta_ads, referral, qr, widget, api, import) |
-| Tag Added | tag picker (from `tags` table) |
-| Scheduled | mode picker — "After contact created" (delay value + unit: minutes/hours/days), OR "Recurring schedule" (cron + timezone) |
-| AI Intent | intent text + sample utterances, confidence threshold |
+### D. Mobile/Tablet
+- ≥1024px: full canvas.
+- 768–1023px: collapsed left panel as drawer, right panel as bottom sheet.
+- <768px: **Step List mode** — vertical card list of nodes (no canvas), tap-to-edit in bottom sheet, reorder via drag-handle. Same underlying data.
 
-The Next button stays disabled until the selected trigger's required config is valid.
+### E. Performance
+- React Flow `onlyRenderVisibleElements`, memoized node components, debounced auto-save (1.5s), lazy-load heavy modals.
 
-### 2. QR Code Scan → connect to yesterday's QR module
+## Out of scope for Step 1 (will be Steps 2 & 3)
+- **Step 2**: New node types polish + AI suggestions + publish checklist + animations + empty/loading skeletons + flow analytics tab redesign.
+- **Step 3**: Performance virtualization for 200+ node flows, version diff viewer, advanced testing simulator with WhatsApp mock + execution traces.
 
-- Reuse `useQrCampaigns` to populate the QR Code Scan dropdown.
-- Save the picked `qr_campaign_id` into `trigger_config`.
-- On the QR campaign detail page, show which Form Rules consume it (read-only badge).
-- Webhook handler already reads `trigger_config.qr_campaign_id`; verify and patch if missing.
+## Backward compatibility guarantees
+- No schema changes in Step 1.
+- No edge function changes.
+- All existing nodes render & save with the same `config` JSON shape.
+- Existing flows open identically; legacy fallback toggle available.
+- Existing CRM/team/template/webhook routing unchanged.
 
-### 3. Form Preview + Live Test
+## Files to be edited/created (Step 1)
+- NEW: `src/components/flows/v2/FlowHeader.tsx`, `NodeLibrary.tsx`, `FlowCanvas.tsx`, `NodeInspector.tsx`, `FlowHealthPill.tsx`, `GuidedFlowWizard.tsx`, `MobileStepList.tsx`, `nodeRegistry.ts`, `nodeShapes.tsx`, `useFlowAutosave.ts`.
+- EDITED: `src/pages/flows/FlowBuilder.tsx` (shell swap, legacy fallback), `src/pages/flows/FlowsHub.tsx` (Guided entry + premium polish).
+- UNCHANGED: all hooks, types, edge functions, DB tables, existing modals (reused).
 
-In the THEN step and the rule detail dialog:
+## Verification after Step 1
+- Open an existing saved flow → renders & saves identically.
+- Add/delete/connect/duplicate nodes, undo/redo, zoom, minimap.
+- Save Draft + Publish + Test.
+- Resize 1440 → 1024 → 768 → 390 (Step List).
+- Run Guided Wizard → produces working flow that executes via existing engine.
 
-- **Preview tab** — WhatsApp-styled mock chat showing the template/form exactly as the contact will see it (header media, body with sample variables filled, buttons, fields).
-- **Live Test tab** — pick a phone number you own → "Send test now" calls the existing `submit-template-to-meta` / send-template edge function with the rule's payload and shows delivery status inline (sent → delivered → read) using template_submission_logs-style polling.
-
-### 4. UI/UX polish (premium)
-
-- Replace the current step header with a sticky progress rail (matches the screenshot you shared but cleaner: gradient active state, completed checkmarks, click-to-jump for already-completed steps).
-- Cards: consistent radius, hover lift, selected state uses gradient border + check badge, PRO badge stays on AI Intent.
-- Inline config panel uses a soft card with the trigger's accent color.
-- Mobile: cards become single column under 640 px, sticky bottom action bar with Back / Next / Save.
-- Use semantic tokens from `index.css` only (no hardcoded `bg-blue-50` etc.). Move trigger color map to tokens (`--trigger-keyword`, `--trigger-qr`, …).
-
-### 5. Verify every step works end-to-end
-
-I'll smoke-test each step in the running preview:
-1. WHEN — every card sets the right `trigger_type` + `trigger_config`.
-2. IF — add / remove conditions, operator toggle, save round-trips.
-3. THEN — form picker loads, template variables map, preview renders.
-4. GUARD — cooldown / max-per-day / opt-in / business-hours all persist.
-5. SAVE — review shows everything, create + edit both work, list refreshes.
-
-Anything broken gets fixed in the same pass. I'll attach a short test-results note when done.
-
-### 6. In-app explainer (so you can explain to customers)
-
-A new "How Form Rules work" collapsible at the top of `/auto-forms/rules` plus a `?` help button on each step header. Each step gets a 2-3 line plain-English explanation:
-
-- **WHEN** — the event that starts the rule (a new chat, a keyword, a QR scan, etc.).
-- **IF** — extra checks before sending (has tag, came from a specific source, opted-in).
-- **THEN** — which form/template gets sent and how variables are filled.
-- **GUARD** — safety limits so the same contact isn't spammed (cooldown, daily cap, business hours).
-- **SAVE** — review and activate.
-
-I'll mirror this content in chat after the build so you have it in writing.
-
----
-
-## Technical notes
-
-- Files touched: `src/components/automation/CreateFormRuleModal.tsx`, `ViewFormRuleDialog.tsx`, `src/pages/auto-forms/AutoFormRulesPage.tsx`, `src/types/formRule.ts` (add `delay_value`, `delay_unit`, `schedule_mode` to `FormRuleTriggerConfig`), `src/hooks/useFormRules.ts` if needed, plus a new `src/components/automation/form-rule/` folder for the per-trigger config panels and the Preview/LiveTest tabs.
-- No DB schema change required — `trigger_config` is JSONB and already stores arbitrary keys. Only adding new keys.
-- Edge function `process-form-rule` (or equivalent): confirm it honors `schedule_mode='delay'` + `delay_value/unit` and `qr_campaign_id`; patch if missing.
-- Reuses: `useQrCampaigns`, `useTags`, `useMetaAdAccounts`, `useTemplates`, existing template preview component.
-
----
-
-## Out of scope (ask if you want these too)
-
-- Building a brand-new form preview engine — I'll reuse the existing WhatsApp message preview.
-- Changing the underlying form definitions or submission storage.
-- Analytics on rule performance (a separate tab worth its own pass).
-
-Approve and I'll start with the WHEN-step config panels + QR linking, then preview/test, then UI polish, then verify.
+Reply **approve** to start Step 1, or tell me what to adjust (e.g. skip Guided Mode, change mobile approach, defer fallback toggle).
