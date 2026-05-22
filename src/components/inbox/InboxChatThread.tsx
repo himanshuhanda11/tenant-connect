@@ -78,6 +78,7 @@ import { AIReplySuggestions } from './AIReplySuggestions';
 import { AiDraftBanner } from './AiDraftBanner';
 import { SLATimer } from './SLATimer';
 import { TemplatePicker } from './TemplatePicker';
+import { VoiceRecorder } from './VoiceRecorder';
 import { IntentBadge, SentimentBadge } from './IntentBadge';
 import { MessageMedia } from './media/MessageMedia';
 import { ConversationHealthIndicator, HealthDot } from './ConversationHealthIndicator';
