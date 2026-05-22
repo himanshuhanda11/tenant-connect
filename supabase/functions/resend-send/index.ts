@@ -174,14 +174,25 @@ Deno.serve(async (req) => {
     }
   }
 
-  // Verify caller is a workspace member of this tenant
+  // Verify caller is a workspace member of this tenant OR a super admin
   const { data: memberCheck } = await admin
     .from("tenant_members")
     .select("user_id")
     .eq("tenant_id", tenantId!)
     .eq("user_id", userId)
     .maybeSingle();
-  if (!memberCheck) {
+  let isAllowed = !!memberCheck;
+  if (!isAllowed) {
+    const { data: pa } = await admin
+      .from("platform_admins")
+      .select("user_id")
+      .eq("user_id", userId)
+      .eq("is_active", true)
+      .in("role", ["super_admin"])
+      .maybeSingle();
+    isAllowed = !!pa;
+  }
+  if (!isAllowed) {
     return new Response(JSON.stringify({ error: "forbidden" }), {
       status: 403,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
