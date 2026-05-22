@@ -333,7 +333,10 @@ Deno.serve(async (req) => {
     actor_type: "system",
     event_type: "message_received",
     payload: { from: fromParsed.email, subject },
+  });
+
   // Fire automation runner (don't block on it)
+
   try {
     fetch(`${Deno.env.get("SUPABASE_URL")}/functions/v1/email-automation-runner`, {
       method: "POST",
