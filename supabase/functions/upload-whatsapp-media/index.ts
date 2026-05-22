@@ -117,7 +117,7 @@ Deno.serve(async (req) => {
     const { data: uploadData, error: uploadError } = await supabase.storage
       .from('wa-media')
       .upload(filePath, fileBuffer, {
-        contentType: file.type,
+        contentType: baseType,
         upsert: false,
       });
 
@@ -221,7 +221,7 @@ Deno.serve(async (req) => {
             media_path: filePath,
             media_filename: file.name,
             media_size_bytes: file.size,
-            media_mime_type: file.type,
+            media_mime_type: baseType,
             status: 'pending',
           })
           .select()
