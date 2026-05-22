@@ -373,7 +373,7 @@ const FlowBuilder = () => {
     const sourceKey = connecting || selectedNodeKey;
     const sourceNode = sourceKey ? nodes.find(n => n.node_key === sourceKey) : null;
     const pos = sourceNode
-      ? { x: sourceNode.position_x + (sourceNode.node_type === 'start' ? 0 : 240), y: sourceNode.position_y + (sourceNode.node_type === 'start' ? 760 : 180) }
+      ? { x: sourceNode.position_x + (sourceNode.node_type === 'start' ? 520 : 240), y: sourceNode.position_y + (sourceNode.node_type === 'start' ? 0 : 180) }
       : { x: 500, y: 300 };
 
     const newNode = await addNode(nodeType, pos);
