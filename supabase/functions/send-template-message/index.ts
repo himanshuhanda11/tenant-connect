@@ -175,24 +175,22 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Plan gate: sending template/campaign requires Basic+ and respects sending_paused
-    // IMPORTANT: call via the user-scoped client so auth.uid() resolves inside the SECURITY DEFINER function
-    const { data: planAccess, error: planErr } = await supabaseAuth.rpc('check_plan_access', {
-      p_tenant_id: tenant_id,
-      p_feature_key: 'send_campaign',
-    });
-    if (planErr) {
-      return new Response(JSON.stringify({ error: 'plan_check_failed', detail: planErr.message }), {
-        status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
-    if (!planAccess?.allowed) {
+    // Plan gate: send_campaign requires Basic+. Check entitlement directly via service role
+    // (auth.uid() may be NULL inside SECURITY DEFINER when called from edge functions with ES256 JWT).
+    const { data: entitlement } = await supabase
+      .from('workspace_entitlements')
+      .select('plan')
+      .eq('workspace_id', tenant_id)
+      .maybeSingle();
+
+    const planRank: Record<string, number> = { free: 0, basic: 1, pro: 2, business: 3 };
+    const currentPlan = (entitlement?.plan || 'free').toLowerCase();
+    if ((planRank[currentPlan] ?? 0) < 1) {
       return new Response(JSON.stringify({
         error: 'plan_access_denied',
-        reason: planAccess?.reason,
-        current_plan: planAccess?.current_plan,
-        upgrade_to: planAccess?.upgrade_to,
+        reason: 'plan_too_low',
+        current_plan: currentPlan,
+        upgrade_to: 'basic',
         feature: 'send_campaign',
       }), {
         status: 402,
