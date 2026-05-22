@@ -3600,6 +3600,429 @@ export type Database = {
           },
         ]
       }
+      email_accounts: {
+        Row: {
+          address: string
+          created_at: string
+          created_by: string | null
+          display_name: string | null
+          id: string
+          is_active: boolean
+          is_default: boolean
+          signature_html: string | null
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          address: string
+          created_at?: string
+          created_by?: string | null
+          display_name?: string | null
+          id?: string
+          is_active?: boolean
+          is_default?: boolean
+          signature_html?: string | null
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          address?: string
+          created_at?: string
+          created_by?: string | null
+          display_name?: string | null
+          id?: string
+          is_active?: boolean
+          is_default?: boolean
+          signature_html?: string | null
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      email_attachments: {
+        Row: {
+          content_id: string | null
+          created_at: string
+          filename: string
+          id: string
+          is_inline: boolean
+          message_id: string
+          mime_type: string | null
+          size_bytes: number | null
+          storage_bucket: string
+          storage_path: string
+          tenant_id: string
+        }
+        Insert: {
+          content_id?: string | null
+          created_at?: string
+          filename: string
+          id?: string
+          is_inline?: boolean
+          message_id: string
+          mime_type?: string | null
+          size_bytes?: number | null
+          storage_bucket?: string
+          storage_path: string
+          tenant_id: string
+        }
+        Update: {
+          content_id?: string | null
+          created_at?: string
+          filename?: string
+          id?: string
+          is_inline?: boolean
+          message_id?: string
+          mime_type?: string | null
+          size_bytes?: number | null
+          storage_bucket?: string
+          storage_path?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_attachments_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "email_messages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      email_conversation_labels: {
+        Row: {
+          conversation_id: string
+          created_at: string
+          label_id: string
+          tenant_id: string
+        }
+        Insert: {
+          conversation_id: string
+          created_at?: string
+          label_id: string
+          tenant_id: string
+        }
+        Update: {
+          conversation_id?: string
+          created_at?: string
+          label_id?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_conversation_labels_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "email_conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "email_conversation_labels_label_id_fkey"
+            columns: ["label_id"]
+            isOneToOne: false
+            referencedRelation: "email_labels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      email_conversations: {
+        Row: {
+          account_id: string | null
+          assigned_at: string | null
+          assigned_to: string | null
+          contact_id: string | null
+          created_at: string
+          from_email: string | null
+          from_name: string | null
+          has_attachments: boolean
+          id: string
+          is_starred: boolean
+          last_inbound_at: string | null
+          last_message_at: string | null
+          last_message_preview: string | null
+          message_count: number
+          priority: Database["public"]["Enums"]["email_priority"]
+          status: Database["public"]["Enums"]["email_conversation_status"]
+          subject: string | null
+          tenant_id: string
+          thread_key: string | null
+          unread_count: number
+          updated_at: string
+        }
+        Insert: {
+          account_id?: string | null
+          assigned_at?: string | null
+          assigned_to?: string | null
+          contact_id?: string | null
+          created_at?: string
+          from_email?: string | null
+          from_name?: string | null
+          has_attachments?: boolean
+          id?: string
+          is_starred?: boolean
+          last_inbound_at?: string | null
+          last_message_at?: string | null
+          last_message_preview?: string | null
+          message_count?: number
+          priority?: Database["public"]["Enums"]["email_priority"]
+          status?: Database["public"]["Enums"]["email_conversation_status"]
+          subject?: string | null
+          tenant_id: string
+          thread_key?: string | null
+          unread_count?: number
+          updated_at?: string
+        }
+        Update: {
+          account_id?: string | null
+          assigned_at?: string | null
+          assigned_to?: string | null
+          contact_id?: string | null
+          created_at?: string
+          from_email?: string | null
+          from_name?: string | null
+          has_attachments?: boolean
+          id?: string
+          is_starred?: boolean
+          last_inbound_at?: string | null
+          last_message_at?: string | null
+          last_message_preview?: string | null
+          message_count?: number
+          priority?: Database["public"]["Enums"]["email_priority"]
+          status?: Database["public"]["Enums"]["email_conversation_status"]
+          subject?: string | null
+          tenant_id?: string
+          thread_key?: string | null
+          unread_count?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_conversations_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "email_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      email_events: {
+        Row: {
+          actor_id: string | null
+          actor_type: string
+          conversation_id: string | null
+          created_at: string
+          event_type: string
+          id: string
+          message_id: string | null
+          payload: Json
+          tenant_id: string
+        }
+        Insert: {
+          actor_id?: string | null
+          actor_type?: string
+          conversation_id?: string | null
+          created_at?: string
+          event_type: string
+          id?: string
+          message_id?: string | null
+          payload?: Json
+          tenant_id: string
+        }
+        Update: {
+          actor_id?: string | null
+          actor_type?: string
+          conversation_id?: string | null
+          created_at?: string
+          event_type?: string
+          id?: string
+          message_id?: string | null
+          payload?: Json
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_events_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "email_conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "email_events_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "email_messages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      email_labels: {
+        Row: {
+          color: string
+          created_at: string
+          id: string
+          name: string
+          tenant_id: string
+        }
+        Insert: {
+          color?: string
+          created_at?: string
+          id?: string
+          name: string
+          tenant_id: string
+        }
+        Update: {
+          color?: string
+          created_at?: string
+          id?: string
+          name?: string
+          tenant_id?: string
+        }
+        Relationships: []
+      }
+      email_messages: {
+        Row: {
+          account_id: string | null
+          bcc_emails: string[]
+          body_html: string | null
+          body_text: string | null
+          cc_emails: string[]
+          conversation_id: string
+          created_at: string
+          direction: Database["public"]["Enums"]["email_direction"]
+          error_message: string | null
+          from_email: string | null
+          from_name: string | null
+          has_attachments: boolean
+          id: string
+          in_reply_to: string | null
+          message_id: string | null
+          reference_ids: string[] | null
+          reply_to: string | null
+          resend_event: Json | null
+          resend_id: string | null
+          sent_by: string | null
+          snippet: string | null
+          status: Database["public"]["Enums"]["email_message_status"]
+          subject: string | null
+          tenant_id: string
+          to_emails: string[]
+          updated_at: string
+        }
+        Insert: {
+          account_id?: string | null
+          bcc_emails?: string[]
+          body_html?: string | null
+          body_text?: string | null
+          cc_emails?: string[]
+          conversation_id: string
+          created_at?: string
+          direction: Database["public"]["Enums"]["email_direction"]
+          error_message?: string | null
+          from_email?: string | null
+          from_name?: string | null
+          has_attachments?: boolean
+          id?: string
+          in_reply_to?: string | null
+          message_id?: string | null
+          reference_ids?: string[] | null
+          reply_to?: string | null
+          resend_event?: Json | null
+          resend_id?: string | null
+          sent_by?: string | null
+          snippet?: string | null
+          status?: Database["public"]["Enums"]["email_message_status"]
+          subject?: string | null
+          tenant_id: string
+          to_emails?: string[]
+          updated_at?: string
+        }
+        Update: {
+          account_id?: string | null
+          bcc_emails?: string[]
+          body_html?: string | null
+          body_text?: string | null
+          cc_emails?: string[]
+          conversation_id?: string
+          created_at?: string
+          direction?: Database["public"]["Enums"]["email_direction"]
+          error_message?: string | null
+          from_email?: string | null
+          from_name?: string | null
+          has_attachments?: boolean
+          id?: string
+          in_reply_to?: string | null
+          message_id?: string | null
+          reference_ids?: string[] | null
+          reply_to?: string | null
+          resend_event?: Json | null
+          resend_id?: string | null
+          sent_by?: string | null
+          snippet?: string | null
+          status?: Database["public"]["Enums"]["email_message_status"]
+          subject?: string | null
+          tenant_id?: string
+          to_emails?: string[]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_messages_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "email_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "email_messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "email_conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      email_notes: {
+        Row: {
+          author_id: string
+          body: string
+          conversation_id: string
+          created_at: string
+          id: string
+          mentions: string[]
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          author_id: string
+          body: string
+          conversation_id: string
+          created_at?: string
+          id?: string
+          mentions?: string[]
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          author_id?: string
+          body?: string
+          conversation_id?: string
+          created_at?: string
+          id?: string
+          mentions?: string[]
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_notes_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "email_conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       email_send_log: {
         Row: {
           created_at: string
@@ -18911,6 +19334,19 @@ export type Database = {
         | "cancelled"
       conversation_status: "open" | "closed" | "expired"
       cooldown_scope: "workflow" | "node" | "action"
+      email_conversation_status: "open" | "pending" | "closed" | "spam"
+      email_direction: "inbound" | "outbound"
+      email_message_status:
+        | "received"
+        | "queued"
+        | "sent"
+        | "delivered"
+        | "opened"
+        | "clicked"
+        | "bounced"
+        | "complained"
+        | "failed"
+      email_priority: "low" | "normal" | "high" | "urgent"
       extended_action_type:
         | "send_template"
         | "send_interactive"
@@ -19476,6 +19912,20 @@ export const Constants = {
       ],
       conversation_status: ["open", "closed", "expired"],
       cooldown_scope: ["workflow", "node", "action"],
+      email_conversation_status: ["open", "pending", "closed", "spam"],
+      email_direction: ["inbound", "outbound"],
+      email_message_status: [
+        "received",
+        "queued",
+        "sent",
+        "delivered",
+        "opened",
+        "clicked",
+        "bounced",
+        "complained",
+        "failed",
+      ],
+      email_priority: ["low", "normal", "high", "urgent"],
       extended_action_type: [
         "send_template",
         "send_interactive",

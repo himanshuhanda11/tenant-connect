@@ -130,3 +130,14 @@ project_id = "fygwjpdasnhaomoqdvcu"
   [functions.send-team-email]
     verify_jwt = false
 
+  [functions.resend-inbound]
+    verify_jwt = false
+
+  [functions.resend-send]
+    verify_jwt = false
+
+  [functions.resend-auth-email]
+    verify_jwt = false
+
+
+
