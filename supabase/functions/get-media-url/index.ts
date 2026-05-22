@@ -149,8 +149,9 @@ Deno.serve(async (req) => {
       }
 
       const mediaBuffer = await mediaResp.arrayBuffer();
-      const contentType = message.media_mime_type || mediaResp.headers.get('content-type') || metaMedia.mime_type || 'application/octet-stream';
-      const ext = (contentType.split('/')[1] || 'bin').split(';')[0].split('+')[0].replace(/[^a-z0-9]/gi, '') || 'bin';
+      const sourceContentType = message.media_mime_type || mediaResp.headers.get('content-type') || metaMedia.mime_type || 'application/octet-stream';
+      const contentType = sourceContentType.split(';')[0].trim().toLowerCase() || 'application/octet-stream';
+      const ext = (contentType.split('/')[1] || 'bin').split('+')[0].replace(/[^a-z0-9]/gi, '') || 'bin';
       const filePath = `${message.tenant_id}/legacy/${message.id}-${Date.now()}.${ext}`;
 
       const { error: uploadError } = await supabase.storage
