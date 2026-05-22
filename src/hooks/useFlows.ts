@@ -183,10 +183,11 @@ export function useFlows() {
         config: {},
       };
 
-      // Get quick create sample nodes if applicable
-      const sampleNodes = data.quickCreateKey
+      // Get quick create sample nodes if applicable and place them to the right of Flow Start
+      const rawSampleNodes = data.quickCreateKey
         ? getQuickCreateNodes(data.quickCreateKey, currentTenant.id, newFlow.id)
         : [];
+      const sampleNodes = positionNodesToRightOfStart(rawSampleNodes, startNode);
 
       await supabase.from('flow_nodes').insert([startNode, ...sampleNodes]);
 
@@ -247,8 +248,11 @@ export function useFlows() {
         config: {},
       };
       
-      // Create sample nodes based on template category
-      const sampleNodes = getTemplateSampleNodes(template, currentTenant.id, newFlow.id);
+      // Create sample nodes based on template category and place them to the right of Flow Start
+      const sampleNodes = positionNodesToRightOfStart(
+        getTemplateSampleNodes(template, currentTenant.id, newFlow.id),
+        startNode
+      );
       
       await supabase.from('flow_nodes').insert([startNode, ...sampleNodes]);
       
