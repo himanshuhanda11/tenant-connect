@@ -7,6 +7,12 @@ const CHUNK_ERROR_PATTERNS = [
   "Loading chunk",
   "Loading CSS chunk",
   "ChunkLoadError",
+  // Safari/WebKit network failure message for failed dynamic imports & fetches
+  "Load failed",
+  // Other browser network failure variants
+  "NetworkError when attempting to fetch resource",
+  "Failed to fetch",
+  "_result.default",
 ];
 
 const RELOAD_COUNT_KEY = "__lov_chunk_reload_count";
