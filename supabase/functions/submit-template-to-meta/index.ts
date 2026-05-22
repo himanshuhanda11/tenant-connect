@@ -419,6 +419,7 @@ Deno.serve(async (req) => {
     }
 
     // Create submission log
+    const isOk = metaResponse.ok && metaResult.id;
     const { data: submissionLog, error: logError } = await supabase
       .from('template_submission_logs')
       .insert({
@@ -430,8 +431,13 @@ Deno.serve(async (req) => {
         request_payload: requestPayload,
         response_payload: metaResult,
         meta_template_id: metaResult.id || null,
-        meta_status: metaResponse.ok ? 'pending' : 'rejected',
-        rejection_reason: metaResult.error?.message || null,
+        meta_status: isOk ? 'pending' : 'rejected',
+        step: isOk ? 'posted' : 'rejected',
+        rejection_reason: metaResult.error?.error_user_msg || metaResult.error?.message || null,
+        meta_error_code: metaResult.error?.code ?? null,
+        meta_error_subcode: metaResult.error?.error_subcode ?? null,
+        meta_error_title: metaResult.error?.error_user_title ?? null,
+        meta_error_details: metaResult.error ?? null,
       })
       .select()
       .single();
@@ -439,6 +445,7 @@ Deno.serve(async (req) => {
     if (logError) {
       console.error('Error creating submission log:', logError);
     }
+
 
     if (!metaResponse.ok) {
       const permissionGuidance = getMetaPermissionGuidance(metaResult.error);
