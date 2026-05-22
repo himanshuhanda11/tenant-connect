@@ -84,6 +84,7 @@ import {
   ArrowDown,
   Loader2,
   Star,
+  GripVertical,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useFlowBuilder } from '@/hooks/useFlows';
