@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAdminApi } from "@/hooks/useAdminApi";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, Lock, LogOut, ArrowLeft } from "lucide-react";
+import { Loader2, Lock, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 
@@ -71,7 +71,7 @@ export function RequireSuperAdmin({ children }: { children: React.ReactNode }) {
               <h1 className="text-xl font-semibold">Restricted area</h1>
               <p className="text-sm text-muted-foreground">
                 This portal is reserved for Aireatro platform super admins.
-                Your account ({user?.email}) does not have access.
+                Your account ({sessionEmail || user?.email}) does not have access.
               </p>
             </div>
             <div className="flex flex-col gap-2 pt-2">
