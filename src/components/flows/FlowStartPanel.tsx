@@ -302,7 +302,7 @@ export const FlowStartPanel: React.FC<FlowStartPanelProps> = ({
 
   return (
     <>
-      <div className="w-[340px] bg-gradient-to-br from-card via-card to-primary/5 rounded-2xl border-2 border-primary/30 shadow-2xl shadow-primary/10 overflow-hidden backdrop-blur-sm" data-no-drag>
+      <div className="w-[340px] bg-gradient-to-br from-card via-card to-primary/5 rounded-2xl border-2 border-primary/30 shadow-2xl shadow-primary/10 overflow-hidden backdrop-blur-sm">
         {/* Header - Premium Design */}
         <div className="relative overflow-hidden">
           {/* Gradient Background */}
