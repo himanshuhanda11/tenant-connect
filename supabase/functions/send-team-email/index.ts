@@ -1,9 +1,10 @@
 import { corsHeaders, json, getAdminClient } from "../_shared/supabase.ts";
 
-// Use the verified sender subdomain for DMARC-aligned delivery.
-const SENDER_DOMAIN = "update.aireatro.com";
-const FROM_ADDRESS = "Aireatro <noreply@update.aireatro.com>";
+// Use the verified aireatro.com domain in Resend.
+const SENDER_DOMAIN = "aireatro.com";
+const FROM_ADDRESS = "Aireatro <noreply@aireatro.com>";
 const REPLY_TO_ADDRESS = "admin@aireatro.com";
+
 
 // Strip diacritics + drop non-ASCII so subject lines never break headers
 function asciiSafe(s: string): string {
