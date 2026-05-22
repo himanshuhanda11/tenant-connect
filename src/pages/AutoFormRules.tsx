@@ -60,6 +60,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { usePlanGate } from '@/hooks/usePlanGate';
 import { UpgradePrompt } from '@/components/billing/UpgradePrompt';
 import { UpgradePlanDialog } from '@/components/billing/UpgradePlanDialog';
+import { FormRulesExplainer } from '@/components/automation/form-rule/FormRulesExplainer';
 
 const triggerIconMap: Record<string, React.ElementType> = {
   first_message: MessageSquare,
