@@ -1166,8 +1166,11 @@ const FlowBuilder = () => {
                                           }
                                         }
                                         await updateNode(node.node_key, { config: cfg });
-                                        const edge = edges.find((ed: any) => ed.source_node_key === node.node_key && ed.source_handle === c.id);
-                                        if (edge) await deleteEdge((edge as any).edge_key);
+                                        // Remove ALL edges from this handle (defensive against duplicates)
+                                        const stale = edges.filter((ed: any) => ed.source_node_key === node.node_key && ed.source_handle === c.id);
+                                        for (const ed of stale) {
+                                          await deleteEdge((ed as any).edge_key);
+                                        }
                                       } else {
                                         handleStartHandleConnect(node.node_key, { id: c.id, label: c.label, index: c.index });
                                       }
