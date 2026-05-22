@@ -419,6 +419,11 @@ const FlowBuilder = () => {
 
     const newNode = await addNode(nodeType, pos);
     if (newNode && sourceKey && sourceKey !== newNode.node_key) {
+      // Replace any existing edge from this handle so we never stack duplicates
+      if (connectingHandle?.id) {
+        const stale = edges.filter((ed: any) => ed.source_node_key === sourceKey && ed.source_handle === connectingHandle.id);
+        for (const ed of stale) await deleteEdge((ed as any).edge_key);
+      }
       await addEdge(sourceKey, newNode.node_key, connectingHandle?.id);
       if (connectingHandle) {
         const srcNode = nodes.find(n => n.node_key === sourceKey);
