@@ -920,19 +920,7 @@ const FlowBuilder = () => {
                     onMouseDown={(e) => handleNodeMouseDown(e, node.node_key)}
                     onClick={() => handleNodeClick(node.node_key)}
                   >
-                    {/* Wide top drag bar — drag from anywhere on this strip */}
-                    <div
-                      className={cn(
-                        "absolute -top-7 left-0 right-0 h-7 rounded-t-2xl bg-primary/90 text-primary-foreground text-[11px] font-semibold shadow-lg flex items-center justify-center gap-2 select-none z-20",
-                        draggingNode === node.node_key ? 'cursor-grabbing' : 'cursor-grab hover:bg-primary transition-colors'
-                      )}
-                      onMouseDown={(e) => handleNodeMouseDown(e, node.node_key)}
-                      title="Drag to move Flow Start"
-                    >
-                      <GripVertical className="w-3.5 h-3.5" />
-                      Drag Flow Start
-                      <GripVertical className="w-3.5 h-3.5" />
-                    </div>
+                    {/* Drag from anywhere on the panel (non-button areas) */}
                     <FlowStartPanel
                       triggers={triggers}
                       metaAds={campaignsForFlows.length > 0 ? campaignsForFlows : undefined}
