@@ -108,27 +108,32 @@ function moveOverlappingNodesRightOfStart(flowNodes: FlowNode[]) {
   const startNode = flowNodes.find(n => n.node_type === 'start');
   if (!startNode) return { nodes: flowNodes, changed: [] as FlowNode[] };
 
-  const crowdedNodes = flowNodes.filter(n =>
-    n.node_type !== 'start' && n.position_x < startNode.position_x + 420
+  const rightSideNodes = flowNodes
+    .filter(n => n.node_type !== 'start')
+    .sort((a, b) => a.position_y - b.position_y || a.position_x - b.position_x);
+
+  if (rightSideNodes.length === 0) return { nodes: flowNodes, changed: [] as FlowNode[] };
+
+  const anchorX = startNode.position_x + FLOW_START_RIGHT_GAP;
+  const anchorY = startNode.position_y;
+  const needsCleanLayout = rightSideNodes.some((node, index) =>
+    Math.abs(node.position_x - anchorX) > 24 ||
+    Math.abs(node.position_y - (anchorY + index * FLOW_NODE_VERTICAL_GAP)) > 24
   );
 
-  const hasStartOverlap = crowdedNodes.some(n =>
-    n.position_x + 220 > startNode.position_x - 24 &&
-    n.position_y + 130 > startNode.position_y - 24 &&
-    n.position_y < startNode.position_y + 680
+  if (!needsCleanLayout) return { nodes: flowNodes, changed: [] as FlowNode[] };
+
+  const rightSidePositions = new Map(
+    rightSideNodes.map((node, index) => [
+      node.node_key,
+      { position_x: anchorX, position_y: anchorY + index * FLOW_NODE_VERTICAL_GAP },
+    ])
   );
-
-  if (!hasStartOverlap || crowdedNodes.length === 0) return { nodes: flowNodes, changed: [] as FlowNode[] };
-
-  const minCrowdedX = Math.min(...crowdedNodes.map(n => n.position_x));
-  const offsetX = startNode.position_x + FLOW_START_RIGHT_GAP - minCrowdedX;
-  if (offsetX <= 0) return { nodes: flowNodes, changed: [] as FlowNode[] };
-
-  const crowdedKeys = new Set(crowdedNodes.map(n => n.node_key));
   const changed: FlowNode[] = [];
   const nodes = flowNodes.map(node => {
-    if (!crowdedKeys.has(node.node_key)) return node;
-    const moved = { ...node, position_x: node.position_x + offsetX };
+    const nextPosition = rightSidePositions.get(node.node_key);
+    if (!nextPosition) return node;
+    const moved = { ...node, ...nextPosition };
     changed.push(moved);
     return moved;
   });
