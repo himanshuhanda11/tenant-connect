@@ -80,6 +80,7 @@ const AutoFormRulesPage = lazyWithRetry(() => import("./pages/auto-forms/AutoFor
 const AutoFormSubmissions = lazyWithRetry(() => import("./pages/auto-forms/AutoFormSubmissions"));
 const FlowsHub = lazyWithRetry(() => import("./pages/flows/FlowsHub"));
 const FlowBuilder = lazyWithRetry(() => import("./pages/flows/FlowBuilder"));
+const FlowRuns = lazyWithRetry(() => import("./pages/flows/FlowRuns"));
 const Billing = lazyWithRetry(() => import("./pages/Billing"));
 const WorkspaceAddOns = lazyWithRetry(() => import("./pages/WorkspaceAddOns"));
 const PrivacyPolicy = lazyWithRetry(() => import("./pages/PrivacyPolicy"));
