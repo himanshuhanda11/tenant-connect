@@ -419,6 +419,11 @@ const FlowBuilder = () => {
 
     const newNode = await addNode(nodeType, pos);
     if (newNode && sourceKey && sourceKey !== newNode.node_key) {
+      // Replace any existing edge from this handle so we never stack duplicates
+      if (connectingHandle?.id) {
+        const stale = edges.filter((ed: any) => ed.source_node_key === sourceKey && ed.source_handle === connectingHandle.id);
+        for (const ed of stale) await deleteEdge((ed as any).edge_key);
+      }
       await addEdge(sourceKey, newNode.node_key, connectingHandle?.id);
       if (connectingHandle) {
         const srcNode = nodes.find(n => n.node_key === sourceKey);
@@ -523,6 +528,11 @@ const FlowBuilder = () => {
     if (connecting) {
       if (connecting !== sourceKey) {
         const handle = connectingHandle?.id;
+        // Replace any existing edge from this handle so we never stack duplicates
+        if (handle) {
+          const stale = edges.filter((ed: any) => ed.source_node_key === connecting && ed.source_handle === handle);
+          for (const ed of stale) await deleteEdge((ed as any).edge_key);
+        }
         await addEdge(connecting, sourceKey, handle);
         // If this came from a button/list handle, also persist the `next` on the choice config
         if (connectingHandle) {
@@ -1166,8 +1176,11 @@ const FlowBuilder = () => {
                                           }
                                         }
                                         await updateNode(node.node_key, { config: cfg });
-                                        const edge = edges.find((ed: any) => ed.source_node_key === node.node_key && ed.source_handle === c.id);
-                                        if (edge) await deleteEdge((edge as any).edge_key);
+                                        // Remove ALL edges from this handle (defensive against duplicates)
+                                        const stale = edges.filter((ed: any) => ed.source_node_key === node.node_key && ed.source_handle === c.id);
+                                        for (const ed of stale) {
+                                          await deleteEdge((ed as any).edge_key);
+                                        }
                                       } else {
                                         handleStartHandleConnect(node.node_key, { id: c.id, label: c.label, index: c.index });
                                       }
