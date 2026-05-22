@@ -534,13 +534,19 @@ export function CreateFormRuleModal({ open, onOpenChange, editingRule, createRul
   const TriggerIcon = triggerIconMap[triggerType] || Zap;
   const selectedForm = templates.find(t => t.id === formId);
 
+  const formStepValid = () => {
+    if (formMode === 'template') return !!formId;
+    if (formMode === 'saved') return !!savedFormId && !!savedVersionId;
+    return builderFields.length > 0 && !!builderFormName.trim();
+  };
+
   const canProceed = () => {
     switch (currentStep) {
       case 1: return !!triggerType && isTriggerConfigValid(triggerType, triggerConfig);
       case 2: return true; // Conditions are optional
-      case 3: return formMode === 'template' ? !!formId : (builderFields.length > 0 && !!builderFormName.trim());
+      case 3: return formStepValid();
       case 4: return true; // Safety has defaults
-      case 5: return !!name.trim() && (formMode === 'template' ? !!formId : builderFields.length > 0);
+      case 5: return !!name.trim() && formStepValid();
       default: return false;
     }
   };
