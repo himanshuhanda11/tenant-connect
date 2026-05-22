@@ -50,7 +50,7 @@ export async function fetchConversations(tenantId: string, userId: string | null
       q = q.not("snoozed_until", "is", null);
       break;
     case "resolved":
-      q = q.in("status", ["resolved", "closed"]);
+      q = q.in("status", ["closed"]);
       break;
     case "spam":
       q = q.eq("is_spam", true);
