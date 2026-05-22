@@ -590,7 +590,9 @@ const FlowBuilder = () => {
                   </button>
                     {isOpen && (
                     <div className="ml-2 mt-1 space-y-1 pl-4 border-l border-border">
-                      {filtered.map((node) => (
+                      {filtered.map((nodeRaw) => {
+                        const node = nodeRaw as any;
+                        return (
                         <Tooltip key={node.type} delayDuration={300}>
                           <TooltipTrigger asChild>
                             <div
@@ -598,15 +600,22 @@ const FlowBuilder = () => {
                               onDragStart={(e) => handlePaletteDragStart(e, node.type)}
                               onDragEnd={handlePaletteDragEnd}
                               className={cn(
-                                'flex items-center gap-2.5 p-2.5 rounded-lg text-sm transition-all select-none',
+                                'group flex items-center gap-2.5 p-2.5 rounded-lg text-sm transition-all select-none',
                                 node.pro ? 'cursor-not-allowed opacity-50' : 'cursor-grab hover:bg-muted active:cursor-grabbing active:scale-95 active:bg-primary/10'
                               )}
                             >
-                              <div className={cn('w-7 h-7 rounded-lg flex items-center justify-center', 
+                              <div className={cn('w-7 h-7 rounded-lg flex items-center justify-center',
                                 nodeColors[node.type]?.bg || 'bg-muted')}>
                                 <node.icon className={cn('w-4 h-4', nodeColors[node.type]?.icon || 'text-muted-foreground')} />
                               </div>
                               <span className="flex-1">{node.label}</span>
+                              <button
+                                onClick={(e) => { e.stopPropagation(); toggleFavorite(node.type); }}
+                                className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-amber-500 transition"
+                                title={favorites.includes(node.type) ? 'Unpin' : 'Pin to favorites'}
+                              >
+                                <Star className={cn('w-3.5 h-3.5', favorites.includes(node.type) && 'fill-amber-500 text-amber-500 opacity-100')} />
+                              </button>
                               {node.pro && <Crown className="w-3.5 h-3.5 text-purple-500" />}
                             </div>
                           </TooltipTrigger>
@@ -615,7 +624,8 @@ const FlowBuilder = () => {
                             {node.pro && <p className="text-amber-500 mt-1">Upgrade to Pro to unlock</p>}
                           </TooltipContent>
                         </Tooltip>
-                      ))}
+                        );
+                      })}
                     </div>
                   )}
                 </div>
