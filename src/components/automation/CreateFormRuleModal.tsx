@@ -1141,10 +1141,11 @@ export function CreateFormRuleModal({ open, onOpenChange, editingRule, createRul
       <FormPreviewDialog
         open={previewOpen}
         onOpenChange={setPreviewOpen}
-        templateId={formId || null}
-        templateName={selectedForm?.name || builderFormName || null}
+        templateId={formMode === 'template' ? (formId || null) : null}
+        templateName={formMode === 'template' ? (selectedForm?.name || null) : (builderFormName || null)}
         introMessage={introMessage}
         variables={{}}
+        builderFields={formMode === 'builder' ? builderFields : undefined}
       />
     </Dialog>
   );
