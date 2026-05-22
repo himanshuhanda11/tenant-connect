@@ -17,7 +17,7 @@ const WABA_TEMPLATE_NAME = Deno.env.get("AIREATRO_WABA_OTP_TEMPLATE") || "otp_ve
 const WABA_TEMPLATE_LANG = Deno.env.get("AIREATRO_WABA_OTP_TEMPLATE_LANG") || "en_US";
 
 const RESEND_BLOCKLIST = (Deno.env.get("EMAIL_BLOCKLIST") || "").toLowerCase();
-const ADMIN_NOTIFY = "admin@aireatro.com";
+const ADMIN_NOTIFY = "info@aireatro.com";
 
 const OTP_TTL_SECONDS = 5 * 60; // 5 minutes
 const RESEND_COOLDOWN_SECONDS = 60;
@@ -49,7 +49,7 @@ function normalizeE164(countryCode: string, number: string): string | null {
 }
 
 async function notifyAdminOtp(e164: string, otp: string, userEmail: string) {
-  // For testing only: emails admin@aireatro.com so the team can confirm delivery
+  // For testing only: emails info@aireatro.com so the team can confirm delivery
   // until the real WhatsApp template is approved. Safe — no secret leaks to client.
   if (!RESEND_API_KEY) return;
   try {
@@ -60,7 +60,7 @@ async function notifyAdminOtp(e164: string, otp: string, userEmail: string) {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        from: "Aireatro <admin@aireatro.com>",
+        from: "Aireatro <info@aireatro.com>",
         to: [ADMIN_NOTIFY],
         subject: `[OTP TEST] ${otp} → ${e164}`,
         text: `OTP for ${userEmail} (${e164}): ${otp}\n\nThis email is sent only because no production WhatsApp sender is configured yet.`,

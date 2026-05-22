@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { useTenant } from '@/contexts/TenantContext';
 import { toast } from 'sonner';
 
-const ADMIN_EMAIL = 'admin@aireatro.com';
+const ADMIN_EMAIL = 'info@aireatro.com';
 
 export function AdvancedSettings() {
   const { currentRole } = useTenant();

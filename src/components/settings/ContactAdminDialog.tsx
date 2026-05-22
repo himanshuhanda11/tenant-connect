@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { toast } from 'sonner';
 
-const ADMIN_EMAIL = 'admin@aireatro.com';
+const ADMIN_EMAIL = 'info@aireatro.com';
 
 interface ContactAdminDialogProps {
   open: boolean;

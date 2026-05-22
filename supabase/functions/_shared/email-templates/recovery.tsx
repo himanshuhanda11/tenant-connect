@@ -54,7 +54,7 @@ export const RecoveryEmail = ({
           password reset, you can safely ignore this email.
         </Text>
         <Text style={footer}>
-          Sent by AiReatro from admin@aireatro.com. Add this address to your
+          Sent by AiReatro from info@aireatro.com. Add this address to your
           contacts so future password reset emails land in your inbox.
         </Text>
         <Text style={footer}>© AiReatro — WhatsApp CRM automation</Text>

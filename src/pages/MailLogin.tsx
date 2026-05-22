@@ -114,7 +114,7 @@ export default function MailLogin() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="admin@aireatro.com"
+                placeholder="info@aireatro.com"
                 disabled={submitting}
               />
             </div>

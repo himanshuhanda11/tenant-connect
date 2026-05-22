@@ -9,7 +9,7 @@ const SITE_NAME = "Aireatro"
 const SENDER_DOMAIN = "aireatro.com"
 const FROM_DOMAIN = SENDER_DOMAIN
 const FROM_ADDRESS = `${SITE_NAME} <noreply@${FROM_DOMAIN}>`
-const REPLY_TO_ADDRESS = 'admin@aireatro.com'
+const REPLY_TO_ADDRESS = 'info@aireatro.com'
 
 
 const corsHeaders = {

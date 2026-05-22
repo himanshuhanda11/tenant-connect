@@ -4,7 +4,7 @@
 // Single source of truth for sender identity and Resend API access.
 
 export const RESEND_FROM_DEFAULT = "Aireatro <noreply@aireatro.com>";
-export const RESEND_REPLY_TO_DEFAULT = "admin@aireatro.com";
+export const RESEND_REPLY_TO_DEFAULT = "info@aireatro.com";
 export const RESEND_INBOUND_DOMAIN = "inbox.aireatro.com";
 export const RESEND_API_BASE = "https://api.resend.com";
 
