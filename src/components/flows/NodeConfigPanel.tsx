@@ -61,6 +61,11 @@ export function NodeConfigPanel({ node, onUpdate }: NodeConfigPanelProps) {
         <TemplateConfig config={config} updateConfig={updateConfig} />
       )}
 
+      {/* Collect Form */}
+      {node.node_type === 'collect-form' && (
+        <CollectFormConfig config={config} updateConfig={updateConfig} />
+      )}
+
       {/* Condition */}
       {node.node_type === 'condition' && (
         <ConditionConfig config={config} updateConfig={updateConfig} />
