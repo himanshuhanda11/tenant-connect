@@ -308,6 +308,7 @@ const App = () => (
                     <Route path="/flows" element={<FlowsHub />} />
                     <Route path="/flows/builder" element={<FlowBuilder />} />
                     <Route path="/flows/builder/:id" element={<FlowBuilder />} />
+                    <Route path="/flows/:flowId/runs" element={<FlowRuns />} />
                     <Route path="/widgets" element={<WidgetsList />} />
                     <Route path="/widgets/:id" element={<WidgetBuilder />} />
                     <Route path="/widgets/:id/install" element={<WidgetInstall />} />
