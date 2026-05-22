@@ -69,7 +69,7 @@ const growthMenuItems: MenuItem[] = [
   { title: 'Broadcast', url: '/campaigns', icon: Send, key: 'campaigns', docUrl: '/help/campaigns' },
   { title: 'Automation', url: '/automation', icon: Zap, key: 'automation', docUrl: '/help/automation' },
   { title: 'Form Rules', url: '/automation/form-rules', icon: FileText, key: 'form-rules', isNew: true, docUrl: '/help/form-rules' },
-  { title: 'Flows', url: '/flows', icon: Workflow, key: 'flows', docUrl: '/help/automation' },
+  { title: 'Chatbot Flows', url: '/flows', icon: Workflow, key: 'flows', docUrl: '/help/automation' },
   { title: 'Website Widget', url: '/widgets', icon: MessageCircle, key: 'widgets', isNew: true },
   { title: 'QR Code', url: '/tools/qr-generator', icon: QrCode, key: 'qr-generator', isNew: true },
 ];
