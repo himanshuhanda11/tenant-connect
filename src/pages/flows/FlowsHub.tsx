@@ -77,6 +77,7 @@ import { usePlanGate } from '@/hooks/usePlanGate';
 import { UpgradePrompt } from '@/components/billing/UpgradePrompt';
 import { UpgradePlanDialog } from '@/components/billing/UpgradePlanDialog';
 import { GuidedFlowWizard } from '@/components/flows/GuidedFlowWizard';
+import { FlowEngineToggle } from '@/components/flows/FlowEngineToggle';
 
 const quickCreateOptions = [
   { label: 'Lead Qualification', icon: Target, description: 'Qualify and score incoming leads', emoji: '🎯' },
