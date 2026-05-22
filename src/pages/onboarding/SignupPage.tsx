@@ -18,6 +18,7 @@ export default function SignupPage() {
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   
   // Email form state
   const [fullName, setFullName] = useState('');
@@ -91,6 +92,7 @@ export default function SignupPage() {
 
     setIsLoading(true);
     setError(null);
+    setSuccessMessage(null);
 
     try {
       const { data, error } = await supabase.auth.signUp({
@@ -124,21 +126,13 @@ export default function SignupPage() {
           },
         }).catch((e) => console.warn('signup_welcome email failed', e));
 
-        // If no session was returned (e.g. email-confirm required), sign the user in
-        // immediately with the password they just provided so onboarding can continue.
+        // If email confirmation is required, Supabase intentionally returns no session.
+        // Do not try to sign in immediately — that suppresses the expected verify-email flow.
         if (!data.session) {
-          const { error: signInError } = await supabase.auth.signInWithPassword({
-            email: email.trim(),
-            password,
-          });
-          if (signInError) {
-            setError(
-              'Account created, but automatic sign-in failed. Please log in to continue.'
-            );
-            setIsLoading(false);
-            setTimeout(() => navigate('/login', { replace: true }), 1500);
-            return;
-          }
+          setSuccessMessage(`We sent a verification email to ${email.trim()}. Please verify your email, then log in to continue.`);
+          setPassword('');
+          setIsLoading(false);
+          return;
         }
 
         // Wait for AuthContext to pick up the new session, then navigate.
@@ -202,6 +196,11 @@ export default function SignupPage() {
               {error && (
                 <div className="p-3 rounded-lg bg-destructive/10 text-destructive text-sm">
                   {error}
+                </div>
+              )}
+              {successMessage && (
+                <div className="p-3 rounded-lg bg-primary/10 text-primary text-sm">
+                  {successMessage}
                 </div>
               )}
 
