@@ -410,7 +410,7 @@ const FlowBuilder = () => {
 
   // Click-to-add: places the node near the source and auto-connects
   const handlePaletteClick = async (nodeType: string) => {
-    const sourceKey = connecting || selectedNodeKey;
+    const sourceKey = connecting;
     const sourceNode = sourceKey ? nodes.find(n => n.node_key === sourceKey) : null;
     const pos = sourceNode
       ? { x: sourceNode.position_x + (sourceNode.node_type === 'start' ? 520 : 240), y: sourceNode.position_y + (sourceNode.node_type === 'start' ? 0 : 180) }
@@ -461,7 +461,7 @@ const FlowBuilder = () => {
     const y = Math.max(0, (e.clientY - rect.top) / (zoom / 100));
 
     // Remember source for auto-connect: selected node, or currently-connecting source
-    const autoConnectSource = connecting || selectedNodeKey;
+    const autoConnectSource = connecting;
     const newNode = await addNode(nodeType, { x, y });
     setIsDraggingNew(false);
 
@@ -1136,9 +1136,42 @@ const FlowBuilder = () => {
                                 >
                                   <span className="truncate text-foreground">{c.label}</span>
                                   {targetExists && (
-                                    <span className="text-[10px] text-primary truncate max-w-[60px]" title={nodes.find(n => n.node_key === c.next)?.label}>
-                                      → {nodes.find(n => n.node_key === c.next)?.label}
-                                    </span>
+                                    <div className="flex items-center gap-1 shrink-0">
+                                      <span className="text-[10px] text-primary truncate max-w-[60px]" title={nodes.find(n => n.node_key === c.next)?.label}>
+                                        → {nodes.find(n => n.node_key === c.next)?.label}
+                                      </span>
+                                      <button
+                                        title="Unlink"
+                                        data-no-drag
+                                        onClick={async (e) => {
+                                          e.stopPropagation();
+                                          // Clear next on the config
+                                          const cfg = { ...(node.config || {}) };
+                                          if (node.node_type === 'text-buttons') {
+                                            const btns = Array.isArray(cfg.buttons) ? [...cfg.buttons] : [];
+                                            if (btns[c.index]) {
+                                              btns[c.index] = typeof btns[c.index] === 'string'
+                                                ? { label: btns[c.index] }
+                                                : { ...btns[c.index], next: undefined };
+                                              cfg.buttons = btns;
+                                            }
+                                          } else if (node.node_type === 'list-message') {
+                                            const items = Array.isArray(cfg.items) ? [...cfg.items] : (Array.isArray(cfg.sections) ? [...cfg.sections] : []);
+                                            if (items[c.index]) {
+                                              items[c.index] = { ...items[c.index], next: undefined };
+                                              cfg.items = items;
+                                            }
+                                          }
+                                          await updateNode(node.node_key, { config: cfg });
+                                          // Remove the matching edge if present
+                                          const edge = edges.find((ed: any) => ed.source_node_key === node.node_key && ed.source_handle === c.id);
+                                          if (edge) await deleteEdge((edge as any).edge_key);
+                                        }}
+                                        className="w-4 h-4 rounded-full bg-muted hover:bg-destructive hover:text-destructive-foreground text-muted-foreground flex items-center justify-center transition-colors"
+                                      >
+                                        <XCircle className="w-3 h-3" />
+                                      </button>
+                                    </div>
                                   )}
                                   {/* Per-row connect handle */}
                                   <button
