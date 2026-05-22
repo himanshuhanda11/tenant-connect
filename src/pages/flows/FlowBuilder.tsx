@@ -934,28 +934,51 @@ const FlowBuilder = () => {
 
             {/* SVG for edges */}
             <svg className="absolute inset-0 w-full h-full pointer-events-none" style={{ minWidth: '2000px', minHeight: '1500px' }}>
+              <defs>
+                <marker id="flowArrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+                  <path d="M 0 0 L 10 5 L 0 10 z" fill="hsl(var(--primary))" />
+                </marker>
+              </defs>
               {edges.map((edge) => {
                 const sourceNode = nodes.find(n => n.node_key === edge.source_node_key);
                 const targetNode = nodes.find(n => n.node_key === edge.target_node_key);
                 if (!sourceNode || !targetNode) return null;
-                
-                const x1 = sourceNode.position_x + 100;
-                const y1 = sourceNode.position_y + 60;
+
+                // Default: bottom-center → top-center
+                let x1 = sourceNode.position_x + 100;
+                let y1 = sourceNode.position_y + 60;
+                let fromRight = false;
+
+                // If the edge comes from a button/list handle, anchor on the row's right side
+                const sh = (edge as any).source_handle as string | undefined;
+                if (sh) {
+                  const choices = getNodeChoices(sourceNode);
+                  const idx = choices.findIndex(c => c.id === sh);
+                  if (idx >= 0) {
+                    const rowY = rowYOffset(idx, sourceNode);
+                    x1 = sourceNode.position_x + 200;
+                    y1 = sourceNode.position_y + rowY;
+                    fromRight = true;
+                  }
+                }
+
                 const x2 = targetNode.position_x + 100;
                 const y2 = targetNode.position_y;
-                
-                const midY = (y1 + y2) / 2;
-                
+
+                const d = fromRight
+                  ? `M ${x1} ${y1} C ${x1 + 80} ${y1}, ${x2} ${y2 - 80}, ${x2} ${y2}`
+                  : `M ${x1} ${y1} C ${x1} ${(y1 + y2) / 2}, ${x2} ${(y1 + y2) / 2}, ${x2} ${y2}`;
+
                 return (
                   <g key={edge.edge_key}>
                     <path
-                      d={`M ${x1} ${y1} C ${x1} ${midY}, ${x2} ${midY}, ${x2} ${y2}`}
+                      d={d}
                       stroke="hsl(var(--primary))"
                       strokeWidth="2"
                       fill="none"
                       strokeDasharray={connecting ? "5,5" : "none"}
+                      markerEnd="url(#flowArrow)"
                     />
-                    <circle cx={x2} cy={y2} r="4" fill="hsl(var(--primary))" />
                   </g>
                 );
               })}
