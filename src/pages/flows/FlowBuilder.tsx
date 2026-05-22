@@ -368,6 +368,26 @@ const FlowBuilder = () => {
     setDragNodeType(null);
   };
 
+  // Click-to-add: places the node near the source and auto-connects
+  const handlePaletteClick = async (nodeType: string) => {
+    const sourceKey = connecting || selectedNodeKey;
+    const sourceNode = sourceKey ? nodes.find(n => n.node_key === sourceKey) : null;
+    const pos = sourceNode
+      ? { x: sourceNode.position_x + (sourceNode.node_type === 'start' ? 0 : 240), y: sourceNode.position_y + (sourceNode.node_type === 'start' ? 760 : 180) }
+      : { x: 500, y: 300 };
+
+    const newNode = await addNode(nodeType, pos);
+    if (newNode && sourceKey && sourceKey !== newNode.node_key) {
+      await addEdge(sourceKey, newNode.node_key);
+      setConnecting(null);
+      toast.success('Node added and connected');
+    } else if (newNode) {
+      toast.success('Node added — select another node and click again to connect');
+    }
+    if (newNode) setSelectedNodeKey(newNode.node_key);
+  };
+
+
   const handleCanvasDrop = async (e: React.DragEvent) => {
     e.preventDefault();
     const nodeType = e.dataTransfer.getData('nodeType');
@@ -610,8 +630,10 @@ const FlowBuilder = () => {
                         draggable={!(node as any).pro}
                         onDragStart={(e) => handlePaletteDragStart(e, node.type)}
                         onDragEnd={handlePaletteDragEnd}
-                        className="flex items-center gap-2.5 p-2 rounded-lg text-sm cursor-grab hover:bg-muted active:cursor-grabbing"
+                        onClick={() => !(node as any).pro && handlePaletteClick(node.type)}
+                        className="flex items-center gap-2.5 p-2 rounded-lg text-sm cursor-pointer hover:bg-muted active:scale-95 active:bg-primary/10"
                       >
+
                         <div className={cn('w-7 h-7 rounded-lg flex items-center justify-center', nodeColors[node.type]?.bg || 'bg-muted')}>
                           <node.icon className={cn('w-4 h-4', nodeColors[node.type]?.icon || 'text-muted-foreground')} />
                         </div>
@@ -655,11 +677,13 @@ const FlowBuilder = () => {
                               draggable={!node.pro}
                               onDragStart={(e) => handlePaletteDragStart(e, node.type)}
                               onDragEnd={handlePaletteDragEnd}
+                              onClick={() => !node.pro && handlePaletteClick(node.type)}
                               className={cn(
                                 'group flex items-center gap-2.5 p-2.5 rounded-lg text-sm transition-all select-none',
-                                node.pro ? 'cursor-not-allowed opacity-50' : 'cursor-grab hover:bg-muted active:cursor-grabbing active:scale-95 active:bg-primary/10'
+                                node.pro ? 'cursor-not-allowed opacity-50' : 'cursor-pointer hover:bg-muted active:scale-95 active:bg-primary/10'
                               )}
                             >
+
                               <div className={cn('w-7 h-7 rounded-lg flex items-center justify-center',
                                 nodeColors[node.type]?.bg || 'bg-muted')}>
                                 <node.icon className={cn('w-4 h-4', nodeColors[node.type]?.icon || 'text-muted-foreground')} />
@@ -810,22 +834,23 @@ const FlowBuilder = () => {
           </div>
           <FlowMiniMap nodes={nodes as any} edges={edges as any} selectedNodeKey={selectedNodeKey} />
 
-          {/* Connection indicator */}
+          {/* Connection indicator — bottom center */}
           {connecting && (
-            <div className="absolute top-4 right-4 bg-primary text-primary-foreground px-4 py-2.5 rounded-xl shadow-lg z-10 flex items-center gap-3">
+            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground px-4 py-2.5 rounded-xl shadow-2xl z-20 flex items-center gap-3">
               <div className="flex items-center gap-2">
                 <div className="w-2 h-2 rounded-full bg-white animate-pulse" />
-                <span className="text-sm font-medium">Click target node to connect</span>
+                <span className="text-sm font-medium">Click a node (or pick from left) to connect</span>
               </div>
               <button
                 onClick={() => setConnecting(null)}
-                className="text-xs px-2 py-1 rounded-md bg-white/20 hover:bg-white/30 transition-colors"
+                className="text-xs px-3 py-1.5 rounded-md bg-white/20 hover:bg-white/30 transition-colors font-medium"
                 title="Cancel (Esc)"
               >
                 ← Back
               </button>
             </div>
           )}
+
 
           {/* Canvas content with zoom */}
           <div 
