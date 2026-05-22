@@ -319,14 +319,23 @@ export function TemplatesListView({
                     </span>
                   </div>
                   {canSubmit(template) ? (
-                    <Button size="sm" className="mt-3 w-full" onClick={() => onSubmitToMeta(template)}>
-                      <Send className="h-3.5 w-3.5 mr-1.5" />
-                      {template.status === 'REJECTED' ? 'Resubmit for Approval' : 'Submit for Approval'}
+                    <Button
+                      size="sm"
+                      className="mt-3 w-full"
+                      onClick={() => onSubmitToMeta(template)}
+                      disabled={submittingTemplateId === template.id}
+                    >
+                      {submittingTemplateId === template.id ? (
+                        <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />
+                      ) : (
+                        <Send className="h-3.5 w-3.5 mr-1.5" />
+                      )}
+                      {submittingTemplateId === template.id ? 'Submitting…' : 'Submit for Approval'}
                     </Button>
                   ) : canEdit(template) ? (
                     <Button size="sm" variant="outline" className="mt-3 w-full" onClick={() => onEdit(template)}>
                       <Edit className="h-3.5 w-3.5 mr-1.5" />
-                      {template.status === 'APPROVED' ? 'Edit & Resubmit' : 'Edit Template'}
+                      {getEditLabel(template)}
                     </Button>
                   ) : (
                     <Button size="sm" variant="outline" className="mt-3 w-full" onClick={() => onView(template)}>
@@ -387,9 +396,14 @@ export function TemplatesListView({
                           <Button
                             size="sm"
                             onClick={() => onSubmitToMeta(template)}
+                            disabled={submittingTemplateId === template.id}
                           >
-                            <Send className="h-3.5 w-3.5 mr-1.5" />
-                            {template.status === 'REJECTED' ? 'Resubmit' : 'Submit for Approval'}
+                            {submittingTemplateId === template.id ? (
+                              <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />
+                            ) : (
+                              <Send className="h-3.5 w-3.5 mr-1.5" />
+                            )}
+                            {submittingTemplateId === template.id ? 'Submitting…' : 'Submit for Approval'}
                           </Button>
                         )}
                         <DropdownMenu>
