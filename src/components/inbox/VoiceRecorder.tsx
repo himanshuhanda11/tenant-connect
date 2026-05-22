@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Mic, Square, Trash2, Send, Play, Pause, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+import { encodeVoiceToMp3 } from '@/lib/audio/encodeVoiceMp3';
 
 interface VoiceRecorderProps {
   onCancel: () => void;
@@ -9,17 +10,16 @@ interface VoiceRecorderProps {
   isOutbound?: boolean;
 }
 
-// Pick the best supported audio container for WhatsApp Cloud API.
-// WhatsApp accepts: audio/aac, audio/mp4, audio/mpeg, audio/amr, audio/ogg (opus).
-// Order matters — prefer formats Meta accepts directly.
+// Record in the most browser-compatible format, then encode to MP3 before send.
+// This avoids WhatsApp 131053 failures where browser m4a/webm blobs are
+// accepted by the send endpoint but later rejected during media processing.
 function pickMime(): { mimeType?: string; ext: string } {
   if (typeof MediaRecorder === 'undefined') return { ext: 'webm' };
   const candidates: Array<{ m: string; ext: string }> = [
-    { m: 'audio/ogg;codecs=opus', ext: 'ogg' },
-    { m: 'audio/mp4;codecs=mp4a.40.2', ext: 'm4a' },
-    { m: 'audio/mp4', ext: 'm4a' },
     { m: 'audio/webm;codecs=opus', ext: 'webm' },
     { m: 'audio/webm', ext: 'webm' },
+    { m: 'audio/ogg;codecs=opus', ext: 'ogg' },
+    { m: 'audio/mp4', ext: 'm4a' },
   ];
   for (const c of candidates) {
     try { if ((MediaRecorder as any).isTypeSupported?.(c.m)) return { mimeType: c.m, ext: c.ext }; } catch {}
@@ -94,10 +94,17 @@ export function VoiceRecorder({ onCancel, onSend }: VoiceRecorderProps) {
         mediaRecorderRef.current = rec;
         chunksRef.current = [];
         rec.ondataavailable = (e) => { if (e.data && e.data.size > 0) chunksRef.current.push(e.data); };
-        rec.onstop = () => {
+        rec.onstop = async () => {
           const blob = new Blob(chunksRef.current, { type: rec.mimeType || mimeType || 'audio/webm' });
-          const file = new File([blob], `voice-${Date.now()}.${ext}`, { type: blob.type });
-          setRecordedFile(file);
+          try {
+            const file = await encodeVoiceToMp3(blob);
+            setRecordedFile(file);
+          } catch (err) {
+            console.error('Voice MP3 encoding failed:', err);
+            const fallback = new File([blob], `voice-${Date.now()}.${ext}`, { type: blob.type });
+            setRecordedFile(fallback);
+            toast.warning('Voice will be sent in the browser recording format.');
+          }
           setPreviewUrl(URL.createObjectURL(blob));
           setPhase('review');
         };
