@@ -89,7 +89,7 @@ interface InboxChatThreadProps {
   messages: InboxMessage[];
   events: ConversationEvent[];
   typingUsers: Array<{ profile_id: string; full_name?: string }>;
-  onSendMessage: (message: { text?: string; template?: string; media?: File }) => void;
+  onSendMessage: (message: { text?: string; template?: string; media?: File }) => Promise<void> | void;
   onAssign: (profileId: string | null) => void;
   onSetStatus: (status: ConversationStatus) => void;
   onSetIntervene: (intervene: boolean) => void;
