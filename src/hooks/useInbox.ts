@@ -1102,7 +1102,7 @@ export function useInboxActions() {
       } catch (err: any) {
         console.error('Send media error:', err);
         toast.error(err.message || 'Failed to send media');
-        return;
+        throw err;
       } finally {
         URL.revokeObjectURL(blobUrl);
       }
