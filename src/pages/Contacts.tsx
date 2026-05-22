@@ -104,48 +104,61 @@ export default function Contacts() {
 
   // Convert CRM contacts to Contact shape for table/drawer compatibility
   const contactsForTable = useMemo((): Contact[] => {
-    return crmContacts.map(crm => ({
+    return crmContacts.map(crm => {
+      const details = contactDetailsMap[crm.contact_id] || {};
+      return ({
       id: crm.contact_id,
       tenant_id: crm.tenant_id,
       wa_id: crm.wa_id,
       name: crm.contact_name,
       first_name: crm.first_name,
       profile_picture_url: crm.profile_picture_url,
-      // CRM-derived fields
-      lead_status: 'new' as const,
-      priority_level: 'normal' as const,
-      mau_status: 'active' as const,
-      opt_in_status: false,
-      opt_out: false,
+      // CRM-derived / detail-derived fields (details win)
+      lead_status: (details.lead_status as Contact['lead_status']) || 'new',
+      priority_level: (details.priority_level as Contact['priority_level']) || 'normal',
+      mau_status: (details.mau_status as Contact['mau_status']) || 'active',
+      opt_in_status: details.opt_in_status ?? false,
+      opt_out: details.opt_out ?? false,
       blocked_by_user: false,
       bot_handled: false,
       intervened: false,
       data_deletion_requested: false,
       closed: crm.lead_state === 'closed',
-      created_at: crm.last_message_at || new Date().toISOString(),
+      created_at: (details.created_at as string) || crm.last_message_at || new Date().toISOString(),
       updated_at: crm.last_message_at || new Date().toISOString(),
-      // Nullable fields
-      country: null, language: null, timezone: null,
-      source: null, campaign_source: null, first_message: null,
-      first_message_time: null, entry_point: null, referrer_url: null,
-      segment: null, deal_stage: null, closed_reason: null,
+      // Detail fields
+      country: details.country ?? null,
+      language: details.language ?? null,
+      timezone: details.timezone ?? null,
+      source: details.source ?? null,
+      campaign_source: details.campaign_source ?? null,
+      first_message: details.first_message ?? null,
+      first_message_time: details.first_message_time ?? null,
+      entry_point: details.entry_point ?? null,
+      referrer_url: details.referrer_url ?? null,
+      segment: details.segment ?? null,
+      deal_stage: null, closed_reason: null,
       closure_time: null, request_type: null, request_time: null,
       last_active_date: null, whatsapp_quality_rating: null,
       pricing_category: null, automation_flow: null,
       ai_intent_detected: null, sentiment_score: null,
       followup_due: null, sla_timer: null, next_best_action: null,
-      opt_in_source: null, opt_in_timestamp: null, opt_out_timestamp: null,
-      notes: null, assigned_agent_id: crm.assigned_to,
+      opt_in_source: details.opt_in_source ?? null,
+      opt_in_timestamp: details.opt_in_timestamp ?? null,
+      opt_out_timestamp: null,
+      notes: details.notes ?? null,
+      assigned_agent_id: crm.assigned_to,
       intervened_at: null, intervened_by: null,
-      last_seen: crm.last_message_at,
+      last_seen: details.last_seen ?? crm.last_message_at,
       // Tags from RPC
       tags: crm.tags?.map(t => ({
         id: t.id,
         tag_id: t.id,
         tag: { id: t.id, name: t.name, color: t.color },
       })) || [],
-    }));
-  }, [crmContacts]);
+      });
+    });
+  }, [crmContacts, contactDetailsMap]);
 
   // Build inbox summaries map from CRM data (for table columns)
   const inboxSummaries = useMemo(() => {
