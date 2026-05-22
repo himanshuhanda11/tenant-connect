@@ -781,10 +781,10 @@ function ContextDrawer({ conv }: { conv: Conv }) {
     (async () => {
       const { data } = await supabase
         .from("email_notes")
-        .select("id, body, created_at, user_id")
+        .select("id, body, created_at, author_id")
         .eq("conversation_id", conv.id)
         .order("created_at", { ascending: false });
-      setNotes(data || []);
+      setNotes((data as any) || []);
 
       const cutoff = new Date(Date.now() - 45_000).toISOString();
       const { data: v } = await supabase
@@ -803,13 +803,13 @@ function ContextDrawer({ conv }: { conv: Conv }) {
     const { error } = await supabase.from("email_notes").insert({
       tenant_id: (conv as unknown as { tenant_id: string }).tenant_id,
       conversation_id: conv.id,
-      user_id: u.user.id,
+      author_id: u.user.id,
       body: noteText,
     });
     if (error) { toast.error(error.message); return; }
     setNoteText("");
-    const { data } = await supabase.from("email_notes").select("id, body, created_at, user_id").eq("conversation_id", conv.id).order("created_at", { ascending: false });
-    setNotes(data || []);
+    const { data } = await supabase.from("email_notes").select("id, body, created_at, author_id").eq("conversation_id", conv.id).order("created_at", { ascending: false });
+    setNotes((data as any) || []);
   }
 
   return (
