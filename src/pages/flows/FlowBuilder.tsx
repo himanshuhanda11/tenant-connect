@@ -1109,13 +1109,63 @@ const FlowBuilder = () => {
                   </div>
                   
                   {/* Node body */}
-                  <div className="px-3 py-2.5 text-xs text-muted-foreground">
-                    {node.config?.message ? (
-                      <span className="line-clamp-2">{node.config.message}</span>
-                    ) : (
-                      <span className="italic opacity-70">Click to configure</span>
-                    )}
-                  </div>
+                  {(() => {
+                    const choices = getNodeChoices(node);
+                    const hasMsg = !!(node.config?.message || node.config?.body);
+                    return (
+                      <div className="px-3 pt-2 pb-3 text-xs text-muted-foreground">
+                        {hasMsg ? (
+                          <div className="line-clamp-2 mb-2 text-foreground/80">{node.config.message || node.config.body}</div>
+                        ) : (choices.length === 0 && (
+                          <span className="italic opacity-70">Click to configure</span>
+                        ))}
+                        {choices.length > 0 && (
+                          <div className="space-y-1.5 relative">
+                            {choices.map((c) => {
+                              const targetExists = c.next && nodes.some(n => n.node_key === c.next);
+                              const isActive = connecting === node.node_key && connectingHandle?.id === c.id;
+                              return (
+                                <div
+                                  key={c.id}
+                                  data-no-drag
+                                  className={cn(
+                                    'group relative flex items-center justify-between gap-2 rounded-md border bg-background px-2.5 h-8 text-[12px] font-medium transition-all',
+                                    isActive ? 'border-green-500 ring-2 ring-green-500/40' : 'border-border hover:border-primary/60',
+                                    targetExists && 'border-primary/40 bg-primary/5'
+                                  )}
+                                >
+                                  <span className="truncate text-foreground">{c.label}</span>
+                                  {targetExists && (
+                                    <span className="text-[10px] text-primary truncate max-w-[60px]" title={nodes.find(n => n.node_key === c.next)?.label}>
+                                      → {nodes.find(n => n.node_key === c.next)?.label}
+                                    </span>
+                                  )}
+                                  {/* Per-row connect handle */}
+                                  <button
+                                    title={targetExists ? 'Re-link this button' : 'Connect this button to a node'}
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleStartHandleConnect(node.node_key, { id: c.id, label: c.label, index: c.index });
+                                    }}
+                                    className={cn(
+                                      'absolute -right-[14px] top-1/2 -translate-y-1/2 w-5 h-5 rounded-full shadow-md border-2 border-background flex items-center justify-center transition-all',
+                                      isActive
+                                        ? 'bg-green-500 scale-125 animate-pulse'
+                                        : targetExists
+                                          ? 'bg-primary hover:scale-125'
+                                          : 'bg-muted-foreground/60 hover:bg-primary hover:scale-125'
+                                    )}
+                                  >
+                                    <Plus className="w-3 h-3 text-white" />
+                                  </button>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })()}
 
                   {/* Input connection point (top) */}
                   <button 
@@ -1128,16 +1178,18 @@ const FlowBuilder = () => {
                     {connecting && <ArrowDown className="w-3 h-3 mx-auto text-white" />}
                   </button>
                   
-                  {/* Output connection point (bottom) */}
-                  <button 
-                    className={cn(
-                      "absolute -bottom-3 left-1/2 -translate-x-1/2 w-5 h-5 rounded-full shadow-lg transition-all flex items-center justify-center",
-                      connecting === node.node_key ? 'bg-green-500 scale-125' : 'bg-primary hover:scale-125 hover:bg-primary/90'
-                    )}
-                    onClick={(e) => { e.stopPropagation(); handleAddConnection(node.node_key); }}
-                  >
-                    <Plus className="w-3 h-3 text-primary-foreground" />
-                  </button>
+                  {/* Output connection point (bottom — default next) */}
+                  {getNodeChoices(node).length === 0 && (
+                    <button 
+                      className={cn(
+                        "absolute -bottom-3 left-1/2 -translate-x-1/2 w-5 h-5 rounded-full shadow-lg transition-all flex items-center justify-center",
+                        connecting === node.node_key && !connectingHandle ? 'bg-green-500 scale-125' : 'bg-primary hover:scale-125 hover:bg-primary/90'
+                      )}
+                      onClick={(e) => { e.stopPropagation(); setConnectingHandle(null); handleAddConnection(node.node_key); }}
+                    >
+                      <Plus className="w-3 h-3 text-primary-foreground" />
+                    </button>
+                  )}
 
                   {/* Delete button */}
                   {selectedNodeKey === node.node_key && (
