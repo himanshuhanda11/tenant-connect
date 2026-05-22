@@ -26,8 +26,9 @@ export async function fetchConversations(tenantId: string, userId: string | null
   let q = supabase
     .from("email_conversations")
     .select(
-      "id, subject, from_email, from_name, last_message_preview, last_message_at, unread_count, status, priority, assigned_to, tags, snoozed_until, is_starred, is_spam, resolved_at, has_attachments, account_id",
+      "id, tenant_id, subject, from_email, from_name, last_message_preview, last_message_at, unread_count, status, priority, assigned_to, tags, snoozed_until, is_starred, is_spam, resolved_at, has_attachments, account_id",
     )
+
     .eq("tenant_id", tenantId)
     .order("last_message_at", { ascending: false, nullsFirst: false })
     .limit(200);
