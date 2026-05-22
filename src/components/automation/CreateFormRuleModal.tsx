@@ -211,16 +211,28 @@ export function CreateFormRuleModal({ open, onOpenChange, editingRule, createRul
       setDelaySeconds((editingRule.trigger_config as any)?.delay_seconds || 0);
       setFallbackMessage((editingRule.form_variables as any)?.fallback_message || '');
       const savedFormMode = (editingRule.form_variables as any)?.form_mode;
+      const savedDeliveryMode = (editingRule.form_variables as any)?.delivery_mode;
+      setDeliveryMode(savedDeliveryMode === 'native_flow' ? 'native_flow' : 'conversational');
       if (savedFormMode === 'builder') {
         setFormMode('builder');
         setBuilderFormName(editingRule.form_template_name || '');
         if (editingRule.form_version_id) {
           loadFormVersionFields(editingRule.form_version_id);
         }
+        setSavedFormId('');
+        setSavedVersionId('');
+      } else if (savedFormMode === 'saved') {
+        setFormMode('saved');
+        setSavedFormId(editingRule.form_id || '');
+        setSavedVersionId(editingRule.form_version_id || '');
+        setBuilderFields([]);
+        setBuilderFormName('');
       } else {
         setFormMode('template');
         setBuilderFields([]);
         setBuilderFormName('');
+        setSavedFormId('');
+        setSavedVersionId('');
       }
       setIfThenRules([]);
       setWebhookUrl('');
@@ -242,9 +254,12 @@ export function CreateFormRuleModal({ open, onOpenChange, editingRule, createRul
       setIntroMessage('');
       setDelaySeconds(0);
       setFallbackMessage('');
-      setFormMode('template');
+      setDeliveryMode('conversational');
+      setFormMode('builder');
       setBuilderFields([]);
       setBuilderFormName('');
+      setSavedFormId('');
+      setSavedVersionId('');
       setIfThenRules([]);
       setWebhookUrl('');
       setFormSettings(DEFAULT_FORM_STATE.settings);
