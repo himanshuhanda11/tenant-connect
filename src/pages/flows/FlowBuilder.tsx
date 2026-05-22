@@ -453,29 +453,36 @@ const FlowBuilder = () => {
 
   return (
     <div className="h-screen flex flex-col bg-muted/30">
-      {/* Top Bar */}
-      <div className="h-14 border-b flex items-center justify-between px-4 bg-card shrink-0">
-        <div className="flex items-center gap-3">
+      {/* Top Bar — premium glass */}
+      <div className="h-14 border-b flex items-center justify-between px-3 sm:px-4 bg-card/80 backdrop-blur-md shadow-sm shrink-0 sticky top-0 z-30">
+        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
           <Button variant="ghost" size="icon" onClick={() => navigate('/flows')}>
             <ArrowLeft className="w-5 h-5" />
           </Button>
-          <Separator orientation="vertical" className="h-6" />
-          <div className="flex items-center gap-2">
-            <span className="text-xl">{flow?.emoji || '🔄'}</span>
+          <Separator orientation="vertical" className="h-6 hidden sm:block" />
+          <div className="flex items-center gap-2 min-w-0">
+            <span className="text-xl hidden sm:inline">{flow?.emoji || '🔄'}</span>
             <Input
               value={flowName}
               onChange={(e) => setFlowName(e.target.value)}
-              className="text-lg font-semibold border-0 bg-transparent p-0 h-auto focus-visible:ring-0 w-auto min-w-[200px]"
+              className="text-sm sm:text-lg font-semibold border-0 bg-transparent p-0 h-auto focus-visible:ring-0 w-auto min-w-[120px] sm:min-w-[200px] truncate"
               placeholder="Flow name"
             />
           </div>
           <Badge variant="outline" className={cn(
-            'ml-2',
+            'ml-1 sm:ml-2 hidden sm:inline-flex',
             flow?.status === 'active' ? 'bg-green-500/10 text-green-600 border-green-500/20' : 'bg-muted'
           )}>
             {flow?.status || 'draft'}
           </Badge>
+          <FlowHealthPill nodes={nodes} edges={edges} triggers={triggers} />
+          {lastSavedAt && (
+            <span className="text-[11px] text-muted-foreground hidden lg:inline">
+              {saving ? 'Saving…' : `Saved ${lastSavedAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`}
+            </span>
+          )}
         </div>
+        
         
         <div className="flex items-center gap-2">
           <Button variant="outline" size="sm" className="gap-2" onClick={() => setTestModalOpen(true)}>
