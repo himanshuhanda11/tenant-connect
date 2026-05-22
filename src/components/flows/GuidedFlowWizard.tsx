@@ -49,6 +49,7 @@ export const GuidedFlowWizard: React.FC<GuidedFlowWizardProps> = ({ open, onOpen
   const [step, setStep] = useState(0);
   const [creating, setCreating] = useState(false);
   const [goal, setGoal] = useState<string>('');
+  const [customIndustry, setCustomIndustry] = useState('');
   const [trigger, setTrigger] = useState<string>('keyword');
   const [keyword, setKeyword] = useState('hi');
   const [welcome, setWelcome] = useState('Hi 👋 Thanks for reaching out! How can we help you today?');
