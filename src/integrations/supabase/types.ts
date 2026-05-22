@@ -2463,6 +2463,84 @@ export type Database = {
           },
         ]
       }
+      contact_flow_state: {
+        Row: {
+          contact_id: string
+          created_at: string
+          current_node_key: string | null
+          expires_at: string | null
+          flow_id: string
+          id: string
+          run_id: string
+          tenant_id: string
+          updated_at: string
+          variables: Json
+          waiting_for: Json | null
+        }
+        Insert: {
+          contact_id: string
+          created_at?: string
+          current_node_key?: string | null
+          expires_at?: string | null
+          flow_id: string
+          id?: string
+          run_id: string
+          tenant_id: string
+          updated_at?: string
+          variables?: Json
+          waiting_for?: Json | null
+        }
+        Update: {
+          contact_id?: string
+          created_at?: string
+          current_node_key?: string | null
+          expires_at?: string | null
+          flow_id?: string
+          id?: string
+          run_id?: string
+          tenant_id?: string
+          updated_at?: string
+          variables?: Json
+          waiting_for?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contact_flow_state_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contact_flow_state_flow_id_fkey"
+            columns: ["flow_id"]
+            isOneToOne: false
+            referencedRelation: "flows"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contact_flow_state_run_id_fkey"
+            columns: ["run_id"]
+            isOneToOne: false
+            referencedRelation: "flow_runs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contact_flow_state_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "platform_workspace_directory"
+            referencedColumns: ["workspace_id"]
+          },
+          {
+            foreignKeyName: "contact_flow_state_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       contact_inbox_summary: {
         Row: {
           assigned_at: string | null
@@ -3697,6 +3775,73 @@ export type Database = {
         }
         Relationships: []
       }
+      flow_analytics_daily: {
+        Row: {
+          avg_duration_ms: number
+          date: string
+          flow_id: string
+          id: string
+          messages_failed: number
+          messages_sent: number
+          node_dropoffs: Json
+          qualified_leads: number
+          runs_completed: number
+          runs_failed: number
+          runs_started: number
+          tenant_id: string
+        }
+        Insert: {
+          avg_duration_ms?: number
+          date: string
+          flow_id: string
+          id?: string
+          messages_failed?: number
+          messages_sent?: number
+          node_dropoffs?: Json
+          qualified_leads?: number
+          runs_completed?: number
+          runs_failed?: number
+          runs_started?: number
+          tenant_id: string
+        }
+        Update: {
+          avg_duration_ms?: number
+          date?: string
+          flow_id?: string
+          id?: string
+          messages_failed?: number
+          messages_sent?: number
+          node_dropoffs?: Json
+          qualified_leads?: number
+          runs_completed?: number
+          runs_failed?: number
+          runs_started?: number
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "flow_analytics_daily_flow_id_fkey"
+            columns: ["flow_id"]
+            isOneToOne: false
+            referencedRelation: "flows"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "flow_analytics_daily_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "platform_workspace_directory"
+            referencedColumns: ["workspace_id"]
+          },
+          {
+            foreignKeyName: "flow_analytics_daily_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       flow_diagnostics: {
         Row: {
           code: string
@@ -3812,6 +3957,94 @@ export type Database = {
           },
           {
             foreignKeyName: "flow_edges_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      flow_errors: {
+        Row: {
+          created_at: string
+          details: Json
+          flow_id: string | null
+          id: string
+          message: string
+          node_key: string | null
+          resolved: boolean
+          resolved_at: string | null
+          resolved_by: string | null
+          run_id: string | null
+          severity: string
+          tenant_id: string
+        }
+        Insert: {
+          created_at?: string
+          details?: Json
+          flow_id?: string | null
+          id?: string
+          message: string
+          node_key?: string | null
+          resolved?: boolean
+          resolved_at?: string | null
+          resolved_by?: string | null
+          run_id?: string | null
+          severity?: string
+          tenant_id: string
+        }
+        Update: {
+          created_at?: string
+          details?: Json
+          flow_id?: string | null
+          id?: string
+          message?: string
+          node_key?: string | null
+          resolved?: boolean
+          resolved_at?: string | null
+          resolved_by?: string | null
+          run_id?: string | null
+          severity?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "flow_errors_flow_id_fkey"
+            columns: ["flow_id"]
+            isOneToOne: false
+            referencedRelation: "flows"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "flow_errors_resolved_by_fkey"
+            columns: ["resolved_by"]
+            isOneToOne: false
+            referencedRelation: "platform_account_health"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "flow_errors_resolved_by_fkey"
+            columns: ["resolved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "flow_errors_run_id_fkey"
+            columns: ["run_id"]
+            isOneToOne: false
+            referencedRelation: "flow_runs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "flow_errors_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "platform_workspace_directory"
+            referencedColumns: ["workspace_id"]
+          },
+          {
+            foreignKeyName: "flow_errors_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
@@ -3941,6 +4174,272 @@ export type Database = {
           },
           {
             foreignKeyName: "flow_nodes_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      flow_run_steps: {
+        Row: {
+          duration_ms: number | null
+          ended_at: string | null
+          error: string | null
+          id: string
+          input: Json
+          node_key: string
+          node_type: string
+          output: Json
+          retry_count: number
+          run_id: string
+          started_at: string
+          status: string
+          tenant_id: string
+        }
+        Insert: {
+          duration_ms?: number | null
+          ended_at?: string | null
+          error?: string | null
+          id?: string
+          input?: Json
+          node_key: string
+          node_type: string
+          output?: Json
+          retry_count?: number
+          run_id: string
+          started_at?: string
+          status?: string
+          tenant_id: string
+        }
+        Update: {
+          duration_ms?: number | null
+          ended_at?: string | null
+          error?: string | null
+          id?: string
+          input?: Json
+          node_key?: string
+          node_type?: string
+          output?: Json
+          retry_count?: number
+          run_id?: string
+          started_at?: string
+          status?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "flow_run_steps_run_id_fkey"
+            columns: ["run_id"]
+            isOneToOne: false
+            referencedRelation: "flow_runs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "flow_run_steps_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "platform_workspace_directory"
+            referencedColumns: ["workspace_id"]
+          },
+          {
+            foreignKeyName: "flow_run_steps_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      flow_runs: {
+        Row: {
+          contact_id: string | null
+          conversation_id: string | null
+          created_at: string
+          current_node_key: string | null
+          duration_ms: number | null
+          ended_at: string | null
+          error: string | null
+          flow_id: string
+          hop_count: number
+          id: string
+          idempotency_key: string | null
+          started_at: string
+          status: string
+          tenant_id: string
+          trigger_payload: Json
+          trigger_type: string
+          updated_at: string
+          variables: Json
+          version_id: string | null
+        }
+        Insert: {
+          contact_id?: string | null
+          conversation_id?: string | null
+          created_at?: string
+          current_node_key?: string | null
+          duration_ms?: number | null
+          ended_at?: string | null
+          error?: string | null
+          flow_id: string
+          hop_count?: number
+          id?: string
+          idempotency_key?: string | null
+          started_at?: string
+          status?: string
+          tenant_id: string
+          trigger_payload?: Json
+          trigger_type: string
+          updated_at?: string
+          variables?: Json
+          version_id?: string | null
+        }
+        Update: {
+          contact_id?: string | null
+          conversation_id?: string | null
+          created_at?: string
+          current_node_key?: string | null
+          duration_ms?: number | null
+          ended_at?: string | null
+          error?: string | null
+          flow_id?: string
+          hop_count?: number
+          id?: string
+          idempotency_key?: string | null
+          started_at?: string
+          status?: string
+          tenant_id?: string
+          trigger_payload?: Json
+          trigger_type?: string
+          updated_at?: string
+          variables?: Json
+          version_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "flow_runs_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "flow_runs_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "flow_runs_flow_id_fkey"
+            columns: ["flow_id"]
+            isOneToOne: false
+            referencedRelation: "flows"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "flow_runs_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "platform_workspace_directory"
+            referencedColumns: ["workspace_id"]
+          },
+          {
+            foreignKeyName: "flow_runs_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "flow_runs_version_id_fkey"
+            columns: ["version_id"]
+            isOneToOne: false
+            referencedRelation: "flow_versions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      flow_scheduled_jobs: {
+        Row: {
+          attempts: number
+          contact_id: string | null
+          created_at: string
+          flow_id: string
+          id: string
+          last_error: string | null
+          payload: Json
+          resume_node_key: string
+          run_at: string
+          run_id: string
+          status: string
+          stop_on_reply: boolean
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          attempts?: number
+          contact_id?: string | null
+          created_at?: string
+          flow_id: string
+          id?: string
+          last_error?: string | null
+          payload?: Json
+          resume_node_key: string
+          run_at: string
+          run_id: string
+          status?: string
+          stop_on_reply?: boolean
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          attempts?: number
+          contact_id?: string | null
+          created_at?: string
+          flow_id?: string
+          id?: string
+          last_error?: string | null
+          payload?: Json
+          resume_node_key?: string
+          run_at?: string
+          run_id?: string
+          status?: string
+          stop_on_reply?: boolean
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "flow_scheduled_jobs_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "flow_scheduled_jobs_flow_id_fkey"
+            columns: ["flow_id"]
+            isOneToOne: false
+            referencedRelation: "flows"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "flow_scheduled_jobs_run_id_fkey"
+            columns: ["run_id"]
+            isOneToOne: false
+            referencedRelation: "flow_runs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "flow_scheduled_jobs_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "platform_workspace_directory"
+            referencedColumns: ["workspace_id"]
+          },
+          {
+            foreignKeyName: "flow_scheduled_jobs_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
@@ -6120,6 +6619,60 @@ export type Database = {
             columns: ["tenant_integration_id"]
             isOneToOne: false
             referencedRelation: "tenant_integrations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      lead_custom_fields: {
+        Row: {
+          created_at: string
+          description: string | null
+          field_key: string
+          field_type: string
+          id: string
+          label: string
+          options: Json
+          required: boolean
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          field_key: string
+          field_type?: string
+          id?: string
+          label: string
+          options?: Json
+          required?: boolean
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          field_key?: string
+          field_type?: string
+          id?: string
+          label?: string
+          options?: Json
+          required?: boolean
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lead_custom_fields_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "platform_workspace_directory"
+            referencedColumns: ["workspace_id"]
+          },
+          {
+            foreignKeyName: "lead_custom_fields_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
             referencedColumns: ["id"]
           },
         ]
@@ -14616,6 +15169,7 @@ export type Database = {
           created_at: string
           currency: string | null
           enforcement_mode: string | null
+          flow_engine_enabled: boolean
           id: string
           invoice_notes: string | null
           is_suspended: boolean | null
@@ -14644,6 +15198,7 @@ export type Database = {
           created_at?: string
           currency?: string | null
           enforcement_mode?: string | null
+          flow_engine_enabled?: boolean
           id?: string
           invoice_notes?: string | null
           is_suspended?: boolean | null
@@ -14672,6 +15227,7 @@ export type Database = {
           created_at?: string
           currency?: string | null
           enforcement_mode?: string | null
+          flow_engine_enabled?: boolean
           id?: string
           invoice_notes?: string | null
           is_suspended?: boolean | null
@@ -17737,6 +18293,7 @@ export type Database = {
           created_at: string
           currency: string | null
           enforcement_mode: string | null
+          flow_engine_enabled: boolean
           id: string
           invoice_notes: string | null
           is_suspended: boolean | null

@@ -80,6 +80,7 @@ const AutoFormRulesPage = lazyWithRetry(() => import("./pages/auto-forms/AutoFor
 const AutoFormSubmissions = lazyWithRetry(() => import("./pages/auto-forms/AutoFormSubmissions"));
 const FlowsHub = lazyWithRetry(() => import("./pages/flows/FlowsHub"));
 const FlowBuilder = lazyWithRetry(() => import("./pages/flows/FlowBuilder"));
+const FlowRuns = lazyWithRetry(() => import("./pages/flows/FlowRuns"));
 const Billing = lazyWithRetry(() => import("./pages/Billing"));
 const WorkspaceAddOns = lazyWithRetry(() => import("./pages/WorkspaceAddOns"));
 const PrivacyPolicy = lazyWithRetry(() => import("./pages/PrivacyPolicy"));
@@ -307,6 +308,7 @@ const App = () => (
                     <Route path="/flows" element={<FlowsHub />} />
                     <Route path="/flows/builder" element={<FlowBuilder />} />
                     <Route path="/flows/builder/:id" element={<FlowBuilder />} />
+                    <Route path="/flows/:flowId/runs" element={<FlowRuns />} />
                     <Route path="/widgets" element={<WidgetsList />} />
                     <Route path="/widgets/:id" element={<WidgetBuilder />} />
                     <Route path="/widgets/:id/install" element={<WidgetInstall />} />
