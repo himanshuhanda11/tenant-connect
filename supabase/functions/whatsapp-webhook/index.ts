@@ -1909,8 +1909,86 @@ async function sendFormRuleTemplate(
     return await sendBuilderFormMessages(supabase, rule, tenantId, phoneNumberId, conversationId, contactId, recipientWaId);
   }
 
+  // Free-form fallback: if no template is linked, check 24h window.
+  // Keyword triggers fire from an inbound message → window is open → we can send free-form text.
   if (!template) {
-    return { success: false, error: 'no_template_linked' };
+    const introMessage = rule.form_variables?.intro_message;
+    if (!introMessage) {
+      return { success: false, error: 'no_template_linked' };
+    }
+
+    // Verify 24h window is open (last inbound from this contact within 24h)
+    const { data: conv } = await supabase
+      .from('conversations')
+      .select('last_inbound_at')
+      .eq('id', conversationId)
+      .maybeSingle();
+
+    const lastInbound = conv?.last_inbound_at ? new Date(conv.last_inbound_at).getTime() : 0;
+    const windowOpen = lastInbound && (Date.now() - lastInbound) < 24 * 60 * 60 * 1000;
+
+    if (!windowOpen) {
+      return { success: false, error: 'no_template_linked_and_window_closed' };
+    }
+
+    // Get phone + token to send free-form text
+    const { data: phoneRow } = await supabase
+      .from('phone_numbers')
+      .select('phone_number_id, waba_account:waba_accounts!inner(encrypted_access_token)')
+      .eq('id', phoneNumberId)
+      .maybeSingle();
+
+    if (!phoneRow?.phone_number_id || !phoneRow.waba_account?.encrypted_access_token) {
+      return { success: false, error: 'phone_or_token_not_found' };
+    }
+
+    const delaySec = rule.trigger_config?.delay_seconds || 0;
+    if (delaySec > 0) {
+      await new Promise(resolve => setTimeout(resolve, delaySec * 1000));
+    }
+
+    const resp = await fetch(
+      `https://graph.facebook.com/v21.0/${phoneRow.phone_number_id}/messages`,
+      {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${phoneRow.waba_account.encrypted_access_token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          messaging_product: 'whatsapp',
+          recipient_type: 'individual',
+          to: recipientWaId,
+          type: 'text',
+          text: { body: introMessage },
+        }),
+      }
+    );
+
+    if (!resp.ok) {
+      const errTxt = await resp.text();
+      console.error('Free-form form rule send failed:', errTxt);
+      return { success: false, error: `freeform_send_failed: ${errTxt.substring(0, 200)}` };
+    }
+
+    const result = await resp.json();
+    const wamid = result.messages?.[0]?.id;
+    const now = new Date().toISOString();
+
+    await supabase.from('messages').insert({
+      tenant_id: tenantId,
+      conversation_id: conversationId,
+      direction: 'outbound',
+      type: 'text',
+      text: introMessage,
+      wamid,
+      status: 'sent',
+      sent_at: now,
+      is_auto_reply: true,
+    });
+
+    console.log(`Form rule "${rule.name}" sent free-form (24h window open) to ${recipientWaId}`);
+    return { success: true, messageId: wamid };
   }
 
   // Get phone number's Meta ID and access token
