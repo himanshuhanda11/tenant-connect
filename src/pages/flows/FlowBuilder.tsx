@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef, useEffect } from 'react';
+import React, { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
@@ -98,6 +98,8 @@ import { NodeConfigPanel } from '@/components/flows/NodeConfigPanel';
 import { FlowMiniMap } from '@/components/flows/FlowMiniMap';
 import { FlowHealthPill } from '@/components/flows/FlowHealthPill';
 import { MobileStepList } from '@/components/flows/MobileStepList';
+import { FlowValidationPanel } from '@/components/flows/FlowValidationPanel';
+import { validateFlow, summariseIssues, type FlowIssue } from '@/lib/flowValidation';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useMetaAdAccounts } from '@/hooks/useMetaAdAccounts';
 import { PREBUILT_FLOWS, PREBUILT_FLOW_CATEGORIES, PrebuiltFlow } from '@/data/prebuiltFlows';
@@ -437,8 +439,31 @@ const FlowBuilder = () => {
     }
   };
 
+  const [validationOpen, setValidationOpen] = useState(false);
+  const [publishing, setPublishing] = useState(false);
+  const flowIssues: FlowIssue[] = useMemo(
+    () => validateFlow({ nodes: nodes as any, edges: edges as any, triggers: triggers as any }),
+    [nodes, edges, triggers]
+  );
+  const issueSummary = useMemo(() => summariseIssues(flowIssues), [flowIssues]);
+
   const handlePublish = async () => {
-    await publishFlow();
+    if (!issueSummary.canPublish) {
+      setValidationOpen(true);
+      toast.error(`${issueSummary.errors} error${issueSummary.errors > 1 ? 's' : ''} must be fixed before publishing`);
+      return;
+    }
+    setValidationOpen(true);
+  };
+
+  const confirmPublish = async () => {
+    setPublishing(true);
+    try {
+      await publishFlow();
+      setValidationOpen(false);
+    } finally {
+      setPublishing(false);
+    }
   };
 
   if (loading) {
@@ -522,9 +547,16 @@ const FlowBuilder = () => {
             {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
             Save
           </Button>
-          <Button size="sm" className="gap-2 shadow-lg shadow-primary/20" onClick={handlePublish}>
+          <Button
+            size="sm"
+            className={cn(
+              'gap-2 shadow-lg shadow-primary/20',
+              !issueSummary.canPublish && 'bg-destructive hover:bg-destructive/90'
+            )}
+            onClick={handlePublish}
+          >
             <Upload className="w-4 h-4" />
-            Publish
+            {issueSummary.canPublish ? 'Publish' : `Fix ${issueSummary.errors}`}
           </Button>
         </div>
       </div>
@@ -1290,6 +1322,17 @@ const FlowBuilder = () => {
           </DialogContent>
         </Dialog>
       )}
+      <FlowValidationPanel
+        open={validationOpen}
+        onOpenChange={setValidationOpen}
+        issues={flowIssues}
+        publishing={publishing}
+        onPublish={confirmPublish}
+        onFocusNode={(key) => {
+          const node = nodes.find((n: any) => n.node_key === key);
+          if (node) setSelectedNodeKey(node.node_key);
+        }}
+      />
     </div>
   );
 };
