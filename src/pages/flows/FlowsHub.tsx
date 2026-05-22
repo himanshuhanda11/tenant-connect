@@ -101,6 +101,7 @@ const FlowsHub = () => {
   const [statusFilter, setStatusFilter] = useState('all');
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [guidedOpen, setGuidedOpen] = useState(false);
   const [newFlowName, setNewFlowName] = useState('');
   const [newFlowEmoji, setNewFlowEmoji] = useState('🔄');
 
