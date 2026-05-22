@@ -506,7 +506,15 @@ async function processEvent(supabase: any, ev: NormalizedEvent, webhookEventId?:
 
     // No need to check disconnected status — already filtered above
 
+    // Mark webhook as healthy + record last received time (best-effort, non-blocking)
+    supabase
+      .from('phone_numbers')
+      .update({ last_webhook_at: new Date().toISOString(), webhook_health: 'healthy' })
+      .eq('id', phoneNumber.id)
+      .then(({ error }) => { if (error) console.warn('last_webhook_at update failed', error.message); });
+
     const tenantId = phoneNumber.tenant_id;
+
 
     if (ev.kind === 'inbound_message') {
       const accessToken = phoneNumber.waba_account?.encrypted_access_token || null;
