@@ -377,10 +377,24 @@ Deno.serve(async (req) => {
         });
         const delJson = await delRes.json().catch(() => ({}));
         console.log('Deleted previous rejected Meta template:', delRes.status, delJson);
+        await supabase.from('template_submission_logs').insert({
+          template_id, version_id,
+          waba_account_id: template.waba_account_id,
+          submitted_by: userId, tenant_id: template.tenant_id,
+          step: 'deleted',
+          meta_status: delRes.ok ? 'pending' : 'rejected',
+          response_payload: delJson,
+          meta_error_code: delJson?.error?.code ?? null,
+          meta_error_subcode: delJson?.error?.error_subcode ?? null,
+          meta_error_title: delJson?.error?.error_user_title ?? null,
+          meta_error_details: delJson?.error ?? null,
+          rejection_reason: delJson?.error?.message ?? null,
+        });
       } catch (delErr) {
         console.error('Failed to delete previous rejected template (continuing):', delErr);
       }
     }
+
 
     // Submit to Meta
     const metaUrl = `https://graph.facebook.com/v21.0/${wabaId}/message_templates`;
