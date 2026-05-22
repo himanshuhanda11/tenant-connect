@@ -76,6 +76,7 @@ import { usePhoneNumbers } from '@/hooks/usePhoneNumbers';
 import { usePlanGate } from '@/hooks/usePlanGate';
 import { UpgradePrompt } from '@/components/billing/UpgradePrompt';
 import { UpgradePlanDialog } from '@/components/billing/UpgradePlanDialog';
+import { GuidedFlowWizard } from '@/components/flows/GuidedFlowWizard';
 
 const quickCreateOptions = [
   { label: 'Lead Qualification', icon: Target, description: 'Qualify and score incoming leads', emoji: '🎯' },
@@ -101,6 +102,7 @@ const FlowsHub = () => {
   const [statusFilter, setStatusFilter] = useState('all');
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [guidedOpen, setGuidedOpen] = useState(false);
   const [newFlowName, setNewFlowName] = useState('');
   const [newFlowEmoji, setNewFlowEmoji] = useState('🔄');
 
@@ -241,6 +243,13 @@ const FlowsHub = () => {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="start" className="w-72 sm:w-80">
+                <DropdownMenuItem onClick={() => setGuidedOpen(true)} className="py-3">
+                  <Sparkles className="w-4 h-4 mr-3 text-primary" />
+                  <div>
+                    <p className="font-medium text-sm">Guided Builder <span className="ml-1 text-[10px] px-1.5 py-0.5 rounded bg-primary/10 text-primary">New</span></p>
+                    <p className="text-xs text-muted-foreground">7-step wizard, ready in minutes</p>
+                  </div>
+                </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => setCreateDialogOpen(true)} className="py-3">
                   <Plus className="w-4 h-4 mr-3" />
                   <div>
@@ -738,6 +747,7 @@ const FlowsHub = () => {
         </Tabs>
       </div>
       <UpgradePlanDialog open={upgradeOpen} onOpenChange={setUpgradeOpen} currentPlanId={currentPlan} />
+      <GuidedFlowWizard open={guidedOpen} onOpenChange={setGuidedOpen} />
     </DashboardLayout>
   );
 };

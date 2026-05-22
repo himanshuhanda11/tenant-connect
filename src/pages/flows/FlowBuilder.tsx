@@ -83,6 +83,7 @@ import {
   Circle,
   ArrowDown,
   Loader2,
+  Star,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useFlowBuilder } from '@/hooks/useFlows';
@@ -94,6 +95,10 @@ import { AINodeGenerator } from '@/components/flows/AINodeGenerator';
 import { FlowAnalytics } from '@/components/flows/FlowAnalytics';
 import { FlowStartPanel } from '@/components/flows/FlowStartPanel';
 import { NodeConfigPanel } from '@/components/flows/NodeConfigPanel';
+import { FlowMiniMap } from '@/components/flows/FlowMiniMap';
+import { FlowHealthPill } from '@/components/flows/FlowHealthPill';
+import { MobileStepList } from '@/components/flows/MobileStepList';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { useMetaAdAccounts } from '@/hooks/useMetaAdAccounts';
 import { PREBUILT_FLOWS, PREBUILT_FLOW_CATEGORIES, PrebuiltFlow } from '@/data/prebuiltFlows';
 
@@ -238,6 +243,52 @@ const FlowBuilder = () => {
   const [draggingNode, setDraggingNode] = useState<string | null>(null);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
 
+  // Premium UX state
+  const [paletteSearch, setPaletteSearch] = useState('');
+  const [favorites, setFavorites] = useState<string[]>(() => {
+    try { return JSON.parse(localStorage.getItem('flow-fav-nodes') || '[]'); } catch { return []; }
+  });
+  const isMobile = useIsMobile();
+  const [lastSavedAt, setLastSavedAt] = useState<Date | null>(null);
+
+  const toggleFavorite = useCallback((type: string) => {
+    setFavorites((prev) => {
+      const next = prev.includes(type) ? prev.filter(t => t !== type) : [...prev, type];
+      try { localStorage.setItem('flow-fav-nodes', JSON.stringify(next)); } catch {}
+      return next;
+    });
+  }, []);
+
+  const autoArrange = useCallback(() => {
+    // Simple top-down BFS layout from start node
+    const start = nodes.find(n => n.node_type === 'start');
+    if (!start) return;
+    const adj: Record<string, string[]> = {};
+    edges.forEach(e => { (adj[e.source_node_key] ||= []).push(e.target_node_key); });
+    const levels: Record<string, number> = { [start.node_key]: 0 };
+    const queue = [start.node_key];
+    while (queue.length) {
+      const k = queue.shift()!;
+      (adj[k] || []).forEach(t => {
+        if (levels[t] === undefined) { levels[t] = levels[k] + 1; queue.push(t); }
+      });
+    }
+    // unreached nodes go to bottom
+    const maxLvl = Math.max(0, ...Object.values(levels));
+    nodes.forEach(n => { if (levels[n.node_key] === undefined) levels[n.node_key] = maxLvl + 1; });
+    const byLevel: Record<number, string[]> = {};
+    Object.entries(levels).forEach(([k, l]) => { (byLevel[l] ||= []).push(k); });
+    Object.entries(byLevel).forEach(([lvlStr, keys]) => {
+      const lvl = Number(lvlStr);
+      keys.forEach((k, i) => {
+        const x = 120 + i * 260;
+        const y = 80 + lvl * 180;
+        updateNode(k, { position_x: x, position_y: y });
+      });
+    });
+    toast.success('Auto-arranged');
+  }, [nodes, edges, updateNode]);
+
   useEffect(() => {
     if (flow) {
       setFlowName(flow.name);
@@ -266,7 +317,33 @@ const FlowBuilder = () => {
     };
   }, [draggingNode, dragOffset.x, dragOffset.y, zoom, updateNode]);
 
+  // Keyboard shortcuts: Delete = remove selected node, Ctrl/Cmd+S = save
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement | null;
+      const inField = target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable);
+      if (!inField && (e.key === 'Delete' || e.key === 'Backspace') && selectedNodeKey) {
+        const node = nodes.find(n => n.node_key === selectedNodeKey);
+        if (node && node.node_type !== 'start') {
+          deleteNode(selectedNodeKey);
+          setSelectedNodeKey(null);
+        }
+      }
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
+        e.preventDefault();
+        if (flowName !== flow?.name) saveFlow({ name: flowName });
+        else toast.success('Already saved');
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [selectedNodeKey, nodes, deleteNode, flowName, flow?.name, saveFlow]);
+
+  useEffect(() => { if (!saving && flow) setLastSavedAt(new Date()); }, [saving, flow]);
+
   const selectedNode = nodes.find(n => n.node_key === selectedNodeKey);
+
+
 
   const toggleCategory = (label: string) => {
     setExpandedCategories((prev) =>
@@ -377,29 +454,36 @@ const FlowBuilder = () => {
 
   return (
     <div className="h-screen flex flex-col bg-muted/30">
-      {/* Top Bar */}
-      <div className="h-14 border-b flex items-center justify-between px-4 bg-card shrink-0">
-        <div className="flex items-center gap-3">
+      {/* Top Bar — premium glass */}
+      <div className="h-14 border-b flex items-center justify-between px-3 sm:px-4 bg-card/80 backdrop-blur-md shadow-sm shrink-0 sticky top-0 z-30">
+        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
           <Button variant="ghost" size="icon" onClick={() => navigate('/flows')}>
             <ArrowLeft className="w-5 h-5" />
           </Button>
-          <Separator orientation="vertical" className="h-6" />
-          <div className="flex items-center gap-2">
-            <span className="text-xl">{flow?.emoji || '🔄'}</span>
+          <Separator orientation="vertical" className="h-6 hidden sm:block" />
+          <div className="flex items-center gap-2 min-w-0">
+            <span className="text-xl hidden sm:inline">{flow?.emoji || '🔄'}</span>
             <Input
               value={flowName}
               onChange={(e) => setFlowName(e.target.value)}
-              className="text-lg font-semibold border-0 bg-transparent p-0 h-auto focus-visible:ring-0 w-auto min-w-[200px]"
+              className="text-sm sm:text-lg font-semibold border-0 bg-transparent p-0 h-auto focus-visible:ring-0 w-auto min-w-[120px] sm:min-w-[200px] truncate"
               placeholder="Flow name"
             />
           </div>
           <Badge variant="outline" className={cn(
-            'ml-2',
+            'ml-1 sm:ml-2 hidden sm:inline-flex',
             flow?.status === 'active' ? 'bg-green-500/10 text-green-600 border-green-500/20' : 'bg-muted'
           )}>
             {flow?.status || 'draft'}
           </Badge>
+          <FlowHealthPill nodes={nodes} edges={edges} triggers={triggers} />
+          {lastSavedAt && (
+            <span className="text-[11px] text-muted-foreground hidden lg:inline">
+              {saving ? 'Saving…' : `Saved ${lastSavedAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`}
+            </span>
+          )}
         </div>
+        
         
         <div className="flex items-center gap-2">
           <Button variant="outline" size="sm" className="gap-2" onClick={() => setTestModalOpen(true)}>
@@ -447,14 +531,49 @@ const FlowBuilder = () => {
 
       {/* Main Content */}
       <div className="flex-1 flex overflow-hidden">
-        {/* Left Sidebar - Node Palette */}
+        {/* Left Sidebar - Node Palette (hidden on mobile, replaced by step list) */}
+        {!isMobile && (
         <div className="w-72 border-r bg-card flex flex-col shrink-0">
           <div className="p-3 border-b">
-            <Input placeholder="Search nodes..." className="h-9" />
+            <Input
+              placeholder="Search nodes..."
+              className="h-9"
+              value={paletteSearch}
+              onChange={(e) => setPaletteSearch(e.target.value)}
+            />
           </div>
           <ScrollArea className="flex-1">
             <div className="p-3 space-y-1">
-              {nodeCategories.map((category) => (
+              {/* Favorites */}
+              {favorites.length > 0 && !paletteSearch && (
+                <div className="mb-2">
+                  <div className="px-2 pb-1 text-[10px] uppercase tracking-wider text-muted-foreground">⭐ Favorites</div>
+                  <div className="space-y-1">
+                    {nodeCategories.flatMap(c => c.nodes).filter(n => favorites.includes(n.type)).map(node => (
+                      <div
+                        key={`fav-${node.type}`}
+                        draggable={!(node as any).pro}
+                        onDragStart={(e) => handlePaletteDragStart(e, node.type)}
+                        onDragEnd={handlePaletteDragEnd}
+                        className="flex items-center gap-2.5 p-2 rounded-lg text-sm cursor-grab hover:bg-muted active:cursor-grabbing"
+                      >
+                        <div className={cn('w-7 h-7 rounded-lg flex items-center justify-center', nodeColors[node.type]?.bg || 'bg-muted')}>
+                          <node.icon className={cn('w-4 h-4', nodeColors[node.type]?.icon || 'text-muted-foreground')} />
+                        </div>
+                        <span className="flex-1 truncate">{node.label}</span>
+                      </div>
+                    ))}
+                  </div>
+                  <Separator className="my-2" />
+                </div>
+              )}
+              {nodeCategories.map((category) => {
+                const filtered = category.nodes.filter(n =>
+                  !paletteSearch || n.label.toLowerCase().includes(paletteSearch.toLowerCase())
+                );
+                if (paletteSearch && filtered.length === 0) return null;
+                const isOpen = paletteSearch ? true : expandedCategories.includes(category.label);
+                return (
                 <div key={category.label} className="mb-1">
                   <button
                     className="w-full flex items-center gap-2 p-2.5 rounded-lg hover:bg-muted text-sm font-medium transition-colors"
@@ -467,12 +586,14 @@ const FlowBuilder = () => {
                     )}
                     <ChevronRight className={cn(
                       'w-4 h-4 transition-transform text-muted-foreground',
-                      expandedCategories.includes(category.label) && 'rotate-90'
+                      isOpen && 'rotate-90'
                     )} />
                   </button>
-                    {expandedCategories.includes(category.label) && (
+                    {isOpen && (
                     <div className="ml-2 mt-1 space-y-1 pl-4 border-l border-border">
-                      {category.nodes.map((node) => (
+                      {filtered.map((nodeRaw) => {
+                        const node = nodeRaw as any;
+                        return (
                         <Tooltip key={node.type} delayDuration={300}>
                           <TooltipTrigger asChild>
                             <div
@@ -480,15 +601,22 @@ const FlowBuilder = () => {
                               onDragStart={(e) => handlePaletteDragStart(e, node.type)}
                               onDragEnd={handlePaletteDragEnd}
                               className={cn(
-                                'flex items-center gap-2.5 p-2.5 rounded-lg text-sm transition-all select-none',
+                                'group flex items-center gap-2.5 p-2.5 rounded-lg text-sm transition-all select-none',
                                 node.pro ? 'cursor-not-allowed opacity-50' : 'cursor-grab hover:bg-muted active:cursor-grabbing active:scale-95 active:bg-primary/10'
                               )}
                             >
-                              <div className={cn('w-7 h-7 rounded-lg flex items-center justify-center', 
+                              <div className={cn('w-7 h-7 rounded-lg flex items-center justify-center',
                                 nodeColors[node.type]?.bg || 'bg-muted')}>
                                 <node.icon className={cn('w-4 h-4', nodeColors[node.type]?.icon || 'text-muted-foreground')} />
                               </div>
                               <span className="flex-1">{node.label}</span>
+                              <button
+                                onClick={(e) => { e.stopPropagation(); toggleFavorite(node.type); }}
+                                className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-amber-500 transition"
+                                title={favorites.includes(node.type) ? 'Unpin' : 'Pin to favorites'}
+                              >
+                                <Star className={cn('w-3.5 h-3.5', favorites.includes(node.type) && 'fill-amber-500 text-amber-500 opacity-100')} />
+                              </button>
                               {node.pro && <Crown className="w-3.5 h-3.5 text-purple-500" />}
                             </div>
                           </TooltipTrigger>
@@ -497,11 +625,13 @@ const FlowBuilder = () => {
                             {node.pro && <p className="text-amber-500 mt-1">Upgrade to Pro to unlock</p>}
                           </TooltipContent>
                         </Tooltip>
-                      ))}
+                        );
+                      })}
                     </div>
                   )}
                 </div>
-              ))}
+                );
+              })}
 
               {/* Prebuilt Flow Category */}
               <div className="mb-1">
@@ -549,9 +679,21 @@ const FlowBuilder = () => {
             </div>
           </ScrollArea>
         </div>
+        )}
 
-        {/* Canvas */}
-        <div 
+
+
+        {/* Canvas or Mobile Step List */}
+        {isMobile ? (
+          <MobileStepList
+            nodes={nodes as any}
+            selectedNodeKey={selectedNodeKey}
+            onSelect={(k) => { setSelectedNodeKey(k); setRightPanelTab('settings'); }}
+            onDelete={(k) => { deleteNode(k); if (selectedNodeKey === k) setSelectedNodeKey(null); }}
+            onAdd={() => addNode('text-buttons', { x: 200, y: 80 + nodes.length * 160 })}
+          />
+        ) : (
+        <div
           ref={canvasRef}
           className={cn(
             'flex-1 relative overflow-auto',
@@ -561,8 +703,8 @@ const FlowBuilder = () => {
           onDrop={handleCanvasDrop}
           onDragOver={handleCanvasDragOver}
         >
-          {/* Zoom controls */}
-          <div className="absolute top-4 left-4 flex items-center gap-1 bg-card border rounded-xl shadow-lg p-1.5 z-10">
+          {/* Zoom + auto-arrange controls */}
+          <div className="absolute top-4 left-4 flex items-center gap-1 bg-card/90 backdrop-blur border rounded-xl shadow-lg p-1.5 z-10">
             <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setZoom(Math.max(25, zoom - 10))}>
               <ZoomOut className="w-4 h-4" />
             </Button>
@@ -574,7 +716,17 @@ const FlowBuilder = () => {
             <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setZoom(100)}>
               <Maximize2 className="w-4 h-4" />
             </Button>
+            <Separator orientation="vertical" className="h-5 mx-1" />
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={autoArrange}>
+                  <AlignCenter className="w-4 h-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Auto-arrange (top-down)</TooltipContent>
+            </Tooltip>
           </div>
+          <FlowMiniMap nodes={nodes as any} edges={edges as any} selectedNodeKey={selectedNodeKey} />
 
           {/* Connection indicator */}
           {connecting && (
@@ -763,8 +915,10 @@ const FlowBuilder = () => {
             )}
           </div>
         </div>
+        )}
 
         {/* Right Panel */}
+        {!isMobile && (
         <div className="w-80 border-l bg-card flex flex-col shrink-0">
           <Tabs value={rightPanelTab} onValueChange={setRightPanelTab} className="flex-1 flex flex-col">
             <TabsList className="w-full rounded-none border-b h-11 bg-transparent p-0">
@@ -1093,6 +1247,7 @@ const FlowBuilder = () => {
             </ScrollArea>
           </Tabs>
         </div>
+        )}
       </div>
       {/* Modals */}
       <FlowTestModal
