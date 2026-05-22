@@ -77,6 +77,7 @@ import { usePlanGate } from '@/hooks/usePlanGate';
 import { UpgradePrompt } from '@/components/billing/UpgradePrompt';
 import { UpgradePlanDialog } from '@/components/billing/UpgradePlanDialog';
 import { GuidedFlowWizard } from '@/components/flows/GuidedFlowWizard';
+import { FlowEngineToggle } from '@/components/flows/FlowEngineToggle';
 
 const quickCreateOptions = [
   { label: 'Lead Qualification', icon: Target, description: 'Qualify and score incoming leads', emoji: '🎯' },
@@ -228,6 +229,8 @@ const FlowsHub = () => {
               <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-green-500 mr-1.5 sm:mr-2 animate-pulse" />
               Live
             </Badge>
+
+            <FlowEngineToggle />
           </div>
         </div>
 
