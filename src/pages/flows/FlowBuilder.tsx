@@ -1260,7 +1260,7 @@ const FlowBuilder = () => {
                       <h3 className="font-semibold text-sm mb-1">Node Settings</h3>
                       <p className="text-xs text-muted-foreground capitalize">{selectedNode.node_type.replace(/-/g, ' ')}</p>
                     </div>
-                    <NodeConfigPanel node={selectedNode} onUpdate={updateNode} />
+                    <NodeConfigPanel node={selectedNode} onUpdate={updateNode} allNodes={nodes} />
                   </div>
                 ) : (
                   <div className="text-center py-12 text-muted-foreground">

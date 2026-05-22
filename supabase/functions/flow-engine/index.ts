@@ -78,6 +78,47 @@ async function sendWhatsAppTemplate(tenantId: string, phoneNumberId: string, toW
   return res.ok;
 }
 
+// Send interactive button/list message directly via Graph API (send-text-message doesn't support interactive payloads)
+async function sendInteractive(
+  supabase: any,
+  tenantId: string,
+  phoneNumberId: string,
+  toWaId: string,
+  interactive: any,
+  displayText: string,
+) {
+  const { data: pn } = await supabase
+    .from("phone_numbers")
+    .select("phone_number_id, waba_account:waba_accounts!inner(encrypted_access_token, status)")
+    .eq("id", phoneNumberId).eq("tenant_id", tenantId).maybeSingle();
+  const token = (pn as any)?.waba_account?.encrypted_access_token;
+  if (!token || !pn?.phone_number_id) return { ok: false, error: "no_token" };
+  const payload = { messaging_product: "whatsapp", recipient_type: "individual", to: toWaId, type: "interactive", interactive };
+  const res = await fetch(`https://graph.facebook.com/v21.0/${pn.phone_number_id}/messages`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  const json = await res.json().catch(() => ({}));
+  const wamid = json?.messages?.[0]?.id;
+  // best-effort log to messages table so the outbound bubble shows in inbox
+  try {
+    const { data: contact } = await supabase.from("contacts").select("id").eq("tenant_id", tenantId).eq("wa_id", toWaId).maybeSingle();
+    if (contact?.id) {
+      const { data: conv } = await supabase.from("conversations").select("id")
+        .eq("tenant_id", tenantId).eq("phone_number_id", phoneNumberId).eq("contact_id", contact.id).maybeSingle();
+      if (conv?.id) {
+        await supabase.from("messages").insert({
+          tenant_id: tenantId, conversation_id: conv.id, direction: "outbound",
+          type: "interactive", text: displayText, wamid, status: res.ok ? "sent" : "failed",
+          sent_at: new Date().toISOString(),
+        });
+      }
+    }
+  } catch (_) { /* ignore log errors */ }
+  return { ok: res.ok, wamid, json };
+}
+
 // 24-hour window check
 async function within24h(supabase: any, tenantId: string, contactId: string): Promise<boolean> {
   const { data } = await supabase
@@ -134,6 +175,130 @@ async function executeNode(supabase: any, ctx: any, node: any): Promise<{ next?:
         const targets = nextNodes(ctx.edges, node.node_key ?? node.id);
         await finishStep("done", { sent: !!text });
         return { next: targets[0] };
+      }
+
+      case "text-buttons":
+      case "text_buttons":
+      case "buttons": {
+        const nodeKey = node.node_key ?? node.id;
+        const body = fillVars(cfg.message ?? cfg.text ?? cfg.body ?? "", ctx.vars);
+        // Normalize buttons: accept ["English","Hindi"] or [{label,next}]
+        const rawButtons = Array.isArray(cfg.buttons) ? cfg.buttons : [];
+        const buttons = rawButtons
+          .map((b: any, i: number) => {
+            const label = (typeof b === "string" ? b : b?.label ?? "").toString().trim();
+            const next = typeof b === "string" ? undefined : b?.next || undefined;
+            return label ? { id: `btn_${nodeKey}_${i}`, label: label.slice(0, 20), next } : null;
+          })
+          .filter(Boolean)
+          .slice(0, 3);
+        if (!body || buttons.length === 0) {
+          await finishStep("skipped", { reason: "missing_body_or_buttons" });
+          const targets = nextNodes(ctx.edges, nodeKey);
+          return { next: targets[0] };
+        }
+        if (ctx.contactWaId && ctx.phoneNumberId) {
+          if (await within24h(supabase, ctx.tenantId, ctx.contactId)) {
+            const interactive = {
+              type: "button",
+              body: { text: body.slice(0, 1024) },
+              action: {
+                buttons: buttons.map((b: any) => ({ type: "reply", reply: { id: b.id, title: b.label } })),
+              },
+            };
+            const r = await sendInteractive(supabase, ctx.tenantId, ctx.phoneNumberId, ctx.contactWaId, interactive, body);
+            if (!r.ok) throw new Error("send_buttons_failed");
+            await bumpAnalytics(supabase, ctx.tenantId, ctx.flowId, "messages_sent");
+          } else if (cfg.fallback_template) {
+            await sendWhatsAppTemplate(ctx.tenantId, ctx.phoneNumberId, ctx.contactWaId, cfg.fallback_template.name, cfg.fallback_template.language ?? "en_US", cfg.fallback_template.components ?? []);
+          } else {
+            await logError(supabase, ctx.tenantId, ctx.flowId, ctx.runId, nodeKey, "Outside 24h window — buttons require an inbound message in last 24h", {}, "warning");
+          }
+        }
+        // Build choice map (id + lowercased label → target)
+        const choiceMap: Record<string, string> = {};
+        for (const b of buttons) {
+          const target = b.next || nextNodes(ctx.edges, nodeKey, b.id)[0];
+          if (target) {
+            choiceMap[b.id] = target;
+            choiceMap[b.label.toLowerCase()] = target;
+          }
+        }
+        const waitingFor = {
+          node_key: nodeKey,
+          expected_type: "button",
+          field_key: cfg.save_as ?? null,
+          __choices: choiceMap,
+          __button_labels: buttons.map((b: any) => b.label),
+        };
+        await supabase.from("contact_flow_state").upsert({
+          tenant_id: ctx.tenantId, contact_id: ctx.contactId, flow_id: ctx.flowId, run_id: ctx.runId,
+          current_node_key: nodeKey, waiting_for: waitingFor, variables: ctx.vars,
+          expires_at: new Date(Date.now() + 24 * 3600 * 1000).toISOString(),
+        }, { onConflict: "tenant_id,contact_id,flow_id" });
+        await supabase.from("flow_runs").update({ status: "waiting", current_node_key: nodeKey, variables: ctx.vars }).eq("id", ctx.runId);
+        await finishStep("waiting", { waiting_for: waitingFor });
+        return { suspend: true };
+      }
+
+      case "list-message":
+      case "list_message":
+      case "list": {
+        const nodeKey = node.node_key ?? node.id;
+        const body = fillVars(cfg.body ?? cfg.message ?? "", ctx.vars);
+        const items: any[] = Array.isArray(cfg.items) ? cfg.items : (Array.isArray(cfg.sections) ? cfg.sections : []);
+        const normalized = items
+          .map((it: any, i: number) => {
+            const title = (it?.title ?? "").toString().trim();
+            return title ? { id: `list_${nodeKey}_${i}`, title: title.slice(0, 24), description: (it?.description ?? "").toString().slice(0, 72), next: it?.next || undefined } : null;
+          })
+          .filter(Boolean)
+          .slice(0, 10);
+        if (!body || normalized.length === 0) {
+          await finishStep("skipped", { reason: "missing_body_or_items" });
+          const targets = nextNodes(ctx.edges, nodeKey);
+          return { next: targets[0] };
+        }
+        if (ctx.contactWaId && ctx.phoneNumberId) {
+          if (await within24h(supabase, ctx.tenantId, ctx.contactId)) {
+            const interactive: any = {
+              type: "list",
+              header: cfg.header ? { type: "text", text: String(cfg.header).slice(0, 60) } : undefined,
+              body: { text: body.slice(0, 1024) },
+              action: {
+                button: (cfg.button_label || "Choose").toString().slice(0, 20),
+                sections: [{ title: (cfg.header || "Options").toString().slice(0, 24), rows: normalized.map((n: any) => ({ id: n.id, title: n.title, description: n.description })) }],
+              },
+            };
+            const r = await sendInteractive(supabase, ctx.tenantId, ctx.phoneNumberId, ctx.contactWaId, interactive, body);
+            if (!r.ok) throw new Error("send_list_failed");
+            await bumpAnalytics(supabase, ctx.tenantId, ctx.flowId, "messages_sent");
+          } else {
+            await logError(supabase, ctx.tenantId, ctx.flowId, ctx.runId, nodeKey, "Outside 24h window — list requires an inbound message in last 24h", {}, "warning");
+          }
+        }
+        const choiceMap: Record<string, string> = {};
+        for (const n of normalized) {
+          const target = n.next || nextNodes(ctx.edges, nodeKey, n.id)[0];
+          if (target) {
+            choiceMap[n.id] = target;
+            choiceMap[n.title.toLowerCase()] = target;
+          }
+        }
+        const waitingFor = {
+          node_key: nodeKey,
+          expected_type: "list",
+          field_key: cfg.save_as ?? null,
+          __choices: choiceMap,
+        };
+        await supabase.from("contact_flow_state").upsert({
+          tenant_id: ctx.tenantId, contact_id: ctx.contactId, flow_id: ctx.flowId, run_id: ctx.runId,
+          current_node_key: nodeKey, waiting_for: waitingFor, variables: ctx.vars,
+          expires_at: new Date(Date.now() + 24 * 3600 * 1000).toISOString(),
+        }, { onConflict: "tenant_id,contact_id,flow_id" });
+        await supabase.from("flow_runs").update({ status: "waiting", current_node_key: nodeKey, variables: ctx.vars }).eq("id", ctx.runId);
+        await finishStep("waiting", { waiting_for: waitingFor });
+        return { suspend: true };
       }
 
       case "template": {
@@ -434,7 +599,7 @@ async function actionStart(supabase: any, params: any) {
 }
 
 async function actionResume(supabase: any, params: any) {
-  const { tenant_id, contact_id, message_text } = params;
+  const { tenant_id, contact_id, message_text, button_id, list_id } = params;
   const { data: states } = await supabase.from("contact_flow_state").select("*, flows!inner(id,status), flow_runs!inner(*)")
     .eq("tenant_id", tenant_id).eq("contact_id", contact_id).not("waiting_for", "is", null);
   if (!states?.length) return { skipped: "no_waiting" };
@@ -445,29 +610,35 @@ async function actionResume(supabase: any, params: any) {
 
   const waiting = state.waiting_for ?? {};
   const answer = String(message_text ?? "").trim();
-  // basic validation
   const type = waiting.expected_type ?? "text";
-  let valid = answer.length > 0;
+  let valid = answer.length > 0 || !!button_id || !!list_id;
   if (type === "email") valid = /^\S+@\S+\.\S+$/.test(answer);
   else if (type === "phone") valid = /^[+0-9\s\-()]{6,}$/.test(answer);
   else if (type === "number") valid = !isNaN(parseFloat(answer));
 
   const vars = { ...(state.variables ?? {}) };
-  if (!valid) {
-    // re-prompt (do nothing — keep waiting). Could send "invalid" message.
-    return { reprompt: true };
-  }
+  if (!valid) return { reprompt: true };
+
   if (waiting.field_key) {
     vars[waiting.field_key] = answer;
-    // save to contact
     const { data: c } = await supabase.from("contacts").select("custom_data").eq("id", contact_id).maybeSingle();
     await supabase.from("contacts").update({ custom_data: { ...(c?.custom_data ?? {}), [waiting.field_key]: answer } }).eq("id", contact_id);
   } else {
     vars[waiting.node_key] = answer;
   }
-  // If this was a collect-form field, store into form progress and re-enter the same node
+
+  // Determine next node — button/list choice overrides default edge
   let resumeKey: string | undefined;
-  if (waiting.__form_node) {
+  const choices: Record<string, string> | undefined = waiting.__choices;
+  if (choices) {
+    const lookup = (button_id || list_id || answer || "").toString();
+    resumeKey =
+      choices[lookup] ||
+      choices[lookup.toLowerCase()] ||
+      choices[answer.toLowerCase()];
+  }
+  // collect-form: re-enter same node for next field
+  if (!resumeKey && waiting.__form_node) {
     vars.__forms = vars.__forms || {};
     const prog = vars.__forms[waiting.__form_node] || { index: 0, answers: {} };
     if (waiting.field_key) prog.answers[waiting.field_key] = answer;
@@ -475,7 +646,7 @@ async function actionResume(supabase: any, params: any) {
     vars.__forms[waiting.__form_node] = prog;
     resumeKey = waiting.__form_node;
   }
-  // clear waiting and advance
+
   await supabase.from("contact_flow_state").update({ waiting_for: null, variables: vars }).eq("id", state.id);
   const targets = nextNodes(flow.edges, waiting.node_key);
   const next = resumeKey ?? targets[0];

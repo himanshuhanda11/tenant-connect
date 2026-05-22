@@ -16,14 +16,20 @@ import type { FlowNode } from '@/hooks/useFlows';
 interface NodeConfigPanelProps {
   node: FlowNode;
   onUpdate: (nodeKey: string, updates: Partial<FlowNode>) => void;
+  allNodes?: FlowNode[];
 }
 
-export function NodeConfigPanel({ node, onUpdate }: NodeConfigPanelProps) {
+export function NodeConfigPanel({ node, onUpdate, allNodes = [] }: NodeConfigPanelProps) {
   const config = node.config || {};
 
   const updateConfig = (patch: Record<string, any>) => {
     onUpdate(node.node_key, { config: { ...config, ...patch } });
   };
+
+  // Other nodes available as branch targets (exclude current + start)
+  const branchTargets = allNodes
+    .filter((n) => n.node_key !== node.node_key && n.node_type !== 'start')
+    .map((n) => ({ key: n.node_key, label: n.label || n.node_type.replace(/-/g, ' ') }));
 
   return (
     <div className="space-y-4">
@@ -38,12 +44,12 @@ export function NodeConfigPanel({ node, onUpdate }: NodeConfigPanelProps) {
 
       {/* Text + Buttons */}
       {node.node_type === 'text-buttons' && (
-        <TextButtonsConfig config={config} updateConfig={updateConfig} />
+        <TextButtonsConfig config={config} updateConfig={updateConfig} branchTargets={branchTargets} />
       )}
 
       {/* List Message */}
       {node.node_type === 'list-message' && (
-        <ListMessageConfig config={config} updateConfig={updateConfig} />
+        <ListMessageConfig config={config} updateConfig={updateConfig} branchTargets={branchTargets} />
       )}
 
       {/* Media */}
@@ -128,28 +134,35 @@ export function NodeConfigPanel({ node, onUpdate }: NodeConfigPanelProps) {
 // Sub-components for each node type
 // ──────────────────────────────────────────────
 
+interface BranchTarget { key: string; label: string }
 interface ConfigProps {
   config: Record<string, any>;
   updateConfig: (patch: Record<string, any>) => void;
+  branchTargets?: BranchTarget[];
 }
 
-function TextButtonsConfig({ config, updateConfig }: ConfigProps) {
-  const buttons: string[] = config.buttons || [];
+// Normalize a button row to { label, next } regardless of legacy string format
+type ButtonRow = { label: string; next?: string };
+function normalizeButtons(raw: any): ButtonRow[] {
+  if (!Array.isArray(raw)) return [];
+  return raw.map((b) =>
+    typeof b === 'string' ? { label: b } : { label: b?.label ?? '', next: b?.next ?? undefined }
+  );
+}
 
-  const setButton = (idx: number, value: string) => {
-    const next = [...buttons];
-    next[idx] = value;
-    updateConfig({ buttons: next });
+function TextButtonsConfig({ config, updateConfig, branchTargets = [] }: ConfigProps) {
+  const buttons: ButtonRow[] = normalizeButtons(config.buttons);
+
+  const writeButtons = (next: ButtonRow[]) => updateConfig({ buttons: next });
+  const setLabel = (idx: number, value: string) => {
+    const next = [...buttons]; next[idx] = { ...next[idx], label: value }; writeButtons(next);
   };
-
-  const removeButton = (idx: number) => {
-    updateConfig({ buttons: buttons.filter((_, i) => i !== idx) });
+  const setNext = (idx: number, value: string) => {
+    const next = [...buttons]; next[idx] = { ...next[idx], next: value || undefined }; writeButtons(next);
   };
-
+  const removeButton = (idx: number) => writeButtons(buttons.filter((_, i) => i !== idx));
   const addButton = () => {
-    if (buttons.length < 3) {
-      updateConfig({ buttons: [...buttons, ''] });
-    }
+    if (buttons.length < 3) writeButtons([...buttons, { label: '' }]);
   };
 
   return (
@@ -158,7 +171,7 @@ function TextButtonsConfig({ config, updateConfig }: ConfigProps) {
         <Label className="text-xs">Message Text</Label>
         <Textarea
           className="min-h-[100px] text-sm"
-          placeholder="Enter your message..."
+          placeholder="e.g. Select your preferred language:"
           value={config.message || ''}
           onChange={(e) => updateConfig({ message: e.target.value })}
         />
@@ -167,44 +180,58 @@ function TextButtonsConfig({ config, updateConfig }: ConfigProps) {
         </p>
       </div>
       <div className="space-y-2">
-        <Label className="text-xs">Buttons ({buttons.length}/3)</Label>
+        <Label className="text-xs flex items-center justify-between">
+          <span>Buttons ({buttons.length}/3)</span>
+          {branchTargets.length === 0 && (
+            <span className="text-[10px] text-amber-600">Add more nodes to enable branching</span>
+          )}
+        </Label>
         {buttons.map((btn, idx) => (
-          <div key={idx} className="flex gap-2">
-            <Input
-              value={btn}
-              placeholder={`Button ${idx + 1} label`}
-              onChange={(e) => setButton(idx, e.target.value)}
-              className="text-sm"
-            />
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-9 w-9 shrink-0"
-              onClick={() => removeButton(idx)}
-            >
-              <Trash2 className="w-3.5 h-3.5 text-destructive" />
-            </Button>
+          <div key={idx} className="rounded-lg border border-border p-2.5 space-y-2 bg-muted/30">
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] font-semibold text-muted-foreground w-12 shrink-0">Button {idx + 1}</span>
+              <Input
+                value={btn.label}
+                placeholder="e.g. English"
+                onChange={(e) => setLabel(idx, e.target.value)}
+                className="text-sm h-9"
+              />
+              <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={() => removeButton(idx)}>
+                <Trash2 className="w-3.5 h-3.5 text-destructive" />
+              </Button>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] text-muted-foreground w-12 shrink-0">Go to →</span>
+              <Select value={btn.next || '__default'} onValueChange={(v) => setNext(idx, v === '__default' ? '' : v)}>
+                <SelectTrigger className="h-8 text-xs">
+                  <SelectValue placeholder="Next node…" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__default">Default (follow edge)</SelectItem>
+                  {branchTargets.map((t) => (
+                    <SelectItem key={t.key} value={t.key}>{t.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         ))}
         {buttons.length < 3 && (
-          <Button
-            variant="outline"
-            size="sm"
-            className="w-full gap-1.5 text-xs"
-            onClick={addButton}
-          >
+          <Button variant="outline" size="sm" className="w-full gap-1.5 text-xs" onClick={addButton}>
             <Plus className="w-3.5 h-3.5" /> Add Button
           </Button>
         )}
-        <p className="text-[10px] text-muted-foreground">Max 3 buttons allowed by WhatsApp</p>
+        <p className="text-[10px] text-muted-foreground">
+          Max 3 buttons (WhatsApp limit). Each button can route to a different node.
+        </p>
       </div>
     </>
   );
 }
 
-function ListMessageConfig({ config, updateConfig }: ConfigProps) {
+function ListMessageConfig({ config, updateConfig, branchTargets = [] }: ConfigProps) {
   // Support both "items" and legacy "sections" keys
-  const items: Array<{ title: string; description: string }> = config.items || config.sections || [];
+  const items: Array<{ title: string; description: string; next?: string }> = config.items || config.sections || [];
 
   const setItem = (idx: number, field: string, value: string) => {
     const next = [...items];
@@ -212,82 +239,59 @@ function ListMessageConfig({ config, updateConfig }: ConfigProps) {
     updateConfig({ items: next });
   };
 
-  const removeItem = (idx: number) => {
-    updateConfig({ items: items.filter((_, i) => i !== idx) });
-  };
-
+  const removeItem = (idx: number) => updateConfig({ items: items.filter((_, i) => i !== idx) });
   const addItem = () => {
-    if (items.length < 10) {
-      updateConfig({ items: [...items, { title: '', description: '' }] });
-    }
+    if (items.length < 10) updateConfig({ items: [...items, { title: '', description: '' }] });
   };
 
   return (
     <>
       <div className="space-y-2">
         <Label className="text-xs">Header</Label>
-        <Input
-          placeholder="List header..."
-          value={config.header || ''}
-          onChange={(e) => updateConfig({ header: e.target.value })}
-        />
+        <Input placeholder="List header..." value={config.header || ''} onChange={(e) => updateConfig({ header: e.target.value })} />
       </div>
       <div className="space-y-2">
         <Label className="text-xs">Body Text</Label>
-        <Textarea
-          className="min-h-[80px] text-sm"
-          placeholder="List body message..."
-          value={config.body || ''}
-          onChange={(e) => updateConfig({ body: e.target.value })}
-        />
+        <Textarea className="min-h-[80px] text-sm" placeholder="List body message..." value={config.body || ''} onChange={(e) => updateConfig({ body: e.target.value })} />
       </div>
       <div className="space-y-2">
         <Label className="text-xs">Button Label</Label>
-        <Input
-          placeholder="View Options"
-          value={config.button_label || ''}
-          onChange={(e) => updateConfig({ button_label: e.target.value })}
-        />
+        <Input placeholder="View Options" value={config.button_label || ''} onChange={(e) => updateConfig({ button_label: e.target.value })} />
       </div>
       <div className="space-y-2">
         <Label className="text-xs">List Items ({items.length}/10)</Label>
         {items.map((item, idx) => (
-          <div key={idx} className="flex gap-2">
-            <div className="flex-1 space-y-1">
-              <Input
-                value={item.title || ''}
-                placeholder={`Item ${idx + 1} title`}
-                onChange={(e) => setItem(idx, 'title', e.target.value)}
-                className="text-sm"
-              />
-              <Input
-                value={item.description || ''}
-                placeholder="Description (optional)"
-                onChange={(e) => setItem(idx, 'description', e.target.value)}
-                className="text-xs"
-              />
+          <div key={idx} className="rounded-lg border border-border p-2.5 space-y-2 bg-muted/30">
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] font-semibold text-muted-foreground w-10 shrink-0">#{idx + 1}</span>
+              <div className="flex-1 space-y-1">
+                <Input value={item.title || ''} placeholder="Item title" onChange={(e) => setItem(idx, 'title', e.target.value)} className="text-sm h-8" />
+                <Input value={item.description || ''} placeholder="Description (optional)" onChange={(e) => setItem(idx, 'description', e.target.value)} className="text-xs h-8" />
+              </div>
+              <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={() => removeItem(idx)}>
+                <Trash2 className="w-3.5 h-3.5 text-destructive" />
+              </Button>
             </div>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-9 w-9 shrink-0"
-              onClick={() => removeItem(idx)}
-            >
-              <Trash2 className="w-3.5 h-3.5 text-destructive" />
-            </Button>
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] text-muted-foreground w-10 shrink-0">Go to</span>
+              <Select value={item.next || '__default'} onValueChange={(v) => setItem(idx, 'next', v === '__default' ? '' : v)}>
+                <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Next node…" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__default">Default (follow edge)</SelectItem>
+                  {branchTargets.map((t) => (
+                    <SelectItem key={t.key} value={t.key}>{t.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         ))}
         {items.length < 10 && (
-          <Button
-            variant="outline"
-            size="sm"
-            className="w-full gap-1.5 text-xs"
-            onClick={addItem}
-          >
+          <Button variant="outline" size="sm" className="w-full gap-1.5 text-xs" onClick={addItem}>
             <Plus className="w-3.5 h-3.5" /> Add Item
           </Button>
         )}
-        <p className="text-[10px] text-muted-foreground">Max 10 items allowed</p>
+        <p className="text-[10px] text-muted-foreground">Max 10 items. Each item can route to a different node.</p>
       </div>
     </>
   );
