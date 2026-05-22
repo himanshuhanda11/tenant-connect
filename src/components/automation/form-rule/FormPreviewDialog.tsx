@@ -17,9 +17,10 @@ interface Props {
   templateName?: string | null;
   introMessage?: string;
   variables?: Record<string, any>;
+  builderFields?: any[];
 }
 
-export function FormPreviewDialog({ open, onOpenChange, templateId, templateName, introMessage, variables }: Props) {
+export function FormPreviewDialog({ open, onOpenChange, templateId, templateName, introMessage, variables, builderFields }: Props) {
   const { currentTenant } = useTenant();
   const [template, setTemplate] = React.useState<any>(null);
   const [loading, setLoading] = React.useState(false);
