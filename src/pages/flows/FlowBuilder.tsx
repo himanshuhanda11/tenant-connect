@@ -98,6 +98,8 @@ import { NodeConfigPanel } from '@/components/flows/NodeConfigPanel';
 import { FlowMiniMap } from '@/components/flows/FlowMiniMap';
 import { FlowHealthPill } from '@/components/flows/FlowHealthPill';
 import { MobileStepList } from '@/components/flows/MobileStepList';
+import { FlowValidationPanel } from '@/components/flows/FlowValidationPanel';
+import { validateFlow, summariseIssues, type FlowIssue } from '@/lib/flowValidation';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useMetaAdAccounts } from '@/hooks/useMetaAdAccounts';
 import { PREBUILT_FLOWS, PREBUILT_FLOW_CATEGORIES, PrebuiltFlow } from '@/data/prebuiltFlows';
