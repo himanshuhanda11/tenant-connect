@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Send, Eye, MessageSquare, Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Send, Eye, MessageSquare, Loader2, CheckCircle2, AlertCircle, CheckCheck, Image as ImageIcon, FileText, Video } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useTenant } from '@/contexts/TenantContext';
 import { toast } from 'sonner';
@@ -20,6 +20,28 @@ interface Props {
   builderFields?: any[];
 }
 
+function parseComponents(template: any) {
+  const comps: any[] = template?.components_json || template?.components || [];
+  const header = comps.find?.((c: any) => c.type === 'HEADER');
+  const body = comps.find?.((c: any) => c.type === 'BODY');
+  const footer = comps.find?.((c: any) => c.type === 'FOOTER');
+  const buttonsComp = comps.find?.((c: any) => c.type === 'BUTTONS');
+  return {
+    header,
+    bodyText: body?.text || template?.body_text || '',
+    footerText: footer?.text || '',
+    buttons: buttonsComp?.buttons || [],
+  };
+}
+
+function fillVars(text: string, vars: Record<string, any> = {}) {
+  if (!text) return '';
+  return text.replace(/\{\{(\d+)\}\}/g, (_, n) => {
+    const v = vars[`${n}`] ?? vars[n];
+    return v !== undefined && v !== '' ? String(v) : `{{${n}}}`;
+  });
+}
+
 export function FormPreviewDialog({ open, onOpenChange, templateId, templateName, introMessage, variables, builderFields }: Props) {
   const { currentTenant } = useTenant();
   const [template, setTemplate] = React.useState<any>(null);
@@ -30,7 +52,8 @@ export function FormPreviewDialog({ open, onOpenChange, templateId, templateName
   const [sendDetail, setSendDetail] = React.useState<string>('');
 
   React.useEffect(() => {
-    if (!open || !templateId) return;
+    if (!open) return;
+    if (!templateId) { setTemplate(null); return; }
     setLoading(true);
     (supabase as any)
       .from('templates')
@@ -71,13 +94,18 @@ export function FormPreviewDialog({ open, onOpenChange, templateId, templateName
     }
   };
 
-  const bodyText: string = template?.body_text || template?.components?.find?.((c: any) => c.type === 'BODY')?.text || '';
-  const filledBody = bodyText.replace(/\{\{(\d+)\}\}/g, (_, n) => (variables?.[`${n}`] || variables?.[n] || `{{${n}}}`));
+  const { header, bodyText, footerText, buttons } = parseComponents(template);
+  const filledBody = fillVars(bodyText, variables);
+  const filledHeaderText = header?.format === 'TEXT' ? fillVars(header.text || '', variables) : '';
+  const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+  const hasTemplate = !!template;
+  const hasBuilder = !!(builderFields && builderFields.length > 0);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg p-0 overflow-hidden">
-        <DialogHeader className="px-5 pt-5 pb-3 border-b">
+      <DialogContent className="max-w-lg p-0 overflow-hidden max-h-[90vh] flex flex-col">
+        <DialogHeader className="px-5 pt-5 pb-3 border-b shrink-0">
           <DialogTitle className="flex items-center gap-2 text-base">
             <Eye className="w-4 h-4 text-primary" /> Form Preview & Live Test
           </DialogTitle>
@@ -86,69 +114,104 @@ export function FormPreviewDialog({ open, onOpenChange, templateId, templateName
           </DialogDescription>
         </DialogHeader>
 
-        <Tabs defaultValue="preview" className="w-full">
+        <Tabs defaultValue="preview" className="w-full flex-1 overflow-y-auto">
           <TabsList className="grid grid-cols-2 mx-5 mt-3">
             <TabsTrigger value="preview"><Eye className="w-3.5 h-3.5 mr-1.5" /> Preview</TabsTrigger>
             <TabsTrigger value="test"><Send className="w-3.5 h-3.5 mr-1.5" /> Live Test</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="preview" className="px-5 py-4">
+          <TabsContent value="preview" className="px-5 py-4 space-y-3">
             {loading ? (
               <div className="flex items-center justify-center py-8 text-sm text-muted-foreground">
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" /> Loading template…
               </div>
-            ) : !template && !templateName && !(builderFields && builderFields.length) ? (
+            ) : !hasTemplate && !hasBuilder ? (
               <div className="text-sm text-muted-foreground py-6 text-center">
-                No template selected yet. Pick a template or add fields in the Form step.
-              </div>
-            ) : builderFields && builderFields.length > 0 && !template ? (
-              <div className="rounded-2xl bg-[#0b1f1c]/5 dark:bg-[#0b1f1c] p-4">
-                <div className="mx-auto max-w-[320px] space-y-2">
-                  {introMessage && (
-                    <div className="ml-auto max-w-[85%] bg-[hsl(152,42%,52%)] text-white rounded-2xl rounded-tr-sm px-3 py-2 text-sm shadow-sm whitespace-pre-wrap">
-                      {introMessage}
-                    </div>
-                  )}
-                  <div className="ml-auto max-w-[90%] bg-background dark:bg-muted rounded-2xl rounded-tr-sm px-3 py-3 text-sm shadow-sm border border-border space-y-2">
-                    <div className="font-semibold text-xs text-muted-foreground uppercase tracking-wide">
-                      {templateName || 'Your Form'}
-                    </div>
-                    {builderFields.map((f: any, i: number) => (
-                      <div key={f.id || i} className="space-y-0.5">
-                        <div className="text-xs font-medium">
-                          {f.label || `Field ${i + 1}`}
-                          {f.required && <span className="text-destructive ml-0.5">*</span>}
-                        </div>
-                        <div className="h-7 rounded-md bg-muted/60 border border-border/60 px-2 text-[11px] text-muted-foreground flex items-center">
-                          {f.placeholder || (f.type === 'select' ? 'Select an option…' : `Enter ${f.label?.toLowerCase() || 'value'}…`)}
-                        </div>
-                      </div>
-                    ))}
-                    <button className="w-full mt-1 bg-[hsl(152,42%,52%)] text-white rounded-md text-xs py-1.5 font-medium">
-                      Submit
-                    </button>
-                  </div>
-                </div>
-                <div className="text-center mt-3 text-[10px] text-muted-foreground">
-                  WhatsApp-style form preview ({builderFields.length} field{builderFields.length === 1 ? '' : 's'})
-                </div>
+                No template or form selected yet. Pick a template or add fields in the Form step.
               </div>
             ) : (
-              <div className="rounded-2xl bg-[#0b1f1c]/5 dark:bg-[#0b1f1c] p-4">
-                <div className="mx-auto max-w-[300px] space-y-2">
+              <div className="rounded-2xl bg-[#e5ddd5] dark:bg-[#0b1f1c] p-4"
+                   style={{ backgroundImage: 'radial-gradient(rgba(0,0,0,0.04) 1px, transparent 1px)', backgroundSize: '14px 14px' }}>
+                <div className="mx-auto max-w-[320px] space-y-2">
                   {introMessage && (
-                    <div className="ml-auto max-w-[80%] bg-[hsl(152,42%,52%)]/15 dark:bg-[hsl(152,42%,32%)] text-foreground rounded-2xl rounded-tr-sm px-3 py-2 text-sm">
+                    <div className="ml-auto max-w-[88%] bg-[#dcf8c6] dark:bg-[hsl(152,42%,32%)] text-foreground dark:text-white rounded-lg rounded-tr-sm px-2.5 py-1.5 text-[13px] shadow-sm whitespace-pre-wrap">
                       {introMessage}
+                      <div className="flex items-center justify-end gap-1 mt-0.5 text-[10px] text-muted-foreground">
+                        <span>{time}</span><CheckCheck className="w-3 h-3" />
+                      </div>
                     </div>
                   )}
-                  <div className="ml-auto max-w-[85%] bg-[hsl(152,42%,52%)] text-white rounded-2xl rounded-tr-sm px-3 py-2 text-sm shadow-sm whitespace-pre-wrap">
-                    {filledBody || `Template "${templateName || template?.name}" body will appear here.`}
-                  </div>
-                  <div className="ml-auto max-w-[85%] flex flex-col gap-1.5">
-                    <button className="bg-background dark:bg-muted rounded-xl text-xs py-2 px-3 text-primary font-medium shadow-sm border border-border">
-                      Open Form ›
-                    </button>
-                  </div>
+
+                  {hasTemplate && (
+                    <div className="ml-auto max-w-[92%] bg-[#dcf8c6] dark:bg-[hsl(152,42%,32%)] text-foreground dark:text-white rounded-lg rounded-tr-sm shadow-sm overflow-hidden">
+                      {header && header.format !== 'TEXT' && (
+                        <div className="bg-black/5 dark:bg-white/5 aspect-video flex items-center justify-center text-muted-foreground">
+                          {header.format === 'IMAGE' && <ImageIcon className="w-8 h-8" />}
+                          {header.format === 'VIDEO' && <Video className="w-8 h-8" />}
+                          {header.format === 'DOCUMENT' && <FileText className="w-8 h-8" />}
+                        </div>
+                      )}
+                      <div className="px-2.5 py-1.5 space-y-1">
+                        {filledHeaderText && (
+                          <div className="font-semibold text-[13px]">{filledHeaderText}</div>
+                        )}
+                        <div className="text-[13px] whitespace-pre-wrap leading-snug">
+                          {filledBody || <span className="italic text-muted-foreground">No body text on this template.</span>}
+                        </div>
+                        {footerText && (
+                          <div className="text-[11px] text-muted-foreground pt-0.5">{footerText}</div>
+                        )}
+                        <div className="flex items-center justify-end gap-1 text-[10px] text-muted-foreground">
+                          <span>{time}</span><CheckCheck className="w-3 h-3" />
+                        </div>
+                      </div>
+                      {buttons.length > 0 && (
+                        <div className="border-t border-black/10 dark:border-white/10 bg-background/60 dark:bg-black/20">
+                          {buttons.map((b: any, i: number) => (
+                            <button key={i} className="w-full py-2 text-[13px] text-[#1d9bd1] font-medium border-b last:border-b-0 border-black/5 dark:border-white/5">
+                              {b.text || b.title || 'Button'}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {hasBuilder && (
+                    <div className="ml-auto max-w-[92%] bg-background dark:bg-muted rounded-lg rounded-tr-sm shadow-sm border border-border/60 overflow-hidden">
+                      <div className="px-3 py-2 border-b border-border/60 bg-muted/40">
+                        <div className="text-[11px] uppercase tracking-wide text-muted-foreground font-semibold">Form</div>
+                        <div className="text-[13px] font-semibold">{templateName || 'Your Form'}</div>
+                      </div>
+                      <div className="p-3 space-y-2.5">
+                        {builderFields!.map((f: any, i: number) => (
+                          <div key={f.id || i} className="space-y-1">
+                            <div className="text-[11px] font-medium">
+                              {f.label || `Field ${i + 1}`}
+                              {f.required && <span className="text-destructive ml-0.5">*</span>}
+                            </div>
+                            {f.type === 'textarea' ? (
+                              <div className="h-12 rounded-md bg-muted/60 border border-border/60 px-2 py-1 text-[11px] text-muted-foreground">
+                                {f.placeholder || `Enter ${f.label?.toLowerCase() || 'value'}…`}
+                              </div>
+                            ) : f.type === 'select' ? (
+                              <div className="h-7 rounded-md bg-muted/60 border border-border/60 px-2 text-[11px] text-muted-foreground flex items-center justify-between">
+                                <span>{f.placeholder || 'Select an option…'}</span>
+                                <span>▾</span>
+                              </div>
+                            ) : (
+                              <div className="h-7 rounded-md bg-muted/60 border border-border/60 px-2 text-[11px] text-muted-foreground flex items-center">
+                                {f.placeholder || `Enter ${f.label?.toLowerCase() || 'value'}…`}
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                        <button className="w-full mt-1 bg-[hsl(152,42%,42%)] text-white rounded-md text-[12px] py-1.5 font-medium">
+                          Submit
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
                 <div className="text-center mt-3 text-[10px] text-muted-foreground">
                   WhatsApp-style preview
@@ -156,7 +219,7 @@ export function FormPreviewDialog({ open, onOpenChange, templateId, templateName
               </div>
             )}
             {template && (
-              <div className="mt-3 flex flex-wrap gap-1.5">
+              <div className="flex flex-wrap gap-1.5">
                 <Badge variant="secondary" className="text-[10px]">{template.category || 'UTILITY'}</Badge>
                 <Badge variant="outline" className="text-[10px]">{template.language || 'en'}</Badge>
                 <Badge variant="outline" className="text-[10px]">{template.status || 'APPROVED'}</Badge>
