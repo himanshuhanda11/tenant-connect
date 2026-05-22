@@ -261,7 +261,7 @@ const App = () => (
                     
                     <Route path="/auth/callback" element={<AuthCallback />} />
                     <Route path="/~oauth/initiate" element={<LegacyOAuthInitiate />} />
-                    <Route path="/login" element={<Login />} />
+                    <Route path="/login" element={IS_MAIL_HOST ? <MailLogin /> : <Login />} />
                     <Route path="/signup" element={<SignupPage />} />
                     <Route path="/forgot-password" element={<ForgotPassword />} />
                     <Route path="/reset-password" element={<ResetPassword />} />
