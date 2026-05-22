@@ -176,7 +176,8 @@ Deno.serve(async (req) => {
     }
 
     // Plan gate: sending template/campaign requires Basic+ and respects sending_paused
-    const { data: planAccess, error: planErr } = await supabase.rpc('check_plan_access', {
+    // IMPORTANT: call via the user-scoped client so auth.uid() resolves inside the SECURITY DEFINER function
+    const { data: planAccess, error: planErr } = await supabaseAuth.rpc('check_plan_access', {
       p_tenant_id: tenant_id,
       p_feature_key: 'send_campaign',
     });
