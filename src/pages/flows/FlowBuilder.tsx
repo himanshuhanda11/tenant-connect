@@ -410,7 +410,7 @@ const FlowBuilder = () => {
 
   // Click-to-add: places the node near the source and auto-connects
   const handlePaletteClick = async (nodeType: string) => {
-    const sourceKey = connecting || selectedNodeKey;
+    const sourceKey = connecting;
     const sourceNode = sourceKey ? nodes.find(n => n.node_key === sourceKey) : null;
     const pos = sourceNode
       ? { x: sourceNode.position_x + (sourceNode.node_type === 'start' ? 520 : 240), y: sourceNode.position_y + (sourceNode.node_type === 'start' ? 0 : 180) }
