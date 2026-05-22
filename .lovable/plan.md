@@ -1,91 +1,82 @@
-## Goal
-Build a complete, production-grade Flow execution engine (Steps 2 & 3 of the Flows rebuild) on top of the existing `flows`, `flow_nodes`, `flow_edges`, `flow_versions`, `flow_triggers`, `flow_sessions`, `flow_events`, `flow_templates`, `flow_diagnostics` tables — **without breaking any saved automation, existing webhook, or WhatsApp logic**.
+## Mail Module — Phase 2 & Phase 3
 
-The existing `automation_*` tables (Form Rules, Auto-Reply, Round-Robin etc.) stay **untouched**. The new engine runs *in parallel* to them, fired from the same `whatsapp-webhook` after current handlers (Form > AI > Form Rules > Auto-Reply per memory).
+Phase 1 (DB + Resend in/out + auth hook + basic /mail UI) is already shipped. The Phase 2/3 scope wasn't defined in writing yet — here is what I'll build under each, in this exact order.
 
 ---
 
-## Phase A — Audit + Safety Net (no behaviour change)
+### Phase 2 — Premium Inbox UX + Collaboration
 
-1. Read every flow-related file: `FlowBuilder.tsx`, `FlowsHub.tsx`, `whatsapp-webhook/index.ts` (form-rules section), `automation-event`, `automation-job-runner`.
-2. Inventory current `flows` schema (already has versions, sessions, events, triggers, nodes, edges). Confirm no destructive migration is needed — only **additive**.
-3. Add a kill-switch: `tenant_settings.flow_engine_enabled` (default false). New engine only runs for tenants where this is on. Existing form-rules + automations keep working as-is.
+Frontend-heavy. No breaking changes to existing DB/edge functions. One small additive migration for collaboration features.
 
-## Phase B — Additive Database (one migration, additive only)
+**Additive migration**
+- `email_conversation_viewers` (collision detection: who's viewing a thread right now, last_seen_at)
+- `email_templates` (name, subject, body_html, body_text, variables, created_by) — stub table, used in Phase 3 too
+- `email_signatures` (per user: html, is_default)
+- Add columns to `email_conversations`: `tags text[]`, `snoozed_until timestamptz`, `is_spam bool`, `resolved_at timestamptz`, `resolved_by uuid`
+- Add `email_drafts` (conversation_id, user_id, body_html, updated_at) — per-user autosave
 
-New tables:
-- `flow_runs` — one row per execution attempt (run_id, flow_id, version_id, contact_id, conversation_id, trigger_type, trigger_payload, status, started_at, ended_at, error)
-- `flow_run_steps` — per-node execution log (run_id, node_key, node_type, status, input, output, started_at, ended_at, retry_count, error)
-- `flow_errors` — surfaced errors with severity, node_key, message, stack, resolved
-- `flow_analytics_daily` — materialised counts (flow_id, date, runs, completed, failed, dropoffs[], avg_duration_ms)
-- `contact_flow_state` — current in-progress run per contact (unique on tenant+contact+flow), holds `waiting_for`, `variables jsonb`, `expires_at`
-- `lead_custom_fields` — per-tenant field registry (key, label, type, options), used by Question nodes to map answers into `contacts.custom_data jsonb`
-- `flow_scheduled_jobs` — delayed/follow-up queue (run_at, run_id, node_key, payload, status, attempts) — pg_cron polls every minute
-- `flow_logs` — lightweight debug log (already partly covered by `flow_events`, extend if needed)
+**UI rebuild of `/mail`**
+- 3-pane Gmail/Front-style layout: left sidebar (Inboxes + Smart views) · conversation list · thread view + right context drawer
+- Smart views: Assigned to me, Unassigned, Mentions, Starred, Snoozed, Sent, Spam, Resolved, All
+- Filters: status, priority, assignee, inbox, tag, has-attachment, date range, unread
+- Search bar (subject / from / body via Postgres tsvector — add GIN index on `email_messages` body_text)
+- Bulk actions on list: assign, mark read/unread, snooze, label, resolve, spam, delete
+- Thread view: collapsible quoted history, full HTML rendering in sandboxed iframe, inline images, attachment chips with download
+- Reply composer: rich text (Tiptap), attachments, cc/bcc, send-as inbox, insert template, signature toggle, keyboard shortcuts (Cmd+Enter)
+- Right drawer (Customer 360): CRM contact info, past conversations, WhatsApp threads, lead status, internal notes feed, activity timeline
+- Collision indicator: live "Sarah is viewing" / "Sarah is typing" via Supabase Realtime channel per conversation
+- Snooze (until tomorrow, Monday, custom datetime) with cron unsnooze job
+- Keyboard shortcuts panel (`?`): j/k navigate, e archive, # delete, r reply, a assign, l label, s star
+- Mobile-responsive collapse to single-pane
 
-Each table: tenant_id NOT NULL, RLS via `is_tenant_member`, indexes on (tenant_id, flow_id), (status, run_at) where relevant. Add `tenant_settings.flow_engine_enabled boolean default false`.
+**Edge functions added in Phase 2**
+- `email-snooze-worker` (cron every 5 min) — unsnoozes due conversations
+- `resend-inbound` already handles inbound; extend it to mark spam via Resend `email.complained`
 
-## Phase C — Flow JSON Engine (shared lib)
+---
 
-`supabase/functions/_shared/flow-engine.ts` (ESM, esm.sh imports only):
-- `loadPublishedFlow(flowId)` — pulls nodes+edges from `flow_versions.snapshot`
-- `startRun(ctx)` — creates `flow_runs` row, calls `executeNode(startNode)`
-- `executeNode(node, ctx)` — switch on node_type:
-  - `send_message` (text/buttons/list/media/template) → calls existing `send-text-message` / `send-template-message`, respects 24h gate (memory: `messaging-gate-24h`), retries 3× on failure
-  - `question` → sends prompt, sets `contact_flow_state.waiting_for = {node_key, expected_type, validation}`, suspends
-  - `condition` → evaluates IF/ELSE branches (keyword, lead score, country, business hours, agent online)
-  - `assign` → uses existing round-robin function (memory: `round-robin-system`) or specific agent
-  - `delay` → enqueue into `flow_scheduled_jobs` with `run_at = now() + delay`
-  - `webhook_call`, `set_field`, `add_tag`, `end`
-- Loop guard: max 50 node hops per resume; duplicate trigger guard (idempotency key per wamid).
+### Phase 3 — AI + Automations + Templates + Analytics
 
-## Phase D — Trigger Dispatcher
+**Additive migration**
+- `email_automations` (tenant_id, name, trigger jsonb, conditions jsonb, actions jsonb, is_active, run_count)
+- `email_automation_runs` (audit log)
+- `email_ai_suggestions` (conversation_id, kind: reply/summary/sentiment/category, content, model, created_at)
+- `email_sla_policies` (first_response_minutes, resolution_minutes, business_hours)
+- `email_sla_breaches` (conversation_id, type, breached_at)
+- `email_analytics_daily` (materialized: tenant_id, date, inbox_id, volume_in, volume_out, avg_first_response_s, avg_resolution_s, by_agent jsonb)
 
-`flow-trigger-dispatcher` edge function called from:
-- `whatsapp-webhook` (after current handlers, only if no existing handler consumed the message)
-- `meta-leadgen` (on new lead)
-- `qr-scan` endpoint (already built per memory)
-- public `flow-webhook/{flow_id}` (API/website form)
-- manual button in UI → `POST /flows-run-test`
+**AI features (Lovable AI Gateway, default `google/gemini-3-flash-preview`)**
+- `email-ai-suggest-reply` — generates 3 reply drafts based on thread + customer context
+- `email-ai-summarize` — TL;DR of long threads at top of thread view
+- `email-ai-classify` — auto-suggests tags + priority + sentiment on inbound; written to `email_ai_suggestions`
+- `email-ai-translate` — translate inbound to user's language, draft replies in customer's language
+- Composer: "✨ Improve / Shorten / Friendlier / Professional / Translate" actions
 
-Dispatcher matches `flow_triggers` rows (trigger_type, keywords, source filters), checks tenant flag, checks duplicate guard, calls `startRun`.
+**Templates**
+- Full templates UI (list, create/edit, variables `{{contact.name}}`, `{{agent.name}}`, `{{ticket.id}}`)
+- Insert via `/` slash menu in composer, with live variable preview
+- Shared per-tenant vs personal
 
-## Phase E — Resume + Delay Workers
+**Automations engine**
+- `email-automation-runner` edge function fired from `resend-inbound` after a message lands
+- Trigger types: new conversation, new message, status changed, tag added, no response > N hours
+- Conditions: from-domain, subject contains, has attachment, AI sentiment, language
+- Actions: assign (specific / round-robin via existing function), set status / priority / tag, send canned reply, send template, forward, notify user
+- UI: list view, drag-drop rule builder (similar to Form Rules pattern already in the codebase)
 
-- `flow-message-resumer` — called from `whatsapp-webhook` when an inbound message arrives for a contact that has `contact_flow_state` waiting. Validates answer per question schema, writes to `contacts.custom_data` + `lead_custom_fields`, then `executeNode(next)`.
-- `flow-scheduled-worker` — cron every 1 min, picks due `flow_scheduled_jobs`, resumes runs. Auto-stop if contact replied between schedule and run (configurable per delay node).
+**Analytics (`/mail/analytics`)**
+- KPI cards: total volume, response rate, avg first response, avg resolution, SLA compliance, AI-handled
+- Charts: volume over time, by inbox, by agent (resolved/handled/avg response), busiest hours heatmap, top tags
+- Agent leaderboard
+- SLA breach feed
+- Range picker (7/30/90 days), workspace-timezone aware (per project memory)
+- Daily rollup cron `email-analytics-rollup`
 
-## Phase F — Frontend wiring (minimal, no UI rewrite)
+---
 
-- `FlowBuilder.tsx`: ensure publish writes a `flow_versions` snapshot (nodes+edges JSON) and flips `flows.status='published'`. Add Test button that calls `flows-run-test`.
-- `FlowsHub.tsx`: add "Runs" tab per flow → lists `flow_runs` with status, contact, duration; click to see `flow_run_steps` timeline.
-- New page `FlowAnalytics.tsx`: charts from `flow_analytics_daily` (runs, completion rate, drop-off per node, qualified leads).
-- `FlowErrors.tsx` panel in builder header — count + drawer of unresolved `flow_errors`.
+### Order of delivery (one migration per phase, then code in parallel)
 
-## Phase G — Security + Hardening
+1. Phase 2 migration → approve → ship Phase 2 UI + edge functions → I'll pause for you to click around
+2. Phase 3 migration → approve → ship Phase 3 AI + automations + templates + analytics → done
 
-- All new tables RLS via `is_tenant_member` / `is_tenant_admin` for mutations.
-- Webhook signature verified for inbound triggers (HMAC for public webhook trigger).
-- Zod-validate every edge function body.
-- Loop prevention (max hops), retry caps (3), node timeout (30s).
-- ES256 manual JWT verify pattern for any function with `verify_jwt=false` (memory: `es256-edge-function-pattern`).
-
-## Phase H — Testing checklist
-
-Manual end-to-end:
-- Create a flow → Publish → send WA message matching keyword → run starts → question asked → reply saved to `contacts.custom_data` → condition branches → assigned to agent → delay → follow-up sent → end. Verify `flow_runs.status='completed'`, analytics increments, no error rows.
-- Negative: invalid answer → re-prompt; agent offline → overflow; outside 24h → template path; flow disabled → no run; duplicate wamid → single run.
-
-## What is NOT touched
-
-- `automation_*` tables, Form Rules engine, AI auto-reply, Round-Robin function (called, not modified), Meta Ads automations, WhatsApp send functions (called, not modified).
-- Any existing edge function logic — only **additions**.
-
-## Delivery order (one approval gates everything)
-
-1. Migration (Phase B) — needs your approval prompt.
-2. Shared engine + dispatcher + resumer + worker edge functions (Phase C-E).
-3. Frontend Runs/Analytics/Errors panels (Phase F).
-4. Verify with a real test flow.
-
-Reply **"go"** to start with the migration.
+Reply **go** and I'll start with the Phase 2 migration.

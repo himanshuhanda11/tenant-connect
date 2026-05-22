@@ -139,5 +139,27 @@ project_id = "fygwjpdasnhaomoqdvcu"
   [functions.resend-auth-email]
     verify_jwt = false
 
+  [functions.email-snooze-worker]
+    verify_jwt = false
+
+  [functions.email-ai-suggest-reply]
+    verify_jwt = false
+
+  [functions.email-ai-summarize]
+    verify_jwt = false
+
+  [functions.email-ai-classify]
+    verify_jwt = false
+
+  [functions.email-ai-compose]
+    verify_jwt = false
+
+  [functions.email-automation-runner]
+    verify_jwt = false
+
+  [functions.email-analytics-rollup]
+    verify_jwt = false
+
+
 
 
