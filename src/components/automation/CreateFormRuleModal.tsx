@@ -475,6 +475,7 @@ export function CreateFormRuleModal({ open, onOpenChange, editingRule, createRul
       } else {
         await createRule(ruleData);
       }
+      if (formMode === 'builder') refetchSavedForms();
       onSaved?.();
       onOpenChange(false);
     } finally {
