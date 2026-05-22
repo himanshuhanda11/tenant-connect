@@ -1211,7 +1211,7 @@ export function CreateFormRuleModal({ open, onOpenChange, editingRule, createRul
                       <div className="w-6 h-6 rounded-md bg-primary/10 flex items-center justify-center">
                         <FileText className="w-3.5 h-3.5 text-primary" />
                       </div>
-                      <span><strong>Send:</strong> {formMode === 'builder' ? builderFormName || 'Custom Form' : selectedForm?.name || 'Not selected'}</span>
+                      <span><strong>Send:</strong> {formMode === 'builder' ? (builderFormName || 'Custom Form') : formMode === 'saved' ? (savedForms.find(f => f.id === savedFormId)?.name || 'Not selected') : (selectedForm?.name || 'Not selected')}</span>
                     </div>
                     
                     <div className="flex items-center gap-2">
