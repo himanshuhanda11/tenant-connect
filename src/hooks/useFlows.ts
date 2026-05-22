@@ -845,16 +845,26 @@ export function useFlowBuilder(flowId: string | undefined) {
     if (!flowId || !currentTenant?.id) return false;
 
     try {
+      // Anchor loaded nodes BELOW the existing Start node so they don't pile on top of FlowStartPanel
+      const startNode = nodes.find(n => n.node_type === 'start');
+      const anchorX = startNode ? startNode.position_x : 400;
+      const anchorY = startNode ? startNode.position_y + 760 : 800; // FlowStartPanel is ~720px tall
+      const minTemplateY = Math.min(...prebuilt.nodes.map(n => n.position_y));
+      const minTemplateX = Math.min(...prebuilt.nodes.map(n => n.position_x));
+      const offsetY = anchorY - minTemplateY;
+      const offsetX = anchorX - minTemplateX;
+
       const newNodes = prebuilt.nodes.map(n => ({
         tenant_id: currentTenant.id,
         flow_id: flowId,
         node_key: `${n.node_key}_${Date.now()}`,
         node_type: n.node_type,
         label: n.label,
-        position_x: n.position_x,
-        position_y: n.position_y,
+        position_x: n.position_x + offsetX,
+        position_y: n.position_y + offsetY,
         config: n.config,
       }));
+
 
       const { data: insertedNodes, error: nodesErr } = await supabase
         .from('flow_nodes')
