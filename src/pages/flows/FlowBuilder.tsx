@@ -242,6 +242,52 @@ const FlowBuilder = () => {
   const [draggingNode, setDraggingNode] = useState<string | null>(null);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
 
+  // Premium UX state
+  const [paletteSearch, setPaletteSearch] = useState('');
+  const [favorites, setFavorites] = useState<string[]>(() => {
+    try { return JSON.parse(localStorage.getItem('flow-fav-nodes') || '[]'); } catch { return []; }
+  });
+  const isMobile = useIsMobile();
+  const [lastSavedAt, setLastSavedAt] = useState<Date | null>(null);
+
+  const toggleFavorite = useCallback((type: string) => {
+    setFavorites((prev) => {
+      const next = prev.includes(type) ? prev.filter(t => t !== type) : [...prev, type];
+      try { localStorage.setItem('flow-fav-nodes', JSON.stringify(next)); } catch {}
+      return next;
+    });
+  }, []);
+
+  const autoArrange = useCallback(() => {
+    // Simple top-down BFS layout from start node
+    const start = nodes.find(n => n.node_type === 'start');
+    if (!start) return;
+    const adj: Record<string, string[]> = {};
+    edges.forEach(e => { (adj[e.source_node_key] ||= []).push(e.target_node_key); });
+    const levels: Record<string, number> = { [start.node_key]: 0 };
+    const queue = [start.node_key];
+    while (queue.length) {
+      const k = queue.shift()!;
+      (adj[k] || []).forEach(t => {
+        if (levels[t] === undefined) { levels[t] = levels[k] + 1; queue.push(t); }
+      });
+    }
+    // unreached nodes go to bottom
+    const maxLvl = Math.max(0, ...Object.values(levels));
+    nodes.forEach(n => { if (levels[n.node_key] === undefined) levels[n.node_key] = maxLvl + 1; });
+    const byLevel: Record<number, string[]> = {};
+    Object.entries(levels).forEach(([k, l]) => { (byLevel[l] ||= []).push(k); });
+    Object.entries(byLevel).forEach(([lvlStr, keys]) => {
+      const lvl = Number(lvlStr);
+      keys.forEach((k, i) => {
+        const x = 120 + i * 260;
+        const y = 80 + lvl * 180;
+        updateNode(k, { position_x: x, position_y: y });
+      });
+    });
+    toast.success('Auto-arranged');
+  }, [nodes, edges, updateNode]);
+
   useEffect(() => {
     if (flow) {
       setFlowName(flow.name);
