@@ -68,20 +68,40 @@ export function FormPreviewDialog({ open, onOpenChange, templateId, templateName
       toast.error('Enter a phone number first');
       return;
     }
+    if (!currentTenant?.id) {
+      toast.error('No workspace selected');
+      return;
+    }
     setSending(true);
     setSendStatus('idle');
     try {
+      // Fetch the workspace's primary WhatsApp phone_number_id
+      const { data: phoneRow, error: phoneErr } = await (supabase as any)
+        .from('phone_numbers')
+        .select('phone_number_id')
+        .eq('tenant_id', currentTenant.id)
+        .order('created_at', { ascending: true })
+        .limit(1)
+        .maybeSingle();
+      if (phoneErr) throw phoneErr;
+      if (!phoneRow?.phone_number_id) {
+        throw new Error('Connect a WhatsApp number first to send test messages.');
+      }
+
+      const toWaId = testPhone.trim().replace(/[^\d]/g, '');
+
       const { data, error } = await supabase.functions.invoke('send-template-message', {
         body: {
-          tenant_id: currentTenant?.id,
-          to: testPhone.trim(),
+          tenant_id: currentTenant.id,
+          phone_number_id: phoneRow.phone_number_id,
+          to_wa_id: toWaId,
           template_name: template?.name || templateName,
-          language: template?.language || 'en',
-          variables: variables || {},
-          intro_message: introMessage || undefined,
+          template_language: template?.language || 'en',
+          components: [],
         },
       });
       if (error) throw error;
+      if ((data as any)?.error) throw new Error((data as any).error);
       setSendStatus('ok');
       setSendDetail(`Sent. Message ID: ${(data as any)?.message_id || 'queued'}`);
       toast.success('Test message sent');
@@ -93,6 +113,7 @@ export function FormPreviewDialog({ open, onOpenChange, templateId, templateName
       setSending(false);
     }
   };
+
 
   const { header, bodyText, footerText, buttons } = parseComponents(template);
   const filledBody = fillVars(bodyText, variables);
