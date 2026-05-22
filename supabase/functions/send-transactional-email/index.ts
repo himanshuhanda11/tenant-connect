@@ -5,13 +5,12 @@ import { TEMPLATES } from '../_shared/transactional-email-templates/registry.ts'
 
 // Configuration baked in at scaffold time.
 const SITE_NAME = "Aireatro"
-// Internal verified sender route; recipients still see admin@aireatro.com below.
-const SENDER_DOMAIN = "update.aireatro.com"
-// From-domain MUST equal SENDER_DOMAIN for strict SPF + DKIM alignment under
-// the root DMARC p=quarantine policy. Using the root domain causes spam folder.
+// Use the verified aireatro.com domain in Resend.
+const SENDER_DOMAIN = "aireatro.com"
 const FROM_DOMAIN = SENDER_DOMAIN
 const FROM_ADDRESS = `${SITE_NAME} <noreply@${FROM_DOMAIN}>`
 const REPLY_TO_ADDRESS = 'admin@aireatro.com'
+
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -295,10 +294,7 @@ Deno.serve(async (req) => {
       ? template.subject(templateData)
       : template.subject
 
-  // 5. Enqueue the pre-rendered email for async processing by the dispatcher.
-  // The dispatcher (process-email-queue) handles sending, retries, and rate-limit backoff.
-
-  // Log pending BEFORE enqueue so we have a record even if enqueue crashes
+  // 5. Send directly via Resend using the verified aireatro.com domain.
   await supabase.from('email_send_log').insert({
     message_id: messageId,
     template_name: templateName,
@@ -306,53 +302,82 @@ Deno.serve(async (req) => {
     status: 'pending',
   })
 
-  const { error: enqueueError } = await supabase.rpc('enqueue_email', {
-    queue_name: 'transactional_emails',
-    payload: {
-      message_id: messageId,
-      to: effectiveRecipient,
-        from: FROM_ADDRESS,
-      reply_to: REPLY_TO_ADDRESS,
-      sender_domain: SENDER_DOMAIN,
-      subject: resolvedSubject,
-      html,
-      text: plainText,
-      purpose: 'transactional',
-      label: templateName,
-      idempotency_key: idempotencyKey,
-      unsubscribe_token: unsubscribeToken,
-      queued_at: new Date().toISOString(),
-    },
-  })
-
-  if (enqueueError) {
-    console.error('Failed to enqueue email', {
-      error: enqueueError,
-      templateName,
-      effectiveRecipient,
-    })
-
+  const resendApiKey = Deno.env.get('RESEND_API_KEY')
+  if (!resendApiKey) {
     await supabase.from('email_send_log').insert({
       message_id: messageId,
       template_name: templateName,
       recipient_email: effectiveRecipient,
       status: 'failed',
-      error_message: 'Failed to enqueue email',
+      error_message: 'RESEND_API_KEY not configured',
     })
-
-    return new Response(JSON.stringify({ error: 'Failed to enqueue email' }), {
+    return new Response(JSON.stringify({ error: 'RESEND_API_KEY not configured' }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     })
   }
 
-  console.log('Transactional email enqueued', { templateName, effectiveRecipient })
+  try {
+    const resendRes = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${resendApiKey}`,
+      },
+      body: JSON.stringify({
+        from: FROM_ADDRESS,
+        to: [effectiveRecipient],
+        reply_to: REPLY_TO_ADDRESS,
+        subject: resolvedSubject,
+        html,
+        text: plainText,
+        tags: [{ name: 'template', value: templateName.replace(/[^a-zA-Z0-9_-]/g, '_').slice(0, 50) }],
+      }),
+    })
+    const resendBody = await resendRes.json().catch(() => ({}))
 
-  return new Response(
-    JSON.stringify({ success: true, queued: true }),
-    {
-      status: 200,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    if (!resendRes.ok) {
+      const errMsg = (resendBody as { message?: string })?.message || `Resend HTTP ${resendRes.status}`
+      console.error('Resend send failed', { templateName, effectiveRecipient, errMsg, resendBody })
+      await supabase.from('email_send_log').insert({
+        message_id: messageId,
+        template_name: templateName,
+        recipient_email: effectiveRecipient,
+        status: 'failed',
+        error_message: errMsg,
+      })
+      return new Response(JSON.stringify({ error: errMsg }), {
+        status: 502,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
     }
-  )
+
+    await supabase.from('email_send_log').insert({
+      message_id: messageId,
+      template_name: templateName,
+      recipient_email: effectiveRecipient,
+      status: 'sent',
+    })
+
+    console.log('Transactional email sent via Resend', { templateName, effectiveRecipient, id: (resendBody as { id?: string })?.id })
+    return new Response(
+      JSON.stringify({ success: true, sent: true, id: (resendBody as { id?: string })?.id }),
+      { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    )
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e)
+    console.error('Resend send threw', msg)
+    await supabase.from('email_send_log').insert({
+      message_id: messageId,
+      template_name: templateName,
+      recipient_email: effectiveRecipient,
+      status: 'failed',
+      error_message: msg,
+    })
+    return new Response(JSON.stringify({ error: msg }), {
+      status: 500,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    })
+  }
 })
+

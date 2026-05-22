@@ -1,9 +1,10 @@
 import { corsHeaders, json, getAdminClient } from "../_shared/supabase.ts";
 
-// Use the verified sender subdomain for DMARC-aligned delivery.
-const SENDER_DOMAIN = "update.aireatro.com";
-const FROM_ADDRESS = "Aireatro <noreply@update.aireatro.com>";
+// Use the verified aireatro.com domain in Resend.
+const SENDER_DOMAIN = "aireatro.com";
+const FROM_ADDRESS = "Aireatro <noreply@aireatro.com>";
 const REPLY_TO_ADDRESS = "admin@aireatro.com";
+
 
 // Strip diacritics + drop non-ASCII so subject lines never break headers
 function asciiSafe(s: string): string {
@@ -106,42 +107,73 @@ Deno.serve(async (req) => {
         status: "pending",
       });
 
-      const idempotencyKey = `team-email:${type}:${messageId}`;
-
-      const { error: enqErr } = await supabase.rpc("enqueue_email", {
-        queue_name: "transactional_emails",
-        payload: {
-          message_id: messageId,
-          to: recipient,
-          from: FROM_ADDRESS,
-          sender_domain: SENDER_DOMAIN,
-          subject: cleanSubject,
-          html: body,
-          text: body.replace(/<style[\s\S]*?<\/style>/gi, "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim(),
-          purpose: "transactional",
-          label: `team-email:${type}`,
-          idempotency_key: idempotencyKey,
-          unsubscribe_token: unsubToken,
-          reply_to: replyTo || REPLY_TO_ADDRESS,
-          queued_at: new Date().toISOString(),
-        },
-      });
-
-      if (enqErr) {
-        console.error(`enqueue failed → ${recipient}`, enqErr);
+      // Send directly via Resend using the verified aireatro.com domain.
+      const resendApiKey = Deno.env.get("RESEND_API_KEY");
+      if (!resendApiKey) {
         await supabase.from("email_send_log").insert({
           message_id: messageId,
           template_name: `team-email:${type}`,
           recipient_email: recipient,
           status: "failed",
-          error_message: `enqueue failed: ${enqErr.message}`,
+          error_message: "RESEND_API_KEY not configured",
         });
-        return { ok: false, data: { error: enqErr.message } };
+        return { ok: false, data: { error: "RESEND_API_KEY not configured" } };
       }
 
-      console.log(`enqueued → ${recipient} | id=${messageId} | type=${type}`);
-      return { ok: true, data: { id: messageId, queued: true } };
+      try {
+        const resendRes = await fetch("https://api.resend.com/emails", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${resendApiKey}`,
+          },
+          body: JSON.stringify({
+            from: FROM_ADDRESS,
+            to: [recipient],
+            reply_to: replyTo || REPLY_TO_ADDRESS,
+            subject: cleanSubject,
+            html: body,
+            text: body.replace(/<style[\s\S]*?<\/style>/gi, "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim(),
+            tags: [{ name: "team_email_type", value: String(type).replace(/[^a-zA-Z0-9_-]/g, "_").slice(0, 50) }],
+          }),
+        });
+        const resendBody = await resendRes.json().catch(() => ({}));
+
+        if (!resendRes.ok) {
+          const errMsg = (resendBody as { message?: string })?.message || `Resend HTTP ${resendRes.status}`;
+          console.error(`resend send failed → ${recipient}`, errMsg);
+          await supabase.from("email_send_log").insert({
+            message_id: messageId,
+            template_name: `team-email:${type}`,
+            recipient_email: recipient,
+            status: "failed",
+            error_message: errMsg,
+          });
+          return { ok: false, data: { error: errMsg } };
+        }
+
+        await supabase.from("email_send_log").insert({
+          message_id: messageId,
+          template_name: `team-email:${type}`,
+          recipient_email: recipient,
+          status: "sent",
+        });
+        console.log(`resend sent → ${recipient} | id=${messageId} | type=${type}`);
+        return { ok: true, data: { id: (resendBody as { id?: string })?.id || messageId, sent: true } };
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : String(e);
+        console.error(`resend threw → ${recipient}`, msg);
+        await supabase.from("email_send_log").insert({
+          message_id: messageId,
+          template_name: `team-email:${type}`,
+          recipient_email: recipient,
+          status: "failed",
+          error_message: msg,
+        });
+        return { ok: false, data: { error: msg } };
+      }
     };
+
 
     // New customer signup -> send to both customer and admin
     if (type === "signup_welcome") {
