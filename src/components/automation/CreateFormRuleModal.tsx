@@ -67,7 +67,7 @@ import { useTenant } from '@/contexts/TenantContext';
 import { TriggerConfigPanel, isTriggerConfigValid } from '@/components/automation/form-rule/TriggerConfigPanel';
 import { FormPreviewDialog } from '@/components/automation/form-rule/FormPreviewDialog';
 import { useSavedForms } from '@/hooks/useSavedForms';
-import { MessageCircle, LayoutGrid, FolderOpen } from 'lucide-react';
+import { MessageCircle, LayoutGrid, FolderOpen, ExternalLink } from 'lucide-react';
 
 interface CreateFormRuleModalProps {
   open: boolean;
