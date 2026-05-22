@@ -1247,6 +1247,7 @@ const FlowBuilder = () => {
             </ScrollArea>
           </Tabs>
         </div>
+        )}
       </div>
       {/* Modals */}
       <FlowTestModal
