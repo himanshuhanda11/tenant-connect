@@ -100,6 +100,18 @@ export function VoicePlayer({ messageId, url, isOutbound, mediaBucket, mediaPath
     }
   };
 
+  if (!isValid && hasRefreshSource && refreshing && !errored) {
+    return (
+      <div className={cn(
+        'flex items-center gap-3 px-3 py-2.5 rounded-2xl min-w-[240px]',
+        isOutbound ? 'bg-primary-foreground/10' : 'bg-muted/40 border border-border/40'
+      )}>
+        <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+        <span className="text-sm flex-1">Loading voice message…</span>
+      </div>
+    );
+  }
+
   if (!isValid || errored) {
     return (
       <div className={cn(
