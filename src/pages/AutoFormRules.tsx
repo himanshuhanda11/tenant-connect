@@ -120,6 +120,7 @@ export default function AutoFormRules() {
   return (
     <DashboardLayout>
       <QuickGuide {...quickGuides.formRules} className="mb-4" />
+      <div className="px-3 sm:px-6 pt-4"><FormRulesExplainer /></div>
       {autoformsLocked && (
         <UpgradePrompt
           currentPlan={currentPlan}
