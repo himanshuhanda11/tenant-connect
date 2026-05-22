@@ -1,6 +1,7 @@
 import { DocumentPreview } from './DocumentPreview';
 import { ImagePreview } from './ImagePreview';
 import { VideoPreview } from './VideoPreview';
+import { VoicePlayer } from './VoicePlayer';
 import { Music, RefreshCw } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useState } from 'react';
@@ -61,7 +62,15 @@ export function MessageMedia({ message, isOutbound }: MessageMediaProps) {
       );
 
     case 'audio':
-      return <AudioPreview url={media_url || ''} isOutbound={isOutbound} mediaBucket={media_bucket || undefined} mediaPath={media_path || undefined} />;
+      return (
+        <VoicePlayer
+          url={media_url || ''}
+          isOutbound={isOutbound}
+          mediaBucket={media_bucket || undefined}
+          mediaPath={media_path || undefined}
+          fileName={fileName}
+        />
+      );
 
     case 'sticker':
       return <StickerPreview url={media_url || ''} />;

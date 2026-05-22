@@ -78,6 +78,7 @@ import { AIReplySuggestions } from './AIReplySuggestions';
 import { AiDraftBanner } from './AiDraftBanner';
 import { SLATimer } from './SLATimer';
 import { TemplatePicker } from './TemplatePicker';
+import { VoiceRecorder } from './VoiceRecorder';
 import { IntentBadge, SentimentBadge } from './IntentBadge';
 import { MessageMedia } from './media/MessageMedia';
 import { ConversationHealthIndicator, HealthDot } from './ConversationHealthIndicator';
@@ -159,6 +160,7 @@ export function InboxChatThread({
   const [showTemplates, setShowTemplates] = useState(false);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [showAISuggestions, setShowAISuggestions] = useState(false);
+  const [recordingVoice, setRecordingVoice] = useState(false);
   const [aiDraft, setAiDraft] = useState<any>(null);
   const [aiIntent, setAiIntent] = useState<'sales' | 'support' | 'complaint' | 'inquiry' | 'urgent' | 'spam'>('inquiry');
   const [aiHealth, setAiHealth] = useState<'good' | 'warning' | 'critical'>('good');
@@ -1019,6 +1021,14 @@ export function InboxChatThread({
               />
 
               {/* Composer Row */}
+              {recordingVoice ? (
+                <VoiceRecorder
+                  onCancel={() => setRecordingVoice(false)}
+                  onSend={async (file) => {
+                    await Promise.resolve(onSendMessage({ media: file }));
+                  }}
+                />
+              ) : (
               <div className="flex min-w-0 items-end gap-1.5">
                 {/* AI Button - Premium text badge */}
                 <Tooltip>
@@ -1154,8 +1164,11 @@ export function InboxChatThread({
                       : "bg-muted hover:bg-muted/80 text-muted-foreground"
                   )}
                   variant={messageText.trim() ? "default" : "secondary"}
-                  onClick={handleSend}
-                  disabled={!messageText.trim()}
+                  onClick={() => {
+                    if (messageText.trim()) handleSend();
+                    else setRecordingVoice(true);
+                  }}
+                  title={messageText.trim() ? 'Send message' : 'Record voice message'}
                 >
                   {messageText.trim() ? (
                     <Send className="h-[18px] w-[18px]" />
@@ -1164,6 +1177,7 @@ export function InboxChatThread({
                   )}
                 </Button>
               </div>
+              )}
             </>
           )}
         </div>

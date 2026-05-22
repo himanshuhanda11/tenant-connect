@@ -79,7 +79,7 @@ Deno.serve(async (req) => {
     const allowedTypes = [
       'image/jpeg', 'image/png', 'image/gif', 'image/webp',
       'video/mp4', 'video/3gpp',
-      'audio/aac', 'audio/mp4', 'audio/mpeg', 'audio/ogg',
+      'audio/aac', 'audio/mp4', 'audio/mpeg', 'audio/ogg', 'audio/webm', 'audio/amr',
       'application/pdf',
       'application/vnd.ms-excel',
       'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
@@ -87,7 +87,10 @@ Deno.serve(async (req) => {
       'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
     ];
 
-    if (!allowedTypes.includes(file.type)) {
+    // Normalize codec-suffixed mime types like "audio/ogg;codecs=opus"
+    const baseType = (file.type || '').split(';')[0].trim().toLowerCase();
+
+    if (!allowedTypes.includes(baseType)) {
       return new Response(JSON.stringify({ error: `File type ${file.type} not allowed` }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -141,9 +144,9 @@ Deno.serve(async (req) => {
 
     // Determine media type for WhatsApp
     let mediaType = 'document';
-    if (file.type.startsWith('image/')) mediaType = 'image';
-    else if (file.type.startsWith('video/')) mediaType = 'video';
-    else if (file.type.startsWith('audio/')) mediaType = 'audio';
+    if (baseType.startsWith('image/')) mediaType = 'image';
+    else if (baseType.startsWith('video/')) mediaType = 'video';
+    else if (baseType.startsWith('audio/')) mediaType = 'audio';
 
     console.log('Upload successful:', { filePath, mediaType });
 
