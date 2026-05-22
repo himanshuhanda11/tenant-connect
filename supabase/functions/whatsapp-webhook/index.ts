@@ -817,11 +817,18 @@ async function processInboundMessage(
   let hasActiveFormSession = false;
   try {
     const { data: activeSession } = await supabase.from('form_sessions')
-      .select('id').eq('tenant_id', tenantId).eq('contact_id', contactId)
+      .select('id, form_rule_id, form_rules:form_rule_id(is_active)')
+      .eq('tenant_id', tenantId).eq('contact_id', contactId)
       .in('status', ['active', 'review']).gt('expires_at', new Date().toISOString())
       .limit(1).maybeSingle();
-    hasActiveFormSession = !!activeSession;
+    if (activeSession && activeSession.form_rules?.is_active === false) {
+      // Rule has been deactivated — close the orphan session so it stops asking questions
+      await supabase.from('form_sessions').update({ status: 'expired', updated_at: new Date().toISOString() }).eq('id', activeSession.id);
+    } else {
+      hasActiveFormSession = !!activeSession;
+    }
   } catch (e) { /* ignore */ }
+
 
   // Insert message (use plain insert; partial unique index handles dedup)
   const { error: msgError } = await supabase
@@ -2440,10 +2447,16 @@ async function handleActiveFormSession(
   conversationId: string, contactId: string, ev: any
 ): Promise<boolean> {
   const { data: session } = await supabase.from('form_sessions')
-    .select('*').eq('tenant_id', tenantId).eq('contact_id', contactId)
+    .select('*, form_rules:form_rule_id(is_active)').eq('tenant_id', tenantId).eq('contact_id', contactId)
     .in('status', ['active', 'review']).gt('expires_at', new Date().toISOString())
     .order('created_at', { ascending: false }).limit(1).maybeSingle();
   if (!session) return false;
+  if (session.form_rules?.is_active === false) {
+    await supabase.from('form_sessions').update({ status: 'expired', updated_at: new Date().toISOString() }).eq('id', session.id);
+    console.log('Form session skipped — rule deactivated:', session.id);
+    return false;
+  }
+
 
   console.log('Active form session:', session.id, 'field_index:', session.current_field_index);
 
