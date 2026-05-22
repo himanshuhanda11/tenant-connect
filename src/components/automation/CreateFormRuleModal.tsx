@@ -1290,7 +1290,7 @@ export function CreateFormRuleModal({ open, onOpenChange, editingRule, createRul
               <Button 
                 size="sm"
                 onClick={handleSubmit} 
-                disabled={saving || !name.trim() || (formMode === 'template' ? !formId : builderFields.length === 0)}
+                disabled={saving || !name.trim() || !formStepValid()}
                 className="h-9 bg-gradient-to-r from-primary to-primary/80"
               >
                 {savingForm ? 'Saving Form...' : saving ? 'Saving...' : editingRule ? 'Update' : 'Create'}
