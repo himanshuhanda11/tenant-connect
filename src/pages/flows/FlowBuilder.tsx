@@ -507,7 +507,7 @@ const FlowBuilder = () => {
   // ESC cancels connect mode
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && connecting) setConnecting(null);
+      if (e.key === 'Escape' && connecting) { setConnecting(null); setConnectingHandle(null); }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
