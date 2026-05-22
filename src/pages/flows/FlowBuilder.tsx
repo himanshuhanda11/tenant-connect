@@ -797,8 +797,18 @@ const FlowBuilder = () => {
 
           {/* Connection indicator */}
           {connecting && (
-            <div className="absolute top-4 right-4 bg-primary text-primary-foreground px-4 py-2 rounded-lg shadow-lg z-10 animate-pulse">
-              Click on target node to connect
+            <div className="absolute top-4 right-4 bg-primary text-primary-foreground px-4 py-2.5 rounded-xl shadow-lg z-10 flex items-center gap-3">
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full bg-white animate-pulse" />
+                <span className="text-sm font-medium">Click target node to connect</span>
+              </div>
+              <button
+                onClick={() => setConnecting(null)}
+                className="text-xs px-2 py-1 rounded-md bg-white/20 hover:bg-white/30 transition-colors"
+                title="Cancel (Esc)"
+              >
+                ← Back
+              </button>
             </div>
           )}
 
