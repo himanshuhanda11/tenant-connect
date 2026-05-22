@@ -1315,6 +1315,17 @@ const FlowBuilder = () => {
           </DialogContent>
         </Dialog>
       )}
+      <FlowValidationPanel
+        open={validationOpen}
+        onOpenChange={setValidationOpen}
+        issues={flowIssues}
+        publishing={publishing}
+        onPublish={confirmPublish}
+        onFocusNode={(key) => {
+          const node = nodes.find((n: any) => n.node_key === key);
+          if (node) setSelectedNodeId(node.id);
+        }}
+      />
     </div>
   );
 };
