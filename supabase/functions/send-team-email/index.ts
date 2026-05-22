@@ -1,8 +1,9 @@
 import { corsHeaders, json, getAdminClient } from "../_shared/supabase.ts";
 
-// Internal verified sender route; recipients still see admin@aireatro.com below.
+// Use the verified sender subdomain for DMARC-aligned delivery.
 const SENDER_DOMAIN = "update.aireatro.com";
-const FROM_ADDRESS = "Aireatro <admin@aireatro.com>";
+const FROM_ADDRESS = "Aireatro <noreply@update.aireatro.com>";
+const REPLY_TO_ADDRESS = "admin@aireatro.com";
 
 // Strip diacritics + drop non-ASCII so subject lines never break headers
 function asciiSafe(s: string): string {
@@ -121,7 +122,7 @@ Deno.serve(async (req) => {
           label: `team-email:${type}`,
           idempotency_key: idempotencyKey,
           unsubscribe_token: unsubToken,
-          reply_to: replyTo || undefined,
+          reply_to: replyTo || REPLY_TO_ADDRESS,
           queued_at: new Date().toISOString(),
         },
       });
