@@ -382,8 +382,31 @@ const FlowBuilder = () => {
 
     const newNode = await addNode(nodeType, pos);
     if (newNode && sourceKey && sourceKey !== newNode.node_key) {
-      await addEdge(sourceKey, newNode.node_key);
+      await addEdge(sourceKey, newNode.node_key, connectingHandle?.id);
+      if (connectingHandle) {
+        const srcNode = nodes.find(n => n.node_key === sourceKey);
+        if (srcNode?.node_type === 'text-buttons') {
+          const cfg = { ...(srcNode.config || {}) };
+          const btns = Array.isArray(cfg.buttons) ? [...cfg.buttons] : [];
+          const idx = connectingHandle.index;
+          if (btns[idx]) {
+            btns[idx] = typeof btns[idx] === 'string' ? { label: btns[idx], next: newNode.node_key } : { ...btns[idx], next: newNode.node_key };
+            cfg.buttons = btns;
+            await updateNode(sourceKey, { config: cfg });
+          }
+        } else if (srcNode?.node_type === 'list-message') {
+          const cfg = { ...(srcNode.config || {}) };
+          const items = Array.isArray(cfg.items) ? [...cfg.items] : (Array.isArray(cfg.sections) ? [...cfg.sections] : []);
+          const idx = connectingHandle.index;
+          if (items[idx]) {
+            items[idx] = { ...items[idx], next: newNode.node_key };
+            cfg.items = items;
+            await updateNode(sourceKey, { config: cfg });
+          }
+        }
+      }
       setConnecting(null);
+      setConnectingHandle(null);
       toast.success('Node added and connected');
     } else if (newNode) {
       toast.success('Node added — select another node and click again to connect');
