@@ -826,12 +826,33 @@ export function CreateFormRuleModal({ open, onOpenChange, editingRule, createRul
                       </div>
                     </button>
                   </div>
-                  {deliveryMode === 'native_flow' && formMode !== 'template' && (
-                    <div className="p-2.5 rounded-lg bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900 flex gap-2">
-                      <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
-                      <p className="text-[11px] text-amber-800 dark:text-amber-200 leading-snug">
-                        Native pop-up forms require a WhatsApp Flow template registered in Meta Business Manager. Switch source to <strong>WhatsApp Template</strong> below, or pick Conversational.
-                      </p>
+                  {deliveryMode === 'native_flow' && (
+                    <div className="space-y-2">
+                      {formMode !== 'template' && (
+                        <div className="p-2.5 rounded-lg bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900 flex gap-2">
+                          <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                          <p className="text-[11px] text-amber-800 dark:text-amber-200 leading-snug">
+                            Native pop-up forms require a WhatsApp Flow template registered in Meta Business Manager. Switch source to <strong>WhatsApp Template</strong> below, or pick Conversational.
+                          </p>
+                        </div>
+                      )}
+                      <div className="p-3 rounded-lg border border-primary/30 bg-primary/5 flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <p className="text-xs font-semibold text-foreground">Flow setup helper</p>
+                          <p className="text-[11px] text-muted-foreground leading-snug">
+                            Build & publish your WhatsApp Flow in Meta Business Manager, then link it to a UTILITY/MARKETING template.
+                          </p>
+                        </div>
+                        <a
+                          href="https://business.facebook.com/wa/manage/flows/"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-primary text-primary-foreground text-xs font-medium hover:opacity-90 transition-opacity"
+                        >
+                          Open Flow Builder
+                          <ExternalLink className="w-3 h-3" />
+                        </a>
+                      </div>
                     </div>
                   )}
                 </div>
