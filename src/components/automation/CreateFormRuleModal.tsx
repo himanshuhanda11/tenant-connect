@@ -296,11 +296,13 @@ export function CreateFormRuleModal({ open, onOpenChange, editingRule, createRul
     // Validate based on mode
     if (formMode === 'template' && !formId) return;
     if (formMode === 'builder' && (builderFields.length === 0 || !builderFormName.trim())) return;
+    if (formMode === 'saved' && (!savedFormId || !savedVersionId)) return;
 
     setSaving(true);
     try {
-      let finalFormId = formId;
-      let finalVersionId: string | null = editingRule?.form_version_id || null;
+      let finalFormId = formMode === 'saved' ? savedFormId : formId;
+      let finalVersionId: string | null =
+        formMode === 'saved' ? savedVersionId : (editingRule?.form_version_id || null);
 
       // If builder mode, save to forms → form_versions → form_fields
       if (formMode === 'builder' && currentTenant?.id) {
