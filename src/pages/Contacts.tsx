@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef, lazy, Suspense } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { useAuth } from '@/contexts/AuthContext';
 import { useContactsCrmSearch, CrmSearchFilters, DEFAULT_CRM_FILTERS } from '@/hooks/useContactsCrmSearch';
@@ -15,10 +15,14 @@ import { ContactsQuickFilters, type ContactsViewMode, type ContactsQuickFilter }
 import { QuickGuide, quickGuides } from '@/components/help/QuickGuide';
 import { ContactsAdvancedFilters } from '@/components/contacts/ContactsAdvancedFilters';
 import { ContactsTable } from '@/components/contacts/ContactsTable';
-import { ContactDetailDrawer } from '@/components/contacts/ContactDetailDrawer';
 import { ContactsBulkActionsBar } from '@/components/contacts/ContactsBulkActionsBar';
 import { CreateSegmentModal } from '@/components/contacts/CreateSegmentModal';
 import { AddContactModal } from '@/components/contacts/AddContactModal';
+
+// Lazy-load the heavy detail drawer (~834 lines with nested tabs) — perf optimization
+const ContactDetailDrawer = lazy(() =>
+  import('@/components/contacts/ContactDetailDrawer').then((m) => ({ default: m.ContactDetailDrawer }))
+);
 
 export default function Contacts() {
   const { currentTenant } = useTenant();
@@ -63,6 +67,25 @@ export default function Contacts() {
   const [quickFilter, setQuickFilter] = useState<ContactsQuickFilter>('all');
   const [sortMode, setSortMode] = useState<string>('recent');
   const [lastSyncAt, setLastSyncAt] = useState<Date>(new Date());
+
+  // Local-only search input (immediate UI) → debounced into crmFilters.search to avoid
+  // firing a Supabase query per keystroke. Cleans up timer on unmount.
+  const [searchInput, setSearchInput] = useState<string>(crmFilters.search || '');
+  const searchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const handleSearchChange = useCallback((value: string) => {
+    setSearchInput(value);
+    if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
+    searchDebounceRef.current = setTimeout(() => {
+      setCrmFilters((prev) => ({ ...prev, search: value }));
+      setCrmPage(0);
+    }, 300);
+  }, [setCrmFilters, setCrmPage]);
+
+  useEffect(() => () => {
+    if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
+  }, []);
+
 
   // Enrich CRM rows with full contact details (country, source, language, opt-in, etc.)
   useEffect(() => {
@@ -241,24 +264,25 @@ export default function Contacts() {
     resetCrmFilters();
   };
 
-  const handleContactSelect = (contact: Contact) => {
+  const handleContactSelect = useCallback((contact: Contact) => {
     setSelectedContact(contact);
     setDrawerOpen(true);
-  };
+  }, []);
 
-  const toggleContactSelection = (contactId: string) => {
+  const toggleContactSelection = useCallback((contactId: string) => {
     setSelectedContactIds(prev =>
       prev.includes(contactId) ? prev.filter(id => id !== contactId) : [...prev, contactId]
     );
-  };
+  }, []);
 
-  const handleSelectAll = () => {
-    if (contactsForTable.every(c => selectedContactIds.includes(c.id))) {
-      setSelectedContactIds([]);
-    } else {
-      setSelectedContactIds(contactsForTable.map(c => c.id));
-    }
-  };
+  const handleSelectAll = useCallback(() => {
+    setSelectedContactIds(prev => {
+      const allIds = contactsForTable.map(c => c.id);
+      const allSelected = allIds.length > 0 && allIds.every(id => prev.includes(id));
+      return allSelected ? [] : allIds;
+    });
+  }, [contactsForTable]);
+
 
   const handleBulkAddTag = async (tagId: string) => {
     for (const id of selectedContactIds) await addTag(id, tagId);
@@ -399,8 +423,8 @@ export default function Contacts() {
             onExportCsv={handleExport}
             onCreateSegment={() => setShowCreateSegment(true)}
             onAddContact={() => setShowAddContact(true)}
-            searchValue={crmFilters.search}
-            onSearchChange={(v) => { setCrmFilters({ ...crmFilters, search: v }); setCrmPage(0); }}
+            searchValue={searchInput}
+            onSearchChange={handleSearchChange}
           />
 
           <ContactsAnalyticsCards
@@ -466,16 +490,21 @@ export default function Contacts() {
         </div>
 
 
-        <ContactDetailDrawer
-          contact={selectedContact}
-          open={drawerOpen}
-          onClose={() => { setDrawerOpen(false); setSelectedContact(null); }}
-          onUpdate={updateContact}
-          onAddTag={addTag}
-          onRemoveTag={removeTag}
-          onAssignAgent={assignAgent}
-          onDelete={handleDeleteContact}
-        />
+        {/* Drawer is lazy-loaded; only mount once a contact has actually been opened */}
+        {(drawerOpen || selectedContact) && (
+          <Suspense fallback={null}>
+            <ContactDetailDrawer
+              contact={selectedContact}
+              open={drawerOpen}
+              onClose={() => { setDrawerOpen(false); setSelectedContact(null); }}
+              onUpdate={updateContact}
+              onAddTag={addTag}
+              onRemoveTag={removeTag}
+              onAssignAgent={assignAgent}
+              onDelete={handleDeleteContact}
+            />
+          </Suspense>
+        )}
       </div>
 
       <ContactsBulkActionsBar
