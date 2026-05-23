@@ -109,17 +109,6 @@ export function ContactsCrmHeader({
             </div>
           )}
 
-          {onSearchChange && (
-            <div className="relative flex-1 lg:flex-none lg:w-72 min-w-[180px]">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
-              <input
-                value={searchValue ?? ''}
-                onChange={(e) => onSearchChange(e.target.value)}
-                placeholder="Search contacts, phone, tag…"
-                className="w-full h-10 pl-9 pr-3 rounded-xl bg-muted/40 hover:bg-muted/60 focus:bg-card border border-border/60 focus:border-primary/40 focus:ring-2 focus:ring-primary/15 outline-none text-sm transition placeholder:text-muted-foreground/70"
-              />
-            </div>
-          )}
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
