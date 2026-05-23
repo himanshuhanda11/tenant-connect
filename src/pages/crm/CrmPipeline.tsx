@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { CrmLayout } from '@/components/crm/CrmLayout';
+import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Helmet } from 'react-helmet-async';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -115,7 +115,7 @@ export default function CrmPipeline() {
   };
 
   return (
-    <CrmLayout>
+    <DashboardLayout>
       <Helmet><title>Sales CRM · Pipeline · Aireatro</title></Helmet>
 
       {/* Sticky CRM header */}
@@ -300,7 +300,7 @@ export default function CrmPipeline() {
       >
         <Plus className="h-6 w-6" />
       </button>
-    </CrmLayout>
+    </DashboardLayout>
   );
 }
 
