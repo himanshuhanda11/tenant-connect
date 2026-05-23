@@ -97,6 +97,31 @@ export function DealDrawer({ deal, open, onOpenChange, stages, onUpdate, onDelet
                 <InfoRow label="Created" value={formatDistanceToNow(new Date(deal.created_at), { addSuffix: true })} />
               </InfoSection>
 
+              <InfoSection title="Owner">
+                <Select
+                  value={deal.owner_id || 'unassigned'}
+                  onValueChange={(v) => onUpdate(deal.id, { owner_id: v === 'unassigned' ? null : v })}
+                >
+                  <SelectTrigger className="h-9">
+                    <SelectValue placeholder="Unassigned" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="unassigned">
+                      <span className="flex items-center gap-2 text-muted-foreground">
+                        <UserCircle2 className="h-3.5 w-3.5" /> Unassigned
+                      </span>
+                    </SelectItem>
+                    {owners.map(o => (
+                      <SelectItem key={o.id} value={o.id}>
+                        <span className="flex items-center gap-2">
+                          <UserCircle2 className="h-3.5 w-3.5" /> {o.name}
+                        </span>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </InfoSection>
+
               {deal.tags?.length > 0 && (
                 <InfoSection title="Tags">
                   <div className="flex flex-wrap gap-1.5">
@@ -109,10 +134,14 @@ export function DealDrawer({ deal, open, onOpenChange, stages, onUpdate, onDelet
                 <div className="rounded-xl border border-border/60 p-3 flex items-center justify-between">
                   <div>
                     <p className="font-medium text-sm">{deal.company_name || 'No contact linked'}</p>
-                    <p className="text-xs text-muted-foreground">Link contact from Contacts</p>
+                    <p className="text-xs text-muted-foreground">Link from Add Deal dialog</p>
                   </div>
                 </div>
               </InfoSection>
+            </TabsContent>
+
+            <TabsContent value="tasks" className="mt-0">
+              <DealTasksTab dealId={deal.id} />
             </TabsContent>
 
             <TabsContent value="activity" className="mt-0">
