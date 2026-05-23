@@ -64,7 +64,7 @@ export default function Contacts() {
   const [showAddContact, setShowAddContact] = useState(false);
   const [viewCounts, setViewCounts] = useState<Record<string, number>>({});
   const [contactDetailsMap, setContactDetailsMap] = useState<Record<string, Partial<Contact>>>({});
-  const [viewMode, setViewMode] = useState<ContactsViewMode>('table');
+  const [viewMode, setViewMode] = useState<ContactsViewMode>('kanban');
   const [quickFilter, setQuickFilter] = useState<ContactsQuickFilter>('all');
   const [sortMode, setSortMode] = useState<string>('recent');
   const [lastSyncAt, setLastSyncAt] = useState<Date>(new Date());

@@ -183,22 +183,25 @@ export function ContactsAdvancedFilters({
       {/* Row 1: Search + Filter Button + Quick Date */}
       <div className="flex items-center gap-2 flex-wrap">
         {/* Compact Date range — search lives in the page header */}
-        <div className="hidden sm:flex items-center gap-1.5 bg-background border border-border/60 rounded-lg px-2.5 h-9">
+        <div className="hidden sm:flex items-center gap-2 bg-background border border-border/60 rounded-lg px-3 h-9 shadow-sm">
           <Calendar className="h-3.5 w-3.5 text-primary shrink-0" />
+          <span className="text-[11px] font-medium text-muted-foreground">From</span>
           <Input
             type="date"
             value={filters.createdDateFrom || ''}
             onChange={(e) => updateFilter('createdDateFrom', e.target.value || undefined)}
-            className="h-7 border-0 p-0 text-xs w-[120px] bg-transparent focus-visible:ring-0"
+            className="h-7 border-0 p-0 text-xs w-[130px] bg-transparent text-foreground focus-visible:ring-0 [color-scheme:light] dark:[color-scheme:dark]"
           />
-          <span className="text-xs text-muted-foreground">→</span>
+          <span className="text-xs text-muted-foreground px-1">→</span>
+          <span className="text-[11px] font-medium text-muted-foreground">To</span>
           <Input
             type="date"
             value={filters.createdDateTo || ''}
             onChange={(e) => updateFilter('createdDateTo', e.target.value || undefined)}
-            className="h-7 border-0 p-0 text-xs w-[120px] bg-transparent focus-visible:ring-0"
+            className="h-7 border-0 p-0 text-xs w-[130px] bg-transparent text-foreground focus-visible:ring-0 [color-scheme:light] dark:[color-scheme:dark]"
           />
         </div>
+
 
 
         {/* All Filters Popover */}
