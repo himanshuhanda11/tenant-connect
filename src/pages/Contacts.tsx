@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
+import { useAuth } from '@/contexts/AuthContext';
 import { useContactsCrmSearch, CrmSearchFilters, DEFAULT_CRM_FILTERS } from '@/hooks/useContactsCrmSearch';
 import { useContacts } from '@/hooks/useContacts';
 import { useAttributeKeys } from '@/hooks/useContactAttributes';
@@ -21,6 +22,7 @@ import { AddContactModal } from '@/components/contacts/AddContactModal';
 
 export default function Contacts() {
   const { currentTenant } = useTenant();
+  const { user } = useAuth();
 
   // CRM search (primary data source)
   const {
