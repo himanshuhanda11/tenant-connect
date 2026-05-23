@@ -65,7 +65,7 @@ const COLUMNS: Column[] = [
     label: 'Lost / Opted out',
     icon: XCircle,
     accent: 'bg-rose-500',
-    match: (c) => c.opt_out === true || c.lead_status === 'unqualified',
+    match: (c) => c.opt_out === true || c.lead_status === 'lost',
   },
 ];
 
