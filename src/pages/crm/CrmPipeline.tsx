@@ -10,6 +10,8 @@ import { KanbanBoard } from '@/components/crm/KanbanBoard';
 import { DealDrawer } from '@/components/crm/DealDrawer';
 import { AddDealDialog } from '@/components/crm/AddDealDialog';
 import { CrmFiltersBar } from '@/components/crm/CrmFiltersBar';
+import { ActivityView } from '@/components/crm/ActivityView';
+import { ChartView } from '@/components/crm/ChartView';
 import { useDefaultPipeline, usePipelineStages, useDeals, useDealMetrics } from '@/hooks/useCrm';
 import { applyFilters, EMPTY_FILTERS, type CrmFilters } from '@/lib/crmFilters';
 import type { Deal } from '@/types/crm';
