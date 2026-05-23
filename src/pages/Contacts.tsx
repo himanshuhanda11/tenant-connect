@@ -264,24 +264,25 @@ export default function Contacts() {
     resetCrmFilters();
   };
 
-  const handleContactSelect = (contact: Contact) => {
+  const handleContactSelect = useCallback((contact: Contact) => {
     setSelectedContact(contact);
     setDrawerOpen(true);
-  };
+  }, []);
 
-  const toggleContactSelection = (contactId: string) => {
+  const toggleContactSelection = useCallback((contactId: string) => {
     setSelectedContactIds(prev =>
       prev.includes(contactId) ? prev.filter(id => id !== contactId) : [...prev, contactId]
     );
-  };
+  }, []);
 
-  const handleSelectAll = () => {
-    if (contactsForTable.every(c => selectedContactIds.includes(c.id))) {
-      setSelectedContactIds([]);
-    } else {
-      setSelectedContactIds(contactsForTable.map(c => c.id));
-    }
-  };
+  const handleSelectAll = useCallback(() => {
+    setSelectedContactIds(prev => {
+      const allIds = contactsForTable.map(c => c.id);
+      const allSelected = allIds.length > 0 && allIds.every(id => prev.includes(id));
+      return allSelected ? [] : allIds;
+    });
+  }, [contactsForTable]);
+
 
   const handleBulkAddTag = async (tagId: string) => {
     for (const id of selectedContactIds) await addTag(id, tagId);
