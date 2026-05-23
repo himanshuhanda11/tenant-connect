@@ -19,6 +19,7 @@ interface Props {
 export function AddDealDialog({ open, onOpenChange, stages, defaultStageId, pipelineId, onCreate }: Props) {
   const [title, setTitle] = useState('');
   const [company, setCompany] = useState('');
+  const [contact, setContact] = useState<{ id: string; name: string | null; wa_id: string } | null>(null);
   const [value, setValue] = useState('');
   const [currency, setCurrency] = useState('USD');
   const [stageId, setStageId] = useState<string>(defaultStageId || stages[0]?.id || '');
@@ -27,7 +28,7 @@ export function AddDealDialog({ open, onOpenChange, stages, defaultStageId, pipe
 
   useEffect(() => {
     if (open) {
-      setTitle(''); setCompany(''); setValue(''); setPriority('normal');
+      setTitle(''); setCompany(''); setValue(''); setPriority('normal'); setContact(null);
       setStageId(defaultStageId || stages[0]?.id || '');
     }
   }, [open, defaultStageId, stages]);
@@ -37,7 +38,8 @@ export function AddDealDialog({ open, onOpenChange, stages, defaultStageId, pipe
     setSaving(true);
     await onCreate({
       title: title.trim(),
-      company_name: company.trim() || null,
+      company_name: company.trim() || contact?.name || null,
+      contact_id: contact?.id ?? null,
       value: Number(value) || 0,
       currency,
       stage_id: stageId,
