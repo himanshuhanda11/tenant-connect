@@ -4,9 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { useContactSearch } from '@/hooks/useCrmExtras';
-import { Search, User } from 'lucide-react';
+import { ContactPicker } from './ContactPicker';
 import type { PipelineStage, DealPriority } from '@/types/crm';
 
 interface Props {
@@ -21,6 +19,7 @@ interface Props {
 export function AddDealDialog({ open, onOpenChange, stages, defaultStageId, pipelineId, onCreate }: Props) {
   const [title, setTitle] = useState('');
   const [company, setCompany] = useState('');
+  const [contact, setContact] = useState<{ id: string; name: string | null; wa_id: string } | null>(null);
   const [value, setValue] = useState('');
   const [currency, setCurrency] = useState('USD');
   const [stageId, setStageId] = useState<string>(defaultStageId || stages[0]?.id || '');
@@ -29,7 +28,7 @@ export function AddDealDialog({ open, onOpenChange, stages, defaultStageId, pipe
 
   useEffect(() => {
     if (open) {
-      setTitle(''); setCompany(''); setValue(''); setPriority('normal');
+      setTitle(''); setCompany(''); setValue(''); setPriority('normal'); setContact(null);
       setStageId(defaultStageId || stages[0]?.id || '');
     }
   }, [open, defaultStageId, stages]);
@@ -39,7 +38,8 @@ export function AddDealDialog({ open, onOpenChange, stages, defaultStageId, pipe
     setSaving(true);
     await onCreate({
       title: title.trim(),
-      company_name: company.trim() || null,
+      company_name: company.trim() || contact?.name || null,
+      contact_id: contact?.id ?? null,
       value: Number(value) || 0,
       currency,
       stage_id: stageId,
@@ -60,7 +60,11 @@ export function AddDealDialog({ open, onOpenChange, stages, defaultStageId, pipe
             <Input id="d-title" autoFocus value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Acme Corp - WhatsApp API" />
           </div>
           <div className="space-y-1.5">
-            <Label htmlFor="d-company">Company / contact</Label>
+            <Label>Link contact (optional)</Label>
+            <ContactPicker value={contact} onChange={setContact} placeholder="Search WhatsApp contacts..." />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="d-company">Company</Label>
             <Input id="d-company" value={company} onChange={(e) => setCompany(e.target.value)} placeholder="Optional" />
           </div>
           <div className="grid grid-cols-2 gap-3">

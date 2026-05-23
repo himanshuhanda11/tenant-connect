@@ -1,14 +1,18 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { MessageSquare, Phone, Mail, MoreHorizontal, Sparkles, Trash2, Pin, X, TrendingUp, Target, AlertCircle, ListTodo, UserCircle2 } from 'lucide-react';
+import { MessageSquare, Phone, Mail, Sparkles, Trash2, ListTodo, UserCircle2, ExternalLink } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
 import { useDealActivities, useDealNotes } from '@/hooks/useCrm';
 import { useCrmOwners } from '@/hooks/useCrmExtras';
 import { DealTasksTab } from './DealTasksTab';
+import { DealAiInsights } from './DealAiInsights';
+import { ContactPicker } from './ContactPicker';
 import { PRIORITY_META, type Deal, type PipelineStage } from '@/types/crm';
 import { formatDistanceToNow, format } from 'date-fns';
 import { cn } from '@/lib/utils';
@@ -130,13 +134,8 @@ export function DealDrawer({ deal, open, onOpenChange, stages, onUpdate, onDelet
                 </InfoSection>
               )}
 
-              <InfoSection title="Contact">
-                <div className="rounded-xl border border-border/60 p-3 flex items-center justify-between">
-                  <div>
-                    <p className="font-medium text-sm">{deal.company_name || 'No contact linked'}</p>
-                    <p className="text-xs text-muted-foreground">Link from Add Deal dialog</p>
-                  </div>
-                </div>
+              <InfoSection title="Linked contact">
+                <LinkedContact deal={deal} onUpdate={onUpdate} />
               </InfoSection>
             </TabsContent>
 
@@ -200,22 +199,8 @@ export function DealDrawer({ deal, open, onOpenChange, stages, onUpdate, onDelet
               )}
             </TabsContent>
 
-            <TabsContent value="ai" className="mt-0 space-y-3">
-              <div className="rounded-2xl border border-primary/20 bg-gradient-to-br from-primary/5 to-transparent p-4">
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="h-6 w-6 rounded-lg bg-primary/15 text-primary flex items-center justify-center shadow-[0_0_12px_hsl(var(--primary)/0.4)]">
-                    <Sparkles className="h-3.5 w-3.5" />
-                  </span>
-                  <span className="text-xs font-semibold uppercase tracking-wider text-primary">AI Insights</span>
-                  <Badge variant="outline" className="ml-auto text-[10px]">Coming soon</Badge>
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  Lead quality, next-best-action and conversion predictions will appear here once AI is connected.
-                </p>
-              </div>
-              <AiCard icon={Target} label="Lead quality" value="—" />
-              <AiCard icon={TrendingUp} label="Conversion probability" value="—" />
-              <AiCard icon={AlertCircle} label="Risk score" value="—" />
+            <TabsContent value="ai" className="mt-0">
+              <DealAiInsights deal={deal} />
             </TabsContent>
           </div>
 
@@ -269,6 +254,46 @@ function AiCard({ icon: Icon, label, value }: { icon: any; label: string; value:
         <span className="text-sm font-medium">{label}</span>
       </div>
       <span className="text-sm font-semibold text-muted-foreground">{value}</span>
+    </div>
+  );
+}
+
+function LinkedContact({ deal, onUpdate }: { deal: Deal; onUpdate: (id: string, patch: Partial<Deal>) => Promise<boolean> }) {
+  const [contact, setContact] = useState<{ id: string; name: string | null; wa_id: string } | null>(null);
+
+  useEffect(() => {
+    if (!deal.contact_id) { setContact(null); return; }
+    let cancelled = false;
+    supabase
+      .from('contacts')
+      .select('id, name, wa_id')
+      .eq('id', deal.contact_id)
+      .maybeSingle()
+      .then(({ data }) => { if (!cancelled && data) setContact(data as any); });
+    return () => { cancelled = true; };
+  }, [deal.contact_id]);
+
+  return (
+    <div className="space-y-2">
+      <ContactPicker
+        value={contact}
+        onChange={async (c) => {
+          setContact(c);
+          await onUpdate(deal.id, { contact_id: c?.id ?? null });
+        }}
+      />
+      {contact && (
+        <Link
+          to={`/inbox?contact=${contact.id}`}
+          className="flex items-center justify-between gap-2 rounded-xl border border-border/60 bg-card hover:bg-muted/40 px-3 py-2.5 transition group"
+        >
+          <div className="min-w-0">
+            <p className="text-sm font-medium truncate">{contact.name || 'Unnamed'}</p>
+            <p className="text-xs text-muted-foreground truncate">{contact.wa_id}</p>
+          </div>
+          <ExternalLink className="h-3.5 w-3.5 text-muted-foreground group-hover:text-foreground shrink-0" />
+        </Link>
+      )}
     </div>
   );
 }
