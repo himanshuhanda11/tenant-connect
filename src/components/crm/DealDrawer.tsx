@@ -25,6 +25,7 @@ interface Props {
 export function DealDrawer({ deal, open, onOpenChange, stages, onUpdate, onDelete }: Props) {
   const { activities } = useDealActivities(deal?.id ?? null);
   const { notes, addNote, deleteNote } = useDealNotes(deal?.id ?? null);
+  const { owners } = useCrmOwners();
   const [noteInput, setNoteInput] = useState('');
 
   if (!deal) return null;
