@@ -507,6 +507,11 @@ export default function Contacts() {
           </div>
 
           <div className="px-4 md:px-8 pb-6 pt-4">
+            <div className="mb-4 flex flex-col gap-3 rounded-2xl border border-border/60 bg-card/90 px-3 py-3 shadow-sm sm:flex-row sm:items-center sm:justify-between sm:px-4">
+              <div className="text-sm text-muted-foreground">{paginationSummary}</div>
+              {paginationControls}
+            </div>
+
             {viewMode === 'kanban' ? (
               <>
                 <ContactsKanbanView
@@ -517,34 +522,8 @@ export default function Contacts() {
                   selectedContactId={selectedContact?.id}
                 />
                 <div className="mt-4 flex flex-col gap-3 rounded-2xl border border-border/60 bg-card/90 px-3 py-3 shadow-sm sm:flex-row sm:items-center sm:justify-between sm:px-4">
-                  <div className="text-sm text-muted-foreground">
-                    Showing <span className="font-semibold text-foreground tabular-nums">{pageStart.toLocaleString()}</span>–<span className="font-semibold text-foreground tabular-nums">{pageEnd.toLocaleString()}</span> of <span className="font-semibold text-foreground tabular-nums">{totalCount.toLocaleString()}</span> contacts
-                  </div>
-                  <div className="flex items-center justify-between gap-2 sm:justify-end">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="h-9 gap-1.5 rounded-lg"
-                      onClick={() => handleCrmPageChange(crmPage - 1)}
-                      disabled={crmPage <= 0 || crmLoading}
-                    >
-                      <ChevronLeft className="h-4 w-4" />
-                      Previous
-                    </Button>
-                    <div className="min-w-[92px] text-center text-xs font-semibold text-foreground tabular-nums">
-                      Page {crmPage + 1} / {totalPages}
-                    </div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="h-9 gap-1.5 rounded-lg"
-                      onClick={() => handleCrmPageChange(crmPage + 1)}
-                      disabled={crmPage >= totalPages - 1 || crmLoading}
-                    >
-                      Next
-                      <ChevronRight className="h-4 w-4" />
-                    </Button>
-                  </div>
+                  <div className="text-sm text-muted-foreground">{paginationSummary}</div>
+                  {paginationControls}
                 </div>
               </>
             ) : (
