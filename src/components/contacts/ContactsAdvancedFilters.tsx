@@ -182,51 +182,24 @@ export function ContactsAdvancedFilters({
     <div className="space-y-3 px-3 sm:px-6 py-3 sm:py-4 border-b bg-muted/30">
       {/* Row 1: Search + Filter Button + Quick Date */}
       <div className="flex items-center gap-2 flex-wrap">
-        {/* Search */}
-        <div className="relative flex-1 min-w-[180px] max-w-md">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        {/* Compact Date range — search lives in the page header */}
+        <div className="hidden sm:flex items-center gap-1.5 bg-background border border-border/60 rounded-lg px-2.5 h-9">
+          <Calendar className="h-3.5 w-3.5 text-primary shrink-0" />
           <Input
-            placeholder="Search name, phone, tag..."
-            value={filters.search || ''}
-            onChange={(e) => updateFilter('search', e.target.value || undefined)}
-            className="pl-9 h-9 bg-background border-muted-foreground/20 focus:border-primary transition-colors text-sm"
+            type="date"
+            value={filters.createdDateFrom || ''}
+            onChange={(e) => updateFilter('createdDateFrom', e.target.value || undefined)}
+            className="h-7 border-0 p-0 text-xs w-[120px] bg-transparent focus-visible:ring-0"
           />
-          {filters.search && (
-            <Button
-              variant="ghost"
-              size="icon"
-              className="absolute right-1 top-1/2 -translate-y-1/2 h-6 w-6 hover:bg-muted"
-              onClick={() => updateFilter('search', undefined)}
-            >
-              <X className="h-3 w-3" />
-            </Button>
-          )}
+          <span className="text-xs text-muted-foreground">→</span>
+          <Input
+            type="date"
+            value={filters.createdDateTo || ''}
+            onChange={(e) => updateFilter('createdDateTo', e.target.value || undefined)}
+            className="h-7 border-0 p-0 text-xs w-[120px] bg-transparent focus-visible:ring-0"
+          />
         </div>
 
-        {/* Inline Date Filters */}
-        <div className="hidden sm:flex items-center gap-2">
-          <div className="flex items-center gap-2 bg-background border rounded-lg px-3 h-9">
-            <Calendar className="h-4 w-4 text-primary shrink-0" />
-            <span className="text-xs text-muted-foreground whitespace-nowrap">From</span>
-            <Input
-              type="date"
-              value={filters.createdDateFrom || ''}
-              onChange={(e) => updateFilter('createdDateFrom', e.target.value || undefined)}
-              className="h-7 border-0 p-0 text-xs w-[130px] bg-transparent focus-visible:ring-0"
-            />
-          </div>
-          <span className="text-xs text-muted-foreground font-medium">→</span>
-          <div className="flex items-center gap-2 bg-background border rounded-lg px-3 h-9">
-            <Calendar className="h-4 w-4 text-primary shrink-0" />
-            <span className="text-xs text-muted-foreground whitespace-nowrap">To</span>
-            <Input
-              type="date"
-              value={filters.createdDateTo || ''}
-              onChange={(e) => updateFilter('createdDateTo', e.target.value || undefined)}
-              className="h-7 border-0 p-0 text-xs w-[130px] bg-transparent focus-visible:ring-0"
-            />
-          </div>
-        </div>
 
         {/* All Filters Popover */}
         <Popover open={showAddFilter} onOpenChange={setShowAddFilter}>

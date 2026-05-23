@@ -112,7 +112,7 @@ export function ContactsCrmHeader({
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" className="h-10 rounded-xl gap-1.5 border-border/60 hover:border-border hover:bg-muted/50">
+              <Button variant="outline" size="sm" className="h-9 rounded-lg gap-1.5 border-border/60 hover:border-border hover:bg-muted/50">
                 <Upload className="h-3.5 w-3.5" /> <span className="hidden sm:inline">Import</span> <ChevronDown className="h-3 w-3 opacity-60" />
               </Button>
             </DropdownMenuTrigger>
@@ -128,7 +128,7 @@ export function ContactsCrmHeader({
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" className="h-10 rounded-xl gap-1.5 border-border/60 hover:border-border hover:bg-muted/50">
+              <Button variant="outline" size="sm" className="h-9 rounded-lg gap-1.5 border-border/60 hover:border-border hover:bg-muted/50">
                 <Download className="h-3.5 w-3.5" /> <span className="hidden sm:inline">Export</span> <ChevronDown className="h-3 w-3 opacity-60" />
               </Button>
             </DropdownMenuTrigger>
@@ -145,7 +145,7 @@ export function ContactsCrmHeader({
           <Button
             variant="outline"
             size="sm"
-            className="h-10 rounded-xl gap-1.5 border-border/60 hover:border-border hover:bg-muted/50"
+            className="h-9 rounded-lg gap-1.5 border-border/60 hover:border-border hover:bg-muted/50"
             onClick={onCreateSegment}
           >
             <ListPlus className="h-3.5 w-3.5" />
@@ -156,7 +156,7 @@ export function ContactsCrmHeader({
             size="sm"
             onClick={onAddContact}
             className={cn(
-              'h-10 px-4 rounded-xl gap-1.5 font-semibold',
+              'h-9 px-3.5 rounded-lg gap-1.5 font-semibold',
               'bg-gradient-to-br from-emerald-500 to-emerald-600 hover:from-emerald-500 hover:to-emerald-600',
               'text-white shadow-[0_4px_16px_-4px_hsl(152_60%_40%/0.5)] hover:shadow-[0_6px_20px_-4px_hsl(152_60%_40%/0.65)]',
               'hover:-translate-y-[1px] transition-all'
