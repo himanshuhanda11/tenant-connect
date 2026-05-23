@@ -806,8 +806,34 @@ export function ContactDetailDrawer({
             </TabsContent>
           </ScrollArea>
         </Tabs>
+
+        {/* Sticky quick-actions footer */}
+        <div className="relative shrink-0 border-t border-border/60 bg-card/95 backdrop-blur px-4 py-3">
+          <div className="pointer-events-none absolute -top-4 inset-x-0 h-4 bg-gradient-to-t from-card to-transparent" />
+          <div className="grid grid-cols-5 gap-1.5">
+            {[
+              { id: 'chat', label: 'Chat', icon: MessageSquare, onClick: () => toast.info('Opening chat...') },
+              { id: 'template', label: 'Template', icon: Zap, onClick: () => toast.info('Send template') },
+              { id: 'note', label: 'Note', icon: Plus, onClick: () => setActiveTab('details') },
+              { id: 'task', label: 'Task', icon: CheckCircle2, onClick: () => toast.info('Create task') },
+              { id: 'reminder', label: 'Remind', icon: Clock, onClick: () => toast.info('Set reminder') },
+            ].map(({ id, label, icon: Icon, onClick }) => (
+              <button
+                key={id}
+                onClick={onClick}
+                className="group flex flex-col items-center justify-center gap-1 h-14 rounded-xl bg-muted/40 hover:bg-emerald-500/10 hover:text-emerald-700 border border-transparent hover:border-emerald-500/20 transition-all hover:-translate-y-0.5"
+              >
+                <Icon className="h-4 w-4 text-muted-foreground group-hover:text-emerald-600 transition-colors" />
+                <span className="text-[10px] font-medium text-muted-foreground group-hover:text-emerald-700 transition-colors">
+                  {label}
+                </span>
+              </button>
+            ))}
+          </div>
+        </div>
       </SheetContent>
     </Sheet>
+
 
       {/* Delete Confirmation */}
       <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
