@@ -409,12 +409,13 @@ export default function Contacts() {
 
   return (
     <DashboardLayout>
-      <div className="flex flex-col h-[calc(100vh-4rem)] relative bg-muted/20">
+      <div className="flex flex-col min-h-[calc(100vh-4rem)] relative bg-muted/20">
         {/* Ambient workspace gradient */}
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,hsl(var(--primary)/0.06),transparent_55%)]" />
 
-        {/* Main Content */}
-        <div className="relative flex-1 flex flex-col min-w-0 overflow-hidden">
+        {/* Main Content — page scrolls naturally; only the CRM header is sticky */}
+        <div className="relative flex-1 flex flex-col min-w-0">
+
 
           <ContactsCrmHeader
             totalCount={totalCount}
@@ -460,7 +461,7 @@ export default function Contacts() {
             />
           </div>
 
-          <div className="flex-1 overflow-auto px-4 md:px-8 pb-6 pt-4">
+          <div className="px-4 md:px-8 pb-6 pt-4">
             {viewMode === 'kanban' ? (
               <ContactsKanbanView
                 contacts={visibleContacts}

@@ -131,7 +131,7 @@ export function ContactsKanbanView({
               </div>
 
               {/* Cards */}
-              <div className="flex-1 overflow-y-auto p-2 space-y-2 max-h-[calc(100vh-22rem)]">
+              <div className="flex-1 p-2 space-y-2">
                 {loading && items.length === 0 ? (
                   <>
                     <Skeleton className="h-20 w-full rounded-xl" />
