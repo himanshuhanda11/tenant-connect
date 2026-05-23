@@ -134,13 +134,8 @@ export function DealDrawer({ deal, open, onOpenChange, stages, onUpdate, onDelet
                 </InfoSection>
               )}
 
-              <InfoSection title="Contact">
-                <div className="rounded-xl border border-border/60 p-3 flex items-center justify-between">
-                  <div>
-                    <p className="font-medium text-sm">{deal.company_name || 'No contact linked'}</p>
-                    <p className="text-xs text-muted-foreground">Link from Add Deal dialog</p>
-                  </div>
-                </div>
+              <InfoSection title="Linked contact">
+                <LinkedContact deal={deal} onUpdate={onUpdate} />
               </InfoSection>
             </TabsContent>
 
