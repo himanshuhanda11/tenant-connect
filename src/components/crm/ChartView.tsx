@@ -162,6 +162,58 @@ export function ChartView({ deals, stages, currency }: Props) {
           </AreaChart>
         </ResponsiveContainer>
       </ChartCard>
+
+      <ChartCard title="Stage conversion rate" subtitle="% of deals that progressed past each stage">
+        <div className="space-y-2.5 p-1">
+          {stageConversion.length === 0 ? (
+            <p className="text-xs text-muted-foreground text-center py-6">No stages yet.</p>
+          ) : stageConversion.map((s) => (
+            <div key={s.name} className="flex items-center gap-3">
+              <div className="flex items-center gap-2 w-32 shrink-0 min-w-0">
+                <span className="h-2 w-2 rounded-full shrink-0" style={{ background: s.color }} />
+                <span className="text-xs font-medium truncate">{s.name}</span>
+              </div>
+              <div className="flex-1 h-2 rounded-full bg-muted overflow-hidden">
+                <div className="h-full rounded-full transition-all" style={{ width: `${s.rate}%`, background: s.color }} />
+              </div>
+              <div className="w-20 text-right text-xs tabular-nums">
+                <span className="font-semibold">{s.rate}%</span>
+                <span className="text-muted-foreground"> ({s.advanced}/{s.entered})</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </ChartCard>
+
+      <ChartCard title="Owner workload" subtitle="Top owners by deal count">
+        {ownerWorkload.length === 0 ? (
+          <p className="text-xs text-muted-foreground text-center py-6">No deals assigned yet.</p>
+        ) : (
+          <div className="space-y-2">
+            {ownerWorkload.map((o) => {
+              const total = o.open + o.won;
+              const max = Math.max(...ownerWorkload.map(x => x.open + x.won), 1);
+              return (
+                <div key={o.name} className="flex items-center gap-3">
+                  <div className="w-32 shrink-0 min-w-0">
+                    <div className="text-xs font-medium truncate">{o.name}</div>
+                    <div className="text-[10px] text-muted-foreground tabular-nums">{fmt(o.value)} open</div>
+                  </div>
+                  <div className="flex-1 h-6 rounded-md bg-muted overflow-hidden flex">
+                    <div className="h-full bg-blue-500/70 transition-all" style={{ width: `${(o.open / max) * 100}%` }} title={`${o.open} open`} />
+                    <div className="h-full bg-emerald-500/70 transition-all" style={{ width: `${(o.won / max) * 100}%` }} title={`${o.won} won`} />
+                  </div>
+                  <div className="w-14 text-right text-xs font-semibold tabular-nums">{total}</div>
+                </div>
+              );
+            })}
+            <div className="flex items-center gap-4 pt-2 text-[10px] text-muted-foreground">
+              <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-sm bg-blue-500/70" /> Open</span>
+              <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-sm bg-emerald-500/70" /> Won</span>
+            </div>
+          </div>
+        )}
+      </ChartCard>
     </div>
   );
 }
