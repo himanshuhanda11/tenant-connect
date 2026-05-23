@@ -258,6 +258,46 @@ function AiCard({ icon: Icon, label, value }: { icon: any; label: string; value:
   );
 }
 
+function LinkedContact({ deal, onUpdate }: { deal: Deal; onUpdate: (id: string, patch: Partial<Deal>) => Promise<boolean> }) {
+  const [contact, setContact] = useState<{ id: string; name: string | null; wa_id: string } | null>(null);
+
+  useEffect(() => {
+    if (!deal.contact_id) { setContact(null); return; }
+    let cancelled = false;
+    supabase
+      .from('contacts')
+      .select('id, name, wa_id')
+      .eq('id', deal.contact_id)
+      .maybeSingle()
+      .then(({ data }) => { if (!cancelled && data) setContact(data as any); });
+    return () => { cancelled = true; };
+  }, [deal.contact_id]);
+
+  return (
+    <div className="space-y-2">
+      <ContactPicker
+        value={contact}
+        onChange={async (c) => {
+          setContact(c);
+          await onUpdate(deal.id, { contact_id: c?.id ?? null });
+        }}
+      />
+      {contact && (
+        <Link
+          to={`/inbox?contact=${contact.id}`}
+          className="flex items-center justify-between gap-2 rounded-xl border border-border/60 bg-card hover:bg-muted/40 px-3 py-2.5 transition group"
+        >
+          <div className="min-w-0">
+            <p className="text-sm font-medium truncate">{contact.name || 'Unnamed'}</p>
+            <p className="text-xs text-muted-foreground truncate">{contact.wa_id}</p>
+          </div>
+          <ExternalLink className="h-3.5 w-3.5 text-muted-foreground group-hover:text-foreground shrink-0" />
+        </Link>
+      )}
+    </div>
+  );
+}
+
 function EmptyState({ text }: { text: string }) {
   return <div className="text-center py-10 text-sm text-muted-foreground/70">{text}</div>;
 }
