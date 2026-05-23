@@ -19,6 +19,8 @@ import { ContactsBulkActionsBar } from '@/components/contacts/ContactsBulkAction
 import { CreateSegmentModal } from '@/components/contacts/CreateSegmentModal';
 import { AddContactModal } from '@/components/contacts/AddContactModal';
 import { ContactsKanbanView } from '@/components/contacts/ContactsKanbanView';
+import { Button } from '@/components/ui/button';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 // Lazy-load the heavy detail drawer (~834 lines with nested tabs) — perf optimization
 const ContactDetailDrawer = lazy(() =>
@@ -355,6 +357,17 @@ export default function Contacts() {
   };
 
   const totalCount = crmTotalCount;
+  const totalPages = Math.max(1, Math.ceil(totalCount / crmPageSize));
+  const pageStart = totalCount === 0 ? 0 : crmPage * crmPageSize + 1;
+  const pageEnd = Math.min((crmPage + 1) * crmPageSize, totalCount);
+
+  const handleCrmPageChange = (nextPage: number) => {
+    const clamped = Math.min(Math.max(nextPage, 0), totalPages - 1);
+    if (clamped === crmPage) return;
+    setSelectedContactIds([]);
+    setCrmPage(clamped);
+    window.requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: 'smooth' }));
+  };
 
   // ---- Quick-filter (client-side, applied to current page) ----
   const visibleContacts = useMemo(() => {
