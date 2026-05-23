@@ -191,51 +191,59 @@ export function ContactDetailDrawer({
   return (
     <>
     <Sheet open={open} onOpenChange={() => onClose()}>
-      <SheetContent className="w-full sm:max-w-xl p-0 flex flex-col">
-        {/* Header */}
-        <SheetHeader className="p-6 pb-4 border-b shrink-0">
-          <div className="flex items-start gap-4">
-            <Avatar className="h-16 w-16">
-              <AvatarImage src={contact.profile_picture_url || undefined} />
-              <AvatarFallback className="bg-primary/10 text-primary text-xl font-medium">
-                {getInitials(contact.name, contact.wa_id)}
-              </AvatarFallback>
-            </Avatar>
+      <SheetContent className="w-full sm:max-w-2xl p-0 flex flex-col bg-gradient-to-b from-card to-background border-l border-border/60">
+        {/* Premium gradient header */}
+        <SheetHeader className="relative p-6 pb-5 shrink-0 overflow-hidden">
+          {/* Ambient gradient backdrop */}
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-primary/10 via-emerald-500/5 to-transparent" />
+          <div className="pointer-events-none absolute -top-16 -right-16 h-48 w-48 rounded-full bg-emerald-500/20 blur-3xl" />
+
+          <div className="relative flex items-start gap-4">
+            <div className="relative shrink-0">
+              <div className="absolute inset-0 rounded-full bg-gradient-to-br from-emerald-400/40 to-primary/30 blur-md" />
+              <Avatar className="relative h-16 w-16 ring-2 ring-card shadow-lg">
+                <AvatarImage src={contact.profile_picture_url || undefined} />
+                <AvatarFallback className="bg-gradient-to-br from-primary/20 to-emerald-500/15 text-primary text-xl font-semibold">
+                  {getInitials(contact.name, contact.wa_id)}
+                </AvatarFallback>
+              </Avatar>
+              <span className="absolute -bottom-0.5 -right-0.5 h-3.5 w-3.5 rounded-full bg-emerald-500 ring-2 ring-card" />
+            </div>
             <div className="flex-1 min-w-0">
-              <SheetTitle className="text-xl truncate">
+              <SheetTitle className="text-xl font-bold tracking-tight truncate">
                 {contact.name || contact.first_name || 'Unknown Contact'}
               </SheetTitle>
-              <div className="flex items-center gap-2 mt-1 text-muted-foreground">
-                <Phone className="h-4 w-4" />
-                <span>+{contact.wa_id}</span>
+              <div className="flex items-center gap-1.5 mt-1 text-sm text-muted-foreground">
+                <Phone className="h-3.5 w-3.5" />
+                <span className="tabular-nums">+{contact.wa_id}</span>
               </div>
-              <div className="flex flex-wrap gap-2 mt-3">
+              <div className="flex flex-wrap gap-1.5 mt-3">
                 {contact.opt_in_status && (
-                  <Badge variant="secondary" className="bg-green-100 text-green-700">
+                  <Badge variant="secondary" className="bg-emerald-500/10 text-emerald-700 border border-emerald-500/20 rounded-full text-[10px] font-semibold">
                     <ShieldCheck className="h-3 w-3 mr-1" />
                     Opted In
                   </Badge>
                 )}
                 {contact.opt_out && (
-                  <Badge variant="secondary" className="bg-red-100 text-red-700">
+                  <Badge variant="secondary" className="bg-rose-500/10 text-rose-700 border border-rose-500/20 rounded-full text-[10px] font-semibold">
                     <ShieldAlert className="h-3 w-3 mr-1" />
                     Opted Out
                   </Badge>
                 )}
                 {contact.blocked_by_user && (
-                  <Badge variant="secondary" className="bg-red-100 text-red-700">
+                  <Badge variant="secondary" className="bg-rose-500/10 text-rose-700 border border-rose-500/20 rounded-full text-[10px] font-semibold">
                     <Ban className="h-3 w-3 mr-1" />
                     Blocked
                   </Badge>
                 )}
                 {contact.intervened && (
-                  <Badge variant="secondary" className="bg-blue-100 text-blue-700">
+                  <Badge variant="secondary" className="bg-sky-500/10 text-sky-700 border border-sky-500/20 rounded-full text-[10px] font-semibold">
                     <UserCheck className="h-3 w-3 mr-1" />
                     Human Intervened
                   </Badge>
                 )}
                 {contact.bot_handled && !contact.intervened && (
-                  <Badge variant="secondary" className="bg-purple-100 text-purple-700">
+                  <Badge variant="secondary" className="bg-violet-500/10 text-violet-700 border border-violet-500/20 rounded-full text-[10px] font-semibold">
                     <Bot className="h-3 w-3 mr-1" />
                     Bot Handled
                   </Badge>
@@ -247,28 +255,27 @@ export function ContactDetailDrawer({
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col min-h-0">
-          <TabsList className="mx-6 mt-4 shrink-0 grid grid-cols-5 w-auto">
-            <TabsTrigger value="overview" className="flex items-center gap-1 text-xs px-2">
-              <User className="h-3.5 w-3.5" />
-              Overview
-            </TabsTrigger>
-            <TabsTrigger value="insights" className="flex items-center gap-1 text-xs px-2">
-              <Sparkles className="h-3.5 w-3.5" />
-              Insights
-            </TabsTrigger>
-            <TabsTrigger value="lifecycle" className="flex items-center gap-1 text-xs px-2">
-              <GitBranch className="h-3.5 w-3.5" />
-              Lifecycle
-            </TabsTrigger>
-            <TabsTrigger value="details" className="flex items-center gap-1 text-xs px-2">
-              <Settings className="h-3.5 w-3.5" />
-              Details
-            </TabsTrigger>
-            <TabsTrigger value="timeline" className="flex items-center gap-1 text-xs px-2">
-              <History className="h-3.5 w-3.5" />
-              Activity
-            </TabsTrigger>
-          </TabsList>
+          <div className="px-6 pt-3 shrink-0 border-b border-border/40">
+            <TabsList className="bg-transparent p-0 h-auto gap-1 w-full justify-start rounded-none">
+              {[
+                { id: 'overview', label: 'Overview', icon: User },
+                { id: 'insights', label: 'Insights', icon: Sparkles },
+                { id: 'lifecycle', label: 'Lifecycle', icon: GitBranch },
+                { id: 'details', label: 'Details', icon: Settings },
+                { id: 'timeline', label: 'Activity', icon: History },
+              ].map(({ id, label, icon: Icon }) => (
+                <TabsTrigger
+                  key={id}
+                  value={id}
+                  className="relative flex items-center gap-1.5 text-xs font-medium px-3 h-9 rounded-none border-0 bg-transparent text-muted-foreground hover:text-foreground data-[state=active]:text-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-primary after:scale-x-0 data-[state=active]:after:scale-x-100 after:transition-transform after:rounded-full"
+                >
+                  <Icon className="h-3.5 w-3.5" />
+                  {label}
+                </TabsTrigger>
+              ))}
+            </TabsList>
+          </div>
+
 
           <ScrollArea className="flex-1 px-6 py-4">
             {/* Overview Tab */}
