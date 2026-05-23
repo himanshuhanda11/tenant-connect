@@ -50,7 +50,7 @@ export function ChartView({ deals, stages, currency }: Props) {
 
   // Per-stage conversion: % of deals reaching this stage that progressed past it (or won)
   const stageConversion = useMemo(() => {
-    const ordered = [...stages].sort((a, b) => (a.position ?? 0) - (b.position ?? 0));
+    const ordered = [...stages].sort((a, b) => (a.stage_order ?? 0) - (b.stage_order ?? 0));
     const stageIndex: Record<string, number> = {};
     ordered.forEach((s, i) => { stageIndex[s.id] = i; });
     return ordered.map((s, i) => {
@@ -75,8 +75,8 @@ export function ChartView({ deals, stages, currency }: Props) {
     const map = new Map<string, { name: string; open: number; won: number; value: number }>();
     deals.forEach(d => {
       const key = d.owner_id || '__unassigned__';
-      const owner = owners.find(o => o.user_id === d.owner_id);
-      const name = d.owner_id ? (owner?.full_name || owner?.email || 'Member') : 'Unassigned';
+      const owner = owners.find(o => o.id === d.owner_id);
+      const name = d.owner_id ? (owner?.name || owner?.email || 'Member') : 'Unassigned';
       const entry = map.get(key) || { name, open: 0, won: 0, value: 0 };
       if (d.status === 'open') { entry.open += 1; entry.value += Number(d.value || 0); }
       if (d.status === 'won') entry.won += 1;
