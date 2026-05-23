@@ -121,7 +121,7 @@ export function useContactsCrmSearch() {
         (supabase as any).rpc('contacts_crm_search', params),
         supabase
           .from('contacts')
-          .select('id', { count: 'estimated', head: true })
+          .select('id', { count: 'exact', head: true })
           .eq('tenant_id', currentTenant.id),
       ]);
 
