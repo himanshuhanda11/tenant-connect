@@ -199,22 +199,8 @@ export function DealDrawer({ deal, open, onOpenChange, stages, onUpdate, onDelet
               )}
             </TabsContent>
 
-            <TabsContent value="ai" className="mt-0 space-y-3">
-              <div className="rounded-2xl border border-primary/20 bg-gradient-to-br from-primary/5 to-transparent p-4">
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="h-6 w-6 rounded-lg bg-primary/15 text-primary flex items-center justify-center shadow-[0_0_12px_hsl(var(--primary)/0.4)]">
-                    <Sparkles className="h-3.5 w-3.5" />
-                  </span>
-                  <span className="text-xs font-semibold uppercase tracking-wider text-primary">AI Insights</span>
-                  <Badge variant="outline" className="ml-auto text-[10px]">Coming soon</Badge>
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  Lead quality, next-best-action and conversion predictions will appear here once AI is connected.
-                </p>
-              </div>
-              <AiCard icon={Target} label="Lead quality" value="—" />
-              <AiCard icon={TrendingUp} label="Conversion probability" value="—" />
-              <AiCard icon={AlertCircle} label="Risk score" value="—" />
+            <TabsContent value="ai" className="mt-0">
+              <DealAiInsights deal={deal} />
             </TabsContent>
           </div>
 
