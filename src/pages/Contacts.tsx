@@ -422,8 +422,8 @@ export default function Contacts() {
             onExportCsv={handleExport}
             onCreateSegment={() => setShowCreateSegment(true)}
             onAddContact={() => setShowAddContact(true)}
-            searchValue={crmFilters.search}
-            onSearchChange={(v) => { setCrmFilters({ ...crmFilters, search: v }); setCrmPage(0); }}
+            searchValue={searchInput}
+            onSearchChange={handleSearchChange}
           />
 
           <ContactsAnalyticsCards
