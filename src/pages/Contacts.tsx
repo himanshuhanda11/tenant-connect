@@ -384,9 +384,12 @@ export default function Contacts() {
 
   return (
     <DashboardLayout>
-      <div className="flex flex-col h-[calc(100vh-4rem)]">
+      <div className="flex flex-col h-[calc(100vh-4rem)] relative bg-muted/20">
+        {/* Ambient workspace gradient */}
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,hsl(var(--primary)/0.06),transparent_55%)]" />
+
         {/* Main Content */}
-        <div className="flex-1 flex flex-col min-w-0 overflow-hidden bg-muted/10">
+        <div className="relative flex-1 flex flex-col min-w-0 overflow-hidden">
 
           <ContactsCrmHeader
             totalCount={totalCount}
@@ -396,6 +399,8 @@ export default function Contacts() {
             onExportCsv={handleExport}
             onCreateSegment={() => setShowCreateSegment(true)}
             onAddContact={() => setShowAddContact(true)}
+            searchValue={crmFilters.search}
+            onSearchChange={(v) => { setCrmFilters({ ...crmFilters, search: v }); setCrmPage(0); }}
           />
 
           <ContactsAnalyticsCards
@@ -416,41 +421,45 @@ export default function Contacts() {
             onSortChange={setSortMode}
           />
 
-          <ContactsAdvancedFilters
-            filters={currentFilters}
-            onFiltersChange={handleFiltersChange}
-            onSaveAsSegment={() => setShowCreateSegment(true)}
-            onReset={resetCrmFilters}
-            availableTags={availableTags}
-            availableAgents={availableAgents}
-            attributeKeys={attributeKeys}
-            sources={['facebook', 'website', 'qr', 'api', 'manual']}
-            countries={[]}
-          />
+          <div className="px-4 md:px-8">
+            <ContactsAdvancedFilters
+              filters={currentFilters}
+              onFiltersChange={handleFiltersChange}
+              onSaveAsSegment={() => setShowCreateSegment(true)}
+              onReset={resetCrmFilters}
+              availableTags={availableTags}
+              availableAgents={availableAgents}
+              attributeKeys={attributeKeys}
+              sources={['facebook', 'website', 'qr', 'api', 'manual']}
+              countries={[]}
+            />
+          </div>
 
-          <div className="flex-1 overflow-auto">
+          <div className="flex-1 overflow-auto px-4 md:px-8 pb-6 pt-4">
             {viewMode === 'kanban' ? (
-              <div className="m-4 rounded-2xl border border-dashed border-border/60 p-12 text-center text-sm text-muted-foreground">
+              <div className="rounded-2xl border border-dashed border-border/60 bg-card/50 p-12 text-center text-sm text-muted-foreground">
                 Kanban view is coming in the next step. Use Table or Compact for now.
               </div>
             ) : (
-              <ContactsTable
-                contacts={visibleContacts}
-                loading={crmLoading}
-                totalCount={quickFilter === 'all' ? totalCount : visibleContacts.length}
-                page={crmPage + 1}
-                pageSize={crmPageSize}
-                onPageChange={(p) => setCrmPage(p - 1)}
-                onSelectContact={handleContactSelect}
-                selectedContactId={selectedContact?.id}
-                selectedContactIds={selectedContactIds}
-                onToggleSelection={toggleContactSelection}
-                onSelectAll={handleSelectAll}
-                inboxSummaries={inboxSummaries}
-              />
+              <div className="rounded-2xl border border-border/60 bg-card shadow-[0_1px_2px_rgba(0,0,0,0.04)] overflow-hidden">
+                <ContactsTable
+                  contacts={visibleContacts}
+                  loading={crmLoading}
+                  totalCount={quickFilter === 'all' ? totalCount : visibleContacts.length}
+                  page={crmPage + 1}
+                  pageSize={crmPageSize}
+                  onPageChange={(p) => setCrmPage(p - 1)}
+                  onSelectContact={handleContactSelect}
+                  selectedContactId={selectedContact?.id}
+                  selectedContactIds={selectedContactIds}
+                  onToggleSelection={toggleContactSelection}
+                  onSelectAll={handleSelectAll}
+                  inboxSummaries={inboxSummaries}
+                />
+              </div>
             )}
 
-            <div className="hidden md:block px-4 pb-4">
+            <div className="hidden md:block pt-4">
               <QuickGuide {...quickGuides.contacts} />
             </div>
           </div>
