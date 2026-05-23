@@ -1,15 +1,17 @@
-import { useState } from 'react';
-import { DashboardLayout } from '@/components/layout/DashboardLayout';
+import { useState, useMemo } from 'react';
+import { CrmLayout } from '@/components/crm/CrmLayout';
 import { Helmet } from 'react-helmet-async';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Plus, Search, RefreshCw, LayoutGrid, Table as TableIcon, Activity, BarChart3, Filter, Sparkles } from 'lucide-react';
+import { Plus, Search, RefreshCw, LayoutGrid, Table as TableIcon, Activity, BarChart3, Sparkles, ChevronDown, Wallet } from 'lucide-react';
 import { CrmStatCards } from '@/components/crm/CrmStatCards';
 import { KanbanBoard } from '@/components/crm/KanbanBoard';
 import { DealDrawer } from '@/components/crm/DealDrawer';
 import { AddDealDialog } from '@/components/crm/AddDealDialog';
+import { CrmFiltersBar } from '@/components/crm/CrmFiltersBar';
 import { useDefaultPipeline, usePipelineStages, useDeals, useDealMetrics } from '@/hooks/useCrm';
+import { applyFilters, EMPTY_FILTERS, type CrmFilters } from '@/lib/crmFilters';
 import type { Deal } from '@/types/crm';
 import { cn } from '@/lib/utils';
 
@@ -22,61 +24,63 @@ export default function CrmPipeline() {
   const metrics = useDealMetrics(deals);
 
   const [view, setView] = useState<ViewMode>('kanban');
-  const [search, setSearch] = useState('');
+  const [filters, setFilters] = useState<CrmFilters>(EMPTY_FILTERS);
   const [selected, setSelected] = useState<Deal | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [addOpen, setAddOpen] = useState(false);
   const [addStageId, setAddStageId] = useState<string | null>(null);
 
-  const filtered = deals.filter(d => {
-    if (!search.trim()) return true;
-    const q = search.toLowerCase();
-    return d.title.toLowerCase().includes(q) ||
-           (d.company_name || '').toLowerCase().includes(q) ||
-           d.tags.some(t => t.toLowerCase().includes(q));
-  });
+  const allTags = useMemo(() => Array.from(new Set(deals.flatMap(d => d.tags))).sort(), [deals]);
+  const allSources = useMemo(
+    () => Array.from(new Set(deals.map(d => d.lead_source).filter(Boolean) as string[])).sort(),
+    [deals]
+  );
+
+  const filtered = useMemo(() => applyFilters(deals, filters), [deals, filters]);
 
   const loading = pLoading || sLoading;
   const currency = deals[0]?.currency || 'USD';
+  const fmt = (n: number) =>
+    new Intl.NumberFormat(undefined, { style: 'currency', currency, maximumFractionDigits: 0 }).format(n);
 
   return (
-    <DashboardLayout>
+    <CrmLayout>
       <Helmet><title>Sales CRM · Pipeline · Aireatro</title></Helmet>
 
-      <div className="space-y-4 p-3 sm:p-4 md:p-6">
-        {/* Header */}
-        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-          <div className="min-w-0">
-            <div className="flex items-center gap-2 flex-wrap">
-              <h1 className="text-xl sm:text-2xl font-bold tracking-tight">Sales Pipeline</h1>
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-primary/10 text-primary text-[10px] font-semibold uppercase tracking-wider">
-                <Sparkles className="h-2.5 w-2.5" /> Beta
-              </span>
+      {/* Sticky CRM header */}
+      <header className="sticky top-0 z-20 bg-card/95 backdrop-blur border-b border-border/60">
+        <div className="px-4 md:px-6 py-3 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex items-center gap-3 min-w-0">
+            <button className="group flex items-center gap-1.5 min-w-0">
+              <h1 className="text-base md:text-lg font-bold truncate">Sales Pipeline</h1>
+              <ChevronDown className="h-3.5 w-3.5 text-muted-foreground group-hover:text-foreground transition" />
+            </button>
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-primary/10 text-primary text-[10px] font-semibold uppercase tracking-wider">
+              <Sparkles className="h-2.5 w-2.5" /> Beta
+            </span>
+            <div className="hidden md:flex items-center gap-3 pl-3 ml-1 border-l border-border/60 text-xs">
+              <span className="text-muted-foreground"><span className="font-semibold text-foreground tabular-nums">{metrics.open}</span> open</span>
+              <span className="text-muted-foreground flex items-center gap-1"><Wallet className="h-3 w-3" /> <span className="font-semibold text-foreground tabular-nums">{fmt(metrics.value)}</span></span>
             </div>
-            <p className="text-sm text-muted-foreground mt-0.5">
-              {metrics.open} open · {new Intl.NumberFormat(undefined, { style: 'currency', currency, maximumFractionDigits: 0 }).format(metrics.value)} in pipeline
-            </p>
           </div>
 
           <div className="flex items-center gap-2 flex-wrap">
             <div className="relative flex-1 lg:flex-initial lg:w-64">
               <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search deals, contacts..."
-                className="pl-8 h-9 bg-card"
+                value={filters.search}
+                onChange={(e) => setFilters({ ...filters, search: e.target.value })}
+                placeholder="Search deals, contacts, tags..."
+                className="pl-8 h-9 bg-background"
               />
             </div>
             <Button variant="outline" size="icon" className="h-9 w-9" onClick={refetch} aria-label="Refresh">
               <RefreshCw className={cn('h-4 w-4', (loading || dLoading) && 'animate-spin')} />
             </Button>
-            <Button variant="outline" size="sm" className="h-9 gap-1.5">
-              <Filter className="h-3.5 w-3.5" /> Filters
-            </Button>
+            <CrmFiltersBar filters={filters} onChange={setFilters} allTags={allTags} allSources={allSources} />
             <Button
               size="sm"
-              className="h-9 gap-1.5 bg-primary text-primary-foreground shadow-sm hover:shadow-md"
+              className="h-9 gap-1.5 bg-primary text-primary-foreground shadow-sm hover:shadow-md hover:shadow-primary/30"
               onClick={() => { setAddStageId(null); setAddOpen(true); }}
               disabled={!pipelineId || stages.length === 0}
             >
@@ -84,7 +88,9 @@ export default function CrmPipeline() {
             </Button>
           </div>
         </div>
+      </header>
 
+      <div className="space-y-4 p-3 sm:p-4 md:p-6">
         {/* Stats */}
         {loading ? (
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
@@ -115,7 +121,7 @@ export default function CrmPipeline() {
               </button>
             ))}
           </div>
-          <span className="text-xs text-muted-foreground">{filtered.length} deals</span>
+          <span className="text-xs text-muted-foreground">{filtered.length} of {deals.length} deals</span>
         </div>
 
         {/* Body */}
@@ -155,7 +161,16 @@ export default function CrmPipeline() {
           onCreate={createDeal}
         />
       )}
-    </DashboardLayout>
+
+      {/* Mobile floating add */}
+      <button
+        className="md:hidden fixed right-4 bottom-20 z-30 h-14 w-14 rounded-full bg-primary text-primary-foreground shadow-lg shadow-primary/40 flex items-center justify-center active:scale-95 transition"
+        onClick={() => { setAddStageId(null); setAddOpen(true); }}
+        aria-label="Add deal"
+      >
+        <Plus className="h-6 w-6" />
+      </button>
+    </CrmLayout>
   );
 }
 
