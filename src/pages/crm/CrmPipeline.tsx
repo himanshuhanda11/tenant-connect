@@ -325,7 +325,7 @@ function TableView({
             <tr>
               <th className="px-3 py-2.5 w-10">
                 <Checkbox
-                  checked={allChecked || (someChecked && 'indeterminate')}
+                  checked={allChecked ? true : someChecked ? 'indeterminate' : false}
                   onCheckedChange={onToggleAll}
                   aria-label="Select all"
                 />
